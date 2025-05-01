@@ -36,7 +36,7 @@ services:
       - "${REDIS_PORT}:${REDIS_PORT}"
 
   redisinsight:
-    image: redislabs/redisinsight:latest
+    image: redis/redisinsight:latest
     container_name: redisinsight
     restart: always
     ports:
