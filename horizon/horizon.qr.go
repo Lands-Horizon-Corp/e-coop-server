@@ -1,7 +1,7 @@
 package horizon
 
-type HorizonQr struct{}
+type HorizonQR struct{}
 
-func NewHorizonQr() (*HorizonQr, error) {
-	return &HorizonQr{}, nil
+func NewHorizonQR() (*HorizonQR, error) {
+	return &HorizonQR{}, nil
 }

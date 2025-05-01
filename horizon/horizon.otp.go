@@ -1,7 +1,7 @@
 package horizon
 
-type HorizonOtp struct{}
+type HorizonOTP struct{}
 
-func NewHorizonOtp() (*HorizonOtp, error) {
-	return &HorizonOtp{}, nil
+func NewHorizonOTP() (*HorizonOTP, error) {
+	return &HorizonOTP{}, nil
 }
