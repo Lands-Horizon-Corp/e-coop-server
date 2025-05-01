@@ -7,11 +7,8 @@ import (
 
 func main() {
 	app := fx.New(
-		// reusable modules
 		horizon.Modules,
-
-		// app creation
-		// app creat
 	)
+
 	app.Run()
 }
