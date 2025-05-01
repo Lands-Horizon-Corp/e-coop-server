@@ -20,4 +20,7 @@ var Modules = fx.Module(
 		NewHorizonSMTP,
 		NewHorizonStorage,
 	),
+	fx.Invoke(func(hr *HorizonRequest) {
+		hr.Run()
+	}),
 )
