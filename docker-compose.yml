@@ -1,0 +1,11 @@
+version: "3.7"
+services:
+  app:
+    build: .
+    image: hot-reloading-app
+    ports:
+      - "8080:8080" # Web Server
+    volumes:
+      - ./:/app
+    environment:
+      PORT: "8080"
