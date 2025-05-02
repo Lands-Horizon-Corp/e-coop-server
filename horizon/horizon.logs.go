@@ -7,109 +7,139 @@ import (
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-type HorizonLog struct {
-	loggers map[string]*zap.Logger
-	config  *HorizonConfig
+// Category represents a logging category.
+type Category string
+
+const (
+	CategoryAuthentication Category = "authentication"
+	CategoryBroadcast      Category = "broadcast"
+	CategoryCache          Category = "cache"
+	CategoryDatabase       Category = "database"
+	CategoryOTP            Category = "otp"
+	CategoryQR             Category = "qr"
+	CategoryRequest        Category = "request"
+	CategorySchedule       Category = "schedule"
+	CategorySecurity       Category = "security"
+	CategorySMS            Category = "sms"
+	CategorySMTP           Category = "smtp"
+	CategoryStorage        Category = "storage"
+	CategoryTerminal       Category = "terminal"
+)
+
+// LogLevels defines default per-category log levels (used if none provided in config)
+var LogLevels = map[Category]string{
+	CategoryAuthentication: "info",
+	CategoryBroadcast:      "info",
+	CategoryCache:          "info",
+	CategoryDatabase:       "info",
+	CategoryOTP:            "info",
+	CategoryQR:             "info",
+	CategoryRequest:        "info",
+	CategorySchedule:       "info",
+	CategorySecurity:       "info",
+	CategorySMS:            "info",
+	CategorySMTP:           "info",
+	CategoryStorage:        "info",
+	CategoryTerminal:       "info",
 }
 
+// LogLevel represents the severity level for logging.
+type LogLevel int
+
+const (
+	LevelInfo LogLevel = iota
+	LevelDebug
+	LevelWarn
+	LevelError
+	LevelPanic
+	LevelFatal
+)
+
+// String returns the string representation of the LogLevel.
+func (l LogLevel) String() string {
+	switch l {
+	case LevelDebug:
+		return "debug"
+	case LevelWarn:
+		return "warn"
+	case LevelError:
+		return "error"
+	case LevelPanic:
+		return "panic"
+	case LevelFatal:
+		return "fatal"
+	default:
+		return "info"
+	}
+}
+
+// LogEntry represents a single log invocation.
+type LogEntry struct {
+	Category Category    // which logger category to use
+	Level    LogLevel    // severity of the log
+	Message  string      // message to log
+	Fields   []zap.Field // optional structured data
+}
+
+// HorizonLog manages loggers per category.
+type HorizonLog struct {
+	loggers  map[Category]*zap.Logger
+	fallback *zap.Logger
+	config   *HorizonConfig
+}
+
+// NewHorizonLog initializes HorizonLog with the given config.
+// If config.LogLevels is nil, the package-level LogLevels will be used.
 func NewHorizonLog(config *HorizonConfig) (*HorizonLog, error) {
+
+	// Fallback logger includes caller info
+	fallbackEncoderCfg := zap.NewProductionEncoderConfig()
+	fallbackEncoderCfg.TimeKey = "timestamp"
+	fallbackEncoderCfg.CallerKey = "caller"
+	fallbackEncoderCfg.EncodeTime = zapcore.ISO8601TimeEncoder
+	fallbackEncoderCfg.EncodeCaller = zapcore.ShortCallerEncoder
+
+	fallbackCore := zapcore.NewCore(
+		zapcore.NewJSONEncoder(fallbackEncoderCfg),
+		zapcore.AddSync(os.Stdout),
+		zapcore.ErrorLevel,
+	)
+	fallback := zap.New(fallbackCore, zap.AddCaller(), zap.AddCallerSkip(1)).With(
+		zap.String("app", config.AppName),
+	)
+
 	return &HorizonLog{
-		loggers: make(map[string]*zap.Logger),
-		config:  config,
+		loggers:  make(map[Category]*zap.Logger),
+		fallback: fallback,
+		config:   config,
 	}, nil
 }
 
+// Run sets up loggers for each category in the config.
 func (hl *HorizonLog) Run() error {
-	categories := []string{
-		"authentication", "broadcast", "cache", "database", "otp",
-		"qr", "request", "schedule", "security", "sms", "smtp",
-		"storage", "terminal",
+	categories := []Category{
+		CategoryAuthentication, CategoryBroadcast, CategoryCache,
+		CategoryDatabase, CategoryOTP, CategoryQR,
+		CategoryRequest, CategorySchedule, CategorySecurity,
+		CategorySMS, CategorySMTP, CategoryStorage,
+		CategoryTerminal,
 	}
-	loggers, err := hl.categories(hl.config.AppLog, categories)
+	loggers, err := hl.setupCategories(hl.config.AppLog, categories)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to initialize loggers: %w", err)
 	}
+
 	hl.loggers = loggers
+	hl.loggers["default"] = hl.fallback
 	return nil
 }
 
-func (hl *HorizonLog) LogAuthentication(message, level string, fields ...zap.Field) {
-	hl.logAsync("authentication", level, message, fields...)
-}
-
-func (hl *HorizonLog) LogBroadcast(message, level string, fields ...zap.Field) {
-	hl.logAsync("broadcast", level, message, fields...)
-}
-
-func (hl *HorizonLog) LogCache(message, level string, fields ...zap.Field) {
-	hl.logAsync("cache", level, message, fields...)
-}
-
-func (hl *HorizonLog) LogDatabase(message, level string, fields ...zap.Field) {
-	hl.logAsync("database", level, message, fields...)
-}
-
-func (hl *HorizonLog) LogOTP(message, level string, fields ...zap.Field) {
-	hl.logAsync("otp", level, message, fields...)
-}
-
-func (hl *HorizonLog) LogQR(message, level string, fields ...zap.Field) {
-	hl.logAsync("qr", level, message, fields...)
-}
-
-func (hl *HorizonLog) LogRequest(message, level string, fields ...zap.Field) {
-	hl.logAsync("request", level, message, fields...)
-}
-
-func (hl *HorizonLog) LogSchedule(message, level string, fields ...zap.Field) {
-	hl.logAsync("schedule", level, message, fields...)
-}
-
-func (hl *HorizonLog) LogSecurity(message, level string, fields ...zap.Field) {
-	hl.logAsync("security", level, message, fields...)
-}
-
-func (hl *HorizonLog) LogSMS(message, level string, fields ...zap.Field) {
-	hl.logAsync("sms", level, message, fields...)
-}
-
-func (hl *HorizonLog) LogSMTP(message, level string, fields ...zap.Field) {
-	hl.logAsync("smtp", level, message, fields...)
-}
-
-func (hl *HorizonLog) LogStorage(message, level string, fields ...zap.Field) {
-	hl.logAsync("storage", level, message, fields...)
-}
-
-func (hl *HorizonLog) LogTerminal(message, level string, fields ...zap.Field) {
-	hl.logAsync("terminal", level, message, fields...)
-}
-
-func (hl *HorizonLog) logAsync(category, level string, message string, fields ...zap.Field) {
-	go func() {
-		if logger, ok := hl.loggers[category]; ok {
-			switch level {
-			case "info":
-				logger.Info(message, fields...)
-			case "error":
-				logger.Error(message, fields...)
-			case "warn":
-				logger.Warn(message, fields...)
-			case "debug":
-				logger.Debug(message, fields...)
-			default:
-				logger.Info(message, fields...)
-			}
-		} else {
-			fmt.Printf("No logger found for category: %s\n", category)
-		}
-	}()
-}
-
-func (hl *HorizonLog) categories(logDir string, cats []string) (map[string]*zap.Logger, error) {
-	loggers := make(map[string]*zap.Logger, len(cats))
+// setupCategories creates a zap.Logger for each category using lumberjack for rotation.
+func (hl *HorizonLog) setupCategories(logDir string, cats []Category) (map[Category]*zap.Logger, error) {
+	loggers := make(map[Category]*zap.Logger, len(cats))
 	for _, category := range cats {
 		logger, err := hl.newCategoryLogger(logDir, category)
 		if err != nil {
@@ -120,29 +150,74 @@ func (hl *HorizonLog) categories(logDir string, cats []string) (map[string]*zap.
 	return loggers, nil
 }
 
-func (hl *HorizonLog) newCategoryLogger(logDir, category string) (*zap.Logger, error) {
+// newCategoryLogger builds a logger for a single category with rotation, console output, and caller info.
+func (hl *HorizonLog) newCategoryLogger(logDir string, category Category) (*zap.Logger, error) {
 	if err := os.MkdirAll(logDir, os.ModePerm); err != nil {
 		return nil, err
 	}
 
-	filePath := filepath.Join(logDir, category+".log")
-	file, err := os.OpenFile(filePath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
-	if err != nil {
-		return nil, err
+	filePath := filepath.Join(logDir, string(category)+".log")
+	rotator := &lumberjack.Logger{
+		Filename:   filePath,
+		MaxSize:    100,
+		MaxBackups: 5,
+		MaxAge:     28,
+		Compress:   true,
 	}
 
-	writeSyncer := zapcore.AddSync(file)
+	writeSyncer := zapcore.AddSync(rotator)
+	consoleSyncer := zapcore.AddSync(os.Stdout)
 
-	encoderConfig := zap.NewProductionEncoderConfig()
-	encoderConfig.TimeKey = "timestamp"
-	encoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+	encCfg := zap.NewProductionEncoderConfig()
+	encCfg.TimeKey = "timestamp"
+	encCfg.CallerKey = "caller"
+	encCfg.EncodeTime = zapcore.ISO8601TimeEncoder
+	encCfg.EncodeCaller = zapcore.ShortCallerEncoder
 
-	core := zapcore.NewCore(
-		zapcore.NewJSONEncoder(encoderConfig),
-		writeSyncer,
-		zapcore.InfoLevel, // Change this based on your desired default level
+	// Determine per-category log level
+	level := zapcore.InfoLevel
+	if lvlStr, ok := LogLevels[category]; ok {
+		if parsed, err := zapcore.ParseLevel(lvlStr); err == nil {
+			level = parsed
+		}
+	}
+
+	jsonCore := zapcore.NewCore(zapcore.NewJSONEncoder(encCfg), writeSyncer, level)
+	consoleCore := zapcore.NewCore(zapcore.NewConsoleEncoder(encCfg), consoleSyncer, level)
+	core := zapcore.NewTee(jsonCore, consoleCore)
+
+	logger := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1)).With(
+		zap.String("app", hl.config.AppName),
+		zap.String("category", string(category)),
 	)
-
-	logger := zap.New(core)
 	return logger, nil
+}
+
+// Log sends a LogEntry to the appropriate category at its level.
+func (hl *HorizonLog) Log(entry LogEntry) {
+	logger, ok := hl.loggers[entry.Category]
+	if !ok {
+		logger = hl.loggers["default"]
+	}
+	switch entry.Level {
+	case LevelDebug:
+		logger.Debug(entry.Message, entry.Fields...)
+	case LevelWarn:
+		logger.Warn(entry.Message, entry.Fields...)
+	case LevelError:
+		logger.Error(entry.Message, entry.Fields...)
+	case LevelPanic:
+		logger.Panic(entry.Message, entry.Fields...)
+	case LevelFatal:
+		logger.Fatal(entry.Message, entry.Fields...)
+	default:
+		logger.Info(entry.Message, entry.Fields...)
+	}
+}
+
+// Close gracefully flushes all loggers.
+func (hl *HorizonLog) Close() {
+	for _, logger := range hl.loggers {
+		_ = logger.Sync()
+	}
 }

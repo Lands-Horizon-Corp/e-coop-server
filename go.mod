@@ -21,4 +21,5 @@ require (
 	golang.org/x/sys v0.28.0 // indirect
 	golang.org/x/text v0.24.0 // indirect
 	golang.org/x/time v0.8.0
+	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 )

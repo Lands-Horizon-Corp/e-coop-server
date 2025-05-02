@@ -45,7 +45,6 @@ func NewHorizonRequest(
 			"http://0.0.0.0:4173",
 			"http://0.0.0.0:8080",
 
-			// Client Docker
 			"http://client",
 			"http://client:80",
 			"http://client:3000",
@@ -53,7 +52,6 @@ func NewHorizonRequest(
 			"http://client:4173",
 			"http://client:8080",
 
-			// Localhost
 			"http://localhost:",
 			"http://localhost:80",
 			"http://localhost:3000",
@@ -83,47 +81,54 @@ func NewHorizonRequest(
 		MaxAge:           60,
 	}))
 
-	// Rate limiter
 	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(rate.Limit(20))))
 
-	// Block suspicious URLs
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			path := strings.ToLower(c.Request().URL.Path)
 			for _, bad := range suspiciousPaths {
 				if strings.Contains(path, bad) {
-					// Log the suspicious access attempt
-					log.LogSecurity(fmt.Sprintf("Suspicious path accessed: %s", path), "warn")
+					log.Log(LogEntry{
+						Category: CategorySecurity,
+						Level:    LevelWarn,
+						Message:  fmt.Sprintf("Suspicious path accessed: %s", path),
+					})
 					return c.String(http.StatusForbidden, "Blocked suspicious path")
 				}
 			}
-			// Log the request
-			log.LogRequest(fmt.Sprintf("Incoming request: %s %s", c.Request().Method, c.Request().URL.Path), "info")
+			log.Log(LogEntry{
+				Category: CategoryRequest,
+				Level:    LevelInfo,
+				Message:  fmt.Sprintf("Incoming request: %s %s", c.Request().Method, path),
+			})
 			return next(c)
 		}
 	})
 
-	// Health check
 	e.GET("/health", func(c echo.Context) error {
-		// Log health check request
-		log.LogRequest("Health check request", "info")
+		log.Log(LogEntry{
+			Category: CategoryRequest,
+			Level:    LevelInfo,
+			Message:  "Health check request",
+		})
 		return c.String(200, "OK")
 	})
 
 	return &HorizonRequest{
 		Service: e,
-		Log:     log, // Set the logger
+		Log:     log,
 		config:  config,
 	}, nil
 }
 
 func (hr *HorizonRequest) Run() {
-	// Start the server in a goroutine
 	go func() {
-		// Log when the service starts
-		hr.Log.LogRequest(fmt.Sprintf("Service started on port %d", hr.config.AppPort), "info")
-		hr.Service.Logger.Fatal(
-			hr.Service.Start(fmt.Sprintf(":%d", hr.config.AppPort)),
-		)
+		port := hr.config.AppPort
+		hr.Log.Log(LogEntry{
+			Category: CategoryRequest,
+			Level:    LevelInfo,
+			Message:  fmt.Sprintf("Service started on port %d", port),
+		})
+		hr.Service.Logger.Fatal(hr.Service.Start(fmt.Sprintf(":%d", port)))
 	}()
 }
