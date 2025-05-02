@@ -1,9 +1,13 @@
 package horizon
 
 import (
+	"io"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/labstack/echo/v4"
 )
 
 func GetBool(key string, defaultVal bool) bool {
@@ -55,4 +59,17 @@ func GetFloat(key string, defaultVal float64) float64 {
 		return floatVal
 	}
 	return defaultVal
+}
+
+func GetRequestBody(c echo.Context) string {
+	body := ""
+	if c.Request().Method == http.MethodPost || c.Request().Method == http.MethodPut {
+		var err error
+		bodyBytes, err := io.ReadAll(c.Request().Body)
+		if err != nil {
+			return "Error reading body"
+		}
+		body = string(bodyBytes)
+	}
+	return body
 }

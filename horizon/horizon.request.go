@@ -3,6 +3,7 @@ package horizon
 import (
 	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -19,41 +20,72 @@ type HorizonRequest struct {
 }
 
 var suspiciousPaths = []string{
-	".env", "env.", ".yaml", ".yml", ".ini", ".config", ".conf", ".xml",
-	"dockerfile", "Dockerfile", ".git", ".htaccess", ".htpasswd", "backup",
-	"secret", "credential", "password", "private", "key", "token", "dump",
-	"database", "db", "logs", "debug",
+	`.env`, `env.`, `.yaml`, `.yml`, `.ini`, `.config`, `.conf`, `.xml`,
+	`dockerfile`, `Dockerfile`, `.git`, `.htaccess`, `.htpasswd`, `backup`,
+	`secret`, `credential`, `password`, `private`, `key`, `token`, `dump`,
+	`database`, `db`, `logs`, `debug`,
 }
+
+// Compile a regular expression to match suspicious paths
+var suspiciousPathPattern = regexp.MustCompile(`(?i)\.(env|yaml|yml|ini|config|conf|xml|git|htaccess|htpasswd|backup|secret|credential|password|private|key|token|dump|database|db|logs|debug)$|dockerfile|Dockerfile`)
 
 func NewHorizonRequest(
 	config *HorizonConfig,
 	log *HorizonLog, // Pass the HorizonLog instance here
 ) (*HorizonRequest, error) {
 	e := echo.New()
+
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			path := strings.ToLower(c.Request().URL.Path)
-			for _, bad := range suspiciousPaths {
-				if strings.Contains(path, bad) {
-					log.Log(LogEntry{
-						Category: CategorySecurity,
-						Level:    LevelWarn,
-						Message:  fmt.Sprintf("Suspicious path accessed: %s", path),
-					})
-					return c.String(http.StatusForbidden, "Blocked suspicious path")
-				}
+			if suspiciousPathPattern.MatchString(path) {
+				log.Log(LogEntry{
+					Category: CategoryHijack,
+					Level:    LevelWarn,
+					Message:  fmt.Sprintf("Suspicious path accessed: %s", path),
+					Fields: []zap.Field{
+						zap.String("method", c.Request().Method),
+						zap.String("remote_ip", c.Request().RemoteAddr),
+						zap.String("user_agent", c.Request().UserAgent()),
+						zap.String("uri", c.Request().RequestURI),
+						zap.String("host", c.Request().Host),
+						zap.String("referer", c.Request().Referer()),
+						zap.String("path", path),
+						zap.String("request_id", c.Request().Header.Get(echo.HeaderXRequestID)),
+						zap.String("query_params", c.QueryString()),
+						zap.String("body", GetRequestBody(c)),
+					},
+				})
+				return c.String(http.StatusForbidden, "Access forbidden")
 			}
+
 			if strings.HasPrefix(path, "/.well-known/") {
 				log.Log(LogEntry{
-					Category: CategorySecurity,
+					Category: CategoryHijack,
 					Level:    LevelWarn,
 					Message:  fmt.Sprintf("Blocked access to .well-known path: %s", path),
+					Fields: []zap.Field{
+						zap.String("method", c.Request().Method),
+						zap.String("remote_ip", c.Request().RemoteAddr),
+						zap.String("user_agent", c.Request().UserAgent()),
+						zap.String("uri", c.Request().RequestURI),
+						zap.String("host", c.Request().Host),
+						zap.String("referer", c.Request().Referer()),
+						zap.String("path", path),
+						zap.String("request_id", c.Request().Header.Get(echo.HeaderXRequestID)),
+						zap.String("query_params", c.QueryString()),
+						zap.String("body", GetRequestBody(c)),
+					},
 				})
-				return c.String(http.StatusNotFound, "Blocked .well-known path")
+				return c.String(http.StatusNotFound, "Path not found")
 			}
+
 			return next(c)
 		}
 	})
+
+	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(rate.Limit(20))))
+
 	// Logs
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
 		LogURI:           true,
@@ -155,8 +187,6 @@ func NewHorizonRequest(
 		AllowCredentials: true,
 		MaxAge:           60,
 	}))
-
-	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(rate.Limit(20))))
 
 	e.GET("/health", func(c echo.Context) error {
 		return c.String(200, "OK")

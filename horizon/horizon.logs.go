@@ -17,7 +17,7 @@ var Categories = []Category{
 	CategoryDatabase, CategoryOTP, CategoryQR,
 	CategoryRequest, CategorySchedule, CategorySecurity,
 	CategorySMS, CategorySMTP, CategoryStorage,
-	CategoryTerminal,
+	CategoryTerminal, CategoryHijack,
 }
 
 const (
@@ -34,6 +34,9 @@ const (
 	CategorySMTP           Category = "smtp"
 	CategoryStorage        Category = "storage"
 	CategoryTerminal       Category = "terminal"
+
+	// unkown request
+	CategoryHijack Category = "hijack"
 )
 
 var LogLevels = map[Category]string{
