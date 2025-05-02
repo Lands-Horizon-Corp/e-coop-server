@@ -10,8 +10,15 @@ import (
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-// Category represents a logging category.
 type Category string
+
+var Categories = []Category{
+	CategoryAuthentication, CategoryBroadcast, CategoryCache,
+	CategoryDatabase, CategoryOTP, CategoryQR,
+	CategoryRequest, CategorySchedule, CategorySecurity,
+	CategorySMS, CategorySMTP, CategoryStorage,
+	CategoryTerminal,
+}
 
 const (
 	CategoryAuthentication Category = "authentication"
@@ -29,7 +36,6 @@ const (
 	CategoryTerminal       Category = "terminal"
 )
 
-// LogLevels defines default per-category log levels (used if none provided in config)
 var LogLevels = map[Category]string{
 	CategoryAuthentication: "info",
 	CategoryBroadcast:      "info",
@@ -46,7 +52,6 @@ var LogLevels = map[Category]string{
 	CategoryTerminal:       "info",
 }
 
-// LogLevel represents the severity level for logging.
 type LogLevel int
 
 const (
@@ -58,7 +63,6 @@ const (
 	LevelFatal
 )
 
-// String returns the string representation of the LogLevel.
 func (l LogLevel) String() string {
 	switch l {
 	case LevelDebug:
@@ -76,7 +80,6 @@ func (l LogLevel) String() string {
 	}
 }
 
-// LogEntry represents a single log invocation.
 type LogEntry struct {
 	Category Category    // which logger category to use
 	Level    LogLevel    // severity of the log
@@ -84,15 +87,12 @@ type LogEntry struct {
 	Fields   []zap.Field // optional structured data
 }
 
-// HorizonLog manages loggers per category.
 type HorizonLog struct {
 	loggers  map[Category]*zap.Logger
 	fallback *zap.Logger
 	config   *HorizonConfig
 }
 
-// NewHorizonLog initializes HorizonLog with the given config.
-// If config.LogLevels is nil, the package-level LogLevels will be used.
 func NewHorizonLog(config *HorizonConfig) (*HorizonLog, error) {
 
 	// Fallback logger includes caller info
@@ -118,16 +118,8 @@ func NewHorizonLog(config *HorizonConfig) (*HorizonLog, error) {
 	}, nil
 }
 
-// Run sets up loggers for each category in the config.
 func (hl *HorizonLog) Run() error {
-	categories := []Category{
-		CategoryAuthentication, CategoryBroadcast, CategoryCache,
-		CategoryDatabase, CategoryOTP, CategoryQR,
-		CategoryRequest, CategorySchedule, CategorySecurity,
-		CategorySMS, CategorySMTP, CategoryStorage,
-		CategoryTerminal,
-	}
-	loggers, err := hl.setupCategories(hl.config.AppLog, categories)
+	loggers, err := hl.setupCategories(hl.config.AppLog, Categories)
 	if err != nil {
 		return fmt.Errorf("failed to initialize loggers: %w", err)
 	}
@@ -137,7 +129,51 @@ func (hl *HorizonLog) Run() error {
 	return nil
 }
 
-// setupCategories creates a zap.Logger for each category using lumberjack for rotation.
+func (hl *HorizonLog) Log(entry LogEntry) {
+	logger, ok := hl.loggers[entry.Category]
+	if !ok {
+		logger = hl.loggers["default"]
+	}
+	switch entry.Level {
+	case LevelDebug:
+		logger.Debug(entry.Message, entry.Fields...)
+	case LevelWarn:
+		logger.Warn(entry.Message, entry.Fields...)
+	case LevelError:
+		logger.Error(entry.Message, entry.Fields...)
+	case LevelPanic:
+		logger.Panic(entry.Message, entry.Fields...)
+	case LevelFatal:
+		logger.Fatal(entry.Message, entry.Fields...)
+	default:
+		logger.Info(entry.Message, entry.Fields...)
+	}
+}
+
+func (hl *HorizonLog) ClearAll() error {
+	for category := range hl.loggers {
+		if err := hl.ClearCategory(category); err != nil {
+			return fmt.Errorf("failed to clear category %q: %w", category, err)
+		}
+	}
+	return nil
+}
+
+func (hl *HorizonLog) ClearCategory(category Category) error {
+	logPath := filepath.Join(hl.config.AppLog, string(category)+".log")
+	err := os.Remove(logPath)
+	if err != nil && !os.IsNotExist(err) {
+		return err
+	}
+	return nil
+}
+
+func (hl *HorizonLog) Close() {
+	for _, logger := range hl.loggers {
+		_ = logger.Sync()
+	}
+}
+
 func (hl *HorizonLog) setupCategories(logDir string, cats []Category) (map[Category]*zap.Logger, error) {
 	loggers := make(map[Category]*zap.Logger, len(cats))
 	for _, category := range cats {
@@ -150,7 +186,6 @@ func (hl *HorizonLog) setupCategories(logDir string, cats []Category) (map[Categ
 	return loggers, nil
 }
 
-// newCategoryLogger builds a logger for a single category with rotation, console output, and caller info.
 func (hl *HorizonLog) newCategoryLogger(logDir string, category Category) (*zap.Logger, error) {
 	if err := os.MkdirAll(logDir, os.ModePerm); err != nil {
 		return nil, err
@@ -191,33 +226,4 @@ func (hl *HorizonLog) newCategoryLogger(logDir string, category Category) (*zap.
 		zap.String("category", string(category)),
 	)
 	return logger, nil
-}
-
-// Log sends a LogEntry to the appropriate category at its level.
-func (hl *HorizonLog) Log(entry LogEntry) {
-	logger, ok := hl.loggers[entry.Category]
-	if !ok {
-		logger = hl.loggers["default"]
-	}
-	switch entry.Level {
-	case LevelDebug:
-		logger.Debug(entry.Message, entry.Fields...)
-	case LevelWarn:
-		logger.Warn(entry.Message, entry.Fields...)
-	case LevelError:
-		logger.Error(entry.Message, entry.Fields...)
-	case LevelPanic:
-		logger.Panic(entry.Message, entry.Fields...)
-	case LevelFatal:
-		logger.Fatal(entry.Message, entry.Fields...)
-	default:
-		logger.Info(entry.Message, entry.Fields...)
-	}
-}
-
-// Close gracefully flushes all loggers.
-func (hl *HorizonLog) Close() {
-	for _, logger := range hl.loggers {
-		_ = logger.Sync()
-	}
 }
