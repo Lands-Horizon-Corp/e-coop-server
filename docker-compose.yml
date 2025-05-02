@@ -48,6 +48,9 @@ services:
       - postgres
       - redis
       - nats
+    networks:
+      - app-network
+
 
   postgres:
     image: postgres:latest

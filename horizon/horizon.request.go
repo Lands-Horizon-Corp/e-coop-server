@@ -12,6 +12,7 @@ import (
 
 type HorizonRequest struct {
 	Service *echo.Echo
+	Log     *HorizonLog // Added field for HorizonLog
 
 	config *HorizonConfig
 }
@@ -25,6 +26,7 @@ var suspiciousPaths = []string{
 
 func NewHorizonRequest(
 	config *HorizonConfig,
+	log *HorizonLog, // Pass the HorizonLog instance here
 ) (*HorizonRequest, error) {
 	e := echo.New()
 	// Logs
@@ -90,26 +92,36 @@ func NewHorizonRequest(
 			path := strings.ToLower(c.Request().URL.Path)
 			for _, bad := range suspiciousPaths {
 				if strings.Contains(path, bad) {
+					// Log the suspicious access attempt
+					log.LogSecurity(fmt.Sprintf("Suspicious path accessed: %s", path), "warn")
 					return c.String(http.StatusForbidden, "Blocked suspicious path")
 				}
 			}
+			// Log the request
+			log.LogRequest(fmt.Sprintf("Incoming request: %s %s", c.Request().Method, c.Request().URL.Path), "info")
 			return next(c)
 		}
 	})
 
-	// check health
+	// Health check
 	e.GET("/health", func(c echo.Context) error {
+		// Log health check request
+		log.LogRequest("Health check request", "info")
 		return c.String(200, "OK")
 	})
 
 	return &HorizonRequest{
 		Service: e,
+		Log:     log, // Set the logger
 		config:  config,
 	}, nil
 }
 
 func (hr *HorizonRequest) Run() {
+	// Start the server in a goroutine
 	go func() {
+		// Log when the service starts
+		hr.Log.LogRequest(fmt.Sprintf("Service started on port %d", hr.config.AppPort), "info")
 		hr.Service.Logger.Fatal(
 			hr.Service.Start(fmt.Sprintf(":%d", hr.config.AppPort)),
 		)

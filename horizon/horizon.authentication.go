@@ -6,7 +6,8 @@ func NewHorizonAuthentication() (*HorizonAuthentication, error) {
 	return &HorizonAuthentication{}, nil
 }
 
-// Login
-// Logout
-// Register
-//
+func (ha *HorizonAuthentication) GenerateToken() {}
+
+func (ha *HorizonAuthentication) VerifyToken() {}
+
+func (ha *HorizonAuthentication) DeleteToken() {}

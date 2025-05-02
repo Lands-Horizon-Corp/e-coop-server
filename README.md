@@ -10,3 +10,16 @@
 3. Rename columns
 4. Handle complex schema changes
 
+
+
+
+ Table general-ledger {
+    id unique [pk]
+    org id [Ref: < org.id]
+    branch id [Ref: < org.id]
+    Indexes {
+        (org id, branch id) [name:"org-branch"]
+        id [unique]
+    }
+
+ }
