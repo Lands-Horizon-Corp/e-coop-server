@@ -188,7 +188,6 @@ func (hl *HorizonLog) setupCategories(logDir string, cats []Category) (map[Categ
 	}
 	return loggers, nil
 }
-
 func (hl *HorizonLog) newCategoryLogger(logDir string, category Category) (*zap.Logger, error) {
 	if err := os.MkdirAll(logDir, os.ModePerm); err != nil {
 		return nil, eris.Wrap(err, "failed to create log directory")
@@ -206,13 +205,7 @@ func (hl *HorizonLog) newCategoryLogger(logDir string, category Category) (*zap.
 	writeSyncer := zapcore.AddSync(rotator)
 	consoleSyncer := zapcore.AddSync(os.Stdout)
 
-	encCfg := zap.NewProductionEncoderConfig()
-	encCfg.TimeKey = "timestamp"
-	encCfg.CallerKey = "caller"
-	encCfg.EncodeTime = zapcore.ISO8601TimeEncoder
-	encCfg.EncodeCaller = zapcore.ShortCallerEncoder
-
-	// Determine per-category log level
+	// Level configuration
 	level := zapcore.InfoLevel
 	if lvlStr, ok := LogLevels[category]; ok {
 		if parsed, err := zapcore.ParseLevel(lvlStr); err == nil {
@@ -220,13 +213,32 @@ func (hl *HorizonLog) newCategoryLogger(logDir string, category Category) (*zap.
 		}
 	}
 
-	jsonCore := zapcore.NewCore(zapcore.NewJSONEncoder(encCfg), writeSyncer, level)
-	consoleCore := zapcore.NewCore(zapcore.NewConsoleEncoder(encCfg), consoleSyncer, level)
+	// Define JSON Encoder for file logging
+	jsonEncCfg := zap.NewProductionEncoderConfig()
+	jsonEncCfg.EncodeTime = zapcore.ISO8601TimeEncoder
+	jsonEncoder := zapcore.NewJSONEncoder(jsonEncCfg)
+
+	// Console encoder with color
+	consoleEncCfg := zap.NewProductionEncoderConfig()
+	consoleEncCfg.EncodeTime = zapcore.ISO8601TimeEncoder
+
+	// Using CapitalColorLevelEncoder to add color based on log level
+	consoleEncCfg.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	consoleEncoder := NewHorizonPrettyJSONEncoder(consoleEncCfg)
+
+	// JSON core for file logging
+	jsonCore := zapcore.NewCore(jsonEncoder, writeSyncer, level)
+
+	// Console core using the custom pretty JSON encoder with color
+	consoleCore := zapcore.NewCore(consoleEncoder, consoleSyncer, level)
+
+	// Combine both JSON and console cores
 	core := zapcore.NewTee(jsonCore, consoleCore)
 
 	logger := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1)).With(
 		zap.String("app", hl.config.AppName),
 		zap.String("category", string(category)),
 	)
+
 	return logger, nil
 }

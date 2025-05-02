@@ -2,9 +2,11 @@ package horizon
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"regexp"
 	"strings"
+	"text/template"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -14,16 +16,15 @@ import (
 
 type HorizonRequest struct {
 	Service *echo.Echo
-	Log     *HorizonLog // Added field for HorizonLog
-
-	config *HorizonConfig
+	config  *HorizonConfig
 }
 
-var suspiciousPaths = []string{
-	`.env`, `env.`, `.yaml`, `.yml`, `.ini`, `.config`, `.conf`, `.xml`,
-	`dockerfile`, `Dockerfile`, `.git`, `.htaccess`, `.htpasswd`, `backup`,
-	`secret`, `credential`, `password`, `private`, `key`, `token`, `dump`,
-	`database`, `db`, `logs`, `debug`,
+type Template struct {
+	templates *template.Template
+}
+
+func (t *Template) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
+	return t.templates.ExecuteTemplate(w, name, data)
 }
 
 // Compile a regular expression to match suspicious paths
@@ -31,9 +32,11 @@ var suspiciousPathPattern = regexp.MustCompile(`(?i)\.(env|yaml|yml|ini|config|c
 
 func NewHorizonRequest(
 	config *HorizonConfig,
-	log *HorizonLog, // Pass the HorizonLog instance here
+	log *HorizonLog,
 ) (*HorizonRequest, error) {
 	e := echo.New()
+
+	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(rate.Limit(20))))
 
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
@@ -60,33 +63,12 @@ func NewHorizonRequest(
 			}
 
 			if strings.HasPrefix(path, "/.well-known/") {
-				log.Log(LogEntry{
-					Category: CategoryHijack,
-					Level:    LevelWarn,
-					Message:  fmt.Sprintf("Blocked access to .well-known path: %s", path),
-					Fields: []zap.Field{
-						zap.String("method", c.Request().Method),
-						zap.String("remote_ip", c.Request().RemoteAddr),
-						zap.String("user_agent", c.Request().UserAgent()),
-						zap.String("uri", c.Request().RequestURI),
-						zap.String("host", c.Request().Host),
-						zap.String("referer", c.Request().Referer()),
-						zap.String("path", path),
-						zap.String("request_id", c.Request().Header.Get(echo.HeaderXRequestID)),
-						zap.String("query_params", c.QueryString()),
-						zap.String("body", GetRequestBody(c)),
-					},
-				})
 				return c.String(http.StatusNotFound, "Path not found")
 			}
-
 			return next(c)
 		}
 	})
 
-	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(rate.Limit(20))))
-
-	// Logs
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
 		LogURI:           true,
 		LogURIPath:       true,
@@ -139,10 +121,8 @@ func NewHorizonRequest(
 		},
 	}))
 
-	// Recover from panics
 	e.Use(middleware.Recover())
 
-	// Cors
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{
 			"http://0.0.0.0",
@@ -194,7 +174,6 @@ func NewHorizonRequest(
 
 	return &HorizonRequest{
 		Service: e,
-		Log:     log,
 		config:  config,
 	}, nil
 }

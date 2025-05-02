@@ -11,6 +11,7 @@ var Modules = fx.Module(
 		NewHorizonCache,
 		NewHorizonDatabase,
 		NewHorizonLog,
+		NewHorizonPrettyJSONEncoder,
 		NewHorizonOTP,
 		NewHorizonQR,
 		NewHorizonRequest,
