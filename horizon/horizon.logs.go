@@ -1,10 +1,10 @@
 package horizon
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 
+	"github.com/rotisserie/eris"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -121,7 +121,7 @@ func NewHorizonLog(config *HorizonConfig) (*HorizonLog, error) {
 func (hl *HorizonLog) Run() error {
 	loggers, err := hl.setupCategories(hl.config.AppLog, Categories)
 	if err != nil {
-		return fmt.Errorf("failed to initialize loggers: %w", err)
+		return eris.Wrap(err, "failed to initialize loggers")
 	}
 
 	hl.loggers = loggers
@@ -153,7 +153,7 @@ func (hl *HorizonLog) Log(entry LogEntry) {
 func (hl *HorizonLog) ClearAll() error {
 	for category := range hl.loggers {
 		if err := hl.ClearCategory(category); err != nil {
-			return fmt.Errorf("failed to clear category %q: %w", category, err)
+			return eris.Wrapf(err, "failed to clear category %q", category)
 		}
 	}
 	return nil
@@ -163,7 +163,7 @@ func (hl *HorizonLog) ClearCategory(category Category) error {
 	logPath := filepath.Join(hl.config.AppLog, string(category)+".log")
 	err := os.Remove(logPath)
 	if err != nil && !os.IsNotExist(err) {
-		return err
+		return eris.Wrap(err, "failed to remove log file")
 	}
 	return nil
 }
@@ -179,7 +179,7 @@ func (hl *HorizonLog) setupCategories(logDir string, cats []Category) (map[Categ
 	for _, category := range cats {
 		logger, err := hl.newCategoryLogger(logDir, category)
 		if err != nil {
-			return nil, fmt.Errorf("failed to create logger for category %q: %w", category, err)
+			return nil, eris.Wrapf(err, "failed to create logger for category %q", category)
 		}
 		loggers[category] = logger
 	}
@@ -188,7 +188,7 @@ func (hl *HorizonLog) setupCategories(logDir string, cats []Category) (map[Categ
 
 func (hl *HorizonLog) newCategoryLogger(logDir string, category Category) (*zap.Logger, error) {
 	if err := os.MkdirAll(logDir, os.ModePerm); err != nil {
-		return nil, err
+		return nil, eris.Wrap(err, "failed to create log directory")
 	}
 
 	filePath := filepath.Join(logDir, string(category)+".log")
