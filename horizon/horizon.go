@@ -27,7 +27,6 @@ func NewHorizon(
 			request.run()
 			smtp.run()
 			sms.run()
-
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {

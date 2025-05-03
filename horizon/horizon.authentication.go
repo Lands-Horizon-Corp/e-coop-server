@@ -5,16 +5,21 @@ import (
 	"encoding/base64"
 	"fmt"
 	"html/template"
+	"net/http"
 	"net/url"
 	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/labstack/echo/v4"
 	"github.com/rotisserie/eris"
 )
 
-var authExpiration = 16 * time.Hour
+const (
+	authExpiration    = 16 * time.Hour
+	tokenLinkValidity = 10 * time.Minute
+)
 
 type Claim struct {
 	ID            string `json:"id"`
@@ -32,339 +37,258 @@ type HorizonAuthentication struct {
 	smtp     *HorizonSMTP
 }
 
-func NewHorizonAuthentication(
-	config *HorizonConfig,
-	log *HorizonLog,
-	security *HorizonSecurity,
-	otp *HorizonOTP,
-	sms *HorizonSMS,
-	smtp *HorizonSMTP,
-) (*HorizonAuthentication, error) {
-	return &HorizonAuthentication{
-		config:   config,
-		log:      log,
-		security: security,
-		otp:      otp,
-		sms:      sms,
-		smtp:     smtp,
-	}, nil
+func NewHorizonAuthentication(cfg *HorizonConfig, log *HorizonLog,
+	sec *HorizonSecurity, otp *HorizonOTP, sms *HorizonSMS, smtp *HorizonSMTP) *HorizonAuthentication {
+	return &HorizonAuthentication{config: cfg, log: log, security: sec, otp: otp, sms: sms, smtp: smtp}
 }
 
-// connect html here
-
-func (ha *HorizonAuthentication) GenerateSMTPLink(baseURL string, value Claim) (string, error) {
-	// Create token with short expiry
-	token, err := ha.GenerateToken(Claim{
-		ID:            value.ID,
-		Email:         value.Email,
-		ContactNumber: value.ContactNumber,
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(10 * time.Minute)),
-		},
-	})
+func (ha *HorizonAuthentication) GetUserFromToken(c echo.Context) (*Claim, error) {
+	cookie, err := c.Cookie(ha.config.AppTokenName)
 	if err != nil {
-		return "", eris.Wrap(err, "failed to generate token")
+		_ = ha.CleanToken(c)
+		return nil, eris.New("authentication token not found")
+	}
+	rawToken := cookie.Value
+	if rawToken == "" {
+		_ = ha.CleanToken(c)
+		return nil, eris.New("authentication token is empty")
 	}
 
-	escaped := url.PathEscape(token)
-	link := fmt.Sprintf("%s/%s", baseURL, escaped)
-
-	// Render email template
-	body, err := renderHTMLTemplate("email-forgot-password.html", map[string]string{
-		"appname":       ha.config.AppName,
-		"email":         value.Email,
-		"contactnumber": value.ContactNumber,
-		"link":          link,
-	})
+	claim, err := ha.VerifyToken(rawToken)
 	if err != nil {
-		return "", eris.Wrap(err, "failed to render email template")
-	}
-
-	err = ha.smtp.Send(&SMTPRequest{
-		To:      value.Email,
-		Subject: ha.config.AppName + " Email Verification",
-		Body:    body,
-		Vars: &map[string]string{
-			"appname":       ha.config.AppName,
-			"email":         value.Email,
-			"contactnumber": value.ContactNumber,
-			"link":          link,
-		},
-	})
-	if err != nil {
-		return "", eris.Wrap(err, "failed to send SMTP link")
-	}
-	return link, nil
-}
-func (ha *HorizonAuthentication) ValidateSMTPLink(input string) (*Claim, error) {
-	if strings.Contains(input, "/") {
-		parts := strings.Split(input, "/")
-		input = parts[len(parts)-1]
-	}
-	tokenRaw, err := url.PathUnescape(input)
-	if err != nil {
-		return nil, eris.Wrap(err, "invalid link encoding")
-	}
-	claim, err := ha.VerifyToken(tokenRaw)
-	if err != nil {
-		return nil, eris.Wrap(err, "SMTP token validation failed")
+		_ = ha.CleanToken(c)
+		return nil, eris.Wrap(err, "invalid or expired authentication token")
 	}
 	return claim, nil
 }
-
-func (ha *HorizonAuthentication) GenerateSMSLink(baseURL string, value Claim) (string, error) {
-	token, err := ha.GenerateToken(Claim{
-		ID:            value.ID,
-		Email:         value.Email,
-		ContactNumber: value.ContactNumber,
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(10 * time.Minute)),
-		},
-	})
+func (ha *HorizonAuthentication) SetToken(c echo.Context, claims Claim) error {
+	tok, err := ha.GenerateToken(claims)
 	if err != nil {
-		return "", eris.Wrap(err, "failed to generate token")
+		return eris.Wrap(err, "GenerateToken failed")
 	}
-	escaped := url.PathEscape(token)
-	link := fmt.Sprintf("%s/%s", baseURL, escaped)
-
-	// Render SMS template
-	body, err := renderTextTemplate("sms-forgot-password.txt", map[string]string{
-		"appname":       ha.config.AppName,
-		"email":         value.Email,
-		"contactnumber": value.ContactNumber,
-		"link":          link,
-	})
-	if err != nil {
-		return "", eris.Wrap(err, "failed to render SMS template")
+	cookie := &http.Cookie{
+		Name:     ha.config.AppTokenName,
+		Value:    tok,
+		Path:     "/",
+		Expires:  time.Now().Add(authExpiration),
+		HttpOnly: true,
+		Secure:   c.Request().TLS != nil,
+		SameSite: http.SameSiteLaxMode,
 	}
-
-	err = ha.sms.Send(&SMSRequest{
-		To:      value.ContactNumber,
-		Subject: ha.config.AppName + " SMS Verification",
-		Body:    body,
-		Vars: &map[string]string{
-			"appname":       ha.config.AppName,
-			"email":         value.Email,
-			"contactnumber": value.ContactNumber,
-			"link":          link,
-		},
-	})
-	if err != nil {
-		return "", eris.Wrap(err, "failed to send SMS link")
-	}
-	return link, nil
-}
-
-func (ha *HorizonAuthentication) ValidateSMSLink(input string) (*Claim, error) {
-	if strings.Contains(input, "/") {
-		parts := strings.Split(input, "/")
-		input = parts[len(parts)-1]
-	}
-
-	// Remove URL-escaping if any
-	tokenRaw, err := url.PathUnescape(input)
-	if err != nil {
-		return nil, eris.Wrap(err, "invalid link encoding")
-	}
-
-	// Verify the token
-	claim, err := ha.VerifyToken(tokenRaw)
-	if err != nil {
-		return nil, eris.Wrap(err, "SMS token validation failed")
-	}
-
-	return claim, nil
-}
-
-func (ha *HorizonAuthentication) Password(value string) (string, error) {
-	password := base64.StdEncoding.EncodeToString([]byte(value))
-	hashed, err := ha.security.PasswordHash(password)
-	if err != nil {
-		return "", err
-	}
-	return hashed, nil
-}
-
-func (ha *HorizonAuthentication) VerifyPassword(hashed string, password string) bool {
-	value := base64.StdEncoding.EncodeToString([]byte(password))
-	result, err := ha.security.VerifyPassword(hashed, value)
-	if err != nil {
-		return false
-	}
-	return result
-}
-
-func (ha *HorizonAuthentication) SendSMTPOTP(value Claim) error {
-	secure := ha.secured(value, "smtp")
-	otp, err := ha.otp.Generate(secure)
-	if err != nil {
-		return err
-	}
-
-	// Render OTP email template
-	body, err := renderHTMLTemplate("email-otp.html", map[string]string{
-		"appname":       ha.config.AppName,
-		"email":         value.Email,
-		"contactnumber": value.ContactNumber,
-		"otp":           otp,
-	})
-	if err != nil {
-		return eris.Wrap(err, "failed to render OTP email template")
-	}
-
-	err = ha.smtp.Send(&SMTPRequest{
-		To:      value.Email,
-		Subject: ha.config.AppName + " Email OTP Verification",
-		Body:    body,
-		Vars:    &map[string]string{"otp": otp},
-	})
-	if err != nil {
-		if delErr := ha.otp.Delete(secure); delErr != nil {
-			return eris.Wrapf(err, "SMTP sending failed, and cleanup also failed: %v", delErr)
-		}
-		return eris.Wrap(err, "SMTP sending failed, OTP deleted")
-	}
+	c.SetCookie(cookie)
 	return nil
 }
 
-func (ha *HorizonAuthentication) VerifySMTPOTP(value Claim, otp string) bool {
-	secure := ha.secured(value, "smtp")
-	valid, err := ha.otp.Verify(secure, otp)
-	if err != nil {
-		fmt.Println(err)
-		return false
+func (ha *HorizonAuthentication) CleanToken(c echo.Context) error {
+	cookie := &http.Cookie{
+		Name:     ha.config.AppTokenName,
+		Value:    "",
+		Path:     "/",
+		Expires:  time.Now().Add(-1 * time.Hour),
+		HttpOnly: true,
+		Secure:   c.Request().TLS != nil,
+		SameSite: http.SameSiteLaxMode,
 	}
-	return valid
-}
-
-func (ha *HorizonAuthentication) SendSMSOTP(value Claim) error {
-	secure := ha.secured(value, "sms")
-	otp, err := ha.otp.Generate(secure)
-	if err != nil {
-		return err
-	}
-
-	// Render OTP SMS template
-	body, err := renderTextTemplate("sms-otp.txt", map[string]string{
-		"appname":       ha.config.AppName,
-		"email":         value.Email,
-		"contactnumber": value.ContactNumber,
-		"otp":           otp,
-	})
-	if err != nil {
-		return eris.Wrap(err, "failed to render OTP SMS template")
-	}
-
-	err = ha.sms.Send(&SMSRequest{
-		To:      value.ContactNumber,
-		Subject: ha.config.AppName + " SMS OTP Verification",
-		Body:    body,
-		Vars:    &map[string]string{"otp": otp},
-	})
-	if err != nil {
-		if delErr := ha.otp.Delete(secure); delErr != nil {
-			return eris.Wrapf(err, "SMS sending failed, and cleanup also failed: %v", delErr)
-		}
-		return eris.Wrap(err, "SMS sending failed, OTP deleted")
-	}
+	c.SetCookie(cookie)
 	return nil
 }
-func (ha *HorizonAuthentication) VerifySMSOTP(value Claim, otp string) bool {
-	secure := ha.secured(value, "sms")
-	valid, err := ha.otp.Verify(secure, otp)
-	if err != nil {
-		return false
+
+func (ha *HorizonAuthentication) GenerateToken(c Claim) (string, error) {
+	now := time.Now()
+	// Default timings
+	if c.NotBefore == nil {
+		c.NotBefore = jwt.NewNumericDate(now)
 	}
-	return valid
+	if c.IssuedAt == nil {
+		c.IssuedAt = jwt.NewNumericDate(now)
+	}
+	if c.ExpiresAt == nil {
+		c.ExpiresAt = jwt.NewNumericDate(now.Add(authExpiration))
+	}
+	if c.Subject == "" {
+		c.Subject = c.ID
+	}
+
+	c.Issuer = ha.config.AppTokenName
+	t := jwt.NewWithClaims(jwt.SigningMethodHS256, &c)
+	signed, err := t.SignedString([]byte(ha.config.AppToken))
+	if err != nil {
+		return "", eris.Wrap(err, "signing token failed")
+	}
+	// Base64-encode the JWT so we can safely transmit it
+	return base64.StdEncoding.EncodeToString([]byte(signed)), nil
 }
 
-func (ha *HorizonAuthentication) GenerateToken(value Claim) (string, error) {
-	if authExpiration == 0 {
-		authExpiration = 12 * time.Hour
-	}
-	if value.RegisteredClaims.Subject == "" {
-		value.RegisteredClaims.Subject = value.ID
-	}
-	if value.RegisteredClaims.NotBefore == nil {
-		value.RegisteredClaims.NotBefore = jwt.NewNumericDate(time.Now())
-	}
-	if value.RegisteredClaims.IssuedAt == nil {
-		value.RegisteredClaims.IssuedAt = jwt.NewNumericDate(time.Now())
-	}
-	if value.RegisteredClaims.ExpiresAt == nil {
-		value.RegisteredClaims.ExpiresAt = jwt.NewNumericDate(time.Now().Add(authExpiration))
-	}
-
-	claim := &Claim{
-		ID:            value.ID,
-		Email:         value.Email,
-		ContactNumber: value.ContactNumber,
-		RegisteredClaims: jwt.RegisteredClaims{
-			Issuer: ha.config.AppName,
-		},
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claim)
-	signedToken, err := token.SignedString([]byte(ha.config.AppToken))
+func (ha *HorizonAuthentication) VerifyToken(encoded string) (*Claim, error) {
+	// Base64 decode
+	raw, err := base64.StdEncoding.DecodeString(encoded)
 	if err != nil {
-		return "", err
+		return nil, eris.Wrap(err, "invalid base64 token")
 	}
-	return base64.StdEncoding.EncodeToString([]byte(signedToken)), nil
-}
-
-func (ha *HorizonAuthentication) VerifyToken(tokenString string) (*Claim, error) {
-	decode, err := base64.StdEncoding.DecodeString(tokenString)
-	if err != nil {
-		return nil, eris.Wrap(err, "invalid token")
-	}
-	token, err := jwt.ParseWithClaims(string(decode), &Claim{}, func(token *jwt.Token) (any, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+	// Parse
+	tok, err := jwt.ParseWithClaims(string(raw), &Claim{}, func(tkn *jwt.Token) (any, error) {
+		if _, ok := tkn.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, eris.Wrap(jwt.ErrSignatureInvalid, "unexpected signing method")
 		}
 		return []byte(ha.config.AppToken), nil
 	})
 	if err != nil {
-		return nil, eris.Wrap(err, "failed to parse token")
+		return nil, eris.Wrap(err, "token parse failed")
 	}
-	if claims, ok := token.Claims.(*Claim); ok && token.Valid {
-		if claims.Issuer != ha.config.AppName {
-			return nil, eris.New("invalid token issuer")
-		}
-		return claims, nil
+	claims, ok := tok.Claims.(*Claim)
+	if !ok || !tok.Valid || claims.Issuer != ha.config.AppTokenName {
+		return nil, eris.New("invalid token")
 	}
-	return nil, eris.New("invalid token")
+	return claims, nil
 }
 
-func (ha *HorizonAuthentication) secured(value Claim, reason string) string {
-	generated := value.Email + value.ContactNumber + value.ID + reason
-	val := ha.security.Hash(generated + ha.config.AppName + "auth")
-	return string(val)
-}
-
-// renderHTMLTemplate loads and executes an HTML template from auth/template
-func renderHTMLTemplate(filename string, data map[string]string) (string, error) {
-	tplPath := filepath.Join("template", filename)
-	tpl, err := template.ParseFiles(tplPath)
+func (ha *HorizonAuthentication) generateLink(baseURL string, c Claim, tplFile string, render func(string, map[string]string) (string, error), send func(any) error, subject string) (string, error) {
+	c.ExpiresAt = jwt.NewNumericDate(time.Now().Add(tokenLinkValidity))
+	token, err := ha.GenerateToken(c)
 	if err != nil {
-		return "", eris.Wrap(err, "failed to parse HTML template")
+		return "", eris.Wrap(err, "token generation failed")
 	}
 
+	esc := url.PathEscape(token)
+	link := fmt.Sprintf("%s/%s", strings.TrimRight(baseURL, "/"), esc)
+
+	body, err := render(tplFile, map[string]string{
+		"AppTokenName":  ha.config.AppTokenName,
+		"email":         c.Email,
+		"contactnumber": c.ContactNumber,
+		"link":          link,
+	})
+	if err != nil {
+		return "", eris.Wrap(err, "template rendering failed")
+	}
+
+	req := map[string]interface{}{
+		"To":      c.Email,
+		"Subject": subject,
+		"Body":    body,
+	}
+	if err := send(req); err != nil {
+		return "", eris.Wrap(err, "sending failed")
+	}
+	return link, nil
+}
+
+func (ha *HorizonAuthentication) GenerateSMTPLink(baseURL string, c Claim) (string, error) {
+	subj := ha.config.AppTokenName + " Email Verification"
+	rndr := func(f string, d map[string]string) (string, error) {
+		return renderHTMLTemplate(f, d)
+	}
+	sndr := func(r any) error {
+		req := r.(map[string]interface{})
+		return ha.smtp.Send(&SMTPRequest{To: req["To"].(string), Subject: req["Subject"].(string), Body: req["Body"].(string)})
+	}
+	return ha.generateLink(baseURL, c, "email-forgot-password.html", rndr, sndr, subj)
+}
+
+func (ha *HorizonAuthentication) GenerateSMSLink(baseURL string, c Claim) (string, error) {
+	subj := ha.config.AppTokenName + " SMS Verification"
+	rndr := func(f string, d map[string]string) (string, error) {
+		return renderTextTemplate(f, d)
+	}
+	sndr := func(r any) error {
+		req := r.(map[string]interface{})
+		return ha.sms.Send(&SMSRequest{To: req["To"].(string), Subject: req["Subject"].(string), Body: req["Body"].(string)})
+	}
+	return ha.generateLink(baseURL, c, "sms-forgot-password.txt", rndr, sndr, subj)
+}
+
+func (ha *HorizonAuthentication) ValidateLink(input string) (*Claim, error) {
+	// Extract token suffix
+	if idx := strings.LastIndex(input, "/"); idx != -1 {
+		input = input[idx+1:]
+	}
+	tok, err := url.PathUnescape(input)
+	if err != nil {
+		return nil, eris.Wrap(err, "invalid link encoding")
+	}
+	return ha.VerifyToken(tok)
+}
+
+func (ha *HorizonAuthentication) Password(pw string) (string, error) {
+	enc := base64.StdEncoding.EncodeToString([]byte(pw))
+	return ha.security.PasswordHash(enc)
+}
+
+func (ha *HorizonAuthentication) VerifyPassword(hash, pw string) bool {
+	enc := base64.StdEncoding.EncodeToString([]byte(pw))
+	ok, _ := ha.security.VerifyPassword(hash, enc)
+	return ok
+}
+
+func (ha *HorizonAuthentication) secureKey(c Claim, channel string) string {
+	base := c.Email + c.ContactNumber + c.ID + channel
+	return string(ha.security.Hash(base + ha.config.AppTokenName + "auth"))
+}
+
+func (ha *HorizonAuthentication) SendSMTPOTP(c Claim) error {
+	key := ha.secureKey(c, "smtp")
+	otp, err := ha.otp.Generate(key)
+	if err != nil {
+		return err
+	}
+	body, err := renderHTMLTemplate("email-otp.html", map[string]string{"AppTokenName": ha.config.AppTokenName, "otp": otp})
+	if err != nil {
+		return eris.Wrap(err, "OTP template failed")
+	}
+	if err := ha.smtp.Send(&SMTPRequest{To: c.Email, Subject: ha.config.AppTokenName + " Email OTP Verification", Body: body}); err != nil {
+		ha.otp.Delete(key)
+		return eris.Wrap(err, "SMTP OTP send failed")
+	}
+	return nil
+}
+
+func (ha *HorizonAuthentication) VerifySMTPOTP(c Claim, otp string) bool {
+	ok, _ := ha.otp.Verify(ha.secureKey(c, "smtp"), otp)
+	return ok
+}
+
+func (ha *HorizonAuthentication) SendSMSOTP(c Claim) error {
+	key := ha.secureKey(c, "sms")
+	otp, err := ha.otp.Generate(key)
+	if err != nil {
+		return err
+	}
+	body, err := renderTextTemplate("sms-otp.txt", map[string]string{"AppTokenName": ha.config.AppTokenName, "otp": otp})
+	if err != nil {
+		return eris.Wrap(err, "OTP template failed")
+	}
+	if err := ha.sms.Send(&SMSRequest{To: c.ContactNumber, Subject: ha.config.AppTokenName + " SMS OTP Verification", Body: body}); err != nil {
+		ha.otp.Delete(key)
+		return eris.Wrap(err, "SMS OTP send failed")
+	}
+	return nil
+}
+
+func (ha *HorizonAuthentication) VerifySMSOTP(c Claim, otp string) bool {
+	ok, _ := ha.otp.Verify(ha.secureKey(c, "sms"), otp)
+	return ok
+}
+
+func renderHTMLTemplate(filename string, data map[string]string) (string, error) {
+	t, err := template.ParseFiles(filepath.Join("template", filename))
+	if err != nil {
+		return "", eris.Wrap(err, "parse HTML template failed")
+	}
 	var buf bytes.Buffer
-	if err := tpl.Execute(&buf, data); err != nil {
-		return "", eris.Wrap(err, "failed to execute HTML template")
+	if err := t.Execute(&buf, data); err != nil {
+		return "", eris.Wrap(err, "execute HTML template failed")
 	}
 	return buf.String(), nil
 }
 
 func renderTextTemplate(filename string, data map[string]string) (string, error) {
-	tplPath := filepath.Join("template", filename)
-	tpl, err := template.ParseFiles(tplPath)
+	t, err := template.ParseFiles(filepath.Join("template", filename))
 	if err != nil {
-		return "", eris.Wrap(err, "failed to parse text template")
+		return "", eris.Wrap(err, "parse text template failed")
 	}
-
 	var buf bytes.Buffer
-	if err := tpl.Execute(&buf, data); err != nil {
-		return "", eris.Wrap(err, "failed to execute text template")
+	if err := t.Execute(&buf, data); err != nil {
+		return "", eris.Wrap(err, "execute text template failed")
 	}
 	return buf.String(), nil
 }

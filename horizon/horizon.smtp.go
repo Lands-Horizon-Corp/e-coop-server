@@ -159,7 +159,6 @@ func (hs *HorizonSMTP) Send(req *SMTPRequest) error {
 	return nil
 }
 
-// Improved injectVarsIntoBody for better error handling
 func (hs *HorizonSMTP) injectVarsIntoBody(body string, vars *map[string]string) (string, error) {
 	if vars == nil || len(*vars) == 0 {
 		hs.log.Log(LogEntry{

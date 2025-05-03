@@ -6,6 +6,7 @@ x-env: &environment-variables
     APP_PORT: "${APP_PORT}"
     APP_NAME: "${APP_NAME}"
     APP_TOKEN: "${APP_TOKEN}"
+    APP_TOKEN_NAME: "${APP_TOKEN_NAME}"
     APP_LOG: "${APP_LOG}"
     POSTGRES_USER: "${POSTGRES_USER}"
     POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"

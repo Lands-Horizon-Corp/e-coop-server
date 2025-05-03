@@ -13,6 +13,7 @@ type HorizonConfig struct {
 	AppEnvironment string
 	AppMainLog     string
 	AppClientURL   string
+	AppTokenName   string
 
 	PostgresUser           string
 	PostgresPassword       string
@@ -59,6 +60,7 @@ func NewHorizonConfig() (*HorizonConfig, error) {
 		AppEnvironment:         GetString("APP_ENV", "production"),
 		AppMainLog:             GetString("APP_MAIN_LOG", "./logs/main.log"),
 		AppClientURL:           GetString("APP_CLIENT_URL", "http://localhost:3000"),
+		AppTokenName:           GetString("APP_TOKEN_NAME", "0aWalpi9q4b6Adm811hIJDzoh"),
 		PostgresUser:           GetString("POSTGRES_USER", "dev"),
 		PostgresPassword:       GetString("POSTGRES_PASSWORD", "devpass"),
 		PostgresDB:             GetString("POSTGRES_DB", "devdb"),
