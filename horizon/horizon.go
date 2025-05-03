@@ -2,6 +2,7 @@ package horizon
 
 import (
 	"context"
+	"fmt"
 
 	"go.uber.org/fx"
 )
@@ -13,6 +14,7 @@ func NewHorizon(
 	cache *HorizonCache,
 	request *HorizonRequest,
 	otp *HorizonOTP,
+	smtp *HorizonSMTP,
 	qr *HorizonQR,
 ) {
 	lc.Append(fx.Hook{
@@ -21,6 +23,18 @@ func NewHorizon(
 			schedule.Run()
 			cache.Run()
 			request.Run()
+
+			err := smtp.Send(&SMTPRequest{
+				To:      "recipient@example.com",
+				Subject: "Test Email",
+				Body:    "<h1>Hello from Mailpit!</h1><p>This is a test.</p>",
+			})
+			if err != nil {
+				fmt.Printf("❌ Failed to send email: %v\n", err)
+
+			} else {
+				fmt.Println("✅ Email sent successfully!")
+			}
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {

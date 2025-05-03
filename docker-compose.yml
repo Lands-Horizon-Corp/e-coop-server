@@ -22,11 +22,16 @@ x-env: &environment-variables
     REDIS_USERNAME: "${REDIS_USERNAME}"
     REDISINSIGHT_HOST: "${REDISINSIGHT_HOST}"
     REDISINSIGHT_PORT: "${REDISINSIGHT_PORT}"
-    MAILPIT_SMTP_HOST: "${MAILPIT_SMTP_HOST}"
-    MAILPIT_SMTP_PORT: "${MAILPIT_SMTP_PORT}"
+
+    SMTP_HOST: "${SMTP_HOST}"
+    SMTP_PORT: "${SMTP_PORT}"
+    SMTP_USERNAME: "${SMTP_USERNAME}"
+    SMTP_PASSWORD: "${SMTP_PASSWORD}"
+    SMTP_FROM: "${SMTP_FROM}"
     MAILPIT_UI_HOST: "${MAILPIT_UI_HOST}"
     MAILPIT_UI_PORT: "${MAILPIT_UI_PORT}"
-    MAILPIT_EMAIL: "${MAILPIT_EMAIL}"
+
+
     STORAGE_DRIVER: "${STORAGE_DRIVER}"
     STORAGE_ENDPOINT: "${STORAGE_ENDPOINT}"
     STORAGE_REGION: "${STORAGE_REGION}"
@@ -108,15 +113,9 @@ services:
     image: axllent/mailpit:latest
     container_name: mailpit
     restart: always
-    environment:
-      MAILPIT_SMTP_HOST: "${MAILPIT_SMTP_HOST}"
-      MAILPIT_SMTP_PORT: "${MAILPIT_SMTP_PORT}"
-      MAILPIT_UI_HOST: "${MAILPIT_UI_HOST}"
-      MAILPIT_UI_PORT: "${MAILPIT_UI_PORT}"
-      MAILPIT_EMAIL: "${MAILPIT_EMAIL}"
     ports:
-      - "${MAILPIT_UI_PORT}:8025"
-      - "${MAILPIT_SMTP_PORT}:1025"
+      - "${MAILPIT_SMTP_PORT:-1025}:1025"
+      - "${MAILPIT_UI_PORT:-8025}:8025"
     networks:
       - app-network
 

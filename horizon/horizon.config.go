@@ -28,21 +28,25 @@ type HorizonConfig struct {
 	RedisUsername          string
 	RedisInsightHost       string
 	RedisInsightPort       int
-	MailPitSMTPHost        string
-	MailPitSMTPPort        int
-	MailPitUIHost          string
-	MailPitUIPort          int
-	MailPitEmail           string
-	StorageDriver          string
-	StorageAccessKey       string
-	StorageSecretKey       string
-	StorageEndpoint        string
-	StorageRegion          string
-	StorageBucket          string
-	StorageAPI_Port        int
-	StorageConsolePort     int
-	NATSClientPort         int
-	NATSMonitorPort        int
+
+	SMTPHost      string
+	SMTPPort      int
+	SMTPUsername  string
+	SMTPPassword  string
+	SMTPFrom      string
+	MailPitUIHost string
+	MailPitUIPort int
+
+	StorageDriver      string
+	StorageAccessKey   string
+	StorageSecretKey   string
+	StorageEndpoint    string
+	StorageRegion      string
+	StorageBucket      string
+	StorageAPI_Port    int
+	StorageConsolePort int
+	NATSClientPort     int
+	NATSMonitorPort    int
 }
 
 func NewHorizonConfig() (*HorizonConfig, error) {
@@ -68,11 +72,13 @@ func NewHorizonConfig() (*HorizonConfig, error) {
 		RedisUsername:          GetString("REDIS_USERNAME", "default"),
 		RedisInsightHost:       GetString("REDISINSIGHT_HOST", "redisinsight"),
 		RedisInsightPort:       GetInt("REDISINSIGHT_PORT", 8001),
-		MailPitSMTPHost:        GetString("MAILPIT_SMTP_HOST", "mailpit"),
-		MailPitSMTPPort:        GetInt("MAILPIT_SMTP_PORT", 1025),
-		MailPitUIHost:          GetString("MAILPIT_UI_HOST", "mailpit"),
+		SMTPHost:               GetString("SMTP_HOST", "mailpit"),
+		SMTPPort:               GetInt("SMTP_PORT", 1025),
+		SMTPUsername:           GetString("SMTP_USERNAME", ""),
+		SMTPPassword:           GetString("SMTP_PASSWORD", ""),
+		SMTPFrom:               GetString("SMTP_FROM", "landshorizon@gmail.com"),
 		MailPitUIPort:          GetInt("MAILPIT_UI_PORT", 8025),
-		MailPitEmail:           GetString("MAILPIT_EMAIL", "landshorizon@gmail.com"),
+		MailPitUIHost:          GetString("MAILPIT_UI_HOST", "mailpit"),
 		StorageDriver:          GetString("STORAGE_DRIVER", "minio"),
 		StorageAccessKey:       GetString("STORAGE_ACCESS_KEY", "minioadmin"),
 		StorageSecretKey:       GetString("STORAGE_SECRET_KEY", "minioadmin"),
