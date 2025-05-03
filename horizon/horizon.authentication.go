@@ -1,9 +1,12 @@
 package horizon
 
 import (
+	"bytes"
 	"encoding/base64"
 	"fmt"
+	"html/template"
 	"net/url"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -47,6 +50,8 @@ func NewHorizonAuthentication(
 	}, nil
 }
 
+// connect html here
+
 func (ha *HorizonAuthentication) GenerateSMTPLink(baseURL string, value Claim) (string, error) {
 	// Create token with short expiry
 	token, err := ha.GenerateToken(Claim{
@@ -64,13 +69,26 @@ func (ha *HorizonAuthentication) GenerateSMTPLink(baseURL string, value Claim) (
 	escaped := url.PathEscape(token)
 	link := fmt.Sprintf("%s/%s", baseURL, escaped)
 
+	// Render email template
+	body, err := renderHTMLTemplate("email-forgot-password.html", map[string]string{
+		"appname":       ha.config.AppName,
+		"email":         value.Email,
+		"contactnumber": value.ContactNumber,
+		"link":          link,
+	})
+	if err != nil {
+		return "", eris.Wrap(err, "failed to render email template")
+	}
+
 	err = ha.smtp.Send(&SMTPRequest{
 		To:      value.Email,
 		Subject: ha.config.AppName + " Email Verification",
-		Body:    `<h1>Hello {{ .email }}!</h1><p>Please use this link to verify your email: <a href="{{ .link }}">{{ .link }}</a></p>`,
+		Body:    body,
 		Vars: &map[string]string{
-			"email": value.Email,
-			"link":  link,
+			"appname":       ha.config.AppName,
+			"email":         value.Email,
+			"contactnumber": value.ContactNumber,
+			"link":          link,
 		},
 	})
 	if err != nil {
@@ -78,7 +96,6 @@ func (ha *HorizonAuthentication) GenerateSMTPLink(baseURL string, value Claim) (
 	}
 	return link, nil
 }
-
 func (ha *HorizonAuthentication) ValidateSMTPLink(input string) (*Claim, error) {
 	if strings.Contains(input, "/") {
 		parts := strings.Split(input, "/")
@@ -109,12 +126,27 @@ func (ha *HorizonAuthentication) GenerateSMSLink(baseURL string, value Claim) (s
 	}
 	escaped := url.PathEscape(token)
 	link := fmt.Sprintf("%s/%s", baseURL, escaped)
+
+	// Render SMS template
+	body, err := renderTextTemplate("sms-forgot-password.txt", map[string]string{
+		"appname":       ha.config.AppName,
+		"email":         value.Email,
+		"contactnumber": value.ContactNumber,
+		"link":          link,
+	})
+	if err != nil {
+		return "", eris.Wrap(err, "failed to render SMS template")
+	}
+
 	err = ha.sms.Send(&SMSRequest{
 		To:      value.ContactNumber,
 		Subject: ha.config.AppName + " SMS Verification",
-		Body:    `Your verification link: {{ .link }}`,
+		Body:    body,
 		Vars: &map[string]string{
-			"link": link,
+			"appname":       ha.config.AppName,
+			"email":         value.Email,
+			"contactnumber": value.ContactNumber,
+			"link":          link,
 		},
 	})
 	if err != nil {
@@ -148,7 +180,7 @@ func (ha *HorizonAuthentication) Password(value string) (string, error) {
 	password := base64.StdEncoding.EncodeToString([]byte(value))
 	hashed, err := ha.security.PasswordHash(password)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 	return hashed, nil
 }
@@ -168,14 +200,23 @@ func (ha *HorizonAuthentication) SendSMTPOTP(value Claim) error {
 	if err != nil {
 		return err
 	}
+
+	// Render OTP email template
+	body, err := renderHTMLTemplate("email-otp.html", map[string]string{
+		"appname":       ha.config.AppName,
+		"email":         value.Email,
+		"contactnumber": value.ContactNumber,
+		"otp":           otp,
+	})
+	if err != nil {
+		return eris.Wrap(err, "failed to render OTP email template")
+	}
+
 	err = ha.smtp.Send(&SMTPRequest{
 		To:      value.Email,
-		Subject: ha.config.AppName + "Email OTP Verification",
-		Body:    `<h1>Hello {{ .email }}!</h1><p>This is your OTP {{ .otp }}.</p>`,
-		Vars: &map[string]string{
-			"email": value.Email,
-			"otp":   otp,
-		},
+		Subject: ha.config.AppName + " Email OTP Verification",
+		Body:    body,
+		Vars:    &map[string]string{"otp": otp},
 	})
 	if err != nil {
 		if delErr := ha.otp.Delete(secure); delErr != nil {
@@ -184,7 +225,6 @@ func (ha *HorizonAuthentication) SendSMTPOTP(value Claim) error {
 		return eris.Wrap(err, "SMTP sending failed, OTP deleted")
 	}
 	return nil
-
 }
 
 func (ha *HorizonAuthentication) VerifySMTPOTP(value Claim, otp string) bool {
@@ -203,14 +243,23 @@ func (ha *HorizonAuthentication) SendSMSOTP(value Claim) error {
 	if err != nil {
 		return err
 	}
+
+	// Render OTP SMS template
+	body, err := renderTextTemplate("sms-otp.txt", map[string]string{
+		"appname":       ha.config.AppName,
+		"email":         value.Email,
+		"contactnumber": value.ContactNumber,
+		"otp":           otp,
+	})
+	if err != nil {
+		return eris.Wrap(err, "failed to render OTP SMS template")
+	}
+
 	err = ha.sms.Send(&SMSRequest{
 		To:      value.ContactNumber,
-		Subject: ha.config.AppName + "SMS OTP Verification",
-		Body:    `<h1>Hello {{ .email }}!</h1><p>This is your OTP {{ .otp }}.</p>`,
-		Vars: &map[string]string{
-			"email": value.Email,
-			"otp":   otp,
-		},
+		Subject: ha.config.AppName + " SMS OTP Verification",
+		Body:    body,
+		Vars:    &map[string]string{"otp": otp},
 	})
 	if err != nil {
 		if delErr := ha.otp.Delete(secure); delErr != nil {
@@ -220,7 +269,6 @@ func (ha *HorizonAuthentication) SendSMSOTP(value Claim) error {
 	}
 	return nil
 }
-
 func (ha *HorizonAuthentication) VerifySMSOTP(value Claim, otp string) bool {
 	secure := ha.secured(value, "sms")
 	valid, err := ha.otp.Verify(secure, otp)
@@ -290,4 +338,33 @@ func (ha *HorizonAuthentication) secured(value Claim, reason string) string {
 	generated := value.Email + value.ContactNumber + value.ID + reason
 	val := ha.security.Hash(generated + ha.config.AppName + "auth")
 	return string(val)
+}
+
+// renderHTMLTemplate loads and executes an HTML template from auth/template
+func renderHTMLTemplate(filename string, data map[string]string) (string, error) {
+	tplPath := filepath.Join("template", filename)
+	tpl, err := template.ParseFiles(tplPath)
+	if err != nil {
+		return "", eris.Wrap(err, "failed to parse HTML template")
+	}
+
+	var buf bytes.Buffer
+	if err := tpl.Execute(&buf, data); err != nil {
+		return "", eris.Wrap(err, "failed to execute HTML template")
+	}
+	return buf.String(), nil
+}
+
+func renderTextTemplate(filename string, data map[string]string) (string, error) {
+	tplPath := filepath.Join("template", filename)
+	tpl, err := template.ParseFiles(tplPath)
+	if err != nil {
+		return "", eris.Wrap(err, "failed to parse text template")
+	}
+
+	var buf bytes.Buffer
+	if err := tpl.Execute(&buf, data); err != nil {
+		return "", eris.Wrap(err, "failed to execute text template")
+	}
+	return buf.String(), nil
 }

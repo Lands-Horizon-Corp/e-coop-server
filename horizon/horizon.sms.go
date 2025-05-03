@@ -24,6 +24,8 @@ import (
 	"golang.org/x/time/rate"
 )
 
+const maxSMSCharacters = 1_000
+
 type HorizonSMS struct {
 	log         *HorizonLog
 	security    *HorizonSecurity
@@ -87,8 +89,8 @@ func (hs *HorizonSMS) Send(req *SMSRequest) error {
 
 	}
 
-	if len(req.Body) > 120 {
-		err := fmt.Errorf("SMS body exceeds 120 characters (actual: %d)", len(req.Body))
+	if len(req.Body) > maxSMSCharacters {
+		err := fmt.Errorf("SMS body exceeds %d characters (actual: %d)", maxSMSCharacters, len(req.Body))
 		hs.log.Log(LogEntry{
 			Category: CategorySMS,
 			Level:    LevelError,
