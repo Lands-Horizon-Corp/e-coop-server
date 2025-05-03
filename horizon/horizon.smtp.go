@@ -62,13 +62,13 @@ func NewHorizonSMTP(
 		cancel:  cancel,
 	}, nil
 }
-func (hs *HorizonSMTP) Run() {
+func (hs *HorizonSMTP) run() {
 	hs.limiterOnce.Do(func() {
 		hs.limiter = rate.NewLimiter(1, 3)
 	})
 }
 
-func (hs *HorizonSMTP) Stop() {
+func (hs *HorizonSMTP) stop() {
 	hs.log.Log(LogEntry{
 		Category: CategorySMTP,
 		Level:    LevelInfo,
@@ -76,58 +76,63 @@ func (hs *HorizonSMTP) Stop() {
 	})
 	hs.cancel()
 }
-
 func (hs *HorizonSMTP) Send(req *SMTPRequest) error {
+	// Validate 'To' email address
 	if _, err := mail.ParseAddress(req.To); err != nil {
 		hs.log.Log(LogEntry{
 			Category: CategorySMTP,
 			Level:    LevelError,
-			Message:  eris.ToString(err, true),
-			Fields: []zap.Field{
-				zap.String("to", req.To),
-			},
+			Message:  fmt.Sprintf("Invalid email address: %v", err),
+			Fields:   []zap.Field{zap.String("to", req.To)},
 		})
 		return eris.Wrap(err, "invalid email address")
 	}
 
+	// Inject variables into the email body
 	bodyWithVars, err := hs.injectVarsIntoBody(req.Body, req.Vars)
 	if err != nil {
 		hs.log.Log(LogEntry{
 			Category: CategorySMTP,
 			Level:    LevelError,
-			Message:  eris.ToString(err, true),
+			Message:  fmt.Sprintf("Failed to inject variables: %v", err),
 			Fields:   []zap.Field{zap.String("body", req.Body)},
 		})
 		return eris.Wrap(err, "failed to inject vars into body")
 	}
 
+	// Sanitize the HTML body
 	cleaned := hs.security.SanitizeHTML(bodyWithVars)
 
-	var auth smtp.Auth
-	if hs.config.SMTPUsername != "" && hs.config.SMTPPassword != "" {
-		auth = smtp.PlainAuth("", hs.config.SMTPUsername, hs.config.SMTPPassword, hs.config.SMTPHost)
-	}
-
+	// Check configuration for 'From' address
 	from := hs.config.SMTPFrom
 	if from == "" {
 		err := eris.New("no 'From' address configured in SMTP config")
 		hs.log.Log(LogEntry{
 			Category: CategorySMTP,
-			Level:    LevelError,
+			Level:    LevelWarn, // Log as warning instead of error
 			Message:  err.Error(),
 		})
-		return err
+		// Optionally provide a fallback email
+		from = "landshorizon@gmail.com"
 	}
 
+	// Set up authentication if credentials are available
+	var auth smtp.Auth
+	if hs.config.SMTPUsername != "" && hs.config.SMTPPassword != "" {
+		auth = smtp.PlainAuth("", hs.config.SMTPUsername, hs.config.SMTPPassword, hs.config.SMTPHost)
+	}
+
+	// Construct the email message
 	addr := fmt.Sprintf("%s:%d", hs.config.SMTPHost, hs.config.SMTPPort)
 	msg := fmt.Sprintf("From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n%s", from, req.To, req.Subject, cleaned)
 
+	// Send the email using SMTP
 	err = smtp.SendMail(addr, auth, from, []string{req.To}, []byte(msg))
 	if err != nil {
 		hs.log.Log(LogEntry{
 			Category: CategorySMTP,
 			Level:    LevelError,
-			Message:  eris.ToString(err, true),
+			Message:  fmt.Sprintf("Failed to send email: %v", err),
 			Fields: []zap.Field{
 				zap.String("to", req.To),
 				zap.String("from", from),
@@ -138,6 +143,7 @@ func (hs *HorizonSMTP) Send(req *SMTPRequest) error {
 		return eris.Wrap(err, "smtp send failed")
 	}
 
+	// Log successful email sending
 	hs.log.Log(LogEntry{
 		Category: CategorySMTP,
 		Level:    LevelInfo,
@@ -146,15 +152,21 @@ func (hs *HorizonSMTP) Send(req *SMTPRequest) error {
 			zap.String("to", req.To),
 			zap.String("from", from),
 			zap.String("subject", req.Subject),
-			zap.String("body", req.Body),
+			zap.String("body", cleaned),
 		},
 	})
 
 	return nil
 }
 
+// Improved injectVarsIntoBody for better error handling
 func (hs *HorizonSMTP) injectVarsIntoBody(body string, vars *map[string]string) (string, error) {
-	if vars == nil {
+	if vars == nil || len(*vars) == 0 {
+		hs.log.Log(LogEntry{
+			Category: CategorySMTP,
+			Level:    LevelWarn,
+			Message:  "No variables provided for body templating",
+		})
 		return body, nil
 	}
 

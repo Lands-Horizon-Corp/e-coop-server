@@ -31,7 +31,7 @@ func NewHorizonSchedule(log *HorizonLog) (*HorizonSchedule, error) {
 	}, nil
 }
 
-func (hs *HorizonSchedule) Run() {
+func (hs *HorizonSchedule) run() {
 	go func() {
 		hs.cron.Start()
 		hs.log.Log(LogEntry{
@@ -45,7 +45,7 @@ func (hs *HorizonSchedule) Run() {
 	}()
 }
 
-func (hs *HorizonSchedule) Stop() {
+func (hs *HorizonSchedule) stop() {
 	hs.cron.Stop()
 	hs.log.Log(LogEntry{
 		Category: CategorySchedule,

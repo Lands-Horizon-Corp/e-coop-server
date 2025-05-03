@@ -131,7 +131,7 @@ func NewHorizonLog(config *HorizonConfig) (*HorizonLog, error) {
 	}, nil
 }
 
-func (hl *HorizonLog) Run() error {
+func (hl *HorizonLog) run() error {
 	loggers, err := hl.setupCategories(hl.config.AppLog, Categories)
 	if err != nil {
 		return eris.Wrap(err, "failed to initialize loggers")
@@ -141,7 +141,7 @@ func (hl *HorizonLog) Run() error {
 	hl.loggers["default"] = hl.fallback
 	return nil
 }
-func (hl *HorizonLog) Stop() {
+func (hl *HorizonLog) stop() {
 	for category, logger := range hl.loggers {
 		if err := logger.Sync(); err != nil {
 			if !IsInvalidArgumentError(err) {

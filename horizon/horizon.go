@@ -20,22 +20,21 @@ func NewHorizon(
 ) {
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
-			log.Run()
-			schedule.Run()
-			cache.Run()
-			request.Run()
-			smtp.Run()
-			sms.Run()
-
+			log.run()
+			schedule.run()
+			cache.run()
+			request.run()
+			smtp.run()
+			sms.run()
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {
-			sms.Stop()
-			smtp.Stop()
-			request.Stop()
-			cache.Stop()
-			schedule.Stop()
-			log.Stop()
+			sms.stop()
+			smtp.stop()
+			request.stop()
+			cache.stop()
+			schedule.stop()
+			log.stop()
 			return nil
 		},
 	})

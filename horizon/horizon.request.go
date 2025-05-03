@@ -172,7 +172,7 @@ func NewHorizonRequest(
 	}, nil
 }
 
-func (hr *HorizonRequest) Run() {
+func (hr *HorizonRequest) run() {
 	go func() {
 		hr.log.Log(LogEntry{
 			Category: CategoryRequest,
@@ -183,7 +183,7 @@ func (hr *HorizonRequest) Run() {
 	}()
 }
 
-func (hr *HorizonRequest) Stop() error {
+func (hr *HorizonRequest) stop() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if err := hr.Service.Shutdown(ctx); err != nil {

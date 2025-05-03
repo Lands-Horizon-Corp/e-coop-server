@@ -31,7 +31,7 @@ func NewHorizonCache(
 		log:    log,
 	}, nil
 }
-func (hc *HorizonCache) Run() error {
+func (hc *HorizonCache) run() error {
 
 	opts := &redis.Options{
 		Addr:     fmt.Sprintf("%s:%d", hc.config.RedisHost, hc.config.RedisPort),
@@ -70,7 +70,7 @@ func (hc *HorizonCache) Run() error {
 	return finalErr
 }
 
-func (hc *HorizonCache) Stop() error {
+func (hc *HorizonCache) stop() error {
 	if hc.client == nil {
 		return nil
 	}
