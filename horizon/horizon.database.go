@@ -6,4 +6,6 @@ func NewHorizonDatabase() (*HorizonDatabase, error) {
 	return &HorizonDatabase{}, nil
 }
 
+func (hd *HorizonDatabase) Run() {}
+
 func (hd *HorizonDatabase) Ping() {}

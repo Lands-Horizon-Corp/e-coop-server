@@ -4,7 +4,7 @@ package horizon
 type HorizonConfig struct {
 	AppPort                int
 	AppName                string
-	AppTOKEN               string
+	AppToken               string
 	AppLog                 string
 	PostgresUser           string
 	PostgresPassword       string
@@ -42,7 +42,7 @@ func NewHorizonConfig() (*HorizonConfig, error) {
 	return &HorizonConfig{
 		AppPort:                GetInt("APP_PORT", 8000),
 		AppName:                GetString("APP_NAME", "ENGINE"),
-		AppTOKEN:               GetString("APP_TOKEN", ""),
+		AppToken:               GetString("APP_TOKEN", "oYrsXzg7eu7Yt5So4e62r7LDVH2hj"),
 		AppLog:                 GetString("APP_LOG", "./logs/"),
 		PostgresUser:           GetString("POSTGRES_USER", "dev"),
 		PostgresPassword:       GetString("POSTGRES_PASSWORD", "devpass"),

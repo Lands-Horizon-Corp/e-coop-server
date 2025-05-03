@@ -33,7 +33,6 @@ func (p *HorizonPrettyJSONEncoder) EncodeEntry(ent zapcore.Entry, fields []zapco
 	var prettyJSON bytes.Buffer
 	err = json.Indent(&prettyJSON, buf.Bytes(), "", "  ")
 	if err != nil {
-		// fallback to original
 		return buf, nil
 	}
 

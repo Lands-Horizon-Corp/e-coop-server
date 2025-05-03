@@ -1,6 +1,12 @@
 package horizon
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/base64"
+	"errors"
 	"io"
 	"net/http"
 	"os"
@@ -72,4 +78,62 @@ func GetRequestBody(c echo.Context) string {
 		body = string(bodyBytes)
 	}
 	return body
+}
+
+func Hash(keyStr string) []byte {
+	hash := sha256.New()
+	hash.Write([]byte(keyStr))
+	return hash.Sum(nil)
+}
+
+func Encrypt(keyStr, plaintextStr string) (string, error) {
+	key := Hash(keyStr)
+	if len(key) != 16 && len(key) != 24 && len(key) != 32 {
+		return "", errors.New("key must be 16, 24, or 32 bytes after hashing")
+	}
+	plaintext := []byte(plaintextStr)
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return "", err
+	}
+	aesgcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return "", err
+	}
+	nonce := make([]byte, aesgcm.NonceSize())
+	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
+		return "", err
+	}
+	ciphertext := aesgcm.Seal(nonce, nonce, plaintext, nil)
+	return base64.StdEncoding.EncodeToString(ciphertext), nil
+}
+
+func Decrypt(keyStr, encryptedStr string) (string, error) {
+	key := Hash(keyStr)
+	if len(key) != 16 && len(key) != 24 && len(key) != 32 {
+		return "", errors.New("key must be 16, 24, or 32 bytes after hashing")
+	}
+	ciphertext, err := base64.StdEncoding.DecodeString(encryptedStr)
+	if err != nil {
+		return "", errors.New("failed to decode ciphertext")
+	}
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return "", err
+	}
+	aesgcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return "", err
+	}
+	nonceSize := aesgcm.NonceSize()
+	if len(ciphertext) < nonceSize {
+		return "", errors.New("ciphertext too short")
+	}
+	nonce, ciphertext := ciphertext[:nonceSize], ciphertext[nonceSize:]
+
+	plaintext, err := aesgcm.Open(nil, nonce, ciphertext, nil)
+	if err != nil {
+		return "", err
+	}
+	return string(plaintext), nil
 }

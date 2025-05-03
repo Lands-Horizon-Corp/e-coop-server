@@ -9,7 +9,6 @@ func main() {
 	app := fx.New(
 		horizon.Modules,
 	)
-
 	app.Run()
 	select {}
 }

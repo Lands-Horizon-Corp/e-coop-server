@@ -213,26 +213,20 @@ func (hl *HorizonLog) newCategoryLogger(logDir string, category Category) (*zap.
 		}
 	}
 
-	// Define JSON Encoder for file logging
 	jsonEncCfg := zap.NewProductionEncoderConfig()
 	jsonEncCfg.EncodeTime = zapcore.ISO8601TimeEncoder
 	jsonEncoder := zapcore.NewJSONEncoder(jsonEncCfg)
 
-	// Console encoder with color
 	consoleEncCfg := zap.NewProductionEncoderConfig()
 	consoleEncCfg.EncodeTime = zapcore.ISO8601TimeEncoder
 
-	// Using CapitalColorLevelEncoder to add color based on log level
 	consoleEncCfg.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	consoleEncoder := NewHorizonPrettyJSONEncoder(consoleEncCfg)
 
-	// JSON core for file logging
 	jsonCore := zapcore.NewCore(jsonEncoder, writeSyncer, level)
 
-	// Console core using the custom pretty JSON encoder with color
 	consoleCore := zapcore.NewCore(consoleEncoder, consoleSyncer, level)
 
-	// Combine both JSON and console cores
 	core := zapcore.NewTee(jsonCore, consoleCore)
 
 	logger := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1)).With(
