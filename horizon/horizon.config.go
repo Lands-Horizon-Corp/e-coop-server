@@ -1,7 +1,6 @@
 package horizon
 
 import (
-	"fmt"
 	"strings"
 )
 
@@ -92,7 +91,6 @@ func NewHorizonConfig() (*HorizonConfig, error) {
 	}, nil
 }
 func (hc *HorizonConfig) CanDebug() bool {
-	fmt.Println(hc)
 	env := strings.TrimSpace(strings.ToLower(hc.AppEnvironment))
 	switch env {
 	case "dev", "development", "developer", "test", "testing", "debug", "debugging":

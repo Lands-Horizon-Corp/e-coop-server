@@ -36,8 +36,6 @@ const (
 
 func (ho *HorizonOTP) GenerateOTP(key string) (string, error) {
 	hashedKey := ho.secured(key)
-	fmt.Println(ho.cache.Exist(hashedKey))
-	fmt.Println("---")
 	if ho.cache.Exist(hashedKey) {
 		return "", eris.New("OTP already requested; please wait in 2 minutes before retrying")
 	}
