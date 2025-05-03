@@ -1,3 +1,14 @@
+/*
+	err := smtp.Send(&SMTPRequest{
+		To:      "recipient@example.com",
+		Subject: "Test Email",
+		Body:    `<h1>Hello {{ .username }}!</h1><p>This is a {{ .test_value }} test email.</p>`,
+		Vars: &map[string]string{
+			"username":   "John Doe",
+			"test_value": "Rate Limited",
+		},
+	})
+*/
 package horizon
 
 import (

@@ -15,6 +15,7 @@ func NewHorizon(
 	request *HorizonRequest,
 	otp *HorizonOTP,
 	smtp *HorizonSMTP,
+	sms *HorizonSMS,
 	qr *HorizonQR,
 ) {
 	lc.Append(fx.Hook{
@@ -24,9 +25,11 @@ func NewHorizon(
 			cache.Run()
 			request.Run()
 			smtp.Run()
+			sms.Run()
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {
+			sms.Stop()
 			smtp.Stop()
 			request.Stop()
 			cache.Stop()
