@@ -3,6 +3,8 @@ package horizon
 import (
 	"encoding/base64"
 	"fmt"
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -43,6 +45,121 @@ func NewHorizonAuthentication(
 		sms:      sms,
 		smtp:     smtp,
 	}, nil
+}
+
+func (ha *HorizonAuthentication) GenerateSMTPLink(baseURL string, value Claim) (string, error) {
+	// Create token with short expiry
+	token, err := ha.GenerateToken(Claim{
+		ID:            value.ID,
+		Email:         value.Email,
+		ContactNumber: value.ContactNumber,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(10 * time.Minute)),
+		},
+	})
+	if err != nil {
+		return "", eris.Wrap(err, "failed to generate token")
+	}
+
+	escaped := url.PathEscape(token)
+	link := fmt.Sprintf("%s/%s", baseURL, escaped)
+
+	err = ha.smtp.Send(&SMTPRequest{
+		To:      value.Email,
+		Subject: ha.config.AppName + " Email Verification",
+		Body:    `<h1>Hello {{ .email }}!</h1><p>Please use this link to verify your email: <a href="{{ .link }}">{{ .link }}</a></p>`,
+		Vars: &map[string]string{
+			"email": value.Email,
+			"link":  link,
+		},
+	})
+	if err != nil {
+		return "", eris.Wrap(err, "failed to send SMTP link")
+	}
+	return link, nil
+}
+
+func (ha *HorizonAuthentication) ValidateSMTPLink(input string) (*Claim, error) {
+	if strings.Contains(input, "/") {
+		parts := strings.Split(input, "/")
+		input = parts[len(parts)-1]
+	}
+	tokenRaw, err := url.PathUnescape(input)
+	if err != nil {
+		return nil, eris.Wrap(err, "invalid link encoding")
+	}
+	claim, err := ha.VerifyToken(tokenRaw)
+	if err != nil {
+		return nil, eris.Wrap(err, "SMTP token validation failed")
+	}
+	return claim, nil
+}
+
+func (ha *HorizonAuthentication) GenerateSMSLink(baseURL string, value Claim) (string, error) {
+	token, err := ha.GenerateToken(Claim{
+		ID:            value.ID,
+		Email:         value.Email,
+		ContactNumber: value.ContactNumber,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(10 * time.Minute)),
+		},
+	})
+	if err != nil {
+		return "", eris.Wrap(err, "failed to generate token")
+	}
+	escaped := url.PathEscape(token)
+	link := fmt.Sprintf("%s/%s", baseURL, escaped)
+	err = ha.sms.Send(&SMSRequest{
+		To:      value.ContactNumber,
+		Subject: ha.config.AppName + " SMS Verification",
+		Body:    `Your verification link: {{ .link }}`,
+		Vars: &map[string]string{
+			"link": link,
+		},
+	})
+	if err != nil {
+		return "", eris.Wrap(err, "failed to send SMS link")
+	}
+	return link, nil
+}
+
+func (ha *HorizonAuthentication) ValidateSMSLink(input string) (*Claim, error) {
+	if strings.Contains(input, "/") {
+		parts := strings.Split(input, "/")
+		input = parts[len(parts)-1]
+	}
+
+	// Remove URL-escaping if any
+	tokenRaw, err := url.PathUnescape(input)
+	if err != nil {
+		return nil, eris.Wrap(err, "invalid link encoding")
+	}
+
+	// Verify the token
+	claim, err := ha.VerifyToken(tokenRaw)
+	if err != nil {
+		return nil, eris.Wrap(err, "SMS token validation failed")
+	}
+
+	return claim, nil
+}
+
+func (ha *HorizonAuthentication) Password(value string) (string, error) {
+	password := base64.StdEncoding.EncodeToString([]byte(value))
+	hashed, err := ha.security.PasswordHash(password)
+	if err != nil {
+		return "", nil
+	}
+	return hashed, nil
+}
+
+func (ha *HorizonAuthentication) VerifyPassword(hashed string, password string) bool {
+	value := base64.StdEncoding.EncodeToString([]byte(password))
+	result, err := ha.security.VerifyPassword(hashed, value)
+	if err != nil {
+		return false
+	}
+	return result
 }
 
 func (ha *HorizonAuthentication) SendSMTPOTP(value Claim) error {
@@ -117,16 +234,25 @@ func (ha *HorizonAuthentication) GenerateToken(value Claim) (string, error) {
 	if authExpiration == 0 {
 		authExpiration = 12 * time.Hour
 	}
+	if value.RegisteredClaims.Subject == "" {
+		value.RegisteredClaims.Subject = value.ID
+	}
+	if value.RegisteredClaims.NotBefore == nil {
+		value.RegisteredClaims.NotBefore = jwt.NewNumericDate(time.Now())
+	}
+	if value.RegisteredClaims.IssuedAt == nil {
+		value.RegisteredClaims.IssuedAt = jwt.NewNumericDate(time.Now())
+	}
+	if value.RegisteredClaims.ExpiresAt == nil {
+		value.RegisteredClaims.ExpiresAt = jwt.NewNumericDate(time.Now().Add(authExpiration))
+	}
+
 	claim := &Claim{
 		ID:            value.ID,
 		Email:         value.Email,
 		ContactNumber: value.ContactNumber,
 		RegisteredClaims: jwt.RegisteredClaims{
-			Issuer:    ha.config.AppName,
-			Subject:   value.ID,
-			NotBefore: jwt.NewNumericDate(time.Now()),
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(authExpiration)),
+			Issuer: ha.config.AppName,
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claim)
@@ -165,11 +291,3 @@ func (ha *HorizonAuthentication) secured(value Claim, reason string) string {
 	val := ha.security.Hash(generated + ha.config.AppName + "auth")
 	return string(val)
 }
-
-/*
-	// getting current user logged in
-	// check if logged in on other device. prevet login
-	// can log in and compare password
-	// can send otp confirmation (this will be used for email verification, contact verification, continue to secured site, and allowing itself)
-	// can send otp confirmation (this will be used for email verification, contact verification, continue to secured site, and allowing itself)
-*/

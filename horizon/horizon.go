@@ -2,6 +2,7 @@ package horizon
 
 import (
 	"context"
+	"fmt"
 
 	"go.uber.org/fx"
 )
@@ -27,6 +28,38 @@ func NewHorizon(
 			request.run()
 			smtp.run()
 			sms.run()
+			// ─── MANUAL SMTP LINK GENERATION & VALIDATION ────────────────────────
+			// Pick a dummy claim for demonstration:
+			demo := Claim{
+				ID:            "demo-id-123",
+				Email:         "demo@user.com",
+				ContactNumber: "+639171234567",
+			}
+
+			baseURL := "https://example.com/verify"
+			link, err := auth.GenerateSMSLink(baseURL, demo)
+			if err != nil {
+				fmt.Println("❌ GenerateSMTPLink error:", err)
+			} else {
+				fmt.Println("✅ Generated SMTP link:", link)
+			}
+
+			parsed, err := auth.ValidateSMTPLink(link)
+			if err != nil {
+				fmt.Println("❌ ValidateSMTPLink error:", err)
+			} else {
+				fmt.Printf("✅ Parsed SMTP claim: ID=%s, Email=%s, Contact=%s\n",
+					parsed.ID, parsed.Email, parsed.ContactNumber)
+			}
+			// password := "password sample 2344"
+			// hashed, err := auth.Password(password)
+			// if err != nil {
+			// 	fmt.Printf("error %v", err)
+			// }
+			// fmt.Println(hashed)
+			// fmt.Println("-----")
+			// fmt.Println(" confirm %t", auth.VerifyPassword(hashed, "password sample 234"))
+			// fmt.Println("-----")
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {
