@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+
+	"github.com/rotisserie/eris"
+	"go.uber.org/zap"
 )
 
 type QRTransaction struct {
@@ -54,38 +57,106 @@ type QRResult struct {
 
 type HorizonQR struct {
 	config *HorizonConfig
+	log    *HorizonLog
 }
 
-func NewHorizonQR(config *HorizonConfig) (*HorizonQR, error) {
+func NewHorizonQR(
+	config *HorizonConfig,
+	log *HorizonLog,
+) (*HorizonQR, error) {
 	return &HorizonQR{
 		config: config,
+		log:    log,
 	}, nil
 }
 
 func (hq *HorizonQR) Encode(data any) (*QRResult, error) {
 	typeName := reflect.TypeOf(data).Name()
-	wrapped := map[string]any{
-		"type": typeName,
-	}
 	dataBytes, err := json.Marshal(data)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal data: %w", err)
+		hq.log.Log(LogEntry{
+			Category: CategoryQR,
+			Level:    LevelError,
+			Message:  "failed to marshal original data to JSON",
+			Fields: []zap.Field{
+				zap.String("type", typeName),
+				zap.Any("data", data),
+				zap.Error(err),
+			},
+		})
+		return nil, eris.Wrap(err, "failed to marshal data")
 	}
 	var dataMap map[string]any
 	if err := json.Unmarshal(dataBytes, &dataMap); err != nil {
-		return nil, fmt.Errorf("failed to remarshal to map: %w", err)
+		hq.log.Log(LogEntry{
+			Category: CategoryQR,
+			Level:    LevelError,
+			Message:  "failed to unmarshal data into map[string]any",
+			Fields: []zap.Field{
+				zap.String("type", typeName),
+				zap.ByteString("json", dataBytes),
+				zap.Error(err),
+			},
+		})
+		return nil, eris.Wrap(err, "failed to convert data to map")
 	}
-	wrapped["data"] = dataMap
-
+	wrapped := map[string]any{
+		"type": typeName,
+		"data": dataMap,
+	}
 	finalBytes, err := json.Marshal(wrapped)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal wrapped data: %w", err)
+		hq.log.Log(LogEntry{
+			Category: CategoryQR,
+			Level:    LevelError,
+			Message:  "failed to marshal wrapped data",
+			Fields: []zap.Field{
+				zap.String("type", typeName),
+				zap.Any("wrapped", wrapped),
+				zap.Error(err),
+			},
+		})
+		return nil, eris.Wrap(err, "failed to marshal wrapped data")
 	}
-	key := hq.config.AppToken
-	encryptedStr, err := Encrypt(key, string(finalBytes))
+	encryptedStr, err := Encrypt(hq.config.AppToken, string(finalBytes))
 	if err != nil {
-		return nil, fmt.Errorf("encryption failed: %w", err)
+		hq.log.Log(LogEntry{
+			Category: CategoryQR,
+			Level:    LevelError,
+			Message:  "failed to encrypt marshaled data",
+			Fields: []zap.Field{
+				zap.String("type", typeName),
+				zap.ByteString("json", finalBytes),
+				zap.Error(err),
+			},
+		})
+		return nil, eris.Wrap(err, "encryption failed")
 	}
+	decoded, err := hq.Decode(encryptedStr)
+	if err != nil {
+		hq.log.Log(LogEntry{
+			Category: CategoryQR,
+			Level:    LevelError,
+			Message:  "failed to decode encrypted data",
+			Fields: []zap.Field{
+				zap.String("type", typeName),
+				zap.String("encrypted_str", encryptedStr),
+				zap.Error(err),
+			},
+		})
+		return nil, eris.Wrap(err, "failed to decode encrypted data")
+	}
+	hq.log.Log(LogEntry{
+		Category: CategoryQR,
+		Level:    LevelInfo,
+		Message:  "Successfully converted data to QR",
+		Fields: []zap.Field{
+			zap.String("qr_code", encryptedStr),
+			zap.String("type", typeName),
+			zap.Any("decoded_data", decoded),
+		},
+	})
+
 	return &QRResult{
 		QRCode: encryptedStr,
 		Type:   typeName,
@@ -93,55 +164,84 @@ func (hq *HorizonQR) Encode(data any) (*QRResult, error) {
 }
 
 func (hq *HorizonQR) Decode(qrCodeBase64 string) (any, error) {
-	key := hq.config.AppToken
-	decryptedStr, err := Decrypt(key, qrCodeBase64)
+	decryptedStr, err := Decrypt(hq.config.AppToken, qrCodeBase64)
 	if err != nil {
-		return nil, fmt.Errorf("decryption failed: %w", err)
+		hq.log.Log(LogEntry{
+			Category: CategoryQR,
+			Level:    LevelError,
+			Message:  "Decryption failed",
+			Fields: []zap.Field{
+				zap.String("qr_code_base64", qrCodeBase64),
+				zap.Error(err),
+			},
+		})
+
+		return nil, eris.Wrap(err, "decryption failed")
 	}
+
 	var wrapper struct {
 		Type string          `json:"type"`
 		Data json.RawMessage `json:"data"`
 	}
+
 	if err := json.Unmarshal([]byte(decryptedStr), &wrapper); err != nil {
-		return nil, fmt.Errorf("failed to parse wrapped data: %w", err)
+		hq.log.Log(LogEntry{
+			Category: CategoryQR,
+			Level:    LevelError,
+			Message:  "Failed to parse wrapped data",
+			Fields: []zap.Field{
+				zap.String("decrypted_str", decryptedStr),
+				zap.Error(err),
+			},
+		})
+		return nil, eris.Wrap(err, "failed to parse wrapped data")
 	}
+
 	switch wrapper.Type {
 	case "QRTransaction":
 		var tx QRTransaction
 		if err := json.Unmarshal(wrapper.Data, &tx); err != nil {
-			return nil, err
+			return nil, eris.Wrap(err, "failed to unmarshal QRTransaction")
 		}
 		return tx, nil
 
 	case "QRUser":
 		var user QRUser
 		if err := json.Unmarshal(wrapper.Data, &user); err != nil {
-			return nil, err
+			return nil, eris.Wrap(err, "failed to unmarshal QRUser")
 		}
 		return user, nil
 
 	case "QROrganization":
 		var org QROrganization
 		if err := json.Unmarshal(wrapper.Data, &org); err != nil {
-			return nil, err
+			return nil, eris.Wrap(err, "failed to unmarshal QROrganization")
 		}
 		return org, nil
 
 	case "QRMemberProfile":
 		var profile QRMemberProfile
 		if err := json.Unmarshal(wrapper.Data, &profile); err != nil {
-			return nil, err
+			return nil, eris.Wrap(err, "failed to unmarshal QRMemberProfile")
 		}
 		return profile, nil
 
 	case "QRInvitationLink":
 		var link QRInvitationLink
 		if err := json.Unmarshal(wrapper.Data, &link); err != nil {
-			return nil, err
+			return nil, eris.Wrap(err, "failed to unmarshal QRInvitationLink")
 		}
 		return link, nil
 
 	default:
-		return nil, fmt.Errorf("unsupported QR type: %s", wrapper.Type)
+		hq.log.Log(LogEntry{
+			Category: CategoryQR,
+			Level:    LevelError,
+			Message:  "Unsupported QR type",
+			Fields: []zap.Field{
+				zap.String("type", wrapper.Type),
+			},
+		})
+		return nil, eris.New(fmt.Sprintf("unsupported QR type: %s", wrapper.Type))
 	}
 }

@@ -6,7 +6,6 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
-	"errors"
 	"io"
 	"net/http"
 	"os"
@@ -14,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/labstack/echo/v4"
+	"github.com/rotisserie/eris"
 )
 
 func GetBool(key string, defaultVal bool) bool {
@@ -50,10 +50,11 @@ func GetInt(key string, defaultVal int) int {
 	if val == "" {
 		return defaultVal
 	}
-	if intVal, err := strconv.Atoi(val); err == nil {
-		return intVal
+	intVal, err := strconv.Atoi(val)
+	if err != nil {
+		return defaultVal
 	}
-	return defaultVal
+	return intVal
 }
 
 func GetFloat(key string, defaultVal float64) float64 {
@@ -61,23 +62,22 @@ func GetFloat(key string, defaultVal float64) float64 {
 	if val == "" {
 		return defaultVal
 	}
-	if floatVal, err := strconv.ParseFloat(val, 64); err == nil {
-		return floatVal
+	floatVal, err := strconv.ParseFloat(val, 64)
+	if err != nil {
+		return defaultVal
 	}
-	return defaultVal
+	return floatVal
 }
 
 func GetRequestBody(c echo.Context) string {
-	body := ""
 	if c.Request().Method == http.MethodPost || c.Request().Method == http.MethodPut {
-		var err error
 		bodyBytes, err := io.ReadAll(c.Request().Body)
 		if err != nil {
 			return "Error reading body"
 		}
-		body = string(bodyBytes)
+		return string(bodyBytes)
 	}
-	return body
+	return ""
 }
 
 func Hash(keyStr string) []byte {
@@ -89,21 +89,26 @@ func Hash(keyStr string) []byte {
 func Encrypt(keyStr, plaintextStr string) (string, error) {
 	key := Hash(keyStr)
 	if len(key) != 16 && len(key) != 24 && len(key) != 32 {
-		return "", errors.New("key must be 16, 24, or 32 bytes after hashing")
+		return "", eris.New("key must be 16, 24, or 32 bytes after hashing")
 	}
+
 	plaintext := []byte(plaintextStr)
+
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		return "", err
+		return "", eris.Wrap(err, "failed to create AES cipher block")
 	}
+
 	aesgcm, err := cipher.NewGCM(block)
 	if err != nil {
-		return "", err
+		return "", eris.Wrap(err, "failed to create GCM block cipher")
 	}
+
 	nonce := make([]byte, aesgcm.NonceSize())
 	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
-		return "", err
+		return "", eris.Wrap(err, "failed to generate nonce")
 	}
+
 	ciphertext := aesgcm.Seal(nonce, nonce, plaintext, nil)
 	return base64.StdEncoding.EncodeToString(ciphertext), nil
 }
@@ -111,29 +116,34 @@ func Encrypt(keyStr, plaintextStr string) (string, error) {
 func Decrypt(keyStr, encryptedStr string) (string, error) {
 	key := Hash(keyStr)
 	if len(key) != 16 && len(key) != 24 && len(key) != 32 {
-		return "", errors.New("key must be 16, 24, or 32 bytes after hashing")
+		return "", eris.New("key must be 16, 24, or 32 bytes after hashing")
 	}
+
 	ciphertext, err := base64.StdEncoding.DecodeString(encryptedStr)
 	if err != nil {
-		return "", errors.New("failed to decode ciphertext")
+		return "", eris.Wrap(err, "failed to decode ciphertext from base64")
 	}
+
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		return "", err
+		return "", eris.Wrap(err, "failed to create AES cipher block")
 	}
+
 	aesgcm, err := cipher.NewGCM(block)
 	if err != nil {
-		return "", err
+		return "", eris.Wrap(err, "failed to create GCM block cipher")
 	}
+
 	nonceSize := aesgcm.NonceSize()
 	if len(ciphertext) < nonceSize {
-		return "", errors.New("ciphertext too short")
+		return "", eris.New("ciphertext too short")
 	}
-	nonce, ciphertext := ciphertext[:nonceSize], ciphertext[nonceSize:]
 
+	nonce, ciphertext := ciphertext[:nonceSize], ciphertext[nonceSize:]
 	plaintext, err := aesgcm.Open(nil, nonce, ciphertext, nil)
 	if err != nil {
-		return "", err
+		return "", eris.Wrap(err, "failed to decrypt ciphertext")
 	}
+
 	return string(plaintext), nil
 }
