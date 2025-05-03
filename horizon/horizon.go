@@ -16,6 +16,7 @@ func NewHorizon(
 	otp *HorizonOTP,
 	smtp *HorizonSMTP,
 	sms *HorizonSMS,
+	auth *HorizonAuthentication,
 	qr *HorizonQR,
 ) {
 	lc.Append(fx.Hook{

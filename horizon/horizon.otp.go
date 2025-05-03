@@ -34,7 +34,7 @@ const (
 	maxOTPTries = 3
 )
 
-func (ho *HorizonOTP) GenerateOTP(key string) (string, error) {
+func (ho *HorizonOTP) Generate(key string) (string, error) {
 	hashedKey := ho.secured(key)
 	if ho.cache.Exist(hashedKey) {
 		return "", eris.New("OTP already requested; please wait in 2 minutes before retrying")
@@ -81,7 +81,7 @@ func (ho *HorizonOTP) GenerateOTP(key string) (string, error) {
 	return otp, nil
 }
 
-func (ho *HorizonOTP) VerifyOTP(key, value string) (bool, error) {
+func (ho *HorizonOTP) Verify(key, value string) (bool, error) {
 	hashedKey := ho.secured(key)
 
 	rawCount, err := ho.cache.Get(hashedKey + ":count")
@@ -141,7 +141,31 @@ func (ho *HorizonOTP) VerifyOTP(key, value string) (bool, error) {
 	return true, nil
 }
 
+func (ho *HorizonOTP) Delete(key string) error {
+	hashedKey := ho.secured(key)
+
+	if err := ho.cache.Delete(hashedKey); err != nil {
+		return eris.Wrap(err, "failed to delete OTP token")
+	}
+
+	if err := ho.cache.Delete(hashedKey + ":count"); err != nil {
+		return eris.Wrap(err, "failed to delete OTP retry count")
+	}
+
+	ho.cache.log.Log(LogEntry{
+		Category: CategoryOTP,
+		Level:    LevelInfo,
+		Message:  "OTP manually deleted",
+		Fields: []zap.Field{
+			zap.String("key", key),
+			zap.String("hashedKey", hashedKey),
+		},
+	})
+
+	return nil
+}
+
 func (ho *HorizonOTP) secured(key string) string {
-	val := ho.security.Hash(key + ho.config.AppName)
+	val := ho.security.Hash(key + ho.config.AppName + "otp")
 	return string(val)
 }
