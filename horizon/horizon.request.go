@@ -1,12 +1,14 @@
 package horizon
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
 	"regexp"
 	"strings"
 	"text/template"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -182,4 +184,13 @@ func (hr *HorizonRequest) Run() {
 	go func() {
 		hr.Service.Logger.Fatal(hr.Service.Start(fmt.Sprintf(":%d", hr.config.AppPort)))
 	}()
+}
+
+func (hr *HorizonRequest) Stop() error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := hr.Service.Shutdown(ctx); err != nil {
+		return fmt.Errorf("failed to gracefully shutdown server: %w", err)
+	}
+	return nil
 }

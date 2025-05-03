@@ -1,185 +1,238 @@
-// horizon/scheduler.go
 package horizon
 
+import (
+	"fmt"
+	"sync"
+	"time"
+
+	"github.com/robfig/cron/v3"
+	"github.com/rotisserie/eris"
+	"go.uber.org/zap"
+)
+
+type job struct {
+	entryID  cron.EntryID
+	schedule string
+	task     func() error
+}
+
 type HorizonSchedule struct {
-	log *HorizonLog
+	log   *HorizonLog
+	cron  *cron.Cron
+	jobs  map[string]job
+	mutex sync.Mutex
 }
 
 func NewHorizonSchedule(log *HorizonLog) (*HorizonSchedule, error) {
-
-	return &HorizonSchedule{log: log}, nil
+	return &HorizonSchedule{
+		log:  log,
+		cron: cron.New(),
+		jobs: make(map[string]job),
+	}, nil
 }
 
-func (hs *HorizonSchedule) Start() {
-
+func (hs *HorizonSchedule) Run() {
+	hs.cron.Start()
+	hs.log.Log(LogEntry{
+		Category: CategorySchedule,
+		Level:    LevelInfo,
+		Message:  "Scheduler started",
+		Fields: []zap.Field{
+			zap.String("action", "start"),
+		},
+	})
 }
-func (hs *HorizonSchedule) Stop()    {}
-func (hs *HorizonSchedule) Create()  {}
-func (hs *HorizonSchedule) Execute() {}
-func (hs *HorizonSchedule) Remove()  {}
 
-// // NewHorizonSchedule creates a new scheduler instance.
-// func NewHorizonSchedule(log *HorizonLog) (*HorizonSchedule, error) {
-// 	scheduler, err := gocron.NewScheduler()
-// 	if err != nil {
-// 		return nil, eris.Wrap(err, "failed to create scheduler")
-// 	}
-// 	return &HorizonSchedule{scheduler: &scheduler, log: log}, nil
-// }
+func (hs *HorizonSchedule) Stop() {
+	hs.cron.Stop()
+	hs.log.Log(LogEntry{
+		Category: CategorySchedule,
+		Level:    LevelInfo,
+		Message:  "Scheduler stopped",
+		Fields: []zap.Field{
+			zap.String("action", "stop"),
+		},
+	})
+}
 
-// // Start begins running scheduled jobs asynchronously.
-// func (hs *HorizonSchedule) Start() {
-// 	hs.scheduler.Start()
-// }
+func (hs *HorizonSchedule) Create(jobID, schedule string, task func() error) error {
+	hs.mutex.Lock()
+	defer hs.mutex.Unlock()
 
-// // Stop shuts down the scheduler gracefully.
-// func (hs *HorizonSchedule) Stop() error {
-// 	return hs.scheduler.Shutdown()
-// }
+	// Check if the job already exists
+	if _, exists := hs.jobs[jobID]; exists {
+		err := eris.New(fmt.Sprintf("job with ID %s already exists", jobID))
+		hs.log.Log(LogEntry{
+			Category: CategorySchedule,
+			Level:    LevelError,
+			Message:  err.Error(),
+			Fields: []zap.Field{
+				zap.String("job id", jobID),
+				zap.String("schedule", schedule),
+				zap.Error(err),
+			},
+		})
+		return err
+	}
 
-// // Generate registers and schedules a new task under the given key tag.
-// // The task func returns an error, which will be logged on failure.
-// func (hs *HorizonSchedule) Generate(key string, interval time.Duration, task func() error) {
-// 	if hs.existsTag(key) {
-// 		hs.log.Log(LogEntry{
-// 			Category: CategorySchedule,
-// 			Level:    LevelWarn,
-// 			Message:  fmt.Sprintf("Job already exists: %s", key),
-// 			Fields:   []zap.Field{zap.String("key", key)},
-// 		})
-// 		return
-// 	}
+	entryID, err := hs.cron.AddFunc(schedule, func() {
+		hs.log.Log(LogEntry{
+			Category: CategorySchedule,
+			Level:    LevelInfo,
+			Message:  fmt.Sprintf("Job %s started", jobID),
+			Fields: []zap.Field{
+				zap.String("job id", jobID),
+				zap.String("action", "start"),
+				zap.String("schedule", schedule),
+			},
+		})
 
-// 	wrapped := func() {
-// 		start := time.Now()
-// 		hs.log.Log(LogEntry{
-// 			Category: CategorySchedule,
-// 			Level:    LevelDebug,
-// 			Message:  fmt.Sprintf("Starting job: %s", key),
-// 			Fields: []zap.Field{
-// 				zap.String("key", key),
-// 				zap.Time("start_time", start),
-// 			},
-// 		})
+		start := time.Now()
+		defer func() {
+			hs.log.Log(LogEntry{
+				Category: CategorySchedule,
+				Level:    LevelInfo,
+				Message:  fmt.Sprintf("Job %s finished in %v", jobID, time.Since(start)),
+				Fields: []zap.Field{
+					zap.String("job id", jobID),
+					zap.String("action", "end"),
+					zap.String("schedule", schedule),
+				},
+			})
 
-// 		if err := task(); err != nil {
-// 			hs.log.Log(LogEntry{
-// 				Category: CategorySchedule,
-// 				Level:    LevelError,
-// 				Message:  fmt.Sprintf("Job %s failed", key),
-// 				Fields:   []zap.Field{zap.String("key", key), zap.Error(err)},
-// 			})
-// 		} else {
-// 			end := time.Now()
-// 			hs.log.Log(LogEntry{
-// 				Category: CategorySchedule,
-// 				Level:    LevelDebug,
-// 				Message:  fmt.Sprintf("Completed job: %s", key),
-// 				Fields: []zap.Field{
-// 					zap.String("key", key),
-// 					zap.Time("end_time", end),
-// 					zap.Duration("execution_duration", end.Sub(start)),
-// 				},
-// 			})
-// 		}
-// 	}
+		}()
 
-// 	// schedule & tag
-// 	_, err := hs.scheduler.
-// 		Every(interval).
-// 		Tag(key).
-// 		Do(wrapped)
-// 	if err != nil {
-// 		hs.log.Log(LogEntry{
-// 			Category: CategorySchedule,
-// 			Level:    LevelError,
-// 			Message:  fmt.Sprintf("Failed to schedule job: %s", key),
-// 			Fields:   []zap.Field{zap.String("key", key), zap.Error(err)},
-// 		})
-// 		return
-// 	}
+		if err := task(); err != nil {
+			hs.log.Log(LogEntry{
+				Category: CategorySchedule,
+				Level:    LevelError,
+				Message:  fmt.Sprintf("Job %s failed", jobID),
+				Fields: []zap.Field{
+					zap.String("job id", jobID),
+					zap.String("action", "fail"),
+					zap.String("schedule", schedule),
+					zap.Error(err),
+				},
+			})
+		}
+	})
 
-// 	hs.log.Log(LogEntry{
-// 		Category: CategorySchedule,
-// 		Level:    LevelInfo,
-// 		Message:  fmt.Sprintf("Scheduled job: %s every %s", key, interval),
-// 		Fields:   []zap.Field{zap.String("key", key), zap.Duration("interval", interval)},
-// 	})
-// }
+	if err != nil {
+		err = eris.Wrapf(err, "failed to create job %s", jobID)
+		hs.log.Log(LogEntry{
+			Category: CategorySchedule,
+			Level:    LevelError,
+			Message:  err.Error(),
+			Fields: []zap.Field{
+				zap.String("job id", jobID),
+				zap.String("schedule", schedule),
+				zap.Error(err),
+			},
+		})
+		return err
+	}
 
-// // Run triggers the job tagged with key immediately.
-// func (hs *HorizonSchedule) Run(key string) {
-// 	jobs := hs.findJobsByTag(key)
-// 	if len(jobs) == 0 {
-// 		hs.log.Log(LogEntry{
-// 			Category: CategorySchedule, Level: LevelWarn,
-// 			Message: fmt.Sprintf("No job to run: %s", key),
-// 			Fields:  []zap.Field{zap.String("key", key)},
-// 		})
-// 		return
-// 	}
+	hs.jobs[jobID] = job{entryID: entryID, task: task, schedule: schedule}
+	hs.log.Log(LogEntry{
+		Category: CategorySchedule,
+		Level:    LevelInfo,
+		Message:  fmt.Sprintf("Job %s scheduled with schedule %s", jobID, schedule),
+		Fields: []zap.Field{
+			zap.String("job id", jobID),
+			zap.String("schedule", schedule),
+		},
+	})
 
-// 	for _, job := range jobs {
-// 		go job.RunNow()
-// 	}
+	return nil
+}
 
-// 	hs.log.Log(LogEntry{
-// 		Category: CategorySchedule, Level: LevelInfo,
-// 		Message: fmt.Sprintf("Manually triggered: %s", key),
-// 		Fields:  []zap.Field{zap.String("key", key)},
-// 	})
-// }
+func (hs *HorizonSchedule) Execute(jobID string) error {
+	hs.mutex.Lock()
+	defer hs.mutex.Unlock()
 
-// // Remove unschedules and removes all jobs tagged with key.
-// func (hs *HorizonSchedule) Remove(key string) {
-// 	if !hs.existsTag(key) {
-// 		hs.log.Log(LogEntry{
-// 			Category: CategorySchedule,
-// 			Level:    LevelWarn,
-// 			Message:  fmt.Sprintf("No job to remove: %s", key),
-// 			Fields:   []zap.Field{zap.String("key", key)},
-// 		})
-// 		return
-// 	}
+	job, exists := hs.jobs[jobID]
+	if !exists {
+		err := eris.New(fmt.Sprintf("job %s not found", jobID))
+		hs.log.Log(LogEntry{
+			Category: CategorySchedule,
+			Level:    LevelError,
+			Message:  err.Error(),
+			Fields: []zap.Field{
+				zap.String("job id", jobID),
+				zap.String("schedule", job.schedule),
+				zap.Error(err),
+			},
+		})
+		return err
+	}
 
-// 	hs.scheduler.RemoveByTags(key)
-// 	hs.log.Log(LogEntry{
-// 		Category: CategorySchedule,
-// 		Level:    LevelInfo,
-// 		Message:  fmt.Sprintf("Removed job: %s", key),
-// 		Fields:   []zap.Field{zap.String("key", key)},
-// 	})
-// }
+	go job.task()
+	hs.log.Log(LogEntry{
+		Category: CategorySchedule,
+		Level:    LevelInfo,
+		Message:  fmt.Sprintf("Job %s executed manually", jobID),
+		Fields: []zap.Field{
+			zap.String("job id", jobID),
+			zap.String("schedule", job.schedule),
+		},
+	})
+	return nil
+}
 
-// // ListJobs returns all tags in use (i.e. the job keys).
-// func (hs *HorizonSchedule) ListJobs() []string {
-// 	var keys []string
-// 	for _, job := range hs.scheduler.Jobs() {
-// 		keys = append(keys, job.Tags()...)
-// 	}
-// 	return keys
-// }
+func (hs *HorizonSchedule) Remove(jobID string) error {
+	hs.mutex.Lock()
+	defer hs.mutex.Unlock()
 
-// func (hs *HorizonSchedule) existsTag(key string) bool {
-// 	for _, job := range hs.scheduler.Jobs() {
-// 		for _, tag := range job.Tags() {
-// 			if tag == key {
-// 				return true
-// 			}
-// 		}
-// 	}
-// 	return false
-// }
+	job, exists := hs.jobs[jobID]
+	if !exists {
+		err := eris.New(fmt.Sprintf("job %s not found", jobID))
+		hs.log.Log(LogEntry{
+			Category: CategorySchedule,
+			Level:    LevelError,
+			Message:  err.Error(),
+			Fields: []zap.Field{
+				zap.String("job id", jobID),
+				zap.String("schedule", job.schedule),
+				zap.Error(err),
+			},
+		})
+		return err
+	}
 
-// func (hs *HorizonSchedule) findJobsByTag(key string) []gocron.Job {
-// 	var matches []gocron.Job
-// 	for _, job := range hs.scheduler.Jobs() {
-// 		for _, tag := range job.Tags() {
-// 			if tag == key {
-// 				matches = append(matches, job)
-// 				break
-// 			}
-// 		}
-// 	}
-// 	return matches
-// }
+	hs.cron.Remove(job.entryID)
+	delete(hs.jobs, jobID)
+	hs.log.Log(LogEntry{
+		Category: CategorySchedule,
+		Level:    LevelInfo,
+		Message:  fmt.Sprintf("Job %s removed", jobID),
+		Fields: []zap.Field{
+			zap.String("job id", jobID),
+			zap.String("schedule", job.schedule),
+			zap.String("action", "remove"),
+		},
+	})
+	return nil
+}
+
+func (hs *HorizonSchedule) ListJobs() []string {
+	hs.mutex.Lock()
+	defer hs.mutex.Unlock()
+
+	jobs := make([]string, 0, len(hs.jobs))
+	schedules := make([]string, 0, len(hs.jobs))
+	for jobID, value := range hs.jobs {
+		jobs = append(jobs, jobID)
+		schedules = append(schedules, fmt.Sprintf("%s - %s ", jobID, value.schedule))
+	}
+
+	hs.log.Log(LogEntry{
+		Category: CategorySchedule,
+		Level:    LevelInfo,
+		Message:  fmt.Sprintf("Listed jobs: %v", jobs),
+		Fields: []zap.Field{
+			zap.Strings("job ids", jobs),
+			zap.Strings("schedule", schedules),
+		},
+	})
+	return jobs
+}

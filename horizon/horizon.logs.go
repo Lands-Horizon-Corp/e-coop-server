@@ -131,6 +131,15 @@ func (hl *HorizonLog) Run() error {
 	hl.loggers["default"] = hl.fallback
 	return nil
 }
+func (hl *HorizonLog) Stop() {
+	for category, logger := range hl.loggers {
+		if err := logger.Sync(); err != nil {
+			if !IsInvalidArgumentError(err) {
+				hl.fallback.Warn("failed to sync logger", zap.String("category", string(category)), zap.Error(err))
+			}
+		}
+	}
+}
 
 func (hl *HorizonLog) Log(entry LogEntry) {
 	logger, ok := hl.loggers[entry.Category]

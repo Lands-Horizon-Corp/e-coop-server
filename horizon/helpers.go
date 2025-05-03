@@ -6,11 +6,14 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
+	"errors"
 	"io"
 	"net/http"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
+	"syscall"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rotisserie/eris"
@@ -146,4 +149,14 @@ func Decrypt(keyStr, encryptedStr string) (string, error) {
 	}
 
 	return string(plaintext), nil
+}
+
+func IsInvalidArgumentError(err error) bool {
+	if runtime.GOOS == "windows" {
+		var errno syscall.Errno
+		if errors.As(err, &errno) {
+			return errno == syscall.EINVAL
+		}
+	}
+	return false
 }
