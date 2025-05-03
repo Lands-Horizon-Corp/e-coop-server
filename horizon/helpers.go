@@ -1,11 +1,6 @@
 package horizon
 
 import (
-	"crypto/aes"
-	"crypto/cipher"
-	"crypto/rand"
-	"crypto/sha256"
-	"encoding/base64"
 	"errors"
 	"io"
 	"net/http"
@@ -16,7 +11,6 @@ import (
 	"syscall"
 
 	"github.com/labstack/echo/v4"
-	"github.com/rotisserie/eris"
 )
 
 func GetBool(key string, defaultVal bool) bool {
@@ -81,74 +75,6 @@ func GetRequestBody(c echo.Context) string {
 		return string(bodyBytes)
 	}
 	return ""
-}
-
-func Hash(keyStr string) []byte {
-	hash := sha256.New()
-	hash.Write([]byte(keyStr))
-	return hash.Sum(nil)
-}
-
-func Encrypt(keyStr, plaintextStr string) (string, error) {
-	key := Hash(keyStr)
-	if len(key) != 16 && len(key) != 24 && len(key) != 32 {
-		return "", eris.New("key must be 16, 24, or 32 bytes after hashing")
-	}
-
-	plaintext := []byte(plaintextStr)
-
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return "", eris.Wrap(err, "failed to create AES cipher block")
-	}
-
-	aesgcm, err := cipher.NewGCM(block)
-	if err != nil {
-		return "", eris.Wrap(err, "failed to create GCM block cipher")
-	}
-
-	nonce := make([]byte, aesgcm.NonceSize())
-	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
-		return "", eris.Wrap(err, "failed to generate nonce")
-	}
-
-	ciphertext := aesgcm.Seal(nonce, nonce, plaintext, nil)
-	return base64.StdEncoding.EncodeToString(ciphertext), nil
-}
-
-func Decrypt(keyStr, encryptedStr string) (string, error) {
-	key := Hash(keyStr)
-	if len(key) != 16 && len(key) != 24 && len(key) != 32 {
-		return "", eris.New("key must be 16, 24, or 32 bytes after hashing")
-	}
-
-	ciphertext, err := base64.StdEncoding.DecodeString(encryptedStr)
-	if err != nil {
-		return "", eris.Wrap(err, "failed to decode ciphertext from base64")
-	}
-
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return "", eris.Wrap(err, "failed to create AES cipher block")
-	}
-
-	aesgcm, err := cipher.NewGCM(block)
-	if err != nil {
-		return "", eris.Wrap(err, "failed to create GCM block cipher")
-	}
-
-	nonceSize := aesgcm.NonceSize()
-	if len(ciphertext) < nonceSize {
-		return "", eris.New("ciphertext too short")
-	}
-
-	nonce, ciphertext := ciphertext[:nonceSize], ciphertext[nonceSize:]
-	plaintext, err := aesgcm.Open(nil, nonce, ciphertext, nil)
-	if err != nil {
-		return "", eris.Wrap(err, "failed to decrypt ciphertext")
-	}
-
-	return string(plaintext), nil
 }
 
 func IsInvalidArgumentError(err error) bool {

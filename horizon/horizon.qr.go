@@ -56,17 +56,20 @@ type QRResult struct {
 }
 
 type HorizonQR struct {
-	config *HorizonConfig
-	log    *HorizonLog
+	config   *HorizonConfig
+	log      *HorizonLog
+	security *HorizonSecurity
 }
 
 func NewHorizonQR(
 	config *HorizonConfig,
 	log *HorizonLog,
+	security *HorizonSecurity,
 ) (*HorizonQR, error) {
 	return &HorizonQR{
-		config: config,
-		log:    log,
+		config:   config,
+		log:      log,
+		security: security,
 	}, nil
 }
 
@@ -118,7 +121,7 @@ func (hq *HorizonQR) Encode(data any) (*QRResult, error) {
 		})
 		return nil, eris.Wrap(err, "failed to marshal wrapped data")
 	}
-	encryptedStr, err := Encrypt(hq.config.AppToken, string(finalBytes))
+	encryptedStr, err := hq.security.Encrypt(string(finalBytes))
 	if err != nil {
 		hq.log.Log(LogEntry{
 			Category: CategoryQR,
@@ -164,7 +167,7 @@ func (hq *HorizonQR) Encode(data any) (*QRResult, error) {
 }
 
 func (hq *HorizonQR) Decode(qrCodeBase64 string) (any, error) {
-	decryptedStr, err := Decrypt(hq.config.AppToken, qrCodeBase64)
+	decryptedStr, err := hq.security.Decrypt(qrCodeBase64)
 	if err != nil {
 		hq.log.Log(LogEntry{
 			Category: CategoryQR,
