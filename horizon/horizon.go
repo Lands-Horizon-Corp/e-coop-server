@@ -23,9 +23,11 @@ func NewHorizon(
 			schedule.Run()
 			cache.Run()
 			request.Run()
+			smtp.Run()
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {
+			smtp.Stop()
 			request.Stop()
 			cache.Stop()
 			schedule.Stop()
