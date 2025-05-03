@@ -91,12 +91,21 @@ type LogEntry struct {
 }
 
 type HorizonLog struct {
-	loggers  map[Category]*zap.Logger
-	fallback *zap.Logger
-	config   *HorizonConfig
+	loggers     map[Category]*zap.Logger
+	fallback    *zap.Logger
+	config      *HorizonConfig
+	mainRotator zapcore.WriteSyncer
 }
 
 func NewHorizonLog(config *HorizonConfig) (*HorizonLog, error) {
+	mainLogPath := filepath.Join(config.AppLog, "main.log")
+	mainRotator := &lumberjack.Logger{
+		Filename:   mainLogPath,
+		MaxSize:    100,
+		MaxBackups: 5,
+		MaxAge:     28,
+		Compress:   true,
+	}
 
 	// Fallback logger includes caller info
 	fallbackEncoderCfg := zap.NewProductionEncoderConfig()
@@ -115,9 +124,10 @@ func NewHorizonLog(config *HorizonConfig) (*HorizonLog, error) {
 	)
 
 	return &HorizonLog{
-		loggers:  make(map[Category]*zap.Logger),
-		fallback: fallback,
-		config:   config,
+		loggers:     make(map[Category]*zap.Logger),
+		fallback:    fallback,
+		config:      config,
+		mainRotator: zapcore.AddSync(mainRotator),
 	}, nil
 }
 
@@ -197,13 +207,14 @@ func (hl *HorizonLog) setupCategories(logDir string, cats []Category) (map[Categ
 	}
 	return loggers, nil
 }
+
 func (hl *HorizonLog) newCategoryLogger(logDir string, category Category) (*zap.Logger, error) {
 	if err := os.MkdirAll(logDir, os.ModePerm); err != nil {
 		return nil, eris.Wrap(err, "failed to create log directory")
 	}
 
 	filePath := filepath.Join(logDir, string(category)+".log")
-	rotator := &lumberjack.Logger{
+	categoryRotator := &lumberjack.Logger{
 		Filename:   filePath,
 		MaxSize:    100,
 		MaxBackups: 5,
@@ -211,10 +222,12 @@ func (hl *HorizonLog) newCategoryLogger(logDir string, category Category) (*zap.
 		Compress:   true,
 	}
 
-	writeSyncer := zapcore.AddSync(rotator)
-	consoleSyncer := zapcore.AddSync(os.Stdout)
+	categoryWriter := zapcore.AddSync(categoryRotator)
+	consoleWriter := zapcore.AddSync(os.Stdout)
 
-	// Level configuration
+	// Include main log writer (shared)
+	mainWriter := hl.mainRotator
+
 	level := zapcore.InfoLevel
 	if lvlStr, ok := LogLevels[category]; ok {
 		if parsed, err := zapcore.ParseLevel(lvlStr); err == nil {
@@ -222,21 +235,24 @@ func (hl *HorizonLog) newCategoryLogger(logDir string, category Category) (*zap.
 		}
 	}
 
+	// JSON encoder for files
 	jsonEncCfg := zap.NewProductionEncoderConfig()
 	jsonEncCfg.EncodeTime = zapcore.ISO8601TimeEncoder
 	jsonEncoder := zapcore.NewJSONEncoder(jsonEncCfg)
 
+	// Console encoder (pretty)
 	consoleEncCfg := zap.NewProductionEncoderConfig()
 	consoleEncCfg.EncodeTime = zapcore.ISO8601TimeEncoder
-
 	consoleEncCfg.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	consoleEncoder := NewHorizonPrettyJSONEncoder(consoleEncCfg)
 
-	jsonCore := zapcore.NewCore(jsonEncoder, writeSyncer, level)
+	// Create all cores
+	categoryCore := zapcore.NewCore(jsonEncoder, categoryWriter, level)
+	mainCore := zapcore.NewCore(jsonEncoder, mainWriter, level)
+	consoleCore := zapcore.NewCore(consoleEncoder, consoleWriter, level)
 
-	consoleCore := zapcore.NewCore(consoleEncoder, consoleSyncer, level)
-
-	core := zapcore.NewTee(jsonCore, consoleCore)
+	// Combine them
+	core := zapcore.NewTee(categoryCore, mainCore, consoleCore)
 
 	logger := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1)).With(
 		zap.String("app", hl.config.AppName),

@@ -3,11 +3,9 @@ package horizon
 import (
 	"context"
 	"fmt"
-	"io"
 	"net/http"
 	"regexp"
 	"strings"
-	"text/template"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -19,14 +17,7 @@ import (
 type HorizonRequest struct {
 	Service *echo.Echo
 	config  *HorizonConfig
-}
-
-type Template struct {
-	templates *template.Template
-}
-
-func (t *Template) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
-	return t.templates.ExecuteTemplate(w, name, data)
+	log     *HorizonLog
 }
 
 // Compile a regular expression to match suspicious paths
@@ -177,11 +168,17 @@ func NewHorizonRequest(
 	return &HorizonRequest{
 		Service: e,
 		config:  config,
+		log:     log,
 	}, nil
 }
 
 func (hr *HorizonRequest) Run() {
 	go func() {
+		hr.log.Log(LogEntry{
+			Category: CategoryRequest,
+			Level:    LevelWarn,
+			Message:  fmt.Sprintf("Server started at: %s", fmt.Sprintf(":%d", hr.config.AppPort)),
+		})
 		hr.Service.Logger.Fatal(hr.Service.Start(fmt.Sprintf(":%d", hr.config.AppPort)))
 	}()
 }

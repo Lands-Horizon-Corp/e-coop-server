@@ -6,6 +6,7 @@ type HorizonConfig struct {
 	AppName                string
 	AppToken               string
 	AppLog                 string
+	AppMainLog             string
 	PostgresUser           string
 	PostgresPassword       string
 	PostgresDB             string
@@ -44,6 +45,7 @@ func NewHorizonConfig() (*HorizonConfig, error) {
 		AppName:                GetString("APP_NAME", "ENGINE"),
 		AppToken:               GetString("APP_TOKEN", "oYrsXzg7eu7Yt5So4e62r7LDVH2hj"),
 		AppLog:                 GetString("APP_LOG", "./logs/"),
+		AppMainLog:             GetString("APP_MAIN_LOG", "./logs/main.log"),
 		PostgresUser:           GetString("POSTGRES_USER", "dev"),
 		PostgresPassword:       GetString("POSTGRES_PASSWORD", "devpass"),
 		PostgresDB:             GetString("POSTGRES_DB", "devdb"),
