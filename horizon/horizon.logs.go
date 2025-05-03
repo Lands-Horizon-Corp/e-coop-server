@@ -152,6 +152,9 @@ func (hl *HorizonLog) Stop() {
 }
 
 func (hl *HorizonLog) Log(entry LogEntry) {
+	if !hl.config.CanDebug() {
+		return
+	}
 	logger, ok := hl.loggers[entry.Category]
 	if !ok {
 		logger = hl.loggers["default"]

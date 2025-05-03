@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	cacheExpiration = 2 * time.Minute
+	cacheExpiration = 3 * time.Minute
 	maxRetries      = 5
 	retryDelay      = 2 * time.Second
 )

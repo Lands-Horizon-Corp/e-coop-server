@@ -1,11 +1,17 @@
 package horizon
 
+import (
+	"fmt"
+	"strings"
+)
+
 // HorizonConfig holds all configuration values.
 type HorizonConfig struct {
 	AppPort                int
 	AppName                string
 	AppToken               string
 	AppLog                 string
+	AppEnvironment         string
 	AppMainLog             string
 	PostgresUser           string
 	PostgresPassword       string
@@ -45,6 +51,7 @@ func NewHorizonConfig() (*HorizonConfig, error) {
 		AppName:                GetString("APP_NAME", "ENGINE"),
 		AppToken:               GetString("APP_TOKEN", "oYrsXzg7eu7Yt5So4e62r7LDVH2hj"),
 		AppLog:                 GetString("APP_LOG", "./logs/"),
+		AppEnvironment:         GetString("APP_ENV", "production"),
 		AppMainLog:             GetString("APP_MAIN_LOG", "./logs/main.log"),
 		PostgresUser:           GetString("POSTGRES_USER", "dev"),
 		PostgresPassword:       GetString("POSTGRES_PASSWORD", "devpass"),
@@ -77,4 +84,14 @@ func NewHorizonConfig() (*HorizonConfig, error) {
 		NATSClientPort:         GetInt("NATS_CLIENT_PORT", 4222),
 		NATSMonitorPort:        GetInt("NATS_MONITOR_PORT", 8222),
 	}, nil
+}
+func (hc *HorizonConfig) CanDebug() bool {
+	fmt.Println(hc)
+	env := strings.TrimSpace(strings.ToLower(hc.AppEnvironment))
+	switch env {
+	case "dev", "development", "developer", "test", "testing", "debug", "debugging":
+		return true
+	default:
+		return false
+	}
 }
