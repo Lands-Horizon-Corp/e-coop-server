@@ -8,6 +8,7 @@ import (
 	"encoding/base64"
 	"io"
 
+	"github.com/google/uuid"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/rotisserie/eris"
 	"go.uber.org/zap"
@@ -29,7 +30,22 @@ func NewHorizonSecurity(
 	}, nil
 }
 
-// PasswordHash is used at registration—hash once and store this string.
+func (hs *HorizonSecurity) GenerateUUID() string {
+	id := uuid.New().String()
+
+	hs.log.Log(LogEntry{
+		Category: CategorySecurity,
+		Level:    LevelInfo,
+		Message:  "Generated UUID",
+	})
+	return id
+}
+
+func (hs *HorizonSecurity) ID() string {
+	uuid := uuid.New().String()
+	return string(hs.Hash(uuid))
+}
+
 func (hs *HorizonSecurity) PasswordHash(password string) (string, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {

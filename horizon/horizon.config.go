@@ -2,6 +2,14 @@ package horizon
 
 import (
 	"strings"
+	"time"
+)
+
+const (
+	storageDuration   = time.Hour * 4
+	authExpiration    = 16 * time.Hour
+	tokenLinkValidity = 10 * time.Minute
+	maxSMSCharacters  = 1_000
 )
 
 // HorizonConfig holds all configuration values.
@@ -47,8 +55,9 @@ type HorizonConfig struct {
 	StorageBucket      string
 	StorageAPI_Port    int
 	StorageConsolePort int
-	NATSClientPort     int
-	NATSMonitorPort    int
+
+	NATSClientPort  int
+	NATSMonitorPort int
 }
 
 func NewHorizonConfig() (*HorizonConfig, error) {
@@ -86,7 +95,7 @@ func NewHorizonConfig() (*HorizonConfig, error) {
 		StorageDriver:          GetString("STORAGE_DRIVER", "minio"),
 		StorageAccessKey:       GetString("STORAGE_ACCESS_KEY", "minioadmin"),
 		StorageSecretKey:       GetString("STORAGE_SECRET_KEY", "minioadmin"),
-		StorageEndpoint:        GetString("STORAGE_ENDPOINT", "http://localhost:9000"),
+		StorageEndpoint:        GetString("STORAGE_ENDPOINT", "http://minio:9000"),
 		StorageRegion:          GetString("STORAGE_REGION", "us-east-1"),
 		StorageBucket:          GetString("STORAGE_BUCKET", "my-bucket"),
 		StorageAPI_Port:        GetInt("STORAGE_API_PORT", 9000),

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Axios File Upload with Progress</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    progress {
+      width: 100%;
+      height: 20px;
+    }
+    #fileInfo {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h2>File Upload (Axios + Progress)</h2>
+  <input type="file" id="fileInput" />
+  <button onclick="uploadFile()">Upload</button>
+  <br><br>
+  <progress id="uploadProgress" value="0" max="100" style="display: none;"></progress>
+  <div id="fileInfo"></div>
+
+  <!-- Axios CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+  <script>
+    function uploadFile() {
+      const fileInput = document.getElementById('fileInput');
+      const progressBar = document.getElementById('uploadProgress');
+      const fileInfo = document.getElementById('fileInfo');
+
+      const file = fileInput.files[0];
+      if (!file) {
+        alert("Please select a file.");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      progressBar.style.display = 'block';
+      progressBar.value = 0;
+
+      axios.post('/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        },
+        onUploadProgress: function (progressEvent) {
+          if (progressEvent.lengthComputable) {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            progressBar.value = percentCompleted;
+          }
+        }
+      })
+      .then(response => {
+        fileInfo.innerHTML = `<p>Upload successful!</p><pre>${JSON.stringify(response.data, null, 2)}</pre>`;
+      })
+      .catch(error => {
+        console.error(error);
+        fileInfo.innerHTML = '<p style="color:red;">Upload failed.</p>';
+      });
+    }
+  </script>
+</body>
+</html>

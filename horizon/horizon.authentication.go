@@ -16,11 +16,6 @@ import (
 	"github.com/rotisserie/eris"
 )
 
-const (
-	authExpiration    = 16 * time.Hour
-	tokenLinkValidity = 10 * time.Minute
-)
-
 type Claim struct {
 	ID            string `json:"id"`
 	Email         string `json:"email"`
@@ -142,37 +137,6 @@ func (ha *HorizonAuthentication) VerifyToken(encoded string) (*Claim, error) {
 	return claims, nil
 }
 
-func (ha *HorizonAuthentication) generateLink(baseURL string, c Claim, tplFile string, render func(string, map[string]string) (string, error), send func(any) error, subject string) (string, error) {
-	c.ExpiresAt = jwt.NewNumericDate(time.Now().Add(tokenLinkValidity))
-	token, err := ha.GenerateToken(c)
-	if err != nil {
-		return "", eris.Wrap(err, "token generation failed")
-	}
-
-	esc := url.PathEscape(token)
-	link := fmt.Sprintf("%s/%s", strings.TrimRight(baseURL, "/"), esc)
-
-	body, err := render(tplFile, map[string]string{
-		"AppTokenName":  ha.config.AppTokenName,
-		"email":         c.Email,
-		"contactnumber": c.ContactNumber,
-		"link":          link,
-	})
-	if err != nil {
-		return "", eris.Wrap(err, "template rendering failed")
-	}
-
-	req := map[string]interface{}{
-		"To":      c.Email,
-		"Subject": subject,
-		"Body":    body,
-	}
-	if err := send(req); err != nil {
-		return "", eris.Wrap(err, "sending failed")
-	}
-	return link, nil
-}
-
 func (ha *HorizonAuthentication) GenerateSMTPLink(baseURL string, c Claim) (string, error) {
 	subj := ha.config.AppTokenName + " Email Verification"
 	rndr := func(f string, d map[string]string) (string, error) {
@@ -220,11 +184,6 @@ func (ha *HorizonAuthentication) VerifyPassword(hash, pw string) bool {
 	return ok
 }
 
-func (ha *HorizonAuthentication) secureKey(c Claim, channel string) string {
-	base := c.Email + c.ContactNumber + c.ID + channel
-	return string(ha.security.Hash(base + ha.config.AppTokenName + "auth"))
-}
-
 func (ha *HorizonAuthentication) SendSMTPOTP(c Claim) error {
 	key := ha.secureKey(c, "smtp")
 	otp, err := ha.otp.Generate(key)
@@ -267,6 +226,42 @@ func (ha *HorizonAuthentication) SendSMSOTP(c Claim) error {
 func (ha *HorizonAuthentication) VerifySMSOTP(c Claim, otp string) bool {
 	ok, _ := ha.otp.Verify(ha.secureKey(c, "sms"), otp)
 	return ok
+}
+
+func (ha *HorizonAuthentication) secureKey(c Claim, channel string) string {
+	base := c.Email + c.ContactNumber + c.ID + channel
+	return string(ha.security.Hash(base + ha.config.AppTokenName + "auth"))
+}
+
+func (ha *HorizonAuthentication) generateLink(baseURL string, c Claim, tplFile string, render func(string, map[string]string) (string, error), send func(any) error, subject string) (string, error) {
+	c.ExpiresAt = jwt.NewNumericDate(time.Now().Add(tokenLinkValidity))
+	token, err := ha.GenerateToken(c)
+	if err != nil {
+		return "", eris.Wrap(err, "token generation failed")
+	}
+
+	esc := url.PathEscape(token)
+	link := fmt.Sprintf("%s/%s", strings.TrimRight(baseURL, "/"), esc)
+
+	body, err := render(tplFile, map[string]string{
+		"AppTokenName":  ha.config.AppTokenName,
+		"email":         c.Email,
+		"contactnumber": c.ContactNumber,
+		"link":          link,
+	})
+	if err != nil {
+		return "", eris.Wrap(err, "template rendering failed")
+	}
+
+	req := map[string]interface{}{
+		"To":      c.Email,
+		"Subject": subject,
+		"Body":    body,
+	}
+	if err := send(req); err != nil {
+		return "", eris.Wrap(err, "sending failed")
+	}
+	return link, nil
 }
 
 func renderHTMLTemplate(filename string, data map[string]string) (string, error) {

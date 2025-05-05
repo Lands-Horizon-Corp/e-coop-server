@@ -126,8 +126,8 @@ services:
     restart: always
     command: server /data --console-address ":${STORAGE_CONSOLE_PORT}"
     environment:
-      MINIO_ACCESS_KEY: "${STORAGE_ACCESS_KEY}"
-      MINIO_SECRET_KEY: "${STORAGE_SECRET_KEY}"
+      MINIO_ROOT_USER: "${STORAGE_ACCESS_KEY}"
+      MINIO_ROOT_PASSWORD: "${STORAGE_SECRET_KEY}"
     ports:
       - "${STORAGE_API_PORT}:9000"
       - "${STORAGE_CONSOLE_PORT}:9001"

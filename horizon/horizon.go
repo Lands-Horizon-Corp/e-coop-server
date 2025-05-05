@@ -2,6 +2,7 @@ package horizon
 
 import (
 	"context"
+	"fmt"
 
 	"go.uber.org/fx"
 )
@@ -18,6 +19,7 @@ func NewHorizon(
 	sms *HorizonSMS,
 	auth *HorizonAuthentication,
 	qr *HorizonQR,
+	storage *HorizonStorage,
 ) {
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
@@ -27,9 +29,21 @@ func NewHorizon(
 			request.run()
 			smtp.run()
 			sms.run()
+			storage.run()
+			go func() {
+				value, err := storage.UploadLocalFile("logs/docker-desktop-amd64 (1).deb", func(read, total int64) {
+					percent := float64(read) / float64(total) * 100
+					fmt.Printf("Upload progress: %.2f%%\n", percent)
+				})
+				fmt.Println("---")
+				fmt.Println(value)
+				fmt.Println(err)
+				fmt.Println("---")
+			}()
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {
+			storage.stop()
 			sms.stop()
 			smtp.stop()
 			request.stop()
@@ -65,5 +79,6 @@ var Modules = fx.Module(
 		NewHorizonStorage,
 		NewHorizonReport,
 	),
+
 	fx.Invoke(NewHorizon),
 )

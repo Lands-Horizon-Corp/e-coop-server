@@ -24,8 +24,6 @@ import (
 	"golang.org/x/time/rate"
 )
 
-const maxSMSCharacters = 1_000
-
 type HorizonSMS struct {
 	log         *HorizonLog
 	security    *HorizonSecurity
