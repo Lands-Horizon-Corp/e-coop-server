@@ -3,7 +3,6 @@ package horizon
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -194,7 +193,6 @@ func (hs *HorizonStorage) UploadFromBinary(input BinaryFileInput, onProgress Pro
 	}, nil
 }
 
-// Uploads a file received via multipart form header.
 func (hs *HorizonStorage) UploadFromHeader(file *multipart.FileHeader, onProgress ProgressCallback) (*Storage, error) {
 	src, err := file.Open()
 	if err != nil {
@@ -238,7 +236,6 @@ func (hs *HorizonStorage) UploadFromHeader(file *multipart.FileHeader, onProgres
 	}, nil
 }
 
-// Uploads a file from the local filesystem.
 func (hs *HorizonStorage) UploadLocalFile(filePath string, onProgress ProgressCallback) (*Storage, error) {
 	filePath = strings.TrimSpace(filePath)
 
@@ -293,7 +290,6 @@ func (hs *HorizonStorage) UploadLocalFile(filePath string, onProgress ProgressCa
 	}, nil
 }
 
-// Uploads a file from a URL.
 func (hs *HorizonStorage) UploadFromURL(value string, onProgress ProgressCallback) (*Storage, error) {
 	value = strings.TrimSpace(value)
 
@@ -311,11 +307,12 @@ func (hs *HorizonStorage) UploadFromURL(value string, onProgress ProgressCallbac
 		return nil, eris.Errorf("non-200 response when downloading file: %d", resp.StatusCode)
 	}
 
-	fileName := hs.storageName(resp.Request.URL.Path)
 	contentType := resp.Header.Get("Content-Type")
 	if contentType == "" {
 		contentType = "application/octet-stream"
 	}
+
+	fileName := hs.storageName(path.Base(value))
 
 	progress := &progressReader{
 		reader:   resp.Body,
@@ -328,7 +325,7 @@ func (hs *HorizonStorage) UploadFromURL(value string, onProgress ProgressCallbac
 		ContentType: contentType,
 	})
 	if err != nil {
-		return nil, eris.Wrap(err, "failed to upload file to storage")
+		return nil, eris.Wrapf(err, "failed to upload file from URL: %s", value)
 	}
 
 	url, err := hs.GeneratePresignedURL(fileName)
@@ -337,7 +334,7 @@ func (hs *HorizonStorage) UploadFromURL(value string, onProgress ProgressCallbac
 	}
 
 	return &Storage{
-		FileName:   info.Key,
+		FileName:   fileName,
 		FileSize:   info.Size,
 		FileType:   contentType,
 		StorageKey: info.Key,
@@ -346,80 +343,45 @@ func (hs *HorizonStorage) UploadFromURL(value string, onProgress ProgressCallbac
 	}, nil
 }
 
-// Deletes a file from the storage bucket.
-func (hs *HorizonStorage) DeleteFile(file *Storage) error {
-	if file == nil || file.StorageKey == "" || file.BucketName == "" {
-		return eris.New("invalid file metadata: missing key or bucket name")
-	}
+func (hs *HorizonStorage) GeneratePresignedURL(fileName string) (string, error) {
 	ctx := context.Background()
-	err := hs.storage.RemoveObject(ctx, file.BucketName, file.StorageKey, minio.RemoveObjectOptions{})
+
+	presignedURL, err := hs.storage.PresignedGetObject(ctx, hs.config.StorageBucket, fileName, 24*time.Hour, nil)
 	if err != nil {
-		return eris.Wrapf(err, "failed to delete object %s from bucket %s", file.StorageKey, file.BucketName)
+		return "", eris.Wrap(err, "failed to generate presigned URL")
+	}
+
+	return presignedURL.String(), nil
+}
+
+func (hs *HorizonStorage) storageName(originalFileName string) string {
+	return fmt.Sprintf("%s-%d-%s", time.Now().Format("20060102150405"), os.Getpid(), originalFileName)
+}
+
+func isValidFilePath(filePath string) error {
+	if filePath == "" || !strings.HasPrefix(filePath, "/") {
+		return eris.New("invalid file path")
 	}
 	return nil
 }
 
-// Generates a presigned URL for an object key.
-func (hs *HorizonStorage) GeneratePresignedURL(objectKey string) (string, error) {
-	if hs.storage == nil {
-		return "", eris.New("MinIO client is not initialized")
-	}
-
-	ctx := context.Background()
-	url, err := hs.storage.PresignedGetObject(ctx, hs.config.StorageBucket, objectKey, 24*time.Hour, nil)
-	if err != nil {
-		return "", eris.Wrapf(err, "failed to generate presigned URL for key: %s", objectKey)
-	}
-	return url.String(), nil
-}
-
-// Generates a unique storage key.
-func (hs *HorizonStorage) storageName(name string) string {
-	fileName := path.Base(name)
-	if fileName == "" || fileName == "/" {
-		fileName = fmt.Sprintf("file-%d", time.Now().UnixNano())
-	}
-	return fileName + "-storage-" + hs.security.GenerateUUID()
-}
-
-// Validates if the given path points to a real file.
-func isValidFilePath(path string) error {
-	info, err := os.Stat(path)
-	if os.IsNotExist(err) {
-		return errors.New("file does not exist")
-	}
-	if err != nil {
-		return err
-	}
-	if info.IsDir() {
-		return errors.New("path is a directory, not a file")
-	}
-	return nil
-}
-
-// Checks if a string is a valid URL.
 func isValidURL(value string) bool {
-	parsedURL, err := url.ParseRequestURI(strings.TrimSpace(value))
-	if err != nil || parsedURL.Scheme == "" || parsedURL.Host == "" {
-		return false
-	}
-	return parsedURL.Scheme == "http" || parsedURL.Scheme == "https"
+	_, err := url.ParseRequestURI(value)
+	return err == nil
 }
 
-// Callback type for tracking upload progress.
-type ProgressCallback func(read int64, total int64)
+type ProgressCallback func(progress int64, total int64)
 
-// Custom reader to track progress of file upload.
 type progressReader struct {
 	reader   io.Reader
 	callback ProgressCallback
-	read     int64
 	total    int64
 }
 
-func (pr *progressReader) Read(p []byte) (int, error) {
-	n, err := pr.reader.Read(p)
-	pr.read += int64(n)
-	pr.callback(pr.read, pr.total)
+func (pr *progressReader) Read(p []byte) (n int, err error) {
+	n, err = pr.reader.Read(p)
+	if pr.callback != nil {
+		pr.callback(int64(n), pr.total)
+	}
 	return n, err
 }
