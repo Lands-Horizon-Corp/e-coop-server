@@ -37,7 +37,7 @@ func NewModel(
 }
 
 var Modules = fx.Module(
-	"models",
+	"server",
 	fx.Provide(
 		broadcast.NewFeedbackBroadcast,
 		repository.NewFeedbackRepository,

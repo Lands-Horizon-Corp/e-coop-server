@@ -5,6 +5,7 @@ x-env: &environment-variables
   environment:
 
     APP_PORT: "${APP_PORT}"
+    APP_METRICS_PORT: "${APP_METRICS_PORT}"
     APP_NAME: "${APP_NAME}"
     APP_TOKEN: "${APP_TOKEN}"
     APP_TOKEN_NAME: "${APP_TOKEN_NAME}"

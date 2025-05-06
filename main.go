@@ -3,13 +3,13 @@ package main
 import (
 	"go.uber.org/fx"
 	"horizon.com/server/horizon"
-	"horizon.com/server/models"
+	"horizon.com/server/server"
 )
 
 func main() {
 	app := fx.New(
 		horizon.Modules,
-		models.Modules,
+		server.Modules,
 	)
 	app.Run()
 	select {}

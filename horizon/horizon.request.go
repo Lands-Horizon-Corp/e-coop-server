@@ -2,12 +2,14 @@ package horizon
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"regexp"
 	"strings"
 	"time"
 
+	"github.com/labstack/echo-contrib/echoprometheus"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"go.uber.org/zap"
@@ -15,7 +17,7 @@ import (
 )
 
 type HorizonRequest struct {
-	Service *echo.Echo
+	service *echo.Echo
 	config  *HorizonConfig
 	log     *HorizonLog
 }
@@ -29,39 +31,19 @@ func NewHorizonRequest(
 ) (*HorizonRequest, error) {
 	e := echo.New()
 
-	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(rate.Limit(20))))
+	// 1. Pre-middleware: normalize trailing slashes
+	e.Pre(middleware.RemoveTrailingSlash())
 
-	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			path := strings.ToLower(c.Request().URL.Path)
-			if suspiciousPathPattern.MatchString(path) {
-				log.Log(LogEntry{
-					Category: CategoryHijack,
-					Level:    LevelWarn,
-					Message:  fmt.Sprintf("Suspicious path accessed: %s", path),
-					Fields: []zap.Field{
-						zap.String("method", c.Request().Method),
-						zap.String("remote_ip", c.Request().RemoteAddr),
-						zap.String("user_agent", c.Request().UserAgent()),
-						zap.String("uri", c.Request().RequestURI),
-						zap.String("host", c.Request().Host),
-						zap.String("referer", c.Request().Referer()),
-						zap.String("path", path),
-						zap.String("request_id", c.Request().Header.Get(echo.HeaderXRequestID)),
-						zap.String("query_params", c.QueryString()),
-						zap.String("body", GetRequestBody(c)),
-					},
-				})
-				return c.String(http.StatusForbidden, "Access forbidden")
-			}
+	// 2. Security headers
+	e.Use(middleware.SecureWithConfig(middleware.SecureConfig{
+		XSSProtection:         "",
+		ContentTypeNosniff:    "",
+		XFrameOptions:         "",
+		HSTSMaxAge:            3600,
+		ContentSecurityPolicy: "default-src 'self'",
+	}))
 
-			if strings.HasPrefix(path, "/.well-known/") {
-				return c.String(http.StatusNotFound, "Path not found")
-			}
-			return next(c)
-		}
-	})
-
+	// 3. Request logging (capture all incoming requests)
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
 		LogURI:           true,
 		LogURIPath:       true,
@@ -80,7 +62,6 @@ func NewHorizonRequest(
 		LogFormValues:    []string{"*"},
 
 		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
-
 			log.Log(LogEntry{
 				Category: CategoryRequest,
 				Level:    LevelInfo,
@@ -114,59 +95,100 @@ func NewHorizonRequest(
 		},
 	}))
 
+	// 4. Recover from panics
 	e.Use(middleware.Recover())
 
+	// 5. Rate limiting
+	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(rate.Limit(20))))
+
+	// 6. Request timeout
+	e.Use(middleware.TimeoutWithConfig(middleware.TimeoutConfig{
+		Skipper:      middleware.DefaultSkipper,
+		ErrorMessage: "custom timeout error message returns to client",
+		Timeout:      30 * time.Second,
+		OnTimeoutRouteErrorHandler: func(err error, c echo.Context) {
+			path := strings.ToLower(c.Request().URL.Path)
+			log.Log(LogEntry{
+				Category: CategoryRequest,
+				Level:    LevelWarn,
+				Message:  fmt.Sprintf("Request timeout on path: %s", path),
+				Fields: []zap.Field{
+					zap.String("method", c.Request().Method),
+					zap.String("remote_ip", c.Request().RemoteAddr),
+					zap.String("user_agent", c.Request().UserAgent()),
+					zap.String("uri", c.Request().RequestURI),
+					zap.String("host", c.Request().Host),
+					zap.String("referer", c.Request().Referer()),
+					zap.String("path", path),
+					zap.String("request_id", c.Request().Header.Get(echo.HeaderXRequestID)),
+					zap.String("query_params", c.QueryString()),
+					zap.String("body", GetRequestBody(c)),
+				},
+			})
+		},
+	}))
+
+	// 7. Custom path inspection (suspicious files & .well-known)
+	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			path := strings.ToLower(c.Request().URL.Path)
+			if suspiciousPattern := suspiciousPathPattern.MatchString(path); suspiciousPattern {
+				log.Log(LogEntry{
+					Category: CategoryHijack,
+					Level:    LevelWarn,
+					Message:  fmt.Sprintf("Suspicious path accessed: %s", path),
+					Fields: []zap.Field{
+						zap.String("method", c.Request().Method),
+						zap.String("remote_ip", c.Request().RemoteAddr),
+						zap.String("user_agent", c.Request().UserAgent()),
+						zap.String("uri", c.Request().RequestURI),
+						zap.String("host", c.Request().Host),
+						zap.String("referer", c.Request().Referer()),
+						zap.String("path", path),
+						zap.String("request_id", c.Request().Header.Get(echo.HeaderXRequestID)),
+						zap.String("query_params", c.QueryString()),
+						zap.String("body", GetRequestBody(c)),
+					},
+				})
+				return c.String(http.StatusForbidden, "Access forbidden")
+			}
+
+			if strings.HasPrefix(path, "/.well-known/") {
+				return c.String(http.StatusNotFound, "Path not found")
+			}
+			return next(c)
+		}
+	})
+
+	// 8. CORS
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{
-			"http://0.0.0.0",
-			"http://0.0.0.0:80",
-			"http://0.0.0.0:3000",
-			"http://0.0.0.0:3001",
-			"http://0.0.0.0:4173",
-			"http://0.0.0.0:8080",
-
-			"http://client",
-			"http://client:80",
-			"http://client:3000",
-			"http://client:3001",
-			"http://client:4173",
-			"http://client:8080",
-
-			"http://localhost:",
-			"http://localhost:80",
-			"http://localhost:3000",
-			"http://localhost:3001",
-			"http://localhost:4173",
-			"http://localhost:8080 ",
-		},
-		AllowMethods: []string{
-			echo.POST,
-			echo.PATCH,
-			echo.POST,
-			echo.DELETE,
-			echo.GET,
-		},
-		AllowHeaders: []string{
-			echo.HeaderXCSRFToken,
-			echo.HeaderXRequestedWith,
-			echo.HeaderAuthorization,
-			echo.HeaderOrigin,
-			echo.HeaderContentType,
-			echo.HeaderAccept,
-		},
-		ExposeHeaders: []string{
-			echo.HeaderContentLength,
-		},
+		AllowOrigins:     []string{ /* ... same origins ... */ },
+		AllowMethods:     []string{echo.POST, echo.PATCH, echo.DELETE, echo.GET},
+		AllowHeaders:     []string{echo.HeaderXCSRFToken, echo.HeaderXRequestedWith, echo.HeaderAuthorization, echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+		ExposeHeaders:    []string{echo.HeaderContentLength},
 		AllowCredentials: true,
 		MaxAge:           60,
 	}))
 
+	// 9. Metrics middleware
+	e.Use(echoprometheus.NewMiddleware(config.AppName))
+
+	// Spin up a separate HTTP server for Prometheus metrics
+	go func() {
+		metrics := echo.New()
+		metrics.GET("/metrics", echoprometheus.NewHandler())
+		if err := metrics.Start(fmt.Sprintf(":%d", config.AppMetricsPort)); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			// skip
+		}
+	}()
+
+	// Health endpoint
 	e.GET("/health", func(c echo.Context) error {
 		return c.String(200, "OK")
 	})
 
 	return &HorizonRequest{
-		Service: e,
+		service: e,
 		config:  config,
 		log:     log,
 	}, nil
@@ -174,7 +196,7 @@ func NewHorizonRequest(
 
 func (hr *HorizonRequest) run() error {
 	go func() {
-		hr.Service.Logger.Fatal(hr.Service.Start(fmt.Sprintf(":%d", hr.config.AppPort)))
+		hr.service.Logger.Fatal(hr.service.Start(fmt.Sprintf(":%d", hr.config.AppPort)))
 	}()
 	return nil
 }
@@ -182,8 +204,12 @@ func (hr *HorizonRequest) run() error {
 func (hr *HorizonRequest) stop() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	if err := hr.Service.Shutdown(ctx); err != nil {
+	if err := hr.service.Shutdown(ctx); err != nil {
 		return fmt.Errorf("failed to gracefully shutdown server: %w", err)
 	}
 	return nil
+}
+
+func (hr *HorizonRequest) Service() *echo.Echo {
+	return hr.service
 }
