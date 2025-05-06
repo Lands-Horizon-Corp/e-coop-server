@@ -1,12 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { connect, StringCodec, type NatsConnection, type Subscription } from "nats.ws";
 
 export function useBroadcast<T = any>(
-  subject: string
-): { messages: T[]; error: Error | null } {
-  const [messages, setMessages] = useState<T[]>([]);
-  const [error, setError] = useState<Error | null>(null);
-
+  subject: string,
+  onMessage: (message: T) => void,
+  onError: (error: Error) => void
+): void {
   useEffect(() => {
     let nc: NatsConnection;
     let sub: Subscription;
@@ -14,20 +13,22 @@ export function useBroadcast<T = any>(
 
     (async () => {
       try {
-        nc = await connect({ servers: process.env.REACT_APP_NATS_WS_URL });
+        
+        nc = await connect({ servers: import.meta.env.VITE_BROADCAST_URL });
+        
         sub = nc.subscribe(subject);
         console.log(`💬 Subscribed to ${subject}`);
         for await (const m of sub) {
           try {
             const decoded = sc.decode(m.data);
             const parsed = JSON.parse(decoded) as T;
-            setMessages((old) => [...old, parsed]);
+            onMessage(parsed); // Trigger the callback on receiving a message
           } catch (parseErr) {
             console.error("Failed to parse NATS message:", parseErr);
           }
         }
       } catch (err: any) {
-        setError(err);
+        onError(err); // Trigger the callback if there's an error
       }
     })();
 
@@ -35,7 +36,5 @@ export function useBroadcast<T = any>(
       if (sub) sub.unsubscribe();
       if (nc) nc.close();
     };
-  }, [subject]);
-
-  return { messages, error };
+  }, [subject, onMessage, onError]);
 }

@@ -31,7 +31,7 @@ type (
 
 	FeedbackRequest struct {
 		Email        string `json:"email"        validate:"required,email"`
-		Description  string `json:"description"  validate:"required,min=10,max=2000"`
+		Description  string `json:"description"  validate:"required,min=5,max=2000"`
 		FeedbackType string `json:"feedbackType" validate:"required,oneof=general bug feature"`
 	}
 )

@@ -153,7 +153,10 @@ services:
     ports:
       - "${NATS_CLIENT_PORT}:${NATS_CLIENT_PORT}"
       - "${NATS_MONITOR_PORT}:${NATS_MONITOR_PORT}"
-    command: "-m ${NATS_MONITOR_PORT}"
+      - "8080:8080"
+    volumes:
+      - ./config/nats.conf:/container/nats.conf
+    command: "-c /container/nats.conf"
     networks:
       - app-network
 
