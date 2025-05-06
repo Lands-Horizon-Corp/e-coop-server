@@ -15,14 +15,14 @@ func NewModel(
 	lc fx.Lifecycle,
 	request *horizon.HorizonRequest,
 	database *horizon.HorizonDatabase,
-	feedback *repository.FeedbackRepository,
+	feedback *controller.FeedbackController,
 ) {
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			if err := database.Ping(); err != nil {
 				return err
 			}
-			// put here
+			feedback.APIRoutes()
 			request.Run()
 			return database.Client().AutoMigrate(&collection.Feedback{})
 		},
