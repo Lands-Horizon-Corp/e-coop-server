@@ -2,7 +2,7 @@ package broadcast
 
 import (
 	"horizon.com/server/horizon"
-	"horizon.com/server/models/collection"
+	"horizon.com/server/server/collection"
 )
 
 type FeedbackBroadcast struct {

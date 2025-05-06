@@ -1,13 +1,13 @@
-package models
+package server
 
 import (
 	"context"
 
 	"go.uber.org/fx"
 	"horizon.com/server/horizon"
-	"horizon.com/server/models/broadcast"
-	"horizon.com/server/models/collection"
-	"horizon.com/server/models/repository"
+	"horizon.com/server/server/broadcast"
+	"horizon.com/server/server/collection"
+	"horizon.com/server/server/repository"
 )
 
 func NewModel(
@@ -21,21 +21,13 @@ func NewModel(
 			if err != nil {
 				return err
 			}
+			// Migration here
 			err = database.Client().AutoMigrate(
 				&collection.Feedback{},
 			)
 			if err != nil {
 				return err
 			}
-			sample := &collection.Feedback{
-				Email:        "test@example.com",
-				Description:  "This is a sample feedback entry created at startup.",
-				FeedbackType: "general",
-			}
-			if err := feedback.Create(sample); err != nil {
-				return err
-			}
-
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {

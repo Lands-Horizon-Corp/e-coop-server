@@ -2,8 +2,8 @@ package repository
 
 import (
 	"horizon.com/server/horizon"
-	"horizon.com/server/models/broadcast"
-	"horizon.com/server/models/collection"
+	"horizon.com/server/server/broadcast"
+	"horizon.com/server/server/collection"
 
 	"github.com/rotisserie/eris"
 )
