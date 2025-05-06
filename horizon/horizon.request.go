@@ -194,7 +194,7 @@ func NewHorizonRequest(
 	}, nil
 }
 
-func (hr *HorizonRequest) run() error {
+func (hr *HorizonRequest) Run() error {
 	go func() {
 		hr.service.Logger.Fatal(hr.service.Start(fmt.Sprintf(":%d", hr.config.AppPort)))
 	}()

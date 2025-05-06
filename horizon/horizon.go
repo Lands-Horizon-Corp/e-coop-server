@@ -41,9 +41,6 @@ func NewHorizon(
 			if err := cache.run(); err != nil {
 				return err
 			}
-			if err := request.run(); err != nil {
-				return err
-			}
 			if err := smtp.run(); err != nil {
 				return err
 			}
