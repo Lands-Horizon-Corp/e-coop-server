@@ -1,12 +1,68 @@
 package horizon
 
-type HorizonBroadcast struct{}
+import (
+	"encoding/json"
+	"fmt"
 
-func NewHorizonBroadcast() (*HorizonBroadcast, error) {
-	return &HorizonBroadcast{}, nil
+	"github.com/nats-io/nats.go"
+	"github.com/rotisserie/eris"
+)
+
+type HorizonBroadcast struct {
+	config *HorizonConfig
+	nc     *nats.Conn
 }
 
-func (h *HorizonBroadcast) Subscribe(topic string)   {}
-func (h *HorizonBroadcast) Publish(topic string)     {}
-func (h *HorizonBroadcast) Unsubscribe(topic string) {}
-func (h *HorizonBroadcast) Close(topic string)       {}
+func NewHorizonBroadcast(config *HorizonConfig) (*HorizonBroadcast, error) {
+	return &HorizonBroadcast{
+		config: config,
+		nc:     nil,
+	}, nil
+}
+
+func (hb *HorizonBroadcast) run() error {
+	natsURL := fmt.Sprintf("nats://%s:%d", hb.config.NATSHost, hb.config.NATSClientPort)
+	nc, err := nats.Connect(natsURL)
+	if err != nil {
+		return eris.Wrap(err, "failed to connect to NATS")
+	}
+	hb.nc = nc
+	return nil
+}
+
+func (hb *HorizonBroadcast) stop() {
+	if hb.nc != nil {
+		hb.nc.Close()
+		hb.nc = nil
+	}
+}
+func (hb *HorizonBroadcast) Publish(topic string, payload any) error {
+	if hb.nc == nil {
+		return eris.New("NATS connection not initialized")
+	}
+	data, err := json.Marshal(payload)
+	if err != nil {
+		return eris.Wrap(err, "failed to marshal payload for topic")
+	}
+	if err := hb.nc.Publish(topic, data); err != nil {
+		return eris.Wrap(err, fmt.Sprintf("failed to publish to topic %s", topic))
+	}
+	return nil
+}
+
+func (hb *HorizonBroadcast) Dispatch(topics []string, payload any) error {
+	if hb.nc == nil {
+		return eris.New("NATS connection not initialized")
+	}
+	data, err := json.Marshal(payload)
+	if err != nil {
+		return eris.Wrap(err, "failed to marshal payload for topics")
+	}
+	for _, topic := range topics {
+		if err := hb.nc.Publish(topic, data); err != nil {
+			return eris.Wrap(err, fmt.Sprintf("failed to publish to topic %s", topic))
+		}
+	}
+
+	return nil
+}

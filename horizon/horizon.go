@@ -2,10 +2,15 @@ package horizon
 
 import (
 	"context"
-	"fmt"
 
 	"go.uber.org/fx"
 )
+
+type Product struct {
+	ID    int     `json:"id"`
+	Name  string  `json:"name"`
+	Price float64 `json:"price"`
+}
 
 func NewHorizon(
 	lc fx.Lifecycle,
@@ -20,29 +25,45 @@ func NewHorizon(
 	auth *HorizonAuthentication,
 	qr *HorizonQR,
 	storage *HorizonStorage,
+	report *HorizonReport,
+	broadcast *HorizonBroadcast,
+	database *HorizonDatabase,
 ) {
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
-			log.run()
-			schedule.run()
-			cache.run()
-			request.run()
-			smtp.run()
-			sms.run()
-			storage.run()
-			go func() {
-				value, err := storage.UploadLocalFile("logs/docker-desktop-amd64 (1).deb", func(read, total int64) {
-					percent := float64(read) / float64(total) * 100
-					fmt.Printf("Upload progress: %.2f%%\n", percent)
-				})
-				fmt.Println("---")
-				fmt.Println(value)
-				fmt.Println(err)
-				fmt.Println("---")
-			}()
+			if err := log.run(); err != nil {
+				return err
+			}
+			if err := schedule.run(); err != nil {
+				return err
+			}
+
+			if err := cache.run(); err != nil {
+				return err
+			}
+			if err := request.run(); err != nil {
+				return err
+			}
+			if err := smtp.run(); err != nil {
+				return err
+			}
+			if err := sms.run(); err != nil {
+				return err
+			}
+			if err := storage.run(); err != nil {
+				return err
+			}
+			if err := broadcast.run(); err != nil {
+				return err
+			}
+			if err := database.run(); err != nil {
+				return err
+			}
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {
+			database.stop()
+			broadcast.stop()
 			storage.stop()
 			sms.stop()
 			smtp.stop()

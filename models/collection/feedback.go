@@ -1,9 +1,13 @@
-package models
+package collection
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type Feedback struct {
-	ID           string     `gorm:"primaryKey;type:varchar(50);unique;default:uuid_generate_v4()"`
+	ID           uuid.UUID  `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
 	Email        string     `gorm:"type:varchar(255)"`
 	Description  string     `gorm:"type:text"`
 	FeedbackType string     `gorm:"type:varchar(50);not null;default:'general'"`
@@ -11,7 +15,3 @@ type Feedback struct {
 	UpdatedAt    time.Time  `gorm:"not null;default:now()"`
 	DeletedAt    *time.Time `gorm:"index"`
 }
-
-// updated
-// deleted
-// created

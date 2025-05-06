@@ -45,18 +45,10 @@ func (hc *HorizonCache) run() error {
 	for i := 1; i <= maxRetries; i++ {
 		if err := hc.client.Ping(ctx).Err(); err != nil {
 			lastErr = eris.Wrapf(err, "redis connection attempt %d failed", i)
-			hc.log.Log(LogEntry{
-				Category: CategoryCache,
-				Level:    LevelWarn,
-				Message:  lastErr.Error(),
-			})
+
 			time.Sleep(retryDelay)
 		} else {
-			hc.log.Log(LogEntry{
-				Category: CategoryCache,
-				Level:    LevelInfo,
-				Message:  fmt.Sprintf("Connected to Redis at %s:%d", hc.config.RedisHost, hc.config.RedisPort),
-			})
+
 			return nil
 		}
 	}

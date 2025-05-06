@@ -3,6 +3,7 @@ package horizon
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -32,8 +33,8 @@ type Storage struct {
 type BinaryFileInput struct {
 	Data        io.Reader
 	Size        int64
-	Name        string // e.g., "document.pdf"
-	ContentType string // optional
+	Name        string
+	ContentType string
 }
 
 type HorizonStorage struct {
@@ -358,9 +359,16 @@ func (hs *HorizonStorage) storageName(originalFileName string) string {
 	return fmt.Sprintf("%s-%d-%s", time.Now().Format("20060102150405"), os.Getpid(), originalFileName)
 }
 
-func isValidFilePath(filePath string) error {
-	if filePath == "" || !strings.HasPrefix(filePath, "/") {
-		return eris.New("invalid file path")
+func isValidFilePath(path string) error {
+	info, err := os.Stat(path)
+	if os.IsNotExist(err) {
+		return errors.New("file does not exist")
+	}
+	if err != nil {
+		return err
+	}
+	if info.IsDir() {
+		return errors.New("path is a directory, not a file")
 	}
 	return nil
 }

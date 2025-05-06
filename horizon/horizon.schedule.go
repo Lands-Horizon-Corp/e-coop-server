@@ -31,18 +31,9 @@ func NewHorizonSchedule(log *HorizonLog) (*HorizonSchedule, error) {
 	}, nil
 }
 
-func (hs *HorizonSchedule) run() {
-	go func() {
-		hs.cron.Start()
-		hs.log.Log(LogEntry{
-			Category: CategorySchedule,
-			Level:    LevelInfo,
-			Message:  "Scheduler started",
-			Fields: []zap.Field{
-				zap.String("action", "start"),
-			},
-		})
-	}()
+func (hs *HorizonSchedule) run() error {
+	hs.cron.Start()
+	return nil
 }
 
 func (hs *HorizonSchedule) stop() {

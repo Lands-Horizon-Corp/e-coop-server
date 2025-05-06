@@ -172,15 +172,11 @@ func NewHorizonRequest(
 	}, nil
 }
 
-func (hr *HorizonRequest) run() {
+func (hr *HorizonRequest) run() error {
 	go func() {
-		hr.log.Log(LogEntry{
-			Category: CategoryRequest,
-			Level:    LevelWarn,
-			Message:  fmt.Sprintf("Server started at: %s", fmt.Sprintf(":%d", hr.config.AppPort)),
-		})
 		hr.Service.Logger.Fatal(hr.Service.Start(fmt.Sprintf(":%d", hr.config.AppPort)))
 	}()
+	return nil
 }
 
 func (hr *HorizonRequest) stop() error {

@@ -32,12 +32,13 @@ type HorizonConfig struct {
 	PgAdminDefaultPassword string
 	PgAdminHost            string
 	PgAdminPort            int
-	RedisPort              int
-	RedisHost              string
-	RedisPassword          string
-	RedisUsername          string
-	RedisInsightHost       string
-	RedisInsightPort       int
+
+	RedisPort        int
+	RedisHost        string
+	RedisPassword    string
+	RedisUsername    string
+	RedisInsightHost string
+	RedisInsightPort int
 
 	SMTPHost      string
 	SMTPPort      int
@@ -56,6 +57,7 @@ type HorizonConfig struct {
 	StorageAPI_Port    int
 	StorageConsolePort int
 
+	NATSHost        string
 	NATSClientPort  int
 	NATSMonitorPort int
 }
@@ -100,6 +102,7 @@ func NewHorizonConfig() (*HorizonConfig, error) {
 		StorageBucket:          GetString("STORAGE_BUCKET", "my-bucket"),
 		StorageAPI_Port:        GetInt("STORAGE_API_PORT", 9000),
 		StorageConsolePort:     GetInt("STORAGE_CONSOLE_PORT", 9001),
+		NATSHost:               GetString("NATS_HOST", "nats"),
 		NATSClientPort:         GetInt("NATS_CLIENT_PORT", 4222),
 		NATSMonitorPort:        GetInt("NATS_MONITOR_PORT", 8222),
 	}, nil
