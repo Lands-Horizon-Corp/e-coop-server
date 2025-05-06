@@ -55,6 +55,7 @@ services:
     image: hot-reloading-app
     ports:
       - "${APP_PORT}:${APP_PORT}"
+      - "${APP_METRICS_PORT}:${APP_METRICS_PORT}"
     volumes:
       - ./:/app
 

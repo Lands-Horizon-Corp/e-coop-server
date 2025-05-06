@@ -12,23 +12,16 @@ import (
 
 func NewModel(
 	lc fx.Lifecycle,
+	request *horizon.HorizonRequest,
 	database *horizon.HorizonDatabase,
 	feedback *repository.FeedbackRepository,
 ) {
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
-			err := database.Ping()
-			if err != nil {
+			if err := database.Ping(); err != nil {
 				return err
 			}
-			// Migration here
-			err = database.Client().AutoMigrate(
-				&collection.Feedback{},
-			)
-			if err != nil {
-				return err
-			}
-			return nil
+			return database.Client().AutoMigrate(&collection.Feedback{})
 		},
 		OnStop: func(ctx context.Context) error {
 			return nil
@@ -42,6 +35,5 @@ var Modules = fx.Module(
 		broadcast.NewFeedbackBroadcast,
 		repository.NewFeedbackRepository,
 	),
-
 	fx.Invoke(NewModel),
 )

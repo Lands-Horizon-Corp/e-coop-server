@@ -38,12 +38,10 @@ func (fc *FeedbackController) Create(c echo.Context) error {
 	if err := c.Bind(&feedback); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
 	}
-
-	feedback.ID = uuid.New() // Ensure ID is set
+	feedback.ID = uuid.New()
 	if err := fc.feedbackRepository.Create(&feedback); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
-
 	return c.JSON(http.StatusCreated, feedback)
 }
 
@@ -53,17 +51,14 @@ func (fc *FeedbackController) Update(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid UUID"})
 	}
-
 	var feedback collection.Feedback
 	if err := c.Bind(&feedback); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
 	}
 	feedback.ID = id
-
 	if err := fc.feedbackRepository.Update(&feedback); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
-
 	return c.JSON(http.StatusOK, feedback)
 }
 
@@ -78,6 +73,5 @@ func (fc *FeedbackController) Delete(c echo.Context) error {
 	if err := fc.feedbackRepository.Delete(feedback); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
-
 	return c.NoContent(http.StatusNoContent)
 }
