@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -16,17 +15,20 @@ type MediaController struct {
 	repository *repository.MediaRepository
 	collection *collection.MediaCollection
 	storage    *horizon.HorizonStorage
+	broadcast  *horizon.HorizonBroadcast
 }
 
 func NewMediaController(
 	repository *repository.MediaRepository,
 	collection *collection.MediaCollection,
 	storage *horizon.HorizonStorage,
+	broadcast *horizon.HorizonBroadcast,
 ) (*MediaController, error) {
 	return &MediaController{
 		repository: repository,
 		collection: collection,
 		storage:    storage,
+		broadcast:  broadcast,
 	}, nil
 }
 
@@ -54,32 +56,63 @@ func (fc *MediaController) Get(c echo.Context) error {
 }
 
 func (fc *MediaController) Create(c echo.Context) error {
+	// 1. Bind multipart file
 	file, err := c.FormFile("file")
 	if err != nil {
-		return err
+		return echo.NewHTTPError(http.StatusBadRequest, "missing file")
 	}
-	media, err := fc.storage.UploadFromHeader(file, func(progress int64, total int64, storage *horizon.Storage) {
-		fmt.Println(total)
-		fmt.Println(progress)
-		fmt.Println(storage)
-		fmt.Println("--------")
-	})
-	model := &collection.Media{
-		FileName:   media.FileName,
-		FileSize:   media.FileSize,
-		FileType:   media.FileType,
-		StorageKey: media.StorageKey,
-		URL:        media.URL,
-		BucketName: media.BucketName,
+
+	// 2. Insert placeholder record with Status = pending
+	initial := &collection.Media{
+		FileName:   file.Filename,
+		FileSize:   0,
+		FileType:   file.Header.Get("Content-Type"),
+		StorageKey: "",
+		URL:        "",
+		BucketName: "",
+		Status:     horizon.StorageStatusPending,
+		Progress:   0,
 	}
-	if err != nil {
-		return c.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
-	}
-	if err := fc.repository.Create(model); err != nil {
+	if err := fc.repository.Create(initial); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
-	return c.JSON(http.StatusCreated, fc.collection.ToModel(model))
 
+	// 3. Kick off upload with a callback that updates the same DB record
+	storage, err := fc.storage.UploadFromHeader(file, func(progress, total int64, st *horizon.Storage) {
+		// update record progress and status
+		update := &collection.Media{
+			ID:       initial.ID, // ensure we update the same record
+			Progress: st.Progress,
+			Status:   horizon.StorageStatusProgress,
+		}
+		_ = fc.repository.Update(update) // ignore error here, but you could log it
+	})
+	if err != nil {
+		// mark record as corrupt on error
+		_ = fc.repository.Update(&collection.Media{
+			ID:     initial.ID,
+			Status: horizon.StorageStatusCorrupt,
+		})
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	// 4. Final update: set completed metadata
+	completed := &collection.Media{
+		ID:         initial.ID,
+		FileSize:   storage.FileSize,
+		StorageKey: storage.StorageKey,
+		URL:        storage.URL,
+		BucketName: storage.BucketName,
+		Status:     horizon.StorageStatusCompleted,
+		Progress:   storage.Progress,
+	}
+	if err := fc.repository.Update(completed); err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	// 5. Fetch and return the up-to-date model
+	respModel := fc.collection.ToModel(completed)
+	return c.JSON(http.StatusCreated, respModel)
 }
 
 func (fc *MediaController) Update(c echo.Context) error {

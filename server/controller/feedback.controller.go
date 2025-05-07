@@ -31,6 +31,9 @@ func (fc *FeedbackController) List(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	responses := fc.collection.ToModels(feedbacks)
+	if len(responses) <= 0 {
+		c.JSON(http.StatusOK, make([]any, 0))
+	}
 	return c.JSON(http.StatusOK, responses)
 }
 

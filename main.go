@@ -59,7 +59,10 @@ func NewHorizon(
 			if err := database.Ping(); err != nil {
 				return err
 			}
-			if err := database.Client().AutoMigrate(&collection.Feedback{}); err != nil {
+			if err := database.Client().AutoMigrate(
+				&collection.Feedback{},
+				&collection.Media{},
+			); err != nil {
 				return err
 			}
 			return request.Run(

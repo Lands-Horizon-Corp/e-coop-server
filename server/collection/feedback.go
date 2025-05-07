@@ -72,11 +72,19 @@ func (fc *FeedbackCollection) ToModel(data *Feedback) *FeedbackResponse {
 
 func (fc *FeedbackCollection) ToModels(data []*Feedback) []*FeedbackResponse {
 	if data == nil {
-		return nil
+		return make([]*FeedbackResponse, 0)
 	}
 	var feedbackResources []*FeedbackResponse
 	for _, feedback := range data {
-		feedbackResources = append(feedbackResources, fc.ToModel(feedback))
+
+		model := fc.ToModel(feedback)
+		if model != nil {
+			feedbackResources = append(feedbackResources, model)
+		}
+
+	}
+	if len(feedbackResources) <= 0 {
+		return make([]*FeedbackResponse, 0)
 	}
 	return feedbackResources
 }

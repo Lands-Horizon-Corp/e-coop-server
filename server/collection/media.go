@@ -17,14 +17,15 @@ type (
 		UpdatedAt time.Time  `gorm:"not null;default:now()"`
 		DeletedAt *time.Time `json:"deletedAt,omitempty" gorm:"index"`
 
-		FileName   string                `gorm:"type:varchar(255);unsigned" json:"file_name"`
+		FileName   string                `gorm:"type:varchar(2048);unsigned" json:"file_name"`
 		FileSize   int64                 `gorm:"unsigned" json:"file_size"`
 		FileType   string                `gorm:"type:varchar(50);unsigned" json:"file_type"`
-		StorageKey string                `gorm:"type:varchar(255);unique;unsigned" json:"storage_key"`
-		URL        string                `gorm:"type:varchar(255);unsigned" json:"url"`
-		Key        string                `gorm:"type:varchar(255)" json:"key"`
-		BucketName string                `gorm:"type:varchar(255)" json:"bucket_name"`
+		StorageKey string                `gorm:"type:varchar(2048)" json:"storage_key"`
+		URL        string                `gorm:"type:varchar(2048);unsigned" json:"url"`
+		Key        string                `gorm:"type:varchar(2048)" json:"key"`
+		BucketName string                `gorm:"type:varchar(2048)" json:"bucket_name"`
 		Status     horizon.StorageStatus `gorm:"type:varchar(50);default:'pending'" json:"status"`
+		Progress   int64                 `gorm:"unsigned" json:"progress"`
 	}
 
 	MediaResponse struct {
@@ -40,6 +41,7 @@ type (
 		DownloadURL string                `json:"downloadURL"`
 		BucketName  string                `json:"bucketName"`
 		Status      horizon.StorageStatus `json:"status"`
+		Progress    int64                 `gorm:"unsigned" json:"progress"`
 	}
 
 	MediaRequest struct {
@@ -51,6 +53,7 @@ type (
 		URL        string `json:"url" validate:"required,url,max=255"`
 		Key        string `json:"key,omitempty" validate:"max=255"`
 		BucketName string `json:"bucketName,omitempty" validate:"max=255"`
+		Progress   int64  `gorm:"unsigned" json:"progress"`
 	}
 )
 
@@ -85,7 +88,7 @@ func (m *MediaCollection) ToModel(media *Media) *MediaResponse {
 	}
 	temporaryURL, err := m.storage.GeneratePresignedURL(media.StorageKey)
 	if err != nil {
-		return nil
+		temporaryURL = ""
 	}
 	return &MediaResponse{
 		ID:        media.ID,
@@ -101,16 +104,23 @@ func (m *MediaCollection) ToModel(media *Media) *MediaResponse {
 		BucketName:  media.BucketName,
 		DownloadURL: temporaryURL,
 		Status:      media.Status,
+		Progress:    media.Progress,
 	}
 }
 
 func (m *MediaCollection) ToModels(mediaList []*Media) []*MediaResponse {
 	if mediaList == nil {
-		return nil
+		return make([]*MediaResponse, 0)
 	}
 	var mediaResources []*MediaResponse
 	for _, media := range mediaList {
-		mediaResources = append(mediaResources, m.ToModel(media))
+		model := m.ToModel(media)
+		if model != nil {
+			mediaResources = append(mediaResources, m.ToModel(media))
+		}
+	}
+	if len(mediaResources) <= 0 {
+		return make([]*MediaResponse, 0)
 	}
 	return mediaResources
 }
