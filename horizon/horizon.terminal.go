@@ -25,11 +25,8 @@ const (
 	Reset  = "\033[0m"
 )
 
-func NewTerminal(
-	lc fx.Lifecycle,
-	request *HorizonRequest,
-	config *HorizonConfig,
-) {
+// NewTerminal initializes the terminal for the Horizon application
+func NewTerminal(lc fx.Lifecycle, request *HorizonRequest, config *HorizonConfig) {
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			if !config.CanDebug() {
@@ -47,16 +44,17 @@ func NewTerminal(
 	})
 }
 
+// requestCMD prints out the grouped routes for the Horizon application
 func requestCMD(request *HorizonRequest) {
 	routesList := request.service.Routes()
 
-	// Group by Controller -> Method -> []*Route
-	grouped := map[string]map[string][]*echo.Route{}
+	// Group routes by Controller -> Method -> []*Route
+	grouped := make(map[string]map[string][]*echo.Route)
 
 	for _, rt := range routesList {
 		controller := extractController(rt.Name)
 		if _, ok := grouped[controller]; !ok {
-			grouped[controller] = map[string][]*echo.Route{}
+			grouped[controller] = make(map[string][]*echo.Route)
 		}
 		grouped[controller][rt.Method] = append(grouped[controller][rt.Method], rt)
 	}
@@ -82,6 +80,7 @@ func requestCMD(request *HorizonRequest) {
 			return order[methods[i]] < order[methods[j]]
 		})
 
+		// Print routes by method
 		for _, method := range methods {
 			routes := grouped[controller][method]
 
@@ -90,6 +89,7 @@ func requestCMD(request *HorizonRequest) {
 				return routes[i].Path < routes[j].Path
 			})
 
+			// Print each route with color-coding based on HTTP method
 			for _, rt := range routes {
 				switch rt.Method {
 				case "GET":
@@ -106,9 +106,9 @@ func requestCMD(request *HorizonRequest) {
 			}
 		}
 	}
-
 }
 
+// printConfigBoxes displays configuration information for the Horizon app
 func printConfigBoxes(config *HorizonConfig) {
 	box := box.Box{
 		TopRight:    "*",
@@ -116,7 +116,6 @@ func printConfigBoxes(config *HorizonConfig) {
 		BottomRight: "*",
 		BottomLeft:  "*",
 		Horizontal:  "-", Vertical: "┃",
-
 		Config: box.Config{
 			Px:       5,
 			Py:       0,
@@ -263,12 +262,14 @@ func printConfigBoxes(config *HorizonConfig) {
 	box.Print("💬 NATS CONFIG", natsInfo)
 }
 
+// runCmd executes a command in the terminal
 func runCmd(name string, arg ...string) {
 	cmd := exec.Command(name, arg...)
 	cmd.Stdout = os.Stdout
 	cmd.Run()
 }
 
+// ClearTerminal clears the terminal screen
 func ClearTerminal() {
 	switch runtime.GOOS {
 	case "darwin", "linux":
@@ -280,6 +281,7 @@ func ClearTerminal() {
 	}
 }
 
+// printASCIIArt prints ASCII art in the terminal
 func printASCIIArt() {
 	asciiArt := `
 	           ..............                            
