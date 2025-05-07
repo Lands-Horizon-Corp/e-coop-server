@@ -9,8 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"golang.org/x/net/websocket"
-
 	"github.com/labstack/echo-contrib/echoprometheus"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -230,66 +228,6 @@ func (hr *HorizonRequest) Run(routes ...func(*echo.Echo)) error {
 	for _, rt := range hr.service.Routes() {
 		fmt.Printf("  ▶ %s %s\n", rt.Method, rt.Path)
 	}
-
-	hr.service.GET("/ws", func(c echo.Context) error {
-		websocket.Handler(func(ws *websocket.Conn) {
-			defer ws.Close()
-			for {
-
-				// 1. Receive initial topic from client
-				var topic string
-				if err := websocket.Message.Receive(ws, &topic); err != nil {
-					c.Logger().Error("Failed to receive topic:", err)
-					return
-				}
-				c.Logger().Infof("Client subscribed to topic: %s", topic)
-
-				// 2. Subscribe to topic via NATS
-				sub, err := hr.broadcast.Connect().SubscribeSync(topic)
-				if err != nil {
-					c.Logger().Error("Failed to subscribe to topic:", err)
-					return
-				}
-				defer sub.Unsubscribe()
-
-				// 3. Start goroutine to listen for NATS messages and send to client
-				done := make(chan struct{})
-				go func() {
-					for {
-						msg, err := sub.NextMsgWithContext(c.Request().Context())
-						if err != nil {
-							c.Logger().Error("NATS read error:", err)
-							break
-						}
-						if err := websocket.Message.Send(ws, string(msg.Data)); err != nil {
-							c.Logger().Error("WebSocket send error:", err)
-							break
-						}
-					}
-					close(done)
-				}()
-				// 4. Read messages from WebSocket and publish to NATS
-				for {
-					var clientMsg string
-					if err := websocket.Message.Receive(ws, &clientMsg); err != nil {
-						c.Logger().Error("WebSocket read error:", err)
-						break
-					}
-					c.Logger().Infof("Received from client: %s", clientMsg)
-
-					// Publish to NATS
-					if err := hr.broadcast.Connect().Publish(topic, []byte(clientMsg)); err != nil {
-						c.Logger().Error("NATS publish error:", err)
-						break
-					}
-				}
-
-				// 5. Clean up
-				<-done
-			}
-		}).ServeHTTP(c.Response(), c.Request())
-		return nil
-	})
 
 	go func() {
 		metrics := echo.New()

@@ -40,6 +40,7 @@ func (b *FeedbackBroadcast) OnUpdate(data *collection.Feedback) {
 	}()
 
 }
+
 func (b *FeedbackBroadcast) OnDelete(data *collection.Feedback) {
 	go func() {
 		b.broadcast.Dispatch([]string{
