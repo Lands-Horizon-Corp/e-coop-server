@@ -21,6 +21,16 @@ import (
 	"go.uber.org/zap"
 )
 
+type StorageStatus string
+
+const (
+	StorageStatusPending   StorageStatus = "pending"
+	StorageStatusCancelled StorageStatus = "cancelled"
+	StorageStatusCorrupt   StorageStatus = "corrupt"
+	StorageStatusCompleted StorageStatus = "completed"
+	StorageStatusProgress  StorageStatus = "progress"
+)
+
 type Storage struct {
 	FileName   string
 	FileSize   int64
@@ -28,6 +38,8 @@ type Storage struct {
 	StorageKey string
 	URL        string
 	BucketName string
+	Status     StorageStatus
+	Progress   int64
 }
 
 type BinaryFileInput struct {
@@ -42,6 +54,24 @@ type HorizonStorage struct {
 	log      *HorizonLog
 	security *HorizonSecurity
 	storage  *minio.Client
+}
+
+type ProgressCallback func(progress int64, total int64, storage *Storage)
+
+type progressReader struct {
+	reader   io.Reader
+	callback ProgressCallback
+	total    int64
+	storage  *Storage
+}
+
+func (pr *progressReader) Read(p []byte) (n int, err error) {
+	n, err = pr.reader.Read(p)
+	if pr.callback != nil {
+		pr.storage.Progress = int64(n)
+		pr.callback(int64(n), pr.total, pr.storage)
+	}
+	return n, err
 }
 
 func NewHorizonStorage(config *HorizonConfig, log *HorizonLog, security *HorizonSecurity) (*HorizonStorage, error) {
@@ -143,22 +173,17 @@ func (hs *HorizonStorage) UploadFromBinary(input BinaryFileInput, onProgress Pro
 	if input.Data == nil {
 		return nil, eris.New("binary input data is nil")
 	}
-
 	contentType := input.ContentType
 	if contentType == "" {
-		// Read first 512 bytes to detect content type
 		buf := make([]byte, 512)
 		n, err := input.Data.Read(buf)
 		if err != nil && err != io.EOF {
 			return nil, eris.Wrap(err, "failed to read binary input")
 		}
 		contentType = http.DetectContentType(buf[:n])
-
-		// Reset reader (if it's a bytes.Reader, use Seek)
 		if seeker, ok := input.Data.(io.Seeker); ok {
 			_, _ = seeker.Seek(0, io.SeekStart)
 		} else {
-			// Cannot reset non-seekable stream, so wrap the buffer + remaining reader
 			input.Data = io.MultiReader(bytes.NewReader(buf[:n]), input.Data)
 		}
 	}
@@ -191,6 +216,8 @@ func (hs *HorizonStorage) UploadFromBinary(input BinaryFileInput, onProgress Pro
 		StorageKey: info.Key,
 		URL:        url,
 		BucketName: hs.config.StorageBucket,
+		Status:     StorageStatusCompleted,
+		Progress:   progress.total,
 	}, nil
 }
 
@@ -234,6 +261,8 @@ func (hs *HorizonStorage) UploadFromHeader(file *multipart.FileHeader, onProgres
 		StorageKey: info.Key,
 		URL:        url,
 		BucketName: hs.config.StorageBucket,
+		Status:     StorageStatusCompleted,
+		Progress:   progress.total,
 	}, nil
 }
 
@@ -288,6 +317,8 @@ func (hs *HorizonStorage) UploadLocalFile(filePath string, onProgress ProgressCa
 		StorageKey: info.Key,
 		URL:        url,
 		BucketName: hs.config.StorageBucket,
+		Status:     StorageStatusCompleted,
+		Progress:   progress.total,
 	}, nil
 }
 
@@ -355,6 +386,37 @@ func (hs *HorizonStorage) GeneratePresignedURL(fileName string) (string, error) 
 	return presignedURL.String(), nil
 }
 
+// DeleteFile deletes a file from the storage bucket using the given storage key.
+func (hs *HorizonStorage) DeleteFile(storageKey string) error {
+	if hs.storage == nil {
+		return eris.New("storage client is not initialized")
+	}
+
+	if strings.TrimSpace(storageKey) == "" {
+		return eris.New("storage key is empty")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	err := hs.storage.RemoveObject(ctx, hs.config.StorageBucket, storageKey, minio.RemoveObjectOptions{})
+	if err != nil {
+		return eris.Wrapf(err, "failed to delete file: %s", storageKey)
+	}
+
+	hs.log.Log(LogEntry{
+		Category: CategoryStorage,
+		Level:    LevelInfo,
+		Message:  fmt.Sprintf("successfully deleted file: %s", storageKey),
+		Fields: []zap.Field{
+			zap.String("storage-key", storageKey),
+			zap.String("bucket", hs.config.StorageBucket),
+		},
+	})
+
+	return nil
+}
+
 func (hs *HorizonStorage) storageName(originalFileName string) string {
 	return fmt.Sprintf("%s-%d-%s", time.Now().Format("20060102150405"), os.Getpid(), originalFileName)
 }
@@ -376,20 +438,4 @@ func isValidFilePath(path string) error {
 func isValidURL(value string) bool {
 	_, err := url.ParseRequestURI(value)
 	return err == nil
-}
-
-type ProgressCallback func(progress int64, total int64)
-
-type progressReader struct {
-	reader   io.Reader
-	callback ProgressCallback
-	total    int64
-}
-
-func (pr *progressReader) Read(p []byte) (n int, err error) {
-	n, err = pr.reader.Read(p)
-	if pr.callback != nil {
-		pr.callback(int64(n), pr.total)
-	}
-	return n, err
 }

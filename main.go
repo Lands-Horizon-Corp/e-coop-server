@@ -28,6 +28,7 @@ func NewHorizon(
 	broadcast *horizon.HorizonBroadcast,
 	database *horizon.HorizonDatabase,
 	feedback *controller.FeedbackController,
+	media *controller.MediaController,
 ) {
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
@@ -61,7 +62,9 @@ func NewHorizon(
 			if err := database.Client().AutoMigrate(&collection.Feedback{}); err != nil {
 				return err
 			}
-			return request.Run(feedback.APIRoutes)
+			return request.Run(
+				feedback.APIRoutes, media.APIRoutes,
+			)
 		},
 		OnStop: func(ctx context.Context) error {
 			request.Stop()
@@ -107,6 +110,12 @@ var Modules = fx.Module(
 		broadcast.NewFeedbackBroadcast,
 		repository.NewFeedbackRepository,
 		controller.NewFeedbackController,
+
+		// Media
+		collection.NewMediaCollection,
+		broadcast.NewMediaBroadcast,
+		repository.NewMediaRepository,
+		controller.NewMediaController,
 	),
 
 	fx.Invoke(NewHorizon),

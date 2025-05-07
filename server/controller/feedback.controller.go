@@ -64,8 +64,7 @@ func (fc *FeedbackController) Create(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 
-	resp := fc.collection.ToModel(model)
-	return c.JSON(http.StatusCreated, resp)
+	return c.JSON(http.StatusCreated, fc.collection.ToModel(model))
 }
 
 func (fc *FeedbackController) Update(c echo.Context) error {
