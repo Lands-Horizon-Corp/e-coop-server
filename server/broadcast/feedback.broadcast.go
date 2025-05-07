@@ -23,22 +23,28 @@ func NewFeedbackBroadcast(
 }
 
 func (b *FeedbackBroadcast) OnCreate(data *collection.Feedback) {
-	b.broadcast.Dispatch([]string{
-		"feedback.create",
-		fmt.Sprintf("feedback.create.%s", data.ID),
-	}, b.collection.ToModel(data))
+	go func() {
+		b.broadcast.Dispatch([]string{
+			"feedback.create",
+			fmt.Sprintf("feedback.create.%s", data.ID),
+		}, b.collection.ToModel(data))
+	}()
 }
 
 func (b *FeedbackBroadcast) OnUpdate(data *collection.Feedback) {
-	b.broadcast.Dispatch([]string{
-		"feedback.update",
-		fmt.Sprintf("feedback.update.%s", data.ID),
-	}, b.collection.ToModel(data))
+	go func() {
+		b.broadcast.Dispatch([]string{
+			"feedback.update",
+			fmt.Sprintf("feedback.update.%s", data.ID),
+		}, b.collection.ToModel(data))
+	}()
 
 }
 func (b *FeedbackBroadcast) OnDelete(data *collection.Feedback) {
-	b.broadcast.Dispatch([]string{
-		"feedback.delete",
-		fmt.Sprintf("feedback.delete.%s", data.ID),
-	}, b.collection.ToModel(data))
+	go func() {
+		b.broadcast.Dispatch([]string{
+			"feedback.delete",
+			fmt.Sprintf("feedback.delete.%s", data.ID),
+		}, b.collection.ToModel(data))
+	}()
 }

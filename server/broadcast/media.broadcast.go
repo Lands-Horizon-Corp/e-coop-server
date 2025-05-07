@@ -23,22 +23,28 @@ func NewMediaBroadcast(
 }
 
 func (b *MediaBroadcast) OnCreate(data *collection.Media) {
-	b.broadcast.Dispatch([]string{
-		"media.create",
-		fmt.Sprintf("media.create.%s", data.ID),
-	}, b.collection.ToModel(data))
+	go func() {
+		b.broadcast.Dispatch([]string{
+			"media.create",
+			fmt.Sprintf("media.create.%s", data.ID),
+		}, b.collection.ToModel(data))
+	}()
 }
 
 func (b *MediaBroadcast) OnUpdate(data *collection.Media) {
-	b.broadcast.Dispatch([]string{
-		"media.update",
-		fmt.Sprintf("media.update.%s", data.ID),
-	}, b.collection.ToModel(data))
+	go func() {
+		b.broadcast.Dispatch([]string{
+			"media.update",
+			fmt.Sprintf("media.update.%s", data.ID),
+		}, b.collection.ToModel(data))
+	}()
 
 }
 func (b *MediaBroadcast) OnDelete(data *collection.Media) {
-	b.broadcast.Dispatch([]string{
-		"media.delete",
-		fmt.Sprintf("media.delete.%s", data.ID),
-	}, b.collection.ToModel(data))
+	go func() {
+		b.broadcast.Dispatch([]string{
+			"media.delete",
+			fmt.Sprintf("media.delete.%s", data.ID),
+		}, b.collection.ToModel(data))
+	}()
 }

@@ -20,6 +20,10 @@ func NewHorizonBroadcast(config *HorizonConfig) (*HorizonBroadcast, error) {
 	}, nil
 }
 
+func (hb *HorizonBroadcast) Connect() *nats.Conn {
+	return hb.nc
+}
+
 func (hb *HorizonBroadcast) Run() error {
 	natsURL := fmt.Sprintf("nats://%s:%d", hb.config.NATSHost, hb.config.NATSClientPort)
 	nc, err := nats.Connect(natsURL)

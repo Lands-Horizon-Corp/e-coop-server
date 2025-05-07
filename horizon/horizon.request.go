@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/net/websocket"
+
 	"github.com/labstack/echo-contrib/echoprometheus"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -16,10 +18,16 @@ import (
 	"golang.org/x/time/rate"
 )
 
+type HorizonSubscribeMessage struct {
+	Action string `json:"action"`
+	Topic  string `json:"topic"`
+}
+
 type HorizonRequest struct {
-	service *echo.Echo
-	config  *HorizonConfig
-	log     *HorizonLog
+	service   *echo.Echo
+	config    *HorizonConfig
+	log       *HorizonLog
+	broadcast *HorizonBroadcast
 }
 
 // Compile a regular expression to match suspicious paths
@@ -28,6 +36,7 @@ var suspiciousPathPattern = regexp.MustCompile(`(?i)\.(env|yaml|yml|ini|config|c
 func NewHorizonRequest(
 	config *HorizonConfig,
 	log *HorizonLog,
+	broadcast *HorizonBroadcast,
 ) (*HorizonRequest, error) {
 	e := echo.New()
 
@@ -202,16 +211,6 @@ func NewHorizonRequest(
 	// 9. Metrics middleware
 	e.Use(echoprometheus.NewMiddleware(config.AppName))
 
-	// Spin up a separate HTTP server for Prometheus metrics
-	go func() {
-		metrics := echo.New()
-		metrics.GET("/metrics", echoprometheus.NewHandler())
-		if err := metrics.Start(fmt.Sprintf(":%d", config.AppMetricsPort)); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			// skip
-		}
-	}()
-
-	// Health endpoint
 	e.GET("/health", func(c echo.Context) error {
 		return c.String(200, "OK")
 	})
@@ -223,23 +222,89 @@ func NewHorizonRequest(
 }
 
 func (hr *HorizonRequest) Run(routes ...func(*echo.Echo)) error {
-	// register them synchronously
+
 	for _, r := range routes {
 		r(hr.service)
 	}
 
-	// show us exactly what got registered
-	fmt.Println("registered routes:")
 	for _, rt := range hr.service.Routes() {
 		fmt.Printf("  ▶ %s %s\n", rt.Method, rt.Path)
 	}
 
-	// now start the server
+	hr.service.GET("/ws", func(c echo.Context) error {
+		websocket.Handler(func(ws *websocket.Conn) {
+			defer ws.Close()
+			for {
+
+				// 1. Receive initial topic from client
+				var topic string
+				if err := websocket.Message.Receive(ws, &topic); err != nil {
+					c.Logger().Error("Failed to receive topic:", err)
+					return
+				}
+				c.Logger().Infof("Client subscribed to topic: %s", topic)
+
+				// 2. Subscribe to topic via NATS
+				sub, err := hr.broadcast.Connect().SubscribeSync(topic)
+				if err != nil {
+					c.Logger().Error("Failed to subscribe to topic:", err)
+					return
+				}
+				defer sub.Unsubscribe()
+
+				// 3. Start goroutine to listen for NATS messages and send to client
+				done := make(chan struct{})
+				go func() {
+					for {
+						msg, err := sub.NextMsgWithContext(c.Request().Context())
+						if err != nil {
+							c.Logger().Error("NATS read error:", err)
+							break
+						}
+						if err := websocket.Message.Send(ws, string(msg.Data)); err != nil {
+							c.Logger().Error("WebSocket send error:", err)
+							break
+						}
+					}
+					close(done)
+				}()
+				// 4. Read messages from WebSocket and publish to NATS
+				for {
+					var clientMsg string
+					if err := websocket.Message.Receive(ws, &clientMsg); err != nil {
+						c.Logger().Error("WebSocket read error:", err)
+						break
+					}
+					c.Logger().Infof("Received from client: %s", clientMsg)
+
+					// Publish to NATS
+					if err := hr.broadcast.Connect().Publish(topic, []byte(clientMsg)); err != nil {
+						c.Logger().Error("NATS publish error:", err)
+						break
+					}
+				}
+
+				// 5. Clean up
+				<-done
+			}
+		}).ServeHTTP(c.Response(), c.Request())
+		return nil
+	})
+
+	go func() {
+		metrics := echo.New()
+		metrics.GET("/metrics", echoprometheus.NewHandler())
+		if err := metrics.Start(fmt.Sprintf(":%d", hr.config.AppMetricsPort)); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			// skip
+		}
+	}()
+
 	go func() {
 		hr.service.Logger.Fatal(hr.service.Start(
 			fmt.Sprintf(":%d", hr.config.AppPort),
 		))
 	}()
+
 	return nil
 }
 
