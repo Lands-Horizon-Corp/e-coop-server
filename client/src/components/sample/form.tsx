@@ -116,9 +116,9 @@ function SampleForm() {
     }
   }
 
-  useEffect(() => {
-    fetchList()
-  }, [])
+  // useEffect(() => {
+  //   fetchList()
+  // }, [])
 
   useBroadcast<Feedback>("feedback.create", fetchList, console.error)
   useBroadcast<Payload>("feedback.update", fetchList, console.error)
