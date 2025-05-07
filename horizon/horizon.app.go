@@ -6,9 +6,9 @@ import (
 	"go.uber.org/fx"
 )
 
-type HorizonTerminal struct{}
+type HorizonApp struct{}
 
-func NewHorizonTerminal(
+func NewHorizonApp(
 	lc fx.Lifecycle,
 
 	config *HorizonConfig,
@@ -25,7 +25,8 @@ func NewHorizonTerminal(
 	report *HorizonReport,
 	broadcast *HorizonBroadcast,
 	database *HorizonDatabase,
-) {
+) (*HorizonApp, error) {
+	// lifecycle hooks for startup and shutdown
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			if err := log.Run(); err != nil {
@@ -59,6 +60,7 @@ func NewHorizonTerminal(
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {
+			// shutdown in reverse order
 			request.Stop()
 			database.Stop()
 			broadcast.Stop()
@@ -72,4 +74,6 @@ func NewHorizonTerminal(
 		},
 	})
 
+	// return the fully configured app instance
+	return &HorizonApp{}, nil
 }
