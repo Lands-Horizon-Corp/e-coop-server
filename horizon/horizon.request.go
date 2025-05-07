@@ -185,6 +185,7 @@ func NewHorizonRequest(
 			http.MethodGet,
 			http.MethodPost,
 			http.MethodPatch,
+			http.MethodPut,
 			http.MethodDelete,
 			http.MethodOptions,
 		}, AllowHeaders: []string{
