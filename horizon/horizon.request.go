@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 
@@ -225,8 +226,53 @@ func (hr *HorizonRequest) Run(routes ...func(*echo.Echo)) error {
 		r(hr.service)
 	}
 
-	for _, rt := range hr.service.Routes() {
-		fmt.Printf("  ▶ %s %s\n", rt.Method, rt.Path)
+	const (
+		Red    = "\033[31m"
+		Yellow = "\033[33m"
+		Green  = "\033[32m"
+		Blue   = "\033[34m"
+		Cyan   = "\033[36m"
+		Reset  = "\033[0m"
+	)
+
+	routesList := hr.service.Routes()
+
+	// Sort by Path
+	sort.Slice(routesList, func(i, j int) bool {
+		return routesList[i].Path < routesList[j].Path
+	})
+
+	// Group routes by controller name
+	grouped := map[string][]*echo.Route{}
+	for _, rt := range routesList {
+		controller := extractController(rt.Name)
+		grouped[controller] = append(grouped[controller], rt)
+	}
+
+	// Sort controller names alphabetically
+	controllers := make([]string, 0, len(grouped))
+	for c := range grouped {
+		controllers = append(controllers, c)
+	}
+	sort.Strings(controllers)
+
+	// Print routes grouped by controller
+	for _, controller := range controllers {
+		fmt.Printf("\n%s========== %s ==========%s\n", Cyan, controller, Reset)
+		for _, rt := range grouped[controller] {
+			switch rt.Method {
+			case "GET":
+				fmt.Printf("  %s▶ %s %s \t%s- %s%s\n", Green, rt.Method, rt.Path, Reset, rt.Name, Reset)
+			case "POST":
+				fmt.Printf("  %s▶ %s %s \t%s- %s%s\n", Blue, rt.Method, rt.Path, Reset, rt.Name, Reset)
+			case "PUT":
+				fmt.Printf("  %s▶ %s %s \t%s- %s%s\n", Yellow, rt.Method, rt.Path, Reset, rt.Name, Reset)
+			case "DELETE":
+				fmt.Printf("  %s▶ %s %s \t%s- %s%s\n", Red, rt.Method, rt.Path, Reset, rt.Name, Reset)
+			default:
+				fmt.Printf("  ▶ %s %s \t- %s\n", rt.Method, rt.Path, rt.Name)
+			}
+		}
 	}
 
 	go func() {
@@ -257,4 +303,13 @@ func (hr *HorizonRequest) Stop() error {
 
 func (hr *HorizonRequest) Service() *echo.Echo {
 	return hr.service
+}
+
+func extractController(full string) string {
+	start := strings.Index(full, "(*")
+	end := strings.Index(full, ").")
+	if start != -1 && end != -1 && end > start+2 {
+		return full[start+2 : end] // e.g., MediaController
+	}
+	return "Other"
 }
