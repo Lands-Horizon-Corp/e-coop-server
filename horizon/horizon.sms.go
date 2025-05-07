@@ -55,14 +55,14 @@ func NewHorizonSMS(
 	}, nil
 }
 
-func (hs *HorizonSMS) run() error {
+func (hs *HorizonSMS) Run() error {
 	hs.limiterOnce.Do(func() {
 		hs.limiter = rate.NewLimiter(1, 3)
 	})
 	return nil
 }
 
-func (hs *HorizonSMS) stop() {
+func (hs *HorizonSMS) Stop() {
 	hs.log.Log(LogEntry{
 		Category: CategorySMTP,
 		Level:    LevelInfo,

@@ -19,7 +19,7 @@ func NewHorizonDatabase(config *HorizonConfig) (*HorizonDatabase, error) {
 	}, nil
 }
 
-func (hd *HorizonDatabase) run() error {
+func (hd *HorizonDatabase) Run() error {
 	dsn := fmt.Sprintf(
 		"host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		hd.config.PostgresHost,
@@ -38,7 +38,7 @@ func (hd *HorizonDatabase) run() error {
 	return nil
 }
 
-func (hd *HorizonDatabase) stop() error {
+func (hd *HorizonDatabase) Stop() error {
 	if hd.client == nil {
 		return nil
 	}

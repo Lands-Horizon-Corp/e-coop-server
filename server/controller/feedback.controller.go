@@ -6,25 +6,20 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"horizon.com/server/horizon"
 	"horizon.com/server/server/collection"
 	"horizon.com/server/server/repository"
 )
 
 type FeedbackController struct {
-	request *horizon.HorizonRequest
-
 	repository *repository.FeedbackRepository
 	collection *collection.FeedbackCollection
 }
 
 func NewFeedbackController(
-	request *horizon.HorizonRequest,
 	repository *repository.FeedbackRepository,
 	collection *collection.FeedbackCollection,
 ) (*FeedbackController, error) {
 	return &FeedbackController{
-		request:    request,
 		repository: repository,
 		collection: collection,
 	}, nil
@@ -62,6 +57,8 @@ func (fc *FeedbackController) Create(c echo.Context) error {
 		Email:        req.Email,
 		Description:  req.Description,
 		FeedbackType: req.FeedbackType,
+		CreatedAt:    time.Now().UTC(),
+		UpdatedAt:    time.Now().UTC(),
 	}
 	if err := fc.repository.Create(model); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
@@ -108,10 +105,10 @@ func (fc *FeedbackController) Delete(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func (fc *FeedbackController) APIRoutes() {
-	fc.request.Service().GET("/feedback", fc.List)
-	fc.request.Service().GET("/feedback/:id", fc.Get)
-	fc.request.Service().POST("/feedback", fc.Create)
-	fc.request.Service().PUT("/feedback/:id", fc.Update)
-	fc.request.Service().DELETE("/feedback/:id", fc.Delete)
+func (fc *FeedbackController) APIRoutes(service *echo.Echo) {
+	service.GET("/feedback", fc.List)
+	service.GET("/feedback/:id", fc.Get)
+	service.POST("/feedback", fc.Create)
+	service.PUT("/feedback/:id", fc.Update)
+	service.DELETE("/feedback/:id", fc.Delete)
 }

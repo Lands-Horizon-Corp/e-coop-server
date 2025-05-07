@@ -17,7 +17,7 @@ type (
 		FeedbackType string     `gorm:"type:varchar(50);not null;default:'general'"`
 		CreatedAt    time.Time  `gorm:"not null;default:now()"`
 		UpdatedAt    time.Time  `gorm:"not null;default:now()"`
-		DeletedAt    *time.Time `gorm:"index"`
+		DeletedAt    *time.Time `json:"deletedAt,omitempty" gorm:"index"`
 	}
 	FeedbackResponse struct {
 		ID           uuid.UUID `json:"id"`
@@ -64,7 +64,6 @@ func (fc *FeedbackCollection) ToModel(data *Feedback) *FeedbackResponse {
 		ID:           data.ID,
 		CreatedAt:    data.CreatedAt.Format(time.RFC3339),
 		UpdatedAt:    data.UpdatedAt.Format(time.RFC3339),
-		DeletedAt:    data.DeletedAt.Format(time.RFC3339),
 		Email:        data.Email,
 		Description:  data.Description,
 		FeedbackType: data.FeedbackType,

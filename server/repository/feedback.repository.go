@@ -10,17 +10,17 @@ import (
 )
 
 type FeedbackRepository struct {
-	database          *horizon.HorizonDatabase
-	feedbackBroadcast *broadcast.FeedbackBroadcast
+	database  *horizon.HorizonDatabase
+	broadcast *broadcast.FeedbackBroadcast
 }
 
 func NewFeedbackRepository(
 	database *horizon.HorizonDatabase,
-	feedbackBroadcast *broadcast.FeedbackBroadcast,
+	broadcast *broadcast.FeedbackBroadcast,
 ) (*FeedbackRepository, error) {
 	return &FeedbackRepository{
-		database:          database,
-		feedbackBroadcast: feedbackBroadcast,
+		database:  database,
+		broadcast: broadcast,
 	}, nil
 }
 
@@ -28,7 +28,7 @@ func (r *FeedbackRepository) Create(data *collection.Feedback) error {
 	if err := r.database.Client().Create(data).Error; err != nil {
 		return eris.Wrap(err, "failed to create feedback")
 	}
-	r.feedbackBroadcast.OnCreate(data)
+	r.broadcast.OnCreate(data)
 	return nil
 }
 
@@ -36,7 +36,7 @@ func (r *FeedbackRepository) Update(data *collection.Feedback) error {
 	if err := r.database.Client().Save(data).Error; err != nil {
 		return eris.Wrap(err, "failed to update feedback")
 	}
-	r.feedbackBroadcast.OnUpdate(data)
+	r.broadcast.OnUpdate(data)
 	return nil
 }
 
@@ -44,7 +44,7 @@ func (r *FeedbackRepository) Delete(data *collection.Feedback) error {
 	if err := r.database.Client().Delete(data).Error; err != nil {
 		return eris.Wrap(err, "failed to delete feedback")
 	}
-	r.feedbackBroadcast.OnDelete(data)
+	r.broadcast.OnDelete(data)
 	return nil
 }
 

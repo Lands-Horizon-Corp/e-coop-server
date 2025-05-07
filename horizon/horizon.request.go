@@ -33,14 +33,35 @@ func NewHorizonRequest(
 
 	// 1. Pre-middleware: normalize trailing slashes
 	e.Pre(middleware.RemoveTrailingSlash())
-
-	// 2. Security headers
 	e.Use(middleware.SecureWithConfig(middleware.SecureConfig{
-		XSSProtection:         "",
-		ContentTypeNosniff:    "",
-		XFrameOptions:         "",
-		HSTSMaxAge:            3600,
-		ContentSecurityPolicy: "default-src 'self'",
+		// XSS filter in modern browsers
+		XSSProtection: "1; mode=block",
+		// Prevent MIME type sniffing for scripts/styles
+		ContentTypeNosniff: "nosniff",
+		// Prevent this site from being framed
+		XFrameOptions: "DENY",
+		// Strict Transport Security
+		//   max-age = 1 year, include subdomains, preload flag
+		HSTSMaxAge:            31536000, // seconds
+		HSTSExcludeSubdomains: true,
+		HSTSPreloadEnabled:    true,
+		// Prevent browsers from sending a Referer header except to same-origin
+		// or entirely no-referrer if you prefer.
+		ReferrerPolicy: "strict-origin-when-cross-origin",
+		// Disable powerful features you aren’t using
+		// A tight CSP: only allow self for scripts/styles/etc,
+		// no inline scripts or eval, allow data: for images if you use SVG/data URIs
+		ContentSecurityPolicy: strings.Join([]string{
+			"default-src 'self'",
+			"script-src  'self'",
+			"style-src   'self'", // add hashes/nonces if you need inline
+			"img-src     'self' data:",
+			"font-src    'self'",
+			"connect-src 'self' wss://" + config.AppClientURL, // if you use websockets
+			"object-src  'none'",
+			"base-uri    'self'",
+			"frame-ancestors 'none'",
+		}, "; "),
 	}))
 
 	// 3. Request logging (capture all incoming requests)
@@ -95,38 +116,8 @@ func NewHorizonRequest(
 		},
 	}))
 
-	// 4. Recover from panics
-	e.Use(middleware.Recover())
-
 	// 5. Rate limiting
 	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(rate.Limit(20))))
-
-	// 6. Request timeout
-	e.Use(middleware.TimeoutWithConfig(middleware.TimeoutConfig{
-		Skipper:      middleware.DefaultSkipper,
-		ErrorMessage: "custom timeout error message returns to client",
-		Timeout:      30 * time.Second,
-		OnTimeoutRouteErrorHandler: func(err error, c echo.Context) {
-			path := strings.ToLower(c.Request().URL.Path)
-			log.Log(LogEntry{
-				Category: CategoryRequest,
-				Level:    LevelWarn,
-				Message:  fmt.Sprintf("Request timeout on path: %s", path),
-				Fields: []zap.Field{
-					zap.String("method", c.Request().Method),
-					zap.String("remote_ip", c.Request().RemoteAddr),
-					zap.String("user_agent", c.Request().UserAgent()),
-					zap.String("uri", c.Request().RequestURI),
-					zap.String("host", c.Request().Host),
-					zap.String("referer", c.Request().Referer()),
-					zap.String("path", path),
-					zap.String("request_id", c.Request().Header.Get(echo.HeaderXRequestID)),
-					zap.String("query_params", c.QueryString()),
-					zap.String("body", GetRequestBody(c)),
-				},
-			})
-		},
-	}))
 
 	// 7. Custom path inspection (suspicious files & .well-known)
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
@@ -162,12 +153,49 @@ func NewHorizonRequest(
 
 	// 8. CORS
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins:     []string{ /* ... same origins ... */ },
-		AllowMethods:     []string{echo.POST, echo.PATCH, echo.DELETE, echo.GET},
-		AllowHeaders:     []string{echo.HeaderXCSRFToken, echo.HeaderXRequestedWith, echo.HeaderAuthorization, echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
-		ExposeHeaders:    []string{echo.HeaderContentLength},
-		AllowCredentials: true,
-		MaxAge:           60,
+		AllowOrigins: []string{
+			"http://0.0.0.0",
+			"http://0.0.0.0:80",
+			"http://0.0.0.0:3000",
+			"http://0.0.0.0:3001",
+			"http://0.0.0.0:4173",
+			"http://0.0.0.0:8080",
+
+			// Client Docker
+			"http://client",
+			"http://client:80",
+			"http://client:3000",
+			"http://client:3001",
+			"http://client:4173",
+			"http://client:8080",
+
+			// Localhost
+			"http://localhost",
+			"http://localhost:80",
+			"http://localhost:3000",
+			"http://localhost:3001",
+			"http://localhost:4173",
+			"http://localhost:8080",
+			"http://localhost:5173",
+			"http://localhost:5174",
+			"http://localhost:5175",
+			config.AppClientURL,
+		},
+		AllowMethods: []string{
+			http.MethodGet,
+			http.MethodPost,
+			http.MethodPatch,
+			http.MethodDelete,
+			http.MethodOptions,
+		}, AllowHeaders: []string{
+			echo.HeaderOrigin,
+			echo.HeaderContentType,
+			echo.HeaderAccept,
+			echo.HeaderAuthorization,
+			echo.HeaderXRequestedWith,
+		}, ExposeHeaders: []string{echo.HeaderContentLength},
+		AllowCredentials: true, // must be true if the client sends cookies/auth
+		MaxAge:           3600,
 	}))
 
 	// 9. Metrics middleware
@@ -186,7 +214,6 @@ func NewHorizonRequest(
 	e.GET("/health", func(c echo.Context) error {
 		return c.String(200, "OK")
 	})
-
 	return &HorizonRequest{
 		service: e,
 		config:  config,
@@ -194,14 +221,28 @@ func NewHorizonRequest(
 	}, nil
 }
 
-func (hr *HorizonRequest) Run() error {
+func (hr *HorizonRequest) Run(routes ...func(*echo.Echo)) error {
+	// register them synchronously
+	for _, r := range routes {
+		r(hr.service)
+	}
+
+	// show us exactly what got registered
+	fmt.Println("registered routes:")
+	for _, rt := range hr.service.Routes() {
+		fmt.Printf("  ▶ %s %s\n", rt.Method, rt.Path)
+	}
+
+	// now start the server
 	go func() {
-		hr.service.Logger.Fatal(hr.service.Start(fmt.Sprintf(":%d", hr.config.AppPort)))
+		hr.service.Logger.Fatal(hr.service.Start(
+			fmt.Sprintf(":%d", hr.config.AppPort),
+		))
 	}()
 	return nil
 }
 
-func (hr *HorizonRequest) stop() error {
+func (hr *HorizonRequest) Stop() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if err := hr.service.Shutdown(ctx); err != nil {

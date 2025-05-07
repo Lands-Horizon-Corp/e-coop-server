@@ -1,40 +1,58 @@
 import { useEffect } from "react";
 import { connect, StringCodec, type NatsConnection, type Subscription } from "nats.ws";
 
+import axios from 'axios'
 export function useBroadcast<T = any>(
   subject: string,
   onMessage: (message: T) => void,
   onError: (error: Error) => void
 ): void {
+  const health = async () => {
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_SERVER_URL}/health`,
+          { withCredentials: true }
+        )
+        console.log("Health:", res.data)
+      } catch (error) {
+        console.error("Get Error:", error)
+      }
+    }
   useEffect(() => {
+    let isCancelled = false;
     let nc: NatsConnection;
     let sub: Subscription;
-    const sc = StringCodec();
 
-    (async () => {
+    async function connectSocket() {
       try {
-        
+        await health()
+        const sc = StringCodec();
         nc = await connect({ servers: import.meta.env.VITE_BROADCAST_URL });
-        
         sub = nc.subscribe(subject);
-        console.log(`💬 Subscribed to ${subject}`);
-        for await (const m of sub) {
-          try {
-            const decoded = sc.decode(m.data);
+
+        (async () => {
+          for await (const msg of sub) {
+            if (isCancelled) break;
+            const decoded = sc.decode(msg.data);
             const parsed = JSON.parse(decoded) as T;
-            onMessage(parsed); // Trigger the callback on receiving a message
-          } catch (parseErr) {
-            console.error("Failed to parse NATS message:", parseErr);
+            onMessage(parsed);
           }
-        }
+        })();
+
+        console.log(`connected to: ${subject}`);
       } catch (err: any) {
-        onError(err); // Trigger the callback if there's an error
+        if (!isCancelled) {
+          onError(err);
+        }
       }
-    })();
+    }
+
+    connectSocket();
 
     return () => {
+      isCancelled = true;
       if (sub) sub.unsubscribe();
       if (nc) nc.close();
     };
-  }, [subject, onMessage, onError]);
+  },[]);
 }

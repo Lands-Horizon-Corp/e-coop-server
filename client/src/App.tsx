@@ -2,7 +2,7 @@
 
 import axios from 'axios'
 import { useBroadcast } from './hook/useBroadcast'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -65,28 +65,37 @@ function App() {
     },
   })
 
+  useEffect(()=>{
+    List()
+    return () => {}
+  }, [])
+
   useBroadcast<Payload>("feedback.create", (data) => {
-    console.log("Broadcast Create:", data)
+    List() 
   }, (error: Error) => {
     console.error("Broadcast Create Error:", error)
   })
 
   useBroadcast<Payload>("feedback.delete", (data) => {
-    console.log("Broadcast Delete:", data)
+    List() // refresh list
   }, (error: Error) => {
     console.error("Broadcast Delete Error:", error)
   })
 
   useBroadcast<Payload>("feedback.update", (data) => {
-    console.log("Broadcast Update:", data)
+    List() // refresh list
   }, (error: Error) => {
     console.error("Broadcast Update Error:", error)
   })
-
+  
   const List = async () => {
     try {
-      const res = await axios.get<Feedback[]>(`${import.meta.env.VITE_SERVER_URL}/feedback`)
+      const res = await axios.get<Feedback[]>(
+        `${import.meta.env.VITE_SERVER_URL}/feedback`,
+        { withCredentials: true }
+      )
       setFeedbackList(res.data)
+      console.log("fetch")
     } catch (error) {
       console.error("List Error:", error)
     }
@@ -94,7 +103,10 @@ function App() {
 
   const Get = async (id: string) => {
     try {
-      const res = await axios.get<Feedback>(`${import.meta.env.VITE_SERVER_URL}/feedback/${id}`)
+      const res = await axios.get<Feedback>(
+        `${import.meta.env.VITE_SERVER_URL}/feedback/${id}`,
+        { withCredentials: true }
+      )
       console.log("Get:", res.data)
     } catch (error) {
       console.error("Get Error:", error)
@@ -103,9 +115,13 @@ function App() {
 
   const Create = async (data: FeedbackFormValues) => {
     try {
-      const res = await axios.post<Feedback>(`${import.meta.env.VITE_SERVER_URL}/feedback`, data)
+      const res = await axios.post<Feedback>(
+        `${import.meta.env.VITE_SERVER_URL}/feedback`,
+        data,
+        { withCredentials: true }
+      )
       console.log("Created:", res.data)
-      List() // refresh list
+     
     } catch (error) {
       console.error("Create Error:", error)
     }
@@ -113,9 +129,12 @@ function App() {
 
   const Update = async (id: string, data: Partial<Feedback>) => {
     try {
-      const res = await axios.put<Feedback>(`${import.meta.env.VITE_SERVER_URL}/feedback/${id}`, data)
+      const res = await axios.put<Feedback>(
+        `${import.meta.env.VITE_SERVER_URL}/feedback/${id}`,
+        data,
+        { withCredentials: true }
+      )
       console.log("Updated:", res.data)
-      List()
     } catch (error) {
       console.error("Update Error:", error)
     }
@@ -123,13 +142,16 @@ function App() {
 
   const Delete = async (id: string) => {
     try {
-      await axios.delete(`${import.meta.env.VITE_SERVER_URL}/feedback/${id}`)
+      await axios.delete(
+        `${import.meta.env.VITE_SERVER_URL}/feedback/${id}`,
+        { withCredentials: true }
+      )
       console.log("Deleted:", id)
-      List()
     } catch (error) {
       console.error("Delete Error:", error)
     }
   }
+
 
   const onSubmit = (values: FeedbackFormValues) => {
     Create(values)
@@ -137,7 +159,7 @@ function App() {
   }
 
   return (
-    <div className="p-6 max-w-xl mx-auto">
+    <div className="p-6 max-w-xxl mx-auto">
       <h2 className="text-2xl font-semibold mb-4">Submit Feedback</h2>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
@@ -186,6 +208,58 @@ function App() {
           <Button type="submit">Submit</Button>
         </form>
       </Form>
+      <div className="mt-10">
+        <h3 className="text-xl font-semibold mb-3">Feedback List</h3>
+        <Button onClick={List} className="mb-4">Refresh List</Button>
+        <div className="overflow-x-auto">
+          <table className="min-w-full table-auto border border-gray-200 text-sm">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="border px-4 py-2 text-left">Email</th>
+                <th className="border px-4 py-2 text-left">Type</th>
+                <th className="border px-4 py-2 text-left">Description</th>
+                <th className="border px-4 py-2 text-left">Created At</th>
+                <th className="border px-4 py-2 text-left">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {feedbackList.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="text-center p-4 text-gray-500">
+                    No feedback yet.
+                  </td>
+                </tr>
+              ) : (
+                feedbackList.map((fb) => (
+                  <tr key={fb.id}>
+                    <td className="border px-4 py-2">{fb.email}</td>
+                    <td className="border px-4 py-2 capitalize">{fb.feedbackType}</td>
+                    <td className="border px-4 py-2">{fb.description}</td>
+                    <td className="border px-4 py-2">{new Date(fb.createdAt).toLocaleString()}</td>
+                    <td className="border px-4 py-2 space-x-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => Get(fb.id!)}
+                        size="sm"
+                      >
+                        View
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        onClick={() => Delete(fb.id!)}
+                        size="sm"
+                      >
+                        Delete
+                      </Button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
     </div>
   )
 }
