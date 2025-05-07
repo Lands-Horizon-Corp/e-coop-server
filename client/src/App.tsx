@@ -70,20 +70,20 @@ function App() {
     return () => {}
   }, [])
 
-  useBroadcast<Payload>("feedback.create", (data) => {
-    List() 
+  useBroadcast<Feedback>("feedback.create", (data) => {
+    console.log(data)
   }, (error: Error) => {
     console.error("Broadcast Create Error:", error)
   })
 
   useBroadcast<Payload>("feedback.delete", (data) => {
-    List() // refresh list
+    console.log(data)
   }, (error: Error) => {
     console.error("Broadcast Delete Error:", error)
   })
 
   useBroadcast<Payload>("feedback.update", (data) => {
-    List() // refresh list
+    console.log(data)
   }, (error: Error) => {
     console.error("Broadcast Update Error:", error)
   })
