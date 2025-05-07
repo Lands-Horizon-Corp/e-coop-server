@@ -61,6 +61,8 @@ type HorizonConfig struct {
 	NATSHost        string
 	NATSClientPort  int
 	NATSMonitorPort int
+
+	NATSClientWSPort int
 }
 
 func NewHorizonConfig() (*HorizonConfig, error) {
@@ -107,6 +109,7 @@ func NewHorizonConfig() (*HorizonConfig, error) {
 		NATSHost:               GetString("NATS_HOST", "nats"),
 		NATSClientPort:         GetInt("NATS_CLIENT_PORT", 4222),
 		NATSMonitorPort:        GetInt("NATS_MONITOR_PORT", 8222),
+		NATSClientWSPort:       GetInt("NAT_CLIENT_WS_PORT", 8080),
 	}, nil
 }
 func (hc *HorizonConfig) CanDebug() bool {

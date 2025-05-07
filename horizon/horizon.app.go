@@ -2,6 +2,7 @@ package horizon
 
 import (
 	"context"
+	"os"
 
 	"go.uber.org/fx"
 )
@@ -26,41 +27,34 @@ func NewHorizonApp(
 	broadcast *HorizonBroadcast,
 	database *HorizonDatabase,
 ) (*HorizonApp, error) {
-	// lifecycle hooks for startup and shutdown
+
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
-			if err := log.Run(); err != nil {
-				return err
-			}
-			if err := schedule.Run(); err != nil {
-				return err
-			}
-			if err := cache.Run(); err != nil {
-				return err
-			}
-			if err := smtp.Run(); err != nil {
-				return err
-			}
-			if err := sms.Run(); err != nil {
-				return err
-			}
-			if err := storage.Run(); err != nil {
-				return err
-			}
-			if err := broadcast.Run(); err != nil {
-				return err
-			}
-			if err := database.Run(); err != nil {
-				return err
-			}
-			if err := database.Ping(); err != nil {
-				return err
+			steps := []struct {
+				name string
+				fn   func() error
+			}{
+				{"Log", log.Run},
+				{"Schedule", schedule.Run},
+				{"Cache", cache.Run},
+				{"SMTP", smtp.Run},
+				{"SMS", sms.Run},
+				{"Storage", storage.Run},
+				{"Broadcast", broadcast.Run},
+				{"Database", database.Run},
+				{"Database Ping", database.Ping},
 			}
 
+			for _, step := range steps {
+				if err := step.fn(); err != nil {
+					os.Exit(1)
+					return err
+				}
+			}
 			return nil
 		},
+
 		OnStop: func(ctx context.Context) error {
-			// shutdown in reverse order
 			request.Stop()
 			database.Stop()
 			broadcast.Stop()
@@ -74,6 +68,5 @@ func NewHorizonApp(
 		},
 	})
 
-	// return the fully configured app instance
 	return &HorizonApp{}, nil
 }

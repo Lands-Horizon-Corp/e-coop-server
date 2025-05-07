@@ -69,13 +69,14 @@ func (hs *HorizonSMTP) Run() error {
 	return nil
 }
 
-func (hs *HorizonSMTP) Stop() {
+func (hs *HorizonSMTP) Stop() error {
 	hs.log.Log(LogEntry{
 		Category: CategorySMTP,
 		Level:    LevelInfo,
 		Message:  "Stopping HorizonSMTP service gracefully...",
 	})
 	hs.cancel()
+	return nil
 }
 func (hs *HorizonSMTP) Send(req *SMTPRequest) error {
 	// Validate 'To' email address

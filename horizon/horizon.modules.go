@@ -2,8 +2,8 @@ package horizon
 
 import "go.uber.org/fx"
 
-func Horizon(callback interface{}, ctors ...interface{}) *fx.App {
-	core := []interface{}{
+func Horizon(callback any, ctors ...any) *fx.App {
+	core := []any{
 		NewHorizonConfig,
 		NewHorizonLog,
 		NewHorizonSecurity,
@@ -28,5 +28,6 @@ func Horizon(callback interface{}, ctors ...interface{}) *fx.App {
 	return fx.New(
 		fx.Provide(allProviders...),
 		fx.Invoke(callback),
+		fx.Invoke(NewTerminal),
 	)
 }

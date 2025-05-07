@@ -62,13 +62,15 @@ func (hs *HorizonSMS) Run() error {
 	return nil
 }
 
-func (hs *HorizonSMS) Stop() {
+func (hs *HorizonSMS) Stop() error {
+
 	hs.log.Log(LogEntry{
 		Category: CategorySMTP,
 		Level:    LevelInfo,
 		Message:  "Stopping HorizonSMS service gracefully...",
 	})
 	hs.cancel()
+	return nil
 }
 
 func (hs *HorizonSMS) Send(req *SMSRequest) error {

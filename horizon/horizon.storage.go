@@ -120,8 +120,9 @@ func (hs *HorizonStorage) Run() error {
 }
 
 // Stop cleans up the storage client.
-func (hs *HorizonStorage) Stop() {
+func (hs *HorizonStorage) Stop() error {
 	hs.storage = nil
+	return nil
 }
 
 // Upload dispatches to the correct upload method based on input type.

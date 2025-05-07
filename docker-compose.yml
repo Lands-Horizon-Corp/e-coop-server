@@ -48,6 +48,7 @@ x-env: &environment-variables
     NATS_HOST: "${NATS_HOST}"
     NATS_CLIENT_PORT: "${NATS_CLIENT_PORT}"
     NATS_MONITOR_PORT: "${NATS_MONITOR_PORT}"
+    NAT_CLIENT_WS_PORT: "${NAT_CLIENT_WS_PORT}"
 
 services:
   app:

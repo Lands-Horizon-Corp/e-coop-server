@@ -36,7 +36,7 @@ func (hs *HorizonSchedule) Run() error {
 	return nil
 }
 
-func (hs *HorizonSchedule) Stop() {
+func (hs *HorizonSchedule) Stop() error {
 	hs.cron.Stop()
 	hs.log.Log(LogEntry{
 		Category: CategorySchedule,
@@ -46,6 +46,7 @@ func (hs *HorizonSchedule) Stop() {
 			zap.String("action", "stop"),
 		},
 	})
+	return nil
 }
 
 func (hs *HorizonSchedule) Create(jobID, schedule string, task func() error) error {

@@ -34,11 +34,12 @@ func (hb *HorizonBroadcast) Run() error {
 	return nil
 }
 
-func (hb *HorizonBroadcast) Stop() {
+func (hb *HorizonBroadcast) Stop() error {
 	if hb.nc != nil {
 		hb.nc.Close()
 		hb.nc = nil
 	}
+	return nil
 }
 func (hb *HorizonBroadcast) Publish(topic string, payload any) error {
 	if hb.nc == nil {
