@@ -15,7 +15,7 @@ type (
 		ID        uuid.UUID  `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
 		CreatedAt time.Time  `gorm:"not null;default:now()"`
 		UpdatedAt time.Time  `gorm:"not null;default:now()"`
-		DeletedAt *time.Time `json:"deletedAt,omitempty" gorm:"index"`
+		DeletedAt *time.Time `json:"deleted_at,omitempty" gorm:"index"`
 
 		FileName   string                `gorm:"type:varchar(2048);unsigned" json:"file_name"`
 		FileSize   int64                 `gorm:"unsigned" json:"file_size"`
@@ -30,29 +30,29 @@ type (
 
 	MediaResponse struct {
 		ID          uuid.UUID             `json:"id"`
-		CreatedAt   string                `json:"createdAt"`
-		UpdatedAt   string                `json:"updatedAt"`
-		FileName    string                `json:"fileName"`
-		FileSize    int64                 `json:"fileSize"`
-		FileType    string                `json:"fileType"`
-		StorageKey  string                `json:"storageKey"`
-		URL         string                `json:"uRL"`
+		CreatedAt   string                `json:"created_at"`
+		UpdatedAt   string                `json:"updated_at"`
+		FileName    string                `json:"file_name"`
+		FileSize    int64                 `json:"file_size"`
+		FileType    string                `json:"file_type"`
+		StorageKey  string                `json:"storage_key"`
+		URL         string                `json:"url"`
 		Key         string                `json:"key"`
-		DownloadURL string                `json:"downloadURL"`
-		BucketName  string                `json:"bucketName"`
+		DownloadURL string                `json:"download_url"`
+		BucketName  string                `json:"bucket_name"`
 		Status      horizon.StorageStatus `json:"status"`
 		Progress    int64                 `gorm:"unsigned" json:"progress"`
 	}
 
 	MediaRequest struct {
 		ID         *uint  `json:"id"`
-		FileName   string `json:"fileName" validate:"required,max=255"`
-		FileSize   int64  `json:"fileSize" validate:"required,min=1"`
-		FileType   string `json:"fileType" validate:"required,max=50"`
-		StorageKey string `json:"storageKey" validate:"required,max=255"`
+		FileName   string `json:"file_name" validate:"required,max=255"`
+		FileSize   int64  `json:"file_size" validate:"required,min=1"`
+		FileType   string `json:"file_type" validate:"required,max=50"`
+		StorageKey string `json:"storage_key" validate:"required,max=255"`
 		URL        string `json:"url" validate:"required,url,max=255"`
 		Key        string `json:"key,omitempty" validate:"max=255"`
-		BucketName string `json:"bucketName,omitempty" validate:"max=255"`
+		BucketName string `json:"bucket_name,omitempty" validate:"max=255"`
 		Progress   int64  `gorm:"unsigned" json:"progress"`
 	}
 )

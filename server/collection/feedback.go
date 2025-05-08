@@ -11,28 +11,36 @@ import (
 
 type (
 	Feedback struct {
-		ID           uuid.UUID  `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
-		Email        string     `gorm:"type:varchar(255)"`
-		Description  string     `gorm:"type:text"`
-		FeedbackType string     `gorm:"type:varchar(50);not null;default:'general'"`
-		CreatedAt    time.Time  `gorm:"not null;default:now()"`
-		UpdatedAt    time.Time  `gorm:"not null;default:now()"`
-		DeletedAt    *time.Time `json:"deletedAt,omitempty" gorm:"index"`
+		ID           uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
+		Email        string    `gorm:"type:varchar(255)"`
+		Description  string    `gorm:"type:text"`
+		FeedbackType string    `gorm:"type:varchar(50);not null;default:'general'"`
+
+		MediaID *uuid.UUID `gorm:"type:uuid"`
+		Media   *Media     `gorm:"foreignKey:MediaID;constraint:OnDelete:SET NULL;"`
+
+		CreatedAt time.Time  `gorm:"not null;default:now()"`
+		UpdatedAt time.Time  `gorm:"not null;default:now()"`
+		DeletedAt *time.Time `json:"deletedAt,omitempty" gorm:"index"`
 	}
 	FeedbackResponse struct {
-		ID           uuid.UUID `json:"id"`
-		Email        string    `json:"email"`
-		Description  string    `json:"description"`
-		FeedbackType string    `json:"feedbackType"`
-		CreatedAt    string    `json:"createdAt"`
-		UpdatedAt    string    `json:"updatedAt"`
-		DeletedAt    string    `gorm:"index"`
+		ID           uuid.UUID      `json:"id"`
+		Email        string         `json:"email"`
+		Description  string         `json:"description"`
+		FeedbackType string         `json:"feedback_type"`
+		MediaID      uuid.UUID      `json:"media_id"`
+		Media        *MediaResponse `json:"media,omitempty"`
+
+		CreatedAt string `json:"createdAt"`
+		UpdatedAt string `json:"updatedAt"`
+		DeletedAt string `gorm:"index"`
 	}
 
 	FeedbackRequest struct {
-		Email        string `json:"email"        validate:"required,email"`
-		Description  string `json:"description"  validate:"required,min=5,max=2000"`
-		FeedbackType string `json:"feedbackType" validate:"required,oneof=general bug feature"`
+		Email        string     `json:"email"        validate:"required,email"`
+		Description  string     `json:"description"  validate:"required,min=5,max=2000"`
+		FeedbackType string     `json:"feedback_type" validate:"required,oneof=general bug feature"`
+		MediaID      *uuid.UUID `json:"media_id,omitempty"`
 	}
 )
 type FeedbackCollection struct {
