@@ -53,37 +53,50 @@ func (uc *UserController) UserLogin(c echo.Context) error {
 }
 
 // UserRegister handles user registration
-
 func (uc *UserController) UserRegister(c echo.Context) error {
+	// 1. Validate input
 	req, err := uc.collector.UserRegisterValidation(c)
 	if err != nil {
 		return err
 	}
+
+	// 2. Hash password
 	hashedPwd, err := uc.authentication.Password(req.Password)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to hash password")
 	}
 
+	// 3. Build model
 	user := &collection.User{
-		Email:         req.Email,
-		Password:      hashedPwd,
-		Birthdate:     req.Birthdate,
-		UserName:      req.UserName,
-		FirstName:     req.FirstName,
-		MiddleName:    req.MiddleName,
-		LastName:      req.LastName,
-		Suffix:        req.Suffix,
-		ContactNumber: req.ContactNumber,
-		MediaID:       req.MediaID,
-
+		Email:             req.Email,
+		Password:          hashedPwd,
+		Birthdate:         req.Birthdate,
+		UserName:          req.UserName,
+		FirstName:         req.FirstName,
+		MiddleName:        req.MiddleName,
+		LastName:          req.LastName,
+		Suffix:            req.Suffix,
+		ContactNumber:     req.ContactNumber,
+		MediaID:           req.MediaID,
 		IsEmailVerified:   false,
 		IsContactVerified: false,
 	}
 
-	if err = uc.repo.Create(user); err != nil {
+	// 4. Persist user
+	if err := uc.repo.Create(user); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not register user: %v", err))
 	}
 
+	// 5. Issue auth token cookie/header
+	if err := uc.authentication.SetToken(c, horizon.Claim{
+		ID:            user.ID.String(),
+		Email:         user.Email,
+		ContactNumber: user.ContactNumber,
+	}); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to set authentication token")
+	}
+
+	// 6. Return the created user (sans password)
 	return c.JSON(http.StatusCreated, uc.collector.ToModel(user))
 }
 
