@@ -11,10 +11,11 @@ import (
 )
 
 type UserController struct {
-	repo      *repository.UserRepository
-	collector *collection.UserCollection
-	storage   *horizon.HorizonStorage
-	broadcast *horizon.HorizonBroadcast
+	repo           *repository.UserRepository
+	collector      *collection.UserCollection
+	storage        *horizon.HorizonStorage
+	broadcast      *horizon.HorizonBroadcast
+	authentication *horizon.HorizonAuthentication
 }
 
 func NewUserController(
@@ -22,13 +23,14 @@ func NewUserController(
 	collector *collection.UserCollection,
 	storage *horizon.HorizonStorage,
 	broadcast *horizon.HorizonBroadcast,
-	_ *horizon.HorizonAuthentication,
+	authentication *horizon.HorizonAuthentication,
 ) (*UserController, error) {
 	return &UserController{
-		repo:      repo,
-		collector: collector,
-		storage:   storage,
-		broadcast: broadcast,
+		repo:           repo,
+		collector:      collector,
+		storage:        storage,
+		broadcast:      broadcast,
+		authentication: authentication,
 	}, nil
 }
 
@@ -57,9 +59,32 @@ func (uc *UserController) UserRegister(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(req)
+	hashedPwd, err := uc.authentication.Password(req.Password)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to hash password")
+	}
 
-	return c.JSON(http.StatusCreated, req)
+	user := &collection.User{
+		Email:         req.Email,
+		Password:      hashedPwd,
+		Birthdate:     req.Birthdate,
+		UserName:      req.UserName,
+		FirstName:     req.FirstName,
+		MiddleName:    req.MiddleName,
+		LastName:      req.LastName,
+		Suffix:        req.Suffix,
+		ContactNumber: req.ContactNumber,
+		MediaID:       req.MediaID,
+
+		IsEmailVerified:   false,
+		IsContactVerified: false,
+	}
+
+	if err = uc.repo.Create(user); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not register user: %v", err))
+	}
+
+	return c.JSON(http.StatusCreated, uc.collector.ToModel(user))
 }
 
 // UserForgotPassword handles forgot password

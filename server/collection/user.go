@@ -11,8 +11,6 @@ import (
 	"horizon.com/server/horizon"
 )
 
-type UserType string
-
 type QRUser struct {
 	UserID        string `json:"user_id"`
 	Email         string `json:"email"`
@@ -23,12 +21,6 @@ type QRUser struct {
 	Firstname     string `json:"firstname"`
 	Middlename    string `json:"middlename"`
 }
-
-const (
-	UserTypeOwner    UserType = "owner"
-	UserTypeEmployee UserType = "employee"
-	UserTypeMember   UserType = "member"
-)
 
 type (
 	User struct {
@@ -53,8 +45,6 @@ type (
 		Email           string `gorm:"type:varchar(255);not null;unique" json:"email"`
 		IsEmailVerified bool   `gorm:"default:false" json:"is_email_verified"`
 
-		Type UserType `gorm:"type:varchar(50);not null" json:"type"`
-
 		ContactNumber     string `gorm:"type:varchar(20);not null" json:"contact_number"`
 		IsContactVerified bool   `gorm:"default:false" json:"is_contact_verified"`
 	}
@@ -71,7 +61,6 @@ type (
 		Suffix            *string           `json:"suffix,omitempty"`
 		Email             string            `json:"email"`
 		IsEmailVerified   bool              `json:"is_email_verified"`
-		Type              UserType          `json:"type"`
 		ContactNumber     string            `json:"contact_number"`
 		IsContactVerified bool              `json:"is_contact_verified"`
 		CreatedAt         string            `json:"created_at"`
@@ -94,7 +83,6 @@ type (
 		MiddleName    *string    `json:"middle_name,omitempty"`
 		LastName      *string    `json:"last_name,omitempty"`
 		Suffix        *string    `json:"suffix,omitempty"`
-		Type          UserType   `json:"type" validate:"required,oneof=owner employee member"`
 		ContactNumber string     `json:"contact_number" validate:"required,min=7,max=20"`
 		MediaID       *uuid.UUID `json:"media_id,omitempty"`
 	}
@@ -387,7 +375,6 @@ func (m *UserCollection) ToModel(data *User) *UserResponse {
 		Suffix:            data.Suffix,
 		Email:             data.Email,
 		IsEmailVerified:   data.IsEmailVerified,
-		Type:              data.Type,
 		ContactNumber:     data.ContactNumber,
 		IsContactVerified: data.IsContactVerified,
 		CreatedAt:         data.CreatedAt.Format(time.RFC3339),
