@@ -73,6 +73,7 @@ func (uc *UserController) UserLogin(c echo.Context) error {
 		ID:            user.ID.String(),
 		Email:         user.Email,
 		ContactNumber: user.ContactNumber,
+		Password:      user.Password,
 	}); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to set authentication token")
 	}
@@ -122,6 +123,7 @@ func (uc *UserController) UserRegister(c echo.Context) error {
 		ID:            user.ID.String(),
 		Email:         user.Email,
 		ContactNumber: user.ContactNumber,
+		Password:      user.Password,
 	}); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to set authentication token")
 	}
