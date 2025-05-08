@@ -86,3 +86,14 @@ func IsInvalidArgumentError(err error) bool {
 	}
 	return false
 }
+
+func GetFirstNChars(str string, n int) string {
+	if len(str) == 0 {
+		return ""
+	}
+	runes := []rune(str)
+	if n > len(runes) {
+		n = len(runes)
+	}
+	return string(runes[:n])
+}

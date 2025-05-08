@@ -148,7 +148,7 @@ func (uc *UserController) UserForgotPassword(c echo.Context) error {
 		ID:            user.ID.String(),
 		Email:         user.Email,
 		ContactNumber: user.ContactNumber,
-		Password:      user.Password,
+		Password:      horizon.GetFirstNChars(user.Password, 10),
 	})
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to send reset link, please try again later")
@@ -157,7 +157,7 @@ func (uc *UserController) UserForgotPassword(c echo.Context) error {
 		ID:            user.ID.String(),
 		Email:         user.Email,
 		ContactNumber: user.ContactNumber,
-		Password:      user.Password,
+		Password:      horizon.GetFirstNChars(user.Password, 10),
 	})
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to send reset link, please try again later")
