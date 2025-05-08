@@ -100,17 +100,8 @@ type (
 		ConfirmPassword string `json:"confirm_password" validate:"required,eqfield=NewPassword"`
 	}
 
-	UserApplyContactNumberRequest struct {
-		ContactNumber string `json:"contact_number" validate:"required,min=7,max=20"`
-	}
-
 	UserVerifyContactNumberRequest struct {
-		ContactNumber string `json:"contact_number" validate:"required,min=7,max=20"`
-		OTP           string `json:"otp" validate:"required,min=6"`
-	}
-
-	UserApplyEmailRequest struct {
-		Email string `json:"email" validate:"required,email"`
+		OTP string `json:"otp" validate:"required,min=6"`
 	}
 
 	UserVerifyEmailRequest struct {
@@ -219,16 +210,7 @@ func (uc *UserCollection) UserChangePasswordValidation(c echo.Context) (*UserCha
 	}
 	return u, nil
 }
-func (uc *UserCollection) UserApplyContactNumberValidation(c echo.Context) (*UserApplyContactNumberRequest, error) {
-	u := new(UserApplyContactNumberRequest)
-	if err := c.Bind(u); err != nil {
-		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	}
-	if err := uc.validator.Struct(u); err != nil {
-		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	}
-	return u, nil
-}
+
 func (uc *UserCollection) UserVerifyContactNumberValidation(c echo.Context) (*UserVerifyContactNumberRequest, error) {
 	u := new(UserVerifyContactNumberRequest)
 	if err := c.Bind(u); err != nil {
@@ -239,16 +221,7 @@ func (uc *UserCollection) UserVerifyContactNumberValidation(c echo.Context) (*Us
 	}
 	return u, nil
 }
-func (uc *UserCollection) UserApplyEmailValidation(c echo.Context) (*UserApplyEmailRequest, error) {
-	u := new(UserApplyEmailRequest)
-	if err := c.Bind(u); err != nil {
-		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	}
-	if err := uc.validator.Struct(u); err != nil {
-		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	}
-	return u, nil
-}
+
 func (uc *UserCollection) UserVerifyEmailValidation(c echo.Context) (*UserVerifyEmailRequest, error) {
 	u := new(UserVerifyEmailRequest)
 	if err := c.Bind(u); err != nil {
