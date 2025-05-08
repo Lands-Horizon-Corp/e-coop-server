@@ -1,5 +1,32 @@
 package controller
 
+import (
+	"horizon.com/server/horizon"
+	"horizon.com/server/server/collection"
+	"horizon.com/server/server/repository"
+)
+
+type UserController struct {
+	repository *repository.UserRepository
+	collection *collection.UserCollection
+	storage    *horizon.HorizonStorage
+	broadcast  *horizon.HorizonBroadcast
+}
+
+func NewUserController(
+	repository *repository.UserRepository,
+	collection *collection.UserCollection,
+	storage *horizon.HorizonStorage,
+	broadcast *horizon.HorizonBroadcast,
+) (*UserController, error) {
+	return &UserController{
+		repository: repository,
+		collection: collection,
+		storage:    storage,
+		broadcast:  broadcast,
+	}, nil
+}
+
 // api/v1/authentication/current
 // api/v1/authentication/current/branch
 // api/v1/authentication/current/org

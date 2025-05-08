@@ -27,6 +27,7 @@ func NewCoopServer(
 		Migrations: []any{
 			&collection.Feedback{},
 			&collection.Media{},
+			&collection.User{},
 		},
 	}, nil
 }
@@ -34,13 +35,21 @@ func NewCoopServer(
 var Modules = []any{
 	NewCoopServer,
 
+	// Feedback
 	collection.NewFeedbackCollection,
 	repository.NewFeedbackRepository,
 	controller.NewFeedbackController,
 	broadcast.NewFeedbackBroadcast,
 
+	// Media
 	collection.NewMediaCollection,
 	repository.NewMediaRepository,
 	controller.NewMediaController,
 	broadcast.NewMediaBroadcast,
+
+	// Media
+	collection.NewUserCollection,
+	repository.NewUserRepository,
+	controller.NewUserController,
+	broadcast.NewUserBroadcast,
 }
