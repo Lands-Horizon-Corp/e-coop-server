@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"strings"
+
 	"horizon.com/server/horizon"
 	"horizon.com/server/server/broadcast"
 	"horizon.com/server/server/collection"
@@ -62,4 +64,53 @@ func (r *UserRepository) List() ([]*collection.User, error) {
 		return nil, eris.Wrap(err, "failed to list user")
 	}
 	return users, nil
+}
+
+func (r *UserRepository) FindByEmail(email string) (*collection.User, error) {
+	var user collection.User
+	if err := r.database.Client().
+		Where("email = ?", email).
+		First(&user).Error; err != nil {
+		return nil, eris.Wrapf(err, "failed to find user with email %q", email)
+	}
+	return &user, nil
+}
+
+// FindByContactNumber looks up a user by contact number.
+func (r *UserRepository) FindByContactNumber(contact string) (*collection.User, error) {
+	var user collection.User
+	if err := r.database.Client().
+		Where("contact_number = ?", contact).
+		First(&user).Error; err != nil {
+		return nil, eris.Wrapf(err, "failed to find user with contact number %q", contact)
+	}
+	return &user, nil
+}
+
+// FindByUserName looks up a user by username.
+func (r *UserRepository) FindByUserName(username string) (*collection.User, error) {
+	var user collection.User
+	if err := r.database.Client().
+		Where("user_name = ?", username).
+		First(&user).Error; err != nil {
+		return nil, eris.Wrapf(err, "failed to find user with username %q", username)
+	}
+	return &user, nil
+}
+func (r *UserRepository) FindByIdentifier(identifier string) (*collection.User, error) {
+	if strings.Contains(identifier, "@") {
+		if u, err := r.FindByEmail(identifier); err == nil {
+			return u, nil
+		}
+	}
+	numeric := strings.Trim(identifier, "+-0123456789")
+	if numeric == "" {
+		if u, err := r.FindByContactNumber(identifier); err == nil {
+			return u, nil
+		}
+	}
+	if u, err := r.FindByUserName(identifier); err == nil {
+		return u, nil
+	}
+	return nil, eris.New("user not found by email, contact number, or username")
 }

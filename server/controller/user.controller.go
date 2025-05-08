@@ -58,8 +58,21 @@ func (uc *UserController) UserLogin(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(req)
-	return c.JSON(http.StatusCreated, req)
+	user, err := uc.repo.FindByIdentifier(req.Key)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusUnauthorized, "invalid credentials")
+	}
+	if ok := uc.authentication.VerifyPassword(user.Password, req.Password); !ok {
+		return echo.NewHTTPError(http.StatusUnauthorized, "invalid credentials")
+	}
+	if err := uc.authentication.SetToken(c, horizon.Claim{
+		ID:            user.ID.String(),
+		Email:         user.Email,
+		ContactNumber: user.ContactNumber,
+	}); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to set authentication token")
+	}
+	return c.JSON(http.StatusOK, uc.collector.ToModel(user))
 }
 
 // UserRegister handles user registration
