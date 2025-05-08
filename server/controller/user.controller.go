@@ -123,7 +123,7 @@ func (uc *UserController) UserRegister(c echo.Context) error {
 		ID:            user.ID.String(),
 		Email:         user.Email,
 		ContactNumber: user.ContactNumber,
-		Password:      user.Password,
+		Password:      hashedPwd,
 	}); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to set authentication token")
 	}
