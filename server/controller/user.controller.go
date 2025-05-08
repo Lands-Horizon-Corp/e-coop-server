@@ -161,6 +161,16 @@ func (uc *UserController) UserForgotPassword(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
+func (uc *UserController) UserVerifyResetLink(c echo.Context) error {
+	idParam := c.Param("id")
+	_, err := uc.authentication.ValidateLink(idParam)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "link is not valid")
+	}
+	return c.NoContent(http.StatusOK)
+
+}
+
 // UserChangePassword handles change password
 
 func (uc *UserController) UserChangePassword(c echo.Context) error {
@@ -326,6 +336,8 @@ func (uc *UserController) APIRoutes(e *echo.Echo) {
 	group.POST("/authentication/logout", uc.UserLogout)     // Set token
 	group.POST("/authentication/register", uc.UserRegister) // Set token
 	group.POST("/authentication/forgot-password", uc.UserForgotPassword)
+	group.POST("/authentication/verify-reset-link/:id", uc.UserVerifyResetLink)
+
 	group.POST("/authentication/change-password", uc.UserChangePassword)
 
 	group.POST("/authentication/apply-contact", uc.UserApplyContactNumber)
