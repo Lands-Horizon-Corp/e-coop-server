@@ -105,6 +105,7 @@ func (uc *UserController) UserRegister(c echo.Context) error {
 		Password:          hashedPwd,
 		Birthdate:         req.Birthdate,
 		UserName:          req.UserName,
+		FullName:          req.FullName,
 		FirstName:         req.FirstName,
 		MiddleName:        req.MiddleName,
 		LastName:          req.LastName,

@@ -83,6 +83,7 @@ type (
 		Password      string     `json:"password" validate:"required,min=8"`
 		Birthdate     *time.Time `json:"birthdate,omitempty"`
 		UserName      string     `json:"user_name" validate:"required,min=3,max=100"`
+		FullName      *string    `json:"full_name,omitempty"`
 		FirstName     *string    `json:"first_name,omitempty"`
 		MiddleName    *string    `json:"middle_name,omitempty"`
 		LastName      *string    `json:"last_name,omitempty"`
