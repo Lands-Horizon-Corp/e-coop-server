@@ -142,7 +142,7 @@ func (uc *UserController) UserForgotPassword(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, "no account found with those details")
 	}
-	_, err = uc.authentication.GenerateSMTPLink("/change-password-password", horizon.Claim{
+	_, err = uc.authentication.GenerateSMTPLink("/auth/password-reset/", horizon.Claim{
 		ID:            user.ID.String(),
 		Email:         user.Email,
 		ContactNumber: user.ContactNumber,
