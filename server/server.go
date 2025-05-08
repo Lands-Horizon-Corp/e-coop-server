@@ -5,6 +5,7 @@ import (
 	"horizon.com/server/server/broadcast"
 	"horizon.com/server/server/collection"
 	"horizon.com/server/server/controller"
+	"horizon.com/server/server/provider"
 	"horizon.com/server/server/repository"
 )
 
@@ -49,9 +50,10 @@ var Modules = []any{
 	controller.NewMediaController,
 	broadcast.NewMediaBroadcast,
 
-	// Media
+	// User
 	collection.NewUserCollection,
 	repository.NewUserRepository,
 	controller.NewUserController,
 	broadcast.NewUserBroadcast,
+	provider.NewUserProvider,
 }

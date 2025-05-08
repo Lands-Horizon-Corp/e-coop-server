@@ -9,6 +9,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"horizon.com/server/horizon"
 	"horizon.com/server/server/collection"
+	"horizon.com/server/server/provider"
 	"horizon.com/server/server/repository"
 )
 
@@ -18,6 +19,7 @@ type UserController struct {
 	storage        *horizon.HorizonStorage
 	broadcast      *horizon.HorizonBroadcast
 	authentication *horizon.HorizonAuthentication
+	provider       *provider.UserProvider
 }
 
 func NewUserController(
@@ -26,6 +28,7 @@ func NewUserController(
 	storage *horizon.HorizonStorage,
 	broadcast *horizon.HorizonBroadcast,
 	authentication *horizon.HorizonAuthentication,
+	provider *provider.UserProvider,
 ) (*UserController, error) {
 	return &UserController{
 		repo:           repo,
@@ -33,23 +36,14 @@ func NewUserController(
 		storage:        storage,
 		broadcast:      broadcast,
 		authentication: authentication,
+		provider:       provider,
 	}, nil
 }
 
 func (uc *UserController) UserCurrent(c echo.Context) error {
-	claim, err := uc.authentication.GetUserFromToken(c)
+	user, err := uc.provider.CurrentUser(c)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusUnauthorized, "authentication required")
-	}
-
-	id, err := uuid.Parse(claim.ID)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid user ID in token")
-	}
-
-	user, err := uc.repo.GetByID(id)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusNotFound, "user not found")
+		return err
 	}
 	return c.JSON(http.StatusOK, collection.CurrentUserResponse{
 		UserID: user.ID,
@@ -87,7 +81,6 @@ func (uc *UserController) UserLogout(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-// UserRegister handles user registration
 func (uc *UserController) UserRegister(c echo.Context) error {
 	req, err := uc.collector.UserRegisterValidation(c)
 	if err != nil {
@@ -303,34 +296,53 @@ func (uc *UserController) UserVerifyEmail(c echo.Context) error {
 // UserVerifyWithEmail handles legacy verify with email
 
 func (uc *UserController) UserVerifyWithEmail(c echo.Context) error {
-	req, err := uc.collector.UserVerifyWithEmailValidation(c)
+	claim, err := uc.authentication.GetUserFromToken(c)
 	if err != nil {
-		return err
+		return echo.NewHTTPError(http.StatusUnauthorized, "authentication required")
 	}
-	fmt.Println(req)
-
+	if err := uc.authentication.SendSMTPOTP(*claim); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to send email verification: "+err.Error())
+	}
 	return c.NoContent(http.StatusOK)
 }
 
 func (uc *UserController) UserVerifyWithEmailConfirmation(c echo.Context) error {
-	req, err := uc.collector.UserVerifyWithEmailConfirmationValidation(c)
+	req, err := uc.collector.UserVerifyEmailValidation(c)
 	if err != nil {
-		return err
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid request: "+err.Error())
 	}
-	fmt.Println(req)
+	claim, err := uc.authentication.GetUserFromToken(c)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusUnauthorized, "authentication required")
+	}
 
-	return c.NoContent(http.StatusOK)
+	valid := uc.authentication.VerifySMTPOTP(*claim, req.OTP)
+	if !valid {
+		return echo.NewHTTPError(http.StatusUnauthorized, "invalid or expired email token")
+	}
+	id, err := uuid.Parse(claim.ID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid user ID in token")
+	}
+
+	updatedUser, err := uc.repo.GetByID(id)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to fetch updated user")
+	}
+
+	return c.JSON(http.StatusOK, uc.collector.ToModel(updatedUser))
 }
 
 // UserVerifyWithContactNumber handles legacy verify with contact number
 
 func (uc *UserController) UserVerifyWithContactNumber(c echo.Context) error {
-	req, err := uc.collector.UserVerifyWithContactNumberConfirmationValidation(c)
+	claim, err := uc.authentication.GetUserFromToken(c)
 	if err != nil {
-		return err
+		return echo.NewHTTPError(http.StatusUnauthorized, "authentication required")
 	}
-	fmt.Println(req)
-
+	if err := uc.authentication.SendSMSOTP(*claim); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to send OTP: "+err.Error())
+	}
 	return c.NoContent(http.StatusOK)
 }
 
@@ -339,11 +351,25 @@ func (uc *UserController) UserVerifyWithContactNumber(c echo.Context) error {
 func (uc *UserController) UserVerifyWithContactNumberConfirmation(c echo.Context) error {
 	req, err := uc.collector.UserVerifyWithContactNumberConfirmationValidation(c)
 	if err != nil {
-		return err
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid request: "+err.Error())
 	}
-	fmt.Println(req)
-
-	return c.NoContent(http.StatusOK)
+	claim, err := uc.authentication.GetUserFromToken(c)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusUnauthorized, "authentication required")
+	}
+	valid := uc.authentication.VerifySMSOTP(*claim, req.OTP)
+	if !valid {
+		return echo.NewHTTPError(http.StatusUnauthorized, "invalid or expired OTP")
+	}
+	id, err := uuid.Parse(claim.ID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid user ID in token")
+	}
+	updatedUser, err := uc.repo.GetByID(id)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to fetch updated user")
+	}
+	return c.JSON(http.StatusOK, uc.collector.ToModel(updatedUser))
 }
 
 // UserSettingsChangePassword handles user password update via settings
@@ -353,9 +379,31 @@ func (uc *UserController) UserSettingsChangePassword(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(req)
+	user, err := uc.provider.CurrentUser(c)
+	if err != nil {
+		return err
+	}
 
-	return c.NoContent(http.StatusOK)
+	if ok := uc.authentication.VerifyPassword(user.Password, req.Password); !ok {
+		return echo.NewHTTPError(http.StatusUnauthorized, "invalid credentials")
+	}
+
+	hashedPwd, err := uc.authentication.Password(req.NewPassword)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to hash new password")
+	}
+
+	if err := uc.repo.UpdateFields(user.ID, &collection.User{
+		Password:  hashedPwd,
+		UpdatedAt: time.Now().UTC(),
+	}); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to update password: "+err.Error())
+	}
+	updatedUser, err := uc.repo.GetByID(user.ID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to fetch updated user")
+	}
+	return c.JSON(http.StatusOK, uc.collector.ToModel(updatedUser))
 }
 
 // UserSettingsChangeEmail handles user email update via settings
@@ -365,9 +413,25 @@ func (uc *UserController) UserSettingsChangeEmail(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(req)
-
-	return c.NoContent(http.StatusOK)
+	user, err := uc.provider.CurrentUser(c)
+	if err != nil {
+		return err
+	}
+	if ok := uc.authentication.VerifyPassword(user.Password, req.Password); !ok {
+		return echo.NewHTTPError(http.StatusUnauthorized, "invalid credentials")
+	}
+	if err := uc.repo.UpdateFields(user.ID, &collection.User{
+		Email:           req.Email,
+		IsEmailVerified: false,
+		UpdatedAt:       time.Now().UTC(),
+	}); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to update password: "+err.Error())
+	}
+	updatedUser, err := uc.repo.GetByID(user.ID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to fetch updated user")
+	}
+	return c.JSON(http.StatusOK, uc.collector.ToModel(updatedUser))
 }
 
 func (uc *UserController) UserSettingsChangeUsername(c echo.Context) error {
@@ -375,8 +439,24 @@ func (uc *UserController) UserSettingsChangeUsername(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(req)
-	return c.NoContent(http.StatusOK)
+	user, err := uc.provider.CurrentUser(c)
+	if err != nil {
+		return err
+	}
+	if ok := uc.authentication.VerifyPassword(user.Password, req.Password); !ok {
+		return echo.NewHTTPError(http.StatusUnauthorized, "invalid credentials")
+	}
+	if err := uc.repo.UpdateFields(user.ID, &collection.User{
+		UserName:  req.UserName,
+		UpdatedAt: time.Now().UTC(),
+	}); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to update password: "+err.Error())
+	}
+	updatedUser, err := uc.repo.GetByID(user.ID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to fetch updated user")
+	}
+	return c.JSON(http.StatusOK, uc.collector.ToModel(updatedUser))
 }
 
 func (uc *UserController) UserSettingsChangeContactNumber(c echo.Context) error {
@@ -384,9 +464,25 @@ func (uc *UserController) UserSettingsChangeContactNumber(c echo.Context) error 
 	if err != nil {
 		return err
 	}
-	fmt.Println(req)
-
-	return c.NoContent(http.StatusOK)
+	user, err := uc.provider.CurrentUser(c)
+	if err != nil {
+		return err
+	}
+	if ok := uc.authentication.VerifyPassword(user.Password, req.Password); !ok {
+		return echo.NewHTTPError(http.StatusUnauthorized, "invalid credentials")
+	}
+	if err := uc.repo.UpdateFields(user.ID, &collection.User{
+		ContactNumber:     req.ContactNumber,
+		IsContactVerified: false,
+		UpdatedAt:         time.Now().UTC(),
+	}); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to update password: "+err.Error())
+	}
+	updatedUser, err := uc.repo.GetByID(user.ID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to fetch updated user")
+	}
+	return c.JSON(http.StatusOK, uc.collector.ToModel(updatedUser))
 }
 
 func (uc *UserController) UserSettingsChangeProfilePicture(c echo.Context) error {
@@ -394,34 +490,41 @@ func (uc *UserController) UserSettingsChangeProfilePicture(c echo.Context) error
 	if err != nil {
 		return err
 	}
-	fmt.Println(req)
-
-	return c.NoContent(http.StatusOK)
+	user, err := uc.provider.CurrentUser(c)
+	if err != nil {
+		return err
+	}
+	if err := uc.repo.UpdateFields(user.ID, &collection.User{
+		MediaID:   req.MediaID,
+		UpdatedAt: time.Now().UTC(),
+	}); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to update password: "+err.Error())
+	}
+	updatedUser, err := uc.repo.GetByID(user.ID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to fetch updated user")
+	}
+	return c.JSON(http.StatusOK, uc.collector.ToModel(updatedUser))
 }
 
 func (uc *UserController) APIRoutes(e *echo.Echo) {
 	group := e.Group("")
 	group.GET("/authentication/current", uc.UserCurrent)
 
-	group.POST("/authentication/login", uc.UserLogin)       // Set token
-	group.POST("/authentication/logout", uc.UserLogout)     // Set token
-	group.POST("/authentication/register", uc.UserRegister) // Set token
+	group.POST("/authentication/login", uc.UserLogin)
+	group.POST("/authentication/logout", uc.UserLogout)
+	group.POST("/authentication/register", uc.UserRegister)
 	group.POST("/authentication/forgot-password", uc.UserForgotPassword)
 	group.GET("/authentication/verify-reset-link/:id", uc.UserVerifyResetLink)
 	group.POST("/authentication/change-password/:id", uc.UserChangePassword)
-
 	group.POST("/authentication/apply-contact-number", uc.UserApplyContactNumber)
 	group.POST("/authentication/verify-contact-number", uc.UserVerifyContactNumber)
-
 	group.POST("/authentication/apply-email", uc.UserApplyEmail)
 	group.POST("/authentication/verify-email", uc.UserVerifyEmail)
-
 	group.POST("/authentication/verify-with-email", uc.UserVerifyWithEmail)
 	group.POST("/authentication/verify-with-email-confirmation", uc.UserVerifyWithEmailConfirmation)
-
 	group.POST("/authentication/verify-with-contact", uc.UserVerifyWithContactNumber)
 	group.POST("/authentication/verify-with-contact-confirmation", uc.UserVerifyWithContactNumberConfirmation)
-
 	group.PUT("/settings/password", uc.UserSettingsChangePassword)
 
 	group.PUT("/settings/email", uc.UserSettingsChangeEmail)

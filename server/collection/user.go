@@ -109,10 +109,6 @@ type (
 		OTP   string `json:"otp" validate:"required,min=6"`
 	}
 
-	UserVerifyWithEmailRequest struct {
-		Email string `json:"email" validate:"required,email"`
-	}
-
 	UserVerifyWithEmailConfirmationRequest struct {
 		Email string `json:"email" validate:"required,email"`
 		OTP   string `json:"otp" validate:"required,min=6"`
@@ -232,16 +228,7 @@ func (uc *UserCollection) UserVerifyEmailValidation(c echo.Context) (*UserVerify
 	}
 	return u, nil
 }
-func (uc *UserCollection) UserVerifyWithEmailValidation(c echo.Context) (*UserVerifyWithEmailRequest, error) {
-	u := new(UserVerifyWithEmailRequest)
-	if err := c.Bind(u); err != nil {
-		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	}
-	if err := uc.validator.Struct(u); err != nil {
-		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	}
-	return u, nil
-}
+
 func (uc *UserCollection) UserVerifyWithEmailConfirmationValidation(c echo.Context) (*UserVerifyWithEmailConfirmationRequest, error) {
 	u := new(UserVerifyWithEmailConfirmationRequest)
 	if err := c.Bind(u); err != nil {
