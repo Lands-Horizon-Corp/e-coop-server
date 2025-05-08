@@ -1,7 +1,6 @@
 package collection
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -351,25 +350,41 @@ func (uc *UserCollection) UserSettingsChangeProfilePictureValidation(c echo.Cont
 	return u, nil
 }
 
-func (m *UserCollection) ToModel(data *User) *UserResponse {
+func (uc *UserCollection) ToModel(data *User) *UserResponse {
 	if data == nil {
 		return nil
 	}
+
 	qr := &QRUser{
 		UserID:        data.ID.String(),
 		Email:         data.Email,
 		ContactNumber: data.ContactNumber,
 		Username:      data.UserName,
-		Name:          fmt.Sprintf("%s %s %s", *data.FirstName, *data.MiddleName, *data.LastName),
-		Lastname:      *data.LastName,
-		Firstname:     *data.FirstName,
-		Middlename:    *data.MiddleName,
+		Lastname:      "",
+		Firstname:     "",
+		Middlename:    "",
 	}
-	encoded, _ := m.qr.Encode(qr)
+
+	if data.FirstName != nil {
+		qr.Firstname = *data.FirstName
+	}
+	if data.MiddleName != nil {
+		qr.Middlename = *data.MiddleName
+	}
+	if data.LastName != nil {
+		qr.Lastname = *data.LastName
+	}
+
+	encoded, err := uc.qr.Encode(qr)
+	if err != nil {
+		// Handle the error appropriately, e.g., log it or return nil
+		return nil
+	}
+
 	return &UserResponse{
 		ID:                data.ID,
 		MediaID:           data.MediaID,
-		Media:             m.media.ToModel(data.Media),
+		Media:             uc.media.ToModel(data.Media),
 		Birthdate:         dateformat(data.Birthdate),
 		UserName:          data.UserName,
 		FirstName:         data.FirstName,
