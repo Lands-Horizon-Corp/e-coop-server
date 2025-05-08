@@ -91,7 +91,7 @@ func NewHorizonStorage(config *HorizonConfig, log *HorizonLog, security *Horizon
 // Run initializes the MinIO client and ensures the bucket exists.
 func (hs *HorizonStorage) Run() error {
 	ctx := context.Background()
-	client, err := minio.New(hs.config.StorageEndpoint, &minio.Options{
+	client, err := minio.New(fmt.Sprintf("%s:%d", hs.config.StorageHost, hs.config.StorageApiPort), &minio.Options{
 		Creds:  credentials.NewStaticV4(hs.config.StorageAccessKey, hs.config.StorageSecretKey, ""),
 		Secure: false,
 		Region: hs.config.StorageRegion,

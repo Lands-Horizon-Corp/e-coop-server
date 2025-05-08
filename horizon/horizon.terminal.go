@@ -35,8 +35,8 @@ func NewTerminal(lc fx.Lifecycle, request *HorizonRequest, config *HorizonConfig
 			time.Sleep(3 * time.Second)
 			fmt.Println("≿━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━༺❀༻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━≾")
 			printASCIIArt()
-			requestCMD(request)
 			printConfigBoxes(config)
+			requestCMD(request)
 			fmt.Println("🟢 Horizon App is starting...")
 			fmt.Println("≿━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━༺❀༻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━≾")
 			return nil
@@ -214,7 +214,7 @@ func printConfigBoxes(config *HorizonConfig) {
 	// Corrected Storage DSN format
 	storageDSN := fmt.Sprintf("storage://%s:%s@%s:%d/%s",
 		config.StorageAccessKey, config.StorageSecretKey,
-		config.StorageEndpoint, config.StorageAPI_Port,
+		config.StorageHost, config.StorageApiPort,
 		config.StorageBucket)
 	storageInfo := fmt.Sprintf(
 		"Storage DSN        : %s\n"+
@@ -230,10 +230,10 @@ func printConfigBoxes(config *HorizonConfig) {
 		config.StorageDriver,
 		config.StorageAccessKey,
 		config.StorageSecretKey,
-		config.StorageEndpoint,
+		config.StorageHost,
 		config.StorageRegion,
 		config.StorageBucket,
-		config.StorageAPI_Port,
+		config.StorageApiPort,
 		config.StorageConsolePort,
 	)
 
