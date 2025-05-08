@@ -194,9 +194,9 @@ func (uc *UserController) UserChangePassword(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "invalid user ID in token")
 	}
-	hashedPwd, err := uc.authentication.Password(req.Password)
+	hashedPwd, err := uc.authentication.Password(req.NewPassword)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "failed to hash password")
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to hash new password")
 	}
 	model := &collection.User{
 		ID:        id,

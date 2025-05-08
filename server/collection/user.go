@@ -96,8 +96,8 @@ type (
 	}
 
 	UserChangePasswordRequest struct {
-		Password        string `json:"password" validate:"required,min=8"`
-		ConfirmPassword string `json:"confirm_password" validate:"required,eqfield=Password"`
+		NewPassword     string `json:"new_password" validate:"required,min=8"`
+		ConfirmPassword string `json:"confirm_password" validate:"required,eqfield=NewPassword"`
 	}
 
 	UserApplyContactNumberRequest struct {
