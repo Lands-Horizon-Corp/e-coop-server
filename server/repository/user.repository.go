@@ -114,3 +114,9 @@ func (r *UserRepository) FindByIdentifier(identifier string) (*collection.User, 
 	}
 	return nil, eris.New("user not found by email, contact number, or username")
 }
+
+func (r *UserRepository) UpdateFields(id uuid.UUID, fields map[string]any) error {
+	return r.database.Client().Model(&collection.User{}).
+		Where("id = ?", id).
+		Updates(fields).Error
+}

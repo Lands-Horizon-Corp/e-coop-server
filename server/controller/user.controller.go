@@ -176,38 +176,44 @@ func (uc *UserController) UserVerifyResetLink(c echo.Context) error {
 }
 
 // UserChangePassword handles change password
-
 func (uc *UserController) UserChangePassword(c echo.Context) error {
 	idParam := c.Param("id")
 
-	// Validate the request body
 	req, err := uc.collector.UserChangePasswordValidation(c)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "invalid request: "+err.Error())
 	}
+
 	claim, err := uc.authentication.ValidateLink(idParam)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "link is not valid or has expired")
 	}
+
 	id, err := uuid.Parse(claim.ID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "invalid user ID in token")
 	}
+
 	hashedPwd, err := uc.authentication.Password(req.NewPassword)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to hash new password")
 	}
-	model := &collection.User{
-		ID:        id,
-		Password:  hashedPwd,
-		UpdatedAt: time.Now().UTC(),
-	}
 
-	if err := uc.repo.Update(model); err != nil {
+	// Use Updates() to only update specific fields
+	if err := uc.repo.UpdateFields(id, map[string]interface{}{
+		"password":   hashedPwd,
+		"updated_at": time.Now().UTC(),
+	}); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to update password: "+err.Error())
 	}
-	//
-	return c.JSON(http.StatusOK, uc.collector.ToModel(model))
+
+	// Return updated user (optional)
+	updatedUser, err := uc.repo.GetByID(id)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to fetch updated user")
+	}
+
+	return c.JSON(http.StatusOK, uc.collector.ToModel(updatedUser))
 }
 
 // UserApplyContactNumber handles applying contact number
