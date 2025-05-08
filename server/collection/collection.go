@@ -9,3 +9,10 @@ func dateformat(value *time.Time) *string {
 	formatted := value.Format(time.RFC3339)
 	return &formatted
 }
+
+func stringFormat(value *string) string {
+	if value == nil {
+		return ""
+	}
+	return *value
+}

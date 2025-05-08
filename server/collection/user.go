@@ -328,29 +328,16 @@ func (uc *UserCollection) ToModel(data *User) *UserResponse {
 		return nil
 	}
 
-	qr := &QRUser{
+	encoded, err := uc.qr.Encode(&QRUser{
 		UserID:        data.ID.String(),
 		Email:         data.Email,
 		ContactNumber: data.ContactNumber,
 		Username:      data.UserName,
-		Lastname:      "",
-		Firstname:     "",
-		Middlename:    "",
-	}
-
-	if data.FirstName != nil {
-		qr.Firstname = *data.FirstName
-	}
-	if data.MiddleName != nil {
-		qr.Middlename = *data.MiddleName
-	}
-	if data.LastName != nil {
-		qr.Lastname = *data.LastName
-	}
-
-	encoded, err := uc.qr.Encode(qr)
+		Lastname:      stringFormat(data.LastName),
+		Firstname:     stringFormat(data.FirstName),
+		Middlename:    stringFormat(data.MiddleName),
+	})
 	if err != nil {
-		// Handle the error appropriately, e.g., log it or return nil
 		return nil
 	}
 
