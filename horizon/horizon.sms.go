@@ -159,6 +159,6 @@ func (hs *HorizonSMS) injectVarsIntoBody(body string, vars *map[string]string) (
 	return buf.String(), nil
 }
 func (hs *HorizonSMS) isValidPhoneNumber(phoneNumber string) bool {
-	re := regexp.MustCompile(`^\+(\d{1,4})\d{7,14}$`)
+	re := regexp.MustCompile(`^\+?(?:\d{1,4})?\d{7,14}$`)
 	return re.MatchString(phoneNumber)
 }

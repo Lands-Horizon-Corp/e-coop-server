@@ -144,7 +144,7 @@ func (ha *HorizonAuthentication) GenerateSMTPLink(baseURL string, c Claim) (stri
 		return renderHTMLTemplate(f, d)
 	}
 	sndr := func(r any) error {
-		req := r.(map[string]interface{})
+		req := r.(map[string]any)
 		return ha.smtp.Send(&SMTPRequest{To: req["To"].(string), Subject: req["Subject"].(string), Body: req["Body"].(string)})
 	}
 	return ha.generateLink(baseURL, c, "email-forgot-password.html", rndr, sndr, subj)
@@ -156,7 +156,7 @@ func (ha *HorizonAuthentication) GenerateSMSLink(baseURL string, c Claim) (strin
 		return renderTextTemplate(f, d)
 	}
 	sndr := func(r any) error {
-		req := r.(map[string]interface{})
+		req := r.(map[string]any)
 		return ha.sms.Send(&SMSRequest{To: req["To"].(string), Subject: req["Subject"].(string), Body: req["Body"].(string)})
 	}
 	return ha.generateLink(baseURL, c, "sms-forgot-password.txt", rndr, sndr, subj)
@@ -253,7 +253,7 @@ func (ha *HorizonAuthentication) generateLink(baseURL string, c Claim, tplFile s
 		return "", eris.Wrap(err, "template rendering failed")
 	}
 
-	req := map[string]interface{}{
+	req := map[string]any{
 		"To":      c.Email,
 		"Subject": subject,
 		"Body":    body,
