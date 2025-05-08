@@ -9,7 +9,7 @@ const (
 	storageDuration   = time.Hour * 4
 	authExpiration    = 16 * time.Hour
 	tokenLinkValidity = 10 * time.Minute
-	maxSMSCharacters  = 1_000
+	maxSMSCharacters  = 2_000
 )
 
 // HorizonConfig holds all configuration values.
