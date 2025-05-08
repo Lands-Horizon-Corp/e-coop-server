@@ -85,7 +85,7 @@ services:
       - app-network
 
   pgadmin:
-    image: dpage/pgadmin4:6.16
+    image: dpage/pgadmin4:latest
     container_name: pgadmin
     restart: always
     environment:
