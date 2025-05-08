@@ -81,6 +81,11 @@ func (uc *UserController) UserLogin(c echo.Context) error {
 	})
 }
 
+func (uc *UserController) UserLogout(c echo.Context) error {
+	uc.authentication.CleanToken(c)
+	return c.NoContent(http.StatusOK)
+}
+
 // UserRegister handles user registration
 func (uc *UserController) UserRegister(c echo.Context) error {
 	req, err := uc.collector.UserRegisterValidation(c)
@@ -318,6 +323,7 @@ func (uc *UserController) APIRoutes(e *echo.Echo) {
 	group.GET("/authentication/current", uc.UserCurrent)
 
 	group.POST("/authentication/login", uc.UserLogin)       // Set token
+	group.POST("/authentication/logout", uc.UserLogout)     // Set token
 	group.POST("/authentication/register", uc.UserRegister) // Set token
 	group.POST("/authentication/forgot-password", uc.UserForgotPassword)
 	group.POST("/authentication/change-password", uc.UserChangePassword)
