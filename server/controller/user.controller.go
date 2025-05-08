@@ -150,7 +150,7 @@ func (uc *UserController) UserForgotPassword(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to send reset link, please try again later")
 	}
-	_, err = uc.authentication.GenerateSMSLink("/change-password-password", horizon.Claim{
+	_, err = uc.authentication.GenerateSMSLink("/auth/password-reset/", horizon.Claim{
 		ID:            user.ID.String(),
 		Email:         user.Email,
 		ContactNumber: user.ContactNumber,
