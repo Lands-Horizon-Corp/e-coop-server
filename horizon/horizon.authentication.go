@@ -241,7 +241,7 @@ func (ha *HorizonAuthentication) generateLink(baseURL string, c Claim, tplFile s
 	}
 
 	esc := url.PathEscape(token)
-	link := fmt.Sprintf("%s/%s/%s", ha.config.AppClientURL, strings.TrimRight(baseURL, "/"), esc)
+	link := fmt.Sprintf("%s%s/%s?token=%s", ha.config.AppClientURL, strings.TrimRight(baseURL, "/"), esc, esc)
 
 	body, err := render(tplFile, map[string]string{
 		"AppTokenName":  ha.config.AppTokenName,
