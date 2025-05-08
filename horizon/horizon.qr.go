@@ -2,53 +2,11 @@ package horizon
 
 import (
 	"encoding/json"
-	"fmt"
 	"reflect"
 
 	"github.com/rotisserie/eris"
 	"go.uber.org/zap"
 )
-
-type QRTransaction struct {
-	AccountIDFrom       string  `json:"account_id_from"`
-	AccountIDTo         string  `json:"account_id_to"`
-	UserIDFrom          string  `json:"user_id_from"`
-	UserIDTo            string  `json:"user_id_to"`
-	MemberProfileIDFrom string  `json:"member_profile_id_from"`
-	MemberProfileIDTo   string  `json:"member_profile_id_to"`
-	OrganizationIDFrom  string  `json:"organization_id_from"`
-	OrganizationIDTo    string  `json:"organization_id_to"`
-	Amount              float32 `json:"amount"`
-}
-
-type QRUser struct {
-	UserID     string `json:"user_id"`
-	Name       string `json:"name"`
-	Lastname   string `json:"lastname"`
-	Firstname  string `json:"firstname"`
-	Middlename string `json:"middlename"`
-}
-
-type QROrganization struct {
-	OrganizationID string `json:"organization_id"`
-	Name           string `json:"name"`
-}
-
-type QRMemberProfile struct {
-	UserID          string `json:"user_id"`
-	MemberProfileID string `json:"member_profile_id"`
-	OrganizationID  string `json:"organization_id"`
-	BranchID        string `json:"branch_id"`
-}
-
-type QRInvitationLink struct {
-	UserID         string `json:"user_id"`
-	InvitationID   string `json:"invitation_id"`
-	Name           string `json:"name"`
-	Description    string `json:"description"`
-	MediaImageLink string `json:"media_image_link"`
-	OrganizationID string `json:"organization_id"`
-}
 
 type QRResult struct {
 	QRCode string `json:"qr_code"`
@@ -199,52 +157,5 @@ func (hq *HorizonQR) Decode(qrCodeBase64 string) (any, error) {
 		})
 		return nil, eris.Wrap(err, "failed to parse wrapped data")
 	}
-
-	switch wrapper.Type {
-	case "QRTransaction":
-		var tx QRTransaction
-		if err := json.Unmarshal(wrapper.Data, &tx); err != nil {
-			return nil, eris.Wrap(err, "failed to unmarshal QRTransaction")
-		}
-		return tx, nil
-
-	case "QRUser":
-		var user QRUser
-		if err := json.Unmarshal(wrapper.Data, &user); err != nil {
-			return nil, eris.Wrap(err, "failed to unmarshal QRUser")
-		}
-		return user, nil
-
-	case "QROrganization":
-		var org QROrganization
-		if err := json.Unmarshal(wrapper.Data, &org); err != nil {
-			return nil, eris.Wrap(err, "failed to unmarshal QROrganization")
-		}
-		return org, nil
-
-	case "QRMemberProfile":
-		var profile QRMemberProfile
-		if err := json.Unmarshal(wrapper.Data, &profile); err != nil {
-			return nil, eris.Wrap(err, "failed to unmarshal QRMemberProfile")
-		}
-		return profile, nil
-
-	case "QRInvitationLink":
-		var link QRInvitationLink
-		if err := json.Unmarshal(wrapper.Data, &link); err != nil {
-			return nil, eris.Wrap(err, "failed to unmarshal QRInvitationLink")
-		}
-		return link, nil
-
-	default:
-		hq.log.Log(LogEntry{
-			Category: CategoryQR,
-			Level:    LevelError,
-			Message:  "Unsupported QR type",
-			Fields: []zap.Field{
-				zap.String("type", wrapper.Type),
-			},
-		})
-		return nil, eris.New(fmt.Sprintf("unsupported QR type: %s", wrapper.Type))
-	}
+	return wrapper.Data, err
 }

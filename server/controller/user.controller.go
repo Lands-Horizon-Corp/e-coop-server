@@ -1,51 +1,261 @@
 package controller
 
 import (
+	"fmt"
+	"net/http"
+
+	"github.com/labstack/echo/v4"
 	"horizon.com/server/horizon"
 	"horizon.com/server/server/collection"
 	"horizon.com/server/server/repository"
 )
 
 type UserController struct {
-	repository *repository.UserRepository
-	collection *collection.UserCollection
-	storage    *horizon.HorizonStorage
-	broadcast  *horizon.HorizonBroadcast
+	repo      *repository.UserRepository
+	collector *collection.UserCollection
+	storage   *horizon.HorizonStorage
+	broadcast *horizon.HorizonBroadcast
 }
 
 func NewUserController(
-	repository *repository.UserRepository,
-	collection *collection.UserCollection,
+	repo *repository.UserRepository,
+	collector *collection.UserCollection,
 	storage *horizon.HorizonStorage,
 	broadcast *horizon.HorizonBroadcast,
+	_ *horizon.HorizonAuthentication,
 ) (*UserController, error) {
 	return &UserController{
-		repository: repository,
-		collection: collection,
-		storage:    storage,
-		broadcast:  broadcast,
+		repo:      repo,
+		collector: collector,
+		storage:   storage,
+		broadcast: broadcast,
 	}, nil
 }
 
-// api/v1/authentication/current
-// api/v1/authentication/current/branch
-// api/v1/authentication/current/org
-// api/v1/authentication/current/user
-// api/v1/authentication/login
-// api/v1/authentication/logout
-// api/v1/authentication/register
-// api/v1/authentication/forgot-password
-// api/v1/authentication/change-password
-// api/v1/authentication/request-contact-number-verification
-// api/v1/authentication/verify-contact-number-verification
-// api/v1/authentication/request-email-verification
-// api/v1/authentication/verify-email-verification
+func (uc *UserController) UserCurrent(c echo.Context) error {
+	req, err := uc.collector.UserLoginValidation(c)
+	if err != nil {
+		return err
+	}
+	fmt.Println(req)
+	return c.JSON(http.StatusCreated, req)
+}
 
-// api/v1/user/change-password
-// api/v1/user/change-email
-// api/v1/user/change-username
-// api/v1/user/change-profile-picture
-// api/v1/user/change-contact-number
-// api/v1/user/security/verify-with-password
-// api/v1/user/security/verify-with-contact-number
-// api/v1/user/security/verify-with-email
+func (uc *UserController) UserLogin(c echo.Context) error {
+	req, err := uc.collector.UserLoginValidation(c)
+	if err != nil {
+		return err
+	}
+	fmt.Println(req)
+	return c.JSON(http.StatusCreated, req)
+}
+
+// UserRegister handles user registration
+
+func (uc *UserController) UserRegister(c echo.Context) error {
+	req, err := uc.collector.UserRegisterValidation(c)
+	if err != nil {
+		return err
+	}
+	fmt.Println(req)
+
+	return c.JSON(http.StatusCreated, req)
+}
+
+// UserForgotPassword handles forgot password
+
+func (uc *UserController) UserForgotPassword(c echo.Context) error {
+	req, err := uc.collector.UserForgotPasswordValidation(c)
+	if err != nil {
+		return err
+	}
+	fmt.Println(req)
+
+	return c.NoContent(http.StatusOK)
+}
+
+// UserChangePassword handles change password
+
+func (uc *UserController) UserChangePassword(c echo.Context) error {
+	req, err := uc.collector.UserChangePasswordValidation(c)
+	if err != nil {
+		return err
+	}
+	fmt.Println(req)
+
+	return c.NoContent(http.StatusOK)
+}
+
+// UserApplyContactNumber handles applying contact number
+
+func (uc *UserController) UserApplyContactNumber(c echo.Context) error {
+	req, err := uc.collector.UserApplyContactNumberValidation(c)
+	if err != nil {
+		return err
+	}
+	fmt.Println(req)
+
+	return c.NoContent(http.StatusOK)
+}
+
+// UserVerifyContactNumber handles verification of contact number
+
+func (uc *UserController) UserVerifyContactNumber(c echo.Context) error {
+	req, err := uc.collector.UserVerifyContactNumberValidation(c)
+	if err != nil {
+		return err
+	}
+	fmt.Println(req)
+
+	return c.NoContent(http.StatusOK)
+}
+
+func (uc *UserController) UserApplyEmail(c echo.Context) error {
+	req, err := uc.collector.UserApplyEmailValidation(c)
+	if err != nil {
+		return err
+	}
+	fmt.Println(req)
+
+	return c.NoContent(http.StatusOK)
+}
+
+// UserVerifyEmail handles verification of email
+
+func (uc *UserController) UserVerifyEmail(c echo.Context) error {
+	req, err := uc.collector.UserVerifyEmailValidation(c)
+	if err != nil {
+		return err
+	}
+	fmt.Println(req)
+
+	return c.NoContent(http.StatusOK)
+}
+
+// UserVerifyWithEmail handles legacy verify with email
+
+func (uc *UserController) UserVerifyWithEmail(c echo.Context) error {
+	req, err := uc.collector.UserVerifyWithEmailValidation(c)
+	if err != nil {
+		return err
+	}
+	fmt.Println(req)
+
+	return c.NoContent(http.StatusOK)
+}
+
+func (uc *UserController) UserVerifyWithEmailConfirmation(c echo.Context) error {
+	req, err := uc.collector.UserVerifyWithEmailConfirmationValidation(c)
+	if err != nil {
+		return err
+	}
+	fmt.Println(req)
+
+	return c.NoContent(http.StatusOK)
+}
+
+// UserVerifyWithContactNumber handles legacy verify with contact number
+
+func (uc *UserController) UserVerifyWithContactNumber(c echo.Context) error {
+	req, err := uc.collector.UserVerifyWithContactNumberConfirmationValidation(c)
+	if err != nil {
+		return err
+	}
+	fmt.Println(req)
+
+	return c.NoContent(http.StatusOK)
+}
+
+// UserVerifyWithContactNumberConfirmation handles legacy contact confirmation
+
+func (uc *UserController) UserVerifyWithContactNumberConfirmation(c echo.Context) error {
+	req, err := uc.collector.UserVerifyWithContactNumberConfirmationValidation(c)
+	if err != nil {
+		return err
+	}
+	fmt.Println(req)
+
+	return c.NoContent(http.StatusOK)
+}
+
+// UserSettingsChangePassword handles user password update via settings
+
+func (uc *UserController) UserSettingsChangePassword(c echo.Context) error {
+	req, err := uc.collector.UserSettingsChangePasswordValidation(c)
+	if err != nil {
+		return err
+	}
+	fmt.Println(req)
+
+	return c.NoContent(http.StatusOK)
+}
+
+// UserSettingsChangeEmail handles user email update via settings
+
+func (uc *UserController) UserSettingsChangeEmail(c echo.Context) error {
+	req, err := uc.collector.UserSettingsChangeEmailValidation(c)
+	if err != nil {
+		return err
+	}
+	fmt.Println(req)
+
+	return c.NoContent(http.StatusOK)
+}
+
+func (uc *UserController) UserSettingsChangeUsername(c echo.Context) error {
+	req, err := uc.collector.UserSettingsChangeUsernameValidation(c)
+	if err != nil {
+		return err
+	}
+	fmt.Println(req)
+	return c.NoContent(http.StatusOK)
+}
+
+func (uc *UserController) UserSettingsChangeContactNumber(c echo.Context) error {
+	req, err := uc.collector.UserSettingsChangeContactNumberValidation(c)
+	if err != nil {
+		return err
+	}
+	fmt.Println(req)
+
+	return c.NoContent(http.StatusOK)
+}
+
+func (uc *UserController) UserSettingsChangeProfilePicture(c echo.Context) error {
+	req, err := uc.collector.UserSettingsChangeProfilePictureValidation(c)
+	if err != nil {
+		return err
+	}
+	fmt.Println(req)
+
+	return c.NoContent(http.StatusOK)
+}
+
+func (uc *UserController) APIRoutes(e *echo.Echo) {
+	group := e.Group("")
+	group.GET("/authentication/current", uc.UserCurrent)
+
+	group.POST("/authentication/login", uc.UserLogin)
+	group.POST("/authentication/register", uc.UserRegister)
+	group.POST("/authentication/forgot-password", uc.UserForgotPassword)
+	group.POST("/authentication/change-password", uc.UserChangePassword)
+
+	group.POST("/authentication/apply-contact", uc.UserApplyContactNumber)
+	group.POST("/authentication/verify-contact", uc.UserVerifyContactNumber)
+
+	group.POST("/authentication/apply-email", uc.UserApplyEmail)
+	group.POST("/authentication/verify-email", uc.UserVerifyEmail)
+
+	// Legacy verify flows
+	group.POST("/authentication/verify-with-email", uc.UserVerifyWithEmail)
+	group.POST("/authentication/verify-with-email-confirmation", uc.UserVerifyWithEmailConfirmation)
+	group.POST("/authentication/verify-with-contact", uc.UserVerifyWithContactNumber)
+	group.POST("/authentication/verify-with-contact-confirmation", uc.UserVerifyWithContactNumberConfirmation)
+
+	// Settings routes
+	group.PUT("/settings/password", uc.UserSettingsChangePassword)
+	group.PUT("/settings/email", uc.UserSettingsChangeEmail)
+	group.PUT("/settings/username", uc.UserSettingsChangeUsername)
+	group.PUT("/settings/contact", uc.UserSettingsChangeContactNumber)
+	group.PUT("/settings/profile-picture", uc.UserSettingsChangeProfilePicture)
+}

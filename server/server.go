@@ -16,12 +16,14 @@ type CoopServer struct {
 func NewCoopServer(
 	feedback *controller.FeedbackController,
 	media *controller.MediaController,
+	user *controller.UserController,
 ) (*CoopServer, error) {
 	return &CoopServer{
 
 		Routes: []func(*echo.Echo){
 			feedback.APIRoutes,
 			media.APIRoutes,
+			user.APIRoutes,
 		},
 
 		Migrations: []any{

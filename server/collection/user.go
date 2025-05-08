@@ -1,15 +1,28 @@
 package collection
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/go-playground/validator"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"horizon.com/server/horizon"
 )
 
 type UserType string
+
+type QRUser struct {
+	UserID        string `json:"user_id"`
+	Email         string `json:"email"`
+	ContactNumber string `json:"contact_number"`
+	Username      string `json:"user_name"`
+	Name          string `json:"name"`
+	Lastname      string `json:"lastname"`
+	Firstname     string `json:"firstname"`
+	Middlename    string `json:"middlename"`
+}
 
 const (
 	UserTypeOwner    UserType = "owner"
@@ -46,24 +59,25 @@ type (
 		IsContactVerified bool   `gorm:"default:false" json:"is_contact_verified"`
 	}
 	UserResponse struct {
-		ID                uuid.UUID      `json:"id"`
-		MediaID           *uuid.UUID     `json:"media_id,omitempty"`
-		Media             *MediaResponse `json:"media,omitempty"`
-		Birthdate         *string        `json:"birthdate,omitempty"`
-		UserName          string         `json:"user_name"`
-		FirstName         *string        `json:"first_name,omitempty"`
-		MiddleName        *string        `json:"middle_name,omitempty"`
-		LastName          *string        `json:"last_name,omitempty"`
-		FullName          *string        `json:"full_name,omitempty"`
-		Suffix            *string        `json:"suffix,omitempty"`
-		Email             string         `json:"email"`
-		IsEmailVerified   bool           `json:"is_email_verified"`
-		Type              UserType       `json:"type"`
-		ContactNumber     string         `json:"contact_number"`
-		IsContactVerified bool           `json:"is_contact_verified"`
-		CreatedAt         string         `json:"created_at"`
-		UpdatedAt         string         `json:"updated_at"`
-		DeletedAt         *string        `json:"deleted_at,omitempty"`
+		ID                uuid.UUID         `json:"id"`
+		MediaID           *uuid.UUID        `json:"media_id,omitempty"`
+		Media             *MediaResponse    `json:"media,omitempty"`
+		Birthdate         *string           `json:"birthdate,omitempty"`
+		UserName          string            `json:"user_name"`
+		FirstName         *string           `json:"first_name,omitempty"`
+		MiddleName        *string           `json:"middle_name,omitempty"`
+		LastName          *string           `json:"last_name,omitempty"`
+		FullName          *string           `json:"full_name,omitempty"`
+		Suffix            *string           `json:"suffix,omitempty"`
+		Email             string            `json:"email"`
+		IsEmailVerified   bool              `json:"is_email_verified"`
+		Type              UserType          `json:"type"`
+		ContactNumber     string            `json:"contact_number"`
+		IsContactVerified bool              `json:"is_contact_verified"`
+		CreatedAt         string            `json:"created_at"`
+		UpdatedAt         string            `json:"updated_at"`
+		DeletedAt         *string           `json:"deleted_at,omitempty"`
+		QRCode            *horizon.QRResult `json:"qr_code,omitempty"`
 	}
 
 	UserLoginRequest struct {
@@ -160,13 +174,16 @@ type (
 type UserCollection struct {
 	validator *validator.Validate
 	media     *MediaCollection
+	qr        *horizon.HorizonQR
 }
 
 func NewUserCollection(
 	media *MediaCollection,
+	qr *horizon.HorizonQR,
 ) (*UserCollection, error) {
 	return &UserCollection{
 		media:     media,
+		qr:        qr,
 		validator: validator.New(),
 	}, nil
 }
@@ -346,6 +363,17 @@ func (m *UserCollection) ToModel(data *User) *UserResponse {
 	if data == nil {
 		return nil
 	}
+	qr := &QRUser{
+		UserID:        data.ID.String(),
+		Email:         data.Email,
+		ContactNumber: data.ContactNumber,
+		Username:      data.UserName,
+		Name:          fmt.Sprintf("%s %s %s", *data.FirstName, *data.MiddleName, *data.LastName),
+		Lastname:      *data.LastName,
+		Firstname:     *data.FirstName,
+		Middlename:    *data.MiddleName,
+	}
+	encoded, _ := m.qr.Encode(qr)
 	return &UserResponse{
 		ID:                data.ID,
 		MediaID:           data.MediaID,
@@ -364,6 +392,7 @@ func (m *UserCollection) ToModel(data *User) *UserResponse {
 		IsContactVerified: data.IsContactVerified,
 		CreatedAt:         data.CreatedAt.Format(time.RFC3339),
 		UpdatedAt:         data.UpdatedAt.Format(time.RFC3339),
+		QRCode:            encoded,
 	}
 }
 
