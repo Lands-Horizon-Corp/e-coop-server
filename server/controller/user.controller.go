@@ -336,7 +336,7 @@ func (uc *UserController) APIRoutes(e *echo.Echo) {
 	group.POST("/authentication/logout", uc.UserLogout)     // Set token
 	group.POST("/authentication/register", uc.UserRegister) // Set token
 	group.POST("/authentication/forgot-password", uc.UserForgotPassword)
-	group.POST("/authentication/verify-reset-link/:id", uc.UserVerifyResetLink)
+	group.GET("/authentication/verify-reset-link/:id", uc.UserVerifyResetLink)
 
 	group.POST("/authentication/change-password", uc.UserChangePassword)
 
