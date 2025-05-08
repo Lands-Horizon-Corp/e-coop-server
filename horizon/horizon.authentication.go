@@ -175,13 +175,12 @@ func (ha *HorizonAuthentication) ValidateLink(input string) (*Claim, error) {
 }
 
 func (ha *HorizonAuthentication) Password(pw string) (string, error) {
-	enc := base64.StdEncoding.EncodeToString([]byte(pw))
-	return ha.security.PasswordHash(enc)
+	return ha.security.PasswordHash(pw)
 }
 
 func (ha *HorizonAuthentication) VerifyPassword(hash, pw string) bool {
-	enc := base64.StdEncoding.EncodeToString([]byte(pw))
-	ok, _ := ha.security.VerifyPassword(hash, enc)
+
+	ok, _ := ha.security.VerifyPassword(hash, pw)
 	return ok
 }
 
