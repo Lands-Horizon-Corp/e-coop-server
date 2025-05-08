@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"horizon.com/server/horizon"
 	"horizon.com/server/server/collection"
@@ -35,12 +36,21 @@ func NewUserController(
 }
 
 func (uc *UserController) UserCurrent(c echo.Context) error {
-	req, err := uc.collector.UserLoginValidation(c)
+	claim, err := uc.authentication.GetUserFromToken(c)
 	if err != nil {
-		return err
+		return echo.NewHTTPError(http.StatusUnauthorized, "authentication required")
 	}
-	fmt.Println(req)
-	return c.JSON(http.StatusCreated, req)
+
+	id, err := uuid.Parse(claim.ID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid user ID in token")
+	}
+
+	user, err := uc.repo.GetByID(id)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusNotFound, "user not found")
+	}
+	return c.JSON(http.StatusOK, uc.collector.ToModel(user))
 }
 
 func (uc *UserController) UserLogin(c echo.Context) error {
@@ -54,19 +64,16 @@ func (uc *UserController) UserLogin(c echo.Context) error {
 
 // UserRegister handles user registration
 func (uc *UserController) UserRegister(c echo.Context) error {
-	// 1. Validate input
 	req, err := uc.collector.UserRegisterValidation(c)
 	if err != nil {
 		return err
 	}
 
-	// 2. Hash password
 	hashedPwd, err := uc.authentication.Password(req.Password)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to hash password")
 	}
 
-	// 3. Build model
 	user := &collection.User{
 		Email:             req.Email,
 		Password:          hashedPwd,
@@ -82,12 +89,10 @@ func (uc *UserController) UserRegister(c echo.Context) error {
 		IsContactVerified: false,
 	}
 
-	// 4. Persist user
 	if err := uc.repo.Create(user); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not register user: %v", err))
 	}
 
-	// 5. Issue auth token cookie/header
 	if err := uc.authentication.SetToken(c, horizon.Claim{
 		ID:            user.ID.String(),
 		Email:         user.Email,
@@ -96,7 +101,6 @@ func (uc *UserController) UserRegister(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to set authentication token")
 	}
 
-	// 6. Return the created user (sans password)
 	return c.JSON(http.StatusCreated, uc.collector.ToModel(user))
 }
 
@@ -273,8 +277,8 @@ func (uc *UserController) APIRoutes(e *echo.Echo) {
 	group := e.Group("")
 	group.GET("/authentication/current", uc.UserCurrent)
 
-	group.POST("/authentication/login", uc.UserLogin)
-	group.POST("/authentication/register", uc.UserRegister)
+	group.POST("/authentication/login", uc.UserLogin)       // Set token
+	group.POST("/authentication/register", uc.UserRegister) // Set token
 	group.POST("/authentication/forgot-password", uc.UserForgotPassword)
 	group.POST("/authentication/change-password", uc.UserChangePassword)
 

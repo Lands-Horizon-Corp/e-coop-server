@@ -56,6 +56,7 @@ func (ha *HorizonAuthentication) GetUserFromToken(c echo.Context) (*Claim, error
 	}
 	return claim, nil
 }
+
 func (ha *HorizonAuthentication) SetToken(c echo.Context, claims Claim) error {
 	tok, err := ha.GenerateToken(claims)
 	if err != nil {
