@@ -55,12 +55,11 @@ type (
 		BucketName string `json:"bucket_name,omitempty" validate:"max=255"`
 		Progress   int64  `gorm:"unsigned" json:"progress"`
 	}
+	MediaCollection struct {
+		validator *validator.Validate
+		storage   *horizon.HorizonStorage
+	}
 )
-
-type MediaCollection struct {
-	validator *validator.Validate
-	storage   *horizon.HorizonStorage
-}
 
 func NewMediaCollection(
 	storage *horizon.HorizonStorage,
@@ -112,15 +111,15 @@ func (m *MediaCollection) ToModels(mediaList []*Media) []*MediaResponse {
 	if mediaList == nil {
 		return make([]*MediaResponse, 0)
 	}
-	var mediaResources []*MediaResponse
+	var mediaResponses []*MediaResponse
 	for _, media := range mediaList {
 		model := m.ToModel(media)
 		if model != nil {
-			mediaResources = append(mediaResources, m.ToModel(media))
+			mediaResponses = append(mediaResponses, m.ToModel(media))
 		}
 	}
-	if len(mediaResources) <= 0 {
+	if len(mediaResponses) <= 0 {
 		return make([]*MediaResponse, 0)
 	}
-	return mediaResources
+	return mediaResponses
 }

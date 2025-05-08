@@ -42,10 +42,10 @@ type (
 		FeedbackType string     `json:"feedback_type" validate:"required,oneof=general bug feature"`
 		MediaID      *uuid.UUID `json:"media_id,omitempty"`
 	}
+	FeedbackCollection struct {
+		validator *validator.Validate
+	}
 )
-type FeedbackCollection struct {
-	validator *validator.Validate
-}
 
 func NewFeedbackCollection() (*FeedbackCollection, error) {
 	return &FeedbackCollection{
@@ -82,17 +82,17 @@ func (fc *FeedbackCollection) ToModels(data []*Feedback) []*FeedbackResponse {
 	if data == nil {
 		return make([]*FeedbackResponse, 0)
 	}
-	var feedbackResources []*FeedbackResponse
+	var feedbackResponses []*FeedbackResponse
 	for _, feedback := range data {
 
 		model := fc.ToModel(feedback)
 		if model != nil {
-			feedbackResources = append(feedbackResources, model)
+			feedbackResponses = append(feedbackResponses, model)
 		}
 
 	}
-	if len(feedbackResources) <= 0 {
+	if len(feedbackResponses) <= 0 {
 		return make([]*FeedbackResponse, 0)
 	}
-	return feedbackResources
+	return feedbackResponses
 }

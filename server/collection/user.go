@@ -353,15 +353,15 @@ func (uc *UserCollection) ToModels(data []*User) []*UserResponse {
 	if data == nil {
 		return make([]*UserResponse, 0)
 	}
-	var resource []*UserResponse
+	var response []*UserResponse
 	for _, value := range data {
 		model := uc.ToModel(value)
 		if model != nil {
-			resource = append(resource, model)
+			response = append(response, model)
 		}
 	}
-	if len(resource) <= 0 {
+	if len(response) <= 0 {
 		return make([]*UserResponse, 0)
 	}
-	return resource
+	return response
 }

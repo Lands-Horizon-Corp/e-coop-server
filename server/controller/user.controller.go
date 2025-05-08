@@ -508,6 +508,7 @@ func (uc *UserController) UserSettingsChangeProfilePicture(c echo.Context) error
 }
 
 func (uc *UserController) APIRoutes(e *echo.Echo) {
+
 	group := e.Group("")
 	group.GET("/authentication/current", uc.UserCurrent)
 
