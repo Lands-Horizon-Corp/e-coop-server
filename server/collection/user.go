@@ -92,8 +92,7 @@ type (
 	}
 
 	UserForgotPasswordRequest struct {
-		Email         string `json:"email" validate:"omitempty,email"`
-		ContactNumber string `json:"contact_number" validate:"omitempty,min=7,max=20"`
+		Key string `json:"key" validate:"required"`
 	}
 
 	UserChangePasswordRequest struct {

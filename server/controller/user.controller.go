@@ -131,10 +131,28 @@ func (uc *UserController) UserRegister(c echo.Context) error {
 func (uc *UserController) UserForgotPassword(c echo.Context) error {
 	req, err := uc.collector.UserForgotPasswordValidation(c)
 	if err != nil {
-		return err
+		return echo.NewHTTPError(http.StatusBadRequest, "please provide a valid email or contact number")
 	}
-	fmt.Println(req)
-
+	user, err := uc.repo.FindByIdentifier(req.Key)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusNotFound, "no account found with those details")
+	}
+	_, err = uc.authentication.GenerateSMTPLink("/change-password-password", horizon.Claim{
+		ID:            user.ID.String(),
+		Email:         user.Email,
+		ContactNumber: user.ContactNumber,
+	})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to send reset link, please try again later")
+	}
+	_, err = uc.authentication.GenerateSMSLink("/change-password-password", horizon.Claim{
+		ID:            user.ID.String(),
+		Email:         user.Email,
+		ContactNumber: user.ContactNumber,
+	})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to send reset link, please try again later")
+	}
 	return c.NoContent(http.StatusOK)
 }
 
