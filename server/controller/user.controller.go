@@ -195,9 +195,10 @@ func (uc *UserController) UserChangePassword(c echo.Context) error {
 	}
 
 	// Use Updates() to only update specific fields
-	if err := uc.repo.UpdateFields(id, map[string]any{
-		"password":   hashedPwd,
-		"updated_at": time.Now().UTC(),
+
+	if err := uc.repo.UpdateFields(id, &collection.User{
+		Password:  hashedPwd,
+		UpdatedAt: time.Now().UTC(),
 	}); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to update password: "+err.Error())
 	}
@@ -239,12 +240,14 @@ func (uc *UserController) UserVerifyContactNumber(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "invalid user ID in token")
 	}
-	if err := uc.repo.UpdateFields(id, map[string]any{
-		"is_contact_verified": true,
-		"updated_at":          time.Now().UTC(),
+
+	if err := uc.repo.UpdateFields(id, &collection.User{
+		IsContactVerified: true,
+		UpdatedAt:         time.Now().UTC(),
 	}); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "failed to update contact verification: "+err.Error())
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to update password: "+err.Error())
 	}
+
 	updatedUser, err := uc.repo.GetByID(id)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to fetch updated user")
@@ -281,12 +284,14 @@ func (uc *UserController) UserVerifyEmail(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "invalid user ID in token")
 	}
-	if err := uc.repo.UpdateFields(id, map[string]any{
-		"is_email_verified": true,
-		"updated_at":        time.Now().UTC(),
+
+	if err := uc.repo.UpdateFields(id, &collection.User{
+		IsEmailVerified: true,
+		UpdatedAt:       time.Now().UTC(),
 	}); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "failed to update email verification: "+err.Error())
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to update password: "+err.Error())
 	}
+
 	updatedUser, err := uc.repo.GetByID(id)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to fetch updated user")
