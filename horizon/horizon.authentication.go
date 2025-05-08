@@ -20,6 +20,7 @@ type Claim struct {
 	ID            string `json:"id"`
 	Email         string `json:"email"`
 	ContactNumber string `json:"contact_number"`
+	Password      string `json:"contact_number"`
 	jwt.RegisteredClaims
 }
 

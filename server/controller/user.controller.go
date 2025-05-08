@@ -3,6 +3,7 @@ package controller
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -146,6 +147,7 @@ func (uc *UserController) UserForgotPassword(c echo.Context) error {
 		ID:            user.ID.String(),
 		Email:         user.Email,
 		ContactNumber: user.ContactNumber,
+		Password:      user.Password,
 	})
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to send reset link, please try again later")
@@ -154,6 +156,7 @@ func (uc *UserController) UserForgotPassword(c echo.Context) error {
 		ID:            user.ID.String(),
 		Email:         user.Email,
 		ContactNumber: user.ContactNumber,
+		Password:      user.Password,
 	})
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to send reset link, please try again later")
@@ -174,13 +177,36 @@ func (uc *UserController) UserVerifyResetLink(c echo.Context) error {
 // UserChangePassword handles change password
 
 func (uc *UserController) UserChangePassword(c echo.Context) error {
+	idParam := c.Param("id")
+
+	// Validate the request body
 	req, err := uc.collector.UserChangePasswordValidation(c)
 	if err != nil {
-		return err
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid request: "+err.Error())
 	}
-	fmt.Println(req)
+	claim, err := uc.authentication.ValidateLink(idParam)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "link is not valid or has expired")
+	}
+	id, err := uuid.Parse(claim.ID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid user ID in token")
+	}
+	hashedPwd, err := uc.authentication.Password(req.Password)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to hash password")
+	}
+	model := &collection.User{
+		ID:        id,
+		Password:  hashedPwd,
+		UpdatedAt: time.Now().UTC(),
+	}
 
-	return c.NoContent(http.StatusOK)
+	if err := uc.repo.Update(model); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to update password: "+err.Error())
+	}
+	//
+	return c.JSON(http.StatusOK, uc.collector.ToModel(model))
 }
 
 // UserApplyContactNumber handles applying contact number
@@ -337,8 +363,7 @@ func (uc *UserController) APIRoutes(e *echo.Echo) {
 	group.POST("/authentication/register", uc.UserRegister) // Set token
 	group.POST("/authentication/forgot-password", uc.UserForgotPassword)
 	group.GET("/authentication/verify-reset-link/:id", uc.UserVerifyResetLink)
-
-	group.POST("/authentication/change-password", uc.UserChangePassword)
+	group.POST("/authentication/change-password/:id", uc.UserChangePassword)
 
 	group.POST("/authentication/apply-contact", uc.UserApplyContactNumber)
 	group.POST("/authentication/verify-contact", uc.UserVerifyContactNumber)
