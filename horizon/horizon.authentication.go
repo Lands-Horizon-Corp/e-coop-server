@@ -147,7 +147,7 @@ func (ha *HorizonAuthentication) GenerateSMTPLink(baseURL string, c Claim) (stri
 		req := r.(map[string]any)
 		return ha.smtp.Send(&SMTPRequest{To: req["To"].(string), Subject: req["Subject"].(string), Body: req["Body"].(string)})
 	}
-	return ha.generateLink(baseURL, c, "email-forgot-password.html", rndr, sndr, subj)
+	return ha.generateLink(baseURL, c, "email-forgot-password.html", rndr, sndr, subj, false)
 }
 
 func (ha *HorizonAuthentication) GenerateSMSLink(baseURL string, c Claim) (string, error) {
@@ -159,7 +159,7 @@ func (ha *HorizonAuthentication) GenerateSMSLink(baseURL string, c Claim) (strin
 		req := r.(map[string]any)
 		return ha.sms.Send(&SMSRequest{To: req["To"].(string), Subject: req["Subject"].(string), Body: req["Body"].(string)})
 	}
-	return ha.generateLink(baseURL, c, "sms-forgot-password.txt", rndr, sndr, subj)
+	return ha.generateLink(baseURL, c, "sms-forgot-password.txt", rndr, sndr, subj, true)
 }
 
 func (ha *HorizonAuthentication) ValidateLink(input string) (*Claim, error) {
@@ -233,7 +233,7 @@ func (ha *HorizonAuthentication) secureKey(c Claim, channel string) string {
 	return string(ha.security.Hash(base + ha.config.AppTokenName + "auth"))
 }
 
-func (ha *HorizonAuthentication) generateLink(baseURL string, c Claim, tplFile string, render func(string, map[string]string) (string, error), send func(any) error, subject string) (string, error) {
+func (ha *HorizonAuthentication) generateLink(baseURL string, c Claim, tplFile string, render func(string, map[string]string) (string, error), send func(any) error, subject string, isSMS bool) (string, error) {
 	c.ExpiresAt = jwt.NewNumericDate(time.Now().Add(tokenLinkValidity))
 	token, err := ha.GenerateToken(c)
 	if err != nil {
@@ -253,11 +253,20 @@ func (ha *HorizonAuthentication) generateLink(baseURL string, c Claim, tplFile s
 		return "", eris.Wrap(err, "template rendering failed")
 	}
 
+	// Determine if it's an SMS or email, and set the recipient accordingly
+	var recipient string
+	if isSMS {
+		recipient = c.ContactNumber // Send to contact number for SMS
+	} else {
+		recipient = c.Email // Default to email for sending emails
+	}
+
 	req := map[string]any{
-		"To":      c.Email,
+		"To":      recipient,
 		"Subject": subject,
 		"Body":    body,
 	}
+
 	if err := send(req); err != nil {
 		return "", eris.Wrap(err, "sending failed")
 	}
