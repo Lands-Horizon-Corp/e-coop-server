@@ -50,7 +50,10 @@ func (uc *UserController) UserCurrent(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, "user not found")
 	}
-	return c.JSON(http.StatusOK, uc.collector.ToModel(user))
+	return c.JSON(http.StatusOK, collection.CurrentUserResponse{
+		UserID: user.ID,
+		User:   uc.collector.ToModel(user),
+	})
 }
 
 func (uc *UserController) UserLogin(c echo.Context) error {
@@ -72,7 +75,10 @@ func (uc *UserController) UserLogin(c echo.Context) error {
 	}); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to set authentication token")
 	}
-	return c.JSON(http.StatusOK, uc.collector.ToModel(user))
+	return c.JSON(http.StatusOK, collection.CurrentUserResponse{
+		UserID: user.ID,
+		User:   uc.collector.ToModel(user),
+	})
 }
 
 // UserRegister handles user registration
@@ -114,7 +120,10 @@ func (uc *UserController) UserRegister(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to set authentication token")
 	}
 
-	return c.JSON(http.StatusCreated, uc.collector.ToModel(user))
+	return c.JSON(http.StatusOK, collection.CurrentUserResponse{
+		UserID: user.ID,
+		User:   uc.collector.ToModel(user),
+	})
 }
 
 // UserForgotPassword handles forgot password

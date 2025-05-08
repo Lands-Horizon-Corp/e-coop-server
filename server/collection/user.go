@@ -68,6 +68,10 @@ type (
 		DeletedAt         *string           `json:"deleted_at,omitempty"`
 		QRCode            *horizon.QRResult `json:"qr_code,omitempty"`
 	}
+	CurrentUserResponse struct {
+		UserID uuid.UUID     `json:"user_id"`
+		User   *UserResponse `json:"user"`
+	}
 
 	UserLoginRequest struct {
 		Key      string `json:"key" validate:"required"`
