@@ -17,12 +17,17 @@ type (
 		UpdatedAt time.Time
 		DeletedAt gorm.DeletedAt `gorm:"index"`
 
-		Name          string  `gorm:"type:varchar(255);not null"`
-		Address       *string `gorm:"type:varchar(500)"`
-		Email         *string `gorm:"type:varchar(255)"`
-		ContactNumber *string `gorm:"type:varchar(20)"`
-		Description   *string `gorm:"type:text"`
-		Color         *string `gorm:"type:varchar(50)"`
+		Name               string  `gorm:"type:varchar(255);not null"`
+		Address            *string `gorm:"type:varchar(500)"`
+		Email              *string `gorm:"type:varchar(255)"`
+		ContactNumber      *string `gorm:"type:varchar(20)"`
+		Description        *string `gorm:"type:text"`
+		Color              *string `gorm:"type:varchar(50)"`
+		TermsAndConditions *string `gorm:"type:text"`
+		PrivacyPolicy      *string `gorm:"type:text"`
+		CookiePolicy       *string `gorm:"type:text"`
+		RefundPolicy       *string `gorm:"type:text"`
+		UserAgreement      *string `gorm:"type:text"`
 
 		MediaID *uuid.UUID `gorm:"type:uuid"`
 		Media   *Media     `gorm:"foreignKey:MediaID;constraint:OnDelete:SET NULL;" json:"media,omitempty"`
@@ -43,12 +48,17 @@ type (
 	}
 
 	OrganizationRequest struct {
-		Name          string  `json:"name" validate:"required,min=1,max=255"`
-		Address       *string `json:"address,omitempty"`
-		Email         *string `json:"email,omitempty" validate:"omitempty,email"`
-		ContactNumber *string `json:"contact_number,omitempty"`
-		Description   *string `json:"description,omitempty"`
-		Color         *string `json:"color,omitempty"`
+		Name               string  `json:"name" validate:"required,min=1,max=255"`
+		Address            *string `json:"address,omitempty"`
+		Email              *string `json:"email,omitempty" validate:"omitempty,email"`
+		ContactNumber      *string `json:"contact_number,omitempty"`
+		Description        *string `json:"description,omitempty"`
+		Color              *string `json:"color,omitempty"`
+		TermsAndConditions *string `json:"terms_and_conditions,omitempty"`
+		PrivacyPolicy      *string `json:"privacy_policy,omitempty"`
+		CookiePolicy       *string `json:"cookie_policy,omitempty"`
+		RefundPolicy       *string `json:"refund_policy,omitempty"`
+		UserAgreement      *string `json:"user_agreement,omitempty"`
 
 		MediaID      *uuid.UUID `json:"media_id,omitempty"`
 		CoverMediaID *uuid.UUID `json:"cover_media_id,omitempty"`
@@ -67,13 +77,18 @@ type (
 	}
 
 	OrganizationResponse struct {
-		ID            uuid.UUID `json:"id"`
-		Name          string    `json:"name"`
-		Address       *string   `json:"address,omitempty"`
-		Email         *string   `json:"email,omitempty"`
-		ContactNumber *string   `json:"contact_number,omitempty"`
-		Description   *string   `json:"description,omitempty"`
-		Color         *string   `json:"color,omitempty"`
+		ID                 uuid.UUID `json:"id"`
+		Name               string    `json:"name"`
+		Address            *string   `json:"address,omitempty"`
+		Email              *string   `json:"email,omitempty"`
+		ContactNumber      *string   `json:"contact_number,omitempty"`
+		Description        *string   `json:"description,omitempty"`
+		Color              *string   `json:"color,omitempty"`
+		TermsAndConditions *string   `json:"terms_and_conditions,omitempty"`
+		PrivacyPolicy      *string   `json:"privacy_policy,omitempty"`
+		CookiePolicy       *string   `json:"cookie_policy,omitempty"`
+		RefundPolicy       *string   `json:"refund_policy,omitempty"`
+		UserAgreement      *string   `json:"user_agreement,omitempty"`
 
 		MediaID      *uuid.UUID     `json:"media_id,omitempty"`
 		Media        *MediaResponse `json:"media,omitempty"`
@@ -148,13 +163,18 @@ func (oc *OrganizationCollection) ToModel(o *Organization) *OrganizationResponse
 		deletedAt = &t
 	}
 	resp := &OrganizationResponse{
-		ID:            o.ID,
-		Name:          o.Name,
-		Address:       o.Address,
-		Email:         o.Email,
-		ContactNumber: o.ContactNumber,
-		Description:   o.Description,
-		Color:         o.Color,
+		ID:                 o.ID,
+		Name:               o.Name,
+		Address:            o.Address,
+		Email:              o.Email,
+		ContactNumber:      o.ContactNumber,
+		Description:        o.Description,
+		Color:              o.Color,
+		TermsAndConditions: o.TermsAndConditions,
+		PrivacyPolicy:      o.PrivacyPolicy,
+		CookiePolicy:       o.CookiePolicy,
+		RefundPolicy:       o.RefundPolicy,
+		UserAgreement:      o.UserAgreement,
 
 		MediaID:      o.MediaID,
 		Media:        oc.mediaCol.ToModel(o.Media),
