@@ -507,6 +507,34 @@ func (uc *UserController) UserSettingsChangeProfilePicture(c echo.Context) error
 	return c.JSON(http.StatusOK, uc.collector.ToModel(updatedUser))
 }
 
+func (uc *UserController) UserSettingsChangeProfile(c echo.Context) error {
+	req, err := uc.collector.UserSettingsChangeProfileValidation(c)
+	if err != nil {
+		return err
+	}
+	user, err := uc.provider.CurrentUser(c)
+	if err != nil {
+		return err
+	}
+	if err := uc.repo.UpdateFields(user.ID, &collection.User{
+		Birthdate:   req.Birthdate,
+		Description: req.Description,
+		FirstName:   req.FirstName,
+		MiddleName:  req.MiddleName,
+		LastName:    req.LastName,
+		FullName:    req.FullName,
+		Suffix:      req.Suffix,
+		UpdatedAt:   time.Now().UTC(),
+	}); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to update password: "+err.Error())
+	}
+	updatedUser, err := uc.repo.GetByID(user.ID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to fetch updated user")
+	}
+	return c.JSON(http.StatusOK, uc.collector.ToModel(updatedUser))
+}
+
 func (uc *UserController) APIRoutes(e *echo.Echo) {
 
 	group := e.Group("")
@@ -532,4 +560,5 @@ func (uc *UserController) APIRoutes(e *echo.Echo) {
 	group.PUT("/settings/username", uc.UserSettingsChangeUsername)
 	group.PUT("/settings/contact", uc.UserSettingsChangeContactNumber)
 	group.PUT("/settings/profile-picture", uc.UserSettingsChangeProfilePicture)
+	group.PUT("/settings/profile", uc.UserSettingsChangeProfile)
 }

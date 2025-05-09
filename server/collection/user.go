@@ -34,12 +34,13 @@ type (
 		Password  string     `gorm:"type:varchar(255);not null" json:"-"`
 		Birthdate *time.Time `gorm:"type:date" json:"birthdate,omitempty"`
 
-		UserName   string  `gorm:"type:varchar(100);not null;unique" json:"user_name"`
-		FirstName  *string `gorm:"type:varchar(100)" json:"first_name,omitempty"`
-		MiddleName *string `gorm:"type:varchar(100)" json:"middle_name,omitempty"`
-		LastName   *string `gorm:"type:varchar(100)" json:"last_name,omitempty"`
-		FullName   *string `gorm:"type:varchar(255)" json:"full_name,omitempty"`
-		Suffix     *string `gorm:"type:varchar(50)" json:"suffix,omitempty"`
+		UserName    string  `gorm:"type:varchar(100);not null;unique" json:"user_name"`
+		FirstName   *string `gorm:"type:varchar(100)" json:"first_name,omitempty"`
+		MiddleName  *string `gorm:"type:varchar(100)" json:"middle_name,omitempty"`
+		LastName    *string `gorm:"type:varchar(100)" json:"last_name,omitempty"`
+		FullName    *string `gorm:"type:varchar(255)" json:"full_name,omitempty"`
+		Suffix      *string `gorm:"type:varchar(50)" json:"suffix,omitempty"`
+		Description *string `gorm:"type:text"`
 
 		Email           string `gorm:"type:varchar(255);not null;unique" json:"email"`
 		IsEmailVerified bool   `gorm:"default:false" json:"is_email_verified"`
@@ -53,6 +54,7 @@ type (
 		Media             *MediaResponse    `json:"media,omitempty"`
 		Birthdate         *string           `json:"birthdate,omitempty"`
 		UserName          string            `json:"user_name"`
+		Description       *string           `gorm:"type:text"`
 		FirstName         *string           `json:"first_name,omitempty"`
 		MiddleName        *string           `json:"middle_name,omitempty"`
 		LastName          *string           `json:"last_name,omitempty"`
@@ -146,6 +148,16 @@ type (
 
 	UserSettingsChangeProfilePictureRequest struct {
 		MediaID *uuid.UUID `json:"media_id,omitempty"`
+	}
+
+	UserSettingsChangeProfileRequest struct {
+		Birthdate   *time.Time `json:"birthdate,omitempty"`
+		Description *string    `gorm:"type:text"`
+		FirstName   *string    `json:"first_name,omitempty"`
+		MiddleName  *string    `json:"middle_name,omitempty"`
+		LastName    *string    `json:"last_name,omitempty"`
+		FullName    *string    `json:"full_name,omitempty"`
+		Suffix      *string    `json:"suffix,omitempty"`
 	}
 )
 
@@ -310,6 +322,17 @@ func (uc *UserCollection) UserSettingsChangeProfilePictureValidation(c echo.Cont
 	return u, nil
 }
 
+func (uc *UserCollection) UserSettingsChangeProfileValidation(c echo.Context) (*UserSettingsChangeProfileRequest, error) {
+	u := new(UserSettingsChangeProfileRequest)
+	if err := c.Bind(u); err != nil {
+		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+	if err := uc.validator.Struct(u); err != nil {
+		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+	return u, nil
+}
+
 func (uc *UserCollection) ToModel(data *User) *UserResponse {
 	if data == nil {
 		return nil
@@ -335,6 +358,7 @@ func (uc *UserCollection) ToModel(data *User) *UserResponse {
 		Birthdate:         dateformat(data.Birthdate),
 		UserName:          data.UserName,
 		FirstName:         data.FirstName,
+		Description:       data.Description,
 		MiddleName:        data.MiddleName,
 		LastName:          data.LastName,
 		FullName:          data.FullName,
