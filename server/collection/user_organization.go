@@ -12,24 +12,23 @@ import (
 
 type (
 	UserOrganization struct {
-		ID        uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
-		CreatedAt time.Time      `gorm:"not null;default:now()"`
-		UpdatedAt time.Time      `gorm:"not null;default:now()"`
-		DeletedAt gorm.DeletedAt `gorm:"index"`
+		ID             uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
+		CreatedAt      time.Time      `gorm:"not null;default:now()"`
+		UpdatedAt      time.Time      `gorm:"not null;default:now()"`
+		DeletedAt      gorm.DeletedAt `gorm:"index"`
+		OrganizationID uuid.UUID      `gorm:"type:uuid;not null;index:idx_org_branch,unique"`
+		Organization   *Organization  `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE;" json:"organization,omitempty"`
+		BranchID       uuid.UUID      `gorm:"type:uuid;not null;index:idx_org_branch,unique"`
+		Branch         *Branch        `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE;" json:"branch,omitempty"`
 
-		UserType       string        `gorm:"type:varchar(50);not null"`
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null"`
-		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE;" json:"organization,omitempty"`
+		UserType               string    `gorm:"type:varchar(50);not null"`
+		UserID                 uuid.UUID `gorm:"type:uuid;not null"`
+		User                   *User     `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE;" json:"user,omitempty"`
+		Description            string    `gorm:"type:text" json:"description,omitempty"`
+		ApplicationDescription string    `gorm:"type:text" json:"application_description,omitempty"`
+		ApplicationStatus      string    `gorm:"type:varchar(50);not null;default:'pending'" json:"application_status"`
 
-		BranchID uuid.UUID `gorm:"type:uuid;not null"`
-		Branch   *Branch   `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE;" json:"branch,omitempty"`
-
-		UserID uuid.UUID `gorm:"type:uuid;not null"`
-		User   *User     `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE;" json:"user,omitempty"`
-
-		Description            string `gorm:"type:text" json:"description,omitempty"`
-		ApplicationDescription string `gorm:"type:text" json:"application_description,omitempty"`
-		ApplicationStatus      string `gorm:"type:varchar(50);not null;default:'pending'" json:"application_status"`
+		DeveloperSecretKey string `gorm:"type:varchar(255);not null;unique" json:"developer_secret_key"`
 	}
 
 	UserOrganizationRequest struct {
@@ -54,8 +53,11 @@ type (
 		Description            string                `json:"description,omitempty"`
 		ApplicationDescription string                `json:"application_description,omitempty"`
 		ApplicationStatus      string                `json:"application_status"`
+		DeveloperSecretKey     string                `json:"developer_secret_key"`
 		CreatedAt              string                `json:"created_at"`
 		UpdatedAt              string                `json:"updated_at"`
+
+		// ROles : []
 	}
 
 	UserOrganizationCollection struct {
