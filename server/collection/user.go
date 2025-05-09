@@ -107,13 +107,11 @@ type (
 	}
 
 	UserVerifyEmailRequest struct {
-		Email string `json:"email" validate:"required,email"`
-		OTP   string `json:"otp" validate:"required,min=6"`
+		OTP string `json:"otp" validate:"required,min=6"`
 	}
 
 	UserVerifyWithEmailConfirmationRequest struct {
-		Email string `json:"email" validate:"required,email"`
-		OTP   string `json:"otp" validate:"required,min=6"`
+		OTP string `json:"otp" validate:"required,min=6"`
 	}
 
 	UserVerifyWithContactNumberRequest struct {
@@ -121,8 +119,7 @@ type (
 	}
 
 	UserVerifyWithContactNumberConfirmationRequest struct {
-		ContactNumber string `json:"contact_number" validate:"required,min=7,max=20"`
-		OTP           string `json:"otp" validate:"required,min=6"`
+		OTP string `json:"otp" validate:"required,min=6"`
 	}
 
 	UserSettingsChangePasswordRequest struct {
