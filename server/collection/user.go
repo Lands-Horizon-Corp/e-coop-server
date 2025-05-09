@@ -149,7 +149,7 @@ type (
 
 	UserSettingsChangeProfileRequest struct {
 		Birthdate   *time.Time `json:"birthdate,omitempty"`
-		Description *string    `gorm:"type:text"`
+		Description *string    `json:"description,omitempty"`
 		FirstName   *string    `json:"first_name,omitempty"`
 		MiddleName  *string    `json:"middle_name,omitempty"`
 		LastName    *string    `json:"last_name,omitempty"`
