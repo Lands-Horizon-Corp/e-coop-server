@@ -12,13 +12,12 @@ import (
 
 type (
 	Branch struct {
-		ID        uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
-		CreatedAt time.Time      `gorm:"not null;default:now()"`
-		UpdatedAt time.Time      `gorm:"not null;default:now()"`
-		DeletedAt gorm.DeletedAt `gorm:"index"`
-
-		OrganizationID uuid.UUID    `gorm:"type:uuid;not null"`
-		Organization   Organization `gorm:"foreignKey:OrganizationID"`
+		ID             uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
+		CreatedAt      time.Time      `gorm:"not null;default:now()"`
+		UpdatedAt      time.Time      `gorm:"not null;default:now()"`
+		DeletedAt      gorm.DeletedAt `gorm:"index"`
+		OrganizationID uuid.UUID      `gorm:"type:uuid;not null"`
+		Organization   Organization   `gorm:"foreignKey:OrganizationID"`
 
 		MediaID *uuid.UUID `gorm:"type:uuid"`
 		Media   *Media     `gorm:"foreignKey:MediaID;constraint:OnDelete:SET NULL;" json:"media,omitempty"`
@@ -37,11 +36,8 @@ type (
 		Barangay   string `gorm:"type:varchar(100);not null"`
 		PostalCode string `gorm:"type:varchar(20);not null"`
 
-		Latitude  *float64
-		Longitude *float64
-
-		IsMainBranch    bool
-		IsAdminVerified *bool
+		Latitude  *float64 `gorm:"type:double precision" json:"latitude,omitempty"`
+		Longitude *float64 `gorm:"type:double precision" json:"longitude,omitempty"`
 	}
 
 	BranchRequest struct {
@@ -130,24 +126,22 @@ func (bc *BranchCollection) ToModel(branch *Branch) *BranchResponse {
 		MediaID:        branch.MediaID,
 		Media:          bc.media.ToModel(branch.Media),
 
-		Type:            branch.Type,
-		Name:            branch.Name,
-		Email:           branch.Email,
-		Description:     branch.Description,
-		CountryCode:     branch.CountryCode,
-		ContactNumber:   branch.ContactNumber,
-		Address:         branch.Address,
-		Province:        branch.Province,
-		City:            branch.City,
-		Region:          branch.Region,
-		Barangay:        branch.Barangay,
-		PostalCode:      branch.PostalCode,
-		Latitude:        branch.Latitude,
-		Longitude:       branch.Longitude,
-		IsMainBranch:    branch.IsMainBranch,
-		IsAdminVerified: branch.IsAdminVerified,
-		CreatedAt:       branch.CreatedAt.Format(time.RFC3339),
-		UpdatedAt:       branch.UpdatedAt.Format(time.RFC3339),
+		Type:          branch.Type,
+		Name:          branch.Name,
+		Email:         branch.Email,
+		Description:   branch.Description,
+		CountryCode:   branch.CountryCode,
+		ContactNumber: branch.ContactNumber,
+		Address:       branch.Address,
+		Province:      branch.Province,
+		City:          branch.City,
+		Region:        branch.Region,
+		Barangay:      branch.Barangay,
+		PostalCode:    branch.PostalCode,
+		Latitude:      branch.Latitude,
+		Longitude:     branch.Longitude,
+		CreatedAt:     branch.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:     branch.UpdatedAt.Format(time.RFC3339),
 	}
 }
 

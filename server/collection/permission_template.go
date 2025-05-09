@@ -13,11 +13,17 @@ import (
 )
 
 type (
-	RoleTemplate struct {
+	PermissionTemplate struct {
 		ID             uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
 		CreatedAt      time.Time      `gorm:"not null;default:now()"`
+		CreatedByID    uuid.UUID      `gorm:"type:uuid"`
+		CreatedBy      *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
 		UpdatedAt      time.Time      `gorm:"not null;default:now()"`
+		UpdatedByID    uuid.UUID      `gorm:"type:uuid"`
+		UpdatedBy      *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
 		DeletedAt      gorm.DeletedAt `gorm:"index"`
+		DeletedByID    *uuid.UUID     `gorm:"type:uuid"`
+		DeletedBy      *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
 		OrganizationID uuid.UUID      `gorm:"type:uuid;not null;index:idx_org_branch,unique"`
 		Organization   *Organization  `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE;" json:"organization,omitempty"`
 		BranchID       uuid.UUID      `gorm:"type:uuid;not null;index:idx_org_branch,unique"`
@@ -28,7 +34,7 @@ type (
 		Permissions pq.StringArray `gorm:"type:varchar[];default:'{}'"`
 	}
 
-	RoleTemplateRequest struct {
+	PermissionTemplateRequest struct {
 		OrganizationID uuid.UUID `json:"organization_id" validate:"required"`
 		BranchID       uuid.UUID `json:"branch_id" validate:"required"`
 		Name           string    `json:"name" validate:"required,min=1,max=255"`
@@ -36,39 +42,47 @@ type (
 		Permissions    []string  `json:"permissions,omitempty"`
 	}
 
-	RoleTemplateResponse struct {
+	PermissionTemplateResponse struct {
 		ID             uuid.UUID             `json:"id"`
+		CreatedAt      string                `json:"created_at"`
+		CreatedByID    uuid.UUID             `json:"created_by_id"`
+		CreatedBy      *UserResponse         `json:"created_by,omitempty"`
+		UpdatedAt      string                `json:"updated_at"`
+		UpdatedByID    uuid.UUID             `json:"updated_by_id"`
+		UpdatedBy      *UserResponse         `json:"updated_by,omitempty"`
 		OrganizationID uuid.UUID             `json:"organization_id"`
 		Organization   *OrganizationResponse `json:"organization,omitempty"`
 		BranchID       uuid.UUID             `json:"branch_id"`
 		Branch         *BranchResponse       `json:"branch,omitempty"`
-		Name           string                `json:"name"`
-		Description    string                `json:"description,omitempty"`
-		Permissions    []string              `json:"permissions"`
-		CreatedAt      string                `json:"created_at"`
-		UpdatedAt      string                `json:"updated_at"`
+
+		Name        string   `json:"name"`
+		Description string   `json:"description,omitempty"`
+		Permissions []string `json:"permissions"`
 	}
 
-	RoleTemplateCollection struct {
+	PermissionTemplateCollection struct {
 		validator       *validator.Validate
 		organizationCol *OrganizationCollection
 		branchCol       *BranchCollection
+		userCol         *UserCollection
 	}
 )
 
-func NewRoleTemplateCollection(
+func NewPermissionTemplateCollection(
 	organizationCol *OrganizationCollection,
 	branchCol *BranchCollection,
-) *RoleTemplateCollection {
-	return &RoleTemplateCollection{
+	userCol *UserCollection,
+) *PermissionTemplateCollection {
+	return &PermissionTemplateCollection{
 		validator:       validator.New(),
 		organizationCol: organizationCol,
 		branchCol:       branchCol,
+		userCol:         userCol,
 	}
 }
 
-func (rtc *RoleTemplateCollection) ValidateCreate(c echo.Context) (*RoleTemplateRequest, error) {
-	req := new(RoleTemplateRequest)
+func (rtc *PermissionTemplateCollection) ValidateCreate(c echo.Context) (*PermissionTemplateRequest, error) {
+	req := new(PermissionTemplateRequest)
 	if err := c.Bind(req); err != nil {
 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
@@ -78,29 +92,34 @@ func (rtc *RoleTemplateCollection) ValidateCreate(c echo.Context) (*RoleTemplate
 	return req, nil
 }
 
-func (rtc *RoleTemplateCollection) ToModel(rt *RoleTemplate) *RoleTemplateResponse {
+func (rtc *PermissionTemplateCollection) ToModel(rt *PermissionTemplate) *PermissionTemplateResponse {
 	if rt == nil {
 		return nil
 	}
-	return &RoleTemplateResponse{
+	return &PermissionTemplateResponse{
 		ID:             rt.ID,
+		CreatedAt:      rt.CreatedAt.Format(time.RFC3339),
+		CreatedByID:    rt.CreatedByID,
+		CreatedBy:      rtc.userCol.ToModel(rt.CreatedBy),
+		UpdatedAt:      rt.UpdatedAt.Format(time.RFC3339),
+		UpdatedByID:    rt.UpdatedByID,
+		UpdatedBy:      rtc.userCol.ToModel(rt.UpdatedBy),
 		OrganizationID: rt.OrganizationID,
 		Organization:   rtc.organizationCol.ToModel(rt.Organization),
 		BranchID:       rt.BranchID,
 		Branch:         rtc.branchCol.ToModel(rt.Branch),
-		Name:           rt.Name,
-		Description:    rt.Description,
-		Permissions:    rt.Permissions,
-		CreatedAt:      rt.CreatedAt.Format(time.RFC3339),
-		UpdatedAt:      rt.UpdatedAt.Format(time.RFC3339),
+
+		Name:        rt.Name,
+		Description: rt.Description,
+		Permissions: rt.Permissions,
 	}
 }
 
-func (rtc *RoleTemplateCollection) ToModels(data []*RoleTemplate) []*RoleTemplateResponse {
+func (rtc *PermissionTemplateCollection) ToModels(data []*PermissionTemplate) []*PermissionTemplateResponse {
 	if len(data) == 0 {
-		return []*RoleTemplateResponse{}
+		return []*PermissionTemplateResponse{}
 	}
-	out := make([]*RoleTemplateResponse, 0, len(data))
+	out := make([]*PermissionTemplateResponse, 0, len(data))
 	for _, rt := range data {
 		if m := rtc.ToModel(rt); m != nil {
 			out = append(out, m)

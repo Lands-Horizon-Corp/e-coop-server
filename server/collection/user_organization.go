@@ -7,6 +7,7 @@ import (
 	"github.com/go-playground/validator"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lib/pq"
 	"gorm.io/gorm"
 )
 
@@ -14,8 +15,14 @@ type (
 	UserOrganization struct {
 		ID             uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
 		CreatedAt      time.Time      `gorm:"not null;default:now()"`
+		CreatedByID    uuid.UUID      `gorm:"type:uuid"`
+		CreatedBy      *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
 		UpdatedAt      time.Time      `gorm:"not null;default:now()"`
+		UpdatedByID    uuid.UUID      `gorm:"type:uuid"`
+		UpdatedBy      *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
 		DeletedAt      gorm.DeletedAt `gorm:"index"`
+		DeletedByID    *uuid.UUID     `gorm:"type:uuid"`
+		DeletedBy      *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
 		OrganizationID uuid.UUID      `gorm:"type:uuid;not null;index:idx_org_branch,unique"`
 		Organization   *Organization  `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE;" json:"organization,omitempty"`
 		BranchID       uuid.UUID      `gorm:"type:uuid;not null;index:idx_org_branch,unique"`
@@ -28,7 +35,10 @@ type (
 		ApplicationDescription string    `gorm:"type:text" json:"application_description,omitempty"`
 		ApplicationStatus      string    `gorm:"type:varchar(50);not null;default:'pending'" json:"application_status"`
 
-		DeveloperSecretKey string `gorm:"type:varchar(255);not null;unique" json:"developer_secret_key"`
+		DeveloperSecretKey    string         `gorm:"type:varchar(255);not null;unique" json:"developer_secret_key"`
+		PermissionName        string         `gorm:"type:varchar(255);not null" json:"permission_name"`
+		PermissionDescription string         `gorm:"type:varchar(255);not null" json:"permission_description"`
+		Permissions           pq.StringArray `gorm:"type:varchar[];default:'{}'"`
 	}
 
 	UserOrganizationRequest struct {
@@ -39,25 +49,35 @@ type (
 		Description            string    `json:"description,omitempty"`
 		ApplicationDescription string    `json:"application_description,omitempty"`
 		ApplicationStatus      string    `json:"application_status" validate:"required,oneof=pending reported accepted ban"`
+
+		PermissionName        string         `json:"permission_name" validate:"required"`
+		PermissionDescription string         `json:"permission_description" validate:"required"`
+		Permissions           pq.StringArray `json:"permissions,omitempty" validate:"dive,required"`
 	}
 
 	UserOrganizationResponse struct {
-		ID                     uuid.UUID             `json:"id"`
-		UserType               string                `json:"user_type"`
-		OrganizationID         uuid.UUID             `json:"organization_id"`
-		Organization           *OrganizationResponse `json:"organization,omitempty"`
-		BranchID               uuid.UUID             `json:"branch_id"`
-		Branch                 *BranchResponse       `json:"branch,omitempty"`
-		UserID                 uuid.UUID             `json:"user_id"`
-		User                   *UserResponse         `json:"user,omitempty"`
-		Description            string                `json:"description,omitempty"`
-		ApplicationDescription string                `json:"application_description,omitempty"`
-		ApplicationStatus      string                `json:"application_status"`
-		DeveloperSecretKey     string                `json:"developer_secret_key"`
-		CreatedAt              string                `json:"created_at"`
-		UpdatedAt              string                `json:"updated_at"`
+		ID             uuid.UUID             `json:"id"`
+		CreatedAt      string                `json:"created_at"`
+		CreatedByID    uuid.UUID             `json:"created_by_id"`
+		CreatedBy      *UserResponse         `json:"created_by,omitempty"`
+		UpdatedAt      string                `json:"updated_at"`
+		UpdatedByID    uuid.UUID             `json:"updated_by_id"`
+		UpdatedBy      *UserResponse         `json:"updated_by,omitempty"`
+		OrganizationID uuid.UUID             `json:"organization_id"`
+		Organization   *OrganizationResponse `json:"organization,omitempty"`
+		BranchID       uuid.UUID             `json:"branch_id"`
+		Branch         *BranchResponse       `json:"branch,omitempty"`
 
-		// ROles : []
+		UserType               string        `json:"user_type"`
+		UserID                 uuid.UUID     `json:"user_id"`
+		User                   *UserResponse `json:"user,omitempty"`
+		Description            string        `json:"description,omitempty"`
+		ApplicationDescription string        `json:"application_description,omitempty"`
+		ApplicationStatus      string        `json:"application_status"`
+		DeveloperSecretKey     string        `json:"developer_secret_key"`
+		PermissionName         string        `json:"permission_name"`
+		PermissionDescription  string        `json:"permission_description"`
+		Permissions            []string      `json:"permissions"`
 	}
 
 	UserOrganizationCollection struct {
@@ -97,19 +117,28 @@ func (uoc *UserOrganizationCollection) ToModel(uo *UserOrganization) *UserOrgani
 		return nil
 	}
 	return &UserOrganizationResponse{
-		ID:                     uo.ID,
+		ID:             uo.ID,
+		CreatedAt:      uo.CreatedAt.Format(time.RFC3339),
+		CreatedByID:    uo.CreatedByID,
+		CreatedBy:      uoc.userCol.ToModel(uo.CreatedBy),
+		UpdatedAt:      uo.UpdatedAt.Format(time.RFC3339),
+		UpdatedByID:    uo.UpdatedByID,
+		UpdatedBy:      uoc.userCol.ToModel(uo.UpdatedBy),
+		OrganizationID: uo.OrganizationID,
+		Organization:   uoc.organizationCol.ToModel(uo.Organization),
+		BranchID:       uo.BranchID,
+		Branch:         uoc.branchCol.ToModel(uo.Branch),
+
 		UserType:               uo.UserType,
-		OrganizationID:         uo.OrganizationID,
-		Organization:           uoc.organizationCol.ToModel(uo.Organization),
-		BranchID:               uo.BranchID,
-		Branch:                 uoc.branchCol.ToModel(uo.Branch),
 		UserID:                 uo.UserID,
 		User:                   uoc.userCol.ToModel(uo.User),
 		Description:            uo.Description,
 		ApplicationDescription: uo.ApplicationDescription,
 		ApplicationStatus:      uo.ApplicationStatus,
-		CreatedAt:              uo.CreatedAt.Format(time.RFC3339),
-		UpdatedAt:              uo.UpdatedAt.Format(time.RFC3339),
+		DeveloperSecretKey:     uo.DeveloperSecretKey,    // Added field
+		PermissionName:         uo.PermissionName,        // Added field
+		PermissionDescription:  uo.PermissionDescription, // Added field
+		Permissions:            uo.Permissions,           // Added field
 	}
 }
 
