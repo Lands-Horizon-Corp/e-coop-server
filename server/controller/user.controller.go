@@ -596,7 +596,7 @@ func (uc *UserController) UserSettingsChangeGeneral(c echo.Context) error {
 	}
 
 	if !dirty {
-		return c.JSON(http.StatusOK, uc.collector.ToModel(user)) // No update needed
+		return c.JSON(http.StatusOK, uc.collector.ToModel(user))
 	}
 
 	model.UpdatedAt = time.Now().UTC()
