@@ -39,6 +39,7 @@ func NewCoopServer(
 			&collection.OrganizationDailyUsage{},
 			&collection.Organization{},
 			&collection.SubscriptionPlan{},
+			&collection.UserOrganization{},
 			&collection.User{},
 		},
 	}, nil
