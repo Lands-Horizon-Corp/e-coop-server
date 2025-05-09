@@ -156,6 +156,20 @@ type (
 		FullName    *string    `json:"full_name,omitempty"`
 		Suffix      *string    `json:"suffix,omitempty"`
 	}
+
+	UserSettingsChangeGeneralRequest struct {
+		Email         string     `json:"email" validate:"required,email"`
+		UserName      string     `json:"user_name" validate:"required,min=3,max=100"`
+		ContactNumber string     `json:"contact_number" validate:"required,min=7,max=20"`
+		Birthdate     *time.Time `json:"birthdate,omitempty"`
+		Description   *string    `json:"description,omitempty"`
+		FirstName     *string    `json:"first_name,omitempty"`
+		MiddleName    *string    `json:"middle_name,omitempty"`
+		LastName      *string    `json:"last_name,omitempty"`
+		FullName      *string    `json:"full_name,omitempty"`
+		Suffix        *string    `json:"suffix,omitempty"`
+		Password      string     `json:"password" validate:"required,min=8"`
+	}
 )
 
 type UserCollection struct {
@@ -321,6 +335,17 @@ func (uc *UserCollection) UserSettingsChangeProfilePictureValidation(c echo.Cont
 
 func (uc *UserCollection) UserSettingsChangeProfileValidation(c echo.Context) (*UserSettingsChangeProfileRequest, error) {
 	u := new(UserSettingsChangeProfileRequest)
+	if err := c.Bind(u); err != nil {
+		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+	if err := uc.validator.Struct(u); err != nil {
+		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+	return u, nil
+}
+
+func (uc *UserCollection) UserSettingsChangeGeneralValidation(c echo.Context) (*UserSettingsChangeGeneralRequest, error) {
+	u := new(UserSettingsChangeGeneralRequest)
 	if err := c.Bind(u); err != nil {
 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}

@@ -534,6 +534,84 @@ func (uc *UserController) UserSettingsChangeProfile(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, uc.collector.ToModel(updatedUser))
 }
+func (uc *UserController) UserSettingsChangeGeneral(c echo.Context) error {
+	req, err := uc.collector.UserSettingsChangeGeneralValidation(c)
+	if err != nil {
+		return err
+	}
+
+	user, err := uc.provider.CurrentUser(c)
+	if err != nil {
+		return err
+	}
+
+	if ok := uc.authentication.VerifyPassword(user.Password, req.Password); !ok {
+		return echo.NewHTTPError(http.StatusUnauthorized, "invalid credentials")
+	}
+
+	model := &collection.User{}
+	dirty := false
+
+	if user.FirstName != req.FirstName {
+		model.FirstName = req.FirstName
+		dirty = true
+	}
+	if user.MiddleName != req.MiddleName {
+		model.MiddleName = req.MiddleName
+		dirty = true
+	}
+	if user.LastName != req.LastName {
+		model.LastName = req.LastName
+		dirty = true
+	}
+	if user.FullName != req.FullName {
+		model.FullName = req.FullName
+		dirty = true
+	}
+	if user.Suffix != req.Suffix {
+		model.Suffix = req.Suffix
+		dirty = true
+	}
+	if user.UserName != req.UserName {
+		model.UserName = req.UserName
+		dirty = true
+	}
+	if user.Description != req.Description {
+		model.Description = req.Description
+		dirty = true
+	}
+	if !horizon.DateEqual(user.Birthdate, req.Birthdate) {
+		model.Birthdate = req.Birthdate
+		dirty = true
+	}
+	if user.Email != req.Email {
+		model.Email = req.Email
+		model.IsEmailVerified = false
+		dirty = true
+	}
+	if user.ContactNumber != req.ContactNumber {
+		model.ContactNumber = req.ContactNumber
+		model.IsContactVerified = false
+		dirty = true
+	}
+
+	if !dirty {
+		return c.JSON(http.StatusOK, uc.collector.ToModel(user)) // No update needed
+	}
+
+	model.UpdatedAt = time.Now().UTC()
+
+	if err := uc.repo.UpdateFields(user.ID, model); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to update user: "+err.Error())
+	}
+
+	updatedUser, err := uc.repo.GetByID(user.ID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to fetch updated user")
+	}
+
+	return c.JSON(http.StatusOK, uc.collector.ToModel(updatedUser))
+}
 
 func (uc *UserController) APIRoutes(e *echo.Echo) {
 
@@ -561,4 +639,5 @@ func (uc *UserController) APIRoutes(e *echo.Echo) {
 	group.PUT("/settings/contact", uc.UserSettingsChangeContactNumber)
 	group.PUT("/settings/profile-picture", uc.UserSettingsChangeProfilePicture)
 	group.PUT("/settings/profile", uc.UserSettingsChangeProfile)
+	group.PUT("/settings/general", uc.UserSettingsChangeGeneral)
 }

@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/labstack/echo/v4"
 )
@@ -96,4 +97,16 @@ func GetFirstNChars(str string, n int) string {
 		n = len(runes)
 	}
 	return string(runes[:n])
+}
+
+// Returns true if both are nil, or both are non-nil and equal.
+func DateEqual(t1, t2 *time.Time) bool {
+	switch {
+	case t1 == nil && t2 == nil:
+		return true
+	case t1 == nil || t2 == nil:
+		return false
+	default:
+		return t1.Equal(*t2)
+	}
 }
