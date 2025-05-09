@@ -580,7 +580,7 @@ func (uc *UserController) UserSettingsChangeGeneral(c echo.Context) error {
 		model.Description = req.Description
 		dirty = true
 	}
-	if !horizon.DateEqual(user.Birthdate, req.Birthdate) {
+	if !user.Birthdate.Equal(user.Birthdate) {
 		model.Birthdate = req.Birthdate
 		dirty = true
 	}

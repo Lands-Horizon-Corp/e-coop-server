@@ -110,3 +110,18 @@ func DateEqual(t1, t2 *time.Time) bool {
 		return t1.Equal(*t2)
 	}
 }
+
+func Dateformat(value *time.Time) *string {
+	if value == nil {
+		return nil
+	}
+	formatted := value.Format(time.RFC3339)
+	return &formatted
+}
+
+func StringFormat(value *string) string {
+	if value == nil {
+		return ""
+	}
+	return *value
+}

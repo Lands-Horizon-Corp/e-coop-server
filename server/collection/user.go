@@ -32,8 +32,8 @@ type (
 		MediaID *uuid.UUID `gorm:"type:uuid"`
 		Media   *Media     `gorm:"foreignKey:MediaID;constraint:OnDelete:SET NULL;" json:"media,omitempty"`
 
-		Password  string     `gorm:"type:varchar(255);not null" json:"-"`
-		Birthdate *time.Time `gorm:"type:date" json:"birthdate,omitempty"`
+		Password  string    `gorm:"type:varchar(255);not null" json:"-"`
+		Birthdate time.Time `gorm:"type:date" json:"birthdate,omitempty"`
 
 		UserName    string  `gorm:"type:varchar(100);not null;unique" json:"user_name"`
 		FirstName   *string `gorm:"type:varchar(100)" json:"first_name,omitempty"`
@@ -53,7 +53,7 @@ type (
 		ID                uuid.UUID         `json:"id"`
 		MediaID           *uuid.UUID        `json:"media_id,omitempty"`
 		Media             *MediaResponse    `json:"media,omitempty"`
-		Birthdate         *string           `json:"birthdate,omitempty"`
+		Birthdate         string            `json:"birthdate,omitempty"`
 		UserName          string            `json:"user_name"`
 		Description       *string           `gorm:"type:text"`
 		FirstName         *string           `json:"first_name,omitempty"`
@@ -82,7 +82,7 @@ type (
 	UserRegisterRequest struct {
 		Email         string     `json:"email" validate:"required,email"`
 		Password      string     `json:"password" validate:"required,min=8"`
-		Birthdate     *time.Time `json:"birthdate,omitempty"`
+		Birthdate     time.Time  `json:"birthdate,omitempty"`
 		UserName      string     `json:"user_name" validate:"required,min=3,max=100"`
 		FullName      *string    `json:"full_name,omitempty"`
 		FirstName     *string    `json:"first_name,omitempty"`
@@ -148,27 +148,27 @@ type (
 	}
 
 	UserSettingsChangeProfileRequest struct {
-		Birthdate   *time.Time `json:"birthdate,omitempty"`
-		Description *string    `json:"description,omitempty"`
-		FirstName   *string    `json:"first_name,omitempty"`
-		MiddleName  *string    `json:"middle_name,omitempty"`
-		LastName    *string    `json:"last_name,omitempty"`
-		FullName    *string    `json:"full_name,omitempty"`
-		Suffix      *string    `json:"suffix,omitempty"`
+		Birthdate   time.Time `json:"birthdate,omitempty"`
+		Description *string   `json:"description,omitempty"`
+		FirstName   *string   `json:"first_name,omitempty"`
+		MiddleName  *string   `json:"middle_name,omitempty"`
+		LastName    *string   `json:"last_name,omitempty"`
+		FullName    *string   `json:"full_name,omitempty"`
+		Suffix      *string   `json:"suffix,omitempty"`
 	}
 
 	UserSettingsChangeGeneralRequest struct {
-		Email         string     `json:"email" validate:"required,email"`
-		UserName      string     `json:"user_name" validate:"required,min=3,max=100"`
-		ContactNumber string     `json:"contact_number" validate:"required,min=7,max=20"`
-		Birthdate     *time.Time `json:"birthdate,omitempty"`
-		Description   *string    `json:"description,omitempty"`
-		FirstName     *string    `json:"first_name,omitempty"`
-		MiddleName    *string    `json:"middle_name,omitempty"`
-		LastName      *string    `json:"last_name,omitempty"`
-		FullName      *string    `json:"full_name,omitempty"`
-		Suffix        *string    `json:"suffix,omitempty"`
-		Password      string     `json:"password" validate:"required,min=8"`
+		Email         string    `json:"email" validate:"required,email"`
+		UserName      string    `json:"user_name" validate:"required,min=3,max=100"`
+		ContactNumber string    `json:"contact_number" validate:"required,min=7,max=20"`
+		Birthdate     time.Time `json:"birthdate,omitempty"`
+		Description   *string   `json:"description,omitempty"`
+		FirstName     *string   `json:"first_name,omitempty"`
+		MiddleName    *string   `json:"middle_name,omitempty"`
+		LastName      *string   `json:"last_name,omitempty"`
+		FullName      *string   `json:"full_name,omitempty"`
+		Suffix        *string   `json:"suffix,omitempty"`
+		Password      string    `json:"password" validate:"required,min=8"`
 	}
 )
 
@@ -365,9 +365,9 @@ func (uc *UserCollection) ToModel(data *User) *UserResponse {
 		Email:         data.Email,
 		ContactNumber: data.ContactNumber,
 		Username:      data.UserName,
-		Lastname:      stringFormat(data.LastName),
-		Firstname:     stringFormat(data.FirstName),
-		Middlename:    stringFormat(data.MiddleName),
+		Lastname:      horizon.StringFormat(data.LastName),
+		Firstname:     horizon.StringFormat(data.FirstName),
+		Middlename:    horizon.StringFormat(data.MiddleName),
 	})
 	if err != nil {
 		return nil
@@ -377,7 +377,7 @@ func (uc *UserCollection) ToModel(data *User) *UserResponse {
 		ID:                data.ID,
 		MediaID:           data.MediaID,
 		Media:             uc.media.ToModel(data.Media),
-		Birthdate:         dateformat(data.Birthdate),
+		Birthdate:         data.Birthdate.Format(time.RFC3339),
 		UserName:          data.UserName,
 		FirstName:         data.FirstName,
 		Description:       data.Description,
