@@ -555,7 +555,6 @@ func (uc *UserController) APIRoutes(e *echo.Echo) {
 	group.POST("/authentication/verify-with-contact", uc.UserVerifyWithContactNumber)
 	group.POST("/authentication/verify-with-contact-confirmation", uc.UserVerifyWithContactNumberConfirmation)
 	group.PUT("/settings/password", uc.UserSettingsChangePassword)
-
 	group.PUT("/settings/email", uc.UserSettingsChangeEmail)
 	group.PUT("/settings/username", uc.UserSettingsChangeUsername)
 	group.PUT("/settings/contact", uc.UserSettingsChangeContactNumber)
