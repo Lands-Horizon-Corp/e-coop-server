@@ -14,6 +14,8 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"go.uber.org/zap"
 	"golang.org/x/time/rate"
+
+	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
 type HorizonSubscribeMessage struct {
@@ -22,10 +24,9 @@ type HorizonSubscribeMessage struct {
 }
 
 type HorizonRequest struct {
-	service   *echo.Echo
-	config    *HorizonConfig
-	log       *HorizonLog
-	broadcast *HorizonBroadcast
+	service *echo.Echo
+	config  *HorizonConfig
+	log     *HorizonLog
 }
 
 // Compile a regular expression to match suspicious paths
@@ -34,12 +35,33 @@ var suspiciousPathPattern = regexp.MustCompile(`(?i)\.(env|yaml|yml|ini|config|c
 func NewHorizonRequest(
 	config *HorizonConfig,
 	log *HorizonLog,
-	broadcast *HorizonBroadcast,
 ) (*HorizonRequest, error) {
 	e := echo.New()
 
 	// 1. Pre-middleware: normalize trailing slashes
 	e.Pre(middleware.RemoveTrailingSlash())
+	var csp []string
+	csp = append(csp,
+		"default-src 'self'",
+		"img-src 'self' data:",
+		"font-src 'self'",
+		"connect-src 'self' ws://localhost:3000", // or wss:// if using HTTPS
+		"object-src 'none'",
+		"base-uri 'self'",
+		"frame-ancestors 'none'",
+	)
+
+	if config.CanDebug() {
+		csp = append(csp,
+			"script-src 'self' 'unsafe-inline'",
+			"style-src 'self' 'unsafe-inline'",
+		)
+	} else {
+		csp = append(csp,
+			"script-src 'self'",
+			"style-src 'self'",
+		)
+	}
 	e.Use(middleware.SecureWithConfig(middleware.SecureConfig{
 		// XSS filter in modern browsers
 		XSSProtection: "1; mode=block",
@@ -58,17 +80,7 @@ func NewHorizonRequest(
 		// Disable powerful features you aren’t using
 		// A tight CSP: only allow self for scripts/styles/etc,
 		// no inline scripts or eval, allow data: for images if you use SVG/data URIs
-		ContentSecurityPolicy: strings.Join([]string{
-			"default-src 'self'",
-			"script-src  'self'",
-			"style-src   'self'", // add hashes/nonces if you need inline
-			"img-src     'self' data:",
-			"font-src    'self'",
-			"connect-src 'self' wss://" + config.AppClientURL, // if you use websockets
-			"object-src  'none'",
-			"base-uri    'self'",
-			"frame-ancestors 'none'",
-		}, "; "),
+		ContentSecurityPolicy: strings.Join(csp, "; "),
 	}))
 
 	// 3. Request logging (capture all incoming requests)
@@ -234,6 +246,7 @@ func (hr *HorizonRequest) Run(routes ...func(*echo.Echo)) error {
 	}()
 
 	go func() {
+		hr.service.GET("/swagger/*", echoSwagger.WrapHandler)
 		hr.service.Logger.Fatal(hr.service.Start(
 			fmt.Sprintf(":%d", hr.config.AppPort),
 		))
@@ -259,7 +272,7 @@ func extractController(full string) string {
 	start := strings.Index(full, "(*")
 	end := strings.Index(full, ").")
 	if start != -1 && end != -1 && end > start+2 {
-		return full[start+2 : end] // e.g., MediaController
+		return full[start+2 : end]
 	}
 	return "Other"
 }

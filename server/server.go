@@ -18,15 +18,15 @@ func NewCoopServer(
 	feedback *controller.FeedbackController,
 	media *controller.MediaController,
 	user *controller.UserController,
+	contactUs *controller.ContactUsController,
 ) (*CoopServer, error) {
 	return &CoopServer{
-
 		Routes: []func(*echo.Echo){
+			contactUs.APIRoutes,
 			feedback.APIRoutes,
 			media.APIRoutes,
 			user.APIRoutes,
 		},
-
 		Migrations: []any{
 			&collection.Branch{},
 			&collection.Category{},
@@ -49,6 +49,14 @@ func NewCoopServer(
 
 var Modules = []any{
 	NewCoopServer,
+	// Contact Us
+	collection.NewContactUsCollection,
+	repository.NewContactUsRepository,
+	controller.NewContactUsController,
+	broadcast.NewContactUsBroadcast,
+
+	// Footstep
+	collection.NewFootstepCollection,
 
 	// Feedback
 	collection.NewFeedbackCollection,

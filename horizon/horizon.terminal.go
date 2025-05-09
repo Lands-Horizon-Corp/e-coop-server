@@ -120,7 +120,7 @@ func printConfigBoxes(config *HorizonConfig) {
 			Px:       5,
 			Py:       0,
 			Type:     "",
-			TitlePos: "Inside", // ensure "Left", "Center", or "Right"
+			TitlePos: "Inside",
 			Color:    "Cyan",
 		},
 	}
@@ -131,12 +131,14 @@ func printConfigBoxes(config *HorizonConfig) {
 			"App Name        : %s\n"+
 			"Client URL      : %s\n"+
 			"App Port        : http://localhost:%d\n"+
-			"Metrics Port    : http://localhost:%d",
+			"Metrics Port    : http://localhost:%d\n"+
+			"API UI Swagger  : http://localhost:%d/swagger/index.html",
 		config.AppEnvironment,
 		config.AppName,
 		config.AppClientURL,
 		config.AppPort,
 		config.AppMetricsPort,
+		config.AppPort,
 	)
 
 	// PostgreSQL DSN and Admin info
