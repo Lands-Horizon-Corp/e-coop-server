@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"gorm.io/gorm"
 	"horizon.com/server/horizon"
 	"horizon.com/server/server/broadcast"
 	"horizon.com/server/server/collection"
@@ -22,6 +23,16 @@ func NewFeedbackRepository(
 		database:  database,
 		broadcast: broadcast,
 	}, nil
+}
+
+func (r *FeedbackRepository) List() ([]*collection.Feedback, error) {
+	var feedbacks []*collection.Feedback
+	if err := r.database.Client().
+		Order("created_at DESC").
+		Find(&feedbacks).Error; err != nil {
+		return nil, eris.Wrap(err, "failed to list feedback")
+	}
+	return feedbacks, nil
 }
 
 func (r *FeedbackRepository) Create(data *collection.Feedback) error {
@@ -56,10 +67,39 @@ func (r *FeedbackRepository) GetByID(id uuid.UUID) (*collection.Feedback, error)
 	return &feedback, nil
 }
 
-func (r *FeedbackRepository) List() ([]*collection.Feedback, error) {
-	var feedbacks []*collection.Feedback
-	if err := r.database.Client().Find(&feedbacks).Error; err != nil {
-		return nil, eris.Wrap(err, "failed to list feedback")
+func (r *FeedbackRepository) UpdateCreateTransaction(tx *gorm.DB, data *collection.Feedback) error {
+	var existing collection.Feedback
+	err := tx.First(&existing, "id = ?", data.ID).Error
+
+	if err != nil {
+		if err := tx.Create(data).Error; err != nil {
+			return eris.Wrap(err, "failed to create feedback in UpdateCreate")
+		}
+		r.broadcast.OnCreate(data)
+	} else {
+		if err := tx.Save(data).Error; err != nil {
+			return eris.Wrap(err, "failed to update feedback in UpdateCreate")
+		}
+		r.broadcast.OnUpdate(data)
 	}
-	return feedbacks, nil
+
+	return nil
+}
+
+func (r *FeedbackRepository) UpdateCreate(data *collection.Feedback) error {
+	var existing collection.Feedback
+	err := r.database.Client().First(&existing, "id = ?", data.ID).Error
+
+	if err != nil {
+		if err := r.database.Client().Create(data).Error; err != nil {
+			return eris.Wrap(err, "failed to create feedback in UpdateCreate")
+		}
+		r.broadcast.OnCreate(data)
+	} else {
+		if err := r.database.Client().Save(data).Error; err != nil {
+			return eris.Wrap(err, "failed to update feedback in UpdateCreate")
+		}
+		r.broadcast.OnUpdate(data)
+	}
+	return nil
 }

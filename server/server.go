@@ -28,8 +28,14 @@ func NewCoopServer(
 		},
 
 		Migrations: []any{
+			&collection.Branch{},
+			&collection.Category{},
 			&collection.Feedback{},
+			&collection.Footstep{},
 			&collection.Media{},
+			&collection.OrganizationCategory{},
+			&collection.Organization{},
+			&collection.SubscriptionPlan{},
 			&collection.User{},
 		},
 	}, nil

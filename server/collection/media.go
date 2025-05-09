@@ -63,6 +63,7 @@ type (
 
 func NewMediaCollection(
 	storage *horizon.HorizonStorage,
+
 ) (*MediaCollection, error) {
 	return &MediaCollection{
 		validator: validator.New(),

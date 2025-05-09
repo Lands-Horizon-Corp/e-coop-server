@@ -21,7 +21,7 @@ type (
 		Organization   Organization `gorm:"foreignKey:OrganizationID"`
 
 		MediaID *uuid.UUID `gorm:"type:uuid"`
-		Media   *Media     `gorm:"foreignKey:MediaID;constraint:OnDelete:SET NULL"`
+		Media   *Media     `gorm:"foreignKey:MediaID;constraint:OnDelete:SET NULL;" json:"media,omitempty"`
 
 		Type          string  `gorm:"type:varchar(100);not null"`
 		Name          string  `gorm:"type:varchar(255);not null"`
@@ -130,10 +130,11 @@ func (bc *BranchCollection) ToModel(branch *Branch) *BranchResponse {
 		deletedAt = &t
 	}
 	return &BranchResponse{
-		ID:              branch.ID,
-		OrganizationID:  branch.OrganizationID,
-		MediaID:         branch.MediaID,
-		Media:           bc.media.ToModel(branch.Media),
+		ID:             branch.ID,
+		OrganizationID: branch.OrganizationID,
+		MediaID:        branch.MediaID,
+		Media:          bc.media.ToModel(branch.Media),
+
 		Type:            branch.Type,
 		Name:            branch.Name,
 		Email:           branch.Email,

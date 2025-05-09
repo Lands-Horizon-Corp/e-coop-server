@@ -11,29 +11,26 @@ import (
 
 type (
 	Feedback struct {
-		ID           uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
-		Email        string    `gorm:"type:varchar(255)"`
-		Description  string    `gorm:"type:text"`
-		FeedbackType string    `gorm:"type:varchar(50);not null;default:'general'"`
-
-		MediaID *uuid.UUID `gorm:"type:uuid"`
-		Media   *Media     `gorm:"foreignKey:MediaID;constraint:OnDelete:SET NULL;"`
-
-		CreatedAt time.Time  `gorm:"not null;default:now()"`
-		UpdatedAt time.Time  `gorm:"not null;default:now()"`
-		DeletedAt *time.Time `json:"deletedAt,omitempty" gorm:"index"`
+		ID           uuid.UUID  `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
+		Email        string     `gorm:"type:varchar(255)"`
+		Description  string     `gorm:"type:text"`
+		FeedbackType string     `gorm:"type:varchar(50);not null;default:'general'"`
+		MediaID      *uuid.UUID `gorm:"type:uuid"`
+		Media        *Media     `gorm:"foreignKey:MediaID;constraint:OnDelete:SET NULL;" json:"media,omitempty"`
+		CreatedAt    time.Time  `gorm:"not null;default:now()"`
+		UpdatedAt    time.Time  `gorm:"not null;default:now()"`
+		DeletedAt    *time.Time `json:"deletedAt,omitempty" gorm:"index"`
 	}
 	FeedbackResponse struct {
 		ID           uuid.UUID      `json:"id"`
 		Email        string         `json:"email"`
 		Description  string         `json:"description"`
 		FeedbackType string         `json:"feedback_type"`
-		MediaID      uuid.UUID      `json:"media_id"`
+		MediaID      *uuid.UUID     `json:"media_id"`
 		Media        *MediaResponse `json:"media,omitempty"`
-
-		CreatedAt string `json:"createdAt"`
-		UpdatedAt string `json:"updatedAt"`
-		DeletedAt string `gorm:"index"`
+		CreatedAt    string         `json:"createdAt"`
+		UpdatedAt    string         `json:"updatedAt"`
+		DeletedAt    string         `gorm:"index"`
 	}
 
 	FeedbackRequest struct {
@@ -44,12 +41,14 @@ type (
 	}
 	FeedbackCollection struct {
 		validator *validator.Validate
+		media     *MediaCollection
 	}
 )
 
-func NewFeedbackCollection() (*FeedbackCollection, error) {
+func NewFeedbackCollection(media *MediaCollection) (*FeedbackCollection, error) {
 	return &FeedbackCollection{
 		validator: validator.New(),
+		media:     media,
 	}, nil
 }
 
@@ -72,6 +71,8 @@ func (fc *FeedbackCollection) ToModel(data *Feedback) *FeedbackResponse {
 		ID:           data.ID,
 		CreatedAt:    data.CreatedAt.Format(time.RFC3339),
 		UpdatedAt:    data.UpdatedAt.Format(time.RFC3339),
+		MediaID:      data.MediaID,
+		Media:        fc.media.ToModel(data.Media),
 		Email:        data.Email,
 		Description:  data.Description,
 		FeedbackType: data.FeedbackType,
@@ -84,12 +85,10 @@ func (fc *FeedbackCollection) ToModels(data []*Feedback) []*FeedbackResponse {
 	}
 	var feedbackResponses []*FeedbackResponse
 	for _, feedback := range data {
-
 		model := fc.ToModel(feedback)
 		if model != nil {
 			feedbackResponses = append(feedbackResponses, model)
 		}
-
 	}
 	if len(feedbackResponses) <= 0 {
 		return make([]*FeedbackResponse, 0)

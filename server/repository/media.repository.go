@@ -3,6 +3,7 @@ package repository
 import (
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
+	"gorm.io/gorm"
 	"horizon.com/server/horizon"
 	"horizon.com/server/server/broadcast"
 	"horizon.com/server/server/collection"
@@ -21,6 +22,16 @@ func NewMediaRepository(
 		database:  database,
 		broadcast: broadcast,
 	}, nil
+}
+
+func (r *MediaRepository) List() ([]*collection.Media, error) {
+	var medias []*collection.Media
+	if err := r.database.Client().
+		Order("created_at DESC").
+		Find(&medias).Error; err != nil {
+		return nil, eris.Wrap(err, "failed to list media")
+	}
+	return medias, nil
 }
 
 func (r *MediaRepository) Create(data *collection.Media) error {
@@ -55,10 +66,39 @@ func (r *MediaRepository) GetByID(id uuid.UUID) (*collection.Media, error) {
 	return &media, nil
 }
 
-func (r *MediaRepository) List() ([]*collection.Media, error) {
-	var medias []*collection.Media
-	if err := r.database.Client().Find(&medias).Error; err != nil {
-		return nil, eris.Wrap(err, "failed to list media")
+func (r *MediaRepository) UpdateCreateTransaction(tx *gorm.DB, data *collection.Media) error {
+	var existing collection.Media
+	err := tx.First(&existing, "id = ?", data.ID).Error
+
+	if err != nil {
+		if err := tx.Create(data).Error; err != nil {
+			return eris.Wrap(err, "failed to create media in UpdateCreate")
+		}
+		r.broadcast.OnCreate(data)
+	} else {
+		if err := tx.Save(data).Error; err != nil {
+			return eris.Wrap(err, "failed to update media in UpdateCreate")
+		}
+		r.broadcast.OnUpdate(data)
 	}
-	return medias, nil
+
+	return nil
+}
+
+func (r *MediaRepository) UpdateCreate(data *collection.Media) error {
+	var existing collection.Media
+	err := r.database.Client().First(&existing, "id = ?", data.ID).Error
+
+	if err != nil {
+		if err := r.database.Client().Create(data).Error; err != nil {
+			return eris.Wrap(err, "failed to create media in UpdateCreate")
+		}
+		r.broadcast.OnCreate(data)
+	} else {
+		if err := r.database.Client().Save(data).Error; err != nil {
+			return eris.Wrap(err, "failed to update media in UpdateCreate")
+		}
+		r.broadcast.OnUpdate(data)
+	}
+	return nil
 }

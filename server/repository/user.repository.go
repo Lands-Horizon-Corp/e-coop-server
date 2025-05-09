@@ -3,6 +3,7 @@ package repository
 import (
 	"strings"
 
+	"gorm.io/gorm"
 	"horizon.com/server/horizon"
 	"horizon.com/server/server/broadcast"
 	"horizon.com/server/server/collection"
@@ -26,6 +27,13 @@ func NewUserRepository(
 	}, nil
 }
 
+func (r *UserRepository) List() ([]*collection.User, error) {
+	var users []*collection.User
+	if err := r.database.Client().Order("created_at DESC").Find(&users).Error; err != nil {
+		return nil, eris.Wrap(err, "failed to list user")
+	}
+	return users, nil
+}
 func (r *UserRepository) Create(data *collection.User) error {
 	if err := r.database.Client().Create(data).Error; err != nil {
 		return eris.Wrap(err, "failed to create user")
@@ -58,12 +66,47 @@ func (r *UserRepository) GetByID(id uuid.UUID) (*collection.User, error) {
 	return &user, nil
 }
 
-func (r *UserRepository) List() ([]*collection.User, error) {
-	var users []*collection.User
-	if err := r.database.Client().Find(&users).Error; err != nil {
-		return nil, eris.Wrap(err, "failed to list user")
+func (r *UserRepository) UpdateCreateTransaction(tx *gorm.DB, data *collection.User) error {
+	var existing collection.User
+	err := tx.First(&existing, "id = ?", data.ID).Error
+
+	if err != nil {
+		if err := tx.Create(data).Error; err != nil {
+			return eris.Wrap(err, "failed to create user in UpdateCreate")
+		}
+		r.broadcast.OnCreate(data)
+	} else {
+		if err := tx.Save(data).Error; err != nil {
+			return eris.Wrap(err, "failed to update user in UpdateCreate")
+		}
+		r.broadcast.OnUpdate(data)
 	}
-	return users, nil
+
+	return nil
+}
+
+func (r *UserRepository) UpdateCreate(data *collection.User) error {
+	var existing collection.User
+	err := r.database.Client().First(&existing, "id = ?", data.ID).Error
+
+	if err != nil {
+		if err := r.database.Client().Create(data).Error; err != nil {
+			return eris.Wrap(err, "failed to create user in UpdateCreate")
+		}
+		r.broadcast.OnCreate(data)
+	} else {
+		if err := r.database.Client().Save(data).Error; err != nil {
+			return eris.Wrap(err, "failed to update user in UpdateCreate")
+		}
+		r.broadcast.OnUpdate(data)
+	}
+	return nil
+}
+
+func (r *UserRepository) UpdateFields(id uuid.UUID, fields *collection.User) error {
+	return r.database.Client().Model(&collection.User{}).
+		Where("id = ?", id).
+		Updates(fields).Error
 }
 
 func (r *UserRepository) FindByEmail(email string) (*collection.User, error) {
@@ -113,10 +156,4 @@ func (r *UserRepository) FindByIdentifier(identifier string) (*collection.User, 
 		return u, nil
 	}
 	return nil, eris.New("user not found by email, contact number, or username")
-}
-
-func (r *UserRepository) UpdateFields(id uuid.UUID, fields *collection.User) error {
-	return r.database.Client().Model(&collection.User{}).
-		Where("id = ?", id).
-		Updates(fields).Error
 }

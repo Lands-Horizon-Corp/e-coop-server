@@ -25,10 +25,10 @@ type (
 		Color         *string `gorm:"type:varchar(50)"`
 
 		MediaID *uuid.UUID `gorm:"type:uuid"`
-		Media   *Media     `gorm:"foreignKey:MediaID;constraint:OnDelete:SET NULL"`
+		Media   *Media     `gorm:"foreignKey:MediaID;constraint:OnDelete:SET NULL;" json:"media,omitempty"`
 
 		CoverMediaID *uuid.UUID `gorm:"type:uuid"`
-		CoverMedia   *Media     `gorm:"foreignKey:CoverMediaID;constraint:OnDelete:SET NULL"`
+		CoverMedia   *Media     `gorm:"foreignKey:CoverMediaID;constraint:OnDelete:SET NULL;" json:"cover_media,omitempty"`
 
 		OrganizationKey string `gorm:"type:varchar(255);not null;unique"`
 
@@ -38,7 +38,8 @@ type (
 		SubscriptionStartDate time.Time
 		SubscriptionEndDate   time.Time
 
-		Branches []*Branch `gorm:"foreignKey:OrganizationID"`
+		OrganizationCategories []*OrganizationCategory `gorm:"foreignKey:OrganizationID"`
+		Branches               []*Branch               `gorm:"foreignKey:OrganizationID"`
 	}
 
 	OrganizationRequest struct {
@@ -92,7 +93,8 @@ type (
 		DatabaseMigrationStatus string  `json:"database_migration_status"`
 		DatabaseRemark          *string `json:"database_remark,omitempty"`
 
-		Branches []*BranchResponse `json:"branches,omitempty"`
+		Branches               []*BranchResponse               `json:"branches,omitempty"`
+		OrganizationCategories []*OrganizationCategoryResponse `json:"organizaton_categories"`
 
 		CreatedAt string  `json:"created_at"`
 		UpdatedAt string  `json:"updated_at"`
@@ -100,10 +102,11 @@ type (
 	}
 
 	OrganizationCollection struct {
-		validator  *validator.Validate
-		mediaCol   *MediaCollection
-		subPlanCol *SubscriptionPlanCollection
-		branchCol  *BranchCollection
+		validator      *validator.Validate
+		mediaCol       *MediaCollection
+		subPlanCol     *SubscriptionPlanCollection
+		branchCol      *BranchCollection
+		orgCategoryCol *OrganizationCategoryCollection
 	}
 )
 
@@ -111,12 +114,14 @@ func NewOrganizationCollection(
 	mediaCol *MediaCollection,
 	subPlanCol *SubscriptionPlanCollection,
 	branchCol *BranchCollection,
+	orgCategoryCol *OrganizationCategoryCollection,
 ) (*OrganizationCollection, error) {
 	return &OrganizationCollection{
-		validator:  validator.New(),
-		mediaCol:   mediaCol,
-		subPlanCol: subPlanCol,
-		branchCol:  branchCol,
+		validator:      validator.New(),
+		mediaCol:       mediaCol,
+		subPlanCol:     subPlanCol,
+		branchCol:      branchCol,
+		orgCategoryCol: orgCategoryCol,
 	}, nil
 }
 
@@ -162,7 +167,8 @@ func (oc *OrganizationCollection) ToModel(o *Organization) *OrganizationResponse
 		SubscriptionStartDate: o.SubscriptionStartDate.Format(time.RFC3339),
 		SubscriptionEndDate:   o.SubscriptionEndDate.Format(time.RFC3339),
 
-		Branches: oc.branchCol.ToModels(o.Branches),
+		Branches:               oc.branchCol.ToModels(o.Branches),
+		OrganizationCategories: oc.orgCategoryCol.ToModels(o.OrganizationCategories),
 
 		CreatedAt: o.CreatedAt.Format(time.RFC3339),
 		UpdatedAt: o.UpdatedAt.Format(time.RFC3339),

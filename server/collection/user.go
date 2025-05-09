@@ -28,7 +28,7 @@ type (
 		UpdatedAt time.Time  `gorm:"not null;default:now()"`
 		DeletedAt *time.Time `json:"deleted_at,omitempty" gorm:"index"`
 
-		MediaID *uuid.UUID `gorm:"type:uuid;index;" json:"media_id,omitempty"`
+		MediaID *uuid.UUID `gorm:"type:uuid"`
 		Media   *Media     `gorm:"foreignKey:MediaID;constraint:OnDelete:SET NULL;" json:"media,omitempty"`
 
 		Password  string     `gorm:"type:varchar(255);not null" json:"-"`
