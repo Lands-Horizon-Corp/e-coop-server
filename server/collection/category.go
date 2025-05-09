@@ -12,9 +12,9 @@ import (
 
 type (
 	Category struct {
-		ID        uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
-		CreatedAt time.Time
-		UpdatedAt time.Time
+		ID        uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
+		CreatedAt time.Time      `gorm:"not null;default:now()"`
+		UpdatedAt time.Time      `gorm:"not null;default:now()"`
 		DeletedAt gorm.DeletedAt `gorm:"index"`
 
 		Name        string `gorm:"type:varchar(255);not null"`
@@ -29,7 +29,6 @@ type (
 		ID        uuid.UUID `json:"id"`
 		CreatedAt string    `json:"createdAt"`
 		UpdatedAt string    `json:"updatedAt"`
-		DeletedAt string    `gorm:"index"`
 
 		Name                   string                          `json:"name"`
 		Description            string                          `json:"description"`

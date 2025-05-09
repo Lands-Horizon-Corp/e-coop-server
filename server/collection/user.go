@@ -7,6 +7,7 @@ import (
 	"github.com/go-playground/validator"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 	"horizon.com/server/horizon"
 )
 
@@ -23,10 +24,10 @@ type QRUser struct {
 
 type (
 	User struct {
-		ID        uuid.UUID  `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
-		CreatedAt time.Time  `gorm:"not null;default:now()"`
-		UpdatedAt time.Time  `gorm:"not null;default:now()"`
-		DeletedAt *time.Time `json:"deleted_at,omitempty" gorm:"index"`
+		ID        uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
+		CreatedAt time.Time      `gorm:"not null;default:now()"`
+		UpdatedAt time.Time      `gorm:"not null;default:now()"`
+		DeletedAt gorm.DeletedAt `gorm:"index"`
 
 		MediaID *uuid.UUID `gorm:"type:uuid"`
 		Media   *Media     `gorm:"foreignKey:MediaID;constraint:OnDelete:SET NULL;" json:"media,omitempty"`
@@ -66,7 +67,6 @@ type (
 		IsContactVerified bool              `json:"is_contact_verified"`
 		CreatedAt         string            `json:"created_at"`
 		UpdatedAt         string            `json:"updated_at"`
-		DeletedAt         *string           `json:"deleted_at,omitempty"`
 		QRCode            *horizon.QRResult `json:"qr_code,omitempty"`
 	}
 	CurrentUserResponse struct {

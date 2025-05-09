@@ -12,9 +12,9 @@ import (
 
 type (
 	Organization struct {
-		ID        uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
-		CreatedAt time.Time
-		UpdatedAt time.Time
+		ID        uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
+		CreatedAt time.Time      `gorm:"not null;default:now()"`
+		UpdatedAt time.Time      `gorm:"not null;default:now()"`
 		DeletedAt gorm.DeletedAt `gorm:"index"`
 
 		Name               string  `gorm:"type:varchar(255);not null"`
@@ -111,9 +111,8 @@ type (
 		Branches               []*BranchResponse               `json:"branches,omitempty"`
 		OrganizationCategories []*OrganizationCategoryResponse `json:"organizaton_categories"`
 
-		CreatedAt string  `json:"created_at"`
-		UpdatedAt string  `json:"updated_at"`
-		DeletedAt *string `json:"deleted_at,omitempty"`
+		CreatedAt string `json:"created_at"`
+		UpdatedAt string `json:"updated_at"`
 	}
 
 	OrganizationCollection struct {
@@ -157,11 +156,7 @@ func (oc *OrganizationCollection) ToModel(o *Organization) *OrganizationResponse
 	if o == nil {
 		return nil
 	}
-	var deletedAt *string
-	if o.DeletedAt.Valid {
-		t := o.DeletedAt.Time.Format(time.RFC3339)
-		deletedAt = &t
-	}
+
 	resp := &OrganizationResponse{
 		ID:                 o.ID,
 		Name:               o.Name,
@@ -192,7 +187,6 @@ func (oc *OrganizationCollection) ToModel(o *Organization) *OrganizationResponse
 
 		CreatedAt: o.CreatedAt.Format(time.RFC3339),
 		UpdatedAt: o.UpdatedAt.Format(time.RFC3339),
-		DeletedAt: deletedAt,
 	}
 	return resp
 }

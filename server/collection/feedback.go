@@ -7,19 +7,21 @@ import (
 	"github.com/go-playground/validator"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 )
 
 type (
 	Feedback struct {
-		ID           uuid.UUID  `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
+		ID        uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
+		CreatedAt time.Time      `gorm:"not null;default:now()"`
+		UpdatedAt time.Time      `gorm:"not null;default:now()"`
+		DeletedAt gorm.DeletedAt `gorm:"index"`
+
 		Email        string     `gorm:"type:varchar(255)"`
 		Description  string     `gorm:"type:text"`
 		FeedbackType string     `gorm:"type:varchar(50);not null;default:'general'"`
 		MediaID      *uuid.UUID `gorm:"type:uuid"`
 		Media        *Media     `gorm:"foreignKey:MediaID;constraint:OnDelete:SET NULL;" json:"media,omitempty"`
-		CreatedAt    time.Time  `gorm:"not null;default:now()"`
-		UpdatedAt    time.Time  `gorm:"not null;default:now()"`
-		DeletedAt    *time.Time `json:"deletedAt,omitempty" gorm:"index"`
 	}
 	FeedbackResponse struct {
 		ID           uuid.UUID      `json:"id"`
@@ -30,7 +32,6 @@ type (
 		Media        *MediaResponse `json:"media,omitempty"`
 		CreatedAt    string         `json:"createdAt"`
 		UpdatedAt    string         `json:"updatedAt"`
-		DeletedAt    string         `gorm:"index"`
 	}
 
 	FeedbackRequest struct {

@@ -7,15 +7,16 @@ import (
 	"github.com/go-playground/validator"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 	"horizon.com/server/horizon"
 )
 
 type (
 	Media struct {
-		ID        uuid.UUID  `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
-		CreatedAt time.Time  `gorm:"not null;default:now()"`
-		UpdatedAt time.Time  `gorm:"not null;default:now()"`
-		DeletedAt *time.Time `json:"deleted_at,omitempty" gorm:"index"`
+		ID        uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
+		CreatedAt time.Time      `gorm:"not null;default:now()"`
+		UpdatedAt time.Time      `gorm:"not null;default:now()"`
+		DeletedAt gorm.DeletedAt `gorm:"index"`
 
 		FileName   string                `gorm:"type:varchar(2048);unsigned" json:"file_name"`
 		FileSize   int64                 `gorm:"unsigned" json:"file_size"`

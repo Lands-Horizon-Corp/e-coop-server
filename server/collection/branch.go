@@ -12,9 +12,9 @@ import (
 
 type (
 	Branch struct {
-		ID        uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
-		CreatedAt time.Time
-		UpdatedAt time.Time
+		ID        uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
+		CreatedAt time.Time      `gorm:"not null;default:now()"`
+		UpdatedAt time.Time      `gorm:"not null;default:now()"`
 		DeletedAt gorm.DeletedAt `gorm:"index"`
 
 		OrganizationID uuid.UUID    `gorm:"type:uuid;not null"`
@@ -91,7 +91,6 @@ type (
 		IsAdminVerified *bool          `json:"is_admin_verified,omitempty"`
 		CreatedAt       string         `json:"created_at"`
 		UpdatedAt       string         `json:"updated_at"`
-		DeletedAt       *string        `json:"deleted_at,omitempty"`
 	}
 
 	BranchCollection struct {
@@ -124,11 +123,7 @@ func (bc *BranchCollection) ToModel(branch *Branch) *BranchResponse {
 	if branch == nil {
 		return nil
 	}
-	var deletedAt *string
-	if branch.DeletedAt.Valid {
-		t := branch.DeletedAt.Time.Format(time.RFC3339)
-		deletedAt = &t
-	}
+
 	return &BranchResponse{
 		ID:             branch.ID,
 		OrganizationID: branch.OrganizationID,
@@ -153,7 +148,6 @@ func (bc *BranchCollection) ToModel(branch *Branch) *BranchResponse {
 		IsAdminVerified: branch.IsAdminVerified,
 		CreatedAt:       branch.CreatedAt.Format(time.RFC3339),
 		UpdatedAt:       branch.UpdatedAt.Format(time.RFC3339),
-		DeletedAt:       deletedAt,
 	}
 }
 

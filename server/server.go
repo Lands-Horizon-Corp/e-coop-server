@@ -30,6 +30,7 @@ func NewCoopServer(
 		Migrations: []any{
 			&collection.Branch{},
 			&collection.Category{},
+			&collection.ContactUs{},
 			&collection.Feedback{},
 			&collection.Footstep{},
 			&collection.Media{},

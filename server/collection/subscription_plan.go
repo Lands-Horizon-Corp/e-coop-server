@@ -12,9 +12,9 @@ import (
 
 type (
 	SubscriptionPlan struct {
-		ID        uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
-		CreatedAt time.Time
-		UpdatedAt time.Time
+		ID        uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
+		CreatedAt time.Time      `gorm:"not null;default:now()"`
+		UpdatedAt time.Time      `gorm:"not null;default:now()"`
 		DeletedAt gorm.DeletedAt `gorm:"index"`
 
 		Name        string `gorm:"type:varchar(255);not null"`
@@ -58,9 +58,8 @@ type (
 		Discount       float64 `json:"discount"`
 		YearlyDiscount float64 `json:"yearly_discount"`
 
-		CreatedAt string  `json:"created_at"`
-		UpdatedAt string  `json:"updated_at"`
-		DeletedAt *string `json:"deleted_at,omitempty"`
+		CreatedAt string `json:"created_at"`
+		UpdatedAt string `json:"updated_at"`
 	}
 
 	SubscriptionPlanCollection struct {
@@ -89,11 +88,6 @@ func (spc *SubscriptionPlanCollection) ToModel(plan *SubscriptionPlan) *Subscrip
 	if plan == nil {
 		return nil
 	}
-	var deletedAt *string
-	if plan.DeletedAt.Valid {
-		t := plan.DeletedAt.Time.Format(time.RFC3339)
-		deletedAt = &t
-	}
 	return &SubscriptionPlanResponse{
 		ID:                  plan.ID,
 		Name:                plan.Name,
@@ -107,7 +101,6 @@ func (spc *SubscriptionPlanCollection) ToModel(plan *SubscriptionPlan) *Subscrip
 		YearlyDiscount:      plan.YearlyDiscount,
 		CreatedAt:           plan.CreatedAt.Format(time.RFC3339),
 		UpdatedAt:           plan.UpdatedAt.Format(time.RFC3339),
-		DeletedAt:           deletedAt,
 	}
 }
 
