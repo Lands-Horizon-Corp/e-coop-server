@@ -140,10 +140,12 @@ func (h *Handler) Routes(service *echo.Echo) {
 
 	invitationCodeGroup := service.Group("invitation-codes")
 	{
+		invitationCodeGroup.DELETE("/:id", h.InvitationCodeDelete)
+		invitationCodeGroup.GET("/:id", h.InvitationCodeGet)
+		invitationCodeGroup.PUT("/:id", h.InvitationCodeUpdate)
+
 		invitationCodeGroup.GET("/code/:code", h.GetInvitationCode)
 		invitationCodeGroup.GET("/organization/:org_id/branch/:branch_id", h.InvitationCodeListByOrgBranch)
 		invitationCodeGroup.POST("/organization/:org_id/branch/:branch_id", h.InvitationCodeCreateByOrgBranch)
-		invitationCodeGroup.DELETE("/:id", h.InvitationCodeDelete)
 	}
-
 }

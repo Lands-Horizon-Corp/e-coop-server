@@ -59,6 +59,7 @@ type (
 
 	InvitationCodeRequest struct {
 		UserType       string    `json:"user_type" validate:"required,oneof=employee owner member"`
+		Code           string    `json:"code" validate:"required,max=255"`
 		ExpirationDate time.Time `json:"expiration_date" validate:"required"`
 		MaxUse         int       `json:"max_use" validate:"required"`
 		Description    string    `json:"description,omitempty"`
