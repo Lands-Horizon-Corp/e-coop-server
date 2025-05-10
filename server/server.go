@@ -22,21 +22,32 @@ func NewCoopServer(
 			handler.Routes,
 		},
 		Migrations: []any{
-			&model.Branch{},
+			// 1. Base user table - referenced by nearly all other tables
+			&model.User{},
+
+			// 2. Independent tables
+			&model.SubscriptionPlan{},
 			&model.Category{},
 			&model.ContactUs{},
+
+			// 3. Media table - referenced by multiple subsequent tables
+			&model.Media{},
+
+			// 4. Organization and its direct dependencies
+			&model.Organization{},
+			&model.OrganizationCategory{},
+
+			// 5. Branch-related tables
+			&model.Branch{},
+			&model.PermissionTemplate{},
+			&model.InvitationCode{},
+
+			// 6. Tables needing both User and Organization/Branch
 			&model.Feedback{},
 			&model.Footstep{},
-			&model.InvitationCode{},
-			&model.Media{},
-			&model.Notification{},
-			&model.OrganizationCategory{},
-			&model.OrganizationDailyUsage{},
-			&model.Organization{},
-			&model.PermissionTemplate{},
-			&model.SubscriptionPlan{},
 			&model.UserOrganization{},
-			&model.User{},
+			&model.OrganizationDailyUsage{},
+			&model.Notification{},
 		},
 	}, nil
 }

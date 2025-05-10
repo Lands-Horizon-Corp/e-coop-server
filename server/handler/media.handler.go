@@ -36,7 +36,7 @@ func (h *Handler) MediaCreate(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "missing file")
 	}
-	// 2. Insert placeholder record with Status = pending
+
 	initial := &model.Media{
 		FileName:   file.Filename,
 		FileSize:   0,

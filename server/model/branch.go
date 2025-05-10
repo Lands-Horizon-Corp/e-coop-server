@@ -10,19 +10,20 @@ import (
 
 type (
 	Branch struct {
-		ID          uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
-		CreatedAt   time.Time      `gorm:"not null;default:now()"`
-		CreatedByID uuid.UUID      `gorm:"type:uuid"`
-		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt   time.Time      `gorm:"not null;default:now()"`
-		UpdatedByID uuid.UUID      `gorm:"type:uuid"`
-		UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt   gorm.DeletedAt `gorm:"index"`
-		DeletedByID *uuid.UUID     `gorm:"type:uuid"`
-		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
-
-		MediaID *uuid.UUID `gorm:"type:uuid"`
-		Media   *Media     `gorm:"foreignKey:MediaID;constraint:OnDelete:SET NULL;" json:"media,omitempty"`
+		ID             uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
+		CreatedAt      time.Time      `gorm:"not null;default:now()"`
+		CreatedByID    uuid.UUID      `gorm:"type:uuid"`
+		CreatedBy      *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
+		UpdatedAt      time.Time      `gorm:"not null;default:now()"`
+		UpdatedByID    uuid.UUID      `gorm:"type:uuid"`
+		UpdatedBy      *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
+		DeletedAt      gorm.DeletedAt `gorm:"index"`
+		DeletedByID    *uuid.UUID     `gorm:"type:uuid"`
+		DeletedBy      *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
+		OrganizationID uuid.UUID      `gorm:"type:uuid;not null" json:"organization_id"`
+		Organization   *Organization  `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE;" json:"organization,omitempty"`
+		MediaID        *uuid.UUID     `gorm:"type:uuid"`
+		Media          *Media         `gorm:"foreignKey:MediaID;constraint:OnDelete:SET NULL;" json:"media,omitempty"`
 
 		Type          string   `gorm:"type:varchar(100);not null"`
 		Name          string   `gorm:"type:varchar(255);not null"`

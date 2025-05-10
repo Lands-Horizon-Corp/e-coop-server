@@ -41,6 +41,9 @@ type (
 		BucketName  string                `json:"bucket_name"`
 		Status      horizon.StorageStatus `json:"status"`
 		Progress    int64                 `json:"progress"`
+
+		UserID *uuid.UUID    `json:"user_id"`
+		User   *UserResponse `json:"user,omitempty"`
 	}
 
 	MediaRequest struct {

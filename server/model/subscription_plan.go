@@ -25,7 +25,7 @@ type (
 		Discount            float64 `gorm:"type:numeric(5,2);default:0"`
 		YearlyDiscount      float64 `gorm:"type:numeric(5,2);default:0"`
 
-		Organizations []*Organization `gorm:"foreignKey:OrganizationID" json:"organizations,omitempty"`
+		Organizations []*Organization `gorm:"foreignKey:SubscriptionPlanID" json:"organizations,omitempty"`
 	}
 
 	SubscriptionPlanRequest struct {

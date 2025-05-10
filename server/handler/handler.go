@@ -56,9 +56,9 @@ func (h *Handler) Routes(service *echo.Echo) {
 	}
 	footstepGroup := service.Group("/footstep")
 	{
-		footstepGroup.GET("/footstep", h.FootstepList)
-		footstepGroup.GET("/footstep/:id", h.FootstepGet)
-		footstepGroup.DELETE("/footstep/:id", h.FootstepDelete)
+		footstepGroup.GET("/", h.FootstepList)
+		footstepGroup.GET("/:id", h.FootstepGet)
+		footstepGroup.DELETE("/:id", h.FootstepDelete)
 	}
 	mediaGroup := service.Group("/feedback")
 	{
@@ -71,21 +71,21 @@ func (h *Handler) Routes(service *echo.Echo) {
 
 	authenticationGroup := service.Group("/authentication")
 	{
-		authenticationGroup.GET("/authentication/current", h.UserCurrent)
-		authenticationGroup.POST("/authentication/login", h.UserLogin)
-		authenticationGroup.POST("/authentication/logout", h.UserLogout)
-		authenticationGroup.POST("/authentication/register", h.UserRegister)
-		authenticationGroup.POST("/authentication/forgot-password", h.UserForgotPassword)
-		authenticationGroup.GET("/authentication/verify-reset-link/:id", h.UserVerifyResetLink)
-		authenticationGroup.POST("/authentication/change-password/:id", h.UserChangePassword)
-		authenticationGroup.POST("/authentication/apply-contact-number", h.UserApplyContactNumber)
-		authenticationGroup.POST("/authentication/verify-contact-number", h.UserVerifyContactNumber)
-		authenticationGroup.POST("/authentication/apply-email", h.UserApplyEmail)
-		authenticationGroup.POST("/authentication/verify-email", h.UserVerifyEmail)
-		authenticationGroup.POST("/authentication/verify-with-email", h.UserVerifyWithEmail)
-		authenticationGroup.POST("/authentication/verify-with-email-confirmation", h.UserVerifyWithEmailConfirmation)
-		authenticationGroup.POST("/authentication/verify-with-contact", h.UserVerifyWithContactNumber)
-		authenticationGroup.POST("/authentication/verify-with-contact-confirmation", h.UserVerifyWithContactNumberConfirmation)
+		authenticationGroup.GET("/current", h.UserCurrent)
+		authenticationGroup.POST("/login", h.UserLogin)
+		authenticationGroup.POST("/logout", h.UserLogout)
+		authenticationGroup.POST("/register", h.UserRegister)
+		authenticationGroup.POST("/forgot-password", h.UserForgotPassword)
+		authenticationGroup.GET("/verify-reset-link/:id", h.UserVerifyResetLink)
+		authenticationGroup.POST("/change-password/:id", h.UserChangePassword)
+		authenticationGroup.POST("/apply-contact-number", h.UserApplyContactNumber)
+		authenticationGroup.POST("/verify-contact-number", h.UserVerifyContactNumber)
+		authenticationGroup.POST("/apply-email", h.UserApplyEmail)
+		authenticationGroup.POST("/verify-email", h.UserVerifyEmail)
+		authenticationGroup.POST("/verify-with-email", h.UserVerifyWithEmail)
+		authenticationGroup.POST("/verify-with-email-confirmation", h.UserVerifyWithEmailConfirmation)
+		authenticationGroup.POST("/verify-with-contact", h.UserVerifyWithContactNumber)
+		authenticationGroup.POST("/verify-with-contact-confirmation", h.UserVerifyWithContactNumberConfirmation)
 	}
 
 	profileGroup := service.Group("/profile")

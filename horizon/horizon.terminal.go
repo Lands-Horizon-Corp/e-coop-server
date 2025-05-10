@@ -44,62 +44,53 @@ func NewTerminal(lc fx.Lifecycle, request *HorizonRequest, config *HorizonConfig
 	})
 }
 
-// requestCMD prints out the grouped routes for the Horizon application
 func requestCMD(request *HorizonRequest) {
 	routesList := request.service.Routes()
 
-	// Group routes by Controller -> Method -> []*Route
 	grouped := make(map[string]map[string][]*echo.Route)
-
 	for _, rt := range routesList {
-		controller := extractController(rt.Name)
-		if _, ok := grouped[controller]; !ok {
-			grouped[controller] = make(map[string][]*echo.Route)
+		parts := strings.Split(strings.TrimPrefix(rt.Path, "/"), "/")
+		prefix := "/" + parts[0]
+		if _, ok := grouped[prefix]; !ok {
+			grouped[prefix] = make(map[string][]*echo.Route)
 		}
-		grouped[controller][rt.Method] = append(grouped[controller][rt.Method], rt)
+		grouped[prefix][rt.Method] = append(grouped[prefix][rt.Method], rt)
 	}
 
-	// Sort controller names
-	controllers := make([]string, 0, len(grouped))
-	for c := range grouped {
-		controllers = append(controllers, c)
+	groups := make([]string, 0, len(grouped))
+	for grp := range grouped {
+		groups = append(groups, grp)
 	}
-	sort.Strings(controllers)
+	sort.Strings(groups)
 
-	// Print grouped routes
-	for _, controller := range controllers {
-		fmt.Printf("\n%s========== %s ==========%s\n", Cyan, controller, Reset)
+	for _, grp := range groups {
+		fmt.Printf("\n%s========== Group %s ==========%s\n", Cyan, grp, Reset)
 
-		// Sort methods: prioritize GET, POST, PUT, DELETE
-		methods := make([]string, 0, len(grouped[controller]))
-		for method := range grouped[controller] {
-			methods = append(methods, method)
+		methods := make([]string, 0, len(grouped[grp]))
+		for m := range grouped[grp] {
+			methods = append(methods, m)
 		}
 		sort.Slice(methods, func(i, j int) bool {
 			order := map[string]int{"GET": 1, "POST": 2, "PUT": 3, "DELETE": 4}
 			return order[methods[i]] < order[methods[j]]
 		})
 
-		// Print routes by method
 		for _, method := range methods {
-			routes := grouped[controller][method]
-
-			// Sort routes within each method group by Path
+			routes := grouped[grp][method]
 			sort.Slice(routes, func(i, j int) bool {
 				return routes[i].Path < routes[j].Path
 			})
 
-			// Print each route with color-coding based on HTTP method
 			for _, rt := range routes {
 				switch rt.Method {
 				case "GET":
-					fmt.Printf("\t%s▶ %s %s \t%s- %s%s\n", Green, rt.Method, rt.Path, Reset, rt.Name, Reset)
+					fmt.Printf("\t%s▶ %s %s \t- %s%s\n", Green, rt.Method, rt.Path, Reset, rt.Name)
 				case "POST":
-					fmt.Printf("\t%s▶ %s %s \t%s- %s%s\n", Blue, rt.Method, rt.Path, Reset, rt.Name, Reset)
+					fmt.Printf("\t%s▶ %s %s \t- %s%s\n", Blue, rt.Method, rt.Path, Reset, rt.Name)
 				case "PUT":
-					fmt.Printf("\t%s▶ %s %s \t%s- %s%s\n", Yellow, rt.Method, rt.Path, Reset, rt.Name, Reset)
+					fmt.Printf("\t%s▶ %s %s \t- %s%s\n", Yellow, rt.Method, rt.Path, Reset, rt.Name)
 				case "DELETE":
-					fmt.Printf("\t%s▶ %s %s \t%s- %s%s\n", Red, rt.Method, rt.Path, Reset, rt.Name, Reset)
+					fmt.Printf("\t%s▶ %s %s \t- %s%s\n", Red, rt.Method, rt.Path, Reset, rt.Name)
 				default:
 					fmt.Printf("\t▶ %s %s \t- %s\n", rt.Method, rt.Path, rt.Name)
 				}
