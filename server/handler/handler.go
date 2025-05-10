@@ -109,7 +109,6 @@ func (h *Handler) Routes(service *echo.Echo) {
 		profileGroup.PUT("/profile", h.UserSettingsChangeProfile)
 		profileGroup.PUT("/general", h.UserSettingsChangeGeneral)
 	}
-
 	notificationGroup := service.Group("/notification")
 	{
 		notificationGroup.GET("", h.NotificationList)
@@ -144,5 +143,12 @@ func (h *Handler) Routes(service *echo.Echo) {
 		invitationCodeGroup.GET("/code/:code", h.GetInvitationCode)
 		invitationCodeGroup.GET("/organization/:org_id/branch/:branch_id", h.InvitationCodeListByOrgBranch)
 		invitationCodeGroup.POST("/organization/:org_id/branch/:branch_id", h.InvitationCodeCreateByOrgBranch)
+	}
+	userOrganization := service.Group("/user-organization")
+	{
+		userOrganization.GET("", h.UserOrganizationList)
+		userOrganization.POST("/join/:invitation_code?", h.UserOrganizationJoin)
+		userOrganization.DELETE("/:id", h.UserOrganizationLeave)
+		userOrganization.PUT("/:id", h.UserOrganizationUpdate)
 	}
 }

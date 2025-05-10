@@ -123,3 +123,19 @@ func (r *Repository) UserOrganizationExists(
 	}
 	return count > 0, nil
 }
+
+func (r *Repository) UserOrganizationGetByUserOrgBranch(
+	userID, orgID, branchID uuid.UUID,
+) (*model.UserOrganization, error) {
+	var uo model.UserOrganization
+	if err := r.database.Client().
+		Where("user_id = ? AND organization_id = ? AND branch_id = ?", userID, orgID, branchID).
+		First(&uo).Error; err != nil {
+		return nil, eris.Wrapf(
+			err,
+			"failed to find user_organization for user %s org %s branch %s",
+			userID, orgID, branchID,
+		)
+	}
+	return &uo, nil
+}
