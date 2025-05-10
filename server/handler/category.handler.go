@@ -71,7 +71,6 @@ func (h *Handler) CategoryUpdate(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	return c.JSON(http.StatusOK, h.model.CategoryModel(model))
-
 }
 
 func (h *Handler) CategoryDelete(c echo.Context) error {

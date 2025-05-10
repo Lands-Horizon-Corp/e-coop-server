@@ -3,9 +3,12 @@ package horizon
 import (
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
+	"fmt"
 	"io"
 
 	"github.com/google/uuid"
@@ -235,4 +238,17 @@ func (hs *HorizonSecurity) Decrypt(value string) (string, error) {
 	})
 
 	return string(plaintext), nil
+}
+
+func (hs *HorizonSecurity) GenerateToken(userID string) string {
+	uid := uuid.New().String()
+	data := fmt.Sprintf("%s:%s", userID, uid)
+
+	h := hmac.New(sha256.New, []byte(hs.config.AppToken))
+	h.Write([]byte(data))
+	signature := hex.EncodeToString(h.Sum(nil))
+
+	token := fmt.Sprintf("%s.%s", uid, signature)
+
+	return token
 }

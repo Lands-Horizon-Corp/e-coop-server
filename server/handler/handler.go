@@ -16,6 +16,8 @@ type Handler struct {
 	repository     *repository.Repository
 	model          *model.Model
 	publisher      *publisher.Publisher
+	database       *horizon.HorizonDatabase
+	security       *horizon.HorizonSecurity
 }
 
 func NewHandler(
@@ -25,6 +27,8 @@ func NewHandler(
 	repository *repository.Repository,
 	model *model.Model,
 	publisher *publisher.Publisher,
+	database *horizon.HorizonDatabase,
+	security *horizon.HorizonSecurity,
 ) (*Handler, error) {
 	return &Handler{
 		authentication: authentication,
@@ -33,6 +37,8 @@ func NewHandler(
 		repository:     repository,
 		model:          model,
 		publisher:      publisher,
+		database:       database,
+		security:       security,
 	}, nil
 }
 

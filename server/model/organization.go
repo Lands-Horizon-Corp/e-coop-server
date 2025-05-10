@@ -114,9 +114,10 @@ type (
 		MediaID      *uuid.UUID `json:"media_id,omitempty"`
 		CoverMediaID *uuid.UUID `json:"cover_media_id,omitempty"`
 
-		SubscriptionPlanID    *uuid.UUID `json:"subscription_plan_id,omitempty"`
-		SubscriptionStartDate time.Time  `json:"subscription_start_date" validate:"required"`
-		SubscriptionEndDate   time.Time  `json:"subscription_end_date" validate:"required"`
+		SubscriptionPlanID       *uuid.UUID `json:"subscription_plan_id,omitempty"`
+		SubscriptionPlanIsYearly bool       `json:"subscription_plan_is_yearly,omitempty"`
+
+		OrganizationCategories []*uuid.UUID `json:"organization_categories,omitempty"`
 	}
 )
 
