@@ -85,3 +85,20 @@ func (r *Repository) PermissionTemplateUpdateCreate(data *model.PermissionTempla
 	}
 	return nil
 }
+
+func (r *Repository) PermissionTemplateListByOrgBranch(
+	orgID, branchID uuid.UUID,
+) ([]*model.PermissionTemplate, error) {
+	var pts []*model.PermissionTemplate
+	if err := r.database.Client().
+		Where("organization_id = ? AND branch_id = ?", orgID, branchID).
+		Order("created_at DESC").
+		Find(&pts).Error; err != nil {
+		return nil, eris.Wrapf(
+			err,
+			"failed to list permission templates for org %s branch %s",
+			orgID, branchID,
+		)
+	}
+	return pts, nil
+}

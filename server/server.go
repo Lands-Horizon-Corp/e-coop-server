@@ -29,7 +29,7 @@ func NewCoopServer(
 			&model.Media{},                // ✅
 			&model.Organization{},         // ✅
 			&model.OrganizationCategory{}, // ✅
-			&model.Branch{},
+			&model.Branch{},               // ✅
 			&model.PermissionTemplate{},
 			&model.InvitationCode{},   // ✅
 			&model.Feedback{},         // ✅

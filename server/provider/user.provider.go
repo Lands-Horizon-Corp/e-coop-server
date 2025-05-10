@@ -23,3 +23,21 @@ func (p *Provider) CurrentUser(c echo.Context) (*model.User, error) {
 	}
 	return user, nil
 }
+
+func (h *Provider) EnsureEmployeeOrOwner(
+	c echo.Context,
+	orgID, branchID uuid.UUID,
+) (*model.UserOrganization, error) {
+	user, err := h.CurrentUser(c)
+	if err != nil {
+		return nil, err
+	}
+	uo, err := h.repository.UserOrganizationGetByUserOrgBranch(user.ID, orgID, branchID)
+	if err != nil {
+		return nil, echo.NewHTTPError(http.StatusForbidden, "not a member of this branch")
+	}
+	if uo.UserType != "employee" && uo.UserType != "owner" {
+		return nil, echo.NewHTTPError(http.StatusForbidden, "only owners or employees may manage this branch")
+	}
+	return uo, nil
+}
