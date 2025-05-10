@@ -37,6 +37,14 @@ func NewHandler(
 }
 
 func (h *Handler) Routes(service *echo.Echo) {
+	categoryGroup := service.Group("/category")
+	{
+		categoryGroup.GET("", h.CategoryList)
+		categoryGroup.GET("/:id", h.CategoryGet)
+		categoryGroup.POST("", h.CategoryCreate)
+		categoryGroup.PUT("/:id", h.CategoryUpdate)
+		categoryGroup.DELETE("/:id", h.CategoryDelete)
+	}
 	contactGroup := service.Group("/contact-us")
 	{
 		contactGroup.GET("", h.ContactUsList)
