@@ -85,3 +85,12 @@ func (r *Repository) OrganizationCategoryUpdateCreate(data *model.OrganizationCa
 	}
 	return nil
 }
+
+func (r *Repository) OrganizationCategoryDeleteTransaction(tx *gorm.DB, data *model.OrganizationCategory) error {
+	if err := tx.Delete(data).Error; err != nil {
+		return eris.Wrap(err, "failed to delete organization_category within transaction")
+	}
+
+	r.publisher.OrganizationCategoryOnDelete(data)
+	return nil
+}
