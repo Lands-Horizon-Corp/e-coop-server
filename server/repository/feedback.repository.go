@@ -2,31 +2,14 @@ package repository
 
 import (
 	"gorm.io/gorm"
-	"horizon.com/server/horizon"
-	"horizon.com/server/server/broadcast"
-	"horizon.com/server/server/collection"
+	"horizon.com/server/server/model"
 
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 )
 
-type FeedbackRepository struct {
-	database  *horizon.HorizonDatabase
-	broadcast *broadcast.FeedbackBroadcast
-}
-
-func NewFeedbackRepository(
-	database *horizon.HorizonDatabase,
-	broadcast *broadcast.FeedbackBroadcast,
-) (*FeedbackRepository, error) {
-	return &FeedbackRepository{
-		database:  database,
-		broadcast: broadcast,
-	}, nil
-}
-
-func (r *FeedbackRepository) List() ([]*collection.Feedback, error) {
-	var feedbacks []*collection.Feedback
+func (r *Repository) FeedbackList() ([]*model.Feedback, error) {
+	var feedbacks []*model.Feedback
 	if err := r.database.Client().
 		Order("created_at DESC").
 		Find(&feedbacks).Error; err != nil {
@@ -35,71 +18,71 @@ func (r *FeedbackRepository) List() ([]*collection.Feedback, error) {
 	return feedbacks, nil
 }
 
-func (r *FeedbackRepository) Create(data *collection.Feedback) error {
+func (r *Repository) FeedbackCreate(data *model.Feedback) error {
 	if err := r.database.Client().Create(data).Error; err != nil {
 		return eris.Wrap(err, "failed to create feedback")
 	}
-	r.broadcast.OnCreate(data)
+	r.publisher.FeedbackOnCreate(data)
 	return nil
 }
 
-func (r *FeedbackRepository) Update(data *collection.Feedback) error {
+func (r *Repository) FeedbackUpdate(data *model.Feedback) error {
 	if err := r.database.Client().Save(data).Error; err != nil {
 		return eris.Wrap(err, "failed to update feedback")
 	}
-	r.broadcast.OnUpdate(data)
+	r.publisher.FeedbackOnUpdate(data)
 	return nil
 }
 
-func (r *FeedbackRepository) Delete(data *collection.Feedback) error {
+func (r *Repository) FeedbackDelete(data *model.Feedback) error {
 	if err := r.database.Client().Delete(data).Error; err != nil {
 		return eris.Wrap(err, "failed to delete feedback")
 	}
-	r.broadcast.OnDelete(data)
+	r.publisher.FeedbackOnDelete(data)
 	return nil
 }
 
-func (r *FeedbackRepository) GetByID(id uuid.UUID) (*collection.Feedback, error) {
-	var feedback collection.Feedback
+func (r *Repository) FeedbackGetByID(id uuid.UUID) (*model.Feedback, error) {
+	var feedback model.Feedback
 	if err := r.database.Client().First(&feedback, "id = ?", id).Error; err != nil {
 		return nil, eris.Wrapf(err, "failed to find feedback with id: %s", id)
 	}
 	return &feedback, nil
 }
 
-func (r *FeedbackRepository) UpdateCreateTransaction(tx *gorm.DB, data *collection.Feedback) error {
-	var existing collection.Feedback
+func (r *Repository) FeedbackUpdateCreateTransaction(tx *gorm.DB, data *model.Feedback) error {
+	var existing model.Feedback
 	err := tx.First(&existing, "id = ?", data.ID).Error
 
 	if err != nil {
 		if err := tx.Create(data).Error; err != nil {
 			return eris.Wrap(err, "failed to create feedback in UpdateCreate")
 		}
-		r.broadcast.OnCreate(data)
+		r.publisher.FeedbackOnCreate(data)
 	} else {
 		if err := tx.Save(data).Error; err != nil {
 			return eris.Wrap(err, "failed to update feedback in UpdateCreate")
 		}
-		r.broadcast.OnUpdate(data)
+		r.publisher.FeedbackOnUpdate(data)
 	}
 
 	return nil
 }
 
-func (r *FeedbackRepository) UpdateCreate(data *collection.Feedback) error {
-	var existing collection.Feedback
+func (r *Repository) FeedbackUpdateCreate(data *model.Feedback) error {
+	var existing model.Feedback
 	err := r.database.Client().First(&existing, "id = ?", data.ID).Error
 
 	if err != nil {
 		if err := r.database.Client().Create(data).Error; err != nil {
 			return eris.Wrap(err, "failed to create feedback in UpdateCreate")
 		}
-		r.broadcast.OnCreate(data)
+		r.publisher.FeedbackOnCreate(data)
 	} else {
 		if err := r.database.Client().Save(data).Error; err != nil {
 			return eris.Wrap(err, "failed to update feedback in UpdateCreate")
 		}
-		r.broadcast.OnUpdate(data)
+		r.publisher.FeedbackOnUpdate(data)
 	}
 	return nil
 }

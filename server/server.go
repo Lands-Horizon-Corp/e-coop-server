@@ -52,20 +52,16 @@ var Modules = []any{
 
 	model.NewModel,
 	publisher.NewPublisher,
+	repository.NewRepository,
 
-	repository.NewContactUsRepository,
 	controller.NewContactUsController,
 
-	repository.NewFeedbackRepository,
 	controller.NewFeedbackController,
 
-	repository.NewFootstepRepository,
 	controller.NewFootstepController,
 
-	repository.NewMediaRepository,
 	controller.NewMediaController,
 
-	repository.NewUserRepository,
 	controller.NewUserController,
 
 	// Provider

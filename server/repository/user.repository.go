@@ -4,113 +4,96 @@ import (
 	"strings"
 
 	"gorm.io/gorm"
-	"horizon.com/server/horizon"
-	"horizon.com/server/server/broadcast"
-	"horizon.com/server/server/collection"
+	"horizon.com/server/server/model"
 
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 )
 
-type UserRepository struct {
-	database  *horizon.HorizonDatabase
-	broadcast *broadcast.UserBroadcast
-}
-
-func NewUserRepository(
-	database *horizon.HorizonDatabase,
-	broadcast *broadcast.UserBroadcast,
-) (*UserRepository, error) {
-	return &UserRepository{
-		database:  database,
-		broadcast: broadcast,
-	}, nil
-}
-
-func (r *UserRepository) List() ([]*collection.User, error) {
-	var users []*collection.User
+func (r *Repository) UserList() ([]*model.User, error) {
+	var users []*model.User
 	if err := r.database.Client().Order("created_at DESC").Find(&users).Error; err != nil {
 		return nil, eris.Wrap(err, "failed to list user")
 	}
 	return users, nil
 }
-func (r *UserRepository) Create(data *collection.User) error {
+func (r *Repository) UserCreate(data *model.User) error {
 	if err := r.database.Client().Create(data).Error; err != nil {
 		return eris.Wrap(err, "failed to create user")
 	}
-	r.broadcast.OnCreate(data)
+	r.publisher.UserOnCreate(data)
 	return nil
 }
 
-func (r *UserRepository) Update(data *collection.User) error {
+func (r *Repository) UserUpdate(data *model.User) error {
 	if err := r.database.Client().Save(data).Error; err != nil {
 		return eris.Wrap(err, "failed to update user")
 	}
-	r.broadcast.OnUpdate(data)
+	r.publisher.UserOnUpdate(data)
 	return nil
 }
 
-func (r *UserRepository) Delete(data *collection.User) error {
+func (r *Repository) UserDelete(data *model.User) error {
 	if err := r.database.Client().Delete(data).Error; err != nil {
 		return eris.Wrap(err, "failed to delete user")
 	}
-	r.broadcast.OnDelete(data)
+	r.publisher.UserOnDelete(data)
 	return nil
 }
 
-func (r *UserRepository) GetByID(id uuid.UUID) (*collection.User, error) {
-	var user collection.User
+func (r *Repository) UserGetByID(id uuid.UUID) (*model.User, error) {
+	var user model.User
 	if err := r.database.Client().First(&user, "id = ?", id).Error; err != nil {
 		return nil, eris.Wrapf(err, "failed to find user with id: %s", id)
 	}
 	return &user, nil
 }
 
-func (r *UserRepository) UpdateCreateTransaction(tx *gorm.DB, data *collection.User) error {
-	var existing collection.User
+func (r *Repository) UserUpdateCreateTransaction(tx *gorm.DB, data *model.User) error {
+	var existing model.User
 	err := tx.First(&existing, "id = ?", data.ID).Error
 
 	if err != nil {
 		if err := tx.Create(data).Error; err != nil {
 			return eris.Wrap(err, "failed to create user in UpdateCreate")
 		}
-		r.broadcast.OnCreate(data)
+		r.publisher.UserOnCreate(data)
 	} else {
 		if err := tx.Save(data).Error; err != nil {
 			return eris.Wrap(err, "failed to update user in UpdateCreate")
 		}
-		r.broadcast.OnUpdate(data)
+		r.publisher.UserOnUpdate(data)
 	}
 
 	return nil
 }
 
-func (r *UserRepository) UpdateCreate(data *collection.User) error {
-	var existing collection.User
+func (r *Repository) UserUpdateCreate(data *model.User) error {
+	var existing model.User
 	err := r.database.Client().First(&existing, "id = ?", data.ID).Error
 
 	if err != nil {
 		if err := r.database.Client().Create(data).Error; err != nil {
 			return eris.Wrap(err, "failed to create user in UpdateCreate")
 		}
-		r.broadcast.OnCreate(data)
+		r.publisher.UserOnCreate(data)
 	} else {
 		if err := r.database.Client().Save(data).Error; err != nil {
 			return eris.Wrap(err, "failed to update user in UpdateCreate")
 		}
-		r.broadcast.OnUpdate(data)
+		r.publisher.UserOnUpdate(data)
 	}
 	return nil
 }
 
-func (r *UserRepository) UpdateFields(id uuid.UUID, fields *collection.User) error {
-	return r.database.Client().Model(&collection.User{}).
+func (r *Repository) UserUpdateFields(id uuid.UUID, fields *model.User) error {
+	return r.database.Client().Model(&model.User{}).
 		Where("id = ?", id).
 		Updates(fields).Error
 }
 
-func (r *UserRepository) FindByEmail(email string) (*collection.User, error) {
-	var user collection.User
+func (r *Repository) UserFindByEmail(email string) (*model.User, error) {
+	var user model.User
 	if err := r.database.Client().
 		Where("email = ?", email).
 		First(&user).Error; err != nil {
@@ -120,8 +103,8 @@ func (r *UserRepository) FindByEmail(email string) (*collection.User, error) {
 }
 
 // FindByContactNumber looks up a user by contact number.
-func (r *UserRepository) FindByContactNumber(contact string) (*collection.User, error) {
-	var user collection.User
+func (r *Repository) UserFindByContactNumber(contact string) (*model.User, error) {
+	var user model.User
 	if err := r.database.Client().
 		Where("contact_number = ?", contact).
 		First(&user).Error; err != nil {
@@ -131,8 +114,8 @@ func (r *UserRepository) FindByContactNumber(contact string) (*collection.User, 
 }
 
 // FindByUserName looks up a user by username.
-func (r *UserRepository) FindByUserName(username string) (*collection.User, error) {
-	var user collection.User
+func (r *Repository) UserFindByUserName(username string) (*model.User, error) {
+	var user model.User
 	if err := r.database.Client().
 		Where("user_name = ?", username).
 		First(&user).Error; err != nil {
@@ -140,19 +123,19 @@ func (r *UserRepository) FindByUserName(username string) (*collection.User, erro
 	}
 	return &user, nil
 }
-func (r *UserRepository) FindByIdentifier(identifier string) (*collection.User, error) {
+func (r *Repository) FindByIdentifier(identifier string) (*model.User, error) {
 	if strings.Contains(identifier, "@") {
-		if u, err := r.FindByEmail(identifier); err == nil {
+		if u, err := r.UserFindByEmail(identifier); err == nil {
 			return u, nil
 		}
 	}
 	numeric := strings.Trim(identifier, "+-0123456789")
 	if numeric == "" {
-		if u, err := r.FindByContactNumber(identifier); err == nil {
+		if u, err := r.UserFindByContactNumber(identifier); err == nil {
 			return u, nil
 		}
 	}
-	if u, err := r.FindByUserName(identifier); err == nil {
+	if u, err := r.UserFindByUserName(identifier); err == nil {
 		return u, nil
 	}
 	return nil, eris.New("user not found by email, contact number, or username")

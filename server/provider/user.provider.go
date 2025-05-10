@@ -6,30 +6,30 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"horizon.com/server/horizon"
-	"horizon.com/server/server/collection"
+	"horizon.com/server/server/model"
 	"horizon.com/server/server/repository"
 )
 
 type UserProvider struct {
-	repo           *repository.UserRepository
-	collector      *collection.UserCollection
+	repo           *repository.Repository
+	model          *model.Model
 	authentication *horizon.HorizonAuthentication
 }
 
 func NewUserProvider(
-	repo *repository.UserRepository,
-	collector *collection.UserCollection,
+	repo *repository.Repository,
+	model *model.Model,
 	authentication *horizon.HorizonAuthentication,
 
 ) (*UserProvider, error) {
 	return &UserProvider{
 		repo:           repo,
-		collector:      collector,
+		model:          model,
 		authentication: authentication,
 	}, nil
 }
 
-func (up *UserProvider) CurrentUser(c echo.Context) (*collection.User, error) {
+func (up *UserProvider) CurrentUser(c echo.Context) (*model.User, error) {
 	claim, err := up.authentication.GetUserFromToken(c)
 	if err != nil {
 		return nil, echo.NewHTTPError(http.StatusUnauthorized, "authentication required")
@@ -38,7 +38,7 @@ func (up *UserProvider) CurrentUser(c echo.Context) (*collection.User, error) {
 	if err != nil {
 		return nil, echo.NewHTTPError(http.StatusBadRequest, "invalid user ID in token")
 	}
-	user, err := up.repo.GetByID(id)
+	user, err := up.repo.UserGetByID(id)
 	if err != nil {
 		return nil, echo.NewHTTPError(http.StatusNotFound, "user not found")
 	}
