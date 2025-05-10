@@ -126,4 +126,13 @@ func (h *Handler) Routes(service *echo.Echo) {
 		subscriptionPlanGroup.PUT("/:id", h.SubscriptionPlanUpdate)
 		subscriptionPlanGroup.DELETE("/:id", h.SubscriptionPlanDelete)
 	}
+
+	organizationGroup := service.Group("organization")
+	{
+		organizationGroup.GET("", h.OrganizationList)
+		organizationGroup.GET("/:id", h.OrganizationGet)
+		organizationGroup.POST("", h.OrganizationCreate)
+		organizationGroup.PUT("/:id", h.OrganizationUpdate)
+		organizationGroup.DELETE("/:id", h.OrganizationDelete)
+	}
 }

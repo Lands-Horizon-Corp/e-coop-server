@@ -85,3 +85,22 @@ func (r *Repository) OrganizationUpdateCreate(data *model.Organization) error {
 	}
 	return nil
 }
+
+func (r *Repository) OrganizationDeleteTransaction(tx *gorm.DB, data *model.Organization) error {
+	// Check if the organization exists in the database
+	var existing model.Organization
+	err := tx.First(&existing, "id = ?", data.ID).Error
+	if err != nil {
+		return eris.Wrapf(err, "organization with id %s not found for deletion", data.ID)
+	}
+
+	// Proceed to delete the organization if it exists
+	if err := tx.Delete(&existing).Error; err != nil {
+		return eris.Wrap(err, "failed to delete organization within transaction")
+	}
+
+	// Notify publisher about the organization deletion
+	r.publisher.OrganizationOnDelete(&existing)
+
+	return nil
+}

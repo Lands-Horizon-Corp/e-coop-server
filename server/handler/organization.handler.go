@@ -187,3 +187,52 @@ func (h *Handler) OrganizationUpdate(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, h.model.OrganizationModel(organization))
 }
+
+func (h *Handler) OrganizationDelete(c echo.Context) error {
+
+	idParam := c.Param("id")
+	id, err := uuid.Parse(idParam)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid organization ID"})
+	}
+
+	_, err = h.provider.CurrentUser(c)
+	if err != nil {
+		return err
+	}
+
+	organization, err := h.repository.OrganizationGetByID(id)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, map[string]string{"error": "Organization not found"})
+	}
+
+	currentTime := time.Now().UTC()
+	if organization.SubscriptionEndDate.After(currentTime) {
+		return c.JSON(http.StatusForbidden, map[string]string{"error": "Subscription plan is still active"})
+	}
+
+	userOrganizationsCount, err := h.repository.UserOrganizationsCount(organization.ID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	if userOrganizationsCount >= 3 {
+		return c.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete organization with more than 2 user organizations"})
+	}
+
+	tx := h.database.Client().Begin()
+	if tx.Error != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+	}
+
+	if err := h.repository.OrganizationDeleteTransaction(tx, organization); err != nil {
+		tx.Rollback()
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}

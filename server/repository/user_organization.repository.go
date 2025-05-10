@@ -85,3 +85,13 @@ func (r *Repository) UserOrganizationUpdateCreate(data *model.UserOrganization) 
 	}
 	return nil
 }
+
+func (r *Repository) UserOrganizationsCount(organizationID uuid.UUID) (int64, error) {
+	var count int64
+	if err := r.database.Client().Model(&model.UserOrganization{}).
+		Where("organization_id = ?", organizationID).
+		Count(&count).Error; err != nil {
+		return 0, eris.Wrapf(err, "failed to count user organizations for organization ID: %s", organizationID)
+	}
+	return count, nil
+}
