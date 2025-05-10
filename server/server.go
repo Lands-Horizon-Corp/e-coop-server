@@ -2,7 +2,7 @@ package server
 
 import (
 	"github.com/labstack/echo/v4"
-	"horizon.com/server/server/controller"
+	"horizon.com/server/server/handler"
 	"horizon.com/server/server/model"
 	"horizon.com/server/server/provider"
 	"horizon.com/server/server/publisher"
@@ -15,17 +15,11 @@ type CoopServer struct {
 }
 
 func NewCoopServer(
-	feedback *controller.FeedbackController,
-	media *controller.MediaController,
-	user *controller.UserController,
-	contactUs *controller.ContactUsController,
+	handler *handler.Handler,
 ) (*CoopServer, error) {
 	return &CoopServer{
 		Routes: []func(*echo.Echo){
-			contactUs.APIRoutes,
-			feedback.APIRoutes,
-			media.APIRoutes,
-			user.APIRoutes,
+			handler.Routes,
 		},
 		Migrations: []any{
 			&model.Branch{},
@@ -53,17 +47,8 @@ var Modules = []any{
 	model.NewModel,
 	publisher.NewPublisher,
 	repository.NewRepository,
-
-	controller.NewContactUsController,
-
-	controller.NewFeedbackController,
-
-	controller.NewFootstepController,
-
-	controller.NewMediaController,
-
-	controller.NewUserController,
+	handler.NewHandler,
 
 	// Provider
-	provider.NewUserProvider,
+	provider.NewProvider,
 }
