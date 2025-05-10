@@ -123,7 +123,7 @@ func (r *Repository) UserFindByUserName(username string) (*model.User, error) {
 	}
 	return &user, nil
 }
-func (r *Repository) FindByIdentifier(identifier string) (*model.User, error) {
+func (r *Repository) UserFindByIdentifier(identifier string) (*model.User, error) {
 	if strings.Contains(identifier, "@") {
 		if u, err := r.UserFindByEmail(identifier); err == nil {
 			return u, nil

@@ -42,7 +42,7 @@ func (r *Repository) FootstepDelete(data *model.Footstep) error {
 	return nil
 }
 
-func (r *Repository) FootstepetByID(id uuid.UUID) (*model.Footstep, error) {
+func (r *Repository) FootstepGetByID(id uuid.UUID) (*model.Footstep, error) {
 	var footstep model.Footstep
 	if err := r.database.Client().First(&footstep, "id = ?", id).Error; err != nil {
 		return nil, eris.Wrapf(err, "failed to find footstep with id: %s", id)
