@@ -34,8 +34,8 @@ func NewCoopServer(
 			&model.Media{}, // ✅
 
 			// 4. Organization and its direct dependencies
-			&model.Organization{},
-			&model.OrganizationCategory{},
+			&model.Organization{},         // ✅
+			&model.OrganizationCategory{}, // ✅
 
 			// 5. Branch-related tables
 			&model.Branch{},

@@ -137,4 +137,13 @@ func (h *Handler) Routes(service *echo.Echo) {
 		organizationGroup.POST("/:id/subscription/:subscription-id", h.OrganizationSubscribe)
 
 	}
+
+	invitationCodeGroup := service.Group("invitation-codes")
+	{
+		invitationCodeGroup.GET("/code/:code", h.GetInvitationCode)
+		invitationCodeGroup.GET("/organization/:org_id/branch/:branch_id", h.InvitationCodeListByOrgBranch)
+		invitationCodeGroup.POST("/organization/:org_id/branch/:branch_id", h.InvitationCodeCreateByOrgBranch)
+		invitationCodeGroup.DELETE("/:id", h.InvitationCodeDelete)
+	}
+
 }
