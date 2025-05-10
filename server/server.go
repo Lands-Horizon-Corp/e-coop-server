@@ -2,10 +2,10 @@ package server
 
 import (
 	"github.com/labstack/echo/v4"
-	"horizon.com/server/server/broadcast"
 	"horizon.com/server/server/controller"
 	"horizon.com/server/server/model"
 	"horizon.com/server/server/provider"
+	"horizon.com/server/server/publisher"
 	"horizon.com/server/server/repository"
 )
 
@@ -51,25 +51,23 @@ var Modules = []any{
 	NewCoopServer,
 
 	model.NewModel,
+	publisher.NewPublisher,
 
 	repository.NewContactUsRepository,
 	controller.NewContactUsController,
-	broadcast.NewContactUsBroadcast,
 
 	repository.NewFeedbackRepository,
 	controller.NewFeedbackController,
-	broadcast.NewFeedbackBroadcast,
 
 	repository.NewFootstepRepository,
 	controller.NewFootstepController,
-	broadcast.NewFootstepBroadcast,
 
 	repository.NewMediaRepository,
 	controller.NewMediaController,
-	broadcast.NewMediaBroadcast,
 
 	repository.NewUserRepository,
 	controller.NewUserController,
-	broadcast.NewUserBroadcast,
+
+	// Provider
 	provider.NewUserProvider,
 }
