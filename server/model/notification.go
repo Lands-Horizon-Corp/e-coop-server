@@ -1,4 +1,4 @@
-package models
+package model
 
 import (
 	"time"
@@ -35,42 +35,22 @@ type (
 	}
 )
 
-// func NewNotificationCollection(userCol *UserCollection) (*NotificationCollection, error) {
-// 	return &NotificationCollection{
-// 		validator: validator.New(),
-// 		userCol:   userCol,
-// 	}, nil
-// }
+func (m *Model) NotificationModel(data *Notification) *NotificationResponse {
+	return ToModel(data, func(data *Notification) *NotificationResponse {
+		return &NotificationResponse{
+			ID:               data.ID,
+			UserID:           data.UserID,
+			User:             m.UserModel(data.User),
+			Title:            data.Title,
+			Description:      data.Description,
+			IsViewed:         data.IsViewed,
+			NotificationType: data.NotificationType,
+			CreatedAt:        data.CreatedAt.Format(time.RFC3339),
+			UpdatedAt:        data.UpdatedAt.Format(time.RFC3339),
+		}
+	})
+}
 
-// // ToModel maps a Notification DB model to NotificationResponse
-// func (nc *NotificationCollection) ToModel(n *Notification) *NotificationResponse {
-// 	if n == nil {
-// 		return nil
-// 	}
-// 	resp := &NotificationResponse{
-// 		ID:               n.ID,
-// 		UserID:           n.UserID,
-// 		User:             nc.userCol.ToModel(n.User),
-// 		Title:            n.Title,
-// 		Description:      n.Description,
-// 		IsViewed:         n.IsViewed,
-// 		NotificationType: n.NotificationType,
-// 		CreatedAt:        n.CreatedAt.Format(time.RFC3339),
-// 		UpdatedAt:        n.UpdatedAt.Format(time.RFC3339),
-// 	}
-// 	return resp
-// }
-
-// // ToModels maps a slice of Notification DB models to NotificationResponse
-// func (nc *NotificationCollection) ToModels(data []*Notification) []*NotificationResponse {
-// 	if data == nil {
-// 		return []*NotificationResponse{}
-// 	}
-// 	var out []*NotificationResponse
-// 	for _, n := range data {
-// 		if m := nc.ToModel(n); m != nil {
-// 			out = append(out, m)
-// 		}
-// 	}
-// 	return out
-// }
+func (m *Model) NotificationModels(data []*Notification) []*NotificationResponse {
+	return ToModels(data, m.NotificationModel)
+}

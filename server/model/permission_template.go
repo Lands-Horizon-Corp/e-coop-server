@@ -1,9 +1,10 @@
-package models
+package model
 
 import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/labstack/echo/v4"
 	"github.com/lib/pq"
 
 	"gorm.io/gorm"
@@ -58,62 +59,32 @@ type (
 	}
 )
 
-// func NewPermissionTemplateCollection(
-// 	organizationCol *OrganizationCollection,
-// 	branchCol *BranchCollection,
-// 	userCol *UserCollection,
-// ) *PermissionTemplateCollection {
-// 	return &PermissionTemplateCollection{
-// 		validator:       validator.New(),
-// 		organizationCol: organizationCol,
-// 		branchCol:       branchCol,
-// 		userCol:         userCol,
-// 	}
-// }
+func (m *Model) PermissionTemplateValidate(ctx echo.Context) (*PermissionTemplateRequest, error) {
+	return Validate[PermissionTemplateRequest](ctx, m.validator)
+}
 
-// func (rtc *PermissionTemplateCollection) ValidateCreate(c echo.Context) (*PermissionTemplateRequest, error) {
-// 	req := new(PermissionTemplateRequest)
-// 	if err := c.Bind(req); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	if err := rtc.validator.Struct(req); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	return req, nil
-// }
+func (m *Model) PermissionTemplateModel(data *PermissionTemplate) *PermissionTemplateResponse {
+	return ToModel(data, func(data *PermissionTemplate) *PermissionTemplateResponse {
+		return &PermissionTemplateResponse{
+			ID:             data.ID,
+			CreatedAt:      data.CreatedAt.Format(time.RFC3339),
+			CreatedByID:    data.CreatedByID,
+			CreatedBy:      m.UserModel(data.CreatedBy),
+			UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
+			UpdatedByID:    data.UpdatedByID,
+			UpdatedBy:      m.UserModel(data.CreatedBy),
+			OrganizationID: data.OrganizationID,
+			Organization:   m.OrganizationModel(data.Organization),
+			BranchID:       data.BranchID,
+			Branch:         m.BranchModel(data.Branch),
 
-// func (rtc *PermissionTemplateCollection) ToModel(rt *PermissionTemplate) *PermissionTemplateResponse {
-// 	if rt == nil {
-// 		return nil
-// 	}
-// 	return &PermissionTemplateResponse{
-// 		ID:             rt.ID,
-// 		CreatedAt:      rt.CreatedAt.Format(time.RFC3339),
-// 		CreatedByID:    rt.CreatedByID,
-// 		CreatedBy:      rtc.userCol.ToModel(rt.CreatedBy),
-// 		UpdatedAt:      rt.UpdatedAt.Format(time.RFC3339),
-// 		UpdatedByID:    rt.UpdatedByID,
-// 		UpdatedBy:      rtc.userCol.ToModel(rt.UpdatedBy),
-// 		OrganizationID: rt.OrganizationID,
-// 		Organization:   rtc.organizationCol.ToModel(rt.Organization),
-// 		BranchID:       rt.BranchID,
-// 		Branch:         rtc.branchCol.ToModel(rt.Branch),
+			Name:        data.Name,
+			Description: data.Description,
+			Permissions: data.Permissions,
+		}
+	})
+}
 
-// 		Name:        rt.Name,
-// 		Description: rt.Description,
-// 		Permissions: rt.Permissions,
-// 	}
-// }
-
-// func (rtc *PermissionTemplateCollection) ToModels(data []*PermissionTemplate) []*PermissionTemplateResponse {
-// 	if len(data) == 0 {
-// 		return []*PermissionTemplateResponse{}
-// 	}
-// 	out := make([]*PermissionTemplateResponse, 0, len(data))
-// 	for _, rt := range data {
-// 		if m := rtc.ToModel(rt); m != nil {
-// 			out = append(out, m)
-// 		}
-// 	}
-// 	return out
-// }
+func (m *Model) PermissionTemplateModels(data []*PermissionTemplate) []*PermissionTemplateResponse {
+	return ToModels(data, m.PermissionTemplateModel)
+}

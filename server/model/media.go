@@ -1,9 +1,10 @@
-package models
+package model
 
 import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 	"horizon.com/server/horizon"
 )
@@ -54,6 +55,38 @@ type (
 		Progress   int64  `json:"status"`
 	}
 )
+
+func (m *Model) MediaValidate(ctx echo.Context) (*MediaRequest, error) {
+	return Validate[MediaRequest](ctx, m.validator)
+}
+
+func (m *Model) MediaModel(data *Media) *MediaResponse {
+	temporaryURL, err := m.storage.GeneratePresignedURL(data.StorageKey)
+	if err != nil {
+		temporaryURL = ""
+	}
+	return ToModel(data, func(data *Media) *MediaResponse {
+		return &MediaResponse{
+			ID:          data.ID,
+			CreatedAt:   data.CreatedAt.Format(time.RFC3339),
+			UpdatedAt:   data.UpdatedAt.Format(time.RFC3339),
+			FileName:    data.FileName,
+			FileSize:    data.FileSize,
+			FileType:    data.FileType,
+			StorageKey:  data.StorageKey,
+			URL:         data.URL,
+			Key:         data.Key,
+			BucketName:  data.BucketName,
+			DownloadURL: temporaryURL,
+			Status:      data.Status,
+			Progress:    data.Progress,
+		}
+	})
+}
+
+func (m *Model) MediaModels(data []*Media) []*MediaResponse {
+	return ToModels(data, m.MediaModel)
+}
 
 // func NewMediaCollection(
 // 	storage *horizon.HorizonStorage,

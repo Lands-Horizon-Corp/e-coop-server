@@ -1,4 +1,4 @@
-package models
+package model
 
 import (
 	"time"
@@ -78,66 +78,39 @@ type (
 	}
 )
 
-// func NewFootstepCollection(
-// 	branchCol *BranchCollection,
-// 	orgCol *OrganizationCollection,
-// 	mediaCol *MediaCollection,
-// 	userCol *UserCollection,
-// ) (*FootstepCollection, error) {
-// 	return &FootstepCollection{
-// 		validator: validator.New(),
-// 		branchCol: branchCol,
-// 		orgCol:    orgCol,
-// 		mediaCol:  mediaCol,
-// 		userCol:   userCol,
-// 	}, nil
-// }
+func (m *Model) FootstepModel(data *Footstep) *FootstepResponse {
+	return ToModel(data, func(data *Footstep) *FootstepResponse {
+		return &FootstepResponse{
+			ID:             data.ID,
+			CreatedAt:      data.CreatedAt.Format(time.RFC3339),
+			CreatedByID:    data.CreatedByID,
+			CreatedBy:      m.UserModel(data.CreatedBy),
+			UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
+			UpdatedByID:    data.UpdatedByID,
+			UpdatedBy:      m.UserModel(data.UpdatedBy),
+			OrganizationID: data.OrganizationID,
+			Organization:   m.OrganizationModel(data.Organization),
+			BranchID:       data.BranchID,
+			Branch:         m.BranchModel(data.Branch),
+			UserID:         data.UserID,
+			User:           m.UserModel(data.User),
+			MediaID:        data.MediaID,
+			Media:          m.MediaModel(data.Media),
+			AccountType:    data.AccountType,
+			Module:         data.Module,
+			Latitude:       data.Latitude,
+			Longitude:      data.Longitude,
+			Timestamp:      data.Timestamp.Format(time.RFC3339),
+			IsDeleted:      data.IsDeleted,
+			IPAddress:      data.IPAddress,
+			UserAgent:      data.UserAgent,
+			Referer:        data.Referer,
+			Location:       data.Location,
+			AcceptLanguage: data.AcceptLanguage,
+		}
+	})
+}
 
-// func (fc *FootstepCollection) ToModel(f *Footstep) *FootstepResponse {
-// 	if f == nil {
-// 		return nil
-// 	}
-// 	resp := &FootstepResponse{
-// 		ID:             f.ID,
-// 		CreatedAt:      f.CreatedAt.Format(time.RFC3339),
-// 		CreatedByID:    f.CreatedByID,
-// 		CreatedBy:      fc.userCol.ToModel(f.CreatedBy),
-// 		UpdatedAt:      f.UpdatedAt.Format(time.RFC3339),
-// 		UpdatedByID:    f.UpdatedByID,
-// 		UpdatedBy:      fc.userCol.ToModel(f.UpdatedBy),
-// 		OrganizationID: f.OrganizationID,
-// 		Organization:   fc.orgCol.ToModel(f.Organization),
-// 		BranchID:       f.BranchID,
-// 		Branch:         fc.branchCol.ToModel(f.Branch),
-
-// 		UserID:         f.UserID,
-// 		User:           fc.userCol.ToModel(f.User),
-// 		MediaID:        f.MediaID,
-// 		Media:          fc.mediaCol.ToModel(f.Media),
-// 		AccountType:    f.AccountType,
-// 		Module:         f.Module,
-// 		Latitude:       f.Latitude,
-// 		Longitude:      f.Longitude,
-// 		Timestamp:      f.Timestamp.Format(time.RFC3339),
-// 		IsDeleted:      f.IsDeleted,
-// 		IPAddress:      f.IPAddress,
-// 		UserAgent:      f.UserAgent,
-// 		Referer:        f.Referer,
-// 		Location:       f.Location,
-// 		AcceptLanguage: f.AcceptLanguage,
-// 	}
-// 	return resp
-// }
-
-// func (fc *FootstepCollection) ToModels(data []*Footstep) []*FootstepResponse {
-// 	if data == nil {
-// 		return []*FootstepResponse{}
-// 	}
-// 	var out []*FootstepResponse
-// 	for _, f := range data {
-// 		if m := fc.ToModel(f); m != nil {
-// 			out = append(out, m)
-// 		}
-// 	}
-// 	return out
-// }
+func (m *Model) FootstepModels(data []*Footstep) []*FootstepResponse {
+	return ToModels(data, m.FootstepModel)
+}

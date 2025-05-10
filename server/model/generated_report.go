@@ -1,4 +1,4 @@
-package models
+package model
 
 import (
 	"time"
@@ -62,59 +62,32 @@ type (
 	}
 )
 
-// func NewGeneratedReportCollection(
-// 	branchCol *BranchCollection,
-// 	orgCol *OrganizationCollection,
-// 	mediaCol *MediaCollection,
-// 	userCol *UserCollection,
-// ) *GeneratedReportCollection {
-// 	return &GeneratedReportCollection{
-// 		validator: validator.New(),
-// 		branchCol: branchCol,
-// 		orgCol:    orgCol,
-// 		mediaCol:  mediaCol,
-// 		userCol:   userCol,
-// 	}
-// }
+func (m *Model) GeneratedReportModel(data *GeneratedReport) *GeneratedReportResponse {
+	return ToModel(data, func(cu *GeneratedReport) *GeneratedReportResponse {
+		return &GeneratedReportResponse{
+			ID:             data.ID,
+			CreatedAt:      data.CreatedAt.Format(time.RFC3339),
+			CreatedByID:    data.CreatedByID,
+			CreatedBy:      m.UserModel(data.CreatedBy),
+			UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
+			UpdatedByID:    data.UpdatedByID,
+			UpdatedBy:      m.UserModel(data.UpdatedBy),
+			OrganizationID: data.OrganizationID,
+			Organization:   m.OrganizationModel(data.Organization),
+			BranchID:       data.BranchID,
+			Branch:         m.BranchModel(data.Branch),
+			UserID:         data.UserID,
+			User:           m.UserModel(data.User),
+			MediaID:        data.MediaID,
+			Media:          m.MediaModel(data.Media),
+			Name:           data.Name,
+			Description:    data.Description,
+			Status:         data.Status,
+			Progress:       data.Progress,
+		}
+	})
+}
 
-// func (c *GeneratedReportCollection) ToModel(m *GeneratedReport) *GeneratedReportResponse {
-// 	if m == nil {
-// 		return nil
-// 	}
-
-// 	return &GeneratedReportResponse{
-// 		ID:             m.ID,
-// 		CreatedAt:      m.CreatedAt.Format(time.RFC3339),
-// 		CreatedByID:    m.CreatedByID,
-// 		CreatedBy:      c.userCol.ToModel(m.CreatedBy),
-// 		UpdatedAt:      m.UpdatedAt.Format(time.RFC3339),
-// 		UpdatedByID:    m.UpdatedByID,
-// 		UpdatedBy:      c.userCol.ToModel(m.UpdatedBy),
-// 		OrganizationID: m.OrganizationID,
-// 		Organization:   c.orgCol.ToModel(m.Organization),
-// 		BranchID:       m.BranchID,
-// 		Branch:         c.branchCol.ToModel(m.Branch),
-// 		UserID:         m.UserID,
-// 		User:           c.userCol.ToModel(m.User),
-// 		MediaID:        m.MediaID,
-// 		Media:          c.mediaCol.ToModel(m.Media),
-// 		Name:           m.Name,
-// 		Description:    m.Description,
-// 		Status:         m.Status,
-// 		Progress:       m.Progress,
-// 	}
-// }
-
-// func (c *GeneratedReportCollection) ToModels(data []*GeneratedReport) []*GeneratedReportResponse {
-// 	if data == nil {
-// 		return []*GeneratedReportResponse{}
-// 	}
-
-// 	responses := make([]*GeneratedReportResponse, 0, len(data))
-// 	for _, report := range data {
-// 		if response := c.ToModel(report); response != nil {
-// 			responses = append(responses, response)
-// 		}
-// 	}
-// 	return responses
-// }
+func (m *Model) GeneratedReportModels(data []*GeneratedReport) []*GeneratedReportResponse {
+	return ToModels(data, m.GeneratedReportModel)
+}

@@ -1,9 +1,10 @@
-package models
+package model
 
 import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
 
@@ -40,46 +41,25 @@ type (
 	}
 )
 
-// func NewContactUsCollection() *ContactUsCollection {
-// 	return &ContactUsCollection{}
-// }
+func (m *Model) ContactUsValidate(ctx echo.Context) (*ContactUsRequest, error) {
+	return Validate[ContactUsRequest](ctx, m.validator)
+}
 
-// func (c *ContactUsCollection) ValidateCreate(ctx echo.Context) (*ContactUsRequest, error) {
-// 	req := new(ContactUsRequest)
-// 	if err := ctx.Bind(req); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	if err := c.validator.Struct(req); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	return req, nil
-// }
+func (m *Model) ContactUsModel(data *ContactUs) *ContactUsResponse {
+	return ToModel(data, func(data *ContactUs) *ContactUsResponse {
+		return &ContactUsResponse{
+			ID:            data.ID,
+			FirstName:     data.FirstName,
+			LastName:      data.LastName,
+			Email:         data.Email,
+			ContactNumber: data.ContactNumber,
+			Description:   data.Description,
+			CreatedAt:     data.CreatedAt.Format(time.RFC3339),
+			UpdatedAt:     data.UpdatedAt.Format(time.RFC3339),
+		}
+	})
+}
 
-// func (c *ContactUsCollection) ToModel(m *ContactUs) *ContactUsResponse {
-// 	if m == nil {
-// 		return nil
-// 	}
-// 	return &ContactUsResponse{
-// 		ID:            m.ID,
-// 		FirstName:     m.FirstName,
-// 		LastName:      m.LastName,
-// 		Email:         m.Email,
-// 		ContactNumber: m.ContactNumber,
-// 		Description:   m.Description,
-// 		CreatedAt:     m.CreatedAt.Format(time.RFC3339),
-// 		UpdatedAt:     m.UpdatedAt.Format(time.RFC3339),
-// 	}
-// }
-
-// func (c *ContactUsCollection) ToModels(data []*ContactUs) []*ContactUsResponse {
-// 	if data == nil {
-// 		return []*ContactUsResponse{}
-// 	}
-// 	var out []*ContactUsResponse
-// 	for _, o := range data {
-// 		if m := c.ToModel(o); m != nil {
-// 			out = append(out, m)
-// 		}
-// 	}
-// 	return out
-// }
+func (m *Model) ContactUsModels(data []*ContactUs) []*ContactUsResponse {
+	return ToModels(data, m.ContactUsModel)
+}

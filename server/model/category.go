@@ -1,9 +1,10 @@
-package models
+package model
 
 import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
 
@@ -41,50 +42,25 @@ type (
 	}
 )
 
-// func NewCategoryCollection(
-// 	organizationCategory *OrganizationCategoryCollection,
-// ) (*CategoryCollection, error) {
-// 	return &CategoryCollection{
-// 		validator:            validator.New(),
-// 		organizationCategory: organizationCategory,
-// 	}, nil
-// }
+func (m *Model) CategoryValidate(ctx echo.Context) (*CategoryRequest, error) {
+	return Validate[CategoryRequest](ctx, m.validator)
+}
 
-// func (c *CategoryCollection) ValidateCreate(ctx echo.Context) (*CategoryRequest, error) {
-// 	req := new(CategoryRequest)
-// 	if err := ctx.Bind(req); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	if err := c.validator.Struct(req); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	return req, nil
-// }
-// func (c *CategoryCollection) ToModel(m *Category) *CategoryResponse {
-// 	if m == nil {
-// 		return nil
-// 	}
-// 	return &CategoryResponse{
-// 		ID:                     m.ID,
-// 		CreatedAt:              m.CreatedAt.Format(time.RFC3339),
-// 		UpdatedAt:              m.UpdatedAt.Format(time.RFC3339),
-// 		Name:                   m.Name,
-// 		Description:            m.Description,
-// 		Color:                  m.Color,
-// 		Icon:                   m.Icon,
-// 		OrganizationCategories: c.organizationCategory.ToModels(m.OrganizationCategories),
-// 	}
-// }
+func (m *Model) CategoryModel(data *Category) *CategoryResponse {
+	return ToModel(data, func(data *Category) *CategoryResponse {
+		return &CategoryResponse{
+			ID:                     data.ID,
+			CreatedAt:              data.CreatedAt.Format(time.RFC3339),
+			UpdatedAt:              data.UpdatedAt.Format(time.RFC3339),
+			Name:                   data.Name,
+			Description:            data.Description,
+			Color:                  data.Color,
+			Icon:                   data.Icon,
+			OrganizationCategories: m.OrganizationCategoryModels(data.OrganizationCategories),
+		}
+	})
+}
 
-// func (oc *CategoryCollection) ToModels(data []*Category) []*CategoryResponse {
-// 	if data == nil {
-// 		return []*CategoryResponse{}
-// 	}
-// 	var out []*CategoryResponse
-// 	for _, o := range data {
-// 		if m := oc.ToModel(o); m != nil {
-// 			out = append(out, m)
-// 		}
-// 	}
-// 	return out
-// }
+func (m *Model) CategoryModels(data []*Category) []*CategoryResponse {
+	return ToModels(data, m.CategoryModel)
+}

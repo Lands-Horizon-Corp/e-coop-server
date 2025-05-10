@@ -1,9 +1,10 @@
-package models
+package model
 
 import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
 
@@ -99,87 +100,47 @@ type (
 	}
 )
 
-// func NewBranchCollection(
-// 	user *UserCollection,
-// 	media *MediaCollection,
-// 	footstep *FootstepCollection,
-// 	generatedReport *GeneratedReportCollection,
-// 	invitationCode *InvitationCodeCollection,
-// 	permissionTemplate *PermissionTemplateCollection,
-// 	userOrganization *UserOrganizationCollection,
-// ) (*BranchCollection, error) {
-// 	return &BranchCollection{
-// 		validator:          validator.New(),
-// 		media:              media,
-// 		user:               user,
-// 		footstep:           footstep,
-// 		generatedReport:    generatedReport,
-// 		invitationCode:     invitationCode,
-// 		permissionTemplate: permissionTemplate,
-// 		userOrganization:   userOrganization,
-// 	}, nil
-// }
+func (m *Model) BranchValidate(ctx echo.Context) (*BranchRequest, error) {
+	return Validate[BranchRequest](ctx, m.validator)
+}
 
-// func (bc *BranchCollection) ValidateCreate(c echo.Context) (*BranchRequest, error) {
-// 	req := new(BranchRequest)
-// 	if err := c.Bind(req); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	if err := bc.validator.Struct(req); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	return req, nil
-// }
+func (m *Model) BranchModel(data *Branch) *BranchResponse {
+	return ToModel(data, func(data *Branch) *BranchResponse {
+		return &BranchResponse{
+			ID:          data.ID,
+			CreatedAt:   data.CreatedAt.Format(time.RFC3339),
+			CreatedByID: data.CreatedByID,
+			CreatedBy:   m.UserModel(data.CreatedBy),
+			UpdatedAt:   data.UpdatedAt.Format(time.RFC3339),
+			UpdatedByID: data.UpdatedByID,
+			UpdatedBy:   m.UserModel(data.UpdatedBy),
 
-// func (bc *BranchCollection) ToModel(branch *Branch) *BranchResponse {
-// 	if branch == nil {
-// 		return nil
-// 	}
+			MediaID:       data.MediaID,
+			Media:         m.MediaModel(data.Media),
+			Type:          data.Type,
+			Name:          data.Name,
+			Email:         data.Email,
+			Description:   data.Description,
+			CountryCode:   data.CountryCode,
+			ContactNumber: data.ContactNumber,
+			Address:       data.Address,
+			Province:      data.Province,
+			City:          data.City,
+			Region:        data.Region,
+			Barangay:      data.Barangay,
+			PostalCode:    data.PostalCode,
+			Latitude:      data.Latitude,
+			Longitude:     data.Longitude,
 
-// 	return &BranchResponse{
-// 		ID:          branch.ID,
-// 		CreatedAt:   branch.CreatedAt.Format(time.RFC3339),
-// 		CreatedByID: branch.CreatedByID,
-// 		CreatedBy:   bc.user.ToModel(branch.CreatedBy),
-// 		UpdatedAt:   branch.UpdatedAt.Format(time.RFC3339),
-// 		UpdatedByID: branch.UpdatedByID,
-// 		UpdatedBy:   bc.user.ToModel(branch.UpdatedBy),
+			Footsteps:           m.FootstepModels(data.Footsteps),
+			GeneratedReports:    m.GeneratedReportModels(data.GeneratedReports),
+			InvitationCodes:     m.InvitationCodeModels(data.InvitationCodes),
+			PermissionTemplates: m.PermissionTemplateModels(data.PermissionTemplates),
+			UserOrganizations:   m.UserOrganizationModels(data.UserOrganizations),
+		}
+	})
+}
 
-// 		MediaID:       branch.MediaID,
-// 		Media:         bc.media.ToModel(branch.Media),
-// 		Type:          branch.Type,
-// 		Name:          branch.Name,
-// 		Email:         branch.Email,
-// 		Description:   branch.Description,
-// 		CountryCode:   branch.CountryCode,
-// 		ContactNumber: branch.ContactNumber,
-// 		Address:       branch.Address,
-// 		Province:      branch.Province,
-// 		City:          branch.City,
-// 		Region:        branch.Region,
-// 		Barangay:      branch.Barangay,
-// 		PostalCode:    branch.PostalCode,
-// 		Latitude:      branch.Latitude,
-// 		Longitude:     branch.Longitude,
-
-// 		Footsteps:           bc.footstep.ToModels(branch.Footsteps),
-// 		GeneratedReports:    bc.generatedReport.ToModels(branch.GeneratedReports),
-// 		InvitationCodes:     bc.invitationCode.ToModels(branch.InvitationCodes),
-// 		PermissionTemplates: bc.permissionTemplate.ToModels(branch.PermissionTemplates),
-// 		UserOrganizations:   bc.userOrganization.ToModels(branch.UserOrganizations),
-// 	}
-// }
-
-// func (bc *BranchCollection) ToModels(data []*Branch) []*BranchResponse {
-// 	if data == nil {
-// 		return []*BranchResponse{}
-// 	}
-// 	var branches []*BranchResponse
-// 	for _, b := range data {
-// 		res := bc.ToModel(b)
-// 		if res != nil {
-// 			branches = append(branches, res)
-// 		}
-// 	}
-// 	return branches
-// }
+func (m *Model) BranchModels(data []*Branch) []*BranchResponse {
+	return ToModels(data, m.BranchModel)
+}

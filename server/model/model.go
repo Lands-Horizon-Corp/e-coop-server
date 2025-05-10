@@ -1,4 +1,4 @@
-package models
+package model
 
 import (
 	"net/http"
@@ -24,15 +24,31 @@ func NewModel(
 		qr:        qr,
 	}, nil
 }
-
-func ValidateCreate[T any](ctx echo.Context) (*T, error) {
-	validator := validator.New()
-	var req *T
+func Validate[T any](ctx echo.Context, v *validator.Validate) (*T, error) {
+	var req T
 	if err := ctx.Bind(&req); err != nil {
-		return req, echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
-	if err := validator.Struct(req); err != nil {
-		return req, echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	if err := v.Struct(req); err != nil {
+		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
-	return req, nil
+	return &req, nil
+}
+func ToModel[T any, G any](data *T, mapFunc func(*T) *G) *G {
+	if data == nil {
+		return nil
+	}
+	return mapFunc(data)
+}
+func ToModels[T any, G any](data []*T, mapFunc func(*T) *G) []*G {
+	if data == nil {
+		return []*G{}
+	}
+	out := make([]*G, 0, len(data))
+	for _, item := range data {
+		if m := mapFunc(item); m != nil {
+			out = append(out, m)
+		}
+	}
+	return out
 }

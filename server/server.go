@@ -3,8 +3,8 @@ package server
 import (
 	"github.com/labstack/echo/v4"
 	"horizon.com/server/server/broadcast"
-	"horizon.com/server/server/collection"
 	"horizon.com/server/server/controller"
+	"horizon.com/server/server/model"
 	"horizon.com/server/server/provider"
 	"horizon.com/server/server/repository"
 )
@@ -28,21 +28,21 @@ func NewCoopServer(
 			user.APIRoutes,
 		},
 		Migrations: []any{
-			&collection.Branch{},
-			&collection.Category{},
-			&collection.ContactUs{},
-			&collection.Feedback{},
-			&collection.Footstep{},
-			&collection.InvitationCode{},
-			&collection.Media{},
-			&collection.Notification{},
-			&collection.OrganizationCategory{},
-			&collection.OrganizationDailyUsage{},
-			&collection.Organization{},
-			&collection.PermissionTemplate{},
-			&collection.SubscriptionPlan{},
-			&collection.UserOrganization{},
-			&collection.User{},
+			&model.Branch{},
+			&model.Category{},
+			&model.ContactUs{},
+			&model.Feedback{},
+			&model.Footstep{},
+			&model.InvitationCode{},
+			&model.Media{},
+			&model.Notification{},
+			&model.OrganizationCategory{},
+			&model.OrganizationDailyUsage{},
+			&model.Organization{},
+			&model.PermissionTemplate{},
+			&model.SubscriptionPlan{},
+			&model.UserOrganization{},
+			&model.User{},
 		},
 	}, nil
 }
@@ -50,65 +50,24 @@ func NewCoopServer(
 var Modules = []any{
 	NewCoopServer,
 
-	// Branch
-	collection.NewBranchCollection,
+	model.NewModel,
 
-	// Category
-	collection.NewCategoryCollection,
-
-	// Contact Us
-	collection.NewContactUsCollection,
 	repository.NewContactUsRepository,
 	controller.NewContactUsController,
 	broadcast.NewContactUsBroadcast,
 
-	// Feedback
-	collection.NewFeedbackCollection,
 	repository.NewFeedbackRepository,
 	controller.NewFeedbackController,
 	broadcast.NewFeedbackBroadcast,
 
-	// Footstep
-	collection.NewFootstepCollection,
 	repository.NewFootstepRepository,
 	controller.NewFootstepController,
 	broadcast.NewFootstepBroadcast,
 
-	// Generate report
-	collection.NewGeneratedReportCollection,
-
-	// Invitation Code
-	collection.NewInvitationCodeCollection,
-
-	// Media
-	collection.NewMediaCollection,
 	repository.NewMediaRepository,
 	controller.NewMediaController,
 	broadcast.NewMediaBroadcast,
 
-	// Notification
-	collection.NewNotificationCollection,
-
-	// Organization Category
-	collection.NewOrganizationCategoryCollection,
-
-	// Organization Daily Usage
-	collection.NewOrganizationDailyUsageCollection,
-
-	// Organization
-	collection.NewOrganizationCollection,
-
-	// Permission Templates
-	collection.NewPermissionTemplateCollection,
-
-	// Subscription Plan
-	collection.NewSubscriptionPlanCollection,
-
-	// User organization
-	collection.NewUserOrganizationCollection,
-
-	// User
-	collection.NewUserCollection,
 	repository.NewUserRepository,
 	controller.NewUserController,
 	broadcast.NewUserBroadcast,

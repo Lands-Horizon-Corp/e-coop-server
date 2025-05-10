@@ -1,14 +1,14 @@
-package models
+package model
 
 import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
 
 type (
-	// OrganizationDailyUsage represents the organization's daily usage data model
 	OrganizationDailyUsage struct {
 		ID        uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
 		CreatedAt time.Time      `gorm:"not null;default:now()"`
@@ -35,7 +35,6 @@ type (
 		TotalReportRenderTime float64 `gorm:"not null"`
 	}
 
-	// OrganizationDailyUsageRequest defines the payload for creating a new OrganizationDailyUsage
 	OrganizationDailyUsageRequest struct {
 		OrganizationID uuid.UUID `json:"organization_id" validate:"required"`
 		TotalMembers   int       `json:"total_members" validate:"required,min=0"`
@@ -56,7 +55,6 @@ type (
 		TotalReportRenderTime float64 `json:"total_report_render_time" validate:"required,min=0"`
 	}
 
-	// OrganizationDailyUsageResponse defines the HTTP response for OrganizationDailyUsage
 	OrganizationDailyUsageResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		OrganizationID uuid.UUID             `json:"organization_id"`
@@ -82,61 +80,35 @@ type (
 	}
 )
 
-// func NewOrganizationDailyUsageCollection(organizationCol *OrganizationCollection) (*OrganizationDailyUsageCollection, error) {
-// 	return &OrganizationDailyUsageCollection{
-// 		validator:       validator.New(),
-// 		organizationCol: organizationCol,
-// 	}, nil
-// }
+func (m *Model) OrganizationDailyUsageValidate(ctx echo.Context) (*OrganizationDailyUsageRequest, error) {
+	return Validate[OrganizationDailyUsageRequest](ctx, m.validator)
+}
 
-// func (oduc *OrganizationDailyUsageCollection) ValidateCreate(c echo.Context) (*OrganizationDailyUsageRequest, error) {
-// 	req := new(OrganizationDailyUsageRequest)
-// 	if err := c.Bind(req); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	if err := oduc.validator.Struct(req); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	return req, nil
-// }
+func (m *Model) OrganizationDailyUsageModel(data *OrganizationDailyUsage) *OrganizationDailyUsageResponse {
+	return ToModel(data, func(data *OrganizationDailyUsage) *OrganizationDailyUsageResponse {
+		return &OrganizationDailyUsageResponse{
+			ID:                      data.ID,
+			OrganizationID:          data.OrganizationID,
+			Organization:            m.OrganizationModel(data.Organization),
+			TotalMembers:            data.TotalMembers,
+			TotalBranches:           data.TotalBranches,
+			TotalEmployees:          data.TotalEmployees,
+			CashTransactionCount:    data.CashTransactionCount,
+			CheckTransactionCount:   data.CheckTransactionCount,
+			OnlineTransactionCount:  data.OnlineTransactionCount,
+			CashTransactionAmount:   data.CashTransactionAmount,
+			CheckTransactionAmount:  data.CheckTransactionAmount,
+			OnlineTransactionAmount: data.OnlineTransactionAmount,
+			TotalEmailSend:          data.TotalEmailSend,
+			TotalMessageSend:        data.TotalMessageSend,
+			TotalUploadSize:         data.TotalUploadSize,
+			TotalReportRenderTime:   data.TotalReportRenderTime,
+			CreatedAt:               data.CreatedAt.Format(time.RFC3339),
+			UpdatedAt:               data.UpdatedAt.Format(time.RFC3339),
+		}
+	})
+}
 
-// func (oduc *OrganizationDailyUsageCollection) ToModel(odu *OrganizationDailyUsage) *OrganizationDailyUsageResponse {
-// 	if odu == nil {
-// 		return nil
-// 	}
-// 	resp := &OrganizationDailyUsageResponse{
-// 		ID:                      odu.ID,
-// 		OrganizationID:          odu.OrganizationID,
-// 		Organization:            oduc.organizationCol.ToModel(odu.Organization),
-// 		TotalMembers:            odu.TotalMembers,
-// 		TotalBranches:           odu.TotalBranches,
-// 		TotalEmployees:          odu.TotalEmployees,
-// 		CashTransactionCount:    odu.CashTransactionCount,
-// 		CheckTransactionCount:   odu.CheckTransactionCount,
-// 		OnlineTransactionCount:  odu.OnlineTransactionCount,
-// 		CashTransactionAmount:   odu.CashTransactionAmount,
-// 		CheckTransactionAmount:  odu.CheckTransactionAmount,
-// 		OnlineTransactionAmount: odu.OnlineTransactionAmount,
-// 		TotalEmailSend:          odu.TotalEmailSend,
-// 		TotalMessageSend:        odu.TotalMessageSend,
-// 		TotalUploadSize:         odu.TotalUploadSize,
-// 		TotalReportRenderTime:   odu.TotalReportRenderTime,
-// 		CreatedAt:               odu.CreatedAt.Format(time.RFC3339),
-// 		UpdatedAt:               odu.UpdatedAt.Format(time.RFC3339),
-// 	}
-// 	return resp
-// }
-
-// // ToModels maps a slice of OrganizationDailyUsage DB models to OrganizationDailyUsageResponse
-// func (oduc *OrganizationDailyUsageCollection) ToModels(data []*OrganizationDailyUsage) []*OrganizationDailyUsageResponse {
-// 	if data == nil {
-// 		return []*OrganizationDailyUsageResponse{}
-// 	}
-// 	var out []*OrganizationDailyUsageResponse
-// 	for _, odu := range data {
-// 		if m := oduc.ToModel(odu); m != nil {
-// 			out = append(out, m)
-// 		}
-// 	}
-// 	return out
-// }
+func (m *Model) OrganizationDailyUsageModels(data []*OrganizationDailyUsage) []*OrganizationDailyUsageResponse {
+	return ToModels(data, m.OrganizationDailyUsageModel)
+}

@@ -1,22 +1,14 @@
-package models
+package model
 
 import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/labstack/echo/v4"
 	"horizon.com/server/horizon"
 
 	"gorm.io/gorm"
 )
-
-type QRInvitationLInk struct {
-	OrganizationID string `json:"organization_id"`
-	BranchID       string `json:"branch_id"`
-	UserType       string `json:"UserType"`
-	Code           string `json:"Code"`
-	CurrentUse     int    `json:"CurrentUse"`
-	Description    string `json:"Description"`
-}
 
 type (
 	InvitationCode struct {
@@ -72,81 +64,59 @@ type (
 		MaxUse         int       `json:"max_use" validate:"required"`
 		Description    string    `json:"description,omitempty"`
 	}
+
+	QRInvitationLInk struct {
+		OrganizationID string `json:"organization_id"`
+		BranchID       string `json:"branch_id"`
+		UserType       string `json:"UserType"`
+		Code           string `json:"Code"`
+		CurrentUse     int    `json:"CurrentUse"`
+		Description    string `json:"Description"`
+	}
 )
 
-// func NewInvitationCodeCollection(
-// 	branchCol *BranchCollection,
-// 	orgCol *OrganizationCollection,
-// 	userCol *UserCollection,
-// 	qr *horizon.HorizonQR,
-// ) *InvitationCodeCollection {
-// 	return &InvitationCodeCollection{
-// 		validator: validator.New(),
-// 		branchCol: branchCol,
-// 		orgCol:    orgCol,
-// 		userCol:   userCol,
-// 		qr:        qr,
-// 	}
-// }
+func (m *Model) InvitationCodeValidate(ctx echo.Context) (*InvitationCodeRequest, error) {
+	return Validate[InvitationCodeRequest](ctx, m.validator)
+}
 
-// func (icc *InvitationCodeCollection) ValidateCreate(c echo.Context) (*InvitationCodeRequest, error) {
-// 	req := new(InvitationCodeRequest)
-// 	if err := c.Bind(req); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	if err := icc.validator.Struct(req); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	return req, nil
-// }
+func (m *Model) InvitationCodeModel(data *InvitationCode) *InvitationCodeResponse {
 
-// func (icc *InvitationCodeCollection) ToModel(ic *InvitationCode) *InvitationCodeResponse {
-// 	if ic == nil {
-// 		return nil
-// 	}
-// 	encoded, err := icc.qr.Encode(&QRInvitationLInk{
-// 		OrganizationID: ic.OrganizationID.String(),
-// 		BranchID:       ic.BranchID.String(),
-// 		UserType:       ic.UserType,
-// 		Code:           ic.Code,
-// 		CurrentUse:     ic.CurrentUse,
-// 		Description:    ic.Description,
-// 	})
-// 	if err != nil {
-// 		return nil
-// 	}
-// 	return &InvitationCodeResponse{
-// 		ID:             ic.ID,
-// 		CreatedAt:      ic.CreatedAt.Format(time.RFC3339),
-// 		CreatedByID:    ic.CreatedByID,
-// 		CreatedBy:      icc.userCol.ToModel(ic.CreatedBy),
-// 		UpdatedAt:      ic.UpdatedAt.Format(time.RFC3339),
-// 		UpdatedByID:    ic.UpdatedByID,
-// 		UpdatedBy:      icc.userCol.ToModel(ic.UpdatedBy),
-// 		OrganizationID: ic.OrganizationID,
-// 		Organization:   icc.orgCol.ToModel(ic.Organization),
-// 		BranchID:       ic.BranchID,
-// 		Branch:         icc.branchCol.ToModel(ic.Branch),
-// 		UserType:       ic.UserType,
+	return ToModel(data, func(data *InvitationCode) *InvitationCodeResponse {
+		encoded, err := m.qr.Encode(&QRInvitationLInk{
+			OrganizationID: data.OrganizationID.String(),
+			BranchID:       data.BranchID.String(),
+			UserType:       data.UserType,
+			Code:           data.Code,
+			CurrentUse:     data.CurrentUse,
+			Description:    data.Description,
+		})
+		if err != nil {
+			return nil
+		}
+		return &InvitationCodeResponse{
+			ID:             data.ID,
+			CreatedAt:      data.CreatedAt.Format(time.RFC3339),
+			CreatedByID:    data.CreatedByID,
+			CreatedBy:      m.UserModel(data.CreatedBy),
+			UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
+			UpdatedByID:    data.UpdatedByID,
+			UpdatedBy:      m.UserModel(data.UpdatedBy),
+			OrganizationID: data.OrganizationID,
+			Organization:   m.OrganizationModel(data.Organization),
+			BranchID:       data.BranchID,
+			Branch:         m.BranchModel(data.Branch),
+			UserType:       data.UserType,
 
-// 		Code:           ic.Code,
-// 		ExpirationDate: ic.ExpirationDate.Format(time.RFC3339),
-// 		MaxUse:         ic.MaxUse,
-// 		CurrentUse:     ic.CurrentUse,
-// 		Description:    ic.Description,
-// 		QRCode:         encoded,
-// 	}
-// }
+			Code:           data.Code,
+			ExpirationDate: data.ExpirationDate.Format(time.RFC3339),
+			MaxUse:         data.MaxUse,
+			CurrentUse:     data.CurrentUse,
+			Description:    data.Description,
+			QRCode:         encoded,
+		}
+	})
+}
 
-// func (icc *InvitationCodeCollection) ToModels(data []*InvitationCode) []*InvitationCodeResponse {
-// 	if len(data) == 0 {
-// 		return []*InvitationCodeResponse{}
-// 	}
-// 	out := make([]*InvitationCodeResponse, 0, len(data))
-// 	for _, ic := range data {
-// 		if m := icc.ToModel(ic); m != nil {
-// 			out = append(out, m)
-// 		}
-// 	}
-// 	return out
-// }
+func (m *Model) InvitationCodeModels(data []*InvitationCode) []*InvitationCodeResponse {
+	return ToModels(data, m.InvitationCodeModel)
+}

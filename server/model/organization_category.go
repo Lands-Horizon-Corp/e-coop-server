@@ -1,9 +1,10 @@
-package models
+package model
 
 import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
 
@@ -38,48 +39,21 @@ type (
 	}
 )
 
-// func NewOrganizationCategoryCollection(
-// 	organization *OrganizationCollection,
-// ) *OrganizationCategoryCollection {
-// 	return &OrganizationCategoryCollection{
-// 		validator:    validator.New(),
-// 		organization: organization,
-// 	}
-// }
+func (m *Model) OrganizationCategoryValidate(ctx echo.Context) (*OrganizationCategoryRequest, error) {
+	return Validate[OrganizationCategoryRequest](ctx, m.validator)
+}
 
-// func (c *OrganizationCategoryCollection) ValidateCreate(ctx echo.Context) (*OrganizationCategoryRequest, error) {
-// 	req := new(OrganizationCategoryRequest)
-// 	if err := ctx.Bind(req); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	if err := c.validator.Struct(req); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	return req, nil
-// }
+func (m *Model) OrganizationCategoryModel(data *OrganizationCategory) *OrganizationCategoryResponse {
+	return ToModel(data, func(data *OrganizationCategory) *OrganizationCategoryResponse {
+		return &OrganizationCategoryResponse{
+			OrganizationID: data.OrganizationID,
+			Organization:   m.OrganizationModel(data.Organization),
+			CategoryID:     data.CategoryID,
+			Category:       m.CategoryModel(data.Category),
+		}
+	})
+}
 
-// func (c *OrganizationCategoryCollection) ToModel(req *OrganizationCategory) *OrganizationCategoryResponse {
-// 	return &OrganizationCategoryResponse{
-// 		OrganizationID: req.OrganizationID,
-// 		Organization:   c.organization.ToModel(req.Organization),
-// 		CategoryID:     req.CategoryID,
-// 		Category:       c.category.ToModel(req.Category),
-// 	}
-// }
-
-// func (fc *OrganizationCategoryCollection) ToModels(data []*OrganizationCategory) []*OrganizationCategoryResponse {
-// 	if data == nil {
-// 		return make([]*OrganizationCategoryResponse, 0)
-// 	}
-// 	var organizationCategory []*OrganizationCategoryResponse
-// 	for _, value := range data {
-// 		model := fc.ToModel(value)
-// 		if model != nil {
-// 			organizationCategory = append(organizationCategory, model)
-// 		}
-// 	}
-// 	if len(organizationCategory) <= 0 {
-// 		return make([]*OrganizationCategoryResponse, 0)
-// 	}
-// 	return organizationCategory
-// }
+func (m *Model) OrganizationCategoryModels(data []*OrganizationCategory) []*OrganizationCategoryResponse {
+	return ToModels(data, m.OrganizationCategoryModel)
+}

@@ -1,9 +1,10 @@
-package models
+package model
 
 import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
 
@@ -110,66 +111,48 @@ type (
 	}
 )
 
-// func (oc *OrganizationCollection) ValidateCreate(c echo.Context) (*OrganizationRequest, error) {
-// 	req := new(OrganizationRequest)
-// 	if err := c.Bind(req); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	if err := oc.validator.Struct(req); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	return req, nil
-// }
+func (m *Model) OrganizationValidate(ctx echo.Context) (*OrganizationRequest, error) {
+	return Validate[OrganizationRequest](ctx, m.validator)
+}
 
-// func (oc *OrganizationCollection) ToModel(o *Organization) *OrganizationResponse {
-// 	if o == nil {
-// 		return nil
-// 	}
+func (m *Model) OrganizationModel(data *Organization) *OrganizationResponse {
+	return ToModel(data, func(data *Organization) *OrganizationResponse {
+		return &OrganizationResponse{
+			ID:                 data.ID,
+			CreatedAt:          data.CreatedAt.Format(time.RFC3339),
+			UpdatedAt:          data.UpdatedAt.Format(time.RFC3339),
+			Name:               data.Name,
+			Address:            data.Address,
+			Email:              data.Email,
+			ContactNumber:      data.ContactNumber,
+			Description:        data.Description,
+			Color:              data.Color,
+			TermsAndConditions: data.TermsAndConditions,
+			PrivacyPolicy:      data.PrivacyPolicy,
+			CookiePolicy:       data.CookiePolicy,
+			RefundPolicy:       data.RefundPolicy,
+			UserAgreement:      data.UserAgreement,
+			MediaID:            data.MediaID,
+			CoverMediaID:       data.CoverMediaID,
+			OrganizationKey:    data.OrganizationKey,
 
-// 	resp := &OrganizationResponse{
-// 		ID:                    o.ID,
-// 		CreatedAt:             o.CreatedAt.Format(time.RFC3339),
-// 		UpdatedAt:             o.UpdatedAt.Format(time.RFC3339),
-// 		Name:                  o.Name,
-// 		Address:               o.Address,
-// 		Email:                 o.Email,
-// 		ContactNumber:         o.ContactNumber,
-// 		Description:           o.Description,
-// 		Color:                 o.Color,
-// 		TermsAndConditions:    o.TermsAndConditions,
-// 		PrivacyPolicy:         o.PrivacyPolicy,
-// 		CookiePolicy:          o.CookiePolicy,
-// 		RefundPolicy:          o.RefundPolicy,
-// 		UserAgreement:         o.UserAgreement,
-// 		MediaID:               o.MediaID,
-// 		CoverMediaID:          o.CoverMediaID,
-// 		OrganizationKey:       o.OrganizationKey,
-// 		SubscriptionPlanID:    o.SubscriptionPlanID,
-// 		SubscriptionStartDate: o.SubscriptionStartDate.Format(time.RFC3339),
-// 		SubscriptionEndDate:   o.SubscriptionEndDate.Format(time.RFC3339),
+			SubscriptionPlan:      m.SubscriptionPlanModel(data.SubscriptionPlan),
+			SubscriptionPlanID:    data.SubscriptionPlanID,
+			SubscriptionStartDate: data.SubscriptionStartDate.Format(time.RFC3339),
+			SubscriptionEndDate:   data.SubscriptionEndDate.Format(time.RFC3339),
 
-// 		Branches:               oc.branch.ToModels(o.Branches),
-// 		OrganizationCategories: oc.organzationCategory.ToModels(o.OrganizationCategories),
-// 		Footsteps:              oc.footstep.ToModels(o.Footsteps),
-// 		GeneratedReports:       oc.generatedReport.ToModels(o.GeneratedReports),
-// 		InvitationCodes:        oc.invitationCode.ToModels(o.InvitationCodes),
-// 		OrganizationDailyUsage: oc.organizationDailyUsage.ToModels(o.OrganizationDailyUsage),
-// 		PermissionTemplates:    oc.permissionTemplate.ToModels(o.PermissionTemplates),
-// 		UserOrganizations:      oc.userOrganization.ToModels(o.UserOrganizations),
-// 	}
-// 	return resp
-// }
+			Branches:               m.BranchModels(data.Branches),
+			OrganizationCategories: m.OrganizationCategoryModels(data.OrganizationCategories),
+			Footsteps:              m.FootstepModels(data.Footsteps),
+			GeneratedReports:       m.GeneratedReportModels(data.GeneratedReports),
+			InvitationCodes:        m.InvitationCodeModels(data.InvitationCodes),
+			OrganizationDailyUsage: m.OrganizationDailyUsageModels(data.OrganizationDailyUsage),
+			PermissionTemplates:    m.PermissionTemplateModels(data.PermissionTemplates),
+			UserOrganizations:      m.UserOrganizationModels(data.UserOrganizations),
+		}
+	})
+}
 
-// // ToModels maps multiple DB Organizations to responses
-// func (oc *OrganizationCollection) ToModels(data []*Organization) []*OrganizationResponse {
-// 	if data == nil {
-// 		return []*OrganizationResponse{}
-// 	}
-// 	var out []*OrganizationResponse
-// 	for _, o := range data {
-// 		if m := oc.ToModel(o); m != nil {
-// 			out = append(out, m)
-// 		}
-// 	}
-// 	return out
-// }
+func (m *Model) OrganizationModels(data []*Organization) []*OrganizationResponse {
+	return ToModels(data, m.OrganizationModel)
+}

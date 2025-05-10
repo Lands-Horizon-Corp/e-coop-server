@@ -1,9 +1,10 @@
-package models
+package model
 
 import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
 
@@ -39,53 +40,25 @@ type (
 	}
 )
 
-// func NewFeedbackCollection(media *MediaCollection) (*FeedbackCollection, error) {
-// 	return &FeedbackCollection{
-// 		validator: validator.New(),
-// 		media:     media,
-// 	}, nil
-// }
+func (m *Model) FeedbackValidate(ctx echo.Context) (*FeedbackRequest, error) {
+	return Validate[FeedbackRequest](ctx, m.validator)
+}
 
-// func (fc *FeedbackCollection) ValidateCreate(c echo.Context) (*FeedbackRequest, error) {
-// 	u := new(FeedbackRequest)
-// 	if err := c.Bind(u); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	if err := fc.validator.Struct(u); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	return u, nil
-// }
+func (m *Model) FeedbackModel(data *Feedback) *FeedbackResponse {
+	return ToModel(data, func(data *Feedback) *FeedbackResponse {
+		return &FeedbackResponse{
+			ID:           data.ID,
+			CreatedAt:    data.CreatedAt.Format(time.RFC3339),
+			UpdatedAt:    data.UpdatedAt.Format(time.RFC3339),
+			MediaID:      data.MediaID,
+			Media:        m.MediaModel(data.Media),
+			Email:        data.Email,
+			Description:  data.Description,
+			FeedbackType: data.FeedbackType,
+		}
+	})
+}
 
-// func (fc *FeedbackCollection) ToModel(data *Feedback) *FeedbackResponse {
-// 	if data == nil {
-// 		return nil
-// 	}
-// 	return &FeedbackResponse{
-// 		ID:           data.ID,
-// 		CreatedAt:    data.CreatedAt.Format(time.RFC3339),
-// 		UpdatedAt:    data.UpdatedAt.Format(time.RFC3339),
-// 		MediaID:      data.MediaID,
-// 		Media:        fc.media.ToModel(data.Media),
-// 		Email:        data.Email,
-// 		Description:  data.Description,
-// 		FeedbackType: data.FeedbackType,
-// 	}
-// }
-
-// func (fc *FeedbackCollection) ToModels(data []*Feedback) []*FeedbackResponse {
-// 	if data == nil {
-// 		return make([]*FeedbackResponse, 0)
-// 	}
-// 	var feedbackResponses []*FeedbackResponse
-// 	for _, feedback := range data {
-// 		model := fc.ToModel(feedback)
-// 		if model != nil {
-// 			feedbackResponses = append(feedbackResponses, model)
-// 		}
-// 	}
-// 	if len(feedbackResponses) <= 0 {
-// 		return make([]*FeedbackResponse, 0)
-// 	}
-// 	return feedbackResponses
-// }
+func (m *Model) FeedbackModels(data []*Feedback) []*FeedbackResponse {
+	return ToModels(data, m.FeedbackModel)
+}

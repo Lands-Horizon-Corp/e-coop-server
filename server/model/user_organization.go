@@ -1,9 +1,10 @@
-package models
+package model
 
 import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/labstack/echo/v4"
 	"github.com/lib/pq"
 	"gorm.io/gorm"
 )
@@ -75,70 +76,39 @@ type (
 	}
 )
 
-// func NewUserOrganizationCollection(
-// 	organizationCol *OrganizationCollection,
-// 	branchCol *BranchCollection,
-// 	userCol *UserCollection,
-// ) (*UserOrganizationCollection, error) {
-// 	return &UserOrganizationCollection{
-// 		validator:       validator.New(),
-// 		organizationCol: organizationCol,
-// 		branchCol:       branchCol,
-// 		userCol:         userCol,
-// 	}, nil
-// }
+func (m *Model) UserOrganizationValidate(ctx echo.Context) (*UserOrganizationRequest, error) {
+	return Validate[UserOrganizationRequest](ctx, m.validator)
+}
 
-// func (uoc *UserOrganizationCollection) ValidateCreate(c echo.Context) (*UserOrganizationRequest, error) {
-// 	req := new(UserOrganizationRequest)
-// 	if err := c.Bind(req); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	if err := uoc.validator.Struct(req); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	return req, nil
-// }
+func (m *Model) UserOrganizationModel(data *UserOrganization) *UserOrganizationResponse {
+	return ToModel(data, func(data *UserOrganization) *UserOrganizationResponse {
+		return &UserOrganizationResponse{
+			ID:             data.ID,
+			CreatedAt:      data.CreatedAt.Format(time.RFC3339),
+			CreatedByID:    data.CreatedByID,
+			CreatedBy:      m.UserModel(data.CreatedBy),
+			UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
+			UpdatedByID:    data.UpdatedByID,
+			UpdatedBy:      m.UserModel(data.UpdatedBy),
+			OrganizationID: data.OrganizationID,
+			Organization:   m.OrganizationModel(data.Organization),
+			BranchID:       data.BranchID,
+			Branch:         m.BranchModel(data.Branch),
 
-// func (uoc *UserOrganizationCollection) ToModel(uo *UserOrganization) *UserOrganizationResponse {
-// 	if uo == nil {
-// 		return nil
-// 	}
-// 	return &UserOrganizationResponse{
-// 		ID:             uo.ID,
-// 		CreatedAt:      uo.CreatedAt.Format(time.RFC3339),
-// 		CreatedByID:    uo.CreatedByID,
-// 		CreatedBy:      uoc.userCol.ToModel(uo.CreatedBy),
-// 		UpdatedAt:      uo.UpdatedAt.Format(time.RFC3339),
-// 		UpdatedByID:    uo.UpdatedByID,
-// 		UpdatedBy:      uoc.userCol.ToModel(uo.UpdatedBy),
-// 		OrganizationID: uo.OrganizationID,
-// 		Organization:   uoc.organizationCol.ToModel(uo.Organization),
-// 		BranchID:       uo.BranchID,
-// 		Branch:         uoc.branchCol.ToModel(uo.Branch),
+			UserType:               data.UserType,
+			UserID:                 data.UserID,
+			User:                   m.UserModel(data.User),
+			Description:            data.Description,
+			ApplicationDescription: data.ApplicationDescription,
+			ApplicationStatus:      data.ApplicationStatus,
+			DeveloperSecretKey:     data.DeveloperSecretKey,
+			PermissionName:         data.PermissionName,
+			PermissionDescription:  data.PermissionDescription,
+			Permissions:            data.Permissions,
+		}
+	})
+}
 
-// 		UserType:               uo.UserType,
-// 		UserID:                 uo.UserID,
-// 		User:                   uoc.userCol.ToModel(uo.User),
-// 		Description:            uo.Description,
-// 		ApplicationDescription: uo.ApplicationDescription,
-// 		ApplicationStatus:      uo.ApplicationStatus,
-// 		DeveloperSecretKey:     uo.DeveloperSecretKey,
-// 		PermissionName:         uo.PermissionName,
-// 		PermissionDescription:  uo.PermissionDescription,
-// 		Permissions:            uo.Permissions,
-// 	}
-// }
-
-// // ToModels maps a slice of UserOrganization models to the response format
-// func (uoc *UserOrganizationCollection) ToModels(data []*UserOrganization) []*UserOrganizationResponse {
-// 	if data == nil {
-// 		return []*UserOrganizationResponse{}
-// 	}
-// 	var out []*UserOrganizationResponse
-// 	for _, uo := range data {
-// 		if m := uoc.ToModel(uo); m != nil {
-// 			out = append(out, m)
-// 		}
-// 	}
-// 	return out
-// }
+func (m *Model) UserOrganizationModels(data []*UserOrganization) []*UserOrganizationResponse {
+	return ToModels(data, m.UserOrganizationModel)
+}

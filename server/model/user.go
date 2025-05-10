@@ -1,9 +1,10 @@
-package models
+package model
 
 import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 	"horizon.com/server/horizon"
 )
@@ -171,6 +172,99 @@ type (
 		Password      string    `json:"password" validate:"required,min=8"`
 	}
 )
+
+func (m *Model) UserModel(data *User) *UserResponse {
+	return ToModel(data, func(data *User) *UserResponse {
+		encoded, err := m.qr.Encode(&QRUser{
+			UserID:        data.ID.String(),
+			Email:         data.Email,
+			ContactNumber: data.ContactNumber,
+			Username:      data.UserName,
+			Lastname:      horizon.StringFormat(data.LastName),
+			Firstname:     horizon.StringFormat(data.FirstName),
+			Middlename:    horizon.StringFormat(data.MiddleName),
+		})
+		if err != nil {
+			return nil
+		}
+		return &UserResponse{
+			ID:                data.ID,
+			MediaID:           data.MediaID,
+			Media:             m.MediaModel(data.Media),
+			Birthdate:         data.Birthdate.Format(time.RFC3339),
+			UserName:          data.UserName,
+			FirstName:         data.FirstName,
+			Description:       data.Description,
+			MiddleName:        data.MiddleName,
+			LastName:          data.LastName,
+			FullName:          data.FullName,
+			Suffix:            data.Suffix,
+			Email:             data.Email,
+			IsEmailVerified:   data.IsEmailVerified,
+			ContactNumber:     data.ContactNumber,
+			IsContactVerified: data.IsContactVerified,
+			CreatedAt:         data.CreatedAt.Format(time.RFC3339),
+			UpdatedAt:         data.UpdatedAt.Format(time.RFC3339),
+			QRCode:            encoded,
+
+			Footsteps:        m.FootstepModels(data.Footsteps),
+			GeneratedReports: m.GeneratedReportModels(data.GeneratedReports),
+			Notifications:    m.NotificationModels(data.Notification),
+		}
+	})
+}
+
+func (m *Model) UserModels(data []*User) []*UserResponse {
+	return ToModels(data, m.UserModel)
+}
+func (m *Model) UserLoginValidate(ctx echo.Context) (*UserLoginRequest, error) {
+	return Validate[UserLoginRequest](ctx, m.validator)
+}
+func (m *Model) UserRegisterValidate(ctx echo.Context) (*UserRegisterRequest, error) {
+	return Validate[UserRegisterRequest](ctx, m.validator)
+}
+func (m *Model) UserForgotPasswordValidate(ctx echo.Context) (*UserForgotPasswordRequest, error) {
+	return Validate[UserForgotPasswordRequest](ctx, m.validator)
+}
+func (m *Model) UserChangePasswordValidate(ctx echo.Context) (*UserChangePasswordRequest, error) {
+	return Validate[UserChangePasswordRequest](ctx, m.validator)
+}
+func (m *Model) UserVerifyContactNumberValidate(ctx echo.Context) (*UserVerifyContactNumberRequest, error) {
+	return Validate[UserVerifyContactNumberRequest](ctx, m.validator)
+}
+func (m *Model) UserVerifyEmailValidate(ctx echo.Context) (*UserVerifyEmailRequest, error) {
+	return Validate[UserVerifyEmailRequest](ctx, m.validator)
+}
+func (m *Model) UserVerifyWithEmailConfirmationValidate(ctx echo.Context) (*UserVerifyWithEmailConfirmationRequest, error) {
+	return Validate[UserVerifyWithEmailConfirmationRequest](ctx, m.validator)
+}
+func (m *Model) UserVerifyWithContactNumberValidate(ctx echo.Context) (*UserVerifyWithContactNumberRequest, error) {
+	return Validate[UserVerifyWithContactNumberRequest](ctx, m.validator)
+}
+func (m *Model) UserVerifyWithContactNumberConfirmationValidate(ctx echo.Context) (*UserVerifyWithContactNumberConfirmationRequest, error) {
+	return Validate[UserVerifyWithContactNumberConfirmationRequest](ctx, m.validator)
+}
+func (m *Model) UserSettingsChangePasswordValidate(ctx echo.Context) (*UserSettingsChangePasswordRequest, error) {
+	return Validate[UserSettingsChangePasswordRequest](ctx, m.validator)
+}
+func (m *Model) UserSettingsChangeEmailValidate(ctx echo.Context) (*UserSettingsChangeEmailRequest, error) {
+	return Validate[UserSettingsChangeEmailRequest](ctx, m.validator)
+}
+func (m *Model) UserSettingsChangeUsernameValidate(ctx echo.Context) (*UserSettingsChangeUsernameRequest, error) {
+	return Validate[UserSettingsChangeUsernameRequest](ctx, m.validator)
+}
+func (m *Model) UserSettingsChangeContactNumberValidate(ctx echo.Context) (*UserSettingsChangeContactNumberRequest, error) {
+	return Validate[UserSettingsChangeContactNumberRequest](ctx, m.validator)
+}
+func (m *Model) UserSettingsChangeProfilePictureValidate(ctx echo.Context) (*UserSettingsChangeProfilePictureRequest, error) {
+	return Validate[UserSettingsChangeProfilePictureRequest](ctx, m.validator)
+}
+func (m *Model) UserSettingsChangeProfileValidate(ctx echo.Context) (*UserSettingsChangeProfileRequest, error) {
+	return Validate[UserSettingsChangeProfileRequest](ctx, m.validator)
+}
+func (m *Model) UserSettingsChangeGeneralValidate(ctx echo.Context) (*UserSettingsChangeGeneralRequest, error) {
+	return Validate[UserSettingsChangeGeneralRequest](ctx, m.validator)
+}
 
 // func NewUserCollection(
 // 	media *MediaCollection,
