@@ -42,7 +42,7 @@ type (
 		DownloadURL string                `json:"download_url"`
 		BucketName  string                `json:"bucket_name"`
 		Status      horizon.StorageStatus `json:"status"`
-		Progress    int64                 `gorm:"unsigned" json:"progress"`
+		Progress    int64                 `json:"progress"`
 	}
 
 	MediaRequest struct {
@@ -54,7 +54,7 @@ type (
 		URL        string `json:"url" validate:"required,url,max=255"`
 		Key        string `json:"key,omitempty" validate:"max=255"`
 		BucketName string `json:"bucket_name,omitempty" validate:"max=255"`
-		Progress   int64  `gorm:"unsigned" json:"progress"`
+		Progress   int64  `json:"status"`
 	}
 	MediaCollection struct {
 		validator *validator.Validate

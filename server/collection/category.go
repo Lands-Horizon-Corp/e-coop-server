@@ -17,11 +17,10 @@ type (
 		UpdatedAt time.Time      `gorm:"not null;default:now()"`
 		DeletedAt gorm.DeletedAt `gorm:"index"`
 
-		Name        string `gorm:"type:varchar(255);not null"`
-		Description string `gorm:"type:text"`
-		Color       string `gorm:"type:varchar(50)"`
-		Icon        string `gorm:"type:varchar(50)"`
-
+		Name                   string                  `gorm:"type:varchar(255);not null"`
+		Description            string                  `gorm:"type:text"`
+		Color                  string                  `gorm:"type:varchar(50)"`
+		Icon                   string                  `gorm:"type:varchar(50)"`
 		OrganizationCategories []*OrganizationCategory `gorm:"foreignKey:CategoryID"`
 	}
 

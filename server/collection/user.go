@@ -24,30 +24,29 @@ type QRUser struct {
 
 type (
 	User struct {
-		ID        uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
-		CreatedAt time.Time      `gorm:"not null;default:now()"`
-		UpdatedAt time.Time      `gorm:"not null;default:now()"`
-		DeletedAt gorm.DeletedAt `gorm:"index"`
+		ID                uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
+		CreatedAt         time.Time      `gorm:"not null;default:now()"`
+		UpdatedAt         time.Time      `gorm:"not null;default:now()"`
+		DeletedAt         gorm.DeletedAt `gorm:"index"`
+		MediaID           *uuid.UUID     `gorm:"type:uuid"`
+		Media             *Media         `gorm:"foreignKey:MediaID;constraint:OnDelete:SET NULL;" json:"media,omitempty"`
+		Password          string         `gorm:"type:varchar(255);not null" json:"-"`
+		Birthdate         time.Time      `gorm:"type:date" json:"birthdate,omitempty"`
+		UserName          string         `gorm:"type:varchar(100);not null;unique" json:"user_name"`
+		FirstName         *string        `gorm:"type:varchar(100)" json:"first_name,omitempty"`
+		MiddleName        *string        `gorm:"type:varchar(100)" json:"middle_name,omitempty"`
+		LastName          *string        `gorm:"type:varchar(100)" json:"last_name,omitempty"`
+		FullName          *string        `gorm:"type:varchar(255)" json:"full_name,omitempty"`
+		Suffix            *string        `gorm:"type:varchar(50)" json:"suffix,omitempty"`
+		Description       *string        `gorm:"type:text"`
+		Email             string         `gorm:"type:varchar(255);not null;unique" json:"email"`
+		IsEmailVerified   bool           `gorm:"default:false" json:"is_email_verified"`
+		ContactNumber     string         `gorm:"type:varchar(20);not null" json:"contact_number"`
+		IsContactVerified bool           `gorm:"default:false" json:"is_contact_verified"`
 
-		MediaID *uuid.UUID `gorm:"type:uuid"`
-		Media   *Media     `gorm:"foreignKey:MediaID;constraint:OnDelete:SET NULL;" json:"media,omitempty"`
-
-		Password  string    `gorm:"type:varchar(255);not null" json:"-"`
-		Birthdate time.Time `gorm:"type:date" json:"birthdate,omitempty"`
-
-		UserName    string  `gorm:"type:varchar(100);not null;unique" json:"user_name"`
-		FirstName   *string `gorm:"type:varchar(100)" json:"first_name,omitempty"`
-		MiddleName  *string `gorm:"type:varchar(100)" json:"middle_name,omitempty"`
-		LastName    *string `gorm:"type:varchar(100)" json:"last_name,omitempty"`
-		FullName    *string `gorm:"type:varchar(255)" json:"full_name,omitempty"`
-		Suffix      *string `gorm:"type:varchar(50)" json:"suffix,omitempty"`
-		Description *string `gorm:"type:text"`
-
-		Email           string `gorm:"type:varchar(255);not null;unique" json:"email"`
-		IsEmailVerified bool   `gorm:"default:false" json:"is_email_verified"`
-
-		ContactNumber     string `gorm:"type:varchar(20);not null" json:"contact_number"`
-		IsContactVerified bool   `gorm:"default:false" json:"is_contact_verified"`
+		Footsteps        []*Footstep        `gorm:"foreignKey:UserID" json:"footsteps,omitempty"`
+		GeneratedReports []*GeneratedReport `gorm:"foreignKey:UserID" json:"generated_reports,omitempty"`
+		Notification     []*Notification    `gorm:"foreignKey:UserID" json:"notications,omitempty"`
 	}
 	UserResponse struct {
 		ID                uuid.UUID         `json:"id"`
@@ -68,6 +67,10 @@ type (
 		CreatedAt         string            `json:"created_at"`
 		UpdatedAt         string            `json:"updated_at"`
 		QRCode            *horizon.QRResult `json:"qr_code,omitempty"`
+
+		Footsteps        []*FootstepResponse        `json:"footstep"`
+		GeneratedReports []*GeneratedReportResponse `json:"generated_reports"`
+		Notifications    []*NotificationResponse    `json:"notications"`
 	}
 	CurrentUserResponse struct {
 		UserID uuid.UUID     `json:"user_id"`
@@ -173,20 +176,88 @@ type (
 )
 
 type UserCollection struct {
-	validator *validator.Validate
-	media     *MediaCollection
-	qr        *horizon.HorizonQR
+	validator       *validator.Validate
+	media           *MediaCollection
+	qr              *horizon.HorizonQR
+	footstep        *FootstepCollection
+	generatedReport *GeneratedReportCollection
+	notification    *NotificationCollection
 }
 
 func NewUserCollection(
 	media *MediaCollection,
 	qr *horizon.HorizonQR,
+	footstep *FootstepCollection,
+	generatedReport *GeneratedReportCollection,
+	notification *NotificationCollection,
 ) (*UserCollection, error) {
 	return &UserCollection{
-		media:     media,
-		qr:        qr,
-		validator: validator.New(),
+		media:           media,
+		qr:              qr,
+		validator:       validator.New(),
+		footstep:        footstep,
+		generatedReport: generatedReport,
+		notification:    notification,
 	}, nil
+}
+
+func (uc *UserCollection) ToModel(data *User) *UserResponse {
+	if data == nil {
+		return nil
+	}
+	encoded, err := uc.qr.Encode(&QRUser{
+		UserID:        data.ID.String(),
+		Email:         data.Email,
+		ContactNumber: data.ContactNumber,
+		Username:      data.UserName,
+		Lastname:      horizon.StringFormat(data.LastName),
+		Firstname:     horizon.StringFormat(data.FirstName),
+		Middlename:    horizon.StringFormat(data.MiddleName),
+	})
+	if err != nil {
+		return nil
+	}
+	return &UserResponse{
+		ID:                data.ID,
+		MediaID:           data.MediaID,
+		Media:             uc.media.ToModel(data.Media),
+		Birthdate:         data.Birthdate.Format(time.RFC3339),
+		UserName:          data.UserName,
+		FirstName:         data.FirstName,
+		Description:       data.Description,
+		MiddleName:        data.MiddleName,
+		LastName:          data.LastName,
+		FullName:          data.FullName,
+		Suffix:            data.Suffix,
+		Email:             data.Email,
+		IsEmailVerified:   data.IsEmailVerified,
+		ContactNumber:     data.ContactNumber,
+		IsContactVerified: data.IsContactVerified,
+		CreatedAt:         data.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:         data.UpdatedAt.Format(time.RFC3339),
+		QRCode:            encoded,
+
+		Footsteps:        uc.footstep.ToModels(data.Footsteps),
+		GeneratedReports: uc.generatedReport.ToModels(data.GeneratedReports),
+		Notifications:    uc.notification.ToModels(data.Notification),
+	}
+}
+
+func (uc *UserCollection) ToModels(data []*User) []*UserResponse {
+	if data == nil {
+		return make([]*UserResponse, 0)
+	}
+	var response []*UserResponse
+	for _, value := range data {
+		model := uc.ToModel(value)
+		if model != nil {
+			response = append(response, model)
+		}
+	}
+	if len(response) <= 0 {
+		return make([]*UserResponse, 0)
+	}
+	return response
 }
 
 func (uc *UserCollection) UserLoginValidation(c echo.Context) (*UserLoginRequest, error) {
@@ -353,61 +424,4 @@ func (uc *UserCollection) UserSettingsChangeGeneralValidation(c echo.Context) (*
 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	return u, nil
-}
-
-func (uc *UserCollection) ToModel(data *User) *UserResponse {
-	if data == nil {
-		return nil
-	}
-
-	encoded, err := uc.qr.Encode(&QRUser{
-		UserID:        data.ID.String(),
-		Email:         data.Email,
-		ContactNumber: data.ContactNumber,
-		Username:      data.UserName,
-		Lastname:      horizon.StringFormat(data.LastName),
-		Firstname:     horizon.StringFormat(data.FirstName),
-		Middlename:    horizon.StringFormat(data.MiddleName),
-	})
-	if err != nil {
-		return nil
-	}
-
-	return &UserResponse{
-		ID:                data.ID,
-		MediaID:           data.MediaID,
-		Media:             uc.media.ToModel(data.Media),
-		Birthdate:         data.Birthdate.Format(time.RFC3339),
-		UserName:          data.UserName,
-		FirstName:         data.FirstName,
-		Description:       data.Description,
-		MiddleName:        data.MiddleName,
-		LastName:          data.LastName,
-		FullName:          data.FullName,
-		Suffix:            data.Suffix,
-		Email:             data.Email,
-		IsEmailVerified:   data.IsEmailVerified,
-		ContactNumber:     data.ContactNumber,
-		IsContactVerified: data.IsContactVerified,
-		CreatedAt:         data.CreatedAt.Format(time.RFC3339),
-		UpdatedAt:         data.UpdatedAt.Format(time.RFC3339),
-		QRCode:            encoded,
-	}
-}
-
-func (uc *UserCollection) ToModels(data []*User) []*UserResponse {
-	if data == nil {
-		return make([]*UserResponse, 0)
-	}
-	var response []*UserResponse
-	for _, value := range data {
-		model := uc.ToModel(value)
-		if model != nil {
-			response = append(response, model)
-		}
-	}
-	if len(response) <= 0 {
-		return make([]*UserResponse, 0)
-	}
-	return response
 }

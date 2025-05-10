@@ -1,12 +1,10 @@
 package collection
 
 import (
-	"net/http"
 	"time"
 
 	"github.com/go-playground/validator"
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
 
@@ -23,14 +21,6 @@ type (
 		Description      string    `gorm:"type:text;not null"`
 		IsViewed         bool      `gorm:"default:false" json:"is_viewed"`
 		NotificationType string    `gorm:"type:varchar(50);not null"`
-	}
-
-	NotificationRequest struct {
-		UserID           uuid.UUID `json:"user_id" validate:"required"`
-		Title            string    `json:"title" validate:"required,min=1,max=255"`
-		Description      string    `json:"description" validate:"required,min=5,max=2000"`
-		IsViewed         bool      `json:"is_viewed"`
-		NotificationType string    `json:"notification_type" validate:"required,oneof=success warning alert info error general report message"`
 	}
 
 	NotificationResponse struct {
@@ -56,18 +46,6 @@ func NewNotificationCollection(userCol *UserCollection) (*NotificationCollection
 		validator: validator.New(),
 		userCol:   userCol,
 	}, nil
-}
-
-// ValidateCreate binds and validates a NotificationRequest
-func (nc *NotificationCollection) ValidateCreate(c echo.Context) (*NotificationRequest, error) {
-	req := new(NotificationRequest)
-	if err := c.Bind(req); err != nil {
-		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	}
-	if err := nc.validator.Struct(req); err != nil {
-		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	}
-	return req, nil
 }
 
 // ToModel maps a Notification DB model to NotificationResponse

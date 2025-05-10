@@ -57,6 +57,9 @@ var Modules = []any{
 
 	// Footstep
 	collection.NewFootstepCollection,
+	repository.NewFootstepRepository,
+	controller.NewFootstepController,
+	broadcast.NewFootstepBroadcast,
 
 	// Feedback
 	collection.NewFeedbackCollection,

@@ -13,46 +13,43 @@ import (
 
 type (
 	UserOrganization struct {
-		ID             uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
-		CreatedAt      time.Time      `gorm:"not null;default:now()"`
-		CreatedByID    uuid.UUID      `gorm:"type:uuid"`
-		CreatedBy      *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt      time.Time      `gorm:"not null;default:now()"`
-		UpdatedByID    uuid.UUID      `gorm:"type:uuid"`
-		UpdatedBy      *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt      gorm.DeletedAt `gorm:"index"`
-		DeletedByID    *uuid.UUID     `gorm:"type:uuid"`
-		DeletedBy      *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
-		OrganizationID uuid.UUID      `gorm:"type:uuid;not null;index:idx_org_branch,unique"`
-		Organization   *Organization  `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID      `gorm:"type:uuid;not null;index:idx_org_branch,unique"`
-		Branch         *Branch        `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE;" json:"branch,omitempty"`
-
-		UserType               string    `gorm:"type:varchar(50);not null"`
-		UserID                 uuid.UUID `gorm:"type:uuid;not null"`
-		User                   *User     `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE;" json:"user,omitempty"`
-		Description            string    `gorm:"type:text" json:"description,omitempty"`
-		ApplicationDescription string    `gorm:"type:text" json:"application_description,omitempty"`
-		ApplicationStatus      string    `gorm:"type:varchar(50);not null;default:'pending'" json:"application_status"`
-
-		DeveloperSecretKey    string         `gorm:"type:varchar(255);not null;unique" json:"developer_secret_key"`
-		PermissionName        string         `gorm:"type:varchar(255);not null" json:"permission_name"`
-		PermissionDescription string         `gorm:"type:varchar(255);not null" json:"permission_description"`
-		Permissions           pq.StringArray `gorm:"type:varchar[];default:'{}'"`
+		ID                     uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
+		CreatedAt              time.Time      `gorm:"not null;default:now()"`
+		CreatedByID            uuid.UUID      `gorm:"type:uuid"`
+		CreatedBy              *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
+		UpdatedAt              time.Time      `gorm:"not null;default:now()"`
+		UpdatedByID            uuid.UUID      `gorm:"type:uuid"`
+		UpdatedBy              *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
+		DeletedAt              gorm.DeletedAt `gorm:"index"`
+		DeletedByID            *uuid.UUID     `gorm:"type:uuid"`
+		DeletedBy              *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
+		OrganizationID         uuid.UUID      `gorm:"type:uuid;not null;uniqueIndex:idx_user_org_branch"`
+		Organization           *Organization  `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE;" json:"organization,omitempty"`
+		BranchID               uuid.UUID      `gorm:"type:uuid;not null;uniqueIndex:idx_user_org_branch"`
+		Branch                 *Branch        `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE;" json:"branch,omitempty"`
+		UserID                 uuid.UUID      `gorm:"type:uuid;not null;uniqueIndex:idx_user_org_branch"`
+		User                   *User          `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE;" json:"user,omitempty"`
+		UserType               string         `gorm:"type:varchar(50);not null"`
+		Description            string         `gorm:"type:text" json:"description,omitempty"`
+		ApplicationDescription string         `gorm:"type:text" json:"application_description,omitempty"`
+		ApplicationStatus      string         `gorm:"type:varchar(50);not null;default:'pending'" json:"application_status"`
+		DeveloperSecretKey     string         `gorm:"type:varchar(255);not null;unique" json:"developer_secret_key"`
+		PermissionName         string         `gorm:"type:varchar(255);not null" json:"permission_name"`
+		PermissionDescription  string         `gorm:"type:varchar(255);not null" json:"permission_description"`
+		Permissions            pq.StringArray `gorm:"type:varchar[];default:'{}'"`
 	}
 
 	UserOrganizationRequest struct {
-		UserType               string    `json:"user_type" validate:"required,oneof=employee owner member"`
-		OrganizationID         uuid.UUID `json:"organization_id" validate:"required"`
-		BranchID               uuid.UUID `json:"branch_id" validate:"required"`
-		UserID                 uuid.UUID `json:"user_id" validate:"required"`
-		Description            string    `json:"description,omitempty"`
-		ApplicationDescription string    `json:"application_description,omitempty"`
-		ApplicationStatus      string    `json:"application_status" validate:"required,oneof=pending reported accepted ban"`
-
-		PermissionName        string         `json:"permission_name" validate:"required"`
-		PermissionDescription string         `json:"permission_description" validate:"required"`
-		Permissions           pq.StringArray `json:"permissions,omitempty" validate:"dive,required"`
+		UserType               string         `json:"user_type" validate:"required,oneof=employee owner member"`
+		OrganizationID         uuid.UUID      `json:"organization_id" validate:"required"`
+		BranchID               uuid.UUID      `json:"branch_id" validate:"required"`
+		UserID                 uuid.UUID      `json:"user_id" validate:"required"`
+		Description            string         `json:"description,omitempty"`
+		ApplicationDescription string         `json:"application_description,omitempty"`
+		ApplicationStatus      string         `json:"application_status" validate:"required,oneof=pending reported accepted ban"`
+		PermissionName         string         `json:"permission_name" validate:"required"`
+		PermissionDescription  string         `json:"permission_description" validate:"required"`
+		Permissions            pq.StringArray `json:"permissions,omitempty" validate:"dive,required"`
 	}
 
 	UserOrganizationResponse struct {
@@ -135,10 +132,10 @@ func (uoc *UserOrganizationCollection) ToModel(uo *UserOrganization) *UserOrgani
 		Description:            uo.Description,
 		ApplicationDescription: uo.ApplicationDescription,
 		ApplicationStatus:      uo.ApplicationStatus,
-		DeveloperSecretKey:     uo.DeveloperSecretKey,    // Added field
-		PermissionName:         uo.PermissionName,        // Added field
-		PermissionDescription:  uo.PermissionDescription, // Added field
-		Permissions:            uo.Permissions,           // Added field
+		DeveloperSecretKey:     uo.DeveloperSecretKey,
+		PermissionName:         uo.PermissionName,
+		PermissionDescription:  uo.PermissionDescription,
+		Permissions:            uo.Permissions,
 	}
 }
 
