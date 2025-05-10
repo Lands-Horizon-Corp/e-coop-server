@@ -9,7 +9,11 @@ import (
 )
 
 func (h *Handler) FootstepList(c echo.Context) error {
-	footstep, err := h.repository.FootstepList()
+	user, err := h.provider.CurrentUser(c)
+	if err != nil {
+		return err
+	}
+	footstep, err := h.repository.FootstepListByUserID(user.ID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}

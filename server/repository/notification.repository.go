@@ -96,3 +96,25 @@ func (r *Repository) CountUnviewedNotifications() (int64, error) {
 	}
 	return count, nil
 }
+
+func (r *Repository) CountUnviewedByUserID(userID uuid.UUID) (int64, error) {
+	var count int64
+	if err := r.database.Client().
+		Model(&model.Notification{}).
+		Where("recipient_user_id = ? AND is_viewed = FALSE", userID).
+		Count(&count).Error; err != nil {
+		return 0, eris.Wrapf(err, "failed to count unviewed notifications for user %s", userID)
+	}
+	return count, nil
+}
+
+func (r *Repository) NotificationListByUserID(userID uuid.UUID) ([]*model.Notification, error) {
+	var notes []*model.Notification
+	if err := r.database.Client().
+		Where("user_id = ?", userID).
+		Order("created_at DESC").
+		Find(&notes).Error; err != nil {
+		return nil, eris.Wrapf(err, "failed to list notifications for user %s", userID)
+	}
+	return notes, nil
+}

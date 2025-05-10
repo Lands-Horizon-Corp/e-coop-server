@@ -126,7 +126,6 @@ func (h *Handler) Routes(service *echo.Echo) {
 		subscriptionPlanGroup.PUT("/:id", h.SubscriptionPlanUpdate)
 		subscriptionPlanGroup.DELETE("/:id", h.SubscriptionPlanDelete)
 	}
-
 	organizationGroup := service.Group("organization")
 	{
 		organizationGroup.GET("", h.OrganizationList)
@@ -135,9 +134,7 @@ func (h *Handler) Routes(service *echo.Echo) {
 		organizationGroup.PUT("/:id", h.OrganizationUpdate)
 		organizationGroup.DELETE("/:id", h.OrganizationDelete)
 		organizationGroup.POST("/:id/subscription/:subscription-id", h.OrganizationSubscribe)
-
 	}
-
 	invitationCodeGroup := service.Group("invitation-codes")
 	{
 		invitationCodeGroup.DELETE("/:id", h.InvitationCodeDelete)

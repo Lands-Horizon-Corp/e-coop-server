@@ -86,3 +86,14 @@ func (r *Repository) FootstepUpdateCreate(data *model.Footstep) error {
 	}
 	return nil
 }
+
+func (r *Repository) FootstepListByUserID(userID uuid.UUID) ([]*model.Footstep, error) {
+	var steps []*model.Footstep
+	if err := r.database.Client().
+		Where("user_id = ?", userID).
+		Order("created_at DESC").
+		Find(&steps).Error; err != nil {
+		return nil, eris.Wrapf(err, "failed to list footsteps for user %s", userID)
+	}
+	return steps, nil
+}

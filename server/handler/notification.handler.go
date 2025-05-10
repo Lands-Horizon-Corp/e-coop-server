@@ -10,7 +10,11 @@ import (
 )
 
 func (h *Handler) NotificationList(c echo.Context) error {
-	notification, err := h.repository.NotificationList()
+	user, err := h.provider.CurrentUser(c)
+	if err != nil {
+		return err
+	}
+	notification, err := h.repository.NotificationListByUserID(user.ID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
@@ -48,7 +52,11 @@ func (h *Handler) NotificationView(c echo.Context) error {
 }
 
 func (h *Handler) NotificationUnviewedCount(c echo.Context) error {
-	count, err := h.repository.CountUnviewedNotifications()
+	user, err := h.provider.CurrentUser(c)
+	if err != nil {
+		return err
+	}
+	count, err := h.repository.CountUnviewedByUserID(user.ID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}

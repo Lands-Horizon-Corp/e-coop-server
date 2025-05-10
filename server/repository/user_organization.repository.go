@@ -95,3 +95,14 @@ func (r *Repository) UserOrganizationsCount(organizationID uuid.UUID) (int64, er
 	}
 	return count, nil
 }
+
+func (r *Repository) UserOrganizationListByUserID(userID uuid.UUID) ([]*model.UserOrganization, error) {
+	var uos []*model.UserOrganization
+	if err := r.database.Client().
+		Where("user_id = ?", userID).
+		Order("created_at DESC").
+		Find(&uos).Error; err != nil {
+		return nil, eris.Wrapf(err, "failed to list user_organizations for user %s", userID)
+	}
+	return uos, nil
+}
