@@ -40,10 +40,13 @@ type (
 		CoverMediaID *uuid.UUID `gorm:"type:uuid" json:"cover_media_id,omitempty"`
 		CoverMedia   *Media     `gorm:"foreignKey:CoverMediaID;constraint:OnDelete:SET NULL;" json:"cover_media,omitempty"`
 
-		SubscriptionPlanID    *uuid.UUID        `gorm:"type:uuid" json:"subscription_plan_id,omitempty"`
-		SubscriptionPlan      *SubscriptionPlan `gorm:"foreignKey:SubscriptionPlanID;constraint:OnDelete:SET NULL;" json:"subscription_plan,omitempty"`
-		SubscriptionStartDate time.Time         `json:"subscription_start_date"`
-		SubscriptionEndDate   time.Time         `json:"subscription_end_date"`
+		SubscriptionPlanMaxBranches         int               `gorm:"not null"`
+		SubscriptionPlanMaxEmployees        int               `gorm:"not null"`
+		SubscriptionPlanMaxMembersPerBranch int               `gorm:"not null"`
+		SubscriptionPlanID                  *uuid.UUID        `gorm:"type:uuid" json:"subscription_plan_id,omitempty"`
+		SubscriptionPlan                    *SubscriptionPlan `gorm:"foreignKey:SubscriptionPlanID;constraint:OnDelete:SET NULL;" json:"subscription_plan,omitempty"`
+		SubscriptionStartDate               time.Time         `json:"subscription_start_date"`
+		SubscriptionEndDate                 time.Time         `json:"subscription_end_date"`
 
 		Branches               []*Branch                 `gorm:"foreignKey:OrganizationID" json:"branches,omitempty"`
 		OrganizationCategories []*OrganizationCategory   `gorm:"foreignKey:OrganizationID" json:"organization_categories,omitempty"`
@@ -82,10 +85,13 @@ type (
 		CoverMediaID *uuid.UUID     `json:"cover_media_id,omitempty"`
 		CoverMedia   *MediaResponse `json:"cover_media,omitempty"`
 
-		SubscriptionPlanID    *uuid.UUID                `json:"subscription_plan_id,omitempty"`
-		SubscriptionPlan      *SubscriptionPlanResponse `json:"subscription_plan,omitempty"`
-		SubscriptionStartDate string                    `json:"subscription_start_date"`
-		SubscriptionEndDate   string                    `json:"subscription_end_date"`
+		SubscriptionPlanMaxBranches         int                       `json:"subscription_plan_max_branches"`
+		SubscriptionPlanMaxEmployees        int                       `json:"subscription_plan_max_employees"`
+		SubscriptionPlanMaxMembersPerBranch int                       `json:"subscription_plan_max_member_per_branch"`
+		SubscriptionPlanID                  *uuid.UUID                `json:"subscription_plan_id,omitempty"`
+		SubscriptionPlan                    *SubscriptionPlanResponse `json:"subscription_plan,omitempty"`
+		SubscriptionStartDate               string                    `json:"subscription_start_date"`
+		SubscriptionEndDate                 string                    `json:"subscription_end_date"`
 
 		Branches               []*BranchResponse                 `json:"branches,omitempty"`
 		OrganizationCategories []*OrganizationCategoryResponse   `json:"organization_categories,omitempty"`
@@ -119,10 +125,19 @@ type (
 
 		OrganizationCategories []*uuid.UUID `json:"organization_categories,omitempty"`
 	}
+
+	OrganizationSubscriptionRequest struct {
+		OrganizationID           uuid.UUID `json:"organization_id" validate:"required,uuid4"`
+		SubscriptionPlanID       uuid.UUID `json:"subscription_plan_id" validate:"required,uuid4"`
+		SubscriptionPlanIsYearly *bool     `json:"subscription_plan_is_yearly,omitempty"`
+	}
 )
 
 func (m *Model) OrganizationValidate(ctx echo.Context) (*OrganizationRequest, error) {
 	return Validate[OrganizationRequest](ctx, m.validator)
+}
+func (m *Model) OrganizationSubscriptionValidate(ctx echo.Context) (*OrganizationSubscriptionRequest, error) {
+	return Validate[OrganizationSubscriptionRequest](ctx, m.validator)
 }
 
 func (m *Model) OrganizationModel(data *Organization) *OrganizationResponse {
@@ -154,10 +169,13 @@ func (m *Model) OrganizationModel(data *Organization) *OrganizationResponse {
 			CoverMediaID: data.CoverMediaID,
 			CoverMedia:   m.MediaModel(data.CoverMedia),
 
-			SubscriptionPlan:      m.SubscriptionPlanModel(data.SubscriptionPlan),
-			SubscriptionPlanID:    data.SubscriptionPlanID,
-			SubscriptionStartDate: data.SubscriptionStartDate.Format(time.RFC3339),
-			SubscriptionEndDate:   data.SubscriptionEndDate.Format(time.RFC3339),
+			SubscriptionPlanMaxBranches:         data.SubscriptionPlanMaxBranches,
+			SubscriptionPlanMaxEmployees:        data.SubscriptionPlanMaxEmployees,
+			SubscriptionPlanMaxMembersPerBranch: data.SubscriptionPlanMaxMembersPerBranch,
+			SubscriptionPlan:                    m.SubscriptionPlanModel(data.SubscriptionPlan),
+			SubscriptionPlanID:                  data.SubscriptionPlanID,
+			SubscriptionStartDate:               data.SubscriptionStartDate.Format(time.RFC3339),
+			SubscriptionEndDate:                 data.SubscriptionEndDate.Format(time.RFC3339),
 
 			Branches:               m.BranchModels(data.Branches),
 			OrganizationCategories: m.OrganizationCategoryModels(data.OrganizationCategories),

@@ -134,5 +134,7 @@ func (h *Handler) Routes(service *echo.Echo) {
 		organizationGroup.POST("", h.OrganizationCreate)
 		organizationGroup.PUT("/:id", h.OrganizationUpdate)
 		organizationGroup.DELETE("/:id", h.OrganizationDelete)
+		organizationGroup.POST("/:id/subscription/:subscription-id", h.OrganizationSubscribe)
+
 	}
 }

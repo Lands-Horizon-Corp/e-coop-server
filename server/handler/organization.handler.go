@@ -55,24 +55,29 @@ func (h *Handler) OrganizationCreate(c echo.Context) error {
 		subscriptionEndDate = time.Now().UTC().Add(30 * 24 * time.Hour)
 	}
 	organization := &model.Organization{
-		CreatedAt:             time.Now().UTC(),
-		CreatedByID:           user.ID,
-		UpdatedAt:             time.Now().UTC(),
-		UpdatedByID:           user.ID,
-		Name:                  req.Name,
-		Address:               req.Address,
-		Email:                 req.Email,
-		ContactNumber:         req.ContactNumber,
-		Description:           req.Description,
-		Color:                 req.Color,
-		TermsAndConditions:    req.TermsAndConditions,
-		PrivacyPolicy:         req.PrivacyPolicy,
-		CookiePolicy:          req.CookiePolicy,
-		RefundPolicy:          req.RefundPolicy,
-		UserAgreement:         req.UserAgreement,
-		IsPrivate:             req.IsPrivate,
-		MediaID:               req.MediaID,
-		CoverMediaID:          req.CoverMediaID,
+		CreatedAt:          time.Now().UTC(),
+		CreatedByID:        user.ID,
+		UpdatedAt:          time.Now().UTC(),
+		UpdatedByID:        user.ID,
+		Name:               req.Name,
+		Address:            req.Address,
+		Email:              req.Email,
+		ContactNumber:      req.ContactNumber,
+		Description:        req.Description,
+		Color:              req.Color,
+		TermsAndConditions: req.TermsAndConditions,
+		PrivacyPolicy:      req.PrivacyPolicy,
+		CookiePolicy:       req.CookiePolicy,
+		RefundPolicy:       req.RefundPolicy,
+		UserAgreement:      req.UserAgreement,
+		IsPrivate:          req.IsPrivate,
+		MediaID:            req.MediaID,
+		CoverMediaID:       req.CoverMediaID,
+
+		SubscriptionPlanMaxBranches:         subscription.MaxBranches,
+		SubscriptionPlanMaxEmployees:        subscription.MaxEmployees,
+		SubscriptionPlanMaxMembersPerBranch: subscription.MaxMembersPerBranch,
+
 		SubscriptionPlanID:    &subscription.ID,
 		SubscriptionStartDate: time.Now().UTC(),
 		SubscriptionEndDate:   subscriptionEndDate,
@@ -235,4 +240,82 @@ func (h *Handler) OrganizationDelete(c echo.Context) error {
 	}
 
 	return c.NoContent(http.StatusNoContent)
+}
+
+func (h *Handler) OrganizationSubscribe(c echo.Context) error {
+	// 1. Validate request payload (bind path & body)
+	req, err := h.model.OrganizationSubscriptionValidate(c)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+
+	// 2. Authenticated user
+	user, err := h.provider.CurrentUser(c)
+	if err != nil {
+		return err
+	}
+
+	// 3. Load organization
+	org, err := h.repository.OrganizationGetByID(req.OrganizationID)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, map[string]string{"error": "organization not found"})
+	}
+	if org.CreatedByID != user.ID {
+		return c.JSON(http.StatusForbidden, map[string]string{"error": "not authorized to update this organization"})
+	}
+
+	// 4. Load new plan
+	plan, err := h.repository.SubscriptionPlanGetByID(req.SubscriptionPlanID)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, map[string]string{"error": "subscription plan not found"})
+	}
+
+	// 5. Determine whether this is a yearly or monthly renewal
+	useYearly := false
+	if req.SubscriptionPlanIsYearly != nil {
+		useYearly = *req.SubscriptionPlanIsYearly
+	}
+
+	// 6. Compute new start & end dates
+	now := time.Now().UTC()
+	// if still active, top up from existing end date; else start now
+	var newStart time.Time
+	if org.SubscriptionEndDate.After(now) {
+		newStart = org.SubscriptionEndDate
+	} else {
+		newStart = now
+		org.SubscriptionStartDate = now
+	}
+
+	var newEnd time.Time
+	if useYearly {
+		newEnd = newStart.AddDate(1, 0, 0)
+	} else {
+		newEnd = newStart.AddDate(0, 1, 0)
+	}
+
+	// 7. Apply update in a transaction
+	tx := h.database.Client().Begin()
+	if tx.Error != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+	}
+
+	org.SubscriptionPlanID = &plan.ID
+	org.SubscriptionEndDate = newEnd
+
+	// copy over plan limits
+	org.SubscriptionPlanMaxBranches = plan.MaxBranches
+	org.SubscriptionPlanMaxEmployees = plan.MaxEmployees
+	org.SubscriptionPlanMaxMembersPerBranch = plan.MaxMembersPerBranch
+
+	if err := h.repository.OrganizationUpdateCreateTransaction(tx, org); err != nil {
+		tx.Rollback()
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	if err := tx.Commit().Error; err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	// 8. Return updated organization
+	return c.JSON(http.StatusOK, h.model.OrganizationModel(org))
+
 }
