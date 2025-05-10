@@ -173,16 +173,15 @@ type (
 		Suffix        *string   `json:"suffix,omitempty"`
 		Password      string    `json:"password" validate:"required,min=8"`
 	}
+	UserCollection struct {
+		validator       *validator.Validate
+		media           *MediaCollection
+		qr              *horizon.HorizonQR
+		footstep        *FootstepCollection
+		generatedReport *GeneratedReportCollection
+		notification    *NotificationCollection
+	}
 )
-
-type UserCollection struct {
-	validator       *validator.Validate
-	media           *MediaCollection
-	qr              *horizon.HorizonQR
-	footstep        *FootstepCollection
-	generatedReport *GeneratedReportCollection
-	notification    *NotificationCollection
-}
 
 func NewUserCollection(
 	media *MediaCollection,

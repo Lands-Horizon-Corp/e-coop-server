@@ -49,8 +49,11 @@ type (
 	}
 )
 
-func NewCategoryCollection(organizationCategory *OrganizationCategoryCollection) (*CategoryCollection, error) {
+func NewCategoryCollection(
+	organizationCategory *OrganizationCategoryCollection,
+) (*CategoryCollection, error) {
 	return &CategoryCollection{
+		validator:            validator.New(),
 		organizationCategory: organizationCategory,
 	}, nil
 }

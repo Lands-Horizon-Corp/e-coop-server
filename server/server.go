@@ -49,17 +49,18 @@ func NewCoopServer(
 
 var Modules = []any{
 	NewCoopServer,
+
+	// Branch
+	collection.NewBranchCollection,
+
+	// Category
+	collection.NewCategoryCollection,
+
 	// Contact Us
 	collection.NewContactUsCollection,
 	repository.NewContactUsRepository,
 	controller.NewContactUsController,
 	broadcast.NewContactUsBroadcast,
-
-	// Footstep
-	collection.NewFootstepCollection,
-	repository.NewFootstepRepository,
-	controller.NewFootstepController,
-	broadcast.NewFootstepBroadcast,
 
 	// Feedback
 	collection.NewFeedbackCollection,
@@ -67,11 +68,44 @@ var Modules = []any{
 	controller.NewFeedbackController,
 	broadcast.NewFeedbackBroadcast,
 
+	// Footstep
+	collection.NewFootstepCollection,
+	repository.NewFootstepRepository,
+	controller.NewFootstepController,
+	broadcast.NewFootstepBroadcast,
+
+	// Generate report
+	collection.NewGeneratedReportCollection,
+
+	// Invitation Code
+	collection.NewInvitationCodeCollection,
+
 	// Media
 	collection.NewMediaCollection,
 	repository.NewMediaRepository,
 	controller.NewMediaController,
 	broadcast.NewMediaBroadcast,
+
+	// Notification
+	collection.NewNotificationCollection,
+
+	// Organization Category
+	collection.NewOrganizationCategoryCollection,
+
+	// Organization Daily Usage
+	collection.NewOrganizationDailyUsageCollection,
+
+	// Organization
+	collection.NewOrganizationCollection,
+
+	// Permission Templates
+	collection.NewPermissionTemplateCollection,
+
+	// Subscription Plan
+	collection.NewSubscriptionPlanCollection,
+
+	// User organization
+	collection.NewUserOrganizationCollection,
 
 	// User
 	collection.NewUserCollection,
