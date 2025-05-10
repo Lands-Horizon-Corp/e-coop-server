@@ -62,9 +62,9 @@ type (
 		BranchID       uuid.UUID             `json:"branch_id"`
 		Branch         *BranchResponse       `json:"branch,omitempty"`
 
-		UserType               string        `json:"user_type"`
 		UserID                 uuid.UUID     `json:"user_id"`
 		User                   *UserResponse `json:"user,omitempty"`
+		UserType               string        `json:"user_type"`
 		Description            string        `json:"description,omitempty"`
 		ApplicationDescription string        `json:"application_description,omitempty"`
 		ApplicationStatus      string        `json:"application_status"`
