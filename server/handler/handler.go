@@ -112,4 +112,12 @@ func (h *Handler) Routes(service *echo.Echo) {
 		notificationGroup.DELETE("/:id", h.NotificationDelete)
 		notificationGroup.GET("/unviewed-count", h.NotificationUnviewedCount)
 	}
+	subscriptionPlanGroup := service.Group("/subscription-plan")
+	{
+		subscriptionPlanGroup.GET("", h.SubscriptionPlanList)
+		subscriptionPlanGroup.GET("/:id", h.SubscriptionPlanGet)
+		subscriptionPlanGroup.POST("", h.SubscriptionPlanCreate)
+		subscriptionPlanGroup.PUT("/:id", h.SubscriptionPlanUpdate)
+		subscriptionPlanGroup.DELETE("/:id", h.SubscriptionPlanDelete)
+	}
 }
