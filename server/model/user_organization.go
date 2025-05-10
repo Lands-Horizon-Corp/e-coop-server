@@ -38,7 +38,7 @@ type (
 	}
 
 	UserOrganizationRequest struct {
-		UserType               string         `json:"user_type" validate:"required,oneof=employee owner member"`
+		UserType               string         `json:"user_type" validate:"required,oneof=employee member"`
 		OrganizationID         uuid.UUID      `json:"organization_id" validate:"required"`
 		BranchID               uuid.UUID      `json:"branch_id" validate:"required"`
 		UserID                 uuid.UUID      `json:"user_id" validate:"required"`

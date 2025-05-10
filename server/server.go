@@ -40,7 +40,7 @@ func NewCoopServer(
 			// 5. Branch-related tables
 			&model.Branch{},
 			&model.PermissionTemplate{},
-			&model.InvitationCode{},
+			&model.InvitationCode{}, // ✅
 
 			// 6. Tables needing both User and Organization/Branch
 			&model.Feedback{}, // ✅

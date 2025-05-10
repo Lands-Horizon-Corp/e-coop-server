@@ -106,3 +106,20 @@ func (r *Repository) UserOrganizationListByUserID(userID uuid.UUID) ([]*model.Us
 	}
 	return uos, nil
 }
+
+func (r *Repository) UserOrganizationExists(
+	userID, orgID uuid.UUID,
+) (bool, error) {
+	var count int64
+	if err := r.database.Client().
+		Model(&model.UserOrganization{}).
+		Where("user_id = ? AND organization_id = ?", userID, orgID).
+		Count(&count).Error; err != nil {
+		return false, eris.Wrapf(
+			err,
+			"failed to check user organization existence for user %s org %s",
+			userID, orgID,
+		)
+	}
+	return count > 0, nil
+}
