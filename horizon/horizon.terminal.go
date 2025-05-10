@@ -84,15 +84,15 @@ func requestCMD(request *HorizonRequest) {
 			for _, rt := range routes {
 				switch rt.Method {
 				case "GET":
-					fmt.Printf("\t%s▶ %s %s \t- %s%s\n", Green, rt.Method, rt.Path, Reset, rt.Name)
+					fmt.Printf("\t%s▶\t%s %s \t- %s%s\n", Green, rt.Method, rt.Path, Reset, rt.Name)
 				case "POST":
-					fmt.Printf("\t%s▶ %s %s \t- %s%s\n", Blue, rt.Method, rt.Path, Reset, rt.Name)
+					fmt.Printf("\t%s▶\t%s %s \t- %s%s\n", Blue, rt.Method, rt.Path, Reset, rt.Name)
 				case "PUT":
-					fmt.Printf("\t%s▶ %s %s \t- %s%s\n", Yellow, rt.Method, rt.Path, Reset, rt.Name)
+					fmt.Printf("\t%s▶\t%s %s \t- %s%s\n", Yellow, rt.Method, rt.Path, Reset, rt.Name)
 				case "DELETE":
-					fmt.Printf("\t%s▶ %s %s \t- %s%s\n", Red, rt.Method, rt.Path, Reset, rt.Name)
+					fmt.Printf("\t%s▶\t%s %s \t- %s%s\n", Red, rt.Method, rt.Path, Reset, rt.Name)
 				default:
-					fmt.Printf("\t▶ %s %s \t- %s\n", rt.Method, rt.Path, rt.Name)
+					fmt.Printf("\t▶%s\t%s \t- %s\n", rt.Method, rt.Path, rt.Name)
 				}
 			}
 		}
