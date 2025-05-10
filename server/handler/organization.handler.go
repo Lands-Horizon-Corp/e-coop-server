@@ -1,5 +1,9 @@
 package handler
 
+// Get organization by ID
+
 // Create organization with Create user organization
 
-// Create
+// Update organization
+
+// Delete organization
