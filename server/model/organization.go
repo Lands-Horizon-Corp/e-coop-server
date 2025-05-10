@@ -32,14 +32,13 @@ type (
 		CookiePolicy       *string `gorm:"type:text" json:"cookie_policy,omitempty"`
 		RefundPolicy       *string `gorm:"type:text" json:"refund_policy,omitempty"`
 		UserAgreement      *string `gorm:"type:text" json:"user_agreement,omitempty"`
+		IsPrivate          bool    `gorm:"default:false" json:"is_private"`
 
 		MediaID *uuid.UUID `gorm:"type:uuid" json:"media_id,omitempty"`
 		Media   *Media     `gorm:"foreignKey:MediaID;constraint:OnDelete:SET NULL;" json:"media,omitempty"`
 
 		CoverMediaID *uuid.UUID `gorm:"type:uuid" json:"cover_media_id,omitempty"`
 		CoverMedia   *Media     `gorm:"foreignKey:CoverMediaID;constraint:OnDelete:SET NULL;" json:"cover_media,omitempty"`
-
-		OrganizationKey string `gorm:"type:varchar(255);not null;unique" json:"organization_key"`
 
 		SubscriptionPlanID    *uuid.UUID        `gorm:"type:uuid" json:"subscription_plan_id,omitempty"`
 		SubscriptionPlan      *SubscriptionPlan `gorm:"foreignKey:SubscriptionPlanID;constraint:OnDelete:SET NULL;" json:"subscription_plan,omitempty"`
@@ -76,13 +75,13 @@ type (
 		CookiePolicy       *string `json:"cookie_policy,omitempty"`
 		RefundPolicy       *string `json:"refund_policy,omitempty"`
 		UserAgreement      *string `json:"user_agreement,omitempty"`
+		IsPrivate          bool    `json:"is_private,omitempty"`
 
 		MediaID      *uuid.UUID     `json:"media_id,omitempty"`
 		Media        *MediaResponse `json:"media,omitempty"`
 		CoverMediaID *uuid.UUID     `json:"cover_media_id,omitempty"`
 		CoverMedia   *MediaResponse `json:"cover_media,omitempty"`
 
-		OrganizationKey       string                    `json:"organization_key"`
 		SubscriptionPlanID    *uuid.UUID                `json:"subscription_plan_id,omitempty"`
 		SubscriptionPlan      *SubscriptionPlanResponse `json:"subscription_plan,omitempty"`
 		SubscriptionStartDate string                    `json:"subscription_start_date"`
@@ -110,11 +109,11 @@ type (
 		CookiePolicy       *string `json:"cookie_policy,omitempty"`
 		RefundPolicy       *string `json:"refund_policy,omitempty"`
 		UserAgreement      *string `json:"user_agreement,omitempty"`
+		IsPrivate          bool    `json:"is_private,omitempty"`
 
 		MediaID      *uuid.UUID `json:"media_id,omitempty"`
 		CoverMediaID *uuid.UUID `json:"cover_media_id,omitempty"`
 
-		OrganizationKey       string     `json:"organization_key" validate:"required,min=1"`
 		SubscriptionPlanID    *uuid.UUID `json:"subscription_plan_id,omitempty"`
 		SubscriptionStartDate time.Time  `json:"subscription_start_date" validate:"required"`
 		SubscriptionEndDate   time.Time  `json:"subscription_end_date" validate:"required"`
@@ -147,9 +146,12 @@ func (m *Model) OrganizationModel(data *Organization) *OrganizationResponse {
 			CookiePolicy:       data.CookiePolicy,
 			RefundPolicy:       data.RefundPolicy,
 			UserAgreement:      data.UserAgreement,
-			MediaID:            data.MediaID,
-			CoverMediaID:       data.CoverMediaID,
-			OrganizationKey:    data.OrganizationKey,
+			IsPrivate:          data.IsPrivate,
+
+			MediaID:      data.MediaID,
+			Media:        m.MediaModel(data.Media),
+			CoverMediaID: data.CoverMediaID,
+			CoverMedia:   m.MediaModel(data.CoverMedia),
 
 			SubscriptionPlan:      m.SubscriptionPlanModel(data.SubscriptionPlan),
 			SubscriptionPlanID:    data.SubscriptionPlanID,
