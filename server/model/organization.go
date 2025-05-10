@@ -10,10 +10,16 @@ import (
 
 type (
 	Organization struct {
-		ID        uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
-		CreatedAt time.Time      `gorm:"not null;default:now()"`
-		UpdatedAt time.Time      `gorm:"not null;default:now()"`
-		DeletedAt gorm.DeletedAt `gorm:"index"`
+		ID          uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
+		CreatedAt   time.Time      `gorm:"not null;default:now()"`
+		CreatedByID uuid.UUID      `gorm:"type:uuid"`
+		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
+		UpdatedAt   time.Time      `gorm:"not null;default:now()"`
+		UpdatedByID uuid.UUID      `gorm:"type:uuid"`
+		UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
+		DeletedAt   gorm.DeletedAt `gorm:"index"`
+		DeletedByID *uuid.UUID     `gorm:"type:uuid"`
+		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
 
 		Name               string  `gorm:"type:varchar(255);not null" json:"name"`
 		Address            *string `gorm:"type:varchar(500)" json:"address,omitempty"`
@@ -51,9 +57,13 @@ type (
 	}
 
 	OrganizationResponse struct {
-		ID        uuid.UUID `json:"id"`
-		CreatedAt string    `json:"created_at"`
-		UpdatedAt string    `json:"updated_at"`
+		ID          uuid.UUID     `json:"id"`
+		CreatedAt   string        `json:"created_at"`
+		CreatedByID uuid.UUID     `json:"created_by_id"`
+		CreatedBy   *UserResponse `json:"created_by,omitempty"`
+		UpdatedAt   string        `json:"updated_at"`
+		UpdatedByID uuid.UUID     `json:"updated_by_id"`
+		UpdatedBy   *UserResponse `json:"updated_by,omitempty"`
 
 		Name               string  `json:"name"`
 		Address            *string `json:"address,omitempty"`
@@ -118,9 +128,14 @@ func (m *Model) OrganizationValidate(ctx echo.Context) (*OrganizationRequest, er
 func (m *Model) OrganizationModel(data *Organization) *OrganizationResponse {
 	return ToModel(data, func(data *Organization) *OrganizationResponse {
 		return &OrganizationResponse{
-			ID:                 data.ID,
-			CreatedAt:          data.CreatedAt.Format(time.RFC3339),
-			UpdatedAt:          data.UpdatedAt.Format(time.RFC3339),
+			ID:          data.ID,
+			CreatedAt:   data.CreatedAt.Format(time.RFC3339),
+			CreatedByID: data.CreatedByID,
+			CreatedBy:   m.UserModel(data.CreatedBy),
+			UpdatedAt:   data.UpdatedAt.Format(time.RFC3339),
+			UpdatedByID: data.UpdatedByID,
+			UpdatedBy:   m.UserModel(data.UpdatedBy),
+
 			Name:               data.Name,
 			Address:            data.Address,
 			Email:              data.Email,
