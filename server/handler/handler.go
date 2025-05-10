@@ -53,7 +53,6 @@ func (h *Handler) Routes(service *echo.Echo) {
 		contactGroup.PUT("/:id", h.ContactUsUpdate)
 		contactGroup.DELETE("/:id", h.ContactUsDelete)
 	}
-
 	feedbackGroup := service.Group("/feedback")
 	{
 		feedbackGroup.GET("", h.FeedbackList)
@@ -76,7 +75,6 @@ func (h *Handler) Routes(service *echo.Echo) {
 		mediaGroup.PUT("/:id", h.MediaUpdate)
 		mediaGroup.DELETE("/:id", h.MediaDelete)
 	}
-
 	authenticationGroup := service.Group("/authentication")
 	{
 		authenticationGroup.GET("/current", h.UserCurrent)
@@ -95,7 +93,6 @@ func (h *Handler) Routes(service *echo.Echo) {
 		authenticationGroup.POST("/verify-with-contact", h.UserVerifyWithContactNumber)
 		authenticationGroup.POST("/verify-with-contact-confirmation", h.UserVerifyWithContactNumberConfirmation)
 	}
-
 	profileGroup := service.Group("/profile")
 	{
 		profileGroup.PUT("/password", h.UserSettingsChangePassword)
@@ -107,4 +104,12 @@ func (h *Handler) Routes(service *echo.Echo) {
 		profileGroup.PUT("/general", h.UserSettingsChangeGeneral)
 	}
 
+	notificationGroup := service.Group("/notification")
+	{
+		notificationGroup.GET("", h.NotificationList)
+		notificationGroup.GET("/:id", h.NotificationGet)
+		notificationGroup.PUT("/:id/view", h.NotificationView)
+		notificationGroup.DELETE("/:id", h.NotificationDelete)
+		notificationGroup.GET("/unviewed-count", h.NotificationUnviewedCount)
+	}
 }

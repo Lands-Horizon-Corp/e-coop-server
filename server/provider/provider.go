@@ -7,19 +7,19 @@ import (
 )
 
 type Provider struct {
-	repo           *repository.Repository
+	repository     *repository.Repository
 	model          *model.Model
 	authentication *horizon.HorizonAuthentication
 }
 
 func NewProvider(
-	repo *repository.Repository,
+	repository *repository.Repository,
 	model *model.Model,
 	authentication *horizon.HorizonAuthentication,
 
 ) (*Provider, error) {
 	return &Provider{
-		repo:           repo,
+		repository:     repository,
 		model:          model,
 		authentication: authentication,
 	}, nil

@@ -8,8 +8,8 @@ import (
 	"horizon.com/server/server/model"
 )
 
-func (up *Provider) CurrentUser(c echo.Context) (*model.User, error) {
-	claim, err := up.authentication.GetUserFromToken(c)
+func (p *Provider) CurrentUser(c echo.Context) (*model.User, error) {
+	claim, err := p.authentication.GetUserFromToken(c)
 	if err != nil {
 		return nil, echo.NewHTTPError(http.StatusUnauthorized, "authentication required")
 	}
@@ -17,7 +17,7 @@ func (up *Provider) CurrentUser(c echo.Context) (*model.User, error) {
 	if err != nil {
 		return nil, echo.NewHTTPError(http.StatusBadRequest, "invalid user ID in token")
 	}
-	user, err := up.repo.UserGetByID(id)
+	user, err := p.repository.UserGetByID(id)
 	if err != nil {
 		return nil, echo.NewHTTPError(http.StatusNotFound, "user not found")
 	}

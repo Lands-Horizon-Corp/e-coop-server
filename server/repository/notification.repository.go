@@ -85,3 +85,14 @@ func (r *Repository) NotificationUpdateCreate(data *model.Notification) error {
 	}
 	return nil
 }
+
+func (r *Repository) CountUnviewedNotifications() (int64, error) {
+	var count int64
+	if err := r.database.Client().
+		Model(&model.Notification{}).
+		Where("is_viewed = ?", false).
+		Count(&count).Error; err != nil {
+		return 0, eris.Wrap(err, "failed to count unviewed notifications")
+	}
+	return count, nil
+}
