@@ -23,39 +23,38 @@ func NewFootstepBroadcast(
 }
 func (b *FootstepBroadcast) OnCreate(data *collection.Footstep) {
 	go func() {
-		channels := []string{
+
+		b.broadcast.Dispatch([]string{
 			"footstep.create",
 			fmt.Sprintf("footstep.create.%s", data.ID),
-		}
-		if data.UserID != nil {
-			channels = append(channels, fmt.Sprintf("footstep.create.user.%s", data.UserID))
-		}
-		b.broadcast.Dispatch(channels, b.collection.ToModel(data))
+			fmt.Sprintf("footstep.create.banch.%s", data.BranchID),
+			fmt.Sprintf("footstep.create.organization.%s", data.OrganizationID),
+			fmt.Sprintf("footstep.create.user.%s", data.UserID),
+		}, b.collection.ToModel(data))
 	}()
 }
 
 func (b *FootstepBroadcast) OnUpdate(data *collection.Footstep) {
 	go func() {
-		channels := []string{
+		b.broadcast.Dispatch([]string{
 			"footstep.update",
 			fmt.Sprintf("footstep.update.%s", data.ID),
-		}
-		if data.UserID != nil {
-			channels = append(channels, fmt.Sprintf("footstep.update.user.%s", data.UserID))
-		}
-		b.broadcast.Dispatch(channels, b.collection.ToModel(data))
+			fmt.Sprintf("footstep.update.banch.%s", data.BranchID),
+			fmt.Sprintf("footstep.update.organization.%s", data.OrganizationID),
+			fmt.Sprintf("footstep.update.user.%s", data.UserID),
+		}, b.collection.ToModel(data))
 	}()
 }
 
 func (b *FootstepBroadcast) OnDelete(data *collection.Footstep) {
 	go func() {
-		channels := []string{
+
+		b.broadcast.Dispatch([]string{
 			"footstep.delete",
 			fmt.Sprintf("footstep.delete.%s", data.ID),
-		}
-		if data.UserID != nil {
-			channels = append(channels, fmt.Sprintf("footstep.delete.user.%s", data.UserID))
-		}
-		b.broadcast.Dispatch(channels, b.collection.ToModel(data))
+			fmt.Sprintf("footstep.delete.banch.%s", data.BranchID),
+			fmt.Sprintf("footstep.delete.organization.%s", data.OrganizationID),
+			fmt.Sprintf("footstep.delete.user.%s", data.UserID),
+		}, b.collection.ToModel(data))
 	}()
 }
