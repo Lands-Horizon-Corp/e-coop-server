@@ -85,3 +85,18 @@ func (r *Repository) BranchUpdateCreate(data *model.Branch) error {
 	}
 	return nil
 }
+
+func (r *Repository) BranchListByOrganizationID(orgID uuid.UUID) ([]*model.Branch, error) {
+	var branches []*model.Branch
+	if err := r.database.Client().
+		Where("organization_id = ?", orgID).
+		Order("created_at DESC").
+		Find(&branches).Error; err != nil {
+		return nil, eris.Wrapf(
+			err,
+			"failed to list branches for organization %s",
+			orgID,
+		)
+	}
+	return branches, nil
+}

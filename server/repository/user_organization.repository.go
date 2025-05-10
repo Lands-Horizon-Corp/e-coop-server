@@ -139,3 +139,20 @@ func (r *Repository) UserOrganizationGetByUserOrgBranch(
 	}
 	return &uo, nil
 }
+
+func (r *Repository) UserOrganizationCountByOrgBranch(
+	orgID, branchID uuid.UUID,
+) (int64, error) {
+	var count int64
+	if err := r.database.Client().
+		Model(&model.UserOrganization{}).
+		Where("organization_id = ? AND branch_id = ?", orgID, branchID).
+		Count(&count).Error; err != nil {
+		return 0, eris.Wrapf(
+			err,
+			"failed to count user_organizations for org %s branch %s",
+			orgID, branchID,
+		)
+	}
+	return count, nil
+}

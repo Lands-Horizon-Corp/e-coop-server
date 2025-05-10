@@ -22,30 +22,19 @@ func NewCoopServer(
 			handler.Routes,
 		},
 		Migrations: []any{
-			// 1. Base user table - referenced by nearly all other tables
-			&model.User{}, // ✅
-
-			// 2. Independent tables
-			&model.SubscriptionPlan{}, // ✅
-			&model.Category{},         // ✅
-			&model.ContactUs{},        // ✅
-
-			// 3. Media table - referenced by multiple subsequent tables
-			&model.Media{}, // ✅
-
-			// 4. Organization and its direct dependencies
+			&model.User{},                 // ✅
+			&model.SubscriptionPlan{},     // ✅
+			&model.Category{},             // ✅
+			&model.ContactUs{},            // ✅
+			&model.Media{},                // ✅
 			&model.Organization{},         // ✅
 			&model.OrganizationCategory{}, // ✅
-
-			// 5. Branch-related tables
 			&model.Branch{},
 			&model.PermissionTemplate{},
-			&model.InvitationCode{}, // ✅
-
-			// 6. Tables needing both User and Organization/Branch
-			&model.Feedback{}, // ✅
-			&model.Footstep{}, // ✅
-			&model.UserOrganization{},
+			&model.InvitationCode{},   // ✅
+			&model.Feedback{},         // ✅
+			&model.Footstep{},         // ✅
+			&model.UserOrganization{}, // ✅
 			&model.OrganizationDailyUsage{},
 			&model.Notification{}, // ✅
 		},
