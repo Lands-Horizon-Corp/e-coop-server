@@ -58,11 +58,14 @@ type HorizonConfig struct {
 	StorageApiPort     int
 	StorageConsolePort int
 
-	NATSHost        string
-	NATSClientPort  int
-	NATSMonitorPort int
-
+	NATSHost         string
+	NATSClientPort   int
+	NATSMonitorPort  int
 	NATSClientWSPort int
+
+	TwilioAccountSID string
+	TwilioAuthToken  string
+	TwilioSender     string
 }
 
 func NewHorizonConfig() (*HorizonConfig, error) {
@@ -115,6 +118,10 @@ func NewHorizonConfig() (*HorizonConfig, error) {
 		NATSClientPort:   GetInt("NATS_CLIENT_PORT", 4222),
 		NATSMonitorPort:  GetInt("NATS_MONITOR_PORT", 8222),
 		NATSClientWSPort: GetInt("NAT_CLIENT_WS_PORT", 8080),
+
+		TwilioAccountSID: GetString("TWILIO_ACCOUNT_SID", ""),
+		TwilioAuthToken:  GetString("TWILIO_AUTH_TOKEN", ""),
+		TwilioSender:     GetString("TWILIO_SENDER", ""),
 	}, nil
 }
 func (hc *HorizonConfig) CanDebug() bool {

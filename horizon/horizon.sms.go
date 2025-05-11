@@ -22,6 +22,9 @@ import (
 	"github.com/rotisserie/eris"
 	"go.uber.org/zap"
 	"golang.org/x/time/rate"
+
+	"github.com/twilio/twilio-go"
+	openapi "github.com/twilio/twilio-go/rest/api/v2010"
 )
 
 type HorizonSMS struct {
@@ -31,6 +34,8 @@ type HorizonSMS struct {
 	limiterOnce sync.Once
 	ctx         context.Context
 	cancel      context.CancelFunc
+	config      *HorizonConfig
+	twilio      *twilio.RestClient
 }
 
 type SMSRequest struct {
@@ -42,22 +47,28 @@ type SMSRequest struct {
 
 func NewHorizonSMS(
 	log *HorizonLog,
+	config *HorizonConfig,
 	security *HorizonSecurity,
 ) (*HorizonSMS, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	return &HorizonSMS{
 		log:      log,
 		security: security,
-
-		limiter: rate.NewLimiter(1, 3),
-		ctx:     ctx,
-		cancel:  cancel,
+		config:   config,
+		limiter:  rate.NewLimiter(1, 3),
+		ctx:      ctx,
+		cancel:   cancel,
+		twilio:   nil,
 	}, nil
 }
 
 func (hs *HorizonSMS) Run() error {
 	hs.limiterOnce.Do(func() {
 		hs.limiter = rate.NewLimiter(1, 3)
+	})
+	hs.twilio = twilio.NewRestClientWithParams(twilio.ClientParams{
+		Username: hs.config.TwilioAccountSID,
+		Password: hs.config.TwilioAuthToken,
 	})
 	return nil
 }
@@ -140,6 +151,24 @@ func (hs *HorizonSMS) Send(req *SMSRequest) error {
 			zap.String("body", cleaned),
 		},
 	})
+	params := &openapi.CreateMessageParams{}
+	params.SetTo(req.To)
+	params.SetFrom(hs.config.TwilioSender)
+	params.SetBody(cleaned)
+	_, err = hs.twilio.Api.CreateMessage(params)
+	if err != nil {
+		hs.log.Log(LogEntry{
+			Category: CategorySMS,
+			Level:    LevelError,
+			Message:  fmt.Sprintf("Twilio SMS error: %v", err),
+			Fields: []zap.Field{
+				zap.String("to", req.To),
+				zap.String("subject", req.Subject),
+				zap.String("body", cleaned),
+			},
+		})
+		return eris.Wrap(err, "failed to send SMS via Twilio")
+	}
 	return nil
 
 }
