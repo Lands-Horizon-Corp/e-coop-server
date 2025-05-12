@@ -8,6 +8,7 @@ import { TableBody,Table, TableCell, TableHead, TableHeader, TableRow } from '..
 import { Badge } from '../ui/badge';
 import { Progress } from '../ui/progress';
 import { useBroadcast } from '@/hook/useBroadcast';
+import prettyBytes from 'pretty-bytes';
 
 export type StorageStatus =
     | "pending"
@@ -21,7 +22,7 @@ export interface Media {
     createdAt: string;
     updatedAt: string;
     fileName: string;
-    fileSize: number;
+    file_size: number;
     fileType: string;
     storageKey: string;
     url: string;
@@ -117,7 +118,7 @@ const SampleMedia: React.FC = () => {
                         <TableRow key={media.id}>
                             <TableCell>{media.id}</TableCell>
                             <TableCell>{media.fileName}</TableCell>
-                            <TableCell>{(media.fileSize / 1024).toFixed(2)} KB</TableCell>
+                            <TableCell>{prettyBytes(media.file_size)}</TableCell>
                             <TableCell>{media.fileType}</TableCell>
                             <TableCell>
                                 <Badge variant={statusVariants[media.status] as any}>

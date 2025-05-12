@@ -10,10 +10,10 @@ function App() {
     return (
       <div>
         <div>
-          {/* <SampleMedia/> */}
+          <SampleMedia/>
         </div>
         <div>
-          <SampleForm/>
+          {/* <SampleForm/> */}
         </div>
       </div>
     )
