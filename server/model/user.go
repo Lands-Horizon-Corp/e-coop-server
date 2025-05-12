@@ -54,9 +54,11 @@ type (
 		UserOrganizations []*UserOrganization `gorm:"foreignKey:UserID" json:"user_organizations,omitempty"` // user organization
 	}
 	UserResponse struct {
-		ID                uuid.UUID         `json:"id"`
-		MediaID           *uuid.UUID        `json:"media_id,omitempty"`
-		Media             *MediaResponse    `json:"media,omitempty"`
+		ID                uuid.UUID      `json:"id"`
+		MediaID           *uuid.UUID     `json:"media_id,omitempty"`
+		Media             *MediaResponse `json:"media,omitempty"`
+		SignatureMediaID  *uuid.UUID     `json:"signature_media_id"`
+		SignatureMedia    *MediaResponse
 		Birthdate         string            `json:"birthdate,omitempty"`
 		UserName          string            `json:"user_name"`
 		Description       *string           `gorm:"type:text"`
@@ -207,6 +209,8 @@ func (m *Model) UserModel(data *User) *UserResponse {
 			ID:                data.ID,
 			MediaID:           data.MediaID,
 			Media:             m.MediaModel(data.Media),
+			SignatureMediaID:  data.SignatureMediaID,
+			SignatureMedia:    m.MediaModel(data.SignatureMedia),
 			Birthdate:         data.Birthdate.Format(time.RFC3339),
 			UserName:          data.UserName,
 			FirstName:         data.FirstName,
