@@ -162,7 +162,11 @@ func NewInvitationCodeCollection(
 				fmt.Sprintf("invitation_code.delete.user.%s", data.CreatedByID),
 			}, model.InvitationCodeModel(data)
 		},
-		[]string{},
+		[]string{
+			"CreatedBy",
+			"Organization",
+			"Branch",
+		},
 	)
 	return &InvitationCodeCollection{
 		Manager: manager,

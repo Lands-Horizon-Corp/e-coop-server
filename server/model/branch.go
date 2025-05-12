@@ -180,7 +180,7 @@ func NewBranchCollection(
 				fmt.Sprintf("branch.delete.organization.%s", data.OrganizationID),
 			}, model.BranchModel(data)
 		},
-		[]string{},
+		[]string{"CreatedBy", "UpdatedBy", "Organization", "Media"},
 	)
 	return &BranchCollection{
 		Manager: manager,

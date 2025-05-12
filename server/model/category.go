@@ -97,7 +97,7 @@ func NewCategoryCollection(
 				fmt.Sprintf("category.delete.%s", data.ID),
 			}, model.CategoryModel(data)
 		},
-		[]string{},
+		[]string{"OrganizationCategories"},
 	)
 	return &CategoryCollection{
 		Manager: manager,

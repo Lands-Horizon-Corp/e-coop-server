@@ -31,6 +31,8 @@ type (
 		DeletedAt         gorm.DeletedAt `gorm:"index"`
 		MediaID           *uuid.UUID     `gorm:"type:uuid"`
 		Media             *Media         `gorm:"foreignKey:MediaID;constraint:OnDelete:SET NULL;" json:"media,omitempty"`
+		SignatureMediaID  *uuid.UUID     `gorm:"type:uuid"`
+		SignatureMedia    *Media         `gorm:"foreignKey:MediaID;constraint:OnDelete:SET NULL;" json:"signature,omitempty"`
 		Password          string         `gorm:"type:varchar(255);not null" json:"-"`
 		Birthdate         time.Time      `gorm:"type:date" json:"birthdate,omitempty"`
 		UserName          string         `gorm:"type:varchar(100);not null;unique" json:"user_name"`
@@ -299,7 +301,7 @@ func NewUserCollection(
 				fmt.Sprintf("user.delete.%s", data.ID),
 			}, model.UserModel(data)
 		},
-		[]string{},
+		[]string{"Media", "SignatureMedia"},
 	)
 	return &UserCollection{
 		Manager: manager,

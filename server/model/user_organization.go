@@ -144,7 +144,7 @@ func NewUserOrganizationCollection(
 				fmt.Sprintf("user_organization.delete.%s", data.ID),
 			}, model.UserOrganizationModel(data)
 		},
-		[]string{},
+		[]string{"Branch", "User", "Organization"},
 	)
 	return &UserOrganizationCollection{
 		Manager: manager,
@@ -155,21 +155,21 @@ func NewUserOrganizationCollection(
 func (fc *UserOrganizationCollection) ListByUser(userID uuid.UUID) ([]*UserOrganization, error) {
 	return fc.Manager.Find(&UserOrganization{
 		UserID: userID,
-	}, "Branch", "User", "Organization")
+	})
 }
 
 // user-organization/organization/:organization_id
 func (fc *UserOrganizationCollection) ListByOrganization(organizationID uuid.UUID) ([]*UserOrganization, error) {
 	return fc.Manager.Find(&UserOrganization{
 		OrganizationID: organizationID,
-	}, "Branch", "User", "Organization")
+	})
 }
 
 // user-organization/branch/:branch_id
 func (fc *UserOrganizationCollection) ListByBranch(branchID uuid.UUID) ([]*UserOrganization, error) {
 	return fc.Manager.Find(&UserOrganization{
 		BranchID: branchID,
-	}, "Branch", "User", "Organization")
+	})
 }
 
 // user-organization/user/:user_id/organization/:organization_id
@@ -179,7 +179,7 @@ func (fc *UserOrganizationCollection) ListByUserOrganization(
 	return fc.Manager.Find(&UserOrganization{
 		UserID:         userID,
 		OrganizationID: organizationID,
-	}, "Branch", "User", "Organization")
+	})
 }
 
 // user-organization/user/:user_id/branch/:branch_id
@@ -189,7 +189,7 @@ func (fc *UserOrganizationCollection) ListByUserBranch(
 	return fc.Manager.Find(&UserOrganization{
 		UserID:   userID,
 		BranchID: branchID,
-	}, "Branch", "User", "Organization")
+	})
 }
 
 // user-organization/organization/:organization_id/branch/:branch_id
@@ -199,7 +199,7 @@ func (fc *UserOrganizationCollection) ListByOrganizationBranch(
 	return fc.Manager.Find(&UserOrganization{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
-	}, "Branch", "User", "Organization")
+	})
 }
 
 // user-organization/user/:user_id/organization/:organization_id/branch/:branch_id
@@ -208,5 +208,5 @@ func (fc *UserOrganizationCollection) ByUserOrganizationBranch(userID, organizat
 		UserID:         userID,
 		OrganizationID: organizationID,
 		BranchID:       branchID,
-	}, "Branch", "User", "Organization")
+	})
 }

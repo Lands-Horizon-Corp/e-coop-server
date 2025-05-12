@@ -127,7 +127,12 @@ func NewPermissionTemplateCollection(
 				fmt.Sprintf("permission_template.delete.branch.%s", data.BranchID),
 			}, model.PermissionTemplateModel(data)
 		},
-		[]string{},
+		[]string{
+			"CreatedBy",
+			"UpdatedBy",
+			"Organization",
+			"Branch",
+		},
 	)
 	return &PermissionTemplateCollection{
 		Manager: manager,
