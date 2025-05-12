@@ -1,4 +1,4 @@
-package handler
+package controllers
 
 import (
 	"fmt"
@@ -11,54 +11,49 @@ import (
 	"horizon.com/server/server/model"
 )
 
-func (h *Handler) UserCurrent(c echo.Context) error {
-	user, err := h.provider.CurrentUser(c)
+func (c *Controller) UserCurrent(ctx echo.Context) error {
+	user, err := c.provider.CurrentUser(ctx)
 	if err != nil {
 		return err
 	}
-	return c.JSON(http.StatusOK, model.CurrentUserResponse{
+	return ctx.JSON(http.StatusOK, model.CurrentUserResponse{
 		UserID: user.ID,
-		User:   h.model.UserModel(user),
+		User:   c.model.UserModel(user),
 	})
 }
 
-func (h *Handler) UserLogin(c echo.Context) error {
-	req, err := h.model.UserLoginValidate(c)
-
+func (c *Controller) UserLogin(ctx echo.Context) error {
+	req, err := c.model.UserLoginValidate(ctx)
 	if err != nil {
 		return err
 	}
-	user, err := h.repository.UserFindByIdentifier(req.Key)
+	user, err := c.user.ByIdentifier(req.Key)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnauthorized, "invalid credentials")
 	}
-	if ok := h.authentication.VerifyPassword(user.Password, req.Password); !ok {
+	if ok := c.authentication.VerifyPassword(user.Password, req.Password); !ok {
 		return echo.NewHTTPError(http.StatusUnauthorized, "invalid credentials")
 	}
-	if err := h.authentication.SetToken(c, horizon.Claim{
-		ID:            user.ID.String(),
-		Email:         user.Email,
-		ContactNumber: user.ContactNumber,
-	}); err != nil {
+	if err := c.provider.SetUser(ctx, user); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to set authentication token")
 	}
-	return c.JSON(http.StatusOK, model.CurrentUserResponse{
+	return ctx.JSON(http.StatusOK, model.CurrentUserResponse{
 		UserID: user.ID,
-		User:   h.model.UserModel(user),
+		User:   c.model.UserModel(user),
 	})
 }
 
-func (h *Handler) UserLogout(c echo.Context) error {
-	h.authentication.CleanToken(c)
-	return c.NoContent(http.StatusOK)
+func (c *Controller) UserLogout(ctx echo.Context) error {
+	c.authentication.CleanToken(ctx)
+	return ctx.NoContent(http.StatusOK)
 }
 
-func (h *Handler) UserRegister(c echo.Context) error {
-	req, err := h.model.UserRegisterValidate(c)
+func (c *Controller) UserRegister(ctx echo.Context) error {
+	req, err := c.model.UserRegisterValidate(ctx)
 	if err != nil {
 		return err
 	}
-	hashedPwd, err := h.authentication.Password(req.Password)
+	hashedPwd, err := c.authentication.Password(req.Password)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to hash password")
 	}
@@ -78,33 +73,29 @@ func (h *Handler) UserRegister(c echo.Context) error {
 		IsEmailVerified:   false,
 		IsContactVerified: false,
 	}
-	if err := h.repository.UserCreate(user); err != nil {
+	if err := c.user.Manager.Create(user); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not register user: %v", err))
 	}
-	if err := h.authentication.SetToken(c, horizon.Claim{
-		ID:            user.ID.String(),
-		Email:         user.Email,
-		ContactNumber: user.ContactNumber,
-	}); err != nil {
+	if err := c.provider.SetUser(ctx, user); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to set authentication token")
 	}
 
-	return c.JSON(http.StatusOK, model.CurrentUserResponse{
+	return ctx.JSON(http.StatusOK, model.CurrentUserResponse{
 		UserID: user.ID,
-		User:   h.model.UserModel(user),
+		User:   c.model.UserModel(user),
 	})
 }
 
-func (h *Handler) UserForgotPassword(c echo.Context) error {
-	req, err := h.model.UserForgotPasswordValidate(c)
+func (c *Controller) UserForgotPassword(ctx echo.Context) error {
+	req, err := c.model.UserForgotPasswordValidate(ctx)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "please provide a valid email or contact number")
 	}
-	user, err := h.repository.UserFindByIdentifier(req.Key)
+	user, err := c.user.ByIdentifier(req.Key)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, "no account found with those details")
 	}
-	_, err = h.authentication.GenerateSMTPLink("/auth/password-reset/", horizon.Claim{
+	_, err = c.authentication.GenerateSMTPLink("/auth/password-reset/", horizon.Claim{
 		ID:            user.ID.String(),
 		Email:         user.Email,
 		ContactNumber: user.ContactNumber,
@@ -112,7 +103,7 @@ func (h *Handler) UserForgotPassword(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to send reset link, please try again later")
 	}
-	_, err = h.authentication.GenerateSMSLink("/auth/password-reset/", horizon.Claim{
+	_, err = c.authentication.GenerateSMSLink("/auth/password-reset/", horizon.Claim{
 		ID:            user.ID.String(),
 		Email:         user.Email,
 		ContactNumber: user.ContactNumber,
@@ -120,25 +111,25 @@ func (h *Handler) UserForgotPassword(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to send reset link, please try again later")
 	}
-	return c.NoContent(http.StatusOK)
+	return ctx.NoContent(http.StatusOK)
 }
 
-func (uc *Handler) UserVerifyResetLink(c echo.Context) error {
-	idParam := c.Param("id")
-	_, err := uc.authentication.ValidateLink(idParam)
+func (c *Controller) UserVerifyResetLink(ctx echo.Context) error {
+	idParam := ctx.Param("id")
+	_, err := c.authentication.ValidateLink(idParam)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "link is not valid")
 	}
-	return c.NoContent(http.StatusOK)
+	return ctx.NoContent(http.StatusOK)
 }
 
-func (h *Handler) UserChangePassword(c echo.Context) error {
-	idParam := c.Param("id")
-	req, err := h.model.UserChangePasswordValidate(c)
+func (c *Controller) UserChangePassword(ctx echo.Context) error {
+	idParam := ctx.Param("id")
+	req, err := c.model.UserChangePasswordValidate(ctx)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "invalid request: "+err.Error())
 	}
-	claim, err := h.authentication.ValidateLink(idParam)
+	claim, err := c.authentication.ValidateLink(idParam)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "link is not valid or has expired")
 	}
@@ -146,45 +137,45 @@ func (h *Handler) UserChangePassword(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "invalid user ID in token")
 	}
-	hashedPwd, err := h.authentication.Password(req.NewPassword)
+	hashedPwd, err := c.authentication.Password(req.NewPassword)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to hash new password")
 	}
-	if err := h.repository.UserUpdateFields(id, &model.User{
+	if err := c.user.Manager.UpdateFields(id, &model.User{
 		Password:  hashedPwd,
 		UpdatedAt: time.Now().UTC(),
 	}); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to update password: "+err.Error())
 	}
-	updatedUser, err := h.repository.UserGetByID(id)
+	updatedUser, err := c.user.Manager.GetByID(id)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to fetch updated user")
 	}
 
-	return c.JSON(http.StatusOK, h.model.UserModel(updatedUser))
+	return ctx.JSON(http.StatusOK, c.model.UserModel(updatedUser))
 }
 
-func (h *Handler) UserApplyContactNumber(c echo.Context) error {
-	claim, err := h.authentication.GetUserFromToken(c)
+func (c *Controller) UserApplyContactNumber(ctx echo.Context) error {
+	claim, err := c.authentication.GetUserFromToken(ctx)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnauthorized, "authentication required")
 	}
-	if err := h.authentication.SendSMSOTP(*claim); err != nil {
+	if err := c.authentication.SendSMSOTP(*claim); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to send OTP: "+err.Error())
 	}
-	return c.NoContent(http.StatusOK)
+	return ctx.NoContent(http.StatusOK)
 }
 
-func (h *Handler) UserVerifyContactNumber(c echo.Context) error {
-	req, err := h.model.UserVerifyContactNumberValidate(c)
+func (c *Controller) UserVerifyContactNumber(ctx echo.Context) error {
+	req, err := c.model.UserVerifyContactNumberValidate(ctx)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "invalid request: "+err.Error())
 	}
-	claim, err := h.authentication.GetUserFromToken(c)
+	claim, err := c.authentication.GetUserFromToken(ctx)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnauthorized, "authentication required")
 	}
-	valid := h.authentication.VerifySMSOTP(*claim, req.OTP)
+	valid := c.authentication.VerifySMSOTP(*claim, req.OTP)
 	if !valid {
 		return echo.NewHTTPError(http.StatusUnauthorized, "invalid or expired OTP")
 	}
@@ -193,42 +184,42 @@ func (h *Handler) UserVerifyContactNumber(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "invalid user ID in token")
 	}
 
-	if err := h.repository.UserUpdateFields(id, &model.User{
+	if err := c.user.Manager.UpdateFields(id, &model.User{
 		IsContactVerified: true,
 		UpdatedAt:         time.Now().UTC(),
 	}); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to update password: "+err.Error())
 	}
 
-	updatedUser, err := h.repository.UserGetByID(id)
+	updatedUser, err := c.user.Manager.GetByID(id)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to fetch updated user")
 	}
-	return c.JSON(http.StatusOK, h.model.UserModel(updatedUser))
+	return ctx.JSON(http.StatusOK, c.model.UserModel(updatedUser))
 }
 
-func (h *Handler) UserApplyEmail(c echo.Context) error {
-	claim, err := h.authentication.GetUserFromToken(c)
+func (c *Controller) UserApplyEmail(ctx echo.Context) error {
+	claim, err := c.authentication.GetUserFromToken(ctx)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnauthorized, "authentication required")
 	}
-	if err := h.authentication.SendSMTPOTP(*claim); err != nil {
+	if err := c.authentication.SendSMTPOTP(*claim); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to send email verification: "+err.Error())
 	}
-	return c.NoContent(http.StatusOK)
+	return ctx.NoContent(http.StatusOK)
 }
 
-func (h *Handler) UserVerifyEmail(c echo.Context) error {
-	req, err := h.model.UserVerifyEmailValidate(c)
+func (c *Controller) UserVerifyEmail(ctx echo.Context) error {
+	req, err := c.model.UserVerifyEmailValidate(ctx)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "invalid request: "+err.Error())
 	}
-	claim, err := h.authentication.GetUserFromToken(c)
+	claim, err := c.authentication.GetUserFromToken(ctx)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnauthorized, "authentication required")
 	}
 
-	valid := h.authentication.VerifySMTPOTP(*claim, req.OTP)
+	valid := c.authentication.VerifySMTPOTP(*claim, req.OTP)
 	if !valid {
 		return echo.NewHTTPError(http.StatusUnauthorized, "invalid or expired email token")
 	}
@@ -237,43 +228,43 @@ func (h *Handler) UserVerifyEmail(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "invalid user ID in token")
 	}
 
-	if err := h.repository.UserUpdateFields(id, &model.User{
+	if err := c.user.Manager.UpdateFields(id, &model.User{
 		IsEmailVerified: true,
 		UpdatedAt:       time.Now().UTC(),
 	}); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to update password: "+err.Error())
 	}
 
-	updatedUser, err := h.repository.UserGetByID(id)
+	updatedUser, err := c.user.Manager.GetByID(id)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to fetch updated user")
 	}
 
-	return c.JSON(http.StatusOK, h.model.UserModel(updatedUser))
+	return ctx.JSON(http.StatusOK, c.model.UserModel(updatedUser))
 }
 
-func (h *Handler) UserVerifyWithEmail(c echo.Context) error {
-	claim, err := h.authentication.GetUserFromToken(c)
+func (c *Controller) UserVerifyWithEmail(ctx echo.Context) error {
+	claim, err := c.authentication.GetUserFromToken(ctx)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnauthorized, "authentication required")
 	}
-	if err := h.authentication.SendSMTPOTP(*claim); err != nil {
+	if err := c.authentication.SendSMTPOTP(*claim); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to send email verification: "+err.Error())
 	}
-	return c.NoContent(http.StatusOK)
+	return ctx.NoContent(http.StatusOK)
 }
 
-func (h *Handler) UserVerifyWithEmailConfirmation(c echo.Context) error {
-	req, err := h.model.UserVerifyWithEmailConfirmationValidate(c)
+func (c *Controller) UserVerifyWithEmailConfirmation(ctx echo.Context) error {
+	req, err := c.model.UserVerifyWithEmailConfirmationValidate(ctx)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "invalid request: "+err.Error())
 	}
-	claim, err := h.authentication.GetUserFromToken(c)
+	claim, err := c.authentication.GetUserFromToken(ctx)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnauthorized, "authentication required")
 	}
 
-	valid := h.authentication.VerifySMTPOTP(*claim, req.OTP)
+	valid := c.authentication.VerifySMTPOTP(*claim, req.OTP)
 	if !valid {
 		return echo.NewHTTPError(http.StatusUnauthorized, "invalid or expired email token")
 	}
@@ -282,35 +273,35 @@ func (h *Handler) UserVerifyWithEmailConfirmation(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "invalid user ID in token")
 	}
 
-	updatedUser, err := h.repository.UserGetByID(id)
+	updatedUser, err := c.user.Manager.GetByID(id)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to fetch updated user")
 	}
 
-	return c.JSON(http.StatusOK, h.model.UserModel(updatedUser))
+	return ctx.JSON(http.StatusOK, c.model.UserModel(updatedUser))
 }
 
-func (h *Handler) UserVerifyWithContactNumber(c echo.Context) error {
-	claim, err := h.authentication.GetUserFromToken(c)
+func (c *Controller) UserVerifyWithContactNumber(ctx echo.Context) error {
+	claim, err := c.authentication.GetUserFromToken(ctx)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnauthorized, "authentication required")
 	}
-	if err := h.authentication.SendSMSOTP(*claim); err != nil {
+	if err := c.authentication.SendSMSOTP(*claim); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to send OTP: "+err.Error())
 	}
-	return c.NoContent(http.StatusOK)
+	return ctx.NoContent(http.StatusOK)
 }
 
-func (h *Handler) UserVerifyWithContactNumberConfirmation(c echo.Context) error {
-	req, err := h.model.UserVerifyWithContactNumberConfirmationValidate(c)
+func (c *Controller) UserVerifyWithContactNumberConfirmation(ctx echo.Context) error {
+	req, err := c.model.UserVerifyWithContactNumberConfirmationValidate(ctx)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "invalid request: "+err.Error())
 	}
-	claim, err := h.authentication.GetUserFromToken(c)
+	claim, err := c.authentication.GetUserFromToken(ctx)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnauthorized, "authentication required")
 	}
-	valid := h.authentication.VerifySMSOTP(*claim, req.OTP)
+	valid := c.authentication.VerifySMSOTP(*claim, req.OTP)
 	if !valid {
 		return echo.NewHTTPError(http.StatusUnauthorized, "invalid or expired OTP")
 	}
@@ -318,156 +309,155 @@ func (h *Handler) UserVerifyWithContactNumberConfirmation(c echo.Context) error 
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "invalid user ID in token")
 	}
-	updatedUser, err := h.repository.UserGetByID(id)
+	updatedUser, err := c.user.Manager.GetByID(id)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to fetch updated user")
 	}
-	return c.JSON(http.StatusOK, h.model.UserModel(updatedUser))
+	return ctx.JSON(http.StatusOK, c.model.UserModel(updatedUser))
 }
 
-func (h *Handler) UserSettingsChangePassword(c echo.Context) error {
-	req, err := h.model.UserSettingsChangePasswordValidate(c)
+func (c *Controller) UserSettingsChangePassword(ctx echo.Context) error {
+	req, err := c.model.UserSettingsChangePasswordValidate(ctx)
 	if err != nil {
 		return err
 	}
-	user, err := h.provider.CurrentUser(c)
+	user, err := c.provider.CurrentUser(ctx)
 	if err != nil {
 		return err
 	}
-	if ok := h.authentication.VerifyPassword(user.Password, req.Password); !ok {
+	if ok := c.authentication.VerifyPassword(user.Password, req.Password); !ok {
 		return echo.NewHTTPError(http.StatusUnauthorized, "invalid credentials")
 	}
-	hashedPwd, err := h.authentication.Password(req.NewPassword)
+	hashedPwd, err := c.authentication.Password(req.NewPassword)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to hash new password")
 	}
 
-	if err := h.repository.UserUpdateFields(user.ID, &model.User{
+	if err := c.user.Manager.UpdateFields(user.ID, &model.User{
 		Password:  hashedPwd,
 		UpdatedAt: time.Now().UTC(),
 	}); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to update password: "+err.Error())
 	}
-	updatedUser, err := h.repository.UserGetByID(user.ID)
+	updatedUser, err := c.user.Manager.GetByID(user.ID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to fetch updated user")
 	}
-	return c.JSON(http.StatusOK, h.model.UserModel(updatedUser))
+	return ctx.JSON(http.StatusOK, c.model.UserModel(updatedUser))
 }
 
-func (h *Handler) UserSettingsChangeEmail(c echo.Context) error {
-	req, err := h.model.UserSettingsChangeEmailValidate(c)
+func (c *Controller) UserSettingsChangeEmail(ctx echo.Context) error {
+	req, err := c.model.UserSettingsChangeEmailValidate(ctx)
 	if err != nil {
 		return err
 	}
-	user, err := h.provider.CurrentUser(c)
+	user, err := c.provider.CurrentUser(ctx)
 	if err != nil {
 		return err
 	}
-	if ok := h.authentication.VerifyPassword(user.Password, req.Password); !ok {
+	if ok := c.authentication.VerifyPassword(user.Password, req.Password); !ok {
 		return echo.NewHTTPError(http.StatusUnauthorized, "invalid credentials")
 	}
-	if err := h.repository.UserUpdateFields(user.ID, &model.User{
+	if err := c.user.Manager.UpdateFields(user.ID, &model.User{
 		Email:           req.Email,
 		IsEmailVerified: false,
 		UpdatedAt:       time.Now().UTC(),
 	}); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to update password: "+err.Error())
 	}
-	updatedUser, err := h.repository.UserGetByID(user.ID)
+	updatedUser, err := c.user.Manager.GetByID(user.ID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to fetch updated user")
 	}
-
-	// SetUser
-	return c.JSON(http.StatusOK, h.model.UserModel(updatedUser))
+	c.provider.SetUser(ctx, updatedUser)
+	return ctx.JSON(http.StatusOK, c.model.UserModel(updatedUser))
 }
 
-func (h *Handler) UserSettingsChangeUsername(c echo.Context) error {
-	req, err := h.model.UserSettingsChangeUsernameValidate(c)
+func (c *Controller) UserSettingsChangeUsername(ctx echo.Context) error {
+	req, err := c.model.UserSettingsChangeUsernameValidate(ctx)
 	if err != nil {
 		return err
 	}
-	user, err := h.provider.CurrentUser(c)
+	user, err := c.provider.CurrentUser(ctx)
 	if err != nil {
 		return err
 	}
-	if ok := h.authentication.VerifyPassword(user.Password, req.Password); !ok {
+	if ok := c.authentication.VerifyPassword(user.Password, req.Password); !ok {
 		return echo.NewHTTPError(http.StatusUnauthorized, "invalid credentials")
 	}
-	if err := h.repository.UserUpdateFields(user.ID, &model.User{
+	if err := c.user.Manager.UpdateFields(user.ID, &model.User{
 		UserName:  req.UserName,
 		UpdatedAt: time.Now().UTC(),
 	}); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to update password: "+err.Error())
 	}
-	updatedUser, err := h.repository.UserGetByID(user.ID)
+	updatedUser, err := c.user.Manager.GetByID(user.ID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to fetch updated user")
 	}
-	return c.JSON(http.StatusOK, h.model.UserModel(updatedUser))
+	c.provider.SetUser(ctx, updatedUser)
+	return ctx.JSON(http.StatusOK, c.model.UserModel(updatedUser))
 }
 
-func (h *Handler) UserSettingsChangeContactNumber(c echo.Context) error {
-
-	req, err := h.model.UserSettingsChangeContactNumberValidate(c)
+func (c *Controller) UserSettingsChangeContactNumber(ctx echo.Context) error {
+	req, err := c.model.UserSettingsChangeContactNumberValidate(ctx)
 	if err != nil {
 		return err
 	}
-	user, err := h.provider.CurrentUser(c)
+	user, err := c.provider.CurrentUser(ctx)
 	if err != nil {
 		return err
 	}
-	if ok := h.authentication.VerifyPassword(user.Password, req.Password); !ok {
+	if ok := c.authentication.VerifyPassword(user.Password, req.Password); !ok {
 		return echo.NewHTTPError(http.StatusUnauthorized, "invalid credentials")
 	}
-	if err := h.repository.UserUpdateFields(user.ID, &model.User{
+	if err := c.user.Manager.UpdateFields(user.ID, &model.User{
 		ContactNumber:     req.ContactNumber,
 		IsContactVerified: false,
 		UpdatedAt:         time.Now().UTC(),
 	}); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to update password: "+err.Error())
 	}
-	updatedUser, err := h.repository.UserGetByID(user.ID)
+	updatedUser, err := c.user.Manager.GetByID(user.ID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to fetch updated user")
 	}
-	// SetUser
-	return c.JSON(http.StatusOK, h.model.UserModel(updatedUser))
+	c.provider.SetUser(ctx, updatedUser)
+	return ctx.JSON(http.StatusOK, c.model.UserModel(updatedUser))
 }
 
-func (h *Handler) UserSettingsChangeProfilePicture(c echo.Context) error {
-	req, err := h.model.UserSettingsChangeProfilePictureValidate(c)
+func (c *Controller) UserSettingsChangeProfilePicture(ctx echo.Context) error {
+	req, err := c.model.UserSettingsChangeProfilePictureValidate(ctx)
 	if err != nil {
 		return err
 	}
-	user, err := h.provider.CurrentUser(c)
+	user, err := c.provider.CurrentUser(ctx)
 	if err != nil {
 		return err
 	}
-	if err := h.repository.UserUpdateFields(user.ID, &model.User{
+	if err := c.user.Manager.UpdateFields(user.ID, &model.User{
 		MediaID:   req.MediaID,
 		UpdatedAt: time.Now().UTC(),
 	}); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to update password: "+err.Error())
 	}
-	updatedUser, err := h.repository.UserGetByID(user.ID)
+	updatedUser, err := c.user.Manager.GetByID(user.ID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to fetch updated user")
 	}
-	return c.JSON(http.StatusOK, h.model.UserModel(updatedUser))
+	return ctx.JSON(http.StatusOK, c.model.UserModel(updatedUser))
 }
 
-func (h *Handler) UserSettingsChangeProfile(c echo.Context) error {
-	req, err := h.model.UserSettingsChangeProfileValidate(c)
+func (c *Controller) UserSettingsChangeProfile(ctx echo.Context) error {
+	req, err := c.model.UserSettingsChangeProfileValidate(ctx)
 	if err != nil {
 		return err
 	}
-	user, err := h.provider.CurrentUser(c)
+	user, err := c.provider.CurrentUser(ctx)
 	if err != nil {
 		return err
 	}
-	if err := h.repository.UserUpdateFields(user.ID, &model.User{
+	if err := c.user.Manager.UpdateFields(user.ID, &model.User{
 		Birthdate:   req.Birthdate,
 		Description: req.Description,
 		FirstName:   req.FirstName,
@@ -479,26 +469,27 @@ func (h *Handler) UserSettingsChangeProfile(c echo.Context) error {
 	}); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to update password: "+err.Error())
 	}
-	updatedUser, err := h.repository.UserGetByID(user.ID)
+	updatedUser, err := c.user.Manager.GetByID(user.ID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to fetch updated user")
 	}
-	return c.JSON(http.StatusOK, h.model.UserModel(updatedUser))
+	c.provider.SetUser(ctx, updatedUser)
+	return ctx.JSON(http.StatusOK, c.model.UserModel(updatedUser))
 }
 
-func (h *Handler) UserSettingsChangeGeneral(c echo.Context) error {
+func (c *Controller) UserSettingsChangeGeneral(ctx echo.Context) error {
 
-	req, err := h.model.UserSettingsChangeGeneralValidate(c)
+	req, err := c.model.UserSettingsChangeGeneralValidate(ctx)
 	if err != nil {
 		return err
 	}
 
-	user, err := h.provider.CurrentUser(c)
+	user, err := c.provider.CurrentUser(ctx)
 	if err != nil {
 		return err
 	}
 
-	if ok := h.authentication.VerifyPassword(user.Password, req.Password); !ok {
+	if ok := c.authentication.VerifyPassword(user.Password, req.Password); !ok {
 		return echo.NewHTTPError(http.StatusUnauthorized, "invalid credentials")
 	}
 
@@ -548,16 +539,16 @@ func (h *Handler) UserSettingsChangeGeneral(c echo.Context) error {
 		dirty = true
 	}
 	if !dirty {
-		return c.JSON(http.StatusOK, h.model.UserModel(user))
+		return ctx.JSON(http.StatusOK, c.model.UserModel(user))
 	}
 	model.UpdatedAt = time.Now().UTC()
-	if err := h.repository.UserUpdateFields(user.ID, model); err != nil {
+	if err := c.user.Manager.UpdateFields(user.ID, model); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to update user: "+err.Error())
 	}
-	updatedUser, err := h.repository.UserGetByID(user.ID)
+	updatedUser, err := c.user.Manager.GetByID(user.ID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to fetch updated user")
 	}
 	// SetUser
-	return c.JSON(http.StatusOK, h.model.UserModel(updatedUser))
+	return ctx.JSON(http.StatusOK, c.model.UserModel(updatedUser))
 }

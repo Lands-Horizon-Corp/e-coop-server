@@ -204,4 +204,33 @@ func (c *Controller) Routes(service *echo.Echo) {
 		organizationDailyUsage.DELETE("/:organization_daily_usage_id", c.OrganizationDailyUsageDelete)
 		organizationDailyUsage.GET("/organization/:organization_id", c.OrganizationDailyUsageListByOrganization)
 	}
+
+	authenticationG := service.Group("/authentication")
+	{
+		authenticationG.GET("/current", c.UserCurrent)
+		authenticationG.POST("/login", c.UserLogin)
+		authenticationG.POST("/logout", c.UserLogout)
+		authenticationG.POST("/register", c.UserRegister)
+		authenticationG.POST("/forgot-password", c.UserForgotPassword)
+		authenticationG.GET("/verify-reset-link/:id", c.UserVerifyResetLink)
+		authenticationG.POST("/change-password/:id", c.UserChangePassword)
+		authenticationG.POST("/apply-contact-number", c.UserApplyContactNumber)
+		authenticationG.POST("/verify-contact-number", c.UserVerifyContactNumber)
+		authenticationG.POST("/apply-email", c.UserApplyEmail)
+		authenticationG.POST("/verify-email", c.UserVerifyEmail)
+		authenticationG.POST("/verify-with-email", c.UserVerifyWithEmail)
+		authenticationG.POST("/verify-with-email-confirmation", c.UserVerifyWithEmailConfirmation)
+		authenticationG.POST("/verify-with-contact", c.UserVerifyWithContactNumber)
+		authenticationG.POST("/verify-with-contact-confirmation", c.UserVerifyWithContactNumberConfirmation)
+	}
+
+	subscriptionPlanG := service.Group("/subscription-plan")
+	{
+		subscriptionPlanG.GET("/", c.SubscriptionPlanList)
+		subscriptionPlanG.GET("/:subscription_plan_id", c.SubscriptionPlanGetByID)
+		subscriptionPlanG.POST("/", c.SubscriptionPlanCreate)
+		subscriptionPlanG.PUT("/:subscription_plan_id", c.SubscriptionPlanUpdate)
+		subscriptionPlanG.DELETE("/:subscription_plan_id", c.SubscriptionPlanDelete)
+	}
+
 }

@@ -31,17 +31,16 @@ type (
 	}
 
 	SubscriptionPlanRequest struct {
-		Name                string  `json:"name" validate:"required,min=1,max=255"`
-		Description         string  `json:"description" validate:"required"`
-		Cost                float64 `json:"cost" validate:"required,gt=0"`
-		Timespan            int     `json:"timespan" validate:"required,gt=0"`
-		MaxBranches         int     `json:"max_branches" validate:"required,gte=0"`
-		MaxEmployees        int     `json:"max_employees" validate:"required,gte=0"`
-		MaxMembersPerBranch int     `json:"max_members_per_branch" validate:"required,gte=0"`
-		Discount            float64 `json:"discount" validate:"gte=0"`
-		YearlyDiscount      float64 `json:"yearly_discount" validate:"gte=0"`
-
-		Organizations []*Organization `json:"organizations,omitempty"`
+		Name                string          `json:"name" validate:"required,min=1,max=255"`
+		Description         string          `json:"description" validate:"required"`
+		Cost                float64         `json:"cost" validate:"required,gt=0"`
+		Timespan            int             `json:"timespan" validate:"required,gt=0"`
+		MaxBranches         int             `json:"max_branches" validate:"required,gte=0"`
+		MaxEmployees        int             `json:"max_employees" validate:"required,gte=0"`
+		MaxMembersPerBranch int             `json:"max_members_per_branch" validate:"required,gte=0"`
+		Discount            float64         `json:"discount" validate:"gte=0"`
+		YearlyDiscount      float64         `json:"yearly_discount" validate:"gte=0"`
+		Organizations       []*Organization `json:"organizations,omitempty"`
 	}
 
 	SubscriptionPlanResponse struct {
