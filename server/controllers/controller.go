@@ -114,4 +114,13 @@ func (c *Controller) Routes(service *echo.Echo) {
 		contactUsG.PUT("/contact_us_id", c.ContactUsUpdate)
 		contactUsG.DELETE("/contact_us_id", c.ContactUsDelete)
 	}
+
+	feedbackG := service.Group("/feedback")
+	{
+		feedbackG.GET("/", c.FeedbackList)
+		feedbackG.GET("/feedback_id", c.FeedbackGetByID)
+		feedbackG.POST("/", c.FeedbackCreate)
+		feedbackG.PUT("/feedback_id", c.FeedbackUpdate)
+		feedbackG.DELETE("/feedback_id", c.FeedbackDelete)
+	}
 }

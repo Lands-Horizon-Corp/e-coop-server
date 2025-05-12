@@ -94,7 +94,7 @@ func NewFeedbackCollection(
 				fmt.Sprintf("feedback.delete.%s", data.ID),
 			}, model.FeedbackModel(data)
 		},
-		[]string{},
+		[]string{"Media"},
 	)
 	return &FeedbackCollection{
 		Manager: manager,
