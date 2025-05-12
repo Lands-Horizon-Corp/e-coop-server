@@ -105,4 +105,13 @@ func (c *Controller) Routes(service *echo.Echo) {
 		categoryG.PUT("/category_id", c.CategoryUpdate)
 		categoryG.DELETE("/category_id", c.CategoryDelete)
 	}
+
+	contactUsG := service.Group("/contact-us")
+	{
+		contactUsG.GET("/", c.ContactUsList)
+		contactUsG.GET("/contact_us_id", c.ContactUsGetByID)
+		contactUsG.POST("/", c.ContactUsCreate)
+		contactUsG.PUT("/contact_us_id", c.ContactUsUpdate)
+		contactUsG.DELETE("/contact_us_id", c.ContactUsDelete)
+	}
 }
