@@ -156,7 +156,7 @@ type (
 	}
 
 	UserSettingsChangeProfilePictureRequest struct {
-		MediaID *uuid.UUID `json:"media_id,omitempty"`
+		MediaID *uuid.UUID `json:"media_id" validate:"required"`
 	}
 
 	UserSettingsChangeProfileRequest struct {
