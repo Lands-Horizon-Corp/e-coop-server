@@ -164,6 +164,7 @@ func NewInvitationCodeCollection(
 		},
 		[]string{
 			"CreatedBy",
+			"UpdatedBy",
 			"Organization",
 			"Branch",
 		},

@@ -157,6 +157,7 @@ func NewFootstepCollection(
 		},
 		[]string{
 			"CreatedBy",
+			"UpdatedBy",
 			"Organization",
 			"Branch",
 			"User",

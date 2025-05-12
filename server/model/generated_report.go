@@ -127,6 +127,8 @@ func NewGeneratedReportCollection(
 			}, model.GeneratedReportModel(data)
 		},
 		[]string{
+			"CreatedBy",
+			"UpdatedBy",
 			"Organization",
 			"Branch",
 			"User",
