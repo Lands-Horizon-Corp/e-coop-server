@@ -70,47 +70,47 @@ func (c *Controller) InvitationCodeCreate(ctx echo.Context) error {
 	return ctx.JSON(http.StatusCreated, c.model.InvitationCodeModel(model))
 }
 
-// PUT /invitation-code/:invitation_code_id/organization/:organization_id/branch/branch_id
+// PUT /invitation-code/:invitation_code_id
 func (c *Controller) InvitationCodeUpdate(ctx echo.Context) error {
+	// Extract the invitation_code_id from the route
 	invitationCodeId, err := horizon.EngineUUIDParam(ctx, "invitation_code_id")
 	if err != nil {
 		return err
 	}
-	organizationId, err := horizon.EngineUUIDParam(ctx, "organization_id")
-	if err != nil {
-		return err
-	}
-	branchId, err := horizon.EngineUUIDParam(ctx, "branch_id")
-	if err != nil {
-		return err
-	}
+
+	// Validate the request body
 	req, err := c.model.InvitationCodeValidate(ctx)
 	if err != nil {
 		return err
 	}
-	userOrg, err := c.provider.UserOwnerEmployee(ctx, organizationId.String(), branchId.String())
+
+	// ✅ Fetch the existing invitation code
+	existing, err := c.invitationCode.Manager.GetByID(*invitationCodeId)
+	if err != nil {
+		return ctx.JSON(http.StatusNotFound, map[string]string{"error": "invitation code not found"})
+	}
+
+	// ✅ Get user ownership based on current invitation code's org and branch
+	userOrg, err := c.provider.UserOwnerEmployee(ctx, existing.OrganizationID.String(), existing.BranchID.String())
 	if err != nil {
 		return err
 	}
-	model := &model.InvitationCode{
-		CreatedByID:    userOrg.UserID,
-		UpdatedByID:    userOrg.User.ID,
-		OrganizationID: userOrg.OrganizationID,
-		BranchID:       userOrg.BranchID,
-		CreatedAt:      time.Now().UTC(),
-		UpdatedAt:      time.Now().UTC(),
 
-		UserType:       req.UserType,
-		Code:           req.Code,
-		ExpirationDate: req.ExpirationDate,
-		MaxUse:         req.MaxUse,
-		Description:    req.Description,
-	}
+	// ✅ Update fields (preserving CreatedAt/CreatedByID)
+	existing.UpdatedByID = userOrg.User.ID
+	existing.UpdatedAt = time.Now().UTC()
+	existing.UserType = req.UserType
+	existing.Code = req.Code
+	existing.ExpirationDate = req.ExpirationDate
+	existing.MaxUse = req.MaxUse
+	existing.Description = req.Description
 
-	if err := c.invitationCode.Manager.UpdateByID(*invitationCodeId, model); err != nil {
+	// Save updated invitation code
+	if err := c.invitationCode.Manager.UpdateByID(*invitationCodeId, existing); err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
-	return ctx.JSON(http.StatusCreated, c.model.InvitationCodeModel(model))
+
+	return ctx.JSON(http.StatusOK, c.model.InvitationCodeModel(existing))
 }
 
 // DELETE /invitation-code/:invitation_code_id/organization/:organization_id/branch/branch_id

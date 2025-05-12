@@ -156,8 +156,8 @@ func (c *Controller) Routes(service *echo.Echo) {
 	{
 		invitationCodeG.GET("/", c.InvitationCode)
 		invitationCodeG.GET("/:invitation_code_id", c.InvitationCodeGetByID)
+		invitationCodeG.PUT("/:invitation_code_id/", c.InvitationCodeUpdate)
 		invitationCodeG.POST("/organization/:organization_id/branch/:branch_id", c.InvitationCodeCreate)
-		invitationCodeG.PUT("/:invitation_code_id/organization/:organization_id/branch/:branch_id", c.InvitationCodeUpdate)
 		invitationCodeG.DELETE("/:invitation_code_id/organization/:organization_id/branch/:branch_id", c.InvitationCodeDelete)
 		invitationCodeG.GET("/branch/:branch_id", c.InvitationCodeListByBranch)
 		invitationCodeG.GET("/organization/:organization_id", c.InvitationCodeListByOrganization)
