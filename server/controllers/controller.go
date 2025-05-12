@@ -223,6 +223,16 @@ func (c *Controller) Routes(service *echo.Echo) {
 		authenticationG.POST("/verify-with-contact", c.UserVerifyWithContactNumber)
 		authenticationG.POST("/verify-with-contact-confirmation", c.UserVerifyWithContactNumberConfirmation)
 	}
+	profileGroup := service.Group("/profile")
+	{
+		profileGroup.PUT("/password", c.UserSettingsChangePassword)
+		profileGroup.PUT("/email", c.UserSettingsChangeEmail)
+		profileGroup.PUT("/username", c.UserSettingsChangeUsername)
+		profileGroup.PUT("/contact-number", c.UserSettingsChangeContactNumber)
+		profileGroup.PUT("/profile-picture", c.UserSettingsChangeProfilePicture)
+		profileGroup.PUT("/profile", c.UserSettingsChangeProfile)
+		profileGroup.PUT("/general", c.UserSettingsChangeGeneral)
+	}
 
 	subscriptionPlanG := service.Group("/subscription-plan")
 	{
