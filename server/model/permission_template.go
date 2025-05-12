@@ -35,11 +35,9 @@ type (
 	}
 
 	PermissionTemplateRequest struct {
-		OrganizationID uuid.UUID `json:"organization_id" validate:"required"`
-		BranchID       uuid.UUID `json:"branch_id" validate:"required"`
-		Name           string    `json:"name" validate:"required,min=1,max=255"`
-		Description    string    `json:"description,omitempty"`
-		Permissions    []string  `json:"permissions,omitempty"`
+		Name        string   `json:"name" validate:"required,min=1,max=255"`
+		Description string   `json:"description,omitempty"`
+		Permissions []string `json:"permissions,omitempty"`
 	}
 
 	PermissionTemplateResponse struct {

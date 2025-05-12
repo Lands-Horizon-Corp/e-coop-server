@@ -233,7 +233,7 @@ func (c *Controller) Routes(service *echo.Echo) {
 		subscriptionPlanG.DELETE("/:subscription_plan_id", c.SubscriptionPlanDelete)
 	}
 
-	userOrganizationG := service.Group("/user-prganization")
+	userOrganizationG := service.Group("/user-organization")
 	{
 		userOrganizationG.GET("/", c.UserOrganizationGetAll)
 		userOrganizationG.GET("/:user_organization_id", c.UserOrganizationGetByID)
@@ -252,4 +252,14 @@ func (c *Controller) Routes(service *echo.Echo) {
 		userOrganizationG.GET("/organization/:organization_id/branch/:branch_id/can-join-employee", c.UserOrganizationCanJoinMember)
 		userOrganizationG.GET("/organization/:organization_id/branch/:branch_id/can-join-employee", c.UserOrganizationCanJoinEmployee)
 	}
+
+	permissionTemplateG := service.Group("/permission-template")
+	{
+		permissionTemplateG.GET("/", c.PermissionTemplateList)
+		permissionTemplateG.GET("/:permission_template_id", c.PermissionTemplateGetByID)
+		permissionTemplateG.POST("/organization/:organization_id/branch/:branch_id", c.PermissionTemplateCreate)
+		permissionTemplateG.PUT("/:permission_template_id", c.PermissionTemplateUpdate)
+		permissionTemplateG.DELETE("/:permission_template_id", c.PermissionTemplateDelete)
+	}
+
 }
