@@ -87,6 +87,9 @@ const SampleMedia: React.FC = () => {
     }
     useEffect(() => {
         fetchList()
+        return () => {
+            
+        }
     }, [])
       useBroadcast<Media>("media.create", fetchList, console.error)
       useBroadcast<Media>("media.update", fetchList, console.error)
