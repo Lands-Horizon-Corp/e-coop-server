@@ -137,4 +137,18 @@ func (c *Controller) Routes(service *echo.Echo) {
 		footstepG.GET("/user/:user_id/branch/:branch_id", c.FootstepUserBranch)
 		footstepG.GET("/user/:user_id/organization/:organization_id", c.FootstepListByUserOrganization)
 	}
+
+	generatedReportG := service.Group("generated-report")
+	{
+		generatedReportG.GET("/", c.GeneratedReportList)
+		generatedReportG.GET("/:generated_report_id", c.GeneratedReportGetByID)
+		generatedReportG.DELETE("/:generated_report_id", c.GeneratedReportDelete)
+		generatedReportG.GET("/user/:user_id", c.GeneratedReportListByUser)
+		generatedReportG.GET("/branch/:branch_id", c.GeneratedReportListByBranch)
+		generatedReportG.GET("/organization/:organization_id", c.GeneratedReportListByOrganization)
+		generatedReportG.GET("/organization/:organization_id/branch/:branch_id", c.GeneratedReportListByOrganizationBranch)
+		generatedReportG.GET("/user/:user_id/organization/:organization_id/branch/:branch_id", c.GeneratedReportListByUserOrganizationBranch)
+		generatedReportG.GET("/user/:user_id/branch/:branch_id", c.GeneratedReportUserBranch)
+		generatedReportG.GET("/user/:user_id/organization/:organization_id", c.GeneratedReportListByUserOrganization)
+	}
 }
