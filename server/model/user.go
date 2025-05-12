@@ -54,11 +54,11 @@ type (
 		UserOrganizations []*UserOrganization `gorm:"foreignKey:UserID" json:"user_organizations,omitempty"` // user organization
 	}
 	UserResponse struct {
-		ID                uuid.UUID      `json:"id"`
-		MediaID           *uuid.UUID     `json:"media_id,omitempty"`
-		Media             *MediaResponse `json:"media,omitempty"`
-		SignatureMediaID  *uuid.UUID     `json:"signature_media_id"`
-		SignatureMedia    *MediaResponse
+		ID                uuid.UUID         `json:"id"`
+		MediaID           *uuid.UUID        `json:"media_id,omitempty"`
+		Media             *MediaResponse    `json:"media,omitempty"`
+		SignatureMediaID  *uuid.UUID        `json:"signature_media_id"`
+		SignatureMedia    *MediaResponse    `json:"signature_media"`
 		Birthdate         string            `json:"birthdate,omitempty"`
 		UserName          string            `json:"user_name"`
 		Description       *string           `gorm:"type:text"`
