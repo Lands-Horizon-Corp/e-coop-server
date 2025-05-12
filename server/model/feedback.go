@@ -35,6 +35,7 @@ type (
 	}
 
 	FeedbackRequest struct {
+		ID           *string    `json:"id,omitempty"`
 		Email        string     `json:"email"        validate:"required,email"`
 		Description  string     `json:"description"  validate:"required,min=5,max=2000"`
 		FeedbackType string     `json:"feedback_type" validate:"required,oneof=general bug feature"`

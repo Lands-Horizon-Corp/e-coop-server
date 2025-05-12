@@ -50,6 +50,8 @@ type (
 	}
 
 	BranchRequest struct {
+		ID *string `json:"id,omitempty"`
+
 		MediaID       *uuid.UUID `json:"media_id,omitempty"`
 		Type          string     `json:"type" validate:"required"`
 		Name          string     `json:"name" validate:"required"`

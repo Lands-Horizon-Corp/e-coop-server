@@ -106,6 +106,8 @@ type (
 	}
 
 	OrganizationRequest struct {
+		ID *string `json:"id,omitempty"`
+
 		Name               string  `json:"name" validate:"required,min=1,max=255"`
 		Address            *string `json:"address,omitempty" validate:"omitempty,max=500"`
 		Email              *string `json:"email,omitempty" validate:"omitempty,email"`

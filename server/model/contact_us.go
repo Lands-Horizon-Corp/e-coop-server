@@ -35,11 +35,12 @@ type (
 	}
 
 	ContactUsRequest struct {
-		FirstName     string `json:"firstName" validate:"required,min=1,max=255"`
-		LastName      string `json:"lastName,omitempty" validate:"omitempty,min=1,max=255"`
-		Email         string `json:"email,omitempty" validate:"omitempty,email,max=255"`
-		ContactNumber string `json:"contactNumber,omitempty" validate:"omitempty,min=1,max=20"`
-		Description   string `json:"description" validate:"required,min=1"`
+		ID            *string `json:"id,omitempty"`
+		FirstName     string  `json:"firstName" validate:"required,min=1,max=255"`
+		LastName      string  `json:"lastName,omitempty" validate:"omitempty,min=1,max=255"`
+		Email         string  `json:"email,omitempty" validate:"omitempty,email,max=255"`
+		ContactNumber string  `json:"contactNumber,omitempty" validate:"omitempty,min=1,max=20"`
+		Description   string  `json:"description" validate:"required,min=1"`
 	}
 
 	ContactUsCollection struct {

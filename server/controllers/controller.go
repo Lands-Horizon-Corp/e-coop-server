@@ -186,15 +186,15 @@ func (c *Controller) Routes(service *echo.Echo) {
 		notificationG.GET("/user/:user_id/read-all", c.NotificationListByUserReadAll)
 	}
 
-	organizationG := service.Group("/organization-category")
+	organizationCategoryG := service.Group("/organization-category")
 	{
-		organizationG.GET("/", c.OrganizationCategoryList)
-		organizationG.GET("/:organization_category_id", c.OrganizationCategoryGetByID)
-		organizationG.POST("/organization/:organization_id", c.OrganizationCategoryCreate)
-		organizationG.PUT("/:organization_category_id/organization/:organization_id", c.OrganizationCategoryUpdate)
-		organizationG.DELETE("/:organization_category_id", c.OrganizationCategoryDelete)
-		organizationG.GET("/category/:category_id", c.OrganizationCategoryListByCategory)
-		organizationG.GET("/organizaton/:category_id", c.OrganizationCategoryListByOrganization)
+		organizationCategoryG.GET("/", c.OrganizationCategoryList)
+		organizationCategoryG.GET("/:organization_category_id", c.OrganizationCategoryGetByID)
+		organizationCategoryG.POST("/organization/:organization_id", c.OrganizationCategoryCreate)
+		organizationCategoryG.PUT("/:organization_category_id/organization/:organization_id", c.OrganizationCategoryUpdate)
+		organizationCategoryG.DELETE("/:organization_category_id", c.OrganizationCategoryDelete)
+		organizationCategoryG.GET("/category/:category_id", c.OrganizationCategoryListByCategory)
+		organizationCategoryG.GET("/organizaton/:category_id", c.OrganizationCategoryListByOrganization)
 	}
 
 	organizationDailyUsage := service.Group("organization-daily-usage")
@@ -270,6 +270,15 @@ func (c *Controller) Routes(service *echo.Echo) {
 		permissionTemplateG.POST("/organization/:organization_id/branch/:branch_id", c.PermissionTemplateCreate)
 		permissionTemplateG.PUT("/:permission_template_id", c.PermissionTemplateUpdate)
 		permissionTemplateG.DELETE("/:permission_template_id", c.PermissionTemplateDelete)
+	}
+
+	organizationG := service.Group("/organization")
+	{
+		organizationG.GET("", c.OrganizationList)                       // GET    /api/organization
+		organizationG.GET("/:organization_id", c.OrganizationGetByID)   // GET    /api/organization/:organization_id
+		organizationG.POST("", c.OrganizationCreate)                    // POST   /api/organization
+		organizationG.PUT("/:organization_id", c.OrganizationUpdate)    // PUT    /api/organization/:organization_id
+		organizationG.DELETE("/:organization_id", c.OrganizationDelete) // DELETE /api/organization/:organization_id
 	}
 
 }

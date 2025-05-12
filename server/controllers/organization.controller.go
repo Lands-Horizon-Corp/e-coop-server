@@ -211,7 +211,7 @@ func (c *Controller) OrganizationUpdate(ctx echo.Context) error {
 
 }
 
-// DELETE /organization/:organization
+// DELETE /organization/:organization_id
 func (c *Controller) OrganizationDelete(ctx echo.Context) error {
 	id, err := horizon.EngineUUIDParam(ctx, "organization_id")
 	if err != nil {

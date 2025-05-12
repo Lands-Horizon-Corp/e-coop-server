@@ -45,15 +45,15 @@ type (
 	}
 
 	MediaRequest struct {
-		ID         *uint  `json:"id"`
-		FileName   string `json:"file_name" validate:"required,max=255"`
-		FileSize   int64  `json:"file_size" validate:"required,min=1"`
-		FileType   string `json:"file_type" validate:"required,max=50"`
-		StorageKey string `json:"storage_key" validate:"required,max=255"`
-		URL        string `json:"url" validate:"required,url,max=255"`
-		Key        string `json:"key,omitempty" validate:"max=255"`
-		BucketName string `json:"bucket_name,omitempty" validate:"max=255"`
-		Progress   int64  `json:"status"`
+		ID         *string `json:"id,omitempty"`
+		FileName   string  `json:"file_name" validate:"required,max=255"`
+		FileSize   int64   `json:"file_size" validate:"required,min=1"`
+		FileType   string  `json:"file_type" validate:"required,max=50"`
+		StorageKey string  `json:"storage_key" validate:"required,max=255"`
+		URL        string  `json:"url" validate:"required,url,max=255"`
+		Key        string  `json:"key,omitempty" validate:"max=255"`
+		BucketName string  `json:"bucket_name,omitempty" validate:"max=255"`
+		Progress   int64   `json:"status"`
 	}
 
 	MediaCollection struct {

@@ -38,6 +38,8 @@ type (
 	}
 
 	OrganizationDailyUsageRequest struct {
+		ID *string `json:"id,omitempty"`
+
 		OrganizationID uuid.UUID `json:"organization_id" validate:"required"`
 		TotalMembers   int       `json:"total_members" validate:"required,min=0"`
 		TotalBranches  int       `json:"total_branches" validate:"required,min=0"`
