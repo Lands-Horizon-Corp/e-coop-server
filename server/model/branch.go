@@ -108,6 +108,9 @@ type (
 )
 
 func (m *Model) BranchModel(data *Branch) *BranchResponse {
+	if data == nil {
+		return nil
+	}
 	return horizon_manager.ToModel(data, func(data *Branch) *BranchResponse {
 		return &BranchResponse{
 			ID:          data.ID,

@@ -51,6 +51,9 @@ func (m *Model) OrganizationCategoryValidate(ctx echo.Context) (*OrganizationCat
 }
 
 func (m *Model) OrganizationCategoryModel(data *OrganizationCategory) *OrganizationCategoryResponse {
+	if data == nil {
+		return nil
+	}
 	return horizon_manager.ToModel(data, func(data *OrganizationCategory) *OrganizationCategoryResponse {
 		return &OrganizationCategoryResponse{
 			OrganizationID: data.OrganizationID,

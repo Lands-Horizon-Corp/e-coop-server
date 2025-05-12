@@ -174,3 +174,13 @@ func ParseUUID(s *string) uuid.UUID {
 	}
 	return uuid.Nil
 }
+
+func ParseUUIDNil(s *string) *uuid.UUID {
+	if s == nil || strings.TrimSpace(*s) == "" {
+		return nil
+	}
+	if id, err := uuid.Parse(*s); err == nil {
+		return &id
+	}
+	return nil
+}

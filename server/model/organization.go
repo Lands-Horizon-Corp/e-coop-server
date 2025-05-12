@@ -150,6 +150,9 @@ func (m *Model) OrganizationSubscriptionValidate(ctx echo.Context) (*Organizatio
 }
 
 func (m *Model) OrganizationModel(data *Organization) *OrganizationResponse {
+	if data == nil {
+		return nil
+	}
 	return horizon_manager.ToModel(data, func(data *Organization) *OrganizationResponse {
 		return &OrganizationResponse{
 			ID:          data.ID,

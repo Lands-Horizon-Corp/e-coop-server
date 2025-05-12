@@ -89,7 +89,9 @@ func (m *Model) InvitationCodeValidate(ctx echo.Context) (*InvitationCodeRequest
 }
 
 func (m *Model) InvitationCodeModel(data *InvitationCode) *InvitationCodeResponse {
-
+	if data == nil {
+		return nil
+	}
 	return horizon_manager.ToModel(data, func(data *InvitationCode) *InvitationCodeResponse {
 		encoded, err := m.qr.Encode(&QRInvitationLInk{
 			OrganizationID: data.OrganizationID.String(),

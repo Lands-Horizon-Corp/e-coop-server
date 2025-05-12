@@ -89,7 +89,7 @@ func NewController(
 func (c *Controller) Routes(service *echo.Echo) {
 	branchG := service.Group("/branch")
 	{
-		branchG.GET("/", c.BranchList)
+		branchG.GET("", c.BranchList)
 		branchG.GET("/:branch_id", c.BranchGetByID)
 		branchG.POST("/organization/:organization_id", c.BranchCreate)
 		branchG.PUT("/:branch_id/organization/:organization_id", c.BranchUpdate)
@@ -99,34 +99,34 @@ func (c *Controller) Routes(service *echo.Echo) {
 
 	categoryG := service.Group("/category")
 	{
-		categoryG.GET("/", c.CategoryList)
+		categoryG.GET("", c.CategoryList)
 		categoryG.GET("/:category_id", c.CategoryGetByID)
-		categoryG.POST("/", c.CategoryCreate)
+		categoryG.POST("", c.CategoryCreate)
 		categoryG.PUT("/:category_id", c.CategoryUpdate)
 		categoryG.DELETE("/:category_id", c.CategoryDelete)
 	}
 
 	contactUsG := service.Group("/contact-us")
 	{
-		contactUsG.GET("/", c.ContactUsList)
+		contactUsG.GET("", c.ContactUsList)
 		contactUsG.GET("/:contact_us_id", c.ContactUsGetByID)
-		contactUsG.POST("/", c.ContactUsCreate)
+		contactUsG.POST("", c.ContactUsCreate)
 		contactUsG.PUT("/:contact_us_id", c.ContactUsUpdate)
 		contactUsG.DELETE("/:contact_us_id", c.ContactUsDelete)
 	}
 
 	feedbackG := service.Group("/feedback")
 	{
-		feedbackG.GET("/", c.FeedbackList)
+		feedbackG.GET("", c.FeedbackList)
 		feedbackG.GET("/:feedback_id", c.FeedbackGetByID)
-		feedbackG.POST("/", c.FeedbackCreate)
+		feedbackG.POST("", c.FeedbackCreate)
 		feedbackG.PUT("/:feedback_id", c.FeedbackUpdate)
 		feedbackG.DELETE("/:feedback_id", c.FeedbackDelete)
 	}
 
 	footstepG := service.Group("/footstep")
 	{
-		footstepG.GET("/", c.FootstepList)
+		footstepG.GET("", c.FootstepList)
 		footstepG.GET("/:footstep_id", c.FootstepGetByID)
 		footstepG.DELETE("/:footstep_id", c.FootstepDelete)
 		footstepG.GET("/user/:user_id", c.FootstepListByUser)
@@ -140,7 +140,7 @@ func (c *Controller) Routes(service *echo.Echo) {
 
 	generatedReportG := service.Group("generated-report")
 	{
-		generatedReportG.GET("/", c.GeneratedReportList)
+		generatedReportG.GET("", c.GeneratedReportList)
 		generatedReportG.GET("/:generated_report_id", c.GeneratedReportGetByID)
 		generatedReportG.DELETE("/:generated_report_id", c.GeneratedReportDelete)
 		generatedReportG.GET("/user/:user_id", c.GeneratedReportListByUser)
@@ -154,7 +154,7 @@ func (c *Controller) Routes(service *echo.Echo) {
 
 	invitationCodeG := service.Group("/invitation-code")
 	{
-		invitationCodeG.GET("/", c.InvitationCode)
+		invitationCodeG.GET("", c.InvitationCode)
 		invitationCodeG.GET("/:invitation_code_id", c.InvitationCodeGetByID)
 		invitationCodeG.PUT("/:invitation_code_id/", c.InvitationCodeUpdate)
 		invitationCodeG.POST("/organization/:organization_id/branch/:branch_id", c.InvitationCodeCreate)
@@ -168,16 +168,16 @@ func (c *Controller) Routes(service *echo.Echo) {
 
 	mediaG := service.Group("/media")
 	{
-		mediaG.GET("/", c.MediaList)
+		mediaG.GET("", c.MediaList)
 		mediaG.GET("/:media_id", c.MediaGetByID)
-		mediaG.POST("/", c.MediaCreate)
+		mediaG.POST("", c.MediaCreate)
 		mediaG.PUT("/:media_id", c.MediaUpdate)
 		mediaG.DELETE("/:media_id", c.MediaDelete)
 	}
 
 	notificationG := service.Group("notification")
 	{
-		notificationG.GET("/", c.NotificationList)
+		notificationG.GET("", c.NotificationList)
 		notificationG.GET("/:notification_id", c.NotificationGetByID)
 		notificationG.DELETE("/:notification_id", c.NotificationDelete)
 		notificationG.GET("/user/:user_id", c.NotificationListByUser)
@@ -188,7 +188,7 @@ func (c *Controller) Routes(service *echo.Echo) {
 
 	organizationCategoryG := service.Group("/organization-category")
 	{
-		organizationCategoryG.GET("/", c.OrganizationCategoryList)
+		organizationCategoryG.GET("", c.OrganizationCategoryList)
 		organizationCategoryG.GET("/:organization_category_id", c.OrganizationCategoryGetByID)
 		organizationCategoryG.POST("/organization/:organization_id", c.OrganizationCategoryCreate)
 		organizationCategoryG.PUT("/:organization_category_id/organization/:organization_id", c.OrganizationCategoryUpdate)
@@ -199,7 +199,7 @@ func (c *Controller) Routes(service *echo.Echo) {
 
 	organizationDailyUsage := service.Group("organization-daily-usage")
 	{
-		organizationDailyUsage.POST("/", c.OrganizationDailyUsageList)
+		organizationDailyUsage.POST("", c.OrganizationDailyUsageList)
 		organizationDailyUsage.GET("/:organization_daily_usage_id", c.OrganizationDailyUsageGetByID)
 		organizationDailyUsage.DELETE("/:organization_daily_usage_id", c.OrganizationDailyUsageDelete)
 		organizationDailyUsage.GET("/organization/:organization_id", c.OrganizationDailyUsageListByOrganization)
@@ -236,16 +236,16 @@ func (c *Controller) Routes(service *echo.Echo) {
 
 	subscriptionPlanG := service.Group("/subscription-plan")
 	{
-		subscriptionPlanG.GET("/", c.SubscriptionPlanList)
+		subscriptionPlanG.GET("", c.SubscriptionPlanList)
 		subscriptionPlanG.GET("/:subscription_plan_id", c.SubscriptionPlanGetByID)
-		subscriptionPlanG.POST("/", c.SubscriptionPlanCreate)
+		subscriptionPlanG.POST("", c.SubscriptionPlanCreate)
 		subscriptionPlanG.PUT("/:subscription_plan_id", c.SubscriptionPlanUpdate)
 		subscriptionPlanG.DELETE("/:subscription_plan_id", c.SubscriptionPlanDelete)
 	}
 
 	userOrganizationG := service.Group("/user-organization")
 	{
-		userOrganizationG.GET("/", c.UserOrganizationGetAll)
+		userOrganizationG.GET("", c.UserOrganizationGetAll)
 		userOrganizationG.GET("/:user_organization_id", c.UserOrganizationGetByID)
 		userOrganizationG.PUT("/:user_organization_id", c.UserOrganizationUpdate)
 		userOrganizationG.PUT("/:user_organization_id/developer-key-refresh", c.UserOrganizationRegenerateDeveloperKey)
@@ -265,7 +265,7 @@ func (c *Controller) Routes(service *echo.Echo) {
 
 	permissionTemplateG := service.Group("/permission-template")
 	{
-		permissionTemplateG.GET("/", c.PermissionTemplateList)
+		permissionTemplateG.GET("", c.PermissionTemplateList)
 		permissionTemplateG.GET("/:permission_template_id", c.PermissionTemplateGetByID)
 		permissionTemplateG.POST("/organization/:organization_id/branch/:branch_id", c.PermissionTemplateCreate)
 		permissionTemplateG.PUT("/:permission_template_id", c.PermissionTemplateUpdate)

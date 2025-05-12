@@ -10,7 +10,7 @@ function App() {
     return (
       <div>
         <div>
-          <SampleMedia/>
+          {/* <SampleMedia/> */}
         </div>
         <div>
           <SampleForm/>

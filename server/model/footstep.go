@@ -86,6 +86,9 @@ type (
 )
 
 func (m *Model) FootstepModel(data *Footstep) *FootstepResponse {
+	if data == nil {
+		return nil
+	}
 	return horizon_manager.ToModel(data, func(data *Footstep) *FootstepResponse {
 		return &FootstepResponse{
 			ID:             data.ID,

@@ -70,6 +70,9 @@ type (
 )
 
 func (m *Model) GeneratedReportModel(data *GeneratedReport) *GeneratedReportResponse {
+	if data == nil {
+		return nil
+	}
 	return horizon_manager.ToModel(data, func(cu *GeneratedReport) *GeneratedReportResponse {
 		return &GeneratedReportResponse{
 			ID:             data.ID,

@@ -85,6 +85,9 @@ func (m *Model) UserOrganizationValidate(ctx echo.Context) (*UserOrganizationReq
 }
 
 func (m *Model) UserOrganizationModel(data *UserOrganization) *UserOrganizationResponse {
+	if data == nil {
+		return nil
+	}
 	return horizon_manager.ToModel(data, func(data *UserOrganization) *UserOrganizationResponse {
 		return &UserOrganizationResponse{
 			ID:             data.ID,

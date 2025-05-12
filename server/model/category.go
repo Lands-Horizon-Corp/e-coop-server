@@ -56,6 +56,9 @@ func (m *Model) CategoryValidate(ctx echo.Context) (*CategoryRequest, error) {
 }
 
 func (m *Model) CategoryModel(data *Category) *CategoryResponse {
+	if data == nil {
+		return nil
+	}
 	return horizon_manager.ToModel(data, func(data *Category) *CategoryResponse {
 		return &CategoryResponse{
 			ID:                     data.ID,

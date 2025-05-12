@@ -67,6 +67,9 @@ func (m *Model) MediaValidate(ctx echo.Context) (*MediaRequest, error) {
 }
 
 func (m *Model) MediaModel(data *Media) *MediaResponse {
+	if data == nil {
+		return nil
+	}
 	temporaryURL, err := m.storage.GeneratePresignedURL(data.StorageKey)
 	if err != nil {
 		temporaryURL = ""

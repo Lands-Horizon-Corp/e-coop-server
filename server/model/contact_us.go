@@ -54,6 +54,9 @@ func (m *Model) ContactUsValidate(ctx echo.Context) (*ContactUsRequest, error) {
 }
 
 func (m *Model) ContactUsModel(data *ContactUs) *ContactUsResponse {
+	if data == nil {
+		return nil
+	}
 	return horizon_manager.ToModel(data, func(data *ContactUs) *ContactUsResponse {
 		return &ContactUsResponse{
 			ID:            data.ID,
@@ -77,6 +80,7 @@ func NewContactUsCollection(
 	database *horizon.HorizonDatabase,
 	model *Model,
 ) (*ContactUsCollection, error) {
+
 	manager := horizon_manager.NewcollectionManager(
 		database,
 		broadcast,

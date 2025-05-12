@@ -43,6 +43,9 @@ type (
 )
 
 func (m *Model) NotificationModel(data *Notification) *NotificationResponse {
+	if data == nil {
+		return nil
+	}
 	return horizon_manager.ToModel(data, func(data *Notification) *NotificationResponse {
 		return &NotificationResponse{
 			ID:               data.ID,

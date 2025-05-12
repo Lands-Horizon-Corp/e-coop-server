@@ -26,7 +26,7 @@ interface Feedback {
   id?: string
   email: string
   description: string
-  feedbackType: string
+  feedback_type: string
   createdAt: string
   updatedAt: string
 }
@@ -34,7 +34,7 @@ interface Feedback {
 const feedbackSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
   description: z.string().min(5, { message: "Description must be at least 5 characters." }),
-  feedbackType: z.enum(["bug", "feature", "general"], {
+  feedback_type: z.enum(["bug", "feature", "general"], {
     required_error: "Feedback type is required.",
   }),
 })
@@ -50,7 +50,7 @@ function SampleForm() {
     defaultValues: {
       email: "",
       description: "",
-      feedbackType: "general",
+      feedback_type: "general",
     },
   })
 
@@ -70,7 +70,7 @@ function SampleForm() {
       form.reset({
         email: res.data.email,
         description: res.data.description,
-        feedbackType: res.data.feedbackType as "bug" | "feature" | "general",
+        feedback_type: res.data.feedback_type as "bug" | "feature" | "general",
       })
     } catch (error) {
       console.error("Get Error:", error)
@@ -146,7 +146,7 @@ function SampleForm() {
               <FormMessage />
             </FormItem>
           )} />
-          <FormField control={form.control} name="feedbackType" render={({ field }) => (
+          <FormField control={form.control} name="feedback_type" render={({ field }) => (
             <FormItem>
               <FormLabel>Feedback Type</FormLabel>
               <FormControl>
@@ -189,7 +189,7 @@ function SampleForm() {
               ) : feedbackList.map((fb) => (
                 <tr key={fb.id}>
                   <td className="border px-4 py-2">{fb.email}</td>
-                  <td className="border px-4 py-2 capitalize">{fb.feedbackType}</td>
+                  <td className="border px-4 py-2 capitalize">{fb.feedback_type}</td>
                   <td className="border px-4 py-2">{fb.description}</td>
                   <td className="border px-4 py-2">{new Date(fb.createdAt).toLocaleString()}</td>
                   <td className="border px-4 py-2 space-x-2">

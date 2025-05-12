@@ -187,6 +187,9 @@ type (
 )
 
 func (m *Model) UserModel(data *User) *UserResponse {
+	if data == nil {
+		return nil
+	}
 	return horizon_manager.ToModel(data, func(data *User) *UserResponse {
 		encoded, err := m.qr.Encode(&QRUser{
 			UserID:        data.ID.String(),

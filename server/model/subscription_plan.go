@@ -71,6 +71,9 @@ func (m *Model) SubscriptionPlanValidate(ctx echo.Context) (*SubscriptionPlanReq
 }
 
 func (m *Model) SubscriptionPlanModel(data *SubscriptionPlan) *SubscriptionPlanResponse {
+	if data == nil {
+		return nil
+	}
 	return horizon_manager.ToModel(data, func(data *SubscriptionPlan) *SubscriptionPlanResponse {
 		return &SubscriptionPlanResponse{
 			ID:                  data.ID,

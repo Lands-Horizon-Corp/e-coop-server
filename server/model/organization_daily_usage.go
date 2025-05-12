@@ -118,6 +118,9 @@ func (m *Model) OrganizationDailyUsageModel(data *OrganizationDailyUsage) *Organ
 }
 
 func (m *Model) OrganizationDailyUsageModels(data []*OrganizationDailyUsage) []*OrganizationDailyUsageResponse {
+	if data == nil {
+		return nil
+	}
 	return horizon_manager.ToModels(data, m.OrganizationDailyUsageModel)
 }
 

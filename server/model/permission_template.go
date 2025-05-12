@@ -71,6 +71,9 @@ func (m *Model) PermissionTemplateValidate(ctx echo.Context) (*PermissionTemplat
 }
 
 func (m *Model) PermissionTemplateModel(data *PermissionTemplate) *PermissionTemplateResponse {
+	if data == nil {
+		return nil
+	}
 	return horizon_manager.ToModel(data, func(data *PermissionTemplate) *PermissionTemplateResponse {
 		return &PermissionTemplateResponse{
 			ID:             data.ID,

@@ -52,6 +52,9 @@ func (m *Model) FeedbackValidate(ctx echo.Context) (*FeedbackRequest, error) {
 }
 
 func (m *Model) FeedbackModel(data *Feedback) *FeedbackResponse {
+	if data == nil {
+		return nil
+	}
 	return horizon_manager.ToModel(data, func(data *Feedback) *FeedbackResponse {
 		return &FeedbackResponse{
 			ID:           data.ID,
