@@ -378,6 +378,8 @@ func (h *Handler) UserSettingsChangeEmail(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to fetch updated user")
 	}
+
+	// SetUser
 	return c.JSON(http.StatusOK, h.model.UserModel(updatedUser))
 }
 
@@ -407,6 +409,7 @@ func (h *Handler) UserSettingsChangeUsername(c echo.Context) error {
 }
 
 func (h *Handler) UserSettingsChangeContactNumber(c echo.Context) error {
+
 	req, err := h.model.UserSettingsChangeContactNumberValidate(c)
 	if err != nil {
 		return err
@@ -429,6 +432,7 @@ func (h *Handler) UserSettingsChangeContactNumber(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to fetch updated user")
 	}
+	// SetUser
 	return c.JSON(http.StatusOK, h.model.UserModel(updatedUser))
 }
 
@@ -483,6 +487,7 @@ func (h *Handler) UserSettingsChangeProfile(c echo.Context) error {
 }
 
 func (h *Handler) UserSettingsChangeGeneral(c echo.Context) error {
+
 	req, err := h.model.UserSettingsChangeGeneralValidate(c)
 	if err != nil {
 		return err
@@ -553,5 +558,6 @@ func (h *Handler) UserSettingsChangeGeneral(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to fetch updated user")
 	}
+	// SetUser
 	return c.JSON(http.StatusOK, h.model.UserModel(updatedUser))
 }
