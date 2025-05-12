@@ -137,3 +137,57 @@ func NewGeneratedReportCollection(
 		Manager: manager,
 	}, nil
 }
+
+// generated-report/user/:user_id
+func (fc *GeneratedReportCollection) ListByUser(userID *uuid.UUID) ([]*GeneratedReport, error) {
+	return fc.Manager.Find(&GeneratedReport{
+		UserID: userID,
+	})
+}
+
+// generated-report/branch/:branch_id
+func (fc *GeneratedReportCollection) ListByBranch(branchID uuid.UUID) ([]*GeneratedReport, error) {
+	return fc.Manager.Find(&GeneratedReport{
+		BranchID: branchID,
+	})
+}
+
+// generated-report/organization/:organization_id
+func (fc *GeneratedReportCollection) ListByOrganization(organizationID uuid.UUID) ([]*GeneratedReport, error) {
+	return fc.Manager.Find(&GeneratedReport{
+		OrganizationID: organizationID,
+	})
+}
+
+// generated-report/organization/:organization_id/branch/:branch_id
+func (fc *GeneratedReportCollection) ListByOrganizationBranch(organizationID uuid.UUID, branchID uuid.UUID) ([]*GeneratedReport, error) {
+	return fc.Manager.Find(&GeneratedReport{
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+	})
+}
+
+// generated-report/user/:user_id/organization/:organization_id/branch/:branch_id
+func (fc *GeneratedReportCollection) ListByUserOrganizationBranch(userID *uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) ([]*GeneratedReport, error) {
+	return fc.Manager.Find(&GeneratedReport{
+		UserID:         userID,
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+	})
+}
+
+// generated-report/user/:user_id/branch/:branch_id
+func (fc *GeneratedReportCollection) ListByUserBranch(userID *uuid.UUID, branchID uuid.UUID) ([]*GeneratedReport, error) {
+	return fc.Manager.Find(&GeneratedReport{
+		UserID:   userID,
+		BranchID: branchID,
+	})
+}
+
+// generated-report/user/:user_id/organization/:organization_id
+func (fc *GeneratedReportCollection) ListByUserOrganization(userID *uuid.UUID, organizationID uuid.UUID) ([]*GeneratedReport, error) {
+	return fc.Manager.Find(&GeneratedReport{
+		UserID:         userID,
+		OrganizationID: organizationID,
+	})
+}

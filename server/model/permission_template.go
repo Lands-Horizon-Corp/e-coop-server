@@ -154,9 +154,9 @@ func (fc *PermissionTemplateCollection) ListByOrganization(organizationID uuid.U
 }
 
 // permission-template/organization/:organization_id/branch/:branch_id
-func (fc *PermissionTemplateCollection) ListByOrganizationBranch(branchID uuid.UUID, organizationID uuid.UUID) ([]*PermissionTemplate, error) {
+func (fc *PermissionTemplateCollection) ListByOrganizationBranch(organizationID uuid.UUID, branchID uuid.UUID) ([]*PermissionTemplate, error) {
 	return fc.Manager.Find(&PermissionTemplate{
-		BranchID:       organizationID,
-		OrganizationID: branchID,
+		OrganizationID: organizationID,
+		BranchID:       branchID,
 	})
 }

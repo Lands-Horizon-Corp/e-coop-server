@@ -190,9 +190,34 @@ func (fc *FootstepCollection) ListByOrganization(organizationID uuid.UUID) ([]*F
 }
 
 // footstep/organization/:organization_id/branch/:branch_id
-func (fc *FootstepCollection) ListByOrganizationBranch(branchID uuid.UUID, organizationID uuid.UUID) ([]*Footstep, error) {
+func (fc *FootstepCollection) ListByOrganizationBranch(organizationID uuid.UUID, branchID uuid.UUID) ([]*Footstep, error) {
 	return fc.Manager.Find(&Footstep{
-		BranchID:       organizationID,
-		OrganizationID: branchID,
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+	})
+}
+
+// footstep/user/:user_id/organization/:organization_id/branch/:branch_id
+func (fc *FootstepCollection) ListByUserOrganizationBranch(userID *uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) ([]*Footstep, error) {
+	return fc.Manager.Find(&Footstep{
+		UserID:         userID,
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+	})
+}
+
+// footstep/user/:user_id/branch/:branch_id
+func (fc *FootstepCollection) ListByUserBranch(userID *uuid.UUID, branchID uuid.UUID) ([]*Footstep, error) {
+	return fc.Manager.Find(&Footstep{
+		UserID:   userID,
+		BranchID: branchID,
+	})
+}
+
+// footstep/user/:user_id/organization/:organization_id
+func (fc *FootstepCollection) ListByUserOrganization(userID *uuid.UUID, organizationID uuid.UUID) ([]*Footstep, error) {
+	return fc.Manager.Find(&Footstep{
+		UserID:         userID,
+		OrganizationID: organizationID,
 	})
 }

@@ -174,24 +174,24 @@ func NewInvitationCodeCollection(
 }
 
 // invitation-code/branch/:branch_id
-func (ic *InvitationCodeCollection) ListByBranch(branchID uuid.UUID) ([]*InvitationCode, error) {
-	return ic.Manager.Find(&InvitationCode{
+func (fc *InvitationCodeCollection) ListByBranch(branchID uuid.UUID) ([]*InvitationCode, error) {
+	return fc.Manager.Find(&InvitationCode{
 		BranchID: branchID,
 	})
 }
 
 // invitation-code/organization/:organization_id
-func (ic *InvitationCodeCollection) ListByOrganization(organizationID uuid.UUID) ([]*InvitationCode, error) {
-	return ic.Manager.Find(&InvitationCode{
+func (fc *InvitationCodeCollection) ListByOrganization(organizationID uuid.UUID) ([]*InvitationCode, error) {
+	return fc.Manager.Find(&InvitationCode{
 		OrganizationID: organizationID,
 	})
 }
 
 // invitation-code/organization/:organization_id/branch/:branch_id
-func (ic *InvitationCodeCollection) ListByOrganizationBranch(branchID uuid.UUID, organizationID uuid.UUID) ([]*InvitationCode, error) {
-	return ic.Manager.Find(&InvitationCode{
-		BranchID:       organizationID,
-		OrganizationID: branchID,
+func (fc *InvitationCodeCollection) ListByOrganizationBranch(organizationID uuid.UUID, branchID uuid.UUID) ([]*InvitationCode, error) {
+	return fc.Manager.Find(&InvitationCode{
+		OrganizationID: organizationID,
+		BranchID:       branchID,
 	})
 }
 
