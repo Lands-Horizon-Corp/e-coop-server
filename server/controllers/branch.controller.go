@@ -10,7 +10,7 @@ import (
 )
 
 // GET /branch
-func (c *Controller) BranchGet(ctx echo.Context) error {
+func (c *Controller) BranchList(ctx echo.Context) error {
 	branch, err := c.branch.Manager.List()
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})

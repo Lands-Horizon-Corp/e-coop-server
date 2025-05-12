@@ -89,12 +89,20 @@ func NewController(
 func (c *Controller) Routes(service *echo.Echo) {
 	branchG := service.Group("/branch")
 	{
-		branchG.GET("/", c.BranchGet)
+		branchG.GET("/", c.BranchList)
 		branchG.GET("/branch/branch_id", c.BranchGetByID)
 		branchG.POST("organization/:organization_id", c.BranchCreate)
 		branchG.PUT("/:branch_id/organization/:organization_id", c.BranchUpdate)
 		branchG.DELETE("/:branch_id/organization/:organization_id", c.BranchDelete)
 		branchG.GET("/branch/organization/:organization_id", c.BranchOrganizations)
+	}
 
+	categoryG := service.Group("/category")
+	{
+		categoryG.GET("/", c.CategoryList)
+		categoryG.GET("/category_id", c.CategoryGetByID)
+		categoryG.POST("/", c.CategoryCreate)
+		categoryG.PUT("/category_id", c.CategoryUpdate)
+		categoryG.DELETE("/category_id", c.CategoryDelete)
 	}
 }
