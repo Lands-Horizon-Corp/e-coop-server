@@ -31,7 +31,7 @@ func (p *Providers) CurrentUser(c echo.Context) (*model.User, error) {
 		p.authentication.CleanToken(c)
 		return nil, echo.NewHTTPError(http.StatusBadRequest, "invalid user ID in token")
 	}
-	user, err := p.user.Manager.GetByID(id)
+	user, err := p.user.Manager.GetByID(id, "Media", "SignatureMedia")
 	if err != nil {
 		p.authentication.CleanToken(c)
 		return nil, echo.NewHTTPError(http.StatusNotFound, "user not found")
