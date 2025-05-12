@@ -21,7 +21,7 @@ type (
 		Description            string                  `gorm:"type:text"`
 		Color                  string                  `gorm:"type:varchar(50)"`
 		Icon                   string                  `gorm:"type:varchar(50)"`
-		OrganizationCategories []*OrganizationCategory `gorm:"foreignKey:CategoryID"`
+		OrganizationCategories []*OrganizationCategory `gorm:"foreignKey:CategoryID"` // organization category
 	}
 
 	CategoryResponse struct {

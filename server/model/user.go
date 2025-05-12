@@ -47,9 +47,10 @@ type (
 		ContactNumber     string         `gorm:"type:varchar(20);not null" json:"contact_number"`
 		IsContactVerified bool           `gorm:"default:false" json:"is_contact_verified"`
 
-		Footsteps        []*Footstep        `gorm:"foreignKey:UserID" json:"footsteps,omitempty"`
-		GeneratedReports []*GeneratedReport `gorm:"foreignKey:UserID" json:"generated_reports,omitempty"`
-		Notification     []*Notification    `gorm:"foreignKey:UserID" json:"notications,omitempty"`
+		Footsteps         []*Footstep         `gorm:"foreignKey:UserID" json:"footsteps,omitempty"`          // footstep
+		GeneratedReports  []*GeneratedReport  `gorm:"foreignKey:UserID" json:"generated_reports,omitempty"`  // generated report
+		Notification      []*Notification     `gorm:"foreignKey:UserID" json:"notications,omitempty"`        // notification
+		UserOrganizations []*UserOrganization `gorm:"foreignKey:UserID" json:"user_organizations,omitempty"` // user organization
 	}
 	UserResponse struct {
 		ID                uuid.UUID         `json:"id"`
@@ -71,10 +72,12 @@ type (
 		UpdatedAt         string            `json:"updated_at"`
 		QRCode            *horizon.QRResult `json:"qr_code,omitempty"`
 
-		Footsteps        []*FootstepResponse        `json:"footstep"`
-		GeneratedReports []*GeneratedReportResponse `json:"generated_reports"`
-		Notifications    []*NotificationResponse    `json:"notications"`
+		Footsteps         []*FootstepResponse         `json:"footstep"`
+		GeneratedReports  []*GeneratedReportResponse  `json:"generated_reports"`
+		Notifications     []*NotificationResponse     `json:"notications"`
+		UserOrganizations []*UserOrganizationResponse `json:"user_organizations,omitempty"`
 	}
+
 	CurrentUserResponse struct {
 		UserID uuid.UUID     `json:"user_id"`
 		User   *UserResponse `json:"user"`
@@ -216,9 +219,10 @@ func (m *Model) UserModel(data *User) *UserResponse {
 			UpdatedAt:         data.UpdatedAt.Format(time.RFC3339),
 			QRCode:            encoded,
 
-			Footsteps:        m.FootstepModels(data.Footsteps),
-			GeneratedReports: m.GeneratedReportModels(data.GeneratedReports),
-			Notifications:    m.NotificationModels(data.Notification),
+			Footsteps:         m.FootstepModels(data.Footsteps),
+			GeneratedReports:  m.GeneratedReportModels(data.GeneratedReports),
+			Notifications:     m.NotificationModels(data.Notification),
+			UserOrganizations: m.UserOrganizationModels(data.UserOrganizations),
 		}
 	})
 }

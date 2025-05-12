@@ -91,3 +91,17 @@ func NewOrganizationCategoryCollection(
 		Manager: manager,
 	}, nil
 }
+
+// organization-category/organizaton_category_id/category_id
+func (fc *OrganizationCategoryCollection) ListByCategory(categoryId *uuid.UUID) ([]*OrganizationCategory, error) {
+	return fc.Manager.Find(&OrganizationCategory{
+		CategoryID: categoryId,
+	})
+}
+
+// organization-category/organization/organization_id
+func (fc *OrganizationCategoryCollection) ListByOrganization(organizationId *uuid.UUID) ([]*OrganizationCategory, error) {
+	return fc.Manager.Find(&OrganizationCategory{
+		OrganizationID: organizationId,
+	})
+}
