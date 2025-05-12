@@ -166,12 +166,24 @@ func (c *Controller) Routes(service *echo.Echo) {
 		invitationCodeG.GET("/verfiy/:code", c.InvitationCodeVerify)
 	}
 
-	mediaGroup := service.Group("/media")
+	mediaG := service.Group("/media")
 	{
-		mediaGroup.GET("", c.MediaList)
-		mediaGroup.GET("/:id", c.MediaGetByID)
-		mediaGroup.POST("", c.MediaCreate)
-		mediaGroup.PUT("/:id", c.MediaUpdate)
-		mediaGroup.DELETE("/:id", c.MediaDelete)
+		mediaG.GET("", c.MediaList)
+		mediaG.GET("/:id", c.MediaGetByID)
+		mediaG.POST("", c.MediaCreate)
+		mediaG.PUT("/:id", c.MediaUpdate)
+		mediaG.DELETE("/:id", c.MediaDelete)
 	}
+
+	notificationG := service.Group("notification")
+	{
+		notificationG.GET("/", c.NotificationList)
+		notificationG.GET("/:notification_id", c.NotificationGetByID)
+		notificationG.DELETE("/:notification_id", c.NotificationDelete)
+		notificationG.GET("/user/:user_id", c.NotificationListByUser)
+		notificationG.GET("/user/:user_id/unviewed-count", c.NotificationListByUserUnseenCount)
+		notificationG.GET("/user/:user_id/unviewed", c.NotificationListByUserUnviewed)
+		notificationG.GET("/user/:user_id/read-all", c.NotificationListByUserReadAll)
+	}
+
 }

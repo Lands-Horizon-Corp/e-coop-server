@@ -72,21 +72,21 @@ func NewNotificationCollection(
 		func(data *Notification) ([]string, any) {
 			return []string{
 				"notification.create",
-				fmt.Sprintf("footstep.create.user.%s", data.UserID),
+				fmt.Sprintf("notification.create.user.%s", data.UserID),
 				fmt.Sprintf("notification.create.%s", data.ID),
 			}, model.NotificationModel(data)
 		},
 		func(data *Notification) ([]string, any) {
 			return []string{
 				"notification.update",
-				fmt.Sprintf("footstep.update.user.%s", data.UserID),
+				fmt.Sprintf("notification.update.user.%s", data.UserID),
 				fmt.Sprintf("notification.update.%s", data.ID),
 			}, model.NotificationModel(data)
 		},
 		func(data *Notification) ([]string, any) {
 			return []string{
 				"notification.delete",
-				fmt.Sprintf("footstep.delete.user.%s", data.UserID),
+				fmt.Sprintf("notification.delete.user.%s", data.UserID),
 				fmt.Sprintf("notification.delete.%s", data.ID),
 			}, model.NotificationModel(data)
 		},
@@ -97,17 +97,47 @@ func NewNotificationCollection(
 	}, nil
 }
 
-// footstep/user/:user_id
+// notification/user/:user_id
 func (fc *NotificationCollection) ListByUser(userID uuid.UUID) ([]*Notification, error) {
 	return fc.Manager.Find(&Notification{
 		UserID: userID,
 	})
 }
 
-// footstep/user/:user_id/is-view-count
-func (fc *NotificationCollection) ListByUserUnviewed(userID uuid.UUID) (int64, error) {
+// notification/user/:user_id/unviewed-count
+func (fc *NotificationCollection) ListByUserUnviewedCount(userID uuid.UUID) (int64, error) {
 	return fc.Manager.Count(&Notification{
 		UserID:   userID,
 		IsViewed: false,
 	})
+}
+
+// notification/user/:user_id/unviewed
+func (fc *NotificationCollection) ListByUserUnviewed(userID uuid.UUID) ([]*Notification, error) {
+	return fc.Manager.Find(&Notification{
+		UserID:   userID,
+		IsViewed: false,
+	})
+}
+
+func (fc *NotificationCollection) ReadAll(userID uuid.UUID) ([]*Notification, error) {
+	notifications, err := fc.Manager.Find(&Notification{
+		UserID:   userID,
+		IsViewed: false,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var updated []*Notification
+
+	for _, notif := range notifications {
+		notif.IsViewed = true
+		if err := fc.Manager.Update(notif); err != nil {
+			continue
+		}
+		updated = append(updated, notif)
+	}
+
+	return updated, nil
 }
