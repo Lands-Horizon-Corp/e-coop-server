@@ -90,38 +90,38 @@ func (c *Controller) Routes(service *echo.Echo) {
 	branchG := service.Group("/branch")
 	{
 		branchG.GET("/", c.BranchList)
-		branchG.GET("/branch/branch_id", c.BranchGetByID)
-		branchG.POST("organization/:organization_id", c.BranchCreate)
+		branchG.GET("/:branch_id", c.BranchGetByID)
+		branchG.POST("/organization/:organization_id", c.BranchCreate)
 		branchG.PUT("/:branch_id/organization/:organization_id", c.BranchUpdate)
 		branchG.DELETE("/:branch_id/organization/:organization_id", c.BranchDelete)
-		branchG.GET("/branch/organization/:organization_id", c.BranchOrganizations)
+		branchG.GET("/:branch/organization/:organization_id", c.BranchOrganizations)
 	}
 
 	categoryG := service.Group("/category")
 	{
 		categoryG.GET("/", c.CategoryList)
-		categoryG.GET("/category_id", c.CategoryGetByID)
+		categoryG.GET("/:category_id", c.CategoryGetByID)
 		categoryG.POST("/", c.CategoryCreate)
-		categoryG.PUT("/category_id", c.CategoryUpdate)
-		categoryG.DELETE("/category_id", c.CategoryDelete)
+		categoryG.PUT("/:category_id", c.CategoryUpdate)
+		categoryG.DELETE("/:category_id", c.CategoryDelete)
 	}
 
 	contactUsG := service.Group("/contact-us")
 	{
 		contactUsG.GET("/", c.ContactUsList)
-		contactUsG.GET("/contact_us_id", c.ContactUsGetByID)
+		contactUsG.GET("/:contact_us_id", c.ContactUsGetByID)
 		contactUsG.POST("/", c.ContactUsCreate)
-		contactUsG.PUT("/contact_us_id", c.ContactUsUpdate)
-		contactUsG.DELETE("/contact_us_id", c.ContactUsDelete)
+		contactUsG.PUT("/:contact_us_id", c.ContactUsUpdate)
+		contactUsG.DELETE("/:contact_us_id", c.ContactUsDelete)
 	}
 
 	feedbackG := service.Group("/feedback")
 	{
 		feedbackG.GET("/", c.FeedbackList)
-		feedbackG.GET("/feedback_id", c.FeedbackGetByID)
+		feedbackG.GET("/:feedback_id", c.FeedbackGetByID)
 		feedbackG.POST("/", c.FeedbackCreate)
-		feedbackG.PUT("/feedback_id", c.FeedbackUpdate)
-		feedbackG.DELETE("/feedback_id", c.FeedbackDelete)
+		feedbackG.PUT("/:feedback_id", c.FeedbackUpdate)
+		feedbackG.DELETE("/:feedback_id", c.FeedbackDelete)
 	}
 
 	footstepG := service.Group("/footstep")
@@ -156,9 +156,9 @@ func (c *Controller) Routes(service *echo.Echo) {
 	{
 		invitationCodeG.GET("/", c.InvitationCode)
 		invitationCodeG.GET("/:invitation_code_id", c.InvitationCodeGetByID)
-		invitationCodeG.POST("/organization/:organization_id/branch/branch_id", c.InvitationCodeCreate)
-		invitationCodeG.PUT("/:invitation_code_id/organization/:organization_id/branch/branch_id", c.InvitationCodeUpdate)
-		invitationCodeG.DELETE("/:invitation_code_id/organization/:organization_id/branch/branch_id", c.InvitationCodeDelete)
+		invitationCodeG.POST("/organization/:organization_id/branch/:branch_id", c.InvitationCodeCreate)
+		invitationCodeG.PUT("/:invitation_code_id/organization/:organization_id/branch/:branch_id", c.InvitationCodeUpdate)
+		invitationCodeG.DELETE("/:invitation_code_id/organization/:organization_id/branch/:branch_id", c.InvitationCodeDelete)
 		invitationCodeG.GET("/branch/:branch_id", c.InvitationCodeListByBranch)
 		invitationCodeG.GET("/organization/:organization_id", c.InvitationCodeListByOrganization)
 		invitationCodeG.GET("/exists/:code", c.InvitationCodeListByOrganizationBranch)
@@ -169,10 +169,10 @@ func (c *Controller) Routes(service *echo.Echo) {
 	mediaG := service.Group("/media")
 	{
 		mediaG.GET("", c.MediaList)
-		mediaG.GET("/:id", c.MediaGetByID)
+		mediaG.GET("/:media_id", c.MediaGetByID)
 		mediaG.POST("", c.MediaCreate)
-		mediaG.PUT("/:id", c.MediaUpdate)
-		mediaG.DELETE("/:id", c.MediaDelete)
+		mediaG.PUT("/:media_id", c.MediaUpdate)
+		mediaG.DELETE("/:media_id", c.MediaDelete)
 	}
 
 	notificationG := service.Group("notification")
