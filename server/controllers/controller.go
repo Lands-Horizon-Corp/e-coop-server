@@ -289,6 +289,7 @@ func (c *Controller) Routes(service *echo.Echo) {
 	{
 		userRatingG.GET("", c.UserRatingList)
 		userRatingG.GET("/:rating_id", c.UserRatingGetByID)
+		userRatingG.GET("/organization/:organization_id/branch/:branch_id", c.UserRatingCreate)
 		userRatingG.DELETE("/:rating_id", c.UserRatingDelete)
 		userRatingG.GET("/user-ratee/:user_ratee_id", c.UserRatingListByRatee)
 		userRatingG.GET("/user-rater/:user_rater_id", c.UserRatingListByRater)

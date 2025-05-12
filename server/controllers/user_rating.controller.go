@@ -2,9 +2,11 @@ package controllers
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"horizon.com/server/horizon"
+	"horizon.com/server/server/model"
 )
 
 // GET /user-rating
@@ -39,6 +41,43 @@ func (c *Controller) UserRatingDelete(ctx echo.Context) error {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	return ctx.NoContent(http.StatusNoContent)
+}
+
+// POST /user-rating/organization/:organization_id/branch/:branch_id
+func (c *Controller) UserRatingCreate(ctx echo.Context) error {
+	orgId, err := horizon.EngineUUIDParam(ctx, "organization_id")
+	if err != nil {
+		return err
+	}
+	branchId, err := horizon.EngineUUIDParam(ctx, "organizbranch_idation_id")
+	if err != nil {
+		return err
+	}
+
+	req, err := c.model.UserRatingValidate(ctx)
+	if err != nil {
+		return err
+	}
+	user, err := c.provider.CurrentUser(ctx)
+	if err != nil {
+		return err
+	}
+	model := &model.UserRating{
+		CreatedByID:    user.ID,
+		UpdatedByID:    user.ID,
+		OrganizationID: *orgId,
+		BranchID:       *branchId,
+		CreatedAt:      time.Now().UTC(),
+		UpdatedAt:      time.Now().UTC(),
+		RateeUserID:    req.RateeUserID,
+		RaterUserID:    req.RaterUserID,
+		Rate:           req.Rate,
+		Remark:         req.Remark,
+	}
+	if err := c.userRating.Manager.Create(model); err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	return ctx.JSON(http.StatusCreated, c.model.UserRatingModel(model))
 }
 
 // GET /user-rating/user-ratee/:user_ratee_id
