@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -122,4 +123,45 @@ func (m *Model) InvitationCodeModel(data *InvitationCode) *InvitationCodeRespons
 
 func (m *Model) InvitationCodeModels(data []*InvitationCode) []*InvitationCodeResponse {
 	return ToModels(data, m.InvitationCodeModel)
+}
+
+func NewInvitationCodeCollection(
+	broadcast *horizon.HorizonBroadcast,
+	database *horizon.HorizonDatabase,
+	model *Model,
+) (*InvitationCodeCollection, error) {
+	manager := NewcollectionManager(
+		database,
+		broadcast,
+		func(data *InvitationCode) ([]string, any) {
+			return []string{
+				"invitation_code.create",
+				fmt.Sprintf("invitation_code.create.%s", data.ID),
+				fmt.Sprintf("invitation_code.create.organization.%s", data.OrganizationID),
+				fmt.Sprintf("invitation_code.create.organization.%s", data.BranchID),
+				fmt.Sprintf("invitation_code.create.user.%s", data.CreatedByID),
+			}, model.InvitationCodeModel(data)
+		},
+		func(data *InvitationCode) ([]string, any) {
+			return []string{
+				"invitation_code.update",
+				fmt.Sprintf("invitation_code.update.%s", data.ID),
+				fmt.Sprintf("invitation_code.update.organization.%s", data.OrganizationID),
+				fmt.Sprintf("invitation_code.update.organization.%s", data.BranchID),
+				fmt.Sprintf("invitation_code.update.user.%s", data.CreatedByID),
+			}, model.InvitationCodeModel(data)
+		},
+		func(data *InvitationCode) ([]string, any) {
+			return []string{
+				"invitation_code.delete",
+				fmt.Sprintf("invitation_code.delete.%s", data.ID),
+				fmt.Sprintf("invitation_code.delete.organization.%s", data.OrganizationID),
+				fmt.Sprintf("invitation_code.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("invitation_code.delete.user.%s", data.CreatedByID),
+			}, model.InvitationCodeModel(data)
+		},
+	)
+	return &InvitationCodeCollection{
+		Manager: manager,
+	}, nil
 }

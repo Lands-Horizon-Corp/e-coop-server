@@ -1,10 +1,12 @@
 package model
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"horizon.com/server/horizon"
 )
 
 type (
@@ -93,4 +95,39 @@ func (m *Model) GeneratedReportModel(data *GeneratedReport) *GeneratedReportResp
 
 func (m *Model) GeneratedReportModels(data []*GeneratedReport) []*GeneratedReportResponse {
 	return ToModels(data, m.GeneratedReportModel)
+}
+
+func NewGeneratedReportCollection(
+	broadcast *horizon.HorizonBroadcast,
+	database *horizon.HorizonDatabase,
+	model *Model,
+) (*GeneratedReportCollection, error) {
+	manager := NewcollectionManager(
+		database,
+		broadcast,
+		func(data *GeneratedReport) ([]string, any) {
+			return []string{
+				"generated_report.create",
+				fmt.Sprintf("generated_report.create.%s", data.ID),
+				fmt.Sprintf("generated_report.create.user.%s", data.UserID),
+			}, model.GeneratedReportModel(data)
+		},
+		func(data *GeneratedReport) ([]string, any) {
+			return []string{
+				"generated_report.update",
+				fmt.Sprintf("generated_report.update.%s", data.ID),
+				fmt.Sprintf("generated_report.update.user.%s", data.UserID),
+			}, model.GeneratedReportModel(data)
+		},
+		func(data *GeneratedReport) ([]string, any) {
+			return []string{
+				"generated_report.delete",
+				fmt.Sprintf("generated_report.delete.%s", data.ID),
+				fmt.Sprintf("generated_report.delete.user.%s", data.UserID),
+			}, model.GeneratedReportModel(data)
+		},
+	)
+	return &GeneratedReportCollection{
+		Manager: manager,
+	}, nil
 }

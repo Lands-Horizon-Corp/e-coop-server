@@ -1,10 +1,12 @@
 package model
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"horizon.com/server/horizon"
 )
 
 type (
@@ -117,4 +119,44 @@ func (m *Model) FootstepModel(data *Footstep) *FootstepResponse {
 
 func (m *Model) FootstepModels(data []*Footstep) []*FootstepResponse {
 	return ToModels(data, m.FootstepModel)
+}
+
+func NewFootstepCollection(
+	broadcast *horizon.HorizonBroadcast,
+	database *horizon.HorizonDatabase,
+	model *Model,
+) (*FootstepCollection, error) {
+	manager := NewcollectionManager(
+		database,
+		broadcast,
+		func(data *Footstep) ([]string, any) {
+			return []string{
+				fmt.Sprintf("footstep.create.%s", data.ID),
+				fmt.Sprintf("footstep.create.banch.%s", data.BranchID),
+				fmt.Sprintf("footstep.create.organization.%s", data.OrganizationID),
+				fmt.Sprintf("footstep.create.user.%s", data.UserID),
+			}, model.FootstepModel(data)
+		},
+		func(data *Footstep) ([]string, any) {
+			return []string{
+				"footstep.update",
+				fmt.Sprintf("footstep.update.%s", data.ID),
+				fmt.Sprintf("footstep.update.banch.%s", data.BranchID),
+				fmt.Sprintf("footstep.update.organization.%s", data.OrganizationID),
+				fmt.Sprintf("footstep.update.user.%s", data.UserID),
+			}, model.FootstepModel(data)
+		},
+		func(data *Footstep) ([]string, any) {
+			return []string{
+				"footstep.delete",
+				fmt.Sprintf("footstep.delete.%s", data.ID),
+				fmt.Sprintf("footstep.delete.banch.%s", data.BranchID),
+				fmt.Sprintf("footstep.delete.organization.%s", data.OrganizationID),
+				fmt.Sprintf("footstep.delete.user.%s", data.UserID),
+			}, model.FootstepModel(data)
+		},
+	)
+	return &FootstepCollection{
+		Manager: manager,
+	}, nil
 }

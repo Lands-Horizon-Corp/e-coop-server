@@ -4,9 +4,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"horizon.com/server/server/handler"
 	"horizon.com/server/server/model"
-	"horizon.com/server/server/provider"
-	"horizon.com/server/server/publisher"
-	"horizon.com/server/server/repository"
 )
 
 type CoopServer struct {
@@ -44,11 +41,29 @@ func NewCoopServer(
 var Modules = []any{
 	NewCoopServer,
 
+	// All model validation and database model
 	model.NewModel,
-	publisher.NewPublisher,
-	repository.NewRepository,
-	handler.NewHandler,
+
+	// Collections of repository
+	model.NewBranchCollection,
+	model.NewCategoryCollection,
+	model.NewContactUsCollection,
+	model.NewFeedbackCollection,
+	model.NewFootstepCollection,
+	model.NewGeneratedReportCollection,
+	model.NewInvitationCodeCollection,
+	model.NewMediaCollection,
+	model.NewNotificationCollection,
+	model.NewOrganizationCategoryCollection,
+	model.NewOrganizationDailyUsageCollection,
+	model.NewOrganizationCollection,
+	model.NewPermissionTemplateCollection,
+	model.NewSubscriptionPlanCollection,
+	model.NewUserOrganizationCollection,
+	model.NewUserCollection,
+
+	// handler.NewHandler,
 
 	// Provider
-	provider.NewProvider,
+	// provider.NewProvider,
 }

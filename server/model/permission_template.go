@@ -1,11 +1,13 @@
 package model
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lib/pq"
+	"horizon.com/server/horizon"
 
 	"gorm.io/gorm"
 )
@@ -91,4 +93,42 @@ func (m *Model) PermissionTemplateModel(data *PermissionTemplate) *PermissionTem
 
 func (m *Model) PermissionTemplateModels(data []*PermissionTemplate) []*PermissionTemplateResponse {
 	return ToModels(data, m.PermissionTemplateModel)
+}
+
+func NewPermissionTemplateCollection(
+	broadcast *horizon.HorizonBroadcast,
+	database *horizon.HorizonDatabase,
+	model *Model,
+) (*PermissionTemplateCollection, error) {
+	manager := NewcollectionManager(
+		database,
+		broadcast,
+		func(data *PermissionTemplate) ([]string, any) {
+			return []string{
+				"permission_template.create",
+				fmt.Sprintf("permission_template.create.%s", data.ID),
+				fmt.Sprintf("permission_template.create.organization.%s", data.OrganizationID),
+				fmt.Sprintf("permission_template.create.branch.%s", data.BranchID),
+			}, model.PermissionTemplateModel(data)
+		},
+		func(data *PermissionTemplate) ([]string, any) {
+			return []string{
+				"permission_template.delete",
+				fmt.Sprintf("permission_template.delete.%s", data.ID),
+				fmt.Sprintf("permission_template.delete.organization.%s", data.OrganizationID),
+				fmt.Sprintf("permission_template.delete.branch.%s", data.BranchID),
+			}, model.PermissionTemplateModel(data)
+		},
+		func(data *PermissionTemplate) ([]string, any) {
+			return []string{
+				"permission_template.delete",
+				fmt.Sprintf("permission_template.delete.%s", data.ID),
+				fmt.Sprintf("permission_template.delete.organization.%s", data.OrganizationID),
+				fmt.Sprintf("permission_template.delete.branch.%s", data.BranchID),
+			}, model.PermissionTemplateModel(data)
+		},
+	)
+	return &PermissionTemplateCollection{
+		Manager: manager,
+	}, nil
 }

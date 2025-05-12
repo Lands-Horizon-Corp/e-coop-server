@@ -1,11 +1,13 @@
 package model
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
+	"horizon.com/server/horizon"
 )
 
 type (
@@ -64,4 +66,36 @@ func (m *Model) FeedbackModel(data *Feedback) *FeedbackResponse {
 
 func (m *Model) FeedbackModels(data []*Feedback) []*FeedbackResponse {
 	return ToModels(data, m.FeedbackModel)
+}
+
+func NewFeedbackCollection(
+	broadcast *horizon.HorizonBroadcast,
+	database *horizon.HorizonDatabase,
+	model *Model,
+) (*FeedbackCollection, error) {
+	manager := NewcollectionManager(
+		database,
+		broadcast,
+		func(data *Feedback) ([]string, any) {
+			return []string{
+				"feedback.create",
+				fmt.Sprintf("feedback.create.%s", data.ID),
+			}, model.FeedbackModel(data)
+		},
+		func(data *Feedback) ([]string, any) {
+			return []string{
+				"feedback.update",
+				fmt.Sprintf("feedback.update.%s", data.ID),
+			}, model.FeedbackModel(data)
+		},
+		func(data *Feedback) ([]string, any) {
+			return []string{
+				"feedback.delete",
+				fmt.Sprintf("feedback.delete.%s", data.ID),
+			}, model.FeedbackModel(data)
+		},
+	)
+	return &FeedbackCollection{
+		Manager: manager,
+	}, nil
 }

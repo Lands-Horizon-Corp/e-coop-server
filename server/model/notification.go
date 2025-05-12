@@ -1,10 +1,12 @@
 package model
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"horizon.com/server/horizon"
 )
 
 type (
@@ -57,4 +59,39 @@ func (m *Model) NotificationModel(data *Notification) *NotificationResponse {
 
 func (m *Model) NotificationModels(data []*Notification) []*NotificationResponse {
 	return ToModels(data, m.NotificationModel)
+}
+
+func NewNotificationCollection(
+	broadcast *horizon.HorizonBroadcast,
+	database *horizon.HorizonDatabase,
+	model *Model,
+) (*NotificationCollection, error) {
+	manager := NewcollectionManager(
+		database,
+		broadcast,
+		func(data *Notification) ([]string, any) {
+			return []string{
+				"notification.create",
+				fmt.Sprintf("footstep.create.user.%s", data.UserID),
+				fmt.Sprintf("notification.create.%s", data.ID),
+			}, model.NotificationModel(data)
+		},
+		func(data *Notification) ([]string, any) {
+			return []string{
+				"notification.update",
+				fmt.Sprintf("footstep.update.user.%s", data.UserID),
+				fmt.Sprintf("notification.update.%s", data.ID),
+			}, model.NotificationModel(data)
+		},
+		func(data *Notification) ([]string, any) {
+			return []string{
+				"notification.delete",
+				fmt.Sprintf("footstep.delete.user.%s", data.UserID),
+				fmt.Sprintf("notification.delete.%s", data.ID),
+			}, model.NotificationModel(data)
+		},
+	)
+	return &NotificationCollection{
+		Manager: manager,
+	}, nil
 }

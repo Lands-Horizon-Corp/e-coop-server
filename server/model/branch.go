@@ -8,7 +8,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 	"horizon.com/server/horizon"
-	"horizon.com/server/server/manager"
 )
 
 type (
@@ -155,19 +154,31 @@ func (m *Model) BranchModels(data []*Branch) []*BranchResponse {
 func NewBranchCollection(
 	broadcast *horizon.HorizonBroadcast,
 	database *horizon.HorizonDatabase,
-	mod *Model,
+	model *Model,
 ) (*BranchCollection, error) {
-	manager := manager.NewcollectionManager(
+	manager := NewcollectionManager(
 		database,
 		broadcast,
 		func(data *Branch) ([]string, any) {
-			return []string{"branch.create", fmt.Sprintf("branch.create.%s", data.ID)}, mod.BranchModel(data)
+			return []string{
+				"branch.create",
+				fmt.Sprintf("branch.create.%s", data.ID),
+				fmt.Sprintf("branch.create.organization.%s", data.OrganizationID),
+			}, model.BranchModel(data)
 		},
 		func(data *Branch) ([]string, any) {
-			return []string{"branch.updated", fmt.Sprintf("branch.update.%s", data.ID)}, mod.BranchModel(data)
+			return []string{
+				"branch.update",
+				fmt.Sprintf("branch.update.%s", data.ID),
+				fmt.Sprintf("branch.update.organization.%s", data.OrganizationID),
+			}, model.BranchModel(data)
 		},
 		func(data *Branch) ([]string, any) {
-			return []string{"branch.deleted", fmt.Sprintf("branch.delete.%s", data.ID)}, mod.BranchModel(data)
+			return []string{
+				"branch.delete",
+				fmt.Sprintf("branch.delete.%s", data.ID),
+				fmt.Sprintf("branch.delete.organization.%s", data.OrganizationID),
+			}, model.BranchModel(data)
 		},
 	)
 	return &BranchCollection{

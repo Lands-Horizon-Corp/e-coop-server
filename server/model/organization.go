@@ -1,11 +1,13 @@
 package model
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
+	"horizon.com/server/horizon"
 )
 
 type (
@@ -195,4 +197,36 @@ func (m *Model) OrganizationModel(data *Organization) *OrganizationResponse {
 
 func (m *Model) OrganizationModels(data []*Organization) []*OrganizationResponse {
 	return ToModels(data, m.OrganizationModel)
+}
+
+func NewOrganizationCollection(
+	broadcast *horizon.HorizonBroadcast,
+	database *horizon.HorizonDatabase,
+	model *Model,
+) (*OrganizationCollection, error) {
+	manager := NewcollectionManager(
+		database,
+		broadcast,
+		func(data *Organization) ([]string, any) {
+			return []string{
+				"organization.create",
+				fmt.Sprintf("organization.create.%s", data.ID),
+			}, model.OrganizationModel(data)
+		},
+		func(data *Organization) ([]string, any) {
+			return []string{
+				"organization.update",
+				fmt.Sprintf("organization.update.%s", data.ID),
+			}, model.OrganizationModel(data)
+		},
+		func(data *Organization) ([]string, any) {
+			return []string{
+				"organization.delete",
+				fmt.Sprintf("organization.delete.%s", data.ID),
+			}, model.OrganizationModel(data)
+		},
+	)
+	return &OrganizationCollection{
+		Manager: manager,
+	}, nil
 }

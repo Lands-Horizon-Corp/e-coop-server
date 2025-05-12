@@ -1,11 +1,13 @@
 package model
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
+	"horizon.com/server/horizon"
 )
 
 type (
@@ -114,4 +116,39 @@ func (m *Model) OrganizationDailyUsageModel(data *OrganizationDailyUsage) *Organ
 
 func (m *Model) OrganizationDailyUsageModels(data []*OrganizationDailyUsage) []*OrganizationDailyUsageResponse {
 	return ToModels(data, m.OrganizationDailyUsageModel)
+}
+
+func NewOrganizationDailyUsageCollection(
+	broadcast *horizon.HorizonBroadcast,
+	database *horizon.HorizonDatabase,
+	model *Model,
+) (*OrganizationDailyUsageCollection, error) {
+	manager := NewcollectionManager(
+		database,
+		broadcast,
+		func(data *OrganizationDailyUsage) ([]string, any) {
+			return []string{
+				"organization_daily_usage.create",
+				fmt.Sprintf("organization_daily_usage.create.%s", data.ID),
+				fmt.Sprintf("organization_daily_usage.create.organization.%s", data.OrganizationID),
+			}, model.OrganizationDailyUsageModel(data)
+		},
+		func(data *OrganizationDailyUsage) ([]string, any) {
+			return []string{
+				"organization_daily_usage.update",
+				fmt.Sprintf("organization_daily_usage.update.%s", data.ID),
+				fmt.Sprintf("organization_daily_usage.update.organization.%s", data.OrganizationID),
+			}, model.OrganizationDailyUsageModel(data)
+		},
+		func(data *OrganizationDailyUsage) ([]string, any) {
+			return []string{
+				"organization_daily_usage.delete",
+				fmt.Sprintf("organization_daily_usage.delete.%s", data.ID),
+				fmt.Sprintf("organization_daily_usage.delete.organization.%s", data.OrganizationID),
+			}, model.OrganizationDailyUsageModel(data)
+		},
+	)
+	return &OrganizationDailyUsageCollection{
+		Manager: manager,
+	}, nil
 }

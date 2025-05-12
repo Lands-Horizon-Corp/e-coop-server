@@ -189,7 +189,7 @@ func (r *collectionManager[T]) Create(entity *T, preloads ...string) error {
 			return eris.Wrap(err, "failed to reload entity with preloads")
 		}
 	}
-	r.created_broadcast(entity)
+	r.CreatedBroadcast(entity)
 	return nil
 }
 
@@ -210,7 +210,7 @@ func (r *collectionManager[T]) CreateWithTx(tx *gorm.DB, entity *T, preloads ...
 			return eris.Wrap(err, "failed to reload entity with preloads in transaction")
 		}
 	}
-	r.created_broadcast(entity)
+	r.CreatedBroadcast(entity)
 	return nil
 }
 
@@ -249,7 +249,7 @@ func (r *collectionManager[T]) CreateMany(entities []*T, preloads ...string) err
 			}
 		}
 	}
-	r.created_broadcast_many(entities)
+	r.CreatedBroadcastMany(entities)
 	return nil
 }
 
@@ -288,7 +288,7 @@ func (r *collectionManager[T]) CreateManyWithTx(tx *gorm.DB, entities []*T, prel
 			}
 		}
 	}
-	r.created_broadcast_many(entities)
+	r.CreatedBroadcastMany(entities)
 	return nil
 }
 
@@ -309,7 +309,7 @@ func (r *collectionManager[T]) Update(entity *T, preloads ...string) error {
 			return eris.Wrap(err, "failed to reload entity with preloads after update")
 		}
 	}
-	r.updated_broadcast(entity)
+	r.UpdatedBroadcast(entity)
 	return nil
 }
 
@@ -330,7 +330,7 @@ func (r *collectionManager[T]) UpdateWithTx(tx *gorm.DB, entity *T, preloads ...
 			return eris.Wrap(err, "failed to reload entity with preloads after update in transaction")
 		}
 	}
-	r.updated_broadcast(entity)
+	r.UpdatedBroadcast(entity)
 	return nil
 }
 
@@ -350,7 +350,7 @@ func (r *collectionManager[T]) UpdateByID(id uuid.UUID, entity *T, preloads ...s
 			return eris.Wrap(err, "failed to reload entity after update by ID")
 		}
 	}
-	r.updated_broadcast(entity)
+	r.UpdatedBroadcast(entity)
 	return nil
 }
 
@@ -370,7 +370,7 @@ func (r *collectionManager[T]) UpdateByIDWithTx(tx *gorm.DB, id uuid.UUID, entit
 			return eris.Wrap(err, "failed to reload entity after update by ID in transaction")
 		}
 	}
-	r.updated_broadcast(entity)
+	r.UpdatedBroadcast(entity)
 	return nil
 }
 
@@ -385,7 +385,7 @@ func (r *collectionManager[T]) UpdateFields(id uuid.UUID, fields *T, preloads ..
 	if err := db.First(fields).Error; err != nil {
 		return eris.Wrap(err, "failed to reload entity after updating fields")
 	}
-	r.updated_broadcast(fields)
+	r.UpdatedBroadcast(fields)
 	return nil
 }
 
@@ -400,7 +400,7 @@ func (r *collectionManager[T]) UpdateFieldsWithTx(tx *gorm.DB, id uuid.UUID, fie
 	if err := db.First(fields).Error; err != nil {
 		return eris.Wrap(err, "failed to reload entity after updating fields in transaction")
 	}
-	r.updated_broadcast(fields)
+	r.UpdatedBroadcast(fields)
 	return nil
 }
 
@@ -410,7 +410,7 @@ func (r *collectionManager[T]) UpdateMany(entities []*T, preloads ...string) err
 			return eris.Wrap(err, "failed to update many entities")
 		}
 	}
-	r.updated_broadcast_many(entities)
+	r.UpdatedBroadcast_many(entities)
 	return nil
 }
 
@@ -420,7 +420,7 @@ func (r *collectionManager[T]) UpdateManyWithTx(tx *gorm.DB, entities []*T, prel
 			return eris.Wrap(err, "failed to update many entities in transaction")
 		}
 	}
-	r.updated_broadcast_many(entities)
+	r.UpdatedBroadcast_many(entities)
 	return nil
 }
 
@@ -482,7 +482,7 @@ func (r *collectionManager[T]) Delete(entity *T) error {
 	if err := r.database.Client().Delete(entity).Error; err != nil {
 		return eris.Wrap(err, "failed to delete entity")
 	}
-	r.deleted_broadcast(entity)
+	r.DeletedBroadcast(entity)
 	return nil
 }
 
@@ -490,7 +490,7 @@ func (r *collectionManager[T]) DeleteWithTx(tx *gorm.DB, entity *T) error {
 	if err := tx.Delete(entity).Error; err != nil {
 		return eris.Wrap(err, "failed to delete entity in transaction")
 	}
-	r.deleted_broadcast(entity)
+	r.DeletedBroadcast(entity)
 	return nil
 }
 
@@ -505,7 +505,7 @@ func (r *collectionManager[T]) DeleteByID(id uuid.UUID) error {
 		return eris.Wrapf(err, "failed to delete entity with id %s", id)
 	}
 
-	r.deleted_broadcast(entity)
+	r.DeletedBroadcast(entity)
 	return nil
 }
 
@@ -517,7 +517,7 @@ func (r *collectionManager[T]) DeleteByIDWithTx(tx *gorm.DB, id uuid.UUID) error
 	if err := tx.Delete(entity).Error; err != nil {
 		return eris.Wrapf(err, "failed to delete entity with id %s in transaction", id)
 	}
-	r.deleted_broadcast(entity)
+	r.DeletedBroadcast(entity)
 	return nil
 }
 
@@ -525,7 +525,7 @@ func (r *collectionManager[T]) DeleteMany(entities []*T) error {
 	if err := r.database.Client().Delete(entities).Error; err != nil {
 		return eris.Wrap(err, "failed to delete entities")
 	}
-	r.deleted_broadcast_many(entities)
+	r.DeletedBroadcastMany(entities)
 	return nil
 }
 
@@ -533,46 +533,46 @@ func (r *collectionManager[T]) DeleteManyWithTx(tx *gorm.DB, entities []*T) erro
 	if err := tx.Delete(entities).Error; err != nil {
 		return eris.Wrap(err, "failed to delete entities in transaction")
 	}
-	r.deleted_broadcast_many(entities)
+	r.DeletedBroadcastMany(entities)
 	return nil
 }
 
-func (r *collectionManager[T]) created_broadcast(entity *T) {
+func (r *collectionManager[T]) CreatedBroadcast(entity *T) {
 	go func() {
 		topics, payload := r.created(entity)
 		r.broadcast.Dispatch(topics, payload)
 	}()
 }
 
-func (r *collectionManager[T]) updated_broadcast(entity *T) {
+func (r *collectionManager[T]) UpdatedBroadcast(entity *T) {
 	go func() {
 		topics, payload := r.updated(entity)
 		r.broadcast.Dispatch(topics, payload)
 	}()
 }
 
-func (r *collectionManager[T]) deleted_broadcast(entity *T) {
+func (r *collectionManager[T]) DeletedBroadcast(entity *T) {
 	go func() {
 		topics, payload := r.updated(entity)
 		r.broadcast.Dispatch(topics, payload)
 	}()
 }
 
-func (r *collectionManager[T]) created_broadcast_many(entities []*T) {
+func (r *collectionManager[T]) CreatedBroadcastMany(entities []*T) {
 	for _, entity := range entities {
-		r.created_broadcast(entity)
+		r.CreatedBroadcast(entity)
 	}
 }
 
-func (r *collectionManager[T]) updated_broadcast_many(entities []*T) {
+func (r *collectionManager[T]) UpdatedBroadcast_many(entities []*T) {
 	for _, entity := range entities {
-		r.updated_broadcast(entity)
+		r.UpdatedBroadcast(entity)
 	}
 }
 
-func (r *collectionManager[T]) deleted_broadcast_many(entities []*T) {
+func (r *collectionManager[T]) DeletedBroadcastMany(entities []*T) {
 	for _, entity := range entities {
-		r.deleted_broadcast(entity)
+		r.DeletedBroadcast(entity)
 	}
 }
 

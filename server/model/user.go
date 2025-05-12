@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -171,6 +172,10 @@ type (
 		Suffix        *string   `json:"suffix,omitempty"`
 		Password      string    `json:"password" validate:"required,min=8"`
 	}
+
+	UserCollection struct {
+		Manager CollectionManager[User]
+	}
 )
 
 func (m *Model) UserModel(data *User) *UserResponse {
@@ -266,244 +271,34 @@ func (m *Model) UserSettingsChangeGeneralValidate(ctx echo.Context) (*UserSettin
 	return Validate[UserSettingsChangeGeneralRequest](ctx, m.validator)
 }
 
-// func NewUserCollection(
-// 	media *MediaCollection,
-// 	qr *horizon.HorizonQR,
-// 	footstep *FootstepCollection,
-// 	generatedReport *GeneratedReportCollection,
-// 	notification *NotificationCollection,
-// ) (*UserCollection, error) {
-// 	return &UserCollection{
-// 		media:           media,
-// 		qr:              qr,
-// 		validator:       validator.New(),
-// 		footstep:        footstep,
-// 		generatedReport: generatedReport,
-// 		notification:    notification,
-// 	}, nil
-// }
-
-// func (uc *UserCollection) ToModel(data *User) *UserResponse {
-// 	if data == nil {
-// 		return nil
-// 	}
-// 	encoded, err := uc.qr.Encode(&QRUser{
-// 		UserID:        data.ID.String(),
-// 		Email:         data.Email,
-// 		ContactNumber: data.ContactNumber,
-// 		Username:      data.UserName,
-// 		Lastname:      horizon.StringFormat(data.LastName),
-// 		Firstname:     horizon.StringFormat(data.FirstName),
-// 		Middlename:    horizon.StringFormat(data.MiddleName),
-// 	})
-// 	if err != nil {
-// 		return nil
-// 	}
-// 	return &UserResponse{
-// 		ID:                data.ID,
-// 		MediaID:           data.MediaID,
-// 		Media:             uc.media.ToModel(data.Media),
-// 		Birthdate:         data.Birthdate.Format(time.RFC3339),
-// 		UserName:          data.UserName,
-// 		FirstName:         data.FirstName,
-// 		Description:       data.Description,
-// 		MiddleName:        data.MiddleName,
-// 		LastName:          data.LastName,
-// 		FullName:          data.FullName,
-// 		Suffix:            data.Suffix,
-// 		Email:             data.Email,
-// 		IsEmailVerified:   data.IsEmailVerified,
-// 		ContactNumber:     data.ContactNumber,
-// 		IsContactVerified: data.IsContactVerified,
-// 		CreatedAt:         data.CreatedAt.Format(time.RFC3339),
-// 		UpdatedAt:         data.UpdatedAt.Format(time.RFC3339),
-// 		QRCode:            encoded,
-
-// 		Footsteps:        uc.footstep.ToModels(data.Footsteps),
-// 		GeneratedReports: uc.generatedReport.ToModels(data.GeneratedReports),
-// 		Notifications:    uc.notification.ToModels(data.Notification),
-// 	}
-// }
-
-// func (uc *UserCollection) ToModels(data []*User) []*UserResponse {
-// 	if data == nil {
-// 		return make([]*UserResponse, 0)
-// 	}
-// 	var response []*UserResponse
-// 	for _, value := range data {
-// 		model := uc.ToModel(value)
-// 		if model != nil {
-// 			response = append(response, model)
-// 		}
-// 	}
-// 	if len(response) <= 0 {
-// 		return make([]*UserResponse, 0)
-// 	}
-// 	return response
-// }
-
-// func (uc *UserCollection) UserLoginValidation(c echo.Context) (*UserLoginRequest, error) {
-// 	u := new(UserLoginRequest)
-// 	if err := c.Bind(u); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	if err := uc.validator.Struct(u); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	return u, nil
-// }
-// func (uc *UserCollection) UserRegisterValidation(c echo.Context) (*UserRegisterRequest, error) {
-// 	u := new(UserRegisterRequest)
-// 	if err := c.Bind(u); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	if err := uc.validator.Struct(u); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	return u, nil
-// }
-// func (uc *UserCollection) UserForgotPasswordValidation(c echo.Context) (*UserForgotPasswordRequest, error) {
-// 	u := new(UserForgotPasswordRequest)
-// 	if err := c.Bind(u); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	if err := uc.validator.Struct(u); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	return u, nil
-// }
-// func (uc *UserCollection) UserChangePasswordValidation(c echo.Context) (*UserChangePasswordRequest, error) {
-// 	u := new(UserChangePasswordRequest)
-// 	if err := c.Bind(u); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	if err := uc.validator.Struct(u); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	return u, nil
-// }
-
-// func (uc *UserCollection) UserVerifyContactNumberValidation(c echo.Context) (*UserVerifyContactNumberRequest, error) {
-// 	u := new(UserVerifyContactNumberRequest)
-// 	if err := c.Bind(u); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	if err := uc.validator.Struct(u); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	return u, nil
-// }
-
-// func (uc *UserCollection) UserVerifyEmailValidation(c echo.Context) (*UserVerifyEmailRequest, error) {
-// 	u := new(UserVerifyEmailRequest)
-// 	if err := c.Bind(u); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	if err := uc.validator.Struct(u); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	return u, nil
-// }
-
-// func (uc *UserCollection) UserVerifyWithEmailConfirmationValidation(c echo.Context) (*UserVerifyWithEmailConfirmationRequest, error) {
-// 	u := new(UserVerifyWithEmailConfirmationRequest)
-// 	if err := c.Bind(u); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	if err := uc.validator.Struct(u); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	return u, nil
-// }
-// func (uc *UserCollection) UserVerifyWithContactNumberValidation(c echo.Context) (*UserVerifyWithContactNumberRequest, error) {
-// 	u := new(UserVerifyWithContactNumberRequest)
-// 	if err := c.Bind(u); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	if err := uc.validator.Struct(u); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	return u, nil
-// }
-// func (uc *UserCollection) UserVerifyWithContactNumberConfirmationValidation(c echo.Context) (*UserVerifyWithContactNumberConfirmationRequest, error) {
-// 	u := new(UserVerifyWithContactNumberConfirmationRequest)
-// 	if err := c.Bind(u); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	if err := uc.validator.Struct(u); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	return u, nil
-// }
-// func (uc *UserCollection) UserSettingsChangePasswordValidation(c echo.Context) (*UserSettingsChangePasswordRequest, error) {
-// 	u := new(UserSettingsChangePasswordRequest)
-// 	if err := c.Bind(u); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	if err := uc.validator.Struct(u); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	return u, nil
-// }
-// func (uc *UserCollection) UserSettingsChangeEmailValidation(c echo.Context) (*UserSettingsChangeEmailRequest, error) {
-// 	u := new(UserSettingsChangeEmailRequest)
-// 	if err := c.Bind(u); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	if err := uc.validator.Struct(u); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	return u, nil
-// }
-// func (uc *UserCollection) UserSettingsChangeUsernameValidation(c echo.Context) (*UserSettingsChangeUsernameRequest, error) {
-// 	u := new(UserSettingsChangeUsernameRequest)
-// 	if err := c.Bind(u); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	if err := uc.validator.Struct(u); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	return u, nil
-// }
-// func (uc *UserCollection) UserSettingsChangeContactNumberValidation(c echo.Context) (*UserSettingsChangeContactNumberRequest, error) {
-// 	u := new(UserSettingsChangeContactNumberRequest)
-// 	if err := c.Bind(u); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	if err := uc.validator.Struct(u); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	return u, nil
-// }
-// func (uc *UserCollection) UserSettingsChangeProfilePictureValidation(c echo.Context) (*UserSettingsChangeProfilePictureRequest, error) {
-// 	u := new(UserSettingsChangeProfilePictureRequest)
-// 	if err := c.Bind(u); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	if err := uc.validator.Struct(u); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	return u, nil
-// }
-
-// func (uc *UserCollection) UserSettingsChangeProfileValidation(c echo.Context) (*UserSettingsChangeProfileRequest, error) {
-// 	u := new(UserSettingsChangeProfileRequest)
-// 	if err := c.Bind(u); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	if err := uc.validator.Struct(u); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	return u, nil
-// }
-
-// func (uc *UserCollection) UserSettingsChangeGeneralValidation(c echo.Context) (*UserSettingsChangeGeneralRequest, error) {
-// 	u := new(UserSettingsChangeGeneralRequest)
-// 	if err := c.Bind(u); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	if err := uc.validator.Struct(u); err != nil {
-// 		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-// 	}
-// 	return u, nil
-// }
+func NewUserCollection(
+	broadcast *horizon.HorizonBroadcast,
+	database *horizon.HorizonDatabase,
+	model *Model,
+) (*UserCollection, error) {
+	manager := NewcollectionManager(
+		database,
+		broadcast,
+		func(data *User) ([]string, any) {
+			return []string{
+				"user.create",
+				fmt.Sprintf("user.create.%s", data.ID),
+			}, model.UserModel(data)
+		},
+		func(data *User) ([]string, any) {
+			return []string{
+				"user.update",
+				fmt.Sprintf("user.update.%s", data.ID),
+			}, model.UserModel(data)
+		},
+		func(data *User) ([]string, any) {
+			return []string{
+				"user.delete",
+				fmt.Sprintf("user.delete.%s", data.ID),
+			}, model.UserModel(data)
+		},
+	)
+	return &UserCollection{
+		Manager: manager,
+	}, nil
+}

@@ -1,11 +1,13 @@
 package model
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
+	"horizon.com/server/horizon"
 )
 
 type (
@@ -60,4 +62,39 @@ func (m *Model) OrganizationCategoryModel(data *OrganizationCategory) *Organizat
 
 func (m *Model) OrganizationCategoryModels(data []*OrganizationCategory) []*OrganizationCategoryResponse {
 	return ToModels(data, m.OrganizationCategoryModel)
+}
+
+func NewOrganizationCategoryCollection(
+	broadcast *horizon.HorizonBroadcast,
+	database *horizon.HorizonDatabase,
+	model *Model,
+) (*OrganizationCategoryCollection, error) {
+	manager := NewcollectionManager(
+		database,
+		broadcast,
+		func(data *OrganizationCategory) ([]string, any) {
+			return []string{
+				"organization_category.create",
+				fmt.Sprintf("organization_category.create.%s", data.ID),
+				fmt.Sprintf("organization_category.create.organization.%s", data.OrganizationID),
+			}, model.OrganizationCategoryModel(data)
+		},
+		func(data *OrganizationCategory) ([]string, any) {
+			return []string{
+				"organization_category.update",
+				fmt.Sprintf("organization_category.update.%s", data.ID),
+				fmt.Sprintf("organization_category.update.organization.%s", data.OrganizationID),
+			}, model.OrganizationCategoryModel(data)
+		},
+		func(data *OrganizationCategory) ([]string, any) {
+			return []string{
+				"organization_category.delete",
+				fmt.Sprintf("organization_category.delete.%s", data.ID),
+				fmt.Sprintf("organization_category.delete.organization.%s", data.OrganizationID),
+			}, model.OrganizationCategoryModel(data)
+		},
+	)
+	return &OrganizationCategoryCollection{
+		Manager: manager,
+	}, nil
 }

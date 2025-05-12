@@ -1,11 +1,13 @@
 package model
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
+	"horizon.com/server/horizon"
 )
 
 type (
@@ -66,4 +68,36 @@ func (m *Model) ContactUsModel(data *ContactUs) *ContactUsResponse {
 
 func (m *Model) ContactUsModels(data []*ContactUs) []*ContactUsResponse {
 	return ToModels(data, m.ContactUsModel)
+}
+
+func NewContactUsCollection(
+	broadcast *horizon.HorizonBroadcast,
+	database *horizon.HorizonDatabase,
+	model *Model,
+) (*ContactUsCollection, error) {
+	manager := NewcollectionManager(
+		database,
+		broadcast,
+		func(data *ContactUs) ([]string, any) {
+			return []string{
+				"contact_us.create",
+				fmt.Sprintf("contact_us.create.%s", data.ID),
+			}, model.ContactUsModel(data)
+		},
+		func(data *ContactUs) ([]string, any) {
+			return []string{
+				"contact_us.update",
+				fmt.Sprintf("contact_us.update.%s", data.ID),
+			}, model.ContactUsModel(data)
+		},
+		func(data *ContactUs) ([]string, any) {
+			return []string{
+				"contact_us.delete",
+				fmt.Sprintf("contact_us.delete.%s", data.ID),
+			}, model.ContactUsModel(data)
+		},
+	)
+	return &ContactUsCollection{
+		Manager: manager,
+	}, nil
 }

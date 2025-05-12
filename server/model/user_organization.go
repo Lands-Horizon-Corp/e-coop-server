@@ -1,12 +1,14 @@
 package model
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lib/pq"
 	"gorm.io/gorm"
+	"horizon.com/server/horizon"
 )
 
 type (
@@ -114,4 +116,36 @@ func (m *Model) UserOrganizationModel(data *UserOrganization) *UserOrganizationR
 
 func (m *Model) UserOrganizationModels(data []*UserOrganization) []*UserOrganizationResponse {
 	return ToModels(data, m.UserOrganizationModel)
+}
+
+func NewUserOrganizationCollection(
+	broadcast *horizon.HorizonBroadcast,
+	database *horizon.HorizonDatabase,
+	model *Model,
+) (*UserOrganizationCollection, error) {
+	manager := NewcollectionManager(
+		database,
+		broadcast,
+		func(data *UserOrganization) ([]string, any) {
+			return []string{
+				"user_organization.create",
+				fmt.Sprintf("user_organization.create.%s", data.ID),
+			}, model.UserOrganizationModel(data)
+		},
+		func(data *UserOrganization) ([]string, any) {
+			return []string{
+				"user_organization.update",
+				fmt.Sprintf("user_organization.update.%s", data.ID),
+			}, model.UserOrganizationModel(data)
+		},
+		func(data *UserOrganization) ([]string, any) {
+			return []string{
+				"user_organization.delete",
+				fmt.Sprintf("user_organization.delete.%s", data.ID),
+			}, model.UserOrganizationModel(data)
+		},
+	)
+	return &UserOrganizationCollection{
+		Manager: manager,
+	}, nil
 }

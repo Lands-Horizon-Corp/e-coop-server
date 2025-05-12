@@ -1,11 +1,13 @@
 package model
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
+	"horizon.com/server/horizon"
 )
 
 type (
@@ -87,4 +89,36 @@ func (m *Model) SubscriptionPlanModel(data *SubscriptionPlan) *SubscriptionPlanR
 
 func (m *Model) SubscriptionPlanModels(data []*SubscriptionPlan) []*SubscriptionPlanResponse {
 	return ToModels(data, m.SubscriptionPlanModel)
+}
+
+func NewSubscriptionPlanCollection(
+	broadcast *horizon.HorizonBroadcast,
+	database *horizon.HorizonDatabase,
+	model *Model,
+) (*SubscriptionPlanCollection, error) {
+	manager := NewcollectionManager(
+		database,
+		broadcast,
+		func(data *SubscriptionPlan) ([]string, any) {
+			return []string{
+				"subscription_plan.create",
+				fmt.Sprintf("subscription_plan.create.%s", data.ID),
+			}, model.SubscriptionPlanModel(data)
+		},
+		func(data *SubscriptionPlan) ([]string, any) {
+			return []string{
+				"subscription_plan.update",
+				fmt.Sprintf("subscription_plan.update.%s", data.ID),
+			}, model.SubscriptionPlanModel(data)
+		},
+		func(data *SubscriptionPlan) ([]string, any) {
+			return []string{
+				"subscription_plan.delete",
+				fmt.Sprintf("subscription_plan.delete.%s", data.ID),
+			}, model.SubscriptionPlanModel(data)
+		},
+	)
+	return &SubscriptionPlanCollection{
+		Manager: manager,
+	}, nil
 }

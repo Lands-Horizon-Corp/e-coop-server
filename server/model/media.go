@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -93,4 +94,36 @@ func (m *Model) MediaModel(data *Media) *MediaResponse {
 
 func (m *Model) MediaModels(data []*Media) []*MediaResponse {
 	return ToModels(data, m.MediaModel)
+}
+
+func NewMediaCollection(
+	broadcast *horizon.HorizonBroadcast,
+	database *horizon.HorizonDatabase,
+	model *Model,
+) (*MediaCollection, error) {
+	manager := NewcollectionManager(
+		database,
+		broadcast,
+		func(data *Media) ([]string, any) {
+			return []string{
+				"media.create",
+				fmt.Sprintf("media.create.%s", data.ID),
+			}, model.MediaModel(data)
+		},
+		func(data *Media) ([]string, any) {
+			return []string{
+				"media.update",
+				fmt.Sprintf("media.update.%s", data.ID),
+			}, model.MediaModel(data)
+		},
+		func(data *Media) ([]string, any) {
+			return []string{
+				"media.delete",
+				fmt.Sprintf("media.delete.%s", data.ID),
+			}, model.MediaModel(data)
+		},
+	)
+	return &MediaCollection{
+		Manager: manager,
+	}, nil
 }

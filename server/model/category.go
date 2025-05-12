@@ -1,11 +1,13 @@
 package model
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
+	"horizon.com/server/horizon"
 )
 
 type (
@@ -67,4 +69,36 @@ func (m *Model) CategoryModel(data *Category) *CategoryResponse {
 
 func (m *Model) CategoryModels(data []*Category) []*CategoryResponse {
 	return ToModels(data, m.CategoryModel)
+}
+
+func NewCategoryCollection(
+	broadcast *horizon.HorizonBroadcast,
+	database *horizon.HorizonDatabase,
+	model *Model,
+) (*CategoryCollection, error) {
+	manager := NewcollectionManager(
+		database,
+		broadcast,
+		func(data *Category) ([]string, any) {
+			return []string{
+				"category.create",
+				fmt.Sprintf("category.create.%s", data.ID),
+			}, model.CategoryModel(data)
+		},
+		func(data *Category) ([]string, any) {
+			return []string{
+				"category.update",
+				fmt.Sprintf("category.update.%s", data.ID),
+			}, model.CategoryModel(data)
+		},
+		func(data *Category) ([]string, any) {
+			return []string{
+				"category.delete",
+				fmt.Sprintf("category.delete.%s", data.ID),
+			}, model.CategoryModel(data)
+		},
+	)
+	return &CategoryCollection{
+		Manager: manager,
+	}, nil
 }
