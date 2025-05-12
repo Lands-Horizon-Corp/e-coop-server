@@ -157,7 +157,7 @@ func NewOrganizationDailyUsageCollection(
 }
 
 // organization-daily-usage/organization/:organization_id
-func (fc *OrganizationDailyUsageCollection) ListByOrganizationBranch(organizationID uuid.UUID) ([]*OrganizationDailyUsage, error) {
+func (fc *OrganizationDailyUsageCollection) ListByOrganization(organizationID uuid.UUID) ([]*OrganizationDailyUsage, error) {
 	return fc.Manager.Find(&OrganizationDailyUsage{
 		OrganizationID: organizationID,
 	})

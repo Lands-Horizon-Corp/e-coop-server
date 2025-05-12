@@ -196,4 +196,12 @@ func (c *Controller) Routes(service *echo.Echo) {
 		organizationG.GET("/category/:category_id", c.OrganizationCategoryListByCategory)
 		organizationG.GET("/organizaton/:category_id", c.OrganizationCategoryListByOrganization)
 	}
+
+	organizationDailyUsage := service.Group("organization-daily-usage")
+	{
+		organizationDailyUsage.POST("/", c.OrganizationDailyUsageList)
+		organizationDailyUsage.GET("/:organization_daily_usage_id", c.OrganizationDailyUsageGetByID)
+		organizationDailyUsage.DELETE("/:organization_daily_usage_id", c.OrganizationDailyUsageDelete)
+		organizationDailyUsage.GET("/organization/:organization_id", c.OrganizationDailyUsageListByOrganization)
+	}
 }
