@@ -165,4 +165,13 @@ func (c *Controller) Routes(service *echo.Echo) {
 		invitationCodeG.GET("/code/:code", c.InvitationCodeExists)
 		invitationCodeG.GET("/verfiy/:code", c.InvitationCodeVerify)
 	}
+
+	mediaGroup := service.Group("/media")
+	{
+		mediaGroup.GET("", c.MediaList)
+		mediaGroup.GET("/:id", c.MediaGetByID)
+		mediaGroup.POST("", c.MediaCreate)
+		mediaGroup.PUT("/:id", c.MediaUpdate)
+		mediaGroup.DELETE("/:id", c.MediaDelete)
+	}
 }
