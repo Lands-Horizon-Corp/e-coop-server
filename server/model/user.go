@@ -170,17 +170,10 @@ type (
 	}
 
 	UserSettingsChangeGeneralRequest struct {
-		Email         string    `json:"email" validate:"required,email"`
-		UserName      string    `json:"user_name" validate:"required,min=3,max=100"`
-		ContactNumber string    `json:"contact_number" validate:"required,min=7,max=20"`
-		Birthdate     time.Time `json:"birthdate,omitempty"`
-		Description   *string   `json:"description,omitempty"`
-		FirstName     *string   `json:"first_name,omitempty"`
-		MiddleName    *string   `json:"middle_name,omitempty"`
-		LastName      *string   `json:"last_name,omitempty"`
-		FullName      *string   `json:"full_name,omitempty"`
-		Suffix        *string   `json:"suffix,omitempty"`
-		Password      string    `json:"password" validate:"required,min=8"`
+		ContactNumber string  `json:"contact_number" validate:"required,min=7,max=20"`
+		Description   *string `json:"description,omitempty"`
+		Email         string  `json:"email" validate:"required,email"`
+		UserName      string  `json:"user_name" validate:"required,min=3,max=100"`
 	}
 
 	UserCollection struct {

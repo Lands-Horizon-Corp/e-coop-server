@@ -489,43 +489,15 @@ func (c *Controller) UserSettingsChangeGeneral(ctx echo.Context) error {
 		return err
 	}
 
-	if ok := c.authentication.VerifyPassword(user.Password, req.Password); !ok {
-		return echo.NewHTTPError(http.StatusUnauthorized, "invalid credentials")
-	}
-
 	model := &model.User{}
 	dirty := false
 
-	if user.FirstName != req.FirstName {
-		model.FirstName = req.FirstName
-		dirty = true
-	}
-	if user.MiddleName != req.MiddleName {
-		model.MiddleName = req.MiddleName
-		dirty = true
-	}
-	if user.LastName != req.LastName {
-		model.LastName = req.LastName
-		dirty = true
-	}
-	if user.FullName != req.FullName {
-		model.FullName = req.FullName
-		dirty = true
-	}
-	if user.Suffix != req.Suffix {
-		model.Suffix = req.Suffix
-		dirty = true
-	}
 	if user.UserName != req.UserName {
 		model.UserName = req.UserName
 		dirty = true
 	}
 	if user.Description != req.Description {
 		model.Description = req.Description
-		dirty = true
-	}
-	if !user.Birthdate.Equal(user.Birthdate) {
-		model.Birthdate = req.Birthdate
 		dirty = true
 	}
 	if user.Email != req.Email {
