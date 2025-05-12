@@ -46,6 +46,8 @@ func (c *Controller) MediaCreate(ctx echo.Context) error {
 		BucketName: "",
 		Status:     horizon.StorageStatusPending,
 		Progress:   0,
+		CreatedAt:  time.Now().UTC(),
+		UpdatedAt:  time.Now().UTC(),
 	}
 	if err := c.media.Manager.Create(initial); err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
@@ -53,16 +55,18 @@ func (c *Controller) MediaCreate(ctx echo.Context) error {
 	storage, err := c.storage.UploadFromHeader(file, func(progress, total int64, st *horizon.Storage) {
 
 		_ = c.media.Manager.Update(&model.Media{
-			ID:       initial.ID,
-			Progress: st.Progress,
-			Status:   horizon.StorageStatusProgress,
+			ID:        initial.ID,
+			Progress:  st.Progress,
+			Status:    horizon.StorageStatusProgress,
+			UpdatedAt: time.Now().UTC(),
 		})
 	})
 	if err != nil {
 
 		_ = c.media.Manager.Update(&model.Media{
-			ID:     initial.ID,
-			Status: horizon.StorageStatusCorrupt,
+			ID:        initial.ID,
+			Status:    horizon.StorageStatusCorrupt,
+			UpdatedAt: time.Now().UTC(),
 		})
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
@@ -73,7 +77,8 @@ func (c *Controller) MediaCreate(ctx echo.Context) error {
 		URL:        storage.URL,
 		BucketName: storage.BucketName,
 		Status:     horizon.StorageStatusCompleted,
-		Progress:   storage.Progress,
+		Progress:   100,
+		UpdatedAt:  time.Now().UTC(),
 	}
 	if err := c.media.Manager.Update(completed); err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})

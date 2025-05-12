@@ -91,7 +91,7 @@ func (r *collectionManager[T]) List(preloads ...string) ([]*T, error) {
 	for _, preload := range preloads {
 		db = db.Preload(preload)
 	}
-	if err := db.Order("created_at DESC").Find(&entities).Error; err != nil {
+	if err := db.Order("updated_at DESC").Find(&entities).Error; err != nil {
 		return nil, eris.Wrap(err, "failed to list entities")
 	}
 	return entities, nil
