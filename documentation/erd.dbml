@@ -169,7 +169,7 @@ Table user_role {
 
 Ref: user_role.branch_id > branch.id [delete:cascade, update:cascade]
 Ref: user_role.user_id > user.id [delete:cascade, update:cascade]
-
+// 🔑 💾
 Table media {
   id varchar(50) [primary key, unique, default: `uuid_generate_v4()`]
   created_by_id varchar(50) [ref: - user.id]
@@ -202,7 +202,7 @@ enum report_status {
   error
 }
 
-// 🔑
+// 🔑 💾
 Table generated_reports {
   id varchar(50) [primary key, unique, default: `uuid_generate_v4()`]
 
@@ -240,16 +240,8 @@ Ref: generated_reports.branch_id > branch.id [delete:cascade, update:cascade]
 Ref: generated_reports.media_id - media.id
 Ref: generated_reports.requested_by_user_id - user.id
 
-enum organization_migration_status {
-  pending
-  migrating
-  seeding
-  completed
-  canceled
-  error
-}
 
-// 🔑
+// 🔑 💾
 Table organization {
   id varchar(50) [pk, unique, default: `uuid_generate_v4()`]
   media_id varchar(50)
@@ -262,14 +254,6 @@ Table organization {
   subscription_plan_id varchar(50)
   subscription_start_date timestamp
   subscription_end_date timestamp
-
-  database_host varchar(255)
-  database_port varchar(10)
-  database_name varchar(255)
-  database_username varchar(255)
-  database_password varchar(255)
-  database_migration_status organization_migration_status
-  database_remarks text
 
   email varchar(255) [not null, unique]
   contact_number varchar(20) [not null, unique]
@@ -286,9 +270,7 @@ Ref: organization.media_id - media.id [delete: set null, update: cascade]
 Ref: organization.cover_media_id - media.id [delete: set null, update: cascade]
 Ref: organization.subscription_plan_id > subscription_plan.id [delete: restrict, update: cascade]
 
-// Tracking usage
-// Coop Usage entries Per Day ( this is system generated )
-// 🔑
+// 🔑 💾
 Table organization_daily_usage {
   id varchar(50) [primary key, unique, default: `uuid_generate_v4()`]
 
@@ -321,7 +303,7 @@ Ref: organization_daily_usage.organization_id > organization.id [delete: set nul
 
 // 1. Pang Accept
 // 2. Pang
-// 🔑
+// 🔑 💾
 Table user_organization {
   id varchar(50) [pk, unique, default: `uuid_generate_v4()`]
   user_id varchar(50)
@@ -354,7 +336,7 @@ enum branch_type {
   "banking branch"
 }
 
-// 🔑
+// 🔑 💾
 Table branch {
   id varchar(50) [primary key, unique, default: `uuid_generate_v4()`]
 
@@ -399,8 +381,7 @@ Table branch {
 Ref: branch.organization_id > organization.id [delete: cascade, update: cascade]
 Ref: branch.media_id - media.id [delete:cascade]
 
-// TEMPLATE
-// 🔑
+// 🔑 💾
 Table role_template {
   id varchar(50) [primary key, unique, default: `uuid_generate_v4()`]
 

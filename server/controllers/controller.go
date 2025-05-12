@@ -32,6 +32,7 @@ type Controller struct {
 	subscriptionPlan       *model.SubscriptionPlanCollection
 	userOrganization       *model.UserOrganizationCollection
 	user                   *model.UserCollection
+	userRating             *model.UserRatingCollection
 }
 
 func NewController(
@@ -59,6 +60,8 @@ func NewController(
 	subscriptionPlan *model.SubscriptionPlanCollection,
 	userOrganization *model.UserOrganizationCollection,
 	user *model.UserCollection,
+	userRating *model.UserRatingCollection,
+
 ) (*Controller, error) {
 	return &Controller{
 		authentication:         authentication,
@@ -83,6 +86,7 @@ func NewController(
 		subscriptionPlan:       subscriptionPlan,
 		userOrganization:       userOrganization,
 		user:                   user,
+		userRating:             userRating,
 	}, nil
 }
 
@@ -274,11 +278,29 @@ func (c *Controller) Routes(service *echo.Echo) {
 
 	organizationG := service.Group("/organization")
 	{
-		organizationG.GET("", c.OrganizationList)                       // GET    /api/organization
-		organizationG.GET("/:organization_id", c.OrganizationGetByID)   // GET    /api/organization/:organization_id
-		organizationG.POST("", c.OrganizationCreate)                    // POST   /api/organization
-		organizationG.PUT("/:organization_id", c.OrganizationUpdate)    // PUT    /api/organization/:organization_id
-		organizationG.DELETE("/:organization_id", c.OrganizationDelete) // DELETE /api/organization/:organization_id
+		organizationG.GET("", c.OrganizationList)
+		organizationG.GET("/:organization_id", c.OrganizationGetByID)
+		organizationG.POST("", c.OrganizationCreate)
+		organizationG.PUT("/:organization_id", c.OrganizationUpdate)
+		organizationG.DELETE("/:organization_id", c.OrganizationDelete)
+	}
+
+	userRatingG := service.Group("/user-rating")
+	{
+		userRatingG.GET("", c.UserRatingList)
+		userRatingG.GET("/:rating_id", c.UserRatingGetByID)
+		userRatingG.DELETE("/:rating_id", c.UserRatingDelete)
+		userRatingG.GET("/user-ratee/:user_ratee_id", c.UserRatingListByRatee)
+		userRatingG.GET("/user-rater/:user_rater_id", c.UserRatingListByRater)
+		userRatingG.GET("/branch/:branch_id", c.UserRatingListByBranch)
+		userRatingG.GET("/organization/:organization_id", c.UserRatingListByOrganization)
+		userRatingG.GET("/organization/:organization_id/branch/:branch_id", c.UserRatingListByOrganizationBranch)
+		userRatingG.GET("/branch/:branch_id/ratee/:ratee_user_id", c.UserRatingListByBranchRatee)
+		userRatingG.GET("/branch/:branch_id/rater/:rater_user_id", c.UserRatingListByBranchRater)
+		userRatingG.GET("/organization/:organization_id/ratee/:ratee_user_id", c.UserRatingListByOrganizationRatee)
+		userRatingG.GET("/organization/:organization_id/rater/:rater_user_id", c.UserRatingListByOrganizationRater)
+		userRatingG.GET("/organization/:organization_id/branch/:branch_id/ratee/:ratee_user_id", c.UserRatingListByOrgBranchRatee)
+		userRatingG.GET("/organization/:organization_id/branch/:branch_id/rater/:rater_user_id", c.UserRatingListByOrgBranchRater)
 	}
 
 }

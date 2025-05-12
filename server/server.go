@@ -62,6 +62,7 @@ var Modules = []any{
 	model.NewSubscriptionPlanCollection,
 	model.NewUserOrganizationCollection,
 	model.NewUserCollection,
+	model.NewUserRatingCollection,
 
 	controllers.NewController,
 
