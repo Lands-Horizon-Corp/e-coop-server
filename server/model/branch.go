@@ -50,23 +50,21 @@ type (
 	}
 
 	BranchRequest struct {
-		OrganizationID uuid.UUID  `json:"organization_id" validate:"required"`
-		MediaID        *uuid.UUID `json:"media_id,omitempty"`
-
-		Type          string   `json:"type" validate:"required"`
-		Name          string   `json:"name" validate:"required"`
-		Email         string   `json:"email" validate:"required,email"`
-		Description   *string  `json:"description,omitempty"`
-		CountryCode   string   `json:"country_code" validate:"required"`
-		ContactNumber *string  `json:"contact_number,omitempty"`
-		Address       string   `json:"address" validate:"required"`
-		Province      string   `json:"province" validate:"required"`
-		City          string   `json:"city" validate:"required"`
-		Region        string   `json:"region" validate:"required"`
-		Barangay      string   `json:"barangay" validate:"required"`
-		PostalCode    string   `json:"postal_code" validate:"required"`
-		Latitude      *float64 `json:"latitude,omitempty"`
-		Longitude     *float64 `json:"longitude,omitempty"`
+		MediaID       *uuid.UUID `json:"media_id,omitempty"`
+		Type          string     `json:"type" validate:"required"`
+		Name          string     `json:"name" validate:"required"`
+		Email         string     `json:"email" validate:"required,email"`
+		Description   *string    `json:"description,omitempty"`
+		CountryCode   string     `json:"country_code" validate:"required"`
+		ContactNumber *string    `json:"contact_number,omitempty"`
+		Address       string     `json:"address" validate:"required"`
+		Province      string     `json:"province" validate:"required"`
+		City          string     `json:"city" validate:"required"`
+		Region        string     `json:"region" validate:"required"`
+		Barangay      string     `json:"barangay" validate:"required"`
+		PostalCode    string     `json:"postal_code" validate:"required"`
+		Latitude      *float64   `json:"latitude,omitempty"`
+		Longitude     *float64   `json:"longitude,omitempty"`
 	}
 
 	BranchResponse struct {

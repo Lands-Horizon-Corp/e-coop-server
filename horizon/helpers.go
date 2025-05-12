@@ -13,6 +13,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -153,4 +154,13 @@ func MergeString(defaults, overrides []string) []string {
 		}
 	}
 	return out
+}
+
+func EngineUUIDParam(ctx echo.Context, idParam string) (*uuid.UUID, error) {
+	param := ctx.Param(idParam)
+	id, err := uuid.Parse(param)
+	if err != nil {
+		return nil, ctx.JSON(http.StatusBadRequest, map[string]string{"error": "invalid feedback ID"})
+	}
+	return &id, nil
 }

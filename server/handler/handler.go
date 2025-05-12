@@ -4,9 +4,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"horizon.com/server/horizon"
 	"horizon.com/server/server/model"
-	"horizon.com/server/server/provider"
-	"horizon.com/server/server/publisher"
-	"horizon.com/server/server/repository"
 )
 
 type Handler struct {

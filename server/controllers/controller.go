@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"github.com/labstack/echo/v4"
 	"horizon.com/server/horizon"
 	"horizon.com/server/server/model"
 	"horizon.com/server/server/providers"
@@ -33,7 +34,7 @@ type Controller struct {
 	user                   *model.UserCollection
 }
 
-func NewHandler(
+func NewController(
 	authentication *horizon.HorizonAuthentication,
 	storage *horizon.HorizonStorage,
 	provider *providers.Providers,
@@ -83,4 +84,17 @@ func NewHandler(
 		userOrganization:       userOrganization,
 		user:                   user,
 	}, nil
+}
+
+func (c *Controller) Routes(service *echo.Echo) {
+	branchG := service.Group("/branch")
+	{
+		branchG.GET("/", c.BranchGet)
+		branchG.GET("/branch/branch_id", c.BranchGetByID)
+		branchG.POST("organization/:organization_id", c.BranchCreate)
+		branchG.PUT("/:branch_id/organization/:organization_id", c.BranchUpdate)
+		branchG.DELETE("/:branch_id/organization/:organization_id", c.BranchDelete)
+		branchG.GET("/branch/organization/:organization_id", c.BranchOrganizations)
+
+	}
 }

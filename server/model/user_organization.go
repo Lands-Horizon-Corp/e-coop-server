@@ -151,28 +151,28 @@ func NewUserOrganizationCollection(
 	}, nil
 }
 
-// user_organization/user/:user_id
+// user-organization/user/:user_id
 func (fc *UserOrganizationCollection) ListByUser(userID uuid.UUID) ([]*UserOrganization, error) {
 	return fc.Manager.Find(&UserOrganization{
 		UserID: userID,
 	})
 }
 
-// user_organization/branch/:branch_id
+// user-organization/branch/:branch_id
 func (fc *UserOrganizationCollection) ListByBranch(branchID uuid.UUID) ([]*UserOrganization, error) {
 	return fc.Manager.Find(&UserOrganization{
 		BranchID: branchID,
 	})
 }
 
-// user_organization/organization/:organization_id
+// user-organization/organization/:organization_id
 func (fc *UserOrganizationCollection) ListByOrganization(organizationID uuid.UUID) ([]*UserOrganization, error) {
 	return fc.Manager.Find(&UserOrganization{
 		OrganizationID: organizationID,
 	})
 }
 
-// user_organization/organization/:organization_id/branch/:branch_id
+// user-organization/organization/:organization_id/branch/:branch_id
 func (fc *UserOrganizationCollection) ListByOrganizationBranch(organizationID uuid.UUID, branchID uuid.UUID) ([]*UserOrganization, error) {
 	return fc.Manager.Find(&UserOrganization{
 		OrganizationID: organizationID,
@@ -180,7 +180,7 @@ func (fc *UserOrganizationCollection) ListByOrganizationBranch(organizationID uu
 	})
 }
 
-// user_organization/user/:user_id/branch/:branch_id
+// user-organization/user/:user_id/branch/:branch_id
 func (fc *UserOrganizationCollection) ListByUserBranch(userID uuid.UUID, branchID uuid.UUID) ([]*UserOrganization, error) {
 	return fc.Manager.Find(&UserOrganization{
 		UserID:   userID,
@@ -188,7 +188,7 @@ func (fc *UserOrganizationCollection) ListByUserBranch(userID uuid.UUID, branchI
 	})
 }
 
-// user_organization/user/:user_id/organization/:organization_id
+// user-organization/user/:user_id/organization/:organization_id
 func (fc *UserOrganizationCollection) ListByUserOrganization(userID uuid.UUID, organizationID uuid.UUID) ([]*UserOrganization, error) {
 	return fc.Manager.Find(&UserOrganization{
 		UserID:         userID,
@@ -196,10 +196,18 @@ func (fc *UserOrganizationCollection) ListByUserOrganization(userID uuid.UUID, o
 	})
 }
 
-// user_organization/user/:user_id/organization/:organization_id/branch/:branch_id
+// user-organization/user/:user_id/organization/:organization_id/branch/:branch_id
 func (fc *UserOrganizationCollection) ByUserOrganizationBranch(userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) (*UserOrganization, error) {
 	return fc.Manager.FindOne(&UserOrganization{
 		UserID:         userID,
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+	})
+}
+
+// user-organization/organization/:organization_id/branch/:branch_id/count
+func (fc *UserOrganizationCollection) CountByOrganizationBranch(organizationID uuid.UUID, branchID uuid.UUID) (int64, error) {
+	return fc.Manager.Count(&UserOrganization{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
