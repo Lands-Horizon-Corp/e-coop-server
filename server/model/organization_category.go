@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 	"horizon.com/server/horizon"
 )
@@ -34,10 +35,18 @@ type (
 		Category       *CategoryResponse     `json:"category"`
 	}
 
+	OrganizationCategoryRequest struct {
+		CategoryID string `json:"category_id"`
+	}
+
 	OrganizationCategoryCollection struct {
 		Manager CollectionManager[OrganizationCategory]
 	}
 )
+
+func (m *Model) OrganizationCategoryValidate(ctx echo.Context) (*OrganizationCategoryRequest, error) {
+	return Validate[OrganizationCategoryRequest](ctx, m.validator)
+}
 
 func (m *Model) OrganizationCategoryModel(data *OrganizationCategory) *OrganizationCategoryResponse {
 	return ToModel(data, func(data *OrganizationCategory) *OrganizationCategoryResponse {
@@ -92,14 +101,14 @@ func NewOrganizationCategoryCollection(
 	}, nil
 }
 
-// organization-category/organizaton_category_id/category_id
+// organization-category/category/:category_id
 func (fc *OrganizationCategoryCollection) ListByCategory(categoryId *uuid.UUID) ([]*OrganizationCategory, error) {
 	return fc.Manager.Find(&OrganizationCategory{
 		CategoryID: categoryId,
 	})
 }
 
-// organization-category/organization/organization_id
+// organization-category/organizaton/:organization_id
 func (fc *OrganizationCategoryCollection) ListByOrganization(organizationId *uuid.UUID) ([]*OrganizationCategory, error) {
 	return fc.Manager.Find(&OrganizationCategory{
 		OrganizationID: organizationId,

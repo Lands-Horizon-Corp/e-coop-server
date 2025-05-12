@@ -168,9 +168,9 @@ func (c *Controller) Routes(service *echo.Echo) {
 
 	mediaG := service.Group("/media")
 	{
-		mediaG.GET("", c.MediaList)
+		mediaG.GET("/", c.MediaList)
 		mediaG.GET("/:media_id", c.MediaGetByID)
-		mediaG.POST("", c.MediaCreate)
+		mediaG.POST("/", c.MediaCreate)
 		mediaG.PUT("/:media_id", c.MediaUpdate)
 		mediaG.DELETE("/:media_id", c.MediaDelete)
 	}
@@ -186,4 +186,14 @@ func (c *Controller) Routes(service *echo.Echo) {
 		notificationG.GET("/user/:user_id/read-all", c.NotificationListByUserReadAll)
 	}
 
+	organizationG := service.Group("/organization-category")
+	{
+		organizationG.GET("/", c.OrganizationCategoryList)
+		organizationG.GET("/:organization_category_id", c.OrganizationCategoryGetByID)
+		organizationG.POST("/organization/:organization_id", c.OrganizationCategoryCreate)
+		organizationG.PUT("/:organization_category_id/organization/:organization_id", c.OrganizationCategoryUpdate)
+		organizationG.DELETE("/:organization_category_id", c.OrganizationCategoryDelete)
+		organizationG.GET("/category/:category_id", c.OrganizationCategoryListByCategory)
+		organizationG.GET("/organizaton/:category_id", c.OrganizationCategoryListByOrganization)
+	}
 }
