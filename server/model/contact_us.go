@@ -96,6 +96,7 @@ func NewContactUsCollection(
 				fmt.Sprintf("contact_us.delete.%s", data.ID),
 			}, model.ContactUsModel(data)
 		},
+		[]string{},
 	)
 	return &ContactUsCollection{
 		Manager: manager,

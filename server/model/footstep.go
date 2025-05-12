@@ -155,6 +155,7 @@ func NewFootstepCollection(
 				fmt.Sprintf("footstep.delete.user.%s", data.UserID),
 			}, model.FootstepModel(data)
 		},
+		[]string{},
 	)
 	return &FootstepCollection{
 		Manager: manager,

@@ -225,6 +225,7 @@ func NewOrganizationCollection(
 				fmt.Sprintf("organization.delete.%s", data.ID),
 			}, model.OrganizationModel(data)
 		},
+		[]string{},
 	)
 	return &OrganizationCollection{
 		Manager: manager,

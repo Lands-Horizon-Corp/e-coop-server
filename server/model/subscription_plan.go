@@ -117,6 +117,7 @@ func NewSubscriptionPlanCollection(
 				fmt.Sprintf("subscription_plan.delete.%s", data.ID),
 			}, model.SubscriptionPlanModel(data)
 		},
+		[]string{},
 	)
 	return &SubscriptionPlanCollection{
 		Manager: manager,

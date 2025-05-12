@@ -122,6 +122,7 @@ func NewMediaCollection(
 				fmt.Sprintf("media.delete.%s", data.ID),
 			}, model.MediaModel(data)
 		},
+		[]string{},
 	)
 	return &MediaCollection{
 		Manager: manager,

@@ -126,6 +126,7 @@ func NewGeneratedReportCollection(
 				fmt.Sprintf("generated_report.delete.user.%s", data.UserID),
 			}, model.GeneratedReportModel(data)
 		},
+		[]string{},
 	)
 	return &GeneratedReportCollection{
 		Manager: manager,

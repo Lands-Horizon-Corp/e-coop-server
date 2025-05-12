@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 	"horizon.com/server/horizon"
 )
@@ -24,11 +23,6 @@ type (
 		Category   *Category  `gorm:"foreignKey:CategoryID;constraint:OnDelete:CASCADE"`
 	}
 
-	OrganizationCategoryRequest struct {
-		OrganizationID uuid.UUID `json:"organization_id" validate:"required,uuid4"`
-		CategoryID     uuid.UUID `json:"category_id" validate:"required,uuid4"`
-	}
-
 	OrganizationCategoryResponse struct {
 		ID        uuid.UUID `json:"id"`
 		CreatedAt string    `json:"created_at"`
@@ -44,10 +38,6 @@ type (
 		Manager CollectionManager[OrganizationCategory]
 	}
 )
-
-func (m *Model) OrganizationCategoryValidate(ctx echo.Context) (*OrganizationCategoryRequest, error) {
-	return Validate[OrganizationCategoryRequest](ctx, m.validator)
-}
 
 func (m *Model) OrganizationCategoryModel(data *OrganizationCategory) *OrganizationCategoryResponse {
 	return ToModel(data, func(data *OrganizationCategory) *OrganizationCategoryResponse {
@@ -93,6 +83,7 @@ func NewOrganizationCategoryCollection(
 				fmt.Sprintf("organization_category.delete.organization.%s", data.OrganizationID),
 			}, model.OrganizationCategoryModel(data)
 		},
+		[]string{},
 	)
 	return &OrganizationCategoryCollection{
 		Manager: manager,

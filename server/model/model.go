@@ -72,6 +72,7 @@ type (
 		created   func(*T) ([]string, any)
 		updated   func(*T) ([]string, any)
 		deleted   func(*T) ([]string, any)
+		preloads  []string
 	}
 )
 
@@ -119,6 +120,7 @@ func NewcollectionManager[T any](
 	created func(*T) ([]string, any),
 	updated func(*T) ([]string, any),
 	deleted func(*T) ([]string, any),
+	preloads []string,
 ) CollectionManager[T] {
 	return &collectionManager[T]{
 		database:  database,
@@ -126,11 +128,13 @@ func NewcollectionManager[T any](
 		created:   created,
 		updated:   updated,
 		deleted:   deleted,
+		preloads:  preloads,
 	}
 }
 func (r *collectionManager[T]) List(preloads ...string) ([]*T, error) {
 	var entities []*T
 	db := r.database.Client().Model(new(T))
+	preloads = horizon.MergeString(r.preloads, preloads)
 	for _, preload := range preloads {
 		db = db.Preload(preload)
 	}
@@ -143,6 +147,7 @@ func (r *collectionManager[T]) List(preloads ...string) ([]*T, error) {
 func (r *collectionManager[T]) GetByID(id uuid.UUID, preloads ...string) (*T, error) {
 	var entity T
 	db := r.database.Client().Model(new(T))
+	preloads = horizon.MergeString(r.preloads, preloads)
 	for _, preload := range preloads {
 		db = db.Preload(preload)
 	}
@@ -155,6 +160,7 @@ func (r *collectionManager[T]) GetByID(id uuid.UUID, preloads ...string) (*T, er
 func (r *collectionManager[T]) Find(fields *T, preloads ...string) ([]*T, error) {
 	var entities []*T
 	db := r.database.Client().Model(fields).Where(fields)
+	preloads = horizon.MergeString(r.preloads, preloads)
 	for _, preload := range preloads {
 		db = db.Preload(preload)
 	}
@@ -167,6 +173,7 @@ func (r *collectionManager[T]) Find(fields *T, preloads ...string) ([]*T, error)
 func (r *collectionManager[T]) FindOne(fields *T, preloads ...string) (*T, error) {
 	var entity T
 	db := r.database.Client().Model(fields).Where(fields)
+	preloads = horizon.MergeString(r.preloads, preloads)
 	for _, preload := range preloads {
 		db = db.Preload(preload)
 	}
@@ -196,6 +203,7 @@ func (r *collectionManager[T]) Create(entity *T, preloads ...string) error {
 	if err := r.database.Client().Create(entity).Error; err != nil {
 		return eris.Wrap(err, "failed to create entity")
 	}
+	preloads = horizon.MergeString(r.preloads, preloads)
 	if len(preloads) > 0 {
 		id, err := getID(entity)
 		if err != nil {
@@ -217,6 +225,7 @@ func (r *collectionManager[T]) CreateWithTx(tx *gorm.DB, entity *T, preloads ...
 	if err := tx.Create(entity).Error; err != nil {
 		return eris.Wrap(err, "failed to create entity in transaction")
 	}
+	preloads = horizon.MergeString(r.preloads, preloads)
 	if len(preloads) > 0 {
 		id, err := getID(entity)
 		if err != nil {
@@ -238,6 +247,7 @@ func (r *collectionManager[T]) CreateMany(entities []*T, preloads ...string) err
 	if err := r.database.Client().Create(entities).Error; err != nil {
 		return eris.Wrap(err, "failed to create entities")
 	}
+	preloads = horizon.MergeString(r.preloads, preloads)
 	if len(preloads) > 0 {
 		ids := make([]uuid.UUID, len(entities))
 		for i, entity := range entities {
@@ -277,6 +287,7 @@ func (r *collectionManager[T]) CreateManyWithTx(tx *gorm.DB, entities []*T, prel
 	if err := tx.Create(entities).Error; err != nil {
 		return eris.Wrap(err, "failed to create entities in transaction")
 	}
+	preloads = horizon.MergeString(r.preloads, preloads)
 	if len(preloads) > 0 {
 		ids := make([]uuid.UUID, len(entities))
 		for i, entity := range entities {
@@ -316,6 +327,7 @@ func (r *collectionManager[T]) Update(entity *T, preloads ...string) error {
 	if err := r.database.Client().Save(entity).Error; err != nil {
 		return eris.Wrap(err, "failed to update entity")
 	}
+	preloads = horizon.MergeString(r.preloads, preloads)
 	if len(preloads) > 0 {
 		id, err := getID(entity)
 		if err != nil {
@@ -337,6 +349,7 @@ func (r *collectionManager[T]) UpdateWithTx(tx *gorm.DB, entity *T, preloads ...
 	if err := tx.Save(entity).Error; err != nil {
 		return eris.Wrap(err, "failed to update entity in transaction")
 	}
+	preloads = horizon.MergeString(r.preloads, preloads)
 	if len(preloads) > 0 {
 		id, err := getID(entity)
 		if err != nil {
@@ -361,6 +374,7 @@ func (r *collectionManager[T]) UpdateByID(id uuid.UUID, entity *T, preloads ...s
 	if err := r.database.Client().Save(entity).Error; err != nil {
 		return eris.Wrap(err, "failed to update entity by ID")
 	}
+	preloads = horizon.MergeString(r.preloads, preloads)
 	if len(preloads) > 0 {
 		db := r.database.Client().Model(entity)
 		for _, preload := range preloads {
@@ -381,6 +395,7 @@ func (r *collectionManager[T]) UpdateByIDWithTx(tx *gorm.DB, id uuid.UUID, entit
 	if err := tx.Save(entity).Error; err != nil {
 		return eris.Wrap(err, "failed to update entity by ID in transaction")
 	}
+	preloads = horizon.MergeString(r.preloads, preloads)
 	if len(preloads) > 0 {
 		db := tx.Model(entity)
 		for _, preload := range preloads {
@@ -398,6 +413,7 @@ func (r *collectionManager[T]) UpdateFields(id uuid.UUID, fields *T, preloads ..
 	if err := r.database.Client().Model(new(T)).Where("id = ?", id).Updates(fields).Error; err != nil {
 		return eris.Wrap(err, "failed to update fields")
 	}
+	preloads = horizon.MergeString(r.preloads, preloads)
 	db := r.database.Client().Model(new(T)).Where("id = ?", id)
 	for _, preload := range preloads {
 		db = db.Preload(preload)
@@ -413,6 +429,7 @@ func (r *collectionManager[T]) UpdateFieldsWithTx(tx *gorm.DB, id uuid.UUID, fie
 	if err := tx.Model(new(T)).Where("id = ?", id).Updates(fields).Error; err != nil {
 		return eris.Wrap(err, "failed to update fields in transaction")
 	}
+	preloads = horizon.MergeString(r.preloads, preloads)
 	db := tx.Model(new(T)).Where("id = ?", id)
 	for _, preload := range preloads {
 		db = db.Preload(preload)
@@ -425,6 +442,7 @@ func (r *collectionManager[T]) UpdateFieldsWithTx(tx *gorm.DB, id uuid.UUID, fie
 }
 
 func (r *collectionManager[T]) UpdateMany(entities []*T, preloads ...string) error {
+	preloads = horizon.MergeString(r.preloads, preloads)
 	for _, entity := range entities {
 		if err := r.Update(entity, preloads...); err != nil {
 			return eris.Wrap(err, "failed to update many entities")
@@ -435,6 +453,7 @@ func (r *collectionManager[T]) UpdateMany(entities []*T, preloads ...string) err
 }
 
 func (r *collectionManager[T]) UpdateManyWithTx(tx *gorm.DB, entities []*T, preloads ...string) error {
+	preloads = horizon.MergeString(r.preloads, preloads)
 	for _, entity := range entities {
 		if err := r.UpdateWithTx(tx, entity, preloads...); err != nil {
 			return eris.Wrap(err, "failed to update many entities in transaction")
@@ -445,6 +464,7 @@ func (r *collectionManager[T]) UpdateManyWithTx(tx *gorm.DB, entities []*T, prel
 }
 
 func (r *collectionManager[T]) Upsert(entity *T, preloads ...string) error {
+	preloads = horizon.MergeString(r.preloads, preloads)
 	id, err := getID(entity)
 	if err != nil {
 		return eris.Wrap(err, "failed to get ID for upsert")
@@ -467,6 +487,7 @@ func (r *collectionManager[T]) UpsertWithTx(tx *gorm.DB, entity *T, preloads ...
 	if err != nil {
 		return eris.Wrap(err, "failed to get ID for upsert in transaction")
 	}
+	preloads = horizon.MergeString(r.preloads, preloads)
 	if id == uuid.Nil {
 		return r.CreateWithTx(tx, entity, preloads...)
 	}
@@ -481,6 +502,7 @@ func (r *collectionManager[T]) UpsertWithTx(tx *gorm.DB, entity *T, preloads ...
 }
 
 func (r *collectionManager[T]) UpsertMany(entities []*T, preloads ...string) error {
+	preloads = horizon.MergeString(r.preloads, preloads)
 	for _, entity := range entities {
 		if err := r.Upsert(entity, preloads...); err != nil {
 			return eris.Wrap(err, "failed to upsert many entities")
@@ -490,6 +512,7 @@ func (r *collectionManager[T]) UpsertMany(entities []*T, preloads ...string) err
 }
 
 func (r *collectionManager[T]) UpsertManyWithTx(tx *gorm.DB, entities []*T, preloads ...string) error {
+	preloads = horizon.MergeString(r.preloads, preloads)
 	for _, entity := range entities {
 		if err := r.UpsertWithTx(tx, entity, preloads...); err != nil {
 			return eris.Wrap(err, "failed to upsert many entities in transaction")

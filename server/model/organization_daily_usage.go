@@ -147,6 +147,7 @@ func NewOrganizationDailyUsageCollection(
 				fmt.Sprintf("organization_daily_usage.delete.organization.%s", data.OrganizationID),
 			}, model.OrganizationDailyUsageModel(data)
 		},
+		[]string{},
 	)
 	return &OrganizationDailyUsageCollection{
 		Manager: manager,

@@ -90,6 +90,7 @@ func NewNotificationCollection(
 				fmt.Sprintf("notification.delete.%s", data.ID),
 			}, model.NotificationModel(data)
 		},
+		[]string{},
 	)
 	return &NotificationCollection{
 		Manager: manager,

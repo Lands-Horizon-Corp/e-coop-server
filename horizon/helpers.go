@@ -10,6 +10,8 @@ import (
 	"strings"
 	"syscall"
 	"time"
+	"unicode"
+	"unicode/utf8"
 
 	"github.com/labstack/echo/v4"
 )
@@ -124,4 +126,31 @@ func StringFormat(value *string) string {
 		return ""
 	}
 	return *value
+}
+
+func Capitalize(s string) string {
+	if s == "" {
+		return s
+	}
+	r, size := utf8.DecodeRuneInString(s)
+	return string(unicode.ToUpper(r)) + s[size:]
+}
+
+func MergeString(defaults, overrides []string) []string {
+	totalCap := len(defaults) + len(overrides)
+	seen := make(map[string]struct{}, totalCap)
+	out := make([]string, 0, totalCap)
+	for _, slice := range [][]string{defaults, overrides} {
+		for _, p := range slice {
+			cp := Capitalize(p)
+			if cp == "" {
+				continue
+			}
+			if _, exists := seen[cp]; !exists {
+				seen[cp] = struct{}{}
+				out = append(out, cp)
+			}
+		}
+	}
+	return out
 }
