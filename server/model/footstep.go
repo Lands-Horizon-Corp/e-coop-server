@@ -76,6 +76,10 @@ type (
 		Location       string   `json:"location"`
 		AcceptLanguage string   `json:"accept_language"`
 	}
+
+	FootstepCollection struct {
+		Manager CollectionManager[Footstep]
+	}
 )
 
 func (m *Model) FootstepModel(data *Footstep) *FootstepResponse {

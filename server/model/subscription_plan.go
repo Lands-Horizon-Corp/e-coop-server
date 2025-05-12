@@ -56,6 +56,10 @@ type (
 		CreatedAt           string    `json:"created_at"`
 		UpdatedAt           string    `json:"updated_at"`
 	}
+
+	SubscriptionPlanCollection struct {
+		Manager CollectionManager[SubscriptionPlan]
+	}
 )
 
 func (m *Model) SubscriptionPlanValidate(ctx echo.Context) (*SubscriptionPlanRequest, error) {

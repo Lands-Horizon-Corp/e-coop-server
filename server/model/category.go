@@ -40,6 +40,10 @@ type (
 		Color       string `json:"color" validate:"required,min=1,max=50"`
 		Icon        string `json:"icon" validate:"required,min=1,max=50"`
 	}
+
+	CategoryCollection struct {
+		Manager CollectionManager[Category]
+	}
 )
 
 func (m *Model) CategoryValidate(ctx echo.Context) (*CategoryRequest, error) {

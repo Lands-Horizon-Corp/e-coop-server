@@ -74,6 +74,9 @@ type (
 		PermissionDescription  string        `json:"permission_description"`
 		Permissions            []string      `json:"permissions"`
 	}
+	UserOrganizationCollection struct {
+		Manager CollectionManager[UserOrganization]
+	}
 )
 
 func (m *Model) UserOrganizationValidate(ctx echo.Context) (*UserOrganizationRequest, error) {

@@ -73,6 +73,9 @@ type (
 		CurrentUse     int    `json:"CurrentUse"`
 		Description    string `json:"Description"`
 	}
+	InvitationCodeCollection struct {
+		Manager CollectionManager[InvitationCode]
+	}
 )
 
 func (m *Model) InvitationCodeValidate(ctx echo.Context) (*InvitationCodeRequest, error) {

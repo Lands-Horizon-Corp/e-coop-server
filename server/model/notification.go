@@ -33,6 +33,10 @@ type (
 		CreatedAt        string        `json:"created_at"`
 		UpdatedAt        string        `json:"updated_at"`
 	}
+
+	NotificationCollection struct {
+		Manager CollectionManager[Notification]
+	}
 )
 
 func (m *Model) NotificationModel(data *Notification) *NotificationResponse {

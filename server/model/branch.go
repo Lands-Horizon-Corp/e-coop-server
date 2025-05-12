@@ -1,11 +1,14 @@
 package model
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
+	"horizon.com/server/horizon"
+	"horizon.com/server/server/manager"
 )
 
 type (
@@ -99,11 +102,10 @@ type (
 		PermissionTemplates []*PermissionTemplateResponse `json:"permission_templates,omitempty"`
 		UserOrganizations   []*UserOrganizationResponse   `json:"user_organizations,omitempty"`
 	}
+	BranchCollection struct {
+		Manager CollectionManager[Branch]
+	}
 )
-
-func (m *Model) BranchValidate(ctx echo.Context) (*BranchRequest, error) {
-	return Validate[BranchRequest](ctx, m.validator)
-}
 
 func (m *Model) BranchModel(data *Branch) *BranchResponse {
 	return ToModel(data, func(data *Branch) *BranchResponse {
@@ -142,6 +144,33 @@ func (m *Model) BranchModel(data *Branch) *BranchResponse {
 	})
 }
 
+func (m *Model) BranchValidate(ctx echo.Context) (*BranchRequest, error) {
+	return Validate[BranchRequest](ctx, m.validator)
+}
+
 func (m *Model) BranchModels(data []*Branch) []*BranchResponse {
 	return ToModels(data, m.BranchModel)
+}
+
+func NewBranchCollection(
+	broadcast *horizon.HorizonBroadcast,
+	database *horizon.HorizonDatabase,
+	mod *Model,
+) (*BranchCollection, error) {
+	manager := manager.NewcollectionManager(
+		database,
+		broadcast,
+		func(data *Branch) ([]string, any) {
+			return []string{"branch.create", fmt.Sprintf("branch.create.%s", data.ID)}, mod.BranchModel(data)
+		},
+		func(data *Branch) ([]string, any) {
+			return []string{"branch.updated", fmt.Sprintf("branch.update.%s", data.ID)}, mod.BranchModel(data)
+		},
+		func(data *Branch) ([]string, any) {
+			return []string{"branch.deleted", fmt.Sprintf("branch.delete.%s", data.ID)}, mod.BranchModel(data)
+		},
+	)
+	return &BranchCollection{
+		Manager: manager,
+	}, nil
 }

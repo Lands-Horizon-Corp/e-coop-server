@@ -57,6 +57,10 @@ type (
 		BucketName string `json:"bucket_name,omitempty" validate:"max=255"`
 		Progress   int64  `json:"status"`
 	}
+
+	MediaCollection struct {
+		Manager CollectionManager[Media]
+	}
 )
 
 func (m *Model) MediaValidate(ctx echo.Context) (*MediaRequest, error) {

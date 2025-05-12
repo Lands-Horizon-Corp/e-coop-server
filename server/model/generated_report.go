@@ -60,6 +60,9 @@ type (
 		Name        string `json:"firstName" validate:"required,min=1,max=255"`
 		Description string `json:"description" validate:"required,min=1"`
 	}
+	GeneratedReportCollection struct {
+		Manager CollectionManager[GeneratedReport]
+	}
 )
 
 func (m *Model) GeneratedReportModel(data *GeneratedReport) *GeneratedReportResponse {

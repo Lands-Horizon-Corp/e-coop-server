@@ -131,6 +131,10 @@ type (
 		SubscriptionPlanID       uuid.UUID `json:"subscription_plan_id" validate:"required,uuid4"`
 		SubscriptionPlanIsYearly *bool     `json:"subscription_plan_is_yearly,omitempty"`
 	}
+
+	OrganizationCollection struct {
+		Manager CollectionManager[Organization]
+	}
 )
 
 func (m *Model) OrganizationValidate(ctx echo.Context) (*OrganizationRequest, error) {

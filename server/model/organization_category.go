@@ -37,6 +37,10 @@ type (
 		CategoryID     *uuid.UUID            `json:"category_id"`
 		Category       *CategoryResponse     `json:"category"`
 	}
+
+	OrganizationCategoryCollection struct {
+		Manager CollectionManager[OrganizationCategory]
+	}
 )
 
 func (m *Model) OrganizationCategoryValidate(ctx echo.Context) (*OrganizationCategoryRequest, error) {

@@ -57,6 +57,10 @@ type (
 		Description string   `json:"description,omitempty"`
 		Permissions []string `json:"permissions"`
 	}
+
+	PermissionTemplateCollection struct {
+		Manager CollectionManager[PermissionTemplate]
+	}
 )
 
 func (m *Model) PermissionTemplateValidate(ctx echo.Context) (*PermissionTemplateRequest, error) {

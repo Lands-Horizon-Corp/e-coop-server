@@ -38,6 +38,9 @@ type (
 		FeedbackType string     `json:"feedback_type" validate:"required,oneof=general bug feature"`
 		MediaID      *uuid.UUID `json:"media_id,omitempty"`
 	}
+	FeedbackCollection struct {
+		Manager CollectionManager[Feedback]
+	}
 )
 
 func (m *Model) FeedbackValidate(ctx echo.Context) (*FeedbackRequest, error) {

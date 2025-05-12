@@ -78,6 +78,9 @@ type (
 		CreatedAt             string  `json:"created_at"`
 		UpdatedAt             string  `json:"updated_at"`
 	}
+	OrganizationDailyUsageCollection struct {
+		Manager CollectionManager[OrganizationDailyUsage]
+	}
 )
 
 func (m *Model) OrganizationDailyUsageValidate(ctx echo.Context) (*OrganizationDailyUsageRequest, error) {

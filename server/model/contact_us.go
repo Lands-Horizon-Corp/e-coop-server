@@ -39,6 +39,10 @@ type (
 		ContactNumber string `json:"contactNumber,omitempty" validate:"omitempty,min=1,max=20"`
 		Description   string `json:"description" validate:"required,min=1"`
 	}
+
+	ContactUsCollection struct {
+		Manager CollectionManager[ContactUs]
+	}
 )
 
 func (m *Model) ContactUsValidate(ctx echo.Context) (*ContactUsRequest, error) {
