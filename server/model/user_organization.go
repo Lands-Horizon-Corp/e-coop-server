@@ -38,6 +38,16 @@ type (
 		PermissionName         string         `gorm:"type:varchar(255);not null" json:"permission_name"`
 		PermissionDescription  string         `gorm:"type:varchar(255);not null" json:"permission_description"`
 		Permissions            pq.StringArray `gorm:"type:varchar[];default:'{}'"`
+
+		UserSettingDescription string `gorm:"type:text" json:"user_setting_description"`
+
+		UserSettingStartOR int64 `gorm:"unsigned" json:"start_or"`
+		UserSettingEndOR   int64 `gorm:"unsigned" json:"end_or"`
+		UserSettingUsedOR  int64 `gorm:"unsigned" json:"used_or"`
+
+		UserSettingStartVoucher int64 `gorm:"unsigned" json:"start_voucher"`
+		UserSettingEndVoucher   int64 `gorm:"unsigned" json:"end_voucher"`
+		UserSettingUsedVoucher  int64 `gorm:"unsigned" json:"used_voucher"`
 	}
 
 	UserOrganizationRequest struct {
@@ -49,6 +59,16 @@ type (
 		PermissionName         string         `json:"permission_name" validate:"required"`
 		PermissionDescription  string         `json:"permission_description" validate:"required"`
 		Permissions            pq.StringArray `json:"permissions,omitempty" validate:"dive,required"`
+
+		UserSettingDescription string `json:"user_setting_description,omitempty"`
+
+		UserSettingStartOR int64 `json:"user_setting_start_or,omitempty" validate:"required,min=0"`
+		UserSettingEndOR   int64 `json:"user_setting_end_or,omitempty" validate:"required,min=0"`
+		UserSettingUsedOR  int64 `json:"user_setting_used_or,omitempty" validate:"required,min=0"`
+
+		UserSettingStartVoucher int64 `json:"user_setting_start_voucher,omitempty" validate:"required,min=0"`
+		UserSettingEndVoucher   int64 `json:"user_setting_end_voucher,omitempty" validate:"required,min=0"`
+		UserSettingUsedVoucher  int64 `json:"user_setting_used_voucher,omitempty" validate:"required,min=0"`
 	}
 
 	UserOrganizationResponse struct {
@@ -74,6 +94,16 @@ type (
 		PermissionName         string        `json:"permission_name"`
 		PermissionDescription  string        `json:"permission_description"`
 		Permissions            []string      `json:"permissions"`
+
+		UserSettingDescription string `json:"user_setting_description"`
+
+		UserSettingStartOR int64 `json:"user_setting_start_or"`
+		UserSettingEndOR   int64 `json:"user_setting_end_or"`
+		UserSettingUsedOR  int64 `json:"user_setting_used_or"`
+
+		UserSettingStartVoucher int64 `json:"user_setting_start_voucher"`
+		UserSettingEndVoucher   int64 `json:"user_setting_end_voucher"`
+		UserSettingUsedVoucher  int64 `json:"user_setting_used_voucher"`
 	}
 	UserOrganizationCollection struct {
 		Manager horizon_manager.CollectionManager[UserOrganization]
@@ -112,6 +142,14 @@ func (m *Model) UserOrganizationModel(data *UserOrganization) *UserOrganizationR
 			PermissionName:         data.PermissionName,
 			PermissionDescription:  data.PermissionDescription,
 			Permissions:            data.Permissions,
+
+			UserSettingDescription:  data.UserSettingDescription,
+			UserSettingStartOR:      data.UserSettingStartOR,
+			UserSettingEndOR:        data.UserSettingEndOR,
+			UserSettingUsedOR:       data.UserSettingUsedOR,
+			UserSettingStartVoucher: data.UserSettingStartVoucher,
+			UserSettingEndVoucher:   data.UserSettingEndVoucher,
+			UserSettingUsedVoucher:  data.UserSettingUsedVoucher,
 		}
 	})
 }

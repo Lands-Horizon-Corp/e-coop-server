@@ -96,6 +96,14 @@ func (c *Controller) UserOrganizationUpdate(ctx echo.Context) error {
 	model.Permissions = req.Permissions
 	model.UpdatedAt = time.Now().UTC()
 
+	model.UserSettingDescription = req.UserSettingDescription
+	model.UserSettingStartOR = req.UserSettingStartOR
+	model.UserSettingEndOR = req.UserSettingEndOR
+	model.UserSettingUsedOR = req.UserSettingUsedOR
+	model.UserSettingStartVoucher = req.UserSettingStartVoucher
+	model.UserSettingEndVoucher = req.UserSettingEndVoucher
+	model.UserSettingUsedVoucher = req.UserSettingUsedVoucher
+
 	currentUserOrg, err := c.provider.UserOwnerEmployee(ctx, model.OrganizationID.String(), model.BranchID.String())
 	if err != nil {
 		return err
@@ -155,6 +163,14 @@ func (c *Controller) UserOrganizationJoin(ctx echo.Context) error {
 		PermissionName:         req.UserType,
 		PermissionDescription:  "",
 		Permissions:            []string{},
+
+		UserSettingDescription:  req.UserSettingDescription,
+		UserSettingStartOR:      req.UserSettingStartOR,
+		UserSettingEndOR:        req.UserSettingEndOR,
+		UserSettingUsedOR:       req.UserSettingUsedOR,
+		UserSettingStartVoucher: req.UserSettingStartVoucher,
+		UserSettingEndVoucher:   req.UserSettingEndVoucher,
+		UserSettingUsedVoucher:  req.UserSettingUsedVoucher,
 	}
 	if err := c.userOrganization.Manager.Update(userOrg); err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
@@ -218,6 +234,14 @@ func (c *Controller) UserOrganizationJoinByCode(ctx echo.Context) error {
 		PermissionName:         req.UserType,
 		PermissionDescription:  "",
 		Permissions:            []string{},
+
+		UserSettingDescription:  req.UserSettingDescription,
+		UserSettingStartOR:      req.UserSettingStartOR,
+		UserSettingEndOR:        req.UserSettingEndOR,
+		UserSettingUsedOR:       req.UserSettingUsedOR,
+		UserSettingStartVoucher: req.UserSettingStartVoucher,
+		UserSettingEndVoucher:   req.UserSettingEndVoucher,
+		UserSettingUsedVoucher:  req.UserSettingUsedVoucher,
 	}
 
 	tx := c.database.Client().Begin()
