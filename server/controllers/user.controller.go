@@ -293,23 +293,44 @@ func (c *Controller) UserVerifyWithContactNumber(ctx echo.Context) error {
 }
 
 func (c *Controller) UserVerifyWithContactNumberConfirmation(ctx echo.Context) error {
-	req, err := c.model.UserVerifyWithContactNumberConfirmationValidate(ctx)
+	req, err := c.model.UserVerifyWithPasswordValidate(ctx)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "invalid request: "+err.Error())
 	}
-	claim, err := c.authentication.GetUserFromToken(ctx)
+	user, err := c.provider.CurrentUser(ctx)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnauthorized, "authentication required")
 	}
-	valid := c.authentication.VerifySMSOTP(*claim, req.OTP)
-	if !valid {
-		return echo.NewHTTPError(http.StatusUnauthorized, "invalid or expired OTP")
+
+	if ok := c.authentication.VerifyPassword(user.Password, req.Password); !ok {
+		return echo.NewHTTPError(http.StatusUnauthorized, "invalid credentials")
 	}
-	id, err := uuid.Parse(claim.ID)
+	return ctx.NoContent(http.StatusOK)
+}
+func (c *Controller) UserVerifyWithPassword(ctx echo.Context) error {
+	req, err := c.model.UserSettingsChangePasswordValidate(ctx)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid user ID in token")
+		return err
 	}
-	updatedUser, err := c.user.Manager.GetByID(id)
+	user, err := c.provider.CurrentUser(ctx)
+	if err != nil {
+		return err
+	}
+	if ok := c.authentication.VerifyPassword(user.Password, req.Password); !ok {
+		return echo.NewHTTPError(http.StatusUnauthorized, "invalid credentials")
+	}
+	hashedPwd, err := c.authentication.Password(req.NewPassword)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to hash new password")
+	}
+
+	if err := c.user.Manager.UpdateFields(user.ID, &model.User{
+		Password:  hashedPwd,
+		UpdatedAt: time.Now().UTC(),
+	}); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to update password: "+err.Error())
+	}
+	updatedUser, err := c.user.Manager.GetByID(user.ID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to fetch updated user")
 	}

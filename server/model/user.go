@@ -133,6 +133,9 @@ type (
 	UserVerifyWithContactNumberConfirmationRequest struct {
 		OTP string `json:"otp" validate:"required,min=6"`
 	}
+	UserVerifyWithPasswordRequest struct {
+		Password string `json:"password" validate:"required,min=6"`
+	}
 
 	UserSettingsChangePasswordRequest struct {
 		Password        string `json:"password" validate:"required,min=8"`
@@ -258,6 +261,10 @@ func (m *Model) UserVerifyWithContactNumberValidate(ctx echo.Context) (*UserVeri
 func (m *Model) UserVerifyWithContactNumberConfirmationValidate(ctx echo.Context) (*UserVerifyWithContactNumberConfirmationRequest, error) {
 	return horizon_manager.Validate[UserVerifyWithContactNumberConfirmationRequest](ctx, m.validator)
 }
+func (m *Model) UserVerifyWithPasswordValidate(ctx echo.Context) (*UserVerifyWithPasswordRequest, error) {
+	return horizon_manager.Validate[UserVerifyWithPasswordRequest](ctx, m.validator)
+}
+
 func (m *Model) UserSettingsChangePasswordValidate(ctx echo.Context) (*UserSettingsChangePasswordRequest, error) {
 	return horizon_manager.Validate[UserSettingsChangePasswordRequest](ctx, m.validator)
 }

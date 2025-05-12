@@ -226,6 +226,7 @@ func (c *Controller) Routes(service *echo.Echo) {
 		authenticationG.POST("/verify-with-email-confirmation", c.UserVerifyWithEmailConfirmation)
 		authenticationG.POST("/verify-with-contact", c.UserVerifyWithContactNumber)
 		authenticationG.POST("/verify-with-contact-confirmation", c.UserVerifyWithContactNumberConfirmation)
+		authenticationG.POST("/verify-with-password", c.UserVerifyWithPassword)
 	}
 	profileGroup := service.Group("/profile")
 	{
