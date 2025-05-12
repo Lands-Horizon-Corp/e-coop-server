@@ -95,3 +95,18 @@ func NewNotificationCollection(
 		Manager: manager,
 	}, nil
 }
+
+// footstep/user/:user_id
+func (fc *NotificationCollection) ListByUser(userID uuid.UUID) ([]*Notification, error) {
+	return fc.Manager.Find(&Notification{
+		UserID: userID,
+	})
+}
+
+// footstep/user/:user_id/is-view-count
+func (fc *NotificationCollection) ListByUserUnviewed(userID uuid.UUID) (int64, error) {
+	return fc.Manager.Count(&Notification{
+		UserID:   userID,
+		IsViewed: false,
+	})
+}

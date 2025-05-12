@@ -2,10 +2,12 @@ package model
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 	"horizon.com/server/horizon"
 )
@@ -301,4 +303,38 @@ func NewUserCollection(
 	return &UserCollection{
 		Manager: manager,
 	}, nil
+}
+
+// user/contact-number/:contact_number_id
+func (fc *UserCollection) ByContactNumber(contactNumber string) (*User, error) {
+	return fc.Manager.FindOne(&User{ContactNumber: contactNumber})
+}
+
+// user/email/:email
+func (fc *UserCollection) ByEmail(email string) (*User, error) {
+	return fc.Manager.FindOne(&User{Email: email})
+}
+
+// user/user-name/:user-name
+func (fc *UserCollection) ByUserName(userName string) (*User, error) {
+	return fc.Manager.FindOne(&User{UserName: userName})
+}
+
+// user/identifier/:identifier
+func (fc *UserCollection) ByIdentifier(identifier string) (*User, error) {
+	if strings.Contains(identifier, "@") {
+		if u, err := fc.ByEmail(identifier); err == nil {
+			return u, nil
+		}
+	}
+	numeric := strings.Trim(identifier, "+-0123456789")
+	if numeric == "" {
+		if u, err := fc.ByContactNumber(identifier); err == nil {
+			return u, nil
+		}
+	}
+	if u, err := fc.ByUserName(identifier); err == nil {
+		return u, nil
+	}
+	return nil, eris.New("user not found by email, contact number, or username")
 }

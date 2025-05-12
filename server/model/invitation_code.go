@@ -1,11 +1,13 @@
 package model
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/rotisserie/eris"
 	"horizon.com/server/horizon"
 
 	"gorm.io/gorm"
@@ -164,4 +166,95 @@ func NewInvitationCodeCollection(
 	return &InvitationCodeCollection{
 		Manager: manager,
 	}, nil
+}
+
+// invitation-code/branch/:branch_id
+func (ic *InvitationCodeCollection) ListByBranch(branchID uuid.UUID) ([]*InvitationCode, error) {
+	return ic.Manager.Find(&InvitationCode{
+		BranchID: branchID,
+	})
+}
+
+// invitation-code/organization/:organization_id
+func (ic *InvitationCodeCollection) ListByOrganization(organizationID uuid.UUID) ([]*InvitationCode, error) {
+	return ic.Manager.Find(&InvitationCode{
+		OrganizationID: organizationID,
+	})
+}
+
+// invitation-code/organization/:organization_id/branch/:branch_id
+func (ic *InvitationCodeCollection) ListByOrganizationBranch(branchID uuid.UUID, organizationID uuid.UUID) ([]*InvitationCode, error) {
+	return ic.Manager.Find(&InvitationCode{
+		BranchID:       organizationID,
+		OrganizationID: branchID,
+	})
+}
+
+// invitation-code/exists/:code
+func (ic *InvitationCodeCollection) Exists(code string) (bool, error) {
+	_, err := ic.Manager.FindOne(&InvitationCode{Code: code})
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
+}
+
+// invitation-code/code/:code
+func (ic *InvitationCodeCollection) ByCode(code string) (*InvitationCode, error) {
+	return ic.Manager.FindOne(&InvitationCode{Code: code})
+}
+
+// invitation-code/redeem/:code
+func (ic *InvitationCodeCollection) Redeem(tx *gorm.DB, code string) (*InvitationCode, error) {
+	inv, err := ic.Manager.FindOne(&InvitationCode{Code: code})
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, eris.Wrapf(err, "failed to lookup invitation code %q", code)
+	}
+	now := time.Now()
+	if now.After(inv.ExpirationDate) {
+		return nil, eris.Errorf("invitation code %q expired on %s", code, inv.ExpirationDate.Format(time.RFC3339))
+	}
+	if inv.CurrentUse >= inv.MaxUse {
+		return nil, eris.Errorf(
+			"invitation code %q has already been used %d times (max %d)",
+			code, inv.CurrentUse, inv.MaxUse,
+		)
+	}
+	inv.CurrentUse++
+	if err := ic.Manager.UpdateWithTx(tx, inv); err != nil {
+		return nil, eris.Wrapf(
+			err,
+			"failed to redeem invitation code %q (increment CurrentUse)",
+			code,
+		)
+	}
+	return inv, nil
+}
+
+// invitation-code/verfiy/:code
+func (ic *InvitationCodeCollection) Verify(code string) (*InvitationCode, error) {
+	inv, err := ic.Manager.FindOne(&InvitationCode{Code: code})
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, eris.Wrapf(err, "failed to lookup invitation code %q", code)
+	}
+	now := time.Now()
+	if now.After(inv.ExpirationDate) {
+		return nil, eris.Errorf("invitation code %q expired on %s", code, inv.ExpirationDate.Format(time.RFC3339))
+	}
+	if inv.CurrentUse >= inv.MaxUse {
+		return nil, eris.Errorf(
+			"invitation code %q has already been used %d times (max %d)",
+			code, inv.CurrentUse, inv.MaxUse,
+		)
+	}
+	return inv, nil
 }

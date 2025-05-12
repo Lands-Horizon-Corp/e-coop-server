@@ -185,3 +185,10 @@ func NewBranchCollection(
 		Manager: manager,
 	}, nil
 }
+
+// branch/organization/:organization_id
+func (bc *BranchCollection) ByOrganizations(orgID uuid.UUID) ([]*Branch, error) {
+	return bc.Manager.Find(&Branch{
+		OrganizationID: orgID,
+	})
+}

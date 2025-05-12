@@ -149,3 +149,65 @@ func NewUserOrganizationCollection(
 		Manager: manager,
 	}, nil
 }
+
+// user-organization/user/:user_id
+func (fc *UserOrganizationCollection) ListByUser(userID uuid.UUID) ([]*UserOrganization, error) {
+	return fc.Manager.Find(&UserOrganization{
+		UserID: userID,
+	})
+}
+
+// user-organization/organization/:organization_id
+func (fc *UserOrganizationCollection) ListByOrganization(organizationID uuid.UUID) ([]*UserOrganization, error) {
+	return fc.Manager.Find(&UserOrganization{
+		OrganizationID: organizationID,
+	})
+}
+
+// user-organization/branch/:branch_id
+func (fc *UserOrganizationCollection) ListByBranch(branchID uuid.UUID) ([]*UserOrganization, error) {
+	return fc.Manager.Find(&UserOrganization{
+		BranchID: branchID,
+	})
+}
+
+// user-organization/user/:user_id/organization/:organization_id
+func (fc *UserOrganizationCollection) ListByUserOrganization(
+	userID, organizationID uuid.UUID,
+) ([]*UserOrganization, error) {
+	return fc.Manager.Find(&UserOrganization{
+		UserID:         userID,
+		OrganizationID: organizationID,
+	})
+}
+
+// user-organization/user/:user_id/branch/:branch_id
+func (fc *UserOrganizationCollection) ListByUserBranch(
+	userID, branchID uuid.UUID,
+) ([]*UserOrganization, error) {
+	return fc.Manager.Find(&UserOrganization{
+		UserID:   userID,
+		BranchID: branchID,
+	})
+}
+
+// user-organization/organization/:organization_id/branch/:branch_id
+func (fc *UserOrganizationCollection) ListByOrganizationBranch(
+	organizationID, branchID uuid.UUID,
+) ([]*UserOrganization, error) {
+	return fc.Manager.Find(&UserOrganization{
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+	})
+}
+
+// user-organization/user/:user_id/organization/:organization_id/branch/:branch_id
+func (fc *UserOrganizationCollection) ListByUserOrgBranch(
+	userID, organizationID, branchID uuid.UUID,
+) ([]*UserOrganization, error) {
+	return fc.Manager.Find(&UserOrganization{
+		UserID:         userID,
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+	})
+}

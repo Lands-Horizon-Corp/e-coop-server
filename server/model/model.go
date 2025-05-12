@@ -27,6 +27,10 @@ type (
 		Find(fields *T, preloads ...string) ([]*T, error)
 		FindOne(fields *T, preloads ...string) (*T, error)
 
+		// --- Aggregation ---
+		Count(fields *T) (int64, error)
+		CountWithTx(tx *gorm.DB, fields *T) (int64, error)
+
 		// --- Creation ---
 
 		Create(entity *T, preloads ...string) error
@@ -170,6 +174,22 @@ func (r *collectionManager[T]) FindOne(fields *T, preloads ...string) (*T, error
 		return nil, eris.Wrap(err, "failed to find entity")
 	}
 	return &entity, nil
+}
+
+func (r *collectionManager[T]) Count(fields *T) (int64, error) {
+	var count int64
+	if err := r.database.Client().Model(fields).Where(fields).Count(&count).Error; err != nil {
+		return 0, eris.Wrap(err, "failed to count entities")
+	}
+	return count, nil
+}
+
+func (r *collectionManager[T]) CountWithTx(tx *gorm.DB, fields *T) (int64, error) {
+	var count int64
+	if err := tx.Model(fields).Where(fields).Count(&count).Error; err != nil {
+		return 0, eris.Wrap(err, "failed to count entities in transaction")
+	}
+	return count, nil
 }
 
 func (r *collectionManager[T]) Create(entity *T, preloads ...string) error {

@@ -160,3 +160,32 @@ func NewFootstepCollection(
 		Manager: manager,
 	}, nil
 }
+
+// footstep/user/:user_id
+func (fc *FootstepCollection) ListByUser(userID *uuid.UUID) ([]*Footstep, error) {
+	return fc.Manager.Find(&Footstep{
+		UserID: userID,
+	})
+}
+
+// footstep/branch/:branch_id
+func (fc *FootstepCollection) ListByBranch(branchID uuid.UUID) ([]*Footstep, error) {
+	return fc.Manager.Find(&Footstep{
+		BranchID: branchID,
+	})
+}
+
+// footstep/organization/:organization_id
+func (fc *FootstepCollection) ListByOrganization(organizationID uuid.UUID) ([]*Footstep, error) {
+	return fc.Manager.Find(&Footstep{
+		OrganizationID: organizationID,
+	})
+}
+
+// footstep/organization/:organization_id/branch/:branch_id
+func (fc *FootstepCollection) ListByOrganizationBranch(branchID uuid.UUID, organizationID uuid.UUID) ([]*Footstep, error) {
+	return fc.Manager.Find(&Footstep{
+		BranchID:       organizationID,
+		OrganizationID: branchID,
+	})
+}
