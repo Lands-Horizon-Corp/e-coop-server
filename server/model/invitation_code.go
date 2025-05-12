@@ -213,7 +213,6 @@ func (ic *InvitationCodeCollection) ByCode(code string) (*InvitationCode, error)
 	return ic.Manager.FindOne(&InvitationCode{Code: code})
 }
 
-// invitation-code/redeem/:code
 func (ic *InvitationCodeCollection) Redeem(tx *gorm.DB, code string) (*InvitationCode, error) {
 	inv, err := ic.Manager.FindOne(&InvitationCode{Code: code})
 	if err != nil {

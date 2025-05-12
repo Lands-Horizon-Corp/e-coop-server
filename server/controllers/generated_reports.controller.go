@@ -5,7 +5,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"horizon.com/server/horizon"
-	"horizon.com/server/server/model"
 )
 
 // GET /generated-report
@@ -36,8 +35,7 @@ func (c *Controller) GeneratedReportDelete(ctx echo.Context) error {
 	if err != nil {
 		return err
 	}
-	model := &model.GeneratedReport{ID: *id}
-	if err := c.generatedReport.Manager.Delete(model); err != nil {
+	if err := c.generatedReport.Manager.DeleteByID(*id); err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	return ctx.NoContent(http.StatusNoContent)

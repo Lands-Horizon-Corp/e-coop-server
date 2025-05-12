@@ -80,8 +80,7 @@ func (c *Controller) FeedbackDelete(ctx echo.Context) error {
 	if err != nil {
 		return err
 	}
-	model := &model.Feedback{ID: *id}
-	if err := c.feedback.Manager.Delete(model); err != nil {
+	if err := c.feedback.Manager.DeleteByID(*id); err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	return ctx.NoContent(http.StatusNoContent)

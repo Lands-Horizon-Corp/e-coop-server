@@ -82,8 +82,7 @@ func (c *Controller) ContactUsDelete(ctx echo.Context) error {
 	if err != nil {
 		return err
 	}
-	model := &model.ContactUs{ID: *id}
-	if err := c.contactUs.Manager.Delete(model); err != nil {
+	if err := c.contactUs.Manager.DeleteByID(*id); err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	return ctx.NoContent(http.StatusNoContent)

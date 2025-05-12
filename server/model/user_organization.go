@@ -144,7 +144,13 @@ func NewUserOrganizationCollection(
 				fmt.Sprintf("user_organization.delete.%s", data.ID),
 			}, model.UserOrganizationModel(data)
 		},
-		[]string{"Branch", "User", "Organization"},
+		[]string{
+			"CreatedBy",
+			"UpdatedBy",
+			"Branch",
+			"User",
+			"Organization",
+		},
 	)
 	return &UserOrganizationCollection{
 		Manager: manager,

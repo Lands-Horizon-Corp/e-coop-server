@@ -151,4 +151,18 @@ func (c *Controller) Routes(service *echo.Echo) {
 		generatedReportG.GET("/user/:user_id/branch/:branch_id", c.GeneratedReportUserBranch)
 		generatedReportG.GET("/user/:user_id/organization/:organization_id", c.GeneratedReportListByUserOrganization)
 	}
+
+	invitationCodeG := service.Group("/invitation-code")
+	{
+		invitationCodeG.GET("/", c.InvitationCode)
+		invitationCodeG.GET("/:invitation_code_id", c.InvitationCodeGetByID)
+		invitationCodeG.POST("/organization/:organization_id/branch/branch_id", c.InvitationCodeCreate)
+		invitationCodeG.PUT("/:invitation_code_id/organization/:organization_id/branch/branch_id", c.InvitationCodeUpdate)
+		invitationCodeG.DELETE("/:invitation_code_id/organization/:organization_id/branch/branch_id", c.InvitationCodeDelete)
+		invitationCodeG.GET("/branch/:branch_id", c.InvitationCodeListByBranch)
+		invitationCodeG.GET("/organization/:organization_id", c.InvitationCodeListByOrganization)
+		invitationCodeG.GET("/exists/:code", c.InvitationCodeListByOrganizationBranch)
+		invitationCodeG.GET("/code/:code", c.InvitationCodeExists)
+		invitationCodeG.GET("/verfiy/:code", c.InvitationCodeVerify)
+	}
 }

@@ -80,8 +80,7 @@ func (c *Controller) CategoryDelete(ctx echo.Context) error {
 	if err != nil {
 		return err
 	}
-	model := &model.Category{ID: *id}
-	if err := c.category.Manager.Delete(model); err != nil {
+	if err := c.category.Manager.DeleteByID(*id); err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	return ctx.NoContent(http.StatusNoContent)
