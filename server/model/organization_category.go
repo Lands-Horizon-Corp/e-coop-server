@@ -36,7 +36,8 @@ type (
 	}
 
 	OrganizationCategoryRequest struct {
-		CategoryID string `json:"category_id"`
+		ID         *string `json:"id,omitempty"`
+		CategoryID string  `json:"category_id" validate:"required"`
 	}
 
 	OrganizationCategoryCollection struct {
@@ -93,7 +94,7 @@ func NewOrganizationCategoryCollection(
 			}, model.OrganizationCategoryModel(data)
 		},
 		[]string{
-			"Organization", "Category",
+			"Category",
 		},
 	)
 	return &OrganizationCategoryCollection{

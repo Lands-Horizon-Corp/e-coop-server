@@ -107,11 +107,16 @@ func (h *Handler) OrganizationCreate(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	for _, category := range req.OrganizationCategories {
+		categoryId, err := uuid.Parse(*category.ID)
+		if err != nil {
+			tx.Rollback()
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
 		if err := h.repository.OrganizationCategoryUpdateCreateTransaction(tx, &model.OrganizationCategory{
 			CreatedAt:      time.Now().UTC(),
 			UpdatedAt:      time.Now().UTC(),
 			OrganizationID: &organization.ID,
-			CategoryID:     category,
+			CategoryID:     &categoryId,
 		}); err != nil {
 			tx.Rollback()
 			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
@@ -177,11 +182,18 @@ func (h *Handler) OrganizationUpdate(c echo.Context) error {
 		}
 	}
 	for _, category := range req.OrganizationCategories {
+		categoryId, err := uuid.Parse(category.CategoryID)
+		if err != nil {
+			tx.Rollback()
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		id, _ := uuid.Parse(*category.ID)
 		if err := h.repository.OrganizationCategoryUpdateCreateTransaction(tx, &model.OrganizationCategory{
+			ID:             id,
 			CreatedAt:      time.Now().UTC(),
 			UpdatedAt:      time.Now().UTC(),
 			OrganizationID: &organization.ID,
-			CategoryID:     category,
+			CategoryID:     &categoryId,
 		}); err != nil {
 			tx.Rollback()
 			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})

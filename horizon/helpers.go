@@ -164,3 +164,13 @@ func EngineUUIDParam(ctx echo.Context, idParam string) (*uuid.UUID, error) {
 	}
 	return &id, nil
 }
+
+func ParseUUID(s *string) uuid.UUID {
+	if s == nil || strings.TrimSpace(*s) == "" {
+		return uuid.Nil
+	}
+	if id, err := uuid.Parse(*s); err == nil {
+		return id
+	}
+	return uuid.Nil
+}

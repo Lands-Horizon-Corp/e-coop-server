@@ -125,7 +125,7 @@ type (
 		SubscriptionPlanID       *uuid.UUID `json:"subscription_plan_id,omitempty"`
 		SubscriptionPlanIsYearly bool       `json:"subscription_plan_is_yearly,omitempty"`
 
-		OrganizationCategories []*uuid.UUID `json:"organization_categories,omitempty"`
+		OrganizationCategories []*OrganizationCategoryRequest `json:"organization_categories,omitempty"`
 	}
 
 	OrganizationSubscriptionRequest struct {
@@ -226,7 +226,7 @@ func NewOrganizationCollection(
 			}, model.OrganizationModel(data)
 		},
 		[]string{
-			"CreatedBy", "UpdatedBy", "Media", "CoverMedia", "SubscriptionPlan",
+			"CreatedBy", "UpdatedBy", "Media", "CoverMedia", "SubscriptionPlan", "OrganizationCategories",
 		},
 	)
 	return &OrganizationCollection{

@@ -267,12 +267,3 @@ func (hr *HorizonRequest) Stop() error {
 func (hr *HorizonRequest) Service() *echo.Echo {
 	return hr.service
 }
-
-func extractController(full string) string {
-	start := strings.Index(full, "(*")
-	end := strings.Index(full, ").")
-	if start != -1 && end != -1 && end > start+2 {
-		return full[start+2 : end]
-	}
-	return "Other"
-}

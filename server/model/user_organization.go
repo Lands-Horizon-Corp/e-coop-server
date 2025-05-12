@@ -219,6 +219,12 @@ func (fc *UserOrganizationCollection) CountUserOrganizationBranch(userID uuid.UU
 func (fc *UserOrganizationCollection) CountByOrganizationBranch(organizationID uuid.UUID, branchID uuid.UUID) (int64, error) {
 	return fc.Manager.Count(&UserOrganization{
 		OrganizationID: organizationID,
+		BranchID:       branchID,
+	})
+}
+func (fc *UserOrganizationCollection) CountByOrganization(organizationID uuid.UUID) (int64, error) {
+	return fc.Manager.Count(&UserOrganization{
+		OrganizationID: organizationID,
 	})
 }
 
