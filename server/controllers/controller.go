@@ -123,4 +123,18 @@ func (c *Controller) Routes(service *echo.Echo) {
 		feedbackG.PUT("/feedback_id", c.FeedbackUpdate)
 		feedbackG.DELETE("/feedback_id", c.FeedbackDelete)
 	}
+
+	footstepG := service.Group("/footstep")
+	{
+		footstepG.GET("/", c.FootstepList)
+		footstepG.GET("/:footstep_id", c.FootstepGetByID)
+		footstepG.DELETE("/:footstep_id", c.FootstepDelete)
+		footstepG.GET("/user/:user_id", c.FootstepListByUser)
+		footstepG.GET("/branch/:branch_id", c.FootstepListByBranch)
+		footstepG.GET("/organization/:organization_id", c.FootstepListByOrganization)
+		footstepG.GET("/organization/:organization_id/branch/:branch_id", c.FootstepListByOrganizationBranch)
+		footstepG.GET("/user/:user_id/organization/:organization_id/branch/:branch_id", c.FootstepListByUserOrganizationBranch)
+		footstepG.GET("/user/:user_id/branch/:branch_id", c.FootstepUserBranch)
+		footstepG.GET("/user/:user_id/organization/:organization_id", c.FootstepListByUserOrganization)
+	}
 }
