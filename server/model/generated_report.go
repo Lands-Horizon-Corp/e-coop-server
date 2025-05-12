@@ -60,9 +60,9 @@ type (
 	}
 
 	GeneratedReportRequest struct {
-		ID          *string `json:"id,omitempty"`
-		Name        string  `json:"firstName" validate:"required,min=1,max=255"`
-		Description string  `json:"description" validate:"required,min=1"`
+		ID          *uuid.UUID `json:"id,omitempty"`
+		Name        string     `json:"firstName" validate:"required,min=1,max=255"`
+		Description string     `json:"description" validate:"required,min=1"`
 	}
 	GeneratedReportCollection struct {
 		Manager horizon_manager.CollectionManager[GeneratedReport]

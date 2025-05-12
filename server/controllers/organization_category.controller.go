@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"horizon.com/server/horizon"
 	"horizon.com/server/server/model"
@@ -42,14 +41,10 @@ func (c *Controller) OrganizationCategoryCreate(ctx echo.Context) error {
 	if err != nil {
 		return err
 	}
-	categoryId, err := uuid.Parse(req.CategoryID)
-	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "invalid feedback ID"})
-	}
 
 	model := &model.OrganizationCategory{
 		OrganizationID: orgId,
-		CategoryID:     &categoryId,
+		CategoryID:     &req.CategoryID,
 		CreatedAt:      time.Now().UTC(),
 		UpdatedAt:      time.Now().UTC(),
 	}
@@ -73,16 +68,13 @@ func (c *Controller) OrganizationCategoryUpdate(ctx echo.Context) error {
 	if err != nil {
 		return err
 	}
-	catID, err := uuid.Parse(req.CategoryID)
-	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "invalid category ID"})
-	}
+
 	existing, err := c.organizationCategory.Manager.GetByID(*orgCategoryId)
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, map[string]string{"error": "not found"})
 	}
 	existing.OrganizationID = orgId
-	existing.CategoryID = &catID
+	existing.CategoryID = &req.CategoryID
 	existing.UpdatedAt = time.Now().UTC()
 	if err := c.organizationCategory.Manager.Update(existing); err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})

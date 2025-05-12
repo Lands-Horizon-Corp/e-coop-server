@@ -37,8 +37,8 @@ type (
 	}
 
 	OrganizationCategoryRequest struct {
-		ID         *string `json:"id,omitempty"`
-		CategoryID string  `json:"category_id" validate:"required"`
+		ID         *uuid.UUID `json:"id,omitempty"`
+		CategoryID uuid.UUID  `json:"category_id" validate:"required"`
 	}
 
 	OrganizationCategoryCollection struct {

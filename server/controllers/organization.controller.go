@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"horizon.com/server/horizon"
 	"horizon.com/server/server/model"
@@ -111,16 +110,11 @@ func (c *Controller) OrganizationCreate(ctx echo.Context) error {
 	}
 	for _, category := range req.OrganizationCategories {
 
-		id, err := uuid.Parse(category.CategoryID)
-		if err != nil {
-			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-		}
 		if err := c.organizationCategory.Manager.CreateWithTx(tx, &model.OrganizationCategory{
 			CreatedAt:      time.Now().UTC(),
 			UpdatedAt:      time.Now().UTC(),
 			OrganizationID: &organization.ID,
-			CategoryID:     &id,
+			CategoryID:     &category.CategoryID,
 		}); err != nil {
 			tx.Rollback()
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
@@ -186,17 +180,13 @@ func (c *Controller) OrganizationUpdate(ctx echo.Context) error {
 	}
 
 	for _, category := range req.OrganizationCategories {
-		id, err := uuid.Parse(category.CategoryID)
-		if err != nil {
-			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-		}
+
 		if err := c.organizationCategory.Manager.UpsertWithTx(tx, &model.OrganizationCategory{
-			ID:             horizon.ParseUUID(category.ID),
+			ID:             *category.ID,
 			CreatedAt:      time.Now().UTC(),
 			UpdatedAt:      time.Now().UTC(),
 			OrganizationID: &organization.ID,
-			CategoryID:     &id,
+			CategoryID:     &category.CategoryID,
 		}); err != nil {
 			tx.Rollback()
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})

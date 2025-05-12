@@ -32,7 +32,7 @@ type (
 	}
 
 	SubscriptionPlanRequest struct {
-		ID *string `json:"id,omitempty"`
+		ID *uuid.UUID `json:"id,omitempty"`
 
 		Name                string          `json:"name" validate:"required,min=1,max=255"`
 		Description         string          `json:"description" validate:"required"`

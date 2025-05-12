@@ -62,7 +62,7 @@ type (
 	}
 
 	InvitationCodeRequest struct {
-		ID *string `json:"id,omitempty"`
+		ID *uuid.UUID `json:"id,omitempty"`
 
 		UserType       string    `json:"user_type" validate:"required,oneof=employee owner member"`
 		Code           string    `json:"code" validate:"required,max=255"`
