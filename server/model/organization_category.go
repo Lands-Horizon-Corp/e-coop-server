@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 	"horizon.com/server/horizon"
+	horizon_manager "horizon.com/server/horizon/manager"
 )
 
 type (
@@ -41,16 +42,16 @@ type (
 	}
 
 	OrganizationCategoryCollection struct {
-		Manager CollectionManager[OrganizationCategory]
+		Manager horizon_manager.CollectionManager[OrganizationCategory]
 	}
 )
 
 func (m *Model) OrganizationCategoryValidate(ctx echo.Context) (*OrganizationCategoryRequest, error) {
-	return Validate[OrganizationCategoryRequest](ctx, m.validator)
+	return horizon_manager.Validate[OrganizationCategoryRequest](ctx, m.validator)
 }
 
 func (m *Model) OrganizationCategoryModel(data *OrganizationCategory) *OrganizationCategoryResponse {
-	return ToModel(data, func(data *OrganizationCategory) *OrganizationCategoryResponse {
+	return horizon_manager.ToModel(data, func(data *OrganizationCategory) *OrganizationCategoryResponse {
 		return &OrganizationCategoryResponse{
 			OrganizationID: data.OrganizationID,
 			Organization:   m.OrganizationModel(data.Organization),
@@ -61,7 +62,7 @@ func (m *Model) OrganizationCategoryModel(data *OrganizationCategory) *Organizat
 }
 
 func (m *Model) OrganizationCategoryModels(data []*OrganizationCategory) []*OrganizationCategoryResponse {
-	return ToModels(data, m.OrganizationCategoryModel)
+	return horizon_manager.ToModels(data, m.OrganizationCategoryModel)
 }
 
 func NewOrganizationCategoryCollection(
@@ -69,7 +70,7 @@ func NewOrganizationCategoryCollection(
 	database *horizon.HorizonDatabase,
 	model *Model,
 ) (*OrganizationCategoryCollection, error) {
-	manager := NewcollectionManager(
+	manager := horizon_manager.NewcollectionManager(
 		database,
 		broadcast,
 		func(data *OrganizationCategory) ([]string, any) {

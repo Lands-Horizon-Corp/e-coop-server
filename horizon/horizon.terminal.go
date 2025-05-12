@@ -63,6 +63,14 @@ func requestCMD(request *HorizonRequest) {
 	}
 	sort.Strings(groups)
 
+	// helper to strip the package prefix:
+	shortName := func(full string) string {
+		if idx := strings.LastIndex(full, "."); idx != -1 {
+			return full[idx+1:]
+		}
+		return full
+	}
+
 	for _, grp := range groups {
 		fmt.Printf("\n%s========== Group %s ==========%s\n", Cyan, grp, Reset)
 
@@ -82,17 +90,18 @@ func requestCMD(request *HorizonRequest) {
 			})
 
 			for _, rt := range routes {
+				name := shortName(rt.Name)
 				switch rt.Method {
 				case "GET":
-					fmt.Printf("\t%s▶\t%s %s \t- %s%s\n", Green, rt.Method, rt.Path, Reset, rt.Name)
+					fmt.Printf("\t%s▶\t%s %s \t- %s%s\n", Green, rt.Method, rt.Path, Reset, name)
 				case "POST":
-					fmt.Printf("\t%s▶\t%s %s \t- %s%s\n", Blue, rt.Method, rt.Path, Reset, rt.Name)
+					fmt.Printf("\t%s▶\t%s %s \t- %s%s\n", Blue, rt.Method, rt.Path, Reset, name)
 				case "PUT":
-					fmt.Printf("\t%s▶\t%s %s \t- %s%s\n", Yellow, rt.Method, rt.Path, Reset, rt.Name)
+					fmt.Printf("\t%s▶\t%s %s \t- %s%s\n", Yellow, rt.Method, rt.Path, Reset, name)
 				case "DELETE":
-					fmt.Printf("\t%s▶\t%s %s \t- %s%s\n", Red, rt.Method, rt.Path, Reset, rt.Name)
+					fmt.Printf("\t%s▶\t%s %s \t- %s%s\n", Red, rt.Method, rt.Path, Reset, name)
 				default:
-					fmt.Printf("\t▶%s\t%s \t- %s\n", rt.Method, rt.Path, rt.Name)
+					fmt.Printf("\t▶%s\t%s \t- %s\n", rt.Method, rt.Path, name)
 				}
 			}
 		}

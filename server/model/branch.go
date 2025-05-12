@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 	"horizon.com/server/horizon"
+	horizon_manager "horizon.com/server/horizon/manager"
 )
 
 type (
@@ -102,12 +103,12 @@ type (
 		UserOrganizations   []*UserOrganizationResponse   `json:"user_organizations,omitempty"`
 	}
 	BranchCollection struct {
-		Manager CollectionManager[Branch]
+		Manager horizon_manager.CollectionManager[Branch]
 	}
 )
 
 func (m *Model) BranchModel(data *Branch) *BranchResponse {
-	return ToModel(data, func(data *Branch) *BranchResponse {
+	return horizon_manager.ToModel(data, func(data *Branch) *BranchResponse {
 		return &BranchResponse{
 			ID:          data.ID,
 			CreatedAt:   data.CreatedAt.Format(time.RFC3339),
@@ -144,11 +145,11 @@ func (m *Model) BranchModel(data *Branch) *BranchResponse {
 }
 
 func (m *Model) BranchValidate(ctx echo.Context) (*BranchRequest, error) {
-	return Validate[BranchRequest](ctx, m.validator)
+	return horizon_manager.Validate[BranchRequest](ctx, m.validator)
 }
 
 func (m *Model) BranchModels(data []*Branch) []*BranchResponse {
-	return ToModels(data, m.BranchModel)
+	return horizon_manager.ToModels(data, m.BranchModel)
 }
 
 func NewBranchCollection(
@@ -156,7 +157,7 @@ func NewBranchCollection(
 	database *horizon.HorizonDatabase,
 	model *Model,
 ) (*BranchCollection, error) {
-	manager := NewcollectionManager(
+	manager := horizon_manager.NewcollectionManager(
 		database,
 		broadcast,
 		func(data *Branch) ([]string, any) {

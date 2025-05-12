@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"horizon.com/server/horizon"
+	horizon_manager "horizon.com/server/horizon/manager"
 )
 
 type (
@@ -37,12 +38,12 @@ type (
 	}
 
 	NotificationCollection struct {
-		Manager CollectionManager[Notification]
+		Manager horizon_manager.CollectionManager[Notification]
 	}
 )
 
 func (m *Model) NotificationModel(data *Notification) *NotificationResponse {
-	return ToModel(data, func(data *Notification) *NotificationResponse {
+	return horizon_manager.ToModel(data, func(data *Notification) *NotificationResponse {
 		return &NotificationResponse{
 			ID:               data.ID,
 			UserID:           data.UserID,
@@ -58,7 +59,7 @@ func (m *Model) NotificationModel(data *Notification) *NotificationResponse {
 }
 
 func (m *Model) NotificationModels(data []*Notification) []*NotificationResponse {
-	return ToModels(data, m.NotificationModel)
+	return horizon_manager.ToModels(data, m.NotificationModel)
 }
 
 func NewNotificationCollection(
@@ -66,7 +67,7 @@ func NewNotificationCollection(
 	database *horizon.HorizonDatabase,
 	model *Model,
 ) (*NotificationCollection, error) {
-	manager := NewcollectionManager(
+	manager := horizon_manager.NewcollectionManager(
 		database,
 		broadcast,
 		func(data *Notification) ([]string, any) {

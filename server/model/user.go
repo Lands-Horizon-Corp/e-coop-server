@@ -10,6 +10,7 @@ import (
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 	"horizon.com/server/horizon"
+	horizon_manager "horizon.com/server/horizon/manager"
 )
 
 type QRUser struct {
@@ -181,12 +182,12 @@ type (
 	}
 
 	UserCollection struct {
-		Manager CollectionManager[User]
+		Manager horizon_manager.CollectionManager[User]
 	}
 )
 
 func (m *Model) UserModel(data *User) *UserResponse {
-	return ToModel(data, func(data *User) *UserResponse {
+	return horizon_manager.ToModel(data, func(data *User) *UserResponse {
 		encoded, err := m.qr.Encode(&QRUser{
 			UserID:        data.ID.String(),
 			Email:         data.Email,
@@ -228,55 +229,55 @@ func (m *Model) UserModel(data *User) *UserResponse {
 }
 
 func (m *Model) UserModels(data []*User) []*UserResponse {
-	return ToModels(data, m.UserModel)
+	return horizon_manager.ToModels(data, m.UserModel)
 }
 func (m *Model) UserLoginValidate(ctx echo.Context) (*UserLoginRequest, error) {
-	return Validate[UserLoginRequest](ctx, m.validator)
+	return horizon_manager.Validate[UserLoginRequest](ctx, m.validator)
 }
 func (m *Model) UserRegisterValidate(ctx echo.Context) (*UserRegisterRequest, error) {
-	return Validate[UserRegisterRequest](ctx, m.validator)
+	return horizon_manager.Validate[UserRegisterRequest](ctx, m.validator)
 }
 func (m *Model) UserForgotPasswordValidate(ctx echo.Context) (*UserForgotPasswordRequest, error) {
-	return Validate[UserForgotPasswordRequest](ctx, m.validator)
+	return horizon_manager.Validate[UserForgotPasswordRequest](ctx, m.validator)
 }
 func (m *Model) UserChangePasswordValidate(ctx echo.Context) (*UserChangePasswordRequest, error) {
-	return Validate[UserChangePasswordRequest](ctx, m.validator)
+	return horizon_manager.Validate[UserChangePasswordRequest](ctx, m.validator)
 }
 func (m *Model) UserVerifyContactNumberValidate(ctx echo.Context) (*UserVerifyContactNumberRequest, error) {
-	return Validate[UserVerifyContactNumberRequest](ctx, m.validator)
+	return horizon_manager.Validate[UserVerifyContactNumberRequest](ctx, m.validator)
 }
 func (m *Model) UserVerifyEmailValidate(ctx echo.Context) (*UserVerifyEmailRequest, error) {
-	return Validate[UserVerifyEmailRequest](ctx, m.validator)
+	return horizon_manager.Validate[UserVerifyEmailRequest](ctx, m.validator)
 }
 func (m *Model) UserVerifyWithEmailConfirmationValidate(ctx echo.Context) (*UserVerifyWithEmailConfirmationRequest, error) {
-	return Validate[UserVerifyWithEmailConfirmationRequest](ctx, m.validator)
+	return horizon_manager.Validate[UserVerifyWithEmailConfirmationRequest](ctx, m.validator)
 }
 func (m *Model) UserVerifyWithContactNumberValidate(ctx echo.Context) (*UserVerifyWithContactNumberRequest, error) {
-	return Validate[UserVerifyWithContactNumberRequest](ctx, m.validator)
+	return horizon_manager.Validate[UserVerifyWithContactNumberRequest](ctx, m.validator)
 }
 func (m *Model) UserVerifyWithContactNumberConfirmationValidate(ctx echo.Context) (*UserVerifyWithContactNumberConfirmationRequest, error) {
-	return Validate[UserVerifyWithContactNumberConfirmationRequest](ctx, m.validator)
+	return horizon_manager.Validate[UserVerifyWithContactNumberConfirmationRequest](ctx, m.validator)
 }
 func (m *Model) UserSettingsChangePasswordValidate(ctx echo.Context) (*UserSettingsChangePasswordRequest, error) {
-	return Validate[UserSettingsChangePasswordRequest](ctx, m.validator)
+	return horizon_manager.Validate[UserSettingsChangePasswordRequest](ctx, m.validator)
 }
 func (m *Model) UserSettingsChangeEmailValidate(ctx echo.Context) (*UserSettingsChangeEmailRequest, error) {
-	return Validate[UserSettingsChangeEmailRequest](ctx, m.validator)
+	return horizon_manager.Validate[UserSettingsChangeEmailRequest](ctx, m.validator)
 }
 func (m *Model) UserSettingsChangeUsernameValidate(ctx echo.Context) (*UserSettingsChangeUsernameRequest, error) {
-	return Validate[UserSettingsChangeUsernameRequest](ctx, m.validator)
+	return horizon_manager.Validate[UserSettingsChangeUsernameRequest](ctx, m.validator)
 }
 func (m *Model) UserSettingsChangeContactNumberValidate(ctx echo.Context) (*UserSettingsChangeContactNumberRequest, error) {
-	return Validate[UserSettingsChangeContactNumberRequest](ctx, m.validator)
+	return horizon_manager.Validate[UserSettingsChangeContactNumberRequest](ctx, m.validator)
 }
 func (m *Model) UserSettingsChangeProfilePictureValidate(ctx echo.Context) (*UserSettingsChangeProfilePictureRequest, error) {
-	return Validate[UserSettingsChangeProfilePictureRequest](ctx, m.validator)
+	return horizon_manager.Validate[UserSettingsChangeProfilePictureRequest](ctx, m.validator)
 }
 func (m *Model) UserSettingsChangeProfileValidate(ctx echo.Context) (*UserSettingsChangeProfileRequest, error) {
-	return Validate[UserSettingsChangeProfileRequest](ctx, m.validator)
+	return horizon_manager.Validate[UserSettingsChangeProfileRequest](ctx, m.validator)
 }
 func (m *Model) UserSettingsChangeGeneralValidate(ctx echo.Context) (*UserSettingsChangeGeneralRequest, error) {
-	return Validate[UserSettingsChangeGeneralRequest](ctx, m.validator)
+	return horizon_manager.Validate[UserSettingsChangeGeneralRequest](ctx, m.validator)
 }
 
 func NewUserCollection(
@@ -284,7 +285,7 @@ func NewUserCollection(
 	database *horizon.HorizonDatabase,
 	model *Model,
 ) (*UserCollection, error) {
-	manager := NewcollectionManager(
+	manager := horizon_manager.NewcollectionManager(
 		database,
 		broadcast,
 		func(data *User) ([]string, any) {

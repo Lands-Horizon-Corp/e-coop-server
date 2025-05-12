@@ -4,6 +4,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"horizon.com/server/server/controllers"
 	"horizon.com/server/server/model"
+	"horizon.com/server/server/providers"
 )
 
 type CoopServer struct {
@@ -12,11 +13,11 @@ type CoopServer struct {
 }
 
 func NewCoopServer(
-	conttroller *controllers.Controller,
+	con *controllers.Controller,
 ) (*CoopServer, error) {
 	return &CoopServer{
 		Routes: []func(*echo.Echo){
-			conttroller.Routes,
+			con.Routes,
 		},
 		Migrations: []any{
 			&model.User{},                   // ✅
@@ -43,7 +44,6 @@ var Modules = []any{
 
 	// All model validation and database model
 	model.NewModel,
-	controllers.NewController,
 
 	// Collections of repository
 	model.NewBranchCollection,
@@ -63,8 +63,10 @@ var Modules = []any{
 	model.NewUserOrganizationCollection,
 	model.NewUserCollection,
 
+	controllers.NewController,
+
 	// handler.NewHandler,
 
 	// Provider
-	// provider.NewProvider,
+	providers.NewProviders,
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 	"horizon.com/server/horizon"
+	horizon_manager "horizon.com/server/horizon/manager"
 )
 
 type (
@@ -46,16 +47,16 @@ type (
 	}
 
 	CategoryCollection struct {
-		Manager CollectionManager[Category]
+		Manager horizon_manager.CollectionManager[Category]
 	}
 )
 
 func (m *Model) CategoryValidate(ctx echo.Context) (*CategoryRequest, error) {
-	return Validate[CategoryRequest](ctx, m.validator)
+	return horizon_manager.Validate[CategoryRequest](ctx, m.validator)
 }
 
 func (m *Model) CategoryModel(data *Category) *CategoryResponse {
-	return ToModel(data, func(data *Category) *CategoryResponse {
+	return horizon_manager.ToModel(data, func(data *Category) *CategoryResponse {
 		return &CategoryResponse{
 			ID:                     data.ID,
 			CreatedAt:              data.CreatedAt.Format(time.RFC3339),
@@ -70,7 +71,7 @@ func (m *Model) CategoryModel(data *Category) *CategoryResponse {
 }
 
 func (m *Model) CategoryModels(data []*Category) []*CategoryResponse {
-	return ToModels(data, m.CategoryModel)
+	return horizon_manager.ToModels(data, m.CategoryModel)
 }
 
 func NewCategoryCollection(
@@ -78,7 +79,7 @@ func NewCategoryCollection(
 	database *horizon.HorizonDatabase,
 	model *Model,
 ) (*CategoryCollection, error) {
-	manager := NewcollectionManager(
+	manager := horizon_manager.NewcollectionManager(
 		database,
 		broadcast,
 		func(data *Category) ([]string, any) {

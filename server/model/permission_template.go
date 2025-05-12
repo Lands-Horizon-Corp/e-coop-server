@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/lib/pq"
 	"horizon.com/server/horizon"
+	horizon_manager "horizon.com/server/horizon/manager"
 
 	"gorm.io/gorm"
 )
@@ -61,16 +62,16 @@ type (
 	}
 
 	PermissionTemplateCollection struct {
-		Manager CollectionManager[PermissionTemplate]
+		Manager horizon_manager.CollectionManager[PermissionTemplate]
 	}
 )
 
 func (m *Model) PermissionTemplateValidate(ctx echo.Context) (*PermissionTemplateRequest, error) {
-	return Validate[PermissionTemplateRequest](ctx, m.validator)
+	return horizon_manager.Validate[PermissionTemplateRequest](ctx, m.validator)
 }
 
 func (m *Model) PermissionTemplateModel(data *PermissionTemplate) *PermissionTemplateResponse {
-	return ToModel(data, func(data *PermissionTemplate) *PermissionTemplateResponse {
+	return horizon_manager.ToModel(data, func(data *PermissionTemplate) *PermissionTemplateResponse {
 		return &PermissionTemplateResponse{
 			ID:             data.ID,
 			CreatedAt:      data.CreatedAt.Format(time.RFC3339),
@@ -92,7 +93,7 @@ func (m *Model) PermissionTemplateModel(data *PermissionTemplate) *PermissionTem
 }
 
 func (m *Model) PermissionTemplateModels(data []*PermissionTemplate) []*PermissionTemplateResponse {
-	return ToModels(data, m.PermissionTemplateModel)
+	return horizon_manager.ToModels(data, m.PermissionTemplateModel)
 }
 
 func NewPermissionTemplateCollection(
@@ -100,7 +101,7 @@ func NewPermissionTemplateCollection(
 	database *horizon.HorizonDatabase,
 	model *Model,
 ) (*PermissionTemplateCollection, error) {
-	manager := NewcollectionManager(
+	manager := horizon_manager.NewcollectionManager(
 		database,
 		broadcast,
 		func(data *PermissionTemplate) ([]string, any) {

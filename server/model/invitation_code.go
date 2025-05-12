@@ -9,6 +9,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rotisserie/eris"
 	"horizon.com/server/horizon"
+	horizon_manager "horizon.com/server/horizon/manager"
 
 	"gorm.io/gorm"
 )
@@ -79,17 +80,17 @@ type (
 		Description    string `json:"Description"`
 	}
 	InvitationCodeCollection struct {
-		Manager CollectionManager[InvitationCode]
+		Manager horizon_manager.CollectionManager[InvitationCode]
 	}
 )
 
 func (m *Model) InvitationCodeValidate(ctx echo.Context) (*InvitationCodeRequest, error) {
-	return Validate[InvitationCodeRequest](ctx, m.validator)
+	return horizon_manager.Validate[InvitationCodeRequest](ctx, m.validator)
 }
 
 func (m *Model) InvitationCodeModel(data *InvitationCode) *InvitationCodeResponse {
 
-	return ToModel(data, func(data *InvitationCode) *InvitationCodeResponse {
+	return horizon_manager.ToModel(data, func(data *InvitationCode) *InvitationCodeResponse {
 		encoded, err := m.qr.Encode(&QRInvitationLInk{
 			OrganizationID: data.OrganizationID.String(),
 			BranchID:       data.BranchID.String(),
@@ -126,7 +127,7 @@ func (m *Model) InvitationCodeModel(data *InvitationCode) *InvitationCodeRespons
 }
 
 func (m *Model) InvitationCodeModels(data []*InvitationCode) []*InvitationCodeResponse {
-	return ToModels(data, m.InvitationCodeModel)
+	return horizon_manager.ToModels(data, m.InvitationCodeModel)
 }
 
 func NewInvitationCodeCollection(
@@ -134,7 +135,7 @@ func NewInvitationCodeCollection(
 	database *horizon.HorizonDatabase,
 	model *Model,
 ) (*InvitationCodeCollection, error) {
-	manager := NewcollectionManager(
+	manager := horizon_manager.NewcollectionManager(
 		database,
 		broadcast,
 		func(data *InvitationCode) ([]string, any) {

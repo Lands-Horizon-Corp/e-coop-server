@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 	"horizon.com/server/horizon"
+	horizon_manager "horizon.com/server/horizon/manager"
 )
 
 type (
@@ -44,16 +45,16 @@ type (
 	}
 
 	ContactUsCollection struct {
-		Manager CollectionManager[ContactUs]
+		Manager horizon_manager.CollectionManager[ContactUs]
 	}
 )
 
 func (m *Model) ContactUsValidate(ctx echo.Context) (*ContactUsRequest, error) {
-	return Validate[ContactUsRequest](ctx, m.validator)
+	return horizon_manager.Validate[ContactUsRequest](ctx, m.validator)
 }
 
 func (m *Model) ContactUsModel(data *ContactUs) *ContactUsResponse {
-	return ToModel(data, func(data *ContactUs) *ContactUsResponse {
+	return horizon_manager.ToModel(data, func(data *ContactUs) *ContactUsResponse {
 		return &ContactUsResponse{
 			ID:            data.ID,
 			FirstName:     data.FirstName,
@@ -68,7 +69,7 @@ func (m *Model) ContactUsModel(data *ContactUs) *ContactUsResponse {
 }
 
 func (m *Model) ContactUsModels(data []*ContactUs) []*ContactUsResponse {
-	return ToModels(data, m.ContactUsModel)
+	return horizon_manager.ToModels(data, m.ContactUsModel)
 }
 
 func NewContactUsCollection(
@@ -76,7 +77,7 @@ func NewContactUsCollection(
 	database *horizon.HorizonDatabase,
 	model *Model,
 ) (*ContactUsCollection, error) {
-	manager := NewcollectionManager(
+	manager := horizon_manager.NewcollectionManager(
 		database,
 		broadcast,
 		func(data *ContactUs) ([]string, any) {

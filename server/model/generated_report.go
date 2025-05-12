@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"horizon.com/server/horizon"
+	horizon_manager "horizon.com/server/horizon/manager"
 )
 
 type (
@@ -64,12 +65,12 @@ type (
 		Description string  `json:"description" validate:"required,min=1"`
 	}
 	GeneratedReportCollection struct {
-		Manager CollectionManager[GeneratedReport]
+		Manager horizon_manager.CollectionManager[GeneratedReport]
 	}
 )
 
 func (m *Model) GeneratedReportModel(data *GeneratedReport) *GeneratedReportResponse {
-	return ToModel(data, func(cu *GeneratedReport) *GeneratedReportResponse {
+	return horizon_manager.ToModel(data, func(cu *GeneratedReport) *GeneratedReportResponse {
 		return &GeneratedReportResponse{
 			ID:             data.ID,
 			CreatedAt:      data.CreatedAt.Format(time.RFC3339),
@@ -95,7 +96,7 @@ func (m *Model) GeneratedReportModel(data *GeneratedReport) *GeneratedReportResp
 }
 
 func (m *Model) GeneratedReportModels(data []*GeneratedReport) []*GeneratedReportResponse {
-	return ToModels(data, m.GeneratedReportModel)
+	return horizon_manager.ToModels(data, m.GeneratedReportModel)
 }
 
 func NewGeneratedReportCollection(
@@ -103,7 +104,7 @@ func NewGeneratedReportCollection(
 	database *horizon.HorizonDatabase,
 	model *Model,
 ) (*GeneratedReportCollection, error) {
-	manager := NewcollectionManager(
+	manager := horizon_manager.NewcollectionManager(
 		database,
 		broadcast,
 		func(data *GeneratedReport) ([]string, any) {

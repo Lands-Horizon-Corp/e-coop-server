@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 	"horizon.com/server/horizon"
+	horizon_manager "horizon.com/server/horizon/manager"
 )
 
 type (
@@ -83,16 +84,16 @@ type (
 		UpdatedAt             string  `json:"updated_at"`
 	}
 	OrganizationDailyUsageCollection struct {
-		Manager CollectionManager[OrganizationDailyUsage]
+		Manager horizon_manager.CollectionManager[OrganizationDailyUsage]
 	}
 )
 
 func (m *Model) OrganizationDailyUsageValidate(ctx echo.Context) (*OrganizationDailyUsageRequest, error) {
-	return Validate[OrganizationDailyUsageRequest](ctx, m.validator)
+	return horizon_manager.Validate[OrganizationDailyUsageRequest](ctx, m.validator)
 }
 
 func (m *Model) OrganizationDailyUsageModel(data *OrganizationDailyUsage) *OrganizationDailyUsageResponse {
-	return ToModel(data, func(data *OrganizationDailyUsage) *OrganizationDailyUsageResponse {
+	return horizon_manager.ToModel(data, func(data *OrganizationDailyUsage) *OrganizationDailyUsageResponse {
 		return &OrganizationDailyUsageResponse{
 			ID:                      data.ID,
 			OrganizationID:          data.OrganizationID,
@@ -117,7 +118,7 @@ func (m *Model) OrganizationDailyUsageModel(data *OrganizationDailyUsage) *Organ
 }
 
 func (m *Model) OrganizationDailyUsageModels(data []*OrganizationDailyUsage) []*OrganizationDailyUsageResponse {
-	return ToModels(data, m.OrganizationDailyUsageModel)
+	return horizon_manager.ToModels(data, m.OrganizationDailyUsageModel)
 }
 
 func NewOrganizationDailyUsageCollection(
@@ -125,7 +126,7 @@ func NewOrganizationDailyUsageCollection(
 	database *horizon.HorizonDatabase,
 	model *Model,
 ) (*OrganizationDailyUsageCollection, error) {
-	manager := NewcollectionManager(
+	manager := horizon_manager.NewcollectionManager(
 		database,
 		broadcast,
 		func(data *OrganizationDailyUsage) ([]string, any) {

@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 	"horizon.com/server/horizon"
+	horizon_manager "horizon.com/server/horizon/manager"
 )
 
 type (
@@ -57,12 +58,12 @@ type (
 	}
 
 	MediaCollection struct {
-		Manager CollectionManager[Media]
+		Manager horizon_manager.CollectionManager[Media]
 	}
 )
 
 func (m *Model) MediaValidate(ctx echo.Context) (*MediaRequest, error) {
-	return Validate[MediaRequest](ctx, m.validator)
+	return horizon_manager.Validate[MediaRequest](ctx, m.validator)
 }
 
 func (m *Model) MediaModel(data *Media) *MediaResponse {
@@ -70,7 +71,7 @@ func (m *Model) MediaModel(data *Media) *MediaResponse {
 	if err != nil {
 		temporaryURL = ""
 	}
-	return ToModel(data, func(data *Media) *MediaResponse {
+	return horizon_manager.ToModel(data, func(data *Media) *MediaResponse {
 		return &MediaResponse{
 			ID:          data.ID,
 			CreatedAt:   data.CreatedAt.Format(time.RFC3339),
@@ -90,7 +91,7 @@ func (m *Model) MediaModel(data *Media) *MediaResponse {
 }
 
 func (m *Model) MediaModels(data []*Media) []*MediaResponse {
-	return ToModels(data, m.MediaModel)
+	return horizon_manager.ToModels(data, m.MediaModel)
 }
 
 func NewMediaCollection(
@@ -98,7 +99,7 @@ func NewMediaCollection(
 	database *horizon.HorizonDatabase,
 	model *Model,
 ) (*MediaCollection, error) {
-	manager := NewcollectionManager(
+	manager := horizon_manager.NewcollectionManager(
 		database,
 		broadcast,
 		func(data *Media) ([]string, any) {

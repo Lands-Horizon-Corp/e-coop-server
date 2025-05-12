@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 	"horizon.com/server/horizon"
+	horizon_manager "horizon.com/server/horizon/manager"
 )
 
 type (
@@ -137,19 +138,19 @@ type (
 	}
 
 	OrganizationCollection struct {
-		Manager CollectionManager[Organization]
+		Manager horizon_manager.CollectionManager[Organization]
 	}
 )
 
 func (m *Model) OrganizationValidate(ctx echo.Context) (*OrganizationRequest, error) {
-	return Validate[OrganizationRequest](ctx, m.validator)
+	return horizon_manager.Validate[OrganizationRequest](ctx, m.validator)
 }
 func (m *Model) OrganizationSubscriptionValidate(ctx echo.Context) (*OrganizationSubscriptionRequest, error) {
-	return Validate[OrganizationSubscriptionRequest](ctx, m.validator)
+	return horizon_manager.Validate[OrganizationSubscriptionRequest](ctx, m.validator)
 }
 
 func (m *Model) OrganizationModel(data *Organization) *OrganizationResponse {
-	return ToModel(data, func(data *Organization) *OrganizationResponse {
+	return horizon_manager.ToModel(data, func(data *Organization) *OrganizationResponse {
 		return &OrganizationResponse{
 			ID:          data.ID,
 			CreatedAt:   data.CreatedAt.Format(time.RFC3339),
@@ -198,7 +199,7 @@ func (m *Model) OrganizationModel(data *Organization) *OrganizationResponse {
 }
 
 func (m *Model) OrganizationModels(data []*Organization) []*OrganizationResponse {
-	return ToModels(data, m.OrganizationModel)
+	return horizon_manager.ToModels(data, m.OrganizationModel)
 }
 
 func NewOrganizationCollection(
@@ -206,7 +207,7 @@ func NewOrganizationCollection(
 	database *horizon.HorizonDatabase,
 	model *Model,
 ) (*OrganizationCollection, error) {
-	manager := NewcollectionManager(
+	manager := horizon_manager.NewcollectionManager(
 		database,
 		broadcast,
 		func(data *Organization) ([]string, any) {

@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"horizon.com/server/horizon"
+	horizon_manager "horizon.com/server/horizon/manager"
 )
 
 type (
@@ -80,12 +81,12 @@ type (
 	}
 
 	FootstepCollection struct {
-		Manager CollectionManager[Footstep]
+		Manager horizon_manager.CollectionManager[Footstep]
 	}
 )
 
 func (m *Model) FootstepModel(data *Footstep) *FootstepResponse {
-	return ToModel(data, func(data *Footstep) *FootstepResponse {
+	return horizon_manager.ToModel(data, func(data *Footstep) *FootstepResponse {
 		return &FootstepResponse{
 			ID:             data.ID,
 			CreatedAt:      data.CreatedAt.Format(time.RFC3339),
@@ -118,7 +119,7 @@ func (m *Model) FootstepModel(data *Footstep) *FootstepResponse {
 }
 
 func (m *Model) FootstepModels(data []*Footstep) []*FootstepResponse {
-	return ToModels(data, m.FootstepModel)
+	return horizon_manager.ToModels(data, m.FootstepModel)
 }
 
 func NewFootstepCollection(
@@ -126,7 +127,7 @@ func NewFootstepCollection(
 	database *horizon.HorizonDatabase,
 	model *Model,
 ) (*FootstepCollection, error) {
-	manager := NewcollectionManager(
+	manager := horizon_manager.NewcollectionManager(
 		database,
 		broadcast,
 		func(data *Footstep) ([]string, any) {

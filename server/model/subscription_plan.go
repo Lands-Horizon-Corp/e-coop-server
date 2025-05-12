@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 	"horizon.com/server/horizon"
+	horizon_manager "horizon.com/server/horizon/manager"
 )
 
 type (
@@ -61,16 +62,16 @@ type (
 	}
 
 	SubscriptionPlanCollection struct {
-		Manager CollectionManager[SubscriptionPlan]
+		Manager horizon_manager.CollectionManager[SubscriptionPlan]
 	}
 )
 
 func (m *Model) SubscriptionPlanValidate(ctx echo.Context) (*SubscriptionPlanRequest, error) {
-	return Validate[SubscriptionPlanRequest](ctx, m.validator)
+	return horizon_manager.Validate[SubscriptionPlanRequest](ctx, m.validator)
 }
 
 func (m *Model) SubscriptionPlanModel(data *SubscriptionPlan) *SubscriptionPlanResponse {
-	return ToModel(data, func(data *SubscriptionPlan) *SubscriptionPlanResponse {
+	return horizon_manager.ToModel(data, func(data *SubscriptionPlan) *SubscriptionPlanResponse {
 		return &SubscriptionPlanResponse{
 			ID:                  data.ID,
 			Name:                data.Name,
@@ -89,7 +90,7 @@ func (m *Model) SubscriptionPlanModel(data *SubscriptionPlan) *SubscriptionPlanR
 }
 
 func (m *Model) SubscriptionPlanModels(data []*SubscriptionPlan) []*SubscriptionPlanResponse {
-	return ToModels(data, m.SubscriptionPlanModel)
+	return horizon_manager.ToModels(data, m.SubscriptionPlanModel)
 }
 
 func NewSubscriptionPlanCollection(
@@ -97,7 +98,7 @@ func NewSubscriptionPlanCollection(
 	database *horizon.HorizonDatabase,
 	model *Model,
 ) (*SubscriptionPlanCollection, error) {
-	manager := NewcollectionManager(
+	manager := horizon_manager.NewcollectionManager(
 		database,
 		broadcast,
 		func(data *SubscriptionPlan) ([]string, any) {

@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 	"horizon.com/server/horizon"
+	horizon_manager "horizon.com/server/horizon/manager"
 )
 
 type (
@@ -42,16 +43,16 @@ type (
 		MediaID      *uuid.UUID `json:"media_id,omitempty"`
 	}
 	FeedbackCollection struct {
-		Manager CollectionManager[Feedback]
+		Manager horizon_manager.CollectionManager[Feedback]
 	}
 )
 
 func (m *Model) FeedbackValidate(ctx echo.Context) (*FeedbackRequest, error) {
-	return Validate[FeedbackRequest](ctx, m.validator)
+	return horizon_manager.Validate[FeedbackRequest](ctx, m.validator)
 }
 
 func (m *Model) FeedbackModel(data *Feedback) *FeedbackResponse {
-	return ToModel(data, func(data *Feedback) *FeedbackResponse {
+	return horizon_manager.ToModel(data, func(data *Feedback) *FeedbackResponse {
 		return &FeedbackResponse{
 			ID:           data.ID,
 			CreatedAt:    data.CreatedAt.Format(time.RFC3339),
@@ -66,7 +67,7 @@ func (m *Model) FeedbackModel(data *Feedback) *FeedbackResponse {
 }
 
 func (m *Model) FeedbackModels(data []*Feedback) []*FeedbackResponse {
-	return ToModels(data, m.FeedbackModel)
+	return horizon_manager.ToModels(data, m.FeedbackModel)
 }
 
 func NewFeedbackCollection(
@@ -74,7 +75,7 @@ func NewFeedbackCollection(
 	database *horizon.HorizonDatabase,
 	model *Model,
 ) (*FeedbackCollection, error) {
-	manager := NewcollectionManager(
+	manager := horizon_manager.NewcollectionManager(
 		database,
 		broadcast,
 		func(data *Feedback) ([]string, any) {

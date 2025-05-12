@@ -9,6 +9,7 @@ import (
 	"github.com/lib/pq"
 	"gorm.io/gorm"
 	"horizon.com/server/horizon"
+	horizon_manager "horizon.com/server/horizon/manager"
 )
 
 type (
@@ -75,16 +76,16 @@ type (
 		Permissions            []string      `json:"permissions"`
 	}
 	UserOrganizationCollection struct {
-		Manager CollectionManager[UserOrganization]
+		Manager horizon_manager.CollectionManager[UserOrganization]
 	}
 )
 
 func (m *Model) UserOrganizationValidate(ctx echo.Context) (*UserOrganizationRequest, error) {
-	return Validate[UserOrganizationRequest](ctx, m.validator)
+	return horizon_manager.Validate[UserOrganizationRequest](ctx, m.validator)
 }
 
 func (m *Model) UserOrganizationModel(data *UserOrganization) *UserOrganizationResponse {
-	return ToModel(data, func(data *UserOrganization) *UserOrganizationResponse {
+	return horizon_manager.ToModel(data, func(data *UserOrganization) *UserOrganizationResponse {
 		return &UserOrganizationResponse{
 			ID:             data.ID,
 			CreatedAt:      data.CreatedAt.Format(time.RFC3339),
@@ -113,7 +114,7 @@ func (m *Model) UserOrganizationModel(data *UserOrganization) *UserOrganizationR
 }
 
 func (m *Model) UserOrganizationModels(data []*UserOrganization) []*UserOrganizationResponse {
-	return ToModels(data, m.UserOrganizationModel)
+	return horizon_manager.ToModels(data, m.UserOrganizationModel)
 }
 
 func NewUserOrganizationCollection(
@@ -121,7 +122,7 @@ func NewUserOrganizationCollection(
 	database *horizon.HorizonDatabase,
 	model *Model,
 ) (*UserOrganizationCollection, error) {
-	manager := NewcollectionManager(
+	manager := horizon_manager.NewcollectionManager(
 		database,
 		broadcast,
 		func(data *UserOrganization) ([]string, any) {
