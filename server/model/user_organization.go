@@ -41,12 +41,9 @@ type (
 
 	UserOrganizationRequest struct {
 		UserType               string         `json:"user_type" validate:"required,oneof=employee member"`
-		OrganizationID         uuid.UUID      `json:"organization_id" validate:"required"`
-		BranchID               uuid.UUID      `json:"branch_id" validate:"required"`
-		UserID                 uuid.UUID      `json:"user_id" validate:"required"`
 		Description            string         `json:"description,omitempty"`
 		ApplicationDescription string         `json:"application_description,omitempty"`
-		ApplicationStatus      string         `json:"application_status" validate:"required,oneof=pending reported accepted ban"`
+		ApplicationStatus      string         `json:"application_status" validate:"required,oneof=pending reported accepted ban not-allowed"`
 		PermissionName         string         `json:"permission_name" validate:"required"`
 		PermissionDescription  string         `json:"permission_description" validate:"required"`
 		Permissions            pq.StringArray `json:"permissions,omitempty" validate:"dive,required"`
@@ -179,16 +176,16 @@ func (fc *UserOrganizationCollection) ListByOrganization(organizationID uuid.UUI
 }
 
 // user-organization/organization/:organization_id/branch/:branch_id
-func (fc *UserOrganizationCollection) ListByOrganizationBranch(organizationID uuid.UUID, branchID uuid.UUID) ([]*UserOrganization, error) {
-	return fc.Manager.Find(&UserOrganization{
+func (fc *UserOrganizationCollection) ListByOrganizationBranch(organizationID uuid.UUID, branchID uuid.UUID) (*UserOrganization, error) {
+	return fc.Manager.FindOne(&UserOrganization{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }
 
 // user-organization/user/:user_id/branch/:branch_id
-func (fc *UserOrganizationCollection) ListByUserBranch(userID uuid.UUID, branchID uuid.UUID) ([]*UserOrganization, error) {
-	return fc.Manager.Find(&UserOrganization{
+func (fc *UserOrganizationCollection) ListByUserBranch(userID uuid.UUID, branchID uuid.UUID) (*UserOrganization, error) {
+	return fc.Manager.FindOne(&UserOrganization{
 		UserID:   userID,
 		BranchID: branchID,
 	})
@@ -211,10 +208,33 @@ func (fc *UserOrganizationCollection) ByUserOrganizationBranch(userID uuid.UUID,
 	})
 }
 
-// user-organization/organization/:organization_id/branch/:branch_id/count
-func (fc *UserOrganizationCollection) CountByOrganizationBranch(organizationID uuid.UUID, branchID uuid.UUID) (int64, error) {
+func (fc *UserOrganizationCollection) CountUserOrganizationBranch(userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) (int64, error) {
 	return fc.Manager.Count(&UserOrganization{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
+		UserID:         userID,
 	})
+}
+
+func (fc *UserOrganizationCollection) CountByOrganizationBranch(organizationID uuid.UUID, branchID uuid.UUID) (int64, error) {
+	return fc.Manager.Count(&UserOrganization{
+		OrganizationID: organizationID,
+	})
+}
+
+func (fc *UserOrganizationCollection) EmployeeCanJoin(userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) bool {
+	existingCount, err := fc.CountUserOrganizationBranch(userID, organizationID, branchID)
+	return err == nil && existingCount == 0
+}
+
+func (fc *UserOrganizationCollection) MemberCanJoin(userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) bool {
+	existingBranchCount, err := fc.CountUserOrganizationBranch(userID, organizationID, branchID)
+	if err != nil || existingBranchCount > 0 {
+		return false
+	}
+	existingOrgCount, err := fc.Manager.Count(&UserOrganization{
+		UserID:         userID,
+		OrganizationID: organizationID,
+	})
+	return err == nil && existingOrgCount == 0
 }

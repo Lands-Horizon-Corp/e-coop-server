@@ -233,4 +233,23 @@ func (c *Controller) Routes(service *echo.Echo) {
 		subscriptionPlanG.DELETE("/:subscription_plan_id", c.SubscriptionPlanDelete)
 	}
 
+	userOrganizationG := service.Group("/user-prganization")
+	{
+		userOrganizationG.GET("/", c.UserOrganizationGetAll)
+		userOrganizationG.GET("/:user_organization_id", c.UserOrganizationGetByID)
+		userOrganizationG.PUT("/:user_organization_id", c.UserOrganizationUpdate)
+		userOrganizationG.PUT("/:user_organization_id/developer-key-refresh", c.UserOrganizationRegenerateDeveloperKey)
+		userOrganizationG.POST("/join/organization/:organization_id/branch/:branch_id", c.UserOrganizationJoin)
+		userOrganizationG.POST("/join/invitation-code/:code", c.UserOrganizationJoinByCode)
+		userOrganizationG.POST("/leave/organization/:organization_id/branch/:branch_id", c.UserOrganizationLeave)
+		userOrganizationG.GET("/user/:user_id", c.UserOrganizationListByUser)
+		userOrganizationG.GET("/branch/:branch_id", c.UserOrganizationListByBranch)
+		userOrganizationG.GET("/organization/:organization_id", c.UserOrganizationListByOrganization)
+		userOrganizationG.GET("/organization/:organization_id/branch/:branch_id", c.UserOrganizationListByOrganizationBranch)
+		userOrganizationG.GET("/user/:user_id/branch/:branch_id", c.UserOrganizationListByUserBranch)
+		userOrganizationG.GET("/user/:user_id/organization/:organization_id", c.UserOrganizationListByUserOrganization)
+		userOrganizationG.GET("/user/:user_id/organization/:organization_id/branch/:branch_id", c.UserOrganizationByUserOrganizationBranch)
+		userOrganizationG.GET("/organization/:organization_id/branch/:branch_id/can-join-employee", c.UserOrganizationCanJoinMember)
+		userOrganizationG.GET("/organization/:organization_id/branch/:branch_id/can-join-employee", c.UserOrganizationCanJoinEmployee)
+	}
 }
