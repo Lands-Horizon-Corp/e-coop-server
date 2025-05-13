@@ -14,6 +14,7 @@ type Controller struct {
 	model          *model.Model
 	database       *horizon.HorizonDatabase
 	security       *horizon.HorizonSecurity
+	qr             *horizon.HorizonQR
 
 	// all collections
 	branch                 *model.BranchCollection
@@ -42,6 +43,7 @@ func NewController(
 	model *model.Model,
 	database *horizon.HorizonDatabase,
 	security *horizon.HorizonSecurity,
+	qr *horizon.HorizonQR,
 
 	// all collections
 	branch *model.BranchCollection,
@@ -64,12 +66,14 @@ func NewController(
 
 ) (*Controller, error) {
 	return &Controller{
-		authentication:         authentication,
-		storage:                storage,
-		provider:               provider,
-		model:                  model,
-		database:               database,
-		security:               security,
+		authentication: authentication,
+		storage:        storage,
+		provider:       provider,
+		model:          model,
+		database:       database,
+		security:       security,
+		qr:             qr,
+
 		branch:                 branch,
 		category:               category,
 		contactUs:              contactUs,
