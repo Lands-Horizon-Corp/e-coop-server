@@ -33,7 +33,7 @@ type (
 		MediaID           *uuid.UUID     `gorm:"type:uuid"`
 		Media             *Media         `gorm:"foreignKey:MediaID;constraint:OnDelete:SET NULL;" json:"media,omitempty"`
 		SignatureMediaID  *uuid.UUID     `gorm:"type:uuid"`
-		SignatureMedia    *Media         `gorm:"foreignKey:MediaID;constraint:OnDelete:SET NULL;" json:"signature,omitempty"`
+		SignatureMedia    *Media         `gorm:"foreignKey:SignatureMediaID;constraint:OnDelete:SET NULL;" json:"signature,omitempty"`
 		Password          string         `gorm:"type:varchar(255);not null" json:"-"`
 		Birthdate         time.Time      `gorm:"type:date" json:"birthdate,omitempty"`
 		UserName          string         `gorm:"type:varchar(100);not null;unique" json:"user_name"`
@@ -56,7 +56,7 @@ type (
 	UserResponse struct {
 		ID                uuid.UUID         `json:"id"`
 		MediaID           *uuid.UUID        `json:"media_id,omitempty"`
-		Media             *MediaResponse    `json:"media,omitempty"`
+		Mediaf            *MediaResponse    `json:"media,omitempty"`
 		SignatureMediaID  *uuid.UUID        `json:"signature_media_id"`
 		SignatureMedia    *MediaResponse    `json:"signature_media"`
 		Birthdate         string            `json:"birthdate,omitempty"`
