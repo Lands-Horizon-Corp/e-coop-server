@@ -505,32 +505,23 @@ func (c *Controller) UserSettingsChangeGeneral(ctx echo.Context) error {
 		return err
 	}
 
-	model := &model.User{}
-	dirty := false
-
 	if user.UserName != req.UserName {
-		model.UserName = req.UserName
-		dirty = true
+		user.UserName = req.UserName
 	}
 	if user.Description != req.Description {
-		model.Description = req.Description
-		dirty = true
+		user.Description = req.Description
 	}
 	if user.Email != req.Email {
-		model.Email = req.Email
-		model.IsEmailVerified = false
-		dirty = true
+		user.Email = req.Email
+		user.IsEmailVerified = false
 	}
 	if user.ContactNumber != req.ContactNumber {
-		model.ContactNumber = req.ContactNumber
-		model.IsContactVerified = false
-		dirty = true
+		user.ContactNumber = req.ContactNumber
+		user.IsContactVerified = false
 	}
-	if !dirty {
-		return ctx.JSON(http.StatusOK, c.model.UserModel(user))
-	}
-	model.UpdatedAt = time.Now().UTC()
-	if err := c.user.Manager.UpdateFields(user.ID, model); err != nil {
+
+	user.UpdatedAt = time.Now().UTC()
+	if err := c.user.Manager.Update(user); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to update user: "+err.Error())
 	}
 	updatedUser, err := c.user.Manager.GetByID(user.ID)
