@@ -197,7 +197,7 @@ func (m *Model) UserModel(data *User) *UserResponse {
 			Lastname:      horizon.StringFormat(data.LastName),
 			Firstname:     horizon.StringFormat(data.FirstName),
 			Middlename:    horizon.StringFormat(data.MiddleName),
-		})
+		}, "user")
 		if err != nil {
 			return nil
 		}

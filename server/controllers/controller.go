@@ -95,6 +95,10 @@ func NewController(
 }
 
 func (c *Controller) Routes(service *echo.Echo) {
+	qrG := service.Group("qr")
+	{
+		qrG.GET("/:code", c.QRCode)
+	}
 	branchG := service.Group("/branch")
 	{
 		branchG.GET("", c.BranchList)

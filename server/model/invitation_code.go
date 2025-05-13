@@ -100,7 +100,7 @@ func (m *Model) InvitationCodeModel(data *InvitationCode) *InvitationCodeRespons
 			Code:           data.Code,
 			CurrentUse:     data.CurrentUse,
 			Description:    data.Description,
-		})
+		}, "invitation_code")
 		if err != nil {
 			return nil
 		}

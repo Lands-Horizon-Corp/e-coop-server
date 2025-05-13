@@ -2,7 +2,6 @@ package horizon
 
 import (
 	"encoding/json"
-	"reflect"
 
 	"github.com/rotisserie/eris"
 	"go.uber.org/zap"
@@ -31,8 +30,7 @@ func NewHorizonQR(
 	}, nil
 }
 
-func (hq *HorizonQR) Encode(data any) (*QRResult, error) {
-	typeName := reflect.TypeOf(data).Name()
+func (hq *HorizonQR) Encode(data any, typeName string) (*QRResult, error) {
 	dataBytes, err := json.Marshal(data)
 	if err != nil {
 		hq.log.Log(LogEntry{
