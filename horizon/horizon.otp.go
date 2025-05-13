@@ -166,6 +166,5 @@ func (ho *HorizonOTP) Delete(key string) error {
 }
 
 func (ho *HorizonOTP) secured(key string) string {
-	val := ho.security.Hash(key + ho.config.AppName + "otp")
-	return string(val)
+	return key + ho.config.AppName + "otp"
 }
