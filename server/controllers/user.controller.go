@@ -341,7 +341,7 @@ func (c *Controller) UserSettingsChangePassword(ctx echo.Context) error {
 	if err != nil {
 		return err
 	}
-	if ok := c.authentication.VerifyPassword(user.Password, req.Password); !ok {
+	if ok := c.authentication.VerifyPassword(user.Password, req.OldPassword); !ok {
 		return echo.NewHTTPError(http.StatusUnauthorized, "invalid credentials")
 	}
 	hashedPwd, err := c.authentication.Password(req.NewPassword)
