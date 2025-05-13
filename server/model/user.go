@@ -313,7 +313,7 @@ func NewUserCollection(
 				fmt.Sprintf("user.delete.%s", data.ID),
 			}, model.UserModel(data)
 		},
-		[]string{"Media", "SignatureMedia"},
+		[]string{"SignatureMedia", "Media"},
 	)
 	return &UserCollection{
 		Manager: manager,
