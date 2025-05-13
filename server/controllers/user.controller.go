@@ -203,7 +203,7 @@ func (c *Controller) UserApplyEmail(ctx echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnauthorized, "authentication required")
 	}
-	if err := c.authentication.SendSMTPOTP(*claim); err != "" {
+	if err := c.authentication.SendSMTPOTP(*claim); err == "" {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to send email verification ")
 	}
 	return ctx.NoContent(http.StatusOK)
@@ -248,7 +248,7 @@ func (c *Controller) UserVerifyWithEmail(ctx echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnauthorized, "authentication required")
 	}
-	if err := c.authentication.SendSMTPOTP(*claim); err != "" {
+	if err := c.authentication.SendSMTPOTP(*claim); err == "" {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to send email verification: ")
 	}
 	return ctx.NoContent(http.StatusOK)
