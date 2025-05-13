@@ -184,21 +184,24 @@ func (ha *HorizonAuthentication) VerifyPassword(hash, pw string) bool {
 	return ok
 }
 
-func (ha *HorizonAuthentication) SendSMTPOTP(c Claim) error {
+func (ha *HorizonAuthentication) SendSMTPOTP(c Claim) string {
 	key := ha.secureKey(c, "smtp")
 	otp, err := ha.otp.Generate(key)
 	if err != nil {
-		return err
+		// return err
+		return ""
 	}
 	body, err := renderHTMLTemplate("email-otp.html", map[string]string{"AppTokenName": ha.config.AppTokenName, "otp": otp})
 	if err != nil {
-		return eris.Wrap(err, "OTP template failed")
+		// return eris.Wrap(err, "OTP template failed")
+		return ""
 	}
 	if err := ha.smtp.Send(&SMTPRequest{To: c.Email, Subject: ha.config.AppTokenName + " Email OTP Verification", Body: body}); err != nil {
 		ha.otp.Delete(key)
-		return eris.Wrap(err, "SMTP OTP send failed")
+		// return eris.Wrap(err, "SMTP OTP send failed")
+		return ""
 	}
-	return nil
+	return otp
 }
 
 func (ha *HorizonAuthentication) VerifySMTPOTP(c Claim, otp string) bool {
@@ -229,8 +232,7 @@ func (ha *HorizonAuthentication) VerifySMSOTP(c Claim, otp string) bool {
 }
 
 func (ha *HorizonAuthentication) secureKey(c Claim, channel string) string {
-	base := c.Email + c.ContactNumber + c.ID + channel
-	return string(ha.security.Hash(base + ha.config.AppTokenName + "auth"))
+	return c.Email + c.ContactNumber + c.ID + channel + "auth"
 }
 
 func (ha *HorizonAuthentication) generateLink(baseURL string, c Claim, tplFile string, render func(string, map[string]string) (string, error), send func(any) error, subject string, isSMS bool) (string, error) {

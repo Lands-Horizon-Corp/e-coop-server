@@ -20,6 +20,7 @@ func start(
 ) {
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
+
 			if err := db.Client().AutoMigrate(
 				coop.Migrations...,
 			); err != nil {
