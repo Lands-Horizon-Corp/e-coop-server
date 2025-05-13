@@ -56,7 +56,7 @@ type (
 	UserResponse struct {
 		ID                uuid.UUID         `json:"id"`
 		MediaID           *uuid.UUID        `json:"media_id,omitempty"`
-		Mediaf            *MediaResponse    `json:"media,omitempty"`
+		Media             *MediaResponse    `json:"media,omitempty"`
 		SignatureMediaID  *uuid.UUID        `json:"signature_media_id"`
 		SignatureMedia    *MediaResponse    `json:"signature_media"`
 		Birthdate         string            `json:"birthdate,omitempty"`
