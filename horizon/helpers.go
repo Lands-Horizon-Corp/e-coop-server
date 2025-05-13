@@ -10,8 +10,6 @@ import (
 	"strings"
 	"syscall"
 	"time"
-	"unicode"
-	"unicode/utf8"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -130,11 +128,12 @@ func StringFormat(value *string) string {
 }
 
 func Capitalize(s string) string {
-	if s == "" {
-		return s
-	}
-	r, size := utf8.DecodeRuneInString(s)
-	return string(unicode.ToUpper(r)) + s[size:]
+	// if s == "" {
+	// 	return s
+	// }
+	// r, size := utf8.DecodeRuneInString(s)
+	// return string(unicode.ToUpper(r)) + s[size:]
+	return s
 }
 
 func MergeString(defaults, overrides []string) []string {
