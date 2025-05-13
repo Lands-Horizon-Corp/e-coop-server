@@ -71,7 +71,7 @@ type (
 		Description    string    `json:"description,omitempty"`
 	}
 
-	QRInvitationLInk struct {
+	QRInvitationCode struct {
 		OrganizationID string `json:"organization_id"`
 		BranchID       string `json:"branch_id"`
 		UserType       string `json:"UserType"`
@@ -93,7 +93,7 @@ func (m *Model) InvitationCodeModel(data *InvitationCode) *InvitationCodeRespons
 		return nil
 	}
 	return horizon_manager.ToModel(data, func(data *InvitationCode) *InvitationCodeResponse {
-		encoded, err := m.qr.Encode(&QRInvitationLInk{
+		encoded, err := m.qr.Encode(&QRInvitationCode{
 			OrganizationID: data.OrganizationID.String(),
 			BranchID:       data.BranchID.String(),
 			UserType:       data.UserType,

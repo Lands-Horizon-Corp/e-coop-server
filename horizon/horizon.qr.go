@@ -8,8 +8,8 @@ import (
 )
 
 type QRResult struct {
-	QRCode string `json:"qr_code"`
-	Type   string `json:"type"`
+	Data string `json:"data"`
+	Type string `json:"type"`
 }
 
 type HorizonQR struct {
@@ -117,8 +117,8 @@ func (hq *HorizonQR) Encode(data any, typeName string) (*QRResult, error) {
 	})
 
 	return &QRResult{
-		QRCode: encryptedStr,
-		Type:   typeName,
+		Data: encryptedStr,
+		Type: typeName,
 	}, nil
 }
 
