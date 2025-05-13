@@ -71,14 +71,6 @@ type (
 		Description    string    `json:"description,omitempty"`
 	}
 
-	QRInvitationCode struct {
-		OrganizationID string `json:"organization_id"`
-		BranchID       string `json:"branch_id"`
-		UserType       string `json:"UserType"`
-		Code           string `json:"Code"`
-		CurrentUse     int    `json:"CurrentUse"`
-		Description    string `json:"Description"`
-	}
 	InvitationCodeCollection struct {
 		Manager horizon_manager.CollectionManager[InvitationCode]
 	}
@@ -100,7 +92,7 @@ func (m *Model) InvitationCodeModel(data *InvitationCode) *InvitationCodeRespons
 			Code:           data.Code,
 			CurrentUse:     data.CurrentUse,
 			Description:    data.Description,
-		}, "invitation_code")
+		}, "invitation-code-qr")
 		if err != nil {
 			return nil
 		}

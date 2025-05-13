@@ -13,17 +13,6 @@ import (
 	horizon_manager "horizon.com/server/horizon/manager"
 )
 
-type QRUser struct {
-	UserID        string `json:"user_id"`
-	Email         string `json:"email"`
-	ContactNumber string `json:"contact_number"`
-	Username      string `json:"user_name"`
-	Name          string `json:"name"`
-	Lastname      string `json:"lastname"`
-	Firstname     string `json:"firstname"`
-	Middlename    string `json:"middlename"`
-}
-
 type (
 	User struct {
 		ID                uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
@@ -197,7 +186,7 @@ func (m *Model) UserModel(data *User) *UserResponse {
 			Lastname:      horizon.StringFormat(data.LastName),
 			Firstname:     horizon.StringFormat(data.FirstName),
 			Middlename:    horizon.StringFormat(data.MiddleName),
-		}, "user")
+		}, "user-qr")
 		if err != nil {
 			return nil
 		}
