@@ -61,7 +61,7 @@ type (
 		SignatureMedia    *MediaResponse    `json:"signature_media"`
 		Birthdate         string            `json:"birthdate,omitempty"`
 		UserName          string            `json:"user_name"`
-		Description       *string           `gorm:"type:text"`
+		Description       *string           `json:"description"`
 		FirstName         *string           `json:"first_name,omitempty"`
 		MiddleName        *string           `json:"middle_name,omitempty"`
 		LastName          *string           `json:"last_name,omitempty"`
