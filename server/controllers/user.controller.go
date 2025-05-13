@@ -524,10 +524,7 @@ func (c *Controller) UserSettingsChangeGeneral(ctx echo.Context) error {
 	if err := c.user.Manager.Update(user); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to update user: "+err.Error())
 	}
-	updatedUser, err := c.user.Manager.GetByID(user.ID)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "failed to fetch updated user")
-	}
-	c.provider.SetUser(ctx, updatedUser)
-	return ctx.JSON(http.StatusOK, c.model.UserModel(updatedUser))
+
+	c.provider.SetUser(ctx, user)
+	return ctx.JSON(http.StatusOK, c.model.UserModel(user))
 }
