@@ -611,7 +611,6 @@ Table member_verification {
   indexes {
     (organization_id, branch_id) [name: 'organization-branch']
   }
-
 }
 
 Ref: member_verification.branch_id - branch.id [delete:cascade, update:cascade]

@@ -42,6 +42,7 @@ type Controller struct {
 	memberOccupation     *model.MemberOccupationCollection
 	memberType           *model.MemberTypeCollection
 	memberProfile        *model.MemberProfileCollection
+	memberVerification   *model.MemberVerificationCollection
 	// End Maintenantce table member
 }
 
@@ -80,7 +81,7 @@ func NewController(
 	memberOccupation *model.MemberOccupationCollection,
 	memberType *model.MemberTypeCollection,
 	memberProfile *model.MemberProfileCollection,
-
+	memberVerification *model.MemberVerificationCollection,
 ) (*Controller, error) {
 	return &Controller{
 		authentication:         authentication,
@@ -114,6 +115,7 @@ func NewController(
 		memberOccupation:       memberOccupation,
 		memberType:             memberType,
 		memberProfile:          memberProfile,
+		memberVerification:     memberVerification,
 	}, nil
 }
 
@@ -421,6 +423,16 @@ func (c *Controller) Routes(service *echo.Echo) {
 		memberProfileG.GET("/branch/:branch_id", c.MemberProfileListByBranch)
 		memberProfileG.GET("/organization/:organization_id", c.MemberProfileListByOrganization)
 		memberProfileG.GET("/organization/:organization_id/branch/:branch_id", c.MemberProfileListByOrganizationBranch)
+	}
+
+	memberVerificationG := service.Group("/member-verification")
+	{
+		memberVerificationG.GET("", c.MemberVerificationList)
+		memberVerificationG.GET("/:member_verification_id", c.MemberVerificationGetByID)
+		memberVerificationG.DELETE("/:member_verification_id", c.MemberVerificationDelete)
+		memberVerificationG.GET("/branch/:branch_id", c.MemberVerificationListByBranch)
+		memberVerificationG.GET("/organization/:organization_id", c.MemberVerificationListByOrganization)
+		memberVerificationG.GET("/organization/:organization_id/branch/:branch_id", c.MemberVerificationListByOrganizationBranch)
 	}
 
 }

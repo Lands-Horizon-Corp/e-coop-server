@@ -42,7 +42,7 @@ func (c *Controller) MemberProfileCreate(ctx echo.Context) error {
 	if err != nil {
 		return err
 	}
-	model := &model.MemberProfile{
+	memProfilemodel := &model.MemberProfile{
 		CreatedAt:              time.Now().UTC(),
 		CreatedByID:            user.UserID,
 		UpdatedAt:              time.Now().UTC(),
@@ -76,17 +76,25 @@ func (c *Controller) MemberProfileCreate(ctx echo.Context) error {
 		BusinessContactNumber:  req.BusinessContactNumber,
 		CivilStatus:            req.CivilStatus,
 	}
-	if err := c.memberProfile.Manager.Create(model); err != nil {
+	if err := c.memberProfile.Manager.Create(memProfilemodel); err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
-	return ctx.JSON(http.StatusCreated, c.model.MemberProfileModel(model))
+	c.memberVerification.Manager.Create(&model.MemberVerification{
+		CreatedAt:       time.Now().UTC(),
+		CreatedByID:     user.UserID,
+		UpdatedAt:       time.Now().UTC(),
+		UpdatedByID:     user.UserID,
+		BranchID:        *user.BranchID,
+		OrganizationID:  user.OrganizationID,
+		MemberProfileID: memProfilemodel.ID,
+	})
+	return ctx.JSON(http.StatusCreated, c.model.MemberProfileModel(memProfilemodel))
 }
 
-// PUT /member-profile/member_profile_id
 func (c *Controller) MemberProfileUpdate(ctx echo.Context) error {
 	id, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
 	if err != nil {
-		return err
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
 	}
 
 	// Get existing member profile
@@ -95,9 +103,10 @@ func (c *Controller) MemberProfileUpdate(ctx echo.Context) error {
 		return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member profile not found"})
 	}
 
+	// Validate request payload
 	req, err := c.model.MemberProfileValidate(ctx)
 	if err != nil {
-		return err
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
 
 	// Validate allowed status values
@@ -113,26 +122,14 @@ func (c *Controller) MemberProfileUpdate(ctx echo.Context) error {
 		})
 	}
 
+	// Get current user
 	user, err := c.provider.CurrentUserOrganization(ctx)
 	if err != nil {
-		return err
+		return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
 	}
 
-	// Check status change permissions
-	if existing.Status != req.Status {
-		if user.UserType != "owner" && user.UserType != "employee" {
-			return ctx.JSON(http.StatusForbidden, map[string]string{
-				"error": "Only organization owners or employees can modify member status",
-			})
-		}
-
-		c.provider.Notification(ctx, "Member Status Update",
-			fmt.Sprintf("Member %s status changed from %s to %s",
-				existing.FullName, existing.Status, req.Status),
-			"info")
-	}
-
-	model := &model.MemberProfile{
+	// Prepare updated member profile model
+	memProfileModel := &model.MemberProfile{
 		UpdatedAt:              time.Now().UTC(),
 		UpdatedByID:            user.UserID,
 		BranchID:               *user.BranchID,
@@ -150,10 +147,8 @@ func (c *Controller) MemberProfileUpdate(ctx echo.Context) error {
 		FirstName:              req.FirstName,
 		MiddleName:             req.MiddleName,
 		LastName:               req.LastName,
-		FullName:               req.FullName,
 		Suffix:                 req.Suffix,
 		Birthdate:              req.Birthdate,
-		Status:                 req.Status,
 		Description:            req.Description,
 		Notes:                  req.Notes,
 		ContactNumber:          req.ContactNumber,
@@ -165,16 +160,59 @@ func (c *Controller) MemberProfileUpdate(ctx echo.Context) error {
 		CivilStatus:            req.CivilStatus,
 	}
 
-	if err := c.memberProfile.Manager.UpdateByID(*id, model); err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	// Construct full name
+	memProfileModel.FullName = fmt.Sprintf("%s %s %s %s", req.FirstName, req.MiddleName, req.LastName, req.Suffix)
+
+	// Status update logic
+	if existing.Status != req.Status {
+		if user.UserType != "owner" && user.UserType != "employee" {
+			return ctx.JSON(http.StatusForbidden, map[string]string{
+				"error": "Only organization owners or employees can modify member status",
+			})
+		}
+
+		verified, err := c.memberVerification.GetByMemberProfileID(existing.ID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{
+				"error": "Member verification record not found",
+			})
+		}
+
+		verified.Status = req.Status
+		verified.UpdatedAt = time.Now().UTC()
+		verified.UpdatedByID = user.UserID
+		verified.VerifiedByUserID = user.UserID
+
+		if err := c.memberVerification.Manager.Update(verified); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{
+				"error": "Failed to update member verification",
+			})
+		}
+
+		memProfileModel.Status = req.Status
+
+		c.provider.Notification(ctx, "Member Status Update",
+			fmt.Sprintf("Member %s status changed from %s to %s",
+				existing.FullName, existing.Status, req.Status),
+			"info")
+	} else {
+		memProfileModel.Status = existing.Status
 	}
 
-	// General update notification
-	c.provider.UserFootstep(ctx, "member-profile",
-		fmt.Sprintf("Updated member profile for %s", model.FullName),
-		model)
+	// Save updated member profile
+	if err := c.memberProfile.Manager.UpdateByID(*id, memProfileModel); err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{
+			"error": "Failed to update member profile: " + err.Error(),
+		})
+	}
 
-	return ctx.JSON(http.StatusOK, c.model.MemberProfileModel(model))
+	// Log activity
+	c.provider.UserFootstep(ctx, "member-profile",
+		fmt.Sprintf("Updated member profile for %s", memProfileModel.FullName),
+		memProfileModel)
+
+	// Return updated profile
+	return ctx.JSON(http.StatusOK, c.model.MemberProfileModel(memProfileModel))
 }
 
 // DELETE /member-profile/member_profile_id

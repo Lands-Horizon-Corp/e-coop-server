@@ -13,12 +13,13 @@ memberGroupG := service.Group("/member-group")
 		memberGroupG.GET("/organization/:organization_id/branch/:branch_id", c.MemberGroupListByOrganizationBranch)
 	}
 
+
 """
     replacements = [
-        ("member_group", "member_profile"),
-        ("member-group", "member-profile"),
-        ("memberGroup", "memberProfile"),
-        ("MemberGroup", "MemberProfile"),
+        ("member_group", "member_verification"),
+        ("member-group", "member-verification"),
+        ("memberGroup", "memberVerification"),
+        ("MemberGroup", "MemberVerification"),
     ]
     for (from_change, to_change) in replacements:
         txt = txt.replace(from_change, to_change)
