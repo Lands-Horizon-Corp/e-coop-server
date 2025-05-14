@@ -274,6 +274,7 @@ func (c *Controller) Routes(service *echo.Echo) {
 		userOrganizationG.GET("/user/:user_id/organization/:organization_id/branch/:branch_id", c.UserOrganizationByUserOrganizationBranch)
 		userOrganizationG.GET("/organization/:organization_id/branch/:branch_id/can-join-employee", c.UserOrganizationCanJoinMember)
 		userOrganizationG.GET("/organization/:organization_id/branch/:branch_id/can-join-employee", c.UserOrganizationCanJoinEmployee)
+		userOrganizationG.GET("/:user_organization_id/switch", c.UserOrganizationSwitch)
 	}
 
 	permissionTemplateG := service.Group("/permission-template")
