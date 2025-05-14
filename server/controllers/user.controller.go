@@ -16,9 +16,11 @@ func (c *Controller) UserCurrent(ctx echo.Context) error {
 	if err != nil {
 		return err
 	}
+	userOrg, _ := c.provider.CurrentUserOrganization(ctx)
 	return ctx.JSON(http.StatusOK, model.CurrentUserResponse{
-		UserID: user.ID,
-		User:   c.model.UserModel(user),
+		UserID:           user.ID,
+		User:             c.model.UserModel(user),
+		UserOrganization: c.model.UserOrganizationModel(userOrg),
 	})
 }
 
@@ -44,7 +46,7 @@ func (c *Controller) UserLogin(ctx echo.Context) error {
 }
 
 func (c *Controller) UserLogout(ctx echo.Context) error {
-	c.authentication.CleanToken(ctx)
+	c.provider.CleanToken(ctx)
 	return ctx.NoContent(http.StatusOK)
 }
 

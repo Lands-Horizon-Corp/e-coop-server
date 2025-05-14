@@ -67,7 +67,7 @@ func (ha *HorizonAuthentication) SetToken(c echo.Context, claims Claim) error {
 		Name:     ha.config.AppTokenName,
 		Value:    tok,
 		Path:     "/",
-		Expires:  time.Now().Add(authExpiration),
+		Expires:  time.Now().Add(AuthExpiration),
 		HttpOnly: true,
 		Secure:   c.Request().TLS != nil,
 		SameSite: http.SameSiteLaxMode,
@@ -100,7 +100,7 @@ func (ha *HorizonAuthentication) GenerateToken(c Claim) (string, error) {
 		c.IssuedAt = jwt.NewNumericDate(now)
 	}
 	if c.ExpiresAt == nil {
-		c.ExpiresAt = jwt.NewNumericDate(now.Add(authExpiration))
+		c.ExpiresAt = jwt.NewNumericDate(now.Add(AuthExpiration))
 	}
 	if c.Subject == "" {
 		c.Subject = c.ID

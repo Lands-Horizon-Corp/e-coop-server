@@ -7,7 +7,7 @@ import (
 
 const (
 	storageDuration   = time.Hour * 4
-	authExpiration    = 16 * time.Hour
+	AuthExpiration    = 16 * time.Hour
 	tokenLinkValidity = 10 * time.Minute
 	maxSMSCharacters  = 2_000
 )

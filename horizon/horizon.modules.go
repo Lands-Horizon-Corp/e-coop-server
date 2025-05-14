@@ -1,6 +1,8 @@
 package horizon
 
-import "go.uber.org/fx"
+import (
+	"go.uber.org/fx"
+)
 
 func Horizon(callback any, ctors ...any) *fx.App {
 	core := []any{
@@ -20,6 +22,7 @@ func Horizon(callback any, ctors ...any) *fx.App {
 		NewHorizonSMTP,
 		NewHorizonStorage,
 		NewHorizonReport,
+		NewHorizonAuthCustom,
 	}
 
 	allProviders := append(core, ctors...)

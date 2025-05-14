@@ -32,9 +32,34 @@ func (c *Controller) UserOrganizationGetByID(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, c.model.UserOrganizationModel(userOrganization))
 }
 
-// GET  user-organization/user_org_id/switch
+// GET  user-organization/:user_organization_id/switch
+func (c *Controller) UserORganizationSwitch(ctx echo.Context) error {
+	id, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
+	if err != nil {
+		return err
+	}
+	user, err := c.provider.CurrentUser(ctx)
+	if err != nil {
+		return err
+	}
+	userOrganization, err := c.userOrganization.Manager.GetByID(*id)
+	if err != nil {
+		return err
+	}
+	if user.ID != userOrganization.UserID {
+		return echo.NewHTTPError(http.StatusInternalServerError, "the user is not part of the organization")
+	}
+	if err := c.provider.SetCustom(ctx, userOrganization); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to set authentication token")
+	}
 
-// POST user-organization/user_org_id/branch
+	return ctx.JSON(http.StatusOK, model.CurrentUserResponse{
+		UserID:           user.ID,
+		User:             c.model.UserModel(user),
+		UserOrganization: c.model.UserOrganizationModel(userOrganization),
+	})
+}
+
 // POST user-organization/user_org_id/branch
 
 // PUT /user-organization/:user_organization_id/developer-key-refresh

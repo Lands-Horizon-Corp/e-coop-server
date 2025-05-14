@@ -71,8 +71,9 @@ type (
 	}
 
 	CurrentUserResponse struct {
-		UserID uuid.UUID     `json:"user_id"`
-		User   *UserResponse `json:"user"`
+		UserID           uuid.UUID                 `json:"user_id"`
+		User             *UserResponse             `json:"user"`
+		UserOrganization *UserOrganizationResponse `json:"user_organization"`
 	}
 
 	UserLoginRequest struct {
