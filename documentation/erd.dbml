@@ -5,7 +5,7 @@ enum feedback_type {
   other
 }
 
-// 🔑 💾
+// 🔑
 Table feedback {
   id varchar(50) [pk, unique, default: `uuid_generate_v4()`]
   email varchar(255)
@@ -17,8 +17,7 @@ Table feedback {
   deleted_at timestamp
 }
 
-
-// 🔑 💾
+// 🔑
 Table contact_us {
   id varchar(50) [primary key, unique, default: `uuid_generate_v4()`]
 
@@ -33,7 +32,7 @@ Table contact_us {
   deleted_at timestamp
 }
 
-// 🔑 💾
+// 🔑
 Table subscription_plan {
   id varchar(50) [pk, unique, default: `uuid_generate_v4()`]
   name varchar(255) [not null, unique]
@@ -46,6 +45,10 @@ Table subscription_plan {
   discount decimal(5,2) [default: 0]
   yearly_discount decimal(5,2) [default: 0]
 
+  created_by_id varchar(50) [ref: - user.id]
+  updated_by_id varchar(50) [ref: - user.id]
+  deleted_by_id varchar(50) [ref: - user.id]
+
   created_at timestamp [not null, default: `now()`]
   updated_at timestamp [not null, default: `now()`]
   deleted_at timestamp
@@ -56,7 +59,7 @@ enum notification_type {
   report
 }
 
-// 🔑 💾
+// 🔑
 Table notification {
   id varchar(50) [pk, unique, default: `uuid_generate_v4()`]
   user_id varchar(50)
@@ -79,7 +82,6 @@ enum user_type {
   ban
 }
 
-// 🔑 💾
 Table user {
   id varchar(50) [pk, unique, default: `uuid_generate_v4()`]
 
@@ -108,7 +110,7 @@ Table user {
 
 Ref: user.media_id - media.id [delete: set null]
 
-// 🔑 💾
+// 🔑
 Table user_settings {
   id varchar(50) [primary key, unique, default: `uuid_generate_v4()`]
 
@@ -142,7 +144,8 @@ Table user_settings {
 Ref: user_settings.organization_id > organization.id [delete: cascade, update: cascade]
 Ref: user_settings.branch_id > branch.id [delete:cascade, update:cascade]
 
-// 🔑 💾
+// 🔑
+
 Table user_role {
   id varchar(50) [primary key, unique, default: `uuid_generate_v4()`]
 
@@ -169,7 +172,7 @@ Table user_role {
 
 Ref: user_role.branch_id > branch.id [delete:cascade, update:cascade]
 Ref: user_role.user_id > user.id [delete:cascade, update:cascade]
-// 🔑 💾
+
 Table media {
   id varchar(50) [primary key, unique, default: `uuid_generate_v4()`]
   created_by_id varchar(50) [ref: - user.id]
@@ -202,7 +205,7 @@ enum report_status {
   error
 }
 
-// 🔑 💾
+// 🔑
 Table generated_reports {
   id varchar(50) [primary key, unique, default: `uuid_generate_v4()`]
 
@@ -240,8 +243,16 @@ Ref: generated_reports.branch_id > branch.id [delete:cascade, update:cascade]
 Ref: generated_reports.media_id - media.id
 Ref: generated_reports.requested_by_user_id - user.id
 
+enum organization_migration_status {
+  pending
+  migrating
+  seeding
+  completed
+  canceled
+  error
+}
 
-// 🔑 💾
+// 🔑
 Table organization {
   id varchar(50) [pk, unique, default: `uuid_generate_v4()`]
   media_id varchar(50)
@@ -254,6 +265,14 @@ Table organization {
   subscription_plan_id varchar(50)
   subscription_start_date timestamp
   subscription_end_date timestamp
+
+  database_host varchar(255)
+  database_port varchar(10)
+  database_name varchar(255)
+  database_username varchar(255)
+  database_password varchar(255)
+  database_migration_status organization_migration_status
+  database_remarks text
 
   email varchar(255) [not null, unique]
   contact_number varchar(20) [not null, unique]
@@ -270,7 +289,9 @@ Ref: organization.media_id - media.id [delete: set null, update: cascade]
 Ref: organization.cover_media_id - media.id [delete: set null, update: cascade]
 Ref: organization.subscription_plan_id > subscription_plan.id [delete: restrict, update: cascade]
 
-// 🔑 💾
+// Tracking usage
+// Coop Usage entries Per Day ( this is system generated )
+// 🔑
 Table organization_daily_usage {
   id varchar(50) [primary key, unique, default: `uuid_generate_v4()`]
 
@@ -303,7 +324,7 @@ Ref: organization_daily_usage.organization_id > organization.id [delete: set nul
 
 // 1. Pang Accept
 // 2. Pang
-// 🔑 💾
+// 🔑
 Table user_organization {
   id varchar(50) [pk, unique, default: `uuid_generate_v4()`]
   user_id varchar(50)
@@ -336,7 +357,7 @@ enum branch_type {
   "banking branch"
 }
 
-// 🔑 💾
+// 🔑
 Table branch {
   id varchar(50) [primary key, unique, default: `uuid_generate_v4()`]
 
@@ -381,7 +402,8 @@ Table branch {
 Ref: branch.organization_id > organization.id [delete: cascade, update: cascade]
 Ref: branch.media_id - media.id [delete:cascade]
 
-// 🔑 💾
+// TEMPLATE
+// 🔑
 Table role_template {
   id varchar(50) [primary key, unique, default: `uuid_generate_v4()`]
 
@@ -769,12 +791,14 @@ Table member_profile {
   branch_id varchar(50)
   organization_id varchar(50)
 
+  media_id varchar(50)
+  signature_media_id varchar(50)
+
   user_id varchar(50)
   member_type_id varchar(50)
   member_group_id varchar(50)
   member_gender_id varchar(50)
   member_center_id varchar(50)
-  signature_media_id varchar(50)
   member_occupation_id varchar(50)
   member_classification_id varchar(50)
   member_verified_by_employee_user_id varchar(50)
@@ -791,8 +815,9 @@ Table member_profile {
   first_name varchar(255) [not null]
   middle_name varchar(255)
   last_name varchar(255) [not null]
-  full_name varchar(255) [not null] // TODO: Index
+  full_name varchar(255) [not null]
   suffix varchar(50)
+  birthdate date
   status general_status [not null, default: "pending"]
 
   description text
@@ -816,12 +841,13 @@ Table member_profile {
 
 }
 
-Ref: member_profile.member_verified_by_employee_user_id > user.id [delete:restrict, update:cascade]
+Ref: member_profile.member_verified_by_employee_user_id > user.id [delete:set null, update:cascade]
 Ref: member_profile.user_id - user.id [delete:restrict, update:cascade]
+Ref: member_profile.media_id - media.id [delete:set null, update:cascade]
+Ref: member_profile.signature_media_id - media.id [delete:set null, update:cascade]
 Ref: member_profile.branch_id < branch.id [delete:restrict, update:cascade]
 Ref: member_profile.recruited_by_member_profile_id - member_profile.id [delete:restrict, update:cascade]
 Ref: member_profile.member_occupation_id - member_occupation.id [delete:restrict, update:cascade]
-Ref: member_profile.signature_media_id - media.id [delete:restrict, update:cascade]
 Ref: member_profile.member_gender_id - member_gender.id [delete:restrict, update:cascade]
 Ref: member_profile.member_center_id - member_center.id [delete:restrict, update:cascade]
 Ref: member_profile.member_type_id - member_type.id [delete:restrict, update:cascade]
