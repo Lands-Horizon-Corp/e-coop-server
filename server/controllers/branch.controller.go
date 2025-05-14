@@ -113,8 +113,10 @@ func (c *Controller) BranchCreate(ctx echo.Context) error {
 		tx.Rollback()
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
-
-	return ctx.JSON(http.StatusCreated, c.model.BranchModel(branch))
+	return ctx.JSON(http.StatusOK, map[string]any{
+		"brach":             c.model.BranchModel(branch),
+		"user_organization": c.model.UserOrganizationModel(userOrganization),
+	})
 }
 
 // PUT /branch/user-organization/:user_organization_id

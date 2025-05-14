@@ -120,7 +120,7 @@ func (ho *HorizonOTP) Verify(key, value string) (bool, error) {
 		return false, eris.New("cached OTP token has invalid type")
 	}
 
-	token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(tokenString, func(t *jwt.Token) (any, error) {
 		return []byte(ho.config.AppToken), nil
 	})
 	if err != nil || !token.Valid {

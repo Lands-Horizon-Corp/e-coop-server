@@ -13,13 +13,11 @@ type HorizonPrettyJSONEncoder struct {
 	encoder zapcore.Encoder
 }
 
-// Constructor
 func NewHorizonPrettyJSONEncoder(cfg zapcore.EncoderConfig) zapcore.Encoder {
 	enc := zapcore.NewJSONEncoder(cfg)
 	return &HorizonPrettyJSONEncoder{encoder: enc}
 }
 
-// Required interface methods
 func (p *HorizonPrettyJSONEncoder) Clone() zapcore.Encoder {
 	return &HorizonPrettyJSONEncoder{encoder: p.encoder.Clone()}
 }
@@ -137,7 +135,7 @@ func (p *HorizonPrettyJSONEncoder) AddUintptr(key string, value uintptr) {
 	p.encoder.AddUintptr(key, value)
 }
 
-func (p *HorizonPrettyJSONEncoder) AddReflected(key string, value interface{}) error {
+func (p *HorizonPrettyJSONEncoder) AddReflected(key string, value any) error {
 	return p.encoder.AddReflected(key, value)
 }
 

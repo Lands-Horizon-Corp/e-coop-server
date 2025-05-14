@@ -123,7 +123,10 @@ func (c *Controller) OrganizationCreate(ctx echo.Context) error {
 		tx.Rollback()
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
-	return ctx.JSON(http.StatusOK, c.model.OrganizationModel(organization))
+	return ctx.JSON(http.StatusOK, map[string]any{
+		"organization":      c.model.OrganizationModel(organization),
+		"user_organization": c.model.UserOrganizationModel(userOrganization),
+	})
 }
 
 // PUT /organization/:organization_id

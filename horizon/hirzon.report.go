@@ -12,8 +12,6 @@ func NewHorizonReport(storage *HorizonStorage) (*HorizonReport, error) {
 	}, nil
 }
 
-// Generate will generate a CSV from the provided data (interface{}) and upload it to storage
 func (hr *HorizonReport) Generate(data []any, onProgress ProgressCallback, name string) (*Storage, error) {
-
 	return nil, nil
 }
