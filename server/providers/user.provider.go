@@ -70,10 +70,6 @@ func (p *Providers) CurrentUserOrganization(c echo.Context) (*model.UserOrganiza
 		p.CleanToken(c)
 		return nil, echo.NewHTTPError(http.StatusUnauthorized, "authentication required")
 	}
-	user, err := p.CurrentUser(c)
-	if err != nil {
-		return nil, err
-	}
 	userOrgId, err := uuid.Parse(claim.UserOrganizationID)
 	if err != nil {
 		p.CleanToken(c)
@@ -87,10 +83,6 @@ func (p *Providers) CurrentUserOrganization(c echo.Context) (*model.UserOrganiza
 	if userOrganization.ID != userOrgId {
 		p.CleanToken(c)
 		return nil, echo.NewHTTPError(http.StatusNotFound, "user changes organization")
-	}
-	if user.ID != userOrganization.UserID {
-		p.CleanToken(c)
-		return nil, echo.NewHTTPError(http.StatusNotFound, "user is not in this organizations")
 	}
 	return userOrganization, nil
 }

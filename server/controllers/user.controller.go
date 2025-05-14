@@ -12,15 +12,22 @@ import (
 )
 
 func (c *Controller) UserCurrent(ctx echo.Context) error {
+	userOrg, err := c.provider.CurrentUserOrganization(ctx)
+	if err == nil {
+		return ctx.JSON(http.StatusOK, model.CurrentUserResponse{
+			UserID:           userOrg.UserID,
+			User:             c.model.UserModel(userOrg.User),
+			UserOrganization: c.model.UserOrganizationModel(userOrg),
+		})
+	}
 	user, err := c.provider.CurrentUser(ctx)
 	if err != nil {
 		return err
 	}
-	userOrg, _ := c.provider.CurrentUserOrganization(ctx)
 	return ctx.JSON(http.StatusOK, model.CurrentUserResponse{
 		UserID:           user.ID,
 		User:             c.model.UserModel(user),
-		UserOrganization: c.model.UserOrganizationModel(userOrg),
+		UserOrganization: nil,
 	})
 }
 

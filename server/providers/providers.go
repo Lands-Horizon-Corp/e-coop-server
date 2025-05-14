@@ -38,6 +38,10 @@ func NewProviders(
 	}, nil
 }
 
+func (p *Providers) CleanCustomToken(ctx echo.Context) {
+	p.customAuth.CleanToken(ctx)
+}
+
 func (p *Providers) CleanToken(ctx echo.Context) {
 	p.authentication.CleanToken(ctx)
 	p.customAuth.CleanToken(ctx)

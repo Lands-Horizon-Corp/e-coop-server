@@ -36,6 +36,7 @@ func (c *Controller) UserOrganizationGetByID(ctx echo.Context) error {
 func (c *Controller) UserOrganizationSwitch(ctx echo.Context) error {
 	id, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
 	if err != nil {
+		c.provider.CleanCustomToken(ctx)
 		return err
 	}
 	user, err := c.provider.CurrentUser(ctx)
