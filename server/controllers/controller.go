@@ -453,4 +453,62 @@ func (c *Controller) Routes(service *echo.Echo) {
 		memberVerificationG.GET("/organization/:organization_id/branch/:branch_id", c.MemberVerificationListByOrganizationBranch)
 	}
 
+	memberGenderHistoryG := service.Group("/member-gender-history")
+	{
+		memberGenderHistoryG.GET("", c.MemberGenderHistoryList)
+		memberGenderHistoryG.GET("/:member_gender_history_id", c.MemberGenderHistoryGetByID)
+		memberGenderHistoryG.DELETE("/:member_gender_history_id", c.MemberGenderHistoryDelete)
+		memberGenderHistoryG.GET("/branch/:branch_id", c.MemberGenderHistoryListByBranch)
+		memberGenderHistoryG.GET("/organization/:organization_id", c.MemberGenderHistoryListByOrganization)
+		memberGenderHistoryG.GET("/organization/:organization_id/branch/:branch_id", c.MemberGenderHistoryListByOrganizationBranch)
+	}
+
+	memberTypeHistoryG := service.Group("/member-type-history")
+	{
+		memberTypeHistoryG.GET("", c.MemberTypeHistoryList)
+		memberTypeHistoryG.GET("/:member_type_history_id", c.MemberTypeHistoryGetByID)
+		memberTypeHistoryG.DELETE("/:member_type_history_id", c.MemberTypeHistoryDelete)
+		memberTypeHistoryG.GET("/branch/:branch_id", c.MemberTypeHistoryListByBranch)
+		memberTypeHistoryG.GET("/organization/:organization_id", c.MemberTypeHistoryListByOrganization)
+		memberTypeHistoryG.GET("/organization/:organization_id/branch/:branch_id", c.MemberTypeHistoryListByOrganizationBranch)
+	}
+	memberOccupationHistoryG := service.Group("/member-occupation-history")
+	{
+		memberOccupationHistoryG.GET("", c.MemberOccupationHistoryList)
+		memberOccupationHistoryG.GET("/:member_occupation_history_id", c.MemberOccupationHistoryGetByID)
+		memberOccupationHistoryG.DELETE("/:member_occupation_history_id", c.MemberOccupationHistoryDelete)
+		memberOccupationHistoryG.GET("/branch/:branch_id", c.MemberOccupationHistoryListByBranch)
+		memberOccupationHistoryG.GET("/organization/:organization_id", c.MemberOccupationHistoryListByOrganization)
+		memberOccupationHistoryG.GET("/organization/:organization_id/branch/:branch_id", c.MemberOccupationHistoryListByOrganizationBranch)
+	}
+
+	memberGroupHistoryG := service.Group("/member-group-history")
+	{
+		memberGroupHistoryG.GET("", c.MemberGroupHistoryList)
+		memberGroupHistoryG.GET("/:member_group_history_id", c.MemberGroupHistoryGetByID)
+		memberGroupHistoryG.DELETE("/:member_group_history_id", c.MemberGroupHistoryDelete)
+		memberGroupHistoryG.GET("/branch/:branch_id", c.MemberGroupHistoryListByBranch)
+		memberGroupHistoryG.GET("/organization/:organization_id", c.MemberGroupHistoryListByOrganization)
+		memberGroupHistoryG.GET("/organization/:organization_id/branch/:branch_id", c.MemberGroupHistoryListByOrganizationBranch)
+	}
+
+	memberCenterHistoryG := service.Group("/member-center-history")
+	{
+		memberCenterHistoryG.GET("", c.MemberCenterHistoryList)
+		memberCenterHistoryG.GET("/:member_center_history_id", c.MemberCenterHistoryGetByID)
+		memberCenterHistoryG.DELETE("/:member_center_history_id", c.MemberCenterHistoryDelete)
+		memberCenterHistoryG.GET("/branch/:branch_id", c.MemberCenterHistoryListByBranch)
+		memberCenterHistoryG.GET("/organization/:organization_id", c.MemberCenterHistoryListByOrganization)
+		memberCenterHistoryG.GET("/organization/:organization_id/branch/:branch_id", c.MemberCenterHistoryListByOrganizationBranch)
+	}
+
+	memberClassificationHistoryG := service.Group("/member-classificationr-history")
+	{
+		memberClassificationHistoryG.GET("", c.MemberClassificationHistoryList)
+		memberClassificationHistoryG.GET("/:member_classification_history_id", c.MemberClassificationHistoryGetByID)
+		memberClassificationHistoryG.DELETE("/:member_classification_history_id", c.MemberClassificationHistoryDelete)
+		memberClassificationHistoryG.GET("/branch/:branch_id", c.MemberClassificationHistoryListByBranch)
+		memberClassificationHistoryG.GET("/organization/:organization_id", c.MemberClassificationHistoryListByOrganization)
+		memberClassificationHistoryG.GET("/organization/:organization_id/branch/:branch_id", c.MemberClassificationHistoryListByOrganizationBranch)
+	}
 }

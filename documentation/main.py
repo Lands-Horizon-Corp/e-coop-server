@@ -1,101 +1,27 @@
 
 def main():
     txt = """
-package controllers
-
-import (
-	"net/http"
-
-	"github.com/labstack/echo/v4"
-	"horizon.com/server/horizon"
-)
-
-// GET /member-gender-history
-func (c *Controller) MemberGenderHistoryList(ctx echo.Context) error {
-	member_gender_history, err := c.memberGenderHistory.Manager.List()
-	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+memberGenderHistoryG := service.Group("/member-gender-history")
+	{
+		memberGenderHistoryG.GET("", c.MemberGenderHistoryList)
+		memberGenderHistoryG.GET("/:member_gender_history_id", c.MemberGenderHistoryGetByID)
+		memberGenderHistoryG.DELETE("/:member_gender_history_id", c.MemberGenderHistoryDelete)
+		memberGenderHistoryG.GET("/branch/:branch_id", c.MemberGenderHistoryListByBranch)
+		memberGenderHistoryG.GET("/organization/:organization_id", c.MemberGenderHistoryListByOrganization)
+		memberGenderHistoryG.GET("/organization/:organization_id/branch/:branch_id", c.MemberGenderHistoryListByOrganizationBranch)
 	}
-	return ctx.JSON(http.StatusOK, c.model.MemberGenderHistoryModels(member_gender_history))
-}
-
-// GET /member-gender-history/:member_gender_history_id
-func (c *Controller) MemberGenderHistoryGetByID(ctx echo.Context) error {
-	id, err := horizon.EngineUUIDParam(ctx, "member_gender_history_id")
-	if err != nil {
-		return err
-	}
-	member_gender_history, err := c.memberGenderHistory.Manager.GetByID(*id)
-	if err != nil {
-		return ctx.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
-	}
-	return ctx.JSON(http.StatusOK, c.model.MemberGenderHistoryModel(member_gender_history))
-}
-
-// DELETE /member-gender-history/member_gender_history_id
-func (c *Controller) MemberGenderHistoryDelete(ctx echo.Context) error {
-	id, err := horizon.EngineUUIDParam(ctx, "member_gender_history_id")
-	if err != nil {
-		return err
-	}
-	if err := c.memberGenderHistory.Manager.DeleteByID(*id); err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-	}
-	return ctx.NoContent(http.StatusNoContent)
-}
-
-// GET member-gender-history/branch/:branch_id
-func (c *Controller) MemberGenderHistoryListByBranch(ctx echo.Context) error {
-	id, err := horizon.EngineUUIDParam(ctx, "branch_id")
-	if err != nil {
-		return err
-	}
-	member_gender_history, err := c.memberGenderHistory.ListByBranch(*id)
-	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-	}
-	return ctx.JSON(http.StatusOK, c.model.MemberGenderHistoryModels(member_gender_history))
-}
-
-// GET member-gender-history/organization/:organization_id
-func (c *Controller) MemberGenderHistoryListByOrganization(ctx echo.Context) error {
-	id, err := horizon.EngineUUIDParam(ctx, "organization_id")
-	if err != nil {
-		return err
-	}
-	member_gender_history, err := c.memberGenderHistory.ListByOrganization(*id)
-	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-	}
-	return ctx.JSON(http.StatusOK, c.model.MemberGenderHistoryModels(member_gender_history))
-}
-
-// GET member_gender_history/organization/:organization_id/branch/:branch_id
-func (c *Controller) MemberGenderHistoryListByOrganizationBranch(ctx echo.Context) error {
-	orgId, err := horizon.EngineUUIDParam(ctx, "organization_id")
-	if err != nil {
-		return err
-	}
-	branchId, err := horizon.EngineUUIDParam(ctx, "branch_id")
-	if err != nil {
-		return err
-	}
-	member_gender_history, err := c.memberGenderHistory.ListByOrganizationBranch(*branchId, *orgId)
-	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-	}
-	return ctx.JSON(http.StatusOK, c.model.MemberGenderHistoryModels(member_gender_history))
-}
-
-
-
 """
     replacements = [
-        ("member_type", "member_gender"),
-        ("member-type", "member-gender"),
-        ("memberType", "memberGender"),
-        ("MemberType", "MemberGender"),
+        ("member_classification", "member_gender"),
+        ("member-classificationr", "member-gender"),
+        ("memberClassification", "memberGender"),
+        ("MemberClassification", "MemberGender"),
+        ("MemberClassification", "MemberGender"),
     ]
+
+
+
+
     for (to_change, from_change) in replacements:
         txt = txt.replace(from_change, to_change)
 
