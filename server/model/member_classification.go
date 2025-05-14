@@ -31,6 +31,8 @@ type (
 		Name        string `gorm:"type:varchar(255);not null"`
 		Icon        string `gorm:"type:varchar(255);default:''"`
 		Description string `gorm:"type:text;not null"`
+
+		MemberProfiles []*MemberProfile `gorm:"foreignKey:MemberProfileID" json:"member_profiles,omitempty"`
 	}
 
 	MemberClassificationResponse struct {
@@ -46,9 +48,10 @@ type (
 		BranchID       uuid.UUID             `json:"branch_id"`
 		Branch         *BranchResponse       `json:"branch,omitempty"`
 
-		Name        string `json:"name"`
-		Description string `json:"description"`
-		Icon        string `json:"icon"`
+		Name           string                   `json:"name"`
+		Description    string                   `json:"description"`
+		Icon           string                   `json:"icon"`
+		MemberProfiles []*MemberProfileResponse `json:"member_profiles"`
 	}
 
 	MemberClassificationRequest struct {
@@ -86,6 +89,7 @@ func (m *Model) MemberClassificationModel(data *MemberClassification) *MemberCla
 			Name:           data.Name,
 			Description:    data.Description,
 			Icon:           data.Icon,
+			MemberProfiles: m.MemberProfileModels(data.MemberProfiles),
 		}
 	})
 }

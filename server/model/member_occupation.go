@@ -30,6 +30,8 @@ type (
 
 		Name        string `gorm:"type:varchar(255);not null"`
 		Description string `gorm:"type:text;not null"`
+
+		MemberProfiles []*MemberProfile `gorm:"foreignKey:MemberProfileID" json:"member_profiles,omitempty"`
 	}
 
 	MemberOccupationResponse struct {
@@ -45,8 +47,9 @@ type (
 		BranchID       uuid.UUID             `json:"branch_id"`
 		Branch         *BranchResponse       `json:"branch,omitempty"`
 
-		Name        string `json:"name"`
-		Description string `json:"description"`
+		Name           string                   `json:"name"`
+		Description    string                   `json:"description"`
+		MemberProfiles []*MemberProfileResponse `json:"member_profiles"`
 	}
 
 	MemberOccupationRequest struct {
@@ -82,6 +85,7 @@ func (m *Model) MemberOccupationModel(data *MemberOccupation) *MemberOccupationR
 			Branch:         m.BranchModel(data.Branch),
 			Name:           data.Name,
 			Description:    data.Description,
+			MemberProfiles: m.MemberProfileModels(data.MemberProfiles),
 		}
 	})
 }
