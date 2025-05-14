@@ -14,7 +14,7 @@ func (p *Providers) UserFootstep(
 	module, activity, description string,
 ) {
 	go func() {
-		userOrg, err := p.CurrentUserOrganization(c, organizationID, branchID)
+		userOrg, err := p.UserOrganization(c, organizationID, branchID)
 		if err != nil {
 			return
 		}

@@ -32,6 +32,11 @@ func (c *Controller) UserOrganizationGetByID(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, c.model.UserOrganizationModel(userOrganization))
 }
 
+// GET  user-organization/user_org_id/switch
+
+// POST user-organization/user_org_id/branch
+// POST user-organization/user_org_id/branch
+
 // PUT /user-organization/:user_organization_id/developer-key-refresh
 func (c *Controller) UserOrganizationRegenerateDeveloperKey(ctx echo.Context) error {
 	id, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
@@ -116,7 +121,6 @@ func (c *Controller) UserOrganizationUpdate(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, c.model.UserOrganizationModel(model))
 }
 
-// POST user-organization/join/organization/:organization_id/branch/:branch_id
 func (c *Controller) UserOrganizationJoin(ctx echo.Context) error {
 	orgId, err := horizon.EngineUUIDParam(ctx, "organization_id")
 	if err != nil {
@@ -272,7 +276,7 @@ func (c *Controller) UserOrganizationLeave(ctx echo.Context) error {
 	if err != nil {
 		return err
 	}
-	userOrg, err := c.provider.CurrentUserOrganization(ctx, orgId.String(), branchId.String())
+	userOrg, err := c.provider.UserOrganization(ctx, orgId.String(), branchId.String())
 	if err != nil {
 		return err
 	}

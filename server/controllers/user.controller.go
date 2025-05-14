@@ -99,6 +99,7 @@ func (c *Controller) UserForgotPassword(ctx echo.Context) error {
 		ID:            user.ID.String(),
 		Email:         user.Email,
 		ContactNumber: user.ContactNumber,
+		Password:      user.Password,
 	})
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to send reset link, please try again later")
@@ -107,6 +108,7 @@ func (c *Controller) UserForgotPassword(ctx echo.Context) error {
 		ID:            user.ID.String(),
 		Email:         user.Email,
 		ContactNumber: user.ContactNumber,
+		Password:      user.Password,
 	})
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to send reset link, please try again later")

@@ -248,3 +248,5 @@ func (c *Controller) OrganizationDelete(ctx echo.Context) error {
 	}
 	return ctx.NoContent(http.StatusNoContent)
 }
+
+// organization/:organization_id/branch

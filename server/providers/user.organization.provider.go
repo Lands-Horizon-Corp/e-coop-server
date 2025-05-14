@@ -8,7 +8,7 @@ import (
 	"horizon.com/server/server/model"
 )
 
-func (p *Providers) CurrentUserOrganization(c echo.Context, organizationID, branchID string) (*model.UserOrganization, error) {
+func (p *Providers) UserOrganization(c echo.Context, organizationID, branchID string) (*model.UserOrganization, error) {
 	user, err := p.CurrentUser(c)
 	if err != nil {
 		return nil, err
@@ -32,7 +32,7 @@ func (p *Providers) CurrentUserOrganization(c echo.Context, organizationID, bran
 }
 
 func (p *Providers) UserOwner(c echo.Context, organizationID, branchID string) (*model.UserOrganization, error) {
-	user, err := p.CurrentUserOrganization(c, organizationID, branchID)
+	user, err := p.UserOrganization(c, organizationID, branchID)
 	if err != nil {
 		p.authentication.CleanToken(c)
 		return nil, err
@@ -45,7 +45,7 @@ func (p *Providers) UserOwner(c echo.Context, organizationID, branchID string) (
 }
 
 func (p *Providers) UserEmployee(c echo.Context, organizationID, branchID string) (*model.UserOrganization, error) {
-	user, err := p.CurrentUserOrganization(c, organizationID, branchID)
+	user, err := p.UserOrganization(c, organizationID, branchID)
 	if err != nil {
 		p.authentication.CleanToken(c)
 		return nil, err
@@ -58,7 +58,7 @@ func (p *Providers) UserEmployee(c echo.Context, organizationID, branchID string
 }
 
 func (p *Providers) UserOwnerEmployee(c echo.Context, organizationID, branchID string) (*model.UserOrganization, error) {
-	user, err := p.CurrentUserOrganization(c, organizationID, branchID)
+	user, err := p.UserOrganization(c, organizationID, branchID)
 	if err != nil {
 		p.authentication.CleanToken(c)
 		return nil, err
@@ -71,7 +71,7 @@ func (p *Providers) UserOwnerEmployee(c echo.Context, organizationID, branchID s
 }
 
 func (p *Providers) UserMember(c echo.Context, organizationID, branchID string) (*model.UserOrganization, error) {
-	user, err := p.CurrentUserOrganization(c, organizationID, branchID)
+	user, err := p.UserOrganization(c, organizationID, branchID)
 	if err != nil {
 		p.authentication.CleanToken(c)
 		return nil, err
@@ -82,3 +82,5 @@ func (p *Providers) UserMember(c echo.Context, organizationID, branchID string) 
 	}
 	return user, nil
 }
+
+func (p *Providers) CurrentUserOrganizaon(c echo.Context) {}

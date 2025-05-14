@@ -15,6 +15,7 @@ func (p *Providers) SetUser(c echo.Context, user *model.User) error {
 		ID:            user.ID.String(),
 		Email:         user.Email,
 		ContactNumber: user.ContactNumber,
+		Password:      user.Password,
 	}); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to set authentication token")
 	}
@@ -38,11 +39,15 @@ func (p *Providers) CurrentUser(c echo.Context) (*model.User, error) {
 	}
 	if user.Email != claim.Email {
 		p.authentication.CleanToken(c)
-		return nil, echo.NewHTTPError(http.StatusNotFound, "user not found")
+		return nil, echo.NewHTTPError(http.StatusNotFound, "user changes email")
 	}
 	if user.ContactNumber != claim.ContactNumber {
 		p.authentication.CleanToken(c)
-		return nil, echo.NewHTTPError(http.StatusNotFound, "user not found")
+		return nil, echo.NewHTTPError(http.StatusNotFound, "user changes contact number")
+	}
+	if !p.authentication.VerifyPassword(user.Password, claim.Password) {
+		p.authentication.CleanToken(c)
+		return nil, echo.NewHTTPError(http.StatusNotFound, "user changes password")
 	}
 	return user, nil
 }
