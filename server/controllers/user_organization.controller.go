@@ -32,6 +32,12 @@ func (c *Controller) UserOrganizationGetByID(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, c.model.UserOrganizationModel(userOrganization))
 }
 
+// GET  user-organization/unswitch
+func (c *Controller) UserOrganizationUnSwitch(ctx echo.Context) error {
+	c.provider.CleanCustomToken(ctx)
+	return ctx.NoContent(http.StatusOK)
+}
+
 // GET  user-organization/:user_organization_id/switch
 func (c *Controller) UserOrganizationSwitch(ctx echo.Context) error {
 	id, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
