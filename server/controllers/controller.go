@@ -35,14 +35,20 @@ type Controller struct {
 	user                   *model.UserCollection
 	userRating             *model.UserRatingCollection
 	// Maintenantce Table member
-	memberCenter         *model.MemberCenterCollection
-	memberClassification *model.MemberClassificationCollection
-	memberGender         *model.MemberGenderCollection
-	memberGroup          *model.MemberGroupCollection
-	memberOccupation     *model.MemberOccupationCollection
-	memberType           *model.MemberTypeCollection
-	memberProfile        *model.MemberProfileCollection
-	memberVerification   *model.MemberVerificationCollection
+	memberCenter                *model.MemberCenterCollection
+	memberClassification        *model.MemberClassificationCollection
+	memberGender                *model.MemberGenderCollection
+	memberGroup                 *model.MemberGroupCollection
+	memberOccupation            *model.MemberOccupationCollection
+	memberType                  *model.MemberTypeCollection
+	memberProfile               *model.MemberProfileCollection
+	memberVerification          *model.MemberVerificationCollection
+	memberCenterHistory         *model.MemberCenterHistoryCollection
+	memberClassificationHistory *model.MemberClassificationHistoryCollection
+	memberGenderHistory         *model.MemberGenderHistoryCollection
+	memberOccupationHistory     *model.MemberOccupationHistoryCollection
+	memberGroupHistory          *model.MemberGroupHistoryCollection
+	memberTypeHistory           *model.MemberTypeHistoryCollection
 	// End Maintenantce table member
 }
 
@@ -82,40 +88,52 @@ func NewController(
 	memberType *model.MemberTypeCollection,
 	memberProfile *model.MemberProfileCollection,
 	memberVerification *model.MemberVerificationCollection,
+	memberCenterHistory *model.MemberCenterHistoryCollection,
+	memberClassificationHistory *model.MemberClassificationHistoryCollection,
+	memberGenderHistory *model.MemberGenderHistoryCollection,
+	memberOccupationHistory *model.MemberOccupationHistoryCollection,
+	memberGroupHistory *model.MemberGroupHistoryCollection,
+	memberTypeHistory *model.MemberTypeHistoryCollection,
 ) (*Controller, error) {
 	return &Controller{
-		authentication:         authentication,
-		storage:                storage,
-		provider:               provider,
-		model:                  model,
-		database:               database,
-		security:               security,
-		qr:                     qr,
-		branch:                 branch,
-		category:               category,
-		contactUs:              contactUs,
-		feedback:               feedback,
-		footstep:               footstep,
-		generatedReport:        generatedReport,
-		invitationCode:         invitationCode,
-		media:                  media,
-		notification:           notification,
-		organizationCategory:   organizationCategory,
-		organizationDailyUsage: organizationDailyUsage,
-		organization:           organization,
-		permissionTemplate:     permissionTemplate,
-		subscriptionPlan:       subscriptionPlan,
-		userOrganization:       userOrganization,
-		user:                   user,
-		userRating:             userRating,
-		memberCenter:           memberCenter,
-		memberClassification:   memberClassification,
-		memberGender:           memberGender,
-		memberGroup:            memberGroup,
-		memberOccupation:       memberOccupation,
-		memberType:             memberType,
-		memberProfile:          memberProfile,
-		memberVerification:     memberVerification,
+		authentication:              authentication,
+		storage:                     storage,
+		provider:                    provider,
+		model:                       model,
+		database:                    database,
+		security:                    security,
+		qr:                          qr,
+		branch:                      branch,
+		category:                    category,
+		contactUs:                   contactUs,
+		feedback:                    feedback,
+		footstep:                    footstep,
+		generatedReport:             generatedReport,
+		invitationCode:              invitationCode,
+		media:                       media,
+		notification:                notification,
+		organizationCategory:        organizationCategory,
+		organizationDailyUsage:      organizationDailyUsage,
+		organization:                organization,
+		permissionTemplate:          permissionTemplate,
+		subscriptionPlan:            subscriptionPlan,
+		userOrganization:            userOrganization,
+		user:                        user,
+		userRating:                  userRating,
+		memberCenter:                memberCenter,
+		memberClassification:        memberClassification,
+		memberGender:                memberGender,
+		memberGroup:                 memberGroup,
+		memberOccupation:            memberOccupation,
+		memberType:                  memberType,
+		memberProfile:               memberProfile,
+		memberVerification:          memberVerification,
+		memberCenterHistory:         memberCenterHistory,
+		memberClassificationHistory: memberClassificationHistory,
+		memberGenderHistory:         memberGenderHistory,
+		memberOccupationHistory:     memberOccupationHistory,
+		memberGroupHistory:          memberGroupHistory,
+		memberTypeHistory:           memberTypeHistory,
 	}, nil
 }
 

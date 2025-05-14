@@ -1,6 +1,3 @@
-
-def main():
-    txt = """
 package controllers
 
 import (
@@ -86,21 +83,3 @@ func (c *Controller) MemberGenderHistoryListByOrganizationBranch(ctx echo.Contex
 	}
 	return ctx.JSON(http.StatusOK, c.model.MemberGenderHistoryModels(member_gender_history))
 }
-
-
-
-"""
-    replacements = [
-        ("member_type", "member_gender"),
-        ("member-type", "member-gender"),
-        ("memberType", "memberGender"),
-        ("MemberType", "MemberGender"),
-    ]
-    for (to_change, from_change) in replacements:
-        txt = txt.replace(from_change, to_change)
-
-    print(txt)
-
-
-if __name__ == "__main__":
-    main()

@@ -47,6 +47,12 @@ func NewCoopServer(
 			&model.MemberType{},
 			&model.MemberVerification{},
 			&model.MemberProfile{},
+			&model.MemberCenterHistory{},
+			&model.MemberClassificationHistory{},
+			&model.MemberGenderHistory{},
+			&model.MemberGroupHistory{},
+			&model.MemberOccupationHistory{},
+			&model.MemberTypeHistory{},
 			// End Maintenantce table member
 		},
 	}, nil
@@ -85,6 +91,12 @@ var Modules = []any{
 	model.NewMemberTypeCollection,
 	model.NewMemberVerificationCollection,
 	model.NewMemberProfileCollection,
+	model.NewMemberCenterHistoryCollection,
+	model.NewMemberClassificationHistoryCollection,
+	model.NewMemberGenderHistoryCollection,
+	model.NewMemberGroupHistoryCollection,
+	model.NewMemberOccupationHistoryCollection,
+	model.NewMemberTypeHistoryCollection,
 
 	controllers.NewController,
 	seeders.NewDatabaseSeeder,
