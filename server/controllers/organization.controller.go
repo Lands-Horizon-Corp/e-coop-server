@@ -109,7 +109,6 @@ func (c *Controller) OrganizationCreate(ctx echo.Context) error {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	for _, category := range req.OrganizationCategories {
-
 		if err := c.organizationCategory.Manager.CreateWithTx(tx, &model.OrganizationCategory{
 			CreatedAt:      time.Now().UTC(),
 			UpdatedAt:      time.Now().UTC(),
@@ -125,7 +124,6 @@ func (c *Controller) OrganizationCreate(ctx echo.Context) error {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	return ctx.JSON(http.StatusOK, c.model.OrganizationModel(organization))
-
 }
 
 // PUT /organization/:organization_id
@@ -142,7 +140,6 @@ func (c *Controller) OrganizationUpdate(ctx echo.Context) error {
 	if err != nil {
 		return err
 	}
-
 	organization, err := c.organization.Manager.GetByID(*id)
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Organization not found"})
@@ -156,7 +153,6 @@ func (c *Controller) OrganizationUpdate(ctx echo.Context) error {
 		tx.Rollback()
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
 	}
-
 	organization.Name = req.Name
 	organization.Address = req.Address
 	organization.Email = req.Email
@@ -173,15 +169,23 @@ func (c *Controller) OrganizationUpdate(ctx echo.Context) error {
 	organization.CoverMediaID = req.CoverMediaID
 	organization.UpdatedAt = time.Now().UTC()
 	organization.UpdatedByID = user.ID
-
 	if err := c.organization.Manager.UpdateByIDWithTx(tx, organization.ID, organization); err != nil {
 		tx.Rollback()
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
-
+	organizationsFromCategory, err := c.organizationCategory.ListByOrganization(&organization.ID)
+	if err != nil {
+		tx.Rollback()
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	for _, category := range organizationsFromCategory {
+		if err := c.organizationCategory.Manager.DeleteByIDWithTx(tx, category.ID); err != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+	}
 	for _, category := range req.OrganizationCategories {
-
-		if err := c.organizationCategory.Manager.UpsertWithTx(tx, &model.OrganizationCategory{
+		if err := c.organizationCategory.Manager.CreateWithTx(tx, &model.OrganizationCategory{
 			ID:             *category.ID,
 			CreatedAt:      time.Now().UTC(),
 			UpdatedAt:      time.Now().UTC(),
@@ -192,7 +196,6 @@ func (c *Controller) OrganizationUpdate(ctx echo.Context) error {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
 	}
-
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
@@ -207,7 +210,6 @@ func (c *Controller) OrganizationDelete(ctx echo.Context) error {
 	if err != nil {
 		return err
 	}
-
 	organization, err := c.organization.Manager.GetByID(*id)
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Organization not found"})
@@ -237,6 +239,17 @@ func (c *Controller) OrganizationDelete(ctx echo.Context) error {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
 	}
+	branches, err := c.branch.ByOrganizations(organization.ID)
+	if err != nil {
+		tx.Rollback()
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	for _, branch := range branches {
+		if err := c.branch.Manager.DeleteByIDWithTx(tx, branch.ID); err != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+	}
 	if err := c.organization.Manager.DeleteByIDWithTx(tx, *id); err != nil {
 		tx.Rollback()
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
@@ -248,5 +261,3 @@ func (c *Controller) OrganizationDelete(ctx echo.Context) error {
 	}
 	return ctx.NoContent(http.StatusNoContent)
 }
-
-// organization/:organization_id/branch

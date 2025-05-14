@@ -31,13 +31,13 @@ func (c *Controller) BranchGetByID(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, c.model.BranchModel(branch))
 }
 
-// POST /branch/organization/:organization_id
+// POST /branch/user-organization/:user_organization_id
 func (c *Controller) BranchCreate(ctx echo.Context) error {
 	req, err := c.model.BranchValidate(ctx)
 	if err != nil {
 		return err
 	}
-	organizationId, err := horizon.EngineUUIDParam(ctx, "organization_id")
+	userOrganizationId, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
 	if err != nil {
 		return err
 	}
@@ -45,12 +45,16 @@ func (c *Controller) BranchCreate(ctx echo.Context) error {
 	if err != nil {
 		return err
 	}
+	userOrganization, err := c.userOrganization.Manager.GetByID(*userOrganizationId)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "User organization doesnt exists"})
+	}
 	branch := &model.Branch{
 		CreatedAt:      time.Now().UTC(),
 		CreatedByID:    user.ID,
 		UpdatedAt:      time.Now().UTC(),
 		UpdatedByID:    user.ID,
-		OrganizationID: *organizationId,
+		OrganizationID: userOrganization.OrganizationID,
 
 		MediaID:       req.MediaID,
 		Type:          req.Type,
@@ -68,27 +72,66 @@ func (c *Controller) BranchCreate(ctx echo.Context) error {
 		Latitude:      req.Latitude,
 		Longitude:     req.Longitude,
 	}
-	if err := c.branch.Manager.Create(branch); err != nil {
+	tx := c.database.Client().Begin()
+	if tx.Error != nil {
+		tx.Rollback()
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+	}
+	if err := c.branch.Manager.CreateWithTx(tx, branch); err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
+	if userOrganization.BranchID != nil {
+		userOrganization.BranchID = &branch.ID
+		if err := c.userOrganization.Manager.UpdateFieldsWithTx(tx, userOrganization.ID, userOrganization); err != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+	} else {
+		userOrganizationModel := &model.UserOrganization{
+			CreatedAt:              time.Now().UTC(),
+			CreatedByID:            user.ID,
+			UpdatedAt:              time.Now().UTC(),
+			UpdatedByID:            user.ID,
+			OrganizationID:         *userOrganizationId,
+			BranchID:               &branch.ID,
+			UserID:                 user.ID,
+			UserType:               "owner",
+			Description:            "",
+			ApplicationDescription: "",
+			ApplicationStatus:      "accepted",
+			DeveloperSecretKey:     c.security.GenerateToken(user.ID.String()),
+			PermissionName:         "owner",
+			PermissionDescription:  "",
+			Permissions:            []string{},
+		}
+		if err := c.userOrganization.Manager.CreateWithTx(tx, userOrganizationModel); err != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+	}
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
 	return ctx.JSON(http.StatusCreated, c.model.BranchModel(branch))
 }
 
-// PUT /branch/:branch_id/organization/:organization_id
+// PUT /branch/user-organization/:user_organization_id
 func (c *Controller) BranchUpdate(ctx echo.Context) error {
 	req, err := c.model.BranchValidate(ctx)
 	if err != nil {
 		return err
 	}
-	organizationId, err := horizon.EngineUUIDParam(ctx, "organization_id")
+	userOrganizationId, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
 	if err != nil {
 		return err
 	}
-	branchId, err := horizon.EngineUUIDParam(ctx, "branch_id")
+	userOrganization, err := c.userOrganization.Manager.GetByID(*userOrganizationId)
 	if err != nil {
-		return err
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "User organization doesnt exists"})
 	}
-	user, err := c.provider.UserOwner(ctx, organizationId.String(), branchId.String())
+	user, err := c.provider.UserOwner(ctx, userOrganization.OrganizationID.String(), userOrganization.OrganizationID.String())
 	if err != nil {
 		return err
 	}
@@ -114,16 +157,15 @@ func (c *Controller) BranchUpdate(ctx echo.Context) error {
 		Latitude:       req.Latitude,
 		Longitude:      req.Longitude,
 	}
-	if err := c.branch.Manager.UpdateByID(*branchId, branch); err != nil {
+	if err := c.branch.Manager.UpdateByID(userOrganization.OrganizationID, branch); err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
-
 	return ctx.JSON(http.StatusCreated, c.model.BranchModel(branch))
 }
 
-// DELETE /branch/:branch_id/:organization_id
+// DELETE /branch/:branch_id/:user_organization_id
 func (c *Controller) BranchDelete(ctx echo.Context) error {
-	organizationId, err := horizon.EngineUUIDParam(ctx, "organization_id")
+	organizationId, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
 	if err != nil {
 		return err
 	}
@@ -157,7 +199,7 @@ func (c *Controller) BranchDelete(ctx echo.Context) error {
 	return ctx.NoContent(http.StatusNoContent)
 }
 
-// GET /branch/organization/:organization_id
+// GET /branch/organization/:user_organization_id
 func (c *Controller) BranchOrganizations(ctx echo.Context) error {
 	organizationId, err := horizon.EngineUUIDParam(ctx, "organization_id")
 	if err != nil {

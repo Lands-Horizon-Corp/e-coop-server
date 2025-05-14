@@ -103,8 +103,8 @@ func (c *Controller) Routes(service *echo.Echo) {
 	{
 		branchG.GET("", c.BranchList)
 		branchG.GET("/:branch_id", c.BranchGetByID)
-		branchG.POST("/organization/:organization_id", c.BranchCreate)
-		branchG.PUT("/:branch_id/organization/:organization_id", c.BranchUpdate)
+		branchG.POST("/user-organization/:user_organization_id", c.BranchCreate)
+		branchG.PUT("/user-organization/:user_organization_id", c.BranchUpdate)
 		branchG.DELETE("/:branch_id/organization/:organization_id", c.BranchDelete)
 		branchG.GET("/:branch/organization/:organization_id", c.BranchOrganizations)
 	}
