@@ -14,7 +14,7 @@ import (
 func (c *Controller) UserOrganizationGetAll(ctx echo.Context) error {
 	userOrganization, err := c.userOrganization.Manager.List()
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": err.Error()})
 	}
 	return ctx.JSON(http.StatusOK, c.model.UserOrganizationModels(userOrganization))
 }
@@ -30,6 +30,65 @@ func (c *Controller) UserOrganizationGetByID(ctx echo.Context) error {
 		return err
 	}
 	return ctx.JSON(http.StatusOK, c.model.UserOrganizationModel(userOrganization))
+}
+
+// POST user-organization/:organization_id/seed
+func (c *Controller) UserOrganizationSeeder(ctx echo.Context) error {
+	orgId, err := horizon.EngineUUIDParam(ctx, "organization_id")
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid organization ID")
+	}
+
+	user, err := c.provider.CurrentUser(ctx)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusUnauthorized, "unable to get current user")
+	}
+
+	userOrganizations, err := c.userOrganization.ListByOrganization(*orgId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to fetch user organization list")
+	}
+
+	for _, userOrganization := range userOrganizations {
+		if userOrganization.UserID != user.ID {
+			continue
+		}
+
+		if userOrganization.UserType != "owner" {
+			return echo.NewHTTPError(http.StatusForbidden, "only owners can seed the organization")
+		}
+
+		if userOrganization.BranchID == nil {
+			return echo.NewHTTPError(http.StatusBadRequest, "branch is missing")
+		}
+
+		if userOrganization.IsSeeded {
+			continue
+		}
+
+		if _, err := c.memberClassification.Seeder(user.ID, userOrganization.OrganizationID, *userOrganization.BranchID); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to seed classifications")
+		}
+		if _, err := c.memberGender.Seeder(user.ID, userOrganization.OrganizationID, *userOrganization.BranchID); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to seed genders")
+		}
+		if _, err := c.memberGroup.Seeder(user.ID, userOrganization.OrganizationID, *userOrganization.BranchID); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to seed groups")
+		}
+		if _, err := c.memberOccupation.Seeder(user.ID, userOrganization.OrganizationID, *userOrganization.BranchID); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to seed occupations")
+		}
+		if _, err := c.memberType.Seeder(user.ID, userOrganization.OrganizationID, *userOrganization.BranchID); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to seed member types")
+		}
+
+		userOrganization.IsSeeded = true
+		if err := c.userOrganization.Manager.Update(userOrganization); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update user organization seed status")
+		}
+	}
+
+	return ctx.NoContent(http.StatusOK)
 }
 
 // GET  user-organization/unswitch
@@ -54,10 +113,10 @@ func (c *Controller) UserOrganizationSwitch(ctx echo.Context) error {
 		return err
 	}
 	if user.ID != userOrganization.UserID {
-		return echo.NewHTTPError(http.StatusInternalServerError, "the user is not part of the organization")
+		return echo.NewHTTPError(http.StatusNotAcceptable, "the user is not part of the organization")
 	}
 	if err := c.provider.SetCustom(ctx, userOrganization); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "failed to set authentication token")
+		return echo.NewHTTPError(http.StatusNotAcceptable, "failed to set authentication token")
 	}
 
 	return ctx.JSON(http.StatusOK, model.CurrentUserResponse{
@@ -99,7 +158,7 @@ func (c *Controller) UserOrganizationRegenerateDeveloperKey(ctx echo.Context) er
 	model.DeveloperSecretKey = newToken
 
 	if err := c.userOrganization.Manager.Update(model); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		return echo.NewHTTPError(http.StatusNotAcceptable, err.Error())
 	}
 
 	return ctx.JSON(http.StatusOK, c.model.UserOrganizationModel(model))
@@ -148,7 +207,7 @@ func (c *Controller) UserOrganizationUpdate(ctx echo.Context) error {
 
 	model.UpdatedByID = currentUserOrg.UserID
 	if err := c.userOrganization.Manager.Update(model); err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": err.Error()})
 	}
 	return ctx.JSON(http.StatusOK, c.model.UserOrganizationModel(model))
 }
@@ -209,7 +268,7 @@ func (c *Controller) UserOrganizationJoin(ctx echo.Context) error {
 		UserSettingUsedVoucher:  req.UserSettingUsedVoucher,
 	}
 	if err := c.userOrganization.Manager.Update(userOrg); err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": err.Error()})
 	}
 	return ctx.JSON(http.StatusOK, c.model.UserOrganizationModel(userOrg))
 
@@ -224,7 +283,7 @@ func (c *Controller) UserOrganizationJoinByCode(ctx echo.Context) error {
 	}
 	exists, err := c.invitationCode.Exists(code)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
+		return ctx.JSON(http.StatusNotAcceptable, map[string]string{
 			"error": "failed to check invitation code",
 		})
 	}
@@ -240,7 +299,7 @@ func (c *Controller) UserOrganizationJoinByCode(ctx echo.Context) error {
 
 	invitationCode, err := c.invitationCode.Verify(code)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "failed to retrieve invitation code"})
+		return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": "failed to retrieve invitation code"})
 	}
 
 	if req.ApplicationStatus == "member" {
@@ -284,15 +343,15 @@ func (c *Controller) UserOrganizationJoinByCode(ctx echo.Context) error {
 	_, err = c.invitationCode.Redeem(tx, code)
 	if err != nil {
 		tx.Rollback()
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": err.Error()})
 	}
 	if err := c.userOrganization.Manager.CreateWithTx(tx, userOrg); err != nil {
 		tx.Rollback()
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": err.Error()})
 	}
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": err.Error()})
 	}
 	return ctx.JSON(http.StatusOK, c.model.UserOrganizationModel(userOrg))
 
@@ -322,7 +381,7 @@ func (c *Controller) UserOrganizationLeave(ctx echo.Context) error {
 		return ctx.JSON(http.StatusForbidden, map[string]string{"error": "owners and employees cannot leave an organization"})
 	}
 	if err := c.userOrganization.Manager.DeleteByID(userOrg.ID); err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": err.Error()})
 	}
 	return ctx.NoContent(http.StatusNoContent)
 }
@@ -335,7 +394,7 @@ func (c *Controller) UserOrganizationListByUser(ctx echo.Context) error {
 	}
 	userOrg, err := c.userOrganization.ListByUser(*userId)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": err.Error()})
 	}
 	return ctx.JSON(http.StatusOK, c.model.UserOrganizationModels(userOrg))
 }
@@ -348,7 +407,7 @@ func (c *Controller) UserOrganizationListByBranch(ctx echo.Context) error {
 	}
 	userOrg, err := c.userOrganization.ListByBranch(*branchId)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": err.Error()})
 	}
 	return ctx.JSON(http.StatusOK, c.model.UserOrganizationModels(userOrg))
 }
@@ -361,7 +420,7 @@ func (c *Controller) UserOrganizationListByOrganization(ctx echo.Context) error 
 	}
 	userOrg, err := c.userOrganization.ListByOrganization(*organizationId)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": err.Error()})
 	}
 	return ctx.JSON(http.StatusOK, c.model.UserOrganizationModels(userOrg))
 }
@@ -378,7 +437,7 @@ func (c *Controller) UserOrganizationListByOrganizationBranch(ctx echo.Context) 
 	}
 	userOrg, err := c.userOrganization.ListByOrganizationBranch(*organizationId, *branchId)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": err.Error()})
 	}
 	return ctx.JSON(http.StatusOK, c.model.UserOrganizationModel(userOrg))
 }
@@ -395,7 +454,7 @@ func (c *Controller) UserOrganizationListByUserBranch(ctx echo.Context) error {
 	}
 	userOrg, err := c.userOrganization.ListByUserBranch(*userId, *branchId)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": err.Error()})
 	}
 	return ctx.JSON(http.StatusOK, c.model.UserOrganizationModel(userOrg))
 }
@@ -412,7 +471,7 @@ func (c *Controller) UserOrganizationListByUserOrganization(ctx echo.Context) er
 	}
 	userOrg, err := c.userOrganization.ListByUserOrganization(*userId, *organizationId)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": err.Error()})
 	}
 	return ctx.JSON(http.StatusOK, c.model.UserOrganizationModels(userOrg))
 }
@@ -434,7 +493,7 @@ func (c *Controller) UserOrganizationByUserOrganizationBranch(ctx echo.Context) 
 
 	userOrg, err := c.userOrganization.ByUserOrganizationBranch(*userId, *organizationId, *branchId)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": err.Error()})
 	}
 	return ctx.JSON(http.StatusOK, c.model.UserOrganizationModel(userOrg))
 }

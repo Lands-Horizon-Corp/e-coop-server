@@ -154,3 +154,71 @@ func (fc *MemberGroupCollection) ListByOrganizationBranch(organizationID uuid.UU
 		BranchID:       branchID,
 	})
 }
+
+func (fc *MemberGroupCollection) Seeder(userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberGroup, error) {
+	now := time.Now()
+
+	groups := []*MemberGroup{
+		{
+			ID:             uuid.New(),
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Single Moms",
+			Description:    "Support group for single mothers in the community.",
+		},
+		{
+			ID:             uuid.New(),
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Athletes",
+			Description:    "Members who actively participate in sports and fitness.",
+		},
+		{
+			ID:             uuid.New(),
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Tech",
+			Description:    "Members involved in information technology or development.",
+		},
+		{
+			ID:             uuid.New(),
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Graphics Artists",
+			Description:    "Creative members who specialize in digital and graphic design.",
+		},
+		{
+			ID:             uuid.New(),
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Accountants",
+			Description:    "Finance-focused members responsible for budgeting and auditing.",
+		},
+	}
+
+	if err := fc.Manager.CreateMany(groups); err != nil {
+		return nil, err
+	}
+
+	return groups, nil
+}

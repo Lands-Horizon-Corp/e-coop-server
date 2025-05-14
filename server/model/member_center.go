@@ -154,3 +154,46 @@ func (fc *MemberCenterCollection) ListByOrganizationBranch(organizationID uuid.U
 		BranchID:       branchID,
 	})
 }
+
+func (fc *MemberCenterCollection) Seeder(userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberCenter, error) {
+	seedData := []*MemberCenter{
+		{
+			Name:           "Main Wellness Center",
+			Description:    "Provides health and wellness programs.",
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			CreatedAt:      time.Now(),
+			CreatedByID:    userID,
+			UpdatedAt:      time.Now(),
+			UpdatedByID:    userID,
+		},
+		{
+			ID:             uuid.New(),
+			Name:           "Training Hub",
+			Description:    "Offers skill-building and training for members.",
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			CreatedAt:      time.Now(),
+			CreatedByID:    userID,
+			UpdatedAt:      time.Now(),
+			UpdatedByID:    userID,
+		},
+		{
+			ID:             uuid.New(),
+			Name:           "Community Support Center",
+			Description:    "Focuses on community support services and events.",
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			CreatedAt:      time.Now(),
+			CreatedByID:    userID,
+			UpdatedAt:      time.Now(),
+			UpdatedByID:    userID,
+		},
+	}
+	for _, center := range seedData {
+		if err := fc.Manager.Create(center); err != nil {
+			return nil, err
+		}
+	}
+	return seedData, nil
+}

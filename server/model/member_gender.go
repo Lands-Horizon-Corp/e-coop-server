@@ -154,3 +154,49 @@ func (fc *MemberGenderCollection) ListByOrganizationBranch(organizationID uuid.U
 		BranchID:       branchID,
 	})
 }
+
+func (fc *MemberGenderCollection) Seeder(userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberGender, error) {
+	now := time.Now()
+
+	genders := []*MemberGender{
+		{
+			ID:             uuid.New(),
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Male",
+			Description:    "Identifies as male.",
+		},
+		{
+			ID:             uuid.New(),
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Female",
+			Description:    "Identifies as female.",
+		},
+		{
+			ID:             uuid.New(),
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Other",
+			Description:    "Identifies outside the binary gender categories.",
+		},
+	}
+
+	if err := fc.Manager.CreateMany(genders); err != nil {
+		return nil, err
+	}
+
+	return genders, nil
+}

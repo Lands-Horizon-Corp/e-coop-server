@@ -158,3 +158,65 @@ func (fc *MemberClassificationCollection) ListByOrganizationBranch(organizationI
 		BranchID:       branchID,
 	})
 }
+
+func (fc *MemberClassificationCollection) Seeder(userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberClassification, error) {
+	now := time.Now()
+	classifications := []*MemberClassification{
+		{
+			ID:             uuid.New(),
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Gold",
+			Icon:           "sunrise",
+			Description:    "Gold membership is reserved for top-tier members with excellent credit scores and consistent loyalty.",
+		},
+		{
+			ID:             uuid.New(),
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Silver",
+			Icon:           "moon-star",
+			Description:    "Silver membership is designed for members with good credit history and regular engagement.",
+		},
+		{
+			ID:             uuid.New(),
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Bronze",
+			Icon:           "cloud",
+			Description:    "Bronze membership is for new or casual members who are starting their journey with us.",
+		},
+		{
+			ID:             uuid.New(),
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Platinum",
+			Icon:           "gem",
+			Description:    "Platinum membership offers exclusive benefits to elite members with outstanding history and contributions.",
+		},
+	}
+
+	for _, mc := range classifications {
+		if err := fc.Manager.Create(mc); err != nil {
+			return nil, fmt.Errorf("failed to seed member classification %s: %w", mc.Name, err)
+		}
+	}
+
+	return classifications, nil
+}

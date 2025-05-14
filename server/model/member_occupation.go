@@ -154,3 +154,246 @@ func (fc *MemberOccupationCollection) ListByOrganizationBranch(organizationID uu
 		BranchID:       branchID,
 	})
 }
+
+func (fc *MemberOccupationCollection) Seeder(userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberOccupation, error) {
+	now := time.Now()
+
+	occupations := []*MemberOccupation{
+		{
+			ID:          uuid.New(),
+			Name:        "Farmer",
+			Description: "Engaged in agriculture or crop cultivation.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Fisherfolk",
+			Description: "Involved in fishing and aquaculture activities.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Agricultural Technician",
+			Description: "Specializes in modern agricultural practices and tools.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Software Developer",
+			Description: "Develops and maintains software systems.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "IT Specialist",
+			Description: "Manages information technology infrastructure.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Accountant",
+			Description: "Handles financial records and audits.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Teacher",
+			Description: "Educates students in academic institutions.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Nurse",
+			Description: "Provides healthcare and medical support.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Doctor",
+			Description: "Licensed medical professional for diagnosing and treating patients.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Engineer",
+			Description: "Designs and builds infrastructure or systems.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Construction Worker",
+			Description: "Works on building and construction projects.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Driver",
+			Description: "Professional vehicle operator (e.g., jeepney, tricycle, delivery).",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Vendor",
+			Description: "Operates a small retail business or market stall.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Self-Employed",
+			Description: "Independent worker managing their own business or services.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Housewife",
+			Description: "Manages household responsibilities full-time.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Househusband",
+			Description: "Male homemaker managing family and household duties.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Artist",
+			Description: "Engaged in creative fields like painting, sculpture, or multimedia arts.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Graphic Designer",
+			Description: "Creates visual content using design software.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Call Center Agent",
+			Description: "Provides customer service through phone or chat support.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Unemployed",
+			Description: "Currently without formal occupation.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Physicist",
+			Description: "Studies the properties and interactions of matter and energy.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Pharmacist",
+			Description: "Dispenses medications and advises on their safe use.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Chef",
+			Description: "Creates recipes and prepares meals in restaurants or catering.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Mechanic",
+			Description: "Repairs and maintains vehicles and machinery.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Electrician",
+			Description: "Installs and repairs electrical systems and wiring.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Plumber",
+			Description: "Installs and repairs piping systems for water and waste.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Architect",
+			Description: "Designs buildings and ensures structural soundness.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Banker",
+			Description: "Manages financial transactions and client relationships.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Lawyer",
+			Description: "Provides legal advice and represents clients in court.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Journalist",
+			Description: "Researches and reports news for print, online, or broadcast.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Social Worker",
+			Description: "Supports individuals and families through counseling and services.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Caregiver",
+			Description: "Provides in-home care and assistance to the elderly or disabled.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Security Guard",
+			Description: "Protects property and enforces safety protocols.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Teacher’s Aide",
+			Description: "Assists teachers in classroom management and lesson prep.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Student",
+			Description: "Currently enrolled in an educational institution.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Retiree",
+			Description: "Previously employed, now retired from active work.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Entrepreneur",
+			Description: "Owns and operates one or more business ventures.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Musician",
+			Description: "Performs, composes, or teaches music.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Writer",
+			Description: "Crafts written content—books, articles, or scripts.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Pilot",
+			Description: "Operates aircraft for commercial or private flights.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Scientist",
+			Description: "Conducts research in natural or social sciences.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Lab Technician",
+			Description: "Performs tests and experiments in scientific labs.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Receptionist",
+			Description: "Manages front-desk operations and customer inquiries.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Janitor",
+			Description: "Keeps buildings clean and well-maintained.",
+		},
+	}
+
+	// Set timestamps and foreign keys
+	for _, o := range occupations {
+		o.CreatedAt = now
+		o.CreatedByID = userID
+		o.UpdatedAt = now
+		o.UpdatedByID = userID
+		o.OrganizationID = organizationID
+		o.BranchID = branchID
+	}
+
+	if err := fc.Manager.CreateMany(occupations); err != nil {
+		return nil, err
+	}
+
+	return occupations, nil
+}

@@ -31,6 +31,16 @@ type DatabaseSeeder struct {
 	userOrganization       *model.UserOrganizationCollection
 	user                   *model.UserCollection
 	userRating             *model.UserRatingCollection
+
+	// Maintenantce Table member
+	memberCenter         *model.MemberCenterCollection
+	memberClassification *model.MemberClassificationCollection
+	memberGender         *model.MemberGenderCollection
+	memberGroup          *model.MemberGroupCollection
+	memberOccupation     *model.MemberOccupationCollection
+	memberType           *model.MemberTypeCollection
+	// End Maintenantce table member
+
 }
 
 func NewDatabaseSeeder(
@@ -57,6 +67,16 @@ func NewDatabaseSeeder(
 	userOrganization *model.UserOrganizationCollection, // ✅
 	user *model.UserCollection, // ✅
 	userRating *model.UserRatingCollection,
+
+	// Maintenantce Table member
+	memberCenter *model.MemberCenterCollection,
+	memberClassification *model.MemberClassificationCollection,
+	memberGender *model.MemberGenderCollection,
+	memberGroup *model.MemberGroupCollection,
+	memberOccupation *model.MemberOccupationCollection,
+	memberType *model.MemberTypeCollection,
+	// End Maintenantce table member
+
 ) (*DatabaseSeeder, error) {
 	return &DatabaseSeeder{
 		database:       database,
@@ -81,6 +101,13 @@ func NewDatabaseSeeder(
 		userOrganization:       userOrganization,
 		user:                   user,
 		userRating:             userRating,
+
+		memberCenter:         memberCenter,
+		memberClassification: memberClassification,
+		memberGender:         memberGender,
+		memberGroup:          memberGroup,
+		memberOccupation:     memberOccupation,
+		memberType:           memberType,
 	}, nil
 }
 
@@ -202,7 +229,7 @@ func (ds *DatabaseSeeder) SeedOrganization() error {
 			}
 		}
 
-		for j := 0; j < 3; j++ {
+		for j := range 3 {
 			branch := &model.Branch{
 				CreatedAt:      time.Now().UTC(),
 				CreatedByID:    user.ID,
@@ -247,7 +274,13 @@ func (ds *DatabaseSeeder) SeedOrganization() error {
 				return err
 			}
 
-			for k := 0; k < 5; k++ {
+			ds.memberCenter.Seeder(user.ID, organization.ID, branch.ID)
+			ds.memberClassification.Seeder(user.ID, organization.ID, branch.ID)
+			ds.memberGender.Seeder(user.ID, organization.ID, branch.ID)
+			ds.memberGroup.Seeder(user.ID, organization.ID, branch.ID)
+			ds.memberOccupation.Seeder(user.ID, organization.ID, branch.ID)
+			ds.memberType.Seeder(user.ID, organization.ID, branch.ID)
+			for k := range 5 {
 				invitationCode := &model.InvitationCode{
 					CreatedAt:      time.Now().UTC(),
 					CreatedByID:    user.ID,
@@ -268,6 +301,7 @@ func (ds *DatabaseSeeder) SeedOrganization() error {
 			}
 		}
 	}
+
 	return nil
 }
 func (ds *DatabaseSeeder) SeedUser() error {

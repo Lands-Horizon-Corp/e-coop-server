@@ -38,6 +38,7 @@ type (
 		PermissionName         string         `gorm:"type:varchar(255);not null" json:"permission_name"`
 		PermissionDescription  string         `gorm:"type:varchar(255);not null" json:"permission_description"`
 		Permissions            pq.StringArray `gorm:"type:varchar(255)[]" json:"permissions"`
+		IsSeeded               bool           `gorm:"not null;default:false" json:"is_seeded"`
 
 		UserSettingDescription string `gorm:"type:text" json:"user_setting_description"`
 

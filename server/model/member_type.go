@@ -158,3 +158,71 @@ func (fc *MemberTypeCollection) ListByOrganizationBranch(organizationID uuid.UUI
 		BranchID:       branchID,
 	})
 }
+
+func (fc *MemberTypeCollection) Seeder(userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberType, error) {
+	now := time.Now()
+
+	types := []*MemberType{
+		{
+			ID:          uuid.New(),
+			Name:        "New",
+			Prefix:      "NEW",
+			Description: "Recently registered member, no activity yet.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Active",
+			Prefix:      "ACT",
+			Description: "Regularly engaged member with no issues.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Loyal",
+			Prefix:      "LOY",
+			Description: "Consistently active over a long period; high retention.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "VIP",
+			Prefix:      "VIP",
+			Description: "Very high-value member with premium privileges.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Reported",
+			Prefix:      "RPT",
+			Description: "Flagged by community or system for review.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Suspended",
+			Prefix:      "SUS",
+			Description: "Temporarily barred from activities pending resolution.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Banned",
+			Prefix:      "BAN",
+			Description: "Permanently barred due to policy violations.",
+		},
+		{
+			ID:          uuid.New(),
+			Name:        "Closed",
+			Prefix:      "CLS",
+			Description: "Account closed by user request or administrative action.",
+		},
+	}
+	for _, t := range types {
+		t.CreatedAt = now
+		t.UpdatedAt = now
+		t.CreatedByID = userID
+		t.UpdatedByID = userID
+		t.OrganizationID = organizationID
+		t.BranchID = branchID
+	}
+
+	if err := fc.Manager.CreateMany(types); err != nil {
+		return nil, fmt.Errorf("failed to seed member types: %w", err)
+	}
+	return types, nil
+}
