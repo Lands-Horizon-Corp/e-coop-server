@@ -32,7 +32,7 @@ type (
 		Icon        string `gorm:"type:varchar(255);default:''"`
 		Description string `gorm:"type:text;not null"`
 
-		MemberProfiles []*MemberProfile `gorm:"foreignKey:MemberProfileID" json:"member_profiles,omitempty"`
+		MemberProfiles []*MemberProfile `gorm:"foreignKey:MemberClassificationID;references:ID" json:"member_profiles,omitempty"`
 	}
 
 	MemberClassificationResponse struct {

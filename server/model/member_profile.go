@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 	"horizon.com/server/horizon"
 	horizon_manager "horizon.com/server/horizon/manager"
@@ -54,7 +55,7 @@ type (
 		FullName             string `gorm:"type:varchar(255);not null"`
 		Suffix               string `gorm:"type:varchar(50)"`
 		Birthdate            *time.Time
-		Status               string `gorm:"type:general_status;not null;default:'pending'"`
+		Status               string `gorm:"type:varchar(50);not null;default:'pending'"`
 
 		Description           string `gorm:"type:text"`
 		Notes                 string `gorm:"type:text"`
@@ -64,7 +65,7 @@ type (
 		Occupation            string `gorm:"type:varchar(255)"`
 		BusinessAddress       string `gorm:"type:varchar(255)"`
 		BusinessContactNumber string `gorm:"type:varchar(255)"`
-		CivilStatus           string `gorm:"type:civil_status;not null;default:'single'"`
+		CivilStatus           string `gorm:"type:varchar(255);not null;default:'single'"`
 	}
 	MemberProfileResponse struct {
 		ID                     uuid.UUID                    `json:"id"`
@@ -206,6 +207,10 @@ func (m *Model) MemberProfileModel(data *MemberProfile) *MemberProfileResponse {
 			CivilStatus:            data.CivilStatus,
 		}
 	})
+}
+
+func (m *Model) MemberProfileValidate(ctx echo.Context) (*MemberProfileRequest, error) {
+	return horizon_manager.Validate[MemberProfileRequest](ctx, m.validator)
 }
 
 func (m *Model) MemberProfileModels(data []*MemberProfile) []*MemberProfileResponse {

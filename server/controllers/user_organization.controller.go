@@ -86,6 +86,7 @@ func (c *Controller) UserOrganizationSeeder(ctx echo.Context) error {
 		if err := c.userOrganization.Manager.Update(userOrganization); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update user organization seed status")
 		}
+		c.provider.Notification(ctx, "Organization creation", "Finished setting up your Organization", "info")
 	}
 
 	return ctx.NoContent(http.StatusOK)
@@ -126,8 +127,6 @@ func (c *Controller) UserOrganizationSwitch(ctx echo.Context) error {
 	})
 }
 
-// POST user-organization/user_org_id/branch
-
 // PUT /user-organization/:user_organization_id/developer-key-refresh
 func (c *Controller) UserOrganizationRegenerateDeveloperKey(ctx echo.Context) error {
 	id, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
@@ -135,24 +134,20 @@ func (c *Controller) UserOrganizationRegenerateDeveloperKey(ctx echo.Context) er
 		return echo.NewHTTPError(http.StatusBadRequest, "invalid user_organization_id")
 	}
 
-	// Fetch UserOrganization model
 	model, err := c.userOrganization.Manager.GetByID(*id)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, "user organization not found")
 	}
 
-	// Authenticate current user
 	currentUserOrg, err := c.provider.UserOwnerEmployee(ctx, model.OrganizationID.String(), model.BranchID.String())
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnauthorized, "unauthorized access")
 	}
 
-	// Permission check: only the owner or same user can regenerate
 	if currentUserOrg.ID != model.ID && currentUserOrg.UserType != "owner" {
 		return echo.NewHTTPError(http.StatusForbidden, "cannot refresh developer key")
 	}
 
-	// Regenerate token
 	regenKey := uuid.New().String()
 	newToken := c.security.GenerateToken(regenKey)
 	model.DeveloperSecretKey = newToken
@@ -161,6 +156,7 @@ func (c *Controller) UserOrganizationRegenerateDeveloperKey(ctx echo.Context) er
 		return echo.NewHTTPError(http.StatusNotAcceptable, err.Error())
 	}
 
+	c.provider.Notification(ctx, "Security Update", "Developer key regenerated successfully", "info")
 	return ctx.JSON(http.StatusOK, c.model.UserOrganizationModel(model))
 }
 
@@ -171,13 +167,11 @@ func (c *Controller) UserOrganizationUpdate(ctx echo.Context) error {
 		return err
 	}
 
-	// Validate the incoming request data
 	req, err := c.model.UserOrganizationValidate(ctx)
 	if err != nil {
 		return err
 	}
 
-	// Retrieve the user organization details
 	model, err := c.userOrganization.Manager.GetByID(*userOrgId)
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, map[string]string{"error": "membership not found"})
@@ -209,6 +203,8 @@ func (c *Controller) UserOrganizationUpdate(ctx echo.Context) error {
 	if err := c.userOrganization.Manager.Update(model); err != nil {
 		return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": err.Error()})
 	}
+
+	c.provider.Notification(ctx, "Profile Update", "User organization updated successfully", "info")
 	return ctx.JSON(http.StatusOK, c.model.UserOrganizationModel(model))
 }
 
@@ -238,7 +234,7 @@ func (c *Controller) UserOrganizationJoin(ctx echo.Context) error {
 
 	if req.ApplicationStatus == "employee" {
 		if !c.userOrganization.EmployeeCanJoin(user.ID, *orgId, *branchId) {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "cannot as employee"})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "cannot join as employee"})
 		}
 	}
 
@@ -267,11 +263,13 @@ func (c *Controller) UserOrganizationJoin(ctx echo.Context) error {
 		UserSettingEndVoucher:   req.UserSettingEndVoucher,
 		UserSettingUsedVoucher:  req.UserSettingUsedVoucher,
 	}
-	if err := c.userOrganization.Manager.Update(userOrg); err != nil {
+
+	if err := c.userOrganization.Manager.Create(userOrg); err != nil {
 		return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": err.Error()})
 	}
-	return ctx.JSON(http.StatusOK, c.model.UserOrganizationModel(userOrg))
 
+	c.provider.Notification(ctx, "Membership", "Successfully joined organization", "success")
+	return ctx.JSON(http.StatusOK, c.model.UserOrganizationModel(userOrg))
 }
 
 // POST user-organization/join/invitation-code/:code
@@ -310,7 +308,7 @@ func (c *Controller) UserOrganizationJoinByCode(ctx echo.Context) error {
 
 	if req.ApplicationStatus == "employee" {
 		if !c.userOrganization.EmployeeCanJoin(user.ID, invitationCode.OrganizationID, invitationCode.BranchID) {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "cannot as employee"})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "cannot join as employee"})
 		}
 	}
 	userOrg := &model.UserOrganization{
@@ -353,8 +351,9 @@ func (c *Controller) UserOrganizationJoinByCode(ctx echo.Context) error {
 		tx.Rollback()
 		return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": err.Error()})
 	}
-	return ctx.JSON(http.StatusOK, c.model.UserOrganizationModel(userOrg))
 
+	c.provider.Notification(ctx, "Membership", "Joined organization using invitation code", "success")
+	return ctx.JSON(http.StatusOK, c.model.UserOrganizationModel(userOrg))
 }
 
 // POST user-organization/leave/organization/:organization_id/branch/:branch_id
@@ -371,18 +370,17 @@ func (c *Controller) UserOrganizationLeave(ctx echo.Context) error {
 	if err != nil {
 		return err
 	}
-	if userOrg.ApplicationStatus != "pending" && userOrg.ApplicationStatus != "not-allowed" {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "you cannot leave this organization",
-		})
-	}
+
 	switch userOrg.UserType {
 	case "owner", "employee":
 		return ctx.JSON(http.StatusForbidden, map[string]string{"error": "owners and employees cannot leave an organization"})
 	}
+
 	if err := c.userOrganization.Manager.DeleteByID(userOrg.ID); err != nil {
 		return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": err.Error()})
 	}
+
+	c.provider.Notification(ctx, "Membership", "Successfully left organization", "info")
 	return ctx.NoContent(http.StatusNoContent)
 }
 
@@ -442,23 +440,6 @@ func (c *Controller) UserOrganizationListByOrganizationBranch(ctx echo.Context) 
 	return ctx.JSON(http.StatusOK, c.model.UserOrganizationModel(userOrg))
 }
 
-// GET user-organization/user/:user_id/branch/:branch_id
-func (c *Controller) UserOrganizationListByUserBranch(ctx echo.Context) error {
-	userId, err := horizon.EngineUUIDParam(ctx, "user_id")
-	if err != nil {
-		return err
-	}
-	branchId, err := horizon.EngineUUIDParam(ctx, "branch_id")
-	if err != nil {
-		return err
-	}
-	userOrg, err := c.userOrganization.ListByUserBranch(*userId, *branchId)
-	if err != nil {
-		return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": err.Error()})
-	}
-	return ctx.JSON(http.StatusOK, c.model.UserOrganizationModel(userOrg))
-}
-
 // GET user-organization/user/:user_id/organization/:organization_id
 func (c *Controller) UserOrganizationListByUserOrganization(ctx echo.Context) error {
 	userId, err := horizon.EngineUUIDParam(ctx, "user_id")
@@ -498,7 +479,7 @@ func (c *Controller) UserOrganizationByUserOrganizationBranch(ctx echo.Context) 
 	return ctx.JSON(http.StatusOK, c.model.UserOrganizationModel(userOrg))
 }
 
-// GET user-organization/organization/:organization_id/branch/:branch_id/can-join-employee
+// GET user-organization/organization/:organization_id/branch/:branch_id/can-join-member
 func (c *Controller) UserOrganizationCanJoinMember(ctx echo.Context) error {
 	user, err := c.provider.CurrentUser(ctx)
 	if err != nil {
@@ -535,7 +516,24 @@ func (c *Controller) UserOrganizationCanJoinEmployee(ctx echo.Context) error {
 		return err
 	}
 	if !c.userOrganization.EmployeeCanJoin(user.ID, *orgId, *branchId) {
-		return ctx.JSON(http.StatusNotFound, map[string]string{"error": "cannot join as owner"})
+		return ctx.JSON(http.StatusNotFound, map[string]string{"error": "cannot join as employee"})
 	}
 	return ctx.NoContent(http.StatusOK)
+}
+
+// GET user-organization/user/:user_id/branch/:branch_id
+func (c *Controller) UserOrganizationListByUserBranch(ctx echo.Context) error {
+	userId, err := horizon.EngineUUIDParam(ctx, "user_id")
+	if err != nil {
+		return err
+	}
+	branchId, err := horizon.EngineUUIDParam(ctx, "branch_id")
+	if err != nil {
+		return err
+	}
+	userOrg, err := c.userOrganization.ListByUserBranch(*userId, *branchId)
+	if err != nil {
+		return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": err.Error()})
+	}
+	return ctx.JSON(http.StatusOK, c.model.UserOrganizationModel(userOrg))
 }

@@ -411,4 +411,16 @@ func (c *Controller) Routes(service *echo.Echo) {
 		memberTypeG.GET("/organization/:organization_id/branch/:branch_id", c.MemberTypeListByOrganizationBranch)
 	}
 
+	memberProfileG := service.Group("/member-profile")
+	{
+		memberProfileG.GET("", c.MemberProfileList)
+		memberProfileG.GET("/:member_profile_id", c.MemberProfileGetByID)
+		memberProfileG.POST("", c.MemberProfileCreate)
+		memberProfileG.PUT("/:member_profile_id", c.MemberProfileUpdate)
+		memberProfileG.DELETE("/:member_profile_id", c.MemberProfileDelete)
+		memberProfileG.GET("/branch/:branch_id", c.MemberProfileListByBranch)
+		memberProfileG.GET("/organization/:organization_id", c.MemberProfileListByOrganization)
+		memberProfileG.GET("/organization/:organization_id/branch/:branch_id", c.MemberProfileListByOrganizationBranch)
+	}
+
 }

@@ -31,7 +31,7 @@ type (
 		Name        string `gorm:"type:varchar(255);not null"`
 		Description string `gorm:"type:text;not null"`
 
-		MemberProfiles []*MemberProfile `gorm:"foreignKey:MemberProfileID" json:"member_profiles,omitempty"`
+		MemberProfiles []*MemberProfile `gorm:"foreignKey:MemberOccupationID;references:ID" json:"member_profiles,omitempty"`
 	}
 
 	MemberOccupationResponse struct {

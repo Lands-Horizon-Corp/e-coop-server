@@ -7,7 +7,7 @@ import (
 	"horizon.com/server/server/model"
 )
 
-func (p *Providers) Notification(c echo.Context, title, description string) {
+func (p *Providers) Notification(c echo.Context, title, description string, notificationType string) {
 	go func() {
 		user, err := p.CurrentUser(c)
 		if err != nil {
