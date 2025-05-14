@@ -53,7 +53,7 @@ func (c *Controller) InvitationCodeCreate(ctx echo.Context) error {
 		CreatedByID:    userOrg.UserID,
 		UpdatedByID:    userOrg.User.ID,
 		OrganizationID: userOrg.OrganizationID,
-		BranchID:       userOrg.BranchID,
+		BranchID:       *userOrg.BranchID,
 		CreatedAt:      time.Now().UTC(),
 		UpdatedAt:      time.Now().UTC(),
 

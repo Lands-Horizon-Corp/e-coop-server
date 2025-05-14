@@ -20,7 +20,7 @@ func (p *Providers) UserFootstep(
 		}
 		fs := &model.Footstep{
 			OrganizationID: userOrg.OrganizationID,
-			BranchID:       userOrg.BranchID,
+			BranchID:       *userOrg.BranchID,
 			CreatedByID:    userOrg.UserID,
 			UpdatedByID:    userOrg.UserID,
 			UserID:         &userOrg.UserID,

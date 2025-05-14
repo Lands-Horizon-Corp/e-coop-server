@@ -5,6 +5,7 @@ import (
 	"horizon.com/server/server/controllers"
 	"horizon.com/server/server/model"
 	"horizon.com/server/server/providers"
+	"horizon.com/server/server/seeders"
 )
 
 type CoopServer struct {
@@ -14,6 +15,7 @@ type CoopServer struct {
 
 func NewCoopServer(
 	con *controllers.Controller,
+
 ) (*CoopServer, error) {
 	return &CoopServer{
 		Routes: []func(*echo.Echo){
@@ -65,8 +67,7 @@ var Modules = []any{
 	model.NewUserRatingCollection,
 
 	controllers.NewController,
-
-	// handler.NewHandler,
+	seeders.NewDatabaseSeeder,
 
 	// Provider
 	providers.NewProviders,

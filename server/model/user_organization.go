@@ -26,7 +26,7 @@ type (
 		DeletedBy              *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
 		OrganizationID         uuid.UUID      `gorm:"type:uuid;not null;uniqueIndex:idx_user_org_branch"`
 		Organization           *Organization  `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE;" json:"organization,omitempty"`
-		BranchID               uuid.UUID      `gorm:"type:uuid;not null;uniqueIndex:idx_user_org_branch"`
+		BranchID               *uuid.UUID     `gorm:"type:uuid;index:idx_user_org_branch"`
 		Branch                 *Branch        `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE;" json:"branch,omitempty"`
 		UserID                 uuid.UUID      `gorm:"type:uuid;not null;uniqueIndex:idx_user_org_branch"`
 		User                   *User          `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE;" json:"user,omitempty"`
@@ -37,7 +37,7 @@ type (
 		DeveloperSecretKey     string         `gorm:"type:varchar(255);not null;unique" json:"developer_secret_key"`
 		PermissionName         string         `gorm:"type:varchar(255);not null" json:"permission_name"`
 		PermissionDescription  string         `gorm:"type:varchar(255);not null" json:"permission_description"`
-		Permissions            pq.StringArray `gorm:"type:varchar[];default:'{}'"`
+		Permissions            pq.StringArray `gorm:"type:varchar[];default:'{}'" json:"permissions"`
 
 		UserSettingDescription string `gorm:"type:text" json:"user_setting_description"`
 
@@ -81,7 +81,7 @@ type (
 		UpdatedBy      *UserResponse         `json:"updated_by,omitempty"`
 		OrganizationID uuid.UUID             `json:"organization_id"`
 		Organization   *OrganizationResponse `json:"organization,omitempty"`
-		BranchID       uuid.UUID             `json:"branch_id"`
+		BranchID       *uuid.UUID            `json:"branch_id"`
 		Branch         *BranchResponse       `json:"branch,omitempty"`
 
 		UserID                 uuid.UUID     `json:"user_id"`
@@ -207,7 +207,7 @@ func (fc *UserOrganizationCollection) ListByUser(userID uuid.UUID) ([]*UserOrgan
 // user-organization/branch/:branch_id
 func (fc *UserOrganizationCollection) ListByBranch(branchID uuid.UUID) ([]*UserOrganization, error) {
 	return fc.Manager.Find(&UserOrganization{
-		BranchID: branchID,
+		BranchID: &branchID,
 	})
 }
 
@@ -222,7 +222,7 @@ func (fc *UserOrganizationCollection) ListByOrganization(organizationID uuid.UUI
 func (fc *UserOrganizationCollection) ListByOrganizationBranch(organizationID uuid.UUID, branchID uuid.UUID) (*UserOrganization, error) {
 	return fc.Manager.FindOne(&UserOrganization{
 		OrganizationID: organizationID,
-		BranchID:       branchID,
+		BranchID:       &branchID,
 	})
 }
 
@@ -230,7 +230,7 @@ func (fc *UserOrganizationCollection) ListByOrganizationBranch(organizationID uu
 func (fc *UserOrganizationCollection) ListByUserBranch(userID uuid.UUID, branchID uuid.UUID) (*UserOrganization, error) {
 	return fc.Manager.FindOne(&UserOrganization{
 		UserID:   userID,
-		BranchID: branchID,
+		BranchID: &branchID,
 	})
 }
 
@@ -247,14 +247,14 @@ func (fc *UserOrganizationCollection) ByUserOrganizationBranch(userID uuid.UUID,
 	return fc.Manager.FindOne(&UserOrganization{
 		UserID:         userID,
 		OrganizationID: organizationID,
-		BranchID:       branchID,
+		BranchID:       &branchID,
 	})
 }
 
 func (fc *UserOrganizationCollection) CountUserOrganizationBranch(userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) (int64, error) {
 	return fc.Manager.Count(&UserOrganization{
 		OrganizationID: organizationID,
-		BranchID:       branchID,
+		BranchID:       &branchID,
 		UserID:         userID,
 	})
 }
@@ -262,7 +262,7 @@ func (fc *UserOrganizationCollection) CountUserOrganizationBranch(userID uuid.UU
 func (fc *UserOrganizationCollection) CountByOrganizationBranch(organizationID uuid.UUID, branchID uuid.UUID) (int64, error) {
 	return fc.Manager.Count(&UserOrganization{
 		OrganizationID: organizationID,
-		BranchID:       branchID,
+		BranchID:       &branchID,
 	})
 }
 func (fc *UserOrganizationCollection) CountByOrganization(organizationID uuid.UUID) (int64, error) {
