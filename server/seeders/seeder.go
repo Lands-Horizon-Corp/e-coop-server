@@ -90,12 +90,34 @@ func (ds *DatabaseSeeder) Run() error {
 		return err
 	}
 	if len(users) <= 0 {
-		ds.SeedCategories()
-		ds.SeedContactUs()
-		ds.SeedUser()
-		ds.SeedNotification()
-		ds.SeedSubscriptionPlan()
-		ds.SeedOrganization()
+		if err := ds.SeedCategories(); err != nil {
+			return err
+		}
+		fmt.Println("finished seeding categories")
+		if err := ds.SeedContactUs(); err != nil {
+			return err
+		}
+		fmt.Println("finished seeding contact us")
+		if err := ds.SeedFeedback(); err != nil {
+			return err
+		}
+		fmt.Println("finished seeding feedback")
+		if err := ds.SeedUser(); err != nil {
+			return err
+		}
+		fmt.Println("finished seeding user")
+		if err := ds.SeedNotification(); err != nil {
+			return err
+		}
+		fmt.Println("finished seeding notification")
+		if err := ds.SeedSubscriptionPlan(); err != nil {
+			return err
+		}
+		fmt.Println("finished seeding subscription")
+		if err := ds.SeedOrganization(); err != nil {
+			return err
+		}
+		fmt.Println("finished seeding organization")
 	}
 	return nil
 }
@@ -113,7 +135,7 @@ func (ds *DatabaseSeeder) SeedOrganization() error {
 		return err
 	}
 
-	imageUrl := "https://sdmntprsouthcentralus.oaiusercontent.com/files/00000000-c354-61f7-8438-4f55b91137f3/raw?se=2025-05-14T06%3A33%3A38Z&sp=r&sv=2024-08-04&sr=b&scid=00000000-0000-0000-0000-000000000000&skoid=71e8fa5c-90a9-4c17-827b-14c3005164d6&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-05-13T23%3A17%3A03Z&ske=2025-05-14T23%3A17%3A03Z&sks=b&skv=2024-08-04&sig=wMsoPBgTkul4YokPUF7Zo9k9gX9ZeIBJ6fo/9HwxlSI%3D"
+	imageUrl := "https://files.slack.com/files-tmb/T08P9M6T257-F08S7UMSZ0V-e535d7688e/image_720.png"
 	image, err := ds.storage.Upload(imageUrl, func(progress, total int64, storage *horizon.Storage) {})
 	if err != nil {
 		return err
@@ -248,9 +270,8 @@ func (ds *DatabaseSeeder) SeedOrganization() error {
 	}
 	return nil
 }
-
 func (ds *DatabaseSeeder) SeedUser() error {
-	imageUrl := "https://sdmntprsouthcentralus.oaiusercontent.com/files/00000000-c354-61f7-8438-4f55b91137f3/raw?se=2025-05-14T06%3A33%3A38Z&sp=r&sv=2024-08-04&sr=b&scid=00000000-0000-0000-0000-000000000000&skoid=71e8fa5c-90a9-4c17-827b-14c3005164d6&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-05-13T23%3A17%3A03Z&ske=2025-05-14T23%3A17%3A03Z&sks=b&skv=2024-08-04&sig=wMsoPBgTkul4YokPUF7Zo9k9gX9ZeIBJ6fo/9HwxlSI%3D"
+	imageUrl := "https://files.slack.com/files-tmb/T08P9M6T257-F08S7UMSZ0V-e535d7688e/image_720.png"
 	image, err := ds.storage.Upload(imageUrl, func(progress, total int64, storage *horizon.Storage) {})
 	if err != nil {
 		return err
@@ -424,7 +445,7 @@ func (ds *DatabaseSeeder) SeedContactUs() error {
 	return nil
 }
 func (ds *DatabaseSeeder) SeedFeedback() error {
-	imageUrl := "https://sdmntprsouthcentralus.oaiusercontent.com/files/00000000-c354-61f7-8438-4f55b91137f3/raw?se=2025-05-14T06%3A33%3A38Z&sp=r&sv=2024-08-04&sr=b&scid=00000000-0000-0000-0000-000000000000&skoid=71e8fa5c-90a9-4c17-827b-14c3005164d6&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-05-13T23%3A17%3A03Z&ske=2025-05-14T23%3A17%3A03Z&sks=b&skv=2024-08-04&sig=wMsoPBgTkul4YokPUF7Zo9k9gX9ZeIBJ6fo/9HwxlSI%3D"
+	imageUrl := "https://files.slack.com/files-tmb/T08P9M6T257-F08S7UMSZ0V-e535d7688e/image_720.png"
 	image, err := ds.storage.Upload(imageUrl, func(progress, total int64, storage *horizon.Storage) {})
 	if err != nil {
 		return err

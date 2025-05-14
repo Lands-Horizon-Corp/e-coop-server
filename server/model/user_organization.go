@@ -37,7 +37,7 @@ type (
 		DeveloperSecretKey     string         `gorm:"type:varchar(255);not null;unique" json:"developer_secret_key"`
 		PermissionName         string         `gorm:"type:varchar(255);not null" json:"permission_name"`
 		PermissionDescription  string         `gorm:"type:varchar(255);not null" json:"permission_description"`
-		Permissions            pq.StringArray `gorm:"type:varchar[];default:'{}'" json:"permissions"`
+		Permissions            pq.StringArray `gorm:"type:varchar(255)[]" json:"permissions"`
 
 		UserSettingDescription string `gorm:"type:text" json:"user_setting_description"`
 
