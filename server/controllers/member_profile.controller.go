@@ -42,6 +42,9 @@ func (c *Controller) MemberProfileCreate(ctx echo.Context) error {
 	if err != nil {
 		return err
 	}
+	if user.UserType != "owner" && user.UserType != "employee" {
+		req.Status = "pending"
+	}
 	memProfilemodel := &model.MemberProfile{
 		CreatedAt:              time.Now().UTC(),
 		CreatedByID:            user.UserID,
@@ -87,7 +90,80 @@ func (c *Controller) MemberProfileCreate(ctx echo.Context) error {
 		BranchID:        *user.BranchID,
 		OrganizationID:  user.OrganizationID,
 		MemberProfileID: memProfilemodel.ID,
+		Status:          req.Status,
 	})
+	if req.MemberCenterID != nil {
+		c.memberCenterHistory.Manager.Create(&model.MemberCenterHistory{
+			CreatedAt:       time.Now().UTC(),
+			CreatedByID:     user.UserID,
+			UpdatedAt:       time.Now().UTC(),
+			UpdatedByID:     user.UserID,
+			BranchID:        *user.BranchID,
+			OrganizationID:  user.OrganizationID,
+			MemberProfileID: &memProfilemodel.ID,
+			MemberCenterID:  req.MemberCenterID,
+		})
+	}
+	if req.MemberClassificationID != nil {
+		c.memberClassificationHistory.Manager.Create(&model.MemberClassificationHistory{
+			CreatedAt:              time.Now().UTC(),
+			CreatedByID:            user.UserID,
+			UpdatedAt:              time.Now().UTC(),
+			UpdatedByID:            user.UserID,
+			BranchID:               *user.BranchID,
+			OrganizationID:         user.OrganizationID,
+			MemberProfileID:        &memProfilemodel.ID,
+			MemberClassificationID: req.MemberClassificationID,
+		})
+	}
+	if req.MemberGenderID != nil {
+		c.memberGenderHistory.Manager.Create(&model.MemberGenderHistory{
+			CreatedAt:       time.Now().UTC(),
+			CreatedByID:     user.UserID,
+			UpdatedAt:       time.Now().UTC(),
+			UpdatedByID:     user.UserID,
+			BranchID:        *user.BranchID,
+			OrganizationID:  user.OrganizationID,
+			MemberProfileID: &memProfilemodel.ID,
+			MemberGenderID:  req.MemberGenderID,
+		})
+	}
+	if req.MemberGroupID != nil {
+		c.memberGroupHistory.Manager.Create(&model.MemberGroupHistory{
+			CreatedAt:       time.Now().UTC(),
+			CreatedByID:     user.UserID,
+			UpdatedAt:       time.Now().UTC(),
+			UpdatedByID:     user.UserID,
+			BranchID:        *user.BranchID,
+			OrganizationID:  user.OrganizationID,
+			MemberProfileID: &memProfilemodel.ID,
+			MemberGroupID:   req.MemberGroupID,
+		})
+	}
+	if req.MemberOccupationID != nil {
+		c.memberOccupationHistory.Manager.Create(&model.MemberOccupationHistory{
+			CreatedAt:          time.Now().UTC(),
+			CreatedByID:        user.UserID,
+			UpdatedAt:          time.Now().UTC(),
+			UpdatedByID:        user.UserID,
+			BranchID:           *user.BranchID,
+			OrganizationID:     user.OrganizationID,
+			MemberProfileID:    &memProfilemodel.ID,
+			MemberOccupationID: req.MemberOccupationID,
+		})
+	}
+	if req.MemberTypeID != nil {
+		c.memberTypeHistory.Manager.Create(&model.MemberTypeHistory{
+			CreatedAt:       time.Now().UTC(),
+			CreatedByID:     user.UserID,
+			UpdatedAt:       time.Now().UTC(),
+			UpdatedByID:     user.UserID,
+			BranchID:        *user.BranchID,
+			OrganizationID:  user.OrganizationID,
+			MemberProfileID: &memProfilemodel.ID,
+			MemberTypeID:    req.MemberTypeID,
+		})
+	}
 	return ctx.JSON(http.StatusCreated, c.model.MemberProfileModel(memProfilemodel))
 }
 
@@ -203,6 +279,79 @@ func (c *Controller) MemberProfileUpdate(ctx echo.Context) error {
 	if err := c.memberProfile.Manager.UpdateByID(*id, memProfileModel); err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{
 			"error": "Failed to update member profile: " + err.Error(),
+		})
+	}
+
+	if req.MemberCenterID != existing.MemberCenterID {
+		c.memberCenterHistory.Manager.Create(&model.MemberCenterHistory{
+			CreatedAt:       time.Now().UTC(),
+			CreatedByID:     user.UserID,
+			UpdatedAt:       time.Now().UTC(),
+			UpdatedByID:     user.UserID,
+			BranchID:        *user.BranchID,
+			OrganizationID:  user.OrganizationID,
+			MemberProfileID: &memProfileModel.ID,
+			MemberCenterID:  req.MemberCenterID,
+		})
+	}
+	if req.MemberClassificationID != existing.MemberClassificationID {
+		c.memberClassificationHistory.Manager.Create(&model.MemberClassificationHistory{
+			CreatedAt:              time.Now().UTC(),
+			CreatedByID:            user.UserID,
+			UpdatedAt:              time.Now().UTC(),
+			UpdatedByID:            user.UserID,
+			BranchID:               *user.BranchID,
+			OrganizationID:         user.OrganizationID,
+			MemberProfileID:        &memProfileModel.ID,
+			MemberClassificationID: req.MemberClassificationID,
+		})
+	}
+	if req.MemberGenderID != existing.MemberGenderID {
+		c.memberGenderHistory.Manager.Create(&model.MemberGenderHistory{
+			CreatedAt:       time.Now().UTC(),
+			CreatedByID:     user.UserID,
+			UpdatedAt:       time.Now().UTC(),
+			UpdatedByID:     user.UserID,
+			BranchID:        *user.BranchID,
+			OrganizationID:  user.OrganizationID,
+			MemberProfileID: &memProfileModel.ID,
+			MemberGenderID:  req.MemberGenderID,
+		})
+	}
+	if req.MemberGroupID != existing.MemberGroupID {
+		c.memberGroupHistory.Manager.Create(&model.MemberGroupHistory{
+			CreatedAt:       time.Now().UTC(),
+			CreatedByID:     user.UserID,
+			UpdatedAt:       time.Now().UTC(),
+			UpdatedByID:     user.UserID,
+			BranchID:        *user.BranchID,
+			OrganizationID:  user.OrganizationID,
+			MemberProfileID: &memProfileModel.ID,
+			MemberGroupID:   req.MemberGroupID,
+		})
+	}
+	if req.MemberOccupationID != existing.MemberOccupationID {
+		c.memberOccupationHistory.Manager.Create(&model.MemberOccupationHistory{
+			CreatedAt:          time.Now().UTC(),
+			CreatedByID:        user.UserID,
+			UpdatedAt:          time.Now().UTC(),
+			UpdatedByID:        user.UserID,
+			BranchID:           *user.BranchID,
+			OrganizationID:     user.OrganizationID,
+			MemberProfileID:    &memProfileModel.ID,
+			MemberOccupationID: req.MemberOccupationID,
+		})
+	}
+	if req.MemberTypeID != existing.MemberTypeID {
+		c.memberTypeHistory.Manager.Create(&model.MemberTypeHistory{
+			CreatedAt:       time.Now().UTC(),
+			CreatedByID:     user.UserID,
+			UpdatedAt:       time.Now().UTC(),
+			UpdatedByID:     user.UserID,
+			BranchID:        *user.BranchID,
+			OrganizationID:  user.OrganizationID,
+			MemberProfileID: &memProfileModel.ID,
+			MemberTypeID:    req.MemberTypeID,
 		})
 	}
 

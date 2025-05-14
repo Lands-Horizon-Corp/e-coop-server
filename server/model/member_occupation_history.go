@@ -127,6 +127,8 @@ func NewMemberOccupationHistoryCollection(
 			"CreatedBy",
 			"UpdatedBy",
 			"Organization",
+			"MemberOccupation",
+			"MemberProfile",
 			"Branch",
 		},
 	)

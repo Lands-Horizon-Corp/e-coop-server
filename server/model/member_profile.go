@@ -45,6 +45,8 @@ type (
 		MemberGroup            *MemberGroup          `gorm:"foreignKey:MemberGroupID;constraint:OnDelete:SET NULL;" json:"member_group,omitempty"`
 		MemberOccupationID     *uuid.UUID            `gorm:"type:uuid"`
 		MemberOccupation       *MemberOccupation     `gorm:"foreignKey:MemberOccupationID;constraint:OnDelete:SET NULL;" json:"member_occupation,omitempty"`
+		MemberTypeID           *uuid.UUID            `gorm:"type:uuid"`
+		MemberType             *MemberType           `gorm:"foreignKey:MemberOccupationID;constraint:OnDelete:SET NULL;" json:"member_type,omitempty"`
 
 		IsClosed             bool   `gorm:"not null;default:false"`
 		IsMutualFundMember   bool   `gorm:"not null;default:false"`
@@ -95,6 +97,8 @@ type (
 		MemberGroup            MemberGroupResponse          `json:"member_group,omitempty"`
 		MemberOccupationID     uuid.UUID                    `json:"member_occupation_id"`
 		MemberOccupation       MemberOccupationResponse     `json:"member_occupation,omitempty"`
+		MemberTypeID           uuid.UUID                    `json:"member_type_id,omitempty"`
+		MemberType             MemberTypeResponse           `json:"member_tyoe,omitempty"`
 		IsClosed               bool                         `json:"is_closed"`
 		IsMutualFundMember     bool                         `json:"is_mutual_fund_member"`
 		IsMicroFinanceMember   bool                         `json:"is_micro_finance_member"`
@@ -124,6 +128,7 @@ type (
 		MemberGenderID         *uuid.UUID `json:"member_gender_id,omitempty" validate:"omitempty,uuid4"`
 		MemberGroupID          *uuid.UUID `json:"member_group_id,omitempty" validate:"omitempty,uuid4"`
 		MemberOccupationID     *uuid.UUID `json:"member_occupation_id,omitempty" validate:"omitempty,uuid4"`
+		MemberTypeID           *uuid.UUID `json:"member_type_id,omitempty" validate:"omitempty,uuid4"`
 
 		IsClosed             bool `json:"is_closed"`
 		IsMutualFundMember   bool `json:"is_mutual_fund_member"`
@@ -186,6 +191,8 @@ func (m *Model) MemberProfileModel(data *MemberProfile) *MemberProfileResponse {
 			MemberGroup:            *m.MemberGroupModel(data.MemberGroup),
 			MemberOccupationID:     *data.MemberOccupationID,
 			MemberOccupation:       *m.MemberOccupationModel(data.MemberOccupation),
+			MemberTypeID:           *data.MemberTypeID,
+			MemberType:             *m.MemberTypeModel(data.MemberType),
 			IsClosed:               data.IsClosed,
 			IsMutualFundMember:     data.IsMutualFundMember,
 			IsMicroFinanceMember:   data.IsMicroFinanceMember,
@@ -261,6 +268,7 @@ func NewMemberProfileCollection(
 			"MemberGender",
 			"MemberGroup",
 			"MemberOccupation",
+			"MemberType",
 		},
 	)
 	return &MemberProfileCollection{

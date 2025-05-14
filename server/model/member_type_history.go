@@ -128,6 +128,8 @@ func NewMemberTypeHistoryCollection(
 			"UpdatedBy",
 			"Organization",
 			"Branch",
+			"MemberType",
+			"MemberProfile",
 		},
 	)
 	return &MemberTypeHistoryCollection{

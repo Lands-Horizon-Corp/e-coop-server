@@ -128,6 +128,8 @@ func NewMemberCenterHistoryCollection(
 			"UpdatedBy",
 			"Organization",
 			"Branch",
+			"MemberProfile",
+			"MemberCenter",
 		},
 	)
 	return &MemberCenterHistoryCollection{

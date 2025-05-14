@@ -128,6 +128,7 @@ func NewMemberGenderHistoryCollection(
 			"UpdatedBy",
 			"Organization",
 			"Branch",
+			"MemberProfile", "MemberGender",
 		},
 	)
 	return &MemberGenderHistoryCollection{
