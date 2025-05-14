@@ -41,6 +41,7 @@ type Controller struct {
 	memberGroup          *model.MemberGroupCollection
 	memberOccupation     *model.MemberOccupationCollection
 	memberType           *model.MemberTypeCollection
+	memberProfile        *model.MemberProfileCollection
 	// End Maintenantce table member
 }
 
@@ -71,14 +72,14 @@ func NewController(
 	userOrganization *model.UserOrganizationCollection,
 	user *model.UserCollection,
 	userRating *model.UserRatingCollection,
-	// Maintenantce Table member
+
 	memberCenter *model.MemberCenterCollection,
 	memberClassification *model.MemberClassificationCollection,
 	memberGender *model.MemberGenderCollection,
 	memberGroup *model.MemberGroupCollection,
 	memberOccupation *model.MemberOccupationCollection,
 	memberType *model.MemberTypeCollection,
-	// End Maintenantce table member
+	memberProfile *model.MemberProfileCollection,
 
 ) (*Controller, error) {
 	return &Controller{
@@ -112,6 +113,7 @@ func NewController(
 		memberGroup:            memberGroup,
 		memberOccupation:       memberOccupation,
 		memberType:             memberType,
+		memberProfile:          memberProfile,
 	}, nil
 }
 

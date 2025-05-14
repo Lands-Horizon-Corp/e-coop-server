@@ -45,6 +45,7 @@ func NewCoopServer(
 			&model.MemberGroup{},
 			&model.MemberOccupation{},
 			&model.MemberType{},
+			&model.MemberProfile{},
 			// End Maintenantce table member
 		},
 	}, nil
@@ -74,14 +75,15 @@ var Modules = []any{
 	model.NewUserOrganizationCollection,
 	model.NewUserCollection,
 	model.NewUserRatingCollection,
-	// Maintenantce Table member
+
 	model.NewMemberCenterCollection,
 	model.NewMemberClassificationCollection,
 	model.NewMemberGenderCollection,
 	model.NewMemberGroupCollection,
 	model.NewMemberOccupationCollection,
 	model.NewMemberTypeCollection,
-	// End Maintenantce table member
+	model.NewMemberProfileCollection,
+
 	controllers.NewController,
 	seeders.NewDatabaseSeeder,
 
