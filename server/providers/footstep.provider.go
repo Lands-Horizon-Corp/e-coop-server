@@ -1,6 +1,7 @@
 package providers
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -10,11 +11,14 @@ import (
 
 func (p *Providers) UserFootstep(
 	c echo.Context,
-	organizationID, branchID string,
-	module, activity, description string,
+	module, activity string, data any,
 ) {
 	go func() {
-		userOrg, err := p.UserOrganization(c, organizationID, branchID)
+		jsonString, err := json.Marshal(data)
+		if err != nil {
+			return
+		}
+		userOrg, err := p.CurrentUserOrganization(c)
 		if err != nil {
 			return
 		}
@@ -26,7 +30,7 @@ func (p *Providers) UserFootstep(
 			UserID:         &userOrg.UserID,
 			Module:         module,
 			Activity:       activity,
-			Description:    description,
+			Description:    string(jsonString),
 			Timestamp:      time.Now(),
 			IPAddress:      c.RealIP(),
 			UserAgent:      c.Request().UserAgent(),

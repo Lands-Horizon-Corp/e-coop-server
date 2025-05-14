@@ -58,7 +58,7 @@ enum notification_type {
   info
   report
 }
-
+  
 // 🔑
 Table notification {
   id varchar(50) [pk, unique, default: `uuid_generate_v4()`]

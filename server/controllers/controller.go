@@ -34,6 +34,14 @@ type Controller struct {
 	userOrganization       *model.UserOrganizationCollection
 	user                   *model.UserCollection
 	userRating             *model.UserRatingCollection
+	// Maintenantce Table member
+	memberCenter         *model.MemberCenterCollection
+	memberClassification *model.MemberClassificationCollection
+	memberGender         *model.MemberGenderCollection
+	memberGroup          *model.MemberGroupCollection
+	memberOccupation     *model.MemberOccupationCollection
+	memberType           *model.MemberTypeCollection
+	// End Maintenantce table member
 }
 
 func NewController(
@@ -63,17 +71,24 @@ func NewController(
 	userOrganization *model.UserOrganizationCollection,
 	user *model.UserCollection,
 	userRating *model.UserRatingCollection,
+	// Maintenantce Table member
+	memberCenter *model.MemberCenterCollection,
+	memberClassification *model.MemberClassificationCollection,
+	memberGender *model.MemberGenderCollection,
+	memberGroup *model.MemberGroupCollection,
+	memberOccupation *model.MemberOccupationCollection,
+	memberType *model.MemberTypeCollection,
+	// End Maintenantce table member
 
 ) (*Controller, error) {
 	return &Controller{
-		authentication: authentication,
-		storage:        storage,
-		provider:       provider,
-		model:          model,
-		database:       database,
-		security:       security,
-		qr:             qr,
-
+		authentication:         authentication,
+		storage:                storage,
+		provider:               provider,
+		model:                  model,
+		database:               database,
+		security:               security,
+		qr:                     qr,
 		branch:                 branch,
 		category:               category,
 		contactUs:              contactUs,
@@ -91,6 +106,12 @@ func NewController(
 		userOrganization:       userOrganization,
 		user:                   user,
 		userRating:             userRating,
+		memberCenter:           memberCenter,
+		memberClassification:   memberClassification,
+		memberGender:           memberGender,
+		memberGroup:            memberGroup,
+		memberOccupation:       memberOccupation,
+		memberType:             memberType,
 	}, nil
 }
 
@@ -313,6 +334,77 @@ func (c *Controller) Routes(service *echo.Echo) {
 		userRatingG.GET("/organization/:organization_id/rater/:rater_user_id", c.UserRatingListByOrganizationRater)
 		userRatingG.GET("/organization/:organization_id/branch/:branch_id/ratee/:ratee_user_id", c.UserRatingListByOrgBranchRatee)
 		userRatingG.GET("/organization/:organization_id/branch/:branch_id/rater/:rater_user_id", c.UserRatingListByOrgBranchRater)
+	}
+
+	memberCenterG := service.Group("/member-center")
+	{
+		memberCenterG.GET("", c.MemberCenterList)
+		memberCenterG.GET("/:member_center_id", c.MemberCenterGetByID)
+		memberCenterG.POST("", c.MemberCenterCreate)
+		memberCenterG.PUT("/:member_center_id", c.MemberCenterUpdate)
+		memberCenterG.DELETE("/:member_center_id", c.MemberCenterDelete)
+		memberCenterG.GET("/branch/:branch_id", c.MemberCenterListByBranch)
+		memberCenterG.GET("/organization/:organization_id", c.MemberCenterListByOrganization)
+		memberCenterG.GET("/organization/:organization_id/branch/:branch_id", c.MemberCenterListByOrganizationBranch)
+	}
+
+	memberClassificationG := service.Group("/member-classification")
+	{
+		memberClassificationG.GET("", c.MemberClassificationList)
+		memberClassificationG.GET("/:member_classification_id", c.MemberClassificationGetByID)
+		memberClassificationG.POST("", c.MemberClassificationCreate)
+		memberClassificationG.PUT("/:member_classification_id", c.MemberClassificationUpdate)
+		memberClassificationG.DELETE("/:member_classification_id", c.MemberClassificationDelete)
+		memberClassificationG.GET("/branch/:branch_id", c.MemberClassificationListByBranch)
+		memberClassificationG.GET("/organization/:organization_id", c.MemberClassificationListByOrganization)
+		memberClassificationG.GET("/organization/:organization_id/branch/:branch_id", c.MemberClassificationListByOrganizationBranch)
+	}
+	memberGenderG := service.Group("/member-gender")
+	{
+		memberGenderG.GET("", c.MemberGenderList)
+		memberGenderG.GET("/:member_gender_id", c.MemberGenderGetByID)
+		memberGenderG.POST("", c.MemberGenderCreate)
+		memberGenderG.PUT("/:member_gender_id", c.MemberGenderUpdate)
+		memberGenderG.DELETE("/:member_gender_id", c.MemberGenderDelete)
+		memberGenderG.GET("/branch/:branch_id", c.MemberGenderListByBranch)
+		memberGenderG.GET("/organization/:organization_id", c.MemberGenderListByOrganization)
+		memberGenderG.GET("/organization/:organization_id/branch/:branch_id", c.MemberGenderListByOrganizationBranch)
+	}
+
+	memberGroupG := service.Group("/member-group")
+	{
+		memberGroupG.GET("", c.MemberGroupList)
+		memberGroupG.GET("/:member_group_id", c.MemberGroupGetByID)
+		memberGroupG.POST("", c.MemberGroupCreate)
+		memberGroupG.PUT("/:member_group_id", c.MemberGroupUpdate)
+		memberGroupG.DELETE("/:member_group_id", c.MemberGroupDelete)
+		memberGroupG.GET("/branch/:branch_id", c.MemberGroupListByBranch)
+		memberGroupG.GET("/organization/:organization_id", c.MemberGroupListByOrganization)
+		memberGroupG.GET("/organization/:organization_id/branch/:branch_id", c.MemberGroupListByOrganizationBranch)
+	}
+
+	memberOccupationG := service.Group("/member-occupation")
+	{
+		memberOccupationG.GET("", c.MemberOccupationList)
+		memberOccupationG.GET("/:member_occupation_id", c.MemberOccupationGetByID)
+		memberOccupationG.POST("", c.MemberOccupationCreate)
+		memberOccupationG.PUT("/:member_occupation_id", c.MemberOccupationUpdate)
+		memberOccupationG.DELETE("/:member_occupation_id", c.MemberOccupationDelete)
+		memberOccupationG.GET("/branch/:branch_id", c.MemberOccupationListByBranch)
+		memberOccupationG.GET("/organization/:organization_id", c.MemberOccupationListByOrganization)
+		memberOccupationG.GET("/organization/:organization_id/branch/:branch_id", c.MemberOccupationListByOrganizationBranch)
+	}
+
+	memberTypeG := service.Group("/member-type")
+	{
+		memberTypeG.GET("", c.MemberTypeList)
+		memberTypeG.GET("/:member_type_id", c.MemberTypeGetByID)
+		memberTypeG.POST("", c.MemberTypeCreate)
+		memberTypeG.PUT("/:member_type_id", c.MemberTypeUpdate)
+		memberTypeG.DELETE("/:member_type_id", c.MemberTypeDelete)
+		memberTypeG.GET("/branch/:branch_id", c.MemberTypeListByBranch)
+		memberTypeG.GET("/organization/:organization_id", c.MemberTypeListByOrganization)
+		memberTypeG.GET("/organization/:organization_id/branch/:branch_id", c.MemberTypeListByOrganizationBranch)
 	}
 
 }

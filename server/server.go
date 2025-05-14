@@ -37,6 +37,15 @@ func NewCoopServer(
 			&model.UserOrganization{},       // ✅
 			&model.OrganizationDailyUsage{}, // ✅
 			&model.Notification{},           // ✅
+
+			// Maintenantce Table member
+			&model.MemberCenter{},
+			&model.MemberClassification{},
+			&model.MemberGender{},
+			&model.MemberGroup{},
+			&model.MemberOccupation{},
+			&model.MemberType{},
+			// End Maintenantce table member
 		},
 	}, nil
 }
@@ -65,7 +74,14 @@ var Modules = []any{
 	model.NewUserOrganizationCollection,
 	model.NewUserCollection,
 	model.NewUserRatingCollection,
-
+	// Maintenantce Table member
+	model.NewMemberCenterCollection,
+	model.NewMemberClassificationCollection,
+	model.NewMemberGenderCollection,
+	model.NewMemberGroupCollection,
+	model.NewMemberOccupationCollection,
+	model.NewMemberTypeCollection,
+	// End Maintenantce table member
 	controllers.NewController,
 	seeders.NewDatabaseSeeder,
 
