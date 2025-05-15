@@ -275,10 +275,6 @@ func (c *Controller) UserOrganizationJoin(ctx echo.Context) error {
 // POST user-organization/join/invitation-code/:code
 func (c *Controller) UserOrganizationJoinByCode(ctx echo.Context) error {
 	code := ctx.Param("code")
-	req, err := c.model.UserOrganizationValidate(ctx)
-	if err != nil {
-		return err
-	}
 	exists, err := c.invitationCode.Exists(code)
 	if err != nil {
 		return ctx.JSON(http.StatusNotAcceptable, map[string]string{
@@ -300,17 +296,6 @@ func (c *Controller) UserOrganizationJoinByCode(ctx echo.Context) error {
 		return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": "failed to retrieve invitation code"})
 	}
 
-	if req.ApplicationStatus == "member" {
-		if !c.userOrganization.MemberCanJoin(user.ID, invitationCode.OrganizationID, invitationCode.BranchID) {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "cannot join as member"})
-		}
-	}
-
-	if req.ApplicationStatus == "employee" {
-		if !c.userOrganization.EmployeeCanJoin(user.ID, invitationCode.OrganizationID, invitationCode.BranchID) {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "cannot join as employee"})
-		}
-	}
 	userOrg := &model.UserOrganization{
 		CreatedAt:              time.Now().UTC(),
 		CreatedByID:            user.ID,
@@ -319,12 +304,12 @@ func (c *Controller) UserOrganizationJoinByCode(ctx echo.Context) error {
 		OrganizationID:         invitationCode.OrganizationID,
 		BranchID:               &invitationCode.BranchID,
 		UserID:                 user.ID,
-		UserType:               req.UserType,
-		Description:            req.Description,
-		ApplicationDescription: req.ApplicationDescription,
+		UserType:               invitationCode.UserType,
+		Description:            invitationCode.Description,
+		ApplicationDescription: "anything",
 		ApplicationStatus:      "pending",
 		DeveloperSecretKey:     c.security.GenerateToken(user.ID.String()),
-		PermissionName:         req.UserType,
+		PermissionName:         invitationCode.UserType,
 		PermissionDescription:  "",
 		Permissions:            []string{},
 
