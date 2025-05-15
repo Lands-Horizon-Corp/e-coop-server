@@ -249,19 +249,19 @@ func (c *Controller) UserOrganizationJoin(ctx echo.Context) error {
 		UserType:               req.UserType,
 		Description:            req.Description,
 		ApplicationDescription: req.ApplicationDescription,
-		ApplicationStatus:      "accepted",
+		ApplicationStatus:      "pending",
 		DeveloperSecretKey:     c.security.GenerateToken(user.ID.String()),
 		PermissionName:         req.UserType,
 		PermissionDescription:  "",
 		Permissions:            []string{},
 
-		UserSettingDescription:  req.UserSettingDescription,
-		UserSettingStartOR:      req.UserSettingStartOR,
-		UserSettingEndOR:        req.UserSettingEndOR,
-		UserSettingUsedOR:       req.UserSettingUsedOR,
-		UserSettingStartVoucher: req.UserSettingStartVoucher,
-		UserSettingEndVoucher:   req.UserSettingEndVoucher,
-		UserSettingUsedVoucher:  req.UserSettingUsedVoucher,
+		UserSettingDescription:  "",
+		UserSettingStartOR:      0,
+		UserSettingEndOR:        0,
+		UserSettingUsedOR:       0,
+		UserSettingStartVoucher: 0,
+		UserSettingEndVoucher:   0,
+		UserSettingUsedVoucher:  0,
 	}
 
 	if err := c.userOrganization.Manager.Create(userOrg); err != nil {
