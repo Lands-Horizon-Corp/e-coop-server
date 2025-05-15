@@ -57,7 +57,7 @@ type (
 
 		Description            string   `json:"description,omitempty"`
 		ApplicationDescription string   `json:"application_description,omitempty"`
-		ApplicationStatus      string   `json:"application_status" validate:"required,oneof=pending reported accepted ban not-allowed"`
+		ApplicationStatus      string   `json:"application_status" validate:"omitempty,oneof=pending reported accepted ban not-allowed"`
 		PermissionName         string   `json:"permission_name,omitempty"`
 		PermissionDescription  string   `json:"permission_description,omitempty"`
 		Permissions            []string `json:"permissions,omitempty" validate:"dive"`
