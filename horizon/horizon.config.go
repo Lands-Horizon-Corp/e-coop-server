@@ -14,15 +14,16 @@ const (
 
 // HorizonConfig holds all configuration values.
 type HorizonConfig struct {
-	AppPort        int
-	AppMetricsPort int
-	AppName        string
-	AppToken       string
-	AppLog         string
-	AppEnvironment string
-	AppMainLog     string
-	AppClientURL   string
-	AppTokenName   string
+	AppPort          int
+	AppMetricsPort   int
+	AppName          string
+	AppToken         string
+	AppLog           string
+	AppLoggereEnable bool
+	AppEnvironment   string
+	AppMainLog       string
+	AppClientURL     string
+	AppTokenName     string
 
 	PostgresUser           string
 	PostgresPassword       string
@@ -70,15 +71,16 @@ type HorizonConfig struct {
 
 func NewHorizonConfig() (*HorizonConfig, error) {
 	return &HorizonConfig{
-		AppPort:        GetInt("APP_PORT", 8000),
-		AppMetricsPort: GetInt("APP_METRICS_PORT", 8001),
-		AppName:        GetString("APP_NAME", "ENGINE"),
-		AppToken:       GetString("APP_TOKEN", "oYrsXzg7eu7Yt5So4e62r7LDVH2hj"),
-		AppLog:         GetString("APP_LOG", "./logs/"),
-		AppEnvironment: GetString("APP_ENV", "production"),
-		AppMainLog:     GetString("APP_MAIN_LOG", "./logs/main.log"),
-		AppClientURL:   GetString("APP_CLIENT_URL", "http://localhost:3000"),
-		AppTokenName:   GetString("APP_TOKEN_NAME", "0aWalpi9q4b6Adm811hIJDzoh"),
+		AppPort:          GetInt("APP_PORT", 8000),
+		AppMetricsPort:   GetInt("APP_METRICS_PORT", 8001),
+		AppName:          GetString("APP_NAME", "ENGINE"),
+		AppToken:         GetString("APP_TOKEN", "oYrsXzg7eu7Yt5So4e62r7LDVH2hj"),
+		AppLog:           GetString("APP_LOG", "./logs/"),
+		AppLoggereEnable: false,
+		AppEnvironment:   GetString("APP_ENV", "production"),
+		AppMainLog:       GetString("APP_MAIN_LOG", "./logs/main.log"),
+		AppClientURL:     GetString("APP_CLIENT_URL", "http://localhost:3000"),
+		AppTokenName:     GetString("APP_TOKEN_NAME", "0aWalpi9q4b6Adm811hIJDzoh"),
 
 		PostgresUser:           GetString("POSTGRES_USER", "dev"),
 		PostgresPassword:       GetString("POSTGRES_PASSWORD", "devpass"),

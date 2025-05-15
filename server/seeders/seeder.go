@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"horizon.com/server/horizon"
 	"horizon.com/server/server/model"
 )
@@ -148,11 +149,16 @@ func (ds *DatabaseSeeder) Run() error {
 	}
 	return nil
 }
+
 func (ds *DatabaseSeeder) SeedOrganization() error {
 	users, err := ds.user.Manager.List()
 	if err != nil {
 		return err
 	}
+
+	// Ensure we have at least 5 users for our 5 organizations
+	const numOrgsPerUser = 5
+
 	subscriptions, err := ds.subscriptionPlan.Manager.List()
 	if err != nil {
 		return err
@@ -184,119 +190,133 @@ func (ds *DatabaseSeeder) SeedOrganization() error {
 		return err
 	}
 
-	for i, user := range users {
-		sub := subscriptions[i%len(subscriptions)]
-		subscriptionEndDate := time.Now().Add(30 * 24 * time.Hour)
+	for _, user := range users {
+		// Define user types for each organization
+		orgUserTypes := []string{"member", "owner", "employee", "owner", "employee"}
 
-		organization := &model.Organization{
-			CreatedAt:                           time.Now().UTC(),
-			CreatedByID:                         user.ID,
-			UpdatedAt:                           time.Now().UTC(),
-			UpdatedByID:                         user.ID,
-			Name:                                fmt.Sprintf("Org %d - %s", i+1, *user.FirstName),
-			Address:                             ptr(fmt.Sprintf("%d Main Street, Testville", i+101)),
-			Email:                               ptr(fmt.Sprintf("org%d@example.com", i+1)),
-			ContactNumber:                       ptr(fmt.Sprintf("+63917%05d%04d", i+100, i+1)),
-			Description:                         ptr("A seeded example organization for testing."),
-			Color:                               ptr("#" + fmt.Sprintf("%06x", 0xFF5733+i*50)),
-			TermsAndConditions:                  ptr("These are seeded terms and conditions..."),
-			PrivacyPolicy:                       ptr("Seeded privacy policy content..."),
-			CookiePolicy:                        ptr("Seeded cookie policy content..."),
-			RefundPolicy:                        ptr("Seeded refund policy content..."),
-			UserAgreement:                       ptr("Seeded user agreement content..."),
-			IsPrivate:                           false,
-			MediaID:                             &media.ID,
-			CoverMediaID:                        &media.ID,
-			SubscriptionPlanMaxBranches:         sub.MaxBranches,
-			SubscriptionPlanMaxEmployees:        sub.MaxEmployees,
-			SubscriptionPlanMaxMembersPerBranch: sub.MaxMembersPerBranch,
-			SubscriptionPlanID:                  &sub.ID,
-			SubscriptionStartDate:               time.Now().UTC(),
-			SubscriptionEndDate:                 subscriptionEndDate,
-		}
-		if err := ds.organization.Manager.Create(organization); err != nil {
-			return err
-		}
+		for j := 0; j < numOrgsPerUser; j++ {
+			sub := subscriptions[j%len(subscriptions)]
+			subscriptionEndDate := time.Now().Add(30 * 24 * time.Hour)
 
-		for _, category := range categories {
-			if err := ds.organizationCategory.Manager.Create(&model.OrganizationCategory{
-				CreatedAt:      time.Now().UTC(),
-				UpdatedAt:      time.Now().UTC(),
-				OrganizationID: &organization.ID,
-				CategoryID:     &category.ID,
-			}); err != nil {
-				return err
+			i := j + 1 // Adjust index to start from 1
+			organization := &model.Organization{
+				CreatedAt:                           time.Now().UTC(),
+				CreatedByID:                         user.ID,
+				UpdatedAt:                           time.Now().UTC(),
+				UpdatedByID:                         user.ID,
+				Name:                                fmt.Sprintf("Org %d - %s", i, *user.FirstName),
+				Address:                             ptr(fmt.Sprintf("%d Main Street, Testville", i+101)),
+				Email:                               ptr(fmt.Sprintf("org%d@example.com", i)),
+				ContactNumber:                       ptr(fmt.Sprintf("+63917%05d%04d", i+100, i)),
+				Description:                         ptr("A seeded example organization for testing."),
+				Color:                               ptr("#" + fmt.Sprintf("%06x", 0xFF5733+i*50)),
+				TermsAndConditions:                  ptr("These are seeded terms and conditions..."),
+				PrivacyPolicy:                       ptr("Seeded privacy policy content..."),
+				CookiePolicy:                        ptr("Seeded cookie policy content..."),
+				RefundPolicy:                        ptr("Seeded refund policy content..."),
+				UserAgreement:                       ptr("Seeded user agreement content..."),
+				IsPrivate:                           false,
+				MediaID:                             &media.ID,
+				CoverMediaID:                        &media.ID,
+				SubscriptionPlanMaxBranches:         sub.MaxBranches,
+				SubscriptionPlanMaxEmployees:        sub.MaxEmployees,
+				SubscriptionPlanMaxMembersPerBranch: sub.MaxMembersPerBranch,
+				SubscriptionPlanID:                  &sub.ID,
+				SubscriptionStartDate:               time.Now().UTC(),
+				SubscriptionEndDate:                 subscriptionEndDate,
 			}
-		}
-
-		for j := range 3 {
-			branch := &model.Branch{
-				CreatedAt:      time.Now().UTC(),
-				CreatedByID:    user.ID,
-				UpdatedAt:      time.Now().UTC(),
-				UpdatedByID:    user.ID,
-				OrganizationID: organization.ID,
-				Type:           []string{"main", "satellite"}[j%2],
-				Name:           fmt.Sprintf("Branch %d - %s", j+1, organization.Name),
-				Email:          fmt.Sprintf("branch%d.%d@organization.com", i+1, j+1),
-				Address:        fmt.Sprintf("Branch %d Street, City", j+1),
-				Province:       "Test Province",
-				City:           "Test City",
-				Region:         "Test Region",
-				Barangay:       "Test Barangay",
-				PostalCode:     fmt.Sprintf("11%03d", j+1),
-				CountryCode:    "PH",
-				ContactNumber:  ptr(fmt.Sprintf("+63918%05d%04d", j+1, i+1)),
-			}
-			if err := ds.branch.Manager.Create(branch); err != nil {
+			if err := ds.organization.Manager.Create(organization); err != nil {
 				return err
 			}
 
-			userTypes := []string{"owner"}
-			userOrganization := &model.UserOrganization{
-				CreatedAt:              time.Now().UTC(),
-				CreatedByID:            user.ID,
-				UpdatedAt:              time.Now().UTC(),
-				UpdatedByID:            user.ID,
-				BranchID:               &branch.ID,
-				OrganizationID:         organization.ID,
-				UserID:                 user.ID,
-				UserType:               userTypes[j%len(userTypes)],
-				Description:            fmt.Sprintf("User %s added as %s", *user.FirstName, userTypes[j%len(userTypes)]),
-				ApplicationDescription: "Seeded application for testing",
-				ApplicationStatus:      "accepted",
-				DeveloperSecretKey:     ds.security.GenerateToken(user.ID.String()),
-				PermissionName:         userTypes[j%len(userTypes)],
-				PermissionDescription:  "Auto-generated role assignment",
-				Permissions:            []string{"read", "write", "manage"}, // Adjust as needed
-			}
-			if err := ds.userOrganization.Manager.Create(userOrganization); err != nil {
-				return err
+			// Add categories
+			for _, category := range categories {
+				if err := ds.organizationCategory.Manager.Create(&model.OrganizationCategory{
+					CreatedAt:      time.Now().UTC(),
+					UpdatedAt:      time.Now().UTC(),
+					OrganizationID: &organization.ID,
+					CategoryID:     &category.ID,
+				}); err != nil {
+					return err
+				}
 			}
 
-			ds.memberCenter.Seeder(user.ID, organization.ID, branch.ID)
-			ds.memberClassification.Seeder(user.ID, organization.ID, branch.ID)
-			ds.memberGender.Seeder(user.ID, organization.ID, branch.ID)
-			ds.memberGroup.Seeder(user.ID, organization.ID, branch.ID)
-			ds.memberOccupation.Seeder(user.ID, organization.ID, branch.ID)
-			ds.memberType.Seeder(user.ID, organization.ID, branch.ID)
-			for k := range 5 {
-				invitationCode := &model.InvitationCode{
+			// Get user type for this organization
+			orgUserType := orgUserTypes[j]
+
+			// Create 3 branches for each organization
+			for k := range 3 {
+				branch := &model.Branch{
 					CreatedAt:      time.Now().UTC(),
 					CreatedByID:    user.ID,
 					UpdatedAt:      time.Now().UTC(),
 					UpdatedByID:    user.ID,
 					OrganizationID: organization.ID,
-					BranchID:       branch.ID,
-					UserType:       "user",
-					Code:           fmt.Sprintf("INV-%s-%d%d", user.ID.String()[0:6], j+1, k+1),
-					ExpirationDate: time.Now().UTC().Add(60 * 24 * time.Hour),
-					MaxUse:         50,
-					CurrentUse:     k % 25,
-					Description:    fmt.Sprintf("Invite for Branch %d, user %d", j+1, i+1),
+					Type:           []string{"main", "satellite"}[k%2],
+					Name:           fmt.Sprintf("Branch %d - %s", k+1, organization.Name),
+					Email:          fmt.Sprintf("branch%d.%d@organization.com", i, k+1),
+					Address:        fmt.Sprintf("Branch %d Street, City", k+1),
+					Province:       "Test Province",
+					City:           "Test City",
+					Region:         "Test Region",
+					Barangay:       "Test Barangay",
+					PostalCode:     fmt.Sprintf("11%03d", k+1),
+					CountryCode:    "PH",
+					ContactNumber:  ptr(fmt.Sprintf("+63918%05d%04d", k+1, i)),
 				}
-				if err := ds.invitationCode.Manager.Create(invitationCode); err != nil {
+				if err := ds.branch.Manager.Create(branch); err != nil {
 					return err
+				}
+
+				// Create user organization relationship with specific type
+				userOrganization := &model.UserOrganization{
+					CreatedAt:              time.Now().UTC(),
+					CreatedByID:            user.ID,
+					UpdatedAt:              time.Now().UTC(),
+					UpdatedByID:            user.ID,
+					BranchID:               &branch.ID,
+					OrganizationID:         organization.ID,
+					UserID:                 user.ID,
+					UserType:               orgUserType,
+					Description:            fmt.Sprintf("User %s added as %s", *user.FirstName, orgUserType),
+					ApplicationDescription: "Seeded application for testing",
+					ApplicationStatus:      "accepted",
+					DeveloperSecretKey:     ds.security.GenerateToken(user.ID.String()),
+					PermissionName:         orgUserType,
+					PermissionDescription:  "Auto-generated role assignment",
+					Permissions:            []string{"read", "write", "manage"},
+				}
+				if err := ds.userOrganization.Manager.Create(userOrganization); err != nil {
+					return err
+				}
+
+				// Seed related data
+				ds.memberCenter.Seeder(user.ID, organization.ID, branch.ID)
+				ds.memberClassification.Seeder(user.ID, organization.ID, branch.ID)
+				ds.memberGender.Seeder(user.ID, organization.ID, branch.ID)
+				ds.memberGroup.Seeder(user.ID, organization.ID, branch.ID)
+				ds.memberOccupation.Seeder(user.ID, organization.ID, branch.ID)
+				ds.memberType.Seeder(user.ID, organization.ID, branch.ID)
+
+				// Create invitation codes
+				for m := range 5 {
+					invitationCode := &model.InvitationCode{
+						CreatedAt:      time.Now().UTC(),
+						CreatedByID:    user.ID,
+						UpdatedAt:      time.Now().UTC(),
+						UpdatedByID:    user.ID,
+						OrganizationID: organization.ID,
+						BranchID:       branch.ID,
+						UserType:       "user",
+						Code:           uuid.New().String(),
+						ExpirationDate: time.Now().UTC().Add(60 * 24 * time.Hour),
+						MaxUse:         50,
+						CurrentUse:     m % 25,
+						Description:    fmt.Sprintf("Invite for Branch %d, user %d", k+1, i),
+					}
+					if err := ds.invitationCode.Manager.Create(invitationCode); err != nil {
+						return err
+					}
 				}
 			}
 		}
@@ -304,6 +324,7 @@ func (ds *DatabaseSeeder) SeedOrganization() error {
 
 	return nil
 }
+
 func (ds *DatabaseSeeder) SeedUser() error {
 	imageUrl := "https://files.slack.com/files-tmb/T08P9M6T257-F08S7UMSZ0V-e535d7688e/image_720.png"
 	image, err := ds.storage.Upload(imageUrl, func(progress, total int64, storage *horizon.Storage) {})

@@ -233,6 +233,7 @@ func NewOrganizationCollection(
 		},
 		[]string{
 			"CreatedBy", "UpdatedBy", "Media", "CoverMedia", "SubscriptionPlan", "OrganizationCategories",
+			"OrganizationCategories.Category",
 		},
 	)
 	return &OrganizationCollection{
