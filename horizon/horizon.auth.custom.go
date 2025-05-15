@@ -10,7 +10,7 @@ import (
 	"github.com/rotisserie/eris"
 )
 
-const NAME = "organization-branch"
+const NAME = "user-organization"
 
 type CustomClaim struct {
 	UserOrganizationID string `json:"user_organization_id"`

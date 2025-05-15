@@ -57,7 +57,7 @@ func (p *Providers) CurrentUser(c echo.Context) (*model.User, error) {
 		p.CleanToken(c)
 		return nil, echo.NewHTTPError(http.StatusNotFound, "user changes contact number")
 	}
-	if !p.authentication.VerifyPassword(user.Password, claim.Password) {
+	if user.Password != claim.Password {
 		p.CleanToken(c)
 		return nil, echo.NewHTTPError(http.StatusNotFound, "user changes password")
 	}
