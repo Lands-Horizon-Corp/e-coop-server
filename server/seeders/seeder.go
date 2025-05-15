@@ -252,7 +252,7 @@ func (ds *DatabaseSeeder) SeedOrganization() error {
 				return err
 			}
 
-			userTypes := []string{"owner", "employee", "member"}
+			userTypes := []string{"owner"}
 			userOrganization := &model.UserOrganization{
 				CreatedAt:              time.Now().UTC(),
 				CreatedByID:            user.ID,

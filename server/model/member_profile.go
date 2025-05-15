@@ -94,9 +94,9 @@ type (
 		MemberGenderID         uuid.UUID                    `json:"member_gender_id"`
 		MemberGender           MemberGenderResponse         `json:"member_gender,omitempty"`
 		MemberGroupID          uuid.UUID                    `json:"member_group_id"`
-		MemberGroup            MemberGroupResponse          `json:"member_group,omitempty"`
+		MemberGroup            MemberGroupResponse          `json:"member_group"`
 		MemberOccupationID     uuid.UUID                    `json:"member_occupation_id"`
-		MemberOccupation       MemberOccupationResponse     `json:"member_occupation,omitempty"`
+		MemberOccupation       MemberOccupationResponse     `json:"member_occupation"`
 		MemberTypeID           uuid.UUID                    `json:"member_type_id,omitempty"`
 		MemberType             MemberTypeResponse           `json:"member_tyoe,omitempty"`
 		IsClosed               bool                         `json:"is_closed"`

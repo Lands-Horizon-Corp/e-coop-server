@@ -502,7 +502,7 @@ func (c *Controller) Routes(service *echo.Echo) {
 		memberCenterHistoryG.GET("/organization/:organization_id/branch/:branch_id", c.MemberCenterHistoryListByOrganizationBranch)
 	}
 
-	memberClassificationHistoryG := service.Group("/member-classificationr-history")
+	memberClassificationHistoryG := service.Group("/member-classification-history")
 	{
 		memberClassificationHistoryG.GET("", c.MemberClassificationHistoryList)
 		memberClassificationHistoryG.GET("/:member_classification_history_id", c.MemberClassificationHistoryGetByID)
