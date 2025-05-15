@@ -149,7 +149,7 @@ func (c *Controller) Routes(service *echo.Echo) {
 		branchG.POST("/user-organization/:user_organization_id", c.BranchCreate)
 		branchG.PUT("/user-organization/:user_organization_id", c.BranchUpdate)
 		branchG.DELETE("/:branch_id/organization/:organization_id", c.BranchDelete)
-		branchG.GET("/:branch/organization/:organization_id", c.BranchOrganizations)
+		branchG.GET("/organization/:organization_id", c.BranchOrganizations)
 	}
 
 	categoryG := service.Group("/category")

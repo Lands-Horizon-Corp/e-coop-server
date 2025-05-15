@@ -248,7 +248,7 @@ func (c *Controller) UserOrganizationJoin(ctx echo.Context) error {
 		UserID:                 user.ID,
 		UserType:               req.UserType,
 		Description:            req.Description,
-		ApplicationDescription: req.ApplicationDescription,
+		ApplicationDescription: "",
 		ApplicationStatus:      "pending",
 		DeveloperSecretKey:     c.security.GenerateToken(user.ID.String()),
 		PermissionName:         req.UserType,
