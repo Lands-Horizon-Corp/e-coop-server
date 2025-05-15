@@ -208,6 +208,7 @@ func (c *Controller) UserOrganizationUpdate(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, c.model.UserOrganizationModel(model))
 }
 
+// /join/organization/:organization_id/branch/:branch_id
 func (c *Controller) UserOrganizationJoin(ctx echo.Context) error {
 	orgId, err := horizon.EngineUUIDParam(ctx, "organization_id")
 	if err != nil {
@@ -232,7 +233,7 @@ func (c *Controller) UserOrganizationJoin(ctx echo.Context) error {
 		}
 	}
 
-	if req.ApplicationStatus == "employee" {
+	if req.ApplicationStatus == "emplnoyee" {
 		if !c.userOrganization.EmployeeCanJoin(user.ID, *orgId, *branchId) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "cannot join as employee"})
 		}
