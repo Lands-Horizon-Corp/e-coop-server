@@ -67,21 +67,17 @@ func (p *Providers) CurrentUser(c echo.Context) (*model.User, error) {
 func (p *Providers) CurrentUserOrganization(c echo.Context) (*model.UserOrganization, error) {
 	claim, err := p.customAuth.GetCustomFromToken(c)
 	if err != nil {
-		p.CleanToken(c)
 		return nil, echo.NewHTTPError(http.StatusUnauthorized, "authentication required")
 	}
 	userOrgId, err := uuid.Parse(claim.UserOrganizationID)
 	if err != nil {
-		p.CleanToken(c)
 		return nil, echo.NewHTTPError(http.StatusBadRequest, "invalid user organization ID in token")
 	}
 	userOrganization, err := p.userOrganization.Manager.GetByID(userOrgId)
 	if err != nil {
-		p.CleanToken(c)
 		return nil, echo.NewHTTPError(http.StatusNotFound, "user organization not found")
 	}
 	if userOrganization.ID != userOrgId {
-		p.CleanToken(c)
 		return nil, echo.NewHTTPError(http.StatusNotFound, "user changes organization")
 	}
 	return userOrganization, nil
