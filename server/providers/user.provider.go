@@ -67,11 +67,11 @@ func (p *Providers) CurrentUser(c echo.Context) (*model.User, error) {
 func (p *Providers) CurrentUserOrganization(c echo.Context) (*model.UserOrganization, error) {
 	claim, err := p.customAuth.GetCustomFromToken(c)
 	if err != nil {
-		return nil, echo.NewHTTPError(http.StatusUnauthorized, "authentication required")
+		return nil, err
 	}
 	userOrgId, err := uuid.Parse(claim.UserOrganizationID)
 	if err != nil {
-		return nil, echo.NewHTTPError(http.StatusBadRequest, "invalid user organization ID in token")
+		return nil, err
 	}
 	userOrganization, err := p.userOrganization.Manager.GetByID(userOrgId)
 	if err != nil {
