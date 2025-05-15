@@ -328,13 +328,13 @@ func (c *Controller) UserOrganizationJoinByCode(ctx echo.Context) error {
 		PermissionDescription:  "",
 		Permissions:            []string{},
 
-		UserSettingDescription:  req.UserSettingDescription,
-		UserSettingStartOR:      req.UserSettingStartOR,
-		UserSettingEndOR:        req.UserSettingEndOR,
-		UserSettingUsedOR:       req.UserSettingUsedOR,
-		UserSettingStartVoucher: req.UserSettingStartVoucher,
-		UserSettingEndVoucher:   req.UserSettingEndVoucher,
-		UserSettingUsedVoucher:  req.UserSettingUsedVoucher,
+		UserSettingDescription:  "user settings",
+		UserSettingStartOR:      0,
+		UserSettingEndOR:        0,
+		UserSettingUsedOR:       0,
+		UserSettingStartVoucher: 0,
+		UserSettingEndVoucher:   0,
+		UserSettingUsedVoucher:  0,
 	}
 
 	tx := c.database.Client().Begin()

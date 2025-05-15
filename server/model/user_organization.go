@@ -52,24 +52,25 @@ type (
 	}
 
 	UserOrganizationRequest struct {
-		ID                     *uuid.UUID     `json:"id,omitempty"`
-		UserType               string         `json:"user_type" validate:"required,oneof=employee member"`
-		Description            string         `json:"description,omitempty"`
-		ApplicationDescription string         `json:"application_description,omitempty"`
-		ApplicationStatus      string         `json:"application_status" validate:"required,oneof=pending reported accepted ban not-allowed"`
-		PermissionName         string         `json:"permission_name" validate:"required"`
-		PermissionDescription  string         `json:"permission_description" validate:"required"`
-		Permissions            pq.StringArray `json:"permissions,omitempty" validate:"dive,required"`
+		ID       *uuid.UUID `json:"id,omitempty"`
+		UserType string     `json:"user_type,omitempty" validate:"omitempty,oneof=employee member"`
+
+		Description            string   `json:"description,omitempty"`
+		ApplicationDescription string   `json:"application_description,omitempty"`
+		ApplicationStatus      string   `json:"application_status" validate:"required,oneof=pending reported accepted ban not-allowed"`
+		PermissionName         string   `json:"permission_name,omitempty"`
+		PermissionDescription  string   `json:"permission_description,omitempty"`
+		Permissions            []string `json:"permissions,omitempty" validate:"dive"`
 
 		UserSettingDescription string `json:"user_setting_description,omitempty"`
 
-		UserSettingStartOR int64 `json:"user_setting_start_or,omitempty" validate:"required,min=0"`
-		UserSettingEndOR   int64 `json:"user_setting_end_or,omitempty" validate:"required,min=0"`
-		UserSettingUsedOR  int64 `json:"user_setting_used_or,omitempty" validate:"required,min=0"`
+		UserSettingStartOR int64 `json:"user_setting_start_or,omitempty" validate:"min=0"`
+		UserSettingEndOR   int64 `json:"user_setting_end_or,omitempty" validate:"min=0"`
+		UserSettingUsedOR  int64 `json:"user_setting_used_or,omitempty" validate:"min=0"`
 
-		UserSettingStartVoucher int64 `json:"user_setting_start_voucher,omitempty" validate:"required,min=0"`
-		UserSettingEndVoucher   int64 `json:"user_setting_end_voucher,omitempty" validate:"required,min=0"`
-		UserSettingUsedVoucher  int64 `json:"user_setting_used_voucher,omitempty" validate:"required,min=0"`
+		UserSettingStartVoucher int64 `json:"user_setting_start_voucher,omitempty" validate:"min=0"`
+		UserSettingEndVoucher   int64 `json:"user_setting_end_voucher,omitempty" validate:"min=0"`
+		UserSettingUsedVoucher  int64 `json:"user_setting_used_voucher,omitempty" validate:"min=0"`
 	}
 
 	UserOrganizationResponse struct {
