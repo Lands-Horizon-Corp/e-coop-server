@@ -71,6 +71,8 @@ func (c *Controller) MediaCreate(ctx echo.Context) error {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	completed := &model.Media{
+		FileName:   file.Filename,
+		FileType:   file.Header.Get("Content-Type"),
 		ID:         initial.ID,
 		FileSize:   storage.FileSize,
 		StorageKey: storage.StorageKey,
