@@ -190,8 +190,11 @@ func NewUserOrganizationCollection(
 			"CreatedBy",
 			"UpdatedBy",
 			"Branch",
+			"Branch.Media",
 			"User",
 			"Organization",
+			"Organization.Media",
+			"Organization.CoverMedia",
 		},
 	)
 	return &UserOrganizationCollection{
