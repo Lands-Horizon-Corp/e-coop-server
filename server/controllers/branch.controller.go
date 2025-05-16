@@ -92,7 +92,7 @@ func (c *Controller) BranchCreate(ctx echo.Context) error {
 			CreatedByID:            user.ID,
 			UpdatedAt:              time.Now().UTC(),
 			UpdatedByID:            user.ID,
-			OrganizationID:         *userOrganizationId,
+			OrganizationID:         userOrganization.OrganizationID,
 			BranchID:               &branch.ID,
 			UserID:                 user.ID,
 			UserType:               "owner",

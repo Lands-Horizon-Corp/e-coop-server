@@ -119,13 +119,13 @@ func NewHorizonLog(config *HorizonConfig) (*HorizonLog, error) {
 		zapcore.AddSync(os.Stdout),
 		zapcore.ErrorLevel,
 	)
-	fallback := zap.New(fallbackCore, zap.AddCaller(), zap.AddCallerSkip(1)).With(
+	pls := zap.New(fallbackCore, zap.AddCaller(), zap.AddCallerSkip(1)).With(
 		zap.String("app", config.AppName),
 	)
 
 	return &HorizonLog{
 		loggers:     make(map[Category]*zap.Logger),
-		fallback:    fallback,
+		fallback:    pls,
 		config:      config,
 		mainRotator: zapcore.AddSync(mainRotator),
 	}, nil
