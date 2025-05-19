@@ -113,7 +113,6 @@ func (ha *HorizonAuthCustom) SetToken(c echo.Context, claims CustomClaim) error 
 
 func (ha *HorizonAuthCustom) GenerateToken(c CustomClaim) (string, error) {
 	now := time.Now()
-	// Default timings
 	if c.NotBefore == nil {
 		c.NotBefore = jwt.NewNumericDate(now)
 	}
