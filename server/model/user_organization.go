@@ -14,21 +14,23 @@ import (
 
 type (
 	UserOrganization struct {
-		ID                     uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
-		CreatedAt              time.Time      `gorm:"not null;default:now()"`
-		CreatedByID            uuid.UUID      `gorm:"type:uuid"`
-		CreatedBy              *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt              time.Time      `gorm:"not null;default:now()"`
-		UpdatedByID            uuid.UUID      `gorm:"type:uuid"`
-		UpdatedBy              *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt              gorm.DeletedAt `gorm:"index"`
-		DeletedByID            *uuid.UUID     `gorm:"type:uuid"`
-		DeletedBy              *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
-		OrganizationID         uuid.UUID      `gorm:"type:uuid;not null;uniqueIndex:idx_user_org_branch"`
-		Organization           *Organization  `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE;" json:"organization,omitempty"`
-		BranchID               *uuid.UUID     `gorm:"type:uuid;index:idx_user_org_branch"`
-		Branch                 *Branch        `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE;" json:"branch,omitempty"`
-		UserID                 uuid.UUID      `gorm:"type:uuid;not null;uniqueIndex:idx_user_org_branch"`
+		ID             uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
+		CreatedAt      time.Time      `gorm:"not null;default:now()"`
+		CreatedByID    uuid.UUID      `gorm:"type:uuid"`
+		CreatedBy      *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
+		UpdatedAt      time.Time      `gorm:"not null;default:now()"`
+		UpdatedByID    uuid.UUID      `gorm:"type:uuid"`
+		UpdatedBy      *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
+		DeletedAt      gorm.DeletedAt `gorm:"index"`
+		DeletedByID    *uuid.UUID     `gorm:"type:uuid"`
+		DeletedBy      *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
+		OrganizationID uuid.UUID      `gorm:"type:uuid;not null;index:idx_user_org_branch"`
+
+		Organization *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE;" json:"organization,omitempty"`
+		BranchID     *uuid.UUID    `gorm:"type:uuid;index:idx_user_org_branch"`
+		Branch       *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE;" json:"branch,omitempty"`
+		UserID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_user_org_branch"`
+
 		User                   *User          `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE;" json:"user,omitempty"`
 		UserType               string         `gorm:"type:varchar(50);not null"`
 		Description            string         `gorm:"type:text" json:"description,omitempty"`
