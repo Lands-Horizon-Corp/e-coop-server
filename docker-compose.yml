@@ -62,15 +62,18 @@ services:
       - "${APP_METRICS_PORT}:${APP_METRICS_PORT}"
     volumes:
       - ./:/app
-
     <<: *environment-variables
     depends_on:
       - postgres
       - redis
       - nats
+      - minio
+      - pgadmin
+      - redisinsight
+      - mailpit
+      - scylla
     networks:
       - app-network
-
 
   postgres:
     image: postgres:latest

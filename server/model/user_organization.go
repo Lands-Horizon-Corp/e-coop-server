@@ -194,6 +194,7 @@ func NewUserOrganizationCollection(
 			"Branch",
 			"Branch.Media",
 			"User",
+			"User.Media",
 			"Organization",
 			"Organization.Media",
 			"Organization.CoverMedia",

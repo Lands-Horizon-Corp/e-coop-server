@@ -201,7 +201,7 @@ func (c *Controller) BranchDelete(ctx echo.Context) error {
 	return ctx.NoContent(http.StatusNoContent)
 }
 
-// GET /branch/organization/:user_organization_id
+// GET /branch/organization/:organization_id
 func (c *Controller) BranchOrganizations(ctx echo.Context) error {
 	organizationId, err := horizon.EngineUUIDParam(ctx, "organization_id")
 	if err != nil {
