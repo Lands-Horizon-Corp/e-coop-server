@@ -169,7 +169,7 @@ func (ds *DatabaseSeeder) SeedOrganization() error {
 	}
 
 	imageUrl := "https://files.slack.com/files-tmb/T08P9M6T257-F08S7UMSZ0V-e535d7688e/image_720.png"
-	image, err := ds.storage.Upload(imageUrl, func(progress, total int64, storage *horizon.Storage) {})
+	image, err := ds.storage.UploadFromURL(imageUrl, func(progress, total int64, storage *horizon.Storage) {})
 	if err != nil {
 		return err
 	}
