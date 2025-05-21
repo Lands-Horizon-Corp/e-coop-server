@@ -200,6 +200,7 @@ func (c *Controller) OrganizationUpdate(ctx echo.Context) error {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
 	}
+
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
@@ -257,6 +258,19 @@ func (c *Controller) OrganizationDelete(ctx echo.Context) error {
 	if err := c.organization.Manager.DeleteByIDWithTx(tx, *id); err != nil {
 		tx.Rollback()
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	userOrganizations, err := c.userOrganization.ListByOrganization(organization.ID)
+	if err != nil {
+		tx.Rollback()
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	for _, userOrganization := range userOrganizations {
+
+		if err := c.userOrganization.Manager.DeleteByIDWithTx(tx, userOrganization.ID); err != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
 	}
 
 	if err := tx.Commit().Error; err != nil {
