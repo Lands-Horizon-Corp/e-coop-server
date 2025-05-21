@@ -48,6 +48,9 @@ func (c *Controller) UserOrganizationSeeder(ctx echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to fetch user organization list")
 	}
+	if len(userOrganizations) == 0 || userOrganizations == nil {
+		return echo.NewHTTPError(http.StatusNotFound, "user organization not found")
+	}
 
 	for _, userOrganization := range userOrganizations {
 		if userOrganization.UserID != user.ID {
