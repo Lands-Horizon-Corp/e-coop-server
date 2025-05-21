@@ -218,7 +218,7 @@ func (c *Controller) Routes(service *echo.Echo) {
 		invitationCodeG.GET("/organization/:organization_id", c.InvitationCodeListByOrganization)
 		invitationCodeG.GET("/exists/:code", c.InvitationCodeListByOrganizationBranch)
 		invitationCodeG.GET("/code/:code", c.InvitationCodeExists)
-		invitationCodeG.GET("/verfiy/:code", c.InvitationCodeVerify)
+		invitationCodeG.GET("/verify/:code", c.InvitationCodeVerify)
 	}
 
 	mediaG := service.Group("/media")
