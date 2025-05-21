@@ -162,7 +162,6 @@ func NewInvitationCodeCollection(
 		[]string{
 			"CreatedBy",
 			"UpdatedBy",
-
 			"Branch",
 			"Branch.Media",
 			"Organization",
