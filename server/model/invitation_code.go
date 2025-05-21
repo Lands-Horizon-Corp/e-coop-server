@@ -162,8 +162,14 @@ func NewInvitationCodeCollection(
 		[]string{
 			"CreatedBy",
 			"UpdatedBy",
-			"Organization",
+
 			"Branch",
+			"Branch.Media",
+			"Organization",
+			"Organization.Media",
+			"Organization.CoverMedia",
+			"Organization.OrganizationCategories",
+			"Organization.OrganizationCategories.Category",
 		},
 	)
 	return &InvitationCodeCollection{
