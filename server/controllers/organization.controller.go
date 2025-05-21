@@ -94,6 +94,7 @@ func (c *Controller) OrganizationCreate(ctx echo.Context) error {
 		UpdatedAt:              time.Now().UTC(),
 		UpdatedByID:            user.ID,
 		OrganizationID:         organization.ID,
+		BranchID:               nil,
 		UserID:                 user.ID,
 		UserType:               "owner",
 		Description:            "",
