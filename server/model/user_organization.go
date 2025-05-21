@@ -198,7 +198,8 @@ func NewUserOrganizationCollection(
 			"Organization",
 			"Organization.Media",
 			"Organization.CoverMedia",
-			"Organization.OrganizationCategory.Category",
+			"Organization.OrganizationCategories",
+			"Organization.OrganizationCategories.Category",
 		},
 	)
 	return &UserOrganizationCollection{
