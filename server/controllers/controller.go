@@ -148,7 +148,7 @@ func (c *Controller) Routes(service *echo.Echo) {
 		branchG.GET("/:branch_id", c.BranchGetByID)
 		branchG.POST("/user-organization/:user_organization_id", c.BranchCreate)
 		branchG.PUT("/user-organization/:user_organization_id", c.BranchUpdate)
-		branchG.DELETE("/:branch_id/organization/:organization_id", c.BranchDelete)
+		branchG.DELETE("/:branch_id/user-organization/:user_organization_id", c.BranchDelete)
 		branchG.GET("/organization/:organization_id", c.BranchOrganizations)
 	}
 

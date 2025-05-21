@@ -180,9 +180,9 @@ func (c *Controller) BranchUpdate(ctx echo.Context) error {
 	})
 }
 
-// DELETE /branch/:branch_id/:user_organization_id
+// DELETE /branch/:branch_id/user-organization/:user_organization_id
 func (c *Controller) BranchDelete(ctx echo.Context) error {
-	organizationId, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
+	userOrganization, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
 	if err != nil {
 		return err
 	}
@@ -194,14 +194,12 @@ func (c *Controller) BranchDelete(ctx echo.Context) error {
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, map[string]string{"error": "branch not found"})
 	}
-	_, err = c.provider.UserOwner(ctx, organizationId.String(), branchId.String())
+	_, err = c.provider.UserOwner(ctx, br.OrganizationID.String(), branchId.String())
 	if err != nil {
 		return err
 	}
-	if br.OrganizationID != *organizationId {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "branch does not belong to this organization"})
-	}
-	count, err := c.userOrganization.CountByOrganizationBranch(*organizationId, *branchId)
+
+	count, err := c.userOrganization.CountByOrganizationBranch(br.OrganizationID, *branchId)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
@@ -210,7 +208,22 @@ func (c *Controller) BranchDelete(ctx echo.Context) error {
 			"error": "cannot delete branch with more than 2 members",
 		})
 	}
-	if err := c.branch.Manager.DeleteByID(*branchId); err != nil {
+
+	tx := c.database.Client().Begin()
+	if tx.Error != nil {
+		tx.Rollback()
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+	}
+	if err := c.branch.Manager.DeleteByIDWithTx(tx, *branchId); err != nil {
+		tx.Rollback()
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	if err := c.userOrganization.Manager.DeleteByIDWithTx(tx, *userOrganization); err != nil {
+		tx.Rollback()
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	return ctx.NoContent(http.StatusNoContent)
