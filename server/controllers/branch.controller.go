@@ -174,7 +174,10 @@ func (c *Controller) BranchUpdate(ctx echo.Context) error {
 	if err := c.branch.Manager.UpdateByID(userOrganization.OrganizationID, branch); err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
-	return ctx.JSON(http.StatusCreated, c.model.BranchModel(branch))
+	return ctx.JSON(http.StatusOK, map[string]any{
+		"branch":            c.model.BranchModel(branch),
+		"user_organization": c.model.UserOrganizationModel(userOrganization),
+	})
 }
 
 // DELETE /branch/:branch_id/:user_organization_id
