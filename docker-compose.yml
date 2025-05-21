@@ -71,7 +71,6 @@ services:
       - pgadmin
       - redisinsight
       - mailpit
-      - scylla
     networks:
       - app-network
 
