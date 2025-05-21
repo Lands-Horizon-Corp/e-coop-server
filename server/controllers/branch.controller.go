@@ -47,8 +47,9 @@ func (c *Controller) BranchCreate(ctx echo.Context) error {
 	}
 	userOrganization, err := c.userOrganization.Manager.GetByID(*userOrganizationId)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "User organization doesnt exists"})
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "User organization doesn't exist"})
 	}
+
 	branch := &model.Branch{
 		CreatedAt:      time.Now().UTC(),
 		CreatedByID:    user.ID,
@@ -72,21 +73,29 @@ func (c *Controller) BranchCreate(ctx echo.Context) error {
 		Latitude:      req.Latitude,
 		Longitude:     req.Longitude,
 	}
+
 	tx := c.database.Client().Begin()
 	if tx.Error != nil {
-		tx.Rollback()
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
 	}
+
 	if err := c.branch.Manager.CreateWithTx(tx, branch); err != nil {
+		tx.Rollback()
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
-	if userOrganization.BranchID != nil {
+
+	if userOrganization.BranchID == nil {
+		// Update existing userOrganization with the new branch ID
 		userOrganization.BranchID = &branch.ID
+		userOrganization.UpdatedAt = time.Now().UTC()
+		userOrganization.UpdatedByID = user.ID
+
 		if err := c.userOrganization.Manager.UpdateFieldsWithTx(tx, userOrganization.ID, userOrganization); err != nil {
 			tx.Rollback()
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
 	} else {
+		// Create a new userOrganization linked to the new branch
 		userOrganizationModel := &model.UserOrganization{
 			CreatedAt:              time.Now().UTC(),
 			CreatedByID:            user.ID,
@@ -104,17 +113,20 @@ func (c *Controller) BranchCreate(ctx echo.Context) error {
 			PermissionDescription:  "",
 			Permissions:            []string{},
 		}
+
 		if err := c.userOrganization.Manager.CreateWithTx(tx, userOrganizationModel); err != nil {
 			tx.Rollback()
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
 	}
+
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
+
 	return ctx.JSON(http.StatusOK, map[string]any{
-		"brach":             c.model.BranchModel(branch),
+		"branch":            c.model.BranchModel(branch),
 		"user_organization": c.model.UserOrganizationModel(userOrganization),
 	})
 }
