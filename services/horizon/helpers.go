@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"math/rand"
+	"net"
 	"net/http"
 	"net/mail"
 	"net/url"
@@ -173,4 +174,13 @@ func Retry(ctx context.Context, maxAttempts int, delay time.Duration, operation 
 		}
 	}
 	return err
+}
+
+func GetFreePort() int {
+	l, err := net.Listen("tcp", ":0")
+	if err != nil {
+		panic(err)
+	}
+	defer l.Close()
+	return l.Addr().(*net.TCPAddr).Port
 }
