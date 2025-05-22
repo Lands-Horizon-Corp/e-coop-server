@@ -22,23 +22,26 @@ jobs:
         HOST: ${{ secrets.LINODE_HOST }}
         USER: ${{ secrets.LINODE_USER }}
       run: |
-        ssh -t $USER@$HOST << EOF
-          set -e  # Exit immediately if a command exits with a non-zero status
-          cd /path/to/your/project || { echo "Failed to change directory"; exit 1; }
-          
-          # Kill existing tmux session if it exists
-          tmux kill-session -t server || true
-          
-          # Create new tmux session
-          tmux new-session -d -s server
-          
+        ssh -t $USER@$HOST << 'EOF'
+          set -e
+          cd /path/to/your/project || { echo "Directory not found"; exit 1; }
+
+          # Kill existing tmux session
+          tmux kill-session -t goapp || true
+
           # Pull latest changes
-          tmux send-keys -t server 'git pull' C-m
-          tmux send-keys -t server 'if [ $? -ne 0 ]; then echo "Git pull failed"; exit 1; fi' C-m
-          
-          # Run start script
-          tmux send-keys -t server './start.sh' C-m
-          tmux send-keys -t server 'if [ $? -ne 0 ]; then echo "Start script failed"; exit 1; fi' C-m
-          
-          echo "Deployment completed successfully"
+          git pull
+
+          # Run Go tests
+          echo "Running tests..."
+          go test -v ./services/horizon_test || { echo "Tests failed"; exit 1; }
+
+          # Build the Go binary
+          echo "Building application..."
+          go build -o app .
+
+          # Create new tmux session to run app
+          tmux new-session -d -s goapp "./app"
+
+          echo "Golang deployment completed successfully"
         EOF
