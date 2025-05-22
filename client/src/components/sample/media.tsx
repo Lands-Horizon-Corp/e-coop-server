@@ -63,6 +63,7 @@ const SampleMedia: React.FC = () => {
             const response = await axios.post(`${import.meta.env.VITE_SERVER_URL}/media`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
+                    'Accept-Encoding': 'gzip',
                 },
                 onUploadProgress: (progressEvent: AxiosProgressEvent): void => {
                     if (progressEvent.total) {
