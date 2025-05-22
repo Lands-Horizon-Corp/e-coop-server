@@ -184,3 +184,12 @@ func GetFreePort() int {
 	defer l.Close()
 	return l.Addr().(*net.TCPAddr).Port
 }
+
+func FileExists(filename string) bool {
+	filename = strings.TrimSpace(filename)
+	if filename == "" {
+		return false
+	}
+	info, err := os.Stat(filename)
+	return err == nil && !info.IsDir()
+}

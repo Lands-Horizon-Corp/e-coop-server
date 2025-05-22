@@ -35,14 +35,20 @@ type EnvironmentService interface {
 type HorizonEnvironmentService struct{}
 
 func NewEnvironmentService(path string) EnvironmentService {
+	// Check if path is empty or file does not exist
+	if !FileExists(path) {
+		log.Printf("Info: Provided .env path is empty or does not exist. Falling back to default: .env")
+		path = ".env"
+	}
+
 	err := godotenv.Load(path)
 	if err != nil {
 		log.Printf("Warning: .env file not loaded from path: %s, err: %v", path, err)
 	}
+
 	viper.AutomaticEnv()
 	return HorizonEnvironmentService{}
 }
-
 func (h HorizonEnvironmentService) GetInt16(key string, defaultValue int16) int16 {
 	viper.SetDefault(key, defaultValue)
 	return int16(viper.GetInt(key))
