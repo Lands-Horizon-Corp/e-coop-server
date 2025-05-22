@@ -1,8 +1,8 @@
-name: Deploy Go App to Linode
+name: Deploy to Development
 
 on:
   push:
-    branches: [ main ]
+    branches: [ development ]
 
 jobs:
   deploy:
@@ -17,37 +17,36 @@ jobs:
         key: ${{ secrets.LINODE_SSH_PRIVATE_KEY }}
         known_hosts: ${{ secrets.KNOWN_HOSTS }}
 
-    - name: Setup and Deploy
+    - name: Deploy to Server
       env:
         HOST: ${{ secrets.LINODE_HOST }}
         USER: ${{ secrets.LINODE_USER }}
-        APP_DIR: "/home/cooperative/development"  # Update this path
-        REPO_URL: "https://github.com/Lands-Horizon-Corp/e-coop-server.git"
+        APP_DIR: "/home/user/coop-server/development"  # Update this path
       run: |
-        ssh -t $USER@$HOST << EOF
+        ssh -t $USER@$HOST << 'EOF'
         set -e
-        # Install dependencies
-        sudo apt-get update
-        sudo apt-get install -y git tmux golang
+        # Install dependencies if missing
+        command -v go &> /dev/null || sudo apt-get install -y golang
+        command -v tmux &> /dev/null || sudo apt-get install -y tmux
+        command -v git &> /dev/null || sudo apt-get install -y git
 
-        # Create app directory
+        # Create/maintain app directory
         mkdir -p $APP_DIR
         cd $APP_DIR
 
-        # Clone or pull repository
+        # Clone or pull latest code
         if [ ! -d ".git" ]; then
-          git clone $REPO_URL .
-        else
-          git pull origin main
+          git clone https://github.com/Lands-Horizon-Corp/e-coop-server.git .
         fi
+        
+        git checkout development
+        git pull origin development
 
-        # Build Go binary
+        # Build and restart application
         go build -o main
+        tmux kill-session -t ecoop-dev &> /dev/null || true
+        tmux new-session -d -s ecoop-dev
+        tmux send-keys -t ecoop-dev './main' C-m
 
-        # Restart application
-        tmux kill-session -t development-server || true
-        tmux new-session -d -s development-server
-        tmux send-keys -t development-server './main' C-m
-
-        echo "Deployment completed successfully!"
+        echo "Development deployment completed!"
         EOF
