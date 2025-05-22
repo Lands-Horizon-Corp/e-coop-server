@@ -21,18 +21,27 @@ jobs:
       env:
         HOST: ${{ secrets.LINODE_HOST }}
         USER: ${{ secrets.LINODE_USER }}
-        APP_DIR: "/home/user/coop-server/development"  # Update this path
+        APP_DIR: "/home/user/coop-server/development"  # Update 'user' to your actual username
       run: |
-        ssh -t $USER@$HOST << 'EOF'
+        ssh -t $USER@$HOST << EOF
         set -e
-        # Install dependencies if missing
-        command -v go &> /dev/null || sudo apt-get install -y golang
+        # Install specific Go version (1.24.2)
+        if ! command -v go &> /dev/null || [ "\$(go version | awk '{print \$3}')" != "go1.24.2" ]; then
+          sudo rm -rf /usr/local/go
+          wget https://dl.google.com/go/go1.24.2.linux-amd64.tar.gz
+          sudo tar -C /usr/local -xzf go1.24.2.linux-amd64.tar.gz
+          rm go1.24.2.linux-amd64.tar.gz
+          echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc
+          source ~/.bashrc
+        fi
+
+        # Install dependencies
         command -v tmux &> /dev/null || sudo apt-get install -y tmux
         command -v git &> /dev/null || sudo apt-get install -y git
 
-        # Create/maintain app directory
-        mkdir -p $APP_DIR
-        cd $APP_DIR
+        # Create app directory using expanded environment variable
+        mkdir -p "$APP_DIR"
+        cd "$APP_DIR"
 
         # Clone or pull latest code
         if [ ! -d ".git" ]; then
@@ -43,6 +52,8 @@ jobs:
         git pull origin development
 
         # Build and restart application
+        export PATH=\$PATH:/usr/local/go/bin  # Ensure Go is in PATH
+        go version  # Verify Go version
         go build -o main
         tmux kill-session -t ecoop-dev &> /dev/null || true
         tmux new-session -d -s ecoop-dev
