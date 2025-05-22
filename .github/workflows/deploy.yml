@@ -1,0 +1,44 @@
+name: Deploy to Linode (Development)
+
+on:
+  push:
+    branches: [ development ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Install SSH key
+      uses: shimataro/ssh-key-action@v2
+      with:
+        key: ${{ secrets.LINODE_SSH_PRIVATE_KEY }}
+        known_hosts: ${{ secrets.LINODE_KNOWN_HOST }}
+
+    - name: Deploy to Linode
+      env:
+        HOST: ${{ secrets.LINODE_HOST }}
+        USER: ${{ secrets.LINODE_USER }}
+      run: |
+        ssh -t $USER@$HOST << EOF
+          set -e  # Exit immediately if a command exits with a non-zero status
+          cd /path/to/your/project || { echo "Failed to change directory"; exit 1; }
+          
+          # Kill existing tmux session if it exists
+          tmux kill-session -t server || true
+          
+          # Create new tmux session
+          tmux new-session -d -s server
+          
+          # Pull latest changes
+          tmux send-keys -t server 'git pull' C-m
+          tmux send-keys -t server 'if [ $? -ne 0 ]; then echo "Git pull failed"; exit 1; fi' C-m
+          
+          # Run start script
+          tmux send-keys -t server './start.sh' C-m
+          tmux send-keys -t server 'if [ $? -ne 0 ]; then echo "Start script failed"; exit 1; fi' C-m
+          
+          echo "Deployment completed successfully"
+        EOF
