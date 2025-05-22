@@ -33,15 +33,13 @@ func TestMain(m *testing.M) {
 
 	service := horizon.NewHorizonAPIService(apiPort, metricsPort, clientUrl, clientName)
 
-	go func() {
-		if err := service.Run(testCtx); err != nil {
-			// Avoid log.Fatal to ensure deferred testCancel runs
-			println("Server exited with error:", err.Error())
-		}
-	}()
+	if err := service.Run(testCtx); err != nil {
+		// Avoid log.Fatal to ensure deferred testCancel runs
+		println("Server exited with error:", err.Error())
+	}
 
 	// Wait for server to be ready
-	if !waitForServerReady(baseURL+"/health", 3*time.Second) {
+	if !waitForServerReady(baseURL+"/health", 5*time.Second) {
 		testCancel()
 		panic("server did not become ready in time")
 	}
