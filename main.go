@@ -2,46 +2,56 @@ package main
 
 import (
 	"context"
-	"log"
+	"time"
 
+	"github.com/lands-horizon/horizon-server/src"
+	"github.com/lands-horizon/horizon-server/src/controller"
+	"github.com/lands-horizon/horizon-server/src/cooperative_tokens"
+	"github.com/lands-horizon/horizon-server/src/model"
 	"go.uber.org/fx"
-
-	"horizon.com/server/horizon"
-	"horizon.com/server/server"
-	"horizon.com/server/server/seeders"
-
-	_ "github.com/swaggo/echo-swagger/example/docs"
 )
 
-func start(
-	app *horizon.HorizonApp,
-	lc fx.Lifecycle,
-	db *horizon.HorizonDatabase,
-	req *horizon.HorizonRequest,
-	coop *server.CoopServer,
-	seeders *seeders.DatabaseSeeder,
-) {
-	lc.Append(fx.Hook{
-		OnStart: func(ctx context.Context) error {
-			if err := db.Client().AutoMigrate(
-				coop.Migrations...,
-			); err != nil {
-				return err
-			}
-			err := seeders.Run()
-			if err != nil {
-				log.Fatal(err)
-				return err
-			}
-			return req.Run(coop.Routes...)
-		},
-	})
-}
-
 func main() {
-	app := horizon.Horizon(
-		start,
-		server.Modules...,
+	app := fx.New(
+		fx.StartTimeout(10*time.Minute),
+		fx.Provide(
+			src.NewProvider,
+			src.NewValidator,
+			controller.NewController,
+
+			cooperative_tokens.NewUserToken,
+			cooperative_tokens.NewTransactionBatchToken,
+			cooperative_tokens.NewUserOrganizatonToken,
+
+			// Models
+			model.NewMediaCollection,
+			model.NewFeedbackCollection,
+		),
+		fx.Invoke(func(lc fx.Lifecycle, controller *controller.Controller, provider *src.Provider) error {
+			lc.Append(fx.Hook{
+				OnStart: func(ctx context.Context) error {
+					controller.Routes()
+					if err := provider.Service.Run(ctx); err != nil {
+						return err
+					}
+					if err := provider.Service.Database.Client().AutoMigrate(
+
+						&model.Feedback{},
+						&model.Media{},
+					); err != nil {
+						return err
+					}
+					return nil
+				},
+				OnStop: func(ctx context.Context) error {
+					if err := provider.Service.Stop(ctx); err != nil {
+						return err
+					}
+					return nil
+				},
+			})
+			return nil
+		}),
 	)
 	app.Run()
 }
