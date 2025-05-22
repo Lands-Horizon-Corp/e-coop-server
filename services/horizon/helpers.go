@@ -26,7 +26,7 @@ func isValidFilePath(p string) error {
 		return err
 	}
 	if info.IsDir() {
-		return errors.New("is dir")
+		return errors.New("is dir not file")
 	}
 	return nil
 }
