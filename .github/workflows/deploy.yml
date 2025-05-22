@@ -24,7 +24,7 @@ jobs:
       run: |
         ssh -t $USER@$HOST << 'EOF'
           set -e
-          cd /path/to/your/project || { echo "Directory not found"; exit 1; }
+          cd ./ || { echo "Directory not found"; exit 1; }
 
           # Kill existing tmux session
           tmux kill-session -t goapp || true
