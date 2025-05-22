@@ -23,8 +23,8 @@ func TestMain(m *testing.M) {
 
 	env := horizon.NewEnvironmentService("../../.env")
 
-	apiPort := env.GetInt("APP_PORT", horizon.GetFreePort())
-	metricsPort := env.GetInt("APP_METRICS_PORT", horizon.GetFreePort())
+	apiPort := horizon.GetFreePort()
+	metricsPort := horizon.GetFreePort()
 	clientUrl := env.GetString("APP_CLIENT_URL", "http://localhost:3000")
 	clientName := env.GetString("APP_CLIENT_NAME", "test-client")
 	baseURL := "http://localhost:" + fmt.Sprint(apiPort)
@@ -70,9 +70,8 @@ func waitForServerReady(url string, timeout time.Duration) bool {
 }
 
 func TestNewHorizonAPIService_HealthCheck(t *testing.T) {
-	env := horizon.NewEnvironmentService("../../.env")
 
-	apiPort := env.GetInt("APP_PORT", horizon.GetFreePort())
+	apiPort := horizon.GetFreePort()
 
 	baseURL := "http://localhost:" + fmt.Sprint(apiPort)
 	resp, err := http.Get(baseURL + "/health")
@@ -85,9 +84,8 @@ func TestNewHorizonAPIService_HealthCheck(t *testing.T) {
 }
 
 func TestNewHorizonAPIService_SuspiciousPath(t *testing.T) {
-	env := horizon.NewEnvironmentService("../../.env")
 
-	apiPort := env.GetInt("APP_PORT", horizon.GetFreePort())
+	apiPort := horizon.GetFreePort()
 	baseURL := "http://localhost:" + fmt.Sprint(apiPort)
 	resp, err := http.Get(baseURL + "/config.yaml")
 	assert.NoError(t, err)
@@ -99,9 +97,8 @@ func TestNewHorizonAPIService_SuspiciousPath(t *testing.T) {
 }
 
 func TestNewHorizonAPIService_WellKnownPath(t *testing.T) {
-	env := horizon.NewEnvironmentService("../../.env")
 
-	apiPort := env.GetInt("APP_PORT", horizon.GetFreePort())
+	apiPort := horizon.GetFreePort()
 	baseURL := "http://localhost:" + fmt.Sprint(apiPort)
 	resp, err := http.Get(baseURL + "/.well-known/security.txt")
 	assert.NoError(t, err)
