@@ -144,7 +144,8 @@ func (c *Controller) BranchUpdate(ctx echo.Context) error {
 	}
 	userOrganization, err := c.userOrganization.Manager.GetByID(*userOrganizationId)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "User organization doesnt exists"})
+		// return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "User organization doesnt exists"})
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	user, err := c.provider.UserOwner(ctx, userOrganization.OrganizationID.String(), userOrganization.OrganizationID.String())
 	if err != nil {
