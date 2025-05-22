@@ -1,8 +1,8 @@
-name: Deploy to Linode (Development)
+name: Deploy Go App to Linode
 
 on:
   push:
-    branches: [ development ]
+    branches: [ main ]
 
 jobs:
   deploy:
@@ -11,42 +11,43 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Install SSH key and known_hosts
+    - name: Install SSH key
       uses: shimataro/ssh-key-action@v2
       with:
         key: ${{ secrets.LINODE_SSH_PRIVATE_KEY }}
-        known_hosts: ${{ secrets.LINODE_KNOWN_HOST }}
+        known_hosts: ${{ secrets.KNOWN_HOSTS }}
 
-    - name: Deploy to Linode
+    - name: Setup and Deploy
       env:
         HOST: ${{ secrets.LINODE_HOST }}
         USER: ${{ secrets.LINODE_USER }}
+        APP_DIR: "/home/cooperative/development"  # Update this path
+        REPO_URL: "https://github.com/Lands-Horizon-Corp/e-coop-server.git"
       run: |
-        ssh -t -o StrictHostKeyChecking=yes $USER@$HOST << 'EOF'
-            set -e
+        ssh -t $USER@$HOST << EOF
+        set -e
+        # Install dependencies
+        sudo apt-get update
+        sudo apt-get install -y git tmux golang
 
-            # Make sure the directory exists and cd into it (adjust path as needed)
-            mkdir -p /root   # or your app directory
-            cd /root || { echo "Directory not found"; exit 1; }
+        # Create app directory
+        mkdir -p $APP_DIR
+        cd $APP_DIR
 
-            # Kill existing tmux session if exists
-            if tmux has-session -t goapp 2>/dev/null; then
-                tmux kill-session -t goapp
-            fi  
+        # Clone or pull repository
+        if [ ! -d ".git" ]; then
+          git clone $REPO_URL .
+        else
+          git pull origin main
+        fi
 
-            # Pull latest code changes
-            git pull || { echo "Git pull failed"; exit 1; }
+        # Build Go binary
+        go build -o main
 
-            # Run Go tests and exit if failed
-            echo "Running tests..."
-            go test -v ./services/horizon_test || { echo "Tests failed"; exit 1; }
+        # Restart application
+        tmux kill-session -t development-server || true
+        tmux new-session -d -s development-server
+        tmux send-keys -t development-server './main' C-m
 
-            # Build the Go binary and exit if failed
-            echo "Building application..."
-            go build -o app . || { echo "Build failed"; exit 1; }
-
-            # Start the app in a detached tmux session
-            tmux new-session -d -s goapp "./app"
-
-            echo "Golang deployment completed successfully"
+        echo "Deployment completed successfully!"
         EOF
