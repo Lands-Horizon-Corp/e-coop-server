@@ -1,6 +1,7 @@
 package horizon
 
 import (
+	"context"
 	"errors"
 	"math/rand"
 	"net/http"
@@ -153,4 +154,23 @@ func ParseUUID(s *string) uuid.UUID {
 		return id
 	}
 	return uuid.Nil
+}
+
+func Retry(ctx context.Context, maxAttempts int, delay time.Duration, operation func() error) error {
+	var err error
+	for i := range maxAttempts {
+		err = operation()
+		if err == nil {
+			return nil
+		}
+		if i < maxAttempts-1 {
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-time.After(delay):
+				// wait before retrying
+			}
+		}
+	}
+	return err
 }

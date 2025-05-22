@@ -2,6 +2,7 @@ package horizon_services
 
 import (
 	"context"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/lands-horizon/horizon-server/services/horizon"
@@ -200,37 +201,49 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 
 func (h *HorizonService) Run(ctx context.Context) error {
 
+	delay := 3 * time.Second
+	retry := 5
+
 	if h.Cron != nil {
-		if err := h.Cron.Run(ctx); err != nil {
+		if err := horizon.Retry(ctx, retry, delay, func() error {
+			return h.Cron.Run(ctx)
+		}); err != nil {
 			return err
 		}
 	}
+
 	if h.Broker != nil {
-		if err := h.Broker.Run(ctx); err != nil {
+		if err := horizon.Retry(ctx, retry, delay, func() error {
+			return h.Broker.Run(ctx)
+		}); err != nil {
 			return err
 		}
 	}
+
 	if h.Cache != nil {
-		if err := h.Cache.Run(ctx); err != nil {
-			return err
-		}
-		if err := h.Cache.Ping(ctx); err != nil {
+		if err := horizon.Retry(ctx, retry, delay, func() error {
+			return h.Cache.Run(ctx)
+		}); err != nil {
 			return err
 		}
 	}
+
 	if h.Storage != nil {
-		if err := h.Storage.Run(ctx); err != nil {
+		if err := horizon.Retry(ctx, retry, delay, func() error {
+			return h.Storage.Run(ctx)
+		}); err != nil {
 			return err
 		}
 	}
+
 	if h.Database != nil {
-		if err := h.Database.Run(ctx); err != nil {
-			return err
-		}
-		if err := h.Database.Ping(ctx); err != nil {
+		if err := horizon.Retry(ctx, retry, delay, func() error {
+			return h.Database.Run(ctx)
+		}); err != nil {
 			return err
 		}
 	}
+
 	if h.OTP != nil {
 		if h.Cache == nil {
 			return eris.New("OTP service requires a cache service")
@@ -239,21 +252,29 @@ func (h *HorizonService) Run(ctx context.Context) error {
 			return eris.New("OTP service requires a security service")
 		}
 	}
+
 	if h.SMS != nil {
-		if err := h.SMS.Run(ctx); err != nil {
+		if err := horizon.Retry(ctx, retry, delay, func() error {
+			return h.SMS.Run(ctx)
+		}); err != nil {
 			return err
 		}
 	}
 	if h.SMTP != nil {
-		if err := h.SMTP.Run(ctx); err != nil {
+		if err := horizon.Retry(ctx, retry, delay, func() error {
+			return h.SMTP.Run(ctx)
+		}); err != nil {
 			return err
 		}
 	}
 	if h.Request != nil {
-		if err := h.Request.Run(ctx); err != nil {
+		if err := horizon.Retry(ctx, retry, delay, func() error {
+			return h.Request.Run(ctx)
+		}); err != nil {
 			return err
 		}
 	}
+
 	return nil
 }
 
