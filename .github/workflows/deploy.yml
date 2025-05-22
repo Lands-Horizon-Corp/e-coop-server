@@ -15,7 +15,7 @@ jobs:
       uses: shimataro/ssh-key-action@v2
       with:
         key: ${{ secrets.LINODE_SSH_PRIVATE_KEY }}
-        known_hosts: ${{ secrets.KNOWN_HOSTS }}
+        known_hosts: ${{ secrets.LINODE_KNOWN_HOST }}
 
     - name: Deploy to Server
       env:
