@@ -133,9 +133,8 @@ func NewHorizonAPIService(
 	})
 
 	service.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{
-			"*",
-		},
+		Skipper:      middleware.DefaultSkipper,
+		AllowOrigins: []string{"*"},
 		AllowMethods: []string{
 			http.MethodGet,
 			http.MethodPost,
@@ -150,7 +149,7 @@ func NewHorizonAPIService(
 			echo.HeaderAuthorization,
 			echo.HeaderXRequestedWith,
 		}, ExposeHeaders: []string{echo.HeaderContentLength},
-		AllowCredentials: true, // must be true if the client sends cookies/auth
+		AllowCredentials: true,
 		MaxAge:           3600,
 	}))
 
