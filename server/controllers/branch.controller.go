@@ -72,6 +72,7 @@ func (c *Controller) BranchCreate(ctx echo.Context) error {
 		PostalCode:    req.PostalCode,
 		Latitude:      req.Latitude,
 		Longitude:     req.Longitude,
+		IsMainBranch:  req.IsMainBranch,
 	}
 
 	tx := c.database.Client().Begin()
@@ -170,6 +171,7 @@ func (c *Controller) BranchUpdate(ctx echo.Context) error {
 		PostalCode:     req.PostalCode,
 		Latitude:       req.Latitude,
 		Longitude:      req.Longitude,
+		IsMainBranch:   req.IsMainBranch,
 	}
 	if err := c.branch.Manager.UpdateByID(userOrganization.OrganizationID, branch); err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})

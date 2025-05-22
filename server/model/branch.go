@@ -42,6 +42,7 @@ type (
 		PostalCode    string   `gorm:"type:varchar(20);not null"`
 		Latitude      *float64 `gorm:"type:double precision" json:"latitude,omitempty"`
 		Longitude     *float64 `gorm:"type:double precision" json:"longitude,omitempty"`
+		IsMainBranch  bool     `gorm:"not null;default:false"`
 
 		Footsteps           []*Footstep           `gorm:"foreignKey:BranchID" json:"footsteps,omitempty"`            // Footsteps
 		GeneratedReports    []*GeneratedReport    `gorm:"foreignKey:BranchID" json:"generated_reports,omitempty"`    // Generated reports
@@ -68,6 +69,8 @@ type (
 		PostalCode    string     `json:"postal_code" validate:"required"`
 		Latitude      *float64   `json:"latitude,omitempty"`
 		Longitude     *float64   `json:"longitude,omitempty"`
+
+		IsMainBranch bool `json:"is_main_branch,omitempty"`
 	}
 
 	BranchResponse struct {
@@ -95,6 +98,8 @@ type (
 		PostalCode    string         `json:"postal_code"`
 		Latitude      *float64       `json:"latitude,omitempty"`
 		Longitude     *float64       `json:"longitude,omitempty"`
+
+		IsMainBranch bool `json:"is_main_branch,omitempty"`
 
 		Footsteps           []*FootstepResponse           `json:"footsteps,omitempty"`
 		GeneratedReports    []*GeneratedReportResponse    `json:"generated_reports,omitempty"`
@@ -137,6 +142,8 @@ func (m *Model) BranchModel(data *Branch) *BranchResponse {
 			PostalCode:    data.PostalCode,
 			Latitude:      data.Latitude,
 			Longitude:     data.Longitude,
+
+			IsMainBranch: data.IsMainBranch,
 
 			Footsteps:           m.FootstepModels(data.Footsteps),
 			GeneratedReports:    m.GeneratedReportModels(data.GeneratedReports),
