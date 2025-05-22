@@ -11,7 +11,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Install SSH key
+    - name: Install SSH key and known_hosts
       uses: shimataro/ssh-key-action@v2
       with:
         key: ${{ secrets.LINODE_SSH_PRIVATE_KEY }}
@@ -22,25 +22,28 @@ jobs:
         HOST: ${{ secrets.LINODE_HOST }}
         USER: ${{ secrets.LINODE_USER }}
       run: |
-        ssh -t $USER@$HOST << 'EOF'
+        ssh -t -o StrictHostKeyChecking=yes $USER@$HOST << 'EOF'
           set -e
-          cd ./ || { echo "Directory not found"; exit 1; }
 
-          # Kill existing tmux session
+          # Make sure the directory exists and cd into it (adjust path as needed)
+          mkdir -p /root   # or your app directory
+          cd /root || { echo "Directory not found"; exit 1; }
+
+          # Kill existing tmux session if exists
           tmux kill-session -t goapp || true
 
-          # Pull latest changes
-          git pull
+          # Pull latest code changes
+          git pull || { echo "Git pull failed"; exit 1; }
 
-          # Run Go tests
+          # Run Go tests and exit if failed
           echo "Running tests..."
           go test -v ./services/horizon_test || { echo "Tests failed"; exit 1; }
 
-          # Build the Go binary
+          # Build the Go binary and exit if failed
           echo "Building application..."
-          go build -o app .
+          go build -o app . || { echo "Build failed"; exit 1; }
 
-          # Create new tmux session to run app
+          # Start the app in a detached tmux session
           tmux new-session -d -s goapp "./app"
 
           echo "Golang deployment completed successfully"
