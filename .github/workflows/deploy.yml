@@ -109,59 +109,6 @@ jobs:
         git checkout development
         git pull origin development
 
-        # Example of creating .env file with defined variables
-        touch .env
-        echo "APP_PORT=$APP_PORT" >> .env
-        echo "APP_METRICS_PORT=$APP_METRICS_PORT" >> .env
-        echo "APP_ENV=$APP_ENV" >> .env
-        echo "APP_CLIENT_URL=$APP_CLIENT_URL" >> .env
-        echo "APP_CLIENT_NAME=$APP_CLIENT_NAME" >> .env
-        echo "APP_TOKEN=$APP_TOKEN" >> .env
-        echo "APP_NAME=$APP_NAME" >> .env
-        echo "NATS_HOST=$NATS_HOST" >> .env
-        echo "NATS_CLIENT_PORT=$NATS_CLIENT_PORT" >> .env
-        echo "NATS_MONITOR_PORT=$NATS_MONITOR_PORT" >> .env
-        echo "NATS_WEBSOCKET_PORT=$NATS_WEBSOCKET_PORT" >> .env
-        echo "DATABASE_URL=$DATABASE_URL" >> .env
-        echo "DB_MAX_IDLE_CONN=$DB_MAX_IDLE_CONN" >> .env
-        echo "DB_MAX_OPEN_CONN=$DB_MAX_OPEN_CONN" >> .env
-        echo "DB_MAX_LIFETIME=$DB_MAX_LIFETIME" >> .env
-        echo "REDIS_PORT=$REDIS_PORT" >> .env
-        echo "REDIS_HOST=$REDIS_HOST" >> .env
-        echo "REDIS_PASSWORD=$REDIS_PASSWORD" >> .env
-        echo "REDIS_USERNAME=$REDIS_USERNAME" >> .env
-        echo "SMTP_HOST=$SMTP_HOST" >> .env
-        echo "SMTP_PORT=$SMTP_PORT" >> .env
-        echo "SMTP_USERNAME=$SMTP_USERNAME" >> .env
-        echo "SMTP_PASSWORD=$SMTP_PASSWORD" >> .env
-        echo "SMTP_FROM=$SMTP_FROM" >> .env
-        echo "SMTP_TEST_RECIEVER=$SMTP_TEST_RECIEVER" >> .env
-        echo "TWILIO_ACCOUNT_SID=$TWILIO_ACCOUNT_SID" >> .env
-        echo "TWILIO_AUTH_TOKEN=$TWILIO_AUTH_TOKEN" >> .env
-        echo "TWILIO_SENDER=$TWILIO_SENDER" >> .env
-        echo "TWILIO_TEST_RECIEVER=$TWILIO_TEST_RECIEVER" >> .env
-        echo "STORAGE_ACCESS_KEY=$STORAGE_ACCESS_KEY" >> .env
-        echo "STORAGE_SECRET_KEY=$STORAGE_SECRET_KEY" >> .env
-        echo "STORAGE_BUCKET=$STORAGE_BUCKET" >> .env
-        echo "STORAGE_PREFIX=$STORAGE_PREFIX" >> .env
-        echo "STORAGE_MAX_SIZE=$STORAGE_MAX_SIZE" >> .env
-        echo "PASSWORD_MEMORY=$PASSWORD_MEMORY" >> .env
-        echo "PASSWORD_ITERATIONS=$PASSWORD_ITERATIONS" >> .env
-        echo "PASSWORD_PARALLELISM=$PASSWORD_PARALLELISM" >> .env
-        echo "PASSWORD_SALT_LENTH=$PASSWORD_SALT_LENTH" >> .env
-        echo "PASSWORD_KEY_LENGTH=$PASSWORD_KEY_LENGTH" >> .env
-        echo "PASSWORD_SECRET=$PASSWORD_SECRET" >> .env
-        echo "OTP_SECRET=$OTP_SECRET" >> .env
-        echo "QR_SECRET=$QR_SECRET" >> .env
-        echo "LINODE_HOST=$LINODE_HOST" >> .env
-        echo "LINODE_USER=$LINODE_USER" >> .env
-        echo "LINODE_KNOWN_HOST=$LINODE_KNOWN_HOST" >> .env
-        echo "LINODE_SSH_PRIVATE_KEY=$LINODE_SSH_PRIVATE_KEY" >> .env
-
-        # Check the contents of .env
-        cat .env
-
-
         # Build and restart application
         export PATH=\$PATH:/usr/local/go/bin  # Ensure Go is in PATH
         go version  # Verify Go version
