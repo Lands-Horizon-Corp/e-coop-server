@@ -19,7 +19,7 @@ func (c *Controller) MediaController() {
 		Method:   "GET",
 		Response: "TMedia[]",
 	}, func(ctx echo.Context) error {
-		media, err := c.media.Manager.ListRaw(context.Background())
+		media, err := c.model.MediaManager.ListRaw(context.Background())
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
@@ -37,7 +37,7 @@ func (c *Controller) MediaController() {
 			return err
 		}
 
-		media, err := c.media.Manager.GetByIDRaw(context, *mediaId)
+		media, err := c.model.MediaManager.GetByIDRaw(context, *mediaId)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
 		}
@@ -68,11 +68,11 @@ func (c *Controller) MediaController() {
 			CreatedAt:  time.Now().UTC(),
 			UpdatedAt:  time.Now().UTC(),
 		}
-		if err := c.media.Manager.Create(context, initial); err != nil {
+		if err := c.model.MediaManager.Create(context, initial); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
 		storage, err := c.provider.Service.Storage.UploadFromHeader(context, file, func(progress, total int64, storage *horizon.Storage) {
-			_ = c.media.Manager.Update(context, &model.Media{
+			_ = c.model.MediaManager.Update(context, &model.Media{
 				ID:        initial.ID,
 				Progress:  progress,
 				Status:    "progress",
@@ -80,7 +80,7 @@ func (c *Controller) MediaController() {
 			})
 		})
 		if err != nil {
-			_ = c.media.Manager.Update(context, &model.Media{
+			_ = c.model.MediaManager.Update(context, &model.Media{
 				ID:        initial.ID,
 				Status:    "error",
 				UpdatedAt: time.Now().UTC(),
@@ -99,10 +99,10 @@ func (c *Controller) MediaController() {
 			Progress:   100,
 			UpdatedAt:  time.Now().UTC(),
 		}
-		if err := c.media.Manager.Update(context, completed); err != nil {
+		if err := c.model.MediaManager.Update(context, completed); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
-		return ctx.JSON(http.StatusCreated, c.media.Manager.ToModel(completed))
+		return ctx.JSON(http.StatusCreated, c.model.MediaManager.ToModel(completed))
 	})
 
 	req.RegisterRoute(horizon.Route{
@@ -117,7 +117,7 @@ func (c *Controller) MediaController() {
 		if err != nil {
 			return err
 		}
-		req, err := c.media.Manager.Validate(ctx)
+		req, err := c.model.MediaManager.Validate(ctx)
 		if err != nil {
 			return err
 		}
@@ -126,10 +126,10 @@ func (c *Controller) MediaController() {
 			UpdatedAt: time.Now().UTC(),
 		}
 
-		if err := c.media.Manager.UpdateByID(context, *mediaId, model); err != nil {
+		if err := c.model.MediaManager.UpdateByID(context, *mediaId, model); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
-		return ctx.JSON(http.StatusCreated, c.media.Manager.ToModel(model))
+		return ctx.JSON(http.StatusCreated, c.model.MediaManager.ToModel(model))
 
 	})
 
@@ -142,7 +142,7 @@ func (c *Controller) MediaController() {
 		if err != nil {
 			return err
 		}
-		media, err := c.media.Manager.GetByID(context, *mediaId)
+		media, err := c.model.MediaManager.GetByID(context, *mediaId)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
 		}
@@ -159,7 +159,7 @@ func (c *Controller) MediaController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
 		}
 
-		if err := c.media.Manager.DeleteByID(context, *mediaId); err != nil {
+		if err := c.model.MediaManager.DeleteByID(context, *mediaId); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
 		return ctx.NoContent(http.StatusNoContent)

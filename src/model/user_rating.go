@@ -10,7 +10,7 @@ import (
 
 type (
 	UserRating struct {
-		ID             uuid.UUID      `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
+		ID             uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt      time.Time      `gorm:"not null;default:now()"`
 		CreatedByID    uuid.UUID      `gorm:"type:uuid"`
 		CreatedBy      *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`

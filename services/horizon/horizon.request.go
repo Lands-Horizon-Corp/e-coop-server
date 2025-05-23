@@ -160,13 +160,6 @@ func NewHorizonAPIService(
 	// 9. Metrics middleware
 	service.Use(echoprometheus.NewMiddleware(clientName))
 
-	service.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
-		TokenLookup:  "header:X-CSRF-Token",
-		CookieName:   "csrf",
-		CookiePath:   "/",
-		CookieSecure: false,
-	}))
-
 	service.GET("/csrf-token", func(c echo.Context) error {
 		token := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
 		return c.JSON(http.StatusOK, echo.Map{"csrfToken": token})

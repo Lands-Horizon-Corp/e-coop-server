@@ -60,7 +60,7 @@ type (
 )
 
 func (m *Model) SubscriptionPlan() {
-	m.Migration = append(m.Migration, m.SubscriptionPlanManager.Model())
+	m.Migration = append(m.Migration, &SubscriptionPlan{})
 	m.SubscriptionPlanManager = horizon_services.NewRepository(horizon_services.RepositoryParams[SubscriptionPlan, SubscriptionPlanResponse, SubscriptionPlanRequest]{
 		Preloads: nil,
 		Service:  m.provider.Service,

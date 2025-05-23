@@ -9,43 +9,34 @@ import (
 type Controller struct {
 	// Services
 	provider *src.Provider
+	model    *model.Model
 
 	// Tokens
 	transactionBatchToken *cooperative_tokens.TransactionBatchToken
 	userOrganizationToken *cooperative_tokens.UserOrganizatonToken
 	userToken             *cooperative_tokens.UserToken
-
-	// Models
-	media    *model.MediaCollection
-	feedback *model.FeedbackCollection
 }
 
 func NewController(
 	// Services
 	provider *src.Provider,
+	model *model.Model,
 
 	// Tokens
 	transactionBatchToken *cooperative_tokens.TransactionBatchToken,
 	userOrganizationToken *cooperative_tokens.UserOrganizatonToken,
 	userToken *cooperative_tokens.UserToken,
 
-	// Models
-	media *model.MediaCollection,
-	feedback *model.FeedbackCollection,
-
 ) (*Controller, error) {
 	return &Controller{
 		// Services
 		provider: provider,
+		model:    model,
 
 		// Tokens
 		transactionBatchToken: transactionBatchToken,
 		userOrganizationToken: userOrganizationToken,
 		userToken:             userToken,
-
-		// Models
-		media:    media,
-		feedback: feedback,
 	}, nil
 }
 

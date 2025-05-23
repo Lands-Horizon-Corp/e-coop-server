@@ -18,7 +18,7 @@ func (c *Controller) FeedbackController() {
 		Method:   "GET",
 		Response: "TFeedback[]",
 	}, func(ctx echo.Context) error {
-		feedback, err := c.feedback.Manager.ListRaw(context.Background())
+		feedback, err := c.model.FeedbackManager.ListRaw(context.Background())
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
@@ -35,7 +35,7 @@ func (c *Controller) FeedbackController() {
 		if err != nil {
 			return err
 		}
-		feedback, err := c.feedback.Manager.GetByIDRaw(context, *feedbackId)
+		feedback, err := c.model.FeedbackManager.GetByID(context, *feedbackId)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
 		}
@@ -49,7 +49,7 @@ func (c *Controller) FeedbackController() {
 		Response: "TFeedback",
 	}, func(ctx echo.Context) error {
 		context := context.Background()
-		req, err := c.feedback.Manager.Validate(ctx)
+		req, err := c.model.FeedbackManager.Validate(ctx)
 		if err != nil {
 			return err
 		}
@@ -61,62 +61,10 @@ func (c *Controller) FeedbackController() {
 			CreatedAt:    time.Now().UTC(),
 			UpdatedAt:    time.Now().UTC(),
 		}
-		if err := c.feedback.Manager.Create(context, model); err != nil {
+		if err := c.model.FeedbackManager.Create(context, model); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
-		return ctx.JSON(http.StatusCreated, c.feedback.Manager.ToModel(model))
-	})
-
-	req.RegisterRoute(horizon.Route{
-		Route:    "/feedback/:feedback_id",
-		Method:   "PUT",
-		Request:  "TFeedback",
-		Response: "TFeedback",
-	}, func(ctx echo.Context) error {
-		context := context.Background()
-
-		feedbackId, err := horizon.EngineUUIDParam(ctx, "feedback_id")
-		if err != nil {
-			return err
-		}
-
-		req, err := c.feedback.Manager.Validate(ctx)
-		if err != nil {
-			return err
-		}
-
-		feedback, err := c.feedback.Manager.GetByID(context, *feedbackId)
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-		}
-		feedback.Email = req.Email
-		feedback.Description = req.Description
-		feedback.FeedbackType = req.FeedbackType
-		feedback.UpdatedAt = time.Now().UTC()
-		feedback.MediaID = req.MediaID
-		if err := c.feedback.Manager.Update(context, feedback); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-		}
-		return ctx.JSON(http.StatusCreated, c.feedback.Manager.ToModel(feedback))
-	})
-
-	req.RegisterRoute(horizon.Route{
-		Route:  "/feedback/:feedback_id",
-		Method: "DELETE",
-	}, func(ctx echo.Context) error {
-		context := context.Background()
-		feedbackId, err := horizon.EngineUUIDParam(ctx, "feedback_id")
-		if err != nil {
-			return err
-		}
-		feedback, err := c.feedback.Manager.GetByID(context, *feedbackId)
-		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
-		}
-		if err := c.feedback.Manager.DeleteByID(context, feedback.ID); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-		}
-		return ctx.NoContent(http.StatusNoContent)
+		return ctx.JSON(http.StatusCreated, c.model.FeedbackManager.ToModel(model))
 	})
 
 }
