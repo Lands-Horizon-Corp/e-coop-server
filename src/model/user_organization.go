@@ -106,7 +106,86 @@ type (
 		UserSettingEndVoucher   int64 `json:"user_setting_end_voucher"`
 		UserSettingUsedVoucher  int64 `json:"user_setting_used_voucher"`
 	}
-	UserOrganizationCollection struct {
-		Manager horizon_services.Repository[UserOrganization, UserOrganizationResponse, UserOrganizationRequest]
-	}
 )
+
+func (m *Model) UserOrganization() {
+	m.Migration = append(m.Migration, &UserOrganization{})
+	m.UserOrganizationManager = horizon_services.NewRepository(horizon_services.RepositoryParams[UserOrganization, UserOrganizationResponse, UserOrganizationRequest]{
+		Preloads: []string{
+			"CreatedBy",
+			"UpdatedBy",
+			"Branch",
+			"Branch.Media",
+			"User",
+			"User.Media",
+			"Organization",
+			"Organization.Media",
+			"Organization.CoverMedia",
+			"Organization.OrganizationCategories",
+			"Organization.OrganizationCategories.Category",
+		},
+		Service: m.provider.Service,
+		Resource: func(data *UserOrganization) *UserOrganizationResponse {
+			if data == nil {
+				return nil
+			}
+			return &UserOrganizationResponse{
+				ID:             data.ID,
+				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
+				CreatedByID:    data.CreatedByID,
+				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
+				UpdatedByID:    data.UpdatedByID,
+				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				OrganizationID: data.OrganizationID,
+				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				BranchID:       data.BranchID,
+				Branch:         m.BranchManager.ToModel(data.Branch),
+
+				UserID:                 data.UserID,
+				User:                   m.UserManager.ToModel(data.User),
+				UserType:               data.UserType,
+				Description:            data.Description,
+				ApplicationDescription: data.ApplicationDescription,
+				ApplicationStatus:      data.ApplicationStatus,
+				DeveloperSecretKey:     data.DeveloperSecretKey,
+				PermissionName:         data.PermissionName,
+				PermissionDescription:  data.PermissionDescription,
+				Permissions:            data.Permissions,
+
+				UserSettingDescription: data.UserSettingDescription,
+
+				UserSettingStartOR:      data.UserSettingStartOR,
+				UserSettingEndOR:        data.UserSettingEndOR,
+				UserSettingUsedOR:       data.UserSettingUsedOR,
+				UserSettingStartVoucher: data.UserSettingStartVoucher,
+				UserSettingEndVoucher:   data.UserSettingEndVoucher,
+				UserSettingUsedVoucher:  data.UserSettingUsedVoucher,
+			}
+		},
+		Created: func(data *UserOrganization) []string {
+			return []string{
+				"user_organization.create",
+				"user_organization.create.organization." + data.OrganizationID.String(),
+				"user_organization.create.branch." + data.BranchID.String(),
+				"user_organization.create." + data.ID.String(),
+			}
+		},
+		Updated: func(data *UserOrganization) []string {
+			return []string{
+				"user_organization.update",
+				"user_organization.update.organization." + data.OrganizationID.String(),
+				"user_organization.update.branch." + data.BranchID.String(),
+				"user_organization.update." + data.ID.String(),
+			}
+		},
+		Deleted: func(data *UserOrganization) []string {
+			return []string{
+				"user_organization.delete",
+				"user_organization.delete.organization." + data.OrganizationID.String(),
+				"user_organization.delete.branch." + data.BranchID.String(),
+				"user_organization.delete." + data.ID.String(),
+			}
+		},
+	})
+}

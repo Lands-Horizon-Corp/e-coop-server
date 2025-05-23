@@ -24,10 +24,6 @@ func main() {
 			cooperative_tokens.NewUserToken,
 			cooperative_tokens.NewTransactionBatchToken,
 			cooperative_tokens.NewUserOrganizatonToken,
-
-			// Models
-			model.NewMediaCollection,
-			model.NewFeedbackCollection,
 		),
 		fx.Invoke(func(lc fx.Lifecycle, controller *controller.Controller, model *model.Model, provider *src.Provider) error {
 			lc.Append(fx.Hook{

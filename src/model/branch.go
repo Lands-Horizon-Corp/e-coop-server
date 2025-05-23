@@ -71,13 +71,14 @@ type (
 	}
 
 	BranchResponse struct {
-		ID          uuid.UUID     `json:"id"`
-		CreatedAt   string        `json:"created_at"`
-		CreatedByID uuid.UUID     `json:"created_by_id"`
-		CreatedBy   *UserResponse `json:"created_by,omitempty"`
-		UpdatedAt   string        `json:"updated_at"`
-		UpdatedByID uuid.UUID     `json:"updated_by_id"`
-		UpdatedBy   *UserResponse `json:"updated_by,omitempty"`
+		ID           uuid.UUID             `json:"id"`
+		CreatedAt    string                `json:"created_at"`
+		CreatedByID  uuid.UUID             `json:"created_by_id"`
+		CreatedBy    *UserResponse         `json:"created_by,omitempty"`
+		UpdatedAt    string                `json:"updated_at"`
+		UpdatedByID  uuid.UUID             `json:"updated_by_id"`
+		UpdatedBy    *UserResponse         `json:"updated_by,omitempty"`
+		Organization *OrganizationResponse `json:"organization,omitempty"`
 
 		MediaID       *uuid.UUID     `json:"media_id,omitempty"`
 		Media         *MediaResponse `json:"media,omitempty"`
@@ -104,7 +105,66 @@ type (
 		PermissionTemplates []*PermissionTemplateResponse `json:"permission_templates,omitempty"`
 		UserOrganizations   []*UserOrganizationResponse   `json:"user_organizations,omitempty"`
 	}
-	BranchCollection struct {
-		Manager horizon_services.Repository[Branch, BranchResponse, BranchRequest]
-	}
 )
+
+func (m *Model) Branch() {
+	m.Migration = append(m.Migration, &Branch{})
+	m.BranchManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Branch, BranchResponse, BranchRequest]{
+		Preloads: []string{
+			"Media",
+			"CreatedBy",
+			"UpdatedBy",
+			"Footsteps",
+			"GeneratedReports",
+			"InvitationCodes",
+			"PermissionTemplates",
+			"UserOrganizations",
+			"Organization",
+			"Organization.Media",
+			"Organization.CreatedBy",
+			"Organization.Media",
+			"Organization.CoverMedia",
+		},
+		Service: m.provider.Service,
+		Resource: func(data *Branch) *BranchResponse {
+			if data == nil {
+				return nil
+			}
+			return &BranchResponse{
+				ID:           data.ID,
+				CreatedAt:    data.CreatedAt.Format(time.RFC3339),
+				CreatedByID:  data.CreatedByID,
+				CreatedBy:    m.UserManager.ToModel(data.CreatedBy),
+				UpdatedAt:    data.UpdatedAt.Format(time.RFC3339),
+				UpdatedByID:  data.UpdatedByID,
+				UpdatedBy:    m.UserManager.ToModel(data.UpdatedBy),
+				Organization: m.OrganizationManager.ToModel(data.Organization),
+
+				MediaID:       data.MediaID,
+				Media:         m.MediaManager.ToModel(data.Media),
+				Type:          data.Type,
+				Name:          data.Name,
+				Email:         data.Email,
+				Description:   data.Description,
+				CountryCode:   data.CountryCode,
+				ContactNumber: data.ContactNumber,
+				Address:       data.Address,
+				Province:      data.Province,
+				City:          data.City,
+				Region:        data.Region,
+				Barangay:      data.Barangay,
+				PostalCode:    data.PostalCode,
+				Latitude:      data.Latitude,
+				Longitude:     data.Longitude,
+
+				IsMainBranch: data.IsMainBranch,
+
+				Footsteps:           m.FootstepManager.ToModels(data.Footsteps),
+				GeneratedReports:    m.GeneratedReportManager.ToModels(data.GeneratedReports),
+				InvitationCodes:     m.InvitationCodeManager.ToModels(data.InvitationCodes),
+				PermissionTemplates: m.PermissionTemplateManager.ToModels(data.PermissionTemplates),
+				UserOrganizations:   m.UserOrganizationManager.ToModels(data.UserOrganizations),
+			}
+		},
+	})
+}

@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -80,7 +81,62 @@ type (
 		CreatedAt             string  `json:"created_at"`
 		UpdatedAt             string  `json:"updated_at"`
 	}
-	OrganizationDailyUsageCollection struct {
-		Manager horizon_services.Repository[OrganizationDailyUsage, OrganizationDailyUsageResponse, OrganizationDailyUsageRequest]
-	}
 )
+
+func (m *Model) OrganizationDailyUsage() {
+	m.Migration = append(m.Migration, &OrganizationDailyUsage{})
+	m.OrganizationDailyUsageManager = horizon_services.NewRepository(horizon_services.RepositoryParams[OrganizationDailyUsage, OrganizationDailyUsageResponse, OrganizationDailyUsageRequest]{
+		Preloads: []string{"Organization"},
+		Service:  m.provider.Service,
+		Resource: func(data *OrganizationDailyUsage) *OrganizationDailyUsageResponse {
+			if data == nil {
+				return nil
+			}
+			return &OrganizationDailyUsageResponse{
+				ID:             data.ID,
+				OrganizationID: data.OrganizationID,
+				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				TotalMembers:   data.TotalMembers,
+				TotalBranches:  data.TotalBranches,
+				TotalEmployees: data.TotalEmployees,
+
+				CashTransactionCount:   data.CashTransactionCount,
+				CheckTransactionCount:  data.CheckTransactionCount,
+				OnlineTransactionCount: data.OnlineTransactionCount,
+
+				CashTransactionAmount:   data.CashTransactionAmount,
+				CheckTransactionAmount:  data.CheckTransactionAmount,
+				OnlineTransactionAmount: data.OnlineTransactionAmount,
+
+				TotalEmailSend:        data.TotalEmailSend,
+				TotalMessageSend:      data.TotalMessageSend,
+				TotalUploadSize:       data.TotalUploadSize,
+				TotalReportRenderTime: data.TotalReportRenderTime,
+
+				CreatedAt: data.CreatedAt.Format(time.RFC3339),
+				UpdatedAt: data.UpdatedAt.Format(time.RFC3339),
+			}
+		},
+		Created: func(data *OrganizationDailyUsage) []string {
+			return []string{
+				"organization_daily_usage.create",
+				fmt.Sprintf("organization_daily_usage.create.%s", data.ID),
+				fmt.Sprintf("organization_daily_usage.create.organization.%s", data.OrganizationID),
+			}
+		},
+		Updated: func(data *OrganizationDailyUsage) []string {
+			return []string{
+				"organization_daily_usage.update",
+				fmt.Sprintf("organization_daily_usage.update.%s", data.ID),
+				fmt.Sprintf("organization_daily_usage.update.organization.%s", data.OrganizationID),
+			}
+		},
+		Deleted: func(data *OrganizationDailyUsage) []string {
+			return []string{
+				"organization_daily_usage.delete",
+				fmt.Sprintf("organization_daily_usage.delete.%s", data.ID),
+				fmt.Sprintf("organization_daily_usage.delete.organization.%s", data.OrganizationID),
+			}
+		},
+	})
+}

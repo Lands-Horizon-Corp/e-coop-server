@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"time"
 
 	"github.com/google/uuid"
@@ -165,8 +166,62 @@ type (
 		Email         string  `json:"email" validate:"required,email"`
 		UserName      string  `json:"user_name" validate:"required,min=3,max=100"`
 	}
-
-	UserCollection struct {
-		Manager horizon_services.Repository[User, UserResponse, UserRegisterRequest]
-	}
 )
+
+func (m *Model) User() {
+	m.Migration = append(m.Migration, &User{})
+	m.UserManager = horizon_services.NewRepository(horizon_services.RepositoryParams[User, UserResponse, UserRegisterRequest]{
+		Preloads: []string{
+			"Media",
+			"SignatureMedia",
+			"Footsteps",
+			"Footsteps.Media",
+			"GeneratedReports",
+			"GeneratedReports.Media",
+			"Notifications",
+			"UserOrganizations",
+			"UserOrganizations.Organization",
+			"UserOrganizations.Branch",
+			"UserOrganizations.Organization.Media",
+			"UserOrganizations.Branch.Media",
+		},
+		Service: m.provider.Service,
+		Resource: func(data *User) *UserResponse {
+			ctx := context.Background()
+			if data == nil {
+				return nil
+			}
+			result, err := m.provider.Service.QR.EncodeQR(ctx, &QRUser{
+				UserID:        data.ID.String(),
+				Email:         data.Email,
+				ContactNumber: data.ContactNumber,
+				Username:      data.UserName,
+				Lastname:      horizon.StringFormat(data.LastName),
+				Firstname:     horizon.StringFormat(data.FirstName),
+				Middlename:    horizon.StringFormat(data.MiddleName),
+			}, "user-qr")
+			if err != nil {
+				return nil
+			}
+			return &UserResponse{
+				ID:                data.ID,
+				Birthdate:         data.Birthdate.Format("2006-01-02"),
+				UserName:          data.UserName,
+				Description:       data.Description,
+				FirstName:         data.FirstName,
+				MiddleName:        data.MiddleName,
+				LastName:          data.LastName,
+				Suffix:            data.Suffix,
+				Email:             data.Email,
+				IsEmailVerified:   data.IsEmailVerified,
+				ContactNumber:     data.ContactNumber,
+				IsContactVerified: data.IsContactVerified,
+				QRCode:            result,
+				CreatedAt:         data.CreatedAt.Format(time.RFC3339),
+				UpdatedAt:         data.UpdatedAt.Format(time.RFC3339),
+
+				UserOrganizations: m.UserOrganizationManager.ToModels(data.UserOrganizations),
+			}
+		},
+	})
+}

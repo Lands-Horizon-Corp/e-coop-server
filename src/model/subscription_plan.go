@@ -57,8 +57,49 @@ type (
 		CreatedAt           string    `json:"created_at"`
 		UpdatedAt           string    `json:"updated_at"`
 	}
-
-	SubscriptionPlanCollection struct {
-		Manager horizon_services.Repository[SubscriptionPlan, SubscriptionPlanResponse, SubscriptionPlanRequest]
-	}
 )
+
+func (m *Model) SubscriptionPlan() {
+	m.Migration = append(m.Migration, m.SubscriptionPlanManager.Model())
+	m.SubscriptionPlanManager = horizon_services.NewRepository(horizon_services.RepositoryParams[SubscriptionPlan, SubscriptionPlanResponse, SubscriptionPlanRequest]{
+		Preloads: nil,
+		Service:  m.provider.Service,
+		Resource: func(sp *SubscriptionPlan) *SubscriptionPlanResponse {
+			if sp == nil {
+				return nil
+			}
+			return &SubscriptionPlanResponse{
+				ID:                  sp.ID,
+				Name:                sp.Name,
+				Description:         sp.Description,
+				Cost:                sp.Cost,
+				Timespan:            sp.Timespan,
+				MaxBranches:         sp.MaxBranches,
+				MaxEmployees:        sp.MaxEmployees,
+				MaxMembersPerBranch: sp.MaxMembersPerBranch,
+				Discount:            sp.Discount,
+				YearlyDiscount:      sp.YearlyDiscount,
+				CreatedAt:           sp.CreatedAt.Format(time.RFC3339),
+				UpdatedAt:           sp.UpdatedAt.Format(time.RFC3339),
+			}
+		},
+		Created: func(sp *SubscriptionPlan) []string {
+			return []string{
+				"subscription_plan.create",
+				"subscription_plan.create." + sp.ID.String(),
+			}
+		},
+		Updated: func(sp *SubscriptionPlan) []string {
+			return []string{
+				"subscription_plan.update",
+				"subscription_plan.update." + sp.ID.String(),
+			}
+		},
+		Deleted: func(sp *SubscriptionPlan) []string {
+			return []string{
+				"subscription_plan.delete",
+				"subscription_plan.delete." + sp.ID.String(),
+			}
+		},
+	})
+}

@@ -257,3 +257,10 @@ func Validate[T any](ctx echo.Context, v *validator.Validate) (*T, error) {
 	}
 	return &req, nil
 }
+
+func StringFormat(value *string) string {
+	if value == nil {
+		return ""
+	}
+	return *value
+}

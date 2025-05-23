@@ -42,8 +42,47 @@ type (
 		Color       string `json:"color" validate:"required,min=1,max=50"`
 		Icon        string `json:"icon" validate:"required,min=1,max=50"`
 	}
-
-	CategoryCollection struct {
-		Manager horizon_services.Repository[Category, CategoryResponse, CategoryRequest]
-	}
 )
+
+func (m *Model) Category() {
+	m.Migration = append(m.Migration, &Category{})
+	m.CategoryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Category, CategoryResponse, CategoryRequest]{
+		Preloads: []string{"OrganizationCategories"},
+		Service:  m.provider.Service,
+		Resource: func(data *Category) *CategoryResponse {
+			if data == nil {
+				return nil
+			}
+			return &CategoryResponse{
+				ID:        data.ID,
+				CreatedAt: data.CreatedAt.Format(time.RFC3339),
+				UpdatedAt: data.UpdatedAt.Format(time.RFC3339),
+
+				Name:        data.Name,
+				Description: data.Description,
+				Color:       data.Color,
+				Icon:        data.Icon,
+
+				OrganizationCategories: m.OrganizationCategoryManager.ToModels(data.OrganizationCategories),
+			}
+		},
+		Created: func(data *Category) []string {
+			return []string{
+				"category.create",
+				"category.create." + data.ID.String(),
+			}
+		},
+		Updated: func(data *Category) []string {
+			return []string{
+				"category.update",
+				"category.update." + data.ID.String(),
+			}
+		},
+		Deleted: func(data *Category) []string {
+			return []string{
+				"category.delete",
+				"category.delete." + data.ID.String(),
+			}
+		},
+	})
+}

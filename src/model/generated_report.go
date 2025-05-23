@@ -62,7 +62,57 @@ type (
 		Name        string     `json:"firstName" validate:"required,min=1,max=255"`
 		Description string     `json:"description" validate:"required,min=1"`
 	}
-	GeneratedReportCollection struct {
-		Manager horizon_services.Repository[GeneratedReport, GeneratedReportResponse, GeneratedReportRequest]
-	}
 )
+
+func (m *Model) GeneratedReport() {
+	m.Migration = append(m.Migration, &GeneratedReport{})
+	m.GeneratedReportManager = horizon_services.NewRepository(horizon_services.RepositoryParams[GeneratedReport, GeneratedReportResponse, GeneratedReportRequest]{
+		Preloads: []string{"CreatedBy", "UpdatedBy", "Organization", "Branch", "User", "Media"},
+		Service:  m.provider.Service,
+		Resource: func(data *GeneratedReport) *GeneratedReportResponse {
+			if data == nil {
+				return nil
+			}
+			return &GeneratedReportResponse{
+				ID:             data.ID,
+				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
+				CreatedByID:    data.CreatedByID,
+				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
+				UpdatedByID:    data.UpdatedByID,
+				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				OrganizationID: data.OrganizationID,
+				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				BranchID:       data.BranchID,
+				Branch:         m.BranchManager.ToModel(data.Branch),
+
+				UserID:      data.UserID,
+				User:        m.UserManager.ToModel(data.User),
+				MediaID:     data.MediaID,
+				Media:       m.MediaManager.ToModel(data.Media),
+				Name:        data.Name,
+				Description: data.Description,
+				Status:      data.Status,
+				Progress:    data.Progress,
+			}
+		},
+		Created: func(data *GeneratedReport) []string {
+			return []string{
+				"generated_report.create",
+				"generated_report.create." + data.ID.String(),
+			}
+		},
+		Updated: func(data *GeneratedReport) []string {
+			return []string{
+				"generated_report.update",
+				"generated_report.update." + data.ID.String(),
+			}
+		},
+		Deleted: func(data *GeneratedReport) []string {
+			return []string{
+				"generated_report.delete",
+				"generated_report.delete." + data.ID.String(),
+			}
+		},
+	})
+}

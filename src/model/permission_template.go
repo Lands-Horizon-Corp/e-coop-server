@@ -56,8 +56,68 @@ type (
 		Description string   `json:"description,omitempty"`
 		Permissions []string `json:"permissions"`
 	}
-
-	PermissionTemplateCollection struct {
-		Manager horizon_services.Repository[PermissionTemplate, PermissionTemplateResponse, PermissionTemplateRequest]
-	}
 )
+
+func (m *Model) PermissionTemplate() {
+	m.Migration = append(m.Migration, &PermissionTemplate{})
+	m.PermissionTemplateManager = horizon_services.NewRepository(horizon_services.RepositoryParams[PermissionTemplate, PermissionTemplateResponse, PermissionTemplateRequest]{
+		Preloads: []string{
+			"CreatedBy",
+			"UpdatedBy",
+			"Branch",
+			"Branch.Media",
+			"Organization",
+			"Organization.Media",
+			"Organization.CoverMedia",
+			"Organization.OrganizationCategories",
+			"Organization.OrganizationCategories.Category",
+		},
+		Service: m.provider.Service,
+		Resource: func(data *PermissionTemplate) *PermissionTemplateResponse {
+			if data == nil {
+				return nil
+			}
+			return &PermissionTemplateResponse{
+				ID:             data.ID,
+				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
+				CreatedByID:    data.CreatedByID,
+				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
+				UpdatedByID:    data.UpdatedByID,
+				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				OrganizationID: data.OrganizationID,
+				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				BranchID:       data.BranchID,
+				Branch:         m.BranchManager.ToModel(data.Branch),
+
+				Name:        data.Name,
+				Description: data.Description,
+				Permissions: data.Permissions,
+			}
+		},
+		Created: func(data *PermissionTemplate) []string {
+			return []string{
+				"permission_template.create",
+				"permission_template.create.organization." + data.OrganizationID.String(),
+				"permission_template.create.branch." + data.BranchID.String(),
+				"permission_template.create." + data.ID.String(),
+			}
+		},
+		Updated: func(data *PermissionTemplate) []string {
+			return []string{
+				"permission_template.update",
+				"permission_template.update.organization." + data.OrganizationID.String(),
+				"permission_template.update.branch." + data.BranchID.String(),
+				"permission_template.update." + data.ID.String(),
+			}
+		},
+		Deleted: func(data *PermissionTemplate) []string {
+			return []string{
+				"permission_template.delete",
+				"permission_template.delete.organization." + data.OrganizationID.String(),
+				"permission_template.delete.branch." + data.BranchID.String(),
+				"permission_template.delete." + data.ID.String(),
+			}
+		},
+	})
+}

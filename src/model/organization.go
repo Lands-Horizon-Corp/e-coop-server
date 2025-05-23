@@ -92,6 +92,7 @@ type (
 		SubscriptionPlan                    *SubscriptionPlanResponse `json:"subscription_plan,omitempty"`
 		SubscriptionStartDate               string                    `json:"subscription_start_date"`
 		SubscriptionEndDate                 string                    `json:"subscription_end_date"`
+		SubscriptionPlanIsYearly            bool                      `json:"subscription_plan_is_yearly,omitempty"`
 
 		Branches               []*BranchResponse                 `json:"branches,omitempty"`
 		OrganizationCategories []*OrganizationCategoryResponse   `json:"organization_categories,omitempty"`
@@ -133,8 +134,60 @@ type (
 		SubscriptionPlanID       uuid.UUID `json:"subscription_plan_id" validate:"required,uuid4"`
 		SubscriptionPlanIsYearly *bool     `json:"subscription_plan_is_yearly,omitempty"`
 	}
-
-	OrganizationCollection struct {
-		Manager horizon_services.Repository[Organization, OrganizationResponse, OrganizationRequest]
-	}
 )
+
+func (m *Model) Organization() {
+	m.Migration = append(m.Migration, &Organization{})
+	m.OrganizationManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Organization, OrganizationResponse, OrganizationRequest]{
+		Preloads: []string{"CreatedBy", "UpdatedBy", "Media", "CoverMedia", "SubscriptionPlan", "Branches", "OrganizationCategories", "Footsteps", "GeneratedReports", "InvitationCodes", "PermissionTemplates"},
+		Service:  m.provider.Service,
+		Resource: func(data *Organization) *OrganizationResponse {
+			if data == nil {
+				return nil
+			}
+			return &OrganizationResponse{
+				ID:          data.ID,
+				CreatedAt:   data.CreatedAt.Format(time.RFC3339),
+				CreatedByID: data.CreatedByID,
+				CreatedBy:   m.UserManager.ToModel(data.CreatedBy),
+				UpdatedAt:   data.UpdatedAt.Format(time.RFC3339),
+				UpdatedByID: data.UpdatedByID,
+				UpdatedBy:   m.UserManager.ToModel(data.UpdatedBy),
+
+				Name:               data.Name,
+				Address:            data.Address,
+				Email:              data.Email,
+				ContactNumber:      data.ContactNumber,
+				Description:        data.Description,
+				Color:              data.Color,
+				TermsAndConditions: data.TermsAndConditions,
+				PrivacyPolicy:      data.PrivacyPolicy,
+				CookiePolicy:       data.CookiePolicy,
+				RefundPolicy:       data.RefundPolicy,
+				UserAgreement:      data.UserAgreement,
+				IsPrivate:          data.IsPrivate,
+
+				MediaID:    data.MediaID,
+				Media:      m.MediaManager.ToModel(data.Media),
+				CoverMedia: m.MediaManager.ToModel(data.CoverMedia),
+
+				SubscriptionPlanMaxBranches:         data.SubscriptionPlanMaxBranches,
+				SubscriptionPlanMaxEmployees:        data.SubscriptionPlanMaxEmployees,
+				SubscriptionPlanMaxMembersPerBranch: data.SubscriptionPlanMaxMembersPerBranch,
+				SubscriptionPlanID:                  data.SubscriptionPlanID,
+				SubscriptionPlanIsYearly:            false, // TODO
+				SubscriptionPlan:                    m.SubscriptionPlanManager.ToModel(data.SubscriptionPlan),
+				SubscriptionStartDate:               data.SubscriptionStartDate.Format(time.RFC3339),
+				SubscriptionEndDate:                 data.SubscriptionEndDate.Format(time.RFC3339),
+
+				Branches:               m.BranchManager.ToModels(data.Branches),
+				OrganizationCategories: m.OrganizationCategoryManager.ToModels(data.OrganizationCategories),
+				Footsteps:              m.FootstepManager.ToModels(data.Footsteps),
+				GeneratedReports:       m.GeneratedReportManager.ToModels(data.GeneratedReports),
+				InvitationCodes:        m.InvitationCodeManager.ToModels(data.InvitationCodes),
+				PermissionTemplates:    m.PermissionTemplateManager.ToModels(data.PermissionTemplates),
+				UserOrganizations:      m.UserOrganizationManager.ToModels(data.UserOrganizations),
+			}
+		},
+	})
+}

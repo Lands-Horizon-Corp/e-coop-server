@@ -77,8 +77,58 @@ type (
 		Location       string   `json:"location"`
 		AcceptLanguage string   `json:"accept_language"`
 	}
-
-	FootstepCollection struct {
-		Manager horizon_services.Repository[Footstep, FootstepResponse, any]
-	}
 )
+
+func (m *Model) Footstep() {
+	m.Migration = append(m.Migration, &Footstep{})
+	m.FootstepManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Footstep, FootstepResponse, any]{
+		Preloads: []string{
+			"User",
+			"User.Media",
+			"Branch",
+			"Branch.Media",
+			"Organization",
+			"Organization.Media",
+			"Organization.CoverMedia",
+			"Media",
+		},
+		Service: m.provider.Service,
+		Resource: func(data *Footstep) *FootstepResponse {
+			if data == nil {
+				return nil
+			}
+			return &FootstepResponse{
+				ID:             data.ID,
+				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
+				CreatedByID:    data.CreatedByID,
+				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
+				UpdatedByID:    data.UpdatedByID,
+				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				OrganizationID: data.OrganizationID,
+				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				BranchID:       data.BranchID,
+				Branch:         m.BranchManager.ToModel(data.Branch),
+
+				UserID:  data.UserID,
+				User:    m.UserManager.ToModel(data.User),
+				MediaID: data.MediaID,
+				Media:   m.MediaManager.ToModel(data.Media),
+
+				Description:    data.Description,
+				Activity:       data.Activity,
+				AccountType:    data.AccountType,
+				Module:         data.Module,
+				Latitude:       data.Latitude,
+				Longitude:      data.Longitude,
+				Timestamp:      data.Timestamp.Format(time.RFC3339),
+				IsDeleted:      data.IsDeleted,
+				IPAddress:      data.IPAddress,
+				UserAgent:      data.UserAgent,
+				Referer:        data.Referer,
+				Location:       data.Location,
+				AcceptLanguage: data.AcceptLanguage,
+			}
+		},
+	})
+}

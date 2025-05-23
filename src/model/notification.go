@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -34,8 +35,49 @@ type (
 		CreatedAt        string        `json:"created_at"`
 		UpdatedAt        string        `json:"updated_at"`
 	}
-
-	NotificationCollection struct {
-		Manager horizon_services.Repository[Notification, NotificationResponse, any]
-	}
 )
+
+func (m *Model) Notification() {
+	m.Migration = append(m.Migration, &Notification{})
+	m.NotificationManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Notification, NotificationResponse, any]{
+		Preloads: nil,
+		Service:  m.provider.Service,
+		Resource: func(data *Notification) *NotificationResponse {
+			if data == nil {
+				return nil
+			}
+			return &NotificationResponse{
+				ID:               data.ID,
+				UserID:           data.UserID,
+				User:             m.UserManager.ToModel(data.User),
+				Title:            data.Title,
+				Description:      data.Description,
+				IsViewed:         data.IsViewed,
+				NotificationType: data.NotificationType,
+				CreatedAt:        data.CreatedAt.Format(time.RFC3339),
+				UpdatedAt:        data.UpdatedAt.Format(time.RFC3339),
+			}
+		},
+		Created: func(data *Notification) []string {
+			return []string{
+				"notification.create",
+				fmt.Sprintf("notification.create.user.%s", data.UserID),
+				fmt.Sprintf("notification.create.%s", data.ID),
+			}
+		},
+		Updated: func(data *Notification) []string {
+			return []string{
+				"notification.update",
+				fmt.Sprintf("notification.update.user.%s", data.UserID),
+				fmt.Sprintf("notification.update.%s", data.ID),
+			}
+		},
+		Deleted: func(data *Notification) []string {
+			return []string{
+				"notification.delete",
+				fmt.Sprintf("notification.delete.user.%s", data.UserID),
+				fmt.Sprintf("notification.delete.%s", data.ID),
+			}
+		},
+	})
+}

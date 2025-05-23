@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	horizon_services "github.com/lands-horizon/horizon-server/services"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"gorm.io/gorm"
 )
@@ -65,3 +66,65 @@ type (
 		Description    string    `json:"description,omitempty"`
 	}
 )
+
+func (m *Model) InvitationCode() {
+	m.Migration = append(m.Migration, &InvitationCode{})
+	m.InvitationCodeManager = horizon_services.NewRepository(horizon_services.RepositoryParams[InvitationCode, InvitationCodeResponse, InvitationCodeRequest]{
+		Preloads: []string{
+			"CreatedBy",
+			"UpdatedBy",
+			"Organization",
+			"Branch",
+		},
+		Service: m.provider.Service,
+		Resource: func(data *InvitationCode) *InvitationCodeResponse {
+			if data == nil {
+				return nil
+			}
+			return &InvitationCodeResponse{
+				ID:             data.ID,
+				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
+				CreatedByID:    data.CreatedByID,
+				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
+				UpdatedByID:    data.UpdatedByID,
+				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				OrganizationID: data.OrganizationID,
+				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				BranchID:       data.BranchID,
+				Branch:         m.BranchManager.ToModel(data.Branch),
+
+				UserType:       data.UserType,
+				Code:           data.Code,
+				ExpirationDate: data.ExpirationDate.Format(time.RFC3339),
+				MaxUse:         data.MaxUse,
+				CurrentUse:     data.CurrentUse,
+				Description:    data.Description,
+			}
+		},
+		Created: func(data *InvitationCode) []string {
+			return []string{
+				"invitation_code.create",
+				"invitation_code.create.organization." + data.OrganizationID.String(),
+				"invitation_code.create.branch." + data.BranchID.String(),
+				"invitation_code.create." + data.ID.String(),
+			}
+		},
+		Updated: func(data *InvitationCode) []string {
+			return []string{
+				"invitation_code.update",
+				"invitation_code.update.organization." + data.OrganizationID.String(),
+				"invitation_code.update.branch." + data.BranchID.String(),
+				"invitation_code.update." + data.ID.String(),
+			}
+		},
+		Deleted: func(data *InvitationCode) []string {
+			return []string{
+				"invitation_code.delete",
+				"invitation_code.delete.organization." + data.OrganizationID.String(),
+				"invitation_code.delete.branch." + data.BranchID.String(),
+				"invitation_code.delete." + data.ID.String(),
+			}
+		},
+	})
+}
