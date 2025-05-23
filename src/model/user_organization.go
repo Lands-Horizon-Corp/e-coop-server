@@ -1,0 +1,112 @@
+package model
+
+import (
+	"time"
+
+	"github.com/google/uuid"
+	horizon_services "github.com/lands-horizon/horizon-server/services"
+	"github.com/lib/pq"
+	"gorm.io/gorm"
+)
+
+type (
+	UserOrganization struct {
+		ID             uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
+		CreatedAt      time.Time      `gorm:"not null;default:now()"`
+		CreatedByID    uuid.UUID      `gorm:"type:uuid"`
+		CreatedBy      *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
+		UpdatedAt      time.Time      `gorm:"not null;default:now()"`
+		UpdatedByID    uuid.UUID      `gorm:"type:uuid"`
+		UpdatedBy      *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
+		DeletedAt      gorm.DeletedAt `gorm:"index"`
+		DeletedByID    *uuid.UUID     `gorm:"type:uuid"`
+		DeletedBy      *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
+		OrganizationID uuid.UUID      `gorm:"type:uuid;not null;index:idx_user_org_branch"`
+
+		Organization *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE;" json:"organization,omitempty"`
+		BranchID     *uuid.UUID    `gorm:"type:uuid;index:idx_user_org_branch"`
+		Branch       *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE;" json:"branch,omitempty"`
+		UserID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_user_org_branch"`
+
+		User                   *User          `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE;" json:"user,omitempty"`
+		UserType               string         `gorm:"type:varchar(50);not null"`
+		Description            string         `gorm:"type:text" json:"description,omitempty"`
+		ApplicationDescription string         `gorm:"type:text" json:"application_description,omitempty"`
+		ApplicationStatus      string         `gorm:"type:varchar(50);not null;default:'pending'" json:"application_status"`
+		DeveloperSecretKey     string         `gorm:"type:varchar(255);not null;unique" json:"developer_secret_key"`
+		PermissionName         string         `gorm:"type:varchar(255);not null" json:"permission_name"`
+		PermissionDescription  string         `gorm:"type:varchar(255);not null" json:"permission_description"`
+		Permissions            pq.StringArray `gorm:"type:varchar(255)[]" json:"permissions"`
+		IsSeeded               bool           `gorm:"not null;default:false" json:"is_seeded"`
+
+		UserSettingDescription string `gorm:"type:text" json:"user_setting_description"`
+
+		UserSettingStartOR int64 `gorm:"unsigned" json:"start_or"`
+		UserSettingEndOR   int64 `gorm:"unsigned" json:"end_or"`
+		UserSettingUsedOR  int64 `gorm:"unsigned" json:"used_or"`
+
+		UserSettingStartVoucher int64 `gorm:"unsigned" json:"start_voucher"`
+		UserSettingEndVoucher   int64 `gorm:"unsigned" json:"end_voucher"`
+		UserSettingUsedVoucher  int64 `gorm:"unsigned" json:"used_voucher"`
+	}
+
+	UserOrganizationRequest struct {
+		ID       *uuid.UUID `json:"id,omitempty"`
+		UserType string     `json:"user_type,omitempty" validate:"omitempty,oneof=employee member"`
+
+		Description            string   `json:"description,omitempty"`
+		ApplicationDescription string   `json:"application_description,omitempty"`
+		ApplicationStatus      string   `json:"application_status" validate:"omitempty,oneof=pending reported accepted ban not-allowed"`
+		PermissionName         string   `json:"permission_name,omitempty"`
+		PermissionDescription  string   `json:"permission_description,omitempty"`
+		Permissions            []string `json:"permissions,omitempty" validate:"dive"`
+
+		UserSettingDescription string `json:"user_setting_description,omitempty"`
+
+		UserSettingStartOR int64 `json:"user_setting_start_or,omitempty" validate:"min=0"`
+		UserSettingEndOR   int64 `json:"user_setting_end_or,omitempty" validate:"min=0"`
+		UserSettingUsedOR  int64 `json:"user_setting_used_or,omitempty" validate:"min=0"`
+
+		UserSettingStartVoucher int64 `json:"user_setting_start_voucher,omitempty" validate:"min=0"`
+		UserSettingEndVoucher   int64 `json:"user_setting_end_voucher,omitempty" validate:"min=0"`
+		UserSettingUsedVoucher  int64 `json:"user_setting_used_voucher,omitempty" validate:"min=0"`
+	}
+
+	UserOrganizationResponse struct {
+		ID             uuid.UUID             `json:"id"`
+		CreatedAt      string                `json:"created_at"`
+		CreatedByID    uuid.UUID             `json:"created_by_id"`
+		CreatedBy      *UserResponse         `json:"created_by,omitempty"`
+		UpdatedAt      string                `json:"updated_at"`
+		UpdatedByID    uuid.UUID             `json:"updated_by_id"`
+		UpdatedBy      *UserResponse         `json:"updated_by,omitempty"`
+		OrganizationID uuid.UUID             `json:"organization_id"`
+		Organization   *OrganizationResponse `json:"organization,omitempty"`
+		BranchID       *uuid.UUID            `json:"branch_id"`
+		Branch         *BranchResponse       `json:"branch,omitempty"`
+
+		UserID                 uuid.UUID     `json:"user_id"`
+		User                   *UserResponse `json:"user,omitempty"`
+		UserType               string        `json:"user_type"`
+		Description            string        `json:"description,omitempty"`
+		ApplicationDescription string        `json:"application_description,omitempty"`
+		ApplicationStatus      string        `json:"application_status"`
+		DeveloperSecretKey     string        `json:"developer_secret_key"`
+		PermissionName         string        `json:"permission_name"`
+		PermissionDescription  string        `json:"permission_description"`
+		Permissions            []string      `json:"permissions"`
+
+		UserSettingDescription string `json:"user_setting_description"`
+
+		UserSettingStartOR int64 `json:"user_setting_start_or"`
+		UserSettingEndOR   int64 `json:"user_setting_end_or"`
+		UserSettingUsedOR  int64 `json:"user_setting_used_or"`
+
+		UserSettingStartVoucher int64 `json:"user_setting_start_voucher"`
+		UserSettingEndVoucher   int64 `json:"user_setting_end_voucher"`
+		UserSettingUsedVoucher  int64 `json:"user_setting_used_voucher"`
+	}
+	UserOrganizationCollection struct {
+		Manager horizon_services.Repository[UserOrganization, UserOrganizationResponse, UserOrganizationRequest]
+	}
+)

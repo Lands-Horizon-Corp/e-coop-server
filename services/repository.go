@@ -5,12 +5,24 @@ import (
 	"net/http"
 	"reflect"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
+
+func Validate[T any](ctx echo.Context, v *validator.Validate) (*T, error) {
+	var req T
+	if err := ctx.Bind(&req); err != nil {
+		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+	if err := v.Struct(req); err != nil {
+		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+	return &req, nil
+}
 
 type Repository[TData any, TResponse any, TRequest any] interface {
 
