@@ -43,5 +43,6 @@ func NewController(
 func (c *Controller) Start() error {
 	c.MediaController()
 	c.FeedbackController()
+	c.UserController()
 	return nil
 }
