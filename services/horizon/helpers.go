@@ -9,6 +9,7 @@ import (
 	"net/mail"
 	"net/url"
 	"os"
+	"reflect"
 	"regexp"
 	"strings"
 	"time"
@@ -192,4 +193,16 @@ func FileExists(filename string) bool {
 	}
 	info, err := os.Stat(filename)
 	return err == nil && !info.IsDir()
+}
+
+func GenerateToken() (string, error) {
+	id, err := uuid.NewRandom()
+	if err != nil {
+		return "", err
+	}
+	return id.String(), nil
+}
+
+func IsZero[T any](v T) bool {
+	return reflect.ValueOf(v).IsZero()
 }
