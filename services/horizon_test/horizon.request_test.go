@@ -14,16 +14,17 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// go test -v services/horizon_test/horizon.request_test.go
 var (
 	testCtx    context.Context
 	testCancel context.CancelFunc
 )
+var apiPort = horizon.GetFreePort()
 
 func TestMain(m *testing.M) {
 
 	env := horizon.NewEnvironmentService("../../.env")
 
-	apiPort := horizon.GetFreePort()
 	metricsPort := horizon.GetFreePort()
 	clientUrl := env.GetString("APP_CLIENT_URL", "http://localhost:3000")
 	clientName := env.GetString("APP_CLIENT_NAME", "test-client")
@@ -32,12 +33,14 @@ func TestMain(m *testing.M) {
 	testCtx, testCancel = context.WithCancel(context.Background())
 
 	service := horizon.NewHorizonAPIService(apiPort, metricsPort, clientUrl, clientName)
+	go func() {
 
-	if err := service.Run(testCtx); err != nil {
-		// Avoid log.Fatal to ensure deferred testCancel runs
-		println("Server exited with error:", err.Error())
-	}
+		if err := service.Run(testCtx); err != nil {
+			// Avoid log.Fatal to ensure deferred testCancel runs
+			println("Server exited with error:", err.Error())
+		}
 
+	}()
 	// Wait for server to be ready
 	if !waitForServerReady(baseURL+"/health", 5*time.Second) {
 		testCancel()
@@ -69,8 +72,6 @@ func waitForServerReady(url string, timeout time.Duration) bool {
 
 func TestNewHorizonAPIService_HealthCheck(t *testing.T) {
 
-	apiPort := horizon.GetFreePort()
-
 	baseURL := "http://localhost:" + fmt.Sprint(apiPort)
 	resp, err := http.Get(baseURL + "/health")
 	assert.NoError(t, err)
@@ -83,7 +84,6 @@ func TestNewHorizonAPIService_HealthCheck(t *testing.T) {
 
 func TestNewHorizonAPIService_SuspiciousPath(t *testing.T) {
 
-	apiPort := horizon.GetFreePort()
 	baseURL := "http://localhost:" + fmt.Sprint(apiPort)
 	resp, err := http.Get(baseURL + "/config.yaml")
 	assert.NoError(t, err)
@@ -96,7 +96,6 @@ func TestNewHorizonAPIService_SuspiciousPath(t *testing.T) {
 
 func TestNewHorizonAPIService_WellKnownPath(t *testing.T) {
 
-	apiPort := horizon.GetFreePort()
 	baseURL := "http://localhost:" + fmt.Sprint(apiPort)
 	resp, err := http.Get(baseURL + "/.well-known/security.txt")
 	assert.NoError(t, err)

@@ -66,7 +66,7 @@ jobs:
     - name: Run Tests
       run: |
         go version
-        go test ./services/horizon_test
+        go test -v ./services/horizon_test
 
     - name: Install SSH key
       uses: shimataro/ssh-key-action@v2
@@ -112,7 +112,7 @@ jobs:
         # Build and restart application
         export PATH=\$PATH:/usr/local/go/bin  # Ensure Go is in PATH
         go version  # Verify Go version
-        go test ./services/horizon_test
+        go test -v ./services/horizon_test
         go build -o main
 
 
