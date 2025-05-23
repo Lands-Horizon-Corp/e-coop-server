@@ -1,14 +1,10 @@
 package model
 
 import (
-	"context"
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 	horizon_services "github.com/lands-horizon/horizon-server/services"
-	"github.com/lands-horizon/horizon-server/services/horizon"
-	"github.com/lands-horizon/horizon-server/src"
 	"gorm.io/gorm"
 )
 
@@ -51,66 +47,49 @@ type (
 		ID       *uuid.UUID `json:"id,omitempty"`
 		FileName string     `json:"file_name" validate:"required,max=255"`
 	}
-
-	MediaCollection struct {
-		Manager horizon_services.Repository[Media, MediaResponse, MediaRequest]
-	}
 )
 
-func NewMediaCollection(provider *src.Provider) (*MediaCollection, error) {
-	manager := horizon_services.NewRepository(horizon_services.RepositoryParams[Media, MediaResponse, MediaRequest]{
+func (m *Model) Media() {
+	m.Migration = append(m.Migration, &Media{})
+	m.MediaManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Media, MediaResponse, MediaRequest]{
 		Preloads: nil,
-		Service:  provider.Service,
+		Service:  m.provider.Service,
 		Resource: func(data *Media) *MediaResponse {
 			if data == nil {
 				return nil
 			}
-			temporaryURL, err := provider.Service.Storage.GeneratePresignedURL(context.Background(), &horizon.Storage{
+			return &MediaResponse{
+				ID:         data.ID,
+				CreatedAt:  data.CreatedAt.Format(time.RFC3339),
+				UpdatedAt:  data.UpdatedAt.Format(time.RFC3339),
 				FileName:   data.FileName,
 				FileSize:   data.FileSize,
 				FileType:   data.FileType,
 				StorageKey: data.StorageKey,
+				URL:        data.URL,
+				Key:        data.Key,
 				BucketName: data.BucketName,
-			}, time.Minute*30)
-			if err != nil {
-				temporaryURL = ""
-			}
-			return &MediaResponse{
-				ID:          data.ID,
-				CreatedAt:   data.CreatedAt.Format(time.RFC3339),
-				UpdatedAt:   data.UpdatedAt.Format(time.RFC3339),
-				FileName:    data.FileName,
-				FileSize:    data.FileSize,
-				FileType:    data.FileType,
-				StorageKey:  data.StorageKey,
-				URL:         data.URL,
-				Key:         data.Key,
-				BucketName:  data.BucketName,
-				DownloadURL: temporaryURL,
-				Status:      data.Status,
-				Progress:    data.Progress,
+				Status:     data.Status,
+				Progress:   data.Progress,
 			}
 		},
 		Created: func(data *Media) []string {
 			return []string{
 				"media.create",
-				fmt.Sprintf("media.create.%s", data.ID),
+				"media.create." + data.ID.String(),
 			}
 		},
 		Updated: func(data *Media) []string {
 			return []string{
 				"media.update",
-				fmt.Sprintf("media.update.%s", data.ID),
+				"media.update." + data.ID.String(),
 			}
 		},
 		Deleted: func(data *Media) []string {
 			return []string{
 				"media.delete",
-				fmt.Sprintf("media.delete.%s", data.ID),
+				"media.delete." + data.ID.String(),
 			}
 		},
 	})
-	return &MediaCollection{
-		Manager: manager,
-	}, nil
 }

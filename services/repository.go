@@ -29,6 +29,8 @@ type Repository[TData any, TResponse any, TRequest any] interface {
 	// Validate
 	Validate(ctx echo.Context) (*TRequest, error)
 
+	Model() *TData
+
 	// Models
 	ToModel(data *TData) *TResponse
 
@@ -168,6 +170,11 @@ func NewRepository[TData any, TResponse any, TRequest any](params RepositoryPara
 		resource: params.Resource,
 		preloads: params.Preloads,
 	}
+}
+
+// ToModel implements Repository.
+func (c *CollectionManager[TData, TResponse, TRequest]) Model() *TData {
+	return new(TData)
 }
 
 // ToModel implements Repository.

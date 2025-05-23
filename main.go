@@ -15,9 +15,11 @@ func main() {
 	app := fx.New(
 		fx.StartTimeout(10*time.Minute),
 		fx.Provide(
+
 			src.NewProvider,
 			src.NewValidator,
 			controller.NewController,
+			model.NewModel,
 
 			cooperative_tokens.NewUserToken,
 			cooperative_tokens.NewTransactionBatchToken,
@@ -27,18 +29,16 @@ func main() {
 			model.NewMediaCollection,
 			model.NewFeedbackCollection,
 		),
-		fx.Invoke(func(lc fx.Lifecycle, controller *controller.Controller, provider *src.Provider) error {
+		fx.Invoke(func(lc fx.Lifecycle, controller *controller.Controller, model *model.Model, provider *src.Provider) error {
 			lc.Append(fx.Hook{
 				OnStart: func(ctx context.Context) error {
-					controller.Routes()
+					if err := controller.Start(); err != nil {
+						return err
+					}
 					if err := provider.Service.Run(ctx); err != nil {
 						return err
 					}
-					if err := provider.Service.Database.Client().AutoMigrate(
-
-						&model.Feedback{},
-						&model.Media{},
-					); err != nil {
+					if err := model.Start(); err != nil {
 						return err
 					}
 					return nil

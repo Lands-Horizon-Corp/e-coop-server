@@ -17,6 +17,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
+	"github.com/go-playground/validator"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -244,4 +245,15 @@ func PrintASCIIArt() {
 		}
 		fmt.Println(coloredLine)
 	}
+}
+
+func Validate[T any](ctx echo.Context, v *validator.Validate) (*T, error) {
+	var req T
+	if err := ctx.Bind(&req); err != nil {
+		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+	if err := v.Struct(req); err != nil {
+		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+	return &req, nil
 }

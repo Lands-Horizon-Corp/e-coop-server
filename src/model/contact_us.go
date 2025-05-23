@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -45,3 +46,44 @@ type (
 		Manager horizon_services.Repository[ContactUs, ContactUsResponse, ContactUsRequest]
 	}
 )
+
+func (m *Model) ContactUs() {
+	m.Migration = append(m.Migration, m.ContactUsManager.Model())
+	m.ContactUsManager = horizon_services.NewRepository(horizon_services.RepositoryParams[ContactUs, ContactUsResponse, ContactUsRequest]{
+		Preloads: nil,
+		Service:  m.provider.Service,
+		Resource: func(cu *ContactUs) *ContactUsResponse {
+			if cu == nil {
+				return nil
+			}
+			return &ContactUsResponse{
+				ID:            cu.ID,
+				FirstName:     cu.FirstName,
+				LastName:      cu.LastName,
+				Email:         cu.Email,
+				ContactNumber: cu.ContactNumber,
+				Description:   cu.Description,
+				CreatedAt:     cu.CreatedAt.Format(time.RFC3339),
+				UpdatedAt:     cu.UpdatedAt.Format(time.RFC3339),
+			}
+		},
+		Created: func(cu *ContactUs) []string {
+			return []string{
+				"contact_us.create",
+				fmt.Sprintf("feedback.create.%s", cu.ID),
+			}
+		},
+		Deleted: func(cu *ContactUs) []string {
+			return []string{
+				"contact_us.delete",
+				fmt.Sprintf("feedback.delete.%s", cu.ID),
+			}
+		},
+		Updated: func(cu *ContactUs) []string {
+			return []string{
+				"contact_us.update",
+				fmt.Sprintf("feedback.update.%s", cu.ID),
+			}
+		},
+	})
+}

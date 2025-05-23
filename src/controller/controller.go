@@ -49,7 +49,8 @@ func NewController(
 	}, nil
 }
 
-func (c *Controller) Routes() {
+func (c *Controller) Start() error {
 	c.MediaController()
 	c.FeedbackController()
+	return nil
 }

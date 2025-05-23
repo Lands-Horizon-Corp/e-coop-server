@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	horizon_services "github.com/lands-horizon/horizon-server/services"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"gorm.io/gorm"
 )
@@ -64,9 +63,5 @@ type (
 		ExpirationDate time.Time `json:"expiration_date" validate:"required"`
 		MaxUse         int       `json:"max_use" validate:"required"`
 		Description    string    `json:"description,omitempty"`
-	}
-
-	InvitationCodeCollection struct {
-		Manager horizon_services.Repository[InvitationCode, InvitationCodeResponse, InvitationCodeRequest]
 	}
 )
