@@ -3,6 +3,7 @@ package horizon
 import (
 	"context"
 	"errors"
+	"fmt"
 	"math/rand"
 	"net"
 	"net/http"
@@ -205,4 +206,42 @@ func GenerateToken() (string, error) {
 
 func IsZero[T any](v T) bool {
 	return reflect.ValueOf(v).IsZero()
+}
+
+func PrintASCIIArt() {
+	asciiArt := `
+	           ..............                            
+            .,,,,,,,,,,,,,,,,,,,                             
+        ,,,,,,,,,,,,,,,,,,,,,,,,,,                          
+      ,,,,,,,,,,,,,,  .,,,,,,,,,,,,,                        
+    ,,,,,,,,,,           ,,,,,,,,,,,                     
+    ,,,,,,,          .,,,,,,,,,,,                          
+  @@,,,,,,          ,,,,,,,,,,,,                             
+@@@,,,,.@@      .,,,,,,,,,,,                                
+@,,,,,,,@@    ,,,,,,,,,,,                                   
+  ,,,,@@@       ,,,,,,                                      
+    @@@@@@@                                          
+    @@@@@@@@@@           @@@@@@@@                          
+      @@@@@@@@@@@@@@  @@@@@@@@@@@@                          
+        @@@@@@@@@@@@@@@@@@@@@@@@@@                          
+            @@@@@@@@@@@@@@@@@@@@                             
+                  @@@@@@@@
+	`
+
+	lines := strings.Split(asciiArt, "\n")
+
+	for _, line := range lines {
+		coloredLine := ""
+		for _, char := range line {
+			switch char {
+			case '@':
+				coloredLine += Blue + "@" + Reset
+			case ',', '.':
+				coloredLine += Green + string(char) + Reset
+			default:
+				coloredLine += string(char)
+			}
+		}
+		fmt.Println(coloredLine)
+	}
 }

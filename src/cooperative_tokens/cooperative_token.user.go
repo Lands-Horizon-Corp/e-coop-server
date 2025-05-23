@@ -18,12 +18,25 @@ type UserClaim struct {
 	jwt.RegisteredClaims
 }
 
+type UserCSRF struct {
+	UserID        string `json:"user_id"`
+	Email         string `json:"email"`
+	ContactNumber string `json:"contact_number"`
+	Password      string `json:"password"`
+	Username      string `json:"username"`
+}
+
+func (m UserCSRF) GetID() string {
+	return m.UserID
+}
+
 func (c UserClaim) GetRegisteredClaims() *jwt.RegisteredClaims {
 	return &c.RegisteredClaims
 }
 
 type UserToken struct {
-	Token *horizon.HorizonTokenService[UserClaim]
+	Token *horizon.TokenService[UserClaim]
+	CSRF  *horizon.AuthService[UserCSRF]
 }
 
 func NewUserToken(provider *src.Provider) (*UserToken, error) {
@@ -34,9 +47,20 @@ func NewUserToken(provider *src.Provider) (*UserToken, error) {
 	if err != nil {
 		return nil, err
 	}
-	service := &horizon.HorizonTokenService[UserClaim]{
-		Name:   fmt.Sprintf("%s-%s", "X-SECURE-USER", appName),
-		Secret: []byte(token),
-	}
-	return &UserToken{Token: service}, nil
+
+	tokenService := horizon.NewTokenService[UserClaim](
+		fmt.Sprintf("%s-%s", "X-SECURE-TOKEN-USER", appName),
+		[]byte(token),
+	)
+
+	csrfService := horizon.NewHorizonAuthService[UserCSRF](
+		provider.Service.Cache,
+		"user-csrf",
+		fmt.Sprintf("%s-%s", "X-SECURE-CSRF-USER", appName),
+	)
+
+	return &UserToken{
+		Token: &tokenService,
+		CSRF:  &csrfService,
+	}, nil
 }

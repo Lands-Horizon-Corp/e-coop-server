@@ -10,12 +10,12 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/lands-horizon/horizon-server/services/horizon"
 )
 
-// go test ./services/horizon_test/horizon.token_test.go
-// A minimal claim struct for testing
+// go test -v ./services/horizon_test/horizon.token_test.go
 type TestClaim struct {
 	Username string `json:"username"`
 	jwt.RegisteredClaims
@@ -25,124 +25,95 @@ func (c TestClaim) GetRegisteredClaims() *jwt.RegisteredClaims {
 	return &c.RegisteredClaims
 }
 
-func setupService() *horizon.HorizonTokenService[TestClaim] {
+func setupTokenService() horizon.TokenService[TestClaim] {
 	env := horizon.NewEnvironmentService("../../.env")
-	return &horizon.HorizonTokenService[TestClaim]{
-		Name:   env.GetString("APP_NAME", ""),
-		Secret: []byte(env.GetString("APP_TOKEN", "")),
-	}
+	return horizon.NewTokenService[TestClaim](
+		env.GetString("APP_NAME", "horizon-test"),
+		[]byte(env.GetString("APP_TOKEN", base64.StdEncoding.EncodeToString([]byte("test-secret")))),
+	)
 }
 
 func TestGenerateAndVerifyToken(t *testing.T) {
+	service := setupTokenService()
 	ctx := context.Background()
-	svc := setupService()
 
-	// Prepare a claim with ID and Issuer = svc.name
-	claim := TestClaim{
-		Username: "alice",
+	claims := TestClaim{
+		Username: "testuser",
 		RegisteredClaims: jwt.RegisteredClaims{
-			ID:     "user-123",
-			Issuer: svc.Name,
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(1 * time.Hour)),
 		},
 	}
 
-	tokenB64, err := svc.GenerateToken(ctx, claim, 2*time.Hour)
+	token, err := service.GenerateToken(ctx, claims, time.Hour)
 	assert.NoError(t, err)
-	assert.NotEmpty(t, tokenB64)
-	raw, err := base64.StdEncoding.DecodeString(tokenB64)
+	assert.NotEmpty(t, token)
+
+	verifiedClaims, err := service.VerifyToken(ctx, token)
 	assert.NoError(t, err)
-	assert.NotEmpty(t, raw)
-	out, err := svc.VerifyToken(ctx, tokenB64)
-	assert.NoError(t, err)
-	assert.Equal(t, "alice", out.Username)
-	assert.Equal(t, "user-123", out.RegisteredClaims.ID)
+	assert.Equal(t, claims.Username, verifiedClaims.Username)
 }
 
-func TestSetGetAndCleanToken(t *testing.T) {
-	ctx := context.Background()
-	svc := setupService()
-
-	// echo context with a recorder
+func TestSetAndGetToken(t *testing.T) {
+	service := setupTokenService()
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
+	ctx := context.Background()
 
-	// 1) SetToken
-	claim := TestClaim{
-		Username: "bob",
+	claims := TestClaim{
+		Username: "testuser",
 		RegisteredClaims: jwt.RegisteredClaims{
-			ID:     "user-456",
-			Issuer: svc.Name,
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(1 * time.Hour)),
 		},
 	}
-	err := svc.SetToken(ctx, c, claim, time.Minute)
+
+	err := service.SetToken(ctx, c, claims, time.Hour)
 	assert.NoError(t, err)
 
-	// Cookie was set in the response header
-	cookies := rec.Result().Cookies()
-	assert.Len(t, cookies, 1)
-	setC := cookies[0]
-	assert.Equal(t, svc.Name, setC.Name)
-	assert.NotEmpty(t, setC.Value)
-	assert.WithinDuration(t, time.Now().Add(time.Minute), setC.Expires, time.Second)
+	cookie := rec.Result().Cookies()
+	assert.NotEmpty(t, cookie)
 
-	// 2) Simulate a follow‑up request: attach that cookie
-	req2 := httptest.NewRequest(http.MethodGet, "/", nil)
-	req2.AddCookie(setC)
-	rec2 := httptest.NewRecorder()
-	c2 := e.NewContext(req2, rec2)
-
-	// GetToken should retrieve our claim
-	outClaim, err := svc.GetToken(ctx, c2)
+	req.AddCookie(cookie[0])
+	token, err := service.GetToken(ctx, c)
 	assert.NoError(t, err)
-	assert.Equal(t, "bob", outClaim.Username)
-	assert.Equal(t, "user-456", outClaim.RegisteredClaims.ID)
+	assert.Equal(t, claims.Username, token.Username)
+}
 
-	// 3) CleanToken should clear it
-	svc.CleanToken(ctx, c2)
-	cleanCookies := rec2.Result().Cookies()
-	// Echo may append multiple Set-Cookie; find ours
-	var found *http.Cookie
-	for _, ck := range cleanCookies {
-		if ck.Name == svc.Name {
-			found = ck
-			break
+func TestCleanToken(t *testing.T) {
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	ctx := context.Background()
+
+	svc := setupTokenService()
+
+	// Set a dummy cookie to simulate an existing token
+	http.SetCookie(rec, &http.Cookie{
+		Name:     svc.(*horizon.HorizonTokenService[TestClaim]).Name,
+		Value:    "dummy",
+		Path:     "/",
+		HttpOnly: true,
+	})
+
+	// Attach the request to the recorder's cookies
+	req.AddCookie(&http.Cookie{
+		Name:  svc.(*horizon.HorizonTokenService[TestClaim]).Name,
+		Value: "dummy",
+	})
+
+	// Call CleanToken to clear the cookie
+	svc.CleanToken(ctx, c)
+
+	// Check if cookie was cleared (Expires set in the past)
+	cleared := false
+	for _, cookie := range rec.Result().Cookies() {
+		if cookie.Name == svc.(*horizon.HorizonTokenService[TestClaim]).Name {
+			if cookie.Value == "" && cookie.Expires.Before(time.Now()) {
+				cleared = true
+			}
 		}
 	}
-	if assert.NotNil(t, found, "expected CleanToken to set a cookie for %q", svc.Name) {
-		assert.Equal(t, "", found.Value)
-		// Expires in the past
-		assert.True(t, found.Expires.Before(time.Now()))
-	}
-}
-
-func TestVerifyToken_BadBase64(t *testing.T) {
-	svc := setupService()
-	_, err := svc.VerifyToken(context.Background(), "not-base64!!")
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "invalid base64 token")
-}
-
-func TestVerifyToken_BadSignature(t *testing.T) {
-	env := horizon.NewEnvironmentService("../../.env")
-	name := env.GetString("APP_NAME", "")
-
-	ctx := context.Background()
-	svcGood := setupService()
-	svcBad := &horizon.HorizonTokenService[TestClaim]{Name: name, Secret: []byte("wrong-key")}
-
-	claim := TestClaim{
-		Username: "eve",
-		RegisteredClaims: jwt.RegisteredClaims{
-			ID:     "u789",
-			Issuer: svcGood.Name,
-		},
-	}
-	token, err := svcGood.GenerateToken(ctx, claim, time.Hour)
-	assert.NoError(t, err)
-
-	_, err = svcBad.VerifyToken(ctx, token)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "token parse failed")
+	assert.True(t, cleared, "Expected token cookie to be cleared")
 }

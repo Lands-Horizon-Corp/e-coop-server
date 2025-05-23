@@ -2,6 +2,7 @@ package horizon_services
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/go-playground/validator/v10"
@@ -201,6 +202,8 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 
 func (h *HorizonService) Run(ctx context.Context) error {
 
+	fmt.Println("≿━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━༺❀༻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━≾")
+	fmt.Println("🟢 Horizon App is starting...")
 	delay := 3 * time.Second
 	retry := 5
 
@@ -275,6 +278,9 @@ func (h *HorizonService) Run(ctx context.Context) error {
 		}
 	}
 
+	horizon.PrintASCIIArt()
+	fmt.Println("🟢 Horizon App Started")
+	fmt.Println("≿━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━༺❀༻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━≾")
 	return nil
 }
 
