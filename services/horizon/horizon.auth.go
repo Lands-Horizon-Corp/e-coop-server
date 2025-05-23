@@ -10,15 +10,37 @@ import (
 	"github.com/rotisserie/eris"
 )
 
-// AuthService defines the interface for CSRF token management
-// T must implement ClaimWithID to allow user identity comparison
+// AuthService defines the interface for CSRF token management.
+// T must implement ClaimWithID to allow user identity comparison,
+// which is useful for checking if a user is logged in on another device.
 type AuthService[T ClaimWithID] interface {
+	// GetCSRF retrieves the CSRF token from the request header,
+	// looks up the associated claim from the cache, and returns it.
+	// Returns an error if the token is missing or invalid.
 	GetCSRF(ctx context.Context, c echo.Context) (T, error)
+
+	// ClearCSRF removes the CSRF token from the cache using the token
+	// from the request header. This is typically used during logout or session expiration.
 	ClearCSRF(ctx context.Context, c echo.Context)
+
+	// VerifyCSRF checks if a given CSRF token is valid and returns the associated claim.
+	// Returns an error if the token is not found, expired, or malformed.
 	VerifyCSRF(ctx context.Context, token string) (T, error)
+
+	// SetCSRF generates a new CSRF token, stores the claim in the cache with the given expiry,
+	// and adds the token to the response header.
 	SetCSRF(ctx context.Context, c echo.Context, claim T, expiry time.Duration) error
+
+	// IsLoggedInOnOtherDevice checks if there are other active sessions (tokens)
+	// in the cache that belong to the same user (same claim ID) but with a different token.
+	// Useful for enforcing single-session policies or notifying users about concurrent logins.
 	IsLoggedInOnOtherDevice(ctx context.Context, c echo.Context) (bool, error)
+
+	// Key returns the cache key format used to store the CSRF token in the cache.
+	// This typically includes the service name and token.
 	Key(token string) string
+
+	// Name returns the name of the service or namespace used for namespacing the cache keys.
 	Name() string
 }
 
