@@ -57,9 +57,7 @@ function SampleForm() {
   const fetchList = async () => {
     try {
       const res = await axios.get<Feedback[]>(`${import.meta.env.VITE_SERVER_URL}/feedback`, { withCredentials: true, 
-         headers: {
-        'Accept-Encoding': 'gzip', // Adding Accept-Encoding header
-      },
+       
       })
       setFeedbackList(res.data)
     } catch (error) {
@@ -70,9 +68,7 @@ function SampleForm() {
   const fetchFeedback = async (id: string) => {
     try {
       const res = await axios.get<Feedback>(`${import.meta.env.VITE_SERVER_URL}/feedback/${id}`, { withCredentials: true,
-         headers: {
-        'Accept-Encoding': 'gzip', // Adding Accept-Encoding header
-      },
+         
        })
       setSelectedFeedback(res.data)
       form.reset({
@@ -88,9 +84,7 @@ function SampleForm() {
   const createFeedback = async (data: FeedbackFormValues) => {
     try {
       await axios.post(`${import.meta.env.VITE_SERVER_URL}/feedback`, data, { withCredentials: true,
-         headers: {
-        'Accept-Encoding': 'gzip', 
-      },
+         
        })
       await fetchList()
       form.reset()
@@ -102,9 +96,7 @@ function SampleForm() {
 
   const updateFeedback = async (id: string, data: Partial<FeedbackFormValues>) => {
     try {
-      await axios.put(`${import.meta.env.VITE_SERVER_URL}/feedback/${id}`, data, { withCredentials: true, headers: {
-        'Accept-Encoding': 'gzip', // Adding Accept-Encoding header
-      }, })
+      await axios.put(`${import.meta.env.VITE_SERVER_URL}/feedback/${id}`, data, { withCredentials: true})
       await fetchList()
       form.reset()
       setSelectedFeedback(null)
@@ -115,9 +107,7 @@ function SampleForm() {
 
   const deleteFeedback = async (id: string) => {
     try {
-      await axios.delete(`${import.meta.env.VITE_SERVER_URL}/feedback/${id}`, { withCredentials: true,  headers: {
-        'Accept-Encoding': 'gzip', // Adding Accept-Encoding header
-      }, })
+      await axios.delete(`${import.meta.env.VITE_SERVER_URL}/feedback/${id}`, { withCredentials: true})
       setFeedbackList(prev => prev.filter(fb => fb.id !== id))
     } catch (error) {
       console.error("Delete Error:", error)
