@@ -135,6 +135,9 @@ func NewHorizonAPIService(
 	service.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		Skipper:      middleware.DefaultSkipper,
 		AllowOrigins: []string{"*"},
+		AllowOriginFunc: func(origin string) (bool, error) {
+			return true, nil
+		},
 		AllowMethods: []string{
 			http.MethodGet,
 			http.MethodPost,

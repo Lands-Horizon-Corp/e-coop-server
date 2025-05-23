@@ -107,7 +107,7 @@ function SampleForm() {
 
   const deleteFeedback = async (id: string) => {
     try {
-      await axios.delete(`${import.meta.env.VITE_SERVER_URL}/feedback/${id}`, { withCredentials: true})
+      await axios.delete(`${import.meta.env.VITE_SERVER_URL}/feedback/${id}`, { withCredentials: true,})
       setFeedbackList(prev => prev.filter(fb => fb.id !== id))
     } catch (error) {
       console.error("Delete Error:", error)
