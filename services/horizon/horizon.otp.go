@@ -69,9 +69,5 @@ func (h *HorizonOTP) Verify(ctx context.Context, key string, code string) (bool,
 		return false, fmt.Errorf("code not found for key: %s", key)
 	}
 
-	cachedStr, ok := cachedCode.(string)
-	if !ok {
-		return false, fmt.Errorf("cached code is not a string for key: %s", key)
-	}
-	return h.security.VerifyPassword(ctx, cachedStr, code)
+	return h.security.VerifyPassword(ctx, string(cachedCode), code)
 }

@@ -13,6 +13,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// go test -v ./services/horizon_test/horizon.auth_test.go
+
 func createCachSetutService(t *testing.T) horizon.CacheService {
 	ctx := context.Background()
 	env := horizon.NewEnvironmentService("../../.env")

@@ -84,13 +84,8 @@ func (h *HorizonAuthService[T]) GetCSRF(ctx context.Context, c echo.Context) (T,
 		return zeroT, eris.Wrap(err, "failed to get CSRF token")
 	}
 
-	data, ok := val.([]byte)
-	if !ok {
-		return zeroT, eris.New("invalid cache data format")
-	}
-
 	var claim T
-	if err := json.Unmarshal(data, &claim); err != nil {
+	if err := json.Unmarshal(val, &claim); err != nil {
 		return zeroT, eris.Wrap(err, "failed to unmarshal claim")
 	}
 
@@ -119,12 +114,9 @@ func (h *HorizonAuthService[T]) VerifyCSRF(ctx context.Context, token string) (T
 	if err != nil {
 		return zeroT, eris.Wrap(err, "failed to verify CSRF token")
 	}
-	data, ok := val.([]byte)
-	if !ok {
-		return zeroT, eris.New("invalid cache data format")
-	}
+
 	var claim T
-	if err := json.Unmarshal(data, &claim); err != nil {
+	if err := json.Unmarshal(val, &claim); err != nil {
 		return zeroT, eris.Wrap(err, "invalid CSRF token claim type")
 	}
 	if IsZero(claim) {
@@ -180,13 +172,8 @@ func (h *HorizonAuthService[T]) IsLoggedInOnOtherDevice(ctx context.Context, c e
 			continue
 		}
 
-		data, ok := raw.([]byte)
-		if !ok {
-			continue
-		}
-
 		var otherClaim T
-		if err := json.Unmarshal(data, &otherClaim); err != nil {
+		if err := json.Unmarshal(raw, &otherClaim); err != nil {
 			continue
 		}
 

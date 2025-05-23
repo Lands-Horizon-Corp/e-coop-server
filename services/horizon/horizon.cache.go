@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -22,7 +23,7 @@ type CacheService interface {
 	Ping(ctx context.Context) error
 
 	// Get retrieves a value by key from Redis
-	Get(ctx context.Context, key string) (any, error)
+	Get(ctx context.Context, key string) ([]byte, error)
 
 	// Set stores a value with TTL expiration
 	Set(ctx context.Context, key string, value any, ttl time.Duration) error
@@ -78,7 +79,7 @@ func (h *HorizonCache) Ping(ctx context.Context) error {
 	}
 	return nil
 }
-func (h *HorizonCache) Get(ctx context.Context, key string) (any, error) {
+func (h *HorizonCache) Get(ctx context.Context, key string) ([]byte, error) {
 	if h.client == nil {
 		return nil, eris.New("redis client is not initialized")
 	}
@@ -96,11 +97,39 @@ func (h *HorizonCache) Set(ctx context.Context, key string, value any, ttl time.
 		return eris.New("redis client is not initialized")
 	}
 
-	// Accept both []byte and serializable types
 	var data []byte
+
 	switch v := value.(type) {
 	case []byte:
 		data = v
+	case string:
+		data = []byte(v)
+	case int:
+		data = []byte(strconv.Itoa(v))
+	case int8:
+		data = []byte(strconv.FormatInt(int64(v), 10))
+	case int16:
+		data = []byte(strconv.FormatInt(int64(v), 10))
+	case int32:
+		data = []byte(strconv.FormatInt(int64(v), 10))
+	case int64:
+		data = []byte(strconv.FormatInt(v, 10))
+	case uint:
+		data = []byte(strconv.FormatUint(uint64(v), 10))
+	case uint8:
+		data = []byte(strconv.FormatUint(uint64(v), 10))
+	case uint16:
+		data = []byte(strconv.FormatUint(uint64(v), 10))
+	case uint32:
+		data = []byte(strconv.FormatUint(uint64(v), 10))
+	case uint64:
+		data = []byte(strconv.FormatUint(v, 10))
+	case float32:
+		data = []byte(strconv.FormatFloat(float64(v), 'f', -1, 32))
+	case float64:
+		data = []byte(strconv.FormatFloat(v, 'f', -1, 64))
+	case bool:
+		data = []byte(strconv.FormatBool(v))
 	default:
 		var err error
 		data, err = json.Marshal(value)

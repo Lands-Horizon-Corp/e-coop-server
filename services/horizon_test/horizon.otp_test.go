@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// go test ./services/horizon_test/horizon.otp_test.go
+// go test -v ./services/horizon_test/horizon.otp_test.go
 // --- Setup helpers ---
 func setupSecurityUtilsOTP() horizon.SecurityService {
 	env := horizon.NewEnvironmentService("../../.env")
@@ -54,6 +54,7 @@ func TestGenerateAndVerifyOTP(t *testing.T) {
 
 	// Verify OTP
 	valid, err := service.Verify(ctx, key, code)
+
 	assert.NoError(t, err)
 	assert.True(t, valid)
 
