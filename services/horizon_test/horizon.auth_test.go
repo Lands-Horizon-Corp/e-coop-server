@@ -52,15 +52,14 @@ type MyClaim struct {
 }
 
 const (
-	csrfTokenLength = 32
-	csrfHeader      = "X-CSRF-Token"
+	csrfHeader = "X-CSRF-Token"
 )
 
 func (m MyClaim) GetID() string { return m.UserID }
 
 func TestAuthService(t *testing.T) {
 	mockCache := createCachSetutService(t)
-	service := horizon.NewHorizonAuthService[MyClaim](mockCache, "test")
+	service := horizon.NewHorizonAuthService[MyClaim](mockCache, "test", csrfHeader)
 
 	ctx := context.Background()
 	testClaim := MyClaim{UserID: "123"}
@@ -106,7 +105,7 @@ func TestAuthService(t *testing.T) {
 
 	t.Run("Invalid_claim_type", func(t *testing.T) {
 
-		badService := horizon.NewHorizonAuthService[MyClaim](mockCache, "test")
+		badService := horizon.NewHorizonAuthService[MyClaim](mockCache, "test", csrfHeader)
 
 		// Store invalid data
 		key := badService.Key("test-token")
@@ -157,7 +156,7 @@ func TestAuthService(t *testing.T) {
 	t.Run("Invalid_claim_type", func(t *testing.T) {
 		badCache := createCachSetutService(t)
 		assert.NotNil(t, badCache)
-		badService := horizon.NewHorizonAuthService[MyClaim](badCache, "test")
+		badService := horizon.NewHorizonAuthService[MyClaim](badCache, "test", csrfHeader)
 
 		key := badService.Key("test-token")
 		ctx := context.Background()

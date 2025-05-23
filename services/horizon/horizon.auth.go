@@ -2,14 +2,12 @@ package horizon
 
 import (
 	"context"
-	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"math/rand"
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/rotisserie/eris"
 )
 
 // AuthService defines the interface for CSRF token management
@@ -30,51 +28,55 @@ type ClaimWithID interface {
 	GetID() string
 }
 
-const (
-	csrfTokenLength = 32
-	csrfHeader      = "X-CSRF-Token"
-)
-
 // HorizonAuthService stores state for CSRF using a cache backend
 type HorizonAuthService[T ClaimWithID] struct {
-	cache CacheService
-	name  string
+	cache      CacheService
+	name       string
+	csrfHeader string
 }
 
 // NewHorizonAuthService constructs a new service
-func NewHorizonAuthService[T ClaimWithID](cache CacheService, name string) AuthService[T] {
-	return &HorizonAuthService[T]{cache: cache, name: name}
+func NewHorizonAuthService[T ClaimWithID](
+	cache CacheService,
+	name string,
+	csrfHeader string,
+
+) AuthService[T] {
+	return &HorizonAuthService[T]{
+		cache:      cache,
+		name:       name,
+		csrfHeader: csrfHeader,
+	}
 }
 
 func (h *HorizonAuthService[T]) GetCSRF(ctx context.Context, c echo.Context) (T, error) {
 	var zeroT T
-	token := c.Request().Header.Get(csrfHeader)
+	token := c.Request().Header.Get(h.csrfHeader)
 	if token == "" {
-		return zeroT, errors.New("CSRF token not found in request")
+		return zeroT, eris.New("CSRF token not found in request")
 	}
 
 	key := h.Key(token)
 	val, err := h.cache.Get(ctx, key)
 	if err != nil {
-		return zeroT, fmt.Errorf("failed to get CSRF token: %w", err)
+		return zeroT, eris.Wrap(err, "failed to get CSRF token")
 	}
 
-	// Deserialize from JSON
 	data, ok := val.([]byte)
 	if !ok {
-		return zeroT, errors.New("invalid cache data format")
+		return zeroT, eris.New("invalid cache data format")
 	}
 
 	var claim T
 	if err := json.Unmarshal(data, &claim); err != nil {
-		return zeroT, fmt.Errorf("failed to unmarshal claim: %w", err)
+		return zeroT, eris.Wrap(err, "failed to unmarshal claim")
 	}
 
 	return claim, nil
 }
 
 func (h *HorizonAuthService[T]) ClearCSRF(ctx context.Context, c echo.Context) {
-	token := c.Request().Header.Get(csrfHeader)
+	token := c.Request().Header.Get(h.csrfHeader)
 	if token == "" {
 		return
 	}
@@ -89,62 +91,61 @@ func (h *HorizonAuthService[T]) VerifyCSRF(ctx context.Context, token string) (T
 
 	exists, err := h.cache.Exists(ctx, key)
 	if err != nil || !exists {
-		return zeroT, errors.New("invalid CSRF token")
+		return zeroT, eris.New("invalid CSRF token")
 	}
 	val, err := h.cache.Get(ctx, key)
 	if err != nil {
-		return zeroT, fmt.Errorf("failed to verify CSRF token: %w", err)
+		return zeroT, eris.Wrap(err, "failed to verify CSRF token")
 	}
 	data, ok := val.([]byte)
 	if !ok {
-		return zeroT, errors.New("invalid cache data format")
+		return zeroT, eris.New("invalid cache data format")
 	}
 	var claim T
 	if err := json.Unmarshal(data, &claim); err != nil {
-		return zeroT, fmt.Errorf("invalid CSRF token claim type: %w", err)
+		return zeroT, eris.Wrap(err, "invalid CSRF token claim type")
 	}
 	if IsZero(claim) {
-		return zeroT, errors.New("invalid CSRF token claim type")
+		return zeroT, eris.New("invalid CSRF token claim type")
 	}
 
 	return claim, nil
 }
 
 func (h *HorizonAuthService[T]) SetCSRF(ctx context.Context, c echo.Context, claim T, expiry time.Duration) error {
-	token, err := generateCSRFToken()
+	token, err := GenerateToken()
 	if err != nil {
-		return fmt.Errorf("failed to generate CSRF token: %w", err)
+		return eris.Wrap(err, "failed to generate CSRF token")
 	}
 
-	// Serialize claim to JSON
 	data, err := json.Marshal(claim)
 	if err != nil {
-		return fmt.Errorf("failed to marshal claim: %w", err)
+		return eris.Wrap(err, "failed to marshal claim")
 	}
 
 	key := h.Key(token)
 	if err := h.cache.Set(ctx, key, data, expiry); err != nil {
-		return fmt.Errorf("failed to set CSRF token: %w", err)
+		return eris.Wrap(err, "failed to set CSRF token")
 	}
-	c.Response().Header().Set(csrfHeader, token)
+	c.Response().Header().Set(h.csrfHeader, token)
 	return nil
 }
 
 func (h *HorizonAuthService[T]) IsLoggedInOnOtherDevice(ctx context.Context, c echo.Context) (bool, error) {
-	currentToken := c.Request().Header.Get(csrfHeader)
+	currentToken := c.Request().Header.Get(h.csrfHeader)
 	if currentToken == "" {
-		return false, errors.New("no CSRF token in request")
+		return false, eris.New("no CSRF token in request")
 	}
 
 	currentClaim, err := h.VerifyCSRF(ctx, currentToken)
 	if err != nil {
-		return false, fmt.Errorf("invalid current session: %w", err)
+		return false, eris.Wrap(err, "invalid current session")
 	}
 
 	pattern := fmt.Sprintf("%s:csrf:*", h.name)
 	keys, err := h.cache.Keys(ctx, pattern)
 	if err != nil {
-		return false, fmt.Errorf("failed to get CSRF keys: %w", err)
+		return false, eris.Wrap(err, "failed to get CSRF keys")
 	}
 
 	for _, key := range keys {
@@ -181,13 +182,4 @@ func (h *HorizonAuthService[T]) Key(token string) string {
 
 func (h *HorizonAuthService[T]) Name() string {
 	return h.name
-}
-
-// Helper functions
-func generateCSRFToken() (string, error) {
-	bytes := make([]byte, csrfTokenLength)
-	if _, err := rand.Read(bytes); err != nil {
-		return "", err
-	}
-	return base64.URLEncoding.EncodeToString(bytes), nil
 }
