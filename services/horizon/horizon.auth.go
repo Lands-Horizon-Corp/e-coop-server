@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -75,6 +76,12 @@ func (h *HorizonAuthService[T]) GetCSRF(ctx context.Context, c echo.Context) (T,
 	var zeroT T
 	token := c.Request().Header.Get(h.csrfHeader)
 	if token == "" {
+		cookie, err := c.Cookie(h.csrfHeader)
+		if err == nil {
+			token = cookie.Value
+		}
+	}
+	if token == "" {
 		return zeroT, eris.New("CSRF token not found in request")
 	}
 
@@ -100,6 +107,16 @@ func (h *HorizonAuthService[T]) ClearCSRF(ctx context.Context, c echo.Context) {
 
 	key := h.Key(token)
 	_ = h.cache.Delete(ctx, key)
+
+	c.SetCookie(&http.Cookie{
+		Name:     h.csrfHeader,
+		Value:    "",
+		Path:     "/",
+		Expires:  time.Unix(0, 0),
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+	})
 }
 
 func (h *HorizonAuthService[T]) VerifyCSRF(ctx context.Context, token string) (T, error) {
@@ -142,6 +159,17 @@ func (h *HorizonAuthService[T]) SetCSRF(ctx context.Context, c echo.Context, cla
 		return eris.Wrap(err, "failed to set CSRF token")
 	}
 	c.Response().Header().Set(h.csrfHeader, token)
+
+	c.SetCookie(&http.Cookie{
+		Name:     h.csrfHeader,
+		Value:    token,
+		Path:     "/",
+		Expires:  time.Now().Add(expiry),
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+	})
+
 	return nil
 }
 

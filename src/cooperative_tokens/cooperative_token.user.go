@@ -5,8 +5,10 @@ import (
 	"fmt"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src"
+	"github.com/lands-horizon/horizon-server/src/model"
 )
 
 type UserClaim struct {
@@ -35,11 +37,13 @@ func (c UserClaim) GetRegisteredClaims() *jwt.RegisteredClaims {
 }
 
 type UserToken struct {
-	Token *horizon.TokenService[UserClaim]
-	CSRF  *horizon.AuthService[UserCSRF]
+	model *model.Model
+
+	Token horizon.TokenService[UserClaim]
+	CSRF  horizon.AuthService[UserCSRF]
 }
 
-func NewUserToken(provider *src.Provider) (*UserToken, error) {
+func NewUserToken(provider *src.Provider, model *model.Model) (*UserToken, error) {
 	appName := provider.Service.Environment.GetString("APP_NAME", "")
 	appToken := provider.Service.Environment.GetString("APP_TOKEN", "")
 
@@ -60,7 +64,31 @@ func NewUserToken(provider *src.Provider) (*UserToken, error) {
 	)
 
 	return &UserToken{
-		Token: &tokenService,
-		CSRF:  &csrfService,
+		Token: tokenService,
+		CSRF:  csrfService,
+		model: model,
 	}, nil
+}
+
+// Key generates a key for the CSRF token
+func (h *UserToken) CurrentUser(ctx echo.Context) (*model.User, error) {
+	claim, err := h.CSRF.GetCSRF(ctx.Request().Context(), ctx)
+	if err != nil {
+		h.CSRF.ClearCSRF(ctx.Request().Context(), ctx)
+		return nil, echo.NewHTTPError(401, "Unauthorized")
+	}
+	if claim.UserID == "" || claim.Email == "" || claim.ContactNumber == "" || claim.Password == "" {
+		h.CSRF.ClearCSRF(ctx.Request().Context(), ctx)
+		return nil, echo.NewHTTPError(401, "Unauthorized [important user important information]")
+	}
+	user, err := h.model.UserManager.GetByID(ctx.Request().Context(), horizon.ParseUUID(&claim.UserID))
+	if err != nil || user == nil {
+		h.CSRF.ClearCSRF(ctx.Request().Context(), ctx)
+		return nil, echo.NewHTTPError(401, "Unauthorized [user not found]")
+	}
+	if user.Email != claim.Email || user.ContactNumber != claim.ContactNumber || user.Password != claim.Password {
+		h.CSRF.ClearCSRF(ctx.Request().Context(), ctx)
+		return nil, echo.NewHTTPError(401, "Unauthorized [user information mismatch]")
+	}
+	return user, nil
 }

@@ -178,7 +178,6 @@ func (m *Model) User() {
 			"Footsteps.Media",
 			"GeneratedReports",
 			"GeneratedReports.Media",
-			"Notifications",
 			"UserOrganizations",
 			"UserOrganizations.Organization",
 			"UserOrganizations.Branch",
@@ -221,6 +220,24 @@ func (m *Model) User() {
 				UpdatedAt:         data.UpdatedAt.Format(time.RFC3339),
 
 				UserOrganizations: m.UserOrganizationManager.ToModels(data.UserOrganizations),
+			}
+		},
+		Created: func(data *User) []string {
+			return []string{
+				"user.create",
+				"user.create." + data.ID.String(),
+			}
+		},
+		Updated: func(data *User) []string {
+			return []string{
+				"user.update",
+				"user.update." + data.ID.String(),
+			}
+		},
+		Deleted: func(data *User) []string {
+			return []string{
+				"user.delete",
+				"user.delete." + data.ID.String(),
 			}
 		},
 	})
