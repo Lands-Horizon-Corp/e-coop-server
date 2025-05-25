@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/cooperative_tokens"
@@ -175,6 +177,42 @@ func (c *Controller) UserController() {
 		Request:  "IForgotPasswordRequest",
 		Response: "TUser",
 	}, func(ctx echo.Context) error {
+		context := context.Background()
+		var req model.UserForgotPasswordRequest
+		if err := ctx.Bind(&req); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+		// Validate the request using the validator service
+		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+
+		user, err := c.model.GetUserByIdentifier(context, req.Key)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusNotFound, "no account found with those details")
+		}
+
+		token, err := c.provider.Service.Security.GenerateUUIDv5(context, user.Password)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusNotFound, "invalid generating token")
+		}
+		fallback := c.provider.Service.Environment.Get("APP_CLIENT_URL", "")
+		fallbackStr, _ := fallback.(string)
+		if err := c.provider.Service.SMTP.Send(context, horizon.SMTPRequest{
+			To:      req.Key,
+			Subject: "Forgot Password: Lands Horizon",
+			Body:    "templates/email-change-password.html",
+			Vars: map[string]string{
+				"name":      *user.FullName,
+				"eventLink": fallbackStr + "/auth/password-reset/" + token,
+			},
+		}); err != nil {
+			fmt.Println(err)
+			return echo.NewHTTPError(http.StatusNotFound, "failed sending email. please try again later.")
+		}
+		if err := c.provider.Service.Cache.Set(context, token, user.ID, 10*time.Minute); err != nil {
+			return echo.NewHTTPError(http.StatusNotFound, "invalid storing token")
+		}
 		return nil
 	})
 
@@ -183,7 +221,25 @@ func (c *Controller) UserController() {
 		Method: "GET",
 		Note:   "Verify Reset Link: this is the link that is sent to the user to reset their password. this will verify if the link is valid.",
 	}, func(ctx echo.Context) error {
-		return nil
+		context := context.Background()
+
+		resetID := ctx.Param("reset_id")
+		if resetID == "" {
+			return echo.NewHTTPError(http.StatusBadRequest, "reset ID is required")
+		}
+		userID, err := c.provider.Service.Cache.Get(context, resetID)
+		if err != nil || userID == nil {
+			return echo.NewHTTPError(http.StatusNotFound, "Reset link is invalid or expired")
+		}
+		userId, err := uuid.Parse(string(userID))
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, "invalid ID")
+		}
+		_, err = c.model.UserManager.GetByID(context, userId)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusNotFound, "User not found for reset token")
+		}
+		return ctx.NoContent(http.StatusNoContent)
 	})
 
 	req.RegisterRoute(horizon.Route{
@@ -192,7 +248,42 @@ func (c *Controller) UserController() {
 		Request: "IChangePasswordRequest",
 		Note:    "Change Password: this is the link that is sent to the user to reset their password. this will change the user's password.",
 	}, func(ctx echo.Context) error {
-		return nil
+		context := context.Background()
+		var req model.UserChangePasswordRequest
+		if err := ctx.Bind(&req); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+		resetID := ctx.Param("reset_id")
+		if resetID == "" {
+			return echo.NewHTTPError(http.StatusBadRequest, "reset ID is required")
+		}
+		userID, err := c.provider.Service.Cache.Get(context, resetID)
+		if err != nil || userID == nil {
+			return echo.NewHTTPError(http.StatusNotFound, "Reset link is invalid or expired")
+		}
+		userId, err := uuid.Parse(string(userID))
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, "invalid ID")
+		}
+		user, err := c.model.UserManager.GetByID(context, userId)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusNotFound, "User not found for reset token")
+		}
+		hashedPwd, err := c.provider.Service.Security.HashPassword(context, req.NewPassword)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to hash password")
+		}
+		user.Password = hashedPwd
+		if err := c.model.UserManager.UpdateFields(context, user.ID, user); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update user: "+err.Error())
+		}
+		if err := c.provider.Service.Cache.Delete(context, resetID); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to delete token from cache: "+err.Error())
+		}
+		return ctx.NoContent(http.StatusNoContent)
 	})
 
 	req.RegisterRoute(horizon.Route{
@@ -292,6 +383,7 @@ func (c *Controller) UserController() {
 		if err != nil || !valid {
 			return echo.NewHTTPError(http.StatusUnauthorized, "invalid credentials")
 		}
+
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
