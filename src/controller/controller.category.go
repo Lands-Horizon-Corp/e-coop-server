@@ -119,8 +119,10 @@ func (c *Controller) CategoryController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:  "/category/bulk-delete",
-		Method: "DELETE",
+		Route:   "/category/bulk-delete",
+		Method:  "DELETE",
+		Request: "string[]",
+		Note:    "this is used to delete multiple category records",
 	}, func(ctx echo.Context) error {
 		backgroundCtx := context.Background()
 
