@@ -35,6 +35,8 @@ type CacheService interface {
 	Delete(ctx context.Context, key string) error
 
 	Keys(ctx context.Context, pattern string) ([]string, error)
+
+	Flush(ctx context.Context) error
 }
 
 type HorizonCache struct {
@@ -54,6 +56,13 @@ func NewHorizonCache(host, password, username string, port int) CacheService {
 		client:   nil,
 	}
 }
+func (h *HorizonCache) Flush(ctx context.Context) error {
+	if h.client == nil {
+		return eris.New("redis client is not initialized")
+	}
+	return eris.Wrap(h.client.FlushAll(ctx).Err(), "failed to flush Redis")
+}
+
 func (h *HorizonCache) Run(ctx context.Context) error {
 	h.client = redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%d", h.host, h.port),
@@ -148,6 +157,7 @@ func (h *HorizonCache) Exists(ctx context.Context, key string) (bool, error) {
 		return false, eris.New("redis client is not initialized")
 	}
 	val, err := h.client.Exists(ctx, key).Result()
+
 	if err != nil {
 		return false, err
 	}

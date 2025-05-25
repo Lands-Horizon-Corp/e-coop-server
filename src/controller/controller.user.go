@@ -23,15 +23,11 @@ func (c *Controller) UserController() {
 		if err != nil {
 			return err
 		}
-		isLoggedInOnOtherDevice, err := c.userToken.CSRF.IsLoggedInOnOtherDevice(context, ctx)
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, "failed to check if logged in on other device: "+err.Error())
-		}
+
 		return ctx.JSON(http.StatusOK, model.CurrentUserResponse{
-			UserID:                  user.ID,
-			User:                    c.model.UserManager.ToModel(user),
-			IsLoggedInOnOtherDevice: isLoggedInOnOtherDevice,
-			UserOrganization:        nil,
+			UserID:           user.ID,
+			User:             c.model.UserManager.ToModel(user),
+			UserOrganization: nil,
 		})
 	})
 

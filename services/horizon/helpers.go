@@ -12,6 +12,7 @@ import (
 	"os"
 	"reflect"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 	"unicode"
@@ -263,4 +264,15 @@ func StringFormat(value *string) string {
 		return ""
 	}
 	return *value
+}
+
+func ParseCoordinate(value string) float64 {
+	if value == "" {
+		return 0.0
+	}
+	coord, err := strconv.ParseFloat(value, 64)
+	if err != nil {
+		return 0.0
+	}
+	return coord
 }

@@ -75,6 +75,7 @@ type (
 		User                    *UserResponse             `json:"user"`
 		UserOrganization        *UserOrganizationResponse `json:"user_organization"`
 		IsLoggedInOnOtherDevice bool                      `json:"is_logged_in_on_other_device"`
+		Users                   any                       `json:"users,omitempty"` // This can be used to return multiple users if needed
 	}
 
 	UserLoginRequest struct {
