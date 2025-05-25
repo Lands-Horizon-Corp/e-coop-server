@@ -220,49 +220,28 @@ func (h *HorizonAuthService[T]) GetLoggedInUsers(ctx context.Context, c echo.Con
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to get current user claim")
 	}
-
-	pattern := fmt.Sprintf("%s:csrf:*:*", h.name)
+	pattern := fmt.Sprintf("%s:csrf:%s:*", h.name, currentClaim.GetID())
 	keys, err := h.cache.Keys(ctx, pattern)
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to get CSRF keys")
 	}
-
-	uniqueUsers := make(map[string]T)
+	uniqueUsers := []T{}
 	for _, key := range keys {
 		parts := strings.Split(key, ":")
 		if len(parts) < 4 {
 			continue
 		}
-		userID := parts[2]
-		if userID == currentClaim.GetID() {
+		val, err := h.cache.Get(ctx, key)
+		if err != nil {
 			continue
 		}
-		if _, ok := uniqueUsers[userID]; ok {
+		var claim T
+		if err := json.Unmarshal(val, &claim); err != nil {
 			continue
 		}
-		userPattern := fmt.Sprintf("%s:csrf:%s:*", h.name, userID)
-		userKeys, err := h.cache.Keys(ctx, userPattern)
-		if err != nil || len(userKeys) == 0 {
-			continue
-		}
-		for _, userKey := range userKeys {
-			data, err := h.cache.Get(ctx, userKey)
-			if err != nil || len(data) == 0 {
-				continue
-			}
-			var claim T
-			if err := json.Unmarshal(data, &claim); err == nil {
-				uniqueUsers[userID] = claim
-				break
-			}
-		}
+		uniqueUsers = append(uniqueUsers, claim)
 	}
-
-	results := make([]T, 0, len(uniqueUsers))
-	for _, user := range uniqueUsers {
-		results = append(results, user)
-	}
-	return results, nil
+	return uniqueUsers, nil
 }
 
 // VerifyCSRF validates a CSRF token and returns the associated claim if valid.
@@ -296,7 +275,6 @@ func (h *HorizonAuthService[T]) LogoutOtherDevices(ctx context.Context, c echo.C
 	if currentToken == "" {
 		return eris.New("missing current session token")
 	}
-
 	currentClaim, err := h.GetCSRF(ctx, c)
 	if err != nil {
 		return eris.New("missing current session token")
@@ -304,7 +282,6 @@ func (h *HorizonAuthService[T]) LogoutOtherDevices(ctx context.Context, c echo.C
 	if currentClaim.GetID() != id {
 		return eris.New("unauthorized to log out other users")
 	}
-
 	pattern := fmt.Sprintf("%s:csrf:%s:*", h.name, id)
 	keys, err := h.cache.Keys(ctx, pattern)
 	if err != nil {

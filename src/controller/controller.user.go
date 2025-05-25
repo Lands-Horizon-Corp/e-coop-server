@@ -7,6 +7,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/horizon"
+	"github.com/lands-horizon/horizon-server/src/cooperative_tokens"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
 
@@ -29,6 +30,30 @@ func (c *Controller) UserController() {
 			User:             c.model.UserManager.ToModel(user),
 			UserOrganization: nil,
 		})
+	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:    "/authentication/current-logged-in-accounts",
+		Note:     "Current Logged In User: this is used to get the current logged in user in other apps/browsers. this is used for the frontend to get the current user.",
+		Method:   "GET",
+		Response: "TUser",
+	}, func(ctx echo.Context) error {
+		context := context.Background()
+		_, err := c.userToken.CurrentUser(context, ctx)
+		if err != nil {
+			return err
+		}
+		loggedIn, err := c.userToken.CSRF.GetLoggedInUsers(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, err.Error())
+		}
+		var resp cooperative_tokens.UserCSRFResponse
+		loggedInPtrs := make([]*cooperative_tokens.UserCSRF, len(loggedIn))
+		for i := range loggedIn {
+			loggedInPtrs[i] = &loggedIn[i]
+		}
+		responses := resp.UserCSRFModels(loggedInPtrs)
+		return ctx.JSON(http.StatusOK, responses)
 	})
 
 	req.RegisterRoute(horizon.Route{

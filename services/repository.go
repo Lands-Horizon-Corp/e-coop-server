@@ -23,6 +23,24 @@ func Validate[T any](ctx echo.Context, v *validator.Validate) (*T, error) {
 	}
 	return &req, nil
 }
+func ToModel[T any, G any](data *T, mapFunc func(*T) *G) *G {
+	if data == nil {
+		return nil
+	}
+	return mapFunc(data)
+}
+func ToModels[T any, G any](data []*T, mapFunc func(*T) *G) []*G {
+	if data == nil {
+		return []*G{}
+	}
+	out := make([]*G, 0, len(data))
+	for _, item := range data {
+		if m := mapFunc(item); m != nil {
+			out = append(out, m)
+		}
+	}
+	return out
+}
 
 type Repository[TData any, TResponse any, TRequest any] interface {
 
