@@ -51,7 +51,9 @@ func (c *Controller) Start() error {
 	c.FeedbackController()
 	c.MediaController()
 	c.QRCodeController()
+	c.SubscriptionPlanController()
 	c.UserController()
+	c.UserOrganinzationController()
 
 	return nil
 }
