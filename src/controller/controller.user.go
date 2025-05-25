@@ -264,7 +264,30 @@ func (c *Controller) UserController() {
 		Request: "password & password confirmation",
 		Note:    "Verify with Password: this is used to verify the user's password. [for preceeding protected self actions]",
 	}, func(ctx echo.Context) error {
-		return nil
+		context := context.Background()
+
+		// Bind the request body to UserSettingsChangeProfilePictureRequest struct
+		var req model.UserVerifyWithPasswordRequest
+		if err := ctx.Bind(&req); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+
+		// Validate the request using the validator service
+		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+
+		// Get the current user from the context
+		user, err := c.userToken.CurrentUser(context, ctx)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to get current user: "+err.Error())
+		}
+		// Verify the password
+		valid, err := c.provider.Service.Security.VerifyPassword(context, user.Password, req.Password)
+		if err != nil || !valid {
+			return echo.NewHTTPError(http.StatusUnauthorized, "invalid credentials")
+		}
+		return ctx.NoContent(http.StatusNoContent)
 	})
 
 	req.RegisterRoute(horizon.Route{
@@ -273,7 +296,8 @@ func (c *Controller) UserController() {
 		Request: "IChangePasswordRequest",
 		Note:    "Change Password: this is used to change the user's password.",
 	}, func(ctx echo.Context) error {
-		return nil
+
+		return ctx.NoContent(http.StatusNoContent)
 	})
 
 	req.RegisterRoute(horizon.Route{
