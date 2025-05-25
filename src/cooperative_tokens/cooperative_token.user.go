@@ -3,6 +3,8 @@ package cooperative_tokens
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
@@ -71,24 +73,48 @@ func NewUserToken(provider *src.Provider, model *model.Model) (*UserToken, error
 }
 
 // Key generates a key for the CSRF token
-func (h *UserToken) CurrentUser(ctx echo.Context) (*model.User, error) {
-	claim, err := h.CSRF.GetCSRF(ctx.Request().Context(), ctx)
+func (h *UserToken) CurrentUser(context context.Context, ctx echo.Context) (*model.User, error) {
+	claim, err := h.CSRF.GetCSRF(context, ctx)
 	if err != nil {
-		h.CSRF.ClearCSRF(ctx.Request().Context(), ctx)
+		h.CSRF.ClearCSRF(context, ctx)
 		return nil, echo.NewHTTPError(401, "Unauthorized")
 	}
 	if claim.UserID == "" || claim.Email == "" || claim.ContactNumber == "" || claim.Password == "" {
-		h.CSRF.ClearCSRF(ctx.Request().Context(), ctx)
+		h.CSRF.ClearCSRF(context, ctx)
 		return nil, echo.NewHTTPError(401, "Unauthorized [important user important information]")
 	}
-	user, err := h.model.UserManager.GetByID(ctx.Request().Context(), horizon.ParseUUID(&claim.UserID))
+	user, err := h.model.UserManager.GetByID(context, horizon.ParseUUID(&claim.UserID))
 	if err != nil || user == nil {
-		h.CSRF.ClearCSRF(ctx.Request().Context(), ctx)
+		h.CSRF.ClearCSRF(context, ctx)
 		return nil, echo.NewHTTPError(401, "Unauthorized [user not found]")
 	}
 	if user.Email != claim.Email || user.ContactNumber != claim.ContactNumber || user.Password != claim.Password {
-		h.CSRF.ClearCSRF(ctx.Request().Context(), ctx)
+		h.CSRF.ClearCSRF(context, ctx)
 		return nil, echo.NewHTTPError(401, "Unauthorized [user information mismatch]")
 	}
 	return user, nil
+}
+
+func (h *UserToken) SetUser(context context.Context, ctx echo.Context, user *model.User) error {
+	h.CSRF.ClearCSRF(context, ctx)
+	if user == nil {
+		h.CSRF.ClearCSRF(context, ctx)
+		return echo.NewHTTPError(http.StatusBadRequest, "user cannot be nil")
+	}
+	if user.Email == "" || user.ContactNumber == "" || user.Password == "" || user.UserName == "" {
+		h.CSRF.ClearCSRF(context, ctx)
+		return echo.NewHTTPError(http.StatusBadRequest, "user must have ID, Email, ContactNumber, Password, and Username")
+	}
+	claim := UserCSRF{
+		UserID:        user.ID.String(),
+		Email:         user.Email,
+		ContactNumber: user.ContactNumber,
+		Password:      user.Password,
+		Username:      user.UserName,
+	}
+	if err := h.CSRF.SetCSRF(context, ctx, claim, 8*time.Hour); err != nil {
+		h.CSRF.ClearCSRF(context, ctx)
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to set authentication token")
+	}
+	return nil
 }

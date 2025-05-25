@@ -1,10 +1,12 @@
 package model
 
 import (
+	"context"
 	"time"
 
 	"github.com/google/uuid"
 	horizon_services "github.com/lands-horizon/horizon-server/services"
+	"github.com/lands-horizon/horizon-server/services/horizon"
 	"gorm.io/gorm"
 )
 
@@ -55,22 +57,33 @@ func (m *Model) Media() {
 		Preloads: nil,
 		Service:  m.provider.Service,
 		Resource: func(data *Media) *MediaResponse {
+
 			if data == nil {
 				return nil
 			}
+			temporary, err := m.provider.Service.Storage.GeneratePresignedURL(
+				context.Background(), &horizon.Storage{
+					StorageKey: data.StorageKey,
+					BucketName: data.BucketName,
+					FileName:   data.FileName,
+				}, time.Hour)
+			if err != nil {
+				temporary = ""
+			}
 			return &MediaResponse{
-				ID:         data.ID,
-				CreatedAt:  data.CreatedAt.Format(time.RFC3339),
-				UpdatedAt:  data.UpdatedAt.Format(time.RFC3339),
-				FileName:   data.FileName,
-				FileSize:   data.FileSize,
-				FileType:   data.FileType,
-				StorageKey: data.StorageKey,
-				URL:        data.URL,
-				Key:        data.Key,
-				BucketName: data.BucketName,
-				Status:     data.Status,
-				Progress:   data.Progress,
+				ID:          data.ID,
+				CreatedAt:   data.CreatedAt.Format(time.RFC3339),
+				UpdatedAt:   data.UpdatedAt.Format(time.RFC3339),
+				FileName:    data.FileName,
+				FileSize:    data.FileSize,
+				FileType:    data.FileType,
+				StorageKey:  data.StorageKey,
+				URL:         data.URL,
+				Key:         data.Key,
+				BucketName:  data.BucketName,
+				Status:      data.Status,
+				Progress:    data.Progress,
+				DownloadURL: temporary,
 			}
 		},
 		Created: func(data *Media) []string {
@@ -92,4 +105,34 @@ func (m *Model) Media() {
 			}
 		},
 	})
+}
+
+func (m *Model) MediaDelete(context context.Context, mediaId uuid.UUID) error {
+	if mediaId == uuid.Nil {
+		return nil
+	}
+	media, err := m.MediaManager.GetByID(context, mediaId)
+	if err != nil {
+		return err
+	}
+	if media == nil {
+		return nil
+	}
+	if err := m.MediaManager.DeleteByID(context, media.ID); err != nil {
+		return err
+	}
+	if err := m.provider.Service.Storage.DeleteFile(context, &horizon.Storage{
+		FileName:   media.FileName,
+		FileSize:   media.FileSize,
+		FileType:   media.FileType,
+		StorageKey: media.StorageKey,
+		URL:        media.URL,
+		BucketName: media.BucketName,
+		Status:     "delete",
+	}); err != nil {
+		return err
+	}
+
+	return nil
+
 }

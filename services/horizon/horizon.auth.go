@@ -102,12 +102,16 @@ func (h *HorizonAuthService[T]) GetCSRF(ctx context.Context, c echo.Context) (T,
 func (h *HorizonAuthService[T]) ClearCSRF(ctx context.Context, c echo.Context) {
 	token := c.Request().Header.Get(h.csrfHeader)
 	if token == "" {
+		if cookie, err := c.Cookie(h.csrfHeader); err == nil {
+			token = cookie.Value
+		}
+	}
+	if token == "" {
 		return
 	}
 
 	key := h.Key(token)
 	_ = h.cache.Delete(ctx, key)
-
 	c.SetCookie(&http.Cookie{
 		Name:     h.csrfHeader,
 		Value:    "",
@@ -118,7 +122,6 @@ func (h *HorizonAuthService[T]) ClearCSRF(ctx context.Context, c echo.Context) {
 		SameSite: http.SameSiteLaxMode,
 	})
 }
-
 func (h *HorizonAuthService[T]) VerifyCSRF(ctx context.Context, token string) (T, error) {
 	var zeroT T
 	key := h.Key(token)
@@ -131,7 +134,6 @@ func (h *HorizonAuthService[T]) VerifyCSRF(ctx context.Context, token string) (T
 	if err != nil {
 		return zeroT, eris.Wrap(err, "failed to verify CSRF token")
 	}
-
 	var claim T
 	if err := json.Unmarshal(val, &claim); err != nil {
 		return zeroT, eris.Wrap(err, "invalid CSRF token claim type")
@@ -139,7 +141,6 @@ func (h *HorizonAuthService[T]) VerifyCSRF(ctx context.Context, token string) (T
 	if IsZero(claim) {
 		return zeroT, eris.New("invalid CSRF token claim type")
 	}
-
 	return claim, nil
 }
 
@@ -172,45 +173,59 @@ func (h *HorizonAuthService[T]) SetCSRF(ctx context.Context, c echo.Context, cla
 
 	return nil
 }
-
 func (h *HorizonAuthService[T]) IsLoggedInOnOtherDevice(ctx context.Context, c echo.Context) (bool, error) {
-	currentToken := c.Request().Header.Get(h.csrfHeader)
-	if currentToken == "" {
-		return false, eris.New("no CSRF token in request")
-	}
-
-	currentClaim, err := h.VerifyCSRF(ctx, currentToken)
+	// Step 1: Get current user's CSRF claim
+	currentClaim, err := h.GetCSRF(ctx, c)
 	if err != nil {
-		return false, eris.Wrap(err, "invalid current session")
+		return false, eris.Wrap(err, "could not retrieve CSRF claim")
 	}
 
+	// Step 2: Get current CSRF token (from header or cookie)
+	currentToken := h.getTokenFromContext(c)
+	if currentToken == "" {
+		return false, eris.New("CSRF token not found in request")
+	}
+
+	// Step 3: Retrieve all CSRF session keys
 	pattern := fmt.Sprintf("%s:csrf:*", h.name)
 	keys, err := h.cache.Keys(ctx, pattern)
 	if err != nil {
-		return false, eris.Wrap(err, "failed to get CSRF keys")
+		return false, eris.Wrap(err, "failed to retrieve CSRF keys")
 	}
 
+	// Step 4: Check for any other session using the same user ID
 	for _, key := range keys {
 		if key == h.Key(currentToken) {
-			continue
+			continue // Skip current token
 		}
 
-		raw, err := h.cache.Get(ctx, key)
+		data, err := h.cache.Get(ctx, key)
 		if err != nil {
-			continue
+			continue // Skip broken cache entries
 		}
 
 		var otherClaim T
-		if err := json.Unmarshal(raw, &otherClaim); err != nil {
+		if err := json.Unmarshal(data, &otherClaim); err != nil {
 			continue
 		}
 
 		if otherClaim.GetID() == currentClaim.GetID() {
-			return true, nil
+			return true, nil // Found another session
 		}
 	}
 
-	return false, nil
+	return false, nil // No other session found
+}
+
+// getTokenFromContext tries to retrieve the CSRF token from headers or cookies
+func (h *HorizonAuthService[T]) getTokenFromContext(c echo.Context) string {
+	if token := c.Request().Header.Get(h.csrfHeader); token != "" {
+		return token
+	}
+	if cookie, err := c.Cookie(h.csrfHeader); err == nil {
+		return cookie.Value
+	}
+	return ""
 }
 
 func (h *HorizonAuthService[T]) Key(token string) string {

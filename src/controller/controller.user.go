@@ -4,11 +4,9 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/horizon"
-	"github.com/lands-horizon/horizon-server/src/cooperative_tokens"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
 
@@ -20,14 +18,20 @@ func (c *Controller) UserController() {
 		Method:   "GET",
 		Response: "TUser",
 	}, func(ctx echo.Context) error {
-		user, err := c.userToken.CurrentUser(ctx)
+		context := context.Background()
+		user, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
 			return err
 		}
+		isLoggedInOnOtherDevice, err := c.userToken.CSRF.IsLoggedInOnOtherDevice(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, "failed to check if logged in on other device: "+err.Error())
+		}
 		return ctx.JSON(http.StatusOK, model.CurrentUserResponse{
-			UserID:           user.ID,
-			User:             c.model.UserManager.ToModel(user),
-			UserOrganization: nil,
+			UserID:                  user.ID,
+			User:                    c.model.UserManager.ToModel(user),
+			IsLoggedInOnOtherDevice: isLoggedInOnOtherDevice,
+			UserOrganization:        nil,
 		})
 	})
 
@@ -37,14 +41,47 @@ func (c *Controller) UserController() {
 		Request:  "ISignInRequest",
 		Response: "TUser",
 	}, func(ctx echo.Context) error {
-		return nil
+		context := context.Background()
+		var req model.UserLoginRequest
+		if err := ctx.Bind(&req); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+
+		// Validate the request using the validator service
+		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+
+		// Find user by email
+		user, err := c.model.GetUserByIdentifier(context, req.Key)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusUnauthorized, "invalid credentials")
+		}
+
+		// Verify the password
+		valid, err := c.provider.Service.Security.VerifyPassword(context, user.Password, req.Password)
+		if err != nil || !valid {
+			return echo.NewHTTPError(http.StatusUnauthorized, "invalid credentials")
+		}
+
+		// Set user token after successful login
+		if err := c.userToken.SetUser(context, ctx, user); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to set user token: "+err.Error())
+		}
+
+		return ctx.JSON(http.StatusOK, model.CurrentUserResponse{
+			UserID: user.ID,
+			User:   c.model.UserManager.ToModel(user),
+		})
 	})
 
 	req.RegisterRoute(horizon.Route{
 		Route:  "/authentication/logout",
 		Method: "POST",
 	}, func(ctx echo.Context) error {
-		return nil
+		context := context.Background()
+		c.userToken.CSRF.ClearCSRF(context, ctx)
+		return ctx.NoContent(http.StatusNoContent)
 	})
 
 	req.RegisterRoute(horizon.Route{
@@ -81,18 +118,9 @@ func (c *Controller) UserController() {
 		if err := c.model.UserManager.Create(context, user); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not register user: %v", err))
 		}
-
-		claim := cooperative_tokens.UserCSRF{
-			UserID:        user.ID.String(),
-			Email:         user.Email,
-			ContactNumber: user.ContactNumber,
-			Password:      user.Password,
-			Username:      user.UserName,
+		if err := c.userToken.SetUser(context, ctx, user); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to set user token: "+err.Error())
 		}
-		if err := c.userToken.CSRF.SetCSRF(context, ctx, claim, 8*time.Hour); err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, "failed to set authentication token")
-		}
-
 		return ctx.JSON(http.StatusOK, model.CurrentUserResponse{
 			UserID: user.ID,
 			User:   c.model.UserManager.ToModel(user),
@@ -238,6 +266,7 @@ func (c *Controller) UserController() {
 	}, func(ctx echo.Context) error {
 		return nil
 	})
+
 	req.RegisterRoute(horizon.Route{
 		Route:    "/profile/profile-picture",
 		Method:   "PUT",
@@ -245,8 +274,58 @@ func (c *Controller) UserController() {
 		Response: "TUser",
 		Note:     "Change Profile Picture: this is used to change the user's profile picture.",
 	}, func(ctx echo.Context) error {
-		return nil
+		context := context.Background()
+
+		// Bind the request body to UserSettingsChangeProfilePictureRequest struct
+		var req model.UserSettingsChangeProfilePictureRequest
+		if err := ctx.Bind(&req); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+
+		// Validate the request using the validator service
+		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+
+		// Get the current user from the context
+		user, err := c.userToken.CurrentUser(context, ctx)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to get current user: "+err.Error())
+		}
+
+		// Check if the new media ID is the same as the current one
+		if user.MediaID == req.MediaID {
+			return echo.NewHTTPError(http.StatusBadRequest, "media ID is the same as the current one")
+		}
+
+		// Delete the current profile picture if it exists
+		if user.MediaID != nil {
+			if err := c.model.MediaDelete(context, *user.MediaID); err != nil {
+				return echo.NewHTTPError(http.StatusInternalServerError, "failed to delete current media: "+err.Error())
+			}
+		}
+
+		// Update the user's media ID with the new one
+		user.MediaID = req.MediaID
+
+		// Update the user in the database
+		if err := c.model.UserManager.Update(context, user); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update user: "+err.Error())
+		}
+
+		updatedUser, err := c.model.UserManager.GetByID(context, user.ID)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update user: "+err.Error())
+		}
+		// Set the updated user in the token
+		if err := c.userToken.SetUser(context, ctx, user); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to set user token: "+err.Error())
+		}
+
+		// Return the updated user model in the response
+		return ctx.JSON(http.StatusOK, c.model.UserManager.ToModel(updatedUser))
 	})
+
 	req.RegisterRoute(horizon.Route{
 		Route:    "/profile/general",
 		Method:   "PUT",
@@ -254,6 +333,34 @@ func (c *Controller) UserController() {
 		Response: "TUser",
 		Note:     "Change General Settings: this is used to change the user's general settings.",
 	}, func(ctx echo.Context) error {
+		context := context.Background()
+		var req model.UserSettingsChangeGeneralRequest
+		if err := ctx.Bind(&req); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+		user, err := c.userToken.CurrentUser(context, ctx)
+		if err != nil {
+			return err
+		}
+		user.UserName = req.UserName
+		user.Description = req.Description
+		if user.Email != req.Email {
+			user.Email = req.Email
+			user.IsEmailVerified = false
+		}
+		if user.ContactNumber != req.ContactNumber {
+			user.ContactNumber = req.ContactNumber
+			user.IsContactVerified = false
+		}
+		if err := c.model.UserManager.Update(context, user); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update user: "+err.Error())
+		}
+		if err := c.userToken.SetUser(context, ctx, user); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to set user token: "+err.Error())
+		}
 		return nil
 	})
 }

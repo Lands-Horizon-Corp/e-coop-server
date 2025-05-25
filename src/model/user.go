@@ -2,11 +2,13 @@ package model
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	horizon_services "github.com/lands-horizon/horizon-server/services"
 	"github.com/lands-horizon/horizon-server/services/horizon"
+	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
@@ -69,9 +71,10 @@ type (
 	}
 
 	CurrentUserResponse struct {
-		UserID           uuid.UUID                 `json:"user_id"`
-		User             *UserResponse             `json:"user"`
-		UserOrganization *UserOrganizationResponse `json:"user_organization"`
+		UserID                  uuid.UUID                 `json:"user_id"`
+		User                    *UserResponse             `json:"user"`
+		UserOrganization        *UserOrganizationResponse `json:"user_organization"`
+		IsLoggedInOnOtherDevice bool                      `json:"is_logged_in_on_other_device"`
 	}
 
 	UserLoginRequest struct {
@@ -219,6 +222,14 @@ func (m *Model) User() {
 				CreatedAt:         data.CreatedAt.Format(time.RFC3339),
 				UpdatedAt:         data.UpdatedAt.Format(time.RFC3339),
 
+				MediaID:          data.MediaID,
+				Media:            m.MediaManager.ToModel(data.Media),
+				SignatureMediaID: data.SignatureMediaID,
+				SignatureMedia:   m.MediaManager.ToModel(data.SignatureMedia),
+				Footsteps:        m.FootstepManager.ToModels(data.Footsteps),
+				GeneratedReports: m.GeneratedReportManager.ToModels(data.GeneratedReports),
+				Notifications:    m.NotificationManager.ToModels(data.Notification),
+
 				UserOrganizations: m.UserOrganizationManager.ToModels(data.UserOrganizations),
 			}
 		},
@@ -241,4 +252,38 @@ func (m *Model) User() {
 			}
 		},
 	})
+}
+
+// user/contact-number/:contact_number_id
+func (m *Model) GetUserByContactNumber(context context.Context, contactNumber string) (*User, error) {
+	return m.UserManager.FindOne(context, &User{ContactNumber: contactNumber})
+}
+
+// user/email/:email
+func (m *Model) GetUserByEmail(context context.Context, email string) (*User, error) {
+	return m.UserManager.FindOne(context, &User{Email: email})
+}
+
+// user/user-name/:user-name
+func (m *Model) GetUserByUserName(context context.Context, userName string) (*User, error) {
+	return m.UserManager.FindOne(context, &User{UserName: userName})
+}
+
+// user/identifier/:identifier
+func (m *Model) GetUserByIdentifier(context context.Context, identifier string) (*User, error) {
+	if strings.Contains(identifier, "@") {
+		if u, err := m.GetUserByEmail(context, identifier); err == nil {
+			return u, nil
+		}
+	}
+	numeric := strings.Trim(identifier, "+-0123456789")
+	if numeric == "" {
+		if u, err := m.GetUserByContactNumber(context, identifier); err == nil {
+			return u, nil
+		}
+	}
+	if u, err := m.GetUserByUserName(context, identifier); err == nil {
+		return u, nil
+	}
+	return nil, eris.New("user not found by email, contact number, or username")
 }

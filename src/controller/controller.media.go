@@ -146,20 +146,7 @@ func (c *Controller) MediaController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
 		}
-
-		if err := c.provider.Service.Storage.DeleteFile(context, &horizon.Storage{
-			FileName:   media.FileName,
-			FileSize:   media.FileSize,
-			FileType:   media.FileType,
-			StorageKey: media.StorageKey,
-			URL:        media.URL,
-			BucketName: media.BucketName,
-			Status:     "delete",
-		}); err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
-		}
-
-		if err := c.model.MediaManager.DeleteByID(context, *mediaId); err != nil {
+		if err := c.model.MediaDelete(context, media.ID); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
 		return ctx.NoContent(http.StatusNoContent)
