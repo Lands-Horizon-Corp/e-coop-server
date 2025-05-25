@@ -36,7 +36,7 @@ func (c *Controller) UserController() {
 		Route:    "/authentication/current-logged-in-accounts",
 		Note:     "Current Logged In User: this is used to get the current logged in user in other apps/browsers. this is used for the frontend to get the current user.",
 		Method:   "GET",
-		Response: "TUser",
+		Response: "ILoggedInUser",
 	}, func(ctx echo.Context) error {
 		context := context.Background()
 		_, err := c.userToken.CurrentUser(context, ctx)
@@ -54,6 +54,22 @@ func (c *Controller) UserController() {
 		}
 		responses := resp.UserCSRFModels(loggedInPtrs)
 		return ctx.JSON(http.StatusOK, responses)
+	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:  "/authentication/current-logged-in-accounts/logout",
+		Method: "POST",
+		Note:   "Logout all users including itself",
+	}, func(ctx echo.Context) error {
+		context := context.Background()
+		_, err := c.userToken.CurrentUser(context, ctx)
+		if err != nil {
+			return err
+		}
+		if err := c.userToken.CSRF.LogoutOtherDevices(context, ctx); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, err.Error())
+		}
+		return ctx.NoContent(http.StatusNoContent)
 	})
 
 	req.RegisterRoute(horizon.Route{

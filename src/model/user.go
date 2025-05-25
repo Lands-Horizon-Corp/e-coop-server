@@ -23,7 +23,7 @@ type (
 		SignatureMediaID  *uuid.UUID     `gorm:"type:uuid"`
 		SignatureMedia    *Media         `gorm:"foreignKey:SignatureMediaID;constraint:OnDelete:SET NULL;" json:"signature,omitempty"`
 		Password          string         `gorm:"type:varchar(255);not null" json:"-"`
-		Birthdate         time.Time      `gorm:"type:date" json:"birthdate,omitempty"`
+		Birthdate         time.Time      `gorm:"type:date" json:"birthdate"`
 		UserName          string         `gorm:"type:varchar(100);not null;unique" json:"user_name"`
 		FirstName         *string        `gorm:"type:varchar(100)" json:"first_name,omitempty"`
 		MiddleName        *string        `gorm:"type:varchar(100)" json:"middle_name,omitempty"`
@@ -33,7 +33,7 @@ type (
 		Description       *string        `gorm:"type:text"`
 		Email             string         `gorm:"type:varchar(255);not null;unique" json:"email"`
 		IsEmailVerified   bool           `gorm:"default:false" json:"is_email_verified"`
-		ContactNumber     string         `gorm:"type:varchar(20);not null" json:"contact_number"`
+		ContactNumber     string         `gorm:"type:varchar(20);not null;unique" json:"contact_number"`
 		IsContactVerified bool           `gorm:"default:false" json:"is_contact_verified"`
 
 		Footsteps         []*Footstep         `gorm:"foreignKey:UserID" json:"footsteps,omitempty"`          // footstep

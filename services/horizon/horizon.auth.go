@@ -41,7 +41,7 @@ type AuthService[T ClaimWithID] interface {
 	GetLoggedInUsers(ctx context.Context, c echo.Context) ([]T, error)
 
 	// LogoutOtherDevices logs out all sessions for the specified user ID except the current session.
-	LogoutOtherDevices(ctx context.Context, c echo.Context, id string) error
+	LogoutOtherDevices(ctx context.Context, c echo.Context) error
 
 	// Key returns the storage key (e.g., Redis key) for mapping a token to a user.
 	Key(token string) string
@@ -191,13 +191,11 @@ func (h *HorizonAuthService[T]) IsLoggedInOnOtherDevice(ctx context.Context, c e
 	if currentToken == "" {
 		return false, eris.New("CSRF token not found in request")
 	}
-
 	pattern := fmt.Sprintf("%s:csrf:%s:*", h.name, currentClaim.GetID())
 	keys, err := h.cache.Keys(ctx, pattern)
 	if err != nil {
 		return false, eris.Wrap(err, "failed to retrieve user sessions")
 	}
-
 	for _, key := range keys {
 		parts := strings.Split(key, ":")
 		if len(parts) < 4 {
@@ -244,6 +242,29 @@ func (h *HorizonAuthService[T]) GetLoggedInUsers(ctx context.Context, c echo.Con
 	return uniqueUsers, nil
 }
 
+func (h *HorizonAuthService[T]) LogoutAllUsers(ctx context.Context, c echo.Context) error {
+	currentClaim, err := h.GetCSRF(ctx, c)
+	if err != nil {
+		return eris.Wrap(err, "failed to get current user claim")
+	}
+	pattern := fmt.Sprintf("%s:csrf:%s:*", h.name, currentClaim.GetID())
+	keys, err := h.cache.Keys(ctx, pattern)
+	if err != nil {
+		return eris.Wrap(err, "failed to get CSRF keys")
+	}
+	for _, key := range keys {
+		parts := strings.Split(key, ":")
+		if len(parts) < 4 {
+			continue
+		}
+		err := h.cache.Delete(ctx, key)
+		if err != nil {
+			continue
+		}
+	}
+	return nil
+}
+
 // VerifyCSRF validates a CSRF token and returns the associated claim if valid.
 func (h *HorizonAuthService[T]) VerifyCSRF(ctx context.Context, token string) (T, error) {
 	var zeroT T
@@ -270,19 +291,13 @@ func (h *HorizonAuthService[T]) VerifyCSRF(ctx context.Context, token string) (T
 }
 
 // LogoutOtherDevices logs out all other sessions for the user except the current one.
-func (h *HorizonAuthService[T]) LogoutOtherDevices(ctx context.Context, c echo.Context, id string) error {
-	currentToken := h.getTokenFromContext(c)
-	if currentToken == "" {
-		return eris.New("missing current session token")
-	}
+func (h *HorizonAuthService[T]) LogoutOtherDevices(ctx context.Context, c echo.Context) error {
+
 	currentClaim, err := h.GetCSRF(ctx, c)
 	if err != nil {
 		return eris.New("missing current session token")
 	}
-	if currentClaim.GetID() != id {
-		return eris.New("unauthorized to log out other users")
-	}
-	pattern := fmt.Sprintf("%s:csrf:%s:*", h.name, id)
+	pattern := fmt.Sprintf("%s:csrf:%s:*", h.name, currentClaim.GetID())
 	keys, err := h.cache.Keys(ctx, pattern)
 	if err != nil {
 		return eris.Wrap(err, "failed to retrieve user sessions")
@@ -293,12 +308,19 @@ func (h *HorizonAuthService[T]) LogoutOtherDevices(ctx context.Context, c echo.C
 			continue
 		}
 		token := parts[3]
-		if token == currentToken {
-			continue
-		}
+
 		_ = h.cache.Delete(ctx, key)
 		_ = h.cache.Delete(ctx, h.tokenToUserKey(token))
 	}
+	c.SetCookie(&http.Cookie{
+		Name:     h.csrfHeader,
+		Value:    "",
+		Path:     "/",
+		Expires:  time.Unix(0, 0),
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+	})
 	return nil
 }
 
