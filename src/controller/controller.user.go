@@ -297,7 +297,47 @@ func (c *Controller) UserController() {
 		Note:    "Change Password: this is used to change the user's password.",
 	}, func(ctx echo.Context) error {
 
-		return ctx.NoContent(http.StatusNoContent)
+		context := context.Background()
+
+		// Bind the request body to UserSettingsChangeProfilePictureRequest struct
+		var req model.UserSettingsChangePasswordRequest
+		if err := ctx.Bind(&req); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+
+		// Validate the request using the validator service
+		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+
+		// Get the current user from the context
+		user, err := c.userToken.CurrentUser(context, ctx)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to get current user: "+err.Error())
+		}
+
+		// Verify the password
+		valid, err := c.provider.Service.Security.VerifyPassword(context, user.Password, req.OldPassword)
+		if err != nil || !valid {
+			return echo.NewHTTPError(http.StatusUnauthorized, "invalid credentials")
+		}
+
+		hashedPwd, err := c.provider.Service.Security.HashPassword(context, req.NewPassword)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to hash password")
+		}
+		user.Password = hashedPwd
+		if err := c.model.UserManager.Update(context, user); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update user: "+err.Error())
+		}
+		updatedUser, err := c.model.UserManager.GetByID(context, user.ID)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update user: "+err.Error())
+		}
+		if err := c.userToken.SetUser(context, ctx, user); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to set user token: "+err.Error())
+		}
+		return ctx.JSON(http.StatusOK, c.model.UserManager.ToModel(updatedUser))
 	})
 
 	req.RegisterRoute(horizon.Route{
