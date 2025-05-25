@@ -291,7 +291,27 @@ func (c *Controller) UserController() {
 		Method: "POST",
 		Note:   "Apply Contact Number: this is used to send OTP for contact number verification.",
 	}, func(ctx echo.Context) error {
-		return nil
+		context := context.Background()
+		user, err := c.userToken.CurrentUser(context, ctx)
+		if err != nil {
+			return err
+		}
+		key := fmt.Sprintf("%s-%s", user.Password, user.ContactNumber)
+		otp, err := c.provider.Service.OTP.Generate(context, key)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "Fail sending OTP from user contact number: "+err.Error())
+		}
+		if err := c.provider.Service.SMS.Send(context, horizon.SMSRequest{
+			To:   user.ContactNumber,
+			Body: "Lands Horizon: Hello {{.name}} Please dont share this to someone else to protect your account and privacy. This is your OTP:{{.otp}}",
+			Vars: map[string]string{
+				"otp":  otp,
+				"name": *user.FirstName,
+			},
+		}); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to send otp cache: "+err.Error())
+		}
+		return ctx.NoContent(http.StatusNoContent)
 	})
 
 	req.RegisterRoute(horizon.Route{
@@ -300,7 +320,41 @@ func (c *Controller) UserController() {
 		Request: "IVerifyContactNumberRequest",
 		Note:    "Verify Contact Number: this is used to verify the OTP sent to the user's new contact number.",
 	}, func(ctx echo.Context) error {
-		return nil
+		context := context.Background()
+		var req model.UserVerifyContactNumberRequest
+		if err := ctx.Bind(&req); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+		user, err := c.userToken.CurrentUser(context, ctx)
+		if err != nil {
+			return err
+		}
+		key := fmt.Sprintf("%s-%s", user.Password, user.ContactNumber)
+		ok, err := c.provider.Service.OTP.Verify(context, key, req.OTP)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to verify token: "+err.Error())
+		}
+		if !ok {
+			return echo.NewHTTPError(http.StatusInternalServerError, "Invalid OTP ")
+		}
+		if err := c.provider.Service.OTP.Revoke(context, key); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to verify token: "+err.Error())
+		}
+		user.IsContactVerified = true
+		if err := c.model.UserManager.UpdateFields(context, user.ID, user); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update user: "+err.Error())
+		}
+		updatedUser, err := c.model.UserManager.GetByID(context, user.ID)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update user: "+err.Error())
+		}
+		if err := c.userToken.SetUser(context, ctx, updatedUser); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to set user token: "+err.Error())
+		}
+		return ctx.JSON(http.StatusOK, c.model.UserManager.ToModel(updatedUser))
 	})
 
 	req.RegisterRoute(horizon.Route{
