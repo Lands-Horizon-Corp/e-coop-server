@@ -24,21 +24,21 @@ type (
 
 	ContactUsResponse struct {
 		ID            uuid.UUID `json:"id"`
-		FirstName     string    `json:"firstName"`
-		LastName      string    `json:"lastName,omitempty"`
+		FirstName     string    `json:"first_name"`
+		LastName      string    `json:"last_name,omitempty"`
 		Email         string    `json:"email,omitempty"`
-		ContactNumber string    `json:"contactNumber,omitempty"`
+		ContactNumber string    `json:"contact_number,omitempty"`
 		Description   string    `json:"description"`
-		CreatedAt     string    `json:"createdAt"`
-		UpdatedAt     string    `json:"updatedAt"`
+		CreatedAt     string    `json:"created_at"`
+		UpdatedAt     string    `json:"updated_at"`
 	}
 
 	ContactUsRequest struct {
 		ID            *uuid.UUID `json:"id,omitempty"`
-		FirstName     string     `json:"firstName" validate:"required,min=1,max=255"`
-		LastName      string     `json:"lastName,omitempty" validate:"omitempty,min=1,max=255"`
+		FirstName     string     `json:"first_name" validate:"required,min=1,max=255"`
+		LastName      string     `json:"last_name,omitempty" validate:"omitempty,min=1,max=255"`
 		Email         string     `json:"email,omitempty" validate:"omitempty,email,max=255"`
-		ContactNumber string     `json:"contactNumber,omitempty" validate:"omitempty,min=1,max=20"`
+		ContactNumber string     `json:"contact_number,omitempty" validate:"omitempty,min=1,max=20"`
 		Description   string     `json:"description" validate:"required,min=1"`
 	}
 

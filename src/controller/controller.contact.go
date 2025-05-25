@@ -12,76 +12,78 @@ import (
 	"github.com/lands-horizon/horizon-server/src/model"
 )
 
-func (c *Controller) FeedbackController() {
+func (c *Controller) ContactController() {
 	req := c.provider.Service.Request
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/feedback",
+		Route:    "/contact",
 		Method:   "GET",
-		Response: "TFeedback[]",
+		Response: "TContact[]",
 	}, func(ctx echo.Context) error {
-		feedback, err := c.model.FeedbackManager.ListRaw(context.Background())
+		contact, err := c.model.ContactUsManager.ListRaw(context.Background())
 		if err != nil {
 			return c.InternalServerError(ctx, err)
 		}
-		return ctx.JSON(http.StatusOK, feedback)
+
+		return ctx.JSON(http.StatusOK, contact)
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/feedback/:feedback_id",
+		Route:    "/contact/:contact_id",
 		Method:   "GET",
-		Response: "TFeedback",
+		Response: "TContact",
 	}, func(ctx echo.Context) error {
-		feedbackID, err := horizon.EngineUUIDParam(ctx, "feedback_id")
+		contactID, err := horizon.EngineUUIDParam(ctx, "contact_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid feedback ID")
+			return c.BadRequest(ctx, "Invalid contact ID")
 		}
 
-		feedback, err := c.model.FeedbackManager.GetByIDRaw(context.Background(), *feedbackID)
+		contact, err := c.model.ContactUsManager.GetByIDRaw(context.Background(), *contactID)
 		if err != nil {
-			return c.NotFound(ctx, "Feedback")
+			return c.NotFound(ctx, "Contact")
 		}
 
-		return ctx.JSON(http.StatusOK, feedback)
+		return ctx.JSON(http.StatusOK, contact)
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/feedback",
+		Route:    "/contact",
 		Method:   "POST",
-		Request:  "TFeedback",
-		Response: "TFeedback",
+		Request:  "TContact",
+		Response: "TContact",
 	}, func(ctx echo.Context) error {
-		req, err := c.model.FeedbackManager.Validate(ctx)
+		req, err := c.model.ContactUsManager.Validate(ctx)
 		if err != nil {
 			return c.BadRequest(ctx, err.Error())
 		}
 
-		feedback := &model.Feedback{
-			Email:        req.Email,
-			Description:  req.Description,
-			FeedbackType: req.FeedbackType,
-			MediaID:      req.MediaID,
-			CreatedAt:    time.Now().UTC(),
-			UpdatedAt:    time.Now().UTC(),
+		contact := &model.ContactUs{
+			FirstName:     req.FirstName,
+			LastName:      req.LastName,
+			Email:         req.Email,
+			ContactNumber: req.ContactNumber,
+			Description:   req.Description,
+			CreatedAt:     time.Now().UTC(),
+			UpdatedAt:     time.Now().UTC(),
 		}
 
-		if err := c.model.FeedbackManager.Create(context.Background(), feedback); err != nil {
+		if err := c.model.ContactUsManager.Create(context.Background(), contact); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 
-		return ctx.JSON(http.StatusOK, c.model.FeedbackManager.ToModel(feedback))
+		return ctx.JSON(http.StatusCreated, c.model.ContactUsManager.ToModel(contact))
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:  "/feedback/:feedback_id",
+		Route:  "/contact/:contact_id",
 		Method: "DELETE",
 	}, func(ctx echo.Context) error {
-		feedbackID, err := horizon.EngineUUIDParam(ctx, "feedback_id")
+		contactID, err := horizon.EngineUUIDParam(ctx, "contact_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid feedback ID")
+			return c.BadRequest(ctx, "Invalid contact ID")
 		}
 
-		if err := c.model.FeedbackManager.DeleteByID(context.Background(), *feedbackID); err != nil {
+		if err := c.model.ContactUsManager.DeleteByID(context.Background(), *contactID); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 
@@ -89,10 +91,10 @@ func (c *Controller) FeedbackController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:   "/feedback/bulk-delete",
+		Route:   "/contact/bulk-delete",
 		Method:  "DELETE",
 		Request: "string[]",
-		Note:    "Delete multiple feedback records",
+		Note:    "Delete multiple contact records",
 	}, func(ctx echo.Context) error {
 		var reqBody struct {
 			IDs []string `json:"ids"`
@@ -114,18 +116,18 @@ func (c *Controller) FeedbackController() {
 		}()
 
 		for _, rawID := range reqBody.IDs {
-			feedbackID, err := uuid.Parse(rawID)
+			contactID, err := uuid.Parse(rawID)
 			if err != nil {
 				tx.Rollback()
 				return c.BadRequest(ctx, fmt.Sprintf("Invalid UUID: %s", rawID))
 			}
 
-			if _, err := c.model.FeedbackManager.GetByID(context.Background(), feedbackID); err != nil {
+			if _, err := c.model.ContactUsManager.GetByID(context.Background(), contactID); err != nil {
 				tx.Rollback()
-				return c.NotFound(ctx, fmt.Sprintf("Feedback with ID %s", rawID))
+				return c.NotFound(ctx, fmt.Sprintf("Contact with ID %s", rawID))
 			}
 
-			if err := c.model.FeedbackManager.DeleteByIDWithTx(context.Background(), tx, feedbackID); err != nil {
+			if err := c.model.ContactUsManager.DeleteByIDWithTx(context.Background(), tx, contactID); err != nil {
 				tx.Rollback()
 				return c.InternalServerError(ctx, err)
 			}

@@ -24,7 +24,7 @@ func (c *Controller) CategoryController() {
 		if err != nil {
 			return c.InternalServerError(ctx, err)
 		}
-		return c.SuccessResponse(ctx, http.StatusOK, categories)
+		return ctx.JSON(http.StatusOK, categories)
 	})
 
 	req.RegisterRoute(horizon.Route{
@@ -42,7 +42,7 @@ func (c *Controller) CategoryController() {
 			return c.NotFound(ctx, "Category")
 		}
 
-		return c.SuccessResponse(ctx, http.StatusOK, category)
+		return ctx.JSON(http.StatusOK, category)
 	})
 
 	req.RegisterRoute(horizon.Route{
@@ -69,7 +69,7 @@ func (c *Controller) CategoryController() {
 			return c.InternalServerError(ctx, err)
 		}
 
-		return c.SuccessResponse(ctx, http.StatusCreated, c.model.CategoryManager.ToModel(category))
+		return ctx.JSON(http.StatusOK, c.model.CategoryManager.ToModel(category))
 	})
 
 	req.RegisterRoute(horizon.Route{
@@ -103,7 +103,7 @@ func (c *Controller) CategoryController() {
 			return c.InternalServerError(ctx, err)
 		}
 
-		return c.SuccessResponse(ctx, http.StatusOK, c.model.CategoryManager.ToModel(category))
+		return ctx.JSON(http.StatusOK, c.model.CategoryManager.ToModel(category))
 	})
 
 	req.RegisterRoute(horizon.Route{

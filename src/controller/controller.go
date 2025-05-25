@@ -47,6 +47,7 @@ func NewController(
 func (c *Controller) Start() error {
 
 	c.CategoryController()
+	c.ContactController()
 	c.FeedbackController()
 	c.MediaController()
 	c.QRCodeController()
@@ -73,12 +74,4 @@ func (c *Controller) NotFound(ctx echo.Context, resource string) error {
 
 func (c *Controller) InternalServerError(ctx echo.Context, err error) error {
 	return c.ErrorResponse(ctx, http.StatusInternalServerError, "Internal server error")
-}
-
-// Success response
-func (c *Controller) SuccessResponse(ctx echo.Context, statusCode int, data any) error {
-	return ctx.JSON(statusCode, map[string]any{
-		"success": true,
-		"data":    data,
-	})
 }
