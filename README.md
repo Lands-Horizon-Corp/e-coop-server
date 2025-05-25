@@ -49,4 +49,3 @@ Follow these steps to set up and run the project locally:
    ```
 
    This will also **auto-migrate the database** and **seed** the initial data.
-

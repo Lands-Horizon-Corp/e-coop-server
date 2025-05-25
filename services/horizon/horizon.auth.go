@@ -12,41 +12,27 @@ import (
 	"github.com/rotisserie/eris"
 )
 
-// ClaimWithID represents a generic claim that must have an ID.
-// Used to associate CSRF/session data with users.
 type ClaimWithID interface {
 	GetID() string
 }
 
-// AuthService defines the contract for a generic authentication/session service.
-// It is parameterized by a type T that implements the ClaimWithID interface,
-// allowing the service to operate on custom claim types (e.g., user sessions, CSRF tokens).
 type AuthService[T ClaimWithID] interface {
-	// GetCSRF retrieves and validates the CSRF claim for the current session from the request context.
 	GetCSRF(ctx context.Context, c echo.Context) (T, error)
 
-	// ClearCSRF removes the CSRF token and associated claim from the session and clears relevant cookies.
 	ClearCSRF(ctx context.Context, c echo.Context)
 
-	// VerifyCSRF validates a specific CSRF token and returns the associated claim if valid.
 	VerifyCSRF(ctx context.Context, token string) (T, error)
 
-	// SetCSRF creates and stores a new CSRF claim/token, and sets the relevant headers/cookies on the response.
 	SetCSRF(ctx context.Context, c echo.Context, claim T, expiry time.Duration) error
 
-	// IsLoggedInOnOtherDevice checks if the current user has any valid CSRF sessions on other devices/browsers.
 	IsLoggedInOnOtherDevice(ctx context.Context, c echo.Context) (bool, error)
 
-	// GetLoggedInUsers returns all other users (excluding the current user) with at least one valid session.
 	GetLoggedInUsers(ctx context.Context, c echo.Context) ([]T, error)
 
-	// LogoutOtherDevices logs out all sessions for the specified user ID except the current session.
 	LogoutOtherDevices(ctx context.Context, c echo.Context) error
 
-	// Key returns the storage key (e.g., Redis key) for mapping a token to a user.
 	Key(token string) string
 
-	// Name returns the name of the authentication service (used for key prefixing/namespacing).
 	Name() string
 }
 
@@ -213,22 +199,34 @@ func (h *HorizonAuthService[T]) IsLoggedInOnOtherDevice(ctx context.Context, c e
 }
 
 // GetLoggedInUsers returns all other users (excluding the current user) with at least one valid session.
+// GetLoggedInUsers returns all other users (excluding the current user) with at least one valid session.
 func (h *HorizonAuthService[T]) GetLoggedInUsers(ctx context.Context, c echo.Context) ([]T, error) {
 	currentClaim, err := h.GetCSRF(ctx, c)
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to get current user claim")
 	}
+	currentToken := h.getTokenFromContext(c)
+	if currentToken == "" {
+		return nil, eris.New("CSRF token not found in request")
+	}
+
 	pattern := fmt.Sprintf("%s:csrf:%s:*", h.name, currentClaim.GetID())
 	keys, err := h.cache.Keys(ctx, pattern)
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to get CSRF keys")
 	}
+
 	uniqueUsers := []T{}
 	for _, key := range keys {
 		parts := strings.Split(key, ":")
 		if len(parts) < 4 {
 			continue
 		}
+		token := parts[3]
+		if token == currentToken {
+			continue // Skip current session
+		}
+
 		val, err := h.cache.Get(ctx, key)
 		if err != nil {
 			continue
@@ -292,7 +290,6 @@ func (h *HorizonAuthService[T]) VerifyCSRF(ctx context.Context, token string) (T
 
 // LogoutOtherDevices logs out all other sessions for the user except the current one.
 func (h *HorizonAuthService[T]) LogoutOtherDevices(ctx context.Context, c echo.Context) error {
-
 	currentClaim, err := h.GetCSRF(ctx, c)
 	if err != nil {
 		return eris.New("missing current session token")
@@ -302,6 +299,7 @@ func (h *HorizonAuthService[T]) LogoutOtherDevices(ctx context.Context, c echo.C
 	if err != nil {
 		return eris.Wrap(err, "failed to retrieve user sessions")
 	}
+
 	for _, key := range keys {
 		parts := strings.Split(key, ":")
 		if len(parts) < 4 {
@@ -309,8 +307,13 @@ func (h *HorizonAuthService[T]) LogoutOtherDevices(ctx context.Context, c echo.C
 		}
 		token := parts[3]
 
-		_ = h.cache.Delete(ctx, key)
-		_ = h.cache.Delete(ctx, h.tokenToUserKey(token))
+		// Delete both session key and token mapping
+		if err := h.cache.Delete(ctx, key); err != nil {
+			return eris.Wrapf(err, "failed to delete session key: %s", key)
+		}
+		if err := h.cache.Delete(ctx, h.tokenToUserKey(token)); err != nil {
+			return eris.Wrapf(err, "failed to delete token mapping: %s", token)
+		}
 	}
 	c.SetCookie(&http.Cookie{
 		Name:     h.csrfHeader,

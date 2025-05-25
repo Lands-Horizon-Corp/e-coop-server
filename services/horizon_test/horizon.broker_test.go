@@ -26,18 +26,18 @@ func TestHorizonMessageBroker_PublishSubscribe(t *testing.T) {
 	defer broker.Stop(ctx)
 
 	topic := "test.topic"
-	expectedMsg := map[string]interface{}{
+	expectedMsg := map[string]any{
 		"message": "hello",
 	}
 
 	var wg sync.WaitGroup
 	wg.Add(1)
 
-	var receivedMsg map[string]interface{}
+	var receivedMsg map[string]any
 
 	err = broker.Subscribe(ctx, topic, func(msg any) error {
 		defer wg.Done()
-		if data, ok := msg.(map[string]interface{}); ok {
+		if data, ok := msg.(map[string]any); ok {
 			receivedMsg = data
 		} else {
 			t.Errorf("received message in unexpected format: %T", msg)

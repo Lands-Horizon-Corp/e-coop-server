@@ -20,11 +20,11 @@ func (c *Controller) CategoryController() {
 		Method:   "GET",
 		Response: "TCategory[]",
 	}, func(ctx echo.Context) error {
-		category, err := c.model.CategoryManager.ListRaw(context.Background())
+		categories, err := c.model.CategoryManager.ListRaw(context.Background())
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return c.InternalServerError(ctx, err)
 		}
-		return ctx.JSON(http.StatusOK, category)
+		return c.SuccessResponse(ctx, http.StatusOK, categories)
 	})
 
 	req.RegisterRoute(horizon.Route{
@@ -32,16 +32,17 @@ func (c *Controller) CategoryController() {
 		Method:   "GET",
 		Response: "TCategory",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
-		categoryId, err := horizon.EngineUUIDParam(ctx, "category_id")
+		categoryID, err := horizon.EngineUUIDParam(ctx, "category_id")
 		if err != nil {
-			return err
+			return c.BadRequest(ctx, "Invalid category ID")
 		}
-		category, err := c.model.CategoryManager.GetByIDRaw(context, *categoryId)
+
+		category, err := c.model.CategoryManager.GetByIDRaw(context.Background(), *categoryID)
 		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
+			return c.NotFound(ctx, "Category")
 		}
-		return ctx.JSON(http.StatusOK, category)
+
+		return c.SuccessResponse(ctx, http.StatusOK, category)
 	})
 
 	req.RegisterRoute(horizon.Route{
@@ -50,12 +51,12 @@ func (c *Controller) CategoryController() {
 		Request:  "TCategory",
 		Response: "TCategory",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
 		req, err := c.model.CategoryManager.Validate(ctx)
 		if err != nil {
-			return err
+			return c.BadRequest(ctx, err.Error())
 		}
-		model := &model.Category{
+
+		category := &model.Category{
 			Name:        req.Name,
 			Description: req.Description,
 			Color:       req.Color,
@@ -63,58 +64,61 @@ func (c *Controller) CategoryController() {
 			CreatedAt:   time.Now().UTC(),
 			UpdatedAt:   time.Now().UTC(),
 		}
-		if err := c.model.CategoryManager.Create(context, model); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
+		if err := c.model.CategoryManager.Create(context.Background(), category); err != nil {
+			return c.InternalServerError(ctx, err)
 		}
-		return ctx.JSON(http.StatusCreated, c.model.CategoryManager.ToModel(model))
+
+		return c.SuccessResponse(ctx, http.StatusCreated, c.model.CategoryManager.ToModel(category))
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/category/category_id",
+		Route:    "/category/:category_id",
 		Method:   "PUT",
 		Request:  "TCategory",
 		Response: "TCategory",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
-		categoryId, err := horizon.EngineUUIDParam(ctx, "category_id")
+		categoryID, err := horizon.EngineUUIDParam(ctx, "category_id")
 		if err != nil {
-			return err
+			return c.BadRequest(ctx, "Invalid category ID")
 		}
+
 		req, err := c.model.CategoryManager.Validate(ctx)
 		if err != nil {
-			return err
+			return c.BadRequest(ctx, err.Error())
 		}
-		category, err := c.model.CategoryManager.GetByID(context, *categoryId)
+
+		category, err := c.model.CategoryManager.GetByID(context.Background(), *categoryID)
 		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return c.NotFound(ctx, "Category")
 		}
+
 		category.Color = req.Color
 		category.Name = req.Name
 		category.Description = req.Description
 		category.Icon = req.Icon
 		category.UpdatedAt = time.Now().UTC()
-		if err := c.model.CategoryManager.UpdateFields(context, category.ID, category); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
+		if err := c.model.CategoryManager.UpdateFields(context.Background(), category.ID, category); err != nil {
+			return c.InternalServerError(ctx, err)
 		}
-		return ctx.JSON(http.StatusCreated, c.model.CategoryManager.ToModel(category))
+
+		return c.SuccessResponse(ctx, http.StatusOK, c.model.CategoryManager.ToModel(category))
 	})
 
 	req.RegisterRoute(horizon.Route{
 		Route:  "/category/:category_id",
 		Method: "DELETE",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
-		categoryId, err := horizon.EngineUUIDParam(ctx, "category_id")
+		categoryID, err := horizon.EngineUUIDParam(ctx, "category_id")
 		if err != nil {
-			return err
+			return c.BadRequest(ctx, "Invalid category ID")
 		}
-		category, err := c.model.CategoryManager.GetByID(context, *categoryId)
-		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
+
+		if err := c.model.CategoryManager.DeleteByID(context.Background(), *categoryID); err != nil {
+			return c.InternalServerError(ctx, err)
 		}
-		if err := c.model.CategoryManager.DeleteByID(context, category.ID); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-		}
+
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
@@ -122,28 +126,20 @@ func (c *Controller) CategoryController() {
 		Route:   "/category/bulk-delete",
 		Method:  "DELETE",
 		Request: "string[]",
-		Note:    "this is used to delete multiple category records",
+		Note:    "Delete multiple category records",
 	}, func(ctx echo.Context) error {
-		backgroundCtx := context.Background()
-
-		// Bind incoming JSON body to an inline struct
-		reqBody := &struct {
-			Ids []string `json:"ids"`
-		}{}
-
-		if err := ctx.Bind(reqBody); err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{
-				"error": "Invalid request body: " + err.Error(),
-			})
+		var reqBody struct {
+			IDs []string `json:"ids"`
 		}
 
-		if len(reqBody.Ids) == 0 {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{
-				"error": "No IDs provided",
-			})
+		if err := ctx.Bind(&reqBody); err != nil {
+			return c.BadRequest(ctx, "Invalid request body")
 		}
 
-		// Start DB transaction
+		if len(reqBody.IDs) == 0 {
+			return c.BadRequest(ctx, "No IDs provided")
+		}
+
 		tx := c.provider.Service.Database.Client().Begin()
 		defer func() {
 			if r := recover(); r != nil {
@@ -151,39 +147,28 @@ func (c *Controller) CategoryController() {
 			}
 		}()
 
-		for _, rawID := range reqBody.Ids {
+		for _, rawID := range reqBody.IDs {
 			categoryID, err := uuid.Parse(rawID)
 			if err != nil {
 				tx.Rollback()
-				return ctx.JSON(http.StatusBadRequest, map[string]string{
-					"error": fmt.Sprintf("Invalid UUID: %s", rawID),
-				})
+				return c.BadRequest(ctx, fmt.Sprintf("Invalid UUID: %s", rawID))
 			}
 
-			category, err := c.model.CategoryManager.GetByID(backgroundCtx, categoryID)
-			if err != nil {
+			if _, err := c.model.CategoryManager.GetByID(context.Background(), categoryID); err != nil {
 				tx.Rollback()
-				return ctx.JSON(http.StatusNotFound, map[string]string{
-					"error": fmt.Sprintf("Category not found for ID: %s", categoryID),
-				})
+				return c.NotFound(ctx, fmt.Sprintf("Category with ID %s", rawID))
 			}
 
-			if err := c.model.CategoryManager.DeleteByIDWithTx(backgroundCtx, tx, category.ID); err != nil {
+			if err := c.model.CategoryManager.DeleteByIDWithTx(context.Background(), tx, categoryID); err != nil {
 				tx.Rollback()
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{
-					"error": fmt.Sprintf("Failed to delete category ID %s: %v", categoryID, err),
-				})
+				return c.InternalServerError(ctx, err)
 			}
 		}
 
 		if err := tx.Commit().Error; err != nil {
-			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{
-				"error": "Failed to commit transaction: " + err.Error(),
-			})
+			return c.InternalServerError(ctx, err)
 		}
 
 		return ctx.NoContent(http.StatusNoContent)
 	})
-
 }

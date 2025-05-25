@@ -61,7 +61,7 @@ func NewHorizonSMTP(host string, port int, username, password string, from strin
 // Run implements SMTPService.
 func (h *HorizonSMTP) Run(ctx context.Context) error {
 	h.limiterOnce.Do(func() {
-		h.limiter = rate.NewLimiter(rate.Limit(10), 5) // 10 rps, burst 5
+		h.limiter = rate.NewLimiter(rate.Limit(1000), 100) // 10 rps, burst 5
 	})
 	return nil
 }

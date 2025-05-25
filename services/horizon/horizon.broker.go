@@ -99,7 +99,7 @@ func (h *HorizonMessageBroker) Subscribe(ctx context.Context, topic string, hand
 		return eris.New("NATS connection not initialized")
 	}
 	_, err := h.nc.Subscribe(topic, func(msg *nats.Msg) {
-		var payload map[string]interface{}
+		var payload map[string]any
 		if err := json.Unmarshal(msg.Data, &payload); err != nil {
 			fmt.Printf("failed to unmarshal message from topic %s: %v\n", topic, err)
 			return

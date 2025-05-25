@@ -1,6 +1,10 @@
 package controller
 
 import (
+	"fmt"
+	"net/http"
+
+	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/src"
 	"github.com/lands-horizon/horizon-server/src/cooperative_tokens"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -49,4 +53,32 @@ func (c *Controller) Start() error {
 	c.UserController()
 
 	return nil
+}
+
+// Error responses
+func (c *Controller) ErrorResponse(ctx echo.Context, statusCode int, message string) error {
+	return ctx.JSON(statusCode, map[string]any{
+		"success": false,
+		"error":   message,
+	})
+}
+
+func (c *Controller) BadRequest(ctx echo.Context, message string) error {
+	return c.ErrorResponse(ctx, http.StatusBadRequest, message)
+}
+
+func (c *Controller) NotFound(ctx echo.Context, resource string) error {
+	return c.ErrorResponse(ctx, http.StatusNotFound, fmt.Sprintf("%s not found", resource))
+}
+
+func (c *Controller) InternalServerError(ctx echo.Context, err error) error {
+	return c.ErrorResponse(ctx, http.StatusInternalServerError, "Internal server error")
+}
+
+// Success response
+func (c *Controller) SuccessResponse(ctx echo.Context, statusCode int, data any) error {
+	return ctx.JSON(statusCode, map[string]any{
+		"success": true,
+		"data":    data,
+	})
 }
