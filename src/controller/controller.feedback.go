@@ -35,7 +35,7 @@ func (c *Controller) FeedbackController() {
 		if err != nil {
 			return err
 		}
-		feedback, err := c.model.FeedbackManager.GetByID(context, *feedbackId)
+		feedback, err := c.model.FeedbackManager.GetByIDRaw(context, *feedbackId)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
 		}

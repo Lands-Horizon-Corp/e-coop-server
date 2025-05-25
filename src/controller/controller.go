@@ -41,10 +41,12 @@ func NewController(
 }
 
 func (c *Controller) Start() error {
-	c.QRCodeController()
 
-	c.MediaController()
+	c.CategoryController()
 	c.FeedbackController()
+	c.MediaController()
+	c.QRCodeController()
 	c.UserController()
+
 	return nil
 }
