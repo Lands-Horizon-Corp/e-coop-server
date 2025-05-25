@@ -746,7 +746,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) CreatedBroadcast(ctx con
 
 func (c *CollectionManager[TData, TResponse, TRequest]) DeletedBroadcast(ctx context.Context, entity *TData) {
 	go func() {
-		topics := c.updated(entity)
+		topics := c.deleted(entity)
 		payload := c.ToModel(entity)
 		c.service.Broker.Dispatch(ctx, topics, payload)
 	}()
