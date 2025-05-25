@@ -41,6 +41,8 @@ func NewController(
 }
 
 func (c *Controller) Start() error {
+	c.QRCodeController()
+
 	c.MediaController()
 	c.FeedbackController()
 	c.UserController()

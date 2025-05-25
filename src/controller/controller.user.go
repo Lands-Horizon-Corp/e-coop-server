@@ -362,7 +362,27 @@ func (c *Controller) UserController() {
 		Method: "POST",
 		Note:   "Apply Email: this is used to send OTP for email verification.",
 	}, func(ctx echo.Context) error {
-		return nil
+		context := context.Background()
+		user, err := c.userToken.CurrentUser(context, ctx)
+		if err != nil {
+			return err
+		}
+		key := fmt.Sprintf("%s-%s", user.Password, user.Email)
+		otp, err := c.provider.Service.OTP.Generate(context, key)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "Fail sending OTP from user contact number: "+err.Error())
+		}
+		if err := c.provider.Service.SMTP.Send(context, horizon.SMTPRequest{
+			To:      user.Email,
+			Body:    "templates/email-otp.html",
+			Subject: "Email Verification: Lands Horizon",
+			Vars: map[string]string{
+				"otp": otp,
+			},
+		}); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to send otp cache: "+err.Error())
+		}
+		return ctx.NoContent(http.StatusNoContent)
 	})
 
 	req.RegisterRoute(horizon.Route{
@@ -371,41 +391,41 @@ func (c *Controller) UserController() {
 		Request: "IVerifyEmailRequest",
 		Note:    "Verify Email: this is used to verify the OTP sent to the user's new email.",
 	}, func(ctx echo.Context) error {
-		return nil
-	})
-
-	req.RegisterRoute(horizon.Route{
-		Route:  "/authentication/verify-with-email",
-		Method: "POST",
-		Note:   "Verify with Email: this is used to verify the user's email by sending OTP to email.  [for preceeding protected self actions]",
-	}, func(ctx echo.Context) error {
-		return nil
-	})
-
-	req.RegisterRoute(horizon.Route{
-		Route:   "/authentication/verify-with-email-confirmation",
-		Method:  "POST",
-		Request: "6 digit OTP",
-		Note:    "Verify with Email Confirmation: this is used to confirm the OTP sent to the user's email.  [for preceeding protected self actions]",
-	}, func(ctx echo.Context) error {
-		return nil
-	})
-
-	req.RegisterRoute(horizon.Route{
-		Route:  "/authentication/verify-with-contact",
-		Method: "POST",
-		Note:   "Verify with Contact: this is used to verify the user's contact number by sending OTP.  [for preceeding protected self actions]",
-	}, func(ctx echo.Context) error {
-		return nil
-	})
-
-	req.RegisterRoute(horizon.Route{
-		Route:   "/authentication/verify-with-contact-confirmation",
-		Method:  "POST",
-		Request: "6 digit OTP",
-		Note:    "Verify with Contact Confirmation: this is used to confirm the OTP sent to the user's contact number.  [for preceeding protected self actions]",
-	}, func(ctx echo.Context) error {
-		return nil
+		context := context.Background()
+		var req model.UserVerifyEmailRequest
+		if err := ctx.Bind(&req); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+		user, err := c.userToken.CurrentUser(context, ctx)
+		if err != nil {
+			return err
+		}
+		key := fmt.Sprintf("%s-%s", user.Password, user.Email)
+		ok, err := c.provider.Service.OTP.Verify(context, key, req.OTP)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to verify token: "+err.Error())
+		}
+		if !ok {
+			return echo.NewHTTPError(http.StatusInternalServerError, "Invalid OTP ")
+		}
+		if err := c.provider.Service.OTP.Revoke(context, key); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to verify token: "+err.Error())
+		}
+		user.IsEmailVerified = true
+		if err := c.model.UserManager.UpdateFields(context, user.ID, user); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update user: "+err.Error())
+		}
+		updatedUser, err := c.model.UserManager.GetByID(context, user.ID)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update user: "+err.Error())
+		}
+		if err := c.userToken.SetUser(context, ctx, updatedUser); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to set user token: "+err.Error())
+		}
+		return ctx.JSON(http.StatusOK, c.model.UserManager.ToModel(updatedUser))
 	})
 
 	req.RegisterRoute(horizon.Route{
