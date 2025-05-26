@@ -99,7 +99,7 @@ func (c *Controller) CategoryController() {
 		category.Icon = req.Icon
 		category.UpdatedAt = time.Now().UTC()
 
-		if err := c.model.CategoryManager.UpdateFields(context.Background(), category.ID, category); err != nil {
+		if err := c.model.CategoryManager.UpdateByID(context.Background(), category.ID, category); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 
