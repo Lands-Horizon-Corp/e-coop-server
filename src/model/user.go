@@ -155,7 +155,7 @@ type (
 	}
 
 	UserSettingsChangeProfileRequest struct {
-		Birthdate   time.Time `json:"birthdate,omitempty"`
+		Birthdate   time.Time `json:"birthdate"`
 		Description *string   `json:"description,omitempty"`
 		FirstName   *string   `json:"first_name,omitempty"`
 		MiddleName  *string   `json:"middle_name,omitempty"`

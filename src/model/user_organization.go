@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"time"
 
 	"github.com/google/uuid"
@@ -187,5 +188,43 @@ func (m *Model) UserOrganization() {
 				"user_organization.delete." + data.ID.String(),
 			}
 		},
+	})
+}
+
+func (m *Model) GetUserOrganizationByUser(context context.Context, userId uuid.UUID, pending bool) ([]*UserOrganization, error) {
+	if pending == true {
+		m.UserOrganizationManager.Find(context, &UserOrganization{
+			UserID:            userId,
+			ApplicationStatus: "pending",
+		})
+	}
+	return m.UserOrganizationManager.Find(context, &UserOrganization{
+		UserID: userId,
+	})
+}
+
+func (m *Model) GetUserOrganizationByOrganization(context context.Context, organizationId uuid.UUID, pending bool) ([]*UserOrganization, error) {
+	if pending == true {
+		m.UserOrganizationManager.Find(context, &UserOrganization{
+			OrganizationID:    organizationId,
+			ApplicationStatus: "pending",
+		})
+	}
+	return m.UserOrganizationManager.Find(context, &UserOrganization{
+		OrganizationID: organizationId,
+	})
+}
+
+func (m *Model) GetUserOrganizationByBranch(context context.Context, organizationId uuid.UUID, branchId uuid.UUID, pending bool) ([]*UserOrganization, error) {
+	if pending == true {
+		m.UserOrganizationManager.Find(context, &UserOrganization{
+			OrganizationID:    organizationId,
+			BranchID:          &branchId,
+			ApplicationStatus: "pending",
+		})
+	}
+	return m.UserOrganizationManager.Find(context, &UserOrganization{
+		OrganizationID: organizationId,
+		BranchID:       &branchId,
 	})
 }

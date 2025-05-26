@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/lands-horizon/horizon-server/seeder"
 	"github.com/lands-horizon/horizon-server/src"
 	"github.com/lands-horizon/horizon-server/src/controller"
 	"github.com/lands-horizon/horizon-server/src/cooperative_tokens"
@@ -20,12 +21,19 @@ func main() {
 			src.NewValidator,
 			controller.NewController,
 			model.NewModel,
+			seeder.NewSeeder,
 
 			cooperative_tokens.NewUserToken,
 			cooperative_tokens.NewTransactionBatchToken,
 			cooperative_tokens.NewUserOrganizatonToken,
 		),
-		fx.Invoke(func(lc fx.Lifecycle, controller *controller.Controller, model *model.Model, provider *src.Provider) error {
+		fx.Invoke(func(
+			lc fx.Lifecycle,
+			controller *controller.Controller,
+			model *model.Model,
+			provider *src.Provider,
+			seeder *seeder.Seeder,
+		) error {
 			lc.Append(fx.Hook{
 				OnStart: func(ctx context.Context) error {
 					if err := controller.Start(); err != nil {
@@ -35,6 +43,9 @@ func main() {
 						return err
 					}
 					if err := model.Start(); err != nil {
+						return err
+					}
+					if err := seeder.Run(ctx); err != nil {
 						return err
 					}
 					return nil
