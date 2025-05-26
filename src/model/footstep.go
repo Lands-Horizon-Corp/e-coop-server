@@ -132,3 +132,7 @@ func (m *Model) Footstep() {
 		},
 	})
 }
+
+// by user
+// by branch
+// by organization

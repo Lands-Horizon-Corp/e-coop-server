@@ -26,12 +26,6 @@ func (c *Controller) UserController() {
 		if err != nil {
 			return err
 		}
-		if user.MediaID == nil {
-			fmt.Println("no currents")
-		} else {
-			fmt.Println("Current: " + user.MediaID.String())
-		}
-
 		return ctx.JSON(http.StatusOK, model.CurrentUserResponse{
 			UserID:           user.ID,
 			User:             c.model.UserManager.ToModel(user),
