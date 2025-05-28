@@ -173,3 +173,7 @@ func (m *Model) Branch() {
 func (m *Model) GetBranchesByOrganization(context context.Context, organizationId uuid.UUID) ([]*Branch, error) {
 	return m.BranchManager.Find(context, &Branch{OrganizationID: organizationId})
 }
+
+func (m *Model) GetBranchesByOrganizationCount(context context.Context, organizationId uuid.UUID) (int64, error) {
+	return m.BranchManager.Count(context, &Branch{OrganizationID: organizationId})
+}

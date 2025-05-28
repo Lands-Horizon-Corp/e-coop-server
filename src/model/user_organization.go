@@ -221,6 +221,12 @@ func (m *Model) GetUserOrganizationByBranch(context context.Context, organizatio
 	}
 	return m.UserOrganizationManager.Find(context, filter)
 }
+func (m *Model) CountUserOrganizationPerBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) (int64, error) {
+	return m.UserOrganizationManager.Count(context, &UserOrganization{
+		OrganizationID: organizationID,
+		BranchID:       &branchID,
+	})
+}
 func (m *Model) CountUserOrganizationBranch(context context.Context, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) (int64, error) {
 	return m.UserOrganizationManager.Count(context, &UserOrganization{
 		OrganizationID: organizationID,

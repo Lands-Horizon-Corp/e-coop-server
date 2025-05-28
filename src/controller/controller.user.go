@@ -24,11 +24,11 @@ func (c *Controller) UserController() {
 		context := context.Background()
 		user, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
-			return err
+			return ctx.NoContent(http.StatusNoContent)
 		}
 		userOrganization, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return err
+			return ctx.NoContent(http.StatusNoContent)
 		}
 		var userOrg *model.UserOrganizationResponse
 		if userOrganization != nil {
