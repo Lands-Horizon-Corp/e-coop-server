@@ -100,3 +100,7 @@ func (c *Model) Start() error {
 func (c *Model) OrganizationSeeder(context context.Context, userId uuid.UUID, organizationId uuid.UUID, branchId uuid.UUID) error {
 	return nil
 }
+
+func (c *Model) OrganizationDestroyer(context context.Context, userId uuid.UUID, organizationId uuid.UUID, branchId uuid.UUID) error {
+	return nil
+}

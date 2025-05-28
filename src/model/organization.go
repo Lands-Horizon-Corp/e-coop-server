@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"time"
 
 	"github.com/google/uuid"
@@ -189,5 +190,11 @@ func (m *Model) Organization() {
 				UserOrganizations:      m.UserOrganizationManager.ToModels(data.UserOrganizations),
 			}
 		},
+	})
+}
+
+func (m *Model) GetPublicOrganization(context context.Context) ([]*Organization, error) {
+	return m.OrganizationManager.Find(context, &Organization{
+		IsPrivate: false,
 	})
 }

@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"time"
 
 	"github.com/google/uuid"
@@ -167,4 +168,8 @@ func (m *Model) Branch() {
 			}
 		},
 	})
+}
+
+func (m *Model) GetBranchesByOrganization(context context.Context, organizationId uuid.UUID) ([]*Branch, error) {
+	return m.BranchManager.Find(context, &Branch{OrganizationID: organizationId})
 }

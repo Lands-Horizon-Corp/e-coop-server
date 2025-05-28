@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -81,5 +82,11 @@ func (m *Model) OrganizationCategory() {
 				fmt.Sprintf("branch.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) GetOrganizationCategoryByOrganization(context context.Context, organizationId uuid.UUID) ([]*OrganizationCategory, error) {
+	return m.OrganizationCategoryManager.Find(context, &OrganizationCategory{
+		OrganizationID: &organizationId,
 	})
 }

@@ -54,6 +54,7 @@ func (c *Controller) Start() error {
 	c.SubscriptionPlanController()
 	c.UserController()
 	c.UserOrganinzationController()
+	c.OrganizationController()
 
 	return nil
 }
