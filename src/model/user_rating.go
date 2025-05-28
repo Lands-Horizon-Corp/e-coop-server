@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"time"
 
 	"github.com/google/uuid"
@@ -45,15 +46,14 @@ type (
 	}
 
 	UserRatingResponse struct {
-		ID             uuid.UUID             `json:"id"`
-		CreatedAt      string                `json:"created_at"`
-		CreatedByID    uuid.UUID             `json:"created_by_id"`
-		CreatedBy      *UserResponse         `json:"created_by,omitempty"`
-		UpdatedAt      string                `json:"updated_at"`
-		UpdatedByID    uuid.UUID             `json:"updated_by_id"`
-		UpdatedBy      *UserResponse         `json:"updated_by,omitempty"`
-		DeletedByID    *uuid.UUID            `json:"deleted_by_id,omitempty"`
-		DeletedBy      *UserResponse         `json:"deleted_by,omitempty"`
+		ID          uuid.UUID     `json:"id"`
+		CreatedAt   string        `json:"created_at"`
+		CreatedByID uuid.UUID     `json:"created_by_id"`
+		CreatedBy   *UserResponse `json:"created_by,omitempty"`
+		UpdatedAt   string        `json:"updated_at"`
+		UpdatedByID uuid.UUID     `json:"updated_by_id"`
+		UpdatedBy   *UserResponse `json:"updated_by,omitempty"`
+
 		OrganizationID uuid.UUID             `json:"organization_id"`
 		Organization   *OrganizationResponse `json:"organization,omitempty"`
 		BranchID       uuid.UUID             `json:"branch_id"`
@@ -78,15 +78,14 @@ func (m *Model) UserRating() {
 				return nil
 			}
 			return &UserRatingResponse{
-				ID:             data.ID,
-				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
-				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
-				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
-				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
-				DeletedByID:    data.DeletedByID,
-				DeletedBy:      m.UserManager.ToModel(data.DeletedBy),
+				ID:          data.ID,
+				CreatedAt:   data.CreatedAt.Format(time.RFC3339),
+				CreatedByID: data.CreatedByID,
+				CreatedBy:   m.UserManager.ToModel(data.CreatedBy),
+				UpdatedAt:   data.UpdatedAt.Format(time.RFC3339),
+				UpdatedByID: data.UpdatedByID,
+				UpdatedBy:   m.UserManager.ToModel(data.UpdatedBy),
+
 				OrganizationID: data.OrganizationID,
 				Organization:   m.OrganizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
@@ -100,5 +99,24 @@ func (m *Model) UserRating() {
 				Remark:      data.Remark,
 			}
 		},
+	})
+}
+
+func (m *Model) GetUserRatee(context context.Context, userId uuid.UUID) ([]*UserRating, error) {
+	return m.UserRatingManager.Find(context, &UserRating{
+		RateeUserID: userId,
+	})
+}
+
+func (m *Model) GetUserRater(context context.Context, userId uuid.UUID) ([]*UserRating, error) {
+	return m.UserRatingManager.Find(context, &UserRating{
+		RaterUserID: userId,
+	})
+}
+
+func (m *Model) GetOrganizationBranchRatings(context context.Context, branchId uuid.UUID, organizationId uuid.UUID) ([]*UserRating, error) {
+	return m.UserRatingManager.Find(context, &UserRating{
+		BranchID:       branchId,
+		OrganizationID: organizationId,
 	})
 }

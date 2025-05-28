@@ -36,7 +36,7 @@ func (c *Controller) NotificationController() {
 		context := context.Background()
 		notificationId, err := horizon.EngineUUIDParam(ctx, "notification_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid category ID")
+			return c.BadRequest(ctx, "Invalid notification ID")
 		}
 		if err := c.model.NotificationManager.DeleteByID(context, *notificationId); err != nil {
 			return c.InternalServerError(ctx, err)

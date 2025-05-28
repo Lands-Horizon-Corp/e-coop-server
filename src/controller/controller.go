@@ -56,6 +56,7 @@ func (c *Controller) Start() error {
 	c.SubscriptionPlanController()
 	c.UserController()
 	c.UserOrganinzationController()
+	c.UserRatingController()
 	c.OrganizationController()
 	c.BranchController()
 
