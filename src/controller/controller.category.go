@@ -128,6 +128,7 @@ func (c *Controller) CategoryController() {
 		Request: "string[]",
 		Note:    "Delete multiple category records",
 	}, func(ctx echo.Context) error {
+		context := context.Background()
 		var reqBody struct {
 			IDs []string `json:"ids"`
 		}
@@ -154,12 +155,12 @@ func (c *Controller) CategoryController() {
 				return c.BadRequest(ctx, fmt.Sprintf("Invalid UUID: %s", rawID))
 			}
 
-			if _, err := c.model.CategoryManager.GetByID(context.Background(), categoryID); err != nil {
+			if _, err := c.model.CategoryManager.GetByID(context, categoryID); err != nil {
 				tx.Rollback()
 				return c.NotFound(ctx, fmt.Sprintf("Category with ID %s", rawID))
 			}
 
-			if err := c.model.CategoryManager.DeleteByIDWithTx(context.Background(), tx, categoryID); err != nil {
+			if err := c.model.CategoryManager.DeleteByIDWithTx(context, tx, categoryID); err != nil {
 				tx.Rollback()
 				return c.InternalServerError(ctx, err)
 			}

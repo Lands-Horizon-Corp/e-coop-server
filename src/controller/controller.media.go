@@ -2,9 +2,11 @@ package controller
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -152,4 +154,63 @@ func (c *Controller) MediaController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
+	req.RegisterRoute(horizon.Route{
+		Route:   "/media/bulk-delete",
+		Method:  "DELETE",
+		Request: "string[]",
+		Note:    "Delete multiple media records",
+	}, func(ctx echo.Context) error {
+		context := context.Background()
+		var reqBody struct {
+			IDs []string `json:"ids"`
+		}
+
+		if err := ctx.Bind(&reqBody); err != nil {
+			return c.BadRequest(ctx, "Invalid request body")
+		}
+
+		if len(reqBody.IDs) == 0 {
+			return c.BadRequest(ctx, "No IDs provided")
+		}
+
+		tx := c.provider.Service.Database.Client().Begin()
+		defer func() {
+			if r := recover(); r != nil {
+				tx.Rollback()
+			}
+		}()
+		for _, rawID := range reqBody.IDs {
+			mediaID, err := uuid.Parse(rawID)
+			if err != nil {
+				tx.Rollback()
+				return c.BadRequest(ctx, fmt.Sprintf("Invalid UUID: %s", rawID))
+			}
+			media, err := c.model.MediaManager.GetByID(context, mediaID)
+			if err != nil {
+				tx.Rollback()
+				return c.NotFound(ctx, fmt.Sprintf("Media with ID %s", rawID))
+			}
+			if err := c.provider.Service.Storage.DeleteFile(context, &horizon.Storage{
+				FileName:   media.FileName,
+				FileSize:   media.FileSize,
+				FileType:   media.FileType,
+				StorageKey: media.StorageKey,
+				URL:        media.URL,
+				BucketName: media.BucketName,
+				Status:     "delete",
+			}); err != nil {
+				tx.Rollback()
+				return err
+			}
+			if err := c.model.MediaManager.DeleteByIDWithTx(context, tx, mediaID); err != nil {
+				tx.Rollback()
+				return c.InternalServerError(ctx, err)
+			}
+		}
+		if err := tx.Commit().Error; err != nil {
+			return c.InternalServerError(ctx, err)
+		}
+
+		return ctx.NoContent(http.StatusNoContent)
+	})
 }

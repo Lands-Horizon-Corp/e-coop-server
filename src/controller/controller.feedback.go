@@ -94,6 +94,7 @@ func (c *Controller) FeedbackController() {
 		Request: "string[]",
 		Note:    "Delete multiple feedback records",
 	}, func(ctx echo.Context) error {
+		context := context.Background()
 		var reqBody struct {
 			IDs []string `json:"ids"`
 		}
@@ -120,12 +121,12 @@ func (c *Controller) FeedbackController() {
 				return c.BadRequest(ctx, fmt.Sprintf("Invalid UUID: %s", rawID))
 			}
 
-			if _, err := c.model.FeedbackManager.GetByID(context.Background(), feedbackID); err != nil {
+			if _, err := c.model.FeedbackManager.GetByID(context, feedbackID); err != nil {
 				tx.Rollback()
 				return c.NotFound(ctx, fmt.Sprintf("Feedback with ID %s", rawID))
 			}
 
-			if err := c.model.FeedbackManager.DeleteByIDWithTx(context.Background(), tx, feedbackID); err != nil {
+			if err := c.model.FeedbackManager.DeleteByIDWithTx(context, tx, feedbackID); err != nil {
 				tx.Rollback()
 				return c.InternalServerError(ctx, err)
 			}

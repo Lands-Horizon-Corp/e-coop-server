@@ -96,6 +96,7 @@ func (c *Controller) ContactController() {
 		Request: "string[]",
 		Note:    "Delete multiple contact records",
 	}, func(ctx echo.Context) error {
+		context := context.Background()
 		var reqBody struct {
 			IDs []string `json:"ids"`
 		}
@@ -122,12 +123,12 @@ func (c *Controller) ContactController() {
 				return c.BadRequest(ctx, fmt.Sprintf("Invalid UUID: %s", rawID))
 			}
 
-			if _, err := c.model.ContactUsManager.GetByID(context.Background(), contactID); err != nil {
+			if _, err := c.model.ContactUsManager.GetByID(context, contactID); err != nil {
 				tx.Rollback()
 				return c.NotFound(ctx, fmt.Sprintf("Contact with ID %s", rawID))
 			}
 
-			if err := c.model.ContactUsManager.DeleteByIDWithTx(context.Background(), tx, contactID); err != nil {
+			if err := c.model.ContactUsManager.DeleteByIDWithTx(context, tx, contactID); err != nil {
 				tx.Rollback()
 				return c.InternalServerError(ctx, err)
 			}

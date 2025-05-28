@@ -16,7 +16,7 @@ func (c *Controller) SubscriptionPlanController() {
 	req := c.provider.Service.Request
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/subscription_plan",
+		Route:    "/subscription-plan",
 		Method:   "GET",
 		Response: "TSubscriptionPlan[]",
 	}, func(ctx echo.Context) error {
@@ -28,7 +28,7 @@ func (c *Controller) SubscriptionPlanController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/subscription_plan/:subscription_plan_id",
+		Route:    "/subscription-plan/:subscription_plan_id",
 		Method:   "GET",
 		Response: "TSubscriptionPlan",
 	}, func(ctx echo.Context) error {
@@ -46,7 +46,7 @@ func (c *Controller) SubscriptionPlanController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/subscription_plan",
+		Route:    "/subscription-plan",
 		Method:   "POST",
 		Request:  "TSubscriptionPlan",
 		Response: "TSubscriptionPlan",
@@ -78,7 +78,7 @@ func (c *Controller) SubscriptionPlanController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/subscription_plan/:subscription_plan_id",
+		Route:    "/subscription-plan/:subscription_plan_id",
 		Method:   "PUT",
 		Request:  "TSubscriptionPlan",
 		Response: "TSubscriptionPlan",
@@ -117,7 +117,7 @@ func (c *Controller) SubscriptionPlanController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:  "/subscription_plan/:subscription_plan_id",
+		Route:  "/subscription-plan/:subscription_plan_id",
 		Method: "DELETE",
 	}, func(ctx echo.Context) error {
 		subscription_planID, err := horizon.EngineUUIDParam(ctx, "subscription_plan_id")
@@ -133,7 +133,7 @@ func (c *Controller) SubscriptionPlanController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:   "/subscription_plan/bulk-delete",
+		Route:   "/subscription-plan/bulk-delete",
 		Method:  "DELETE",
 		Request: "string[]",
 		Note:    "Delete multiple subscription_plan records",
