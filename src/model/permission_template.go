@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"time"
 
 	"github.com/google/uuid"
@@ -119,5 +120,12 @@ func (m *Model) PermissionTemplate() {
 				"permission_template.delete." + data.ID.String(),
 			}
 		},
+	})
+}
+
+func (m *Model) GetPermissionTemplateByBranch(context context.Context, organizationId uuid.UUID, branchId uuid.UUID) ([]*PermissionTemplate, error) {
+	return m.PermissionTemplateManager.Find(context, &PermissionTemplate{
+		OrganizationID: organizationId,
+		BranchID:       branchId,
 	})
 }

@@ -46,6 +46,7 @@ func NewController(
 
 func (c *Controller) Start() error {
 
+	c.BranchController()
 	c.CategoryController()
 	c.ContactController()
 	c.FeedbackController()
@@ -53,14 +54,14 @@ func (c *Controller) Start() error {
 	c.InvitationCode()
 	c.MediaController()
 	c.NotificationController()
+	c.OrganizationController()
 	c.OrganizationDailyUsage()
+	c.PermissionTemplateController()
 	c.QRCodeController()
 	c.SubscriptionPlanController()
 	c.UserController()
 	c.UserOrganinzationController()
 	c.UserRatingController()
-	c.OrganizationController()
-	c.BranchController()
 
 	return nil
 }
