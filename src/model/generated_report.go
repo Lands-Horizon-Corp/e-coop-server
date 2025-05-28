@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"time"
 
 	"github.com/google/uuid"
@@ -114,5 +115,11 @@ func (m *Model) GeneratedReport() {
 				"generated_report.delete." + data.ID.String(),
 			}
 		},
+	})
+}
+
+func (m *Model) GetGenerationReportByUser(context context.Context, userId uuid.UUID) ([]*GeneratedReport, error) {
+	return m.GeneratedReportManager.Find(context, &GeneratedReport{
+		UserID: &userId,
 	})
 }
