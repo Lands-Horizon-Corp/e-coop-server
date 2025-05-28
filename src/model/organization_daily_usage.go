@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -138,5 +139,11 @@ func (m *Model) OrganizationDailyUsage() {
 				fmt.Sprintf("organization_daily_usage.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) GetOrganizationDailyUsageByOrganization(context context.Context, organizationId uuid.UUID) ([]*OrganizationDailyUsage, error) {
+	return m.OrganizationDailyUsageManager.Find(context, &OrganizationDailyUsage{
+		OrganizationID: organizationId,
 	})
 }

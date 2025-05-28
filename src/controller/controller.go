@@ -53,6 +53,7 @@ func (c *Controller) Start() error {
 	c.InvitationCode()
 	c.MediaController()
 	c.NotificationController()
+	c.OrganizationDailyUsage()
 	c.QRCodeController()
 	c.SubscriptionPlanController()
 	c.UserController()
