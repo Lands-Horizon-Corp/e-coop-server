@@ -26,11 +26,20 @@ func (c *Controller) UserController() {
 		if err != nil {
 			return err
 		}
+		userOrganization, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return err
+		}
+		var userOrg *model.UserOrganizationResponse
+		if userOrganization != nil {
+			userOrg = c.model.UserOrganizationManager.ToModel(userOrganization)
+		}
 		return ctx.JSON(http.StatusOK, model.CurrentUserResponse{
 			UserID:           user.ID,
 			User:             c.model.UserManager.ToModel(user),
-			UserOrganization: nil,
+			UserOrganization: userOrg,
 		})
+
 	})
 
 	req.RegisterRoute(horizon.Route{

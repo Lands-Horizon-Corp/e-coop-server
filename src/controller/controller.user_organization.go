@@ -18,23 +18,20 @@ func (c *Controller) UserOrganinzationController() {
 		Response: "TUserOrganization",
 		Note:     "Retrieve all user organizations. Use query param `pending=true` to include pending organizations.",
 	}, func(ctx echo.Context) error {
-		ctxBg := context.Background()
+		context := context.Background()
 		userId, err := horizon.EngineUUIDParam(ctx, "user_id")
 		isPending := ctx.QueryParam("pending") == "true"
 		if err != nil {
 			return err
 		}
-
-		user, err := c.model.UserManager.GetByID(ctxBg, *userId)
+		user, err := c.model.UserManager.GetByID(context, *userId)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
 		}
-
-		userOrganization, err := c.model.GetUserOrganizationByUser(ctxBg, user.ID, isPending)
+		userOrganization, err := c.model.GetUserOrganizationByUser(context, user.ID, isPending)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
-
 		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModels(userOrganization))
 	})
 
@@ -44,19 +41,19 @@ func (c *Controller) UserOrganinzationController() {
 		Response: "TUserOrganization",
 		Note:     "Retrieve all user organizations across all branches of a specific organization. Use query param `pending=true` to include pending organizations.",
 	}, func(ctx echo.Context) error {
-		ctxBg := context.Background()
+		context := context.Background()
 		organizationId, err := horizon.EngineUUIDParam(ctx, "organization_id")
 		isPending := ctx.QueryParam("pending") == "true"
 		if err != nil {
 			return err
 		}
 
-		organization, err := c.model.OrganizationManager.GetByID(ctxBg, *organizationId)
+		organization, err := c.model.OrganizationManager.GetByID(context, *organizationId)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
 		}
 
-		userOrganization, err := c.model.GetUserOrganizationByOrganization(ctxBg, organization.ID, isPending)
+		userOrganization, err := c.model.GetUserOrganizationByOrganization(context, organization.ID, isPending)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
@@ -70,19 +67,19 @@ func (c *Controller) UserOrganinzationController() {
 		Response: "TUserOrganization",
 		Note:     "Retrieve all user organizations from a specific branch. Use query param `pending=true` to include pending organizations.",
 	}, func(ctx echo.Context) error {
-		ctxBg := context.Background()
+		context := context.Background()
 		branchId, err := horizon.EngineUUIDParam(ctx, "branch_id")
 		isPending := ctx.QueryParam("pending") == "true"
 		if err != nil {
 			return err
 		}
 
-		branch, err := c.model.BranchManager.GetByID(ctxBg, *branchId)
+		branch, err := c.model.BranchManager.GetByID(context, *branchId)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
 		}
 
-		userOrganization, err := c.model.GetUserOrganizationByBranch(ctxBg, branch.OrganizationID, branch.ID, isPending)
+		userOrganization, err := c.model.GetUserOrganizationByBranch(context, branch.OrganizationID, branch.ID, isPending)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
@@ -95,7 +92,17 @@ func (c *Controller) UserOrganinzationController() {
 		Method: "POST",
 		Note:   "Switch organization and branch stored in JWT (no database impact).",
 	}, func(ctx echo.Context) error {
-		return nil
+		context := context.Background()
+		organizationId, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
+		if err != nil {
+			return err
+		}
+		userOrganization, err := c.model.UserOrganizationManager.GetByID(context, *organizationId)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		// witch here
+		return ctx.NoContent(http.StatusNoContent)
 	})
 
 	req.RegisterRoute(horizon.Route{
