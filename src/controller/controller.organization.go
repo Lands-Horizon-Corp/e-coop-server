@@ -252,12 +252,10 @@ func (c *Controller) OrganizationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Organization not found"})
 		}
-
 		currentTime := time.Now().UTC()
 		if organization.SubscriptionEndDate.After(currentTime) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Subscription plan is still active"})
 		}
-
 		userOrganizations, err := c.model.GetUserOrganizationByOrganization(context, organization.ID, nil)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
@@ -265,12 +263,15 @@ func (c *Controller) OrganizationController() {
 		if len(userOrganizations) >= 3 {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete organization with more than 2 user organizations"})
 		}
+		user, err := c.userToken.CurrentUser(context, ctx)
+		if err != nil {
+			return err
+		}
 		tx := c.provider.Service.Database.Client().Begin()
 		if tx.Error != nil {
 			tx.Rollback()
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
 		}
-
 		for _, category := range organization.OrganizationCategories {
 			if err := c.model.OrganizationCategoryManager.DeleteByIDWithTx(context, tx, category.ID); err != nil {
 				tx.Rollback()
@@ -282,14 +283,16 @@ func (c *Controller) OrganizationController() {
 			tx.Rollback()
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
-
 		for _, branch := range branches {
+			if err := c.model.OrganizationDestroyer(context, tx, user.ID, *organizationId, branch.ID); err != nil {
+				tx.Rollback()
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			}
 			if err := c.model.BranchManager.DeleteByIDWithTx(context, tx, branch.ID); err != nil {
 				tx.Rollback()
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 			}
 		}
-
 		if err := c.model.OrganizationManager.DeleteByIDWithTx(context, tx, *organizationId); err != nil {
 			tx.Rollback()
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})

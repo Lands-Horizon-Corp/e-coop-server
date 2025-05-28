@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	horizon_services "github.com/lands-horizon/horizon-server/services"
 	"github.com/lands-horizon/horizon-server/src"
+	"gorm.io/gorm"
 )
 
 type (
@@ -97,10 +98,10 @@ func (c *Model) Start() error {
 	return nil
 }
 
-func (c *Model) OrganizationSeeder(context context.Context, userId uuid.UUID, organizationId uuid.UUID, branchId uuid.UUID) error {
+func (c *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userId uuid.UUID, organizationId uuid.UUID, branchId uuid.UUID) error {
 	return nil
 }
 
-func (c *Model) OrganizationDestroyer(context context.Context, userId uuid.UUID, organizationId uuid.UUID, branchId uuid.UUID) error {
+func (c *Model) OrganizationDestroyer(context context.Context, tx *gorm.DB, userId uuid.UUID, organizationId uuid.UUID, branchId uuid.UUID) error {
 	return nil
 }

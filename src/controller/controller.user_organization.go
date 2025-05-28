@@ -36,6 +36,11 @@ func (c *Controller) UserOrganinzationController() {
 		if len(userOrganizations) == 0 || userOrganizations == nil {
 			return echo.NewHTTPError(http.StatusNotFound, "user organization not found")
 		}
+		tx := c.provider.Service.Database.Client().Begin()
+		if tx.Error != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+		}
 		for _, userOrganization := range userOrganizations {
 			if userOrganization.UserID != user.ID {
 				continue
@@ -49,13 +54,17 @@ func (c *Controller) UserOrganinzationController() {
 			if userOrganization.IsSeeded {
 				continue
 			}
-			if err := c.model.OrganizationSeeder(context, user.ID, userOrganization.ID, *userOrganization.BranchID); err != nil {
+			if err := c.model.OrganizationSeeder(context, tx, user.ID, userOrganization.ID, *userOrganization.BranchID); err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 			}
 			userOrganization.IsSeeded = true
-			if err := c.model.UserOrganizationManager.UpdateByID(context, userOrganization.ID, userOrganization); err != nil {
+			if err := c.model.UserOrganizationManager.UpdateByIDWithTx(context, tx, userOrganization.ID, userOrganization); err != nil {
 				return echo.NewHTTPError(http.StatusInternalServerError, "failed to update user organization seed status")
 			}
+		}
+		if err := tx.Commit().Error; err != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
 		return ctx.NoContent(http.StatusOK)
 	})
