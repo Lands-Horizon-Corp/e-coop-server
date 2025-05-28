@@ -65,4 +65,21 @@ func (c *Controller) FootstepController() {
 		return ctx.JSON(http.StatusOK, c.model.FootstepManager.ToModels(footstep))
 	})
 
+	req.RegisterRoute(horizon.Route{
+		Route:    "/footstep/:footstep_id",
+		Method:   "GET",
+		Response: "TFootstep",
+	}, func(ctx echo.Context) error {
+		context := context.Background()
+		footstepId, err := horizon.EngineUUIDParam(ctx, "footstep_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid footstep ID")
+		}
+		footstep, err := c.model.FootstepManager.GetByIDRaw(context, *footstepId)
+		if err != nil {
+			return c.InternalServerError(ctx, err)
+		}
+		return ctx.JSON(http.StatusOK, footstep)
+	})
+
 }

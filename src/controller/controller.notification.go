@@ -30,7 +30,7 @@ func (c *Controller) NotificationController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:  "/notification/notification_id",
+		Route:  "/notification/:notification_id",
 		Method: "DELETE",
 	}, func(ctx echo.Context) error {
 		context := context.Background()
