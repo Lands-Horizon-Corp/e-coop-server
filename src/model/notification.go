@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -79,5 +80,11 @@ func (m *Model) Notification() {
 				fmt.Sprintf("notification.delete.%s", data.ID),
 			}
 		},
+	})
+}
+
+func (m *Model) GetNotificationByUser(context context.Context, userId uuid.UUID) ([]*Notification, error) {
+	return m.NotificationManager.Find(context, &Notification{
+		UserID: userId,
 	})
 }
