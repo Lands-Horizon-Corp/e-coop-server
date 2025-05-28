@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"time"
 
 	"github.com/google/uuid"
@@ -133,6 +134,23 @@ func (m *Model) Footstep() {
 	})
 }
 
-// by user
-// by branch
-// by organization
+func (m *Model) GetFootstepByUser(context context.Context, userId uuid.UUID) ([]*Footstep, error) {
+	return m.FootstepManager.Find(context, &Footstep{
+		UserID: &userId,
+	})
+}
+
+func (m *Model) GetFootstepByBranch(context context.Context, organizationId uuid.UUID, branchId uuid.UUID) ([]*Footstep, error) {
+	return m.FootstepManager.Find(context, &Footstep{
+		OrganizationID: organizationId,
+		BranchID:       branchId,
+	})
+}
+
+func (m *Model) GetFootstepByUserOrganization(context context.Context, userId uuid.UUID, organizationId uuid.UUID, branchId uuid.UUID) ([]*Footstep, error) {
+	return m.FootstepManager.Find(context, &Footstep{
+		UserID:         &userId,
+		OrganizationID: organizationId,
+		BranchID:       branchId,
+	})
+}

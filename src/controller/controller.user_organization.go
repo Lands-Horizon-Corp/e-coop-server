@@ -348,10 +348,11 @@ func (c *Controller) UserOrganinzationController() {
 		case "owner", "employee":
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "owners and employees cannot leave an organization"})
 		}
+
 		if err := c.model.UserOrganizationManager.DeleteByID(context, userOrg.ID); err != nil {
 			return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": err.Error()})
 		}
-		return nil
+		return ctx.NoContent(http.StatusNoContent)
 	})
 
 	req.RegisterRoute(horizon.Route{
@@ -381,7 +382,7 @@ func (c *Controller) UserOrganinzationController() {
 	req.RegisterRoute(horizon.Route{
 		Route:  "/user-organization/organization/:organization_id/branch/:branch_id/can-join-employee",
 		Method: "GET",
-		Note:   "Check if the user can join as a emplyee.",
+		Note:   "Check if the user can join as a empolyee.",
 	}, func(ctx echo.Context) error {
 		context := context.Background()
 		user, err := c.userToken.CurrentUser(context, ctx)

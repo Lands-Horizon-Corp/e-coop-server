@@ -49,6 +49,7 @@ func (c *Controller) Start() error {
 	c.CategoryController()
 	c.ContactController()
 	c.FeedbackController()
+	c.FootstepController()
 	c.MediaController()
 	c.QRCodeController()
 	c.SubscriptionPlanController()
