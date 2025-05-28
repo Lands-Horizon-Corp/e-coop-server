@@ -1,11 +1,13 @@
 package model
 
 import (
+	"context"
 	"time"
 
 	"github.com/google/uuid"
 	horizon_services "github.com/lands-horizon/horizon-server/services"
 	"github.com/lands-horizon/horizon-server/services/horizon"
+	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
@@ -127,4 +129,44 @@ func (m *Model) InvitationCode() {
 			}
 		},
 	})
+}
+
+func (m *Model) GetInvitationCodeByCode(context context.Context, code string) (*InvitationCode, error) {
+	return m.InvitationCodeManager.FindOne(context, &InvitationCode{
+		Code: code,
+	})
+}
+
+func (m *Model) VerifyInvitationCodeByCode(context context.Context, code string) (*InvitationCode, error) {
+	data, err := m.GetInvitationCodeByCode(context, code)
+	if err != nil {
+		return nil, err
+	}
+	now := time.Now()
+	if now.After(data.ExpirationDate) {
+		return nil, eris.Errorf("invitation code %q expired on %s", code, data.ExpirationDate.Format(time.RFC3339))
+	}
+	if data.CurrentUse >= data.MaxUse {
+		return nil, eris.Errorf(
+			"invitation code %q has already been used %d times (max %d)",
+			code, data.CurrentUse, data.MaxUse,
+		)
+	}
+	return data, nil
+}
+
+func (m *Model) RedeemInvitationCode(context context.Context, tx *gorm.DB, invitationCodeId uuid.UUID) error {
+	data, err := m.InvitationCodeManager.GetByID(context, invitationCodeId)
+	if err != nil {
+		return err
+	}
+	data.CurrentUse++
+	if err := m.InvitationCodeManager.UpdateWithTx(context, tx, data); err != nil {
+		return eris.Wrapf(
+			err,
+			"failed to redeem invitation code %q (increment CurrentUse)",
+			data.Code,
+		)
+	}
+	return nil
 }

@@ -191,40 +191,56 @@ func (m *Model) UserOrganization() {
 	})
 }
 
-func (m *Model) GetUserOrganizationByUser(context context.Context, userId uuid.UUID, pending bool) ([]*UserOrganization, error) {
-	if pending == true {
-		m.UserOrganizationManager.Find(context, &UserOrganization{
-			UserID:            userId,
-			ApplicationStatus: "pending",
-		})
-	}
-	return m.UserOrganizationManager.Find(context, &UserOrganization{
+func (m *Model) GetUserOrganizationByUser(context context.Context, userId uuid.UUID, pending *bool) ([]*UserOrganization, error) {
+	filter := &UserOrganization{
 		UserID: userId,
-	})
+	}
+	if pending != nil && *pending {
+		filter.ApplicationStatus = "pending"
+	}
+	return m.UserOrganizationManager.Find(context, filter)
 }
 
-func (m *Model) GetUserOrganizationByOrganization(context context.Context, organizationId uuid.UUID, pending bool) ([]*UserOrganization, error) {
-	if pending == true {
-		m.UserOrganizationManager.Find(context, &UserOrganization{
-			OrganizationID:    organizationId,
-			ApplicationStatus: "pending",
-		})
-	}
-	return m.UserOrganizationManager.Find(context, &UserOrganization{
+func (m *Model) GetUserOrganizationByOrganization(context context.Context, organizationId uuid.UUID, pending *bool) ([]*UserOrganization, error) {
+	filter := &UserOrganization{
 		OrganizationID: organizationId,
-	})
+	}
+	if pending != nil && *pending {
+		filter.ApplicationStatus = "pending"
+	}
+	return m.UserOrganizationManager.Find(context, filter)
 }
 
-func (m *Model) GetUserOrganizationByBranch(context context.Context, organizationId uuid.UUID, branchId uuid.UUID, pending bool) ([]*UserOrganization, error) {
-	if pending == true {
-		m.UserOrganizationManager.Find(context, &UserOrganization{
-			OrganizationID:    organizationId,
-			BranchID:          &branchId,
-			ApplicationStatus: "pending",
-		})
-	}
-	return m.UserOrganizationManager.Find(context, &UserOrganization{
+func (m *Model) GetUserOrganizationByBranch(context context.Context, organizationId uuid.UUID, branchId uuid.UUID, pending *bool) ([]*UserOrganization, error) {
+	filter := &UserOrganization{
 		OrganizationID: organizationId,
 		BranchID:       &branchId,
+	}
+	if pending != nil && *pending {
+		filter.ApplicationStatus = "pending"
+	}
+	return m.UserOrganizationManager.Find(context, filter)
+}
+func (m *Model) CountUserOrganizationBranch(context context.Context, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) (int64, error) {
+	return m.UserOrganizationManager.Count(context, &UserOrganization{
+		OrganizationID: organizationID,
+		BranchID:       &branchID,
+		UserID:         userID,
 	})
+}
+func (m *Model) UserOrganizationEmployeeCanJoin(context context.Context, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) bool {
+	existing, err := m.CountUserOrganizationBranch(context, userID, organizationID, branchID)
+	return err == nil && existing == 0
+}
+
+func (m *Model) UserOrganizationMemberCanJoin(context context.Context, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) bool {
+	existing, err := m.CountUserOrganizationBranch(context, userID, organizationID, branchID)
+	if err != nil || existing > 0 {
+		return false
+	}
+	existingOrgCount, err := m.UserOrganizationManager.Count(context, &UserOrganization{
+		UserID:         userID,
+		OrganizationID: organizationID,
+	})
+	return err == nil && existingOrgCount == 0
 }

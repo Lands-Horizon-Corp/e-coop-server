@@ -1,6 +1,9 @@
 package model
 
 import (
+	"context"
+
+	"github.com/google/uuid"
 	horizon_services "github.com/lands-horizon/horizon-server/services"
 	"github.com/lands-horizon/horizon-server/src"
 )
@@ -91,5 +94,9 @@ func (c *Model) Start() error {
 	if err := c.provider.Service.Database.Client().AutoMigrate(c.Migration...); err != nil {
 		return err
 	}
+	return nil
+}
+
+func (c *Model) OrganizationSeeder(context context.Context, userId uuid.UUID, organizationId uuid.UUID, branchId uuid.UUID) error {
 	return nil
 }
