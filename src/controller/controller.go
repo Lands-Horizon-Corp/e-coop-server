@@ -50,6 +50,7 @@ func (c *Controller) Start() error {
 	c.ContactController()
 	c.FeedbackController()
 	c.FootstepController()
+	c.InvitationCode()
 	c.MediaController()
 	c.NotificationController()
 	c.QRCodeController()

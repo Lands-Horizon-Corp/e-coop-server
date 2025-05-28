@@ -131,6 +131,13 @@ func (m *Model) InvitationCode() {
 	})
 }
 
+func (m *Model) GetInvitationCodeByBranch(context context.Context, organizationId uuid.UUID, branchId uuid.UUID) ([]*InvitationCode, error) {
+	return m.InvitationCodeManager.Find(context, &InvitationCode{
+		OrganizationID: organizationId,
+		BranchID:       branchId,
+	})
+}
+
 func (m *Model) GetInvitationCodeByCode(context context.Context, code string) (*InvitationCode, error) {
 	return m.InvitationCodeManager.FindOne(context, &InvitationCode{
 		Code: code,
