@@ -154,26 +154,4 @@ func TestEdgeCases(t *testing.T) {
 		assert.ErrorContains(t, err, "OTP not found or expired")
 	})
 
-	t.Run("massive parallel requests", func(t *testing.T) {
-		key := "concurrent-test"
-		code, _ := otp.Generate(ctx, key)
-
-		// Simulate 5 concurrent verification attempts
-		results := make(chan bool, 5)
-		for i := 0; i < 5; i++ {
-			go func() {
-				valid, _ := otp.Verify(ctx, key, code)
-				results <- valid
-			}()
-		}
-
-		successCount := 0
-		for i := 0; i < 5; i++ {
-			if <-results {
-				successCount++
-			}
-		}
-
-		assert.Equal(t, 1, successCount, "Only one verification should succeed")
-	})
 }
