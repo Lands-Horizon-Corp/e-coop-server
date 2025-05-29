@@ -64,6 +64,11 @@ type (
 		IsClosed    bool       `gorm:"not null;default:false"`
 		RequestView *time.Time `gorm:"type:timestamp"`
 
+		EmployeeBySignatureMediaID *uuid.UUID `gorm:"type:uuid"`
+		EmployeeBySignatureMedia   *Media     `gorm:"foreignKey:EmployeeBySignatureMediaID" json:"employee_by_signature_media,omitempty"`
+		EmployeeByName             string     `gorm:"type:varchar(255)"`
+		EmployeeByPosition         string     `gorm:"type:varchar(255)"`
+
 		ApprovedBySignatureMediaID *uuid.UUID `gorm:"type:uuid"`
 		ApprovedBySignatureMedia   *Media     `gorm:"foreignKey:ApprovedBySignatureMediaID" json:"approved_by_signature_media,omitempty"`
 		ApprovedByName             string     `gorm:"type:varchar(255)"`
@@ -153,6 +158,11 @@ type (
 		IsClosed    bool    `json:"is_closed"`
 		RequestView *string `json:"request_view,omitempty"`
 
+		EmployeeBySignatureMediaID *uuid.UUID     `json:"employee_by_signature_media_id,omitempty"`
+		EmployeeBySignatureMedia   *MediaResponse `json:"employee_by_signature_media,omitempty"`
+		EmployeeByName             string         `json:"employee_by_name"`
+		EmployeeByPosition         string         `json:"employee_by_position"`
+
 		ApprovedBySignatureMediaID *uuid.UUID     `json:"approved_by_signature_media_id,omitempty"`
 		ApprovedBySignatureMedia   *MediaResponse `json:"approved_by_signature_media,omitempty"`
 		ApprovedByName             string         `json:"approved_by_name"`
@@ -229,35 +239,40 @@ type (
 		CanView                       bool       `json:"can_view,omitempty"`
 		IsClosed                      bool       `json:"is_closed,omitempty"`
 		RequestView                   *time.Time `json:"request_view,omitempty"`
-		ApprovedBySignatureMediaID    *uuid.UUID `json:"approved_by_signature_media_id,omitempty"`
-		ApprovedByName                string     `json:"approved_by_name,omitempty"`
-		ApprovedByPosition            string     `json:"approved_by_position,omitempty"`
-		PreparedBySignatureMediaID    *uuid.UUID `json:"prepared_by_signature_media_id,omitempty"`
-		PreparedByName                string     `json:"prepared_by_name,omitempty"`
-		PreparedByPosition            string     `json:"prepared_by_position,omitempty"`
-		CertifiedBySignatureMediaID   *uuid.UUID `json:"certified_by_signature_media_id,omitempty"`
-		CertifiedByName               string     `json:"certified_by_name,omitempty"`
-		CertifiedByPosition           string     `json:"certified_by_position,omitempty"`
-		VerifiedBySignatureMediaID    *uuid.UUID `json:"verified_by_signature_media_id,omitempty"`
-		VerifiedByName                string     `json:"verified_by_name,omitempty"`
-		VerifiedByPosition            string     `json:"verified_by_position,omitempty"`
-		CheckBySignatureMediaID       *uuid.UUID `json:"check_by_signature_media_id,omitempty"`
-		CheckByName                   string     `json:"check_by_name,omitempty"`
-		CheckByPosition               string     `json:"check_by_position,omitempty"`
-		AcknowledgeBySignatureMediaID *uuid.UUID `json:"acknowledge_by_signature_media_id,omitempty"`
-		AcknowledgeByName             string     `json:"acknowledge_by_name,omitempty"`
-		AcknowledgeByPosition         string     `json:"acknowledge_by_position,omitempty"`
-		NotedBySignatureMediaID       *uuid.UUID `json:"noted_by_signature_media_id,omitempty"`
-		NotedByName                   string     `json:"noted_by_name,omitempty"`
-		NotedByPosition               string     `json:"noted_by_position,omitempty"`
-		PostedBySignatureMediaID      *uuid.UUID `json:"posted_by_signature_media_id,omitempty"`
-		PostedByName                  string     `json:"posted_by_name,omitempty"`
-		PostedByPosition              string     `json:"posted_by_position,omitempty"`
-		PaidBySignatureMediaID        *uuid.UUID `json:"paid_by_signature_media_id,omitempty"`
-		PaidByName                    string     `json:"paid_by_name,omitempty"`
-		PaidByPosition                string     `json:"paid_by_position,omitempty"`
-		EndedAt                       *time.Time `json:"ended_at,omitempty"`
-		TotalBatchTime                *time.Time `json:"total_batch_time,omitempty"`
+
+		EmployeeBySignatureMediaID    *uuid.UUID     `json:"employee_by_signature_media_id,omitempty"`
+		EmployeeBySignatureMedia      *MediaResponse `json:"employee_by_signature_media,omitempty"`
+		EmployeeByName                string         `json:"employee_by_name"`
+		EmployeeByPosition            string         `json:"employee_by_position"`
+		ApprovedBySignatureMediaID    *uuid.UUID     `json:"approved_by_signature_media_id,omitempty"`
+		ApprovedByName                string         `json:"approved_by_name,omitempty"`
+		ApprovedByPosition            string         `json:"approved_by_position,omitempty"`
+		PreparedBySignatureMediaID    *uuid.UUID     `json:"prepared_by_signature_media_id,omitempty"`
+		PreparedByName                string         `json:"prepared_by_name,omitempty"`
+		PreparedByPosition            string         `json:"prepared_by_position,omitempty"`
+		CertifiedBySignatureMediaID   *uuid.UUID     `json:"certified_by_signature_media_id,omitempty"`
+		CertifiedByName               string         `json:"certified_by_name,omitempty"`
+		CertifiedByPosition           string         `json:"certified_by_position,omitempty"`
+		VerifiedBySignatureMediaID    *uuid.UUID     `json:"verified_by_signature_media_id,omitempty"`
+		VerifiedByName                string         `json:"verified_by_name,omitempty"`
+		VerifiedByPosition            string         `json:"verified_by_position,omitempty"`
+		CheckBySignatureMediaID       *uuid.UUID     `json:"check_by_signature_media_id,omitempty"`
+		CheckByName                   string         `json:"check_by_name,omitempty"`
+		CheckByPosition               string         `json:"check_by_position,omitempty"`
+		AcknowledgeBySignatureMediaID *uuid.UUID     `json:"acknowledge_by_signature_media_id,omitempty"`
+		AcknowledgeByName             string         `json:"acknowledge_by_name,omitempty"`
+		AcknowledgeByPosition         string         `json:"acknowledge_by_position,omitempty"`
+		NotedBySignatureMediaID       *uuid.UUID     `json:"noted_by_signature_media_id,omitempty"`
+		NotedByName                   string         `json:"noted_by_name,omitempty"`
+		NotedByPosition               string         `json:"noted_by_position,omitempty"`
+		PostedBySignatureMediaID      *uuid.UUID     `json:"posted_by_signature_media_id,omitempty"`
+		PostedByName                  string         `json:"posted_by_name,omitempty"`
+		PostedByPosition              string         `json:"posted_by_position,omitempty"`
+		PaidBySignatureMediaID        *uuid.UUID     `json:"paid_by_signature_media_id,omitempty"`
+		PaidByName                    string         `json:"paid_by_name,omitempty"`
+		PaidByPosition                string         `json:"paid_by_position,omitempty"`
+		EndedAt                       *time.Time     `json:"ended_at,omitempty"`
+		TotalBatchTime                *time.Time     `json:"total_batch_time,omitempty"`
 	}
 )
 
@@ -335,6 +350,11 @@ func (m *Model) TransactionBatch() {
 				CanView:                       data.CanView,
 				IsClosed:                      data.IsClosed,
 				RequestView:                   requestView,
+
+				EmployeeBySignatureMediaID:    data.EmployeeBySignatureMediaID,
+				EmployeeBySignatureMedia:      m.MediaManager.ToModel(data.EmployeeBySignatureMedia),
+				EmployeeByName:                data.EmployeeByName,
+				EmployeeByPosition:            data.EmployeeByPosition,
 				ApprovedBySignatureMediaID:    data.ApprovedBySignatureMediaID,
 				ApprovedBySignatureMedia:      m.MediaManager.ToModel(data.ApprovedBySignatureMedia),
 				ApprovedByName:                data.ApprovedByName,
@@ -385,6 +405,8 @@ func (m *Model) TransactionBatch() {
 			return []string{
 				"transaction_batch.update",
 				fmt.Sprintf("transaction_batch.update.%s", data.ID),
+				fmt.Sprintf("transaction_batch.update.branch.%s", data.BranchID),
+				fmt.Sprintf("transaction_batch.update.organization.%s", data.BranchID),
 			}
 		},
 		Deleted: func(data *TransactionBatch) []string {

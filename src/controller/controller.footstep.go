@@ -48,7 +48,7 @@ func (c *Controller) FootstepController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/footstep/user-organization/user_organization_id",
+		Route:    "/footstep/user-organization/:user_organization_id",
 		Method:   "GET",
 		Response: "TFootstep[]",
 		Note:     "Getting Footstep of users that is (member or employee or owner) on current branch",
