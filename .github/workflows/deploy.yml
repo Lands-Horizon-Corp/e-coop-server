@@ -112,6 +112,7 @@ jobs:
         # Build and restart application
         export PATH=\$PATH:/usr/local/go/bin  # Ensure Go is in PATH
         go version  # Verify Go version
+        go clean -cache
         go test -v ./services/horizon_test
         go build -o main
 
