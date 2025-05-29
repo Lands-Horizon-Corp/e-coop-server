@@ -32,7 +32,7 @@ jobs:
         SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
         SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
         SMTP_FROM: ${{ secrets.SMTP_FROM }}
-        SMTP_TEST_RECIEVER: ${{ secrets.SMTP_TEST_RECIEVER }}
+        SMTP_TEST_RECIEVE: ${{ secrets.SMTP_TEST_RECIEVER }}
         TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
         TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
         TWILIO_SENDER: ${{ secrets.TWILIO_SENDER }}
@@ -66,6 +66,7 @@ jobs:
     - name: Run Tests
       run: |
         go version
+        go clean -cache
         go test -v ./services/horizon_test
 
     - name: Install SSH key
