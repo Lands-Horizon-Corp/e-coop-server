@@ -21,9 +21,9 @@ type (
 		DeletedAt      gorm.DeletedAt `gorm:"index"`
 		DeletedByID    *uuid.UUID     `gorm:"type:uuid"`
 		DeletedBy      *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
-		OrganizationID uuid.UUID      `gorm:"type:uuid;not null;index:idx_organization_branch"`
+		OrganizationID uuid.UUID      `gorm:"type:uuid;not null;index:idx_organization_branch_member_asset"`
 		Organization   *Organization  `gorm:"foreignKey:OrganizationID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID      `gorm:"type:uuid;not null;index:idx_organization_branch"`
+		BranchID       uuid.UUID      `gorm:"type:uuid;not null;index:idx_organization_branch_member_asset"`
 		Branch         *Branch        `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
 		MediaID *uuid.UUID `gorm:"type:uuid"`
