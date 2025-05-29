@@ -1,0 +1,179 @@
+package model
+
+import (
+	"context"
+	"time"
+
+	"github.com/google/uuid"
+	horizon_services "github.com/lands-horizon/horizon-server/services"
+	"github.com/lands-horizon/horizon-server/services/horizon"
+	"github.com/rotisserie/eris"
+	"gorm.io/gorm"
+)
+
+type (
+	InvitationCode struct {
+		ID             uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
+		CreatedAt      time.Time      `gorm:"not null;default:now()"`
+		CreatedByID    uuid.UUID      `gorm:"type:uuid"`
+		CreatedBy      *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
+		UpdatedAt      time.Time      `gorm:"not null;default:now()"`
+		UpdatedByID    uuid.UUID      `gorm:"type:uuid"`
+		UpdatedBy      *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
+		DeletedAt      gorm.DeletedAt `gorm:"index"`
+		DeletedByID    *uuid.UUID     `gorm:"type:uuid"`
+		DeletedBy      *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
+		OrganizationID uuid.UUID      `gorm:"type:uuid;not null;index:idx_branch_org_invitation_code"`
+		Organization   *Organization  `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE;" json:"organization,omitempty"`
+		BranchID       uuid.UUID      `gorm:"type:uuid;not null;index:idx_branch_org_invitation_code"`
+		Branch         *Branch        `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE;" json:"branch,omitempty"`
+
+		UserType       string    `gorm:"type:varchar(255);not null"`
+		Code           string    `gorm:"type:varchar(255);not null;unique"`
+		ExpirationDate time.Time `gorm:"not null"`
+		MaxUse         int       `gorm:"not null"`
+		CurrentUse     int       `gorm:"default:0"`
+		Description    string    `gorm:"type:text"`
+	}
+
+	InvitationCodeResponse struct {
+		ID             uuid.UUID             `json:"id"`
+		CreatedAt      string                `json:"created_at"`
+		CreatedByID    uuid.UUID             `json:"created_by_id"`
+		CreatedBy      *UserResponse         `json:"created_by,omitempty"`
+		UpdatedAt      string                `json:"updated_at"`
+		UpdatedByID    uuid.UUID             `json:"updated_by_id"`
+		UpdatedBy      *UserResponse         `json:"updated_by,omitempty"`
+		OrganizationID uuid.UUID             `json:"organization_id"`
+		Organization   *OrganizationResponse `json:"organization,omitempty"`
+		BranchID       uuid.UUID             `json:"branch_id"`
+		Branch         *BranchResponse       `json:"branch,omitempty"`
+
+		UserType       string            `json:"user_type"`
+		Code           string            `json:"code"`
+		ExpirationDate string            `json:"expiration_date"`
+		MaxUse         int               `json:"max_use"`
+		CurrentUse     int               `json:"current_use"`
+		Description    string            `json:"description,omitempty"`
+		QRCode         *horizon.QRResult `json:"qr_code,omitempty"`
+	}
+
+	InvitationCodeRequest struct {
+		ID *uuid.UUID `json:"id,omitempty"`
+
+		UserType       string    `json:"user_type" validate:"required,oneof=employee owner member"`
+		Code           string    `json:"code" validate:"required,max=255"`
+		ExpirationDate time.Time `json:"expiration_date" validate:"required"`
+		MaxUse         int       `json:"max_use" validate:"required"`
+		Description    string    `json:"description,omitempty"`
+	}
+)
+
+func (m *Model) InvitationCode() {
+	m.Migration = append(m.Migration, &InvitationCode{})
+	m.InvitationCodeManager = horizon_services.NewRepository(horizon_services.RepositoryParams[InvitationCode, InvitationCodeResponse, InvitationCodeRequest]{
+		Preloads: []string{
+			"CreatedBy",
+			"UpdatedBy",
+			"Organization",
+			"Branch",
+		},
+		Service: m.provider.Service,
+		Resource: func(data *InvitationCode) *InvitationCodeResponse {
+			if data == nil {
+				return nil
+			}
+			return &InvitationCodeResponse{
+				ID:             data.ID,
+				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
+				CreatedByID:    data.CreatedByID,
+				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
+				UpdatedByID:    data.UpdatedByID,
+				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				OrganizationID: data.OrganizationID,
+				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				BranchID:       data.BranchID,
+				Branch:         m.BranchManager.ToModel(data.Branch),
+
+				UserType:       data.UserType,
+				Code:           data.Code,
+				ExpirationDate: data.ExpirationDate.Format(time.RFC3339),
+				MaxUse:         data.MaxUse,
+				CurrentUse:     data.CurrentUse,
+				Description:    data.Description,
+			}
+		},
+		Created: func(data *InvitationCode) []string {
+			return []string{
+				"invitation_code.create",
+				"invitation_code.create.organization." + data.OrganizationID.String(),
+				"invitation_code.create.branch." + data.BranchID.String(),
+				"invitation_code.create." + data.ID.String(),
+			}
+		},
+		Updated: func(data *InvitationCode) []string {
+			return []string{
+				"invitation_code.update",
+				"invitation_code.update.organization." + data.OrganizationID.String(),
+				"invitation_code.update.branch." + data.BranchID.String(),
+				"invitation_code.update." + data.ID.String(),
+			}
+		},
+		Deleted: func(data *InvitationCode) []string {
+			return []string{
+				"invitation_code.delete",
+				"invitation_code.delete.organization." + data.OrganizationID.String(),
+				"invitation_code.delete.branch." + data.BranchID.String(),
+				"invitation_code.delete." + data.ID.String(),
+			}
+		},
+	})
+}
+
+func (m *Model) GetInvitationCodeByBranch(context context.Context, organizationId uuid.UUID, branchId uuid.UUID) ([]*InvitationCode, error) {
+	return m.InvitationCodeManager.Find(context, &InvitationCode{
+		OrganizationID: organizationId,
+		BranchID:       branchId,
+	})
+}
+
+func (m *Model) GetInvitationCodeByCode(context context.Context, code string) (*InvitationCode, error) {
+	return m.InvitationCodeManager.FindOne(context, &InvitationCode{
+		Code: code,
+	})
+}
+
+func (m *Model) VerifyInvitationCodeByCode(context context.Context, code string) (*InvitationCode, error) {
+	data, err := m.GetInvitationCodeByCode(context, code)
+	if err != nil {
+		return nil, err
+	}
+	now := time.Now()
+	if now.After(data.ExpirationDate) {
+		return nil, eris.Errorf("invitation code %q expired on %s", code, data.ExpirationDate.Format(time.RFC3339))
+	}
+	if data.CurrentUse >= data.MaxUse {
+		return nil, eris.Errorf(
+			"invitation code %q has already been used %d times (max %d)",
+			code, data.CurrentUse, data.MaxUse,
+		)
+	}
+	return data, nil
+}
+
+func (m *Model) RedeemInvitationCode(context context.Context, tx *gorm.DB, invitationCodeId uuid.UUID) error {
+	data, err := m.InvitationCodeManager.GetByID(context, invitationCodeId)
+	if err != nil {
+		return err
+	}
+	data.CurrentUse++
+	if err := m.InvitationCodeManager.UpdateWithTx(context, tx, data); err != nil {
+		return eris.Wrapf(
+			err,
+			"failed to redeem invitation code %q (increment CurrentUse)",
+			data.Code,
+		)
+	}
+	return nil
+}

@@ -30,7 +30,7 @@ func TestHorizonQRService_EncodeDecode(t *testing.T) {
 	qrService := horizon.NewHorizonQRService(mockSecurity)
 
 	// Sample data to encode
-	inputData := map[string]interface{}{
+	inputData := map[string]any{
 		"user": "john_doe",
 		"role": "admin",
 	}
@@ -45,7 +45,7 @@ func TestHorizonQRService_EncodeDecode(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Convert decodedData (*any) to a map
-	decodedMap, ok := (*decodedData).(map[string]interface{})
+	decodedMap, ok := (*decodedData).(map[string]any)
 	assert.True(t, ok)
 	assert.Equal(t, "john_doe", decodedMap["user"])
 	assert.Equal(t, "admin", decodedMap["role"])

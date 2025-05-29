@@ -3,18 +3,15 @@ package horizon
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
+
+	"github.com/rotisserie/eris"
 )
 
-// OTPService manages one-time password generation and validation (6 digits)
 type OTPService interface {
-	// Generate creates a new OTP code for a key
 	Generate(ctx context.Context, key string) (string, error)
-
-	// Verify checks a code against the stored OTP
 	Verify(ctx context.Context, key, code string) (bool, error)
-
-	// Revoke invalidates an existing OTP code
 	Revoke(ctx context.Context, key string) error
 }
 
@@ -24,7 +21,8 @@ type HorizonOTP struct {
 	security SecurityService
 }
 
-// NewHorizonOTP creates a new OTPService instance
+// go -v ./services/horizon/horizon.otp.go
+
 func NewHorizonOTP(secret []byte, cache CacheService, security SecurityService) OTPService {
 	return &HorizonOTP{
 		secret:   secret,
@@ -33,45 +31,120 @@ func NewHorizonOTP(secret []byte, cache CacheService, security SecurityService) 
 	}
 }
 
-// Generate implements OTPService.
 func (h *HorizonOTP) Generate(ctx context.Context, key string) (string, error) {
-	h.cache.Delete(ctx, key)
+	otpKey := h.key(ctx, key)
+	countKey := h.keyCount(ctx, key)
+
+	// Revoke existing OTP and reset count
+	if err := h.Revoke(ctx, key); err != nil {
+		return "", eris.Wrap(err, "failed to revoke existing OTP")
+	}
+
+	// Generate new OTP
 	random, err := GenerateRandomDigits(6)
 	if err != nil {
-		return "", err
+		return "", eris.Wrap(err, "failed to generate OTP")
 	}
-	result := fmt.Sprint(random)
-	hash, err := h.security.HashPassword(ctx, result)
+	code := fmt.Sprint(random)
+
+	// Hash and store the new OTP
+	hash, err := h.security.HashPassword(ctx, code)
 	if err != nil {
-		return "", err
+		return "", eris.Wrap(err, "failed to hash OTP")
 	}
-	if err := h.cache.Set(ctx, key, hash, 5*time.Minute); err != nil {
-		return "", err
+	if err := h.cache.Set(ctx, otpKey, hash, 5*time.Minute); err != nil {
+		return "", eris.Wrap(err, "failed to store OTP")
 	}
-	return result, nil
+
+	// Initialize attempt count to 0
+	if err := h.cache.Set(ctx, countKey, "0", 5*time.Minute); err != nil {
+		h.cache.Delete(ctx, otpKey) // Cleanup OTP on count set failure
+		return "", eris.Wrap(err, "failed to initialize attempt count")
+	}
+
+	return code, nil
 }
 
-// Revoke implements OTPService.
+func (h *HorizonOTP) Verify(ctx context.Context, key, code string) (bool, error) {
+	otpKey := h.key(ctx, key)
+	countKey := h.keyCount(ctx, key)
+
+	// Retrieve hashed OTP
+	cachedHash, err := h.cache.Get(ctx, otpKey)
+	if err != nil {
+		return false, eris.Wrap(err, "error retrieving OTP")
+	}
+	if cachedHash == nil {
+		return false, eris.New("OTP not found or expired")
+	}
+
+	// Retrieve current attempt count
+	countStr, err := h.cache.Get(ctx, countKey)
+	if err != nil {
+		return false, eris.Wrap(err, "error retrieving attempt count")
+	}
+	count := 0
+	if countStr != nil {
+		count, err = strconv.Atoi(string(countStr))
+		if err != nil {
+			return false, eris.Wrap(err, "invalid count format")
+		}
+	}
+
+	// Check attempt limit
+	if count >= 3 {
+		_ = h.Revoke(ctx, key) // Revoke if limit reached
+		return false, eris.New("maximum verification attempts reached")
+	}
+
+	// Validate OTP
+	match, err := h.security.VerifyPassword(ctx, string(cachedHash), code)
+	if err != nil {
+		return false, eris.Wrap(err, "verification failed")
+	}
+
+	if !match {
+		// Increment attempt count on failure
+		count++
+		if err := h.cache.Set(ctx, countKey, strconv.Itoa(count), 5*time.Minute); err != nil {
+			return false, eris.Wrap(err, "failed to update attempt count")
+		}
+		// Check if the new count exceeds the limit
+		if count >= 3 {
+			_ = h.Revoke(ctx, key)
+			return false, eris.New("maximum verification attempts reached")
+		}
+		return false, nil
+	}
+	// Revoke OTP on successful verification
+	_ = h.Revoke(ctx, key)
+	return true, nil
+}
+
 func (h *HorizonOTP) Revoke(ctx context.Context, key string) error {
-	if err := h.cache.Delete(ctx, key); err != nil {
-		return err
+	otpKey := h.key(ctx, key)
+	countKey := h.keyCount(ctx, key)
+	if err := h.cache.Delete(ctx, otpKey); err != nil {
+		return eris.Wrapf(err, "failed to delete OTP for key: %s", key)
+	}
+	if err := h.cache.Delete(ctx, countKey); err != nil {
+		return eris.Wrapf(err, "failed to delete count for key: %s", key)
 	}
 	return nil
 }
 
-// Verify implements OTPService.
-func (h *HorizonOTP) Verify(ctx context.Context, key string, code string) (bool, error) {
-	cachedCode, err := h.cache.Get(ctx, key)
+func (h *HorizonOTP) key(ctx context.Context, key string) string {
+	hashedKey, err := h.security.GenerateUUIDv5(ctx, key)
 	if err != nil {
-		return false, err
+		return fmt.Sprintf("otp-%s", key)
 	}
-	if cachedCode == nil {
-		return false, fmt.Errorf("code not found for key: %s", key)
-	}
+	return fmt.Sprintf("otp-%s", hashedKey)
+}
 
-	cachedStr, ok := cachedCode.(string)
-	if !ok {
-		return false, fmt.Errorf("cached code is not a string for key: %s", key)
+func (h *HorizonOTP) keyCount(ctx context.Context, key string) string {
+	hashedKey, err := h.security.GenerateUUIDv5(ctx, key)
+	if err != nil {
+		return fmt.Sprintf("otp-count-%s", key)
 	}
-	return h.security.VerifyPassword(ctx, cachedStr, code)
+	return fmt.Sprintf("otp-count-%s", hashedKey)
 }

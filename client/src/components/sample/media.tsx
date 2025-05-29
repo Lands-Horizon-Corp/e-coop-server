@@ -9,6 +9,8 @@ import { Badge } from '../ui/badge';
 import { Progress } from '../ui/progress';
 import { useBroadcast } from '@/hook/useBroadcast';
 import prettyBytes from 'pretty-bytes';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+
 
 export type StorageStatus =
     | "pending"
@@ -108,6 +110,7 @@ const SampleMedia: React.FC = () => {
             <Table>
                 <TableHeader>
                     <TableRow>
+                        <TableHead>Image</TableHead>
                         <TableHead>ID</TableHead>
                         <TableHead>File Name</TableHead>
                         <TableHead>Size</TableHead>
@@ -120,6 +123,15 @@ const SampleMedia: React.FC = () => {
                 <TableBody>
                     {mediaList.map((media) => (
                         <TableRow key={media.id}>
+                            <TableCell>
+                            <Avatar className="h-10 w-10">
+                                <AvatarImage src={media.url} alt="Media Image" />
+                                <AvatarFallback>
+                                    <img src={media.url} alt="Media Image" className="h-10 w-10" />
+                                </AvatarFallback>
+                            </Avatar>
+                            </TableCell>
+
                             <TableCell>{media.id}</TableCell>
                             <TableCell>{media.fileName}</TableCell>
                             <TableCell>{prettyBytes(media.file_size)}</TableCell>

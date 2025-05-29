@@ -1,6 +1,10 @@
 package controller
 
 import (
+	"fmt"
+	"net/http"
+
+	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/src"
 	"github.com/lands-horizon/horizon-server/src/cooperative_tokens"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -9,47 +13,76 @@ import (
 type Controller struct {
 	// Services
 	provider *src.Provider
+	model    *model.Model
 
 	// Tokens
 	transactionBatchToken *cooperative_tokens.TransactionBatchToken
 	userOrganizationToken *cooperative_tokens.UserOrganizatonToken
 	userToken             *cooperative_tokens.UserToken
-
-	// Models
-	media    *model.MediaCollection
-	feedback *model.FeedbackCollection
 }
 
 func NewController(
 	// Services
 	provider *src.Provider,
+	model *model.Model,
 
 	// Tokens
 	transactionBatchToken *cooperative_tokens.TransactionBatchToken,
 	userOrganizationToken *cooperative_tokens.UserOrganizatonToken,
 	userToken *cooperative_tokens.UserToken,
 
-	// Models
-	media *model.MediaCollection,
-	feedback *model.FeedbackCollection,
-
 ) (*Controller, error) {
 	return &Controller{
 		// Services
 		provider: provider,
+		model:    model,
 
 		// Tokens
 		transactionBatchToken: transactionBatchToken,
 		userOrganizationToken: userOrganizationToken,
 		userToken:             userToken,
-
-		// Models
-		media:    media,
-		feedback: feedback,
 	}, nil
 }
 
-func (c *Controller) Routes() {
-	c.MediaController()
+func (c *Controller) Start() error {
+
+	c.BranchController()
+	c.CategoryController()
+	c.ContactController()
 	c.FeedbackController()
+	c.FootstepController()
+	c.GeneratedReports()
+	c.InvitationCode()
+	c.MediaController()
+	c.NotificationController()
+	c.OrganizationController()
+	c.OrganizationDailyUsage()
+	c.PermissionTemplateController()
+	c.QRCodeController()
+	c.SubscriptionPlanController()
+	c.UserController()
+	c.UserOrganinzationController()
+	c.UserRatingController()
+
+	return nil
+}
+
+// Error responses
+func (c *Controller) ErrorResponse(ctx echo.Context, statusCode int, message string) error {
+	return ctx.JSON(statusCode, map[string]any{
+		"success": false,
+		"error":   message,
+	})
+}
+
+func (c *Controller) BadRequest(ctx echo.Context, message string) error {
+	return c.ErrorResponse(ctx, http.StatusBadRequest, message)
+}
+
+func (c *Controller) NotFound(ctx echo.Context, resource string) error {
+	return c.ErrorResponse(ctx, http.StatusNotFound, fmt.Sprintf("%s not found", resource))
+}
+
+func (c *Controller) InternalServerError(ctx echo.Context, err error) error {
+	return c.ErrorResponse(ctx, http.StatusInternalServerError, "Internal server error")
 }

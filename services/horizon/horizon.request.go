@@ -151,6 +151,12 @@ func NewHorizonAPIService(
 			echo.HeaderAccept,
 			echo.HeaderAuthorization,
 			echo.HeaderXRequestedWith,
+			echo.HeaderXCSRFToken,
+			"X-Longitude",
+			"X-Latitude",
+			"Location",
+			"X-Device-Type",
+			"X-User-Agent",
 		}, ExposeHeaders: []string{echo.HeaderContentLength},
 		AllowCredentials: true,
 		MaxAge:           3600,
@@ -158,6 +164,11 @@ func NewHorizonAPIService(
 
 	// 9. Metrics middleware
 	service.Use(echoprometheus.NewMiddleware(clientName))
+
+	service.GET("/csrf-token", func(c echo.Context) error {
+		token := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
+		return c.JSON(http.StatusOK, echo.Map{"csrfToken": token})
+	})
 
 	service.Use(middleware.GzipWithConfig(middleware.GzipConfig{
 		Level: 5,

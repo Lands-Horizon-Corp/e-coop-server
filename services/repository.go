@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"reflect"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/horizon"
@@ -12,10 +13,41 @@ import (
 	"gorm.io/gorm"
 )
 
+func Validate[T any](ctx echo.Context, v *validator.Validate) (*T, error) {
+	var req T
+	if err := ctx.Bind(&req); err != nil {
+		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+	if err := v.Struct(req); err != nil {
+		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+	return &req, nil
+}
+func ToModel[T any, G any](data *T, mapFunc func(*T) *G) *G {
+	if data == nil {
+		return nil
+	}
+	return mapFunc(data)
+}
+func ToModels[T any, G any](data []*T, mapFunc func(*T) *G) []*G {
+	if data == nil {
+		return []*G{}
+	}
+	out := make([]*G, 0, len(data))
+	for _, item := range data {
+		if m := mapFunc(item); m != nil {
+			out = append(out, m)
+		}
+	}
+	return out
+}
+
 type Repository[TData any, TResponse any, TRequest any] interface {
 
 	// Validate
 	Validate(ctx echo.Context) (*TRequest, error)
+
+	Model() *TData
 
 	// Models
 	ToModel(data *TData) *TResponse
@@ -156,6 +188,11 @@ func NewRepository[TData any, TResponse any, TRequest any](params RepositoryPara
 		resource: params.Resource,
 		preloads: params.Preloads,
 	}
+}
+
+// ToModel implements Repository.
+func (c *CollectionManager[TData, TResponse, TRequest]) Model() *TData {
+	return new(TData)
 }
 
 // ToModel implements Repository.
@@ -709,7 +746,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) CreatedBroadcast(ctx con
 
 func (c *CollectionManager[TData, TResponse, TRequest]) DeletedBroadcast(ctx context.Context, entity *TData) {
 	go func() {
-		topics := c.updated(entity)
+		topics := c.deleted(entity)
 		payload := c.ToModel(entity)
 		c.service.Broker.Dispatch(ctx, topics, payload)
 	}()

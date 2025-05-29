@@ -6,9 +6,10 @@ import (
 
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-// go test ./services/horizon_test/horizon.otp_test.go
+// go test -v ./services/horizon_test/horizon.otp_test.go
 // --- Setup helpers ---
 func setupSecurityUtilsOTP() horizon.SecurityService {
 	env := horizon.NewEnvironmentService("../../.env")
@@ -41,44 +42,138 @@ func setupHorizonOTP() horizon.OTPService {
 
 // --- Tests ---
 
-func TestGenerateAndVerifyOTP(t *testing.T) {
+func TestGenerateOTP(t *testing.T) {
+	otp := setupHorizonOTP()
 	ctx := context.Background()
-	service := setupHorizonOTP()
+	key := t.Name()
 
-	key := "test:otp:user@example.com"
+	t.Run("successful generation", func(t *testing.T) {
+		code, err := otp.Generate(ctx, key)
+		require.NoError(t, err)
+		assert.Len(t, code, 6, "OTP should be 6 digits")
 
-	// Generate OTP
-	code, err := service.Generate(ctx, key)
-	assert.NoError(t, err)
-	assert.Len(t, code, 6)
+		// Verify code can be validated
+		valid, err := otp.Verify(ctx, key, code)
+		assert.True(t, valid)
+		assert.NoError(t, err)
+	})
 
-	// Verify OTP
-	valid, err := service.Verify(ctx, key, code)
-	assert.NoError(t, err)
-	assert.True(t, valid)
+	t.Run("replaces existing OTP", func(t *testing.T) {
+		// First generation
+		code1, err := otp.Generate(ctx, key)
+		require.NoError(t, err)
 
-	// Invalid OTP
-	invalid, err := service.Verify(ctx, key, "000000")
-	assert.NoError(t, err)
-	assert.False(t, invalid)
+		// Second generation
+		code2, err := otp.Generate(ctx, key)
+		require.NoError(t, err)
+		assert.NotEqual(t, code1, code2, "New OTP should be different")
+
+		// First code should be invalid
+		valid, err := otp.Verify(ctx, key, code1)
+		assert.False(t, valid)
+		assert.NoError(t, err) // Updated assertion
+
+		// Second code should work
+		valid, err = otp.Verify(ctx, key, code2)
+		assert.True(t, valid)
+		assert.NoError(t, err)
+	})
+}
+
+func TestVerifyOTP(t *testing.T) {
+	otp := setupHorizonOTP()
+	ctx := context.Background()
+	key := t.Name()
+	code, _ := otp.Generate(ctx, key)
+
+	t.Run("valid code", func(t *testing.T) {
+		valid, err := otp.Verify(ctx, key, code)
+		assert.True(t, valid)
+		assert.NoError(t, err)
+
+		// Should be revoked after successful verification
+		valid, err = otp.Verify(ctx, key, code)
+		assert.False(t, valid)
+		assert.Error(t, err)
+	})
+
+	t.Run("invalid code", func(t *testing.T) {
+		otp.Generate(ctx, key) // Reset state
+
+		// First invalid attempt
+		valid, err := otp.Verify(ctx, key, "000000")
+		assert.False(t, valid)
+		assert.NoError(t, err)
+
+		// Second invalid attempt
+		valid, err = otp.Verify(ctx, key, "111111")
+		assert.False(t, valid)
+		assert.NoError(t, err)
+
+		// Third invalid attempt should lock
+		valid, err = otp.Verify(ctx, key, "222222")
+		assert.False(t, valid)
+		assert.ErrorContains(t, err, "maximum verification attempts reached")
+
+		// Subsequent attempts should fail
+		valid, err = otp.Verify(ctx, key, code)
+		assert.False(t, valid)
+		assert.Error(t, err)
+	})
+
 }
 
 func TestRevokeOTP(t *testing.T) {
+	otp := setupHorizonOTP()
 	ctx := context.Background()
-	service := setupHorizonOTP()
+	key := t.Name()
 
-	key := "test:otp:revoke@example.com"
+	t.Run("successful revocation", func(t *testing.T) {
+		code, _ := otp.Generate(ctx, key)
+		err := otp.Revoke(ctx, key)
+		assert.NoError(t, err)
 
-	// Generate OTP first
-	_, err := service.Generate(ctx, key)
-	assert.NoError(t, err)
+		valid, err := otp.Verify(ctx, key, code)
+		assert.False(t, valid)
+		assert.Error(t, err)
+	})
 
-	// Revoke it
-	err = service.Revoke(ctx, key)
-	assert.NoError(t, err)
+	t.Run("revoke non-existent OTP", func(t *testing.T) {
+		err := otp.Revoke(ctx, "non-existent-key")
+		assert.NoError(t, err)
+	})
+}
 
-	// Should fail verification after revoke
-	ok, err := service.Verify(ctx, key, "anycode")
-	assert.Error(t, err)
-	assert.False(t, ok)
+func TestEdgeCases(t *testing.T) {
+	otp := setupHorizonOTP()
+	ctx := context.Background()
+
+	t.Run("verify before generation", func(t *testing.T) {
+		valid, err := otp.Verify(ctx, "uninitialized-key", "anycode")
+		assert.False(t, valid)
+		assert.ErrorContains(t, err, "OTP not found or expired")
+	})
+
+	t.Run("massive parallel requests", func(t *testing.T) {
+		key := "concurrent-test"
+		code, _ := otp.Generate(ctx, key)
+
+		// Simulate 5 concurrent verification attempts
+		results := make(chan bool, 5)
+		for i := 0; i < 5; i++ {
+			go func() {
+				valid, _ := otp.Verify(ctx, key, code)
+				results <- valid
+			}()
+		}
+
+		successCount := 0
+		for i := 0; i < 5; i++ {
+			if <-results {
+				successCount++
+			}
+		}
+
+		assert.Equal(t, 1, successCount, "Only one verification should succeed")
+	})
 }

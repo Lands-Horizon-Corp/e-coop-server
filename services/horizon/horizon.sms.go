@@ -55,7 +55,7 @@ func NewHorizonSMS(accountSID, authToken, sender string, maxCharacters int32) SM
 // Run initializes the rate limiter and Twilio client (once)
 func (h *HorizonSMS) Run(ctx context.Context) error {
 	h.limiterOnce.Do(func() {
-		h.limiter = rate.NewLimiter(rate.Limit(10), 5) // 10 rps, burst 5
+		h.limiter = rate.NewLimiter(rate.Limit(1000), 100) // 10 rps, burst 5
 	})
 	h.twilio = twilio.NewRestClientWithParams(twilio.ClientParams{
 		Username: h.accountSID,

@@ -2,13 +2,11 @@ package model
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 	horizon_services "github.com/lands-horizon/horizon-server/services"
 	"github.com/lands-horizon/horizon-server/services/horizon"
-	"github.com/lands-horizon/horizon-server/src"
 	"gorm.io/gorm"
 )
 
@@ -51,29 +49,26 @@ type (
 		ID       *uuid.UUID `json:"id,omitempty"`
 		FileName string     `json:"file_name" validate:"required,max=255"`
 	}
-
-	MediaCollection struct {
-		Manager horizon_services.Repository[Media, MediaResponse, MediaRequest]
-	}
 )
 
-func NewMediaCollection(provider *src.Provider) (*MediaCollection, error) {
-	manager := horizon_services.NewRepository(horizon_services.RepositoryParams[Media, MediaResponse, MediaRequest]{
+func (m *Model) Media() {
+	m.Migration = append(m.Migration, &Media{})
+	m.MediaManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Media, MediaResponse, MediaRequest]{
 		Preloads: nil,
-		Service:  provider.Service,
+		Service:  m.provider.Service,
 		Resource: func(data *Media) *MediaResponse {
+
 			if data == nil {
 				return nil
 			}
-			temporaryURL, err := provider.Service.Storage.GeneratePresignedURL(context.Background(), &horizon.Storage{
-				FileName:   data.FileName,
-				FileSize:   data.FileSize,
-				FileType:   data.FileType,
-				StorageKey: data.StorageKey,
-				BucketName: data.BucketName,
-			}, time.Minute*30)
+			temporary, err := m.provider.Service.Storage.GeneratePresignedURL(
+				context.Background(), &horizon.Storage{
+					StorageKey: data.StorageKey,
+					BucketName: data.BucketName,
+					FileName:   data.FileName,
+				}, time.Hour)
 			if err != nil {
-				temporaryURL = ""
+				temporary = ""
 			}
 			return &MediaResponse{
 				ID:          data.ID,
@@ -86,31 +81,58 @@ func NewMediaCollection(provider *src.Provider) (*MediaCollection, error) {
 				URL:         data.URL,
 				Key:         data.Key,
 				BucketName:  data.BucketName,
-				DownloadURL: temporaryURL,
 				Status:      data.Status,
 				Progress:    data.Progress,
+				DownloadURL: temporary,
 			}
 		},
 		Created: func(data *Media) []string {
 			return []string{
 				"media.create",
-				fmt.Sprintf("media.create.%s", data.ID),
+				"media.create." + data.ID.String(),
 			}
 		},
 		Updated: func(data *Media) []string {
 			return []string{
 				"media.update",
-				fmt.Sprintf("media.update.%s", data.ID),
+				"media.update." + data.ID.String(),
 			}
 		},
 		Deleted: func(data *Media) []string {
 			return []string{
 				"media.delete",
-				fmt.Sprintf("media.delete.%s", data.ID),
+				"media.delete." + data.ID.String(),
 			}
 		},
 	})
-	return &MediaCollection{
-		Manager: manager,
-	}, nil
+}
+
+func (m *Model) MediaDelete(context context.Context, mediaId uuid.UUID) error {
+	if mediaId == uuid.Nil {
+		return nil
+	}
+	media, err := m.MediaManager.GetByID(context, mediaId)
+	if err != nil {
+		return err
+	}
+	if media == nil {
+		return nil
+	}
+	if err := m.MediaManager.DeleteByID(context, media.ID); err != nil {
+		return err
+	}
+	if err := m.provider.Service.Storage.DeleteFile(context, &horizon.Storage{
+		FileName:   media.FileName,
+		FileSize:   media.FileSize,
+		FileType:   media.FileType,
+		StorageKey: media.StorageKey,
+		URL:        media.URL,
+		BucketName: media.BucketName,
+		Status:     "delete",
+	}); err != nil {
+		return err
+	}
+
+	return nil
+
 }

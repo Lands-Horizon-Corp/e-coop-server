@@ -3,18 +3,22 @@ package horizon
 import (
 	"context"
 	"errors"
+	"fmt"
 	"math/rand"
 	"net"
 	"net/http"
 	"net/mail"
 	"net/url"
 	"os"
+	"reflect"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 	"unicode"
 	"unicode/utf8"
 
+	"github.com/go-playground/validator"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -192,4 +196,83 @@ func FileExists(filename string) bool {
 	}
 	info, err := os.Stat(filename)
 	return err == nil && !info.IsDir()
+}
+
+func GenerateToken() (string, error) {
+	id, err := uuid.NewRandom()
+	if err != nil {
+		return "", err
+	}
+	return id.String(), nil
+}
+
+func IsZero[T any](v T) bool {
+	return reflect.ValueOf(v).IsZero()
+}
+
+func PrintASCIIArt() {
+	asciiArt := `
+	           ..............                            
+            .,,,,,,,,,,,,,,,,,,,                             
+        ,,,,,,,,,,,,,,,,,,,,,,,,,,                          
+      ,,,,,,,,,,,,,,  .,,,,,,,,,,,,,                        
+    ,,,,,,,,,,           ,,,,,,,,,,,                     
+    ,,,,,,,          .,,,,,,,,,,,                          
+  @@,,,,,,          ,,,,,,,,,,,,                             
+@@@,,,,.@@      .,,,,,,,,,,,                                
+@,,,,,,,@@    ,,,,,,,,,,,                                   
+  ,,,,@@@       ,,,,,,                                      
+    @@@@@@@                                          
+    @@@@@@@@@@           @@@@@@@@                          
+      @@@@@@@@@@@@@@  @@@@@@@@@@@@                          
+        @@@@@@@@@@@@@@@@@@@@@@@@@@                          
+            @@@@@@@@@@@@@@@@@@@@                             
+                  @@@@@@@@
+	`
+
+	lines := strings.Split(asciiArt, "\n")
+
+	for _, line := range lines {
+		coloredLine := ""
+		for _, char := range line {
+			switch char {
+			case '@':
+				coloredLine += Blue + "@" + Reset
+			case ',', '.':
+				coloredLine += Green + string(char) + Reset
+			default:
+				coloredLine += string(char)
+			}
+		}
+		fmt.Println(coloredLine)
+	}
+}
+
+func Validate[T any](ctx echo.Context, v *validator.Validate) (*T, error) {
+	var req T
+	if err := ctx.Bind(&req); err != nil {
+		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+	if err := v.Struct(req); err != nil {
+		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+	return &req, nil
+}
+
+func StringFormat(value *string) string {
+	if value == nil {
+		return ""
+	}
+	return *value
+}
+
+func ParseCoordinate(value string) float64 {
+	if value == "" {
+		return 0.0
+	}
+	coord, err := strconv.ParseFloat(value, 64)
+	if err != nil {
+		return 0.0
+	}
+	return coord
 }

@@ -6,7 +6,6 @@ import (
 
 	"github.com/google/uuid"
 	horizon_services "github.com/lands-horizon/horizon-server/services"
-	"github.com/lands-horizon/horizon-server/src"
 	"gorm.io/gorm"
 )
 
@@ -43,29 +42,26 @@ type (
 		FeedbackType string     `json:"feedback_type" validate:"required,oneof=general bug feature"`
 		MediaID      *uuid.UUID `json:"media_id,omitempty"`
 	}
-
-	FeedbackCollection struct {
-		Manager horizon_services.Repository[Feedback, FeedbackResponse, FeedbackRequest]
-	}
 )
 
-func NewFeedbackCollection(provider *src.Provider, media *MediaCollection) (*FeedbackCollection, error) {
-	manager := horizon_services.NewRepository(horizon_services.RepositoryParams[Feedback, FeedbackResponse, FeedbackRequest]{
-		Preloads: nil,
-		Service:  provider.Service,
+func (m *Model) Feedback() {
+	m.Migration = append(m.Migration, &Feedback{})
+	m.FeedbackManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Feedback, FeedbackResponse, FeedbackRequest]{
+		Preloads: []string{"Media"},
+		Service:  m.provider.Service,
 		Resource: func(data *Feedback) *FeedbackResponse {
 			if data == nil {
 				return nil
 			}
 			return &FeedbackResponse{
 				ID:           data.ID,
-				CreatedAt:    data.CreatedAt.Format(time.RFC3339),
-				UpdatedAt:    data.UpdatedAt.Format(time.RFC3339),
-				MediaID:      data.MediaID,
-				Media:        media.Manager.ToModel(data.Media),
 				Email:        data.Email,
 				Description:  data.Description,
 				FeedbackType: data.FeedbackType,
+				MediaID:      data.MediaID,
+				Media:        m.MediaManager.ToModel(data.Media),
+				CreatedAt:    data.CreatedAt.Format(time.RFC3339),
+				UpdatedAt:    data.UpdatedAt.Format(time.RFC3339),
 			}
 		},
 		Created: func(data *Feedback) []string {
@@ -87,7 +83,4 @@ func NewFeedbackCollection(provider *src.Provider, media *MediaCollection) (*Fee
 			}
 		},
 	})
-	return &FeedbackCollection{
-		Manager: manager,
-	}, nil
 }

@@ -4,54 +4,69 @@ import (
 	"context"
 	"time"
 
+	"github.com/lands-horizon/horizon-server/seeder"
 	"github.com/lands-horizon/horizon-server/src"
 	"github.com/lands-horizon/horizon-server/src/controller"
 	"github.com/lands-horizon/horizon-server/src/cooperative_tokens"
 	"github.com/lands-horizon/horizon-server/src/model"
+
 	"go.uber.org/fx"
 )
 
 func main() {
 	app := fx.New(
-		fx.StartTimeout(10*time.Minute),
+		// Set extended startup timeout
+		fx.StartTimeout(30*time.Minute),
+
+		// Provide application dependencies
 		fx.Provide(
 			src.NewProvider,
 			src.NewValidator,
+			model.NewModel,
 			controller.NewController,
+			seeder.NewSeeder,
 
 			cooperative_tokens.NewUserToken,
 			cooperative_tokens.NewTransactionBatchToken,
 			cooperative_tokens.NewUserOrganizatonToken,
-
-			// Models
-			model.NewMediaCollection,
-			model.NewFeedbackCollection,
 		),
-		fx.Invoke(func(lc fx.Lifecycle, controller *controller.Controller, provider *src.Provider) error {
+
+		// Invoke the startup sequence
+		fx.Invoke(func(
+			lc fx.Lifecycle,
+			ctrl *controller.Controller,
+			mod *model.Model,
+			prov *src.Provider,
+			seed *seeder.Seeder,
+		) error {
+			// Register lifecycle hooks
 			lc.Append(fx.Hook{
 				OnStart: func(ctx context.Context) error {
-					controller.Routes()
-					if err := provider.Service.Run(ctx); err != nil {
+					// Start each component in order
+					if err := ctrl.Start(); err != nil {
 						return err
 					}
-					if err := provider.Service.Database.Client().AutoMigrate(
-
-						&model.Feedback{},
-						&model.Media{},
-					); err != nil {
+					if err := prov.Service.Run(ctx); err != nil {
+						return err
+					}
+					if err := mod.Start(); err != nil {
+						return err
+					}
+					if err := seed.Run(ctx); err != nil {
 						return err
 					}
 					return nil
 				},
+
 				OnStop: func(ctx context.Context) error {
-					if err := provider.Service.Stop(ctx); err != nil {
-						return err
-					}
-					return nil
+					// Gracefully stop the service
+					return prov.Service.Stop(ctx)
 				},
 			})
+
 			return nil
 		}),
 	)
+
 	app.Run()
 }
