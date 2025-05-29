@@ -10,7 +10,7 @@ import (
 )
 
 type (
-	MemberCenter struct {
+	Bank struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
 		CreatedByID uuid.UUID      `gorm:"type:uuid"`
@@ -27,11 +27,14 @@ type (
 		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
-		Name        string `gorm:"type:varchar(255)"`
+		MediaID *uuid.UUID `gorm:"type:uuid"`
+		Media   *Media     `gorm:"foreignKey:MediaID;constraint:OnDelete:SET NULL;" json:"media,omitempty"`
+
+		Name        string `gorm:"type:varchar(255);not null"`
 		Description string `gorm:"type:text"`
 	}
 
-	MemberCenterResponse struct {
+	BankResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
 		CreatedByID    uuid.UUID             `json:"created_by_id"`
@@ -43,26 +46,29 @@ type (
 		Organization   *OrganizationResponse `json:"organization,omitempty"`
 		BranchID       uuid.UUID             `json:"branch_id"`
 		Branch         *BranchResponse       `json:"branch,omitempty"`
+		MediaID        *uuid.UUID            `json:"media_id,omitempty"`
+		Media          *MediaResponse        `json:"media,omitempty"`
 		Name           string                `json:"name"`
 		Description    string                `json:"description"`
 	}
 
-	MemberCenterRequest struct {
-		Name        string `json:"name" validate:"required,min=1,max=255"`
-		Description string `json:"description,omitempty"`
+	BankRequest struct {
+		Name        string     `json:"name" validate:"required,min=1,max=255"`
+		Description string     `json:"description,omitempty"`
+		MediaID     *uuid.UUID `json:"media_id,omitempty"`
 	}
 )
 
-func (m *Model) MemberCenter() {
-	m.Migration = append(m.Migration, &MemberCenter{})
-	m.MemberCenterManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberCenter, MemberCenterResponse, MemberCenterRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
+func (m *Model) Bank() {
+	m.Migration = append(m.Migration, &Bank{})
+	m.BankManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Bank, BankResponse, BankRequest]{
+		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization", "Media"},
 		Service:  m.provider.Service,
-		Resource: func(data *MemberCenter) *MemberCenterResponse {
+		Resource: func(data *Bank) *BankResponse {
 			if data == nil {
 				return nil
 			}
-			return &MemberCenterResponse{
+			return &BankResponse{
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
@@ -74,26 +80,28 @@ func (m *Model) MemberCenter() {
 				Organization:   m.OrganizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
 				Branch:         m.BranchManager.ToModel(data.Branch),
+				MediaID:        data.MediaID,
+				Media:          m.MediaManager.ToModel(data.Media),
 				Name:           data.Name,
 				Description:    data.Description,
 			}
 		},
-		Created: func(data *MemberCenter) []string {
+		Created: func(data *Bank) []string {
 			return []string{
-				"member_center.create",
-				fmt.Sprintf("member_center.create.%s", data.ID),
+				"bank.create",
+				fmt.Sprintf("bank.create.%s", data.ID),
 			}
 		},
-		Updated: func(data *MemberCenter) []string {
+		Updated: func(data *Bank) []string {
 			return []string{
-				"member_center.update",
-				fmt.Sprintf("member_center.update.%s", data.ID),
+				"bank.update",
+				fmt.Sprintf("bank.update.%s", data.ID),
 			}
 		},
-		Deleted: func(data *MemberCenter) []string {
+		Deleted: func(data *Bank) []string {
 			return []string{
-				"member_center.delete",
-				fmt.Sprintf("member_center.delete.%s", data.ID),
+				"bank.delete",
+				fmt.Sprintf("bank.delete.%s", data.ID),
 			}
 		},
 	})

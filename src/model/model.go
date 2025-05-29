@@ -43,7 +43,9 @@ type (
 		provider *src.Provider
 
 		// Managers
-		Migration                     []any
+		Migration []any
+
+		BankManager                   horizon_services.Repository[Bank, BankResponse, BankRequest]
 		BranchManager                 horizon_services.Repository[Branch, BranchResponse, BranchRequest]
 		CategoryManager               horizon_services.Repository[Category, CategoryResponse, CategoryRequest]
 		ContactUsManager              horizon_services.Repository[ContactUs, ContactUsResponse, ContactUsRequest]
@@ -63,7 +65,33 @@ type (
 		UserRatingManager             horizon_services.Repository[UserRating, UserRatingResponse, UserRatingRequest]
 
 		// Members
-		MemberAddressManager horizon_services.Repository[MemberAddress, MemberAddressReponse, MemberAddressRequest]
+		MemberAddressManager               horizon_services.Repository[MemberAddress, MemberAddressReponse, MemberAddressRequest]
+		MemberAssetManager                 horizon_services.Repository[MemberAsset, MemberAssetResponse, MemberAssetRequest]
+		MemberBankCardManager              horizon_services.Repository[MemberBankCard, MemberBankCardResponse, MemberBankCardRequest]
+		MemberCenterHistoryManager         horizon_services.Repository[MemberCenterHistory, MemberCenterHistoryResponse, MemberCenterHistoryRequest]
+		MemberCenterManager                horizon_services.Repository[MemberCenter, MemberCenterResponse, MemberCenterRequest]
+		MemberClassificationManager        horizon_services.Repository[MemberClassification, MemberClassificationResponse, MemberClassificationRequest]
+		MemberCloseRemarkManager           horizon_services.Repository[MemberCloseRemark, MemberCloseRemarkResponse, MemberCloseRemarkRequest]
+		MemberContactReferenceManager      horizon_services.Repository[MemberContactReference, MemberContactReferenceResponse, MemberContactReferenceRequest]
+		MemberDamayanExtensionEntryManager horizon_services.Repository[MemberDamayanExtensionEntry, MemberDamayanExtensionEntryResponse, MemberDamayanExtensionEntryRequest]
+		MemberEducationalAttainmentManager horizon_services.Repository[MemberEducationalAttainment, MemberEducationalAttainmentResponse, MemberEducationalAttainmentRequest]
+		MemberExpenseManager               horizon_services.Repository[MemberExpense, MemberExpenseResponse, MemberExpenseRequest]
+		MemberGenderHistoryManager         horizon_services.Repository[MemberGenderHistory, MemberGenderHistoryResponse, MemberGenderHistoryRequest]
+		MemberGenderManager                horizon_services.Repository[MemberGender, MemberGenderResponse, MemberGenderRequest]
+		MemberGovernmentBenefitManager     horizon_services.Repository[MemberGovernmentBenefit, MemberGovernmentBenefitResponse, MemberGovernmentBenefitRequest]
+		MemberGroupHistoryManager          horizon_services.Repository[MemberGroupHistory, MemberGroupHistoryResponse, MemberGroupHistoryRequest]
+		MemberGroupManager                 horizon_services.Repository[MemberGroup, MemberGroupResponse, MemberGroupRequest]
+		MemberIncomeManager                horizon_services.Repository[MemberIncome, MemberIncomeResponse, MemberIncomeRequest]
+		MemberJointAccountManager          horizon_services.Repository[MemberJointAccount, MemberJointAccountResponse, MemberJointAccountRequest]
+		MemberMutualFundHistoryManager     horizon_services.Repository[MemberMutualFundHistory, MemberMutualFundHistoryResponse, MemberMutualFundHistoryRequest]
+		MemberOccupationHistoryManager     horizon_services.Repository[MemberOccupationHistory, MemberOccupationHistoryResponse, MemberOccupationHistoryRequest]
+		MemberOccupationManager            horizon_services.Repository[MemberOccupation, MemberOccupationResponse, MemberOccupationRequest]
+		MemberOtherInformationEntryManager horizon_services.Repository[MemberOtherInformationEntry, MemberOtherInformationEntryResponse, MemberOtherInformationEntryRequest]
+		MemberRelativeAccountManager       horizon_services.Repository[MemberRelativeAccount, MemberRelativeAccountResponse, MemberRelativeAccountRequest]
+		MemberTypeHistoryManager           horizon_services.Repository[MemberTypeHistory, MemberTypeHistoryResponse, MemberTypeHistoryRequest]
+		MemberTypeManager                  horizon_services.Repository[MemberType, MemberTypeResponse, MemberTypeRequest]
+		MemberVerificationManager          horizon_services.Repository[MemberVerification, MemberVerificationResponse, MemberVerificationRequest]
+		MemberProfileManager               horizon_services.Repository[MemberProfile, MemberProfileResponse, MemberProfileRequest]
 	}
 )
 
