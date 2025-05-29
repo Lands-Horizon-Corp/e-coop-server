@@ -9,8 +9,10 @@ import (
 	"gorm.io/gorm"
 )
 
+// TagCategory is an enum for tag_category
+
 type (
-	Bank struct {
+	TagTemplate struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
 		CreatedByID uuid.UUID      `gorm:"type:uuid"`
@@ -22,19 +24,19 @@ type (
 		DeletedByID *uuid.UUID     `gorm:"type:uuid"`
 		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
 
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_bank"`
+		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_tag_template"`
 		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_bank"`
+		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_tag_template"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
-		MediaID *uuid.UUID `gorm:"type:uuid"`
-		Media   *Media     `gorm:"foreignKey:MediaID;constraint:OnDelete:SET NULL;" json:"media,omitempty"`
-
-		Name        string `gorm:"type:varchar(255);not null"`
-		Description string `gorm:"type:text"`
+		Name        string      `gorm:"type:varchar(50)"`
+		Description string      `gorm:"type:text"`
+		Category    TagCategory `gorm:"type:tag_category"`
+		Color       string      `gorm:"type:varchar(20)"`
+		Icon        string      `gorm:"type:varchar(20)"`
 	}
 
-	BankResponse struct {
+	TagTemplateResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
 		CreatedByID    uuid.UUID             `json:"created_by_id"`
@@ -46,29 +48,36 @@ type (
 		Organization   *OrganizationResponse `json:"organization,omitempty"`
 		BranchID       uuid.UUID             `json:"branch_id"`
 		Branch         *BranchResponse       `json:"branch,omitempty"`
-		MediaID        *uuid.UUID            `json:"media_id,omitempty"`
-		Media          *MediaResponse        `json:"media,omitempty"`
 		Name           string                `json:"name"`
 		Description    string                `json:"description"`
+		Category       TagCategory           `json:"category"`
+		Color          string                `json:"color"`
+		Icon           string                `json:"icon"`
 	}
 
-	BankRequest struct {
-		Name        string     `json:"name" validate:"required,min=1,max=255"`
-		Description string     `json:"description,omitempty"`
-		MediaID     *uuid.UUID `json:"media_id,omitempty"`
+	TagTemplateRequest struct {
+		Name        string      `json:"name" validate:"required,min=1,max=50"`
+		Description string      `json:"description,omitempty"`
+		Category    TagCategory `json:"category,omitempty"`
+		Color       string      `json:"color,omitempty"`
+		Icon        string      `json:"icon,omitempty"`
 	}
 )
 
-func (m *Model) Bank() {
-	m.Migration = append(m.Migration, &Bank{})
-	m.BankManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Bank, BankResponse, BankRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization", "Media"},
-		Service:  m.provider.Service,
-		Resource: func(data *Bank) *BankResponse {
+func (m *Model) TagTemplate() {
+	m.Migration = append(m.Migration, &TagTemplate{})
+	m.TagTemplateManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+		TagTemplate, TagTemplateResponse, TagTemplateRequest,
+	]{
+		Preloads: []string{
+			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization",
+		},
+		Service: m.provider.Service,
+		Resource: func(data *TagTemplate) *TagTemplateResponse {
 			if data == nil {
 				return nil
 			}
-			return &BankResponse{
+			return &TagTemplateResponse{
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
@@ -80,28 +89,29 @@ func (m *Model) Bank() {
 				Organization:   m.OrganizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
 				Branch:         m.BranchManager.ToModel(data.Branch),
-				MediaID:        data.MediaID,
-				Media:          m.MediaManager.ToModel(data.Media),
 				Name:           data.Name,
 				Description:    data.Description,
+				Category:       data.Category,
+				Color:          data.Color,
+				Icon:           data.Icon,
 			}
 		},
-		Created: func(data *Bank) []string {
+		Created: func(data *TagTemplate) []string {
 			return []string{
-				"bank.create",
-				fmt.Sprintf("bank.create.%s", data.ID),
+				"tag_template.create",
+				fmt.Sprintf("tag_template.create.%s", data.ID),
 			}
 		},
-		Updated: func(data *Bank) []string {
+		Updated: func(data *TagTemplate) []string {
 			return []string{
-				"bank.update",
-				fmt.Sprintf("bank.update.%s", data.ID),
+				"tag_template.update",
+				fmt.Sprintf("tag_template.update.%s", data.ID),
 			}
 		},
-		Deleted: func(data *Bank) []string {
+		Deleted: func(data *TagTemplate) []string {
 			return []string{
-				"bank.delete",
-				fmt.Sprintf("bank.delete.%s", data.ID),
+				"tag_template.delete",
+				fmt.Sprintf("tag_template.delete.%s", data.ID),
 			}
 		},
 	})

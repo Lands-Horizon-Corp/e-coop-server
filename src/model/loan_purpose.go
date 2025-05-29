@@ -10,7 +10,7 @@ import (
 )
 
 type (
-	Bank struct {
+	LoanPurpose struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
 		CreatedByID uuid.UUID      `gorm:"type:uuid"`
@@ -22,19 +22,16 @@ type (
 		DeletedByID *uuid.UUID     `gorm:"type:uuid"`
 		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
 
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_bank"`
+		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_loan_purpose"`
 		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_bank"`
+		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_loan_purpose"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
-		MediaID *uuid.UUID `gorm:"type:uuid"`
-		Media   *Media     `gorm:"foreignKey:MediaID;constraint:OnDelete:SET NULL;" json:"media,omitempty"`
-
-		Name        string `gorm:"type:varchar(255);not null"`
 		Description string `gorm:"type:text"`
+		Icon        string `gorm:"type:varchar(255)"`
 	}
 
-	BankResponse struct {
+	LoanPurposeResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
 		CreatedByID    uuid.UUID             `json:"created_by_id"`
@@ -46,29 +43,30 @@ type (
 		Organization   *OrganizationResponse `json:"organization,omitempty"`
 		BranchID       uuid.UUID             `json:"branch_id"`
 		Branch         *BranchResponse       `json:"branch,omitempty"`
-		MediaID        *uuid.UUID            `json:"media_id,omitempty"`
-		Media          *MediaResponse        `json:"media,omitempty"`
-		Name           string                `json:"name"`
 		Description    string                `json:"description"`
+		Icon           string                `json:"icon"`
 	}
 
-	BankRequest struct {
-		Name        string     `json:"name" validate:"required,min=1,max=255"`
-		Description string     `json:"description,omitempty"`
-		MediaID     *uuid.UUID `json:"media_id,omitempty"`
+	LoanPurposeRequest struct {
+		Description string `json:"description,omitempty"`
+		Icon        string `json:"icon,omitempty"`
 	}
 )
 
-func (m *Model) Bank() {
-	m.Migration = append(m.Migration, &Bank{})
-	m.BankManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Bank, BankResponse, BankRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization", "Media"},
-		Service:  m.provider.Service,
-		Resource: func(data *Bank) *BankResponse {
+func (m *Model) LoanPurpose() {
+	m.Migration = append(m.Migration, &LoanPurpose{})
+	m.LoanPurposeManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+		LoanPurpose, LoanPurposeResponse, LoanPurposeRequest,
+	]{
+		Preloads: []string{
+			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization",
+		},
+		Service: m.provider.Service,
+		Resource: func(data *LoanPurpose) *LoanPurposeResponse {
 			if data == nil {
 				return nil
 			}
-			return &BankResponse{
+			return &LoanPurposeResponse{
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
@@ -80,28 +78,26 @@ func (m *Model) Bank() {
 				Organization:   m.OrganizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
 				Branch:         m.BranchManager.ToModel(data.Branch),
-				MediaID:        data.MediaID,
-				Media:          m.MediaManager.ToModel(data.Media),
-				Name:           data.Name,
 				Description:    data.Description,
+				Icon:           data.Icon,
 			}
 		},
-		Created: func(data *Bank) []string {
+		Created: func(data *LoanPurpose) []string {
 			return []string{
-				"bank.create",
-				fmt.Sprintf("bank.create.%s", data.ID),
+				"loan_purpose.create",
+				fmt.Sprintf("loan_purpose.create.%s", data.ID),
 			}
 		},
-		Updated: func(data *Bank) []string {
+		Updated: func(data *LoanPurpose) []string {
 			return []string{
-				"bank.update",
-				fmt.Sprintf("bank.update.%s", data.ID),
+				"loan_purpose.update",
+				fmt.Sprintf("loan_purpose.update.%s", data.ID),
 			}
 		},
-		Deleted: func(data *Bank) []string {
+		Deleted: func(data *LoanPurpose) []string {
 			return []string{
-				"bank.delete",
-				fmt.Sprintf("bank.delete.%s", data.ID),
+				"loan_purpose.delete",
+				fmt.Sprintf("loan_purpose.delete.%s", data.ID),
 			}
 		},
 	})

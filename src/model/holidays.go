@@ -10,7 +10,7 @@ import (
 )
 
 type (
-	Bank struct {
+	Holiday struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
 		CreatedByID uuid.UUID      `gorm:"type:uuid"`
@@ -22,19 +22,17 @@ type (
 		DeletedByID *uuid.UUID     `gorm:"type:uuid"`
 		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
 
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_bank"`
+		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_holidays"`
 		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_bank"`
+		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_holidays"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
-		MediaID *uuid.UUID `gorm:"type:uuid"`
-		Media   *Media     `gorm:"foreignKey:MediaID;constraint:OnDelete:SET NULL;" json:"media,omitempty"`
-
-		Name        string `gorm:"type:varchar(255);not null"`
-		Description string `gorm:"type:text"`
+		EntryDate   time.Time `gorm:"not null"`
+		Name        string    `gorm:"type:varchar(255)"`
+		Description string    `gorm:"type:text"`
 	}
 
-	BankResponse struct {
+	HolidayResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
 		CreatedByID    uuid.UUID             `json:"created_by_id"`
@@ -46,29 +44,32 @@ type (
 		Organization   *OrganizationResponse `json:"organization,omitempty"`
 		BranchID       uuid.UUID             `json:"branch_id"`
 		Branch         *BranchResponse       `json:"branch,omitempty"`
-		MediaID        *uuid.UUID            `json:"media_id,omitempty"`
-		Media          *MediaResponse        `json:"media,omitempty"`
+		EntryDate      string                `json:"entry_date"`
 		Name           string                `json:"name"`
 		Description    string                `json:"description"`
 	}
 
-	BankRequest struct {
-		Name        string     `json:"name" validate:"required,min=1,max=255"`
-		Description string     `json:"description,omitempty"`
-		MediaID     *uuid.UUID `json:"media_id,omitempty"`
+	HolidayRequest struct {
+		EntryDate   time.Time `json:"entry_date" validate:"required"`
+		Name        string    `json:"name" validate:"required,min=1,max=255"`
+		Description string    `json:"description,omitempty"`
 	}
 )
 
-func (m *Model) Bank() {
-	m.Migration = append(m.Migration, &Bank{})
-	m.BankManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Bank, BankResponse, BankRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization", "Media"},
-		Service:  m.provider.Service,
-		Resource: func(data *Bank) *BankResponse {
+func (m *Model) Holiday() {
+	m.Migration = append(m.Migration, &Holiday{})
+	m.HolidayManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+		Holiday, HolidayResponse, HolidayRequest,
+	]{
+		Preloads: []string{
+			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization",
+		},
+		Service: m.provider.Service,
+		Resource: func(data *Holiday) *HolidayResponse {
 			if data == nil {
 				return nil
 			}
-			return &BankResponse{
+			return &HolidayResponse{
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
@@ -80,28 +81,27 @@ func (m *Model) Bank() {
 				Organization:   m.OrganizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
 				Branch:         m.BranchManager.ToModel(data.Branch),
-				MediaID:        data.MediaID,
-				Media:          m.MediaManager.ToModel(data.Media),
+				EntryDate:      data.EntryDate.Format(time.RFC3339),
 				Name:           data.Name,
 				Description:    data.Description,
 			}
 		},
-		Created: func(data *Bank) []string {
+		Created: func(data *Holiday) []string {
 			return []string{
-				"bank.create",
-				fmt.Sprintf("bank.create.%s", data.ID),
+				"holidays.create",
+				fmt.Sprintf("holidays.create.%s", data.ID),
 			}
 		},
-		Updated: func(data *Bank) []string {
+		Updated: func(data *Holiday) []string {
 			return []string{
-				"bank.update",
-				fmt.Sprintf("bank.update.%s", data.ID),
+				"holidays.update",
+				fmt.Sprintf("holidays.update.%s", data.ID),
 			}
 		},
-		Deleted: func(data *Bank) []string {
+		Deleted: func(data *Holiday) []string {
 			return []string{
-				"bank.delete",
-				fmt.Sprintf("bank.delete.%s", data.ID),
+				"holidays.delete",
+				fmt.Sprintf("holidays.delete.%s", data.ID),
 			}
 		},
 	})

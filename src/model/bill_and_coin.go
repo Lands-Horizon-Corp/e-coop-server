@@ -10,7 +10,7 @@ import (
 )
 
 type (
-	Bank struct {
+	BillAndCoins struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
 		CreatedByID uuid.UUID      `gorm:"type:uuid"`
@@ -22,19 +22,20 @@ type (
 		DeletedByID *uuid.UUID     `gorm:"type:uuid"`
 		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
 
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_bank"`
+		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_bill_and_coins"`
 		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_bank"`
-		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
+		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_bill_and_coins"`
+		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
 		MediaID *uuid.UUID `gorm:"type:uuid"`
-		Media   *Media     `gorm:"foreignKey:MediaID;constraint:OnDelete:SET NULL;" json:"media,omitempty"`
+		Media   *Media     `gorm:"foreignKey:MediaID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"media,omitempty"`
 
-		Name        string `gorm:"type:varchar(255);not null"`
-		Description string `gorm:"type:text"`
+		Name        string  `gorm:"type:varchar(255)"`
+		Value       float64 `gorm:"type:decimal;not null"`
+		CountryCode string  `gorm:"type:varchar(5);not null"`
 	}
 
-	BankResponse struct {
+	BillAndCoinsResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
 		CreatedByID    uuid.UUID             `json:"created_by_id"`
@@ -49,26 +50,30 @@ type (
 		MediaID        *uuid.UUID            `json:"media_id,omitempty"`
 		Media          *MediaResponse        `json:"media,omitempty"`
 		Name           string                `json:"name"`
-		Description    string                `json:"description"`
+		Value          float64               `json:"value"`
+		CountryCode    string                `json:"country_code"`
 	}
 
-	BankRequest struct {
+	BillAndCoinsRequest struct {
 		Name        string     `json:"name" validate:"required,min=1,max=255"`
-		Description string     `json:"description,omitempty"`
+		Value       float64    `json:"value" validate:"required"`
+		CountryCode string     `json:"country_code" validate:"required,min=1,max=5"`
 		MediaID     *uuid.UUID `json:"media_id,omitempty"`
 	}
 )
 
-func (m *Model) Bank() {
-	m.Migration = append(m.Migration, &Bank{})
-	m.BankManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Bank, BankResponse, BankRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization", "Media"},
+func (m *Model) BillAndCoins() {
+	m.Migration = append(m.Migration, &BillAndCoins{})
+	m.BillAndCoinsManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+		BillAndCoins, BillAndCoinsResponse, BillAndCoinsRequest,
+	]{
+		Preloads: []string{"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization", "Media"},
 		Service:  m.provider.Service,
-		Resource: func(data *Bank) *BankResponse {
+		Resource: func(data *BillAndCoins) *BillAndCoinsResponse {
 			if data == nil {
 				return nil
 			}
-			return &BankResponse{
+			return &BillAndCoinsResponse{
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
@@ -83,25 +88,26 @@ func (m *Model) Bank() {
 				MediaID:        data.MediaID,
 				Media:          m.MediaManager.ToModel(data.Media),
 				Name:           data.Name,
-				Description:    data.Description,
+				Value:          data.Value,
+				CountryCode:    data.CountryCode,
 			}
 		},
-		Created: func(data *Bank) []string {
+		Created: func(data *BillAndCoins) []string {
 			return []string{
-				"bank.create",
-				fmt.Sprintf("bank.create.%s", data.ID),
+				"bill_and_coins.create",
+				fmt.Sprintf("bill_and_coins.create.%s", data.ID),
 			}
 		},
-		Updated: func(data *Bank) []string {
+		Updated: func(data *BillAndCoins) []string {
 			return []string{
-				"bank.update",
-				fmt.Sprintf("bank.update.%s", data.ID),
+				"bill_and_coins.update",
+				fmt.Sprintf("bill_and_coins.update.%s", data.ID),
 			}
 		},
-		Deleted: func(data *Bank) []string {
+		Deleted: func(data *BillAndCoins) []string {
 			return []string{
-				"bank.delete",
-				fmt.Sprintf("bank.delete.%s", data.ID),
+				"bill_and_coins.delete",
+				fmt.Sprintf("bill_and_coins.delete.%s", data.ID),
 			}
 		},
 	})

@@ -10,7 +10,7 @@ import (
 )
 
 type (
-	Bank struct {
+	TransactionTag struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
 		CreatedByID uuid.UUID      `gorm:"type:uuid"`
@@ -22,19 +22,22 @@ type (
 		DeletedByID *uuid.UUID     `gorm:"type:uuid"`
 		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
 
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_bank"`
+		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_transaction_tag"`
 		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_bank"`
+		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_transaction_tag"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
-		MediaID *uuid.UUID `gorm:"type:uuid"`
-		Media   *Media     `gorm:"foreignKey:MediaID;constraint:OnDelete:SET NULL;" json:"media,omitempty"`
+		TransactionID uuid.UUID    `gorm:"type:uuid;not null"`
+		Transaction   *Transaction `gorm:"foreignKey:TransactionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"transaction,omitempty"`
 
-		Name        string `gorm:"type:varchar(255);not null"`
-		Description string `gorm:"type:text"`
+		Name        string      `gorm:"type:varchar(50)"`
+		Description string      `gorm:"type:text"`
+		Category    TagCategory `gorm:"type:varchar(50)"`
+		Color       string      `gorm:"type:varchar(20)"`
+		Icon        string      `gorm:"type:varchar(20)"`
 	}
 
-	BankResponse struct {
+	TransactionTagResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
 		CreatedByID    uuid.UUID             `json:"created_by_id"`
@@ -46,29 +49,41 @@ type (
 		Organization   *OrganizationResponse `json:"organization,omitempty"`
 		BranchID       uuid.UUID             `json:"branch_id"`
 		Branch         *BranchResponse       `json:"branch,omitempty"`
-		MediaID        *uuid.UUID            `json:"media_id,omitempty"`
-		Media          *MediaResponse        `json:"media,omitempty"`
+		TransactionID  uuid.UUID             `json:"transaction_id"`
+		Transaction    *TransactionResponse  `json:"transaction,omitempty"`
 		Name           string                `json:"name"`
 		Description    string                `json:"description"`
+		Category       TagCategory           `json:"category"`
+		Color          string                `json:"color"`
+		Icon           string                `json:"icon"`
 	}
 
-	BankRequest struct {
-		Name        string     `json:"name" validate:"required,min=1,max=255"`
-		Description string     `json:"description,omitempty"`
-		MediaID     *uuid.UUID `json:"media_id,omitempty"`
+	TransactionTagRequest struct {
+		OrganizationID uuid.UUID   `json:"organization_id" validate:"required"`
+		BranchID       uuid.UUID   `json:"branch_id" validate:"required"`
+		TransactionID  uuid.UUID   `json:"transaction_id" validate:"required"`
+		Name           string      `json:"name" validate:"required,min=1,max=50"`
+		Description    string      `json:"description,omitempty"`
+		Category       TagCategory `json:"category,omitempty"`
+		Color          string      `json:"color,omitempty"`
+		Icon           string      `json:"icon,omitempty"`
 	}
 )
 
-func (m *Model) Bank() {
-	m.Migration = append(m.Migration, &Bank{})
-	m.BankManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Bank, BankResponse, BankRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization", "Media"},
-		Service:  m.provider.Service,
-		Resource: func(data *Bank) *BankResponse {
+func (m *Model) TransactionTag() {
+	m.Migration = append(m.Migration, &TransactionTag{})
+	m.TransactionTagManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+		TransactionTag, TransactionTagResponse, TransactionTagRequest,
+	]{
+		Preloads: []string{
+			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization", "Transaction",
+		},
+		Service: m.provider.Service,
+		Resource: func(data *TransactionTag) *TransactionTagResponse {
 			if data == nil {
 				return nil
 			}
-			return &BankResponse{
+			return &TransactionTagResponse{
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
@@ -80,28 +95,31 @@ func (m *Model) Bank() {
 				Organization:   m.OrganizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
 				Branch:         m.BranchManager.ToModel(data.Branch),
-				MediaID:        data.MediaID,
-				Media:          m.MediaManager.ToModel(data.Media),
+				TransactionID:  data.TransactionID,
+				Transaction:    m.TransactionManager.ToModel(data.Transaction),
 				Name:           data.Name,
 				Description:    data.Description,
+				Category:       data.Category,
+				Color:          data.Color,
+				Icon:           data.Icon,
 			}
 		},
-		Created: func(data *Bank) []string {
+		Created: func(data *TransactionTag) []string {
 			return []string{
-				"bank.create",
-				fmt.Sprintf("bank.create.%s", data.ID),
+				"transaction_tag.create",
+				fmt.Sprintf("transaction_tag.create.%s", data.ID),
 			}
 		},
-		Updated: func(data *Bank) []string {
+		Updated: func(data *TransactionTag) []string {
 			return []string{
-				"bank.update",
-				fmt.Sprintf("bank.update.%s", data.ID),
+				"transaction_tag.update",
+				fmt.Sprintf("transaction_tag.update.%s", data.ID),
 			}
 		},
-		Deleted: func(data *Bank) []string {
+		Deleted: func(data *TransactionTag) []string {
 			return []string{
-				"bank.delete",
-				fmt.Sprintf("bank.delete.%s", data.ID),
+				"transaction_tag.delete",
+				fmt.Sprintf("transaction_tag.delete.%s", data.ID),
 			}
 		},
 	})
