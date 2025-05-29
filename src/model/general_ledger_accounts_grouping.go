@@ -27,8 +27,8 @@ type (
 		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_general_ledger_accounts_grouping"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
-		Debit       string  `gorm:"type:accounting_principle;not null"`
-		Credit      string  `gorm:"type:accounting_principle;not null"`
+		Debit       float64 `gorm:"type:decimal"`
+		Credit      float64 `gorm:"type:decimal"`
 		Name        string  `gorm:"type:varchar(50);not null"`
 		Description string  `gorm:"type:text;not null"`
 		FromCode    float64 `gorm:"type:decimal;default:0"`
@@ -47,8 +47,8 @@ type (
 		Organization   *OrganizationResponse `json:"organization,omitempty"`
 		BranchID       uuid.UUID             `json:"branch_id"`
 		Branch         *BranchResponse       `json:"branch,omitempty"`
-		Debit          string                `json:"debit"`
-		Credit         string                `json:"credit"`
+		Debit          float64               `json:"debit"`
+		Credit         float64               `json:"credit"`
 		Name           string                `json:"name"`
 		Description    string                `json:"description"`
 		FromCode       float64               `json:"from_code"`

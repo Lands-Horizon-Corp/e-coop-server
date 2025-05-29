@@ -80,21 +80,21 @@ type (
 		LoanStatusID *uuid.UUID  `gorm:"type:uuid"`
 		LoanStatus   *LoanStatus `gorm:"foreignKey:LoanStatusID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"loan_status,omitempty"`
 
-		ModeOfPayment                LoanModeOfPayment `gorm:"type:loan_mode_of_payment"`
-		ModeOfPaymentWeekly          Weekdays          `gorm:"type:weekdays"`
-		ModeOfPaymentSemiMonthlyPay1 int               `gorm:"type:int"`
-		ModeOfPaymentSemiMonthlyPay2 int               `gorm:"type:int"`
+		ModeOfPayment                string `gorm:"type:varchar(255)"`
+		ModeOfPaymentWeekly          string `gorm:"type:varchar(255)"`
+		ModeOfPaymentSemiMonthlyPay1 int    `gorm:"type:int"`
+		ModeOfPaymentSemiMonthlyPay2 int    `gorm:"type:int"`
 
-		ComakerType                            LoanComakerType         `gorm:"type:loan_comaker_type"`
+		ComakerType                            string                  `gorm:"type:varchar(255)"`
 		ComakerDepositMemberAccountingLedgerID *uuid.UUID              `gorm:"type:uuid"`
 		ComakerDepositMemberAccountingLedger   *MemberAccountingLedger `gorm:"foreignKey:ComakerDepositMemberAccountingLedgerID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"comaker_deposit_member_accounting_ledger,omitempty"`
 		ComakerCollateralID                    *uuid.UUID              `gorm:"type:uuid"`
 		ComakerCollateral                      *Collateral             `gorm:"foreignKey:ComakerCollateralID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"comaker_collateral,omitempty"`
 		ComakerCollateralDescription           string                  `gorm:"type:text"`
 
-		CollectorPlace LoanCollectorPlace `gorm:"type:loan_collector_place;default:'office'"`
+		CollectorPlace string `gorm:"type:varchar(255);default:'office'"`
 
-		LoanType       LoanType         `gorm:"type:loan_type;default:'standard'"`
+		LoanType       string           `gorm:"type:varchar(255);default:'standard'"`
 		PreviousLoanID *uuid.UUID       `gorm:"type:uuid"`
 		PreviousLoan   *LoanTransaction `gorm:"foreignKey:PreviousLoanID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"previous_loan,omitempty"`
 		Terms          int              `gorm:"not null"`
@@ -435,18 +435,18 @@ func (m *Model) LoanTransaction() {
 				LoanPurpose:                            m.LoanPurposeManager.ToModel(data.LoanPurpose),
 				LoanStatusID:                           data.LoanStatusID,
 				LoanStatus:                             m.LoanStatusManager.ToModel(data.LoanStatus),
-				ModeOfPayment:                          data.ModeOfPayment,
-				ModeOfPaymentWeekly:                    data.ModeOfPaymentWeekly,
+				ModeOfPayment:                          LoanModeOfPayment(data.ModeOfPayment),
+				ModeOfPaymentWeekly:                    Weekdays(data.ModeOfPaymentWeekly),
 				ModeOfPaymentSemiMonthlyPay1:           data.ModeOfPaymentSemiMonthlyPay1,
 				ModeOfPaymentSemiMonthlyPay2:           data.ModeOfPaymentSemiMonthlyPay2,
-				ComakerType:                            data.ComakerType,
+				ComakerType:                            LoanComakerType(data.ComakerType),
 				ComakerDepositMemberAccountingLedgerID: data.ComakerDepositMemberAccountingLedgerID,
 				ComakerDepositMemberAccountingLedger:   m.MemberAccountingLedgerManager.ToModel(data.ComakerDepositMemberAccountingLedger),
 				ComakerCollateralID:                    data.ComakerCollateralID,
 				ComakerCollateral:                      m.CollateralManager.ToModel(data.ComakerCollateral),
 				ComakerCollateralDescription:           data.ComakerCollateralDescription,
-				CollectorPlace:                         data.CollectorPlace,
-				LoanType:                               data.LoanType,
+				CollectorPlace:                         LoanCollectorPlace(data.CollectorPlace),
+				LoanType:                               LoanType(data.LoanType),
 				PreviousLoanID:                         data.PreviousLoanID,
 				PreviousLoan:                           m.LoanTransactionManager.ToModel(data.PreviousLoan),
 				Terms:                                  data.Terms,

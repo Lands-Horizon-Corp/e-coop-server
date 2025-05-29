@@ -35,7 +35,7 @@ type (
 		Index                  int    `gorm:"default:0"`
 		NameInTotal            string `gorm:"type:varchar(255)"`
 		IsPosting              bool   `gorm:"default:false"`
-		FinancialStatementType string `gorm:"type:financial_statement_type"`
+		FinancialStatementType string `gorm:"type:varchar(255)"`
 	}
 
 	FinancialStatementDefinitionResponse struct {

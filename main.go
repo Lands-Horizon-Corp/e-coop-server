@@ -16,7 +16,7 @@ import (
 func main() {
 	app := fx.New(
 		// Set extended startup timeout
-		fx.StartTimeout(10*time.Minute),
+		fx.StartTimeout(30*time.Minute),
 
 		// Provide application dependencies
 		fx.Provide(

@@ -178,8 +178,8 @@ type (
 		CohCibFinesGracePeriodEntryLumpsumAmortization     float64 `gorm:"type:decimal;default:0"`
 		CohCibFinesGracePeriodEntryLumpsumMaturity         float64 `gorm:"type:decimal;default:0"`
 
-		FinancialStatementType FinancialStatementType `gorm:"type:varchar(50)"`
-		GeneralLedgerType      string                 `gorm:"type:varchar(50)"`
+		FinancialStatementType string `gorm:"type:varchar(50)"`
+		GeneralLedgerType      string `gorm:"type:varchar(50)"`
 
 		AlternativeCode string `gorm:"type:varchar(50)"`
 
@@ -190,15 +190,15 @@ type (
 		YearlySubscriptionFee        int  `gorm:"type:int"`
 		LoanCutOffDays               int  `gorm:"type:int"`
 
-		LumpsumComputationType                                       LumpsumComputationType                            `gorm:"type:varchar(50);default:'None'"`
-		InterestFinesComputationDiminishing                          InterestFinesComputationDiminishing               `gorm:"type:varchar(100);default:'None'"`
-		InterestFinesComputationDiminishingStraightDiminishingYearly InterestFinesComputationDiminishingStraightYearly `gorm:"type:varchar(200);default:'None'"`
-		EarnedUnearnedInterest                                       EarnedUnearnedInterest                            `gorm:"type:varchar(50);default:'None'"`
-		LoanSavingType                                               LoanSavingType                                    `gorm:"type:varchar(50);default:'Separate'"`
-		InterestDeduction                                            InterestDeduction                                 `gorm:"type:varchar(10);default:'Above'"`
-		OtherDeductionEntry                                          OtherDeductionEntry                               `gorm:"type:varchar(20);default:'None'"`
-		InterestSavingTypeDiminishingStraight                        InterestSavingTypeDiminishingStraight             `gorm:"type:varchar(20);default:'Spread'"`
-		OtherInformationOfAnAccount                                  OtherInformationOfAnAccount                       `gorm:"type:varchar(50);default:'None'"`
+		LumpsumComputationType                                       string `gorm:"type:varchar(50);default:'None'"`
+		InterestFinesComputationDiminishing                          string `gorm:"type:varchar(100);default:'None'"`
+		InterestFinesComputationDiminishingStraightDiminishingYearly string `gorm:"type:varchar(200);default:'None'"`
+		EarnedUnearnedInterest                                       string `gorm:"type:varchar(50);default:'None'"`
+		LoanSavingType                                               string `gorm:"type:varchar(50);default:'Separate'"`
+		InterestDeduction                                            string `gorm:"type:varchar(10);default:'Above'"`
+		OtherDeductionEntry                                          string `gorm:"type:varchar(20);default:'None'"`
+		InterestSavingTypeDiminishingStraight                        string `gorm:"type:varchar(20);default:'Spread'"`
+		OtherInformationOfAnAccount                                  string `gorm:"type:varchar(50);default:'None'"`
 
 		HeaderRow int `gorm:"type:int"`
 		CenterRow int `gorm:"type:int"`
@@ -438,7 +438,7 @@ func (m *Model) Account() {
 				CohCibFinesGracePeriodEntrySemiAnualMaturity:                 data.CohCibFinesGracePeriodEntrySemiAnualMaturity,
 				CohCibFinesGracePeriodEntryLumpsumAmortization:               data.CohCibFinesGracePeriodEntryLumpsumAmortization,
 				CohCibFinesGracePeriodEntryLumpsumMaturity:                   data.CohCibFinesGracePeriodEntryLumpsumMaturity,
-				FinancialStatementType:                                       data.FinancialStatementType,
+				FinancialStatementType:                                       FinancialStatementType(data.FinancialStatementType),
 				GeneralLedgerType:                                            data.GeneralLedgerType,
 				AlternativeCode:                                              data.AlternativeCode,
 				FinesGracePeriodAmortization:                                 data.FinesGracePeriodAmortization,
@@ -447,15 +447,15 @@ func (m *Model) Account() {
 				FinesGracePeriodMaturity:                                     data.FinesGracePeriodMaturity,
 				YearlySubscriptionFee:                                        data.YearlySubscriptionFee,
 				LoanCutOffDays:                                               data.LoanCutOffDays,
-				LumpsumComputationType:                                       data.LumpsumComputationType,
-				InterestFinesComputationDiminishing:                          data.InterestFinesComputationDiminishing,
-				InterestFinesComputationDiminishingStraightDiminishingYearly: data.InterestFinesComputationDiminishingStraightDiminishingYearly,
-				EarnedUnearnedInterest:                                       data.EarnedUnearnedInterest,
-				LoanSavingType:                                               data.LoanSavingType,
-				InterestDeduction:                                            data.InterestDeduction,
-				OtherDeductionEntry:                                          data.OtherDeductionEntry,
-				InterestSavingTypeDiminishingStraight:                        data.InterestSavingTypeDiminishingStraight,
-				OtherInformationOfAnAccount:                                  data.OtherInformationOfAnAccount,
+				LumpsumComputationType:                                       LumpsumComputationType(data.LumpsumComputationType),
+				InterestFinesComputationDiminishing:                          InterestFinesComputationDiminishing(data.InterestFinesComputationDiminishing),
+				InterestFinesComputationDiminishingStraightDiminishingYearly: InterestFinesComputationDiminishingStraightYearly(data.InterestFinesComputationDiminishingStraightDiminishingYearly),
+				EarnedUnearnedInterest:                                       EarnedUnearnedInterest(data.EarnedUnearnedInterest),
+				LoanSavingType:                                               LoanSavingType(data.LoanSavingType),
+				InterestDeduction:                                            InterestDeduction(data.InterestDeduction),
+				OtherDeductionEntry:                                          OtherDeductionEntry(data.OtherDeductionEntry),
+				InterestSavingTypeDiminishingStraight:                        InterestSavingTypeDiminishingStraight(data.InterestSavingTypeDiminishingStraight),
+				OtherInformationOfAnAccount:                                  OtherInformationOfAnAccount(data.OtherInformationOfAnAccount),
 				HeaderRow:                                                    data.HeaderRow,
 				CenterRow:                                                    data.CenterRow,
 				TotalRow:                                                     data.TotalRow,

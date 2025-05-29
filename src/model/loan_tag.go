@@ -30,11 +30,11 @@ type (
 		LoanTransactionID uuid.UUID        `gorm:"type:uuid;not null"`
 		LoanTransaction   *LoanTransaction `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"loan_transaction,omitempty"`
 
-		Name        string      `gorm:"type:varchar(50);not null"`
-		Description string      `gorm:"type:text"`
-		Category    TagCategory `gorm:"type:tag_category"`
-		Color       string      `gorm:"type:varchar(20)"`
-		Icon        string      `gorm:"type:varchar(20)"`
+		Name        string `gorm:"type:varchar(50);not null"`
+		Description string `gorm:"type:text"`
+		Category    string `gorm:"type:varchar(50)"`
+		Color       string `gorm:"type:varchar(20)"`
+		Icon        string `gorm:"type:varchar(20)"`
 	}
 
 	LoanTagResponse struct {
@@ -97,7 +97,7 @@ func (m *Model) LoanTag() {
 				LoanTransaction:   m.LoanTransactionManager.ToModel(data.LoanTransaction),
 				Name:              data.Name,
 				Description:       data.Description,
-				Category:          data.Category,
+				Category:          TagCategory(data.Category),
 				Color:             data.Color,
 				Icon:              data.Icon,
 			}
