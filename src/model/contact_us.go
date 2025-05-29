@@ -41,10 +41,6 @@ type (
 		ContactNumber string     `json:"contact_number,omitempty" validate:"omitempty,min=1,max=20"`
 		Description   string     `json:"description" validate:"required,min=1"`
 	}
-
-	ContactUsCollection struct {
-		Manager horizon_services.Repository[ContactUs, ContactUsResponse, ContactUsRequest]
-	}
 )
 
 func (m *Model) ContactUs() {

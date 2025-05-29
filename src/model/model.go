@@ -61,6 +61,9 @@ type (
 		UserOrganizationManager       horizon_services.Repository[UserOrganization, UserOrganizationResponse, UserOrganizationRequest]
 		UserManager                   horizon_services.Repository[User, UserResponse, UserRegisterRequest]
 		UserRatingManager             horizon_services.Repository[UserRating, UserRatingResponse, UserRatingRequest]
+
+		// Members
+		MemberAddressManager horizon_services.Repository[MemberAddress, MemberAddressReponse, MemberAddressRequest]
 	}
 )
 
