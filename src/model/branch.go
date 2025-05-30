@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -165,6 +166,27 @@ func (m *Model) Branch() {
 				InvitationCodes:     m.InvitationCodeManager.ToModels(data.InvitationCodes),
 				PermissionTemplates: m.PermissionTemplateManager.ToModels(data.PermissionTemplates),
 				UserOrganizations:   m.UserOrganizationManager.ToModels(data.UserOrganizations),
+			}
+		},
+		Created: func(data *Branch) []string {
+			return []string{
+				"branch.create",
+				fmt.Sprintf("branch.create.%s", data.ID),
+				fmt.Sprintf("branch.create.organization.%s", data.OrganizationID),
+			}
+		},
+		Updated: func(data *Branch) []string {
+			return []string{
+				"branch.update",
+				fmt.Sprintf("branch.update.%s", data.ID),
+				fmt.Sprintf("branch.update.organization.%s", data.OrganizationID),
+			}
+		},
+		Deleted: func(data *Branch) []string {
+			return []string{
+				"branch.delete",
+				fmt.Sprintf("branch.delete.%s", data.ID),
+				fmt.Sprintf("branch.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

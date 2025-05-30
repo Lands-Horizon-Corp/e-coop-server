@@ -85,22 +85,29 @@ func (m *Model) MemberGroupHistory() {
 				MemberGroup:     m.MemberGroupManager.ToModel(data.MemberGroup),
 			}
 		},
+
 		Created: func(data *MemberGroupHistory) []string {
 			return []string{
 				"member_group_history.create",
 				fmt.Sprintf("member_group_history.create.%s", data.ID),
+				fmt.Sprintf("member_group_history.create.branch.%s", data.BranchID),
+				fmt.Sprintf("member_group_history.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *MemberGroupHistory) []string {
 			return []string{
 				"member_group_history.update",
 				fmt.Sprintf("member_group_history.update.%s", data.ID),
+				fmt.Sprintf("member_group_history.update.branch.%s", data.BranchID),
+				fmt.Sprintf("member_group_history.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *MemberGroupHistory) []string {
 			return []string{
 				"member_group_history.delete",
 				fmt.Sprintf("member_group_history.delete.%s", data.ID),
+				fmt.Sprintf("member_group_history.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("member_group_history.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

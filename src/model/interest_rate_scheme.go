@@ -86,18 +86,24 @@ func (m *Model) InterestRateScheme() {
 			return []string{
 				"interest_rate_scheme.create",
 				fmt.Sprintf("interest_rate_scheme.create.%s", data.ID),
+				fmt.Sprintf("interest_rate_scheme.create.branch.%s", data.BranchID),
+				fmt.Sprintf("interest_rate_scheme.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *InterestRateScheme) []string {
 			return []string{
 				"interest_rate_scheme.update",
 				fmt.Sprintf("interest_rate_scheme.update.%s", data.ID),
+				fmt.Sprintf("interest_rate_scheme.update.branch.%s", data.BranchID),
+				fmt.Sprintf("interest_rate_scheme.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *InterestRateScheme) []string {
 			return []string{
 				"interest_rate_scheme.delete",
 				fmt.Sprintf("interest_rate_scheme.delete.%s", data.ID),
+				fmt.Sprintf("interest_rate_scheme.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("interest_rate_scheme.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

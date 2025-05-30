@@ -101,18 +101,24 @@ func (m *Model) PaymentType() {
 			return []string{
 				"payment_type.create",
 				fmt.Sprintf("payment_type.create.%s", data.ID),
+				fmt.Sprintf("payment_type.create.branch.%s", data.BranchID),
+				fmt.Sprintf("payment_type.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *PaymentType) []string {
 			return []string{
 				"payment_type.update",
 				fmt.Sprintf("payment_type.update.%s", data.ID),
+				fmt.Sprintf("payment_type.update.branch.%s", data.BranchID),
+				fmt.Sprintf("payment_type.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *PaymentType) []string {
 			return []string{
 				"payment_type.delete",
 				fmt.Sprintf("payment_type.delete.%s", data.ID),
+				fmt.Sprintf("payment_type.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("payment_type.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

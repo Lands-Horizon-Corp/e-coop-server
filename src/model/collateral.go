@@ -90,18 +90,24 @@ func (m *Model) Collateral() {
 			return []string{
 				"collateral.create",
 				fmt.Sprintf("collateral.create.%s", data.ID),
+				fmt.Sprintf("collateral.create.branch.%s", data.BranchID),
+				fmt.Sprintf("collateral.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *Collateral) []string {
 			return []string{
 				"collateral.update",
 				fmt.Sprintf("collateral.update.%s", data.ID),
+				fmt.Sprintf("collateral.update.branch.%s", data.BranchID),
+				fmt.Sprintf("collateral.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *Collateral) []string {
 			return []string{
 				"collateral.delete",
 				fmt.Sprintf("collateral.delete.%s", data.ID),
+				fmt.Sprintf("collateral.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("collateral.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

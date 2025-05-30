@@ -166,22 +166,29 @@ func (m *Model) OnlineEntry() {
 				Credit:                    data.Credit,
 			}
 		},
+
 		Created: func(data *OnlineEntry) []string {
 			return []string{
 				"online_entry.create",
 				fmt.Sprintf("online_entry.create.%s", data.ID),
+				fmt.Sprintf("online_entry.create.branch.%s", data.BranchID),
+				fmt.Sprintf("online_entry.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *OnlineEntry) []string {
 			return []string{
 				"online_entry.update",
 				fmt.Sprintf("online_entry.update.%s", data.ID),
+				fmt.Sprintf("online_entry.update.branch.%s", data.BranchID),
+				fmt.Sprintf("online_entry.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *OnlineEntry) []string {
 			return []string{
 				"online_entry.delete",
 				fmt.Sprintf("online_entry.delete.%s", data.ID),
+				fmt.Sprintf("online_entry.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("online_entry.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

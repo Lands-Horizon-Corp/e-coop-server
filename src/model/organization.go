@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -188,6 +189,25 @@ func (m *Model) Organization() {
 				InvitationCodes:        m.InvitationCodeManager.ToModels(data.InvitationCodes),
 				PermissionTemplates:    m.PermissionTemplateManager.ToModels(data.PermissionTemplates),
 				UserOrganizations:      m.UserOrganizationManager.ToModels(data.UserOrganizations),
+			}
+		},
+
+		Created: func(data *Organization) []string {
+			return []string{
+				"organization.create",
+				fmt.Sprintf("organization.create.%s", data.ID),
+			}
+		},
+		Updated: func(data *Organization) []string {
+			return []string{
+				"organization.update",
+				fmt.Sprintf("organization.update.%s", data.ID),
+			}
+		},
+		Deleted: func(data *Organization) []string {
+			return []string{
+				"organization.delete",
+				fmt.Sprintf("organization.delete.%s", data.ID),
 			}
 		},
 	})

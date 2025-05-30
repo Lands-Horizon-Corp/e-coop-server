@@ -180,18 +180,24 @@ func (m *Model) CashCheckVoucherDisbursementEntry() {
 			return []string{
 				"cash_check_voucher_disbursement_entry.create",
 				fmt.Sprintf("cash_check_voucher_disbursement_entry.create.%s", data.ID),
+				fmt.Sprintf("cash_check_voucher_disbursement_entry.create.branch.%s", data.BranchID),
+				fmt.Sprintf("cash_check_voucher_disbursement_entry.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *CashCheckVoucherDisbursementEntry) []string {
 			return []string{
 				"cash_check_voucher_disbursement_entry.update",
 				fmt.Sprintf("cash_check_voucher_disbursement_entry.update.%s", data.ID),
+				fmt.Sprintf("cash_check_voucher_disbursement_entry.update.branch.%s", data.BranchID),
+				fmt.Sprintf("cash_check_voucher_disbursement_entry.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *CashCheckVoucherDisbursementEntry) []string {
 			return []string{
 				"cash_check_voucher_disbursement_entry.delete",
 				fmt.Sprintf("cash_check_voucher_disbursement_entry.delete.%s", data.ID),
+				fmt.Sprintf("cash_check_voucher_disbursement_entry.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("cash_check_voucher_disbursement_entry.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

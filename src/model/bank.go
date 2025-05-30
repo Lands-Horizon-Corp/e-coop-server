@@ -90,18 +90,24 @@ func (m *Model) Bank() {
 			return []string{
 				"bank.create",
 				fmt.Sprintf("bank.create.%s", data.ID),
+				fmt.Sprintf("bank.create.branch.%s", data.BranchID),
+				fmt.Sprintf("bank.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *Bank) []string {
 			return []string{
 				"bank.update",
 				fmt.Sprintf("bank.update.%s", data.ID),
+				fmt.Sprintf("bank.update.branch.%s", data.BranchID),
+				fmt.Sprintf("bank.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *Bank) []string {
 			return []string{
 				"bank.delete",
 				fmt.Sprintf("bank.delete.%s", data.ID),
+				fmt.Sprintf("bank.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("bank.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

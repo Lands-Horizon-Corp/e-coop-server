@@ -111,18 +111,24 @@ func (m *Model) MemberClassificationInterestRate() {
 			return []string{
 				"member_classification_interest_rate.create",
 				fmt.Sprintf("member_classification_interest_rate.create.%s", data.ID),
+				fmt.Sprintf("member_classification_interest_rate.create.branch.%s", data.BranchID),
+				fmt.Sprintf("member_classification_interest_rate.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *MemberClassificationInterestRate) []string {
 			return []string{
 				"member_classification_interest_rate.update",
 				fmt.Sprintf("member_classification_interest_rate.update.%s", data.ID),
+				fmt.Sprintf("member_classification_interest_rate.update.branch.%s", data.BranchID),
+				fmt.Sprintf("member_classification_interest_rate.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *MemberClassificationInterestRate) []string {
 			return []string{
 				"member_classification_interest_rate.delete",
 				fmt.Sprintf("member_classification_interest_rate.delete.%s", data.ID),
+				fmt.Sprintf("member_classification_interest_rate.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("member_classification_interest_rate.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

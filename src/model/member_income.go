@@ -103,22 +103,29 @@ func (m *Model) MemberIncome() {
 				ReleaseDate:     releaseDateStr,
 			}
 		},
+
 		Created: func(data *MemberIncome) []string {
 			return []string{
 				"member_income.create",
 				fmt.Sprintf("member_income.create.%s", data.ID),
+				fmt.Sprintf("member_income.create.branch.%s", data.BranchID),
+				fmt.Sprintf("member_income.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *MemberIncome) []string {
 			return []string{
 				"member_income.update",
 				fmt.Sprintf("member_income.update.%s", data.ID),
+				fmt.Sprintf("member_income.update.branch.%s", data.BranchID),
+				fmt.Sprintf("member_income.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *MemberIncome) []string {
 			return []string{
 				"member_income.delete",
 				fmt.Sprintf("member_income.delete.%s", data.ID),
+				fmt.Sprintf("member_income.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("member_income.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

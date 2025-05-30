@@ -163,18 +163,24 @@ func (m *Model) AutomaticLoanDeduction() {
 			return []string{
 				"automatic_loan_deduction.create",
 				fmt.Sprintf("automatic_loan_deduction.create.%s", data.ID),
+				fmt.Sprintf("automatic_loan_deduction.create.branch.%s", data.BranchID),
+				fmt.Sprintf("automatic_loan_deduction.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *AutomaticLoanDeduction) []string {
 			return []string{
 				"automatic_loan_deduction.update",
 				fmt.Sprintf("automatic_loan_deduction.update.%s", data.ID),
+				fmt.Sprintf("automatic_loan_deduction.update.branch.%s", data.BranchID),
+				fmt.Sprintf("automatic_loan_deduction.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *AutomaticLoanDeduction) []string {
 			return []string{
-				"automatic_loan_deduction.delete",
+				"automatic_loan_deduction.update",
 				fmt.Sprintf("automatic_loan_deduction.delete.%s", data.ID),
+				fmt.Sprintf("automatic_loan_deduction.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("automatic_loan_deduction.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

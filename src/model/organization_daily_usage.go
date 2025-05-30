@@ -118,6 +118,7 @@ func (m *Model) OrganizationDailyUsage() {
 				UpdatedAt: data.UpdatedAt.Format(time.RFC3339),
 			}
 		},
+
 		Created: func(data *OrganizationDailyUsage) []string {
 			return []string{
 				"organization_daily_usage.create",

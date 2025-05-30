@@ -176,18 +176,24 @@ func (m *Model) InterestRateByTermsHeader() {
 			return []string{
 				"interest_rate_by_terms_header.create",
 				fmt.Sprintf("interest_rate_by_terms_header.create.%s", data.ID),
+				fmt.Sprintf("interest_rate_by_terms_header.create.branch.%s", data.BranchID),
+				fmt.Sprintf("interest_rate_by_terms_header.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *InterestRateByTermsHeader) []string {
 			return []string{
 				"interest_rate_by_terms_header.update",
 				fmt.Sprintf("interest_rate_by_terms_header.update.%s", data.ID),
+				fmt.Sprintf("interest_rate_by_terms_header.update.branch.%s", data.BranchID),
+				fmt.Sprintf("interest_rate_by_terms_header.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *InterestRateByTermsHeader) []string {
 			return []string{
 				"interest_rate_by_terms_header.delete",
 				fmt.Sprintf("interest_rate_by_terms_header.delete.%s", data.ID),
+				fmt.Sprintf("interest_rate_by_terms_header.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("interest_rate_by_terms_header.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

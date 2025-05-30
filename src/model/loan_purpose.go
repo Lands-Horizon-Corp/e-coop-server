@@ -82,22 +82,29 @@ func (m *Model) LoanPurpose() {
 				Icon:           data.Icon,
 			}
 		},
+
 		Created: func(data *LoanPurpose) []string {
 			return []string{
 				"loan_purpose.create",
 				fmt.Sprintf("loan_purpose.create.%s", data.ID),
+				fmt.Sprintf("loan_purpose.create.branch.%s", data.BranchID),
+				fmt.Sprintf("loan_purpose.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *LoanPurpose) []string {
 			return []string{
 				"loan_purpose.update",
 				fmt.Sprintf("loan_purpose.update.%s", data.ID),
+				fmt.Sprintf("loan_purpose.update.branch.%s", data.BranchID),
+				fmt.Sprintf("loan_purpose.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *LoanPurpose) []string {
 			return []string{
 				"loan_purpose.delete",
 				fmt.Sprintf("loan_purpose.delete.%s", data.ID),
+				fmt.Sprintf("loan_purpose.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("loan_purpose.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

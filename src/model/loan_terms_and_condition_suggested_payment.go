@@ -81,22 +81,29 @@ func (m *Model) LoanTermsAndConditionSuggestedPayment() {
 				LoanTransaction:   m.LoanTransactionManager.ToModel(data.LoanTransaction),
 			}
 		},
+
 		Created: func(data *LoanTermsAndConditionSuggestedPayment) []string {
 			return []string{
 				"loan_terms_and_condition_suggested_payment.create",
 				fmt.Sprintf("loan_terms_and_condition_suggested_payment.create.%s", data.ID),
+				fmt.Sprintf("loan_terms_and_condition_suggested_payment.create.branch.%s", data.BranchID),
+				fmt.Sprintf("loan_terms_and_condition_suggested_payment.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *LoanTermsAndConditionSuggestedPayment) []string {
 			return []string{
 				"loan_terms_and_condition_suggested_payment.update",
 				fmt.Sprintf("loan_terms_and_condition_suggested_payment.update.%s", data.ID),
+				fmt.Sprintf("loan_terms_and_condition_suggested_payment.update.branch.%s", data.BranchID),
+				fmt.Sprintf("loan_terms_and_condition_suggested_payment.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *LoanTermsAndConditionSuggestedPayment) []string {
 			return []string{
 				"loan_terms_and_condition_suggested_payment.delete",
 				fmt.Sprintf("loan_terms_and_condition_suggested_payment.delete.%s", data.ID),
+				fmt.Sprintf("loan_terms_and_condition_suggested_payment.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("loan_terms_and_condition_suggested_payment.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

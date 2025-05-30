@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -129,6 +130,30 @@ func (m *Model) Footstep() {
 				Referer:        data.Referer,
 				Location:       data.Location,
 				AcceptLanguage: data.AcceptLanguage,
+			}
+		},
+		Created: func(data *Footstep) []string {
+			return []string{
+				"footstep.create",
+				fmt.Sprintf("footstep.create.%s", data.ID),
+				fmt.Sprintf("footstep.create.branch.%s", data.BranchID),
+				fmt.Sprintf("footstep.create.organization.%s", data.OrganizationID),
+			}
+		},
+		Updated: func(data *Footstep) []string {
+			return []string{
+				"footstep.update",
+				fmt.Sprintf("footstep.update.%s", data.ID),
+				fmt.Sprintf("footstep.update.branch.%s", data.BranchID),
+				fmt.Sprintf("footstep.update.organization.%s", data.OrganizationID),
+			}
+		},
+		Deleted: func(data *Footstep) []string {
+			return []string{
+				"footstep.delete",
+				fmt.Sprintf("footstep.delete.%s", data.ID),
+				fmt.Sprintf("footstep.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("footstep.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

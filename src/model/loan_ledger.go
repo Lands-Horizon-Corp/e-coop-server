@@ -72,22 +72,29 @@ func (m *Model) LoanLedger() {
 				Branch:         m.BranchManager.ToModel(data.Branch),
 			}
 		},
+
 		Created: func(data *LoanLedger) []string {
 			return []string{
 				"loan_ledger.create",
 				fmt.Sprintf("loan_ledger.create.%s", data.ID),
+				fmt.Sprintf("loan_ledger.create.branch.%s", data.BranchID),
+				fmt.Sprintf("loan_ledger.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *LoanLedger) []string {
 			return []string{
 				"loan_ledger.update",
 				fmt.Sprintf("loan_ledger.update.%s", data.ID),
+				fmt.Sprintf("loan_ledger.update.branch.%s", data.BranchID),
+				fmt.Sprintf("loan_ledger.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *LoanLedger) []string {
 			return []string{
 				"loan_ledger.delete",
 				fmt.Sprintf("loan_ledger.delete.%s", data.ID),
+				fmt.Sprintf("loan_ledger.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("loan_ledger.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

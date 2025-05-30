@@ -78,22 +78,29 @@ func (m *Model) MemberGender() {
 				Description:    data.Description,
 			}
 		},
+
 		Created: func(data *MemberGender) []string {
 			return []string{
 				"member_gender.create",
 				fmt.Sprintf("member_gender.create.%s", data.ID),
+				fmt.Sprintf("member_gender.create.branch.%s", data.BranchID),
+				fmt.Sprintf("member_gender.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *MemberGender) []string {
 			return []string{
 				"member_gender.update",
 				fmt.Sprintf("member_gender.update.%s", data.ID),
+				fmt.Sprintf("member_gender.update.branch.%s", data.BranchID),
+				fmt.Sprintf("member_gender.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *MemberGender) []string {
 			return []string{
 				"member_gender.delete",
 				fmt.Sprintf("member_gender.delete.%s", data.ID),
+				fmt.Sprintf("member_gender.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("member_gender.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

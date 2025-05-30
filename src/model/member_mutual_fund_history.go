@@ -76,22 +76,29 @@ func (m *Model) MemberMutualFundHistory() {
 				Description:     data.Description,
 			}
 		},
+
 		Created: func(data *MemberMutualFundHistory) []string {
 			return []string{
 				"member_mutual_fund_history.create",
 				fmt.Sprintf("member_mutual_fund_history.create.%s", data.ID),
+				fmt.Sprintf("member_mutual_fund_history.create.branch.%s", data.BranchID),
+				fmt.Sprintf("member_mutual_fund_history.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *MemberMutualFundHistory) []string {
 			return []string{
 				"member_mutual_fund_history.update",
 				fmt.Sprintf("member_mutual_fund_history.update.%s", data.ID),
+				fmt.Sprintf("member_mutual_fund_history.update.branch.%s", data.BranchID),
+				fmt.Sprintf("member_mutual_fund_history.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *MemberMutualFundHistory) []string {
 			return []string{
 				"member_mutual_fund_history.delete",
 				fmt.Sprintf("member_mutual_fund_history.delete.%s", data.ID),
+				fmt.Sprintf("member_mutual_fund_history.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("member_mutual_fund_history.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

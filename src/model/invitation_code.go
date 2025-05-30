@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -107,25 +108,25 @@ func (m *Model) InvitationCode() {
 		Created: func(data *InvitationCode) []string {
 			return []string{
 				"invitation_code.create",
-				"invitation_code.create.organization." + data.OrganizationID.String(),
-				"invitation_code.create.branch." + data.BranchID.String(),
-				"invitation_code.create." + data.ID.String(),
+				fmt.Sprintf("invitation_code.create.%s", data.ID),
+				fmt.Sprintf("invitation_code.create.branch.%s", data.BranchID),
+				fmt.Sprintf("invitation_code.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *InvitationCode) []string {
 			return []string{
 				"invitation_code.update",
-				"invitation_code.update.organization." + data.OrganizationID.String(),
-				"invitation_code.update.branch." + data.BranchID.String(),
-				"invitation_code.update." + data.ID.String(),
+				fmt.Sprintf("invitation_code.update.%s", data.ID),
+				fmt.Sprintf("invitation_code.update.branch.%s", data.BranchID),
+				fmt.Sprintf("invitation_code.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *InvitationCode) []string {
 			return []string{
 				"invitation_code.delete",
-				"invitation_code.delete.organization." + data.OrganizationID.String(),
-				"invitation_code.delete.branch." + data.BranchID.String(),
-				"invitation_code.delete." + data.ID.String(),
+				fmt.Sprintf("invitation_code.delete.%s", data.ID),
+				fmt.Sprintf("invitation_code.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("invitation_code.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

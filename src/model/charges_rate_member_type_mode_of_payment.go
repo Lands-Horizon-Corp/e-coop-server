@@ -113,18 +113,24 @@ func (m *Model) ChargesRateMemberTypeModeOfPayment() {
 			return []string{
 				"charges_rate_member_type_mode_of_payment.create",
 				fmt.Sprintf("charges_rate_member_type_mode_of_payment.create.%s", data.ID),
+				fmt.Sprintf("charges_rate_member_type_mode_of_payment.create.branch.%s", data.BranchID),
+				fmt.Sprintf("charges_rate_member_type_mode_of_payment.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *ChargesRateMemberTypeModeOfPayment) []string {
 			return []string{
 				"charges_rate_member_type_mode_of_payment.update",
 				fmt.Sprintf("charges_rate_member_type_mode_of_payment.update.%s", data.ID),
+				fmt.Sprintf("charges_rate_member_type_mode_of_payment.update.branch.%s", data.BranchID),
+				fmt.Sprintf("charges_rate_member_type_mode_of_payment.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *ChargesRateMemberTypeModeOfPayment) []string {
 			return []string{
 				"charges_rate_member_type_mode_of_payment.delete",
 				fmt.Sprintf("charges_rate_member_type_mode_of_payment.delete.%s", data.ID),
+				fmt.Sprintf("charges_rate_member_type_mode_of_payment.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("charges_rate_member_type_mode_of_payment.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

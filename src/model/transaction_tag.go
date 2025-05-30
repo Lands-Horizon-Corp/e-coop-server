@@ -104,22 +104,29 @@ func (m *Model) TransactionTag() {
 				Icon:           data.Icon,
 			}
 		},
+
 		Created: func(data *TransactionTag) []string {
 			return []string{
 				"transaction_tag.create",
 				fmt.Sprintf("transaction_tag.create.%s", data.ID),
+				fmt.Sprintf("transaction_tag.create.branch.%s", data.BranchID),
+				fmt.Sprintf("transaction_tag.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *TransactionTag) []string {
 			return []string{
 				"transaction_tag.update",
 				fmt.Sprintf("transaction_tag.update.%s", data.ID),
+				fmt.Sprintf("transaction_tag.update.branch.%s", data.BranchID),
+				fmt.Sprintf("transaction_tag.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *TransactionTag) []string {
 			return []string{
 				"transaction_tag.delete",
 				fmt.Sprintf("transaction_tag.delete.%s", data.ID),
+				fmt.Sprintf("transaction_tag.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("transaction_tag.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

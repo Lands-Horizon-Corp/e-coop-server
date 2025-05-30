@@ -242,22 +242,29 @@ func (m *Model) MemberProfile() {
 				CivilStatus:                    data.CivilStatus,
 			}
 		},
+
 		Created: func(data *MemberProfile) []string {
 			return []string{
 				"member_profile.create",
 				fmt.Sprintf("member_profile.create.%s", data.ID),
+				fmt.Sprintf("member_profile.create.branch.%s", data.BranchID),
+				fmt.Sprintf("member_profile.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *MemberProfile) []string {
 			return []string{
 				"member_profile.update",
 				fmt.Sprintf("member_profile.update.%s", data.ID),
+				fmt.Sprintf("member_profile.update.branch.%s", data.BranchID),
+				fmt.Sprintf("member_profile.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *MemberProfile) []string {
 			return []string{
 				"member_profile.delete",
 				fmt.Sprintf("member_profile.delete.%s", data.ID),
+				fmt.Sprintf("member_profile.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("member_profile.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

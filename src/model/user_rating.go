@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -97,6 +98,30 @@ func (m *Model) UserRating() {
 				RaterUser:   m.UserManager.ToModel(&data.RaterUser),
 				Rate:        data.Rate,
 				Remark:      data.Remark,
+			}
+		},
+		Created: func(data *UserRating) []string {
+			return []string{
+				"user_rating.create",
+				fmt.Sprintf("user_rating.create.%s", data.ID),
+				fmt.Sprintf("user_rating.create.branch.%s", data.BranchID),
+				fmt.Sprintf("user_rating.create.organization.%s", data.OrganizationID),
+			}
+		},
+		Updated: func(data *UserRating) []string {
+			return []string{
+				"user_rating.update",
+				fmt.Sprintf("user_rating.update.%s", data.ID),
+				fmt.Sprintf("user_rating.update.branch.%s", data.BranchID),
+				fmt.Sprintf("user_rating.update.organization.%s", data.OrganizationID),
+			}
+		},
+		Deleted: func(data *UserRating) []string {
+			return []string{
+				"user_rating.delete",
+				fmt.Sprintf("user_rating.delete.%s", data.ID),
+				fmt.Sprintf("user_rating.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("user_rating.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

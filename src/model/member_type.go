@@ -82,22 +82,29 @@ func (m *Model) MemberType() {
 				Description:    data.Description,
 			}
 		},
+
 		Created: func(data *MemberType) []string {
 			return []string{
 				"member_type.create",
 				fmt.Sprintf("member_type.create.%s", data.ID),
+				fmt.Sprintf("member_type.create.branch.%s", data.BranchID),
+				fmt.Sprintf("member_type.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *MemberType) []string {
 			return []string{
 				"member_type.update",
 				fmt.Sprintf("member_type.update.%s", data.ID),
+				fmt.Sprintf("member_type.update.branch.%s", data.BranchID),
+				fmt.Sprintf("member_type.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *MemberType) []string {
 			return []string{
 				"member_type.delete",
 				fmt.Sprintf("member_type.delete.%s", data.ID),
+				fmt.Sprintf("member_type.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("member_type.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

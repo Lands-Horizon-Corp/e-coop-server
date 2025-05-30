@@ -85,22 +85,29 @@ func (m *Model) MemberGenderHistory() {
 				MemberGender:    m.MemberGenderManager.ToModel(data.MemberGender),
 			}
 		},
+
 		Created: func(data *MemberGenderHistory) []string {
 			return []string{
 				"member_gender_history.create",
 				fmt.Sprintf("member_gender_history.create.%s", data.ID),
+				fmt.Sprintf("member_gender_history.create.branch.%s", data.BranchID),
+				fmt.Sprintf("member_gender_history.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *MemberGenderHistory) []string {
 			return []string{
 				"member_gender_history.update",
 				fmt.Sprintf("member_gender_history.update.%s", data.ID),
+				fmt.Sprintf("member_gender_history.update.branch.%s", data.BranchID),
+				fmt.Sprintf("member_gender_history.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *MemberGenderHistory) []string {
 			return []string{
 				"member_gender_history.delete",
 				fmt.Sprintf("member_gender_history.delete.%s", data.ID),
+				fmt.Sprintf("member_gender_history.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("member_gender_history.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

@@ -98,22 +98,29 @@ func (m *Model) TimeDepositComputationPreMature() {
 				Rate:              data.Rate,
 			}
 		},
+
 		Created: func(data *TimeDepositComputationPreMature) []string {
 			return []string{
 				"time_deposit_computation_pre_mature.create",
 				fmt.Sprintf("time_deposit_computation_pre_mature.create.%s", data.ID),
+				fmt.Sprintf("time_deposit_computation_pre_mature.create.branch.%s", data.BranchID),
+				fmt.Sprintf("time_deposit_computation_pre_mature.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *TimeDepositComputationPreMature) []string {
 			return []string{
 				"time_deposit_computation_pre_mature.update",
 				fmt.Sprintf("time_deposit_computation_pre_mature.update.%s", data.ID),
+				fmt.Sprintf("time_deposit_computation_pre_mature.update.branch.%s", data.BranchID),
+				fmt.Sprintf("time_deposit_computation_pre_mature.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *TimeDepositComputationPreMature) []string {
 			return []string{
 				"time_deposit_computation_pre_mature.delete",
 				fmt.Sprintf("time_deposit_computation_pre_mature.delete.%s", data.ID),
+				fmt.Sprintf("time_deposit_computation_pre_mature.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("time_deposit_computation_pre_mature.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

@@ -117,18 +117,24 @@ func (m *Model) BatchFunding() {
 			return []string{
 				"batch_funding.create",
 				fmt.Sprintf("batch_funding.create.%s", data.ID),
+				fmt.Sprintf("batch_funding.create.branch.%s", data.BranchID),
+				fmt.Sprintf("batch_funding.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *BatchFunding) []string {
 			return []string{
 				"batch_funding.update",
 				fmt.Sprintf("batch_funding.update.%s", data.ID),
+				fmt.Sprintf("batch_funding.update.branch.%s", data.BranchID),
+				fmt.Sprintf("batch_funding.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *BatchFunding) []string {
 			return []string{
 				"batch_funding.delete",
 				fmt.Sprintf("batch_funding.delete.%s", data.ID),
+				fmt.Sprintf("batch_funding.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("batch_funding.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

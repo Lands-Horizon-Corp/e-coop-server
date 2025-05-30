@@ -82,22 +82,29 @@ func (m *Model) LoanGuaranteedFund() {
 				IncreasingRate: data.IncreasingRate,
 			}
 		},
+
 		Created: func(data *LoanGuaranteedFund) []string {
 			return []string{
 				"loan_guaranteed_fund.create",
 				fmt.Sprintf("loan_guaranteed_fund.create.%s", data.ID),
+				fmt.Sprintf("loan_guaranteed_fund.create.branch.%s", data.BranchID),
+				fmt.Sprintf("loan_guaranteed_fund.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *LoanGuaranteedFund) []string {
 			return []string{
 				"loan_guaranteed_fund.update",
 				fmt.Sprintf("loan_guaranteed_fund.update.%s", data.ID),
+				fmt.Sprintf("loan_guaranteed_fund.update.branch.%s", data.BranchID),
+				fmt.Sprintf("loan_guaranteed_fund.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *LoanGuaranteedFund) []string {
 			return []string{
 				"loan_guaranteed_fund.delete",
 				fmt.Sprintf("loan_guaranteed_fund.delete.%s", data.ID),
+				fmt.Sprintf("loan_guaranteed_fund.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("loan_guaranteed_fund.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

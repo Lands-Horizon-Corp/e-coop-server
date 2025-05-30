@@ -93,18 +93,24 @@ func (m *Model) ChargesRateSchemeAccount() {
 			return []string{
 				"charges_rate_scheme_account.create",
 				fmt.Sprintf("charges_rate_scheme_account.create.%s", data.ID),
+				fmt.Sprintf("charges_rate_scheme_account.create.branch.%s", data.BranchID),
+				fmt.Sprintf("charges_rate_scheme_account.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *ChargesRateSchemeAccount) []string {
 			return []string{
 				"charges_rate_scheme_account.update",
 				fmt.Sprintf("charges_rate_scheme_account.update.%s", data.ID),
+				fmt.Sprintf("charges_rate_scheme_account.update.branch.%s", data.BranchID),
+				fmt.Sprintf("charges_rate_scheme_account.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *ChargesRateSchemeAccount) []string {
 			return []string{
 				"charges_rate_scheme_account.delete",
 				fmt.Sprintf("charges_rate_scheme_account.delete.%s", data.ID),
+				fmt.Sprintf("charges_rate_scheme_account.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("charges_rate_scheme_account.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

@@ -102,22 +102,29 @@ func (m *Model) JournalVoucherTag() {
 				Icon:             data.Icon,
 			}
 		},
+
 		Created: func(data *JournalVoucherTag) []string {
 			return []string{
 				"journal_voucher_tag.create",
 				fmt.Sprintf("journal_voucher_tag.create.%s", data.ID),
+				fmt.Sprintf("journal_voucher_tag.create.branch.%s", data.BranchID),
+				fmt.Sprintf("journal_voucher_tag.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *JournalVoucherTag) []string {
 			return []string{
 				"journal_voucher_tag.update",
 				fmt.Sprintf("journal_voucher_tag.update.%s", data.ID),
+				fmt.Sprintf("journal_voucher_tag.update.branch.%s", data.BranchID),
+				fmt.Sprintf("journal_voucher_tag.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *JournalVoucherTag) []string {
 			return []string{
 				"journal_voucher_tag.delete",
 				fmt.Sprintf("journal_voucher_tag.delete.%s", data.ID),
+				fmt.Sprintf("journal_voucher_tag.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("journal_voucher_tag.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

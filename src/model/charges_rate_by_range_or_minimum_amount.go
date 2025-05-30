@@ -106,18 +106,24 @@ func (m *Model) ChargesRateByRangeOrMinimumAmount() {
 			return []string{
 				"charges_rate_by_range_or_minimum_amount.create",
 				fmt.Sprintf("charges_rate_by_range_or_minimum_amount.create.%s", data.ID),
+				fmt.Sprintf("charges_rate_by_range_or_minimum_amount.create.branch.%s", data.BranchID),
+				fmt.Sprintf("charges_rate_by_range_or_minimum_amount.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *ChargesRateByRangeOrMinimumAmount) []string {
 			return []string{
 				"charges_rate_by_range_or_minimum_amount.update",
 				fmt.Sprintf("charges_rate_by_range_or_minimum_amount.update.%s", data.ID),
+				fmt.Sprintf("charges_rate_by_range_or_minimum_amount.update.branch.%s", data.BranchID),
+				fmt.Sprintf("charges_rate_by_range_or_minimum_amount.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *ChargesRateByRangeOrMinimumAmount) []string {
 			return []string{
 				"charges_rate_by_range_or_minimum_amount.delete",
 				fmt.Sprintf("charges_rate_by_range_or_minimum_amount.delete.%s", data.ID),
+				fmt.Sprintf("charges_rate_by_range_or_minimum_amount.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("charges_rate_by_range_or_minimum_amount.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

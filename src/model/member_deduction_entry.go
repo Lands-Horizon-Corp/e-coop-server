@@ -102,22 +102,29 @@ func (m *Model) MemberDeductionEntry() {
 				MembershipDate:  data.MembershipDate.Format(time.RFC3339),
 			}
 		},
+
 		Created: func(data *MemberDeductionEntry) []string {
 			return []string{
 				"member_deduction_entry.create",
 				fmt.Sprintf("member_deduction_entry.create.%s", data.ID),
+				fmt.Sprintf("member_deduction_entry.create.branch.%s", data.BranchID),
+				fmt.Sprintf("member_deduction_entry.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *MemberDeductionEntry) []string {
 			return []string{
 				"member_deduction_entry.update",
 				fmt.Sprintf("member_deduction_entry.update.%s", data.ID),
+				fmt.Sprintf("member_deduction_entry.update.branch.%s", data.BranchID),
+				fmt.Sprintf("member_deduction_entry.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *MemberDeductionEntry) []string {
 			return []string{
 				"member_deduction_entry.delete",
 				fmt.Sprintf("member_deduction_entry.delete.%s", data.ID),
+				fmt.Sprintf("member_deduction_entry.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("member_deduction_entry.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

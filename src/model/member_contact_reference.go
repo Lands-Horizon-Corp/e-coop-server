@@ -90,22 +90,29 @@ func (m *Model) MemberContactReference() {
 				ContactNumber:   data.ContactNumber,
 			}
 		},
+
 		Created: func(data *MemberContactReference) []string {
 			return []string{
 				"member_contact_reference.create",
 				fmt.Sprintf("member_contact_reference.create.%s", data.ID),
+				fmt.Sprintf("member_contact_reference.create.branch.%s", data.BranchID),
+				fmt.Sprintf("member_contact_reference.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *MemberContactReference) []string {
 			return []string{
 				"member_contact_reference.update",
 				fmt.Sprintf("member_contact_reference.update.%s", data.ID),
+				fmt.Sprintf("member_contact_reference.update.branch.%s", data.BranchID),
+				fmt.Sprintf("member_contact_reference.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *MemberContactReference) []string {
 			return []string{
 				"member_contact_reference.delete",
 				fmt.Sprintf("member_contact_reference.delete.%s", data.ID),
+				fmt.Sprintf("member_contact_reference.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("member_contact_reference.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

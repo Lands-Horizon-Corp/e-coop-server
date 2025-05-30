@@ -85,22 +85,29 @@ func (m *Model) MemberCenterHistory() {
 				MemberProfile:   m.MemberProfileManager.ToModel(data.MemberProfile),
 			}
 		},
+
 		Created: func(data *MemberCenterHistory) []string {
 			return []string{
 				"member_center_history.create",
 				fmt.Sprintf("member_center_history.create.%s", data.ID),
+				fmt.Sprintf("member_center_history.create.branch.%s", data.BranchID),
+				fmt.Sprintf("member_center_history.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *MemberCenterHistory) []string {
 			return []string{
 				"member_center_history.update",
 				fmt.Sprintf("member_center_history.update.%s", data.ID),
+				fmt.Sprintf("member_center_history.update.branch.%s", data.BranchID),
+				fmt.Sprintf("member_center_history.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *MemberCenterHistory) []string {
 			return []string{
 				"member_center_history.delete",
 				fmt.Sprintf("member_center_history.delete.%s", data.ID),
+				fmt.Sprintf("member_center_history.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("member_center_history.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

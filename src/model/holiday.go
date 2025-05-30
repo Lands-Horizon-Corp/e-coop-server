@@ -88,20 +88,26 @@ func (m *Model) Holiday() {
 		},
 		Created: func(data *Holiday) []string {
 			return []string{
-				"holidays.create",
-				fmt.Sprintf("holidays.create.%s", data.ID),
+				"holiday.create",
+				fmt.Sprintf("holiday.create.%s", data.ID),
+				fmt.Sprintf("holiday.create.branch.%s", data.BranchID),
+				fmt.Sprintf("holiday.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *Holiday) []string {
 			return []string{
-				"holidays.update",
-				fmt.Sprintf("holidays.update.%s", data.ID),
+				"holiday.update",
+				fmt.Sprintf("holiday.update.%s", data.ID),
+				fmt.Sprintf("holiday.update.branch.%s", data.BranchID),
+				fmt.Sprintf("holiday.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *Holiday) []string {
 			return []string{
-				"holidays.delete",
-				fmt.Sprintf("holidays.delete.%s", data.ID),
+				"holiday.delete",
+				fmt.Sprintf("holiday.delete.%s", data.ID),
+				fmt.Sprintf("holiday.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("holiday.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

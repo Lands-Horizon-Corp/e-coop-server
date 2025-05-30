@@ -78,22 +78,29 @@ func (m *Model) MemberGroup() {
 				Description:    data.Description,
 			}
 		},
+
 		Created: func(data *MemberGroup) []string {
 			return []string{
 				"member_group.create",
 				fmt.Sprintf("member_group.create.%s", data.ID),
+				fmt.Sprintf("member_group.create.branch.%s", data.BranchID),
+				fmt.Sprintf("member_group.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *MemberGroup) []string {
 			return []string{
 				"member_group.update",
 				fmt.Sprintf("member_group.update.%s", data.ID),
+				fmt.Sprintf("member_group.update.branch.%s", data.BranchID),
+				fmt.Sprintf("member_group.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *MemberGroup) []string {
 			return []string{
 				"member_group.delete",
 				fmt.Sprintf("member_group.delete.%s", data.ID),
+				fmt.Sprintf("member_group.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("member_group.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

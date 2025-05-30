@@ -113,18 +113,24 @@ func (m *Model) GeneralLedgerTransaction() {
 			return []string{
 				"general_ledger_transaction.create",
 				fmt.Sprintf("general_ledger_transaction.create.%s", data.ID),
+				fmt.Sprintf("general_ledger_transaction.create.branch.%s", data.BranchID),
+				fmt.Sprintf("general_ledger_transaction.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *GeneralLedgerTransaction) []string {
 			return []string{
 				"general_ledger_transaction.update",
 				fmt.Sprintf("general_ledger_transaction.update.%s", data.ID),
+				fmt.Sprintf("general_ledger_transaction.update.branch.%s", data.BranchID),
+				fmt.Sprintf("general_ledger_transaction.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *GeneralLedgerTransaction) []string {
 			return []string{
 				"general_ledger_transaction.delete",
 				fmt.Sprintf("general_ledger_transaction.delete.%s", data.ID),
+				fmt.Sprintf("general_ledger_transaction.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("general_ledger_transaction.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

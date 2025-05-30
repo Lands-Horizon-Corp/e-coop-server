@@ -98,18 +98,24 @@ func (m *Model) IncludeNegativeAccount() {
 			return []string{
 				"include_negative_account.create",
 				fmt.Sprintf("include_negative_account.create.%s", data.ID),
+				fmt.Sprintf("include_negative_account.create.branch.%s", data.BranchID),
+				fmt.Sprintf("include_negative_account.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *IncludeNegativeAccount) []string {
 			return []string{
 				"include_negative_account.update",
 				fmt.Sprintf("include_negative_account.update.%s", data.ID),
+				fmt.Sprintf("include_negative_account.update.branch.%s", data.BranchID),
+				fmt.Sprintf("include_negative_account.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *IncludeNegativeAccount) []string {
 			return []string{
 				"include_negative_account.delete",
 				fmt.Sprintf("include_negative_account.delete.%s", data.ID),
+				fmt.Sprintf("include_negative_account.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("include_negative_account.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

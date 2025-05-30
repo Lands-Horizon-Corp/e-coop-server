@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -100,19 +101,25 @@ func (m *Model) GeneratedReport() {
 		Created: func(data *GeneratedReport) []string {
 			return []string{
 				"generated_report.create",
-				"generated_report.create." + data.ID.String(),
+				fmt.Sprintf("generated_report.create.%s", data.ID),
+				fmt.Sprintf("generated_report.create.branch.%s", data.BranchID),
+				fmt.Sprintf("generated_report.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *GeneratedReport) []string {
 			return []string{
 				"generated_report.update",
-				"generated_report.update." + data.ID.String(),
+				fmt.Sprintf("generated_report.update.%s", data.ID),
+				fmt.Sprintf("generated_report.update.branch.%s", data.BranchID),
+				fmt.Sprintf("generated_report.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *GeneratedReport) []string {
 			return []string{
 				"generated_report.delete",
-				"generated_report.delete." + data.ID.String(),
+				fmt.Sprintf("generated_report.delete.%s", data.ID),
+				fmt.Sprintf("generated_report.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("generated_report.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

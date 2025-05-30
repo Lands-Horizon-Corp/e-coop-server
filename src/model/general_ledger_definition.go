@@ -134,18 +134,24 @@ func (m *Model) GeneralLedgerDefinition() {
 			return []string{
 				"general_ledger_definition.create",
 				fmt.Sprintf("general_ledger_definition.create.%s", data.ID),
+				fmt.Sprintf("general_ledger_definition.create.branch.%s", data.BranchID),
+				fmt.Sprintf("general_ledger_definition.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *GeneralLedgerDefinition) []string {
 			return []string{
 				"general_ledger_definition.update",
 				fmt.Sprintf("general_ledger_definition.update.%s", data.ID),
+				fmt.Sprintf("general_ledger_definition.update.branch.%s", data.BranchID),
+				fmt.Sprintf("general_ledger_definition.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *GeneralLedgerDefinition) []string {
 			return []string{
 				"general_ledger_definition.delete",
 				fmt.Sprintf("general_ledger_definition.delete.%s", data.ID),
+				fmt.Sprintf("general_ledger_definition.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("general_ledger_definition.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

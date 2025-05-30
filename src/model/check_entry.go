@@ -174,18 +174,24 @@ func (m *Model) CheckEntry() {
 			return []string{
 				"check_entry.create",
 				fmt.Sprintf("check_entry.create.%s", data.ID),
+				fmt.Sprintf("check_entry.create.branch.%s", data.BranchID),
+				fmt.Sprintf("check_entry.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *CheckEntry) []string {
 			return []string{
 				"check_entry.update",
 				fmt.Sprintf("check_entry.update.%s", data.ID),
+				fmt.Sprintf("check_entry.update.branch.%s", data.BranchID),
+				fmt.Sprintf("check_entry.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *CheckEntry) []string {
 			return []string{
 				"check_entry.delete",
 				fmt.Sprintf("check_entry.delete.%s", data.ID),
+				fmt.Sprintf("check_entry.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("check_entry.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

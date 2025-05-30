@@ -147,22 +147,29 @@ func (m *Model) WithdrawalEntry() {
 				Credit:                    data.Credit,
 			}
 		},
+
 		Created: func(data *WithdrawalEntry) []string {
 			return []string{
 				"withdrawal_entry.create",
 				fmt.Sprintf("withdrawal_entry.create.%s", data.ID),
+				fmt.Sprintf("withdrawal_entry.create.branch.%s", data.BranchID),
+				fmt.Sprintf("withdrawal_entry.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *WithdrawalEntry) []string {
 			return []string{
 				"withdrawal_entry.update",
 				fmt.Sprintf("withdrawal_entry.update.%s", data.ID),
+				fmt.Sprintf("withdrawal_entry.update.branch.%s", data.BranchID),
+				fmt.Sprintf("withdrawal_entry.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *WithdrawalEntry) []string {
 			return []string{
 				"withdrawal_entry.delete",
 				fmt.Sprintf("withdrawal_entry.delete.%s", data.ID),
+				fmt.Sprintf("withdrawal_entry.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("withdrawal_entry.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

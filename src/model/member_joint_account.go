@@ -129,22 +129,29 @@ func (m *Model) MemberJointAccount() {
 				FamilyRelationship: data.FamilyRelationship,
 			}
 		},
+
 		Created: func(data *MemberJointAccount) []string {
 			return []string{
 				"member_joint_account.create",
 				fmt.Sprintf("member_joint_account.create.%s", data.ID),
+				fmt.Sprintf("member_joint_account.create.branch.%s", data.BranchID),
+				fmt.Sprintf("member_joint_account.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *MemberJointAccount) []string {
 			return []string{
 				"member_joint_account.update",
 				fmt.Sprintf("member_joint_account.update.%s", data.ID),
+				fmt.Sprintf("member_joint_account.update.branch.%s", data.BranchID),
+				fmt.Sprintf("member_joint_account.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *MemberJointAccount) []string {
 			return []string{
 				"member_joint_account.delete",
 				fmt.Sprintf("member_joint_account.delete.%s", data.ID),
+				fmt.Sprintf("member_joint_account.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("member_joint_account.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

@@ -133,22 +133,29 @@ func (m *Model) MemberAccountingLedger() {
 				LastPay:             lastPay,
 			}
 		},
+
 		Created: func(data *MemberAccountingLedger) []string {
 			return []string{
 				"member_accounting_ledger.create",
 				fmt.Sprintf("member_accounting_ledger.create.%s", data.ID),
+				fmt.Sprintf("member_accounting_ledger.create.branch.%s", data.BranchID),
+				fmt.Sprintf("member_accounting_ledger.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *MemberAccountingLedger) []string {
 			return []string{
 				"member_accounting_ledger.update",
 				fmt.Sprintf("member_accounting_ledger.update.%s", data.ID),
+				fmt.Sprintf("member_accounting_ledger.update.branch.%s", data.BranchID),
+				fmt.Sprintf("member_accounting_ledger.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *MemberAccountingLedger) []string {
 			return []string{
 				"member_accounting_ledger.delete",
 				fmt.Sprintf("member_accounting_ledger.delete.%s", data.ID),
+				fmt.Sprintf("member_accounting_ledger.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("member_accounting_ledger.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

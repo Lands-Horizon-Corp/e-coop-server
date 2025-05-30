@@ -102,22 +102,29 @@ func (m *Model) LoanTag() {
 				Icon:              data.Icon,
 			}
 		},
+
 		Created: func(data *LoanTag) []string {
 			return []string{
 				"loan_tag.create",
 				fmt.Sprintf("loan_tag.create.%s", data.ID),
+				fmt.Sprintf("loan_tag.create.branch.%s", data.BranchID),
+				fmt.Sprintf("loan_tag.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *LoanTag) []string {
 			return []string{
 				"loan_tag.update",
 				fmt.Sprintf("loan_tag.update.%s", data.ID),
+				fmt.Sprintf("loan_tag.update.branch.%s", data.BranchID),
+				fmt.Sprintf("loan_tag.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *LoanTag) []string {
 			return []string{
 				"loan_tag.delete",
 				fmt.Sprintf("loan_tag.delete.%s", data.ID),
+				fmt.Sprintf("loan_tag.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("loan_tag.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

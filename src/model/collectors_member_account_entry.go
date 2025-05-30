@@ -105,18 +105,24 @@ func (m *Model) CollectorsMemberAccountEntry() {
 			return []string{
 				"collectors_member_account_entry.create",
 				fmt.Sprintf("collectors_member_account_entry.create.%s", data.ID),
+				fmt.Sprintf("collectors_member_account_entry.create.branch.%s", data.BranchID),
+				fmt.Sprintf("collectors_member_account_entry.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *CollectorsMemberAccountEntry) []string {
 			return []string{
 				"collectors_member_account_entry.update",
 				fmt.Sprintf("collectors_member_account_entry.update.%s", data.ID),
+				fmt.Sprintf("collectors_member_account_entry.update.branch.%s", data.BranchID),
+				fmt.Sprintf("collectors_member_account_entry.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *CollectorsMemberAccountEntry) []string {
 			return []string{
 				"collectors_member_account_entry.delete",
 				fmt.Sprintf("collectors_member_account_entry.delete.%s", data.ID),
+				fmt.Sprintf("collectors_member_account_entry.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("collectors_member_account_entry.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

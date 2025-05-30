@@ -106,18 +106,24 @@ func (m *Model) FinancialStatementDefinition() {
 			return []string{
 				"financial_statement_definition.create",
 				fmt.Sprintf("financial_statement_definition.create.%s", data.ID),
+				fmt.Sprintf("financial_statement_definition.create.branch.%s", data.BranchID),
+				fmt.Sprintf("financial_statement_definition.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *FinancialStatementDefinition) []string {
 			return []string{
 				"financial_statement_definition.update",
 				fmt.Sprintf("financial_statement_definition.update.%s", data.ID),
+				fmt.Sprintf("financial_statement_definition.update.branch.%s", data.BranchID),
+				fmt.Sprintf("financial_statement_definition.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *FinancialStatementDefinition) []string {
 			return []string{
 				"financial_statement_definition.delete",
 				fmt.Sprintf("financial_statement_definition.delete.%s", data.ID),
+				fmt.Sprintf("financial_statement_definition.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("financial_statement_definition.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

@@ -138,22 +138,29 @@ func (m *Model) PostDatedCheck() {
 				Description:         data.Description,
 			}
 		},
+
 		Created: func(data *PostDatedCheck) []string {
 			return []string{
 				"post_dated_check.create",
 				fmt.Sprintf("post_dated_check.create.%s", data.ID),
+				fmt.Sprintf("post_dated_check.create.branch.%s", data.BranchID),
+				fmt.Sprintf("post_dated_check.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *PostDatedCheck) []string {
 			return []string{
 				"post_dated_check.update",
 				fmt.Sprintf("post_dated_check.update.%s", data.ID),
+				fmt.Sprintf("post_dated_check.update.branch.%s", data.BranchID),
+				fmt.Sprintf("post_dated_check.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *PostDatedCheck) []string {
 			return []string{
 				"post_dated_check.delete",
 				fmt.Sprintf("post_dated_check.delete.%s", data.ID),
+				fmt.Sprintf("post_dated_check.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("post_dated_check.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

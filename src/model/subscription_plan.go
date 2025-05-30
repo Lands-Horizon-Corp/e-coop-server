@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -83,22 +84,23 @@ func (m *Model) SubscriptionPlan() {
 				UpdatedAt:           sp.UpdatedAt.Format(time.RFC3339),
 			}
 		},
-		Created: func(sp *SubscriptionPlan) []string {
+
+		Created: func(data *SubscriptionPlan) []string {
 			return []string{
 				"subscription_plan.create",
-				"subscription_plan.create." + sp.ID.String(),
+				fmt.Sprintf("subscription_plan.create.%s", data.ID),
 			}
 		},
-		Updated: func(sp *SubscriptionPlan) []string {
+		Updated: func(data *SubscriptionPlan) []string {
 			return []string{
 				"subscription_plan.update",
-				"subscription_plan.update." + sp.ID.String(),
+				fmt.Sprintf("subscription_plan.update.%s", data.ID),
 			}
 		},
-		Deleted: func(sp *SubscriptionPlan) []string {
+		Deleted: func(data *SubscriptionPlan) []string {
 			return []string{
 				"subscription_plan.delete",
-				"subscription_plan.delete." + sp.ID.String(),
+				fmt.Sprintf("subscription_plan.delete.%s", data.ID),
 			}
 		},
 	})

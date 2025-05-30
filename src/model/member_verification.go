@@ -90,22 +90,29 @@ func (m *Model) MemberVerification() {
 				Status:           data.Status,
 			}
 		},
+
 		Created: func(data *MemberVerification) []string {
 			return []string{
 				"member_verification.create",
 				fmt.Sprintf("member_verification.create.%s", data.ID),
+				fmt.Sprintf("member_verification.create.branch.%s", data.BranchID),
+				fmt.Sprintf("member_verification.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *MemberVerification) []string {
 			return []string{
 				"member_verification.update",
 				fmt.Sprintf("member_verification.update.%s", data.ID),
+				fmt.Sprintf("member_verification.update.branch.%s", data.BranchID),
+				fmt.Sprintf("member_verification.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *MemberVerification) []string {
 			return []string{
 				"member_verification.delete",
 				fmt.Sprintf("member_verification.delete.%s", data.ID),
+				fmt.Sprintf("member_verification.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("member_verification.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

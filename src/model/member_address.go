@@ -110,22 +110,29 @@ func (m *Model) MemberAddress() {
 				Address:        data.Address,
 			}
 		},
+
 		Created: func(data *MemberAddress) []string {
 			return []string{
 				"member_address.create",
 				fmt.Sprintf("member_address.create.%s", data.ID),
+				fmt.Sprintf("member_address.create.branch.%s", data.BranchID),
+				fmt.Sprintf("member_address.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *MemberAddress) []string {
 			return []string{
 				"member_address.update",
 				fmt.Sprintf("member_address.update.%s", data.ID),
+				fmt.Sprintf("member_address.update.branch.%s", data.BranchID),
+				fmt.Sprintf("member_address.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *MemberAddress) []string {
 			return []string{
 				"member_address.delete",
 				fmt.Sprintf("member_address.delete.%s", data.ID),
+				fmt.Sprintf("member_address.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("member_address.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

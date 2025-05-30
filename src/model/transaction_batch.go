@@ -399,6 +399,8 @@ func (m *Model) TransactionBatch() {
 			return []string{
 				"transaction_batch.create",
 				fmt.Sprintf("transaction_batch.create.%s", data.ID),
+				fmt.Sprintf("transaction_batch.create.branch.%s", data.BranchID),
+				fmt.Sprintf("transaction_batch.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *TransactionBatch) []string {
@@ -406,13 +408,15 @@ func (m *Model) TransactionBatch() {
 				"transaction_batch.update",
 				fmt.Sprintf("transaction_batch.update.%s", data.ID),
 				fmt.Sprintf("transaction_batch.update.branch.%s", data.BranchID),
-				fmt.Sprintf("transaction_batch.update.organization.%s", data.BranchID),
+				fmt.Sprintf("transaction_batch.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *TransactionBatch) []string {
 			return []string{
 				"transaction_batch.delete",
 				fmt.Sprintf("transaction_batch.delete.%s", data.ID),
+				fmt.Sprintf("transaction_batch.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("transaction_batch.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

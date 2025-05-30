@@ -82,22 +82,29 @@ func (m *Model) LoanGuaranteedFundPerMonth() {
 				LoanGuaranteedFund: data.LoanGuaranteedFund,
 			}
 		},
+
 		Created: func(data *LoanGuaranteedFundPerMonth) []string {
 			return []string{
 				"loan_guaranteed_fund_per_month.create",
 				fmt.Sprintf("loan_guaranteed_fund_per_month.create.%s", data.ID),
+				fmt.Sprintf("loan_guaranteed_fund_per_month.create.branch.%s", data.BranchID),
+				fmt.Sprintf("loan_guaranteed_fund_per_month.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *LoanGuaranteedFundPerMonth) []string {
 			return []string{
 				"loan_guaranteed_fund_per_month.update",
 				fmt.Sprintf("loan_guaranteed_fund_per_month.update.%s", data.ID),
+				fmt.Sprintf("loan_guaranteed_fund_per_month.update.branch.%s", data.BranchID),
+				fmt.Sprintf("loan_guaranteed_fund_per_month.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *LoanGuaranteedFundPerMonth) []string {
 			return []string{
 				"loan_guaranteed_fund_per_month.delete",
 				fmt.Sprintf("loan_guaranteed_fund_per_month.delete.%s", data.ID),
+				fmt.Sprintf("loan_guaranteed_fund_per_month.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("loan_guaranteed_fund_per_month.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

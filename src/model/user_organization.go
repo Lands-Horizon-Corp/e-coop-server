@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -167,25 +168,25 @@ func (m *Model) UserOrganization() {
 		Created: func(data *UserOrganization) []string {
 			return []string{
 				"user_organization.create",
-				"user_organization.create.organization." + data.OrganizationID.String(),
-				"user_organization.create.branch." + data.BranchID.String(),
-				"user_organization.create." + data.ID.String(),
+				fmt.Sprintf("user_organization.create.%s", data.ID),
+				fmt.Sprintf("user_organization.create.branch.%s", data.BranchID),
+				fmt.Sprintf("user_organization.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *UserOrganization) []string {
 			return []string{
 				"user_organization.update",
-				"user_organization.update.organization." + data.OrganizationID.String(),
-				"user_organization.update.branch." + data.BranchID.String(),
-				"user_organization.update." + data.ID.String(),
+				fmt.Sprintf("user_organization.update.%s", data.ID),
+				fmt.Sprintf("user_organization.update.branch.%s", data.BranchID),
+				fmt.Sprintf("user_organization.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *UserOrganization) []string {
 			return []string{
 				"user_organization.delete",
-				"user_organization.delete.organization." + data.OrganizationID.String(),
-				"user_organization.delete.branch." + data.BranchID.String(),
-				"user_organization.delete." + data.ID.String(),
+				fmt.Sprintf("user_organization.delete.%s", data.ID),
+				fmt.Sprintf("user_organization.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("user_organization.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

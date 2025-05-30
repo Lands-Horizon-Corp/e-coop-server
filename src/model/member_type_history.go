@@ -85,22 +85,29 @@ func (m *Model) MemberTypeHistory() {
 				MemberProfile:   m.MemberProfileManager.ToModel(data.MemberProfile),
 			}
 		},
+
 		Created: func(data *MemberTypeHistory) []string {
 			return []string{
 				"member_type_history.create",
 				fmt.Sprintf("member_type_history.create.%s", data.ID),
+				fmt.Sprintf("member_type_history.create.branch.%s", data.BranchID),
+				fmt.Sprintf("member_type_history.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *MemberTypeHistory) []string {
 			return []string{
 				"member_type_history.update",
 				fmt.Sprintf("member_type_history.update.%s", data.ID),
+				fmt.Sprintf("member_type_history.update.branch.%s", data.BranchID),
+				fmt.Sprintf("member_type_history.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *MemberTypeHistory) []string {
 			return []string{
 				"member_type_history.delete",
 				fmt.Sprintf("member_type_history.delete.%s", data.ID),
+				fmt.Sprintf("member_type_history.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("member_type_history.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

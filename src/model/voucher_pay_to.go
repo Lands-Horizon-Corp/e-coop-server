@@ -93,18 +93,24 @@ func (m *Model) VoucherPayTo() {
 			return []string{
 				"voucher_pay_to.create",
 				fmt.Sprintf("voucher_pay_to.create.%s", data.ID),
+				fmt.Sprintf("voucher_pay_to.create.branch.%s", data.BranchID),
+				fmt.Sprintf("voucher_pay_to.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *VoucherPayTo) []string {
 			return []string{
 				"voucher_pay_to.update",
 				fmt.Sprintf("voucher_pay_to.update.%s", data.ID),
+				fmt.Sprintf("voucher_pay_to.update.branch.%s", data.BranchID),
+				fmt.Sprintf("voucher_pay_to.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *VoucherPayTo) []string {
 			return []string{
 				"voucher_pay_to.delete",
 				fmt.Sprintf("voucher_pay_to.delete.%s", data.ID),
+				fmt.Sprintf("voucher_pay_to.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("voucher_pay_to.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

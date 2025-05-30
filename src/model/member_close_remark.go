@@ -86,22 +86,29 @@ func (m *Model) MemberCloseRemark() {
 				Description:     data.Description,
 			}
 		},
+
 		Created: func(data *MemberCloseRemark) []string {
 			return []string{
 				"member_close_remark.create",
 				fmt.Sprintf("member_close_remark.create.%s", data.ID),
+				fmt.Sprintf("member_close_remark.create.branch.%s", data.BranchID),
+				fmt.Sprintf("member_close_remark.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *MemberCloseRemark) []string {
 			return []string{
 				"member_close_remark.update",
 				fmt.Sprintf("member_close_remark.update.%s", data.ID),
+				fmt.Sprintf("member_close_remark.update.branch.%s", data.BranchID),
+				fmt.Sprintf("member_close_remark.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *MemberCloseRemark) []string {
 			return []string{
 				"member_close_remark.delete",
 				fmt.Sprintf("member_close_remark.delete.%s", data.ID),
+				fmt.Sprintf("member_close_remark.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("member_close_remark.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

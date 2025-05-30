@@ -121,18 +121,24 @@ func (m *Model) FinancialStatementAccountsGrouping() {
 			return []string{
 				"financial_statement_accounts_grouping.create",
 				fmt.Sprintf("financial_statement_accounts_grouping.create.%s", data.ID),
+				fmt.Sprintf("financial_statement_accounts_grouping.create.branch.%s", data.BranchID),
+				fmt.Sprintf("financial_statement_accounts_grouping.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *FinancialStatementAccountsGrouping) []string {
 			return []string{
 				"financial_statement_accounts_grouping.update",
 				fmt.Sprintf("financial_statement_accounts_grouping.update.%s", data.ID),
+				fmt.Sprintf("financial_statement_accounts_grouping.update.branch.%s", data.BranchID),
+				fmt.Sprintf("financial_statement_accounts_grouping.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *FinancialStatementAccountsGrouping) []string {
 			return []string{
 				"financial_statement_accounts_grouping.delete",
 				fmt.Sprintf("financial_statement_accounts_grouping.delete.%s", data.ID),
+				fmt.Sprintf("financial_statement_accounts_grouping.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("financial_statement_accounts_grouping.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

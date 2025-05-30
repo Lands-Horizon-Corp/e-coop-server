@@ -105,22 +105,29 @@ func (m *Model) MemberBankCard() {
 				IsDefault:       data.IsDefault,
 			}
 		},
+
 		Created: func(data *MemberBankCard) []string {
 			return []string{
 				"member_bank_card.create",
 				fmt.Sprintf("member_bank_card.create.%s", data.ID),
+				fmt.Sprintf("member_bank_card.create.branch.%s", data.BranchID),
+				fmt.Sprintf("member_bank_card.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *MemberBankCard) []string {
 			return []string{
 				"member_bank_card.update",
 				fmt.Sprintf("member_bank_card.update.%s", data.ID),
+				fmt.Sprintf("member_bank_card.update.branch.%s", data.BranchID),
+				fmt.Sprintf("member_bank_card.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *MemberBankCard) []string {
 			return []string{
 				"member_bank_card.delete",
 				fmt.Sprintf("member_bank_card.delete.%s", data.ID),
+				fmt.Sprintf("member_bank_card.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("member_bank_card.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

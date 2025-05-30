@@ -150,18 +150,24 @@ func (m *Model) AdjustmentEntry() {
 			return []string{
 				"adjustment_entry.create",
 				fmt.Sprintf("adjustment_entry.create.%s", data.ID),
+				fmt.Sprintf("adjustment_entry.create.branch.%s", data.BranchID),
+				fmt.Sprintf("adjustment_entry.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *AdjustmentEntry) []string {
 			return []string{
 				"adjustment_entry.update",
 				fmt.Sprintf("adjustment_entry.update.%s", data.ID),
+				fmt.Sprintf("adjustment_entry.update.branch.%s", data.BranchID),
+				fmt.Sprintf("adjustment_entry.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *AdjustmentEntry) []string {
 			return []string{
 				"adjustment_entry.delete",
 				fmt.Sprintf("adjustment_entry.delete.%s", data.ID),
+				fmt.Sprintf("adjustment_entry.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("adjustment_entry.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

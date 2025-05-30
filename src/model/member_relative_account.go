@@ -94,22 +94,29 @@ func (m *Model) MemberRelativeAccount() {
 				Description:             data.Description,
 			}
 		},
+
 		Created: func(data *MemberRelativeAccount) []string {
 			return []string{
 				"member_relative_account.create",
 				fmt.Sprintf("member_relative_account.create.%s", data.ID),
+				fmt.Sprintf("member_relative_account.create.branch.%s", data.BranchID),
+				fmt.Sprintf("member_relative_account.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *MemberRelativeAccount) []string {
 			return []string{
 				"member_relative_account.update",
 				fmt.Sprintf("member_relative_account.update.%s", data.ID),
+				fmt.Sprintf("member_relative_account.update.branch.%s", data.BranchID),
+				fmt.Sprintf("member_relative_account.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *MemberRelativeAccount) []string {
 			return []string{
 				"member_relative_account.delete",
 				fmt.Sprintf("member_relative_account.delete.%s", data.ID),
+				fmt.Sprintf("member_relative_account.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("member_relative_account.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

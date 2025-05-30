@@ -322,22 +322,29 @@ func (m *Model) JournalVoucher() {
 				PaidByPosition:                data.PaidByPosition,
 			}
 		},
+
 		Created: func(data *JournalVoucher) []string {
 			return []string{
 				"journal_voucher.create",
 				fmt.Sprintf("journal_voucher.create.%s", data.ID),
+				fmt.Sprintf("journal_voucher.create.branch.%s", data.BranchID),
+				fmt.Sprintf("journal_voucher.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *JournalVoucher) []string {
 			return []string{
 				"journal_voucher.update",
 				fmt.Sprintf("journal_voucher.update.%s", data.ID),
+				fmt.Sprintf("journal_voucher.update.branch.%s", data.BranchID),
+				fmt.Sprintf("journal_voucher.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *JournalVoucher) []string {
 			return []string{
 				"journal_voucher.delete",
 				fmt.Sprintf("journal_voucher.delete.%s", data.ID),
+				fmt.Sprintf("journal_voucher.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("journal_voucher.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

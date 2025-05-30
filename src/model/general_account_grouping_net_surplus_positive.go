@@ -100,18 +100,24 @@ func (m *Model) GeneralAccountGroupingNetSurplusPositive() {
 			return []string{
 				"general_account_grouping_net_surplus_positive.create",
 				fmt.Sprintf("general_account_grouping_net_surplus_positive.create.%s", data.ID),
+				fmt.Sprintf("general_account_grouping_net_surplus_positive.create.branch.%s", data.BranchID),
+				fmt.Sprintf("general_account_grouping_net_surplus_positive.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *GeneralAccountGroupingNetSurplusPositive) []string {
 			return []string{
 				"general_account_grouping_net_surplus_positive.update",
 				fmt.Sprintf("general_account_grouping_net_surplus_positive.update.%s", data.ID),
+				fmt.Sprintf("general_account_grouping_net_surplus_positive.update.branch.%s", data.BranchID),
+				fmt.Sprintf("general_account_grouping_net_surplus_positive.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *GeneralAccountGroupingNetSurplusPositive) []string {
 			return []string{
 				"general_account_grouping_net_surplus_positive.delete",
 				fmt.Sprintf("general_account_grouping_net_surplus_positive.delete.%s", data.ID),
+				fmt.Sprintf("general_account_grouping_net_surplus_positive.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("general_account_grouping_net_surplus_positive.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

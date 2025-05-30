@@ -94,22 +94,29 @@ func (m *Model) LoanTransactionEntry() {
 				Debit:             data.Debit,
 			}
 		},
+
 		Created: func(data *LoanTransactionEntry) []string {
 			return []string{
 				"loan_transaction_entry.create",
 				fmt.Sprintf("loan_transaction_entry.create.%s", data.ID),
+				fmt.Sprintf("loan_transaction_entry.create.branch.%s", data.BranchID),
+				fmt.Sprintf("loan_transaction_entry.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *LoanTransactionEntry) []string {
 			return []string{
 				"loan_transaction_entry.update",
 				fmt.Sprintf("loan_transaction_entry.update.%s", data.ID),
+				fmt.Sprintf("loan_transaction_entry.update.branch.%s", data.BranchID),
+				fmt.Sprintf("loan_transaction_entry.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *LoanTransactionEntry) []string {
 			return []string{
 				"loan_transaction_entry.delete",
 				fmt.Sprintf("loan_transaction_entry.delete.%s", data.ID),
+				fmt.Sprintf("loan_transaction_entry.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("loan_transaction_entry.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

@@ -98,18 +98,24 @@ func (m *Model) GeneralLedgerAccountsGrouping() {
 			return []string{
 				"general_ledger_accounts_grouping.create",
 				fmt.Sprintf("general_ledger_accounts_grouping.create.%s", data.ID),
+				fmt.Sprintf("general_ledger_accounts_grouping.create.branch.%s", data.BranchID),
+				fmt.Sprintf("general_ledger_accounts_grouping.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *GeneralLedgerAccountsGrouping) []string {
 			return []string{
 				"general_ledger_accounts_grouping.update",
 				fmt.Sprintf("general_ledger_accounts_grouping.update.%s", data.ID),
+				fmt.Sprintf("general_ledger_accounts_grouping.update.branch.%s", data.BranchID),
+				fmt.Sprintf("general_ledger_accounts_grouping.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *GeneralLedgerAccountsGrouping) []string {
 			return []string{
 				"general_ledger_accounts_grouping.delete",
 				fmt.Sprintf("general_ledger_accounts_grouping.delete.%s", data.ID),
+				fmt.Sprintf("general_ledger_accounts_grouping.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("general_ledger_accounts_grouping.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

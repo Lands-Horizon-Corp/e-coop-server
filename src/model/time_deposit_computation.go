@@ -135,22 +135,29 @@ func (m *Model) TimeDepositComputation() {
 				Header11:          data.Header11,
 			}
 		},
+
 		Created: func(data *TimeDepositComputation) []string {
 			return []string{
 				"time_deposit_computation.create",
 				fmt.Sprintf("time_deposit_computation.create.%s", data.ID),
+				fmt.Sprintf("time_deposit_computation.create.branch.%s", data.BranchID),
+				fmt.Sprintf("time_deposit_computation.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *TimeDepositComputation) []string {
 			return []string{
 				"time_deposit_computation.update",
 				fmt.Sprintf("time_deposit_computation.update.%s", data.ID),
+				fmt.Sprintf("time_deposit_computation.update.branch.%s", data.BranchID),
+				fmt.Sprintf("time_deposit_computation.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *TimeDepositComputation) []string {
 			return []string{
 				"time_deposit_computation.delete",
 				fmt.Sprintf("time_deposit_computation.delete.%s", data.ID),
+				fmt.Sprintf("time_deposit_computation.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("time_deposit_computation.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

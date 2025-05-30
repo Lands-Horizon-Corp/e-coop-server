@@ -94,22 +94,29 @@ func (m *Model) LoanTermsAndConditionAmountReceipt() {
 				Amount:            data.Amount,
 			}
 		},
+
 		Created: func(data *LoanTermsAndConditionAmountReceipt) []string {
 			return []string{
 				"loan_terms_and_condition_amount_receipt.create",
 				fmt.Sprintf("loan_terms_and_condition_amount_receipt.create.%s", data.ID),
+				fmt.Sprintf("loan_terms_and_condition_amount_receipt.create.branch.%s", data.BranchID),
+				fmt.Sprintf("loan_terms_and_condition_amount_receipt.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *LoanTermsAndConditionAmountReceipt) []string {
 			return []string{
 				"loan_terms_and_condition_amount_receipt.update",
 				fmt.Sprintf("loan_terms_and_condition_amount_receipt.update.%s", data.ID),
+				fmt.Sprintf("loan_terms_and_condition_amount_receipt.update.branch.%s", data.BranchID),
+				fmt.Sprintf("loan_terms_and_condition_amount_receipt.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *LoanTermsAndConditionAmountReceipt) []string {
 			return []string{
 				"loan_terms_and_condition_amount_receipt.delete",
 				fmt.Sprintf("loan_terms_and_condition_amount_receipt.delete.%s", data.ID),
+				fmt.Sprintf("loan_terms_and_condition_amount_receipt.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("loan_terms_and_condition_amount_receipt.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

@@ -119,22 +119,29 @@ func (m *Model) MemberGovernmentBenefit() {
 				ExpiryDate:      expiryDateStr,
 			}
 		},
+
 		Created: func(data *MemberGovernmentBenefit) []string {
 			return []string{
 				"member_government_benefit.create",
 				fmt.Sprintf("member_government_benefit.create.%s", data.ID),
+				fmt.Sprintf("member_government_benefit.create.branch.%s", data.BranchID),
+				fmt.Sprintf("member_government_benefit.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *MemberGovernmentBenefit) []string {
 			return []string{
 				"member_government_benefit.update",
 				fmt.Sprintf("member_government_benefit.update.%s", data.ID),
+				fmt.Sprintf("member_government_benefit.update.branch.%s", data.BranchID),
+				fmt.Sprintf("member_government_benefit.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *MemberGovernmentBenefit) []string {
 			return []string{
 				"member_government_benefit.delete",
 				fmt.Sprintf("member_government_benefit.delete.%s", data.ID),
+				fmt.Sprintf("member_government_benefit.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("member_government_benefit.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

@@ -112,18 +112,24 @@ func (m *Model) CashCount() {
 			return []string{
 				"cash_count.create",
 				fmt.Sprintf("cash_count.create.%s", data.ID),
+				fmt.Sprintf("cash_count.create.branch.%s", data.BranchID),
+				fmt.Sprintf("cash_count.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *CashCount) []string {
 			return []string{
 				"cash_count.update",
 				fmt.Sprintf("cash_count.update.%s", data.ID),
+				fmt.Sprintf("cash_count.update.branch.%s", data.BranchID),
+				fmt.Sprintf("cash_count.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *CashCount) []string {
 			return []string{
 				"cash_count.delete",
 				fmt.Sprintf("cash_count.delete.%s", data.ID),
+				fmt.Sprintf("cash_count.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("cash_count.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

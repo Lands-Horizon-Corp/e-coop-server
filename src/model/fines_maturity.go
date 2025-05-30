@@ -94,22 +94,29 @@ func (m *Model) FinesMaturity() {
 				Rate:           data.Rate,
 			}
 		},
+
 		Created: func(data *FinesMaturity) []string {
 			return []string{
 				"fines_maturity.create",
 				fmt.Sprintf("fines_maturity.create.%s", data.ID),
+				fmt.Sprintf("fines_maturity.create.branch.%s", data.BranchID),
+				fmt.Sprintf("fines_maturity.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *FinesMaturity) []string {
 			return []string{
 				"fines_maturity.update",
 				fmt.Sprintf("fines_maturity.update.%s", data.ID),
+				fmt.Sprintf("fines_maturity.update.branch.%s", data.BranchID),
+				fmt.Sprintf("fines_maturity.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *FinesMaturity) []string {
 			return []string{
 				"fines_maturity.delete",
 				fmt.Sprintf("fines_maturity.delete.%s", data.ID),
+				fmt.Sprintf("fines_maturity.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("fines_maturity.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

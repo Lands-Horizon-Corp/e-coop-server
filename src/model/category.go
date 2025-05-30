@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -68,20 +69,20 @@ func (m *Model) Category() {
 		},
 		Created: func(data *Category) []string {
 			return []string{
-				"category.create",
-				"category.create." + data.ID.String(),
+				"cash_count.create",
+				fmt.Sprintf("category.create.%s", data.ID),
 			}
 		},
 		Updated: func(data *Category) []string {
 			return []string{
-				"category.update",
-				"category.update." + data.ID.String(),
+				"cash_count.update",
+				fmt.Sprintf("category.update.%s", data.ID),
 			}
 		},
 		Deleted: func(data *Category) []string {
 			return []string{
-				"category.delete",
-				"category.delete." + data.ID.String(),
+				"cash_count.delete",
+				fmt.Sprintf("category.delete.%s", data.ID),
 			}
 		},
 	})

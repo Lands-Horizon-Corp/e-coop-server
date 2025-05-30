@@ -86,18 +86,24 @@ func (m *Model) GroceryComputationSheet() {
 			return []string{
 				"grocery_computation_sheet.create",
 				fmt.Sprintf("grocery_computation_sheet.create.%s", data.ID),
+				fmt.Sprintf("grocery_computation_sheet.create.branch.%s", data.BranchID),
+				fmt.Sprintf("grocery_computation_sheet.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *GroceryComputationSheet) []string {
 			return []string{
 				"grocery_computation_sheet.update",
 				fmt.Sprintf("grocery_computation_sheet.update.%s", data.ID),
+				fmt.Sprintf("grocery_computation_sheet.update.branch.%s", data.BranchID),
+				fmt.Sprintf("grocery_computation_sheet.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *GroceryComputationSheet) []string {
 			return []string{
 				"grocery_computation_sheet.delete",
 				fmt.Sprintf("grocery_computation_sheet.delete.%s", data.ID),
+				fmt.Sprintf("grocery_computation_sheet.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("grocery_computation_sheet.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

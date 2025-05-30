@@ -103,22 +103,29 @@ func (m *Model) LoanClearanceAnalysis() {
 				BalancesCount:               data.BalancesCount,
 			}
 		},
+
 		Created: func(data *LoanClearanceAnalysis) []string {
 			return []string{
 				"loan_clearance_analysis.create",
 				fmt.Sprintf("loan_clearance_analysis.create.%s", data.ID),
+				fmt.Sprintf("loan_clearance_analysis.create.branch.%s", data.BranchID),
+				fmt.Sprintf("loan_clearance_analysis.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *LoanClearanceAnalysis) []string {
 			return []string{
 				"loan_clearance_analysis.update",
 				fmt.Sprintf("loan_clearance_analysis.update.%s", data.ID),
+				fmt.Sprintf("loan_clearance_analysis.update.branch.%s", data.BranchID),
+				fmt.Sprintf("loan_clearance_analysis.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *LoanClearanceAnalysis) []string {
 			return []string{
 				"loan_clearance_analysis.delete",
 				fmt.Sprintf("loan_clearance_analysis.delete.%s", data.ID),
+				fmt.Sprintf("loan_clearance_analysis.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("loan_clearance_analysis.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

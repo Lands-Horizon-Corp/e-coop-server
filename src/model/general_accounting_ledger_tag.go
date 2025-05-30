@@ -109,18 +109,24 @@ func (m *Model) GeneralAccountingLedgerTag() {
 			return []string{
 				"general_accounting_ledger_tag.create",
 				fmt.Sprintf("general_accounting_ledger_tag.create.%s", data.ID),
+				fmt.Sprintf("general_accounting_ledger_tag.create.branch.%s", data.BranchID),
+				fmt.Sprintf("general_accounting_ledger_tag.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *GeneralAccountingLedgerTag) []string {
 			return []string{
 				"general_accounting_ledger_tag.update",
 				fmt.Sprintf("general_accounting_ledger_tag.update.%s", data.ID),
+				fmt.Sprintf("general_accounting_ledger_tag.update.branch.%s", data.BranchID),
+				fmt.Sprintf("general_accounting_ledger_tag.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *GeneralAccountingLedgerTag) []string {
 			return []string{
 				"general_accounting_ledger_tag.delete",
 				fmt.Sprintf("general_accounting_ledger_tag.delete.%s", data.ID),
+				fmt.Sprintf("general_accounting_ledger_tag.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("general_accounting_ledger_tag.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

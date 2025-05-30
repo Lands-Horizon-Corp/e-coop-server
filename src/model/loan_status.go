@@ -90,22 +90,29 @@ func (m *Model) LoanStatus() {
 				Description:    data.Description,
 			}
 		},
+
 		Created: func(data *LoanStatus) []string {
 			return []string{
 				"loan_status.create",
 				fmt.Sprintf("loan_status.create.%s", data.ID),
+				fmt.Sprintf("loan_status.create.branch.%s", data.BranchID),
+				fmt.Sprintf("loan_status.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *LoanStatus) []string {
 			return []string{
 				"loan_status.update",
 				fmt.Sprintf("loan_status.update.%s", data.ID),
+				fmt.Sprintf("loan_status.update.branch.%s", data.BranchID),
+				fmt.Sprintf("loan_status.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *LoanStatus) []string {
 			return []string{
 				"loan_status.delete",
 				fmt.Sprintf("loan_status.delete.%s", data.ID),
+				fmt.Sprintf("loan_status.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("loan_status.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

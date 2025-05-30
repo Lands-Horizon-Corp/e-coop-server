@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"time"
 
@@ -234,22 +235,23 @@ func (m *Model) User() {
 				UserOrganizations: m.UserOrganizationManager.ToModels(data.UserOrganizations),
 			}
 		},
+
 		Created: func(data *User) []string {
 			return []string{
 				"user.create",
-				"user.create." + data.ID.String(),
+				fmt.Sprintf("user.create.%s", data.ID),
 			}
 		},
 		Updated: func(data *User) []string {
 			return []string{
 				"user.update",
-				"user.update." + data.ID.String(),
+				fmt.Sprintf("user.update.%s", data.ID),
 			}
 		},
 		Deleted: func(data *User) []string {
 			return []string{
 				"user.delete",
-				"user.delete." + data.ID.String(),
+				fmt.Sprintf("user.delete.%s", data.ID),
 			}
 		},
 	})

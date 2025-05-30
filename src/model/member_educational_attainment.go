@@ -102,22 +102,29 @@ func (m *Model) MemberEducationalAttainment() {
 				Description:           data.Description,
 			}
 		},
+
 		Created: func(data *MemberEducationalAttainment) []string {
 			return []string{
 				"member_educational_attainment.create",
 				fmt.Sprintf("member_educational_attainment.create.%s", data.ID),
+				fmt.Sprintf("member_educational_attainment.create.branch.%s", data.BranchID),
+				fmt.Sprintf("member_educational_attainment.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *MemberEducationalAttainment) []string {
 			return []string{
 				"member_educational_attainment.update",
 				fmt.Sprintf("member_educational_attainment.update.%s", data.ID),
+				fmt.Sprintf("member_educational_attainment.update.branch.%s", data.BranchID),
+				fmt.Sprintf("member_educational_attainment.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *MemberEducationalAttainment) []string {
 			return []string{
 				"member_educational_attainment.delete",
 				fmt.Sprintf("member_educational_attainment.delete.%s", data.ID),
+				fmt.Sprintf("member_educational_attainment.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("member_educational_attainment.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

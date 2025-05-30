@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -96,28 +97,29 @@ func (m *Model) PermissionTemplate() {
 				Permissions: data.Permissions,
 			}
 		},
+
 		Created: func(data *PermissionTemplate) []string {
 			return []string{
 				"permission_template.create",
-				"permission_template.create.organization." + data.OrganizationID.String(),
-				"permission_template.create.branch." + data.BranchID.String(),
-				"permission_template.create." + data.ID.String(),
+				fmt.Sprintf("permission_template.create.%s", data.ID),
+				fmt.Sprintf("permission_template.create.branch.%s", data.BranchID),
+				fmt.Sprintf("permission_template.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *PermissionTemplate) []string {
 			return []string{
 				"permission_template.update",
-				"permission_template.update.organization." + data.OrganizationID.String(),
-				"permission_template.update.branch." + data.BranchID.String(),
-				"permission_template.update." + data.ID.String(),
+				fmt.Sprintf("permission_template.update.%s", data.ID),
+				fmt.Sprintf("permission_template.update.branch.%s", data.BranchID),
+				fmt.Sprintf("permission_template.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *PermissionTemplate) []string {
 			return []string{
 				"permission_template.delete",
-				"permission_template.delete.organization." + data.OrganizationID.String(),
-				"permission_template.delete.branch." + data.BranchID.String(),
-				"permission_template.delete." + data.ID.String(),
+				fmt.Sprintf("permission_template.delete.%s", data.ID),
+				fmt.Sprintf("permission_template.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("permission_template.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

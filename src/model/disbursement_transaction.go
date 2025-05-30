@@ -117,18 +117,24 @@ func (m *Model) DisbursementTransaction() {
 			return []string{
 				"disbursement_transaction.create",
 				fmt.Sprintf("disbursement_transaction.create.%s", data.ID),
+				fmt.Sprintf("disbursement_transaction.create.branch.%s", data.BranchID),
+				fmt.Sprintf("disbursement_transaction.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *DisbursementTransaction) []string {
 			return []string{
 				"disbursement_transaction.update",
 				fmt.Sprintf("disbursement_transaction.update.%s", data.ID),
+				fmt.Sprintf("disbursement_transaction.update.branch.%s", data.BranchID),
+				fmt.Sprintf("disbursement_transaction.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *DisbursementTransaction) []string {
 			return []string{
 				"disbursement_transaction.delete",
 				fmt.Sprintf("disbursement_transaction.delete.%s", data.ID),
+				fmt.Sprintf("disbursement_transaction.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("disbursement_transaction.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

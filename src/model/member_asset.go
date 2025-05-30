@@ -104,22 +104,29 @@ func (m *Model) MemberAsset() {
 				Cost:            data.Cost,
 			}
 		},
+
 		Created: func(data *MemberAsset) []string {
 			return []string{
 				"member_asset.create",
 				fmt.Sprintf("member_asset.create.%s", data.ID),
+				fmt.Sprintf("member_asset.create.branch.%s", data.BranchID),
+				fmt.Sprintf("member_asset.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *MemberAsset) []string {
 			return []string{
 				"member_asset.update",
 				fmt.Sprintf("member_asset.update.%s", data.ID),
+				fmt.Sprintf("member_asset.update.branch.%s", data.BranchID),
+				fmt.Sprintf("member_asset.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *MemberAsset) []string {
 			return []string{
 				"member_asset.delete",
 				fmt.Sprintf("member_asset.delete.%s", data.ID),
+				fmt.Sprintf("member_asset.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("member_asset.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

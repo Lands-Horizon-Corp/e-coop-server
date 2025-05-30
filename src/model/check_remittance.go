@@ -139,18 +139,24 @@ func (m *Model) CheckRemittance() {
 			return []string{
 				"check_remittance.create",
 				fmt.Sprintf("check_remittance.create.%s", data.ID),
+				fmt.Sprintf("check_remittance.create.branch.%s", data.BranchID),
+				fmt.Sprintf("check_remittance.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *CheckRemittance) []string {
 			return []string{
 				"check_remittance.update",
 				fmt.Sprintf("check_remittance.update.%s", data.ID),
+				fmt.Sprintf("check_remittance.update.branch.%s", data.BranchID),
+				fmt.Sprintf("check_remittance.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *CheckRemittance) []string {
 			return []string{
 				"check_remittance.delete",
 				fmt.Sprintf("check_remittance.delete.%s", data.ID),
+				fmt.Sprintf("check_remittance.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("check_remittance.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

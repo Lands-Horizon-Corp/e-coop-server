@@ -104,18 +104,24 @@ func (m *Model) AccountTag() {
 			return []string{
 				"account_tag.create",
 				fmt.Sprintf("account_tag.create.%s", data.ID),
+				fmt.Sprintf("account_tag.create.branch.%s", data.BranchID),
+				fmt.Sprintf("account_tag.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *AccountTag) []string {
 			return []string{
 				"account_tag.update",
 				fmt.Sprintf("account_tag.update.%s", data.ID),
+				fmt.Sprintf("account_tag.update.branch.%s", data.BranchID),
+				fmt.Sprintf("account_tag.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *AccountTag) []string {
 			return []string{
 				"account_tag.delete",
 				fmt.Sprintf("account_tag.delete.%s", data.ID),
+				fmt.Sprintf("account_tag.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("account_tag.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

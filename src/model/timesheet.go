@@ -106,22 +106,29 @@ func (m *Model) Timesheet() {
 				TimeOut:        timeOutStr,
 			}
 		},
+
 		Created: func(data *Timesheet) []string {
 			return []string{
 				"timesheet.create",
 				fmt.Sprintf("timesheet.create.%s", data.ID),
+				fmt.Sprintf("timesheet.create.branch.%s", data.BranchID),
+				fmt.Sprintf("timesheet.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *Timesheet) []string {
 			return []string{
 				"timesheet.update",
 				fmt.Sprintf("timesheet.update.%s", data.ID),
+				fmt.Sprintf("timesheet.update.branch.%s", data.BranchID),
+				fmt.Sprintf("timesheet.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *Timesheet) []string {
 			return []string{
 				"timesheet.delete",
 				fmt.Sprintf("timesheet.delete.%s", data.ID),
+				fmt.Sprintf("timesheet.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("timesheet.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

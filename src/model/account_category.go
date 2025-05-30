@@ -84,18 +84,24 @@ func (m *Model) AccountCategory() {
 			return []string{
 				"account_category.create",
 				fmt.Sprintf("account_category.create.%s", data.ID),
+				fmt.Sprintf("account_category.create.branch.%s", data.BranchID),
+				fmt.Sprintf("account_category.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *AccountCategory) []string {
 			return []string{
 				"account_category.update",
 				fmt.Sprintf("account_category.update.%s", data.ID),
+				fmt.Sprintf("account_category.update.branch.%s", data.BranchID),
+				fmt.Sprintf("account_category.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *AccountCategory) []string {
 			return []string{
 				"account_category.delete",
 				fmt.Sprintf("account_category.delete.%s", data.ID),
+				fmt.Sprintf("account_category.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("account_category.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

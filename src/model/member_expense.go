@@ -90,22 +90,29 @@ func (m *Model) MemberExpense() {
 				Description:     data.Description,
 			}
 		},
+
 		Created: func(data *MemberExpense) []string {
 			return []string{
 				"member_expense.create",
 				fmt.Sprintf("member_expense.create.%s", data.ID),
+				fmt.Sprintf("member_expense.create.branch.%s", data.BranchID),
+				fmt.Sprintf("member_expense.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *MemberExpense) []string {
 			return []string{
 				"member_expense.update",
 				fmt.Sprintf("member_expense.update.%s", data.ID),
+				fmt.Sprintf("member_expense.update.branch.%s", data.BranchID),
+				fmt.Sprintf("member_expense.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *MemberExpense) []string {
 			return []string{
 				"member_expense.delete",
 				fmt.Sprintf("member_expense.delete.%s", data.ID),
+				fmt.Sprintf("member_expense.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("member_expense.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

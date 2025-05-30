@@ -106,22 +106,29 @@ func (m *Model) LoanComakerMember() {
 				YearCount:         data.YearCount,
 			}
 		},
+
 		Created: func(data *LoanComakerMember) []string {
 			return []string{
 				"loan_comaker_member.create",
 				fmt.Sprintf("loan_comaker_member.create.%s", data.ID),
+				fmt.Sprintf("loan_comaker_member.create.branch.%s", data.BranchID),
+				fmt.Sprintf("loan_comaker_member.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *LoanComakerMember) []string {
 			return []string{
 				"loan_comaker_member.update",
 				fmt.Sprintf("loan_comaker_member.update.%s", data.ID),
+				fmt.Sprintf("loan_comaker_member.update.branch.%s", data.BranchID),
+				fmt.Sprintf("loan_comaker_member.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *LoanComakerMember) []string {
 			return []string{
 				"loan_comaker_member.delete",
 				fmt.Sprintf("loan_comaker_member.delete.%s", data.ID),
+				fmt.Sprintf("loan_comaker_member.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("loan_comaker_member.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

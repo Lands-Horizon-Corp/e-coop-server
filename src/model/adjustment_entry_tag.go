@@ -106,18 +106,24 @@ func (m *Model) AdjustmentEntryTag() {
 			return []string{
 				"adjustment_entry_tag.create",
 				fmt.Sprintf("adjustment_entry_tag.create.%s", data.ID),
+				fmt.Sprintf("adjustment_entry_tag.create.branch.%s", data.BranchID),
+				fmt.Sprintf("adjustment_entry_tag.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *AdjustmentEntryTag) []string {
 			return []string{
 				"adjustment_entry_tag.update",
 				fmt.Sprintf("adjustment_entry_tag.update.%s", data.ID),
+				fmt.Sprintf("adjustment_entry_tag.update.branch.%s", data.BranchID),
+				fmt.Sprintf("adjustment_entry_tag.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *AdjustmentEntryTag) []string {
 			return []string{
 				"adjustment_entry_tag.delete",
 				fmt.Sprintf("adjustment_entry_tag.delete.%s", data.ID),
+				fmt.Sprintf("adjustment_entry_tag.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("adjustment_entry_tag.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

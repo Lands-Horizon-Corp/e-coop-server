@@ -95,22 +95,29 @@ func (m *Model) MemberDamayanExtensionEntry() {
 				Birthdate:       birthdateStr,
 			}
 		},
+
 		Created: func(data *MemberDamayanExtensionEntry) []string {
 			return []string{
 				"member_damayan_extension_entry.create",
 				fmt.Sprintf("member_damayan_extension_entry.create.%s", data.ID),
+				fmt.Sprintf("member_damayan_extension_entry.create.branch.%s", data.BranchID),
+				fmt.Sprintf("member_damayan_extension_entry.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *MemberDamayanExtensionEntry) []string {
 			return []string{
 				"member_damayan_extension_entry.update",
 				fmt.Sprintf("member_damayan_extension_entry.update.%s", data.ID),
+				fmt.Sprintf("member_damayan_extension_entry.update.branch.%s", data.BranchID),
+				fmt.Sprintf("member_damayan_extension_entry.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *MemberDamayanExtensionEntry) []string {
 			return []string{
 				"member_damayan_extension_entry.delete",
 				fmt.Sprintf("member_damayan_extension_entry.delete.%s", data.ID),
+				fmt.Sprintf("member_damayan_extension_entry.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("member_damayan_extension_entry.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

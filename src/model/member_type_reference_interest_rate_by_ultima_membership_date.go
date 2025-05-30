@@ -96,22 +96,29 @@ func (m *Model) MemberTypeReferenceInterestRateByUltimaMembershipDate() {
 				Rate:                  data.Rate,
 			}
 		},
+
 		Created: func(data *MemberTypeReferenceInterestRateByUltimaMembershipDate) []string {
 			return []string{
 				"member_type_reference_interest_rate_by_ultima_membership_date.create",
 				fmt.Sprintf("member_type_reference_interest_rate_by_ultima_membership_date.create.%s", data.ID),
+				fmt.Sprintf("member_type_reference_interest_rate_by_ultima_membership_date.create.branch.%s", data.BranchID),
+				fmt.Sprintf("member_type_reference_interest_rate_by_ultima_membership_date.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *MemberTypeReferenceInterestRateByUltimaMembershipDate) []string {
 			return []string{
 				"member_type_reference_interest_rate_by_ultima_membership_date.update",
 				fmt.Sprintf("member_type_reference_interest_rate_by_ultima_membership_date.update.%s", data.ID),
+				fmt.Sprintf("member_type_reference_interest_rate_by_ultima_membership_date.update.branch.%s", data.BranchID),
+				fmt.Sprintf("member_type_reference_interest_rate_by_ultima_membership_date.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *MemberTypeReferenceInterestRateByUltimaMembershipDate) []string {
 			return []string{
 				"member_type_reference_interest_rate_by_ultima_membership_date.delete",
 				fmt.Sprintf("member_type_reference_interest_rate_by_ultima_membership_date.delete.%s", data.ID),
+				fmt.Sprintf("member_type_reference_interest_rate_by_ultima_membership_date.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("member_type_reference_interest_rate_by_ultima_membership_date.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

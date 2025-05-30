@@ -82,22 +82,29 @@ func (m *Model) MemberOtherInformationEntry() {
 				EntryDate:      data.EntryDate.Format(time.RFC3339),
 			}
 		},
+
 		Created: func(data *MemberOtherInformationEntry) []string {
 			return []string{
 				"member_other_information_entry.create",
 				fmt.Sprintf("member_other_information_entry.create.%s", data.ID),
+				fmt.Sprintf("member_other_information_entry.create.branch.%s", data.BranchID),
+				fmt.Sprintf("member_other_information_entry.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *MemberOtherInformationEntry) []string {
 			return []string{
 				"member_other_information_entry.update",
 				fmt.Sprintf("member_other_information_entry.update.%s", data.ID),
+				fmt.Sprintf("member_other_information_entry.update.branch.%s", data.BranchID),
+				fmt.Sprintf("member_other_information_entry.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *MemberOtherInformationEntry) []string {
 			return []string{
 				"member_other_information_entry.delete",
 				fmt.Sprintf("member_other_information_entry.delete.%s", data.ID),
+				fmt.Sprintf("member_other_information_entry.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("member_other_information_entry.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

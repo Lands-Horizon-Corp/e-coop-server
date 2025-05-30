@@ -103,22 +103,29 @@ func (m *Model) TimeDepositType() {
 				Excess:                         data.Excess,
 			}
 		},
+
 		Created: func(data *TimeDepositType) []string {
 			return []string{
 				"time_deposit_type.create",
 				fmt.Sprintf("time_deposit_type.create.%s", data.ID),
+				fmt.Sprintf("time_deposit_type.create.branch.%s", data.BranchID),
+				fmt.Sprintf("time_deposit_type.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *TimeDepositType) []string {
 			return []string{
 				"time_deposit_type.update",
 				fmt.Sprintf("time_deposit_type.update.%s", data.ID),
+				fmt.Sprintf("time_deposit_type.update.branch.%s", data.BranchID),
+				fmt.Sprintf("time_deposit_type.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *TimeDepositType) []string {
 			return []string{
 				"time_deposit_type.delete",
 				fmt.Sprintf("time_deposit_type.delete.%s", data.ID),
+				fmt.Sprintf("time_deposit_type.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("time_deposit_type.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

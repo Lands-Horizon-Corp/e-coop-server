@@ -82,22 +82,29 @@ func (m *Model) MemberClassification() {
 				Description:    data.Description,
 			}
 		},
+
 		Created: func(data *MemberClassification) []string {
 			return []string{
 				"member_classification.create",
 				fmt.Sprintf("member_classification.create.%s", data.ID),
+				fmt.Sprintf("member_classification.create.branch.%s", data.BranchID),
+				fmt.Sprintf("member_classification.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *MemberClassification) []string {
 			return []string{
 				"member_classification.update",
 				fmt.Sprintf("member_classification.update.%s", data.ID),
+				fmt.Sprintf("member_classification.update.branch.%s", data.BranchID),
+				fmt.Sprintf("member_classification.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *MemberClassification) []string {
 			return []string{
 				"member_classification.delete",
 				fmt.Sprintf("member_classification.delete.%s", data.ID),
+				fmt.Sprintf("member_classification.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("member_classification.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

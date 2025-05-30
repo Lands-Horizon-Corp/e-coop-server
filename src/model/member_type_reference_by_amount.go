@@ -94,22 +94,29 @@ func (m *Model) MemberTypeReferenceByAmount() {
 				Rate:                  data.Rate,
 			}
 		},
+
 		Created: func(data *MemberTypeReferenceByAmount) []string {
 			return []string{
 				"member_type_reference_by_amount.create",
 				fmt.Sprintf("member_type_reference_by_amount.create.%s", data.ID),
+				fmt.Sprintf("member_type_reference_by_amount.create.branch.%s", data.BranchID),
+				fmt.Sprintf("member_type_reference_by_amount.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *MemberTypeReferenceByAmount) []string {
 			return []string{
 				"member_type_reference_by_amount.update",
 				fmt.Sprintf("member_type_reference_by_amount.update.%s", data.ID),
+				fmt.Sprintf("member_type_reference_by_amount.update.branch.%s", data.BranchID),
+				fmt.Sprintf("member_type_reference_by_amount.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *MemberTypeReferenceByAmount) []string {
 			return []string{
 				"member_type_reference_by_amount.delete",
 				fmt.Sprintf("member_type_reference_by_amount.delete.%s", data.ID),
+				fmt.Sprintf("member_type_reference_by_amount.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("member_type_reference_by_amount.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

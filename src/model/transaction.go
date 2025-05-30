@@ -168,22 +168,29 @@ func (m *Model) Transaction() {
 				Description:                data.Description,
 			}
 		},
+
 		Created: func(data *Transaction) []string {
 			return []string{
 				"transaction.create",
 				fmt.Sprintf("transaction.create.%s", data.ID),
+				fmt.Sprintf("transaction.create.branch.%s", data.BranchID),
+				fmt.Sprintf("transaction.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *Transaction) []string {
 			return []string{
 				"transaction.update",
 				fmt.Sprintf("transaction.update.%s", data.ID),
+				fmt.Sprintf("transaction.update.branch.%s", data.BranchID),
+				fmt.Sprintf("transaction.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *Transaction) []string {
 			return []string{
 				"transaction.delete",
 				fmt.Sprintf("transaction.delete.%s", data.ID),
+				fmt.Sprintf("transaction.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("transaction.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

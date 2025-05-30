@@ -96,18 +96,24 @@ func (m *Model) BillAndCoins() {
 			return []string{
 				"bill_and_coins.create",
 				fmt.Sprintf("bill_and_coins.create.%s", data.ID),
+				fmt.Sprintf("bill_and_coins.create.branch.%s", data.BranchID),
+				fmt.Sprintf("bill_and_coins.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *BillAndCoins) []string {
 			return []string{
 				"bill_and_coins.update",
 				fmt.Sprintf("bill_and_coins.update.%s", data.ID),
+				fmt.Sprintf("bill_and_coins.update.branch.%s", data.BranchID),
+				fmt.Sprintf("bill_and_coins.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *BillAndCoins) []string {
 			return []string{
 				"bill_and_coins.delete",
 				fmt.Sprintf("bill_and_coins.delete.%s", data.ID),
+				fmt.Sprintf("bill_and_coins.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("bill_and_coins.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

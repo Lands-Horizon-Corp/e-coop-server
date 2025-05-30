@@ -61,25 +61,26 @@ func (m *Model) OrganizationCategory() {
 				Category:       m.CategoryManager.ToModel(data.Category),
 			}
 		},
+
 		Created: func(data *OrganizationCategory) []string {
 			return []string{
-				"branch.create",
-				fmt.Sprintf("branch.create.%s", data.ID),
-				fmt.Sprintf("branch.create.organization.%s", data.OrganizationID),
+				"organization_category.create",
+				fmt.Sprintf("organization_category.create.%s", data.ID),
+				fmt.Sprintf("organization_category.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *OrganizationCategory) []string {
 			return []string{
-				"branch.update",
-				fmt.Sprintf("branch.update.%s", data.ID),
-				fmt.Sprintf("branch.update.organization.%s", data.OrganizationID),
+				"organization_category.update",
+				fmt.Sprintf("organization_category.update.%s", data.ID),
+				fmt.Sprintf("organization_category.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *OrganizationCategory) []string {
 			return []string{
-				"branch.delete",
-				fmt.Sprintf("branch.delete.%s", data.ID),
-				fmt.Sprintf("branch.delete.organization.%s", data.OrganizationID),
+				"organization_category.delete",
+				fmt.Sprintf("organization_category.delete.%s", data.ID),
+				fmt.Sprintf("organization_category.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

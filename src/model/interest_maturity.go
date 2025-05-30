@@ -98,18 +98,24 @@ func (m *Model) InterestMaturity() {
 			return []string{
 				"interest_maturity.create",
 				fmt.Sprintf("interest_maturity.create.%s", data.ID),
+				fmt.Sprintf("interest_maturity.create.branch.%s", data.BranchID),
+				fmt.Sprintf("interest_maturity.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *InterestMaturity) []string {
 			return []string{
 				"interest_maturity.update",
 				fmt.Sprintf("interest_maturity.update.%s", data.ID),
+				fmt.Sprintf("interest_maturity.update.branch.%s", data.BranchID),
+				fmt.Sprintf("interest_maturity.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *InterestMaturity) []string {
 			return []string{
 				"interest_maturity.delete",
 				fmt.Sprintf("interest_maturity.delete.%s", data.ID),
+				fmt.Sprintf("interest_maturity.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("interest_maturity.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

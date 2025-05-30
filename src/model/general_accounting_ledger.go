@@ -193,18 +193,24 @@ func (m *Model) GeneralAccountingLedger() {
 			return []string{
 				"general_accounting_ledger.create",
 				fmt.Sprintf("general_accounting_ledger.create.%s", data.ID),
+				fmt.Sprintf("general_accounting_ledger.create.branch.%s", data.BranchID),
+				fmt.Sprintf("general_accounting_ledger.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *GeneralAccountingLedger) []string {
 			return []string{
 				"general_accounting_ledger.update",
 				fmt.Sprintf("general_accounting_ledger.update.%s", data.ID),
+				fmt.Sprintf("general_accounting_ledger.update.branch.%s", data.BranchID),
+				fmt.Sprintf("general_accounting_ledger.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *GeneralAccountingLedger) []string {
 			return []string{
 				"general_accounting_ledger.delete",
 				fmt.Sprintf("general_accounting_ledger.delete.%s", data.ID),
+				fmt.Sprintf("general_accounting_ledger.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("general_accounting_ledger.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})

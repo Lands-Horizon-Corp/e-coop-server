@@ -126,22 +126,29 @@ func (m *Model) MemberTypeReference() {
 				OtherInterestOnSavingComputationInterestRate:   data.OtherInterestOnSavingComputationInterestRate,
 			}
 		},
+
 		Created: func(data *MemberTypeReference) []string {
 			return []string{
 				"member_type_reference.create",
 				fmt.Sprintf("member_type_reference.create.%s", data.ID),
+				fmt.Sprintf("member_type_reference.create.branch.%s", data.BranchID),
+				fmt.Sprintf("member_type_reference.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *MemberTypeReference) []string {
 			return []string{
 				"member_type_reference.update",
 				fmt.Sprintf("member_type_reference.update.%s", data.ID),
+				fmt.Sprintf("member_type_reference.update.branch.%s", data.BranchID),
+				fmt.Sprintf("member_type_reference.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *MemberTypeReference) []string {
 			return []string{
 				"member_type_reference.delete",
 				fmt.Sprintf("member_type_reference.delete.%s", data.ID),
+				fmt.Sprintf("member_type_reference.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("member_type_reference.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})
