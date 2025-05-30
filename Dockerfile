@@ -1,22 +1,14 @@
-FROM golang:latest
+FROM golang:1.24.2-alpine
 
-# Set up app directory
-RUN mkdir /app
 WORKDIR /app
 
-# Copy go.mod and go.sum first to leverage Docker cache
+RUN go install github.com/air-verse/air@latest
+
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Copy rest of the app
-COPY . .
+EXPOSE 8000
+EXPOSE 8001
 
-# Install CompileDaemon and swag
-RUN go install -mod=mod github.com/githubnemo/CompileDaemon@latest
-RUN go install github.com/swaggo/swag/cmd/swag@latest
-
-# Run swag init to generate docs
-RUN swag init
-
-# Run with CompileDaemon
-ENTRYPOINT ["CompileDaemon", "--build=go build main.go", "--command=./main"]
+# Start Air
+CMD ["air"]

@@ -1,7 +1,7 @@
 "use client"
 
 import axios from 'axios'
-import { useEffect, useState } from 'react'
+import {  useState } from 'react'
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -56,7 +56,9 @@ function SampleForm() {
 
   const fetchList = async () => {
     try {
-      const res = await axios.get<Feedback[]>(`${import.meta.env.VITE_SERVER_URL}/feedback`, { withCredentials: true })
+      const res = await axios.get<Feedback[]>(`${import.meta.env.VITE_SERVER_URL}/feedback`, { withCredentials: true, 
+       
+      })
       setFeedbackList(res.data)
     } catch (error) {
       console.error("List Error:", error)
@@ -65,7 +67,9 @@ function SampleForm() {
 
   const fetchFeedback = async (id: string) => {
     try {
-      const res = await axios.get<Feedback>(`${import.meta.env.VITE_SERVER_URL}/feedback/${id}`, { withCredentials: true })
+      const res = await axios.get<Feedback>(`${import.meta.env.VITE_SERVER_URL}/feedback/${id}`, { withCredentials: true,
+         
+       })
       setSelectedFeedback(res.data)
       form.reset({
         email: res.data.email,
@@ -79,7 +83,9 @@ function SampleForm() {
 
   const createFeedback = async (data: FeedbackFormValues) => {
     try {
-      await axios.post(`${import.meta.env.VITE_SERVER_URL}/feedback`, data, { withCredentials: true })
+      await axios.post(`${import.meta.env.VITE_SERVER_URL}/feedback`, data, { withCredentials: true,
+         
+       })
       await fetchList()
       form.reset()
       setSelectedFeedback(null)
@@ -90,7 +96,7 @@ function SampleForm() {
 
   const updateFeedback = async (id: string, data: Partial<FeedbackFormValues>) => {
     try {
-      await axios.put(`${import.meta.env.VITE_SERVER_URL}/feedback/${id}`, data, { withCredentials: true })
+      await axios.put(`${import.meta.env.VITE_SERVER_URL}/feedback/${id}`, data, { withCredentials: true})
       await fetchList()
       form.reset()
       setSelectedFeedback(null)
@@ -101,7 +107,7 @@ function SampleForm() {
 
   const deleteFeedback = async (id: string) => {
     try {
-      await axios.delete(`${import.meta.env.VITE_SERVER_URL}/feedback/${id}`, { withCredentials: true })
+      await axios.delete(`${import.meta.env.VITE_SERVER_URL}/feedback/${id}`, { withCredentials: true,})
       setFeedbackList(prev => prev.filter(fb => fb.id !== id))
     } catch (error) {
       console.error("Delete Error:", error)

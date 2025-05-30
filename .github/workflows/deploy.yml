@@ -1,0 +1,132 @@
+name: Deploy to Development
+
+on:
+  push:
+    branches: [ development ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+        APP_PORT: ${{ secrets.APP_PORT }}
+        APP_METRICS_PORT: ${{ secrets.APP_METRICS_PORT }}
+        APP_ENV: ${{ secrets.APP_ENV }}
+        APP_CLIENT_URL: ${{ secrets.APP_CLIENT_URL }}
+        APP_CLIENT_NAME: ${{ secrets.APP_CLIENT_NAME }}
+        APP_TOKEN: ${{ secrets.APP_TOKEN }}
+        APP_NAME: ${{ secrets.APP_NAME }}
+        NATS_HOST: ${{ secrets.NATS_HOST }}
+        NATS_CLIENT_PORT: ${{ secrets.NATS_CLIENT_PORT }}
+        NATS_MONITOR_PORT: ${{ secrets.NATS_MONITOR_PORT }}
+        NATS_WEBSOCKET_PORT: ${{ secrets.NATS_WEBSOCKET_PORT }}
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        DB_MAX_IDLE_CONN: ${{ secrets.DB_MAX_IDLE_CONN }}
+        DB_MAX_OPEN_CONN: ${{ secrets.DB_MAX_OPEN_CONN }}
+        DB_MAX_LIFETIME: ${{ secrets.DB_MAX_LIFETIME }}
+        REDIS_PORT: ${{ secrets.REDIS_PORT }}
+        REDIS_HOST: ${{ secrets.REDIS_HOST }}
+        REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+        REDIS_USERNAME: ${{ secrets.REDIS_USERNAME }}
+        SMTP_HOST: ${{ secrets.SMTP_HOST }}
+        SMTP_PORT: ${{ secrets.SMTP_PORT }}
+        SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+        SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+        SMTP_FROM: ${{ secrets.SMTP_FROM }}
+        SMTP_TEST_RECIEVE: ${{ secrets.SMTP_TEST_RECIEVER }}
+        TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
+        TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
+        TWILIO_SENDER: ${{ secrets.TWILIO_SENDER }}
+        TWILIO_TEST_RECIEVER: ${{ secrets.TWILIO_TEST_RECIEVER }}
+        STORAGE_ACCESS_KEY: ${{ secrets.STORAGE_ACCESS_KEY }}
+        STORAGE_SECRET_KEY: ${{ secrets.STORAGE_SECRET_KEY }}
+        STORAGE_BUCKET: ${{ secrets.STORAGE_BUCKET }}
+        STORAGE_PREFIX: ${{ secrets.STORAGE_PREFIX }}
+        STORAGE_MAX_SIZE: ${{ secrets.STORAGE_MAX_SIZE }}
+        PASSWORD_MEMORY: ${{ secrets.PASSWORD_MEMORY }}
+        PASSWORD_ITERATIONS: ${{ secrets.PASSWORD_ITERATIONS }}
+        PASSWORD_PARALLELISM: ${{ secrets.PASSWORD_PARALLELISM }}
+        PASSWORD_SALT_LENTH: ${{ secrets.PASSWORD_SALT_LENTH }}
+        PASSWORD_KEY_LENGTH: ${{ secrets.PASSWORD_KEY_LENGTH }}
+        PASSWORD_SECRET: ${{ secrets.PASSWORD_SECRET }}
+        OTP_SECRET: ${{ secrets.OTP_SECRET }}
+        QR_SECRET: ${{ secrets.QR_SECRET }}
+        LINODE_HOST: ${{ secrets.LINODE_HOST }}
+        LINODE_USER: ${{ secrets.LINODE_USER }}
+        LINODE_KNOWN_HOST: ${{ secrets.LINODE_KNOWN_HOST }}
+        LINODE_SSH_PRIVATE_KEY: ${{ secrets.LINODE_SSH_PRIVATE_KEY }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: 1.24.2
+
+    - name: Run Tests
+      run: |
+        go version
+        go clean -cache
+        go test -v ./services/horizon_test
+
+    - name: Install SSH key
+      uses: shimataro/ssh-key-action@v2
+      with:
+        key: ${{ secrets.LINODE_SSH_PRIVATE_KEY }}
+        known_hosts: ${{ secrets.LINODE_KNOWN_HOST }}
+
+    - name: Deploy to Server
+      env:
+        HOST: ${{ secrets.LINODE_HOST }}
+        USER: ${{ secrets.LINODE_USER }}
+        APP_DIR: "/home/user/coop-server/development"
+        REPOSITORY: "git@github.com:Lands-Horizon-Corp/e-coop-server.git"
+      run: |
+        ssh -t $USER@$HOST << EOF
+        set -e
+        # Install specific Go version (1.24.2)
+        if ! command -v go &> /dev/null || [ "\$(go version | awk '{print \$3}')" != "go1.24.2" ]; then
+          sudo rm -rf /usr/local/go
+          wget https://dl.google.com/go/go1.24.2.linux-amd64.tar.gz
+          sudo tar -C /usr/local -xzf go1.24.2.linux-amd64.tar.gz
+          rm go1.24.2.linux-amd64.tar.gz
+          echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc
+          source ~/.bashrc
+        fi
+
+        # Install dependencies
+        command -v tmux &> /dev/null || sudo apt-get install -y tmux
+        command -v git &> /dev/null || sudo apt-get install -y git
+
+        # Create app directory using expanded environment variable
+        mkdir -p "$APP_DIR"
+        cd "$APP_DIR"
+
+        # Clone or pull latest code
+        if [ ! -d ".git" ]; then
+          git clone $REPOSITORY .
+        fi
+        
+        git checkout development
+        git pull origin development
+
+        # Build and restart application
+        export PATH=\$PATH:/usr/local/go/bin  # Ensure Go is in PATH
+        go version  # Verify Go version
+        go clean -cache
+        go test -v ./services/horizon_test
+        go build -o main
+
+
+        tmux kill-session -t ecoop-development || true
+        tmux new-session -d -s ecoop-development
+        tmux send-keys -t ecoop-development 'git pull' C-m
+        tmux send-keys -t ecoop-development 'if [ $? -ne 0 ]; then echo "Git pull failed"; exit 1; fi' C-m
+
+        # Run start script
+        tmux send-keys -t ecoop-development './main' C-m
+        tmux send-keys -t ecoop-development 'if [ $? -ne 0 ]; then echo "Start script failed"; exit 1; fi' C-m
+
+
+        echo "Development deployment completed!"
+        EOF

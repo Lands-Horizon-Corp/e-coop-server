@@ -2,46 +2,71 @@ package main
 
 import (
 	"context"
-	"log"
+	"time"
+
+	"github.com/lands-horizon/horizon-server/seeder"
+	"github.com/lands-horizon/horizon-server/src"
+	"github.com/lands-horizon/horizon-server/src/controller"
+	"github.com/lands-horizon/horizon-server/src/cooperative_tokens"
+	"github.com/lands-horizon/horizon-server/src/model"
 
 	"go.uber.org/fx"
-
-	"horizon.com/server/horizon"
-	"horizon.com/server/server"
-	"horizon.com/server/server/seeders"
-
-	_ "github.com/swaggo/echo-swagger/example/docs"
 )
 
-func start(
-	app *horizon.HorizonApp,
-	lc fx.Lifecycle,
-	db *horizon.HorizonDatabase,
-	req *horizon.HorizonRequest,
-	coop *server.CoopServer,
-	seeders *seeders.DatabaseSeeder,
-) {
-	lc.Append(fx.Hook{
-		OnStart: func(ctx context.Context) error {
-			if err := db.Client().AutoMigrate(
-				coop.Migrations...,
-			); err != nil {
-				return err
-			}
-			err := seeders.Run()
-			if err != nil {
-				log.Fatal(err)
-				return err
-			}
-			return req.Run(coop.Routes...)
-		},
-	})
-}
-
 func main() {
-	app := horizon.Horizon(
-		start,
-		server.Modules...,
+	app := fx.New(
+		// Set extended startup timeout
+		fx.StartTimeout(30*time.Minute),
+
+		// Provide application dependencies
+		fx.Provide(
+			src.NewProvider,
+			src.NewValidator,
+			model.NewModel,
+			controller.NewController,
+			seeder.NewSeeder,
+
+			cooperative_tokens.NewUserToken,
+			cooperative_tokens.NewTransactionBatchToken,
+			cooperative_tokens.NewUserOrganizatonToken,
+		),
+
+		// Invoke the startup sequence
+		fx.Invoke(func(
+			lc fx.Lifecycle,
+			ctrl *controller.Controller,
+			mod *model.Model,
+			prov *src.Provider,
+			seed *seeder.Seeder,
+		) error {
+			// Register lifecycle hooks
+			lc.Append(fx.Hook{
+				OnStart: func(ctx context.Context) error {
+					// Start each component in order
+					if err := ctrl.Start(); err != nil {
+						return err
+					}
+					if err := prov.Service.Run(ctx); err != nil {
+						return err
+					}
+					if err := mod.Start(); err != nil {
+						return err
+					}
+					if err := seed.Run(ctx); err != nil {
+						return err
+					}
+					return nil
+				},
+
+				OnStop: func(ctx context.Context) error {
+					// Gracefully stop the service
+					return prov.Service.Stop(ctx)
+				},
+			})
+
+			return nil
+		}),
 	)
+
 	app.Run()
 }
