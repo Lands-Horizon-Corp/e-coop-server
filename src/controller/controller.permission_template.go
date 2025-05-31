@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"context"
 	"net/http"
 	"time"
 
@@ -20,12 +19,12 @@ func (c *Controller) PermissionTemplateController() {
 		Response: "TPermissionTemplate[]",
 		Note:     "Fetches all permission templates associated with the current user's branch.",
 	}, func(ctx echo.Context) error {
-		ctxBg := context.Background()
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(ctxBg, ctx)
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return err
 		}
-		permissionTemplates, err := c.model.GetPermissionTemplateByBranch(ctxBg, userOrg.OrganizationID, *userOrg.BranchID)
+		permissionTemplates, err := c.model.GetPermissionTemplateByBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
@@ -38,13 +37,13 @@ func (c *Controller) PermissionTemplateController() {
 		Response: "TPermissionTemplate",
 		Note:     "Fetches a single permission template by its ID.",
 	}, func(ctx echo.Context) error {
-		ctxBg := context.Background()
+		context := ctx.Request().Context()
 		permissionTemplateID, err := horizon.EngineUUIDParam(ctx, "permission_template_id")
 		if err != nil {
 			return c.BadRequest(ctx, "Invalid permission template ID")
 		}
 
-		permissionTemplate, err := c.model.PermissionTemplateManager.GetByID(ctxBg, *permissionTemplateID)
+		permissionTemplate, err := c.model.PermissionTemplateManager.GetByID(context, *permissionTemplateID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
@@ -59,7 +58,7 @@ func (c *Controller) PermissionTemplateController() {
 		Request:  "TPermissionTemplate",
 		Note:     "Creates a new permission template.",
 	}, func(ctx echo.Context) error {
-		ctxBg := context.Background()
+		context := ctx.Request().Context()
 
 		// Validate request payload
 		reqData, err := c.model.PermissionTemplateManager.Validate(ctx)
@@ -67,7 +66,7 @@ func (c *Controller) PermissionTemplateController() {
 			return c.BadRequest(ctx, err.Error())
 		}
 
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(ctxBg, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return err
 		}
@@ -84,7 +83,7 @@ func (c *Controller) PermissionTemplateController() {
 			Permissions:    reqData.Permissions,
 		}
 
-		if err := c.model.PermissionTemplateManager.Create(ctxBg, newTemplate); err != nil {
+		if err := c.model.PermissionTemplateManager.Create(context, newTemplate); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 
@@ -98,7 +97,7 @@ func (c *Controller) PermissionTemplateController() {
 		Request:  "TPermissionTemplate",
 		Note:     "Updates an existing permission template identified by its ID.",
 	}, func(ctx echo.Context) error {
-		ctxBg := context.Background()
+		context := ctx.Request().Context()
 
 		permissionTemplateID, err := horizon.EngineUUIDParam(ctx, "permission_template_id")
 		if err != nil {
@@ -110,12 +109,12 @@ func (c *Controller) PermissionTemplateController() {
 			return c.BadRequest(ctx, err.Error())
 		}
 
-		template, err := c.model.PermissionTemplateManager.GetByID(ctxBg, *permissionTemplateID)
+		template, err := c.model.PermissionTemplateManager.GetByID(context, *permissionTemplateID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
 
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(ctxBg, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return err
 		}
@@ -128,7 +127,7 @@ func (c *Controller) PermissionTemplateController() {
 		template.Description = reqData.Description
 		template.Permissions = reqData.Permissions
 
-		if err := c.model.PermissionTemplateManager.UpdateByID(ctxBg, template.ID, template); err != nil {
+		if err := c.model.PermissionTemplateManager.UpdateByID(context, template.ID, template); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Failed to update permission template: "+err.Error())
 		}
 
@@ -140,14 +139,14 @@ func (c *Controller) PermissionTemplateController() {
 		Method: "DELETE",
 		Note:   "Deletes a specific permission template identified by its ID.",
 	}, func(ctx echo.Context) error {
-		ctxBg := context.Background()
+		context := ctx.Request().Context()
 
 		permissionTemplateID, err := horizon.EngineUUIDParam(ctx, "permission_template_id")
 		if err != nil {
 			return c.BadRequest(ctx, "Invalid permission template ID")
 		}
 
-		if err := c.model.PermissionTemplateManager.DeleteByID(ctxBg, *permissionTemplateID); err != nil {
+		if err := c.model.PermissionTemplateManager.DeleteByID(context, *permissionTemplateID); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 

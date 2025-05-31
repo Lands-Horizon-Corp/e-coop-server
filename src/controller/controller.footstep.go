@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -17,7 +16,7 @@ func (c *Controller) FootstepController() {
 		Response: "TFootstep[]",
 		Note:     "Getting your own footstep (the logged in user)",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		user, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
 			return err
@@ -35,7 +34,7 @@ func (c *Controller) FootstepController() {
 		Response: "TFootstep[]",
 		Note:     "Get footstep on current branch",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return err
@@ -53,7 +52,7 @@ func (c *Controller) FootstepController() {
 		Response: "TFootstep[]",
 		Note:     "Getting Footstep of users that is (member or employee or owner) on current branch",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return err
@@ -70,7 +69,7 @@ func (c *Controller) FootstepController() {
 		Method:   "GET",
 		Response: "TFootstep",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		footstepId, err := horizon.EngineUUIDParam(ctx, "footstep_id")
 		if err != nil {
 			return c.BadRequest(ctx, "Invalid footstep ID")

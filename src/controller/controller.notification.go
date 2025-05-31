@@ -1,9 +1,10 @@
 package controller
 
 import (
-	"context"
+	"fmt"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 )
@@ -17,7 +18,7 @@ func (c *Controller) NotificationController() {
 		Response: "TNotification[]",
 		Note:     "Getting your own notifications (the logged in user)",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		user, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
 			return err
@@ -30,10 +31,75 @@ func (c *Controller) NotificationController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
+		Method:  "PUT",
+		Request: "string[] ids",
+		Note:    "Apply View on multiple notification records",
+	}, func(ctx echo.Context) error {
+
+		context := ctx.Request().Context()
+
+		var reqBody struct {
+			IDs []string `json:"ids"`
+		}
+		if err := ctx.Bind(&reqBody); err != nil {
+			return c.BadRequest(ctx, "Invalid request body")
+		}
+
+		user, err := c.userToken.CurrentUser(context, ctx)
+		if err != nil {
+			return err
+		}
+
+		tx := c.provider.Service.Database.Client().Begin()
+		defer func() {
+			if r := recover(); r != nil {
+				tx.Rollback()
+			}
+		}()
+
+		for _, rawID := range reqBody.IDs {
+			notificationID, err := uuid.Parse(rawID)
+			if err != nil {
+				tx.Rollback()
+				return c.BadRequest(ctx, fmt.Sprintf("Invalid UUID: %s", rawID))
+			}
+
+			notification, err := c.model.NotificationManager.GetByID(context, notificationID)
+			if err != nil {
+				tx.Rollback()
+				return c.NotFound(ctx, fmt.Sprintf("Notification with ID %s not found", rawID))
+			}
+
+			if notification.IsViewed {
+				continue
+			}
+
+			notification.IsViewed = true
+			if err := c.model.NotificationManager.UpdateByID(context, notification.ID, notification); err != nil {
+				tx.Rollback()
+				return c.InternalServerError(ctx, err)
+			}
+		}
+
+		notifications, err := c.model.GetNotificationByUser(context, user.ID)
+		if err != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+
+		if err := tx.Commit().Error; err != nil {
+			tx.Rollback()
+			return c.InternalServerError(ctx, err)
+		}
+
+		return ctx.JSON(http.StatusOK, c.model.NotificationManager.ToModels(notifications))
+	})
+
+	req.RegisterRoute(horizon.Route{
 		Route:  "/notification/:notification_id",
 		Method: "DELETE",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		notificationId, err := horizon.EngineUUIDParam(ctx, "notification_id")
 		if err != nil {
 			return c.BadRequest(ctx, "Invalid notification ID")
@@ -44,4 +110,5 @@ func (c *Controller) NotificationController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
+	// view
 }

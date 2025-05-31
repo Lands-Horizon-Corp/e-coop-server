@@ -96,7 +96,7 @@ func (c *Controller) ContactController() {
 		Request: "string[]",
 		Note:    "Delete multiple contact records",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		var reqBody struct {
 			IDs []string `json:"ids"`
 		}

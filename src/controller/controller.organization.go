@@ -48,7 +48,7 @@ func (c *Controller) OrganizationController() {
 		Response: "{organization: TOrganization, user_organization: TUserOrganization}",
 		Note:     "(User must be logged in) This will be use to create an organization",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		req, err := c.model.OrganizationManager.Validate(ctx)
 		if err != nil {
 			return err
@@ -158,7 +158,7 @@ func (c *Controller) OrganizationController() {
 		Response: "{organization: TOrganization, user_organization: TUserOrganization}",
 		Note:     "(User must be logged in) This will be use to update an organization",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		organizationId, err := horizon.EngineUUIDParam(ctx, "organization_id")
 		if err != nil {
 			return err
@@ -243,7 +243,7 @@ func (c *Controller) OrganizationController() {
 		Method: "DELETE",
 		Note:   "(User must be logged in) This will be use to DELETE an organization",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		organizationId, err := horizon.EngineUUIDParam(ctx, "organization_id")
 		if err != nil {
 			return err

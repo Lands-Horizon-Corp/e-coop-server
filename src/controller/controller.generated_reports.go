@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -18,7 +17,7 @@ func (c *Controller) GeneratedReports() {
 		Response: "TGeneratedReport[]",
 		Note:     "Retrieves all generated reports for the current user.",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		user, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
 			return err
@@ -37,7 +36,7 @@ func (c *Controller) GeneratedReports() {
 		Response: "TGeneratedReport",
 		Note:     "Retrieves a specific generated report by its ID.",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		generatedReportID, err := horizon.EngineUUIDParam(ctx, "generated_report_id")
 		if err != nil {
 			return c.BadRequest(ctx, "Invalid generated report ID")
@@ -55,7 +54,7 @@ func (c *Controller) GeneratedReports() {
 		Method: "DELETE",
 		Note:   "Deletes a specific generated report by its ID and the associated file.",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		generatedReportID, err := horizon.EngineUUIDParam(ctx, "generated_report_id")
 		if err != nil {
 			return c.BadRequest(ctx, "Invalid generated report ID")

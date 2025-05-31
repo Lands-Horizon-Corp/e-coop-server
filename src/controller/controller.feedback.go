@@ -94,7 +94,7 @@ func (c *Controller) FeedbackController() {
 		Request: "string[]",
 		Note:    "Delete multiple feedback records",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		var reqBody struct {
 			IDs []string `json:"ids"`
 		}

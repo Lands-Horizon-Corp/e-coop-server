@@ -20,7 +20,8 @@ func (c *Controller) SubscriptionPlanController() {
 		Method:   "GET",
 		Response: "TSubscriptionPlan[]",
 	}, func(ctx echo.Context) error {
-		categories, err := c.model.SubscriptionPlanManager.ListRaw(context.Background())
+		context := ctx.Request().Context()
+		categories, err := c.model.SubscriptionPlanManager.ListRaw(context)
 		if err != nil {
 			return c.InternalServerError(ctx, err)
 		}
@@ -32,12 +33,13 @@ func (c *Controller) SubscriptionPlanController() {
 		Method:   "GET",
 		Response: "TSubscriptionPlan",
 	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
 		subscription_planID, err := horizon.EngineUUIDParam(ctx, "subscription_plan_id")
 		if err != nil {
 			return c.BadRequest(ctx, "Invalid subscription_plan ID")
 		}
 
-		subscription_plan, err := c.model.SubscriptionPlanManager.GetByIDRaw(context.Background(), *subscription_planID)
+		subscription_plan, err := c.model.SubscriptionPlanManager.GetByIDRaw(context, *subscription_planID)
 		if err != nil {
 			return c.NotFound(ctx, "SubscriptionPlan")
 		}
@@ -51,6 +53,7 @@ func (c *Controller) SubscriptionPlanController() {
 		Request:  "TSubscriptionPlan",
 		Response: "TSubscriptionPlan",
 	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
 		req, err := c.model.SubscriptionPlanManager.Validate(ctx)
 		if err != nil {
 			return c.BadRequest(ctx, err.Error())
@@ -70,7 +73,7 @@ func (c *Controller) SubscriptionPlanController() {
 			UpdatedAt:           time.Now().UTC(),
 		}
 
-		if err := c.model.SubscriptionPlanManager.Create(context.Background(), subscription_plan); err != nil {
+		if err := c.model.SubscriptionPlanManager.Create(context, subscription_plan); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 
@@ -83,6 +86,7 @@ func (c *Controller) SubscriptionPlanController() {
 		Request:  "TSubscriptionPlan",
 		Response: "TSubscriptionPlan",
 	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
 		subscription_planID, err := horizon.EngineUUIDParam(ctx, "subscription_plan_id")
 		if err != nil {
 			return c.BadRequest(ctx, "Invalid subscription_plan ID")
@@ -93,7 +97,7 @@ func (c *Controller) SubscriptionPlanController() {
 			return c.BadRequest(ctx, err.Error())
 		}
 
-		subscription_plan, err := c.model.SubscriptionPlanManager.GetByID(context.Background(), *subscription_planID)
+		subscription_plan, err := c.model.SubscriptionPlanManager.GetByID(context, *subscription_planID)
 		if err != nil {
 			return c.NotFound(ctx, "SubscriptionPlan")
 		}
@@ -109,7 +113,7 @@ func (c *Controller) SubscriptionPlanController() {
 		subscription_plan.YearlyDiscount = req.YearlyDiscount
 		subscription_plan.UpdatedAt = time.Now().UTC()
 
-		if err := c.model.SubscriptionPlanManager.UpdateByID(context.Background(), subscription_plan.ID, subscription_plan); err != nil {
+		if err := c.model.SubscriptionPlanManager.UpdateByID(context, subscription_plan.ID, subscription_plan); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 
@@ -138,6 +142,7 @@ func (c *Controller) SubscriptionPlanController() {
 		Request: "string[]",
 		Note:    "Delete multiple subscription_plan records",
 	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
 		var reqBody struct {
 			IDs []string `json:"ids"`
 		}
@@ -164,12 +169,12 @@ func (c *Controller) SubscriptionPlanController() {
 				return c.BadRequest(ctx, fmt.Sprintf("Invalid UUID: %s", rawID))
 			}
 
-			if _, err := c.model.SubscriptionPlanManager.GetByID(context.Background(), subscription_planID); err != nil {
+			if _, err := c.model.SubscriptionPlanManager.GetByID(context, subscription_planID); err != nil {
 				tx.Rollback()
 				return c.NotFound(ctx, fmt.Sprintf("SubscriptionPlan with ID %s", rawID))
 			}
 
-			if err := c.model.SubscriptionPlanManager.DeleteByIDWithTx(context.Background(), tx, subscription_planID); err != nil {
+			if err := c.model.SubscriptionPlanManager.DeleteByIDWithTx(context, tx, subscription_planID); err != nil {
 				tx.Rollback()
 				return c.InternalServerError(ctx, err)
 			}

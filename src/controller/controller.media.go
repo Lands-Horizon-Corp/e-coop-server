@@ -33,7 +33,7 @@ func (c *Controller) MediaController() {
 		Method:   "GET",
 		Response: "TMedia",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		mediaId, err := horizon.EngineUUIDParam(ctx, "media_id")
 		if err != nil {
 			return err
@@ -53,7 +53,7 @@ func (c *Controller) MediaController() {
 		Response: "TMedia",
 		Note:     "this route is used for uploading files",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		file, err := ctx.FormFile("file")
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "missing file")
@@ -114,7 +114,7 @@ func (c *Controller) MediaController() {
 		Response: "TMedia",
 		Note:     "This only change file name",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		mediaId, err := horizon.EngineUUIDParam(ctx, "media_id")
 		if err != nil {
 			return err
@@ -139,7 +139,7 @@ func (c *Controller) MediaController() {
 		Route:  "/media/:media_id",
 		Method: "DELETE",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		mediaId, err := horizon.EngineUUIDParam(ctx, "media_id")
 		if err != nil {
 			return err
@@ -160,7 +160,7 @@ func (c *Controller) MediaController() {
 		Request: "string[]",
 		Note:    "Delete multiple media records",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		var reqBody struct {
 			IDs []string `json:"ids"`
 		}

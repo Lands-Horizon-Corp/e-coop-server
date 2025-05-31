@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"context"
 	"net/http"
 	"time"
 
@@ -20,7 +19,7 @@ func (c *Controller) InvitationCode() {
 		Response: "IInvitationCode[]",
 		Note:     "Retrieves a list of all invitation codes for the current organization (based on JWT user organization).",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return err
@@ -39,7 +38,7 @@ func (c *Controller) InvitationCode() {
 		Response: "IInvitationCode",
 		Note:     "Retrieves invitation code matching the specified code for the current organization (based on JWT user organization).",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		code := ctx.Param("code")
 		invitationCode, err := c.model.GetInvitationCodeByCode(context, code)
 		if err != nil {
@@ -55,7 +54,7 @@ func (c *Controller) InvitationCode() {
 		Response: "IInvitationCode",
 		Note:     "Retrieves details of a specific invitation code by its ID.",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		invitationCodeId, err := horizon.EngineUUIDParam(ctx, "invitation_code_id")
 		if err != nil {
 			return c.BadRequest(ctx, "Invalid invitation code ID")
@@ -75,7 +74,7 @@ func (c *Controller) InvitationCode() {
 		Request:  "IInvitationCode",
 		Note:     "Creates a new invitation code under the current organization (based on JWT user organization).",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		req, err := c.model.InvitationCodeManager.Validate(ctx)
 		if err != nil {
 			return c.BadRequest(ctx, err.Error())
@@ -113,7 +112,7 @@ func (c *Controller) InvitationCode() {
 		Request:  "IInvitationCode",
 		Note:     "Updates an existing invitation code identified by its ID.",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		invitationCodeId, err := horizon.EngineUUIDParam(ctx, "invitation_code_id")
 		if err != nil {
 			return c.BadRequest(ctx, "Invalid invitation code ID")
@@ -152,7 +151,7 @@ func (c *Controller) InvitationCode() {
 		Method: "DELETE",
 		Note:   "Deletes a specific invitation code identified by its ID.",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		invitationCodeId, err := horizon.EngineUUIDParam(ctx, "invitation_code_id")
 		if err != nil {
 			return c.BadRequest(ctx, "Invalid invitation code ID")

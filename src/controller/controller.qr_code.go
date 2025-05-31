@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -15,7 +14,7 @@ func (c *Controller) QRCodeController() {
 		Method:   "GET",
 		Response: "TUser",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		code := ctx.Param("code")
 		qr, err := c.provider.Service.QR.DecodeQR(context, &horizon.QRResult{
 			Data: code,

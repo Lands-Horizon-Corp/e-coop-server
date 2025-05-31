@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"context"
 	"net/http"
 	"time"
 
@@ -20,7 +19,7 @@ func (c *Controller) UserOrganinzationController() {
 		Method: "POST",
 		Note:   "Seed all branches inside an organization when first created.",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		orgId, err := horizon.EngineUUIDParam(ctx, "organization_id")
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "invalid organization ID")
@@ -75,7 +74,7 @@ func (c *Controller) UserOrganinzationController() {
 		Response: "TUserOrganization",
 		Note:     "Retrieve all user organizations. Use query param `pending=true` to include pending organizations.",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		userId, err := horizon.EngineUUIDParam(ctx, "user_id")
 		isPending := ctx.QueryParam("pending") == "true"
 		if err != nil {
@@ -98,7 +97,7 @@ func (c *Controller) UserOrganinzationController() {
 		Response: "TUserOrganization",
 		Note:     "Retrieve all user organizations across all branches of a specific organization. Use query param `pending=true` to include pending organizations.",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		organizationId, err := horizon.EngineUUIDParam(ctx, "organization_id")
 		isPending := ctx.QueryParam("pending") == "true"
 		if err != nil {
@@ -124,7 +123,7 @@ func (c *Controller) UserOrganinzationController() {
 		Response: "TUserOrganization",
 		Note:     "Retrieve all user organizations from a specific branch. Use query param `pending=true` to include pending organizations.",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		branchId, err := horizon.EngineUUIDParam(ctx, "branch_id")
 		isPending := ctx.QueryParam("pending") == "true"
 		if err != nil {
@@ -146,7 +145,7 @@ func (c *Controller) UserOrganinzationController() {
 		Method: "POST",
 		Note:   "Switch organization and branch stored in JWT (no database impact).",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		organizationId, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
 		if err != nil {
 			return err
@@ -166,7 +165,7 @@ func (c *Controller) UserOrganinzationController() {
 		Method: "POST",
 		Note:   "Remove organization and branch from JWT (no database impact).",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		c.userOrganizationToken.Token.CleanToken(context, ctx)
 		return ctx.NoContent(http.StatusNoContent)
 	})
@@ -176,7 +175,7 @@ func (c *Controller) UserOrganinzationController() {
 		Method: "POST",
 		Note:   "Refresh developer key associated with the user organization.",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return err
@@ -197,7 +196,7 @@ func (c *Controller) UserOrganinzationController() {
 		Method: "POST",
 		Note:   "Join organization and branch using an invitation code.",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 
 		code := ctx.Param("code")
 		user, err := c.userToken.CurrentUser(context, ctx)
@@ -269,7 +268,7 @@ func (c *Controller) UserOrganinzationController() {
 		Method: "POST",
 		Note:   "Join an organization and branch that is already created.",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		orgId, err := horizon.EngineUUIDParam(ctx, "organization_id")
 		if err != nil {
 			return err
@@ -339,7 +338,7 @@ func (c *Controller) UserOrganinzationController() {
 		Method: "POST",
 		Note:   "Leave a specific organization and branch that is already joined. (Must have Current Organization)",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return err
@@ -360,7 +359,7 @@ func (c *Controller) UserOrganinzationController() {
 		Method: "GET",
 		Note:   "Check if the user can join as an member.",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		user, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
 			return err
@@ -384,7 +383,7 @@ func (c *Controller) UserOrganinzationController() {
 		Method: "GET",
 		Note:   "Check if the user can join as a empolyee.",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		user, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
 			return err

@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"context"
 	"net/http"
 	"time"
 
@@ -20,7 +19,7 @@ func (c *Controller) UserRatingController() {
 		Response: "TUserRating[]",
 		Note:     "Returns all user ratings given by the specified user (rater).",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		userId, err := horizon.EngineUUIDParam(ctx, "user_id")
 		if err != nil {
 			return c.BadRequest(ctx, "Invalid user ID")
@@ -39,7 +38,7 @@ func (c *Controller) UserRatingController() {
 		Response: "TUserRating[]",
 		Note:     "Returns all user ratings received by the specified user (ratee).",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		userId, err := horizon.EngineUUIDParam(ctx, "user_id")
 		if err != nil {
 			return c.BadRequest(ctx, "Invalid user ID")
@@ -58,7 +57,7 @@ func (c *Controller) UserRatingController() {
 		Response: "TUserRating",
 		Note:     "Returns a specific user rating by its ID.",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		userRatingId, err := horizon.EngineUUIDParam(ctx, "user_rating_id")
 		if err != nil {
 			return c.BadRequest(ctx, "Invalid rating ID")
@@ -77,7 +76,7 @@ func (c *Controller) UserRatingController() {
 		Response: "TUserRating[]",
 		Note:     "Returns all user ratings in the current user's active branch.",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return err
@@ -97,7 +96,7 @@ func (c *Controller) UserRatingController() {
 		Request:  "TUserRating",
 		Note:     "Creates a new user rating in the current user's branch.",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		req, err := c.model.UserRatingManager.Validate(ctx)
 		if err != nil {
 			return c.BadRequest(ctx, err.Error())
@@ -133,7 +132,7 @@ func (c *Controller) UserRatingController() {
 		Method: "DELETE",
 		Note:   "Deletes a user rating by its ID.",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		userRatingId, err := horizon.EngineUUIDParam(ctx, "user_rating_id")
 		if err != nil {
 			return c.BadRequest(ctx, "Invalid rating ID")

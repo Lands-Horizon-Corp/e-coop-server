@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"context"
 	"net/http"
 	"time"
 
@@ -20,7 +19,7 @@ func (c *Controller) BranchController() {
 		Response: "TBranch[]",
 		Note:     "If there's no user organization (e.g., unauthenticated), return all branches. If a user organization exists (from JWT), filter branches by that organization.",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil || userOrg == nil {
 			branches, err := c.model.BranchManager.ListRaw(context)
@@ -42,7 +41,7 @@ func (c *Controller) BranchController() {
 		Response: "TBranch[]",
 		Note:     "Returns branches filtered by a specific organization ID provided in the URL path parameter.",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		orgId, err := horizon.EngineUUIDParam(ctx, "organization_id")
 		if err != nil {
 			return err
@@ -61,7 +60,7 @@ func (c *Controller) BranchController() {
 		Response: "{branch: TBranch, user_organization: TUserOrganization}",
 		Note:     "Creates a new branch under a user organization. If the user organization doesn't have a branch yet, it will be updated. Otherwise, a new user organization record is created with the new branch.",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 
 		// Validate request payload
 		req, err := c.model.BranchManager.Validate(ctx)
@@ -193,7 +192,7 @@ func (c *Controller) BranchController() {
 		Response: "{branch: TBranch, user_organization: TUserOrganization}",
 		Note:     "Updates the branch information under the specified user organization. Only allowed if the user is an 'owner' and the user organization already has an existing branch.",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 
 		// Validate request body
 		req, err := c.model.BranchManager.Validate(ctx)
@@ -273,7 +272,7 @@ func (c *Controller) BranchController() {
 		Method: "DELETE",
 		Note:   "Deletes a branch and the associated user organization if the user is the owner and fewer than 3 members exist under that branch.",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		userOrganizationId, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user organization ID: " + err.Error()})

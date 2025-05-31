@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -16,7 +15,7 @@ func (c *Controller) OrganizationDailyUsage() {
 		Method:   "GET",
 		Response: "TOrganizationDailyUsage[]",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return err
@@ -33,7 +32,7 @@ func (c *Controller) OrganizationDailyUsage() {
 		Method:   "GET",
 		Response: "TOrganizationDailyUsage",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		dailyUsageId, err := horizon.EngineUUIDParam(ctx, "organization_daily_usage_id")
 		if err != nil {
 			return c.BadRequest(ctx, "Invalid Organization daily usage ID")

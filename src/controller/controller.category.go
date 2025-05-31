@@ -128,7 +128,7 @@ func (c *Controller) CategoryController() {
 		Request: "string[]",
 		Note:    "Delete multiple category records",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		var reqBody struct {
 			IDs []string `json:"ids"`
 		}

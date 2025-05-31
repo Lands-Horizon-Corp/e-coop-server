@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"time"
@@ -21,7 +20,7 @@ func (c *Controller) UserController() {
 		Method:   "GET",
 		Response: "TUser",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		user, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
 			return ctx.NoContent(http.StatusNoContent)
@@ -48,7 +47,7 @@ func (c *Controller) UserController() {
 		Method:   "GET",
 		Response: "ILoggedInUser",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		_, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
 			return err
@@ -71,7 +70,7 @@ func (c *Controller) UserController() {
 		Method: "POST",
 		Note:   "Logout all users including itself",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		_, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
 			return err
@@ -88,7 +87,7 @@ func (c *Controller) UserController() {
 		Request:  "ISignInRequest",
 		Response: "TUser",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		var req model.UserLoginRequest
 		if err := ctx.Bind(&req); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -126,7 +125,7 @@ func (c *Controller) UserController() {
 		Route:  "/authentication/logout",
 		Method: "POST",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		c.userToken.CSRF.ClearCSRF(context, ctx)
 		return ctx.NoContent(http.StatusNoContent)
 	})
@@ -137,7 +136,7 @@ func (c *Controller) UserController() {
 		Request:  "ISignUpRequest",
 		Response: "TUser",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		req, err := c.model.UserManager.Validate(ctx)
 		if err != nil {
 			return err
@@ -180,7 +179,7 @@ func (c *Controller) UserController() {
 		Request:  "IForgotPasswordRequest",
 		Response: "TUser",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		var req model.UserForgotPasswordRequest
 		if err := ctx.Bind(&req); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -223,7 +222,7 @@ func (c *Controller) UserController() {
 		Method: "GET",
 		Note:   "Verify Reset Link: this is the link that is sent to the user to reset their password. this will verify if the link is valid.",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 
 		resetID := ctx.Param("reset_id")
 		if resetID == "" {
@@ -250,7 +249,7 @@ func (c *Controller) UserController() {
 		Request: "IChangePasswordRequest",
 		Note:    "Change Password: this is the link that is sent to the user to reset their password. this will change the user's password.",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		var req model.UserChangePasswordRequest
 		if err := ctx.Bind(&req); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -293,7 +292,7 @@ func (c *Controller) UserController() {
 		Method: "POST",
 		Note:   "Apply Contact Number: this is used to send OTP for contact number verification.",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		user, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
 			return err
@@ -322,7 +321,7 @@ func (c *Controller) UserController() {
 		Request: "IVerifyContactNumberRequest",
 		Note:    "Verify Contact Number: this is used to verify the OTP sent to the user's new contact number.",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		var req model.UserVerifyContactNumberRequest
 		if err := ctx.Bind(&req); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -364,7 +363,7 @@ func (c *Controller) UserController() {
 		Method: "POST",
 		Note:   "Apply Email: this is used to send OTP for email verification.",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		user, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
 			return err
@@ -393,7 +392,7 @@ func (c *Controller) UserController() {
 		Request: "IVerifyEmailRequest",
 		Note:    "Verify Email: this is used to verify the OTP sent to the user's new email.",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		var req model.UserVerifyEmailRequest
 		if err := ctx.Bind(&req); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -436,7 +435,7 @@ func (c *Controller) UserController() {
 		Request: "password & password confirmation",
 		Note:    "Verify with Password: this is used to verify the user's password. [for preceeding protected self actions]",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 
 		// Bind the request body to UserSettingsChangeProfilePictureRequest struct
 		var req model.UserVerifyWithPasswordRequest
@@ -469,7 +468,7 @@ func (c *Controller) UserController() {
 		Request: "IChangePasswordRequest",
 		Note:    "Change Password: this is used to change the user's password.",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		var req model.UserSettingsChangePasswordRequest
 		if err := ctx.Bind(&req); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -510,7 +509,7 @@ func (c *Controller) UserController() {
 		Response: "TUser",
 		Note:     "Change Profile Picture: this is used to change the user's profile picture.",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		// Bind the request body
 		var req model.UserSettingsChangeProfilePictureRequest
 		if err := ctx.Bind(&req); err != nil {
@@ -566,7 +565,7 @@ func (c *Controller) UserController() {
 		Response: "TUser",
 		Note:     "Change General Settings: this is used to change the user's general settings.",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		var req model.UserSettingsChangeGeneralRequest
 		if err := ctx.Bind(&req); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
