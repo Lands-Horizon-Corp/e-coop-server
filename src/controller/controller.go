@@ -7,6 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/src"
 	"github.com/lands-horizon/horizon-server/src/cooperative_tokens"
+	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
 
@@ -14,7 +15,7 @@ type Controller struct {
 	// Services
 	provider *src.Provider
 	model    *model.Model
-
+	event    *event.Event
 	// Tokens
 	transactionBatchToken *cooperative_tokens.TransactionBatchToken
 	userOrganizationToken *cooperative_tokens.UserOrganizatonToken
@@ -25,6 +26,7 @@ func NewController(
 	// Services
 	provider *src.Provider,
 	model *model.Model,
+	event *event.Event,
 
 	// Tokens
 	transactionBatchToken *cooperative_tokens.TransactionBatchToken,
@@ -36,6 +38,7 @@ func NewController(
 		// Services
 		provider: provider,
 		model:    model,
+		event:    event,
 
 		// Tokens
 		transactionBatchToken: transactionBatchToken,
