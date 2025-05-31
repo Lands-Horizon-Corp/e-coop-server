@@ -1,12 +1,14 @@
 package controller
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/horizon"
+	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
 
@@ -179,6 +181,12 @@ func (c *Controller) BranchController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Transaction commit failed: " + err.Error()})
 		}
 
+		// EVENT
+		c.event.Notification(context, ctx, event.NotificationEvent{
+			Title:       fmt.Sprintf("%s: %s", "Create: ", branch.Name),
+			Description: fmt.Sprintf("%s: %s", "Creates a new branch", branch.Name),
+		})
+
 		return ctx.JSON(http.StatusOK, map[string]any{
 			"branch":            c.model.BranchManager.ToModel(branch),
 			"user_organization": c.model.UserOrganizationManager.ToModel(userOrganization),
@@ -260,7 +268,12 @@ func (c *Controller) BranchController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update branch: " + err.Error()})
 		}
 
-		// Respond with updated data
+		// EVENT
+		c.event.Notification(context, ctx, event.NotificationEvent{
+			Title:       fmt.Sprintf("%s: %s", "Update: ", branch.Name),
+			Description: fmt.Sprintf("%s: %s", "Updates the branch", branch.Name),
+		})
+
 		return ctx.JSON(http.StatusOK, map[string]any{
 			"branch":            c.model.BranchManager.ToModel(branch),
 			"user_organization": c.model.UserOrganizationManager.ToModel(userOrganization),
@@ -317,9 +330,11 @@ func (c *Controller) BranchController() {
 			tx.Rollback()
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Transaction commit failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, map[string]string{
-			"message": "Branch and associated user organization deleted successfully.",
+		c.event.Notification(context, ctx, event.NotificationEvent{
+			Title:       fmt.Sprintf("%s: %s", "Update: ", branch.Name),
+			Description: fmt.Sprintf("%s: %s", "Updates the branch", branch.Name),
 		})
+		return ctx.NoContent(http.StatusNoContent)
 	})
 
 }

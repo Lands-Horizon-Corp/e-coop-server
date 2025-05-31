@@ -38,7 +38,6 @@ func (c *Controller) UserController() {
 			User:             c.model.UserManager.ToModel(user),
 			UserOrganization: userOrg,
 		})
-
 	})
 
 	req.RegisterRoute(horizon.Route{

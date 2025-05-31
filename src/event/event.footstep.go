@@ -15,6 +15,8 @@ type FootstepEvent struct {
 	Module      string
 }
 
+// Records a footstep event for a user, scoped to their organization and branch.
+// This is only triggered if the user has valid CSRF and organization tokens.
 func (e *Event) Footstep(ctx context.Context, echoCtx echo.Context, data FootstepEvent) {
 	go func() {
 		userOrganization, err := e.userOrganizationToken.Token.GetToken(ctx, echoCtx)
