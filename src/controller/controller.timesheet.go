@@ -11,11 +11,12 @@ import (
 
 func (c *Controller) TimesheetController() {
 	req := c.provider.Service.Request
+
 	req.RegisterRoute(horizon.Route{
-		Route:    "/timehseet/current",
+		Route:    "/timesheet/current",
 		Method:   "GET",
 		Response: "Ttimesheet",
-		Note:     "use to identify if time in and time out action",
+		Note:     "Use to identify current time in and time out action",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -31,15 +32,14 @@ func (c *Controller) TimesheetController() {
 			return ctx.NoContent(http.StatusNoContent)
 		}
 		return ctx.JSON(http.StatusOK, c.model.TimesheetManager.ToModel(timesheet))
-
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/timehseet/time-in-and-out",
+		Route:    "/timesheet/time-in-and-out",
 		Method:   "POST",
 		Request:  "{media_id: string}",
 		Response: "Ttimesheet",
-		Note:     "Current user time in and out",
+		Note:     "Record current user time in and out",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -74,55 +74,85 @@ func (c *Controller) TimesheetController() {
 			timesheet.TimeOut = &now
 			timesheet.UpdatedAt = now
 			if err := c.model.TimesheetManager.UpdateByID(context, timesheet.ID, timesheet); err != nil {
-				return echo.NewHTTPError(http.StatusInternalServerError, "failed to update timesheet: "+err.Error())
+				return echo.NewHTTPError(http.StatusInternalServerError, "Failed to update timesheet: "+err.Error())
 			}
 			return ctx.JSON(http.StatusOK, c.model.TimesheetManager.ToModel(timesheet))
-
 		}
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/timehseet/:timeSheet_id",
+		Route:    "/timesheet/:timesheet_id",
 		Method:   "GET",
 		Response: "TTimesheet",
-		Note:     "get specifc timesgeet for view",
+		Note:     "Get specific timesheet for viewing",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		timesheetId, err := horizon.EngineUUIDParam(ctx, "timeSheet_id")
+		timesheetID, err := horizon.EngineUUIDParam(ctx, "timesheet_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid timehseet ID")
+			return c.BadRequest(ctx, "Invalid timesheet ID")
 		}
-		if err := c.model.TimesheetManager.DeleteByID(context, *timesheetId); err != nil {
+		timesheet, err := c.model.TimesheetManager.GetByIDRaw(context, *timesheetID)
+		if err != nil {
 			return c.InternalServerError(ctx, err)
 		}
-		return ctx.NoContent(http.StatusNoContent)
+		return ctx.JSON(http.StatusOK, timesheet)
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/timehseet/branch/:branch_id",
+		Route:    "/timesheet",
 		Method:   "GET",
 		Response: "Ttimesheet",
-		Note:     "get all timesheet of users on specific branch",
+		Note:     "Get all timesheets of users/employees on current branch",
 	}, func(ctx echo.Context) error {
-		return nil
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.NoContent(http.StatusNoContent)
+		}
+		timesheets, err := c.model.GetAllUserTimesheet(context, user.OrganizationID, *user.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.TimesheetManager.ToModels(timesheets))
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/timehseet/me",
+		Route:    "/timesheet/me",
 		Method:   "GET",
 		Response: "Ttimesheet[]",
-		Note:     "list of the users timesheet",
+		Note:     "List of the user's timesheets on current branch",
 	}, func(ctx echo.Context) error {
-		return nil
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.NoContent(http.StatusNoContent)
+		}
+		timesheets, err := c.model.GetUserTimesheet(context, user.UserID, user.OrganizationID, *user.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.TimesheetManager.ToModels(timesheets))
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/timehseet/user/:user-id",
+		Route:    "/timesheet/user/:user_id",
 		Method:   "GET",
 		Response: "Ttimesheet[]",
-		Note:     "list of timesheet of specific user",
+		Note:     "List of timesheets of specific user",
 	}, func(ctx echo.Context) error {
-		return nil
+		context := ctx.Request().Context()
+		userID, err := horizon.EngineUUIDParam(ctx, "user_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid user ID")
+		}
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.NoContent(http.StatusNoContent)
+		}
+		timesheets, err := c.model.GetUserTimesheet(context, *userID, user.OrganizationID, *user.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.TimesheetManager.ToModels(timesheets))
 	})
-
 }

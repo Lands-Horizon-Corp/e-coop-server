@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -127,5 +128,19 @@ func (m *Model) Timesheet() {
 				fmt.Sprintf("timesheet.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+func (m *Model) GetAllUserTimesheet(context context.Context, orgId, branchId uuid.UUID) ([]*Timesheet, error) {
+	return m.TimesheetManager.Find(context, &Timesheet{
+		BranchID:       branchId,
+		OrganizationID: orgId,
+	})
+}
+
+func (m *Model) GetUserTimesheet(context context.Context, userId, orgId, branchId uuid.UUID) ([]*Timesheet, error) {
+	return m.TimesheetManager.Find(context, &Timesheet{
+		UserID:         userId,
+		BranchID:       branchId,
+		OrganizationID: orgId,
 	})
 }
