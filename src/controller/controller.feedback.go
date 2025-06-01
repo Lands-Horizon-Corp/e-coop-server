@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"time"
@@ -20,7 +19,8 @@ func (c *Controller) FeedbackController() {
 		Method:   "GET",
 		Response: "TFeedback[]",
 	}, func(ctx echo.Context) error {
-		feedback, err := c.model.FeedbackManager.ListRaw(context.Background())
+		context := ctx.Request().Context()
+		feedback, err := c.model.FeedbackManager.ListRaw(context)
 		if err != nil {
 			return c.InternalServerError(ctx, err)
 		}
@@ -32,12 +32,13 @@ func (c *Controller) FeedbackController() {
 		Method:   "GET",
 		Response: "TFeedback",
 	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
 		feedbackID, err := horizon.EngineUUIDParam(ctx, "feedback_id")
 		if err != nil {
 			return c.BadRequest(ctx, "Invalid feedback ID")
 		}
 
-		feedback, err := c.model.FeedbackManager.GetByIDRaw(context.Background(), *feedbackID)
+		feedback, err := c.model.FeedbackManager.GetByIDRaw(context, *feedbackID)
 		if err != nil {
 			return c.NotFound(ctx, "Feedback")
 		}
@@ -51,6 +52,7 @@ func (c *Controller) FeedbackController() {
 		Request:  "TFeedback",
 		Response: "TFeedback",
 	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
 		req, err := c.model.FeedbackManager.Validate(ctx)
 		if err != nil {
 			return c.BadRequest(ctx, err.Error())
@@ -65,7 +67,7 @@ func (c *Controller) FeedbackController() {
 			UpdatedAt:    time.Now().UTC(),
 		}
 
-		if err := c.model.FeedbackManager.Create(context.Background(), feedback); err != nil {
+		if err := c.model.FeedbackManager.Create(context, feedback); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 
@@ -76,12 +78,13 @@ func (c *Controller) FeedbackController() {
 		Route:  "/feedback/:feedback_id",
 		Method: "DELETE",
 	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
 		feedbackID, err := horizon.EngineUUIDParam(ctx, "feedback_id")
 		if err != nil {
 			return c.BadRequest(ctx, "Invalid feedback ID")
 		}
 
-		if err := c.model.FeedbackManager.DeleteByID(context.Background(), *feedbackID); err != nil {
+		if err := c.model.FeedbackManager.DeleteByID(context, *feedbackID); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 

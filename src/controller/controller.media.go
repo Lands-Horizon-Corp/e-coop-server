@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"time"
@@ -21,7 +20,8 @@ func (c *Controller) MediaController() {
 		Method:   "GET",
 		Response: "TMedia[]",
 	}, func(ctx echo.Context) error {
-		media, err := c.model.MediaManager.ListRaw(context.Background())
+		context := ctx.Request().Context()
+		media, err := c.model.MediaManager.ListRaw(context)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}

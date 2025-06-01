@@ -57,12 +57,12 @@ func (m *Model) Media() {
 		Preloads: nil,
 		Service:  m.provider.Service,
 		Resource: func(data *Media) *MediaResponse {
-
+			context := context.Background()
 			if data == nil {
 				return nil
 			}
 			temporary, err := m.provider.Service.Storage.GeneratePresignedURL(
-				context.Background(), &horizon.Storage{
+				context, &horizon.Storage{
 					StorageKey: data.StorageKey,
 					BucketName: data.BucketName,
 					FileName:   data.FileName,

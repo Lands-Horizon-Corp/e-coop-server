@@ -63,6 +63,7 @@ func (c *Controller) Start() error {
 	c.PermissionTemplateController()
 	c.QRCodeController()
 	c.SubscriptionPlanController()
+	c.TimesheetController()
 	c.UserController()
 	c.UserOrganinzationController()
 	c.UserRatingController()

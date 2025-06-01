@@ -62,11 +62,7 @@ type (
 	}
 
 	TimesheetRequest struct {
-		UserID     uuid.UUID  `json:"user_id"`
-		MediaInID  *uuid.UUID `json:"media_in_id,omitempty"`
-		MediaOutID *uuid.UUID `json:"media_out_id,omitempty"`
-		TimeIn     time.Time  `json:"time_in"`
-		TimeOut    *time.Time `json:"time_out,omitempty"`
+		MediaID *uuid.UUID `json:"media_id,omitempty"`
 	}
 )
 

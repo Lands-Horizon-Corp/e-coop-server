@@ -191,11 +191,11 @@ func (m *Model) User() {
 		},
 		Service: m.provider.Service,
 		Resource: func(data *User) *UserResponse {
-			ctx := context.Background()
+			context := context.Background()
 			if data == nil {
 				return nil
 			}
-			result, err := m.provider.Service.QR.EncodeQR(ctx, &QRUser{
+			result, err := m.provider.Service.QR.EncodeQR(context, &QRUser{
 				UserID:        data.ID.String(),
 				Email:         data.Email,
 				ContactNumber: data.ContactNumber,

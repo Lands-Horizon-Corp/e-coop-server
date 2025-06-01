@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"time"
@@ -20,7 +19,8 @@ func (c *Controller) ContactController() {
 		Method:   "GET",
 		Response: "TContact[]",
 	}, func(ctx echo.Context) error {
-		contact, err := c.model.ContactUsManager.ListRaw(context.Background())
+		context := ctx.Request().Context()
+		contact, err := c.model.ContactUsManager.ListRaw(context)
 		if err != nil {
 			return c.InternalServerError(ctx, err)
 		}
@@ -33,12 +33,13 @@ func (c *Controller) ContactController() {
 		Method:   "GET",
 		Response: "TContact",
 	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
 		contactID, err := horizon.EngineUUIDParam(ctx, "contact_id")
 		if err != nil {
 			return c.BadRequest(ctx, "Invalid contact ID")
 		}
 
-		contact, err := c.model.ContactUsManager.GetByIDRaw(context.Background(), *contactID)
+		contact, err := c.model.ContactUsManager.GetByIDRaw(context, *contactID)
 		if err != nil {
 			return c.NotFound(ctx, "Contact")
 		}
@@ -52,6 +53,7 @@ func (c *Controller) ContactController() {
 		Request:  "TContact",
 		Response: "TContact",
 	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
 		req, err := c.model.ContactUsManager.Validate(ctx)
 		if err != nil {
 			return c.BadRequest(ctx, err.Error())
@@ -67,7 +69,7 @@ func (c *Controller) ContactController() {
 			UpdatedAt:     time.Now().UTC(),
 		}
 
-		if err := c.model.ContactUsManager.Create(context.Background(), contact); err != nil {
+		if err := c.model.ContactUsManager.Create(context, contact); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 
@@ -78,12 +80,13 @@ func (c *Controller) ContactController() {
 		Route:  "/contact/:contact_id",
 		Method: "DELETE",
 	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
 		contactID, err := horizon.EngineUUIDParam(ctx, "contact_id")
 		if err != nil {
 			return c.BadRequest(ctx, "Invalid contact ID")
 		}
 
-		if err := c.model.ContactUsManager.DeleteByID(context.Background(), *contactID); err != nil {
+		if err := c.model.ContactUsManager.DeleteByID(context, *contactID); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 

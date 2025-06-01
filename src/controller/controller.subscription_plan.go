@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"time"
@@ -124,12 +123,13 @@ func (c *Controller) SubscriptionPlanController() {
 		Route:  "/subscription-plan/:subscription_plan_id",
 		Method: "DELETE",
 	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
 		subscription_planID, err := horizon.EngineUUIDParam(ctx, "subscription_plan_id")
 		if err != nil {
 			return c.BadRequest(ctx, "Invalid subscription_plan ID")
 		}
 
-		if err := c.model.SubscriptionPlanManager.DeleteByID(context.Background(), *subscription_planID); err != nil {
+		if err := c.model.SubscriptionPlanManager.DeleteByID(context, *subscription_planID); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 

@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"context"
 	"net/http"
 	"time"
 
@@ -18,7 +17,8 @@ func (c *Controller) OrganizationController() {
 		Method:   "GET",
 		Response: "TOrganization[]",
 	}, func(ctx echo.Context) error {
-		organization, err := c.model.GetPublicOrganization(context.Background())
+		context := ctx.Request().Context()
+		organization, err := c.model.GetPublicOrganization(context)
 		if err != nil {
 			return c.InternalServerError(ctx, err)
 		}
@@ -30,11 +30,12 @@ func (c *Controller) OrganizationController() {
 		Method:   "GET",
 		Response: "TCategory",
 	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
 		organizationID, err := horizon.EngineUUIDParam(ctx, "organization_id")
 		if err != nil {
 			return c.BadRequest(ctx, "Invalid organization ID")
 		}
-		organization, err := c.model.OrganizationManager.GetByIDRaw(context.Background(), *organizationID)
+		organization, err := c.model.OrganizationManager.GetByIDRaw(context, *organizationID)
 		if err != nil {
 			return c.NotFound(ctx, "Organization")
 		}
