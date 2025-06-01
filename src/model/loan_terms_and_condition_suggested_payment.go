@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -106,5 +107,12 @@ func (m *Model) LoanTermsAndConditionSuggestedPayment() {
 				fmt.Sprintf("loan_terms_and_condition_suggested_payment.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) LoanTermsAndConditionSuggestedPaymentCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanTermsAndConditionSuggestedPayment, error) {
+	return m.LoanTermsAndConditionSuggestedPaymentManager.Find(context, &LoanTermsAndConditionSuggestedPayment{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

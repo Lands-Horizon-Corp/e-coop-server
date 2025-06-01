@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -172,5 +173,12 @@ func (m *Model) WithdrawalEntry() {
 				fmt.Sprintf("withdrawal_entry.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) WithdrawalEntryCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*WithdrawalEntry, error) {
+	return m.WithdrawalEntryManager.Find(context, &WithdrawalEntry{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

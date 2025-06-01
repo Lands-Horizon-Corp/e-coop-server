@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -121,5 +122,12 @@ func (m *Model) InterestRatePercentage() {
 				fmt.Sprintf("interest_rate_percentage.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) InterestRatePercentageCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*InterestRatePercentage, error) {
+	return m.InterestRatePercentageManager.Find(context, &InterestRatePercentage{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

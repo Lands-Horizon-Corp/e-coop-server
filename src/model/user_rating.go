@@ -139,9 +139,9 @@ func (m *Model) GetUserRater(context context.Context, userId uuid.UUID) ([]*User
 	})
 }
 
-func (m *Model) GetOrganizationBranchRatings(context context.Context, branchId uuid.UUID, organizationId uuid.UUID) ([]*UserRating, error) {
+func (m *Model) UserRatingCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*UserRating, error) {
 	return m.UserRatingManager.Find(context, &UserRating{
+		OrganizationID: orgId,
 		BranchID:       branchId,
-		OrganizationID: organizationId,
 	})
 }

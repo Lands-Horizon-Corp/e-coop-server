@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -110,5 +111,12 @@ func (m *Model) Holiday() {
 				fmt.Sprintf("holiday.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) HolidayCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Holiday, error) {
+	return m.HolidayManager.Find(context, &Holiday{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

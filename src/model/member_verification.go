@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -115,5 +116,12 @@ func (m *Model) MemberVerification() {
 				fmt.Sprintf("member_verification.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) MemberVerificationCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberVerification, error) {
+	return m.MemberVerificationManager.Find(context, &MemberVerification{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

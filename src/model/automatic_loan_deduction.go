@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -183,5 +184,12 @@ func (m *Model) AutomaticLoanDeduction() {
 				fmt.Sprintf("automatic_loan_deduction.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) AutomaticLoanDeductionCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*AutomaticLoanDeduction, error) {
+	return m.AutomaticLoanDeductionManager.Find(context, &AutomaticLoanDeduction{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

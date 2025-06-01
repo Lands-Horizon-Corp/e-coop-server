@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -118,5 +119,12 @@ func (m *Model) GeneralLedgerAccountsGrouping() {
 				fmt.Sprintf("general_ledger_accounts_grouping.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) GeneralLedgerAccountsGroupingCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*GeneralLedgerAccountsGrouping, error) {
+	return m.GeneralLedgerAccountsGroupingManager.Find(context, &GeneralLedgerAccountsGrouping{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

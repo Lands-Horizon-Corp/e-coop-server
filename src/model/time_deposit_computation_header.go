@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -136,5 +137,12 @@ func (m *Model) TimeDepositComputationHeader() {
 				fmt.Sprintf("time_deposit_computation_header.delete.%s", data.ID),
 			}
 		},
+	})
+}
+
+func (m *Model) TimeDepositComputationHeaderCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*TimeDepositComputationHeader, error) {
+	return m.TimeDepositComputationHeaderManager.Find(context, &TimeDepositComputationHeader{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -118,5 +119,12 @@ func (m *Model) IncludeNegativeAccount() {
 				fmt.Sprintf("include_negative_account.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) IncludeNegativeAccountCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*IncludeNegativeAccount, error) {
+	return m.IncludeNegativeAccountManager.Find(context, &IncludeNegativeAccount{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

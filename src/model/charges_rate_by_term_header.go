@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -186,5 +187,12 @@ func (m *Model) ChargesRateByTermHeader() {
 				fmt.Sprintf("charges_rate_by_term_header.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) ChargesRateByTermHeaderCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ChargesRateByTermHeader, error) {
+	return m.ChargesRateByTermHeaderManager.Find(context, &ChargesRateByTermHeader{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

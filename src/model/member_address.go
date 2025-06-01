@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -135,5 +136,12 @@ func (m *Model) MemberAddress() {
 				fmt.Sprintf("member_address.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) MemberAddressCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberAddress, error) {
+	return m.MemberAddressManager.Find(context, &MemberAddress{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

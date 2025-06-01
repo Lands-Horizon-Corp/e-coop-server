@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -113,5 +114,12 @@ func (m *Model) VoucherPayTo() {
 				fmt.Sprintf("voucher_pay_to.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) VoucherPayToCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*VoucherPayTo, error) {
+	return m.VoucherPayToManager.Find(context, &VoucherPayTo{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

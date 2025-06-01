@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -132,5 +133,12 @@ func (m *Model) CashCount() {
 				fmt.Sprintf("cash_count.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) CashCountCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*CashCount, error) {
+	return m.CashCountManager.Find(context, &CashCount{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

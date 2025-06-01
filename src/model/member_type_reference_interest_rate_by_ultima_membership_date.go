@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -121,5 +122,12 @@ func (m *Model) MemberTypeReferenceInterestRateByUltimaMembershipDate() {
 				fmt.Sprintf("member_type_reference_interest_rate_by_ultima_membership_date.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) MemberTypeReferenceInterestRateByUltimaMembershipDateCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberTypeReferenceInterestRateByUltimaMembershipDate, error) {
+	return m.MemberTypeReferenceInterestRateByUltimaMembershipDateManager.Find(context, &MemberTypeReferenceInterestRateByUltimaMembershipDate{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

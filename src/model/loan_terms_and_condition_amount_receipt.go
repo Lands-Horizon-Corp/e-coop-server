@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -119,5 +120,12 @@ func (m *Model) LoanTermsAndConditionAmountReceipt() {
 				fmt.Sprintf("loan_terms_and_condition_amount_receipt.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) LoanTermsAndConditionAmountReceiptCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanTermsAndConditionAmountReceipt, error) {
+	return m.LoanTermsAndConditionAmountReceiptManager.Find(context, &LoanTermsAndConditionAmountReceipt{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

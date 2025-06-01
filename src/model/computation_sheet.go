@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -126,5 +127,12 @@ func (m *Model) ComputationSheet() {
 				fmt.Sprintf("computation_sheet.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) ComputationSheetCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ComputationSheet, error) {
+	return m.ComputationSheetManager.Find(context, &ComputationSheet{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

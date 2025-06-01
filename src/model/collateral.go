@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -110,5 +111,12 @@ func (m *Model) Collateral() {
 				fmt.Sprintf("collateral.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) CollateralCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Collateral, error) {
+	return m.CollateralManager.Find(context, &Collateral{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

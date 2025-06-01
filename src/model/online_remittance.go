@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -159,5 +160,12 @@ func (m *Model) OnlineRemittance() {
 				fmt.Sprintf("online_remittance.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) OnlineRemittanceCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*OnlineRemittance, error) {
+	return m.OnlineRemittanceManager.Find(context, &OnlineRemittance{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

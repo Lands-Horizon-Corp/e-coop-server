@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -107,5 +108,12 @@ func (m *Model) MemberOtherInformationEntry() {
 				fmt.Sprintf("member_other_information_entry.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) MemberOtherInformationEntryCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberOtherInformationEntry, error) {
+	return m.MemberOtherInformationEntryManager.Find(context, &MemberOtherInformationEntry{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

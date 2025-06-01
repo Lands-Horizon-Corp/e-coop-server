@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -541,5 +542,12 @@ func (m *Model) LoanTransaction() {
 				fmt.Sprintf("loan_transaction.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) LoanTransactionCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanTransaction, error) {
+	return m.LoanTransactionManager.Find(context, &LoanTransaction{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

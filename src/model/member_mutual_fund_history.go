@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -101,5 +102,12 @@ func (m *Model) MemberMutualFundHistory() {
 				fmt.Sprintf("member_mutual_fund_history.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) MemberMutualFundHistoryCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberMutualFundHistory, error) {
+	return m.MemberMutualFundHistoryManager.Find(context, &MemberMutualFundHistory{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

@@ -81,7 +81,7 @@ func (c *Controller) UserRatingController() {
 		if err != nil {
 			return err
 		}
-		userRatig, err := c.model.GetOrganizationBranchRatings(context, userOrg.OrganizationID, *userOrg.BranchID)
+		userRatig, err := c.model.UserRatingCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}

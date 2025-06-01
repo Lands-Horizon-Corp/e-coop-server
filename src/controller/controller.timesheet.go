@@ -109,7 +109,7 @@ func (c *Controller) TimesheetController() {
 		if err != nil {
 			return ctx.NoContent(http.StatusNoContent)
 		}
-		timesheets, err := c.model.GetAllUserTimesheet(context, user.OrganizationID, *user.BranchID)
+		timesheets, err := c.model.TimesheetCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}

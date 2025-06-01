@@ -1,32 +1,15 @@
 import re
-import sys
 import pyperclip
 
 result = '''
-Created: func(data *FinancialStatementAccountsGrouping) []string {
-	return []string{
-		"financial_statement_accounts_grouping.create",
-		fmt.Sprintf("financial_statement_accounts_grouping.create.%s", data.ID),
-		fmt.Sprintf("financial_statement_accounts_grouping.create.branch.%s", data.BranchID),
-		fmt.Sprintf("financial_statement_accounts_grouping.create.organization.%s", data.OrganizationID),
-	}
-},
-Updated: func(data *FinancialStatementAccountsGrouping) []string {
-	return []string{
-		"financial_statement_accounts_grouping.update",
-		fmt.Sprintf("financial_statement_accounts_grouping.update.%s", data.ID),
-		fmt.Sprintf("financial_statement_accounts_grouping.update.branch.%s", data.BranchID),
-		fmt.Sprintf("financial_statement_accounts_grouping.update.organization.%s", data.OrganizationID),
-	}
-},
-Deleted: func(data *FinancialStatementAccountsGrouping) []string {
-	return []string{
-		"financial_statement_accounts_grouping.delete",
-		fmt.Sprintf("financial_statement_accounts_grouping.delete.%s", data.ID),
-		fmt.Sprintf("financial_statement_accounts_grouping.delete.branch.%s", data.BranchID),
-		fmt.Sprintf("financial_statement_accounts_grouping.delete.organization.%s", data.OrganizationID),
-	}
-},
+
+func (m *Model) MemberGenderCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberGender, error) {
+	return m.MemberGenderManager.Find(context, &MemberGender{
+		OrganizationID: orgId,
+		BranchID:       branchId,
+	})
+}
+
 '''
 
 def to_snake(s: str) -> str:
@@ -35,38 +18,28 @@ def to_snake(s: str) -> str:
     return s.lower()
 
 def copy_output_to_clipboard(output: str):
-    pyperclip.copy(output)
-    print(output)
+    try:
+        pyperclip.copy(output)
+        print("✅ Copied to clipboard:")
+    except pyperclip.PyperclipException as e:
+        print("⚠️ Failed to copy to clipboard:", e)
+        print("💡 Make sure xclip or xsel is installed and disk has space.")
+    finally:
+        print("----- Output -----")
+        print(output)
 
-change = "FinancialStatementAccountsGrouping"   
+change = "MemberGender"
 
 def changer(to: str):
     global result
     result = result.replace(change, to).replace(to_snake(change), to_snake(to))
     copy_output_to_clipboard(result)
 
-
-
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python main.py <NewName>")
-        sys.exit(1)
-
-    new_name = sys.argv[1]
-    changer(new_name)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    try:
+        new_name = pyperclip.paste().strip()
+        if not new_name:
+            raise ValueError("Clipboard is empty.")
+        changer(new_name)
+    except Exception as e:
+        print(f"❌ Error: {e}")

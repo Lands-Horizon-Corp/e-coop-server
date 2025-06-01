@@ -49,6 +49,7 @@ func NewController(
 
 func (c *Controller) Start() error {
 
+	// Basic Onboardding & Utilities
 	c.BranchController()
 	c.CategoryController()
 	c.ContactController()
@@ -67,6 +68,14 @@ func (c *Controller) Start() error {
 	c.UserController()
 	c.UserOrganinzationController()
 	c.UserRatingController()
+
+	// Member Profile
+	c.MemberGender()
+	c.MemberCenter()
+	c.MemberType()
+	c.MemberClassification()
+	c.MemberOccupation()
+	c.MemberGroup()
 
 	return nil
 }

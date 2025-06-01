@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -131,5 +132,12 @@ func (m *Model) LoanComakerMember() {
 				fmt.Sprintf("loan_comaker_member.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) LoanComakerMemberCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanComakerMember, error) {
+	return m.LoanComakerMemberManager.Find(context, &LoanComakerMember{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

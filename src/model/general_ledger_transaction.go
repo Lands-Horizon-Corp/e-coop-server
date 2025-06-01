@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -133,5 +134,12 @@ func (m *Model) GeneralLedgerTransaction() {
 				fmt.Sprintf("general_ledger_transaction.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) GeneralLedgerTransactionCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*GeneralLedgerTransaction, error) {
+	return m.GeneralLedgerTransactionManager.Find(context, &GeneralLedgerTransaction{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

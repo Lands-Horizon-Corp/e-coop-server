@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -137,5 +138,12 @@ func (m *Model) BatchFunding() {
 				fmt.Sprintf("batch_funding.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) BatchFundingCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*BatchFunding, error) {
+	return m.BatchFundingManager.Find(context, &BatchFunding{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

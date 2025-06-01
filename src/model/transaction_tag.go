@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -129,5 +130,12 @@ func (m *Model) TransactionTag() {
 				fmt.Sprintf("transaction_tag.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) TransactionTagCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*TransactionTag, error) {
+	return m.TransactionTagManager.Find(context, &TransactionTag{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

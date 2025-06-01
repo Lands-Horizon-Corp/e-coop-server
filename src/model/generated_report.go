@@ -130,3 +130,10 @@ func (m *Model) GetGenerationReportByUser(context context.Context, userId uuid.U
 		UserID: &userId,
 	})
 }
+
+func (m *Model) GeneratedReportCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*GeneratedReport, error) {
+	return m.GeneratedReportManager.Find(context, &GeneratedReport{
+		OrganizationID: orgId,
+		BranchID:       branchId,
+	})
+}

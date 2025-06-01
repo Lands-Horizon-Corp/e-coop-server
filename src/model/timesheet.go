@@ -130,10 +130,11 @@ func (m *Model) Timesheet() {
 		},
 	})
 }
-func (m *Model) GetAllUserTimesheet(context context.Context, orgId, branchId uuid.UUID) ([]*Timesheet, error) {
+
+func (m *Model) TimesheetCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Timesheet, error) {
 	return m.TimesheetManager.Find(context, &Timesheet{
-		BranchID:       branchId,
 		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }
 

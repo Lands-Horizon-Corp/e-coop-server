@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -147,5 +148,12 @@ func (m *Model) BrowseExcludeIncludeAccounts() {
 				fmt.Sprintf("browse_exclude_include_accounts.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) BrowseExcludeIncludeAccountsCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*BrowseExcludeIncludeAccounts, error) {
+	return m.BrowseExcludeIncludeAccountsManager.Find(context, &BrowseExcludeIncludeAccounts{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

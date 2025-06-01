@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -163,5 +164,12 @@ func (m *Model) PostDatedCheck() {
 				fmt.Sprintf("post_dated_check.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) PostDatedCheckCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*PostDatedCheck, error) {
+	return m.PostDatedCheckManager.Find(context, &PostDatedCheck{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

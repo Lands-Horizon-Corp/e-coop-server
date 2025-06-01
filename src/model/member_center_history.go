@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -110,5 +111,12 @@ func (m *Model) MemberCenterHistory() {
 				fmt.Sprintf("member_center_history.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) MemberCenterHistoryCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberCenterHistory, error) {
+	return m.MemberCenterHistoryManager.Find(context, &MemberCenterHistory{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

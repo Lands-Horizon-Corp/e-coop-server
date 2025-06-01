@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -123,5 +124,12 @@ func (m *Model) TimeDepositComputationPreMature() {
 				fmt.Sprintf("time_deposit_computation_pre_mature.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) TimeDepositComputationPreMatureCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*TimeDepositComputationPreMature, error) {
+	return m.TimeDepositComputationPreMatureManager.Find(context, &TimeDepositComputationPreMature{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

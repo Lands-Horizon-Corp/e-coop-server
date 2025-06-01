@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -158,5 +159,12 @@ func (m *Model) MemberAccountingLedger() {
 				fmt.Sprintf("member_accounting_ledger.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) MemberAccountingLedgerCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberAccountingLedger, error) {
+	return m.MemberAccountingLedgerManager.Find(context, &MemberAccountingLedger{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -125,5 +126,12 @@ func (m *Model) CollectorsMemberAccountEntry() {
 				fmt.Sprintf("collectors_member_account_entry.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) CollectorsMemberAccountEntryCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*CollectorsMemberAccountEntry, error) {
+	return m.CollectorsMemberAccountEntryManager.Find(context, &CollectorsMemberAccountEntry{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }
