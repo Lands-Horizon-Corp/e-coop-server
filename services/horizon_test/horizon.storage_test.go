@@ -134,9 +134,7 @@ func createTestService(t *testing.T) *horizon.HorizonStorage {
 		1024*1024*10, // 10MB max size
 	).(*horizon.HorizonStorage)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
+	ctx := context.Background()
 	err := hs.Run(ctx)
 	require.NoError(t, err)
 

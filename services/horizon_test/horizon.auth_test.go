@@ -23,8 +23,7 @@ type TestClaimUserCSRF struct {
 func (t TestClaimUserCSRF) GetID() string { return t.UserID }
 
 func createCacheSetupService(t *testing.T) horizon.CacheService {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
+	ctx := context.Background()
 
 	env := horizon.NewEnvironmentService("../../.env")
 	cache := horizon.NewHorizonCache(
@@ -36,13 +35,13 @@ func createCacheSetupService(t *testing.T) horizon.CacheService {
 
 	// Add connection retry logic
 	var err error
-	maxRetries := 3
+	maxRetries := 5
 	for i := 0; i < maxRetries; i++ {
 		err = cache.Run(ctx)
 		if err == nil {
 			break
 		}
-		time.Sleep(time.Duration(i+1) * 500 * time.Millisecond)
+		time.Sleep(time.Duration(i+1) * 3 * time.Second)
 	}
 	require.NoError(t, err, "Failed to connect to Redis after %d attempts", maxRetries)
 

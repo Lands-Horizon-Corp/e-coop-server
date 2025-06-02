@@ -37,6 +37,7 @@ Follow these steps to set up and run the project locally:
    Run the tests inside the terminal. Make sure NATS is running in Docker.
 
    ```bash
+   go clean cache
    go test -v ./services/horizon_test
    ```
 

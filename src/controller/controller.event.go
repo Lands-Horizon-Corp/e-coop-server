@@ -107,6 +107,7 @@ func (c *Controller) NotificationController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
+		Route:   "/notification/view",
 		Method:  "PUT",
 		Request: "string[] ids",
 		Note:    "Apply View on multiple notification records",

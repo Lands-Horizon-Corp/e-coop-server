@@ -30,7 +30,7 @@ func TestMain(m *testing.M) {
 	clientName := env.GetString("APP_CLIENT_NAME", "test-client")
 	baseURL := "http://localhost:" + fmt.Sprint(apiPort)
 
-	testCtx, testCancel = context.WithCancel(context.Background())
+	testCtx := context.Background()
 
 	service := horizon.NewHorizonAPIService(apiPort, metricsPort, clientUrl, clientName)
 	go func() {

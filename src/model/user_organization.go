@@ -251,3 +251,19 @@ func (m *Model) UserOrganizationMemberCanJoin(context context.Context, userID uu
 	})
 	return err == nil && existingOrgCount == 0
 }
+
+func (m *Model) Employees(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*UserOrganization, error) {
+	return m.UserOrganizationManager.Find(context, &UserOrganization{
+		OrganizationID: organizationID,
+		BranchID:       &branchID,
+		UserType:       "employee",
+	})
+}
+
+func (m *Model) Members(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*UserOrganization, error) {
+	return m.UserOrganizationManager.Find(context, &UserOrganization{
+		OrganizationID: organizationID,
+		BranchID:       &branchID,
+		UserType:       "members",
+	})
+}
