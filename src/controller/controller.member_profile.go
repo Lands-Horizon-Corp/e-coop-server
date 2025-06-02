@@ -11,7 +11,88 @@ import (
 	"github.com/lands-horizon/horizon-server/src/model"
 )
 
-func (c *Controller) MemberProfileController() {}
+func (c *Controller) MemberProfileController() {
+
+	req := c.provider.Service.Request
+
+	req.RegisterRoute(horizon.Route{
+		Route:    "/member-profile",
+		Method:   "GET",
+		Response: "[]MemberProfile",
+		Note:     "Retrieve a list of all member profiles.",
+	}, func(ctx echo.Context) error {
+		return nil
+	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:    "/member-profile/:member_profile_id",
+		Method:   "GET",
+		Response: "MemberProfile",
+		Note:     "Retrieve a specific member profile by its member_profile_id.",
+	}, func(ctx echo.Context) error {
+		return nil
+	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:    "/member-profile/:member_profile_id/close",
+		Method:   "POST",
+		Request:  "MemberCloseRemarkRequest",
+		Response: "MemberProfile",
+		Note:     "Close the specified member profile by member_profile_id. Requires a remark for closing.",
+	}, func(ctx echo.Context) error {
+		return nil
+	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:    "/member-profile/:member_profile_id/connect-user",
+		Method:   "POST",
+		Request:  "MemberProfileAccountRequest",
+		Response: "MemberProfile",
+		Note:     "Connect the specified member profile to a user account using member_profile_id.",
+	}, func(ctx echo.Context) error {
+		return nil
+	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:    "/member-profile/quick-create",
+		Method:   "POST",
+		Request:  "MemberProfilePersonalInfoRequest",
+		Response: "MemberProfilePersonalInfoRequest",
+		Note:     "Quickly create a new member profile with minimal required fields.",
+	}, func(ctx echo.Context) error {
+		return nil
+	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:    "/member-profile/:member_profile_id/personal-info",
+		Method:   "PUT",
+		Request:  "MemberProfilePersonalInfoRequest",
+		Response: "MemberProfile",
+		Note:     "Update the personal information of a member profile identified by member_profile_id.",
+	}, func(ctx echo.Context) error {
+		return nil
+	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:    "/member-profile/:member_profile_id/membership-info",
+		Method:   "PUT",
+		Request:  "MemberProfileMembershipInfoRequest",
+		Response: "MemberProfile",
+		Note:     "Update the membership information of a member profile identified by member_profile_id.",
+	}, func(ctx echo.Context) error {
+		return nil
+	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:    "/member-profile/:member_profile_id/medias",
+		Method:   "PUT",
+		Request:  "MemberProfileMediasRequest",
+		Response: "MemberProfile",
+		Note:     "Update the media information (e.g., photos, documents) of a member profile identified by member_profile_id.",
+	}, func(ctx echo.Context) error {
+		return nil
+	})
+}
 
 func (c *Controller) MemberEducationalAttainmentController() {
 	req := c.provider.Service.Request

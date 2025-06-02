@@ -165,6 +165,47 @@ type (
 		BusinessContactNumber          string     `json:"business_contact_number,omitempty"`
 		CivilStatus                    string     `json:"civil_status,omitempty"`
 	}
+
+	MemberProfilePersonalInfoRequest struct {
+		FirstName      string     `json:"first_name" validate:"required,min=1,max=255"`
+		MiddleName     string     `json:"middle_name,omitempty" validate:"max=255"`
+		LastName       string     `json:"last_name" validate:"required,min=1,max=255"`
+		FullName       string     `json:"full_name,omitempty" validate:"max=255"`
+		Suffix         string     `json:"suffix,omitempty" validate:"max=50"`
+		MemberGenderID *uuid.UUID `json:"member_gender_id,omitempty"`
+		BirthDate      *time.Time `json:"birth_date,omitempty"`
+		ContactNumber  string     `json:"contact_number,omitempty" validate:"max=255"`
+
+		CivilStatus string `json:"civil_status" validate:"required,oneof=single married widowed separated divorced"` // Adjust the allowed values as needed
+
+		OccupationID    *uuid.UUID `json:"occupation_id,omitempty"`
+		BusinessAddress string     `json:"business_address,omitempty" validate:"max=255"`
+		BusinessContact string     `json:"business_contact,omitempty" validate:"max=255"`
+		Notes           string     `json:"notes,omitempty"`
+		Description     string     `json:"description,omitempty"`
+	}
+
+	MemberProfileMembershipInfoRequest struct {
+		Passbook                   string     `json:"passbook,omitempty" validate:"max=255"`
+		OldReferenceID             string     `json:"old_reference_id,omitempty" validate:"max=50"`
+		Status                     string     `json:"status,omitempty" validate:"max=50"`
+		MemberTypeID               *uuid.UUID `json:"member_type_id,omitempty"`
+		MemberGroupID              *uuid.UUID `json:"member_group_id,omitempty"`
+		MemberClassificationID     *uuid.UUID `json:"member_classification_id,omitempty"`
+		MemberCenterID             *uuid.UUID `json:"member_center_id,omitempty"`
+		RecruitedByMemberProfileID *uuid.UUID `json:"recruited_by_member_profile_id,omitempty"`
+		IsMutualFundMember         *bool      `json:"is_mutual_fund_member,omitempty"`
+		IsMicroFinanceMember       *bool      `json:"is_micro_finance_member,omitempty"`
+	}
+
+	MemberProfileAccountRequest struct {
+		UserID *uuid.UUID `json:"user_id,omitempty"`
+	}
+
+	MemberProfileMediasRequest struct {
+		MediaID          *uuid.UUID `json:"media_id,omitempty"`
+		SignatureMediaID *uuid.UUID `json:"signature_media_id,omitempty"`
+	}
 )
 
 func (m *Model) MemberProfile() {
