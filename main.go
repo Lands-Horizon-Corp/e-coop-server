@@ -8,6 +8,7 @@ import (
 	"github.com/lands-horizon/horizon-server/src"
 	"github.com/lands-horizon/horizon-server/src/controller"
 	"github.com/lands-horizon/horizon-server/src/cooperative_tokens"
+	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 
 	"go.uber.org/fx"
@@ -24,6 +25,7 @@ func main() {
 			src.NewValidator,
 			model.NewModel,
 			controller.NewController,
+			event.NewEvent,
 			seeder.NewSeeder,
 
 			cooperative_tokens.NewUserToken,

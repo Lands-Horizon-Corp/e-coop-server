@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"time"
@@ -21,7 +20,7 @@ func (c *Controller) UserController() {
 		Method:   "GET",
 		Response: "TUser",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		user, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
 			return ctx.NoContent(http.StatusNoContent)
@@ -39,7 +38,6 @@ func (c *Controller) UserController() {
 			User:             c.model.UserManager.ToModel(user),
 			UserOrganization: userOrg,
 		})
-
 	})
 
 	req.RegisterRoute(horizon.Route{
@@ -48,7 +46,7 @@ func (c *Controller) UserController() {
 		Method:   "GET",
 		Response: "ILoggedInUser",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		_, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
 			return err
@@ -71,7 +69,7 @@ func (c *Controller) UserController() {
 		Method: "POST",
 		Note:   "Logout all users including itself",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		_, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
 			return err
@@ -88,7 +86,7 @@ func (c *Controller) UserController() {
 		Request:  "ISignInRequest",
 		Response: "TUser",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		var req model.UserLoginRequest
 		if err := ctx.Bind(&req); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -126,7 +124,7 @@ func (c *Controller) UserController() {
 		Route:  "/authentication/logout",
 		Method: "POST",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		c.userToken.CSRF.ClearCSRF(context, ctx)
 		return ctx.NoContent(http.StatusNoContent)
 	})
@@ -137,7 +135,7 @@ func (c *Controller) UserController() {
 		Request:  "ISignUpRequest",
 		Response: "TUser",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		req, err := c.model.UserManager.Validate(ctx)
 		if err != nil {
 			return err
@@ -160,6 +158,8 @@ func (c *Controller) UserController() {
 			MediaID:           req.MediaID,
 			IsEmailVerified:   false,
 			IsContactVerified: false,
+			CreatedAt:         time.Now().UTC(),
+			UpdatedAt:         time.Now().UTC(),
 		}
 
 		if err := c.model.UserManager.Create(context, user); err != nil {
@@ -180,7 +180,7 @@ func (c *Controller) UserController() {
 		Request:  "IForgotPasswordRequest",
 		Response: "TUser",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		var req model.UserForgotPasswordRequest
 		if err := ctx.Bind(&req); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -215,7 +215,7 @@ func (c *Controller) UserController() {
 		if err := c.provider.Service.Cache.Set(context, token, user.ID, 10*time.Minute); err != nil {
 			return echo.NewHTTPError(http.StatusNotFound, "invalid storing token")
 		}
-		return nil
+		return ctx.NoContent(http.StatusNoContent)
 	})
 
 	req.RegisterRoute(horizon.Route{
@@ -223,7 +223,7 @@ func (c *Controller) UserController() {
 		Method: "GET",
 		Note:   "Verify Reset Link: this is the link that is sent to the user to reset their password. this will verify if the link is valid.",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 
 		resetID := ctx.Param("reset_id")
 		if resetID == "" {
@@ -250,7 +250,7 @@ func (c *Controller) UserController() {
 		Request: "IChangePasswordRequest",
 		Note:    "Change Password: this is the link that is sent to the user to reset their password. this will change the user's password.",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		var req model.UserChangePasswordRequest
 		if err := ctx.Bind(&req); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -293,7 +293,7 @@ func (c *Controller) UserController() {
 		Method: "POST",
 		Note:   "Apply Contact Number: this is used to send OTP for contact number verification.",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		user, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
 			return err
@@ -322,7 +322,7 @@ func (c *Controller) UserController() {
 		Request: "IVerifyContactNumberRequest",
 		Note:    "Verify Contact Number: this is used to verify the OTP sent to the user's new contact number.",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		var req model.UserVerifyContactNumberRequest
 		if err := ctx.Bind(&req); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -364,7 +364,7 @@ func (c *Controller) UserController() {
 		Method: "POST",
 		Note:   "Apply Email: this is used to send OTP for email verification.",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		user, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
 			return err
@@ -393,7 +393,7 @@ func (c *Controller) UserController() {
 		Request: "IVerifyEmailRequest",
 		Note:    "Verify Email: this is used to verify the OTP sent to the user's new email.",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		var req model.UserVerifyEmailRequest
 		if err := ctx.Bind(&req); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -436,7 +436,7 @@ func (c *Controller) UserController() {
 		Request: "password & password confirmation",
 		Note:    "Verify with Password: this is used to verify the user's password. [for preceeding protected self actions]",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 
 		// Bind the request body to UserSettingsChangeProfilePictureRequest struct
 		var req model.UserVerifyWithPasswordRequest
@@ -469,7 +469,7 @@ func (c *Controller) UserController() {
 		Request: "IChangePasswordRequest",
 		Note:    "Change Password: this is used to change the user's password.",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		var req model.UserSettingsChangePasswordRequest
 		if err := ctx.Bind(&req); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -510,7 +510,7 @@ func (c *Controller) UserController() {
 		Response: "TUser",
 		Note:     "Change Profile Picture: this is used to change the user's profile picture.",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		// Bind the request body
 		var req model.UserSettingsChangeProfilePictureRequest
 		if err := ctx.Bind(&req); err != nil {
@@ -566,7 +566,7 @@ func (c *Controller) UserController() {
 		Response: "TUser",
 		Note:     "Change General Settings: this is used to change the user's general settings.",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		var req model.UserSettingsChangeGeneralRequest
 		if err := ctx.Bind(&req); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -600,5 +600,140 @@ func (c *Controller) UserController() {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to set user token: "+err.Error())
 		}
 		return ctx.JSON(http.StatusOK, c.model.UserManager.ToModel(updatedUser))
+	})
+}
+
+func (c *Controller) UserRatingController() {
+	req := c.provider.Service.Request
+
+	// Get all user ratings made by the specified user (rater)
+	req.RegisterRoute(horizon.Route{
+		Route:    "/user-rating/user-rater/:user_id",
+		Method:   "GET",
+		Response: "TUserRating[]",
+		Note:     "Returns all user ratings given by the specified user (rater).",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userId, err := horizon.EngineUUIDParam(ctx, "user_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid user ID")
+		}
+		userRating, err := c.model.GetUserRater(context, *userId)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.UserRatingManager.ToModels(userRating))
+	})
+
+	// Get all user ratings received by the specified user (ratee)
+	req.RegisterRoute(horizon.Route{
+		Route:    "/user-rating/user-ratee/:user_id",
+		Method:   "GET",
+		Response: "TUserRating[]",
+		Note:     "Returns all user ratings received by the specified user (ratee).",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userId, err := horizon.EngineUUIDParam(ctx, "user_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid user ID")
+		}
+		userRating, err := c.model.GetUserRatee(context, *userId)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.UserRatingManager.ToModels(userRating))
+	})
+
+	// Get a specific user rating by its ID
+	req.RegisterRoute(horizon.Route{
+		Route:    "/user-rating/:user_rating_id",
+		Method:   "GET",
+		Response: "TUserRating",
+		Note:     "Returns a specific user rating by its ID.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userRatingId, err := horizon.EngineUUIDParam(ctx, "user_rating_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid rating ID")
+		}
+		userRating, err := c.model.UserRatingManager.GetByID(context, *userRatingId)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.UserRatingManager.ToModel(userRating))
+	})
+
+	// Get all user ratings for the current user's branch
+	req.RegisterRoute(horizon.Route{
+		Route:    "/user-rating/branch",
+		Method:   "GET",
+		Response: "TUserRating[]",
+		Note:     "Returns all user ratings in the current user's active branch.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return err
+		}
+		userRatig, err := c.model.UserRatingCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.UserRatingManager.ToModels(userRatig))
+	})
+
+	// Create a new user rating in the current branch
+	req.RegisterRoute(horizon.Route{
+		Route:    "/user-rating",
+		Method:   "POST",
+		Response: "TUserRating",
+		Request:  "TUserRating",
+		Note:     "Creates a new user rating in the current user's branch.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		req, err := c.model.UserRatingManager.Validate(ctx)
+		if err != nil {
+			return c.BadRequest(ctx, err.Error())
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return err
+		}
+
+		userRating := &model.UserRating{
+			CreatedAt:      time.Now().UTC(),
+			CreatedByID:    userOrg.UserID,
+			UpdatedAt:      time.Now().UTC(),
+			UpdatedByID:    userOrg.UserID,
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			RateeUserID:    req.RateeUserID,
+			RaterUserID:    req.RaterUserID,
+			Rate:           req.Rate,
+			Remark:         req.Remark,
+		}
+
+		if err := c.model.UserRatingManager.Create(context, userRating); err != nil {
+			return c.InternalServerError(ctx, err)
+		}
+
+		return ctx.JSON(http.StatusOK, c.model.UserRatingManager.ToModel(userRating))
+	})
+
+	// Delete a user rating by its ID
+	req.RegisterRoute(horizon.Route{
+		Route:  "/user-rating/:user_rating_id",
+		Method: "DELETE",
+		Note:   "Deletes a user rating by its ID.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userRatingId, err := horizon.EngineUUIDParam(ctx, "user_rating_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid rating ID")
+		}
+		if err := c.model.UserRatingManager.DeleteByID(context, *userRatingId); err != nil {
+			return c.InternalServerError(ctx, err)
+		}
+		return ctx.NoContent(http.StatusNoContent)
 	})
 }

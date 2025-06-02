@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -194,5 +195,12 @@ func (m *Model) CheckEntry() {
 				fmt.Sprintf("check_entry.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) CheckEntryCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*CheckEntry, error) {
+	return m.CheckEntryManager.Find(context, &CheckEntry{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

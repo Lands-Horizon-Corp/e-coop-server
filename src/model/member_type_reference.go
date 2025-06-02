@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -151,5 +152,12 @@ func (m *Model) MemberTypeReference() {
 				fmt.Sprintf("member_type_reference.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) MemberTypeReferenceCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberTypeReference, error) {
+	return m.MemberTypeReferenceManager.Find(context, &MemberTypeReference{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -103,5 +104,12 @@ func (m *Model) MemberGender() {
 				fmt.Sprintf("member_gender.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) MemberGenderCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberGender, error) {
+	return m.MemberGenderManager.Find(context, &MemberGender{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

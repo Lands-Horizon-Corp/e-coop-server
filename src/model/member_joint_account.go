@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -154,5 +155,12 @@ func (m *Model) MemberJointAccount() {
 				fmt.Sprintf("member_joint_account.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) MemberJointAccountCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberJointAccount, error) {
+	return m.MemberJointAccountManager.Find(context, &MemberJointAccount{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

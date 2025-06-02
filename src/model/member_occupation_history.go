@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -111,5 +112,19 @@ func (m *Model) MemberOccupationHistory() {
 				fmt.Sprintf("member_occupation_history.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) MemberOccupationHistoryCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberOccupationHistory, error) {
+	return m.MemberOccupationHistoryManager.Find(context, &MemberOccupationHistory{
+		OrganizationID: orgId,
+		BranchID:       branchId,
+	})
+}
+func (m *Model) MemberOccupationHistoryMemberProfileID(context context.Context, memberProfileId, orgId, branchId uuid.UUID) ([]*MemberOccupationHistory, error) {
+	return m.MemberOccupationHistoryManager.Find(context, &MemberOccupationHistory{
+		OrganizationID:  orgId,
+		BranchID:        branchId,
+		MemberProfileID: memberProfileId,
 	})
 }

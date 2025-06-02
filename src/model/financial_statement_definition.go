@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -126,5 +127,12 @@ func (m *Model) FinancialStatementDefinition() {
 				fmt.Sprintf("financial_statement_definition.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) FinancialStatementDefinitionCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*FinancialStatementDefinition, error) {
+	return m.FinancialStatementDefinitionManager.Find(context, &FinancialStatementDefinition{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

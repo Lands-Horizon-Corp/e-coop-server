@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -144,5 +145,12 @@ func (m *Model) MemberGovernmentBenefit() {
 				fmt.Sprintf("member_government_benefit.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) MemberGovernmentBenefitCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberGovernmentBenefit, error) {
+	return m.MemberGovernmentBenefitManager.Find(context, &MemberGovernmentBenefit{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

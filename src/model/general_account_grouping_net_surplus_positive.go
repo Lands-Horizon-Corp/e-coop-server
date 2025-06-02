@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -120,5 +121,12 @@ func (m *Model) GeneralAccountGroupingNetSurplusPositive() {
 				fmt.Sprintf("general_account_grouping_net_surplus_positive.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) GeneralAccountGroupingNetSurplusPositiveCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*GeneralAccountGroupingNetSurplusPositive, error) {
+	return m.GeneralAccountGroupingNetSurplusPositiveManager.Find(context, &GeneralAccountGroupingNetSurplusPositive{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

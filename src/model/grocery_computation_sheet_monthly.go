@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -118,5 +119,12 @@ func (m *Model) GroceryComputationSheetMonthly() {
 				fmt.Sprintf("grocery_computation_sheet_monthly.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) GroceryComputationSheetMonthlyCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*GroceryComputationSheetMonthly, error) {
+	return m.GroceryComputationSheetMonthlyManager.Find(context, &GroceryComputationSheetMonthly{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -120,5 +121,12 @@ func (m *Model) MemberDamayanExtensionEntry() {
 				fmt.Sprintf("member_damayan_extension_entry.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) MemberDamayanExtensionEntryCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberDamayanExtensionEntry, error) {
+	return m.MemberDamayanExtensionEntryManager.Find(context, &MemberDamayanExtensionEntry{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

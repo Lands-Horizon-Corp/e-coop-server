@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -126,5 +127,12 @@ func (m *Model) ChargesRateByRangeOrMinimumAmount() {
 				fmt.Sprintf("charges_rate_by_range_or_minimum_amount.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) ChargesRateByRangeOrMinimumAmountCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ChargesRateByRangeOrMinimumAmount, error) {
+	return m.ChargesRateByRangeOrMinimumAmountManager.Find(context, &ChargesRateByRangeOrMinimumAmount{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

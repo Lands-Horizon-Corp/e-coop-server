@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -61,7 +62,7 @@ type (
 		LastName   string     `gorm:"type:varchar(255);not null"`
 		FullName   string     `gorm:"type:varchar(255);not null;index:idx_full_name"`
 		Suffix     string     `gorm:"type:varchar(50)"`
-		Birthdate  *time.Time `gorm:"type:date"`
+		BirthDate  *time.Time `gorm:"type:date"`
 		Status     string     `gorm:"type:varchar(50);not null;default:'pending'"`
 
 		Description           string `gorm:"type:text"`
@@ -117,7 +118,7 @@ type (
 		LastName                       string                        `json:"last_name"`
 		FullName                       string                        `json:"full_name"`
 		Suffix                         string                        `json:"suffix"`
-		Birthdate                      *string                       `json:"birthdate,omitempty"`
+		BirthDate                      *string                       `json:"birthdate,omitempty"`
 		Status                         string                        `json:"status"`
 		Description                    string                        `json:"description"`
 		Notes                          string                        `json:"notes"`
@@ -152,7 +153,7 @@ type (
 		LastName                       string     `json:"last_name" validate:"required,min=1,max=255"`
 		FullName                       string     `json:"full_name" validate:"required,min=1,max=255"`
 		Suffix                         string     `json:"suffix,omitempty"`
-		Birthdate                      *time.Time `json:"birthdate,omitempty"`
+		BirthDate                      *time.Time `json:"birthdate,omitempty"`
 		Status                         string     `json:"status,omitempty"`
 		Description                    string     `json:"description,omitempty"`
 		Notes                          string     `json:"notes,omitempty"`
@@ -163,6 +164,68 @@ type (
 		BusinessAddress                string     `json:"business_address,omitempty"`
 		BusinessContactNumber          string     `json:"business_contact_number,omitempty"`
 		CivilStatus                    string     `json:"civil_status,omitempty"`
+	}
+
+	MemberProfilePersonalInfoRequest struct {
+		FirstName      string     `json:"first_name" validate:"required,min=1,max=255"`
+		MiddleName     string     `json:"middle_name,omitempty" validate:"max=255"`
+		LastName       string     `json:"last_name" validate:"required,min=1,max=255"`
+		FullName       string     `json:"full_name,omitempty" validate:"max=255"`
+		Suffix         string     `json:"suffix,omitempty" validate:"max=50"`
+		MemberGenderID *uuid.UUID `json:"member_gender_id,omitempty"`
+		BirthDate      *time.Time `json:"birth_date,omitempty"`
+		ContactNumber  string     `json:"contact_number,omitempty" validate:"max=255"`
+
+		CivilStatus string `json:"civil_status" validate:"required,oneof=single married widowed separated divorced"` // Adjust the allowed values as needed
+
+		MemberOccupationID    *uuid.UUID `json:"occupation_id,omitempty"`
+		BusinessAddress       string     `json:"business_address,omitempty" validate:"max=255"`
+		BusinessContactNumber string     `json:"business_contact,omitempty" validate:"max=255"`
+		Notes                 string     `json:"notes,omitempty"`
+		Description           string     `json:"description,omitempty"`
+	}
+
+	MemberProfileMembershipInfoRequest struct {
+		Passbook                   string     `json:"passbook,omitempty" validate:"max=255"`
+		OldReferenceID             string     `json:"old_reference_id,omitempty" validate:"max=50"`
+		Status                     string     `json:"status,omitempty" validate:"max=50"`
+		MemberTypeID               *uuid.UUID `json:"member_type_id,omitempty"`
+		MemberGroupID              *uuid.UUID `json:"member_group_id,omitempty"`
+		MemberClassificationID     *uuid.UUID `json:"member_classification_id,omitempty"`
+		MemberCenterID             *uuid.UUID `json:"member_center_id,omitempty"`
+		RecruitedByMemberProfileID *uuid.UUID `json:"recruited_by_member_profile_id,omitempty"`
+		IsMutualFundMember         *bool      `json:"is_mutual_fund_member,omitempty"`
+		IsMicroFinanceMember       *bool      `json:"is_micro_finance_member,omitempty"`
+	}
+
+	MemberProfileAccountRequest struct {
+		UserID *uuid.UUID `json:"user_id,omitempty"`
+	}
+
+	MemberProfileMediasRequest struct {
+		MediaID          *uuid.UUID `json:"media_id,omitempty"`
+		SignatureMediaID *uuid.UUID `json:"signature_media_id,omitempty"`
+	}
+	MemberProfileQuickCreateRequest struct {
+		OldReferenceID         string     `json:"old_reference_id,omitempty" validate:"max=50"`
+		Passbook               string     `json:"passbook,omitempty" validate:"max=255"`
+		OrganizationID         uuid.UUID  `json:"organization_id" validate:"required"`
+		BranchID               uuid.UUID  `json:"branch_id" validate:"required"`
+		FirstName              string     `json:"first_name" validate:"required,min=1,max=255"`
+		MiddleName             string     `json:"middle_name,omitempty" validate:"max=255"`
+		LastName               string     `json:"last_name" validate:"required,min=1,max=255"`
+		FullName               string     `json:"full_name,omitempty" validate:"max=255"`
+		Suffix                 string     `json:"suffix,omitempty" validate:"max=50"`
+		MemberGenderID         *uuid.UUID `json:"member_gender_id,omitempty"`
+		BirthDate              *time.Time `json:"birth_date,omitempty"`
+		ContactNumber          string     `json:"contact_number,omitempty" validate:"max=255"`
+		CivilStatus            string     `json:"civil_status" validate:"required,oneof=single married widowed separated divorced"` // adjust allowed values as needed
+		MemberOccupationID     *uuid.UUID `json:"occupation_id,omitempty"`
+		Status                 string     `json:"status" validate:"required,max=50"`
+		IsMutualFundMember     bool       `json:"is_mutual_fund_member"`
+		IsMicroFinanceMember   bool       `json:"is_micro_finance_member"`
+		MemberTypeID           uuid.UUID  `json:"member_type_id" validate:"required"`
+		MemberClassificationID uuid.UUID  `json:"member_classification_id" validate:"required"`
 	}
 )
 
@@ -183,8 +246,8 @@ func (m *Model) MemberProfile() {
 				return nil
 			}
 			var birthdateStr *string
-			if data.Birthdate != nil {
-				s := data.Birthdate.Format("2006-01-02")
+			if data.BirthDate != nil {
+				s := data.BirthDate.Format("2006-01-02")
 				birthdateStr = &s
 			}
 			return &MemberProfileResponse{
@@ -229,7 +292,7 @@ func (m *Model) MemberProfile() {
 				LastName:                       data.LastName,
 				FullName:                       data.FullName,
 				Suffix:                         data.Suffix,
-				Birthdate:                      birthdateStr,
+				BirthDate:                      birthdateStr,
 				Status:                         data.Status,
 				Description:                    data.Description,
 				Notes:                          data.Notes,
@@ -268,4 +331,214 @@ func (m *Model) MemberProfile() {
 			}
 		},
 	})
+}
+
+func (m *Model) MemberProfileCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberProfile, error) {
+	return m.MemberProfileManager.Find(context, &MemberProfile{
+		OrganizationID: orgId,
+		BranchID:       branchId,
+	})
+}
+
+func (m *Model) MemberProfileDelete(context context.Context, tx *gorm.DB, memberProfileId uuid.UUID) error {
+	// Delete MemberEducationalAttainment records
+	memberEducationalAttainments, err := m.MemberEducationalAttainmentManager.Find(context, &MemberEducationalAttainment{
+		MemberProfileID: memberProfileId,
+	})
+	if err != nil {
+		return err
+	}
+	for _, value := range memberEducationalAttainments {
+		if err := m.MemberEducationalAttainmentManager.DeleteByIDWithTx(context, tx, value.ID); err != nil {
+			return err
+		}
+	}
+
+	memberCloseRemarks, err := m.MemberCloseRemarkManager.Find(context, &MemberCloseRemark{
+		MemberProfileID: memberProfileId,
+	})
+	if err != nil {
+		return err
+	}
+	for _, value := range memberCloseRemarks {
+		if err := m.MemberCloseRemarkManager.DeleteByIDWithTx(context, tx, value.ID); err != nil {
+			return err
+		}
+	}
+
+	// Delete MemberAddress records
+	memberAddresses, err := m.MemberAddressManager.Find(context, &MemberAddress{
+		MemberProfileID: &memberProfileId,
+	})
+	if err != nil {
+		return err
+	}
+	for _, value := range memberAddresses {
+		if err := m.MemberAddressManager.DeleteByIDWithTx(context, tx, value.ID); err != nil {
+			return err
+		}
+	}
+
+	// Delete MemberContactReference records
+	memberContactReferences, err := m.MemberContactReferenceManager.Find(context, &MemberContactReference{
+		MemberProfileID: memberProfileId,
+	})
+	if err != nil {
+		return err
+	}
+	for _, value := range memberContactReferences {
+		if err := m.MemberContactReferenceManager.DeleteByIDWithTx(context, tx, value.ID); err != nil {
+			return err
+		}
+	}
+
+	// Delete MemberAsset records
+	memberAssets, err := m.MemberAssetManager.Find(context, &MemberAsset{
+		MemberProfileID: &memberProfileId,
+	})
+	if err != nil {
+		return err
+	}
+	for _, value := range memberAssets {
+		if err := m.MemberAssetManager.DeleteByIDWithTx(context, tx, value.ID); err != nil {
+			return err
+		}
+	}
+
+	// Delete MemberIncome records
+	memberIncomes, err := m.MemberIncomeManager.Find(context, &MemberIncome{
+		MemberProfileID: memberProfileId,
+	})
+	if err != nil {
+		return err
+	}
+	for _, value := range memberIncomes {
+		if err := m.MemberIncomeManager.DeleteByIDWithTx(context, tx, value.ID); err != nil {
+			return err
+		}
+	}
+	memberExpenses, err := m.MemberExpenseManager.Find(context, &MemberExpense{
+		MemberProfileID: memberProfileId,
+	})
+	if err != nil {
+		return err
+	}
+	for _, value := range memberExpenses {
+		if err := m.MemberExpenseManager.DeleteByIDWithTx(context, tx, value.ID); err != nil {
+			return err
+		}
+	}
+	memberGovernmentBenefits, err := m.MemberGovernmentBenefitManager.Find(context, &MemberGovernmentBenefit{
+		MemberProfileID: memberProfileId,
+	})
+	if err != nil {
+		return err
+	}
+	for _, value := range memberGovernmentBenefits {
+		if err := m.MemberGovernmentBenefitManager.DeleteByIDWithTx(context, tx, value.ID); err != nil {
+			return err
+		}
+	}
+	memberJointAccounts, err := m.MemberJointAccountManager.Find(context, &MemberJointAccount{
+		MemberProfileID: memberProfileId,
+	})
+	if err != nil {
+		return err
+	}
+	for _, value := range memberJointAccounts {
+		if err := m.MemberJointAccountManager.DeleteByIDWithTx(context, tx, value.ID); err != nil {
+			return err
+		}
+	}
+	memberRelativeAccounts, err := m.MemberRelativeAccountManager.Find(context, &MemberRelativeAccount{
+		MemberProfileID: memberProfileId,
+	})
+	if err != nil {
+		return err
+	}
+	for _, value := range memberRelativeAccounts {
+		if err := m.MemberRelativeAccountManager.DeleteByIDWithTx(context, tx, value.ID); err != nil {
+			return err
+		}
+	}
+
+	// Delete MemberGenderHistory records
+	memberGenderHistories, err := m.MemberGenderHistoryManager.Find(context, &MemberGenderHistory{
+		MemberProfileID: memberProfileId,
+	})
+	if err != nil {
+		return err
+	}
+	for _, value := range memberGenderHistories {
+		if err := m.MemberGenderHistoryManager.DeleteByIDWithTx(context, tx, value.ID); err != nil {
+			return err
+		}
+	}
+
+	// Delete MemberCenterHistory records
+	memberCenterHistories, err := m.MemberCenterHistoryManager.Find(context, &MemberCenterHistory{
+		MemberProfileID: memberProfileId,
+	})
+	if err != nil {
+		return err
+	}
+	for _, value := range memberCenterHistories {
+		if err := m.MemberCenterHistoryManager.DeleteByIDWithTx(context, tx, value.ID); err != nil {
+			return err
+		}
+	}
+
+	// Delete MemberTypeHistory records
+	memberTypeHistories, err := m.MemberTypeHistoryManager.Find(context, &MemberTypeHistory{
+		MemberProfileID: memberProfileId,
+	})
+	if err != nil {
+		return err
+	}
+	for _, value := range memberTypeHistories {
+		if err := m.MemberTypeHistoryManager.DeleteByIDWithTx(context, tx, value.ID); err != nil {
+			return err
+		}
+	}
+
+	// Delete MemberClassificationHistory records
+	memberClassificationHistories, err := m.MemberClassificationHistoryManager.Find(context, &MemberClassificationHistory{
+		MemberProfileID: memberProfileId,
+	})
+	if err != nil {
+		return err
+	}
+	for _, value := range memberClassificationHistories {
+		if err := m.MemberClassificationHistoryManager.DeleteByIDWithTx(context, tx, value.ID); err != nil {
+			return err
+		}
+	}
+
+	// Delete MemberOccupationHistory records
+	memberOccupationHistories, err := m.MemberOccupationHistoryManager.Find(context, &MemberOccupationHistory{
+		MemberProfileID: memberProfileId,
+	})
+	if err != nil {
+		return err
+	}
+	for _, value := range memberOccupationHistories {
+		if err := m.MemberOccupationHistoryManager.DeleteByIDWithTx(context, tx, value.ID); err != nil {
+			return err
+		}
+	}
+
+	// Delete MemberGroupHistory records
+	memberGroupHistories, err := m.MemberGroupHistoryManager.Find(context, &MemberGroupHistory{
+		MemberProfileID: memberProfileId,
+	})
+	if err != nil {
+		return err
+	}
+	for _, value := range memberGroupHistories {
+		if err := m.MemberGroupHistoryManager.DeleteByIDWithTx(context, tx, value.ID); err != nil {
+			return err
+		}
+	}
+
+	return m.MemberProfileManager.DeleteByIDWithTx(context, tx, memberProfileId)
 }

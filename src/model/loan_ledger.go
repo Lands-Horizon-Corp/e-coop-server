@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -97,5 +98,12 @@ func (m *Model) LoanLedger() {
 				fmt.Sprintf("loan_ledger.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) LoanLedgerCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanLedger, error) {
+	return m.LoanLedgerManager.Find(context, &LoanLedger{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

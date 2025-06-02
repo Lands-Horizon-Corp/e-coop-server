@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -121,5 +122,12 @@ func (m *Model) PaymentType() {
 				fmt.Sprintf("payment_type.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) PaymentTypeCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*PaymentType, error) {
+	return m.PaymentTypeManager.Find(context, &PaymentType{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

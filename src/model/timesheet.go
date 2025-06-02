@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -62,11 +63,7 @@ type (
 	}
 
 	TimesheetRequest struct {
-		UserID     uuid.UUID  `json:"user_id"`
-		MediaInID  *uuid.UUID `json:"media_in_id,omitempty"`
-		MediaOutID *uuid.UUID `json:"media_out_id,omitempty"`
-		TimeIn     time.Time  `json:"time_in"`
-		TimeOut    *time.Time `json:"time_out,omitempty"`
+		MediaID *uuid.UUID `json:"media_id,omitempty"`
 	}
 )
 
@@ -131,5 +128,20 @@ func (m *Model) Timesheet() {
 				fmt.Sprintf("timesheet.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) TimesheetCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Timesheet, error) {
+	return m.TimesheetManager.Find(context, &Timesheet{
+		OrganizationID: orgId,
+		BranchID:       branchId,
+	})
+}
+
+func (m *Model) GetUserTimesheet(context context.Context, userId, orgId, branchId uuid.UUID) ([]*Timesheet, error) {
+	return m.TimesheetManager.Find(context, &Timesheet{
+		UserID:         userId,
+		BranchID:       branchId,
+		OrganizationID: orgId,
 	})
 }

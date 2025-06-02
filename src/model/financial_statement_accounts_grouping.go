@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -141,5 +142,12 @@ func (m *Model) FinancialStatementAccountsGrouping() {
 				fmt.Sprintf("financial_statement_accounts_grouping.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) FinancialStatementAccountsGroupingCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*FinancialStatementAccountsGrouping, error) {
+	return m.FinancialStatementAccountsGroupingManager.Find(context, &FinancialStatementAccountsGrouping{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

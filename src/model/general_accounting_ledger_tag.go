@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -129,5 +130,12 @@ func (m *Model) GeneralAccountingLedgerTag() {
 				fmt.Sprintf("general_accounting_ledger_tag.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) GeneralAccountingLedgerTagCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*GeneralAccountingLedgerTag, error) {
+	return m.GeneralAccountingLedgerTagManager.Find(context, &GeneralAccountingLedgerTag{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

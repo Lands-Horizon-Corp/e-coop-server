@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -160,5 +161,12 @@ func (m *Model) TimeDepositComputation() {
 				fmt.Sprintf("time_deposit_computation.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) TimeDepositComputationCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*TimeDepositComputation, error) {
+	return m.TimeDepositComputationManager.Find(context, &TimeDepositComputation{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

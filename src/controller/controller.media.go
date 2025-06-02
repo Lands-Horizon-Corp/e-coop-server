@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"time"
@@ -12,6 +11,25 @@ import (
 	"github.com/lands-horizon/horizon-server/src/model"
 )
 
+func (c *Controller) QRCodeController() {
+	req := c.provider.Service.Request
+	req.RegisterRoute(horizon.Route{
+		Route:    "/qr-code/:code",
+		Method:   "GET",
+		Response: "TUser",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		code := ctx.Param("code")
+		qr, err := c.provider.Service.QR.DecodeQR(context, &horizon.QRResult{
+			Data: code,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, qr)
+	})
+}
+
 func (c *Controller) MediaController() {
 
 	req := c.provider.Service.Request
@@ -21,7 +39,8 @@ func (c *Controller) MediaController() {
 		Method:   "GET",
 		Response: "TMedia[]",
 	}, func(ctx echo.Context) error {
-		media, err := c.model.MediaManager.ListRaw(context.Background())
+		context := ctx.Request().Context()
+		media, err := c.model.MediaManager.ListRaw(context)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
@@ -33,7 +52,7 @@ func (c *Controller) MediaController() {
 		Method:   "GET",
 		Response: "TMedia",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		mediaId, err := horizon.EngineUUIDParam(ctx, "media_id")
 		if err != nil {
 			return err
@@ -53,7 +72,7 @@ func (c *Controller) MediaController() {
 		Response: "TMedia",
 		Note:     "this route is used for uploading files",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		file, err := ctx.FormFile("file")
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "missing file")
@@ -114,7 +133,7 @@ func (c *Controller) MediaController() {
 		Response: "TMedia",
 		Note:     "This only change file name",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		mediaId, err := horizon.EngineUUIDParam(ctx, "media_id")
 		if err != nil {
 			return err
@@ -139,7 +158,7 @@ func (c *Controller) MediaController() {
 		Route:  "/media/:media_id",
 		Method: "DELETE",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		mediaId, err := horizon.EngineUUIDParam(ctx, "media_id")
 		if err != nil {
 			return err
@@ -160,7 +179,7 @@ func (c *Controller) MediaController() {
 		Request: "string[]",
 		Note:    "Delete multiple media records",
 	}, func(ctx echo.Context) error {
-		context := context.Background()
+		context := ctx.Request().Context()
 		var reqBody struct {
 			IDs []string `json:"ids"`
 		}

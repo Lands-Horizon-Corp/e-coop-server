@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -119,5 +120,12 @@ func (m *Model) FinesMaturity() {
 				fmt.Sprintf("fines_maturity.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) FinesMaturityCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*FinesMaturity, error) {
+	return m.FinesMaturityManager.Find(context, &FinesMaturity{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

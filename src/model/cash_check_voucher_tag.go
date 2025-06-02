@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -126,5 +127,12 @@ func (m *Model) CashCheckVoucherTag() {
 				fmt.Sprintf("cash_check_voucher_tag.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) CashCheckVoucherTagCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*CashCheckVoucherTag, error) {
+	return m.CashCheckVoucherTagManager.Find(context, &CashCheckVoucherTag{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

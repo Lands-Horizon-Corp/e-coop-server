@@ -19,6 +19,7 @@ type UserOrganizatonClaim struct {
 	UserID            string `json:"user_id"`
 	BranchID          string `json:"branch_id"`
 	OrganizationID    string `json:"organization_id"`
+	AccountType       string `json:"account_type"`
 	jwt.RegisteredClaims
 }
 
@@ -33,10 +34,11 @@ type UserOrganizatonToken struct {
 }
 
 func NewUserOrganizatonToken(provider *src.Provider, model *model.Model) (*UserOrganizatonToken, error) {
+	context := context.Background()
 	appName := provider.Service.Environment.GetString("APP_NAME", "")
 	appToken := provider.Service.Environment.GetString("APP_TOKEN", "")
 
-	token, err := provider.Service.Security.GenerateUUIDv5(context.Background(), appToken+"-user-organization")
+	token, err := provider.Service.Security.GenerateUUIDv5(context, appToken+"-user-organization")
 	if err != nil {
 		return nil, err
 	}
@@ -74,6 +76,7 @@ func (h *UserOrganizatonToken) SetUserOrganization(ctx context.Context, echoCtx 
 		UserID:            userOrganization.UserID.String(),
 		BranchID:          userOrganization.BranchID.String(),
 		OrganizationID:    userOrganization.OrganizationID.String(),
+		AccountType:       userOrganization.UserType,
 	}, 10*time.Hour); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to set authentication token")
 	}

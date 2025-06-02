@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -191,5 +192,12 @@ func (m *Model) OnlineEntry() {
 				fmt.Sprintf("online_entry.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) OnlineEntryCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*OnlineEntry, error) {
+	return m.OnlineEntryManager.Find(context, &OnlineEntry{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

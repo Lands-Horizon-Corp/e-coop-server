@@ -462,7 +462,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) FindOne(ctx context.Cont
 	for _, preload := range preloads {
 		db = db.Preload(preload)
 	}
-	if err := db.Order("created_at DESC").First(&entity).Error; err != nil {
+	if err := db.Order("updated_at DESC").First(&entity).Error; err != nil {
 		return nil, eris.Wrap(err, "failed to find entity")
 	}
 	return &entity, nil

@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -26,8 +27,8 @@ type (
 		BranchID       uuid.UUID      `gorm:"type:uuid;not null;index:idx_branch_org_collectors_member_address"`
 		Branch         *Branch        `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE;" json:"branch,omitempty"`
 
-		UserID *uuid.UUID `gorm:"type:uuid"`
-		User   *User      `gorm:"foreignKey:UserID;constraint:OnDelete:SET NULL;" json:"user,omitempty"`
+		MemberProfileID *uuid.UUID     `gorm:"type:uuid"`
+		MemberProfile   *MemberProfile `gorm:"foreignKey:MemberProfileID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_profile,omitempty"`
 
 		Label         string `gorm:"type:varchar(255);not null;default:home"`
 		City          string `gorm:"type:varchar(255);not null"`
@@ -52,8 +53,8 @@ type (
 		BranchID       uuid.UUID             `json:"branch_id"`
 		Branch         *BranchResponse       `json:"branch,omitempty"`
 
-		UserID *uuid.UUID    `json:"user_id,omitempty"`
-		User   *UserResponse `json:"user,omitempty"`
+		MemberProfileID *uuid.UUID             `json:"member_profile_id,omitempty"`
+		MemberProfile   *MemberProfileResponse `json:"member_profile,omitempty"`
 
 		Label         string `json:"label"`
 		City          string `json:"city"`
@@ -66,6 +67,8 @@ type (
 	}
 
 	MemberAddressRequest struct {
+		MemberProfileID *uuid.UUID `json:"member_profile_id,omitempty"`
+
 		Label         string `json:"label" validate:"required,min=1,max=255"`
 		City          string `json:"city" validate:"required,min=1,max=255"`
 		CountryCode   string `json:"country_code" validate:"required,min=1,max=5"`
@@ -87,27 +90,27 @@ func (m *Model) MemberAddress() {
 				return nil
 			}
 			return &MemberAddressReponse{
-				ID:             data.ID,
-				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
-				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
-				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
-				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
-				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
-				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
-				UserID:         data.UserID,
-				User:           m.UserManager.ToModel(data.User),
-				Label:          data.Label,
-				City:           data.City,
-				CountryCode:    data.CountryCode,
-				PostalCode:     data.PostalCode,
-				ProvinceState:  data.ProvinceState,
-				Barangay:       data.Barangay,
-				Landmark:       data.Landmark,
-				Address:        data.Address,
+				ID:              data.ID,
+				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
+				CreatedByID:     data.CreatedByID,
+				CreatedBy:       m.UserManager.ToModel(data.CreatedBy),
+				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
+				UpdatedByID:     data.UpdatedByID,
+				UpdatedBy:       m.UserManager.ToModel(data.UpdatedBy),
+				OrganizationID:  data.OrganizationID,
+				Organization:    m.OrganizationManager.ToModel(data.Organization),
+				BranchID:        data.BranchID,
+				Branch:          m.BranchManager.ToModel(data.Branch),
+				MemberProfileID: data.MemberProfileID,
+				MemberProfile:   m.MemberProfileManager.ToModel(data.MemberProfile),
+				Label:           data.Label,
+				City:            data.City,
+				CountryCode:     data.CountryCode,
+				PostalCode:      data.PostalCode,
+				ProvinceState:   data.ProvinceState,
+				Barangay:        data.Barangay,
+				Landmark:        data.Landmark,
+				Address:         data.Address,
 			}
 		},
 
@@ -135,5 +138,12 @@ func (m *Model) MemberAddress() {
 				fmt.Sprintf("member_address.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) MemberAddressCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberAddress, error) {
+	return m.MemberAddressManager.Find(context, &MemberAddress{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

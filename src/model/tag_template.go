@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -121,5 +122,12 @@ func (m *Model) TagTemplate() {
 				fmt.Sprintf("tag_template.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) TagTemplateCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*TagTemplate, error) {
+	return m.TagTemplateManager.Find(context, &TagTemplate{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

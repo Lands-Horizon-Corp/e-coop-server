@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -124,5 +125,12 @@ func (m *Model) AccountTag() {
 				fmt.Sprintf("account_tag.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) AccountTagCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*AccountTag, error) {
+	return m.AccountTagManager.Find(context, &AccountTag{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

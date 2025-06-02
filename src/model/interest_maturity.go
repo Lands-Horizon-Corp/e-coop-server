@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -118,5 +119,12 @@ func (m *Model) InterestMaturity() {
 				fmt.Sprintf("interest_maturity.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) InterestMaturityCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*InterestMaturity, error) {
+	return m.InterestMaturityManager.Find(context, &InterestMaturity{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

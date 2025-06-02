@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -104,5 +105,12 @@ func (m *Model) AccountClassification() {
 				fmt.Sprintf("account_classification.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) AccountClassificationCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*AccountClassification, error) {
+	return m.AccountClassificationManager.Find(context, &AccountClassification{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

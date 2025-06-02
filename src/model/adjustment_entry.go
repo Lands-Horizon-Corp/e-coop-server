@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -170,5 +171,12 @@ func (m *Model) AdjustmentEntry() {
 				fmt.Sprintf("adjustment_entry.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) AdjustmentEntryCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*AdjustmentEntry, error) {
+	return m.AdjustmentEntryManager.Find(context, &AdjustmentEntry{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

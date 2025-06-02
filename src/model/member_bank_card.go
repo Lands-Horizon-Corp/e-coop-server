@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -130,5 +131,12 @@ func (m *Model) MemberBankCard() {
 				fmt.Sprintf("member_bank_card.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) MemberBankCardCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberBankCard, error) {
+	return m.MemberBankCardManager.Find(context, &MemberBankCard{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

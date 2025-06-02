@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -113,5 +114,12 @@ func (m *Model) ChargesRateSchemeAccount() {
 				fmt.Sprintf("charges_rate_scheme_account.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) ChargesRateSchemeAccountCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ChargesRateSchemeAccount, error) {
+	return m.ChargesRateSchemeAccountManager.Find(context, &ChargesRateSchemeAccount{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

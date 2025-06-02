@@ -26,11 +26,11 @@ type TransactionBatchToken struct {
 }
 
 func NewTransactionBatchToken(provider *src.Provider) (*TransactionBatchToken, error) {
-
+	context := context.Background()
 	appName := provider.Service.Environment.GetString("APP_NAME", "")
 	appToken := provider.Service.Environment.GetString("APP_TOKEN", "")
 
-	token, err := provider.Service.Security.GenerateUUIDv5(context.Background(), appToken+"-transaction-batch")
+	token, err := provider.Service.Security.GenerateUUIDv5(context, appToken+"-transaction-batch")
 	if err != nil {
 		return nil, err
 	}

@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -116,5 +117,12 @@ func (m *Model) BillAndCoins() {
 				fmt.Sprintf("bill_and_coins.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) BillAndCoinsCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*BillAndCoins, error) {
+	return m.BillAndCoinsManager.Find(context, &BillAndCoins{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

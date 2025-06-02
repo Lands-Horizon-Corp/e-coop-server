@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -133,5 +134,12 @@ func (m *Model) ChargesRateMemberTypeModeOfPayment() {
 				fmt.Sprintf("charges_rate_member_type_mode_of_payment.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) ChargesRateMemberTypeModeOfPaymentCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ChargesRateMemberTypeModeOfPayment, error) {
+	return m.ChargesRateMemberTypeModeOfPaymentManager.Find(context, &ChargesRateMemberTypeModeOfPayment{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

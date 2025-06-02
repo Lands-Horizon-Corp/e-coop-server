@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -140,5 +141,12 @@ func (m *Model) JournalVoucherEntry() {
 				fmt.Sprintf("journal_voucher_entry.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) JournalVoucherEntryCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*JournalVoucherEntry, error) {
+	return m.JournalVoucherEntryManager.Find(context, &JournalVoucherEntry{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

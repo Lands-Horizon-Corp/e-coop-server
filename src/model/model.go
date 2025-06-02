@@ -71,6 +71,7 @@ type (
 		MemberCenterHistoryManager          horizon_services.Repository[MemberCenterHistory, MemberCenterHistoryResponse, MemberCenterHistoryRequest]
 		MemberCenterManager                 horizon_services.Repository[MemberCenter, MemberCenterResponse, MemberCenterRequest]
 		MemberClassificationManager         horizon_services.Repository[MemberClassification, MemberClassificationResponse, MemberClassificationRequest]
+		MemberClassificationHistoryManager  horizon_services.Repository[MemberClassificationHistory, MemberClassificationHistoryResponse, MemberClassificationHistoryRequest]
 		MemberCloseRemarkManager            horizon_services.Repository[MemberCloseRemark, MemberCloseRemarkResponse, MemberCloseRemarkRequest]
 		MemberContactReferenceManager       horizon_services.Repository[MemberContactReference, MemberContactReferenceResponse, MemberContactReferenceRequest]
 		MemberDamayanExtensionEntryManager  horizon_services.Repository[MemberDamayanExtensionEntry, MemberDamayanExtensionEntryResponse, MemberDamayanExtensionEntryRequest]

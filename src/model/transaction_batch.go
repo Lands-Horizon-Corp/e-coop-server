@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -419,5 +420,12 @@ func (m *Model) TransactionBatch() {
 				fmt.Sprintf("transaction_batch.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) TransactionBatchCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*TransactionBatch, error) {
+	return m.TransactionBatchManager.Find(context, &TransactionBatch{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

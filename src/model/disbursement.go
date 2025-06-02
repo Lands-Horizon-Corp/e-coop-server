@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -110,5 +111,12 @@ func (m *Model) Disbursement() {
 				fmt.Sprintf("disbursement.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) DisbursementCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Disbursement, error) {
+	return m.DisbursementManager.Find(context, &Disbursement{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }

@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -111,5 +112,12 @@ func (m *Model) MemberCloseRemark() {
 				fmt.Sprintf("member_close_remark.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+
+func (m *Model) MemberCloseRemarkCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberCloseRemark, error) {
+	return m.MemberCloseRemarkManager.Find(context, &MemberCloseRemark{
+		OrganizationID: orgId,
+		BranchID:       branchId,
 	})
 }
