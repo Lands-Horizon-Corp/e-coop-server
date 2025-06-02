@@ -23,8 +23,7 @@ type TestClaimUserCSRF struct {
 func (t TestClaimUserCSRF) GetID() string { return t.UserID }
 
 func createCacheSetupService(t *testing.T) horizon.CacheService {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
+	ctx := context.Background()
 
 	env := horizon.NewEnvironmentService("../../.env")
 	cache := horizon.NewHorizonCache(
