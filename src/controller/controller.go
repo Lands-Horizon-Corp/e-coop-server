@@ -87,6 +87,10 @@ func (c *Controller) Start() error {
 	c.MemberGovernmentBenefitController()
 	c.MemberJointAccountController()
 	c.MemberRelativeAccountController()
+
+	// Account Maintenance
+	c.BankController()
+	c.HolidayController()
 	return nil
 }
 
