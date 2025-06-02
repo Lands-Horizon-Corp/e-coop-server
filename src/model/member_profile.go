@@ -318,3 +318,206 @@ func (m *Model) MemberProfileCurrentBranch(context context.Context, orgId uuid.U
 		BranchID:       branchId,
 	})
 }
+
+func (m *Model) MemberProfileDelete(context context.Context, tx *gorm.DB, memberProfileId uuid.UUID) error {
+	// Delete MemberEducationalAttainment records
+	memberEducationalAttainments, err := m.MemberEducationalAttainmentManager.Find(context, &MemberEducationalAttainment{
+		MemberProfileID: memberProfileId,
+	})
+	if err != nil {
+		return err
+	}
+	for _, value := range memberEducationalAttainments {
+		if err := m.MemberEducationalAttainmentManager.DeleteByIDWithTx(context, tx, value.ID); err != nil {
+			return err
+		}
+	}
+
+	memberCloseRemarks, err := m.MemberCloseRemarkManager.Find(context, &MemberCloseRemark{
+		MemberProfileID: memberProfileId,
+	})
+	if err != nil {
+		return err
+	}
+	for _, value := range memberCloseRemarks {
+		if err := m.MemberCloseRemarkManager.DeleteByIDWithTx(context, tx, value.ID); err != nil {
+			return err
+		}
+	}
+
+	// Delete MemberAddress records
+	memberAddresses, err := m.MemberAddressManager.Find(context, &MemberAddress{
+		MemberProfileID: &memberProfileId,
+	})
+	if err != nil {
+		return err
+	}
+	for _, value := range memberAddresses {
+		if err := m.MemberAddressManager.DeleteByIDWithTx(context, tx, value.ID); err != nil {
+			return err
+		}
+	}
+
+	// Delete MemberContactReference records
+	memberContactReferences, err := m.MemberContactReferenceManager.Find(context, &MemberContactReference{
+		MemberProfileID: memberProfileId,
+	})
+	if err != nil {
+		return err
+	}
+	for _, value := range memberContactReferences {
+		if err := m.MemberContactReferenceManager.DeleteByIDWithTx(context, tx, value.ID); err != nil {
+			return err
+		}
+	}
+
+	// Delete MemberAsset records
+	memberAssets, err := m.MemberAssetManager.Find(context, &MemberAsset{
+		MemberProfileID: &memberProfileId,
+	})
+	if err != nil {
+		return err
+	}
+	for _, value := range memberAssets {
+		if err := m.MemberAssetManager.DeleteByIDWithTx(context, tx, value.ID); err != nil {
+			return err
+		}
+	}
+
+	// Delete MemberIncome records
+	memberIncomes, err := m.MemberIncomeManager.Find(context, &MemberIncome{
+		MemberProfileID: memberProfileId,
+	})
+	if err != nil {
+		return err
+	}
+	for _, value := range memberIncomes {
+		if err := m.MemberIncomeManager.DeleteByIDWithTx(context, tx, value.ID); err != nil {
+			return err
+		}
+	}
+	memberExpenses, err := m.MemberExpenseManager.Find(context, &MemberExpense{
+		MemberProfileID: memberProfileId,
+	})
+	if err != nil {
+		return err
+	}
+	for _, value := range memberExpenses {
+		if err := m.MemberExpenseManager.DeleteByIDWithTx(context, tx, value.ID); err != nil {
+			return err
+		}
+	}
+	memberGovernmentBenefits, err := m.MemberGovernmentBenefitManager.Find(context, &MemberGovernmentBenefit{
+		MemberProfileID: memberProfileId,
+	})
+	if err != nil {
+		return err
+	}
+	for _, value := range memberGovernmentBenefits {
+		if err := m.MemberGovernmentBenefitManager.DeleteByIDWithTx(context, tx, value.ID); err != nil {
+			return err
+		}
+	}
+	memberJointAccounts, err := m.MemberJointAccountManager.Find(context, &MemberJointAccount{
+		MemberProfileID: memberProfileId,
+	})
+	if err != nil {
+		return err
+	}
+	for _, value := range memberJointAccounts {
+		if err := m.MemberJointAccountManager.DeleteByIDWithTx(context, tx, value.ID); err != nil {
+			return err
+		}
+	}
+	memberRelativeAccounts, err := m.MemberRelativeAccountManager.Find(context, &MemberRelativeAccount{
+		MemberProfileID: memberProfileId,
+	})
+	if err != nil {
+		return err
+	}
+	for _, value := range memberRelativeAccounts {
+		if err := m.MemberRelativeAccountManager.DeleteByIDWithTx(context, tx, value.ID); err != nil {
+			return err
+		}
+	}
+
+	// Delete MemberGenderHistory records
+	memberGenderHistories, err := m.MemberGenderHistoryManager.Find(context, &MemberGenderHistory{
+		MemberProfileID: memberProfileId,
+	})
+	if err != nil {
+		return err
+	}
+	for _, value := range memberGenderHistories {
+		if err := m.MemberGenderHistoryManager.DeleteByIDWithTx(context, tx, value.ID); err != nil {
+			return err
+		}
+	}
+
+	// Delete MemberCenterHistory records
+	memberCenterHistories, err := m.MemberCenterHistoryManager.Find(context, &MemberCenterHistory{
+		MemberProfileID: memberProfileId,
+	})
+	if err != nil {
+		return err
+	}
+	for _, value := range memberCenterHistories {
+		if err := m.MemberCenterHistoryManager.DeleteByIDWithTx(context, tx, value.ID); err != nil {
+			return err
+		}
+	}
+
+	// Delete MemberTypeHistory records
+	memberTypeHistories, err := m.MemberTypeHistoryManager.Find(context, &MemberTypeHistory{
+		MemberProfileID: memberProfileId,
+	})
+	if err != nil {
+		return err
+	}
+	for _, value := range memberTypeHistories {
+		if err := m.MemberTypeHistoryManager.DeleteByIDWithTx(context, tx, value.ID); err != nil {
+			return err
+		}
+	}
+
+	// Delete MemberClassificationHistory records
+	memberClassificationHistories, err := m.MemberClassificationHistoryManager.Find(context, &MemberClassificationHistory{
+		MemberProfileID: memberProfileId,
+	})
+	if err != nil {
+		return err
+	}
+	for _, value := range memberClassificationHistories {
+		if err := m.MemberClassificationHistoryManager.DeleteByIDWithTx(context, tx, value.ID); err != nil {
+			return err
+		}
+	}
+
+	// Delete MemberOccupationHistory records
+	memberOccupationHistories, err := m.MemberOccupationHistoryManager.Find(context, &MemberOccupationHistory{
+		MemberProfileID: memberProfileId,
+	})
+	if err != nil {
+		return err
+	}
+	for _, value := range memberOccupationHistories {
+		if err := m.MemberOccupationHistoryManager.DeleteByIDWithTx(context, tx, value.ID); err != nil {
+			return err
+		}
+	}
+
+	// Delete MemberGroupHistory records
+	memberGroupHistories, err := m.MemberGroupHistoryManager.Find(context, &MemberGroupHistory{
+		MemberProfileID: memberProfileId,
+	})
+	if err != nil {
+		return err
+	}
+	for _, value := range memberGroupHistories {
+		if err := m.MemberGroupHistoryManager.DeleteByIDWithTx(context, tx, value.ID); err != nil {
+			return err
+		}
+	}
+
+	return m.MemberProfileManager.DeleteByIDWithTx(context, tx, memberProfileId)
+}

@@ -21,7 +21,16 @@ func (c *Controller) MemberProfileController() {
 		Response: "[]MemberProfile",
 		Note:     "Retrieve a list of all member profiles.",
 	}, func(ctx echo.Context) error {
-		return nil
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return err
+		}
+		memberProfile, err := c.model.MemberProfileCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModels(memberProfile))
 	})
 
 	req.RegisterRoute(horizon.Route{
@@ -30,7 +39,80 @@ func (c *Controller) MemberProfileController() {
 		Response: "MemberProfile",
 		Note:     "Retrieve a specific member profile by its member_profile_id.",
 	}, func(ctx echo.Context) error {
-		return nil
+		context := ctx.Request().Context()
+		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid member profile ID")
+		}
+		memberProfile, err := c.model.CategoryManager.GetByIDRaw(context, *memberProfileID)
+		if err != nil {
+			return c.NotFound(ctx, "MemberProfile")
+		}
+		return ctx.JSON(http.StatusOK, memberProfile)
+	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:  "/member-profile/:member_profile_id",
+		Method: "DELETE",
+		Note:   "Delete a specific member-profile by its member_profile_id.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid member profile ID")
+		}
+		tx := c.provider.Service.Database.Client().Begin()
+		defer tx.Rollback()
+
+		memberProfile, err := c.model.MemberProfileManager.GetByID(context, *memberProfileID)
+		if err != nil {
+			return c.NotFound(ctx, fmt.Sprintf("MemberProfile with ID %s not found", memberProfileID.String()))
+		}
+		if err := c.model.MemberProfileDelete(context, tx, memberProfile.ID); err != nil {
+			return c.InternalServerError(ctx, err)
+		}
+		if err := tx.Commit().Error; err != nil {
+			return c.InternalServerError(ctx, err)
+		}
+		return ctx.NoContent(http.StatusNoContent)
+	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:   "/member-profile/bulk-delete",
+		Method:  "DELETE",
+		Request: "string[]",
+		Note:    "Delete multiple member profile records",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		var reqBody struct {
+			IDs []string `json:"ids"`
+		}
+		if err := ctx.Bind(&reqBody); err != nil {
+			return c.BadRequest(ctx, "Invalid request body")
+		}
+		if len(reqBody.IDs) == 0 {
+			return c.BadRequest(ctx, "No IDs provided")
+		}
+		tx := c.provider.Service.Database.Client().Begin()
+		defer tx.Rollback()
+
+		for _, rawID := range reqBody.IDs {
+			memberProfileID, err := uuid.Parse(rawID)
+			if err != nil {
+				return c.BadRequest(ctx, fmt.Sprintf("Invalid UUID: %s", rawID))
+			}
+			memberProfile, err := c.model.MemberProfileManager.GetByID(context, memberProfileID)
+			if err != nil {
+				return c.NotFound(ctx, fmt.Sprintf("MemberProfile with ID %s not found", rawID))
+			}
+			if err := c.model.MemberProfileDelete(context, tx, memberProfile.ID); err != nil {
+				return c.InternalServerError(ctx, err)
+			}
+		}
+		if err := tx.Commit().Error; err != nil {
+			return c.InternalServerError(ctx, err)
+		}
+		return ctx.NoContent(http.StatusNoContent)
 	})
 
 	req.RegisterRoute(horizon.Route{
