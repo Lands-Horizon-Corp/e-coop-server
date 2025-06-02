@@ -158,6 +158,8 @@ func (c *Controller) UserController() {
 			MediaID:           req.MediaID,
 			IsEmailVerified:   false,
 			IsContactVerified: false,
+			CreatedAt:         time.Now().UTC(),
+			UpdatedAt:         time.Now().UTC(),
 		}
 
 		if err := c.model.UserManager.Create(context, user); err != nil {
@@ -213,7 +215,7 @@ func (c *Controller) UserController() {
 		if err := c.provider.Service.Cache.Set(context, token, user.ID, 10*time.Minute); err != nil {
 			return echo.NewHTTPError(http.StatusNotFound, "invalid storing token")
 		}
-		return nil
+		return ctx.NoContent(http.StatusNoContent)
 	})
 
 	req.RegisterRoute(horizon.Route{

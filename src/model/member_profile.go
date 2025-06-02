@@ -62,7 +62,7 @@ type (
 		LastName   string     `gorm:"type:varchar(255);not null"`
 		FullName   string     `gorm:"type:varchar(255);not null;index:idx_full_name"`
 		Suffix     string     `gorm:"type:varchar(50)"`
-		Birthdate  *time.Time `gorm:"type:date"`
+		BirthDate  *time.Time `gorm:"type:date"`
 		Status     string     `gorm:"type:varchar(50);not null;default:'pending'"`
 
 		Description           string `gorm:"type:text"`
@@ -118,7 +118,7 @@ type (
 		LastName                       string                        `json:"last_name"`
 		FullName                       string                        `json:"full_name"`
 		Suffix                         string                        `json:"suffix"`
-		Birthdate                      *string                       `json:"birthdate,omitempty"`
+		BirthDate                      *string                       `json:"birthdate,omitempty"`
 		Status                         string                        `json:"status"`
 		Description                    string                        `json:"description"`
 		Notes                          string                        `json:"notes"`
@@ -153,7 +153,7 @@ type (
 		LastName                       string     `json:"last_name" validate:"required,min=1,max=255"`
 		FullName                       string     `json:"full_name" validate:"required,min=1,max=255"`
 		Suffix                         string     `json:"suffix,omitempty"`
-		Birthdate                      *time.Time `json:"birthdate,omitempty"`
+		BirthDate                      *time.Time `json:"birthdate,omitempty"`
 		Status                         string     `json:"status,omitempty"`
 		Description                    string     `json:"description,omitempty"`
 		Notes                          string     `json:"notes,omitempty"`
@@ -178,11 +178,11 @@ type (
 
 		CivilStatus string `json:"civil_status" validate:"required,oneof=single married widowed separated divorced"` // Adjust the allowed values as needed
 
-		OccupationID    *uuid.UUID `json:"occupation_id,omitempty"`
-		BusinessAddress string     `json:"business_address,omitempty" validate:"max=255"`
-		BusinessContact string     `json:"business_contact,omitempty" validate:"max=255"`
-		Notes           string     `json:"notes,omitempty"`
-		Description     string     `json:"description,omitempty"`
+		MemberOccupationID    *uuid.UUID `json:"occupation_id,omitempty"`
+		BusinessAddress       string     `json:"business_address,omitempty" validate:"max=255"`
+		BusinessContactNumber string     `json:"business_contact,omitempty" validate:"max=255"`
+		Notes                 string     `json:"notes,omitempty"`
+		Description           string     `json:"description,omitempty"`
 	}
 
 	MemberProfileMembershipInfoRequest struct {
@@ -206,6 +206,27 @@ type (
 		MediaID          *uuid.UUID `json:"media_id,omitempty"`
 		SignatureMediaID *uuid.UUID `json:"signature_media_id,omitempty"`
 	}
+	MemberProfileQuickCreateRequest struct {
+		OldReferenceID         string     `json:"old_reference_id,omitempty" validate:"max=50"`
+		Passbook               string     `json:"passbook,omitempty" validate:"max=255"`
+		OrganizationID         uuid.UUID  `json:"organization_id" validate:"required"`
+		BranchID               uuid.UUID  `json:"branch_id" validate:"required"`
+		FirstName              string     `json:"first_name" validate:"required,min=1,max=255"`
+		MiddleName             string     `json:"middle_name,omitempty" validate:"max=255"`
+		LastName               string     `json:"last_name" validate:"required,min=1,max=255"`
+		FullName               string     `json:"full_name,omitempty" validate:"max=255"`
+		Suffix                 string     `json:"suffix,omitempty" validate:"max=50"`
+		MemberGenderID         *uuid.UUID `json:"member_gender_id,omitempty"`
+		BirthDate              *time.Time `json:"birth_date,omitempty"`
+		ContactNumber          string     `json:"contact_number,omitempty" validate:"max=255"`
+		CivilStatus            string     `json:"civil_status" validate:"required,oneof=single married widowed separated divorced"` // adjust allowed values as needed
+		MemberOccupationID     *uuid.UUID `json:"occupation_id,omitempty"`
+		Status                 string     `json:"status" validate:"required,max=50"`
+		IsMutualFundMember     bool       `json:"is_mutual_fund_member"`
+		IsMicroFinanceMember   bool       `json:"is_micro_finance_member"`
+		MemberTypeID           uuid.UUID  `json:"member_type_id" validate:"required"`
+		MemberClassificationID uuid.UUID  `json:"member_classification_id" validate:"required"`
+	}
 )
 
 func (m *Model) MemberProfile() {
@@ -225,8 +246,8 @@ func (m *Model) MemberProfile() {
 				return nil
 			}
 			var birthdateStr *string
-			if data.Birthdate != nil {
-				s := data.Birthdate.Format("2006-01-02")
+			if data.BirthDate != nil {
+				s := data.BirthDate.Format("2006-01-02")
 				birthdateStr = &s
 			}
 			return &MemberProfileResponse{
@@ -271,7 +292,7 @@ func (m *Model) MemberProfile() {
 				LastName:                       data.LastName,
 				FullName:                       data.FullName,
 				Suffix:                         data.Suffix,
-				Birthdate:                      birthdateStr,
+				BirthDate:                      birthdateStr,
 				Status:                         data.Status,
 				Description:                    data.Description,
 				Notes:                          data.Notes,
