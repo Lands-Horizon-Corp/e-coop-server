@@ -91,6 +91,7 @@ func (c *Controller) Start() error {
 	// Account Maintenance
 	c.BankController()
 	c.HolidayController()
+	c.BillAndCoinsController()
 	return nil
 }
 
