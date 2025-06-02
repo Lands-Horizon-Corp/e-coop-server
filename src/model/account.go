@@ -133,13 +133,20 @@ type (
 		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_account"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
-		GeneralLedgerDefinitionID      *uuid.UUID             `gorm:"type:uuid"`
-		FinancialStatementDefinitionID *uuid.UUID             `gorm:"type:uuid"`
-		AccountClassificationID        *uuid.UUID             `gorm:"type:uuid"`
-		AccountClassification          *AccountClassification `gorm:"foreignKey:AccountClassificationID" json:"account_classification,omitempty"`
-		AccountCategoryID              *uuid.UUID             `gorm:"type:uuid"`
-		AccountCategory                *AccountCategory       `gorm:"foreignKey:AccountCategoryID" json:"account_category,omitempty"`
-		MemberTypeID                   *uuid.UUID             `gorm:"type:uuid"`
+		GeneralLedgerDefinitionID *uuid.UUID               `gorm:"type:uuid"`
+		GeneralLedgerDefinition   *GeneralLedgerDefinition `gorm:"foreignKey:GeneralLedgerDefinitionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"general_ledger_definition,omitempty"`
+
+		FinancialStatementDefinitionID *uuid.UUID                    `gorm:"type:uuid"`
+		FinancialStatementDefinition   *FinancialStatementDefinition `gorm:"foreignKey:FinancialStatementDefinitionID;constraint:OnDelete:SET NULL;" json:"financial_statement_definition,omitempty"`
+
+		AccountClassificationID *uuid.UUID             `gorm:"type:uuid"`
+		AccountClassification   *AccountClassification `gorm:"foreignKey:AccountClassificationID;constraint:OnDelete:SET NULL;" json:"account_classification,omitempty"`
+
+		AccountCategoryID *uuid.UUID       `gorm:"type:uuid"`
+		AccountCategory   *AccountCategory `gorm:"foreignKey:AccountCategoryID;constraint:OnDelete:SET NULL;" json:"account_category,omitempty"`
+
+		MemberTypeID *uuid.UUID  `gorm:"type:uuid"`
+		MemberType   *MemberType `gorm:"foreignKey:MemberTypeID;constraint:OnDelete:SET NULL;" json:"member_type,omitempty"`
 
 		Name        string `gorm:"type:varchar(255);not null"`
 		Description string `gorm:"type:text;not null"`
@@ -224,13 +231,16 @@ type AccountResponse struct {
 	BranchID       uuid.UUID             `json:"branch_id"`
 	Branch         *BranchResponse       `json:"branch,omitempty"`
 
-	GeneralLedgerDefinitionID      *uuid.UUID                     `json:"general_ledger_definition_id,omitempty"`
-	FinancialStatementDefinitionID *uuid.UUID                     `json:"financial_statement_definition_id,omitempty"`
-	AccountClassificationID        *uuid.UUID                     `json:"account_classification_id,omitempty"`
-	AccountClassification          *AccountClassificationResponse `json:"account_classification,omitempty"`
-	AccountCategoryID              *uuid.UUID                     `json:"account_category_id,omitempty"`
-	AccountCategory                *AccountCategoryResponse       `json:"account_category,omitempty"`
-	MemberTypeID                   *uuid.UUID                     `json:"member_type_id,omitempty"`
+	GeneralLedgerDefinitionID      *uuid.UUID                            `json:"general_ledger_definition_id,omitempty"`
+	GeneralLedgerDefinition        *GeneralLedgerDefinitionResponse      `json:"general_ledger_definition,omitempty"`
+	FinancialStatementDefinitionID *uuid.UUID                            `json:"financial_statement_definition_id,omitempty"`
+	FinancialStatementDefinition   *FinancialStatementDefinitionResponse `json:"financial_statement_definition,omitempty"`
+	AccountClassificationID        *uuid.UUID                            `json:"account_classification_id,omitempty"`
+	AccountClassification          *AccountClassificationResponse        `json:"account_classification,omitempty"`
+	AccountCategoryID              *uuid.UUID                            `json:"account_category_id,omitempty"`
+	AccountCategory                *AccountCategoryResponse              `json:"account_category,omitempty"`
+	MemberTypeID                   *uuid.UUID                            `json:"member_type_id,omitempty"`
+	MemberType                     *MemberTypeResponse                   `json:"member_type,omitempty"`
 
 	Name        string      `json:"name"`
 	Description string      `json:"description"`
@@ -390,24 +400,29 @@ func (m *Model) Account() {
 				return nil
 			}
 			return &AccountResponse{
-				ID:                                    data.ID,
-				CreatedAt:                             data.CreatedAt.Format(time.RFC3339),
-				CreatedByID:                           data.CreatedByID,
-				CreatedBy:                             m.UserManager.ToModel(data.CreatedBy),
-				UpdatedAt:                             data.UpdatedAt.Format(time.RFC3339),
-				UpdatedByID:                           data.UpdatedByID,
-				UpdatedBy:                             m.UserManager.ToModel(data.UpdatedBy),
-				OrganizationID:                        data.OrganizationID,
-				Organization:                          m.OrganizationManager.ToModel(data.Organization),
-				BranchID:                              data.BranchID,
-				Branch:                                m.BranchManager.ToModel(data.Branch),
-				GeneralLedgerDefinitionID:             data.GeneralLedgerDefinitionID,
-				FinancialStatementDefinitionID:        data.FinancialStatementDefinitionID,
-				AccountClassificationID:               data.AccountClassificationID,
-				AccountClassification:                 m.AccountClassificationManager.ToModel(data.AccountClassification),
-				AccountCategoryID:                     data.AccountCategoryID,
-				AccountCategory:                       m.AccountCategoryManager.ToModel(data.AccountCategory),
-				MemberTypeID:                          data.MemberTypeID,
+				ID:             data.ID,
+				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
+				CreatedByID:    data.CreatedByID,
+				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
+				UpdatedByID:    data.UpdatedByID,
+				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				OrganizationID: data.OrganizationID,
+				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				BranchID:       data.BranchID,
+				Branch:         m.BranchManager.ToModel(data.Branch),
+
+				GeneralLedgerDefinitionID:      data.GeneralLedgerDefinitionID,
+				GeneralLedgerDefinition:        m.GeneralLedgerDefinitionManager.ToModel(data.GeneralLedgerDefinition),
+				FinancialStatementDefinitionID: data.FinancialStatementDefinitionID,
+				FinancialStatementDefinition:   m.FinancialStatementDefinitionManager.ToModel(data.FinancialStatementDefinition),
+				AccountClassificationID:        data.AccountClassificationID,
+				AccountClassification:          m.AccountClassificationManager.ToModel(data.AccountClassification),
+				AccountCategoryID:              data.AccountCategoryID,
+				AccountCategory:                m.AccountCategoryManager.ToModel(data.AccountCategory),
+				MemberTypeID:                   data.MemberTypeID,
+				MemberType:                     m.MemberTypeManager.ToModel(data.MemberType),
+
 				Name:                                  data.Name,
 				Description:                           data.Description,
 				MinAmount:                             data.MinAmount,

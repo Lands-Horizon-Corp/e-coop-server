@@ -73,7 +73,7 @@ func (c *Controller) UserOrganinzationController() {
 	req.RegisterRoute(horizon.Route{
 		Route:    "/user-organization/user/:user_id",
 		Method:   "GET",
-		Response: "TUserOrganization",
+		Response: "TUserOrganization[]",
 		Note:     "Retrieve all user organizations. Use query param `pending=true` to include pending organizations.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -96,7 +96,7 @@ func (c *Controller) UserOrganinzationController() {
 	req.RegisterRoute(horizon.Route{
 		Route:    "/user-organization/organization/:organization_id",
 		Method:   "GET",
-		Response: "TUserOrganization",
+		Response: "TUserOrganization[]",
 		Note:     "Retrieve all user organizations across all branches of a specific organization. Use query param `pending=true` to include pending organizations.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -122,7 +122,7 @@ func (c *Controller) UserOrganinzationController() {
 	req.RegisterRoute(horizon.Route{
 		Route:    "/user-organization/branch/:branch_id",
 		Method:   "GET",
-		Response: "TUserOrganization",
+		Response: "TUserOrganization[]",
 		Note:     "Retrieve all user organizations from a specific branch. Use query param `pending=true` to include pending organizations.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -403,6 +403,27 @@ func (c *Controller) UserOrganinzationController() {
 		}
 		return ctx.NoContent(http.StatusOK)
 	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:    "/user-organization/:user_organization_id",
+		Method:   "GET",
+		Response: "TUserOrganization",
+		Note:     "Retrieve specific user organization",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrgId, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
+		if err != nil {
+			return err
+		}
+		userOrg, err := c.model.UserOrganizationManager.GetByIDRaw(context, *userOrgId)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, userOrg)
+	})
+
+	// Employees
+
 }
 
 func (c *Controller) BranchController() {
