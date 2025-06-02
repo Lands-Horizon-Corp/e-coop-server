@@ -120,3 +120,11 @@ func (m *Model) MemberTypeHistoryCurrentBranch(context context.Context, orgId uu
 		BranchID:       branchId,
 	})
 }
+
+func (m *Model) MemberTypeHistoryMemberProfileID(context context.Context, memberProfileId, orgId, branchId uuid.UUID) ([]*MemberTypeHistory, error) {
+	return m.MemberTypeHistoryManager.Find(context, &MemberTypeHistory{
+		OrganizationID:  orgId,
+		BranchID:        branchId,
+		MemberProfileID: memberProfileId,
+	})
+}

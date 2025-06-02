@@ -11,7 +11,7 @@ import (
 )
 
 type (
-	MemberGenderHistory struct {
+	MemberClassificationHistory struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
 		CreatedByID uuid.UUID      `gorm:"type:uuid"`
@@ -23,19 +23,19 @@ type (
 		DeletedByID *uuid.UUID     `gorm:"type:uuid"`
 		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
 
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_member_gender_history"`
+		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_member_classification_history"`
 		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_member_gender_history"`
+		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_member_classification_history"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
+
+		MemberTypeID uuid.UUID   `gorm:"type:uuid;not null"`
+		MemberType   *MemberType `gorm:"foreignKey:MemberTypeID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_type,omitempty"`
 
 		MemberProfileID uuid.UUID      `gorm:"type:uuid;not null"`
 		MemberProfile   *MemberProfile `gorm:"foreignKey:MemberProfileID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_profile,omitempty"`
-
-		MemberGenderID uuid.UUID     `gorm:"type:uuid;not null"`
-		MemberGender   *MemberGender `gorm:"foreignKey:MemberGenderID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_gender,omitempty"`
 	}
 
-	MemberGenderHistoryResponse struct {
+	MemberClassificationHistoryResponse struct {
 		ID              uuid.UUID              `json:"id"`
 		CreatedAt       string                 `json:"created_at"`
 		CreatedByID     uuid.UUID              `json:"created_by_id"`
@@ -47,28 +47,37 @@ type (
 		Organization    *OrganizationResponse  `json:"organization,omitempty"`
 		BranchID        uuid.UUID              `json:"branch_id"`
 		Branch          *BranchResponse        `json:"branch,omitempty"`
+		MemberTypeID    uuid.UUID              `json:"member_type_id"`
+		MemberType      *MemberTypeResponse    `json:"member_type,omitempty"`
 		MemberProfileID uuid.UUID              `json:"member_profile_id"`
 		MemberProfile   *MemberProfileResponse `json:"member_profile,omitempty"`
-		MemberGenderID  uuid.UUID              `json:"member_gender_id"`
-		MemberGender    *MemberGenderResponse  `json:"member_gender,omitempty"`
 	}
 
-	MemberGenderHistoryRequest struct {
+	MemberClassificationHistoryRequest struct {
+		MemberTypeID    uuid.UUID `json:"member_type_id" validate:"required"`
 		MemberProfileID uuid.UUID `json:"member_profile_id" validate:"required"`
-		MemberGenderID  uuid.UUID `json:"member_gender_id" validate:"required"`
+		BranchID        uuid.UUID `json:"branch_id" validate:"required"`
+		OrganizationID  uuid.UUID `json:"organization_id" validate:"required"`
 	}
 )
 
-func (m *Model) MemberGenderHistory() {
-	m.Migration = append(m.Migration, &MemberGenderHistory{})
-	m.MemberGenderHistoryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberGenderHistory, MemberGenderHistoryResponse, MemberGenderHistoryRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization", "MemberProfile", "MemberGender"},
-		Service:  m.provider.Service,
-		Resource: func(data *MemberGenderHistory) *MemberGenderHistoryResponse {
+func (m *Model) MemberClassificationHistory() {
+	m.Migration = append(m.Migration, &MemberClassificationHistory{})
+	m.MemberClassificationHistoryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+		MemberClassificationHistory,
+		MemberClassificationHistoryResponse,
+		MemberClassificationHistoryRequest,
+	]{
+		Preloads: []string{
+			"CreatedBy", "UpdatedBy", "DeletedBy",
+			"Organization", "Branch", "MemberType", "MemberProfile",
+		},
+		Service: m.provider.Service,
+		Resource: func(data *MemberClassificationHistory) *MemberClassificationHistoryResponse {
 			if data == nil {
 				return nil
 			}
-			return &MemberGenderHistoryResponse{
+			return &MemberClassificationHistoryResponse{
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
@@ -80,49 +89,48 @@ func (m *Model) MemberGenderHistory() {
 				Organization:    m.OrganizationManager.ToModel(data.Organization),
 				BranchID:        data.BranchID,
 				Branch:          m.BranchManager.ToModel(data.Branch),
+				MemberTypeID:    data.MemberTypeID,
+				MemberType:      m.MemberTypeManager.ToModel(data.MemberType),
 				MemberProfileID: data.MemberProfileID,
 				MemberProfile:   m.MemberProfileManager.ToModel(data.MemberProfile),
-				MemberGenderID:  data.MemberGenderID,
-				MemberGender:    m.MemberGenderManager.ToModel(data.MemberGender),
 			}
 		},
-
-		Created: func(data *MemberGenderHistory) []string {
+		Created: func(data *MemberClassificationHistory) []string {
 			return []string{
-				"member_gender_history.create",
-				fmt.Sprintf("member_gender_history.create.%s", data.ID),
-				fmt.Sprintf("member_gender_history.create.branch.%s", data.BranchID),
-				fmt.Sprintf("member_gender_history.create.organization.%s", data.OrganizationID),
+				"member_classification_history.create",
+				fmt.Sprintf("member_classification_history.create.%s", data.ID),
+				fmt.Sprintf("member_classification_history.create.branch.%s", data.BranchID),
+				fmt.Sprintf("member_classification_history.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *MemberGenderHistory) []string {
+		Updated: func(data *MemberClassificationHistory) []string {
 			return []string{
-				"member_gender_history.update",
-				fmt.Sprintf("member_gender_history.update.%s", data.ID),
-				fmt.Sprintf("member_gender_history.update.branch.%s", data.BranchID),
-				fmt.Sprintf("member_gender_history.update.organization.%s", data.OrganizationID),
+				"member_classification_history.update",
+				fmt.Sprintf("member_classification_history.update.%s", data.ID),
+				fmt.Sprintf("member_classification_history.update.branch.%s", data.BranchID),
+				fmt.Sprintf("member_classification_history.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *MemberGenderHistory) []string {
+		Deleted: func(data *MemberClassificationHistory) []string {
 			return []string{
-				"member_gender_history.delete",
-				fmt.Sprintf("member_gender_history.delete.%s", data.ID),
-				fmt.Sprintf("member_gender_history.delete.branch.%s", data.BranchID),
-				fmt.Sprintf("member_gender_history.delete.organization.%s", data.OrganizationID),
+				"member_classification_history.delete",
+				fmt.Sprintf("member_classification_history.delete.%s", data.ID),
+				fmt.Sprintf("member_classification_history.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("member_classification_history.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})
 }
 
-func (m *Model) MemberGenderHistoryCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberGenderHistory, error) {
-	return m.MemberGenderHistoryManager.Find(context, &MemberGenderHistory{
+func (m *Model) MemberClassificationHistoryCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberClassificationHistory, error) {
+	return m.MemberClassificationHistoryManager.Find(context, &MemberClassificationHistory{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})
 }
 
-func (m *Model) MemberGenderHistoryMemberProfileID(context context.Context, memberProfileId, orgId, branchId uuid.UUID) ([]*MemberGenderHistory, error) {
-	return m.MemberGenderHistoryManager.Find(context, &MemberGenderHistory{
+func (m *Model) MemberClassificationHistoryMemberProfileID(context context.Context, memberProfileId, orgId, branchId uuid.UUID) ([]*MemberClassificationHistory, error) {
+	return m.MemberClassificationHistoryManager.Find(context, &MemberClassificationHistory{
 		OrganizationID:  orgId,
 		BranchID:        branchId,
 		MemberProfileID: memberProfileId,

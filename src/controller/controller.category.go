@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"time"
@@ -20,7 +19,8 @@ func (c *Controller) CategoryController() {
 		Method:   "GET",
 		Response: "TCategory[]",
 	}, func(ctx echo.Context) error {
-		categories, err := c.model.CategoryManager.ListRaw(context.Background())
+		context := ctx.Request().Context()
+		categories, err := c.model.CategoryManager.ListRaw(context)
 		if err != nil {
 			return c.InternalServerError(ctx, err)
 		}
@@ -32,12 +32,13 @@ func (c *Controller) CategoryController() {
 		Method:   "GET",
 		Response: "TCategory",
 	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
 		categoryID, err := horizon.EngineUUIDParam(ctx, "category_id")
 		if err != nil {
 			return c.BadRequest(ctx, "Invalid category ID")
 		}
 
-		category, err := c.model.CategoryManager.GetByIDRaw(context.Background(), *categoryID)
+		category, err := c.model.CategoryManager.GetByIDRaw(context, *categoryID)
 		if err != nil {
 			return c.NotFound(ctx, "Category")
 		}
@@ -51,6 +52,7 @@ func (c *Controller) CategoryController() {
 		Request:  "TCategory",
 		Response: "TCategory",
 	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
 		req, err := c.model.CategoryManager.Validate(ctx)
 		if err != nil {
 			return c.BadRequest(ctx, err.Error())
@@ -65,7 +67,7 @@ func (c *Controller) CategoryController() {
 			UpdatedAt:   time.Now().UTC(),
 		}
 
-		if err := c.model.CategoryManager.Create(context.Background(), category); err != nil {
+		if err := c.model.CategoryManager.Create(context, category); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 
@@ -78,6 +80,7 @@ func (c *Controller) CategoryController() {
 		Request:  "TCategory",
 		Response: "TCategory",
 	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
 		categoryID, err := horizon.EngineUUIDParam(ctx, "category_id")
 		if err != nil {
 			return c.BadRequest(ctx, "Invalid category ID")
@@ -88,7 +91,7 @@ func (c *Controller) CategoryController() {
 			return c.BadRequest(ctx, err.Error())
 		}
 
-		category, err := c.model.CategoryManager.GetByID(context.Background(), *categoryID)
+		category, err := c.model.CategoryManager.GetByID(context, *categoryID)
 		if err != nil {
 			return c.NotFound(ctx, "Category")
 		}
@@ -99,7 +102,7 @@ func (c *Controller) CategoryController() {
 		category.Icon = req.Icon
 		category.UpdatedAt = time.Now().UTC()
 
-		if err := c.model.CategoryManager.UpdateByID(context.Background(), category.ID, category); err != nil {
+		if err := c.model.CategoryManager.UpdateByID(context, category.ID, category); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 
@@ -110,12 +113,13 @@ func (c *Controller) CategoryController() {
 		Route:  "/category/:category_id",
 		Method: "DELETE",
 	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
 		categoryID, err := horizon.EngineUUIDParam(ctx, "category_id")
 		if err != nil {
 			return c.BadRequest(ctx, "Invalid category ID")
 		}
 
-		if err := c.model.CategoryManager.DeleteByID(context.Background(), *categoryID); err != nil {
+		if err := c.model.CategoryManager.DeleteByID(context, *categoryID); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 
