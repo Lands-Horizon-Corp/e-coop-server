@@ -260,7 +260,7 @@ func (m *Model) Employees(context context.Context, organizationID uuid.UUID, bra
 	})
 }
 
-func (m *Model) Member(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*UserOrganization, error) {
+func (m *Model) Members(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*UserOrganization, error) {
 	return m.UserOrganizationManager.Find(context, &UserOrganization{
 		OrganizationID: organizationID,
 		BranchID:       &branchID,

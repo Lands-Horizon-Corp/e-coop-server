@@ -419,11 +419,133 @@ func (c *Controller) UserOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
 		}
+
 		return ctx.JSON(http.StatusOK, userOrg)
 	})
 
-	// Employees
+	// USER ORGANIZATION
+	req.RegisterRoute(horizon.Route{
+		Route:  "/user-organization/:user_organization_id/accept",
+		Method: "POST",
+		Note:   "Accept an employee or member application by ID.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrgId, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
+		if err != nil {
+			return err
+		}
+		userOrg, err := c.model.UserOrganizationManager.GetByID(context, *userOrgId)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
+		}
+		userOrg.ApplicationStatus = "accepted"
+		if err := c.model.UserOrganizationManager.UpdateByID(context, userOrg.OrganizationID, userOrg); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update branch: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModel(userOrg))
+	})
+	req.RegisterRoute(horizon.Route{
+		Route:  "/user-organization/:user_organization_id",
+		Method: "DELETE",
+		Note:   "Delete a user organization by ID.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrgId, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
+		if err != nil {
+			return err
+		}
+		userOrg, err := c.model.UserOrganizationManager.GetByID(context, *userOrgId)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
+		}
+		if err := c.model.UserOrganizationManager.DeleteByID(context, userOrg.ID); err != nil {
+			return c.InternalServerError(ctx, err)
+		}
+		return ctx.NoContent(http.StatusNoContent)
+	})
+	req.RegisterRoute(horizon.Route{
+		Route:  "/user-organization/bulk-delete",
+		Method: "DELETE",
+		Note:   "Delete multiple user organizations by providing an array of IDs in the request body.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		var reqBody struct {
+			IDs []string `json:"ids"`
+		}
 
+		if err := ctx.Bind(&reqBody); err != nil {
+			return c.BadRequest(ctx, "Invalid request body")
+		}
+
+		if len(reqBody.IDs) == 0 {
+			return c.BadRequest(ctx, "No IDs provided")
+		}
+
+		tx := c.provider.Service.Database.Client().Begin()
+		defer func() {
+			if r := recover(); r != nil {
+				tx.Rollback()
+			}
+		}()
+
+		for _, rawID := range reqBody.IDs {
+			userOrgId, err := uuid.Parse(rawID)
+			if err != nil {
+				tx.Rollback()
+				return c.BadRequest(ctx, fmt.Sprintf("Invalid UUID: %s", rawID))
+			}
+
+			if _, err := c.model.UserOrganizationManager.GetByID(context, userOrgId); err != nil {
+				tx.Rollback()
+				return c.NotFound(ctx, fmt.Sprintf("User organization with ID %s", rawID))
+			}
+
+			if err := c.model.UserOrganizationManager.DeleteByIDWithTx(context, tx, userOrgId); err != nil {
+				tx.Rollback()
+				return c.InternalServerError(ctx, err)
+			}
+		}
+
+		if err := tx.Commit().Error; err != nil {
+			return c.InternalServerError(ctx, err)
+		}
+
+		return ctx.NoContent(http.StatusNoContent)
+	})
+	req.RegisterRoute(horizon.Route{
+		Route:    "/user-organization/employee",
+		Method:   "GET",
+		Response: "TUserOrganization",
+		Note:     "Retrieve all employees of the current user's organization.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return err
+		}
+		employees, err := c.model.Employees(context, user.OrganizationID, *user.BranchID)
+		if err != nil {
+			return c.InternalServerError(ctx, err)
+		}
+		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModels(employees))
+	})
+	req.RegisterRoute(horizon.Route{
+		Route:    "/user-organization/members",
+		Method:   "GET",
+		Response: "TUserOrganization",
+		Note:     "Retrieve all members of the current user's organization.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return err
+		}
+		members, err := c.model.Members(context, user.OrganizationID, *user.BranchID)
+		if err != nil {
+			return c.InternalServerError(ctx, err)
+		}
+		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModels(members))
+	})
 }
 
 func (c *Controller) BranchController() {
