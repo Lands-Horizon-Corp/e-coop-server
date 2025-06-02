@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"html/template"
+	"io"
 	"net/http"
 	"regexp"
 	"sort"
@@ -46,14 +48,19 @@ type APIService interface {
 	RegisterRoute(route Route, callback func(c echo.Context) error, m ...echo.MiddlewareFunc)
 }
 
-const (
-	Green  = "\033[32m"
-	Blue   = "\033[34m"
-	Yellow = "\033[33m"
-	Red    = "\033[31m"
-	Reset  = "\033[0m"
-	Cyan   = "\033[36m"
-)
+type TemplateRenderer struct {
+	templates *template.Template
+}
+
+func (t *TemplateRenderer) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
+
+	// Add global methods if data is a map
+	if viewContext, isMap := data.(map[string]interface{}); isMap {
+		viewContext["reverse"] = c.Echo().Reverse
+	}
+
+	return t.templates.ExecuteTemplate(w, name, data)
+}
 
 type Route struct {
 	Route    string
@@ -61,6 +68,12 @@ type Route struct {
 	Response string
 	Method   string
 	Note     string
+}
+
+// GroupedRoute holds a group of routes under a common key.
+type GroupedRoute struct {
+	Key    string
+	Routes []Route
 }
 
 type HorizonAPIService struct {
@@ -82,6 +95,10 @@ func NewHorizonAPIService(
 	clientName string,
 ) APIService {
 	service := echo.New()
+	renderer := &TemplateRenderer{
+		templates: template.Must(template.ParseGlob("public/views/*.html")),
+	}
+	service.Renderer = renderer
 
 	service.Pre(middleware.RemoveTrailingSlash())
 
@@ -220,6 +237,12 @@ func (h *HorizonAPIService) RegisterRoute(route Route, callback func(c echo.Cont
 // Run implements APIService.
 func (h *HorizonAPIService) Run(ctx context.Context) error {
 
+	h.service.GET("/routes", func(c echo.Context) error {
+		return c.Render(http.StatusOK, "routes.html", map[string]interface{}{
+			"routes": h.GroupedRoutes(),
+		})
+
+	}).Name = "foobar"
 	go func() {
 		metrics := echo.New()
 		metrics.GET("/metrics", echoprometheus.NewHandler())
@@ -233,7 +256,6 @@ func (h *HorizonAPIService) Run(ctx context.Context) error {
 			fmt.Sprintf(":%d", h.serverPort),
 		))
 	}()
-	h.PrintGroupedRoute()
 	return nil
 }
 
@@ -244,11 +266,10 @@ func (h *HorizonAPIService) Stop(ctx context.Context) error {
 	}
 	return nil
 }
-func (h *HorizonAPIService) PrintGroupedRoute() {
-	time.Sleep(5 * time.Second)
+func (h *HorizonAPIService) GroupedRoutes() []GroupedRoute {
+	time.Sleep(5 * time.Second) // Simulate delay, can be removed if not needed.
 
 	grouped := make(map[string][]Route)
-
 	for _, rt := range h.routesList {
 		trimmed := strings.TrimPrefix(rt.Route, "/")
 		segments := strings.Split(trimmed, "/")
@@ -258,63 +279,25 @@ func (h *HorizonAPIService) PrintGroupedRoute() {
 		} else {
 			key = "/"
 		}
-
 		grouped[key] = append(grouped[key], rt)
 	}
+
 	routePaths := make([]string, 0, len(grouped))
 	for route := range grouped {
 		routePaths = append(routePaths, route)
 	}
 	sort.Strings(routePaths)
 
-	fmt.Printf("\n\n================== API ROUTES ==================\n\n")
-
+	result := make([]GroupedRoute, 0, len(routePaths))
 	for _, route := range routePaths {
 		methodGroup := grouped[route]
-
 		sort.Slice(methodGroup, func(i, j int) bool {
 			return methodGroup[i].Method < methodGroup[j].Method
 		})
-
-		fmt.Printf("🔹 %s Route Group %s: [%d] %s\n", Cyan, route, len(methodGroup), Reset)
-		fmt.Println("------------------------------------------------")
-
-		for _, rt := range methodGroup {
-			color := ""
-			switch rt.Method {
-			case "GET":
-				color = Green
-			case "POST":
-				color = Blue
-			case "PUT":
-				color = Yellow
-			case "DELETE":
-				color = Red
-			default:
-				color = Reset
-			}
-
-			req := rt.Request
-			if req == "" {
-				req = "No Request"
-			}
-			res := rt.Response
-			if res == "" {
-				res = "No Response"
-			}
-
-			fmt.Printf("\t%s⇒ %-6s\t%s%s%s%s\n", color, rt.Method, Reset, color, rt.Route, Reset)
-
-			fmt.Printf("\t\033[36mRequest ⇒\033[0m   \t%s\n", req)
-			fmt.Printf("\t\033[36mResponse ⇒\033[0m  \t%s\n", res)
-
-			if rt.Note != "" {
-				fmt.Printf("\t\033[2mNote         \t%s\n\n\033[0m", rt.Note)
-			} else {
-				fmt.Printf("\n")
-			}
-		}
-
-		fmt.Printf("------------------------------------------------\n")
+		result = append(result, GroupedRoute{
+			Key:    route,
+			Routes: methodGroup,
+		})
 	}
+	return result
 }

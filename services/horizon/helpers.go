@@ -23,6 +23,15 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+const (
+	Green  = "\033[32m"
+	Blue   = "\033[34m"
+	Yellow = "\033[33m"
+	Red    = "\033[31m"
+	Reset  = "\033[0m"
+	Cyan   = "\033[36m"
+)
+
 func isValidFilePath(p string) error {
 	info, err := os.Stat(p)
 	if os.IsNotExist(err) {
