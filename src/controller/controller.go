@@ -70,13 +70,23 @@ func (c *Controller) Start() error {
 	c.UserRatingController()
 
 	// Member Profile
-	c.MemberGender()
-	c.MemberCenter()
-	c.MemberType()
-	c.MemberClassification()
-	c.MemberOccupation()
-	c.MemberGroup()
+	c.MemberGenderController()
+	c.MemberCenterController()
+	c.MemberTypeController()
+	c.MemberClassificationController()
+	c.MemberOccupationController()
+	c.MemberGroupController()
 
+	// member profile properties
+	c.MemberEducationalAttainmentController()
+	c.MemberAddressController()
+	c.MemberContactReferenceController()
+	c.MemberAssetController()
+	c.MemberIncomeController()
+	c.MemberExpenseController()
+	c.MemberGovernmentBenefitController()
+	c.MemberJointAccountController()
+	c.MemberRelativeAccountController()
 	return nil
 }
 
