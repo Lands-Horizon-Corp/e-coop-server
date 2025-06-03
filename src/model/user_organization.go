@@ -31,8 +31,8 @@ type (
 		Branch   *Branch    `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE;" json:"branch,omitempty"`
 
 		UserID uuid.UUID `gorm:"type:uuid;not null;index:idx_user_org_branch"`
+		User   *User     `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE;" json:"user,omitempty"`
 
-		User                   *User          `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE;" json:"user,omitempty"`
 		UserType               string         `gorm:"type:varchar(50);not null"`
 		Description            string         `gorm:"type:text" json:"description,omitempty"`
 		ApplicationDescription string         `gorm:"type:text" json:"application_description,omitempty"`
