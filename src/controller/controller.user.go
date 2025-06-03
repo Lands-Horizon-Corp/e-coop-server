@@ -25,10 +25,7 @@ func (c *Controller) UserController() {
 		if err != nil {
 			return ctx.NoContent(http.StatusNoContent)
 		}
-		userOrganization, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
-		if err != nil {
-			return ctx.NoContent(http.StatusNoContent)
-		}
+		userOrganization, _ := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		var userOrg *model.UserOrganizationResponse
 		if userOrganization != nil {
 			userOrg = c.model.UserOrganizationManager.ToModel(userOrganization)
