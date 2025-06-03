@@ -825,17 +825,14 @@ func (c *Controller) BranchController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user organization ID: " + err.Error()})
 		}
-		branchId, err := horizon.EngineUUIDParam(ctx, "branch_id")
-		if err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid branch ID: " + err.Error()})
-		}
-		branch, err := c.model.BranchManager.GetByID(context, *branchId)
-		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Branch not found"})
-		}
+
 		userOrganization, err := c.model.UserOrganizationManager.GetByID(context, *userOrganizationId)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
+		}
+		branch, err := c.model.BranchManager.GetByID(context, *userOrganization.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Branch not found"})
 		}
 		if userOrganization.UserType != "owner" {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owners can delete branches"})

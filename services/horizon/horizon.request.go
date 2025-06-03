@@ -129,6 +129,7 @@ func NewHorizonAPIService(
 		LogQueryParams:   []string{"*"},
 		LogFormValues:    []string{"*"},
 		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
+			fmt.Println(v)
 			return nil
 		},
 	}))
@@ -208,7 +209,6 @@ func (h *HorizonAPIService) GetRoute() []Route {
 	return h.routesList
 }
 
-// RegisterRouteDELETE implements APIService.
 func (h *HorizonAPIService) RegisterRoute(route Route, callback func(c echo.Context) error, m ...echo.MiddlewareFunc) {
 	method := strings.ToUpper(strings.TrimSpace(route.Method))
 	switch method {
@@ -238,7 +238,7 @@ func (h *HorizonAPIService) RegisterRoute(route Route, callback func(c echo.Cont
 func (h *HorizonAPIService) Run(ctx context.Context) error {
 
 	h.service.GET("/routes", func(c echo.Context) error {
-		return c.Render(http.StatusOK, "routes.html", map[string]interface{}{
+		return c.Render(http.StatusOK, "routes.html", map[string]any{
 			"routes": h.GroupedRoutes(),
 		})
 
