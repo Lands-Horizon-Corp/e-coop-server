@@ -781,7 +781,6 @@ func (c *Controller) BranchController() {
 		// Update branch fields
 		branch.UpdatedAt = time.Now().UTC()
 		branch.UpdatedByID = user.ID
-		branch.OrganizationID = userOrganization.OrganizationID
 		branch.MediaID = req.MediaID
 		branch.Type = req.Type
 		branch.Name = req.Name
