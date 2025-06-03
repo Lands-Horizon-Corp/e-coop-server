@@ -851,6 +851,7 @@ func (c *Controller) BranchController() {
 		}
 		tx := c.provider.Service.Database.Client().Begin()
 		if tx.Error != nil {
+			tx.Rollback()
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start transaction: " + tx.Error.Error()})
 		}
 		if err := c.model.BranchManager.DeleteByIDWithTx(context, tx, branch.ID); err != nil {
@@ -1013,7 +1014,10 @@ func (c *Controller) OrganizationController() {
 			tx.Rollback()
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, organization)
+		return ctx.JSON(http.StatusOK, map[string]any{
+			"organization":      c.model.OrganizationManager.ToModel(organization),
+			"user_organization": c.model.UserOrganizationManager.ToModel(userOrganization),
+		})
 	})
 
 	req.RegisterRoute(horizon.Route{
