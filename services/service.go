@@ -108,16 +108,18 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 		service.Storage = horizon.NewHorizonStorageService(
 			cfg.StorageConfig.AccessKey,
 			cfg.StorageConfig.SecretKey,
-			cfg.StorageConfig.Prefix,
+			cfg.StorageConfig.Endpoint,
 			cfg.StorageConfig.Bucket,
+			cfg.StorageConfig.Region,
 			cfg.StorageConfig.MaxFilezize,
 		)
 	} else {
 		service.Storage = horizon.NewHorizonStorageService(
 			service.Environment.GetString("STORAGE_ACCESS_KEY", ""),
 			service.Environment.GetString("STORAGE_SECRET_KEY", ""),
-			service.Environment.GetString("STORAGE_PREFIX", ""),
+			service.Environment.GetString("STORAGE_URL", ""),
 			service.Environment.GetString("STORAGE_BUCKET", ""),
+			service.Environment.GetString("STORAGE_REGION", ""),
 			service.Environment.GetInt64("STORAGE_MAX_SIZE", 0),
 		)
 	}

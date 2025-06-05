@@ -3,7 +3,6 @@ package horizon
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -13,7 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Backblaze/blazer/b2"
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/rotisserie/eris"
 )
 
@@ -43,62 +43,85 @@ type Storage struct {
 type ProgressCallback func(progress int64, total int64, storage *Storage)
 
 type HorizonStorage struct {
+	driver           string
 	storageAccessKey string
 	storageSecretKey string
 	storageBucket    string
+	endpoint         string
 	prefix           string
+	region           string
 	maxFileSize      int64
-	b2Client         *b2.Client
-	bucket           *b2.Bucket
+	client           *minio.Client
 }
 
 func NewHorizonStorageService(
 	accessKey,
 	secretKey,
-	prefix,
-	bucket string,
+	endpoint,
+	bucket,
+	region string,
 	maxSize int64,
 ) StorageService {
 	return &HorizonStorage{
+		driver:           "linodes",
 		storageAccessKey: accessKey,
 		storageSecretKey: secretKey,
-		prefix:           prefix,
+		endpoint:         endpoint,
 		storageBucket:    bucket,
+		region:           region,
 		maxFileSize:      maxSize,
 	}
 }
 
 func (h *HorizonStorage) Run(ctx context.Context) error {
-	client, err := b2.NewClient(
-		ctx,
-		h.storageAccessKey,
-		h.storageSecretKey,
-	)
-	if err != nil {
-		return eris.Wrap(err, "B2 authentication failed")
+	// Check for missing keys
+	if h.endpoint == "" {
+		return eris.New("missing storage endpoint")
 	}
-	h.b2Client = client
-
-	// Try to get existing bucket first
-	if bucket, err := client.Bucket(ctx, h.storageBucket); err == nil {
-		h.bucket = bucket
-		return nil
+	if h.storageAccessKey == "" {
+		return eris.New("missing storage access key")
+	}
+	if h.storageSecretKey == "" {
+		return eris.New("missing storage secret key")
+	}
+	if h.storageBucket == "" {
+		return eris.New("missing storage bucket name")
 	}
 
-	// Create new bucket if it doesn't exist
-	bucket, err := client.NewBucket(ctx, h.storageBucket, &b2.BucketAttrs{
-		Type: b2.Private,
+	// Initialize MinIO client
+	client, err := minio.New(h.endpoint, &minio.Options{
+		Creds:  credentials.NewStaticV4(h.storageAccessKey, h.storageSecretKey, ""),
+		Secure: false,
+		Region: h.region,
+		BucketLookup: func() minio.BucketLookupType {
+			if h.driver == "s3" {
+				return minio.BucketLookupDNS
+			}
+			return minio.BucketLookupPath
+		}(),
 	})
 	if err != nil {
-		return eris.Wrapf(err, "failed to create bucket %s", h.storageBucket)
+		return eris.Wrap(err, "failed to initialize MinIO client")
 	}
-	h.bucket = bucket
+	h.client = client
+
+	// Check whether the bucket exists
+	exists, err := client.BucketExists(ctx, h.storageBucket)
+	if err != nil {
+		return eris.Wrap(err, "failed to check bucket exists")
+	}
+	if !exists {
+		// Create the bucket if it does not exist
+		err = client.MakeBucket(ctx, h.storageBucket, minio.MakeBucketOptions{Region: h.region})
+		if err != nil {
+			return eris.Wrapf(err, "failed to create bucket %s", h.storageBucket)
+		}
+	}
 	return nil
 }
 
 func (h *HorizonStorage) Stop(ctx context.Context) error {
-	h.b2Client = nil
-	h.bucket = nil
+	h.client = nil
 	return nil
 }
 
@@ -108,6 +131,13 @@ type progressReader struct {
 	total     int64
 	readSoFar int64
 	storage   *Storage
+}
+
+type BinaryFileInput struct {
+	Data        io.Reader
+	Size        int64
+	Name        string
+	ContentType string
 }
 
 func (pr *progressReader) Read(p []byte) (int, error) {
@@ -126,14 +156,14 @@ func (pr *progressReader) Read(p []byte) (int, error) {
 	return n, err
 }
 
-func (h *HorizonStorage) Upload(ctx context.Context, file any, cb ProgressCallback) (*Storage, error) {
+func (h *HorizonStorage) Upload(ctx context.Context, file any, onProgress ProgressCallback) (*Storage, error) {
 	switch v := file.(type) {
 	case string:
-		return h.UploadFromPath(ctx, v, cb)
+		return h.UploadFromPath(ctx, v, onProgress)
 	case []byte:
-		return h.UploadFromBinary(ctx, v, cb)
+		return h.UploadFromBinary(ctx, v, onProgress)
 	case *multipart.FileHeader:
-		return h.UploadFromHeader(ctx, v, cb)
+		return h.UploadFromHeader(ctx, v, onProgress)
 	default:
 		return nil, eris.Errorf("unsupported type: %T", file)
 	}
@@ -180,21 +210,16 @@ func (h *HorizonStorage) UploadFromPath(ctx context.Context, path string, cb Pro
 		storage:  storage,
 	}
 
-	obj := h.bucket.Object(fileName)
-	w := obj.NewWriter(ctx)
-
-	if _, err := io.Copy(w, pr); err != nil {
-		return nil, eris.Wrap(err, "upload failed")
+	result, err := h.client.PutObject(ctx, h.storageBucket, fileName, pr, info.Size(), minio.PutObjectOptions{ContentType: contentType})
+	if err != nil {
+		return nil, eris.Wrap(err, "upload local failed")
 	}
-	if err := w.Close(); err != nil {
-		return nil, eris.Wrap(err, "upload finalization failed")
-	}
-
+	storage.StorageKey = result.Key
+	storage.BucketName = result.Bucket
 	url, err := h.GeneratePresignedURL(ctx, storage, 24*time.Hour)
 	if err != nil {
 		return nil, err
 	}
-
 	storage.URL = url
 	storage.Status = "completed"
 	return storage, nil
@@ -223,21 +248,16 @@ func (h *HorizonStorage) UploadFromBinary(ctx context.Context, data []byte, cb P
 		storage:  storage,
 	}
 
-	obj := h.bucket.Object(fileName)
-	w := obj.NewWriter(ctx)
-
-	if _, err := io.Copy(w, pr); err != nil {
-		return nil, eris.Wrap(err, "upload failed")
+	result, err := h.client.PutObject(ctx, h.storageBucket, fileName, pr, storage.FileSize, minio.PutObjectOptions{ContentType: contentType})
+	if err != nil {
+		return nil, eris.Wrap(err, "upload local failed")
 	}
-	if err := w.Close(); err != nil {
-		return nil, eris.Wrap(err, "upload finalization failed")
-	}
-
+	storage.StorageKey = result.Key
+	storage.BucketName = result.Bucket
 	url, err := h.GeneratePresignedURL(ctx, storage, 24*time.Hour)
 	if err != nil {
 		return nil, err
 	}
-
 	storage.URL = url
 	storage.Status = "completed"
 	return storage, nil
@@ -275,50 +295,45 @@ func (h *HorizonStorage) UploadFromHeader(ctx context.Context, header *multipart
 		total:    header.Size,
 		storage:  storage,
 	}
-
-	obj := h.bucket.Object(fileName)
-	w := obj.NewWriter(ctx)
-
-	if _, err := io.Copy(w, pr); err != nil {
-		return nil, eris.Wrap(err, "upload failed")
+	result, err := h.client.PutObject(ctx, h.storageBucket, fileName, pr, storage.FileSize, minio.PutObjectOptions{ContentType: contentType})
+	if err != nil {
+		return nil, eris.Wrap(err, "upload local failed")
 	}
-	if err := w.Close(); err != nil {
-		return nil, eris.Wrap(err, "upload finalization failed")
-	}
-
+	storage.StorageKey = result.Key
+	storage.BucketName = result.Bucket
 	url, err := h.GeneratePresignedURL(ctx, storage, 24*time.Hour)
 	if err != nil {
 		return nil, err
 	}
-
 	storage.URL = url
 	storage.Status = "completed"
 	return storage, nil
 }
 
 func (h *HorizonStorage) GeneratePresignedURL(ctx context.Context, storage *Storage, expiry time.Duration) (string, error) {
-	obj := h.bucket.Object(storage.StorageKey)
-	_, err := obj.Attrs(ctx)
+	// Check if the file exists before generating the presigned URL
+	_, err := h.client.StatObject(ctx, storage.BucketName, storage.StorageKey, minio.StatObjectOptions{})
 	if err != nil {
-		return "", eris.Wrap(errors.New("failed to presign URL"), "file does not exist")
-	}
-	authToken, err := h.bucket.AuthToken(ctx, h.prefix, expiry)
-	if err != nil {
-		return "", eris.Wrap(errors.New("failed to generate authorization token"), err.Error())
+		return "", eris.Wrapf(err, "failed to generate presigned URL for key %s in bucket %s", storage.StorageKey, storage.BucketName)
 	}
 
-	downloadURL := fmt.Sprintf("%s/file/%s/%s?Authorization=%s",
-		h.bucket.BaseURL(),
-		h.storageBucket,
-		storage.StorageKey,
-		authToken,
-	)
-	return downloadURL, nil
+	u, err := h.client.PresignedGetObject(ctx, storage.BucketName, storage.FileName, expiry, nil)
+	if err != nil {
+		return "", eris.Wrap(err, "presign failed")
+	}
+	return u.String(), nil
 }
+
 func (h *HorizonStorage) DeleteFile(ctx context.Context, storage *Storage) error {
-	obj := h.bucket.Object(storage.StorageKey)
-	if err := obj.Delete(ctx); err != nil {
-		return eris.Wrap(err, "file deletion failed")
+	if h.client == nil {
+		return eris.New("not initialized")
+	}
+	if strings.TrimSpace(storage.StorageKey) == "" {
+		return eris.New("empty key")
+	}
+	err := h.client.RemoveObject(ctx, storage.BucketName, storage.StorageKey, minio.RemoveObjectOptions{})
+	if err != nil {
+		return eris.Wrapf(err, "failed to delete key %s from bucket %s", storage.StorageKey, storage.BucketName)
 	}
 	return nil
 }

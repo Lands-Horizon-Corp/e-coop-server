@@ -2,10 +2,12 @@ package model
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 	horizon_services "github.com/lands-horizon/horizon-server/services"
 	"github.com/lands-horizon/horizon-server/src"
+	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
@@ -361,10 +363,522 @@ func (c *Model) Start() error {
 	return nil
 }
 
-func (c *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userId uuid.UUID, organizationId uuid.UUID, branchId uuid.UUID) error {
+func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+	now := time.Now()
+	memberClassifications := []*MemberClassification{
+		{
+
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Gold",
+			Icon:           "sunrise",
+			Description:    "Gold membership is reserved for top-tier members with excellent credit scores and consistent loyalty.",
+		},
+		{
+
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Silver",
+			Icon:           "moon-star",
+			Description:    "Silver membership is designed for members with good credit history and regular engagement.",
+		},
+		{
+
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Bronze",
+			Icon:           "cloud",
+			Description:    "Bronze membership is for new or casual members who are starting their journey with us.",
+		},
+		{
+
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Platinum",
+			Icon:           "gem",
+			Description:    "Platinum membership offers exclusive benefits to elite members with outstanding history and contributions.",
+		},
+	}
+	for _, data := range memberClassifications {
+		if err := m.MemberClassificationManager.CreateWithTx(context, tx, data); err != nil {
+			return eris.Wrapf(err, "failed to seed member classification %s", data.Name)
+		}
+	}
+
+	memberCenter := []*MemberCenter{
+		{
+			Name:           "Main Wellness Center",
+			Description:    "Provides health and wellness programs.",
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			CreatedAt:      time.Now(),
+			CreatedByID:    userID,
+			UpdatedAt:      time.Now(),
+			UpdatedByID:    userID,
+		},
+		{
+
+			Name:           "Training Hub",
+			Description:    "Offers skill-building and training for members.",
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			CreatedAt:      time.Now(),
+			CreatedByID:    userID,
+			UpdatedAt:      time.Now(),
+			UpdatedByID:    userID,
+		},
+		{
+
+			Name:           "Community Support Center",
+			Description:    "Focuses on community support services and events.",
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			CreatedAt:      time.Now(),
+			CreatedByID:    userID,
+			UpdatedAt:      time.Now(),
+			UpdatedByID:    userID,
+		},
+	}
+	for _, data := range memberCenter {
+		if err := m.MemberCenterManager.CreateWithTx(context, tx, data); err != nil {
+			return eris.Wrapf(err, "failed to seed member center %s", data.Name)
+		}
+	}
+
+	memberGenders := []*MemberGender{
+		{
+
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Male",
+			Description:    "Identifies as male.",
+		},
+		{
+
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Female",
+			Description:    "Identifies as female.",
+		},
+		{
+
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Other",
+			Description:    "Identifies outside the binary gender categories.",
+		},
+	}
+	for _, data := range memberGenders {
+		if err := m.MemberGenderManager.CreateWithTx(context, tx, data); err != nil {
+			return eris.Wrapf(err, "failed to seed member gender %s", data.Name)
+		}
+	}
+
+	memberGroup := []*MemberGroup{
+		{
+
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Single Moms",
+			Description:    "Support group for single mothers in the community.",
+		},
+		{
+
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Athletes",
+			Description:    "Members who actively participate in sports and fitness.",
+		},
+		{
+
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Tech",
+			Description:    "Members involved in information technology or development.",
+		},
+		{
+
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Graphics Artists",
+			Description:    "Creative members who specialize in digital and graphic design.",
+		},
+		{
+
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Accountants",
+			Description:    "Finance-focused members responsible for budgeting and auditing.",
+		},
+	}
+	for _, data := range memberGroup {
+		if err := m.MemberGroupManager.CreateWithTx(context, tx, data); err != nil {
+			return eris.Wrapf(err, "failed to seed member group %s", data.Name)
+		}
+	}
+
+	memberOccupations := []*MemberOccupation{
+		{Name: "Farmer", Description: "Engaged in agriculture or crop cultivation.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+		{Name: "Fisherfolk", Description: "Involved in fishing and aquaculture activities.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+		{Name: "Agricultural Technician", Description: "Specializes in modern agricultural practices and tools.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+		{Name: "Software Developer", Description: "Develops and maintains software systems.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+		{Name: "IT Specialist", Description: "Manages information technology infrastructure.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+		{Name: "Accountant", Description: "Handles financial records and audits.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+		{Name: "Teacher", Description: "Educates students in academic institutions.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+		{Name: "Nurse", Description: "Provides healthcare and medical support.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+		{Name: "Doctor", Description: "Licensed medical professional for diagnosing and treating patients.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+		{Name: "Engineer", Description: "Designs and builds infrastructure or systems.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+		{Name: "Construction Worker", Description: "Works on building and construction projects.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+		{Name: "Driver", Description: "Professional vehicle operator (e.g., jeepney, tricycle, delivery).", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+		{Name: "Vendor", Description: "Operates a small retail business or market stall.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+		{Name: "Self-Employed", Description: "Independent worker managing their own business or services.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+		{Name: "Housewife", Description: "Manages household responsibilities full-time.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+		{Name: "Househusband", Description: "Male homemaker managing family and household duties.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+		{Name: "Artist", Description: "Engaged in creative fields like painting, sculpture, or multimedia arts.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+		{Name: "Graphic Designer", Description: "Creates visual content using design software.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+		{Name: "Call Center Agent", Description: "Provides customer service through phone or chat support.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+		{Name: "Unemployed", Description: "Currently without formal occupation.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+		{Name: "Physicist", Description: "Studies the properties and interactions of matter and energy.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+		{Name: "Pharmacist", Description: "Dispenses medications and advises on their safe use.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+		{Name: "Chef", Description: "Creates recipes and prepares meals in restaurants or catering.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+		{Name: "Mechanic", Description: "Repairs and maintains vehicles and machinery.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+		{Name: "Electrician", Description: "Installs and repairs electrical systems and wiring.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+		{Name: "Plumber", Description: "Installs and repairs piping systems for water and waste.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+		{Name: "Architect", Description: "Designs buildings and ensures structural soundness.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+		{Name: "Banker", Description: "Manages financial transactions and client relationships.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+		{Name: "Lawyer", Description: "Provides legal advice and represents clients in court.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+		{Name: "Journalist", Description: "Researches and reports news for print, online, or broadcast.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+		{Name: "Social Worker", Description: "Supports individuals and families through counseling and services.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+		{Name: "Caregiver", Description: "Provides in-home care and assistance to the elderly or disabled.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+		{Name: "Security Guard", Description: "Protects property and enforces safety protocols.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+		{Name: "Teacher’s Aide", Description: "Assists teachers in classroom management and lesson prep.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+		{Name: "Student", Description: "Currently enrolled in an educational institution.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+		{Name: "Retiree", Description: "Previously employed, now retired from active work.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+		{Name: "Entrepreneur", Description: "Owns and operates one or more business ventures.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+		{Name: "Musician", Description: "Performs, composes, or teaches music.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+		{Name: "Writer", Description: "Crafts written content—books, articles, or scripts.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+		{Name: "Pilot", Description: "Operates aircraft for commercial or private flights.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+		{Name: "Scientist", Description: "Conducts research in natural or social sciences.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+		{Name: "Lab Technician", Description: "Performs tests and experiments in scientific labs.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+		{Name: "Receptionist", Description: "Manages front-desk operations and customer inquiries.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+		{Name: "Janitor", Description: "Keeps buildings clean and well-maintained.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
+	}
+	for _, data := range memberOccupations {
+		if err := m.MemberOccupationManager.CreateWithTx(context, tx, data); err != nil {
+			return eris.Wrapf(err, "failed to seed member ooccupation %s", data.Name)
+		}
+	}
+
+	memberType := []*MemberType{
+		{
+
+			Name:           "New",
+			Prefix:         "NEW",
+			Description:    "Recently registered member, no activity yet.",
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+		},
+		{
+
+			Name:           "Active",
+			Prefix:         "ACT",
+			Description:    "Regularly engaged member with no issues.",
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+		},
+		{
+
+			Name:           "Loyal",
+			Prefix:         "LOY",
+			Description:    "Consistently active over a long period; high retention.",
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+		},
+		{
+
+			Name:           "VIP",
+			Prefix:         "VIP",
+			Description:    "Very high-value member with premium privileges.",
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+		},
+		{
+
+			Name:           "Reported",
+			Prefix:         "RPT",
+			Description:    "Flagged by community or system for review.",
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+		},
+		{
+
+			Name:           "Suspended",
+			Prefix:         "SUS",
+			Description:    "Temporarily barred from activities pending resolution.",
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+		},
+		{
+
+			Name:           "Banned",
+			Prefix:         "BAN",
+			Description:    "Permanently barred due to policy violations.",
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+		},
+		{
+
+			Name:           "Closed",
+			Prefix:         "CLS",
+			Description:    "Account closed by user request or administrative action.",
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+		},
+		{
+
+			Name:           "Alumni",
+			Prefix:         "ALM",
+			Description:    "Former member with notable contributions.",
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+		},
+		{
+
+			Name:           "Pending",
+			Prefix:         "PND",
+			Description:    "Awaiting verification or approval.",
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+		},
+		{
+
+			Name:           "Dormant",
+			Prefix:         "DRM",
+			Description:    "Inactive for a long period with no recent engagement.",
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+		},
+		{
+
+			Name:           "Guest",
+			Prefix:         "GST",
+			Description:    "Limited access member without full privileges.",
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+		},
+		{
+
+			Name:           "Moderator",
+			Prefix:         "MOD",
+			Description:    "Member with special privileges to manage content or users.",
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+		},
+		{
+
+			Name:           "Admin",
+			Prefix:         "ADM",
+			Description:    "Administrator with full access and control.",
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+		},
+	}
+	for _, data := range memberType {
+		if err := m.MemberTypeManager.CreateWithTx(context, tx, data); err != nil {
+			return eris.Wrapf(err, "failed to seed member type %s", data.Name)
+		}
+	}
 	return nil
 }
 
-func (c *Model) OrganizationDestroyer(context context.Context, tx *gorm.DB, userId uuid.UUID, organizationId uuid.UUID, branchId uuid.UUID) error {
+func (m *Model) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+	// 1. Delete MemberType
+	memberTypes, err := m.MemberTypeManager.Find(ctx, &MemberType{
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+	})
+	if err != nil {
+		return eris.Wrapf(err, "failed to get member types")
+	}
+	for _, data := range memberTypes {
+		if err := m.MemberTypeManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+			return eris.Wrapf(err, "failed to destroy member type %s", data.Name)
+		}
+	}
+
+	// 2. Delete MemberOccupation
+	memberOccupations, err := m.MemberOccupationManager.Find(ctx, &MemberOccupation{
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+	})
+	if err != nil {
+		return eris.Wrapf(err, "failed to get member occupations")
+	}
+	for _, data := range memberOccupations {
+		if err := m.MemberOccupationManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+			return eris.Wrapf(err, "failed to destroy member occupation %s", data.Name)
+		}
+	}
+
+	// 3. Delete MemberGroup
+	memberGroups, err := m.MemberGroupManager.Find(ctx, &MemberGroup{
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+	})
+	if err != nil {
+		return eris.Wrapf(err, "failed to get member groups")
+	}
+	for _, data := range memberGroups {
+		if err := m.MemberGroupManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+			return eris.Wrapf(err, "failed to destroy member group %s", data.Name)
+		}
+	}
+
+	// 4. Delete MemberGender
+	memberGenders, err := m.MemberGenderManager.Find(ctx, &MemberGender{
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+	})
+	if err != nil {
+		return eris.Wrapf(err, "failed to get member genders")
+	}
+	for _, data := range memberGenders {
+		if err := m.MemberGenderManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+			return eris.Wrapf(err, "failed to destroy member gender %s", data.Name)
+		}
+	}
+
+	// 5. Delete MemberCenter
+	memberCenters, err := m.MemberCenterManager.Find(ctx, &MemberCenter{
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+	})
+	if err != nil {
+		return eris.Wrapf(err, "failed to get member centers")
+	}
+	for _, data := range memberCenters {
+		if err := m.MemberCenterManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+			return eris.Wrapf(err, "failed to destroy member center %s", data.Name)
+		}
+	}
+
+	// 6. Delete MemberClassification
+	memberClassifications, err := m.MemberClassificationManager.Find(ctx, &MemberClassification{
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+	})
+	if err != nil {
+		return eris.Wrapf(err, "failed to get member classifications")
+	}
+	for _, data := range memberClassifications {
+		if err := m.MemberClassificationManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+			return eris.Wrapf(err, "failed to destroy member classification %s", data.Name)
+		}
+	}
+
 	return nil
 }
