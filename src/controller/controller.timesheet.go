@@ -54,7 +54,7 @@ func (c *Controller) TimesheetController() {
 			UserID: user.UserID,
 		})
 		now := time.Now().UTC()
-		if timesheet == nil {
+		if timesheet == nil || timesheet.TimeOut != nil {
 			model := &model.Timesheet{
 				CreatedAt:      now,
 				CreatedByID:    user.UserID,

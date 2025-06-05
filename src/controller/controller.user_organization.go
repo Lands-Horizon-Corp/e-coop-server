@@ -152,9 +152,16 @@ func (c *Controller) UserOrganinzationController() {
 		if err != nil {
 			return err
 		}
+		user, err := c.userToken.CurrentUser(context, ctx)
+		if err != nil {
+			return err
+		}
 		userOrganization, err := c.model.UserOrganizationManager.GetByID(context, *organizationId)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		if user.ID != userOrganization.UserID {
+			return ctx.NoContent(http.StatusForbidden)
 		}
 		if err := c.userOrganizationToken.SetUserOrganization(context, ctx, userOrganization); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})

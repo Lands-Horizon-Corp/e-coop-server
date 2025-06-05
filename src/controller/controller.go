@@ -93,6 +93,10 @@ func (c *Controller) Start() error {
 	c.BankController()
 	c.HolidayController()
 	c.BillAndCoinsController()
+
+	// Transaction batch
+	c.TransactionBatchController()
+	c.CashCountController()
 	return nil
 }
 

@@ -14,7 +14,7 @@ import (
 type AccountingPrinciple string
 
 type (
-	FinancialStatementAccountsGrouping struct {
+	FinancialStatementsrouping struct {
 		ID             uuid.UUID     `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_financial_statement_accounts_grouping"`
 		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
@@ -79,13 +79,13 @@ type (
 )
 
 func (m *Model) FinancialStatementAccountsGrouping() {
-	m.Migration = append(m.Migration, &FinancialStatementAccountsGrouping{})
-	m.FinancialStatementAccountsGroupingManager = horizon_services.NewRepository(horizon_services.RepositoryParams[FinancialStatementAccountsGrouping, FinancialStatementAccountsGroupingResponse, FinancialStatementAccountsGroupingRequest]{
+	m.Migration = append(m.Migration, &FinancialStatementsrouping{})
+	m.FinancialStatementAccountsGroupingManager = horizon_services.NewRepository(horizon_services.RepositoryParams[FinancialStatementsrouping, FinancialStatementAccountsGroupingResponse, FinancialStatementAccountsGroupingRequest]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization", "IconMedia",
 		},
 		Service: m.provider.Service,
-		Resource: func(data *FinancialStatementAccountsGrouping) *FinancialStatementAccountsGroupingResponse {
+		Resource: func(data *FinancialStatementsrouping) *FinancialStatementAccountsGroupingResponse {
 			if data == nil {
 				return nil
 			}
@@ -118,7 +118,7 @@ func (m *Model) FinancialStatementAccountsGrouping() {
 				DeletedAt:      deletedAt,
 			}
 		},
-		Created: func(data *FinancialStatementAccountsGrouping) []string {
+		Created: func(data *FinancialStatementsrouping) []string {
 			return []string{
 				"financial_statement_accounts_grouping.create",
 				fmt.Sprintf("financial_statement_accounts_grouping.create.%s", data.ID),
@@ -126,7 +126,7 @@ func (m *Model) FinancialStatementAccountsGrouping() {
 				fmt.Sprintf("financial_statement_accounts_grouping.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *FinancialStatementAccountsGrouping) []string {
+		Updated: func(data *FinancialStatementsrouping) []string {
 			return []string{
 				"financial_statement_accounts_grouping.update",
 				fmt.Sprintf("financial_statement_accounts_grouping.update.%s", data.ID),
@@ -134,7 +134,7 @@ func (m *Model) FinancialStatementAccountsGrouping() {
 				fmt.Sprintf("financial_statement_accounts_grouping.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *FinancialStatementAccountsGrouping) []string {
+		Deleted: func(data *FinancialStatementsrouping) []string {
 			return []string{
 				"financial_statement_accounts_grouping.delete",
 				fmt.Sprintf("financial_statement_accounts_grouping.delete.%s", data.ID),
@@ -145,8 +145,8 @@ func (m *Model) FinancialStatementAccountsGrouping() {
 	})
 }
 
-func (m *Model) FinancialStatementAccountsGroupingCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*FinancialStatementAccountsGrouping, error) {
-	return m.FinancialStatementAccountsGroupingManager.Find(context, &FinancialStatementAccountsGrouping{
+func (m *Model) FinancialStatementAccountsGroupingCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*FinancialStatementsrouping, error) {
+	return m.FinancialStatementAccountsGroupingManager.Find(context, &FinancialStatementsrouping{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})
