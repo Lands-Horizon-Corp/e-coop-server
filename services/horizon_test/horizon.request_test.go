@@ -15,10 +15,6 @@ import (
 )
 
 // go test -v services/horizon_test/horizon.request_test.go
-var (
-	testCtx    context.Context
-	testCancel context.CancelFunc
-)
 var apiPort = horizon.GetFreePort()
 
 func TestMain(m *testing.M) {
@@ -30,7 +26,7 @@ func TestMain(m *testing.M) {
 	baseURL := "http://localhost:" + fmt.Sprint(apiPort)
 
 	// Assign package-level variables, do NOT use := to avoid shadowing
-	testCtx = context.Background()
+	testCtx := context.Background()
 
 	service := horizon.NewHorizonAPIService(apiPort, metricsPort, clientUrl, clientName)
 	go func() {
@@ -47,8 +43,6 @@ func TestMain(m *testing.M) {
 	// Run all tests
 	code := m.Run()
 
-	// Stop server
-	testCancel()
 	time.Sleep(100 * time.Millisecond) // allow graceful shutdown
 
 	os.Exit(code)
