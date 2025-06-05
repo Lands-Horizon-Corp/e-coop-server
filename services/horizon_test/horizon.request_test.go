@@ -22,7 +22,6 @@ var (
 var apiPort = horizon.GetFreePort()
 
 func TestMain(m *testing.M) {
-
 	env := horizon.NewEnvironmentService("../../.env")
 
 	metricsPort := horizon.GetFreePort()
@@ -30,17 +29,16 @@ func TestMain(m *testing.M) {
 	clientName := env.GetString("APP_CLIENT_NAME", "test-client")
 	baseURL := "http://localhost:" + fmt.Sprint(apiPort)
 
-	testCtx := context.Background()
+	// Assign package-level variables, do NOT use := to avoid shadowing
+	testCtx, testCancel = context.WithCancel(context.Background())
 
 	service := horizon.NewHorizonAPIService(apiPort, metricsPort, clientUrl, clientName)
 	go func() {
-
 		if err := service.Run(testCtx); err != nil {
-			// Avoid log.Fatal to ensure deferred testCancel runs
 			println("Server exited with error:", err.Error())
 		}
-
 	}()
+
 	// Wait for server to be ready
 	if !waitForServerReady(baseURL+"/health", 5*time.Second) {
 		testCancel()

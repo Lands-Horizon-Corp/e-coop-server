@@ -5,7 +5,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -19,7 +18,7 @@ type NotificationEvent struct {
 // Only users with a valid CSRF token can trigger notifications
 func (e *Event) Notification(ctx context.Context, echoCtx echo.Context, data NotificationEvent) {
 	go func() {
-		user, err := e.userToken.CSRF.GetCSRF(ctx, echoCtx)
+		user, err := e.userToken.CurrentUser(ctx, echoCtx)
 		if err != nil {
 			return
 		}
@@ -28,14 +27,11 @@ func (e *Event) Notification(ctx context.Context, echoCtx echo.Context, data Not
 		if data.Description == "" || data.NotificationType == "" {
 			return
 		}
-		userId, err := uuid.Parse(user.UserID)
-		if err != nil {
-			return
-		}
+
 		if err := e.model.NotificationManager.Create(ctx, &model.Notification{
 			CreatedAt:        time.Now().UTC(),
 			UpdatedAt:        time.Now().UTC(),
-			UserID:           userId,
+			UserID:           user.ID,
 			Title:            data.Title,
 			Description:      data.Description,
 			IsViewed:         false,

@@ -198,15 +198,15 @@ type (
 		YearlySubscriptionFee        int  `gorm:"type:int"`
 		LoanCutOffDays               int  `gorm:"type:int"`
 
-		LumpsumComputationType                                       string `gorm:"type:varchar(50);default:'None'"`
-		InterestFinesComputationDiminishing                          string `gorm:"type:varchar(100);default:'None'"`
-		InterestFinesComputationDiminishingStraightDiminishingYearly string `gorm:"type:varchar(200);default:'None'"`
-		EarnedUnearnedInterest                                       string `gorm:"type:varchar(50);default:'None'"`
-		LoanSavingType                                               string `gorm:"type:varchar(50);default:'Separate'"`
-		InterestDeduction                                            string `gorm:"type:varchar(10);default:'Above'"`
-		OtherDeductionEntry                                          string `gorm:"type:varchar(20);default:'None'"`
-		InterestSavingTypeDiminishingStraight                        string `gorm:"type:varchar(20);default:'Spread'"`
-		OtherInformationOfAnAccount                                  string `gorm:"type:varchar(50);default:'None'"`
+		LumpsumComputationType                            string `gorm:"type:varchar(50);default:'None'"`
+		InterestFinesComputationDiminishing               string `gorm:"type:varchar(100);default:'None'"`
+		InterestFinesComputationDiminishingStraightYearly string `gorm:"type:varchar(200);default:'None'"`
+		EarnedUnearnedInterest                            string `gorm:"type:varchar(50);default:'None'"`
+		LoanSavingType                                    string `gorm:"type:varchar(50);default:'Separate'"`
+		InterestDeduction                                 string `gorm:"type:varchar(10);default:'Above'"`
+		OtherDeductionEntry                               string `gorm:"type:varchar(20);default:'None'"`
+		InterestSavingTypeDiminishingStraight             string `gorm:"type:varchar(20);default:'Spread'"`
+		OtherInformationOfAnAccount                       string `gorm:"type:varchar(50);default:'None'"`
 
 		HeaderRow int `gorm:"type:int"`
 		CenterRow int `gorm:"type:int"`
@@ -291,15 +291,15 @@ type AccountResponse struct {
 	YearlySubscriptionFee        int  `json:"yearly_subscription_fee"`
 	LoanCutOffDays               int  `json:"loan_cut_off_days"`
 
-	LumpsumComputationType                                       LumpsumComputationType                            `json:"lumpsum_computation_type"`
-	InterestFinesComputationDiminishing                          InterestFinesComputationDiminishing               `json:"interest_fines_computation_diminishing"`
-	InterestFinesComputationDiminishingStraightDiminishingYearly InterestFinesComputationDiminishingStraightYearly `json:"interest_fines_computation_diminishing_straight_diminishing_yearly"`
-	EarnedUnearnedInterest                                       EarnedUnearnedInterest                            `json:"earned_unearned_interest"`
-	LoanSavingType                                               LoanSavingType                                    `json:"loan_saving_type"`
-	InterestDeduction                                            InterestDeduction                                 `json:"interest_deduction"`
-	OtherDeductionEntry                                          OtherDeductionEntry                               `json:"other_deduction_entry"`
-	InterestSavingTypeDiminishingStraight                        InterestSavingTypeDiminishingStraight             `json:"interest_saving_type_diminishing_straight"`
-	OtherInformationOfAnAccount                                  OtherInformationOfAnAccount                       `json:"other_information_of_an_account"`
+	LumpsumComputationType                            LumpsumComputationType                            `json:"lumpsum_computation_type"`
+	InterestFinesComputationDiminishing               InterestFinesComputationDiminishing               `json:"interest_fines_computation_diminishing"`
+	InterestFinesComputationDiminishingStraightYearly InterestFinesComputationDiminishingStraightYearly `json:"interest_fines_computation_diminishing_straight_diminishing_yearly"`
+	EarnedUnearnedInterest                            EarnedUnearnedInterest                            `json:"earned_unearned_interest"`
+	LoanSavingType                                    LoanSavingType                                    `json:"loan_saving_type"`
+	InterestDeduction                                 InterestDeduction                                 `json:"interest_deduction"`
+	OtherDeductionEntry                               OtherDeductionEntry                               `json:"other_deduction_entry"`
+	InterestSavingTypeDiminishingStraight             InterestSavingTypeDiminishingStraight             `json:"interest_saving_type_diminishing_straight"`
+	OtherInformationOfAnAccount                       OtherInformationOfAnAccount                       `json:"other_information_of_an_account"`
 
 	HeaderRow int `json:"header_row"`
 	CenterRow int `json:"center_row"`
@@ -366,15 +366,15 @@ type AccountRequest struct {
 	YearlySubscriptionFee        int  `json:"yearly_subscription_fee,omitempty"`
 	LoanCutOffDays               int  `json:"loan_cut_off_days,omitempty"`
 
-	LumpsumComputationType                                       LumpsumComputationType                            `json:"lumpsum_computation_type,omitempty"`
-	InterestFinesComputationDiminishing                          InterestFinesComputationDiminishing               `json:"interest_fines_computation_diminishing,omitempty"`
-	InterestFinesComputationDiminishingStraightDiminishingYearly InterestFinesComputationDiminishingStraightYearly `json:"interest_fines_computation_diminishing_straight_diminishing_yearly,omitempty"`
-	EarnedUnearnedInterest                                       EarnedUnearnedInterest                            `json:"earned_unearned_interest,omitempty"`
-	LoanSavingType                                               LoanSavingType                                    `json:"loan_saving_type,omitempty"`
-	InterestDeduction                                            InterestDeduction                                 `json:"interest_deduction,omitempty"`
-	OtherDeductionEntry                                          OtherDeductionEntry                               `json:"other_deduction_entry,omitempty"`
-	InterestSavingTypeDiminishingStraight                        InterestSavingTypeDiminishingStraight             `json:"interest_saving_type_diminishing_straight,omitempty"`
-	OtherInformationOfAnAccount                                  OtherInformationOfAnAccount                       `json:"other_information_of_an_account,omitempty"`
+	LumpsumComputationType                            LumpsumComputationType                            `json:"lumpsum_computation_type,omitempty"`
+	InterestFinesComputationDiminishing               InterestFinesComputationDiminishing               `json:"interest_fines_computation_diminishing,omitempty"`
+	InterestFinesComputationDiminishingStraightYearly InterestFinesComputationDiminishingStraightYearly `json:"interest_fines_computation_diminishing_straight_diminishing_yearly,omitempty"`
+	EarnedUnearnedInterest                            EarnedUnearnedInterest                            `json:"earned_unearned_interest,omitempty"`
+	LoanSavingType                                    LoanSavingType                                    `json:"loan_saving_type,omitempty"`
+	InterestDeduction                                 InterestDeduction                                 `json:"interest_deduction,omitempty"`
+	OtherDeductionEntry                               OtherDeductionEntry                               `json:"other_deduction_entry,omitempty"`
+	InterestSavingTypeDiminishingStraight             InterestSavingTypeDiminishingStraight             `json:"interest_saving_type_diminishing_straight,omitempty"`
+	OtherInformationOfAnAccount                       OtherInformationOfAnAccount                       `json:"other_information_of_an_account,omitempty"`
 
 	HeaderRow int `json:"header_row,omitempty"`
 	CenterRow int `json:"center_row,omitempty"`
@@ -440,42 +440,42 @@ func (m *Model) Account() {
 				ComputationSheetID:                    data.ComputationSheetID,
 				CohCibFinesGracePeriodEntryCashHand:   data.CohCibFinesGracePeriodEntryCashHand,
 				CohCibFinesGracePeriodEntryCashInBank: data.CohCibFinesGracePeriodEntryCashInBank,
-				CohCibFinesGracePeriodEntryDailyAmortization:                 data.CohCibFinesGracePeriodEntryDailyAmortization,
-				CohCibFinesGracePeriodEntryDailyMaturity:                     data.CohCibFinesGracePeriodEntryDailyMaturity,
-				CohCibFinesGracePeriodEntryWeeklyAmortization:                data.CohCibFinesGracePeriodEntryWeeklyAmortization,
-				CohCibFinesGracePeriodEntryWeeklyMaturity:                    data.CohCibFinesGracePeriodEntryWeeklyMaturity,
-				CohCibFinesGracePeriodEntryMonthlyAmortization:               data.CohCibFinesGracePeriodEntryMonthlyAmortization,
-				CohCibFinesGracePeriodEntryMonthlyMaturity:                   data.CohCibFinesGracePeriodEntryMonthlyMaturity,
-				CohCibFinesGracePeriodEntrySemiMonthlyAmortization:           data.CohCibFinesGracePeriodEntrySemiMonthlyAmortization,
-				CohCibFinesGracePeriodEntrySemiMonthlyMaturity:               data.CohCibFinesGracePeriodEntrySemiMonthlyMaturity,
-				CohCibFinesGracePeriodEntryQuarterlyAmortization:             data.CohCibFinesGracePeriodEntryQuarterlyAmortization,
-				CohCibFinesGracePeriodEntryQuarterlyMaturity:                 data.CohCibFinesGracePeriodEntryQuarterlyMaturity,
-				CohCibFinesGracePeriodEntrySemiAnualAmortization:             data.CohCibFinesGracePeriodEntrySemiAnualAmortization,
-				CohCibFinesGracePeriodEntrySemiAnualMaturity:                 data.CohCibFinesGracePeriodEntrySemiAnualMaturity,
-				CohCibFinesGracePeriodEntryLumpsumAmortization:               data.CohCibFinesGracePeriodEntryLumpsumAmortization,
-				CohCibFinesGracePeriodEntryLumpsumMaturity:                   data.CohCibFinesGracePeriodEntryLumpsumMaturity,
-				FinancialStatementType:                                       FinancialStatementType(data.FinancialStatementType),
-				GeneralLedgerType:                                            data.GeneralLedgerType,
-				AlternativeCode:                                              data.AlternativeCode,
-				FinesGracePeriodAmortization:                                 data.FinesGracePeriodAmortization,
-				AdditionalGracePeriod:                                        data.AdditionalGracePeriod,
-				NumberGracePeriodDaily:                                       data.NumberGracePeriodDaily,
-				FinesGracePeriodMaturity:                                     data.FinesGracePeriodMaturity,
-				YearlySubscriptionFee:                                        data.YearlySubscriptionFee,
-				LoanCutOffDays:                                               data.LoanCutOffDays,
-				LumpsumComputationType:                                       LumpsumComputationType(data.LumpsumComputationType),
-				InterestFinesComputationDiminishing:                          InterestFinesComputationDiminishing(data.InterestFinesComputationDiminishing),
-				InterestFinesComputationDiminishingStraightDiminishingYearly: InterestFinesComputationDiminishingStraightYearly(data.InterestFinesComputationDiminishingStraightDiminishingYearly),
-				EarnedUnearnedInterest:                                       EarnedUnearnedInterest(data.EarnedUnearnedInterest),
-				LoanSavingType:                                               LoanSavingType(data.LoanSavingType),
-				InterestDeduction:                                            InterestDeduction(data.InterestDeduction),
-				OtherDeductionEntry:                                          OtherDeductionEntry(data.OtherDeductionEntry),
-				InterestSavingTypeDiminishingStraight:                        InterestSavingTypeDiminishingStraight(data.InterestSavingTypeDiminishingStraight),
-				OtherInformationOfAnAccount:                                  OtherInformationOfAnAccount(data.OtherInformationOfAnAccount),
-				HeaderRow:                                                    data.HeaderRow,
-				CenterRow:                                                    data.CenterRow,
-				TotalRow:                                                     data.TotalRow,
-				GeneralLedgerGroupingExcludeAccount:                          data.GeneralLedgerGroupingExcludeAccount,
+				CohCibFinesGracePeriodEntryDailyAmortization:       data.CohCibFinesGracePeriodEntryDailyAmortization,
+				CohCibFinesGracePeriodEntryDailyMaturity:           data.CohCibFinesGracePeriodEntryDailyMaturity,
+				CohCibFinesGracePeriodEntryWeeklyAmortization:      data.CohCibFinesGracePeriodEntryWeeklyAmortization,
+				CohCibFinesGracePeriodEntryWeeklyMaturity:          data.CohCibFinesGracePeriodEntryWeeklyMaturity,
+				CohCibFinesGracePeriodEntryMonthlyAmortization:     data.CohCibFinesGracePeriodEntryMonthlyAmortization,
+				CohCibFinesGracePeriodEntryMonthlyMaturity:         data.CohCibFinesGracePeriodEntryMonthlyMaturity,
+				CohCibFinesGracePeriodEntrySemiMonthlyAmortization: data.CohCibFinesGracePeriodEntrySemiMonthlyAmortization,
+				CohCibFinesGracePeriodEntrySemiMonthlyMaturity:     data.CohCibFinesGracePeriodEntrySemiMonthlyMaturity,
+				CohCibFinesGracePeriodEntryQuarterlyAmortization:   data.CohCibFinesGracePeriodEntryQuarterlyAmortization,
+				CohCibFinesGracePeriodEntryQuarterlyMaturity:       data.CohCibFinesGracePeriodEntryQuarterlyMaturity,
+				CohCibFinesGracePeriodEntrySemiAnualAmortization:   data.CohCibFinesGracePeriodEntrySemiAnualAmortization,
+				CohCibFinesGracePeriodEntrySemiAnualMaturity:       data.CohCibFinesGracePeriodEntrySemiAnualMaturity,
+				CohCibFinesGracePeriodEntryLumpsumAmortization:     data.CohCibFinesGracePeriodEntryLumpsumAmortization,
+				CohCibFinesGracePeriodEntryLumpsumMaturity:         data.CohCibFinesGracePeriodEntryLumpsumMaturity,
+				FinancialStatementType:                             FinancialStatementType(data.FinancialStatementType),
+				GeneralLedgerType:                                  data.GeneralLedgerType,
+				AlternativeCode:                                    data.AlternativeCode,
+				FinesGracePeriodAmortization:                       data.FinesGracePeriodAmortization,
+				AdditionalGracePeriod:                              data.AdditionalGracePeriod,
+				NumberGracePeriodDaily:                             data.NumberGracePeriodDaily,
+				FinesGracePeriodMaturity:                           data.FinesGracePeriodMaturity,
+				YearlySubscriptionFee:                              data.YearlySubscriptionFee,
+				LoanCutOffDays:                                     data.LoanCutOffDays,
+				LumpsumComputationType:                             LumpsumComputationType(data.LumpsumComputationType),
+				InterestFinesComputationDiminishing:                InterestFinesComputationDiminishing(data.InterestFinesComputationDiminishing),
+				InterestFinesComputationDiminishingStraightYearly:  InterestFinesComputationDiminishingStraightYearly(data.InterestFinesComputationDiminishingStraightYearly),
+				EarnedUnearnedInterest:                             EarnedUnearnedInterest(data.EarnedUnearnedInterest),
+				LoanSavingType:                                     LoanSavingType(data.LoanSavingType),
+				InterestDeduction:                                  InterestDeduction(data.InterestDeduction),
+				OtherDeductionEntry:                                OtherDeductionEntry(data.OtherDeductionEntry),
+				InterestSavingTypeDiminishingStraight:              InterestSavingTypeDiminishingStraight(data.InterestSavingTypeDiminishingStraight),
+				OtherInformationOfAnAccount:                        OtherInformationOfAnAccount(data.OtherInformationOfAnAccount),
+				HeaderRow:                                          data.HeaderRow,
+				CenterRow:                                          data.CenterRow,
+				TotalRow:                                           data.TotalRow,
+				GeneralLedgerGroupingExcludeAccount:                data.GeneralLedgerGroupingExcludeAccount,
 			}
 		},
 		Created: func(data *Account) []string {

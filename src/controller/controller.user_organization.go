@@ -144,7 +144,7 @@ func (c *Controller) UserOrganinzationController() {
 
 	req.RegisterRoute(horizon.Route{
 		Route:  "/user-organization/:user_organization_id/switch",
-		Method: "POST",
+		Method: "GET",
 		Note:   "Switch organization and branch stored in JWT (no database impact).",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -152,9 +152,16 @@ func (c *Controller) UserOrganinzationController() {
 		if err != nil {
 			return err
 		}
+		user, err := c.userToken.CurrentUser(context, ctx)
+		if err != nil {
+			return err
+		}
 		userOrganization, err := c.model.UserOrganizationManager.GetByID(context, *organizationId)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		if user.ID != userOrganization.UserID {
+			return ctx.NoContent(http.StatusForbidden)
 		}
 		if err := c.userOrganizationToken.SetUserOrganization(context, ctx, userOrganization); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
@@ -781,7 +788,6 @@ func (c *Controller) BranchController() {
 		// Update branch fields
 		branch.UpdatedAt = time.Now().UTC()
 		branch.UpdatedByID = user.ID
-		branch.OrganizationID = userOrganization.OrganizationID
 		branch.MediaID = req.MediaID
 		branch.Type = req.Type
 		branch.Name = req.Name
@@ -800,7 +806,7 @@ func (c *Controller) BranchController() {
 		branch.IsMainBranch = req.IsMainBranch
 
 		// Save changes to the branch
-		if err := c.model.BranchManager.UpdateByID(context, userOrganization.OrganizationID, branch); err != nil {
+		if err := c.model.BranchManager.UpdateByID(context, branch.ID, branch); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update branch: " + err.Error()})
 		}
 
@@ -826,17 +832,14 @@ func (c *Controller) BranchController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user organization ID: " + err.Error()})
 		}
-		branchId, err := horizon.EngineUUIDParam(ctx, "branch_id")
-		if err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid branch ID: " + err.Error()})
-		}
-		branch, err := c.model.BranchManager.GetByID(context, *branchId)
-		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Branch not found"})
-		}
+
 		userOrganization, err := c.model.UserOrganizationManager.GetByID(context, *userOrganizationId)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
+		}
+		branch, err := c.model.BranchManager.GetByID(context, *userOrganization.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Branch not found"})
 		}
 		if userOrganization.UserType != "owner" {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owners can delete branches"})
@@ -852,6 +855,7 @@ func (c *Controller) BranchController() {
 		}
 		tx := c.provider.Service.Database.Client().Begin()
 		if tx.Error != nil {
+			tx.Rollback()
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start transaction: " + tx.Error.Error()})
 		}
 		if err := c.model.BranchManager.DeleteByIDWithTx(context, tx, branch.ID); err != nil {
@@ -1014,7 +1018,10 @@ func (c *Controller) OrganizationController() {
 			tx.Rollback()
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, organization)
+		return ctx.JSON(http.StatusOK, map[string]any{
+			"organization":      c.model.OrganizationManager.ToModel(organization),
+			"user_organization": c.model.UserOrganizationManager.ToModel(userOrganization),
+		})
 	})
 
 	req.RegisterRoute(horizon.Route{

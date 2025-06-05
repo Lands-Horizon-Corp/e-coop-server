@@ -7,6 +7,7 @@ import (
 	"html/template"
 	"io"
 	"net/http"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strings"
@@ -95,10 +96,7 @@ func NewHorizonAPIService(
 	clientName string,
 ) APIService {
 	service := echo.New()
-	renderer := &TemplateRenderer{
-		templates: template.Must(template.ParseGlob("public/views/*.html")),
-	}
-	service.Renderer = renderer
+	loadTemplatesIfExists(service, "public/views/*.html")
 
 	service.Pre(middleware.RemoveTrailingSlash())
 
@@ -129,6 +127,7 @@ func NewHorizonAPIService(
 		LogQueryParams:   []string{"*"},
 		LogFormValues:    []string{"*"},
 		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
+			fmt.Println(v)
 			return nil
 		},
 	}))
@@ -208,7 +207,6 @@ func (h *HorizonAPIService) GetRoute() []Route {
 	return h.routesList
 }
 
-// RegisterRouteDELETE implements APIService.
 func (h *HorizonAPIService) RegisterRoute(route Route, callback func(c echo.Context) error, m ...echo.MiddlewareFunc) {
 	method := strings.ToUpper(strings.TrimSpace(route.Method))
 	switch method {
@@ -238,11 +236,15 @@ func (h *HorizonAPIService) RegisterRoute(route Route, callback func(c echo.Cont
 func (h *HorizonAPIService) Run(ctx context.Context) error {
 
 	h.service.GET("/routes", func(c echo.Context) error {
-		return c.Render(http.StatusOK, "routes.html", map[string]interface{}{
+		return c.Render(http.StatusOK, "routes.html", map[string]any{
 			"routes": h.GroupedRoutes(),
 		})
 
-	}).Name = "foobar"
+	}).Name = "horizon-routes"
+
+	h.service.Any("/*", func(c echo.Context) error {
+		return c.String(http.StatusNotFound, "404 - Route not found")
+	})
 	go func() {
 		metrics := echo.New()
 		metrics.GET("/metrics", echoprometheus.NewHandler())
@@ -300,4 +302,20 @@ func (h *HorizonAPIService) GroupedRoutes() []GroupedRoute {
 		})
 	}
 	return result
+}
+
+func loadTemplatesIfExists(service *echo.Echo, pattern string) {
+	// Check if any files match the pattern
+	matches, err := filepath.Glob(pattern)
+	if err != nil || len(matches) == 0 {
+		// No templates found, skip setting renderer
+		return
+	}
+
+	// Parse templates if found
+	renderer := &TemplateRenderer{
+		templates: template.Must(template.ParseGlob(pattern)),
+	}
+	service.Renderer = renderer
+
 }

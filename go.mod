@@ -1,6 +1,6 @@
 module github.com/lands-horizon/horizon-server
 
-go 1.24.2
+go 1.24.3
 
 require (
 	github.com/Backblaze/blazer v0.7.2
