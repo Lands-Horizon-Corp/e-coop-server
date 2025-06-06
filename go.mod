@@ -63,6 +63,7 @@ require (
 )
 
 require (
+	github.com/fatih/color v1.18.0
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/google/uuid v1.6.0
