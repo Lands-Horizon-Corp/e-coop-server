@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 	"github.com/rotisserie/eris"
 )
@@ -35,14 +34,19 @@ type HorizonCache struct {
 }
 
 func NewHorizonCache(host, password, username string, port int) CacheService {
+	fmt.Println("--- new")
 	return &HorizonCache{
 		host:     host,
 		password: password,
 		username: username,
 		port:     port,
 		client:   nil,
-		prefix:   uuid.NewString(),
+		prefix:   "",
 	}
+}
+
+func (h *HorizonCache) applyPrefix(key string) string {
+	return h.prefix + key
 }
 
 func (h *HorizonCache) Flush(ctx context.Context) error {
@@ -100,7 +104,7 @@ func (h *HorizonCache) Get(ctx context.Context, key string) ([]byte, error) {
 	}
 
 	// Add prefix to the key
-	prefixedKey := h.prefix + key
+	prefixedKey := h.applyPrefix(key)
 
 	// Get raw bytes directly
 	val, err := h.client.Get(ctx, prefixedKey).Bytes()
@@ -116,7 +120,7 @@ func (h *HorizonCache) Set(ctx context.Context, key string, value any, ttl time.
 	}
 
 	// Add prefix to the key
-	prefixedKey := h.prefix + key
+	prefixedKey := h.applyPrefix(key)
 
 	var data []byte
 	switch v := value.(type) {
@@ -170,7 +174,7 @@ func (h *HorizonCache) Exists(ctx context.Context, key string) (bool, error) {
 	}
 
 	// Add prefix to the key
-	prefixedKey := h.prefix + key
+	prefixedKey := h.applyPrefix(key)
 
 	val, err := h.client.Exists(ctx, prefixedKey).Result()
 	if err != nil {
@@ -185,7 +189,7 @@ func (h *HorizonCache) Delete(ctx context.Context, key string) error {
 	}
 
 	// Add prefix to the key
-	prefixedKey := h.prefix + key
+	prefixedKey := h.applyPrefix(key)
 
 	return h.client.Del(ctx, prefixedKey).Err()
 }
@@ -196,7 +200,7 @@ func (h *HorizonCache) Keys(ctx context.Context, pattern string) ([]string, erro
 	}
 
 	// Add prefix to the pattern
-	prefixedPattern := h.prefix + pattern
+	prefixedPattern := h.applyPrefix(pattern)
 
 	var cursor uint64
 	var keys []string
