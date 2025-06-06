@@ -70,7 +70,7 @@ go run . db:migrate
 go run . db:seed
 ```
 
-#### Reset the Database (Optional):
+#### Reset the Database (Optional): this will delete all  tables, the seeds, and automigrate
 ```bash
 go run . db:reset
 ```
