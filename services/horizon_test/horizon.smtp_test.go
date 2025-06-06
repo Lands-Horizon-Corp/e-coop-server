@@ -20,9 +20,6 @@ func TestHorizonSMTP_Run_Stop(t *testing.T) {
 	username := env.GetString("SMTP_USERNAME", "")
 	password := env.GetString("SMTP_PASSWORD", "")
 	from := env.GetString("SMTP_FROM", "")
-	if host == "" || port == 0 {
-		return
-	}
 
 	smtp := horizon.NewHorizonSMTP(host, port, username, password, from)
 	ctx := context.Background()
@@ -40,9 +37,6 @@ func TestHorizonSMTP_Format_WithTemplateString(t *testing.T) {
 	password := env.GetString("SMTP_PASSWORD", "")
 	from := env.GetString("SMTP_FROM", "")
 	reciever := env.GetString("SMTP_TEST_RECIEVER", "")
-	if host == "" || port == 0 {
-		return
-	}
 
 	smtp := horizon.NewHorizonSMTP(host, port, username, password, from)
 	ctx := context.Background()
@@ -68,9 +62,6 @@ func TestHorizonSMTP_Format_WithTemplateFile(t *testing.T) {
 	password := env.GetString("SMTP_PASSWORD", "")
 	from := env.GetString("SMTP_FROM", "")
 	reciever := env.GetString("SMTP_TEST_RECIEVER", "")
-	if host == "" || port == 0 {
-		return
-	}
 
 	file := "test_template.txt"
 	content := "Hello {{.Name}}, this is from file."
@@ -100,9 +91,6 @@ func TestHorizonSMTP_Send_InvalidEmail(t *testing.T) {
 	username := env.GetString("SMTP_USERNAME", "")
 	password := env.GetString("SMTP_PASSWORD", "")
 	from := env.GetString("SMTP_FROM", "")
-	if host == "" || port == 0 {
-		return
-	}
 
 	smtp := horizon.NewHorizonSMTP(host, port, username, password, from)
 	ctx := context.Background()

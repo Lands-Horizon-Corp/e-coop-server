@@ -20,6 +20,9 @@ func TestSendSMS(t *testing.T) {
 	authToken := env.GetString("TWILIO_AUTH_TOKEN", "")
 	sender := env.GetString("TWILIO_SENDER", "")
 	receiver := env.GetString("TWILIO_TEST_RECIEVER", "")
+	if accountSID == "" || authToken == "" {
+		return
+	}
 
 	h := horizon.NewHorizonSMS(accountSID, authToken, sender, 160).(*horizon.HorizonSMS)
 	injectMockTwilio(h)
