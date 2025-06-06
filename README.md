@@ -1,52 +1,89 @@
+# E-Coop Server
+
+E-Coop Server is the backend server for the E-Coop platform, built with Go and designed to run in a Dockerized environment.
+
 ## 🛠 Prerequisites
 
-Before you begin, make sure the following tools are installed:
+Before you begin, ensure you have the following installed on your machine:
 
-* **Go 1.24.2 or later**: [Download Go](https://golang.org/dl/)
-* **Docker & Docker Compose**: [Download Docker Desktop](https://www.docker.com/products/docker-desktop)
+- **Go**: Version 1.24.3 or later
+- **Docker** and **Docker Compose**
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Installation and Setup
 
-Follow these steps to set up and run the project locally:
+Follow the steps below to set up and run the E-Coop Server:
 
-1. **Clone the Repository**
+### 1. Clone the Repository
 
-   ```bash
-   git clone <your-repo-url>
-   cd <your-project-directory>
-   ```
+```bash
+git clone https://github.com/Lands-Horizon-Corp/e-coop-server.git e-coop-server
+cd e-coop-server
+```
 
-2. **Copy and Configure Environment Variables**
+### 2. Configure the Environment
 
-   ```bash
-   cp .env.example .env
-   ```
+Copy the example environment file and configure it as needed:
 
-   Fill in the required environment values provided by the admin.
+```bash
+cp .env.example .env
+```
 
-3. **Start Docker Services**
+---
 
-   ```bash
-   docker compose up --build -d
-   ```
+## 🧑‍💻 Running the Application
 
-4. **Run Tests**
+### 3. Start Server Services
 
-   Run the tests inside the terminal. Make sure NATS is running in Docker.
+Run the following command to start the required services (like database, cache, and broadcaster):
 
-   ```bash
-   go clean cache
-   go test -v ./services/horizon_test
-   ```
+```bash
+docker compose up --build -d
+```
 
-   > ⏳ *Tests may take 1 to 5 minutes to complete.*
+### 4. Test Environment Setup
 
-5. **Run the Server**
+Verify the environment is working with the running Docker services:
 
-   ```bash
-   go run main.go
-   ```
+```bash
+go clean -cache && go test -v ./services/horizon_test
+```
 
-   This will also **auto-migrate the database** and **seed** the initial data.
+### 5. Clean Cache (Optional)
+
+Clean the cache if needed:
+
+```bash
+go run . cache:clean
+```
+
+### 6. Database Management
+
+#### Automigrate All Tables:
+```bash
+go run . db:migrate
+```
+
+#### Seed the Database:
+```bash
+go run . db:seed
+```
+
+#### Reset the Database (Optional):
+```bash
+go run . db:reset
+```
+
+### 7. Run the Main Server
+
+Start the server:
+
+```bash
+go run main.go
+```
+
+### 8. Visit & view all available routes
+```
+http://localhost:8000/routes
+```
