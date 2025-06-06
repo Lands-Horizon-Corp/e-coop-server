@@ -94,5 +94,4 @@ http://localhost:8000/routes
 ```
 chmod +x kill_ports.sh
 ./kill_ports.sh
-
 ```
