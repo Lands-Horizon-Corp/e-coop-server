@@ -122,6 +122,7 @@ func createTestService(t *testing.T) *horizon.HorizonStorage {
 	testBucket := env.GetString("STORAGE_BUCKET", "my-bucket")
 	endpoint := env.GetString("STORAGE_URL", "")
 	region := env.GetString("STORAGE_REGION", "")
+	driver := env.GetString("STORAGE_DRIVER", "")
 
 	if accessKey == "" || secretKey == "" {
 		t.Fatal("Missing required environment variables for B2 testing")
@@ -133,6 +134,7 @@ func createTestService(t *testing.T) *horizon.HorizonStorage {
 		endpoint,
 		testBucket,
 		region,
+		driver,
 		1024*1024*10, // 10MB max size
 	).(*horizon.HorizonStorage)
 

@@ -111,6 +111,7 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 			cfg.StorageConfig.Endpoint,
 			cfg.StorageConfig.Bucket,
 			cfg.StorageConfig.Region,
+			cfg.StorageConfig.Driver,
 			cfg.StorageConfig.MaxFilezize,
 		)
 	} else {
@@ -120,6 +121,7 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 			service.Environment.GetString("STORAGE_URL", ""),
 			service.Environment.GetString("STORAGE_BUCKET", ""),
 			service.Environment.GetString("STORAGE_REGION", ""),
+			service.Environment.GetString("STORAGE_DRIVER", ""),
 			service.Environment.GetInt64("STORAGE_MAX_SIZE", 0),
 		)
 	}

@@ -59,11 +59,12 @@ func NewHorizonStorageService(
 	secretKey,
 	endpoint,
 	bucket,
-	region string,
+	region,
+	driver string,
 	maxSize int64,
 ) StorageService {
 	return &HorizonStorage{
-		driver:           "linodes",
+		driver:           driver,
 		storageAccessKey: accessKey,
 		storageSecretKey: secretKey,
 		endpoint:         endpoint,
