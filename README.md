@@ -80,7 +80,7 @@ go run . db:reset
 Start the server:
 
 ```bash
-go run main.go
+go run . server
 ```
 
 ### 8. Visit & view all available routes

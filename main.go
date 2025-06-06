@@ -83,26 +83,15 @@ func cleanCache() {
 			})
 		}),
 	)
-	startCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-	if err := app.Start(startCtx); err != nil {
-		log.Fatalf("Failed to start: %v", err)
-	}
-	stopCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	if err := app.Stop(stopCtx); err != nil {
-		log.Fatalf("Failed to stop: %v", err)
-	}
+
+	executeLifecycle(app)
 	color.Green("Cache cleaned successfully.")
 }
 
 func migrateDatabase() {
 	color.Blue("Migrating database...")
 	app := fx.New(
-		fx.Provide(
-			src.NewProvider,
-			model.NewModel,
-		),
+		fx.Provide(src.NewProvider, model.NewModel),
 		fx.Invoke(func(lc fx.Lifecycle, prov *src.Provider, mod *model.Model) {
 			lc.Append(fx.Hook{
 				OnStart: func(ctx context.Context) error {
@@ -121,27 +110,14 @@ func migrateDatabase() {
 		}),
 	)
 
-	startCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-	if err := app.Start(startCtx); err != nil {
-		log.Fatalf("Failed to start: %v", err)
-	}
-	stopCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	if err := app.Stop(stopCtx); err != nil {
-		log.Fatalf("Failed to stop: %v", err)
-	}
+	executeLifecycle(app)
 	color.Green("Database migration completed successfully.")
 }
 
 func seedDatabase() {
 	color.Blue("Seeding database...")
 	app := fx.New(
-		fx.Provide(
-			src.NewProvider,
-			model.NewModel,
-			seeder.NewSeeder,
-		),
+		fx.Provide(src.NewProvider, model.NewModel, seeder.NewSeeder),
 		fx.Invoke(func(lc fx.Lifecycle, prov *src.Provider, mod *model.Model, seed *seeder.Seeder) {
 			lc.Append(fx.Hook{
 				OnStart: func(ctx context.Context) error {
@@ -160,26 +136,14 @@ func seedDatabase() {
 		}),
 	)
 
-	startCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-	if err := app.Start(startCtx); err != nil {
-		log.Fatalf("Failed to start: %v", err)
-	}
-	stopCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	if err := app.Stop(stopCtx); err != nil {
-		log.Fatalf("Failed to stop: %v", err)
-	}
+	executeLifecycle(app)
 	color.Green("Database seeding completed successfully.")
 }
 
 func resetDatabase() {
 	color.Blue("Resetting database...")
 	app := fx.New(
-		fx.Provide(
-			src.NewProvider,
-			model.NewModel,
-		),
+		fx.Provide(src.NewProvider, model.NewModel),
 		fx.Invoke(func(lc fx.Lifecycle, prov *src.Provider, mod *model.Model) {
 			lc.Append(fx.Hook{
 				OnStart: func(ctx context.Context) error {
@@ -201,22 +165,12 @@ func resetDatabase() {
 		}),
 	)
 
-	startCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-	if err := app.Start(startCtx); err != nil {
-		log.Fatalf("Failed to start: %v", err)
-	}
-	stopCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	if err := app.Stop(stopCtx); err != nil {
-		log.Fatalf("Failed to stop: %v", err)
-	}
-
+	executeLifecycle(app)
 	color.Green("Database reset completed successfully.")
 }
+
 func startServer() {
 	app := fx.New(
-		// Set extended startup timeout
 		fx.StartTimeout(2*time.Hour),
 		fx.Provide(
 			src.NewProvider,
@@ -225,7 +179,6 @@ func startServer() {
 			controller.NewController,
 			event.NewEvent,
 			seeder.NewSeeder,
-
 			cooperative_tokens.NewUserToken,
 			cooperative_tokens.NewTransactionBatchToken,
 			cooperative_tokens.NewUserOrganizatonToken,
@@ -244,7 +197,6 @@ func startServer() {
 					}
 					return nil
 				},
-
 				OnStop: func(ctx context.Context) error {
 					return prov.Service.Stop(ctx)
 				},
@@ -252,5 +204,20 @@ func startServer() {
 			return nil
 		}),
 	)
+
 	app.Run()
+}
+
+func executeLifecycle(app *fx.App) {
+	startCtx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
+	defer cancel()
+	if err := app.Start(startCtx); err != nil {
+		log.Fatalf("Failed to start: %v", err)
+	}
+
+	stopCtx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
+	defer cancel()
+	if err := app.Stop(stopCtx); err != nil {
+		log.Fatalf("Failed to stop: %v", err)
+	}
 }
