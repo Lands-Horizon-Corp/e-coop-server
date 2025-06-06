@@ -34,7 +34,6 @@ type HorizonCache struct {
 }
 
 func NewHorizonCache(host, password, username string, port int) CacheService {
-	fmt.Println("--- new")
 	return &HorizonCache{
 		host:     host,
 		password: password,

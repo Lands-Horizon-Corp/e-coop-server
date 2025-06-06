@@ -128,11 +128,10 @@ func (c *Controller) NotificationController() {
 		}
 
 		tx := c.provider.Service.Database.Client().Begin()
-		defer func() {
-			if r := recover(); r != nil {
-				tx.Rollback()
-			}
-		}()
+		if tx.Error != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+		}
 
 		for _, rawID := range reqBody.IDs {
 			notificationID, err := uuid.Parse(rawID)

@@ -156,11 +156,10 @@ func (c *Controller) BillAndCoinsController() {
 			return c.BadRequest(ctx, "No IDs provided")
 		}
 		tx := c.provider.Service.Database.Client().Begin()
-		defer func() {
-			if r := recover(); r != nil {
-				tx.Rollback()
-			}
-		}()
+		if tx.Error != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+		}
 		for _, rawID := range reqBody.IDs {
 			BillAndCoinsID, err := uuid.Parse(rawID)
 			if err != nil {

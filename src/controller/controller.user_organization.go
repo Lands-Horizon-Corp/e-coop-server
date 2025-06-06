@@ -252,11 +252,10 @@ func (c *Controller) UserOrganinzationController() {
 			UserSettingUsedVoucher:  0,
 		}
 		tx := c.provider.Service.Database.Client().Begin()
-		defer func() {
-			if r := recover(); r != nil {
-				tx.Rollback()
-			}
-		}()
+		if tx.Error != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+		}
 		if err := c.model.RedeemInvitationCode(context, tx, invitationCode.ID); err != nil {
 			tx.Rollback()
 			return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": err.Error()})
@@ -489,11 +488,10 @@ func (c *Controller) UserOrganinzationController() {
 		}
 
 		tx := c.provider.Service.Database.Client().Begin()
-		defer func() {
-			if r := recover(); r != nil {
-				tx.Rollback()
-			}
-		}()
+		if tx.Error != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+		}
 
 		for _, rawID := range reqBody.IDs {
 			userOrgId, err := uuid.Parse(rawID)
@@ -672,7 +670,8 @@ func (c *Controller) BranchController() {
 
 		tx := c.provider.Service.Database.Client().Begin()
 		if tx.Error != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
 		}
 
 		if err := c.model.BranchManager.CreateWithTx(context, tx, branch); err != nil {
