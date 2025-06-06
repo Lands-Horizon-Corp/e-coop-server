@@ -19,8 +19,10 @@ type StorageServiceConfig struct {
 	AccessKey   string `env:"STORAGE_ACCESS_KEY"`
 	SecretKey   string `env:"STORAGE_SECRET_KEY"`
 	Bucket      string `env:"STORAGE_BUCKET"`
-	Prefix      string `env:"STORAGE_PREFIX"`
+	Endpoint    string `env:"STORAGE_URL"`
+	Region      string `env:"STORAGE_REGION"`
 	MaxFilezize int64  `env:"STORAGE_MAX_SIZE"`
+	Driver      string `env:"STORAGE_DRIVER"`
 }
 
 type CacheServiceConfig struct {

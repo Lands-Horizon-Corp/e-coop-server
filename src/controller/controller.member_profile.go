@@ -34,6 +34,27 @@ func (c *Controller) MemberProfileController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
+		Route:    "/member-verification",
+		Method:   "GET",
+		Response: "[]MemberVerification",
+		Note:     "Retrieve a list of all member profiles.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return err
+		}
+		memberVerification, err := c.model.MemberVerificationManager.Find(context, &model.MemberVerification{
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.MemberVerificationManager.ToModels(memberVerification))
+	})
+
+	req.RegisterRoute(horizon.Route{
 		Route:    "/member-profile/:member_profile_id",
 		Method:   "GET",
 		Response: "MemberProfile",
@@ -62,11 +83,10 @@ func (c *Controller) MemberProfileController() {
 			return c.BadRequest(ctx, "Invalid member profile ID")
 		}
 		tx := c.provider.Service.Database.Client().Begin()
-		defer func() {
-			if r := recover(); r != nil {
-				tx.Rollback()
-			}
-		}()
+		if tx.Error != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+		}
 
 		memberProfile, err := c.model.MemberProfileManager.GetByID(context, *memberProfileID)
 		if err != nil {
@@ -98,11 +118,10 @@ func (c *Controller) MemberProfileController() {
 			return c.BadRequest(ctx, "No IDs provided")
 		}
 		tx := c.provider.Service.Database.Client().Begin()
-		defer func() {
-			if r := recover(); r != nil {
-				tx.Rollback()
-			}
-		}()
+		if tx.Error != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+		}
 
 		for _, rawID := range reqBody.IDs {
 			memberProfileID, err := uuid.Parse(rawID)
@@ -147,11 +166,10 @@ func (c *Controller) MemberProfileController() {
 			return ctx.NoContent(http.StatusNoContent)
 		}
 		tx := c.provider.Service.Database.Client().Begin()
-		defer func() {
-			if r := recover(); r != nil {
-				tx.Rollback()
-			}
-		}()
+		if tx.Error != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+		}
 		memberProfile.IsClosed = true
 		if err := c.model.MemberProfileManager.UpdateByIDWithTx(context, tx, memberProfile.ID, memberProfile); err != nil {
 			tx.Rollback()
@@ -226,6 +244,11 @@ func (c *Controller) MemberProfileController() {
 		if err != nil {
 			return ctx.NoContent(http.StatusNoContent)
 		}
+		tx := c.provider.Service.Database.Client().Begin()
+		if tx.Error != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+		}
 		profile := &model.MemberProfile{
 			OrganizationID:         user.OrganizationID,
 			BranchID:               *user.BranchID,
@@ -252,8 +275,24 @@ func (c *Controller) MemberProfileController() {
 			MemberTypeID:           &req.MemberTypeID,
 			MemberClassificationID: &req.MemberClassificationID,
 		}
-		if err := c.model.MemberProfileManager.Create(context, profile); err != nil {
+		if err := c.model.MemberProfileManager.CreateWithTx(context, tx, profile); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not create member profile: %v", err))
+		}
+		verification := &model.MemberVerification{
+			OrganizationID:  user.OrganizationID,
+			BranchID:        *user.BranchID,
+			CreatedAt:       time.Now().UTC(),
+			UpdatedAt:       time.Now().UTC(),
+			CreatedByID:     user.UserID,
+			UpdatedByID:     user.UserID,
+			MemberProfileID: profile.ID,
+			Status:          "pending",
+		}
+		if err := c.model.MemberVerificationManager.CreateWithTx(context, tx, verification); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not create member verification: %v", err))
+		}
+		if err := tx.Commit().Error; err != nil {
+			return c.InternalServerError(ctx, err)
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(profile))
 	})
@@ -1465,11 +1504,10 @@ func (c *Controller) MemberGenderController() {
 		}
 
 		tx := c.provider.Service.Database.Client().Begin()
-		defer func() {
-			if r := recover(); r != nil {
-				tx.Rollback()
-			}
-		}()
+		if tx.Error != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+		}
 
 		for _, rawID := range reqBody.IDs {
 			memberGenderID, err := uuid.Parse(rawID)
@@ -1669,11 +1707,10 @@ func (c *Controller) MemberCenterController() {
 		}
 
 		tx := c.provider.Service.Database.Client().Begin()
-		defer func() {
-			if r := recover(); r != nil {
-				tx.Rollback()
-			}
-		}()
+		if tx.Error != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+		}
 
 		for _, rawID := range reqBody.IDs {
 			memberCenterID, err := uuid.Parse(rawID)
@@ -1874,11 +1911,10 @@ func (c *Controller) MemberTypeController() {
 		}
 
 		tx := c.provider.Service.Database.Client().Begin()
-		defer func() {
-			if r := recover(); r != nil {
-				tx.Rollback()
-			}
-		}()
+		if tx.Error != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+		}
 
 		for _, rawID := range reqBody.IDs {
 			memberTypeID, err := uuid.Parse(rawID)
@@ -2080,11 +2116,10 @@ func (c *Controller) MemberClassificationController() {
 		}
 
 		tx := c.provider.Service.Database.Client().Begin()
-		defer func() {
-			if r := recover(); r != nil {
-				tx.Rollback()
-			}
-		}()
+		if tx.Error != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+		}
 
 		for _, rawID := range reqBody.IDs {
 			memberClassificationID, err := uuid.Parse(rawID)
@@ -2284,11 +2319,10 @@ func (c *Controller) MemberOccupationController() {
 		}
 
 		tx := c.provider.Service.Database.Client().Begin()
-		defer func() {
-			if r := recover(); r != nil {
-				tx.Rollback()
-			}
-		}()
+		if tx.Error != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+		}
 
 		for _, rawID := range reqBody.IDs {
 			memberOccupationID, err := uuid.Parse(rawID)
@@ -2488,11 +2522,10 @@ func (c *Controller) MemberGroupController() {
 		}
 
 		tx := c.provider.Service.Database.Client().Begin()
-		defer func() {
-			if r := recover(); r != nil {
-				tx.Rollback()
-			}
-		}()
+		if tx.Error != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+		}
 
 		for _, rawID := range reqBody.IDs {
 			memberGroupID, err := uuid.Parse(rawID)

@@ -111,11 +111,10 @@ func (c *Controller) FeedbackController() {
 		}
 
 		tx := c.provider.Service.Database.Client().Begin()
-		defer func() {
-			if r := recover(); r != nil {
-				tx.Rollback()
-			}
-		}()
+		if tx.Error != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+		}
 
 		for _, rawID := range reqBody.IDs {
 			feedbackID, err := uuid.Parse(rawID)
@@ -245,11 +244,10 @@ func (c *Controller) ContactController() {
 		}
 
 		tx := c.provider.Service.Database.Client().Begin()
-		defer func() {
-			if r := recover(); r != nil {
-				tx.Rollback()
-			}
-		}()
+		if tx.Error != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+		}
 
 		for _, rawID := range reqBody.IDs {
 			contactID, err := uuid.Parse(rawID)

@@ -17,7 +17,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rotisserie/eris"
-	echoSwagger "github.com/swaggo/echo-swagger"
 	"golang.org/x/time/rate"
 )
 
@@ -253,7 +252,6 @@ func (h *HorizonAPIService) Run(ctx context.Context) error {
 		}
 	}()
 	go func() {
-		h.service.GET("/swagger/*", echoSwagger.WrapHandler)
 		h.service.Logger.Fatal(h.service.Start(
 			fmt.Sprintf(":%d", h.serverPort),
 		))
@@ -317,5 +315,4 @@ func loadTemplatesIfExists(service *echo.Echo, pattern string) {
 		templates: template.Must(template.ParseGlob(pattern)),
 	}
 	service.Renderer = renderer
-
 }

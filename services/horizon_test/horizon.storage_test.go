@@ -91,10 +91,10 @@ func TestHorizonStorage_DeleteFile(t *testing.T) {
 	err = hs.DeleteFile(ctx, storage)
 	require.NoError(t, err)
 
-	// Try to generate URL after deletion
+	// Try to generate URL after deletion (should fail)
 	_, err = hs.GeneratePresignedURL(ctx, storage, 5*time.Minute)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to presign URL")
+	require.Contains(t, err.Error(), "failed to generate presigned URL")
 }
 
 func TestHorizonStorage_GenerateUniqueName(t *testing.T) {
@@ -120,7 +120,9 @@ func createTestService(t *testing.T) *horizon.HorizonStorage {
 	accessKey := env.GetString("STORAGE_ACCESS_KEY", "minioadmin")
 	secretKey := env.GetString("STORAGE_SECRET_KEY", "minioadmin")
 	testBucket := env.GetString("STORAGE_BUCKET", "my-bucket")
-	prefix := env.GetString("STORAGE_PREFIX", "test-")
+	endpoint := env.GetString("STORAGE_URL", "")
+	region := env.GetString("STORAGE_REGION", "")
+	driver := env.GetString("STORAGE_DRIVER", "")
 
 	if accessKey == "" || secretKey == "" {
 		t.Fatal("Missing required environment variables for B2 testing")
@@ -129,8 +131,10 @@ func createTestService(t *testing.T) *horizon.HorizonStorage {
 	hs := horizon.NewHorizonStorageService(
 		accessKey,
 		secretKey,
+		endpoint,
 		testBucket,
-		prefix,
+		region,
+		driver,
 		1024*1024*10, // 10MB max size
 	).(*horizon.HorizonStorage)
 
