@@ -333,3 +333,67 @@ func (h *HorizonService) Stop(ctx context.Context) error {
 
 	return nil
 }
+
+func (h *HorizonService) RunDatabase(ctx context.Context) error {
+	fmt.Println("🟢 Starting Database Service...")
+	delay := 3 * time.Second
+	retry := 5
+
+	if h.Database != nil {
+		if err := horizon.Retry(ctx, retry, delay, func() error {
+			return h.Database.Run(ctx)
+		}); err != nil {
+			fmt.Println("🔴 Failed to start Database Service")
+			return err
+		}
+	}
+
+	fmt.Println("🟢 Database Service Started Successfully")
+	return nil
+}
+
+func (h *HorizonService) StopDatabase(ctx context.Context) error {
+	fmt.Println("🛑 Stopping Database Service...")
+
+	if h.Database != nil {
+		if err := h.Database.Stop(ctx); err != nil {
+			fmt.Println("🔴 Failed to stop Database Service")
+			return err
+		}
+	}
+
+	fmt.Println("🛑 Database Service Stopped Successfully")
+	return nil
+}
+
+func (h *HorizonService) RunCache(ctx context.Context) error {
+	fmt.Println("🟢 Starting Cache Service...")
+	delay := 3 * time.Second
+	retry := 5
+
+	if h.Cache != nil {
+		if err := horizon.Retry(ctx, retry, delay, func() error {
+			return h.Cache.Run(ctx)
+		}); err != nil {
+			fmt.Println("🔴 Failed to start Cache Service")
+			return err
+		}
+	}
+
+	fmt.Println("🟢 Cache Service Started Successfully")
+	return nil
+}
+
+func (h *HorizonService) StopCache(ctx context.Context) error {
+	fmt.Println("🛑 Stopping Cache Service...")
+
+	if h.Cache != nil {
+		if err := h.Cache.Stop(ctx); err != nil {
+			fmt.Println("🔴 Failed to stop Cache Service")
+			return err
+		}
+	}
+
+	fmt.Println("🛑 Cache Service Stopped Successfully")
+	return nil
+}

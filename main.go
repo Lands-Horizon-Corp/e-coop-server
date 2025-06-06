@@ -1,13 +1,20 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/fatih/color"
+	"github.com/lands-horizon/horizon-server/seeder"
 	"github.com/lands-horizon/horizon-server/services/horizon"
+	"github.com/lands-horizon/horizon-server/src"
+	"github.com/lands-horizon/horizon-server/src/model"
+	"go.uber.org/fx"
 )
 
 func main() {
@@ -58,28 +65,153 @@ func printHelp() {
 
 func cleanCache() {
 	color.Blue("Cleaning cache...")
-	// Add logic for cleaning cache
+	app := fx.New(
+		fx.Provide(src.NewProvider),
+		fx.Invoke(func(lc fx.Lifecycle, prov *src.Provider) {
+			lc.Append(fx.Hook{
+				OnStart: func(ctx context.Context) error {
+					if err := prov.Service.RunCache(ctx); err != nil {
+						return err
+					}
+					if err := prov.Service.Cache.Flush(ctx); err != nil {
+						return err
+					}
+					return nil
+				},
+			})
+		}),
+	)
+	startCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	if err := app.Start(startCtx); err != nil {
+		log.Fatalf("Failed to start: %v", err)
+	}
+	stopCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := app.Stop(stopCtx); err != nil {
+		log.Fatalf("Failed to stop: %v", err)
+	}
 	color.Green("Cache cleaned successfully.")
 }
 
 func migrateDatabase() {
 	color.Blue("Migrating database...")
-	// Add logic for database migration (e.g., connecting to DB and running migrations)
+	app := fx.New(
+		fx.Provide(
+			src.NewProvider,
+			model.NewModel,
+		),
+		fx.Invoke(func(lc fx.Lifecycle, prov *src.Provider, mod *model.Model) {
+			lc.Append(fx.Hook{
+				OnStart: func(ctx context.Context) error {
+					if err := prov.Service.RunDatabase(ctx); err != nil {
+						return err
+					}
+					if err := mod.Start(ctx); err != nil {
+						return err
+					}
+					if err := prov.Service.Database.Client().AutoMigrate(mod.Migration...); err != nil {
+						return err
+					}
+					return nil
+				},
+			})
+		}),
+	)
+
+	startCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	if err := app.Start(startCtx); err != nil {
+		log.Fatalf("Failed to start: %v", err)
+	}
+	stopCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := app.Stop(stopCtx); err != nil {
+		log.Fatalf("Failed to stop: %v", err)
+	}
 	color.Green("Database migration completed successfully.")
 }
 
 func seedDatabase() {
 	color.Blue("Seeding database...")
-	// Add logic for seeding database
+	app := fx.New(
+		fx.Provide(
+			src.NewProvider,
+			model.NewModel,
+			seeder.NewSeeder,
+		),
+		fx.Invoke(func(lc fx.Lifecycle, prov *src.Provider, mod *model.Model, seed *seeder.Seeder) {
+			lc.Append(fx.Hook{
+				OnStart: func(ctx context.Context) error {
+					if err := prov.Service.RunDatabase(ctx); err != nil {
+						return err
+					}
+					if err := mod.Start(ctx); err != nil {
+						return err
+					}
+					if err := seed.Run(ctx); err != nil {
+						return err
+					}
+					return nil
+				},
+			})
+		}),
+	)
+
+	startCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	if err := app.Start(startCtx); err != nil {
+		log.Fatalf("Failed to start: %v", err)
+	}
+	stopCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := app.Stop(stopCtx); err != nil {
+		log.Fatalf("Failed to stop: %v", err)
+	}
 	color.Green("Database seeding completed successfully.")
 }
 
 func resetDatabase() {
 	color.Blue("Resetting database...")
-	// Add logic for resetting database (e.g., dropping and recreating tables)
+	app := fx.New(
+		fx.Provide(
+			src.NewProvider,
+			model.NewModel,
+		),
+		fx.Invoke(func(lc fx.Lifecycle, prov *src.Provider, mod *model.Model) {
+			lc.Append(fx.Hook{
+				OnStart: func(ctx context.Context) error {
+					if err := prov.Service.RunDatabase(ctx); err != nil {
+						return err
+					}
+					if err := mod.Start(ctx); err != nil {
+						return err
+					}
+					if err := prov.Service.Database.Client().Migrator().DropTable(mod.Migration...); err != nil {
+						return err
+					}
+					if err := prov.Service.Database.Client().AutoMigrate(mod.Migration...); err != nil {
+						return err
+					}
+					return nil
+				},
+			})
+		}),
+	)
+
+	startCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	if err := app.Start(startCtx); err != nil {
+		log.Fatalf("Failed to start: %v", err)
+	}
+	stopCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := app.Stop(stopCtx); err != nil {
+		log.Fatalf("Failed to stop: %v", err)
+	}
+
 	color.Green("Database reset completed successfully.")
 }
-
 func startServer() {
 	color.Blue("Starting E-Coop Server on http://localhost:8000...")
 	http.HandleFunc("/routes", func(w http.ResponseWriter, r *http.Request) {
@@ -126,41 +258,41 @@ func startServer() {
 // 			cooperative_tokens.NewUserOrganizatonToken,
 // 		),
 
-// 		// Invoke the startup sequence
-// 		fx.Invoke(func(
-// 			lc fx.Lifecycle,
-// 			ctrl *controller.Controller,
-// 			mod *model.Model,
-// 			prov *src.Provider,
-// 			seed *seeder.Seeder,
-// 		) error {
-// 			// Register lifecycle hooks
-// 			lc.Append(fx.Hook{
-// 				OnStart: func(ctx context.Context) error {
-// 					// Start each component in order
-// 					if err := ctrl.Start(); err != nil {
-// 						return err
-// 					}
-// 					if err := prov.Service.Run(ctx); err != nil {
-// 						return err
-// 					}
-// 					if err := mod.Start(); err != nil {
-// 						return err
-// 					}
-// 					if err := seed.Run(ctx); err != nil {
-// 						return err
-// 					}
-// 					return nil
-// 				},
-
-// 				OnStop: func(ctx context.Context) error {
-// 					// Gracefully stop the service
-// 					return prov.Service.Stop(ctx)
-// 				},
-// 			})
-
+// // Invoke the startup sequence
+// fx.Invoke(func(
+// 	lc fx.Lifecycle,
+// 	ctrl *controller.Controller,
+// 	mod *model.Model,
+// 	prov *src.Provider,
+// 	seed *seeder.Seeder,
+// ) error {
+// 	// Register lifecycle hooks
+// 	lc.Append(fx.Hook{
+// 		OnStart: func(ctx context.Context) error {
+// 			// Start each component in order
+// 			if err := ctrl.Start(); err != nil {
+// 				return err
+// 			}
+// 			if err := prov.Service.Run(ctx); err != nil {
+// 				return err
+// 			}
+// 			if err := mod.Start(); err != nil {
+// 				return err
+// 			}
+// 			if err := seed.Run(ctx); err != nil {
+// 				return err
+// 			}
 // 			return nil
-// 		}),
+// 		},
+
+// 		OnStop: func(ctx context.Context) error {
+// 			// Gracefully stop the service
+// 			return prov.Service.Stop(ctx)
+// 		},
+// 	})
+
+// 	return nil
+// }),
 // 	)
 
 // 	app.Run()
