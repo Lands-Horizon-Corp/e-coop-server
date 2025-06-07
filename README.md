@@ -70,7 +70,7 @@ go run . db:migrate
 go run . db:seed
 ```
 
-#### Reset the Database (Optional):
+#### Reset the Database (Optional): this will delete all  tables, the seeds, and automigrate
 ```bash
 go run . db:reset
 ```
@@ -86,4 +86,12 @@ go run main.go
 ### 8. Visit & view all available routes
 ```
 http://localhost:8000/routes
+```
+
+
+
+# Having running port problems 
+```
+chmod +x kill_ports.sh
+./kill_ports.sh
 ```

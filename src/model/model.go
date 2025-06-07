@@ -220,7 +220,7 @@ x = x.replace(" ","").replace(".go","").replace("└──","").replace("├─�
 for i in x.split("\n"):
     print(f'c.{i.replace("_", " ").title().replace(" ", "")}()')
 */
-func (c *Model) Start() error {
+func (c *Model) Start(context context.Context) error {
 
 	// Models
 	c.AccountCategory()
