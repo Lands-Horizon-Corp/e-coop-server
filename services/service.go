@@ -207,6 +207,7 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 func (h *HorizonService) Run(ctx context.Context) error {
 
 	fmt.Println("≿━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━༺❀༻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━≾")
+	horizon.PrintASCIIArt()
 	fmt.Println("🟢 Horizon App is starting...")
 	delay := 3 * time.Second
 	retry := 5
@@ -282,7 +283,6 @@ func (h *HorizonService) Run(ctx context.Context) error {
 		}
 	}
 
-	horizon.PrintASCIIArt()
 	fmt.Println("🟢 Horizon App Started")
 	fmt.Println("≿━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━༺❀༻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━≾")
 	return nil
