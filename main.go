@@ -21,7 +21,7 @@ import (
 
 func main() {
 	if len(os.Args) < 2 {
-		printWelcome()
+		horizon.PrintASCIIArt()
 		printHelp()
 		return
 	}
@@ -42,10 +42,6 @@ func main() {
 		color.Red("Unknown command: %s\n", command)
 		printHelp()
 	}
-}
-
-func printWelcome() {
-	horizon.PrintASCIIArt()
 }
 
 func printHelp() {
