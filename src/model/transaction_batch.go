@@ -115,8 +115,8 @@ type (
 		PaidByName             string     `gorm:"type:varchar(255)"`
 		PaidByPosition         string     `gorm:"type:varchar(255)"`
 
-		EndedAt        *time.Time `gorm:"type:timestamp"`
-		TotalBatchTime *time.Time `gorm:"type:timestamp"`
+		EndedAt        *time.Time     `gorm:"type:timestamp"`
+		TotalBatchTime *time.Duration `gorm:"type:timestamp"`
 	}
 
 	TransactionBatchResponse struct {
@@ -275,6 +275,12 @@ type (
 		EndedAt                       *time.Time     `json:"ended_at,omitempty"`
 		TotalBatchTime                *time.Time     `json:"total_batch_time,omitempty"`
 	}
+
+	TransactionBatchEndRequest struct {
+		EmployeeBySignatureMediaID *uuid.UUID `json:"employee_by_signature_media_id,omitempty"`
+		EmployeeByName             string     `json:"employee_by_name"`
+		EmployeeByPosition         string     `json:"employee_by_position"`
+	}
 )
 
 func (m *Model) TransactionBatch() {
@@ -310,10 +316,7 @@ func (m *Model) TransactionBatch() {
 				s := data.EndedAt.Format(time.RFC3339)
 				endedAt = &s
 			}
-			if data.TotalBatchTime != nil {
-				s := data.TotalBatchTime.Format(time.RFC3339)
-				totalBatchTime = &s
-			}
+
 			return &TransactionBatchResponse{
 				ID:                            data.ID,
 				CreatedAt:                     data.CreatedAt.Format(time.RFC3339),
@@ -421,6 +424,50 @@ func (m *Model) TransactionBatch() {
 			}
 		},
 	})
+}
+
+func (m *Model) TransactionBatchMinimal(context context.Context, id uuid.UUID) (*TransactionBatchResponse, error) {
+	data, err := m.TransactionBatchManager.GetByID(context, id)
+	if err != nil {
+		return nil, err
+	}
+	var requestView *string
+	if data.RequestView != nil {
+		s := data.RequestView.Format(time.RFC3339)
+		requestView = &s
+	}
+	var endedAt, totalBatchTime *string
+	if data.EndedAt != nil {
+		s := data.EndedAt.Format(time.RFC3339)
+		endedAt = &s
+	}
+
+	return &TransactionBatchResponse{
+		ID:               data.ID,
+		CreatedAt:        data.CreatedAt.Format(time.RFC3339),
+		CreatedByID:      data.CreatedByID,
+		CreatedBy:        m.UserManager.ToModel(data.CreatedBy),
+		UpdatedAt:        data.UpdatedAt.Format(time.RFC3339),
+		UpdatedByID:      data.UpdatedByID,
+		UpdatedBy:        m.UserManager.ToModel(data.UpdatedBy),
+		OrganizationID:   data.OrganizationID,
+		Organization:     m.OrganizationManager.ToModel(data.Organization),
+		BranchID:         data.BranchID,
+		Branch:           m.BranchManager.ToModel(data.Branch),
+		EmployeeUserID:   data.EmployeeUserID,
+		EmployeeUser:     m.UserManager.ToModel(data.EmployeeUser),
+		BatchName:        data.BatchName,
+		BeginningBalance: data.BeginningBalance,
+		DepositInBank:    data.DepositInBank,
+		CashCountTotal:   data.CashCountTotal,
+		GrandTotal:       data.GrandTotal,
+		Description:      data.Description,
+		CanView:          data.CanView,
+		IsClosed:         data.IsClosed,
+		RequestView:      requestView,
+		EndedAt:          endedAt,
+		TotalBatchTime:   totalBatchTime,
+	}, nil
 }
 
 func (m *Model) TransactionBatchCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*TransactionBatch, error) {

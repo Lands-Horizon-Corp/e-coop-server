@@ -356,10 +356,6 @@ func (c *Model) Start(context context.Context) error {
 	c.UserRating()
 	c.VoucherPayTo()
 	c.WithdrawalEntry()
-
-	if err := c.provider.Service.Database.Client().AutoMigrate(c.Migration...); err != nil {
-		return err
-	}
 	return nil
 }
 

@@ -16,6 +16,90 @@ func (c *Controller) MemberProfileController() {
 	req := c.provider.Service.Request
 
 	req.RegisterRoute(horizon.Route{
+		Route:    "/member-profile/pending",
+		Method:   "GET",
+		Response: "[]MemberProfile",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return err
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return c.BadRequest(ctx, "User is not authorized")
+		}
+		memberProfile, err := c.model.MemberProfileManager.Find(context, &model.MemberProfile{
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			Status:         "pending",
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModels(memberProfile))
+	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:    "/member-profile/:member_profile_id/approve",
+		Method:   "POST",
+		Response: "MemberProfile",
+		Note:     "Approve member profiles",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid member profile ID")
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return err
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return c.BadRequest(ctx, "User is not authorized")
+		}
+
+		memberProfile, err := c.model.MemberProfileManager.GetByID(context, *memberProfileID)
+		if err != nil {
+			return c.NotFound(ctx, "MemberProfile")
+		}
+		memberProfile.Status = "verified"
+		if err := c.model.MemberProfileManager.UpdateByID(context, memberProfile.ID, memberProfile); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update member profile: "+err.Error())
+		}
+		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(memberProfile))
+	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:    "/member-profile/:member_profile_id/decline",
+		Method:   "POST",
+		Response: "MemberProfile",
+		Note:     "Decline member profile",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid member profile ID")
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return err
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return c.BadRequest(ctx, "User is not authorized")
+		}
+
+		memberProfile, err := c.model.MemberProfileManager.GetByID(context, *memberProfileID)
+		if err != nil {
+			return c.NotFound(ctx, "MemberProfile")
+		}
+		memberProfile.Status = "not allowed	"
+		if err := c.model.MemberProfileManager.UpdateByID(context, memberProfile.ID, memberProfile); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update member profile: "+err.Error())
+		}
+		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(memberProfile))
+	})
+
+	req.RegisterRoute(horizon.Route{
 		Route:    "/member-profile",
 		Method:   "GET",
 		Response: "[]MemberProfile",
@@ -65,7 +149,7 @@ func (c *Controller) MemberProfileController() {
 		if err != nil {
 			return c.BadRequest(ctx, "Invalid member profile ID")
 		}
-		memberProfile, err := c.model.CategoryManager.GetByIDRaw(context, *memberProfileID)
+		memberProfile, err := c.model.MemberProfileManager.GetByIDRaw(context, *memberProfileID)
 		if err != nil {
 			return c.NotFound(ctx, "MemberProfile")
 		}
