@@ -62,7 +62,7 @@ func (c *Controller) MemberProfileController() {
 		if err != nil {
 			return c.NotFound(ctx, "MemberProfile")
 		}
-		memberProfile.Status = "accepted"
+		memberProfile.Status = "verified"
 		if err := c.model.MemberProfileManager.UpdateByID(context, memberProfile.ID, memberProfile); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update member profile: "+err.Error())
 		}
@@ -92,7 +92,7 @@ func (c *Controller) MemberProfileController() {
 		if err != nil {
 			return c.NotFound(ctx, "MemberProfile")
 		}
-		memberProfile.Status = "declined"
+		memberProfile.Status = "not allowed	"
 		if err := c.model.MemberProfileManager.UpdateByID(context, memberProfile.ID, memberProfile); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update member profile: "+err.Error())
 		}
