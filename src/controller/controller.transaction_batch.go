@@ -207,9 +207,7 @@ func (c *Controller) TransactionBatchController() {
 		if err := c.model.TransactionBatchManager.UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update transaction batch: "+err.Error())
 		}
-		if transactionBatch == nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "No current transaction batch"})
-		}
+
 		if !transactionBatch.CanView {
 			result, err := c.model.TransactionBatchMinimal(context, transactionBatch.ID)
 			if err != nil {

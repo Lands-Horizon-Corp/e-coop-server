@@ -54,7 +54,7 @@ jobs:
         LINODE_USER: ${{ secrets.LINODE_USER }}
         LINODE_KNOWN_HOST: ${{ secrets.LINODE_KNOWN_HOST }}
         LINODE_SSH_PRIVATE_KEY: ${{ secrets.LINODE_SSH_PRIVATE_KEY }}
-    steps:
+    steps:  
     - name: Checkout code
       uses: actions/checkout@v2
     

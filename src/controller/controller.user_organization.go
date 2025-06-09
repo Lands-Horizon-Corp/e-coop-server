@@ -55,7 +55,7 @@ func (c *Controller) UserOrganinzationController() {
 			if userOrganization.IsSeeded {
 				continue
 			}
-			if err := c.model.OrganizationSeeder(context, tx, user.ID, userOrganization.ID, *userOrganization.BranchID); err != nil {
+			if err := c.model.OrganizationSeeder(context, tx, user.ID, userOrganization.OrganizationID, *userOrganization.BranchID); err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 			}
 			userOrganization.IsSeeded = true
