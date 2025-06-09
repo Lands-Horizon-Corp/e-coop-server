@@ -47,6 +47,8 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 		env = cfg.EnvironmentConfig.Path
 	}
 
+	isStaging := service.Environment.GetString("APP_ENV", "development") == "staging"
+
 	service.Environment = horizon.NewEnvironmentService(env)
 	if cfg.RequestServiceConfig != nil {
 		service.Request = horizon.NewHorizonAPIService(
@@ -54,6 +56,7 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 			cfg.RequestServiceConfig.MetricsPort,
 			cfg.RequestServiceConfig.ClientURL,
 			cfg.RequestServiceConfig.ClientName,
+			isStaging,
 		)
 	} else {
 		service.Request = horizon.NewHorizonAPIService(
@@ -61,6 +64,7 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 			service.Environment.GetInt("APP_METRICS_PORT", 8001),
 			service.Environment.GetString("APP_CLIENT_URL", "http://localhost:3000"),
 			service.Environment.GetString("APP_CLIENT_NAME", "test-client"),
+			isStaging,
 		)
 	}
 	if cfg.SecurityConfig != nil {

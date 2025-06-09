@@ -52,7 +52,7 @@ type TemplateRenderer struct {
 	templates *template.Template
 }
 
-func (t *TemplateRenderer) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
+func (t *TemplateRenderer) Render(w io.Writer, name string, data any, c echo.Context) error {
 
 	// Add global methods if data is a map
 	if viewContext, isMap := data.(map[string]interface{}); isMap {
@@ -82,6 +82,7 @@ type HorizonAPIService struct {
 	metricsPort int
 	clientURL   string
 	clientName  string
+	ssl         bool
 
 	routesList []Route
 }
@@ -93,6 +94,7 @@ func NewHorizonAPIService(
 	metricsPort int,
 	clientURL string,
 	clientName string,
+	ssl bool,
 ) APIService {
 	service := echo.New()
 	loadTemplatesIfExists(service, "public/views/*.html")
@@ -193,6 +195,7 @@ func NewHorizonAPIService(
 		clientURL:   clientURL,
 		clientName:  clientName,
 		routesList:  []Route{},
+		ssl:         ssl,
 	}
 }
 
@@ -252,9 +255,17 @@ func (h *HorizonAPIService) Run(ctx context.Context) error {
 		}
 	}()
 	go func() {
-		h.service.Logger.Fatal(h.service.Start(
-			fmt.Sprintf(":%d", h.serverPort),
-		))
+		if !h.ssl {
+			h.service.Logger.Fatal(h.service.Start(
+				fmt.Sprintf(":%d", h.serverPort),
+			))
+		} else {
+			h.service.Logger.Fatal(h.service.StartTLS(
+				fmt.Sprintf(":%d", h.serverPort),
+				"./certs/origin.crt", "./certs/origin.key",
+			))
+		}
+
 	}()
 	return nil
 }
