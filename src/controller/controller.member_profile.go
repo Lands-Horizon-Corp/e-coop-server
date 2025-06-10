@@ -70,10 +70,10 @@ func (c *Controller) MemberProfileController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-profile/:member_profile_id/decline",
+		Route:    "/member-profile/:member_profile_id/reject",
 		Method:   "POST",
 		Response: "MemberProfile",
-		Note:     "Decline member profile",
+		Note:     "Reject member profile",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
