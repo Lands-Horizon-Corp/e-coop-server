@@ -129,6 +129,25 @@ func (c *Controller) TimesheetController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
+		Route:    "/timesheet/search",
+		Method:   "GET",
+		Request:  "Filter<ITimesheet>",
+		Response: "Paginated<ITimesheet>",
+		Note:     "Get pagination member gender",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.NoContent(http.StatusNoContent)
+		}
+		value, err := c.model.TimesheetCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.TimesheetManager.Pagination(context, ctx, value))
+	})
+
+	req.RegisterRoute(horizon.Route{
 		Route:    "/timesheet/me",
 		Method:   "GET",
 		Response: "Ttimesheet[]",
@@ -144,6 +163,25 @@ func (c *Controller) TimesheetController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.TimesheetManager.ToModels(timesheets))
+	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:    "/timesheet/me/search",
+		Method:   "GET",
+		Request:  "Filter<ITimesheet>",
+		Response: "Paginated<ITimesheet>",
+		Note:     "Get your own Timesheet",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.NoContent(http.StatusNoContent)
+		}
+		value, err := c.model.GetUserTimesheet(context, user.UserID, user.OrganizationID, *user.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.TimesheetManager.Pagination(context, ctx, value))
 	})
 
 	req.RegisterRoute(horizon.Route{
@@ -166,5 +204,28 @@ func (c *Controller) TimesheetController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.TimesheetManager.ToModels(timesheets))
+	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:    "/timesheet/user/:user_id/search",
+		Method:   "GET",
+		Request:  "Filter<ITimesheet>",
+		Response: "Paginated<ITimesheet>",
+		Note:     "Get your own Timesheet",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userID, err := horizon.EngineUUIDParam(ctx, "user_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid user ID")
+		}
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.NoContent(http.StatusNoContent)
+		}
+		value, err := c.model.GetUserTimesheet(context, *userID, user.OrganizationID, *user.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.TimesheetManager.Pagination(context, ctx, value))
 	})
 }
