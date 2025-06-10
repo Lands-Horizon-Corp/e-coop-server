@@ -102,7 +102,7 @@ func (c *Controller) MemberProfileController() {
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-profile",
 		Method:   "GET",
-		Response: "[]MemberProfile",
+		Response: "[]IMemberProfile",
 		Note:     "Retrieve a list of all member profiles.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -115,6 +115,25 @@ func (c *Controller) MemberProfileController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModels(memberProfile))
+	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:    "/member-profile/search",
+		Method:   "GET",
+		Request:  "Filter<IMemberProfile>",
+		Response: "Paginated<IMemberProfile>",
+		Note:     "Get pagination member occupation",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.NoContent(http.StatusNoContent)
+		}
+		value, err := c.model.MemberProfileCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.Pagination(context, ctx, value))
 	})
 
 	req.RegisterRoute(horizon.Route{
@@ -1700,6 +1719,25 @@ func (c *Controller) MemberCenterController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
+		Route:    "/member-center/search",
+		Method:   "GET",
+		Request:  "Filter<IMemberCenter>",
+		Response: "Paginated<IMemberCenter>",
+		Note:     "Get pagination member center",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.NoContent(http.StatusNoContent)
+		}
+		value, err := c.model.MemberCenterCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.MemberCenterManager.Pagination(context, ctx, value))
+	})
+
+	req.RegisterRoute(horizon.Route{
 		Route:    "/member-center",
 		Method:   "POST",
 		Request:  "TMemberCenter",
@@ -1900,6 +1938,24 @@ func (c *Controller) MemberTypeController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberTypeManager.ToModels(memberType))
+	})
+	req.RegisterRoute(horizon.Route{
+		Route:    "/member-type/search",
+		Method:   "GET",
+		Request:  "Filter<IMemberType>",
+		Response: "Paginated<IMemberType>",
+		Note:     "Get pagination member type",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.NoContent(http.StatusNoContent)
+		}
+		value, err := c.model.MemberTypeCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.MemberTypeManager.Pagination(context, ctx, value))
 	})
 
 	req.RegisterRoute(horizon.Route{
@@ -2107,6 +2163,25 @@ func (c *Controller) MemberClassificationController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
+		Route:    "/member-classification/search",
+		Method:   "GET",
+		Request:  "Filter<IMemberClassification>",
+		Response: "Paginated<IMemberClassification>",
+		Note:     "Get pagination member classification",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.NoContent(http.StatusNoContent)
+		}
+		value, err := c.model.MemberClassificationCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.MemberClassificationManager.Pagination(context, ctx, value))
+	})
+
+	req.RegisterRoute(horizon.Route{
 		Route:    "/member-classification",
 		Method:   "POST",
 		Request:  "TMemberClassification",
@@ -2310,6 +2385,24 @@ func (c *Controller) MemberOccupationController() {
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberOccupationManager.ToModels(memberOccupation))
 	})
+	req.RegisterRoute(horizon.Route{
+		Route:    "/member-classification/search",
+		Method:   "GET",
+		Request:  "Filter<IMemberOccupation>",
+		Response: "Paginated<IMemberOccupation>",
+		Note:     "Get pagination member occupation",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.NoContent(http.StatusNoContent)
+		}
+		value, err := c.model.MemberOccupationCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.MemberOccupationManager.Pagination(context, ctx, value))
+	})
 
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-occupation",
@@ -2512,6 +2605,25 @@ func (c *Controller) MemberGroupController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberGroupManager.ToModels(memberGroup))
+	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:    "/member-group/search",
+		Method:   "GET",
+		Request:  "Filter<IMemberGroup>",
+		Response: "Paginated<IMemberGroup>",
+		Note:     "Get pagination member group",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.NoContent(http.StatusNoContent)
+		}
+		value, err := c.model.MemberGroupCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.MemberGroupManager.Pagination(context, ctx, value))
 	})
 
 	req.RegisterRoute(horizon.Route{
