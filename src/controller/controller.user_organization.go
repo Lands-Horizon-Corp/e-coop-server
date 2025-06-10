@@ -789,6 +789,17 @@ func (c *Controller) BranchController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user organization ID: " + err.Error()})
 		}
 
+		userOrg, err := c.model.UserOrganizationManager.FindOne(context, &model.UserOrganization{
+			UserID:   user.ID,
+			BranchID: branchId,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user user org ID: " + err.Error()})
+		}
+		if userOrg.UserType != "owner" {
+			return c.BadRequest(ctx, "Unauthorized")
+		}
+
 		// Retrieve the branch
 		branch, err := c.model.BranchManager.GetByID(context, *branchId)
 		if err != nil {
