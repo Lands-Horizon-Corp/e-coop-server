@@ -220,6 +220,7 @@ func (h *HorizonService) Run(ctx context.Context) error {
 		}); err != nil {
 			return err
 		}
+		fmt.Println("✅ Cron service initialized")
 	}
 
 	if h.Broker != nil {
@@ -228,6 +229,7 @@ func (h *HorizonService) Run(ctx context.Context) error {
 		}); err != nil {
 			return err
 		}
+		fmt.Println("✅ Broker service initialized")
 	}
 
 	if h.Cache != nil {
@@ -236,6 +238,7 @@ func (h *HorizonService) Run(ctx context.Context) error {
 		}); err != nil {
 			return err
 		}
+		fmt.Println("✅ Cache service initialized")
 	}
 
 	if h.Storage != nil {
@@ -244,6 +247,7 @@ func (h *HorizonService) Run(ctx context.Context) error {
 		}); err != nil {
 			return err
 		}
+		fmt.Println("✅ Storage service initialized")
 	}
 
 	if h.Database != nil {
@@ -252,6 +256,7 @@ func (h *HorizonService) Run(ctx context.Context) error {
 		}); err != nil {
 			return err
 		}
+		fmt.Println("✅ Database service initialized")
 	}
 
 	if h.OTP != nil {
@@ -269,6 +274,7 @@ func (h *HorizonService) Run(ctx context.Context) error {
 		}); err != nil {
 			return err
 		}
+		fmt.Println("✅ SMS service initialized")
 	}
 	if h.SMTP != nil {
 		if err := horizon.Retry(ctx, retry, delay, func() error {
@@ -276,6 +282,7 @@ func (h *HorizonService) Run(ctx context.Context) error {
 		}); err != nil {
 			return err
 		}
+		fmt.Println("✅ SMTP service initialized")
 	}
 	if h.Request != nil {
 		if err := horizon.Retry(ctx, retry, delay, func() error {
@@ -283,6 +290,7 @@ func (h *HorizonService) Run(ctx context.Context) error {
 		}); err != nil {
 			return err
 		}
+		fmt.Println("✅ Request service initialized")
 	}
 
 	fmt.Println("🟢 Horizon App Started")
