@@ -520,7 +520,7 @@ func (c *Controller) UserController() {
 		// Get current user
 		user, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, "failed to get current user: "+err.Error())
+			return err
 		}
 
 		// If the same MediaID is submitted, reject
@@ -529,22 +529,16 @@ func (c *Controller) UserController() {
 		}
 
 		user.MediaID = req.MediaID
-
-		// Save updated use
-		if err := c.model.UserManager.Update(context, user); err != nil {
+		if err := c.model.UserManager.UpdateByID(context, user.ID, user); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update user: "+err.Error())
 		}
-
 		updatedUser, err := c.model.UserManager.GetByID(context, user.ID)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update user: "+err.Error())
 		}
-
-		// Update user token
 		if err := c.userToken.SetUser(context, ctx, updatedUser); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to set user token: "+err.Error())
 		}
-		// Return the updated user
 		return ctx.JSON(http.StatusOK, c.model.UserManager.ToModel(updatedUser))
 	})
 
