@@ -529,7 +529,7 @@ func (c *Controller) UserController() {
 		}
 
 		user.MediaID = req.MediaID
-		if err := c.model.UserManager.UpdateByID(context, user.ID, user); err != nil {
+		if err := c.model.UserManager.UpdateFields(context, user.ID, user); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update user: "+err.Error())
 		}
 		updatedUser, err := c.model.UserManager.GetByID(context, user.ID)
