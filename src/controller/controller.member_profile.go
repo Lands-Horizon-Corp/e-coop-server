@@ -63,7 +63,7 @@ func (c *Controller) MemberProfileController() {
 			return c.NotFound(ctx, "MemberProfile")
 		}
 		memberProfile.Status = "verified"
-		if err := c.model.MemberProfileManager.UpdateByID(context, memberProfile.ID, memberProfile); err != nil {
+		if err := c.model.MemberProfileManager.UpdateFields(context, memberProfile.ID, memberProfile); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update member profile: "+err.Error())
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(memberProfile))
@@ -93,7 +93,7 @@ func (c *Controller) MemberProfileController() {
 			return c.NotFound(ctx, "MemberProfile")
 		}
 		memberProfile.Status = "not allowed	"
-		if err := c.model.MemberProfileManager.UpdateByID(context, memberProfile.ID, memberProfile); err != nil {
+		if err := c.model.MemberProfileManager.UpdateFields(context, memberProfile.ID, memberProfile); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update member profile: "+err.Error())
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(memberProfile))
@@ -255,7 +255,7 @@ func (c *Controller) MemberProfileController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
 		}
 		memberProfile.IsClosed = true
-		if err := c.model.MemberProfileManager.UpdateByIDWithTx(context, tx, memberProfile.ID, memberProfile); err != nil {
+		if err := c.model.MemberProfileManager.UpdateFieldsWithTx(context, tx, memberProfile.ID, memberProfile); err != nil {
 			tx.Rollback()
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to close member profile: "+err.Error())
 		}
@@ -303,7 +303,7 @@ func (c *Controller) MemberProfileController() {
 			return c.NotFound(ctx, fmt.Sprintf("MemberProfile with ID %s not found", memberProfileId))
 		}
 		memberProfile.UserID = *req.UserID
-		if err := c.model.MemberProfileManager.UpdateByID(context, memberProfile.ID, memberProfile); err != nil {
+		if err := c.model.MemberProfileManager.UpdateFields(context, memberProfile.ID, memberProfile); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update member profile by specifying user connection: "+err.Error())
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(memberProfile))
@@ -424,7 +424,7 @@ func (c *Controller) MemberProfileController() {
 		profile.BusinessContactNumber = req.BusinessContactNumber
 		profile.Notes = req.Notes
 		profile.Description = req.Description
-		if err := c.model.MemberProfileManager.UpdateByID(context, profile.ID, profile); err != nil {
+		if err := c.model.MemberProfileManager.UpdateFields(context, profile.ID, profile); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could update member profile: %v", err))
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(profile))
@@ -469,7 +469,7 @@ func (c *Controller) MemberProfileController() {
 		profile.RecruitedByMemberProfileID = req.RecruitedByMemberProfileID
 		profile.IsMutualFundMember = *req.IsMutualFundMember
 		profile.IsMicroFinanceMember = *req.IsMicroFinanceMember
-		if err := c.model.MemberProfileManager.UpdateByID(context, profile.ID, profile); err != nil {
+		if err := c.model.MemberProfileManager.UpdateFields(context, profile.ID, profile); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could update member profile: %v", err))
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(profile))
@@ -558,7 +558,7 @@ func (c *Controller) MemberEducationalAttainmentController() {
 		value.ProgramCourse = req.ProgramCourse
 		value.EducationalAttainment = req.EducationalAttainment
 		value.Description = req.Description
-		if err := c.model.MemberEducationalAttainmentManager.UpdateByID(context, value.ID, value); err != nil {
+		if err := c.model.MemberEducationalAttainmentManager.UpdateFields(context, value.ID, value); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberEducationalAttainmentManager.ToModel(value))
@@ -668,7 +668,7 @@ func (c *Controller) MemberAddressController() {
 		value.Barangay = req.Barangay
 		value.Landmark = req.Landmark
 		value.Address = req.Address
-		if err := c.model.MemberAddressManager.UpdateByID(context, value.ID, value); err != nil {
+		if err := c.model.MemberAddressManager.UpdateFields(context, value.ID, value); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberAddressManager.ToModel(value))
@@ -768,7 +768,7 @@ func (c *Controller) MemberContactReferenceController() {
 		value.Description = req.Description
 		value.ContactNumber = req.ContactNumber
 
-		if err := c.model.MemberContactReferenceManager.UpdateByID(context, value.ID, value); err != nil {
+		if err := c.model.MemberContactReferenceManager.UpdateFields(context, value.ID, value); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberContactReferenceManager.ToModel(value))
@@ -871,7 +871,7 @@ func (c *Controller) MemberAssetController() {
 		value.Description = req.Description
 		value.Cost = req.Cost
 
-		if err := c.model.MemberAssetManager.UpdateByID(context, value.ID, value); err != nil {
+		if err := c.model.MemberAssetManager.UpdateFields(context, value.ID, value); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberAssetManager.ToModel(value))
@@ -972,7 +972,7 @@ func (c *Controller) MemberIncomeController() {
 		value.Name = req.Name
 		value.Amount = req.Amount
 		value.ReleaseDate = req.ReleaseDate
-		if err := c.model.MemberIncomeManager.UpdateByID(context, value.ID, value); err != nil {
+		if err := c.model.MemberIncomeManager.UpdateFields(context, value.ID, value); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberIncomeManager.ToModel(value))
@@ -1072,7 +1072,7 @@ func (c *Controller) MemberExpenseController() {
 		value.Name = req.Name
 		value.Amount = req.Amount
 		value.Description = req.Description
-		if err := c.model.MemberExpenseManager.UpdateByID(context, value.ID, value); err != nil {
+		if err := c.model.MemberExpenseManager.UpdateFields(context, value.ID, value); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberExpenseManager.ToModel(value))
@@ -1180,7 +1180,7 @@ func (c *Controller) MemberGovernmentBenefitController() {
 		value.Value = req.Value
 		value.ExpiryDate = req.ExpiryDate
 
-		if err := c.model.MemberGovernmentBenefitManager.UpdateByID(context, value.ID, value); err != nil {
+		if err := c.model.MemberGovernmentBenefitManager.UpdateFields(context, value.ID, value); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberGovernmentBenefitManager.ToModel(value))
@@ -1294,7 +1294,7 @@ func (c *Controller) MemberJointAccountController() {
 		value.Birthday = req.Birthday
 		value.FamilyRelationship = req.FamilyRelationship
 
-		if err := c.model.MemberJointAccountManager.UpdateByID(context, value.ID, value); err != nil {
+		if err := c.model.MemberJointAccountManager.UpdateFields(context, value.ID, value); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberJointAccountManager.ToModel(value))
@@ -1393,7 +1393,7 @@ func (c *Controller) MemberRelativeAccountController() {
 		value.Description = req.Description
 		value.FamilyRelationship = req.FamilyRelationship
 
-		if err := c.model.MemberRelativeAccountManager.UpdateByID(context, value.ID, value); err != nil {
+		if err := c.model.MemberRelativeAccountManager.UpdateFields(context, value.ID, value); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberRelativeAccountManager.ToModel(value))
@@ -1546,7 +1546,7 @@ func (c *Controller) MemberGenderController() {
 		memberGender.BranchID = *user.BranchID
 		memberGender.Name = req.Name
 		memberGender.Description = req.Description
-		if err := c.model.MemberGenderManager.UpdateByID(context, memberGender.ID, memberGender); err != nil {
+		if err := c.model.MemberGenderManager.UpdateFields(context, memberGender.ID, memberGender); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberGenderManager.ToModel(memberGender))
@@ -1749,7 +1749,7 @@ func (c *Controller) MemberCenterController() {
 		memberCenter.BranchID = *user.BranchID
 		memberCenter.Name = req.Name
 		memberCenter.Description = req.Description
-		if err := c.model.MemberCenterManager.UpdateByID(context, memberCenter.ID, memberCenter); err != nil {
+		if err := c.model.MemberCenterManager.UpdateFields(context, memberCenter.ID, memberCenter); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberCenterManager.ToModel(memberCenter))
@@ -1953,7 +1953,7 @@ func (c *Controller) MemberTypeController() {
 		memberType.Name = req.Name
 		memberType.Description = req.Description
 		memberType.Prefix = req.Prefix
-		if err := c.model.MemberTypeManager.UpdateByID(context, memberType.ID, memberType); err != nil {
+		if err := c.model.MemberTypeManager.UpdateFields(context, memberType.ID, memberType); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberTypeManager.ToModel(memberType))
@@ -2158,7 +2158,7 @@ func (c *Controller) MemberClassificationController() {
 		memberClassification.Name = req.Name
 		memberClassification.Description = req.Description
 		memberClassification.Icon = req.Icon
-		if err := c.model.MemberClassificationManager.UpdateByID(context, memberClassification.ID, memberClassification); err != nil {
+		if err := c.model.MemberClassificationManager.UpdateFields(context, memberClassification.ID, memberClassification); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberClassificationManager.ToModel(memberClassification))
@@ -2361,7 +2361,7 @@ func (c *Controller) MemberOccupationController() {
 		memberOccupation.BranchID = *user.BranchID
 		memberOccupation.Name = req.Name
 		memberOccupation.Description = req.Description
-		if err := c.model.MemberOccupationManager.UpdateByID(context, memberOccupation.ID, memberOccupation); err != nil {
+		if err := c.model.MemberOccupationManager.UpdateFields(context, memberOccupation.ID, memberOccupation); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberOccupationManager.ToModel(memberOccupation))
@@ -2564,7 +2564,7 @@ func (c *Controller) MemberGroupController() {
 		memberGroup.BranchID = *user.BranchID
 		memberGroup.Name = req.Name
 		memberGroup.Description = req.Description
-		if err := c.model.MemberGroupManager.UpdateByID(context, memberGroup.ID, memberGroup); err != nil {
+		if err := c.model.MemberGroupManager.UpdateFields(context, memberGroup.ID, memberGroup); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberGroupManager.ToModel(memberGroup))

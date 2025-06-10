@@ -59,7 +59,7 @@ func (c *Controller) UserOrganinzationController() {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 			}
 			userOrganization.IsSeeded = true
-			if err := c.model.UserOrganizationManager.UpdateByIDWithTx(context, tx, userOrganization.ID, userOrganization); err != nil {
+			if err := c.model.UserOrganizationManager.UpdateFieldsWithTx(context, tx, userOrganization.ID, userOrganization); err != nil {
 				return echo.NewHTTPError(http.StatusInternalServerError, "failed to update user organization seed status")
 			}
 		}
@@ -213,7 +213,7 @@ func (c *Controller) UserOrganinzationController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "something wrong generting developer key"})
 		}
 		userOrg.DeveloperSecretKey = developerKey + uuid.NewString() + "-horizon"
-		if err := c.model.UserOrganizationManager.UpdateByID(context, userOrg.ID, userOrg); err != nil {
+		if err := c.model.UserOrganizationManager.UpdateFields(context, userOrg.ID, userOrg); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update user: "+err.Error())
 		}
 		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModel(userOrg))
@@ -475,7 +475,7 @@ func (c *Controller) UserOrganinzationController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
 		}
 		userOrg.ApplicationStatus = "accepted"
-		if err := c.model.UserOrganizationManager.UpdateByID(context, userOrg.OrganizationID, userOrg); err != nil {
+		if err := c.model.UserOrganizationManager.UpdateFields(context, userOrg.OrganizationID, userOrg); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update branch: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModel(userOrg))
@@ -1103,7 +1103,7 @@ func (c *Controller) OrganizationController() {
 		organization.CoverMediaID = req.CoverMediaID
 		organization.UpdatedAt = time.Now().UTC()
 		organization.UpdatedByID = user.ID
-		if err := c.model.OrganizationManager.UpdateByIDWithTx(context, tx, organization.ID, organization); err != nil {
+		if err := c.model.OrganizationManager.UpdateFieldsWithTx(context, tx, organization.ID, organization); err != nil {
 			tx.Rollback()
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
@@ -1344,7 +1344,7 @@ func (c *Controller) InvitationCode() {
 		invitationCode.MaxUse = req.MaxUse
 		invitationCode.Description = req.Description
 
-		if err := c.model.InvitationCodeManager.UpdateByID(context, invitationCode.ID, invitationCode); err != nil {
+		if err := c.model.InvitationCodeManager.UpdateFields(context, invitationCode.ID, invitationCode); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update user: "+err.Error())
 		}
 		return ctx.JSON(http.StatusOK, c.model.InvitationCodeManager.ToModel(invitationCode))

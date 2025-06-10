@@ -115,7 +115,7 @@ func (c *Controller) HolidayController() {
 		holiday.Description = req.Description
 		holiday.UpdatedAt = time.Now().UTC()
 		holiday.UpdatedByID = user.UserID
-		if err := c.model.HolidayManager.UpdateByID(context, holiday.ID, holiday); err != nil {
+		if err := c.model.HolidayManager.UpdateFields(context, holiday.ID, holiday); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 		return ctx.JSON(http.StatusOK, c.model.HolidayManager.ToModel(holiday))

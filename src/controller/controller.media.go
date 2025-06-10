@@ -147,7 +147,7 @@ func (c *Controller) MediaController() {
 			UpdatedAt: time.Now().UTC(),
 		}
 
-		if err := c.model.MediaManager.UpdateByID(context, *mediaId, model); err != nil {
+		if err := c.model.MediaManager.UpdateFields(context, *mediaId, model); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
 		return ctx.JSON(http.StatusCreated, c.model.MediaManager.ToModel(model))

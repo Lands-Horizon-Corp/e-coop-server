@@ -115,7 +115,7 @@ func (c *Controller) BankController() {
 		bank.Description = req.Description
 		bank.UpdatedAt = time.Now().UTC()
 		bank.UpdatedByID = user.UserID
-		if err := c.model.BankManager.UpdateByID(context, bank.ID, bank); err != nil {
+		if err := c.model.BankManager.UpdateFields(context, bank.ID, bank); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 		return ctx.JSON(http.StatusOK, c.model.BankManager.ToModel(bank))

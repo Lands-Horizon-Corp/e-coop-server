@@ -118,7 +118,7 @@ func (c *Controller) BillAndCoinsController() {
 
 		BillAndCoins.UpdatedAt = time.Now().UTC()
 		BillAndCoins.UpdatedByID = user.UserID
-		if err := c.model.BillAndCoinsManager.UpdateByID(context, BillAndCoins.ID, BillAndCoins); err != nil {
+		if err := c.model.BillAndCoinsManager.UpdateFields(context, BillAndCoins.ID, BillAndCoins); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 		return ctx.JSON(http.StatusOK, c.model.BillAndCoinsManager.ToModel(BillAndCoins))

@@ -73,7 +73,7 @@ func (c *Controller) TimesheetController() {
 			timesheet.MediaOutID = req.MediaID
 			timesheet.TimeOut = &now
 			timesheet.UpdatedAt = now
-			if err := c.model.TimesheetManager.UpdateByID(context, timesheet.ID, timesheet); err != nil {
+			if err := c.model.TimesheetManager.UpdateFields(context, timesheet.ID, timesheet); err != nil {
 				return echo.NewHTTPError(http.StatusInternalServerError, "Failed to update timesheet: "+err.Error())
 			}
 			return ctx.JSON(http.StatusOK, c.model.TimesheetManager.ToModel(timesheet))
