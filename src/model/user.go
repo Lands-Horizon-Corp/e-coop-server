@@ -183,11 +183,6 @@ func (m *Model) User() {
 			"Footsteps.Media",
 			"GeneratedReports",
 			"GeneratedReports.Media",
-			"UserOrganizations",
-			"UserOrganizations.Organization",
-			"UserOrganizations.Branch",
-			"UserOrganizations.Organization.Media",
-			"UserOrganizations.Branch.Media",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *User) *UserResponse {
