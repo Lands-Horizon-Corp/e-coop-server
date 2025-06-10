@@ -835,7 +835,7 @@ func (c *Controller) BranchController() {
 		branch.IsMainBranch = req.IsMainBranch
 
 		// Save changes to the branch
-		if err := c.model.BranchManager.UpdateByID(context, branch.ID, branch); err != nil {
+		if err := c.model.BranchManager.UpdateFields(context, branch.ID, branch); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update branch: " + err.Error()})
 		}
 
