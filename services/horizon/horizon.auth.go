@@ -163,7 +163,7 @@ func (h *HorizonAuthService[T]) ClearCSRF(ctx context.Context, c echo.Context) {
 		Expires:  time.Unix(0, 0),
 		HttpOnly: true,
 		Secure:   true,
-		SameSite: http.SameSiteLaxMode,
+		SameSite: http.SameSiteNoneMode,
 	})
 }
 
