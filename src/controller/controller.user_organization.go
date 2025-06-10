@@ -94,6 +94,25 @@ func (c *Controller) UserOrganinzationController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
+		Route:    "/user-organization/current",
+		Method:   "GET",
+		Response: "TUserOrganization[]",
+		Note:     "Retrieve all user organizations. Use query param `pending=true` to include pending organizations.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		isPending := false
+		user, err := c.userToken.CurrentUser(context, ctx)
+		if err != nil {
+			return ctx.NoContent(http.StatusNoContent)
+		}
+		userOrganization, err := c.model.GetUserOrganizationByUser(context, user.ID, &isPending)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModels(userOrganization))
+	})
+
+	req.RegisterRoute(horizon.Route{
 		Route:    "/user-organization/organization/:organization_id",
 		Method:   "GET",
 		Response: "TUserOrganization[]",
