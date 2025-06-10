@@ -273,6 +273,7 @@ func (ds *Seeder) SeedOrganization(ctx context.Context) error {
 					PostalCode:     fmt.Sprintf("11%03d", k+1),
 					CountryCode:    "PH",
 					ContactNumber:  ptr(fmt.Sprintf("+63918%05d%04d", k+1, i)),
+					MediaID:        &media.ID,
 				}
 				if err := ds.model.BranchManager.Create(ctx, branch); err != nil {
 					return err
