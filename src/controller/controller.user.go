@@ -528,7 +528,7 @@ func (c *Controller) UserController() {
 			return echo.NewHTTPError(http.StatusBadRequest, "media ID is the same as the current one")
 		}
 
-		if err := c.model.UserManager.UpdateByID(context, user.ID, &model.User{
+		if err := c.model.UserManager.UpdateFields(context, user.ID, &model.User{
 			MediaID: req.MediaID,
 		}); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update user: "+err.Error())
