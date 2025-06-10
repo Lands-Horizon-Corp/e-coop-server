@@ -50,7 +50,7 @@ func (h *HorizonTokenService[T]) CleanToken(ctx context.Context, c echo.Context)
 		Expires:  time.Now().Add(-1 * time.Hour),
 		HttpOnly: true,
 		Secure:   c.Request().TLS != nil,
-		SameSite: http.SameSiteLaxMode,
+		SameSite: http.SameSiteNoneMode,
 	}
 	c.SetCookie(cookie)
 }
@@ -90,7 +90,7 @@ func (h *HorizonTokenService[T]) SetToken(ctx context.Context, c echo.Context, c
 		Expires:  time.Now().Add(expiry),
 		HttpOnly: true,
 		Secure:   c.Request().TLS != nil,
-		SameSite: http.SameSiteLaxMode,
+		SameSite: http.SameSiteNoneMode,
 	}
 	c.SetCookie(cookie)
 	return nil
