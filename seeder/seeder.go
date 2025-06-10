@@ -9,7 +9,6 @@ import (
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src"
 	"github.com/lands-horizon/horizon-server/src/model"
-	"gorm.io/gorm"
 )
 
 type Seeder struct {
@@ -308,7 +307,7 @@ func (ds *Seeder) SeedOrganization(ctx context.Context) error {
 					tx.Rollback()
 					return err
 				}
-				if err := ds.model.OrganizationSeeder(ctx, &gorm.DB{}, user.ID, organization.ID, branch.ID); err != nil {
+				if err := ds.model.OrganizationSeeder(ctx, tx, user.ID, organization.ID, branch.ID); err != nil {
 					tx.Rollback()
 					return err
 				}
