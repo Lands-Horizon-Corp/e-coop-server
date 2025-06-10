@@ -189,7 +189,7 @@ func (ds *Seeder) SeedOrganization(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	imageUrl := "https://files.slack.com/files-tmb/T08P9M6T257-F08S7UMSZ0V-e535d7688e/image_720.png"
+	imageUrl := "https://files.slack.com/files-pri/T08P9M6T257-F090R6MJZ18/bird-thumbnail.jpg"
 	image, err := ds.provider.Service.Storage.UploadFromURL(ctx, imageUrl, func(progress, total int64, storage *horizon.Storage) {})
 	if err != nil {
 		return err
@@ -349,7 +349,7 @@ func (ds *Seeder) SeedUsers(ctx context.Context) error {
 		return nil
 	}
 
-	imageUrl := "https://files.slack.com/files-tmb/T08P9M6T257-F08S7UMSZ0V-e535d7688e/image_720.png"
+	imageUrl := "https://files.slack.com/files-pri/T08P9M6T257-F090R6MJZ18/bird-thumbnail.jpg"
 	image, err := ds.provider.Service.Storage.UploadFromURL(ctx, imageUrl, func(progress, total int64, storage *horizon.Storage) {})
 	if err != nil {
 		return err

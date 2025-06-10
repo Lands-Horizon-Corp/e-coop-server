@@ -439,3 +439,37 @@ func (h *HorizonService) StopCache(ctx context.Context) error {
 	fmt.Println("🛑 Cache Service Stopped Successfully")
 	return nil
 }
+
+// Add these methods to your HorizonService struct in horizon_services.go
+
+func (h *HorizonService) RunStorage(ctx context.Context) error {
+	fmt.Println("🟢 Starting Storage Service...")
+	delay := 3 * time.Second
+	retry := 5
+
+	if h.Storage != nil {
+		if err := horizon.Retry(ctx, retry, delay, func() error {
+			return h.Storage.Run(ctx)
+		}); err != nil {
+			fmt.Println("🔴 Failed to start Storage Service")
+			return err
+		}
+	}
+
+	fmt.Println("🟢 Storage Service Started Successfully")
+	return nil
+}
+
+func (h *HorizonService) StopStorage(ctx context.Context) error {
+	fmt.Println("🛑 Stopping Storage Service...")
+
+	if h.Storage != nil {
+		if err := h.Storage.Stop(ctx); err != nil {
+			fmt.Println("🔴 Failed to stop Storage Service")
+			return err
+		}
+	}
+
+	fmt.Println("🛑 Storage Service Stopped Successfully")
+	return nil
+}

@@ -120,6 +120,9 @@ func seedDatabase() {
 					if err := prov.Service.RunDatabase(ctx); err != nil {
 						return err
 					}
+					if err := prov.Service.RunStorage(ctx); err != nil {
+						return err
+					}
 					if err := mod.Start(ctx); err != nil {
 						return err
 					}

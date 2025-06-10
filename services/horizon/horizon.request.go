@@ -128,7 +128,6 @@ func NewHorizonAPIService(
 		LogQueryParams:   []string{"*"},
 		LogFormValues:    []string{"*"},
 		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
-			fmt.Println(v)
 			return nil
 		},
 	}))
