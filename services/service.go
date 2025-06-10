@@ -49,6 +49,7 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 	}
 	service.Environment = horizon.NewEnvironmentService(env)
 	isStaging := service.Environment.GetString("APP_ENV", "development") == "staging"
+
 	if cfg.RequestServiceConfig != nil {
 		service.Request = horizon.NewHorizonAPIService(
 			cfg.RequestServiceConfig.AppPort,

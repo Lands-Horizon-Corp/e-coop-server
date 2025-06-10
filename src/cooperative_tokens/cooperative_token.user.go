@@ -138,6 +138,7 @@ func NewUserToken(provider *src.Provider, model *model.Model) (*UserToken, error
 	tokenService := horizon.NewTokenService[UserClaim](
 		fmt.Sprintf("%s-%s", "X-SECURE-TOKEN-USER", appName),
 		[]byte(token),
+		isStaging,
 	)
 
 	csrfService := horizon.NewHorizonAuthService[UserCSRF](
