@@ -221,6 +221,16 @@ func (c *Controller) UserOrganinzationController() {
 				"error": "invitation code not found",
 			})
 		}
+		if invitationCode.UserType == "member" {
+			if !c.model.UserOrganizationMemberCanJoin(context, user.ID, invitationCode.OrganizationID, invitationCode.BranchID) {
+				return ctx.JSON(http.StatusNotFound, map[string]string{"error": "cannot join as member"})
+			}
+		}
+		if invitationCode.UserType == "employee" {
+			if !c.model.UserOrganizationEmployeeCanJoin(context, user.ID, invitationCode.OrganizationID, invitationCode.BranchID) {
+				return ctx.JSON(http.StatusNotFound, map[string]string{"error": "cannot join as employee"})
+			}
+		}
 		developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, user.ID.String())
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "something wrong generting developer key"})

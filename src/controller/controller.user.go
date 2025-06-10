@@ -23,7 +23,7 @@ func (c *Controller) UserController() {
 		context := ctx.Request().Context()
 		user, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
-			return err
+			return ctx.NoContent(http.StatusNoContent)
 		}
 		userOrganization, _ := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		var userOrg *model.UserOrganizationResponse
