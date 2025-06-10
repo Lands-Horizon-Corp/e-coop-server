@@ -157,7 +157,7 @@ func (h *UserToken) CurrentUser(ctx context.Context, echoCtx echo.Context) (*mod
 	claim, err := h.CSRF.GetCSRF(ctx, echoCtx)
 	if err != nil {
 		h.CSRF.ClearCSRF(ctx, echoCtx)
-		return nil, echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized")
+		return nil, echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized: "+err.Error())
 	}
 	if claim.UserID == "" || claim.Email == "" || claim.ContactNumber == "" || claim.Password == "" {
 		h.CSRF.ClearCSRF(ctx, echoCtx)
