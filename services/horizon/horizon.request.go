@@ -55,7 +55,7 @@ type TemplateRenderer struct {
 func (t *TemplateRenderer) Render(w io.Writer, name string, data any, c echo.Context) error {
 
 	// Add global methods if data is a map
-	if viewContext, isMap := data.(map[string]interface{}); isMap {
+	if viewContext, isMap := data.(map[string]any); isMap {
 		viewContext["reverse"] = c.Echo().Reverse
 	}
 

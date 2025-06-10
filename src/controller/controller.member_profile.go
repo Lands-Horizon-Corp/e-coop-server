@@ -1476,6 +1476,24 @@ func (c *Controller) MemberGenderController() {
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberGenderManager.ToModels(memberGender))
 	})
+	req.RegisterRoute(horizon.Route{
+		Route:    "/member-gender/search",
+		Method:   "GET",
+		Request:  "Filter<IMemberGender>",
+		Response: "Paginated<IMemberGender>",
+		Note:     "Get pagination member gender",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.NoContent(http.StatusNoContent)
+		}
+		memberGender, err := c.model.MemberGenderCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.MemberGenderManager.Pagination(context, ctx, memberGender))
+	})
 
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-gender",
@@ -1520,6 +1538,7 @@ func (c *Controller) MemberGenderController() {
 		Response: "TMemberGender",
 		Note:     "Update an existing member gender record by ID",
 	}, func(ctx echo.Context) error {
+
 		context := ctx.Request().Context()
 		memberGenderID, err := horizon.EngineUUIDParam(ctx, "member_gender_id")
 		if err != nil {

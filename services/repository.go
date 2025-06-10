@@ -43,7 +43,7 @@ func ToModels[T any, G any](data []*T, mapFunc func(*T) *G) []*G {
 }
 
 type Repository[TData any, TResponse any, TRequest any] interface {
-
+	Pagination(ctx context.Context, param echo.Context, data []*TData) horizon.PaginationResult[TResponse]
 	// Validate
 	Validate(ctx echo.Context) (*TRequest, error)
 
@@ -187,6 +187,18 @@ func NewRepository[TData any, TResponse any, TRequest any](params RepositoryPara
 		deleted:  params.Deleted,
 		resource: params.Resource,
 		preloads: params.Preloads,
+	}
+}
+
+func (c *CollectionManager[TData, TResponse, TRequest]) Pagination(ctx context.Context, param echo.Context, data []*TData) horizon.PaginationResult[TResponse] {
+	filtered := horizon.Pagination(ctx, param, data)
+	return horizon.PaginationResult[TResponse]{
+		Data:      c.ToModels(filtered.Data),
+		PageIndex: filtered.PageIndex,
+		PageSize:  filtered.PageSize,
+		TotalSize: filtered.TotalSize,
+		Sort:      filtered.Sort,
+		TotalPage: filtered.TotalPage,
 	}
 }
 

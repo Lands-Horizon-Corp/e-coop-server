@@ -86,7 +86,7 @@ func TestHorizonMessageBroker(t *testing.T) {
 		// Subscribe to topic1
 		err = broker.Subscribe(ctx, topic1, func(payload any) error {
 			defer wg.Done()
-			if _, ok := payload.(map[string]interface{}); !ok {
+			if _, ok := payload.(map[string]any); !ok {
 				errChan <- fmt.Errorf("topic1: expected map payload")
 				return nil
 			}
@@ -97,7 +97,7 @@ func TestHorizonMessageBroker(t *testing.T) {
 		// Subscribe to topic2
 		err = broker.Subscribe(ctx, topic2, func(payload any) error {
 			defer wg.Done()
-			if _, ok := payload.(map[string]interface{}); !ok {
+			if _, ok := payload.(map[string]any); !ok {
 				errChan <- fmt.Errorf("topic2: expected map payload")
 				return nil
 			}
