@@ -97,7 +97,7 @@ func (c *Controller) UserOrganinzationController() {
 		Route:    "/user-organization/current",
 		Method:   "GET",
 		Response: "TUserOrganization[]",
-		Note:     "Retrieve all user organizations. Use query param `pending=true` to include pending organizations.",
+		Note:     "Retrieve all user organizations of the user logged in",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		isPending := false

@@ -128,6 +128,7 @@ func NewUserToken(provider *src.Provider, model *model.Model) (*UserToken, error
 	context := context.Background()
 	appName := provider.Service.Environment.GetString("APP_NAME", "")
 	appToken := provider.Service.Environment.GetString("APP_TOKEN", "")
+	isStaging := provider.Service.Environment.GetString("APP_ENV", "development") == "staging"
 
 	token, err := provider.Service.Security.GenerateUUIDv5(context, appToken+"-user")
 	if err != nil {
@@ -143,6 +144,7 @@ func NewUserToken(provider *src.Provider, model *model.Model) (*UserToken, error
 		provider.Service.Cache,
 		"user-csrf",
 		fmt.Sprintf("%s-%s", "X-SECURE-CSRF-USER", appName),
+		isStaging,
 	)
 
 	return &UserToken{
