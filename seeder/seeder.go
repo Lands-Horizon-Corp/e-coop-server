@@ -359,8 +359,8 @@ func (ds *Seeder) SeedUsers(ctx context.Context) error {
 		return err
 	}
 	media := &model.Media{
-		FileName:   "picture",
-		FileType:   "image/png",
+		FileName:   image.FileName,
+		FileType:   image.FileName,
 		FileSize:   image.FileSize,
 		StorageKey: image.StorageKey,
 		URL:        image.URL,

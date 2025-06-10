@@ -435,7 +435,6 @@ func (c *Controller) UserController() {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		// Bind the request body to UserSettingsChangeProfilePictureRequest struct
 		var req model.UserVerifyWithPasswordRequest
 		if err := ctx.Bind(&req); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
