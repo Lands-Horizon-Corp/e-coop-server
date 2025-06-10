@@ -391,17 +391,15 @@ func (h *HorizonStorage) UploadFromHeader(ctx context.Context, header *multipart
 }
 
 func (h *HorizonStorage) GeneratePresignedURL(ctx context.Context, storage *Storage, expiry time.Duration) (string, error) {
-	// Check if the file exists before generating the presigned URL
 	_, err := h.client.StatObject(ctx, storage.BucketName, storage.StorageKey, minio.StatObjectOptions{})
 	if err != nil {
 		return "", eris.Wrapf(err, "failed to generate presigned URL for key %s in bucket %s", storage.StorageKey, storage.BucketName)
 	}
-
-	u, err := h.client.PresignedGetObject(ctx, storage.BucketName, storage.FileName, expiry, nil)
+	presignedURL, err := h.client.PresignedGetObject(ctx, storage.BucketName, storage.StorageKey, expiry, nil)
 	if err != nil {
-		return "", eris.Wrap(err, "presign failed")
+		return "", eris.Wrap(err, "failed to generate presigned URL")
 	}
-	return u.String(), nil
+	return presignedURL.String(), nil
 }
 
 func (h *HorizonStorage) DeleteFile(ctx context.Context, storage *Storage) error {

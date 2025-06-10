@@ -194,8 +194,8 @@ func (ds *Seeder) SeedOrganization(ctx context.Context) error {
 		return err
 	}
 	media := &model.Media{
-		FileName:   "picture",
-		FileType:   "image/png",
+		FileName:   image.FileName,
+		FileType:   image.FileType,
 		FileSize:   image.FileSize,
 		StorageKey: image.StorageKey,
 		URL:        image.URL,
@@ -360,7 +360,7 @@ func (ds *Seeder) SeedUsers(ctx context.Context) error {
 	}
 	media := &model.Media{
 		FileName:   image.FileName,
-		FileType:   image.FileName,
+		FileType:   image.FileType,
 		FileSize:   image.FileSize,
 		StorageKey: image.StorageKey,
 		URL:        image.URL,
