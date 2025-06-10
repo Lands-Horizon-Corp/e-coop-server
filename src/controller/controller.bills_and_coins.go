@@ -28,8 +28,26 @@ func (c *Controller) BillAndCoinsController() {
 		if err != nil {
 			return c.NotFound(ctx, "Bills and Coins")
 		}
-
 		return ctx.JSON(http.StatusOK, c.model.BillAndCoinsManager.ToModels(BillAndCoins))
+	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:    "/bills-and-coins/search",
+		Method:   "GET",
+		Request:  "Filter<IBillAndCoins>",
+		Response: "Paginated<IBillAndCoins>",
+		Note:     "Get pagination bills and coins",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.NoContent(http.StatusNoContent)
+		}
+		value, err := c.model.BillAndCoinsCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.BillAndCoinsManager.Pagination(context, ctx, value))
 	})
 
 	req.RegisterRoute(horizon.Route{

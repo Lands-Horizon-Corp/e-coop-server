@@ -481,10 +481,74 @@ func (c *Controller) MemberProfileController() {
 		profile.Passbook = req.Passbook
 		profile.OldReferenceID = req.OldReferenceID
 		profile.Status = req.Status
-		profile.MemberTypeID = req.MemberTypeID
-		profile.MemberGroupID = req.MemberGroupID
-		profile.MemberClassificationID = req.MemberClassificationID
-		profile.MemberCenterID = req.MemberCenterID
+
+		if profile.MemberTypeID != req.MemberTypeID {
+			profile.MemberTypeID = req.MemberTypeID
+			if err := c.model.MemberTypeHistoryManager.Create(context, &model.MemberTypeHistory{
+				OrganizationID:  user.OrganizationID,
+				BranchID:        *user.BranchID,
+				CreatedAt:       time.Now().UTC(),
+				UpdatedAt:       time.Now().UTC(),
+				CreatedByID:     user.UserID,
+				UpdatedByID:     user.UserID,
+				MemberProfileID: profile.ID,
+				MemberTypeID:    *req.MemberTypeID,
+			}); err != nil {
+				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could update member profile: %v", err))
+			}
+
+		}
+
+		// Compare and set MemberGroupID with history
+		if profile.MemberGroupID != req.MemberGroupID {
+			if err := c.model.MemberGroupHistoryManager.Create(context, &model.MemberGroupHistory{
+				OrganizationID:  user.OrganizationID,
+				BranchID:        *user.BranchID,
+				CreatedAt:       time.Now().UTC(),
+				UpdatedAt:       time.Now().UTC(),
+				CreatedByID:     user.UserID,
+				UpdatedByID:     user.UserID,
+				MemberProfileID: profile.ID,
+				MemberGroupID:   *req.MemberGroupID,
+			}); err != nil {
+				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not update member group history: %v", err))
+			}
+			profile.MemberGroupID = req.MemberGroupID
+		}
+
+		// Compare and set MemberClassificationID with history
+		if profile.MemberClassificationID != req.MemberClassificationID {
+			if err := c.model.MemberClassificationHistoryManager.Create(context, &model.MemberClassificationHistory{
+				OrganizationID:         user.OrganizationID,
+				BranchID:               *user.BranchID,
+				CreatedAt:              time.Now().UTC(),
+				UpdatedAt:              time.Now().UTC(),
+				CreatedByID:            user.UserID,
+				UpdatedByID:            user.UserID,
+				MemberProfileID:        profile.ID,
+				MemberClassificationID: *req.MemberClassificationID,
+			}); err != nil {
+				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not update member classification history: %v", err))
+			}
+			profile.MemberClassificationID = req.MemberClassificationID
+		}
+
+		// Compare and set MemberCenterID with history
+		if profile.MemberCenterID != req.MemberCenterID {
+			if err := c.model.MemberCenterHistoryManager.Create(context, &model.MemberCenterHistory{
+				OrganizationID:  user.OrganizationID,
+				BranchID:        *user.BranchID,
+				CreatedAt:       time.Now().UTC(),
+				UpdatedAt:       time.Now().UTC(),
+				CreatedByID:     user.UserID,
+				UpdatedByID:     user.UserID,
+				MemberProfileID: profile.ID,
+			}); err != nil {
+				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not update member center history: %v", err))
+			}
+			profile.MemberCenterID = req.MemberCenterID
+		}
+
 		profile.RecruitedByMemberProfileID = req.RecruitedByMemberProfileID
 		profile.IsMutualFundMember = *req.IsMutualFundMember
 		profile.IsMicroFinanceMember = *req.IsMicroFinanceMember

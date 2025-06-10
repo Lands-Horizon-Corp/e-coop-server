@@ -28,36 +28,38 @@ type (
 		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_member_classification_history"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
-		MemberTypeID uuid.UUID   `gorm:"type:uuid;not null"`
-		MemberType   *MemberType `gorm:"foreignKey:MemberTypeID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_type,omitempty"`
+		MemberClassificationID uuid.UUID             `gorm:"type:uuid;not null"`
+		MemberClassification   *MemberClassification `gorm:"foreignKey:MemberClassificationID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_classification,omitempty"`
 
 		MemberProfileID uuid.UUID      `gorm:"type:uuid;not null"`
 		MemberProfile   *MemberProfile `gorm:"foreignKey:MemberProfileID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_profile,omitempty"`
 	}
 
 	MemberClassificationHistoryResponse struct {
-		ID              uuid.UUID              `json:"id"`
-		CreatedAt       string                 `json:"created_at"`
-		CreatedByID     uuid.UUID              `json:"created_by_id"`
-		CreatedBy       *UserResponse          `json:"created_by,omitempty"`
-		UpdatedAt       string                 `json:"updated_at"`
-		UpdatedByID     uuid.UUID              `json:"updated_by_id"`
-		UpdatedBy       *UserResponse          `json:"updated_by,omitempty"`
-		OrganizationID  uuid.UUID              `json:"organization_id"`
-		Organization    *OrganizationResponse  `json:"organization,omitempty"`
-		BranchID        uuid.UUID              `json:"branch_id"`
-		Branch          *BranchResponse        `json:"branch,omitempty"`
-		MemberTypeID    uuid.UUID              `json:"member_type_id"`
-		MemberType      *MemberTypeResponse    `json:"member_type,omitempty"`
+		ID             uuid.UUID             `json:"id"`
+		CreatedAt      string                `json:"created_at"`
+		CreatedByID    uuid.UUID             `json:"created_by_id"`
+		CreatedBy      *UserResponse         `json:"created_by,omitempty"`
+		UpdatedAt      string                `json:"updated_at"`
+		UpdatedByID    uuid.UUID             `json:"updated_by_id"`
+		UpdatedBy      *UserResponse         `json:"updated_by,omitempty"`
+		OrganizationID uuid.UUID             `json:"organization_id"`
+		Organization   *OrganizationResponse `json:"organization,omitempty"`
+		BranchID       uuid.UUID             `json:"branch_id"`
+		Branch         *BranchResponse       `json:"branch,omitempty"`
+
+		MemberClassificationID uuid.UUID                     `json:"member_classification_id"`
+		MemberClassification   *MemberClassificationResponse `json:"member_classification,omitempty"`
+
 		MemberProfileID uuid.UUID              `json:"member_profile_id"`
 		MemberProfile   *MemberProfileResponse `json:"member_profile,omitempty"`
 	}
 
 	MemberClassificationHistoryRequest struct {
-		MemberTypeID    uuid.UUID `json:"member_type_id" validate:"required"`
-		MemberProfileID uuid.UUID `json:"member_profile_id" validate:"required"`
-		BranchID        uuid.UUID `json:"branch_id" validate:"required"`
-		OrganizationID  uuid.UUID `json:"organization_id" validate:"required"`
+		MemberClassificationID uuid.UUID `json:"member_classification_id" validate:"required"`
+		MemberProfileID        uuid.UUID `json:"member_profile_id" validate:"required"`
+		BranchID               uuid.UUID `json:"branch_id" validate:"required"`
+		OrganizationID         uuid.UUID `json:"organization_id" validate:"required"`
 	}
 )
 
@@ -78,21 +80,21 @@ func (m *Model) MemberClassificationHistory() {
 				return nil
 			}
 			return &MemberClassificationHistoryResponse{
-				ID:              data.ID,
-				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
-				CreatedByID:     data.CreatedByID,
-				CreatedBy:       m.UserManager.ToModel(data.CreatedBy),
-				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
-				UpdatedByID:     data.UpdatedByID,
-				UpdatedBy:       m.UserManager.ToModel(data.UpdatedBy),
-				OrganizationID:  data.OrganizationID,
-				Organization:    m.OrganizationManager.ToModel(data.Organization),
-				BranchID:        data.BranchID,
-				Branch:          m.BranchManager.ToModel(data.Branch),
-				MemberTypeID:    data.MemberTypeID,
-				MemberType:      m.MemberTypeManager.ToModel(data.MemberType),
-				MemberProfileID: data.MemberProfileID,
-				MemberProfile:   m.MemberProfileManager.ToModel(data.MemberProfile),
+				ID:                     data.ID,
+				CreatedAt:              data.CreatedAt.Format(time.RFC3339),
+				CreatedByID:            data.CreatedByID,
+				CreatedBy:              m.UserManager.ToModel(data.CreatedBy),
+				UpdatedAt:              data.UpdatedAt.Format(time.RFC3339),
+				UpdatedByID:            data.UpdatedByID,
+				UpdatedBy:              m.UserManager.ToModel(data.UpdatedBy),
+				OrganizationID:         data.OrganizationID,
+				Organization:           m.OrganizationManager.ToModel(data.Organization),
+				BranchID:               data.BranchID,
+				Branch:                 m.BranchManager.ToModel(data.Branch),
+				MemberClassificationID: data.MemberClassificationID,
+				MemberClassification:   m.MemberClassificationManager.ToModel(data.MemberClassification),
+				MemberProfileID:        data.MemberProfileID,
+				MemberProfile:          m.MemberProfileManager.ToModel(data.MemberProfile),
 			}
 		},
 		Created: func(data *MemberClassificationHistory) []string {
