@@ -317,6 +317,10 @@ func (ds *Seeder) SeedOrganization(ctx context.Context) error {
 				}
 
 				for m := range 5 {
+					userType := "member"
+					if m%2 == 0 {
+						userType = "employee"
+					}
 					invitationCode := &model.InvitationCode{
 						CreatedAt:      time.Now().UTC(),
 						CreatedByID:    user.ID,
@@ -324,7 +328,7 @@ func (ds *Seeder) SeedOrganization(ctx context.Context) error {
 						UpdatedByID:    user.ID,
 						OrganizationID: organization.ID,
 						BranchID:       branch.ID,
-						UserType:       "user",
+						UserType:       userType,
 						Code:           uuid.New().String(),
 						ExpirationDate: time.Now().UTC().Add(60 * 24 * time.Hour),
 						MaxUse:         50,

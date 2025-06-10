@@ -225,11 +225,12 @@ func (c *Controller) UserOrganinzationController() {
 			if !c.model.UserOrganizationMemberCanJoin(context, user.ID, invitationCode.OrganizationID, invitationCode.BranchID) {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": "cannot join as member"})
 			}
-		}
-		if invitationCode.UserType == "employee" {
+		} else if invitationCode.UserType == "employee" {
 			if !c.model.UserOrganizationEmployeeCanJoin(context, user.ID, invitationCode.OrganizationID, invitationCode.BranchID) {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": "cannot join as employee"})
 			}
+		} else {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "cannot join as employee"})
 		}
 		developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, user.ID.String())
 		if err != nil {
