@@ -528,17 +528,10 @@ func (c *Controller) UserController() {
 			return echo.NewHTTPError(http.StatusBadRequest, "media ID is the same as the current one")
 		}
 
-		// Attempt to delete old profile picture (if one exists)
-		if user.MediaID != nil {
-			if err := c.model.MediaDelete(context, *user.MediaID); err != nil {
-				// Only return error if it's not a "record not found" case
-				return echo.NewHTTPError(http.StatusInternalServerError, "failed to delete current media: "+err.Error())
-			}
-		}
 		user.MediaID = req.MediaID
 
 		// Save updated use
-		if err := c.model.UserManager.UpdateByID(context, user.ID, user); err != nil {
+		if err := c.model.UserManager.UpdateFields(context, user.ID, user); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update user: "+err.Error())
 		}
 
