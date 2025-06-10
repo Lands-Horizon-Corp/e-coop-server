@@ -759,16 +759,13 @@ func (c *Controller) BranchController() {
 			Description: fmt.Sprintf("%s: %s", "Creates a new branch", branch.Name),
 		})
 
-		return ctx.JSON(http.StatusOK, map[string]any{
-			"branch":            c.model.BranchManager.ToModel(branch),
-			"user_organization": c.model.UserOrganizationManager.ToModel(userOrganization),
-		})
+		return ctx.JSON(http.StatusOK, c.model.BranchManager.ToModel(branch))
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/branch/user-organization/:user_organization_id",
+		Route:    "/branch/:branch_id",
 		Method:   "PUT",
-		Request:  "TBranch[]",
+		Request:  "TBranch",
 		Response: "{branch: TBranch, user_organization: TUserOrganization}",
 		Note:     "Updates the branch information under the specified user organization. Only allowed if the user is an 'owner' and the user organization already has an existing branch.",
 	}, func(ctx echo.Context) error {
@@ -787,29 +784,13 @@ func (c *Controller) BranchController() {
 		}
 
 		// Parse and validate user organization ID
-		userOrganizationId, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
+		branchId, err := horizon.EngineUUIDParam(ctx, "branch_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user organization ID: " + err.Error()})
 		}
 
-		// Fetch user organization
-		userOrganization, err := c.model.UserOrganizationManager.GetByID(context, *userOrganizationId)
-		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
-		}
-
-		// Ensure user is an 'owner'
-		if userOrganization.UserType != "owner" {
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owners can update branches"})
-		}
-
-		// Ensure user organization has an associated branch
-		if userOrganization.BranchID == nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "This user organization does not have an associated branch"})
-		}
-
 		// Retrieve the branch
-		branch, err := c.model.BranchManager.GetByID(context, *userOrganization.BranchID)
+		branch, err := c.model.BranchManager.GetByID(context, *branchId)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Associated branch not found: " + err.Error()})
 		}
@@ -845,10 +826,7 @@ func (c *Controller) BranchController() {
 			Description: fmt.Sprintf("%s: %s", "Updates the branch", branch.Name),
 		})
 
-		return ctx.JSON(http.StatusOK, map[string]any{
-			"branch":            c.model.BranchManager.ToModel(branch),
-			"user_organization": c.model.UserOrganizationManager.ToModel(userOrganization),
-		})
+		return ctx.JSON(http.StatusOK, c.model.BranchManager.ToModel(branch))
 	})
 
 	req.RegisterRoute(horizon.Route{
