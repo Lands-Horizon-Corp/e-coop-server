@@ -56,7 +56,7 @@ type FilterRoot struct {
 
 type SortField struct {
 	Field string `json:"field"`
-	Order string `json:"order"` // "asc" or "desc"
+	Order string `json:"order"`
 }
 
 type PaginationResult[T any] struct {
@@ -69,9 +69,34 @@ type PaginationResult[T any] struct {
 }
 
 // --- Filtering Function ---
+func findFieldByTagOrName(val reflect.Value, fieldName string) reflect.Value {
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
+	t := val.Type()
+	for i := 0; i < t.NumField(); i++ {
+		f := val.Type().Field(i)
 
+		fmt.Printf("%d: %s (tag: %s)\n", i, f.Name, f.Tag.Get("json"))
+
+		tag := f.Tag.Get("json")
+		tagName := strings.Split(tag, ",")[0]
+		if tagName != "" && strings.EqualFold(tagName, fieldName) {
+			return val.Field(i)
+		}
+		if strings.EqualFold(f.Name, fieldName) {
+			return val.Field(i)
+		}
+		if f.Anonymous && val.Field(i).Kind() == reflect.Struct {
+			found := findFieldByTagOrName(val.Field(i), fieldName)
+			if found.IsValid() {
+				return found
+			}
+		}
+	}
+	return reflect.Value{}
+}
 func FilterSlice[T any](ctx context.Context, data []*T, filters []Filter, logic FilterLogic) []*T {
-	// If no filters are provided, return all data (all items match)
 	if len(filters) == 0 {
 		return data
 	}
@@ -88,16 +113,89 @@ func FilterSlice[T any](ctx context.Context, data []*T, filters []Filter, logic 
 		}
 		matches := logic == FilterLogicAnd
 		for _, filter := range filters {
-			fieldVal := val.FieldByNameFunc(func(name string) bool {
-				return strings.EqualFold(name, filter.Field)
-			})
+			fieldVal := findFieldByTagOrName(val, filter.Field)
+
 			if !fieldVal.IsValid() {
-				// Ignore columns not specified in filters!
 				continue
 			}
 			itemValue := fieldVal.Interface()
 			match := false
+			if filter.DataType == "date" && isWholeDaySupportedMode(filter.Mode) {
 
+				valStr := fmt.Sprintf("%v", filter.Value)
+				filterTime, filterErr := tryParseTime(valStr)
+				var itemTime time.Time
+				var itemErr error
+				switch v := itemValue.(type) {
+				case string:
+					itemTime, itemErr = tryParseTime(v)
+				case time.Time:
+					itemTime = v
+				case *time.Time:
+					if v != nil {
+						itemTime = *v
+					} else {
+						itemErr = fmt.Errorf("nil *time.Time")
+					}
+				default:
+					itemErr = fmt.Errorf("not a date type")
+				}
+				if filterErr == nil && itemErr == nil {
+					isWholeDay := filterTime.Hour() == 0 && filterTime.Minute() == 0 && filterTime.Second() == 0 && filterTime.Nanosecond() == 0
+					dayStart := filterTime
+					dayEnd := filterTime.Add(24 * time.Hour)
+					switch filter.Mode {
+					case FilterModeEqual:
+						if isWholeDay {
+							match = !itemTime.Before(dayStart) && itemTime.Before(dayEnd)
+						} else {
+							match = itemTime.Equal(filterTime)
+						}
+					case FilterModeNotEqual:
+						if isWholeDay {
+							match = itemTime.Before(dayStart) || !itemTime.Before(dayEnd)
+						} else {
+							match = !itemTime.Equal(filterTime)
+						}
+					case FilterModeGT, FilterModeAfter:
+						if isWholeDay {
+							match = itemTime.After(dayEnd.Add(-time.Nanosecond))
+						} else {
+							match = itemTime.After(filterTime)
+						}
+					case FilterModeGTE:
+						if isWholeDay {
+							match = !itemTime.Before(dayStart)
+						} else {
+							match = itemTime.Equal(filterTime) || itemTime.After(filterTime)
+						}
+					case FilterModeLT, FilterModeBefore:
+						if isWholeDay {
+							match = itemTime.Before(dayStart)
+						} else {
+							match = itemTime.Before(filterTime)
+						}
+					case FilterModeLTE:
+						if isWholeDay {
+							match = itemTime.Before(dayEnd)
+						} else {
+							match = itemTime.Equal(filterTime) || itemTime.Before(filterTime)
+						}
+					}
+				} else {
+					match = false
+				}
+				if logic == FilterLogicAnd && !match {
+					matches = false
+					break
+				}
+				if logic == FilterLogicOr && match {
+					matches = true
+					break
+				}
+				continue
+			}
+			// ...rest of your filter logic...
 			switch filter.Mode {
 			case FilterModeEqual, FilterModeNotEqual,
 				FilterModeContains, FilterModeNotContains,
@@ -140,6 +238,16 @@ func FilterSlice[T any](ctx context.Context, data []*T, filters []Filter, logic 
 		}
 	}
 	return result
+}
+
+func isWholeDaySupportedMode(mode string) bool {
+	switch mode {
+	case FilterModeEqual, FilterModeNotEqual,
+		FilterModeGT, FilterModeGTE, FilterModeLT, FilterModeLTE,
+		FilterModeBefore, FilterModeAfter:
+		return true
+	}
+	return false
 }
 
 // --- String Comparison Helper ---
@@ -431,6 +539,8 @@ func compareAdvanced(itemValue any, mode string, filterValue any) bool {
 func tryParseTime(val string) (time.Time, error) {
 	layouts := []string{
 		time.RFC3339,
+		"2006-01-02T15:04:05Z07:00",     // ISO8601
+		"2006-01-02T15:04:05.000Z07:00", // ISO8601 with ms
 		"2006-01-02",
 		"2006-01-02 15:04:05",
 		"15:04:05",
@@ -518,12 +628,14 @@ func Pagination[T any](
 	pageSizeParam := ctx.QueryParam("pageSize")
 	sortParam := ctx.QueryParam("sort")
 
-	var filterDecoded any
+	// --- FIXED: decode directly to FilterRoot
+	var filterRoot FilterRoot
 	if filterParam != "" {
 		filterDecodedRaw, _ := url.QueryUnescape(filterParam)
 		filterBytes, _ := base64.StdEncoding.DecodeString(filterDecodedRaw)
-		_ = json.Unmarshal(filterBytes, &filterDecoded)
+		_ = json.Unmarshal(filterBytes, &filterRoot)
 	}
+
 	pageIndex := 0
 	if pageIndexParam != "" {
 		if val, err := strconv.Atoi(pageIndexParam); err == nil {
@@ -542,13 +654,6 @@ func Pagination[T any](
 		sortBytes, _ := base64.StdEncoding.DecodeString(sortDecodedRaw)
 		_ = json.Unmarshal(sortBytes, &sortDecoded)
 	}
-	var filterRoot FilterRoot
-	if filterDecoded != nil {
-		filterDecodedJSON, err := json.Marshal(filterDecoded)
-		if err == nil {
-			_ = json.Unmarshal(filterDecodedJSON, &filterRoot)
-		}
-	}
 
 	originalTotalSize := len(data)
 	sorted := SortSlice(context, data, sortDecoded)
@@ -559,6 +664,7 @@ func Pagination[T any](
 	if pageSize > 0 {
 		totalPage = (originalTotalSize + pageSize - 1) / pageSize
 	}
+	fmt.Printf("Filters: %+v\n", filterRoot.Filters)
 
 	return PaginationResult[T]{
 		Data:      paged,
