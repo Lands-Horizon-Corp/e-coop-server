@@ -2450,7 +2450,7 @@ func (c *Controller) MemberOccupationController() {
 		return ctx.JSON(http.StatusOK, c.model.MemberOccupationManager.ToModels(memberOccupation))
 	})
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-classification/search",
+		Route:    "/member-occupation/search",
 		Method:   "GET",
 		Request:  "Filter<IMemberOccupation>",
 		Response: "Paginated<IMemberOccupation>",
