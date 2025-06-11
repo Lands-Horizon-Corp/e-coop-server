@@ -77,8 +77,6 @@ func findFieldByTagOrName(val reflect.Value, fieldName string) reflect.Value {
 	for i := 0; i < t.NumField(); i++ {
 		f := val.Type().Field(i)
 
-		fmt.Printf("%d: %s (tag: %s)\n", i, f.Name, f.Tag.Get("json"))
-
 		tag := f.Tag.Get("json")
 		tagName := strings.Split(tag, ",")[0]
 		if tagName != "" && strings.EqualFold(tagName, fieldName) {
@@ -664,7 +662,6 @@ func Pagination[T any](
 	if pageSize > 0 {
 		totalPage = (originalTotalSize + pageSize - 1) / pageSize
 	}
-	fmt.Printf("Filters: %+v\n", filterRoot.Filters)
 
 	return PaginationResult[T]{
 		Data:      paged,
