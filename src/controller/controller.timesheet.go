@@ -57,7 +57,9 @@ func (c *Controller) TimesheetController() {
 
 		// Find existing timesheet entry
 		timesheet, _ := c.model.TimesheetManager.FindOne(context, &model.Timesheet{
-			UserID: user.UserID,
+			UserID:         user.UserID,
+			BranchID:       *user.BranchID,
+			OrganizationID: user.OrganizationID,
 		})
 
 		now := time.Now().UTC()
