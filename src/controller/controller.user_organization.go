@@ -1451,6 +1451,56 @@ func (c *Controller) InvitationCode() {
 		}
 		return ctx.NoContent(http.StatusNoContent)
 	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:   "/invitation-code/bulk-delete",
+		Method:  "DELETE",
+		Request: "string[]",
+		Note:    "Delete multiple member occupation records by their IDs",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		var reqBody struct {
+			IDs []string `json:"ids"`
+		}
+
+		if err := ctx.Bind(&reqBody); err != nil {
+			return c.BadRequest(ctx, "Invalid request body")
+		}
+
+		if len(reqBody.IDs) == 0 {
+			return c.BadRequest(ctx, "No IDs provided")
+		}
+
+		tx := c.provider.Service.Database.Client().Begin()
+		if tx.Error != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+		}
+
+		for _, rawID := range reqBody.IDs {
+			invitationCodeId, err := uuid.Parse(rawID)
+			if err != nil {
+				tx.Rollback()
+				return c.BadRequest(ctx, fmt.Sprintf("Invalid UUID: %s", rawID))
+			}
+
+			if _, err := c.model.InvitationCodeManager.GetByID(context, invitationCodeId); err != nil {
+				tx.Rollback()
+				return c.NotFound(ctx, fmt.Sprintf("InvitationCode with ID %s", rawID))
+			}
+
+			if err := c.model.InvitationCodeManager.DeleteByIDWithTx(context, tx, invitationCodeId); err != nil {
+				tx.Rollback()
+				return c.InternalServerError(ctx, err)
+			}
+		}
+
+		if err := tx.Commit().Error; err != nil {
+			return c.InternalServerError(ctx, err)
+		}
+
+		return ctx.NoContent(http.StatusNoContent)
+	})
 }
 
 func (c *Controller) OrganizationDailyUsage() {
