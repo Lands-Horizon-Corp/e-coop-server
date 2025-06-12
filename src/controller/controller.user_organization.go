@@ -867,23 +867,31 @@ func (c *Controller) BranchController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:  "/branch/user-organization/:user_organization_id",
+		Route:  "/branch/:branch_id",
 		Method: "DELETE",
 		Note:   "Deletes a branch and the associated user organization if the user is the owner and fewer than 3 members exist under that branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrganizationId, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
+		branchId, err := horizon.EngineUUIDParam(ctx, "branch_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user organization ID: " + err.Error()})
 		}
-
-		userOrganization, err := c.model.UserOrganizationManager.GetByID(context, *userOrganizationId)
+		user, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authentication required: " + err.Error()})
 		}
-		branch, err := c.model.BranchManager.GetByID(context, *userOrganization.BranchID)
+		branch, err := c.model.BranchManager.GetByID(context, *branchId)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Branch not found"})
+		}
+
+		userOrganization, err := c.model.UserOrganizationManager.FindOne(context, &model.UserOrganization{
+			UserID:         user.ID,
+			BranchID:       branchId,
+			OrganizationID: branch.OrganizationID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
 		if userOrganization.UserType != "owner" {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owners can delete branches"})
