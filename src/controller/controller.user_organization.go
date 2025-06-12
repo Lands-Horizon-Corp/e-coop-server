@@ -376,15 +376,15 @@ func (c *Controller) UserOrganinzationController() {
 		tx := c.provider.Service.Database.Client().Begin()
 		if tx.Error != nil {
 			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": tx.Error.Error()})
 		}
 		if err := c.model.RedeemInvitationCode(context, tx, invitationCode.ID); err != nil {
 			tx.Rollback()
-			return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": err.Error()})
 
 		}
 		if err := c.model.UserOrganizationManager.CreateWithTx(context, tx, userOrg); err != nil {
-			return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": err.Error()})
 		}
 		if err := tx.Commit().Error; err != nil {
 			tx.Rollback()
