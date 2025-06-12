@@ -134,6 +134,28 @@ func (c *Controller) UserOrganinzationController() {
 		}
 		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.Pagination(context, ctx, userOrganization))
 	})
+	req.RegisterRoute(horizon.Route{
+		Route:    "/user-organization/join-request",
+		Method:   "GET",
+		Request:  "Filter<TUserOrganization>",
+		Response: "Paginated<TUserOrganization>",
+		Note:     "Get pagination user organization",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.NoContent(http.StatusNoContent)
+		}
+		userOrganization, err := c.model.UserOrganizationManager.Find(context, &model.UserOrganization{
+			OrganizationID:    user.OrganizationID,
+			BranchID:          user.BranchID,
+			ApplicationStatus: "pending",
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModels(userOrganization))
+	})
 
 	req.RegisterRoute(horizon.Route{
 		Route:    "/user-organization/organization/:organization_id",
