@@ -611,36 +611,67 @@ func (c *CollectionManager[TData, TResponse, TRequest]) UpdateByIDWithTx(ctx con
 	return nil
 }
 
-// UpdateFields implements Repository.
 func (c *CollectionManager[TData, TResponse, TRequest]) UpdateFields(ctx context.Context, id uuid.UUID, fields *TData, preloads ...string) error {
-	if err := c.service.Database.Client().Model(new(TData)).Where("id = ?", id).Updates(fields).Error; err != nil {
+	// Get field names using reflection
+	t := reflect.TypeOf(new(TData)).Elem()
+	var fieldNames []string
+	for i := range t.NumField() {
+		field := t.Field(i)
+		if field.Name == "ID" {
+			continue // Skip ID field
+		}
+		fieldNames = append(fieldNames, field.Name)
+	}
+
+	// Perform update with explicit field selection
+	db := c.service.Database.Client().Model(new(TData)).Where("id = ?", id).Select(fieldNames).Updates(fields)
+	if err := db.Error; err != nil {
 		return eris.Wrap(err, "failed to update fields")
 	}
+
+	// Reload with preloads if needed
 	preloads = horizon.MergeString(c.preloads, preloads)
-	db := c.service.Database.Client().Model(new(TData)).Where("id = ?", id)
+	reloadDb := c.service.Database.Client().Model(new(TData)).Where("id = ?", id)
 	for _, preload := range preloads {
-		db = db.Preload(preload)
+		reloadDb = reloadDb.Preload(preload)
 	}
-	if err := db.First(fields).Error; err != nil {
+	if err := reloadDb.First(fields).Error; err != nil {
 		return eris.Wrap(err, "failed to reload entity after updating fields")
 	}
+
 	c.UpdatedBroadcast(ctx, fields)
 	return nil
 }
 
-// UpdateFieldsWithTx implements Repository.
+// UpdateFieldsWithTx performs UpdateFields within the provided transaction.
 func (c *CollectionManager[TData, TResponse, TRequest]) UpdateFieldsWithTx(ctx context.Context, tx *gorm.DB, id uuid.UUID, fields *TData, preloads ...string) error {
-	if err := tx.Model(new(TData)).Where("id = ?", id).Updates(fields).Error; err != nil {
+	// Get field names using reflection
+	t := reflect.TypeOf(new(TData)).Elem()
+	var fieldNames []string
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+		if field.Name == "ID" {
+			continue // Skip ID field
+		}
+		fieldNames = append(fieldNames, field.Name)
+	}
+
+	// Perform update with explicit field selection
+	db := tx.Model(new(TData)).Where("id = ?", id).Select(fieldNames).Updates(fields)
+	if err := db.Error; err != nil {
 		return eris.Wrap(err, "failed to update fields in transaction")
 	}
+
+	// Reload with preloads if needed
 	preloads = horizon.MergeString(c.preloads, preloads)
-	db := tx.Model(new(TData)).Where("id = ?", id)
+	reloadDb := tx.Model(new(TData)).Where("id = ?", id)
 	for _, preload := range preloads {
-		db = db.Preload(preload)
+		reloadDb = reloadDb.Preload(preload)
 	}
-	if err := db.First(fields).Error; err != nil {
+	if err := reloadDb.First(fields).Error; err != nil {
 		return eris.Wrap(err, "failed to reload entity after updating fields in transaction")
 	}
+
 	c.UpdatedBroadcast(ctx, fields)
 	return nil
 }
