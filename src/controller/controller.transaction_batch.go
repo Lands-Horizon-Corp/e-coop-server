@@ -56,7 +56,7 @@ func (c *Controller) TransactionBatchController() {
 			IsClosed:       false,
 		})
 		if transactionBatch == nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "No current transaction batch"})
+			return ctx.NoContent(http.StatusNoContent)
 		}
 		if !transactionBatch.CanView {
 			result, err := c.model.TransactionBatchMinimal(context, transactionBatch.ID)
@@ -65,7 +65,6 @@ func (c *Controller) TransactionBatchController() {
 			}
 			return ctx.JSON(http.StatusOK, result)
 		}
-
 		return ctx.JSON(http.StatusOK, c.model.TransactionBatchManager.ToModel(transactionBatch))
 	})
 
