@@ -520,8 +520,8 @@ func (c *Controller) UserOrganinzationController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
 		}
 		userOrg.ApplicationStatus = "accepted"
-		if err := c.model.UserOrganizationManager.UpdateFields(context, userOrg.OrganizationID, userOrg); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update branch: " + err.Error()})
+		if err := c.model.UserOrganizationManager.UpdateFields(context, userOrg.ID, userOrg); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user orgs: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModel(userOrg))
 	})
