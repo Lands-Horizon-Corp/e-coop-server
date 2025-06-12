@@ -342,6 +342,7 @@ func (c *Controller) UserOrganinzationController() {
 		} else {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "cannot join as employee"})
 		}
+
 		developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, user.ID.String())
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "something wrong generting developer key"})
@@ -1475,6 +1476,13 @@ func (c *Controller) InvitationCode() {
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return err
+		}
+		switch userOrg.UserType {
+		case "owner", "employee":
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "owners and employees cannot leave an organization"})
+		}
+		if req.UserType == "owner" {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "cannot create invitation code type owner"})
 		}
 		data := &model.InvitationCode{
 			CreatedAt:      time.Now().UTC(),
