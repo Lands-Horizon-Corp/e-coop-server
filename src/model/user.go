@@ -216,6 +216,7 @@ func (m *Model) User() {
 				ContactNumber:     data.ContactNumber,
 				IsContactVerified: data.IsContactVerified,
 				QRCode:            result,
+				FullName:          data.FullName,
 				CreatedAt:         data.CreatedAt.Format(time.RFC3339),
 				UpdatedAt:         data.UpdatedAt.Format(time.RFC3339),
 
