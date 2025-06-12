@@ -1029,33 +1029,6 @@ func (c *Controller) OrganizationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
 
-		developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, user.ID.String())
-		if err != nil {
-			tx.Rollback()
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "something wrong generting developer key"})
-		}
-		userOrganization := &model.UserOrganization{
-			CreatedAt:              time.Now().UTC(),
-			CreatedByID:            user.ID,
-			UpdatedAt:              time.Now().UTC(),
-			UpdatedByID:            user.ID,
-			OrganizationID:         organization.ID,
-			BranchID:               nil,
-			UserID:                 user.ID,
-			UserType:               "owner",
-			Description:            "",
-			ApplicationDescription: "",
-			ApplicationStatus:      "accepted",
-			DeveloperSecretKey:     developerKey + uuid.NewString() + "-horizon",
-			PermissionName:         "owner",
-			PermissionDescription:  "",
-			Permissions:            []string{},
-		}
-		if err := c.model.UserOrganizationManager.CreateWithTx(context, tx, userOrganization); err != nil {
-			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-		}
-
 		var longitude float64 = 0
 		var latitude float64 = 0
 
@@ -1064,7 +1037,7 @@ func (c *Controller) OrganizationController() {
 			CreatedByID:    user.ID,
 			UpdatedAt:      time.Now().UTC(),
 			UpdatedByID:    user.ID,
-			OrganizationID: userOrganization.OrganizationID,
+			OrganizationID: organization.ID,
 
 			MediaID:       req.MediaID,
 			Name:          req.Name,
@@ -1076,6 +1049,32 @@ func (c *Controller) OrganizationController() {
 			Longitude:     &longitude,
 		}
 		if err := c.model.BranchManager.CreateWithTx(context, tx, branch); err != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, user.ID.String())
+		if err != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "something wrong generting developer key"})
+		}
+		userOrganization := &model.UserOrganization{
+			CreatedAt:              time.Now().UTC(),
+			CreatedByID:            user.ID,
+			UpdatedAt:              time.Now().UTC(),
+			UpdatedByID:            user.ID,
+			OrganizationID:         organization.ID,
+			UserID:                 user.ID,
+			BranchID:               &branch.ID,
+			UserType:               "owner",
+			Description:            "",
+			ApplicationDescription: "",
+			ApplicationStatus:      "accepted",
+			DeveloperSecretKey:     developerKey + uuid.NewString() + "-horizon",
+			PermissionName:         "owner",
+			PermissionDescription:  "",
+			Permissions:            []string{},
+		}
+		if err := c.model.UserOrganizationManager.CreateWithTx(context, tx, userOrganization); err != nil {
 			tx.Rollback()
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
