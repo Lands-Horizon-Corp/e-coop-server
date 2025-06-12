@@ -173,6 +173,7 @@ func (m *Model) UserOrganization() {
 				fmt.Sprintf("user_organization.create.%s", data.ID),
 				fmt.Sprintf("user_organization.create.branch.%s", data.BranchID),
 				fmt.Sprintf("user_organization.create.organization.%s", data.OrganizationID),
+				fmt.Sprintf("user_organization.create.user.%s", data.UserID),
 			}
 		},
 		Updated: func(data *UserOrganization) []string {
@@ -181,6 +182,7 @@ func (m *Model) UserOrganization() {
 				fmt.Sprintf("user_organization.update.%s", data.ID),
 				fmt.Sprintf("user_organization.update.branch.%s", data.BranchID),
 				fmt.Sprintf("user_organization.update.organization.%s", data.OrganizationID),
+				fmt.Sprintf("user_organization.update.user.%s", data.UserID),
 			}
 		},
 		Deleted: func(data *UserOrganization) []string {
@@ -189,6 +191,7 @@ func (m *Model) UserOrganization() {
 				fmt.Sprintf("user_organization.delete.%s", data.ID),
 				fmt.Sprintf("user_organization.delete.branch.%s", data.BranchID),
 				fmt.Sprintf("user_organization.delete.organization.%s", data.OrganizationID),
+				fmt.Sprintf("user_organization.delete.user.%s", data.UserID),
 			}
 		},
 	})
