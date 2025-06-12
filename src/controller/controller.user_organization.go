@@ -551,6 +551,7 @@ func (c *Controller) UserOrganinzationController() {
 	})
 
 	// USER ORGANIZATION
+
 	req.RegisterRoute(horizon.Route{
 		Route:  "/user-organization/:user_organization_id/accept",
 		Method: "POST",
@@ -559,17 +560,35 @@ func (c *Controller) UserOrganinzationController() {
 		context := ctx.Request().Context()
 		userOrgId, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
 		if err != nil {
-			return err
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "invalid user_organization_id"})
 		}
+
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+		}
+
 		userOrg, err := c.model.UserOrganizationManager.GetByID(context, *userOrgId)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
 		}
+
+		// Only allow org admins/owners to accept applications
+		if user.UserType != "owner" && user.UserType != "admin" {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "only organization owners or admins can accept applications"})
+		}
+
+		// Prevent users from accepting their own application
+		if user.UserID == userOrg.UserID {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "you cannot accept your own application"})
+		}
+
 		userOrg.ApplicationStatus = "accepted"
 		if err := c.model.UserOrganizationManager.UpdateFields(context, userOrg.ID, userOrg); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user orgs for accept: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user org for accept: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModel(userOrg))
+
+		return ctx.NoContent(http.StatusNoContent)
 	})
 
 	req.RegisterRoute(horizon.Route{
@@ -580,16 +599,34 @@ func (c *Controller) UserOrganinzationController() {
 		context := ctx.Request().Context()
 		userOrgId, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
 		if err != nil {
-			return err
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "invalid user_organization_id"})
 		}
+
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+		}
+
 		userOrg, err := c.model.UserOrganizationManager.GetByID(context, *userOrgId)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
 		}
+
+		// Only allow org admins/owners to reject applications
+		if user.UserType != "owner" && user.UserType != "admin" {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "only organization owners or admins can reject applications"})
+		}
+
+		// Prevent users from rejecting their own application
+		if user.UserID == userOrg.UserID {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "you cannot reject your own application"})
+		}
+
 		if err := c.model.UserOrganizationManager.DeleteByID(context, userOrg.ID); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete user org for reject: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModel(userOrg))
+
+		return ctx.NoContent(http.StatusNoContent)
 	})
 	req.RegisterRoute(horizon.Route{
 		Route:  "/user-organization/:user_organization_id",
