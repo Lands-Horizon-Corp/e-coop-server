@@ -567,7 +567,28 @@ func (c *Controller) UserOrganinzationController() {
 		}
 		userOrg.ApplicationStatus = "accepted"
 		if err := c.model.UserOrganizationManager.UpdateFields(context, userOrg.ID, userOrg); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user orgs: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user orgs for accept: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModel(userOrg))
+	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:  "/user-organization/:user_organization_id/reject",
+		Method: "POST",
+		Note:   "Accept an employee or member application by ID.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrgId, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
+		if err != nil {
+			return err
+		}
+		userOrg, err := c.model.UserOrganizationManager.GetByID(context, *userOrgId)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
+		}
+		userOrg.ApplicationStatus = "reject"
+		if err := c.model.UserOrganizationManager.UpdateFields(context, userOrg.ID, userOrg); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user orgs for reject: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModel(userOrg))
 	})
