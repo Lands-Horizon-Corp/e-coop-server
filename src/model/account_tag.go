@@ -12,30 +12,30 @@ import (
 
 type (
 	AccountTag struct {
-		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-		CreatedAt   time.Time      `gorm:"not null;default:now()"`
-		CreatedByID uuid.UUID      `gorm:"type:uuid"`
+		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
+		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
+		CreatedByID uuid.UUID      `gorm:"type:uuid" json:"created_by_id"`
 		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt   time.Time      `gorm:"not null;default:now()"`
-		UpdatedByID uuid.UUID      `gorm:"type:uuid"`
+		UpdatedAt   time.Time      `gorm:"not null;default:now()" json:"updated_at"`
+		UpdatedByID uuid.UUID      `gorm:"type:uuid" json:"updated_by_id"`
 		UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt   gorm.DeletedAt `gorm:"index"`
-		DeletedByID *uuid.UUID     `gorm:"type:uuid"`
+		DeletedAt   gorm.DeletedAt `gorm:"index" json:"deleted_at"`
+		DeletedByID *uuid.UUID     `gorm:"type:uuid" json:"deleted_by_id"`
 		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
 
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_account_tag"`
+		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_account_tag" json:"organization_id"`
 		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_account_tag"`
+		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_account_tag" json:"branch_id"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
-		AccountID uuid.UUID `gorm:"type:uuid;not null"`
+		AccountID uuid.UUID `gorm:"type:uuid;not null" json:"account_id"`
 		Account   *Account  `gorm:"foreignKey:AccountID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"account,omitempty"`
 
-		Name        string      `gorm:"type:varchar(50)"`
-		Description string      `gorm:"type:text"`
-		Category    TagCategory `gorm:"type:varchar(50)"`
-		Color       string      `gorm:"type:varchar(20)"`
-		Icon        string      `gorm:"type:varchar(20)"`
+		Name        string      `gorm:"type:varchar(50)" json:"name"`
+		Description string      `gorm:"type:text" json:"description"`
+		Category    TagCategory `gorm:"type:varchar(50)" json:"category"`
+		Color       string      `gorm:"type:varchar(20)" json:"color"`
+		Icon        string      `gorm:"type:varchar(20)" json:"icon"`
 	}
 
 	AccountTagResponse struct {

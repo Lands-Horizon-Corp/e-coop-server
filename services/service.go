@@ -3,6 +3,7 @@ package horizon_services
 import (
 	"context"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/go-playground/validator/v10"
@@ -46,14 +47,16 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 	if cfg.EnvironmentConfig != nil {
 		env = cfg.EnvironmentConfig.Path
 	}
-
 	service.Environment = horizon.NewEnvironmentService(env)
+	isStaging := service.Environment.GetString("APP_ENV", "development") == "staging"
+
 	if cfg.RequestServiceConfig != nil {
 		service.Request = horizon.NewHorizonAPIService(
 			cfg.RequestServiceConfig.AppPort,
 			cfg.RequestServiceConfig.MetricsPort,
 			cfg.RequestServiceConfig.ClientURL,
 			cfg.RequestServiceConfig.ClientName,
+			isStaging,
 		)
 	} else {
 		service.Request = horizon.NewHorizonAPIService(
@@ -61,6 +64,7 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 			service.Environment.GetInt("APP_METRICS_PORT", 8001),
 			service.Environment.GetString("APP_CLIENT_URL", "http://localhost:3000"),
 			service.Environment.GetString("APP_CLIENT_NAME", "test-client"),
+			isStaging,
 		)
 	}
 	if cfg.SecurityConfig != nil {
@@ -204,8 +208,21 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 	return service
 }
 
-func (h *HorizonService) Run(ctx context.Context) error {
+func printStatus(service string, status string) {
+	switch status {
+	case "init":
+		fmt.Printf("⏳ Initializing %s service...", service)
+		os.Stdout.Sync()
+	case "ok":
+		fmt.Printf("\r✅ %s service initialized        \n", service)
+		os.Stdout.Sync()
+	case "fail":
+		fmt.Printf("\r🔴 Failed to initialize %s service\n", service)
+		os.Stdout.Sync()
+	}
+}
 
+func (h *HorizonService) Run(ctx context.Context) error {
 	fmt.Println("≿━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━༺❀༻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━≾")
 	horizon.PrintASCIIArt()
 	fmt.Println("🟢 Horizon App is starting...")
@@ -213,43 +230,58 @@ func (h *HorizonService) Run(ctx context.Context) error {
 	retry := 5
 
 	if h.Cron != nil {
+		printStatus("Cron", "init")
 		if err := horizon.Retry(ctx, retry, delay, func() error {
 			return h.Cron.Run(ctx)
 		}); err != nil {
+			printStatus("Cron", "fail")
 			return err
 		}
+		printStatus("Cron", "ok")
 	}
 
 	if h.Broker != nil {
+		printStatus("Broker", "init")
 		if err := horizon.Retry(ctx, retry, delay, func() error {
 			return h.Broker.Run(ctx)
 		}); err != nil {
+			printStatus("Broker", "fail")
 			return err
 		}
+		printStatus("Broker", "ok")
 	}
 
 	if h.Cache != nil {
+		printStatus("Cache", "init")
 		if err := horizon.Retry(ctx, retry, delay, func() error {
 			return h.Cache.Run(ctx)
 		}); err != nil {
+			printStatus("Cache", "fail")
 			return err
 		}
+		printStatus("Cache", "ok")
 	}
 
 	if h.Storage != nil {
+		printStatus("Storage", "init")
 		if err := horizon.Retry(ctx, retry, delay, func() error {
 			return h.Storage.Run(ctx)
 		}); err != nil {
+			printStatus("Storage", "fail")
 			return err
 		}
+		printStatus("Storage", "ok")
 	}
 
 	if h.Database != nil {
+		printStatus("Database", "init")
 		if err := horizon.Retry(ctx, retry, delay, func() error {
 			return h.Database.Run(ctx)
 		}); err != nil {
+			printStatus("Database", "fail")
 			return err
 		}
+		printStatus("Database", "ok")
 	}
 
 	if h.OTP != nil {
@@ -262,25 +294,36 @@ func (h *HorizonService) Run(ctx context.Context) error {
 	}
 
 	if h.SMS != nil {
+		printStatus("SMS", "init")
 		if err := horizon.Retry(ctx, retry, delay, func() error {
 			return h.SMS.Run(ctx)
 		}); err != nil {
+			printStatus("SMS", "fail")
 			return err
 		}
+		printStatus("SMS", "ok")
 	}
+
 	if h.SMTP != nil {
+		printStatus("SMTP", "init")
 		if err := horizon.Retry(ctx, retry, delay, func() error {
 			return h.SMTP.Run(ctx)
 		}); err != nil {
+			printStatus("SMTP", "fail")
 			return err
 		}
+		printStatus("SMTP", "ok")
 	}
+
 	if h.Request != nil {
+		printStatus("Request", "init")
 		if err := horizon.Retry(ctx, retry, delay, func() error {
 			return h.Request.Run(ctx)
 		}); err != nil {
+			printStatus("Request", "fail")
 			return err
 		}
+		printStatus("Request", "ok")
 	}
 
 	fmt.Println("🟢 Horizon App Started")
@@ -395,5 +438,39 @@ func (h *HorizonService) StopCache(ctx context.Context) error {
 	}
 
 	fmt.Println("🛑 Cache Service Stopped Successfully")
+	return nil
+}
+
+// Add these methods to your HorizonService struct in horizon_services.go
+
+func (h *HorizonService) RunStorage(ctx context.Context) error {
+	fmt.Println("🟢 Starting Storage Service...")
+	delay := 3 * time.Second
+	retry := 5
+
+	if h.Storage != nil {
+		if err := horizon.Retry(ctx, retry, delay, func() error {
+			return h.Storage.Run(ctx)
+		}); err != nil {
+			fmt.Println("🔴 Failed to start Storage Service")
+			return err
+		}
+	}
+
+	fmt.Println("🟢 Storage Service Started Successfully")
+	return nil
+}
+
+func (h *HorizonService) StopStorage(ctx context.Context) error {
+	fmt.Println("🛑 Stopping Storage Service...")
+
+	if h.Storage != nil {
+		if err := h.Storage.Stop(ctx); err != nil {
+			fmt.Println("🔴 Failed to stop Storage Service")
+			return err
+		}
+	}
+
+	fmt.Println("🛑 Storage Service Stopped Successfully")
 	return nil
 }

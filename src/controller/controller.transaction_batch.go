@@ -56,7 +56,7 @@ func (c *Controller) TransactionBatchController() {
 			IsClosed:       false,
 		})
 		if transactionBatch == nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "No current transaction batch"})
+			return ctx.NoContent(http.StatusNoContent)
 		}
 		if !transactionBatch.CanView {
 			result, err := c.model.TransactionBatchMinimal(context, transactionBatch.ID)
@@ -65,7 +65,6 @@ func (c *Controller) TransactionBatchController() {
 			}
 			return ctx.JSON(http.StatusOK, result)
 		}
-
 		return ctx.JSON(http.StatusOK, c.model.TransactionBatchManager.ToModel(transactionBatch))
 	})
 
@@ -204,12 +203,10 @@ func (c *Controller) TransactionBatchController() {
 		transactionBatch.EmployeeByPosition = req.EmployeeByPosition
 		transactionBatch.EndedAt = &now
 		transactionBatch.TotalBatchTime = &totalTime
-		if err := c.model.TransactionBatchManager.UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
+		if err := c.model.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update transaction batch: "+err.Error())
 		}
-		if transactionBatch == nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "No current transaction batch"})
-		}
+
 		if !transactionBatch.CanView {
 			result, err := c.model.TransactionBatchMinimal(context, transactionBatch.ID)
 			if err != nil {
@@ -280,7 +277,7 @@ func (c *Controller) TransactionBatchController() {
 		now := time.Now().UTC()
 		transactionBatch.RequestView = &now
 		transactionBatch.CanView = false
-		if err := c.model.TransactionBatchManager.UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
+		if err := c.model.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update transaction batch: "+err.Error())
 		}
 		if !transactionBatch.CanView {

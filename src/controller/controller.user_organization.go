@@ -55,11 +55,11 @@ func (c *Controller) UserOrganinzationController() {
 			if userOrganization.IsSeeded {
 				continue
 			}
-			if err := c.model.OrganizationSeeder(context, tx, user.ID, userOrganization.ID, *userOrganization.BranchID); err != nil {
+			if err := c.model.OrganizationSeeder(context, tx, user.ID, userOrganization.OrganizationID, *userOrganization.BranchID); err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 			}
 			userOrganization.IsSeeded = true
-			if err := c.model.UserOrganizationManager.UpdateByIDWithTx(context, tx, userOrganization.ID, userOrganization); err != nil {
+			if err := c.model.UserOrganizationManager.UpdateFieldsWithTx(context, tx, userOrganization.ID, userOrganization); err != nil {
 				return echo.NewHTTPError(http.StatusInternalServerError, "failed to update user organization seed status")
 			}
 		}
@@ -68,6 +68,52 @@ func (c *Controller) UserOrganinzationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
 		return ctx.NoContent(http.StatusOK)
+	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:    "/user-organization/employee/search",
+		Method:   "GET",
+		Request:  "Filter<TUserOrganization>",
+		Response: "Paginated<TUserOrganization>",
+		Note:     "Get pagination user organization",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.NoContent(http.StatusNoContent)
+		}
+		userOrganization, err := c.model.UserOrganizationManager.Find(context, &model.UserOrganization{
+			OrganizationID: user.OrganizationID,
+			BranchID:       user.BranchID,
+			UserType:       "employee",
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.Pagination(context, ctx, userOrganization))
+	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:    "/user-organization/member/search",
+		Method:   "GET",
+		Request:  "Filter<TUserOrganization>",
+		Response: "Paginated<TUserOrganization>",
+		Note:     "Get pagination user organization",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.NoContent(http.StatusNoContent)
+		}
+		userOrganization, err := c.model.UserOrganizationManager.Find(context, &model.UserOrganization{
+			OrganizationID: user.OrganizationID,
+			BranchID:       user.BranchID,
+			UserType:       "member",
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.Pagination(context, ctx, userOrganization))
 	})
 
 	req.RegisterRoute(horizon.Route{
@@ -87,6 +133,70 @@ func (c *Controller) UserOrganinzationController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
 		}
 		userOrganization, err := c.model.GetUserOrganizationByUser(context, user.ID, &isPending)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModels(userOrganization))
+	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:    "/user-organization/current",
+		Method:   "GET",
+		Response: "TUserOrganization[]",
+		Note:     "Retrieve all user organizations of the user logged in",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		isPending := false
+		user, err := c.userToken.CurrentUser(context, ctx)
+		if err != nil {
+			return ctx.NoContent(http.StatusNoContent)
+		}
+		userOrganization, err := c.model.GetUserOrganizationByUser(context, user.ID, &isPending)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModels(userOrganization))
+	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:    "/user-organization/join-request/paginated",
+		Method:   "GET",
+		Request:  "Filter<TUserOrganization>",
+		Response: "Paginated<TUserOrganization>",
+		Note:     "Get pagination user organization",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.NoContent(http.StatusNoContent)
+		}
+		userOrganization, err := c.model.UserOrganizationManager.Find(context, &model.UserOrganization{
+			OrganizationID:    user.OrganizationID,
+			BranchID:          user.BranchID,
+			ApplicationStatus: "pending",
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.Pagination(context, ctx, userOrganization))
+	})
+	req.RegisterRoute(horizon.Route{
+		Route:    "/user-organization/join-request",
+		Method:   "GET",
+		Request:  "Filter<TUserOrganization>",
+		Response: "Paginated<TUserOrganization>",
+		Note:     "Get pagination user organization",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.NoContent(http.StatusNoContent)
+		}
+		userOrganization, err := c.model.UserOrganizationManager.Find(context, &model.UserOrganization{
+			OrganizationID:    user.OrganizationID,
+			BranchID:          user.BranchID,
+			ApplicationStatus: "pending",
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
@@ -148,7 +258,7 @@ func (c *Controller) UserOrganinzationController() {
 		Note:   "Switch organization and branch stored in JWT (no database impact).",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		organizationId, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
+		userOrgId, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
 		if err != nil {
 			return err
 		}
@@ -156,7 +266,7 @@ func (c *Controller) UserOrganinzationController() {
 		if err != nil {
 			return err
 		}
-		userOrganization, err := c.model.UserOrganizationManager.GetByID(context, *organizationId)
+		userOrganization, err := c.model.UserOrganizationManager.GetByID(context, *userOrgId)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
@@ -194,7 +304,7 @@ func (c *Controller) UserOrganinzationController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "something wrong generting developer key"})
 		}
 		userOrg.DeveloperSecretKey = developerKey + uuid.NewString() + "-horizon"
-		if err := c.model.UserOrganizationManager.UpdateByID(context, userOrg.ID, userOrg); err != nil {
+		if err := c.model.UserOrganizationManager.UpdateFields(context, userOrg.ID, userOrg); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update user: "+err.Error())
 		}
 		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModel(userOrg))
@@ -214,16 +324,28 @@ func (c *Controller) UserOrganinzationController() {
 		}
 		invitationCode, err := c.model.VerifyInvitationCodeByCode(context, code)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": err.Error()})
 		}
 		if invitationCode == nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{
 				"error": "invitation code not found",
 			})
 		}
+		if invitationCode.UserType == "member" {
+			if !c.model.UserOrganizationMemberCanJoin(context, user.ID, invitationCode.OrganizationID, invitationCode.BranchID) {
+				return ctx.JSON(http.StatusForbidden, map[string]string{"error": "cannot join as member"})
+			}
+		} else if invitationCode.UserType == "employee" {
+			if !c.model.UserOrganizationEmployeeCanJoin(context, user.ID, invitationCode.OrganizationID, invitationCode.BranchID) {
+				return ctx.JSON(http.StatusForbidden, map[string]string{"error": "cannot join as employee"})
+			}
+		} else {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "cannot join as employee"})
+		}
+
 		developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, user.ID.String())
 		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "something wrong generting developer key"})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "something wrong generting developer key"})
 		}
 		developerKey = developerKey + uuid.NewString() + "-horizon"
 		userOrg := &model.UserOrganization{
@@ -254,15 +376,15 @@ func (c *Controller) UserOrganinzationController() {
 		tx := c.provider.Service.Database.Client().Begin()
 		if tx.Error != nil {
 			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": tx.Error.Error()})
 		}
 		if err := c.model.RedeemInvitationCode(context, tx, invitationCode.ID); err != nil {
 			tx.Rollback()
-			return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": err.Error()})
 
 		}
 		if err := c.model.UserOrganizationManager.CreateWithTx(context, tx, userOrg); err != nil {
-			return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": err.Error()})
 		}
 		if err := tx.Commit().Error; err != nil {
 			tx.Rollback()
@@ -430,6 +552,7 @@ func (c *Controller) UserOrganinzationController() {
 	})
 
 	// USER ORGANIZATION
+
 	req.RegisterRoute(horizon.Route{
 		Route:  "/user-organization/:user_organization_id/accept",
 		Method: "POST",
@@ -438,17 +561,73 @@ func (c *Controller) UserOrganinzationController() {
 		context := ctx.Request().Context()
 		userOrgId, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
 		if err != nil {
-			return err
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "invalid user_organization_id"})
 		}
+
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+		}
+
 		userOrg, err := c.model.UserOrganizationManager.GetByID(context, *userOrgId)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
 		}
-		userOrg.ApplicationStatus = "accepted"
-		if err := c.model.UserOrganizationManager.UpdateByID(context, userOrg.OrganizationID, userOrg); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update branch: " + err.Error()})
+
+		// Only allow org admins/owners to accept applications
+		if user.UserType != "owner" && user.UserType != "admin" {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "only organization owners or admins can accept applications"})
 		}
-		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModel(userOrg))
+
+		// Prevent users from accepting their own application
+		if user.UserID == userOrg.UserID {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "you cannot accept your own application"})
+		}
+
+		userOrg.ApplicationStatus = "accepted"
+		if err := c.model.UserOrganizationManager.UpdateFields(context, userOrg.ID, userOrg); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user org for accept: " + err.Error()})
+		}
+
+		return ctx.NoContent(http.StatusNoContent)
+	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:  "/user-organization/:user_organization_id/reject",
+		Method: "DELETE",
+		Note:   "Reject an employee or member application by ID.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrgId, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "invalid user_organization_id"})
+		}
+
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+		}
+
+		userOrg, err := c.model.UserOrganizationManager.GetByID(context, *userOrgId)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
+		}
+
+		// Only allow org admins/owners to reject applications
+		if user.UserType != "owner" && user.UserType != "admin" {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "only organization owners or admins can reject applications"})
+		}
+
+		// Prevent users from rejecting their own application
+		if user.UserID == userOrg.UserID {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "you cannot reject your own application"})
+		}
+
+		if err := c.model.UserOrganizationManager.DeleteByID(context, userOrg.ID); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete user org for reject: " + err.Error()})
+		}
+
+		return ctx.NoContent(http.StatusNoContent)
 	})
 	req.RegisterRoute(horizon.Route{
 		Route:  "/user-organization/:user_organization_id",
@@ -597,7 +776,7 @@ func (c *Controller) BranchController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/branch/user-organization/:user_organization_id",
+		Route:    "/branch/organization/:organization_id",
 		Method:   "POST",
 		Request:  "TBranch[]",
 		Response: "{branch: TBranch, user_organization: TUserOrganization}",
@@ -611,7 +790,7 @@ func (c *Controller) BranchController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid branch data: " + err.Error()})
 		}
 
-		userOrganizationId, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
+		organzationId, err := horizon.EngineUUIDParam(ctx, "organization_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user organization ID"})
 		}
@@ -621,7 +800,10 @@ func (c *Controller) BranchController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User not authenticated"})
 		}
 
-		userOrganization, err := c.model.UserOrganizationManager.GetByID(context, *userOrganizationId)
+		userOrganization, err := c.model.UserOrganizationManager.FindOne(context, &model.UserOrganization{
+			UserID:         user.ID,
+			OrganizationID: *organzationId,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
@@ -729,16 +911,13 @@ func (c *Controller) BranchController() {
 			Description: fmt.Sprintf("%s: %s", "Creates a new branch", branch.Name),
 		})
 
-		return ctx.JSON(http.StatusOK, map[string]any{
-			"branch":            c.model.BranchManager.ToModel(branch),
-			"user_organization": c.model.UserOrganizationManager.ToModel(userOrganization),
-		})
+		return ctx.JSON(http.StatusOK, c.model.BranchManager.ToModel(branch))
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/branch/user-organization/:user_organization_id",
+		Route:    "/branch/:branch_id",
 		Method:   "PUT",
-		Request:  "TBranch[]",
+		Request:  "TBranch",
 		Response: "{branch: TBranch, user_organization: TUserOrganization}",
 		Note:     "Updates the branch information under the specified user organization. Only allowed if the user is an 'owner' and the user organization already has an existing branch.",
 	}, func(ctx echo.Context) error {
@@ -757,29 +936,24 @@ func (c *Controller) BranchController() {
 		}
 
 		// Parse and validate user organization ID
-		userOrganizationId, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
+		branchId, err := horizon.EngineUUIDParam(ctx, "branch_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user organization ID: " + err.Error()})
 		}
 
-		// Fetch user organization
-		userOrganization, err := c.model.UserOrganizationManager.GetByID(context, *userOrganizationId)
+		userOrg, err := c.model.UserOrganizationManager.FindOne(context, &model.UserOrganization{
+			UserID:   user.ID,
+			BranchID: branchId,
+		})
 		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user user org ID: " + err.Error()})
 		}
-
-		// Ensure user is an 'owner'
-		if userOrganization.UserType != "owner" {
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owners can update branches"})
-		}
-
-		// Ensure user organization has an associated branch
-		if userOrganization.BranchID == nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "This user organization does not have an associated branch"})
+		if userOrg.UserType != "owner" {
+			return c.BadRequest(ctx, "Unauthorized")
 		}
 
 		// Retrieve the branch
-		branch, err := c.model.BranchManager.GetByID(context, *userOrganization.BranchID)
+		branch, err := c.model.BranchManager.GetByID(context, *branchId)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Associated branch not found: " + err.Error()})
 		}
@@ -805,7 +979,7 @@ func (c *Controller) BranchController() {
 		branch.IsMainBranch = req.IsMainBranch
 
 		// Save changes to the branch
-		if err := c.model.BranchManager.UpdateByID(context, branch.ID, branch); err != nil {
+		if err := c.model.BranchManager.UpdateFields(context, branch.ID, branch); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update branch: " + err.Error()})
 		}
 
@@ -815,30 +989,35 @@ func (c *Controller) BranchController() {
 			Description: fmt.Sprintf("%s: %s", "Updates the branch", branch.Name),
 		})
 
-		return ctx.JSON(http.StatusOK, map[string]any{
-			"branch":            c.model.BranchManager.ToModel(branch),
-			"user_organization": c.model.UserOrganizationManager.ToModel(userOrganization),
-		})
+		return ctx.JSON(http.StatusOK, c.model.BranchManager.ToModel(branch))
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:  "/branch/user-organization/:user_organization_id",
+		Route:  "/branch/:branch_id",
 		Method: "DELETE",
 		Note:   "Deletes a branch and the associated user organization if the user is the owner and fewer than 3 members exist under that branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrganizationId, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
+		branchId, err := horizon.EngineUUIDParam(ctx, "branch_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user organization ID: " + err.Error()})
 		}
-
-		userOrganization, err := c.model.UserOrganizationManager.GetByID(context, *userOrganizationId)
+		user, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authentication required: " + err.Error()})
 		}
-		branch, err := c.model.BranchManager.GetByID(context, *userOrganization.BranchID)
+		branch, err := c.model.BranchManager.GetByID(context, *branchId)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Branch not found"})
+		}
+
+		userOrganization, err := c.model.UserOrganizationManager.FindOne(context, &model.UserOrganization{
+			UserID:         user.ID,
+			BranchID:       branchId,
+			OrganizationID: branch.OrganizationID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
 		if userOrganization.UserType != "owner" {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owners can delete branches"})
@@ -976,6 +1155,29 @@ func (c *Controller) OrganizationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
 
+		var longitude float64 = 0
+		var latitude float64 = 0
+
+		branch := &model.Branch{
+			CreatedAt:      time.Now().UTC(),
+			CreatedByID:    user.ID,
+			UpdatedAt:      time.Now().UTC(),
+			UpdatedByID:    user.ID,
+			OrganizationID: organization.ID,
+
+			MediaID:       req.MediaID,
+			Name:          req.Name,
+			Email:         *req.Email,
+			Description:   req.Description,
+			CountryCode:   "",
+			ContactNumber: req.ContactNumber,
+			Latitude:      &latitude,
+			Longitude:     &longitude,
+		}
+		if err := c.model.BranchManager.CreateWithTx(context, tx, branch); err != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
 		developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, user.ID.String())
 		if err != nil {
 			tx.Rollback()
@@ -987,8 +1189,8 @@ func (c *Controller) OrganizationController() {
 			UpdatedAt:              time.Now().UTC(),
 			UpdatedByID:            user.ID,
 			OrganizationID:         organization.ID,
-			BranchID:               nil,
 			UserID:                 user.ID,
+			BranchID:               &branch.ID,
 			UserType:               "owner",
 			Description:            "",
 			ApplicationDescription: "",
@@ -1073,7 +1275,7 @@ func (c *Controller) OrganizationController() {
 		organization.CoverMediaID = req.CoverMediaID
 		organization.UpdatedAt = time.Now().UTC()
 		organization.UpdatedByID = user.ID
-		if err := c.model.OrganizationManager.UpdateByIDWithTx(context, tx, organization.ID, organization); err != nil {
+		if err := c.model.OrganizationManager.UpdateFieldsWithTx(context, tx, organization.ID, organization); err != nil {
 			tx.Rollback()
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
@@ -1205,7 +1407,24 @@ func (c *Controller) InvitationCode() {
 		}
 		return ctx.JSON(http.StatusOK, c.model.InvitationCodeManager.ToModels(invitationCode))
 	})
-
+	req.RegisterRoute(horizon.Route{
+		Route:    "/invitation-code/search",
+		Method:   "GET",
+		Request:  "Filter<TInvitationCode>",
+		Response: "Paginated<TInvitationCode>",
+		Note:     "Get pagination gender",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.NoContent(http.StatusNoContent)
+		}
+		invitationCode, err := c.model.GetInvitationCodeByBranch(context, user.OrganizationID, *user.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.InvitationCodeManager.Pagination(context, ctx, invitationCode))
+	})
 	// Retrieve all invitation codes that match a specific code in the current organization
 	req.RegisterRoute(horizon.Route{
 		Route:    "/invitation-code/code/:code",
@@ -1257,6 +1476,12 @@ func (c *Controller) InvitationCode() {
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return err
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "only owners and employees can perform this action"})
+		}
+		if req.UserType == "owner" {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "cannot create invitation code type owner"})
 		}
 		data := &model.InvitationCode{
 			CreatedAt:      time.Now().UTC(),
@@ -1314,7 +1539,7 @@ func (c *Controller) InvitationCode() {
 		invitationCode.MaxUse = req.MaxUse
 		invitationCode.Description = req.Description
 
-		if err := c.model.InvitationCodeManager.UpdateByID(context, invitationCode.ID, invitationCode); err != nil {
+		if err := c.model.InvitationCodeManager.UpdateFields(context, invitationCode.ID, invitationCode); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update user: "+err.Error())
 		}
 		return ctx.JSON(http.StatusOK, c.model.InvitationCodeManager.ToModel(invitationCode))
@@ -1334,6 +1559,56 @@ func (c *Controller) InvitationCode() {
 		if err := c.model.InvitationCodeManager.DeleteByID(context, *invitationCodeId); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
+		return ctx.NoContent(http.StatusNoContent)
+	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:   "/invitation-code/bulk-delete",
+		Method:  "DELETE",
+		Request: "string[]",
+		Note:    "Delete multiple member occupation records by their IDs",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		var reqBody struct {
+			IDs []string `json:"ids"`
+		}
+
+		if err := ctx.Bind(&reqBody); err != nil {
+			return c.BadRequest(ctx, "Invalid request body")
+		}
+
+		if len(reqBody.IDs) == 0 {
+			return c.BadRequest(ctx, "No IDs provided")
+		}
+
+		tx := c.provider.Service.Database.Client().Begin()
+		if tx.Error != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+		}
+
+		for _, rawID := range reqBody.IDs {
+			invitationCodeId, err := uuid.Parse(rawID)
+			if err != nil {
+				tx.Rollback()
+				return c.BadRequest(ctx, fmt.Sprintf("Invalid UUID: %s", rawID))
+			}
+
+			if _, err := c.model.InvitationCodeManager.GetByID(context, invitationCodeId); err != nil {
+				tx.Rollback()
+				return c.NotFound(ctx, fmt.Sprintf("InvitationCode with ID %s", rawID))
+			}
+
+			if err := c.model.InvitationCodeManager.DeleteByIDWithTx(context, tx, invitationCodeId); err != nil {
+				tx.Rollback()
+				return c.InternalServerError(ctx, err)
+			}
+		}
+
+		if err := tx.Commit().Error; err != nil {
+			return c.InternalServerError(ctx, err)
+		}
+
 		return ctx.NoContent(http.StatusNoContent)
 	})
 }

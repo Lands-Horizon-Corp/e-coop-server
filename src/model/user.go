@@ -183,11 +183,6 @@ func (m *Model) User() {
 			"Footsteps.Media",
 			"GeneratedReports",
 			"GeneratedReports.Media",
-			"UserOrganizations",
-			"UserOrganizations.Organization",
-			"UserOrganizations.Branch",
-			"UserOrganizations.Organization.Media",
-			"UserOrganizations.Branch.Media",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *User) *UserResponse {
@@ -221,6 +216,7 @@ func (m *Model) User() {
 				ContactNumber:     data.ContactNumber,
 				IsContactVerified: data.IsContactVerified,
 				QRCode:            result,
+				FullName:          data.FullName,
 				CreatedAt:         data.CreatedAt.Format(time.RFC3339),
 				UpdatedAt:         data.UpdatedAt.Format(time.RFC3339),
 

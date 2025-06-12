@@ -151,7 +151,7 @@ func (c *Controller) NotificationController() {
 			}
 
 			notification.IsViewed = true
-			if err := c.model.NotificationManager.UpdateByID(context, notification.ID, notification); err != nil {
+			if err := c.model.NotificationManager.UpdateFields(context, notification.ID, notification); err != nil {
 				tx.Rollback()
 				return c.InternalServerError(ctx, err)
 			}

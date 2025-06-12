@@ -33,6 +33,24 @@ func (c *Controller) BankController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
+		Route:    "/bank/search",
+		Method:   "GET",
+		Request:  "Filter<IBank>",
+		Response: "Paginated<IBank>",
+		Note:     "Get pagination bank",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.NoContent(http.StatusNoContent)
+		}
+		value, err := c.model.BankCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.BankManager.Pagination(context, ctx, value))
+	})
+	req.RegisterRoute(horizon.Route{
 		Route:    "/bank/:bank_id",
 		Method:   "GET",
 		Response: "TBank",
@@ -115,7 +133,7 @@ func (c *Controller) BankController() {
 		bank.Description = req.Description
 		bank.UpdatedAt = time.Now().UTC()
 		bank.UpdatedByID = user.UserID
-		if err := c.model.BankManager.UpdateByID(context, bank.ID, bank); err != nil {
+		if err := c.model.BankManager.UpdateFields(context, bank.ID, bank); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 		return ctx.JSON(http.StatusOK, c.model.BankManager.ToModel(bank))

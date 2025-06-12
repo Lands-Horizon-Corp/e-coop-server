@@ -77,6 +77,8 @@ func (m *Model) InvitationCode() {
 			"CreatedBy",
 			"UpdatedBy",
 			"Organization",
+			"Organization.Media",
+			"Branch.Media",
 			"Branch",
 		},
 		Service: m.provider.Service,

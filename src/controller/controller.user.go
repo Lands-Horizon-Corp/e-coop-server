@@ -276,7 +276,7 @@ func (c *Controller) UserController() {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to hash password")
 		}
 		user.Password = hashedPwd
-		if err := c.model.UserManager.UpdateByID(context, user.ID, user); err != nil {
+		if err := c.model.UserManager.UpdateFields(context, user.ID, user); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update user: "+err.Error())
 		}
 		if err := c.provider.Service.Cache.Delete(context, resetID); err != nil {
@@ -343,7 +343,7 @@ func (c *Controller) UserController() {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to verify token: "+err.Error())
 		}
 		user.IsContactVerified = true
-		if err := c.model.UserManager.UpdateByID(context, user.ID, user); err != nil {
+		if err := c.model.UserManager.UpdateFields(context, user.ID, user); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update user: "+err.Error())
 		}
 		updatedUser, err := c.model.UserManager.GetByID(context, user.ID)
@@ -414,7 +414,7 @@ func (c *Controller) UserController() {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to verify token: "+err.Error())
 		}
 		user.IsEmailVerified = true
-		if err := c.model.UserManager.UpdateByID(context, user.ID, user); err != nil {
+		if err := c.model.UserManager.UpdateFields(context, user.ID, user); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update user: "+err.Error())
 		}
 		updatedUser, err := c.model.UserManager.GetByID(context, user.ID)
@@ -435,7 +435,6 @@ func (c *Controller) UserController() {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		// Bind the request body to UserSettingsChangeProfilePictureRequest struct
 		var req model.UserVerifyWithPasswordRequest
 		if err := ctx.Bind(&req); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -487,7 +486,7 @@ func (c *Controller) UserController() {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to hash password")
 		}
 		user.Password = hashedPwd
-		if err := c.model.UserManager.UpdateByID(context, user.ID, user); err != nil {
+		if err := c.model.UserManager.UpdateFields(context, user.ID, user); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update user: "+err.Error())
 		}
 		updatedUser, err := c.model.UserManager.GetByID(context, user.ID)
@@ -521,7 +520,7 @@ func (c *Controller) UserController() {
 		// Get current user
 		user, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, "failed to get current user: "+err.Error())
+			return err
 		}
 
 		// If the same MediaID is submitted, reject
@@ -529,30 +528,17 @@ func (c *Controller) UserController() {
 			return echo.NewHTTPError(http.StatusBadRequest, "media ID is the same as the current one")
 		}
 
-		// Attempt to delete old profile picture (if one exists)
-		if user.MediaID != nil {
-			if err := c.model.MediaDelete(context, *user.MediaID); err != nil {
-				// Only return error if it's not a "record not found" case
-				return echo.NewHTTPError(http.StatusInternalServerError, "failed to delete current media: "+err.Error())
-			}
-		}
 		user.MediaID = req.MediaID
-
-		// Save updated use
-		if err := c.model.UserManager.UpdateByID(context, user.ID, user); err != nil {
+		if err := c.model.UserManager.UpdateFields(context, user.ID, user); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update user: "+err.Error())
 		}
-
 		updatedUser, err := c.model.UserManager.GetByID(context, user.ID)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update user: "+err.Error())
 		}
-
-		// Update user token
 		if err := c.userToken.SetUser(context, ctx, updatedUser); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to set user token: "+err.Error())
 		}
-		// Return the updated user
 		return ctx.JSON(http.StatusOK, c.model.UserManager.ToModel(updatedUser))
 	})
 
@@ -585,7 +571,7 @@ func (c *Controller) UserController() {
 			user.ContactNumber = req.ContactNumber
 			user.IsContactVerified = false
 		}
-		if err := c.model.UserManager.UpdateByID(context, user.ID, user); err != nil {
+		if err := c.model.UserManager.UpdateFields(context, user.ID, user); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update user: "+err.Error())
 		}
 

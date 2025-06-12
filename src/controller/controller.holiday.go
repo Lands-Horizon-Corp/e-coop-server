@@ -33,6 +33,25 @@ func (c *Controller) HolidayController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
+		Route:    "/holiday/search",
+		Method:   "GET",
+		Request:  "Filter<IHoliday>",
+		Response: "Paginated<IHoliday>",
+		Note:     "Get pagination holiday",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.NoContent(http.StatusNoContent)
+		}
+		value, err := c.model.HolidayCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.HolidayManager.Pagination(context, ctx, value))
+	})
+
+	req.RegisterRoute(horizon.Route{
 		Route:    "/holiday/:holiday_id",
 		Method:   "GET",
 		Response: "THoliday",
@@ -115,7 +134,7 @@ func (c *Controller) HolidayController() {
 		holiday.Description = req.Description
 		holiday.UpdatedAt = time.Now().UTC()
 		holiday.UpdatedByID = user.UserID
-		if err := c.model.HolidayManager.UpdateByID(context, holiday.ID, holiday); err != nil {
+		if err := c.model.HolidayManager.UpdateFields(context, holiday.ID, holiday); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 		return ctx.JSON(http.StatusOK, c.model.HolidayManager.ToModel(holiday))

@@ -63,17 +63,17 @@ func (c *Controller) MemberProfileController() {
 			return c.NotFound(ctx, "MemberProfile")
 		}
 		memberProfile.Status = "verified"
-		if err := c.model.MemberProfileManager.UpdateByID(context, memberProfile.ID, memberProfile); err != nil {
+		if err := c.model.MemberProfileManager.UpdateFields(context, memberProfile.ID, memberProfile); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update member profile: "+err.Error())
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(memberProfile))
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-profile/:member_profile_id/decline",
+		Route:    "/member-profile/:member_profile_id/reject",
 		Method:   "POST",
 		Response: "MemberProfile",
-		Note:     "Decline member profile",
+		Note:     "Reject member profile",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
@@ -93,7 +93,7 @@ func (c *Controller) MemberProfileController() {
 			return c.NotFound(ctx, "MemberProfile")
 		}
 		memberProfile.Status = "not allowed	"
-		if err := c.model.MemberProfileManager.UpdateByID(context, memberProfile.ID, memberProfile); err != nil {
+		if err := c.model.MemberProfileManager.UpdateFields(context, memberProfile.ID, memberProfile); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update member profile: "+err.Error())
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(memberProfile))
@@ -102,7 +102,7 @@ func (c *Controller) MemberProfileController() {
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-profile",
 		Method:   "GET",
-		Response: "[]MemberProfile",
+		Response: "[]IMemberProfile",
 		Note:     "Retrieve a list of all member profiles.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -115,6 +115,25 @@ func (c *Controller) MemberProfileController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModels(memberProfile))
+	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:    "/member-profile/search",
+		Method:   "GET",
+		Request:  "Filter<IMemberProfile>",
+		Response: "Paginated<IMemberProfile>",
+		Note:     "Get pagination member occupation",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.NoContent(http.StatusNoContent)
+		}
+		value, err := c.model.MemberProfileCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.Pagination(context, ctx, value))
 	})
 
 	req.RegisterRoute(horizon.Route{
@@ -255,7 +274,7 @@ func (c *Controller) MemberProfileController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
 		}
 		memberProfile.IsClosed = true
-		if err := c.model.MemberProfileManager.UpdateByIDWithTx(context, tx, memberProfile.ID, memberProfile); err != nil {
+		if err := c.model.MemberProfileManager.UpdateFieldsWithTx(context, tx, memberProfile.ID, memberProfile); err != nil {
 			tx.Rollback()
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to close member profile: "+err.Error())
 		}
@@ -303,7 +322,7 @@ func (c *Controller) MemberProfileController() {
 			return c.NotFound(ctx, fmt.Sprintf("MemberProfile with ID %s not found", memberProfileId))
 		}
 		memberProfile.UserID = *req.UserID
-		if err := c.model.MemberProfileManager.UpdateByID(context, memberProfile.ID, memberProfile); err != nil {
+		if err := c.model.MemberProfileManager.UpdateFields(context, memberProfile.ID, memberProfile); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update member profile by specifying user connection: "+err.Error())
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(memberProfile))
@@ -424,7 +443,7 @@ func (c *Controller) MemberProfileController() {
 		profile.BusinessContactNumber = req.BusinessContactNumber
 		profile.Notes = req.Notes
 		profile.Description = req.Description
-		if err := c.model.MemberProfileManager.UpdateByID(context, profile.ID, profile); err != nil {
+		if err := c.model.MemberProfileManager.UpdateFields(context, profile.ID, profile); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could update member profile: %v", err))
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(profile))
@@ -462,14 +481,78 @@ func (c *Controller) MemberProfileController() {
 		profile.Passbook = req.Passbook
 		profile.OldReferenceID = req.OldReferenceID
 		profile.Status = req.Status
-		profile.MemberTypeID = req.MemberTypeID
-		profile.MemberGroupID = req.MemberGroupID
-		profile.MemberClassificationID = req.MemberClassificationID
-		profile.MemberCenterID = req.MemberCenterID
+
+		if profile.MemberTypeID != req.MemberTypeID {
+			profile.MemberTypeID = req.MemberTypeID
+			if err := c.model.MemberTypeHistoryManager.Create(context, &model.MemberTypeHistory{
+				OrganizationID:  user.OrganizationID,
+				BranchID:        *user.BranchID,
+				CreatedAt:       time.Now().UTC(),
+				UpdatedAt:       time.Now().UTC(),
+				CreatedByID:     user.UserID,
+				UpdatedByID:     user.UserID,
+				MemberProfileID: profile.ID,
+				MemberTypeID:    *req.MemberTypeID,
+			}); err != nil {
+				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could update member profile: %v", err))
+			}
+
+		}
+
+		// Compare and set MemberGroupID with history
+		if profile.MemberGroupID != req.MemberGroupID {
+			if err := c.model.MemberGroupHistoryManager.Create(context, &model.MemberGroupHistory{
+				OrganizationID:  user.OrganizationID,
+				BranchID:        *user.BranchID,
+				CreatedAt:       time.Now().UTC(),
+				UpdatedAt:       time.Now().UTC(),
+				CreatedByID:     user.UserID,
+				UpdatedByID:     user.UserID,
+				MemberProfileID: profile.ID,
+				MemberGroupID:   *req.MemberGroupID,
+			}); err != nil {
+				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not update member group history: %v", err))
+			}
+			profile.MemberGroupID = req.MemberGroupID
+		}
+
+		// Compare and set MemberClassificationID with history
+		if profile.MemberClassificationID != req.MemberClassificationID {
+			if err := c.model.MemberClassificationHistoryManager.Create(context, &model.MemberClassificationHistory{
+				OrganizationID:         user.OrganizationID,
+				BranchID:               *user.BranchID,
+				CreatedAt:              time.Now().UTC(),
+				UpdatedAt:              time.Now().UTC(),
+				CreatedByID:            user.UserID,
+				UpdatedByID:            user.UserID,
+				MemberProfileID:        profile.ID,
+				MemberClassificationID: *req.MemberClassificationID,
+			}); err != nil {
+				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not update member classification history: %v", err))
+			}
+			profile.MemberClassificationID = req.MemberClassificationID
+		}
+
+		// Compare and set MemberCenterID with history
+		if profile.MemberCenterID != req.MemberCenterID {
+			if err := c.model.MemberCenterHistoryManager.Create(context, &model.MemberCenterHistory{
+				OrganizationID:  user.OrganizationID,
+				BranchID:        *user.BranchID,
+				CreatedAt:       time.Now().UTC(),
+				UpdatedAt:       time.Now().UTC(),
+				CreatedByID:     user.UserID,
+				UpdatedByID:     user.UserID,
+				MemberProfileID: profile.ID,
+			}); err != nil {
+				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not update member center history: %v", err))
+			}
+			profile.MemberCenterID = req.MemberCenterID
+		}
+
 		profile.RecruitedByMemberProfileID = req.RecruitedByMemberProfileID
 		profile.IsMutualFundMember = *req.IsMutualFundMember
 		profile.IsMicroFinanceMember = *req.IsMicroFinanceMember
-		if err := c.model.MemberProfileManager.UpdateByID(context, profile.ID, profile); err != nil {
+		if err := c.model.MemberProfileManager.UpdateFields(context, profile.ID, profile); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could update member profile: %v", err))
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(profile))
@@ -558,7 +641,7 @@ func (c *Controller) MemberEducationalAttainmentController() {
 		value.ProgramCourse = req.ProgramCourse
 		value.EducationalAttainment = req.EducationalAttainment
 		value.Description = req.Description
-		if err := c.model.MemberEducationalAttainmentManager.UpdateByID(context, value.ID, value); err != nil {
+		if err := c.model.MemberEducationalAttainmentManager.UpdateFields(context, value.ID, value); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberEducationalAttainmentManager.ToModel(value))
@@ -668,7 +751,7 @@ func (c *Controller) MemberAddressController() {
 		value.Barangay = req.Barangay
 		value.Landmark = req.Landmark
 		value.Address = req.Address
-		if err := c.model.MemberAddressManager.UpdateByID(context, value.ID, value); err != nil {
+		if err := c.model.MemberAddressManager.UpdateFields(context, value.ID, value); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberAddressManager.ToModel(value))
@@ -768,7 +851,7 @@ func (c *Controller) MemberContactReferenceController() {
 		value.Description = req.Description
 		value.ContactNumber = req.ContactNumber
 
-		if err := c.model.MemberContactReferenceManager.UpdateByID(context, value.ID, value); err != nil {
+		if err := c.model.MemberContactReferenceManager.UpdateFields(context, value.ID, value); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberContactReferenceManager.ToModel(value))
@@ -871,7 +954,7 @@ func (c *Controller) MemberAssetController() {
 		value.Description = req.Description
 		value.Cost = req.Cost
 
-		if err := c.model.MemberAssetManager.UpdateByID(context, value.ID, value); err != nil {
+		if err := c.model.MemberAssetManager.UpdateFields(context, value.ID, value); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberAssetManager.ToModel(value))
@@ -972,7 +1055,7 @@ func (c *Controller) MemberIncomeController() {
 		value.Name = req.Name
 		value.Amount = req.Amount
 		value.ReleaseDate = req.ReleaseDate
-		if err := c.model.MemberIncomeManager.UpdateByID(context, value.ID, value); err != nil {
+		if err := c.model.MemberIncomeManager.UpdateFields(context, value.ID, value); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberIncomeManager.ToModel(value))
@@ -1072,7 +1155,7 @@ func (c *Controller) MemberExpenseController() {
 		value.Name = req.Name
 		value.Amount = req.Amount
 		value.Description = req.Description
-		if err := c.model.MemberExpenseManager.UpdateByID(context, value.ID, value); err != nil {
+		if err := c.model.MemberExpenseManager.UpdateFields(context, value.ID, value); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberExpenseManager.ToModel(value))
@@ -1180,7 +1263,7 @@ func (c *Controller) MemberGovernmentBenefitController() {
 		value.Value = req.Value
 		value.ExpiryDate = req.ExpiryDate
 
-		if err := c.model.MemberGovernmentBenefitManager.UpdateByID(context, value.ID, value); err != nil {
+		if err := c.model.MemberGovernmentBenefitManager.UpdateFields(context, value.ID, value); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberGovernmentBenefitManager.ToModel(value))
@@ -1294,7 +1377,7 @@ func (c *Controller) MemberJointAccountController() {
 		value.Birthday = req.Birthday
 		value.FamilyRelationship = req.FamilyRelationship
 
-		if err := c.model.MemberJointAccountManager.UpdateByID(context, value.ID, value); err != nil {
+		if err := c.model.MemberJointAccountManager.UpdateFields(context, value.ID, value); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberJointAccountManager.ToModel(value))
@@ -1393,7 +1476,7 @@ func (c *Controller) MemberRelativeAccountController() {
 		value.Description = req.Description
 		value.FamilyRelationship = req.FamilyRelationship
 
-		if err := c.model.MemberRelativeAccountManager.UpdateByID(context, value.ID, value); err != nil {
+		if err := c.model.MemberRelativeAccountManager.UpdateFields(context, value.ID, value); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberRelativeAccountManager.ToModel(value))
@@ -1476,6 +1559,24 @@ func (c *Controller) MemberGenderController() {
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberGenderManager.ToModels(memberGender))
 	})
+	req.RegisterRoute(horizon.Route{
+		Route:    "/member-gender/search",
+		Method:   "GET",
+		Request:  "Filter<IMemberGender>",
+		Response: "Paginated<IMemberGender>",
+		Note:     "Get pagination member gender",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.NoContent(http.StatusNoContent)
+		}
+		memberGender, err := c.model.MemberGenderCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.MemberGenderManager.Pagination(context, ctx, memberGender))
+	})
 
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-gender",
@@ -1520,6 +1621,7 @@ func (c *Controller) MemberGenderController() {
 		Response: "TMemberGender",
 		Note:     "Update an existing member gender record by ID",
 	}, func(ctx echo.Context) error {
+
 		context := ctx.Request().Context()
 		memberGenderID, err := horizon.EngineUUIDParam(ctx, "member_gender_id")
 		if err != nil {
@@ -1546,7 +1648,7 @@ func (c *Controller) MemberGenderController() {
 		memberGender.BranchID = *user.BranchID
 		memberGender.Name = req.Name
 		memberGender.Description = req.Description
-		if err := c.model.MemberGenderManager.UpdateByID(context, memberGender.ID, memberGender); err != nil {
+		if err := c.model.MemberGenderManager.UpdateFields(context, memberGender.ID, memberGender); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberGenderManager.ToModel(memberGender))
@@ -1681,6 +1783,25 @@ func (c *Controller) MemberCenterController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
+		Route:    "/member-center/search",
+		Method:   "GET",
+		Request:  "Filter<IMemberCenter>",
+		Response: "Paginated<IMemberCenter>",
+		Note:     "Get pagination member center",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.NoContent(http.StatusNoContent)
+		}
+		value, err := c.model.MemberCenterCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.MemberCenterManager.Pagination(context, ctx, value))
+	})
+
+	req.RegisterRoute(horizon.Route{
 		Route:    "/member-center",
 		Method:   "POST",
 		Request:  "TMemberCenter",
@@ -1749,7 +1870,7 @@ func (c *Controller) MemberCenterController() {
 		memberCenter.BranchID = *user.BranchID
 		memberCenter.Name = req.Name
 		memberCenter.Description = req.Description
-		if err := c.model.MemberCenterManager.UpdateByID(context, memberCenter.ID, memberCenter); err != nil {
+		if err := c.model.MemberCenterManager.UpdateFields(context, memberCenter.ID, memberCenter); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberCenterManager.ToModel(memberCenter))
@@ -1882,6 +2003,24 @@ func (c *Controller) MemberTypeController() {
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberTypeManager.ToModels(memberType))
 	})
+	req.RegisterRoute(horizon.Route{
+		Route:    "/member-type/search",
+		Method:   "GET",
+		Request:  "Filter<IMemberType>",
+		Response: "Paginated<IMemberType>",
+		Note:     "Get pagination member type",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.NoContent(http.StatusNoContent)
+		}
+		value, err := c.model.MemberTypeCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.MemberTypeManager.Pagination(context, ctx, value))
+	})
 
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-type",
@@ -1953,7 +2092,7 @@ func (c *Controller) MemberTypeController() {
 		memberType.Name = req.Name
 		memberType.Description = req.Description
 		memberType.Prefix = req.Prefix
-		if err := c.model.MemberTypeManager.UpdateByID(context, memberType.ID, memberType); err != nil {
+		if err := c.model.MemberTypeManager.UpdateFields(context, memberType.ID, memberType); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberTypeManager.ToModel(memberType))
@@ -2088,6 +2227,25 @@ func (c *Controller) MemberClassificationController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
+		Route:    "/member-classification/search",
+		Method:   "GET",
+		Request:  "Filter<IMemberClassification>",
+		Response: "Paginated<IMemberClassification>",
+		Note:     "Get pagination member classification",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.NoContent(http.StatusNoContent)
+		}
+		value, err := c.model.MemberClassificationCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.MemberClassificationManager.Pagination(context, ctx, value))
+	})
+
+	req.RegisterRoute(horizon.Route{
 		Route:    "/member-classification",
 		Method:   "POST",
 		Request:  "TMemberClassification",
@@ -2158,7 +2316,7 @@ func (c *Controller) MemberClassificationController() {
 		memberClassification.Name = req.Name
 		memberClassification.Description = req.Description
 		memberClassification.Icon = req.Icon
-		if err := c.model.MemberClassificationManager.UpdateByID(context, memberClassification.ID, memberClassification); err != nil {
+		if err := c.model.MemberClassificationManager.UpdateFields(context, memberClassification.ID, memberClassification); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberClassificationManager.ToModel(memberClassification))
@@ -2291,6 +2449,24 @@ func (c *Controller) MemberOccupationController() {
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberOccupationManager.ToModels(memberOccupation))
 	})
+	req.RegisterRoute(horizon.Route{
+		Route:    "/member-occupation/search",
+		Method:   "GET",
+		Request:  "Filter<IMemberOccupation>",
+		Response: "Paginated<IMemberOccupation>",
+		Note:     "Get pagination member occupation",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.NoContent(http.StatusNoContent)
+		}
+		value, err := c.model.MemberOccupationCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.MemberOccupationManager.Pagination(context, ctx, value))
+	})
 
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-occupation",
@@ -2361,7 +2537,7 @@ func (c *Controller) MemberOccupationController() {
 		memberOccupation.BranchID = *user.BranchID
 		memberOccupation.Name = req.Name
 		memberOccupation.Description = req.Description
-		if err := c.model.MemberOccupationManager.UpdateByID(context, memberOccupation.ID, memberOccupation); err != nil {
+		if err := c.model.MemberOccupationManager.UpdateFields(context, memberOccupation.ID, memberOccupation); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberOccupationManager.ToModel(memberOccupation))
@@ -2496,6 +2672,25 @@ func (c *Controller) MemberGroupController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
+		Route:    "/member-group/search",
+		Method:   "GET",
+		Request:  "Filter<IMemberGroup>",
+		Response: "Paginated<IMemberGroup>",
+		Note:     "Get pagination member group",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.NoContent(http.StatusNoContent)
+		}
+		value, err := c.model.MemberGroupCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.MemberGroupManager.Pagination(context, ctx, value))
+	})
+
+	req.RegisterRoute(horizon.Route{
 		Route:    "/member-group",
 		Method:   "POST",
 		Request:  "TMemberGroup",
@@ -2564,7 +2759,7 @@ func (c *Controller) MemberGroupController() {
 		memberGroup.BranchID = *user.BranchID
 		memberGroup.Name = req.Name
 		memberGroup.Description = req.Description
-		if err := c.model.MemberGroupManager.UpdateByID(context, memberGroup.ID, memberGroup); err != nil {
+		if err := c.model.MemberGroupManager.UpdateFields(context, memberGroup.ID, memberGroup); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberGroupManager.ToModel(memberGroup))

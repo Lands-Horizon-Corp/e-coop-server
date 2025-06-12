@@ -109,15 +109,15 @@ func (c *Controller) MediaController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
 		completed := &model.Media{
-			FileName:   file.Filename,
-			FileType:   file.Header.Get("Content-Type"),
-			ID:         initial.ID,
+			FileName:   storage.FileName,
+			FileType:   storage.FileType,
 			FileSize:   storage.FileSize,
 			StorageKey: storage.StorageKey,
 			URL:        storage.URL,
 			BucketName: storage.BucketName,
-			Status:     "completed",
+			Status:     "comppleted",
 			Progress:   100,
+			CreatedAt:  time.Now().UTC(),
 			UpdatedAt:  time.Now().UTC(),
 		}
 		if err := c.model.MediaManager.Update(context, completed); err != nil {
@@ -147,7 +147,7 @@ func (c *Controller) MediaController() {
 			UpdatedAt: time.Now().UTC(),
 		}
 
-		if err := c.model.MediaManager.UpdateByID(context, *mediaId, model); err != nil {
+		if err := c.model.MediaManager.UpdateFields(context, *mediaId, model); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
 		return ctx.JSON(http.StatusCreated, c.model.MediaManager.ToModel(model))

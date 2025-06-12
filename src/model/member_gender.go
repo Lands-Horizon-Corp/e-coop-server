@@ -13,7 +13,7 @@ import (
 type (
 	MemberGender struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-		CreatedAt   time.Time      `gorm:"not null;default:now()"`
+		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
 		CreatedByID uuid.UUID      `gorm:"type:uuid"`
 		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
 		UpdatedAt   time.Time      `gorm:"not null;default:now()"`

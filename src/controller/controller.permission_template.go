@@ -127,7 +127,7 @@ func (c *Controller) PermissionTemplateController() {
 		template.Description = reqData.Description
 		template.Permissions = reqData.Permissions
 
-		if err := c.model.PermissionTemplateManager.UpdateByID(context, template.ID, template); err != nil {
+		if err := c.model.PermissionTemplateManager.UpdateFields(context, template.ID, template); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Failed to update permission template: "+err.Error())
 		}
 

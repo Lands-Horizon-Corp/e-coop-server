@@ -24,6 +24,7 @@ type StorageService interface {
 	UploadFromBinary(ctx context.Context, data []byte, opts ProgressCallback) (*Storage, error)
 	UploadFromHeader(ctx context.Context, hdr *multipart.FileHeader, opts ProgressCallback) (*Storage, error)
 	UploadFromPath(ctx context.Context, path string, opts ProgressCallback) (*Storage, error)
+	UploadFromURL(ctx context.Context, url string, cb ProgressCallback) (*Storage, error)
 	GeneratePresignedURL(ctx context.Context, storage *Storage, expiry time.Duration) (string, error)
 	DeleteFile(ctx context.Context, storage *Storage) error
 	GenerateUniqueName(ctx context.Context, originalName string) (string, error)
@@ -156,10 +157,12 @@ func (pr *progressReader) Read(p []byte) (int, error) {
 	}
 	return n, err
 }
-
 func (h *HorizonStorage) Upload(ctx context.Context, file any, onProgress ProgressCallback) (*Storage, error) {
 	switch v := file.(type) {
 	case string:
+		if strings.HasPrefix(v, "http://") || strings.HasPrefix(v, "https://") {
+			return h.UploadFromURL(ctx, v, onProgress)
+		}
 		return h.UploadFromPath(ctx, v, onProgress)
 	case []byte:
 		return h.UploadFromBinary(ctx, v, onProgress)
@@ -263,6 +266,82 @@ func (h *HorizonStorage) UploadFromBinary(ctx context.Context, data []byte, cb P
 	storage.Status = "completed"
 	return storage, nil
 }
+func (h *HorizonStorage) UploadFromURL(ctx context.Context, url string, cb ProgressCallback) (*Storage, error) {
+	// Download the file from the URL
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		return nil, eris.Wrap(err, "failed to create HTTP request for URL")
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, eris.Wrapf(err, "failed to download file from URL: %s", url)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, eris.Errorf("failed to download file from URL: %s, status: %s", url, resp.Status)
+	}
+	fileName := ""
+	if cd := resp.Header.Get("Content-Disposition"); cd != "" {
+		if parts := strings.Split(cd, "filename="); len(parts) > 1 {
+			fileName = strings.Trim(parts[1], "\"")
+		}
+	}
+	if fileName == "" {
+		fileName = filepath.Base(resp.Request.URL.Path)
+	}
+	if fileName == "" {
+		fileName = "file"
+	}
+
+	// Detect content type
+	contentType := resp.Header.Get("Content-Type")
+	if contentType == "" {
+		contentType = "application/octet-stream"
+	}
+
+	// Read file data to buffer to get the size (since MinIO needs content length)
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, eris.Wrap(err, "failed to read file data from URL response")
+	}
+
+	fileName, err = h.GenerateUniqueName(ctx, fileName)
+	if err != nil {
+		return nil, err
+	}
+
+	storage := &Storage{
+		FileName:   fileName,
+		FileSize:   int64(len(data)),
+		FileType:   contentType,
+		StorageKey: fileName,
+		BucketName: h.storageBucket,
+		Status:     "progress",
+	}
+
+	pr := &progressReader{
+		reader:   strings.NewReader(string(data)),
+		callback: cb,
+		total:    int64(len(data)),
+		storage:  storage,
+	}
+
+	result, err := h.client.PutObject(ctx, h.storageBucket, fileName, pr, int64(len(data)), minio.PutObjectOptions{ContentType: contentType})
+	if err != nil {
+		return nil, eris.Wrap(err, "upload from URL failed")
+	}
+	storage.StorageKey = result.Key
+	storage.BucketName = result.Bucket
+
+	urlStr, err := h.GeneratePresignedURL(ctx, storage, 24*time.Hour)
+	if err != nil {
+		return nil, err
+	}
+	storage.URL = urlStr
+	storage.Status = "completed"
+	return storage, nil
+}
 
 func (h *HorizonStorage) UploadFromHeader(ctx context.Context, header *multipart.FileHeader, cb ProgressCallback) (*Storage, error) {
 	file, err := header.Open()
@@ -312,17 +391,15 @@ func (h *HorizonStorage) UploadFromHeader(ctx context.Context, header *multipart
 }
 
 func (h *HorizonStorage) GeneratePresignedURL(ctx context.Context, storage *Storage, expiry time.Duration) (string, error) {
-	// Check if the file exists before generating the presigned URL
 	_, err := h.client.StatObject(ctx, storage.BucketName, storage.StorageKey, minio.StatObjectOptions{})
 	if err != nil {
 		return "", eris.Wrapf(err, "failed to generate presigned URL for key %s in bucket %s", storage.StorageKey, storage.BucketName)
 	}
-
-	u, err := h.client.PresignedGetObject(ctx, storage.BucketName, storage.FileName, expiry, nil)
+	presignedURL, err := h.client.PresignedGetObject(ctx, storage.BucketName, storage.StorageKey, expiry, nil)
 	if err != nil {
-		return "", eris.Wrap(err, "presign failed")
+		return "", eris.Wrap(err, "failed to generate presigned URL")
 	}
-	return u.String(), nil
+	return presignedURL.String(), nil
 }
 
 func (h *HorizonStorage) DeleteFile(ctx context.Context, storage *Storage) error {

@@ -41,6 +41,7 @@ type HorizonAuthService[T ClaimWithID] struct {
 	cache      CacheService
 	name       string
 	csrfHeader string
+	ssl        bool
 }
 
 // NewHorizonAuthService constructs a new HorizonAuthService.
@@ -48,11 +49,13 @@ func NewHorizonAuthService[T ClaimWithID](
 	cache CacheService,
 	name string,
 	csrfHeader string,
+	ssl bool,
 ) AuthService[T] {
 	return &HorizonAuthService[T]{
 		cache:      cache,
 		name:       name,
 		csrfHeader: csrfHeader,
+		ssl:        ssl,
 	}
 }
 
@@ -128,6 +131,10 @@ func (h *HorizonAuthService[T]) SetCSRF(ctx context.Context, c echo.Context, cla
 	}
 
 	c.Response().Header().Set(h.csrfHeader, token)
+	samesite := http.SameSiteLaxMode
+	if h.ssl {
+		samesite = http.SameSiteNoneMode
+	}
 	c.SetCookie(&http.Cookie{
 		Name:     h.csrfHeader,
 		Value:    token,
@@ -135,7 +142,7 @@ func (h *HorizonAuthService[T]) SetCSRF(ctx context.Context, c echo.Context, cla
 		Expires:  time.Now().Add(expiry),
 		HttpOnly: true,
 		Secure:   true,
-		SameSite: http.SameSiteLaxMode,
+		SameSite: samesite,
 	})
 
 	return nil
@@ -156,6 +163,10 @@ func (h *HorizonAuthService[T]) ClearCSRF(ctx context.Context, c echo.Context) {
 	}
 	_ = h.cache.Delete(ctx, tokenUserKey)
 
+	samesite := http.SameSiteLaxMode
+	if h.ssl {
+		samesite = http.SameSiteNoneMode
+	}
 	c.SetCookie(&http.Cookie{
 		Name:     h.csrfHeader,
 		Value:    "",
@@ -163,7 +174,7 @@ func (h *HorizonAuthService[T]) ClearCSRF(ctx context.Context, c echo.Context) {
 		Expires:  time.Unix(0, 0),
 		HttpOnly: true,
 		Secure:   true,
-		SameSite: http.SameSiteLaxMode,
+		SameSite: samesite,
 	})
 }
 
@@ -315,6 +326,10 @@ func (h *HorizonAuthService[T]) LogoutOtherDevices(ctx context.Context, c echo.C
 			return eris.Wrapf(err, "failed to delete token mapping: %s", token)
 		}
 	}
+	samesite := http.SameSiteLaxMode
+	if h.ssl {
+		samesite = http.SameSiteNoneMode
+	}
 	c.SetCookie(&http.Cookie{
 		Name:     h.csrfHeader,
 		Value:    "",
@@ -322,7 +337,7 @@ func (h *HorizonAuthService[T]) LogoutOtherDevices(ctx context.Context, c echo.C
 		Expires:  time.Unix(0, 0),
 		HttpOnly: true,
 		Secure:   true,
-		SameSite: http.SameSiteLaxMode,
+		SameSite: samesite,
 	})
 	return nil
 }

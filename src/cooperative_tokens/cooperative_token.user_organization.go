@@ -29,25 +29,26 @@ func (c UserOrganizatonClaim) GetRegisteredClaims() *jwt.RegisteredClaims {
 
 type UserOrganizatonToken struct {
 	model *model.Model
-
-	Token *horizon.HorizonTokenService[UserOrganizatonClaim]
+	Token horizon.TokenService[UserOrganizatonClaim]
 }
 
 func NewUserOrganizatonToken(provider *src.Provider, model *model.Model) (*UserOrganizatonToken, error) {
 	context := context.Background()
 	appName := provider.Service.Environment.GetString("APP_NAME", "")
 	appToken := provider.Service.Environment.GetString("APP_TOKEN", "")
+	isStaging := provider.Service.Environment.GetString("APP_ENV", "development") == "staging"
 
 	token, err := provider.Service.Security.GenerateUUIDv5(context, appToken+"-user-organization")
 	if err != nil {
 		return nil, err
 	}
 
-	service := &horizon.HorizonTokenService[UserOrganizatonClaim]{
-		Name:   fmt.Sprintf("%s-%s", "X-SECURE-USER-ORGANIZATION", appName),
-		Secret: []byte(token),
-	}
-	return &UserOrganizatonToken{Token: service, model: model}, nil
+	tokenService := horizon.NewTokenService[UserOrganizatonClaim](
+		fmt.Sprintf("%s-%s", "X-SECURE-TOKEN-ORGANIZATION", appName),
+		[]byte(token),
+		isStaging,
+	)
+	return &UserOrganizatonToken{Token: tokenService, model: model}, nil
 }
 
 func (h *UserOrganizatonToken) CurrentUserOrganization(ctx context.Context, echoCtx echo.Context) (*model.UserOrganization, error) {

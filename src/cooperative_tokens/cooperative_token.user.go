@@ -128,6 +128,7 @@ func NewUserToken(provider *src.Provider, model *model.Model) (*UserToken, error
 	context := context.Background()
 	appName := provider.Service.Environment.GetString("APP_NAME", "")
 	appToken := provider.Service.Environment.GetString("APP_TOKEN", "")
+	isStaging := provider.Service.Environment.GetString("APP_ENV", "development") == "staging"
 
 	token, err := provider.Service.Security.GenerateUUIDv5(context, appToken+"-user")
 	if err != nil {
@@ -137,12 +138,14 @@ func NewUserToken(provider *src.Provider, model *model.Model) (*UserToken, error
 	tokenService := horizon.NewTokenService[UserClaim](
 		fmt.Sprintf("%s-%s", "X-SECURE-TOKEN-USER", appName),
 		[]byte(token),
+		isStaging,
 	)
 
 	csrfService := horizon.NewHorizonAuthService[UserCSRF](
 		provider.Service.Cache,
 		"user-csrf",
 		fmt.Sprintf("%s-%s", "X-SECURE-CSRF-USER", appName),
+		isStaging,
 	)
 
 	return &UserToken{
@@ -157,7 +160,7 @@ func (h *UserToken) CurrentUser(ctx context.Context, echoCtx echo.Context) (*mod
 	claim, err := h.CSRF.GetCSRF(ctx, echoCtx)
 	if err != nil {
 		h.CSRF.ClearCSRF(ctx, echoCtx)
-		return nil, echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized")
+		return nil, echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized: "+err.Error())
 	}
 	if claim.UserID == "" || claim.Email == "" || claim.ContactNumber == "" || claim.Password == "" {
 		h.CSRF.ClearCSRF(ctx, echoCtx)

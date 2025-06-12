@@ -112,7 +112,7 @@ func (c *Controller) SubscriptionPlanController() {
 		subscription_plan.YearlyDiscount = req.YearlyDiscount
 		subscription_plan.UpdatedAt = time.Now().UTC()
 
-		if err := c.model.SubscriptionPlanManager.UpdateByID(context, subscription_plan.ID, subscription_plan); err != nil {
+		if err := c.model.SubscriptionPlanManager.UpdateFields(context, subscription_plan.ID, subscription_plan); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 

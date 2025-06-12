@@ -30,6 +30,7 @@ func setupTokenService() horizon.TokenService[TestClaim] {
 	return horizon.NewTokenService[TestClaim](
 		env.GetString("APP_NAME", "horizon-test"),
 		[]byte(env.GetString("APP_TOKEN", base64.StdEncoding.EncodeToString([]byte("test-secret")))),
+		false,
 	)
 }
 
