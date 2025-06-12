@@ -1303,7 +1303,24 @@ func (c *Controller) InvitationCode() {
 		}
 		return ctx.JSON(http.StatusOK, c.model.InvitationCodeManager.ToModels(invitationCode))
 	})
-
+	req.RegisterRoute(horizon.Route{
+		Route:    "/invitation-code/search",
+		Method:   "GET",
+		Request:  "Filter<TInvitationCode>",
+		Response: "Paginated<TInvitationCode>",
+		Note:     "Get pagination gender",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.NoContent(http.StatusNoContent)
+		}
+		invitationCode, err := c.model.GetInvitationCodeByBranch(context, user.OrganizationID, *user.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.InvitationCodeManager.Pagination(context, ctx, invitationCode))
+	})
 	// Retrieve all invitation codes that match a specific code in the current organization
 	req.RegisterRoute(horizon.Route{
 		Route:    "/invitation-code/code/:code",
