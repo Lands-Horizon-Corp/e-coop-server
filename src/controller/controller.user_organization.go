@@ -71,6 +71,52 @@ func (c *Controller) UserOrganinzationController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
+		Route:    "/user-organization/employee/search",
+		Method:   "GET",
+		Request:  "Filter<TUserOrganization>",
+		Response: "Paginated<TUserOrganization>",
+		Note:     "Get pagination user organization",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.NoContent(http.StatusNoContent)
+		}
+		userOrganization, err := c.model.UserOrganizationManager.Find(context, &model.UserOrganization{
+			OrganizationID: user.OrganizationID,
+			BranchID:       user.BranchID,
+			UserType:       "employee",
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.Pagination(context, ctx, userOrganization))
+	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:    "/user-organization/member/search",
+		Method:   "GET",
+		Request:  "Filter<TUserOrganization>",
+		Response: "Paginated<TUserOrganization>",
+		Note:     "Get pagination user organization",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.NoContent(http.StatusNoContent)
+		}
+		userOrganization, err := c.model.UserOrganizationManager.Find(context, &model.UserOrganization{
+			OrganizationID: user.OrganizationID,
+			BranchID:       user.BranchID,
+			UserType:       "member",
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.Pagination(context, ctx, userOrganization))
+	})
+
+	req.RegisterRoute(horizon.Route{
 		Route:    "/user-organization/user/:user_id",
 		Method:   "GET",
 		Response: "TUserOrganization[]",
