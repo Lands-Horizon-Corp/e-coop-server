@@ -324,7 +324,7 @@ func (c *Controller) UserOrganinzationController() {
 		}
 		invitationCode, err := c.model.VerifyInvitationCodeByCode(context, code)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": err.Error()})
 		}
 		if invitationCode == nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{
