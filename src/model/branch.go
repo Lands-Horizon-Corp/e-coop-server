@@ -12,44 +12,43 @@ import (
 
 type (
 	Branch struct {
-		ID             uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-		CreatedAt      time.Time      `gorm:"not null;default:now()"`
-		CreatedByID    uuid.UUID      `gorm:"type:uuid"`
+		ID             uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
+		CreatedAt      time.Time      `gorm:"not null;default:now()" json:"created_at"`
+		CreatedByID    uuid.UUID      `gorm:"type:uuid" json:"created_by_id"`
 		CreatedBy      *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt      time.Time      `gorm:"not null;default:now()"`
-		UpdatedByID    uuid.UUID      `gorm:"type:uuid"`
+		UpdatedAt      time.Time      `gorm:"not null;default:now()" json:"updated_at"`
+		UpdatedByID    uuid.UUID      `gorm:"type:uuid" json:"updated_by_id"`
 		UpdatedBy      *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt      gorm.DeletedAt `gorm:"index"`
-		DeletedByID    *uuid.UUID     `gorm:"type:uuid"`
+		DeletedAt      gorm.DeletedAt `gorm:"index" json:"deleted_at"`
+		DeletedByID    *uuid.UUID     `gorm:"type:uuid" json:"deleted_by_id"`
 		DeletedBy      *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
 		OrganizationID uuid.UUID      `gorm:"type:uuid;not null" json:"organization_id"`
 		Organization   *Organization  `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE;" json:"organization,omitempty"`
-		MediaID        *uuid.UUID     `gorm:"type:uuid"`
+		MediaID        *uuid.UUID     `gorm:"type:uuid" json:"media_id"`
 		Media          *Media         `gorm:"foreignKey:MediaID;constraint:OnDelete:SET NULL;" json:"media,omitempty"`
 
-		Type          string   `gorm:"type:varchar(100);not null"`
-		Name          string   `gorm:"type:varchar(255);not null"`
-		Email         string   `gorm:"type:varchar(255);not null"`
-		Description   *string  `gorm:"type:text"`
-		CountryCode   string   `gorm:"type:varchar(10);not null"`
-		ContactNumber *string  `gorm:"type:varchar(20)"`
-		Address       string   `gorm:"type:varchar(500);not null"`
-		Province      string   `gorm:"type:varchar(100);not null"`
-		City          string   `gorm:"type:varchar(100);not null"`
-		Region        string   `gorm:"type:varchar(100);not null"`
-		Barangay      string   `gorm:"type:varchar(100);not null"`
-		PostalCode    string   `gorm:"type:varchar(20);not null"`
+		Type          string   `gorm:"type:varchar(100);not null" json:"type"`
+		Name          string   `gorm:"type:varchar(255);not null" json:"name"`
+		Email         string   `gorm:"type:varchar(255);not null" json:"email"`
+		Description   *string  `gorm:"type:text" json:"description,omitempty"`
+		CountryCode   string   `gorm:"type:varchar(10);not null" json:"country_code"`
+		ContactNumber *string  `gorm:"type:varchar(20)" json:"contact_number,omitempty"`
+		Address       string   `gorm:"type:varchar(500);not null" json:"address"`
+		Province      string   `gorm:"type:varchar(100);not null" json:"province"`
+		City          string   `gorm:"type:varchar(100);not null" json:"city"`
+		Region        string   `gorm:"type:varchar(100);not null" json:"region"`
+		Barangay      string   `gorm:"type:varchar(100);not null" json:"barangay"`
+		PostalCode    string   `gorm:"type:varchar(20);not null" json:"postal_code"`
 		Latitude      *float64 `gorm:"type:double precision" json:"latitude,omitempty"`
 		Longitude     *float64 `gorm:"type:double precision" json:"longitude,omitempty"`
-		IsMainBranch  bool     `gorm:"not null;default:false"`
+		IsMainBranch  bool     `gorm:"not null;default:false" json:"is_main_branch"`
 
-		Footsteps           []*Footstep           `gorm:"foreignKey:BranchID" json:"footsteps,omitempty"`            // Footsteps
-		GeneratedReports    []*GeneratedReport    `gorm:"foreignKey:BranchID" json:"generated_reports,omitempty"`    // Generated reports
-		InvitationCodes     []*InvitationCode     `gorm:"foreignKey:BranchID" json:"invitation_codes,omitempty"`     // Invitation codes
-		PermissionTemplates []*PermissionTemplate `gorm:"foreignKey:BranchID" json:"permission_templates,omitempty"` // permission templates
-		UserOrganizations   []*UserOrganization   `gorm:"foreignKey:BranchID" json:"user_organizations,omitempty"`   // user organizations
+		Footsteps           []*Footstep           `gorm:"foreignKey:BranchID" json:"footsteps,omitempty"`
+		GeneratedReports    []*GeneratedReport    `gorm:"foreignKey:BranchID" json:"generated_reports,omitempty"`
+		InvitationCodes     []*InvitationCode     `gorm:"foreignKey:BranchID" json:"invitation_codes,omitempty"`
+		PermissionTemplates []*PermissionTemplate `gorm:"foreignKey:BranchID" json:"permission_templates,omitempty"`
+		UserOrganizations   []*UserOrganization   `gorm:"foreignKey:BranchID" json:"user_organizations,omitempty"`
 	}
-
 	BranchRequest struct {
 		ID *uuid.UUID `json:"id,omitempty"`
 

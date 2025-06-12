@@ -12,46 +12,46 @@ import (
 
 type (
 	AutomaticLoanDeduction struct {
-		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-		CreatedAt   time.Time      `gorm:"not null;default:now()"`
-		CreatedByID uuid.UUID      `gorm:"type:uuid"`
+		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
+		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
+		CreatedByID uuid.UUID      `gorm:"type:uuid" json:"created_by_id"`
 		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt   time.Time      `gorm:"not null;default:now()"`
-		UpdatedByID uuid.UUID      `gorm:"type:uuid"`
+		UpdatedAt   time.Time      `gorm:"not null;default:now()" json:"updated_at"`
+		UpdatedByID uuid.UUID      `gorm:"type:uuid" json:"updated_by_id"`
 		UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt   gorm.DeletedAt `gorm:"index"`
-		DeletedByID *uuid.UUID     `gorm:"type:uuid"`
+		DeletedAt   gorm.DeletedAt `gorm:"index" json:"deleted_at"`
+		DeletedByID *uuid.UUID     `gorm:"type:uuid" json:"deleted_by_id"`
 		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
 
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_automatic_loan_deduction"`
+		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_automatic_loan_deduction" json:"organization_id"`
 		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_automatic_loan_deduction"`
+		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_automatic_loan_deduction" json:"branch_id"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
-		AccountID          *uuid.UUID        `gorm:"type:uuid"`
+		AccountID          *uuid.UUID        `gorm:"type:uuid" json:"account_id"`
 		Account            *Account          `gorm:"foreignKey:AccountID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"account,omitempty"`
-		ComputationSheetID *uuid.UUID        `gorm:"type:uuid"`
+		ComputationSheetID *uuid.UUID        `gorm:"type:uuid" json:"computation_sheet_id"`
 		ComputationSheet   *ComputationSheet `gorm:"foreignKey:ComputationSheetID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"computation_sheet,omitempty"`
-		LinkAccountID      *uuid.UUID        `gorm:"type:uuid"`
+		LinkAccountID      *uuid.UUID        `gorm:"type:uuid" json:"link_account_id"`
 		LinkAccount        *Account          `gorm:"foreignKey:LinkAccountID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"link_account,omitempty"`
 
-		ChargesPercentage1 float64 `gorm:"type:decimal"`
-		ChargesPercentage2 float64 `gorm:"type:decimal"`
-		ChargesAmount      float64 `gorm:"type:decimal"`
-		ChargesDivisor     float64 `gorm:"type:decimal"`
+		ChargesPercentage1 float64 `gorm:"type:decimal" json:"charges_percentage_1"`
+		ChargesPercentage2 float64 `gorm:"type:decimal" json:"charges_percentage_2"`
+		ChargesAmount      float64 `gorm:"type:decimal" json:"charges_amount"`
+		ChargesDivisor     float64 `gorm:"type:decimal" json:"charges_divisor"`
 
-		MinAmount float64 `gorm:"type:decimal"`
-		MaxAmount float64 `gorm:"type:decimal"`
+		MinAmount float64 `gorm:"type:decimal" json:"min_amount"`
+		MaxAmount float64 `gorm:"type:decimal" json:"max_amount"`
 
-		Anum int `gorm:"type:int"` // months
+		Anum int `gorm:"type:int" json:"anum"`
 
-		AddOn          bool `gorm:"type:boolean;default:false"`
-		AoRest         bool `gorm:"type:boolean;default:false"`
-		ExcludeRenewal bool `gorm:"type:boolean;default:false"`
-		Ct             int  `gorm:"type:int"`
+		AddOn          bool `gorm:"type:boolean;default:false" json:"add_on"`
+		AoRest         bool `gorm:"type:boolean;default:false" json:"ao_rest"`
+		ExcludeRenewal bool `gorm:"type:boolean;default:false" json:"exclude_renewal"`
+		Ct             int  `gorm:"type:int" json:"ct"`
 
-		Name        string `gorm:"type:varchar(255)"`
-		Description string `gorm:"type:text"`
+		Name        string `gorm:"type:varchar(255)" json:"name"`
+		Description string `gorm:"type:text" json:"description"`
 	}
 
 	AutomaticLoanDeductionResponse struct {

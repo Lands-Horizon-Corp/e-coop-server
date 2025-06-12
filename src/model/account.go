@@ -117,102 +117,102 @@ const (
 
 type (
 	Account struct {
-		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-		CreatedAt   time.Time      `gorm:"not null;default:now()"`
-		CreatedByID uuid.UUID      `gorm:"type:uuid"`
+		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
+		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
+		CreatedByID uuid.UUID      `gorm:"type:uuid" json:"created_by_id"`
 		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt   time.Time      `gorm:"not null;default:now()"`
-		UpdatedByID uuid.UUID      `gorm:"type:uuid"`
+		UpdatedAt   time.Time      `gorm:"not null;default:now()" json:"updated_at"`
+		UpdatedByID uuid.UUID      `gorm:"type:uuid" json:"updated_by_id"`
 		UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt   gorm.DeletedAt `gorm:"index"`
-		DeletedByID *uuid.UUID     `gorm:"type:uuid"`
+		DeletedAt   gorm.DeletedAt `gorm:"index" json:"deleted_at"`
+		DeletedByID *uuid.UUID     `gorm:"type:uuid" json:"deleted_by_id"`
 		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
 
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_account"`
+		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_account" json:"organization_id"`
 		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_account"`
+		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_account" json:"branch_id"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
-		GeneralLedgerDefinitionID *uuid.UUID               `gorm:"type:uuid"`
+		GeneralLedgerDefinitionID *uuid.UUID               `gorm:"type:uuid" json:"general_ledger_definition_id"`
 		GeneralLedgerDefinition   *GeneralLedgerDefinition `gorm:"foreignKey:GeneralLedgerDefinitionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"general_ledger_definition,omitempty"`
 
-		FinancialStatementDefinitionID *uuid.UUID                    `gorm:"type:uuid"`
+		FinancialStatementDefinitionID *uuid.UUID                    `gorm:"type:uuid" json:"financial_statement_definition_id"`
 		FinancialStatementDefinition   *FinancialStatementDefinition `gorm:"foreignKey:FinancialStatementDefinitionID;constraint:OnDelete:SET NULL;" json:"financial_statement_definition,omitempty"`
 
-		AccountClassificationID *uuid.UUID             `gorm:"type:uuid"`
+		AccountClassificationID *uuid.UUID             `gorm:"type:uuid" json:"account_classification_id"`
 		AccountClassification   *AccountClassification `gorm:"foreignKey:AccountClassificationID;constraint:OnDelete:SET NULL;" json:"account_classification,omitempty"`
 
-		AccountCategoryID *uuid.UUID       `gorm:"type:uuid"`
+		AccountCategoryID *uuid.UUID       `gorm:"type:uuid" json:"account_category_id"`
 		AccountCategory   *AccountCategory `gorm:"foreignKey:AccountCategoryID;constraint:OnDelete:SET NULL;" json:"account_category,omitempty"`
 
-		MemberTypeID *uuid.UUID  `gorm:"type:uuid"`
+		MemberTypeID *uuid.UUID  `gorm:"type:uuid" json:"member_type_id"`
 		MemberType   *MemberType `gorm:"foreignKey:MemberTypeID;constraint:OnDelete:SET NULL;" json:"member_type,omitempty"`
 
-		Name        string `gorm:"type:varchar(255);not null"`
-		Description string `gorm:"type:text;not null"`
+		Name        string `gorm:"type:varchar(255);not null" json:"name"`
+		Description string `gorm:"type:text;not null" json:"description"`
 
-		MinAmount float64     `gorm:"type:decimal;default:0"`
-		MaxAmount float64     `gorm:"type:decimal;default:50000"`
-		Index     int         `gorm:"default:0"`
-		Type      AccountType `gorm:"type:varchar(50);not null"`
+		MinAmount float64     `gorm:"type:decimal;default:0" json:"min_amount"`
+		MaxAmount float64     `gorm:"type:decimal;default:50000" json:"max_amount"`
+		Index     int         `gorm:"default:0" json:"index"`
+		Type      AccountType `gorm:"type:varchar(50);not null" json:"type"`
 
-		IsInternal         bool `gorm:"default:false"`
-		CashOnHand         bool `gorm:"default:false"`
-		PaidUpShareCapital bool `gorm:"default:false"`
+		IsInternal         bool `gorm:"default:false" json:"is_internal"`
+		CashOnHand         bool `gorm:"default:false" json:"cash_on_hand"`
+		PaidUpShareCapital bool `gorm:"default:false" json:"paid_up_share_capital"`
 
-		ComputationType string `gorm:"type:varchar(50)"` // Assuming string for computation_type
+		ComputationType string `gorm:"type:varchar(50)" json:"computation_type"`
 
-		FinesAmort       float64 `gorm:"type:decimal"`
-		FinesMaturity    float64 `gorm:"type:decimal"`
-		InterestStandard float64 `gorm:"type:decimal"`
-		InterestSecured  float64 `gorm:"type:decimal"`
+		FinesAmort       float64 `gorm:"type:decimal" json:"fines_amort"`
+		FinesMaturity    float64 `gorm:"type:decimal" json:"fines_maturity"`
+		InterestStandard float64 `gorm:"type:decimal" json:"interest_standard"`
+		InterestSecured  float64 `gorm:"type:decimal" json:"interest_secured"`
 
-		ComputationSheetID *uuid.UUID `gorm:"type:uuid"`
+		ComputationSheetID *uuid.UUID `gorm:"type:uuid" json:"computation_sheet_id"`
 
-		CohCibFinesGracePeriodEntryCashHand                float64 `gorm:"type:decimal;default:0"`
-		CohCibFinesGracePeriodEntryCashInBank              float64 `gorm:"type:decimal;default:0"`
-		CohCibFinesGracePeriodEntryDailyAmortization       float64 `gorm:"type:decimal;default:0"`
-		CohCibFinesGracePeriodEntryDailyMaturity           float64 `gorm:"type:decimal;default:0"`
-		CohCibFinesGracePeriodEntryWeeklyAmortization      float64 `gorm:"type:decimal;default:0"`
-		CohCibFinesGracePeriodEntryWeeklyMaturity          float64 `gorm:"type:decimal;default:0"`
-		CohCibFinesGracePeriodEntryMonthlyAmortization     float64 `gorm:"type:decimal;default:0"`
-		CohCibFinesGracePeriodEntryMonthlyMaturity         float64 `gorm:"type:decimal;default:0"`
-		CohCibFinesGracePeriodEntrySemiMonthlyAmortization float64 `gorm:"type:decimal;default:0"`
-		CohCibFinesGracePeriodEntrySemiMonthlyMaturity     float64 `gorm:"type:decimal;default:0"`
-		CohCibFinesGracePeriodEntryQuarterlyAmortization   float64 `gorm:"type:decimal;default:0"`
-		CohCibFinesGracePeriodEntryQuarterlyMaturity       float64 `gorm:"type:decimal;default:0"`
-		CohCibFinesGracePeriodEntrySemiAnualAmortization   float64 `gorm:"type:decimal;default:0"`
-		CohCibFinesGracePeriodEntrySemiAnualMaturity       float64 `gorm:"type:decimal;default:0"`
-		CohCibFinesGracePeriodEntryLumpsumAmortization     float64 `gorm:"type:decimal;default:0"`
-		CohCibFinesGracePeriodEntryLumpsumMaturity         float64 `gorm:"type:decimal;default:0"`
+		CohCibFinesGracePeriodEntryCashHand                float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_cash_hand"`
+		CohCibFinesGracePeriodEntryCashInBank              float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_cash_in_bank"`
+		CohCibFinesGracePeriodEntryDailyAmortization       float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_daily_amortization"`
+		CohCibFinesGracePeriodEntryDailyMaturity           float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_daily_maturity"`
+		CohCibFinesGracePeriodEntryWeeklyAmortization      float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_weekly_amortization"`
+		CohCibFinesGracePeriodEntryWeeklyMaturity          float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_weekly_maturity"`
+		CohCibFinesGracePeriodEntryMonthlyAmortization     float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_monthly_amortization"`
+		CohCibFinesGracePeriodEntryMonthlyMaturity         float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_monthly_maturity"`
+		CohCibFinesGracePeriodEntrySemiMonthlyAmortization float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_semi_monthly_amortization"`
+		CohCibFinesGracePeriodEntrySemiMonthlyMaturity     float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_semi_monthly_maturity"`
+		CohCibFinesGracePeriodEntryQuarterlyAmortization   float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_quarterly_amortization"`
+		CohCibFinesGracePeriodEntryQuarterlyMaturity       float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_quarterly_maturity"`
+		CohCibFinesGracePeriodEntrySemiAnualAmortization   float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_semi_anual_amortization"`
+		CohCibFinesGracePeriodEntrySemiAnualMaturity       float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_semi_anual_maturity"`
+		CohCibFinesGracePeriodEntryLumpsumAmortization     float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_lumpsum_amortization"`
+		CohCibFinesGracePeriodEntryLumpsumMaturity         float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_lumpsum_maturity"`
 
-		FinancialStatementType string `gorm:"type:varchar(50)"`
-		GeneralLedgerType      string `gorm:"type:varchar(50)"`
+		FinancialStatementType string `gorm:"type:varchar(50)" json:"financial_statement_type"`
+		GeneralLedgerType      string `gorm:"type:varchar(50)" json:"general_ledger_type"`
 
-		AlternativeCode string `gorm:"type:varchar(50)"`
+		AlternativeCode string `gorm:"type:varchar(50)" json:"alternative_code"`
 
-		FinesGracePeriodAmortization int  `gorm:"type:int"`
-		AdditionalGracePeriod        int  `gorm:"type:int"`
-		NumberGracePeriodDaily       bool `gorm:"default:false"`
-		FinesGracePeriodMaturity     int  `gorm:"type:int"`
-		YearlySubscriptionFee        int  `gorm:"type:int"`
-		LoanCutOffDays               int  `gorm:"type:int"`
+		FinesGracePeriodAmortization int  `gorm:"type:int" json:"fines_grace_period_amortization"`
+		AdditionalGracePeriod        int  `gorm:"type:int" json:"additional_grace_period"`
+		NumberGracePeriodDaily       bool `gorm:"default:false" json:"number_grace_period_daily"`
+		FinesGracePeriodMaturity     int  `gorm:"type:int" json:"fines_grace_period_maturity"`
+		YearlySubscriptionFee        int  `gorm:"type:int" json:"yearly_subscription_fee"`
+		LoanCutOffDays               int  `gorm:"type:int" json:"loan_cut_off_days"`
 
-		LumpsumComputationType                            string `gorm:"type:varchar(50);default:'None'"`
-		InterestFinesComputationDiminishing               string `gorm:"type:varchar(100);default:'None'"`
-		InterestFinesComputationDiminishingStraightYearly string `gorm:"type:varchar(200);default:'None'"`
-		EarnedUnearnedInterest                            string `gorm:"type:varchar(50);default:'None'"`
-		LoanSavingType                                    string `gorm:"type:varchar(50);default:'Separate'"`
-		InterestDeduction                                 string `gorm:"type:varchar(10);default:'Above'"`
-		OtherDeductionEntry                               string `gorm:"type:varchar(20);default:'None'"`
-		InterestSavingTypeDiminishingStraight             string `gorm:"type:varchar(20);default:'Spread'"`
-		OtherInformationOfAnAccount                       string `gorm:"type:varchar(50);default:'None'"`
+		LumpsumComputationType                            string `gorm:"type:varchar(50);default:'None'" json:"lumpsum_computation_type"`
+		InterestFinesComputationDiminishing               string `gorm:"type:varchar(100);default:'None'" json:"interest_fines_computation_diminishing"`
+		InterestFinesComputationDiminishingStraightYearly string `gorm:"type:varchar(200);default:'None'" json:"interest_fines_computation_diminishing_straight_yearly"`
+		EarnedUnearnedInterest                            string `gorm:"type:varchar(50);default:'None'" json:"earned_unearned_interest"`
+		LoanSavingType                                    string `gorm:"type:varchar(50);default:'Separate'" json:"loan_saving_type"`
+		InterestDeduction                                 string `gorm:"type:varchar(10);default:'Above'" json:"interest_deduction"`
+		OtherDeductionEntry                               string `gorm:"type:varchar(20);default:'None'" json:"other_deduction_entry"`
+		InterestSavingTypeDiminishingStraight             string `gorm:"type:varchar(20);default:'Spread'" json:"interest_saving_type_diminishing_straight"`
+		OtherInformationOfAnAccount                       string `gorm:"type:varchar(50);default:'None'" json:"other_information_of_an_account"`
 
-		HeaderRow int `gorm:"type:int"`
-		CenterRow int `gorm:"type:int"`
-		TotalRow  int `gorm:"type:int"`
+		HeaderRow int `gorm:"type:int" json:"header_row"`
+		CenterRow int `gorm:"type:int" json:"center_row"`
+		TotalRow  int `gorm:"type:int" json:"total_row"`
 
-		GeneralLedgerGroupingExcludeAccount bool `gorm:"default:false"`
+		GeneralLedgerGroupingExcludeAccount bool `gorm:"default:false" json:"general_ledger_grouping_exclude_account"`
 	}
 )
 

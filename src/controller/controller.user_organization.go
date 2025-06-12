@@ -650,7 +650,7 @@ func (c *Controller) BranchController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/branch/user-organization/:user_organization_id",
+		Route:    "/branch/organization/:organization_id",
 		Method:   "POST",
 		Request:  "TBranch[]",
 		Response: "{branch: TBranch, user_organization: TUserOrganization}",
@@ -664,7 +664,7 @@ func (c *Controller) BranchController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid branch data: " + err.Error()})
 		}
 
-		userOrganizationId, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
+		organzationId, err := horizon.EngineUUIDParam(ctx, "organization_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user organization ID"})
 		}
@@ -674,7 +674,10 @@ func (c *Controller) BranchController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User not authenticated"})
 		}
 
-		userOrganization, err := c.model.UserOrganizationManager.GetByID(context, *userOrganizationId)
+		userOrganization, err := c.model.UserOrganizationManager.FindOne(context, &model.UserOrganization{
+			UserID:         user.ID,
+			OrganizationID: *organzationId,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
