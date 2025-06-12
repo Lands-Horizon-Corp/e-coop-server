@@ -1477,9 +1477,8 @@ func (c *Controller) InvitationCode() {
 		if err != nil {
 			return err
 		}
-		switch userOrg.UserType {
-		case "owner", "employee":
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "owners and employees cannot leave an organization"})
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "only owners and employees can perform this action"})
 		}
 		if req.UserType == "owner" {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "cannot create invitation code type owner"})
