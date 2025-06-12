@@ -381,6 +381,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) CreateWithTx(ctx context
 			return eris.Wrap(err, "failed to reload entity with preloads in transaction")
 		}
 	}
+	c.CreatedBroadcast(ctx, entity)
 	return nil
 }
 
