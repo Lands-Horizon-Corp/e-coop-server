@@ -1044,6 +1044,30 @@ func (c *Controller) OrganizationController() {
 			tx.Rollback()
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
+
+		var longitude float64 = 0
+		var latitude float64 = 0
+
+		branch := &model.Branch{
+			CreatedAt:      time.Now().UTC(),
+			CreatedByID:    user.ID,
+			UpdatedAt:      time.Now().UTC(),
+			UpdatedByID:    user.ID,
+			OrganizationID: userOrganization.OrganizationID,
+
+			MediaID:       req.MediaID,
+			Name:          req.Name,
+			Email:         *req.Email,
+			Description:   req.Description,
+			CountryCode:   "",
+			ContactNumber: req.ContactNumber,
+			Latitude:      &latitude,
+			Longitude:     &longitude,
+		}
+		if err := c.model.BranchManager.CreateWithTx(context, tx, branch); err != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
 		for _, category := range req.OrganizationCategories {
 			if err := c.model.OrganizationCategoryManager.CreateWithTx(context, tx, &model.OrganizationCategory{
 				CreatedAt:      time.Now().UTC(),
