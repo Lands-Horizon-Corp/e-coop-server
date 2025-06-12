@@ -118,6 +118,7 @@ func (m *Model) Timesheet() {
 				fmt.Sprintf("timesheet.create.%s", data.ID),
 				fmt.Sprintf("timesheet.create.branch.%s", data.BranchID),
 				fmt.Sprintf("timesheet.create.organization.%s", data.OrganizationID),
+				fmt.Sprintf("timesheet.create.user.%s", data.UserID),
 			}
 		},
 		Updated: func(data *Timesheet) []string {
@@ -126,6 +127,7 @@ func (m *Model) Timesheet() {
 				fmt.Sprintf("timesheet.update.%s", data.ID),
 				fmt.Sprintf("timesheet.update.branch.%s", data.BranchID),
 				fmt.Sprintf("timesheet.update.organization.%s", data.OrganizationID),
+				fmt.Sprintf("timesheet.update.user.%s", data.UserID),
 			}
 		},
 		Deleted: func(data *Timesheet) []string {
@@ -134,6 +136,7 @@ func (m *Model) Timesheet() {
 				fmt.Sprintf("timesheet.delete.%s", data.ID),
 				fmt.Sprintf("timesheet.delete.branch.%s", data.BranchID),
 				fmt.Sprintf("timesheet.delete.organization.%s", data.OrganizationID),
+				fmt.Sprintf("timesheet.delete.user.%s", data.UserID),
 			}
 		},
 	})
