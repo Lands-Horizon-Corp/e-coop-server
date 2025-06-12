@@ -287,18 +287,18 @@ func (c *Controller) UserOrganinzationController() {
 		}
 		if invitationCode.UserType == "member" {
 			if !c.model.UserOrganizationMemberCanJoin(context, user.ID, invitationCode.OrganizationID, invitationCode.BranchID) {
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": "cannot join as member"})
+				return ctx.JSON(http.StatusForbidden, map[string]string{"error": "cannot join as member"})
 			}
 		} else if invitationCode.UserType == "employee" {
 			if !c.model.UserOrganizationEmployeeCanJoin(context, user.ID, invitationCode.OrganizationID, invitationCode.BranchID) {
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": "cannot join as employee"})
+				return ctx.JSON(http.StatusForbidden, map[string]string{"error": "cannot join as employee"})
 			}
 		} else {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "cannot join as employee"})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "cannot join as employee"})
 		}
 		developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, user.ID.String())
 		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "something wrong generting developer key"})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "something wrong generting developer key"})
 		}
 		developerKey = developerKey + uuid.NewString() + "-horizon"
 		userOrg := &model.UserOrganization{
