@@ -70,8 +70,16 @@ type (
 func (m *Model) Timesheet() {
 	m.Migration = append(m.Migration, &Timesheet{})
 	m.TimesheetManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Timesheet, TimesheetResponse, TimesheetRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization", "User", "MediaIn", "MediaOut"},
-		Service:  m.provider.Service,
+		Preloads: []string{
+			"CreatedBy",
+			"UpdatedBy",
+			"Branch",
+			"Organization",
+			"User",
+			"User.Media",
+			"MediaIn", "MediaOut",
+		},
+		Service: m.provider.Service,
 		Resource: func(data *Timesheet) *TimesheetResponse {
 			if data == nil {
 				return nil

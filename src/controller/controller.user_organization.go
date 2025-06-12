@@ -190,7 +190,7 @@ func (c *Controller) UserOrganinzationController() {
 		Note:   "Switch organization and branch stored in JWT (no database impact).",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		organizationId, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
+		userOrgId, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
 		if err != nil {
 			return err
 		}
@@ -198,7 +198,7 @@ func (c *Controller) UserOrganinzationController() {
 		if err != nil {
 			return err
 		}
-		userOrganization, err := c.model.UserOrganizationManager.GetByID(context, *organizationId)
+		userOrganization, err := c.model.UserOrganizationManager.GetByID(context, *userOrgId)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
