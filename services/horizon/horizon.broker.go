@@ -2,6 +2,7 @@ package horizon
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 
@@ -18,32 +19,57 @@ type MessageBrokerService interface {
 	Stop(ctx context.Context) error
 
 	// Publish sends a message to a single topic
-	Publish(ctx context.Context, topic string, payload any) error
+	Publish(ctx context.Context, topic string, payload interface{}) error
 
 	// DispatchBatch sends a message to multiple topics
-	Dispatch(ctx context.Context, topics []string, payload any) error
+	Dispatch(ctx context.Context, topics []string, payload interface{}) error
 
 	// Subscribe registers a message handler for a topic
-	Subscribe(ctx context.Context, topic string, handler func(any) error) error
+	Subscribe(ctx context.Context, topic string, handler func(interface{}) error) error
 }
 
 type HorizonMessageBroker struct {
 	host string
 	port int
+	ssl  bool
 	nc   *nats.Conn
 }
 
-func NewHorizonMessageBroker(host string, port int) MessageBrokerService {
+func NewHorizonMessageBroker(host string, port int, ssl bool) MessageBrokerService {
 	return &HorizonMessageBroker{
 		host: host,
 		port: port,
+		ssl:  ssl,
 	}
 }
 
 // Run implements MessageBroker.
 func (h *HorizonMessageBroker) Run(ctx context.Context) error {
-	natsURL := fmt.Sprintf("nats://%s:%d", h.host, h.port)
-	nc, err := nats.Connect(natsURL)
+	var natsURL string
+	if h.ssl {
+		natsURL = fmt.Sprintf("tls://%s:%d", h.host, h.port)
+	} else {
+		natsURL = fmt.Sprintf("nats://%s:%d", h.host, h.port)
+	}
+
+	options := []nats.Option{
+		nats.ErrorHandler(func(_ *nats.Conn, sub *nats.Subscription, err error) {
+			fmt.Printf("Error in subscription to %s: %v\n", sub.Subject, err)
+		}),
+	}
+
+	if h.ssl {
+		cert, err := tls.LoadX509KeyPair("./certs/origin.crt", "./certs/origin.key")
+		if err != nil {
+			return eris.Wrap(err, "failed to load cert or key for TLS")
+		}
+		tlsConfig := &tls.Config{
+			InsecureSkipVerify: true,
+			Certificates:       []tls.Certificate{cert},
+		}
+		options = append(options, nats.Secure(tlsConfig))
+	}
+	nc, err := nats.Connect(natsURL, options...)
 	if err != nil {
 		return eris.Wrap(err, "failed to connect to NATS")
 	}
@@ -61,7 +87,7 @@ func (h *HorizonMessageBroker) Stop(ctx context.Context) error {
 }
 
 // DispatchBatch implements MessageBroker.
-func (h *HorizonMessageBroker) Dispatch(ctx context.Context, topics []string, payload any) error {
+func (h *HorizonMessageBroker) Dispatch(ctx context.Context, topics []string, payload interface{}) error {
 	if h.nc == nil {
 		return eris.New("NATS connection not initialized")
 	}
@@ -79,7 +105,7 @@ func (h *HorizonMessageBroker) Dispatch(ctx context.Context, topics []string, pa
 }
 
 // Publish implements MessageBroker.
-func (h *HorizonMessageBroker) Publish(ctx context.Context, topic string, payload any) error {
+func (h *HorizonMessageBroker) Publish(ctx context.Context, topic string, payload interface{}) error {
 	if h.nc == nil {
 		return eris.New("NATS connection not initialized")
 	}
@@ -94,12 +120,12 @@ func (h *HorizonMessageBroker) Publish(ctx context.Context, topic string, payloa
 }
 
 // Subscribe implements MessageBroker.
-func (h *HorizonMessageBroker) Subscribe(ctx context.Context, topic string, handler func(any) error) error {
+func (h *HorizonMessageBroker) Subscribe(ctx context.Context, topic string, handler func(interface{}) error) error {
 	if h.nc == nil {
 		return eris.New("NATS connection not initialized")
 	}
 	_, err := h.nc.Subscribe(topic, func(msg *nats.Msg) {
-		var payload map[string]any
+		var payload interface{}
 		if err := json.Unmarshal(msg.Data, &payload); err != nil {
 			fmt.Printf("failed to unmarshal message from topic %s: %v\n", topic, err)
 			return

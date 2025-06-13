@@ -11,6 +11,7 @@ import (
 	"github.com/rotisserie/eris"
 )
 
+// go test -v
 // Cache defines the interface for Redis operations
 type CacheService interface {
 	Run(ctx context.Context) error

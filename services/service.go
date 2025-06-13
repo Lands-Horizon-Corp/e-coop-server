@@ -50,6 +50,19 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 	service.Environment = horizon.NewEnvironmentService(env)
 	isStaging := service.Environment.GetString("APP_ENV", "development") == "staging"
 
+	if cfg.BrokerConfig != nil {
+		service.Broker = horizon.NewHorizonMessageBroker(
+			cfg.BrokerConfig.Host,
+			cfg.BrokerConfig.Port,
+			isStaging,
+		)
+	} else {
+		service.Broker = horizon.NewHorizonMessageBroker(
+			service.Environment.GetString("NATS_HOST", "localhost"),
+			service.Environment.GetInt("NATS_CLIENT_PORT", 4222),
+			isStaging,
+		)
+	}
 	if cfg.RequestServiceConfig != nil {
 		service.Request = horizon.NewHorizonAPIService(
 			cfg.RequestServiceConfig.AppPort,
@@ -146,17 +159,6 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 		)
 	}
 
-	if cfg.BrokerConfig != nil {
-		service.Broker = horizon.NewHorizonMessageBroker(
-			cfg.BrokerConfig.Host,
-			cfg.BrokerConfig.Port,
-		)
-	} else {
-		service.Broker = horizon.NewHorizonMessageBroker(
-			service.Environment.GetString("NATS_HOST", "localhost"),
-			service.Environment.GetInt("NATS_CLIENT_PORT", 4222),
-		)
-	}
 	if cfg.OTPServiceConfig != nil {
 		service.OTP = horizon.NewHorizonOTP(
 			cfg.OTPServiceConfig.Secret,
@@ -229,17 +231,6 @@ func (h *HorizonService) Run(ctx context.Context) error {
 	delay := 3 * time.Second
 	retry := 5
 
-	if h.Cron != nil {
-		printStatus("Cron", "init")
-		if err := horizon.Retry(ctx, retry, delay, func() error {
-			return h.Cron.Run(ctx)
-		}); err != nil {
-			printStatus("Cron", "fail")
-			return err
-		}
-		printStatus("Cron", "ok")
-	}
-
 	if h.Broker != nil {
 		printStatus("Broker", "init")
 		if err := horizon.Retry(ctx, retry, delay, func() error {
@@ -249,6 +240,16 @@ func (h *HorizonService) Run(ctx context.Context) error {
 			return err
 		}
 		printStatus("Broker", "ok")
+	}
+	if h.Cron != nil {
+		printStatus("Cron", "init")
+		if err := horizon.Retry(ctx, retry, delay, func() error {
+			return h.Cron.Run(ctx)
+		}); err != nil {
+			printStatus("Cron", "fail")
+			return err
+		}
+		printStatus("Cron", "ok")
 	}
 
 	if h.Cache != nil {
