@@ -85,6 +85,9 @@ type HorizonAPIService struct {
 	ssl         bool
 
 	routesList []Route
+
+	certPath string
+	keyPath  string
 }
 
 var suspiciousPathPattern = regexp.MustCompile(`(?i)\.(env|yaml|yml|ini|config|conf|xml|git|htaccess|htpasswd|backup|secret|credential|password|private|key|token|dump|database|db|logs|debug)$|dockerfile|Dockerfile`)
@@ -95,6 +98,8 @@ func NewHorizonAPIService(
 	clientURL string,
 	clientName string,
 	ssl bool,
+	certPath string,
+	keyPath string,
 ) APIService {
 	service := echo.New()
 	loadTemplatesIfExists(service, "public/views/*.html")
@@ -195,6 +200,8 @@ func NewHorizonAPIService(
 		clientName:  clientName,
 		routesList:  []Route{},
 		ssl:         ssl,
+		certPath:    certPath,
+		keyPath:     keyPath,
 	}
 }
 
@@ -261,7 +268,7 @@ func (h *HorizonAPIService) Run(ctx context.Context) error {
 		} else {
 			h.service.Logger.Fatal(h.service.StartTLS(
 				fmt.Sprintf(":%d", h.serverPort),
-				"./certs/origin.crt", "./certs/origin.key",
+				h.certPath, h.keyPath,
 			))
 		}
 

@@ -49,18 +49,24 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 	}
 	service.Environment = horizon.NewEnvironmentService(env)
 	isStaging := service.Environment.GetString("APP_ENV", "development") == "staging"
+	certPath := service.Environment.GetString("CERT_PATH", "")
+	keyPath := service.Environment.GetString("KEY_PATH", "")
 
 	if cfg.BrokerConfig != nil {
 		service.Broker = horizon.NewHorizonMessageBroker(
 			cfg.BrokerConfig.Host,
 			cfg.BrokerConfig.Port,
 			isStaging,
+			certPath,
+			keyPath,
 		)
 	} else {
 		service.Broker = horizon.NewHorizonMessageBroker(
 			service.Environment.GetString("NATS_HOST", "localhost"),
 			service.Environment.GetInt("NATS_CLIENT_PORT", 4222),
 			isStaging,
+			certPath,
+			keyPath,
 		)
 	}
 	if cfg.RequestServiceConfig != nil {
@@ -70,6 +76,8 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 			cfg.RequestServiceConfig.ClientURL,
 			cfg.RequestServiceConfig.ClientName,
 			isStaging,
+			certPath,
+			keyPath,
 		)
 	} else {
 		service.Request = horizon.NewHorizonAPIService(
@@ -78,6 +86,8 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 			service.Environment.GetString("APP_CLIENT_URL", "http://localhost:3000"),
 			service.Environment.GetString("APP_CLIENT_NAME", "test-client"),
 			isStaging,
+			certPath,
+			keyPath,
 		)
 	}
 	if cfg.SecurityConfig != nil {
