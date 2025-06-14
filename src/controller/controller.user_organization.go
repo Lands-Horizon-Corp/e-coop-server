@@ -247,7 +247,7 @@ func (c *Controller) UserOrganinzationController() {
 		}
 		userOrganization, err := c.model.GetUserOrganizationByBranch(context, branch.OrganizationID, branch.ID, &isPending)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModels(userOrganization))
 	})
@@ -273,10 +273,14 @@ func (c *Controller) UserOrganinzationController() {
 		if user.ID != userOrganization.UserID {
 			return ctx.NoContent(http.StatusForbidden)
 		}
-		if err := c.userOrganizationToken.SetUserOrganization(context, ctx, userOrganization); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		if userOrganization.UserType == "accepted" {
+			if err := c.userOrganizationToken.SetUserOrganization(context, ctx, userOrganization); err != nil {
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			}
+			return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModel(userOrganization))
 		}
-		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModel(userOrganization))
+		return ctx.JSON(http.StatusForbidden, map[string]string{"error": "switching forbidden - user is " + userOrganization.UserType})
+
 	})
 
 	req.RegisterRoute(horizon.Route{
@@ -305,7 +309,7 @@ func (c *Controller) UserOrganinzationController() {
 		}
 		userOrg.DeveloperSecretKey = developerKey + uuid.NewString() + "-horizon"
 		if err := c.model.UserOrganizationManager.UpdateFields(context, userOrg.ID, userOrg); err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update user: "+err.Error())
+			return echo.NewHTTPError(http.StatusForbidden, "failed to update user: "+err.Error())
 		}
 		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModel(userOrg))
 	})
