@@ -33,8 +33,8 @@ type (
 		SignatureMediaID *uuid.UUID `gorm:"type:uuid"`
 		SignatureMedia   *Media     `gorm:"foreignKey:SignatureMediaID;constraint:OnDelete:SET NULL,OnUpdate:CASCADE;" json:"signature_media,omitempty"`
 
-		UserID uuid.UUID `gorm:"type:uuid;not null"`
-		User   *User     `gorm:"foreignKey:UserID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"user,omitempty"`
+		UserID *uuid.UUID `gorm:"type:uuid"` // Now nullable
+		User   *User      `gorm:"foreignKey:UserID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"user,omitempty"`
 
 		MemberTypeID                   *uuid.UUID            `gorm:"type:uuid"`
 		MemberType                     *MemberType           `gorm:"foreignKey:MemberTypeID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_type,omitempty"`
@@ -267,7 +267,7 @@ func (m *Model) MemberProfile() {
 				Media:                          m.MediaManager.ToModel(data.Media),
 				SignatureMediaID:               data.SignatureMediaID,
 				SignatureMedia:                 m.MediaManager.ToModel(data.SignatureMedia),
-				UserID:                         data.UserID,
+				UserID:                         *data.UserID,
 				User:                           m.UserManager.ToModel(data.User),
 				MemberTypeID:                   data.MemberTypeID,
 				MemberType:                     m.MemberTypeManager.ToModel(data.MemberType),

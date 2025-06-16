@@ -300,7 +300,7 @@ func (c *Controller) MemberProfileController() {
 		if err != nil {
 			return c.NotFound(ctx, fmt.Sprintf("MemberProfile with ID %s not found", memberProfileId))
 		}
-		memberProfile.UserID = *req.UserID
+		memberProfile.UserID = req.UserID
 		if err := c.model.MemberProfileManager.UpdateFields(context, memberProfile.ID, memberProfile); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update member profile by specifying user connection: "+err.Error())
 		}
