@@ -25,7 +25,7 @@ type (
 
 		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_member_verification"`
 		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_member_verification"`
+		BranchID       *uuid.UUID    `gorm:"type:uuid;not null;index:idx_organization_branch_member_verification"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
 		MemberProfileID *uuid.UUID     `gorm:"type:uuid;not null"`
@@ -82,7 +82,7 @@ func (m *Model) MemberVerification() {
 				UpdatedBy:        m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID:   data.OrganizationID,
 				Organization:     m.OrganizationManager.ToModel(data.Organization),
-				BranchID:         data.BranchID,
+				BranchID:         *data.BranchID,
 				Branch:           m.BranchManager.ToModel(data.Branch),
 				MemberProfileID:  *data.MemberProfileID,
 				MemberProfile:    m.MemberProfileManager.ToModel(data.MemberProfile),
@@ -122,6 +122,6 @@ func (m *Model) MemberVerification() {
 func (m *Model) MemberVerificationCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberVerification, error) {
 	return m.MemberVerificationManager.Find(context, &MemberVerification{
 		OrganizationID: orgId,
-		BranchID:       branchId,
+		BranchID:       &branchId,
 	})
 }

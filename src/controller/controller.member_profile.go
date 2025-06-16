@@ -382,7 +382,7 @@ func (c *Controller) MemberProfileController() {
 		}
 		verification := &model.MemberVerification{
 			OrganizationID:  user.OrganizationID,
-			BranchID:        *user.BranchID,
+			BranchID:        user.BranchID,
 			CreatedAt:       time.Now().UTC(),
 			UpdatedAt:       time.Now().UTC(),
 			CreatedByID:     user.UserID,
