@@ -224,8 +224,8 @@ type (
 		Status                 string     `json:"status" validate:"required,max=50"`
 		IsMutualFundMember     bool       `json:"is_mutual_fund_member"`
 		IsMicroFinanceMember   bool       `json:"is_micro_finance_member"`
-		MemberTypeID           uuid.UUID  `json:"member_type_id" validate:"required"`
-		MemberClassificationID uuid.UUID  `json:"member_classification_id" validate:"required"`
+		MemberTypeID           uuid.UUID  `json:"member_type_id"`
+		MemberClassificationID uuid.UUID  `json:"member_classification_id"`
 	}
 )
 
