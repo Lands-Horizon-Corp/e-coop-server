@@ -194,8 +194,8 @@ type (
 		MemberClassificationID     *uuid.UUID `json:"member_classification_id,omitempty"`
 		MemberCenterID             *uuid.UUID `json:"member_center_id,omitempty"`
 		RecruitedByMemberProfileID *uuid.UUID `json:"recruited_by_member_profile_id,omitempty"`
-		IsMutualFundMember         *bool      `json:"is_mutual_fund_member,omitempty"`
-		IsMicroFinanceMember       *bool      `json:"is_micro_finance_member,omitempty"`
+		IsMutualFundMember         bool       `json:"is_mutual_fund_member"`
+		IsMicroFinanceMember       bool       `json:"is_micro_finance_member"`
 	}
 
 	MemberProfileAccountRequest struct {

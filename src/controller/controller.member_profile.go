@@ -487,7 +487,6 @@ func (c *Controller) MemberProfileController() {
 		profile.Passbook = req.Passbook
 		profile.OldReferenceID = req.OldReferenceID
 		profile.Status = req.Status
-
 		if profile.MemberTypeID != req.MemberTypeID {
 			profile.MemberTypeID = req.MemberTypeID
 			if err := c.model.MemberTypeHistoryManager.Create(context, &model.MemberTypeHistory{
@@ -502,9 +501,7 @@ func (c *Controller) MemberProfileController() {
 			}); err != nil {
 				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could update member profile: %v", err))
 			}
-
 		}
-
 		// Compare and set MemberGroupID with history
 		if profile.MemberGroupID != req.MemberGroupID {
 			if err := c.model.MemberGroupHistoryManager.Create(context, &model.MemberGroupHistory{
@@ -521,7 +518,6 @@ func (c *Controller) MemberProfileController() {
 			}
 			profile.MemberGroupID = req.MemberGroupID
 		}
-
 		// Compare and set MemberClassificationID with history
 		if profile.MemberClassificationID != req.MemberClassificationID {
 			if err := c.model.MemberClassificationHistoryManager.Create(context, &model.MemberClassificationHistory{
@@ -538,7 +534,6 @@ func (c *Controller) MemberProfileController() {
 			}
 			profile.MemberClassificationID = req.MemberClassificationID
 		}
-
 		// Compare and set MemberCenterID with history
 		if profile.MemberCenterID != req.MemberCenterID {
 			if err := c.model.MemberCenterHistoryManager.Create(context, &model.MemberCenterHistory{
@@ -554,16 +549,14 @@ func (c *Controller) MemberProfileController() {
 			}
 			profile.MemberCenterID = req.MemberCenterID
 		}
-
 		profile.RecruitedByMemberProfileID = req.RecruitedByMemberProfileID
-		profile.IsMutualFundMember = *req.IsMutualFundMember
-		profile.IsMicroFinanceMember = *req.IsMicroFinanceMember
+		profile.IsMutualFundMember = req.IsMutualFundMember
+		profile.IsMicroFinanceMember = req.IsMicroFinanceMember
 		if err := c.model.MemberProfileManager.UpdateFields(context, profile.ID, profile); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could update member profile: %v", err))
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(profile))
 	})
-
 }
 
 func (c *Controller) MemberEducationalAttainmentController() {
