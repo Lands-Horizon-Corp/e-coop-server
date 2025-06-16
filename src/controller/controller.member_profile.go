@@ -133,6 +133,9 @@ func (c *Controller) MemberProfileController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
+		fmt.Println(value)
+		fmt.Println(len(value))
+		fmt.Println("---")
 		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.Pagination(context, ctx, value))
 	})
 
