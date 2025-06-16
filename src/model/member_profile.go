@@ -159,7 +159,6 @@ type (
 		ContactNumber                  string     `json:"contact_number,omitempty"`
 		OldReferenceID                 string     `json:"old_reference_id,omitempty"`
 		Passbook                       string     `json:"passbook,omitempty"`
-		Occupation                     string     `json:"occupation,omitempty"`
 		BusinessAddress                string     `json:"business_address,omitempty"`
 		BusinessContactNumber          string     `json:"business_contact_number,omitempty"`
 		CivilStatus                    string     `json:"civil_status,omitempty"`
@@ -179,7 +178,7 @@ type (
 		SignatureMediaID *uuid.UUID `json:"signature_media_id,omitempty"`
 		CivilStatus      string     `json:"civil_status" validate:"required,oneof=single married widowed separated divorced"` // Adjust the allowed values as needed
 
-		MemberOccupationID    *uuid.UUID `json:"occupation_id,omitempty"`
+		MemberOccupationID    *uuid.UUID `json:"member_occupation_id,omitempty"`
 		BusinessAddress       string     `json:"business_address,omitempty" validate:"max=255"`
 		BusinessContactNumber string     `json:"business_contact_number,omitempty" validate:"max=255"`
 		Notes                 string     `json:"notes,omitempty"`
@@ -221,7 +220,7 @@ type (
 		BirthDate            *time.Time `json:"birth_date,omitempty"`
 		ContactNumber        string     `json:"contact_number,omitempty" validate:"max=255"`
 		CivilStatus          string     `json:"civil_status" validate:"required,oneof=single married widowed separated divorced"` // adjust allowed values as needed
-		MemberOccupationID   *uuid.UUID `json:"occupation_id,omitempty"`
+		MemberOccupationID   *uuid.UUID `json:"member_occupation_id,omitempty"`
 		Status               string     `json:"status" validate:"required,max=50"`
 		IsMutualFundMember   bool       `json:"is_mutual_fund_member"`
 		IsMicroFinanceMember bool       `json:"is_micro_finance_member"`
