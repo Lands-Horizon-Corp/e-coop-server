@@ -149,7 +149,7 @@ func (c *Controller) MemberProfileController() {
 		}
 		memberVerification, err := c.model.MemberVerificationManager.Find(context, &model.MemberVerification{
 			OrganizationID: userOrg.OrganizationID,
-			BranchID:       *userOrg.BranchID,
+			BranchID:       userOrg.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
