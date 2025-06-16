@@ -375,8 +375,8 @@ func (c *Controller) MemberProfileController() {
 			Status:                 req.Status,
 			IsMutualFundMember:     req.IsMutualFundMember,
 			IsMicroFinanceMember:   req.IsMicroFinanceMember,
-			MemberTypeID:           &req.MemberTypeID,
-			MemberClassificationID: &req.MemberClassificationID,
+			MemberTypeID:           req.MemberTypeID,
+			MemberClassificationID: req.MemberClassificationID,
 		}
 		if err := c.model.MemberProfileManager.CreateWithTx(context, tx, profile); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not create member profile: %v", err))
