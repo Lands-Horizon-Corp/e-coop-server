@@ -137,27 +137,6 @@ func (c *Controller) MemberProfileController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-verification",
-		Method:   "GET",
-		Response: "[]MemberVerification",
-		Note:     "Retrieve a list of all member profiles.",
-	}, func(ctx echo.Context) error {
-		context := ctx.Request().Context()
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
-		if err != nil {
-			return err
-		}
-		memberVerification, err := c.model.MemberVerificationManager.Find(context, &model.MemberVerification{
-			OrganizationID: userOrg.OrganizationID,
-			BranchID:       userOrg.BranchID,
-		})
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-		}
-		return ctx.JSON(http.StatusOK, c.model.MemberVerificationManager.ToModels(memberVerification))
-	})
-
-	req.RegisterRoute(horizon.Route{
 		Route:    "/member-profile/:member_profile_id",
 		Method:   "GET",
 		Response: "MemberProfile",
@@ -379,19 +358,6 @@ func (c *Controller) MemberProfileController() {
 		}
 		if err := c.model.MemberProfileManager.CreateWithTx(context, tx, profile); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not create member profile: %v", err))
-		}
-		verification := &model.MemberVerification{
-			OrganizationID:  user.OrganizationID,
-			BranchID:        user.BranchID,
-			CreatedAt:       time.Now().UTC(),
-			UpdatedAt:       time.Now().UTC(),
-			CreatedByID:     user.UserID,
-			UpdatedByID:     user.UserID,
-			MemberProfileID: &profile.ID,
-			Status:          "pending",
-		}
-		if err := c.model.MemberVerificationManager.CreateWithTx(context, tx, verification); err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not create member verification: %v", err))
 		}
 		if err := tx.Commit().Error; err != nil {
 			return c.InternalServerError(ctx, err)
