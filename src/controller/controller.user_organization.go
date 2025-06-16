@@ -273,7 +273,7 @@ func (c *Controller) UserOrganinzationController() {
 		if user.ID != userOrganization.UserID {
 			return ctx.NoContent(http.StatusForbidden)
 		}
-		if userOrganization.UserType == "accepted" {
+		if userOrganization.ApplicationStatus == "accepted" {
 			if err := c.userOrganizationToken.SetUserOrganization(context, ctx, userOrganization); err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 			}
