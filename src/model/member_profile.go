@@ -176,11 +176,13 @@ type (
 		BirthDate      *time.Time `json:"birth_date,omitempty"`
 		ContactNumber  string     `json:"contact_number,omitempty" validate:"max=255"`
 
-		CivilStatus string `json:"civil_status" validate:"required,oneof=single married widowed separated divorced"` // Adjust the allowed values as needed
+		MediaID          *uuid.UUID `json:"media_id,omitempty"`
+		SignatureMediaID *uuid.UUID `json:"signature_media_id,omitempty"`
+		CivilStatus      string     `json:"civil_status" validate:"required,oneof=single married widowed separated divorced"` // Adjust the allowed values as needed
 
 		MemberOccupationID    *uuid.UUID `json:"occupation_id,omitempty"`
 		BusinessAddress       string     `json:"business_address,omitempty" validate:"max=255"`
-		BusinessContactNumber string     `json:"business_contact,omitempty" validate:"max=255"`
+		BusinessContactNumber string     `json:"business_contact_number,omitempty" validate:"max=255"`
 		Notes                 string     `json:"notes,omitempty"`
 		Description           string     `json:"description,omitempty"`
 	}

@@ -408,6 +408,8 @@ func (c *Controller) MemberProfileController() {
 		profile.BusinessContactNumber = req.BusinessContactNumber
 		profile.Notes = req.Notes
 		profile.Description = req.Description
+		profile.MediaID = req.MediaID
+		profile.SignatureMediaID = req.SignatureMediaID
 		if err := c.model.MemberProfileManager.UpdateFields(context, profile.ID, profile); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could update member profile: %v", err))
 		}
