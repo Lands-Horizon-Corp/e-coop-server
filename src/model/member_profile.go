@@ -92,7 +92,7 @@ type (
 		Media                          *MediaResponse                `json:"media,omitempty"`
 		SignatureMediaID               *uuid.UUID                    `json:"signature_media_id,omitempty"`
 		SignatureMedia                 *MediaResponse                `json:"signature_media,omitempty"`
-		UserID                         uuid.UUID                     `json:"user_id"`
+		UserID                         *uuid.UUID                    `json:"user_id,omitempty"`
 		User                           *UserResponse                 `json:"user,omitempty"`
 		MemberTypeID                   *uuid.UUID                    `json:"member_type_id,omitempty"`
 		MemberType                     *MemberTypeResponse           `json:"member_type,omitempty"`
@@ -267,7 +267,7 @@ func (m *Model) MemberProfile() {
 				Media:                          m.MediaManager.ToModel(data.Media),
 				SignatureMediaID:               data.SignatureMediaID,
 				SignatureMedia:                 m.MediaManager.ToModel(data.SignatureMedia),
-				UserID:                         *data.UserID,
+				UserID:                         data.UserID,
 				User:                           m.UserManager.ToModel(data.User),
 				MemberTypeID:                   data.MemberTypeID,
 				MemberType:                     m.MemberTypeManager.ToModel(data.MemberType),
