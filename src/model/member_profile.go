@@ -125,7 +125,6 @@ type (
 		ContactNumber                  string                        `json:"contact_number"`
 		OldReferenceID                 string                        `json:"old_reference_id"`
 		Passbook                       string                        `json:"passbook"`
-		Occupation                     string                        `json:"occupation"`
 		BusinessAddress                string                        `json:"business_address"`
 		BusinessContactNumber          string                        `json:"business_contact_number"`
 		CivilStatus                    string                        `json:"civil_status"`
@@ -300,7 +299,6 @@ func (m *Model) MemberProfile() {
 				ContactNumber:                  data.ContactNumber,
 				OldReferenceID:                 data.OldReferenceID,
 				Passbook:                       data.Passbook,
-				Occupation:                     data.Occupation,
 				BusinessAddress:                data.BusinessAddress,
 				BusinessContactNumber:          data.BusinessContactNumber,
 				CivilStatus:                    data.CivilStatus,

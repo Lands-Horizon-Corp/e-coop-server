@@ -187,7 +187,7 @@ func (c *Controller) MemberProfileController() {
 		Route:   "/member-profile/bulk-delete",
 		Method:  "DELETE",
 		Request: "string[]",
-		Note:    "Delete multiple member profile records",
+		Note:    "Delete multiple member profile records and all their connections",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody struct {
@@ -208,13 +208,52 @@ func (c *Controller) MemberProfileController() {
 		for _, rawID := range reqBody.IDs {
 			memberProfileID, err := uuid.Parse(rawID)
 			if err != nil {
+				tx.Rollback()
 				return c.BadRequest(ctx, fmt.Sprintf("Invalid UUID: %s", rawID))
 			}
-			memberProfile, err := c.model.MemberProfileManager.GetByID(context, memberProfileID)
-			if err != nil {
-				return c.NotFound(ctx, fmt.Sprintf("MemberProfile with ID %s not found", rawID))
+
+			// Delete all connections for this member profile
+			if err := c.model.MemberAddressManager.DeleteByIDWithTx(context, tx, memberProfileID); err != nil {
+				tx.Rollback()
+				return c.InternalServerError(ctx, err)
 			}
-			if err := c.model.MemberProfileDelete(context, tx, memberProfile.ID); err != nil {
+			if err := c.model.MemberAssetManager.DeleteByIDWithTx(context, tx, memberProfileID); err != nil {
+				tx.Rollback()
+				return c.InternalServerError(ctx, err)
+			}
+			if err := c.model.MemberIncomeManager.DeleteByIDWithTx(context, tx, memberProfileID); err != nil {
+				tx.Rollback()
+				return c.InternalServerError(ctx, err)
+			}
+			if err := c.model.MemberExpenseManager.DeleteByIDWithTx(context, tx, memberProfileID); err != nil {
+				tx.Rollback()
+				return c.InternalServerError(ctx, err)
+			}
+			if err := c.model.MemberGovernmentBenefitManager.DeleteByIDWithTx(context, tx, memberProfileID); err != nil {
+				tx.Rollback()
+				return c.InternalServerError(ctx, err)
+			}
+			if err := c.model.MemberJointAccountManager.DeleteByIDWithTx(context, tx, memberProfileID); err != nil {
+				tx.Rollback()
+				return c.InternalServerError(ctx, err)
+			}
+			if err := c.model.MemberRelativeAccountManager.DeleteByIDWithTx(context, tx, memberProfileID); err != nil {
+				tx.Rollback()
+				return c.InternalServerError(ctx, err)
+			}
+			if err := c.model.MemberEducationalAttainmentManager.DeleteByIDWithTx(context, tx, memberProfileID); err != nil {
+				tx.Rollback()
+				return c.InternalServerError(ctx, err)
+			}
+			if err := c.model.MemberContactReferenceManager.DeleteByIDWithTx(context, tx, memberProfileID); err != nil {
+				tx.Rollback()
+				return c.InternalServerError(ctx, err)
+			}
+			// Add more connections here as needed (e.g., remarks, histories, etc.)
+
+			// Finally, delete the member profile itself
+			if err := c.model.MemberProfileDelete(context, tx, memberProfileID); err != nil {
+				tx.Rollback()
 				return c.InternalServerError(ctx, err)
 			}
 		}
