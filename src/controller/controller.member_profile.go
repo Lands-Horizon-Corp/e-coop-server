@@ -388,7 +388,7 @@ func (c *Controller) MemberProfileController() {
 			UpdatedAt:       time.Now().UTC(),
 			CreatedByID:     user.UserID,
 			UpdatedByID:     user.UserID,
-			MemberProfileID: profile.ID,
+			MemberProfileID: &profile.ID,
 			Status:          "pending",
 		}
 		if err := c.model.MemberVerificationManager.CreateWithTx(context, tx, verification); err != nil {
