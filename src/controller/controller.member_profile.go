@@ -338,6 +338,7 @@ func (c *Controller) MemberProfileController() {
 			UpdatedAt:            time.Now().UTC(),
 			CreatedByID:          user.UserID,
 			UpdatedByID:          user.UserID,
+			UserID:               nil,
 			OldReferenceID:       req.OldReferenceID,
 			Passbook:             req.Passbook,
 			FirstName:            req.FirstName,
