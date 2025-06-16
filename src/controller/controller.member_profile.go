@@ -133,9 +133,6 @@ func (c *Controller) MemberProfileController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
-		fmt.Println(value)
-		fmt.Println(len(value))
-		fmt.Println("---")
 		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.Pagination(context, ctx, value))
 	})
 
@@ -356,30 +353,29 @@ func (c *Controller) MemberProfileController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
 		}
 		profile := &model.MemberProfile{
-			OrganizationID:         user.OrganizationID,
-			BranchID:               *user.BranchID,
-			UserID:                 user.UserID,
-			CreatedAt:              time.Now().UTC(),
-			UpdatedAt:              time.Now().UTC(),
-			CreatedByID:            user.UserID,
-			UpdatedByID:            user.UserID,
-			OldReferenceID:         req.OldReferenceID,
-			Passbook:               req.Passbook,
-			FirstName:              req.FirstName,
-			MiddleName:             req.MiddleName,
-			LastName:               req.LastName,
-			FullName:               req.FullName,
-			Suffix:                 req.Suffix,
-			MemberGenderID:         req.MemberGenderID,
-			BirthDate:              req.BirthDate,
-			ContactNumber:          req.ContactNumber,
-			CivilStatus:            req.CivilStatus,
-			MemberOccupationID:     req.MemberOccupationID,
-			Status:                 req.Status,
-			IsMutualFundMember:     req.IsMutualFundMember,
-			IsMicroFinanceMember:   req.IsMicroFinanceMember,
-			MemberTypeID:           req.MemberTypeID,
-			MemberClassificationID: req.MemberClassificationID,
+			OrganizationID:       user.OrganizationID,
+			BranchID:             *user.BranchID,
+			UserID:               user.UserID,
+			CreatedAt:            time.Now().UTC(),
+			UpdatedAt:            time.Now().UTC(),
+			CreatedByID:          user.UserID,
+			UpdatedByID:          user.UserID,
+			OldReferenceID:       req.OldReferenceID,
+			Passbook:             req.Passbook,
+			FirstName:            req.FirstName,
+			MiddleName:           req.MiddleName,
+			LastName:             req.LastName,
+			FullName:             req.FullName,
+			Suffix:               req.Suffix,
+			MemberGenderID:       req.MemberGenderID,
+			BirthDate:            req.BirthDate,
+			ContactNumber:        req.ContactNumber,
+			CivilStatus:          req.CivilStatus,
+			MemberOccupationID:   req.MemberOccupationID,
+			Status:               req.Status,
+			IsMutualFundMember:   req.IsMutualFundMember,
+			IsMicroFinanceMember: req.IsMicroFinanceMember,
+			MemberTypeID:         req.MemberTypeID,
 		}
 		if err := c.model.MemberProfileManager.CreateWithTx(context, tx, profile); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not create member profile: %v", err))
