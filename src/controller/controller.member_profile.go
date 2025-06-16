@@ -334,7 +334,6 @@ func (c *Controller) MemberProfileController() {
 		profile := &model.MemberProfile{
 			OrganizationID:       user.OrganizationID,
 			BranchID:             *user.BranchID,
-			UserID:               user.UserID,
 			CreatedAt:            time.Now().UTC(),
 			UpdatedAt:            time.Now().UTC(),
 			CreatedByID:          user.UserID,
