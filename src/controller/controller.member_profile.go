@@ -489,82 +489,77 @@ func (c *Controller) MemberProfileController() {
 		profile.Status = req.Status
 
 		// MemberTypeID
-		if profile.MemberTypeID != req.MemberTypeID {
-			if req.MemberTypeID != nil {
-				if err := c.model.MemberTypeHistoryManager.Create(context, &model.MemberTypeHistory{
-					OrganizationID:  user.OrganizationID,
-					BranchID:        *user.BranchID,
-					CreatedAt:       time.Now().UTC(),
-					UpdatedAt:       time.Now().UTC(),
-					CreatedByID:     user.UserID,
-					UpdatedByID:     user.UserID,
-					MemberProfileID: profile.ID,
-					MemberTypeID:    *req.MemberTypeID,
-				}); err != nil {
-					return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could update member profile: %v", err))
-				}
+		if profile.MemberTypeID != &req.MemberTypeID {
+			if err := c.model.MemberTypeHistoryManager.Create(context, &model.MemberTypeHistory{
+				OrganizationID:  user.OrganizationID,
+				BranchID:        *user.BranchID,
+				CreatedAt:       time.Now().UTC(),
+				UpdatedAt:       time.Now().UTC(),
+				CreatedByID:     user.UserID,
+				UpdatedByID:     user.UserID,
+				MemberProfileID: profile.ID,
+				MemberTypeID:    req.MemberTypeID,
+			}); err != nil {
+				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could update member profile: %v", err))
+
 			}
-			profile.MemberTypeID = req.MemberTypeID
+			profile.MemberTypeID = &req.MemberTypeID
 		}
 
 		// MemberGroupID
-		if profile.MemberGroupID != req.MemberGroupID {
-			if req.MemberGroupID != nil {
-				if err := c.model.MemberGroupHistoryManager.Create(context, &model.MemberGroupHistory{
-					OrganizationID:  user.OrganizationID,
-					BranchID:        *user.BranchID,
-					CreatedAt:       time.Now().UTC(),
-					UpdatedAt:       time.Now().UTC(),
-					CreatedByID:     user.UserID,
-					UpdatedByID:     user.UserID,
-					MemberProfileID: profile.ID,
-					MemberGroupID:   *req.MemberGroupID,
-				}); err != nil {
-					return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not update member group history: %v", err))
-				}
+		if profile.MemberGroupID != &req.MemberGroupID {
+
+			if err := c.model.MemberGroupHistoryManager.Create(context, &model.MemberGroupHistory{
+				OrganizationID:  user.OrganizationID,
+				BranchID:        *user.BranchID,
+				CreatedAt:       time.Now().UTC(),
+				UpdatedAt:       time.Now().UTC(),
+				CreatedByID:     user.UserID,
+				UpdatedByID:     user.UserID,
+				MemberProfileID: profile.ID,
+				MemberGroupID:   req.MemberGroupID,
+			}); err != nil {
+				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not update member group history: %v", err))
 			}
-			profile.MemberGroupID = req.MemberGroupID
+			profile.MemberGroupID = &req.MemberGroupID
 		}
 
 		// MemberClassificationID
-		if profile.MemberClassificationID != req.MemberClassificationID {
-			if req.MemberClassificationID != nil {
-				if err := c.model.MemberClassificationHistoryManager.Create(context, &model.MemberClassificationHistory{
-					OrganizationID:         user.OrganizationID,
-					BranchID:               *user.BranchID,
-					CreatedAt:              time.Now().UTC(),
-					UpdatedAt:              time.Now().UTC(),
-					CreatedByID:            user.UserID,
-					UpdatedByID:            user.UserID,
-					MemberProfileID:        profile.ID,
-					MemberClassificationID: *req.MemberClassificationID,
-				}); err != nil {
-					return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not update member classification history: %v", err))
-				}
+		if profile.MemberClassificationID != &req.MemberClassificationID {
+			if err := c.model.MemberClassificationHistoryManager.Create(context, &model.MemberClassificationHistory{
+				OrganizationID:         user.OrganizationID,
+				BranchID:               *user.BranchID,
+				CreatedAt:              time.Now().UTC(),
+				UpdatedAt:              time.Now().UTC(),
+				CreatedByID:            user.UserID,
+				UpdatedByID:            user.UserID,
+				MemberProfileID:        profile.ID,
+				MemberClassificationID: req.MemberClassificationID,
+			}); err != nil {
+				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not update member classification history: %v", err))
 			}
-			profile.MemberClassificationID = req.MemberClassificationID
+			profile.MemberClassificationID = &req.MemberClassificationID
 		}
 
 		// MemberCenterID
-		if profile.MemberCenterID != req.MemberCenterID {
-			if req.MemberCenterID != nil {
-				if err := c.model.MemberCenterHistoryManager.Create(context, &model.MemberCenterHistory{
-					OrganizationID:  user.OrganizationID,
-					BranchID:        *user.BranchID,
-					CreatedAt:       time.Now().UTC(),
-					UpdatedAt:       time.Now().UTC(),
-					CreatedByID:     user.UserID,
-					UpdatedByID:     user.UserID,
-					MemberProfileID: profile.ID,
-					MemberCenterID:  *req.MemberCenterID,
-				}); err != nil {
-					return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not update member center history: %v", err))
-				}
+		if profile.MemberCenterID != &req.MemberCenterID {
+			if err := c.model.MemberCenterHistoryManager.Create(context, &model.MemberCenterHistory{
+				OrganizationID:  user.OrganizationID,
+				BranchID:        *user.BranchID,
+				CreatedAt:       time.Now().UTC(),
+				UpdatedAt:       time.Now().UTC(),
+				CreatedByID:     user.UserID,
+				UpdatedByID:     user.UserID,
+				MemberProfileID: profile.ID,
+				MemberCenterID:  req.MemberCenterID,
+			}); err != nil {
+				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not update member center history: %v", err))
 			}
-			profile.MemberCenterID = req.MemberCenterID
+
+			profile.MemberCenterID = &req.MemberCenterID
 		}
 
-		profile.RecruitedByMemberProfileID = req.RecruitedByMemberProfileID
+		profile.RecruitedByMemberProfileID = &req.RecruitedByMemberProfileID
 		profile.IsMutualFundMember = req.IsMutualFundMember
 		profile.IsMicroFinanceMember = req.IsMicroFinanceMember
 
