@@ -206,25 +206,33 @@ type (
 		MediaID          *uuid.UUID `json:"media_id,omitempty"`
 		SignatureMediaID *uuid.UUID `json:"signature_media_id,omitempty"`
 	}
+
+	AccountInfo struct {
+		UserName string `json:"user_name" validate:"required,min=1,max=255"`
+		Email    string `json:"email" validate:"required,email,max=255"`
+		Password string `json:"password" validate:"required,min=6,max=128"`
+	}
+
 	MemberProfileQuickCreateRequest struct {
-		OldReferenceID       string     `json:"old_reference_id,omitempty" validate:"max=50"`
-		Passbook             string     `json:"passbook,omitempty" validate:"max=255"`
-		OrganizationID       uuid.UUID  `json:"organization_id" validate:"required"`
-		BranchID             uuid.UUID  `json:"branch_id" validate:"required"`
-		FirstName            string     `json:"first_name" validate:"required,min=1,max=255"`
-		MiddleName           string     `json:"middle_name,omitempty" validate:"max=255"`
-		LastName             string     `json:"last_name" validate:"required,min=1,max=255"`
-		FullName             string     `json:"full_name,omitempty" validate:"max=255"`
-		Suffix               string     `json:"suffix,omitempty" validate:"max=50"`
-		MemberGenderID       *uuid.UUID `json:"member_gender_id,omitempty"`
-		BirthDate            *time.Time `json:"birth_date,omitempty"`
-		ContactNumber        string     `json:"contact_number,omitempty" validate:"max=255"`
-		CivilStatus          string     `json:"civil_status" validate:"required,oneof=single married widowed separated divorced"` // adjust allowed values as needed
-		MemberOccupationID   *uuid.UUID `json:"member_occupation_id,omitempty"`
-		Status               string     `json:"status" validate:"required,max=50"`
-		IsMutualFundMember   bool       `json:"is_mutual_fund_member"`
-		IsMicroFinanceMember bool       `json:"is_micro_finance_member"`
-		MemberTypeID         *uuid.UUID `json:"member_type_id"`
+		OldReferenceID       string       `json:"old_reference_id,omitempty" validate:"max=50"`
+		Passbook             string       `json:"passbook,omitempty" validate:"max=255"`
+		OrganizationID       uuid.UUID    `json:"organization_id" validate:"required"`
+		BranchID             uuid.UUID    `json:"branch_id" validate:"required"`
+		FirstName            string       `json:"first_name" validate:"required,min=1,max=255"`
+		MiddleName           string       `json:"middle_name,omitempty" validate:"max=255"`
+		LastName             string       `json:"last_name" validate:"required,min=1,max=255"`
+		FullName             string       `json:"full_name,omitempty" validate:"max=255"`
+		Suffix               string       `json:"suffix,omitempty" validate:"max=50"`
+		MemberGenderID       *uuid.UUID   `json:"member_gender_id,omitempty"`
+		BirthDate            *time.Time   `json:"birth_date,omitempty"`
+		ContactNumber        string       `json:"contact_number,omitempty" validate:"max=255"`
+		CivilStatus          string       `json:"civil_status" validate:"required,oneof=single married widowed separated divorced"` // adjust allowed values as needed
+		MemberOccupationID   *uuid.UUID   `json:"member_occupation_id,omitempty"`
+		Status               string       `json:"status" validate:"required,max=50"`
+		IsMutualFundMember   bool         `json:"is_mutual_fund_member"`
+		IsMicroFinanceMember bool         `json:"is_micro_finance_member"`
+		MemberTypeID         *uuid.UUID   `json:"member_type_id"`
+		AccountInfo          *AccountInfo `json:"account_info,omitempty" validate:"omitempty,dive"`
 	}
 )
 

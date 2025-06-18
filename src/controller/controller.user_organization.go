@@ -335,15 +335,16 @@ func (c *Controller) UserOrganinzationController() {
 				"error": "invitation code not found",
 			})
 		}
-		if invitationCode.UserType == "member" {
+		switch invitationCode.UserType {
+		case "member":
 			if !c.model.UserOrganizationMemberCanJoin(context, user.ID, invitationCode.OrganizationID, invitationCode.BranchID) {
 				return ctx.JSON(http.StatusForbidden, map[string]string{"error": "cannot join as member"})
 			}
-		} else if invitationCode.UserType == "employee" {
+		case "employee":
 			if !c.model.UserOrganizationEmployeeCanJoin(context, user.ID, invitationCode.OrganizationID, invitationCode.BranchID) {
 				return ctx.JSON(http.StatusForbidden, map[string]string{"error": "cannot join as employee"})
 			}
-		} else {
+		default:
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "cannot join as employee"})
 		}
 
@@ -388,6 +389,7 @@ func (c *Controller) UserOrganinzationController() {
 
 		}
 		if err := c.model.UserOrganizationManager.CreateWithTx(context, tx, userOrg); err != nil {
+			tx.Rollback()
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": err.Error()})
 		}
 		if err := tx.Commit().Error; err != nil {

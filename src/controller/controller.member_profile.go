@@ -365,6 +365,10 @@ func (c *Controller) MemberProfileController() {
 		if err != nil {
 			return ctx.NoContent(http.StatusNoContent)
 		}
+		hashedPwd, err := c.provider.Service.Security.HashPassword(context, req.AccountInfo.Password)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to hash password")
+		}
 		tx := c.provider.Service.Database.Client().Begin()
 		if tx.Error != nil {
 			tx.Rollback()
@@ -396,8 +400,67 @@ func (c *Controller) MemberProfileController() {
 			MemberTypeID:         req.MemberTypeID,
 		}
 		if err := c.model.MemberProfileManager.CreateWithTx(context, tx, profile); err != nil {
+			tx.Rollback()
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not create member profile: %v", err))
 		}
+		userProfile := &model.User{
+			Email:         req.AccountInfo.Email,
+			UserName:      req.AccountInfo.UserName,
+			ContactNumber: req.ContactNumber,
+			Password:      hashedPwd,
+
+			FullName:   &req.FullName,
+			FirstName:  &req.FirstName,
+			MiddleName: &req.MiddleName,
+			LastName:   &req.LastName,
+			Suffix:     &req.Suffix,
+
+			IsEmailVerified:   false,
+			IsContactVerified: false,
+			CreatedAt:         time.Now().UTC(),
+			UpdatedAt:         time.Now().UTC(),
+		}
+		if err := c.model.UserManager.CreateWithTx(context, tx, userProfile); err != nil {
+			tx.Rollback()
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not create user profile: %v", err))
+		}
+		developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, user.ID.String())
+		if err != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "something wrong generting developer key"})
+		}
+
+		developerKey = developerKey + uuid.NewString() + "-horizon"
+		userOrg := &model.UserOrganization{
+			CreatedAt:              time.Now().UTC(),
+			CreatedByID:            user.ID,
+			UpdatedAt:              time.Now().UTC(),
+			UpdatedByID:            user.ID,
+			OrganizationID:         user.OrganizationID,
+			BranchID:               user.BranchID,
+			UserID:                 user.ID,
+			UserType:               "member",
+			Description:            "",
+			ApplicationDescription: "anything",
+			ApplicationStatus:      "pending",
+			DeveloperSecretKey:     developerKey,
+			PermissionName:         "member",
+			PermissionDescription:  "",
+			Permissions:            []string{},
+
+			UserSettingDescription:  "user settings",
+			UserSettingStartOR:      0,
+			UserSettingEndOR:        0,
+			UserSettingUsedOR:       0,
+			UserSettingStartVoucher: 0,
+			UserSettingEndVoucher:   0,
+			UserSettingUsedVoucher:  0,
+		}
+		if err := c.model.UserOrganizationManager.CreateWithTx(context, tx, userOrg); err != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": err.Error()})
+		}
+
 		if err := tx.Commit().Error; err != nil {
 			return c.InternalServerError(ctx, err)
 		}
@@ -538,7 +601,7 @@ func (c *Controller) MemberProfileController() {
 			}); err != nil {
 				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not update member classification history: %v", err))
 			}
-			profile.MemberClassificationID = &req.MemberClassificationID
+
 		}
 
 		// MemberCenterID
