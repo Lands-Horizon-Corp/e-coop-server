@@ -123,6 +123,8 @@ func FilterSlice[T any](ctx context.Context, data []*T, filters []Filter, logic 
 		matches := logic == FilterLogicAnd
 		for _, filter := range filters {
 			fieldVal := findFieldByTagOrName(val, filter.Field)
+			fmt.Println(fieldVal, filter.Field, filter.DataType, filter.Mode, filter.Value)
+			fmt.Println("---------------------")
 			if !fieldVal.IsValid() {
 				// Treat missing field as non-match for this filter
 				if logic == FilterLogicAnd {
