@@ -370,39 +370,6 @@ func (c *Controller) MemberProfileController() {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to hash password")
 		}
 		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
-		}
-		profile := &model.MemberProfile{
-			OrganizationID:       user.OrganizationID,
-			BranchID:             *user.BranchID,
-			CreatedAt:            time.Now().UTC(),
-			UpdatedAt:            time.Now().UTC(),
-			CreatedByID:          user.UserID,
-			UpdatedByID:          user.UserID,
-			UserID:               nil,
-			OldReferenceID:       req.OldReferenceID,
-			Passbook:             req.Passbook,
-			FirstName:            req.FirstName,
-			MiddleName:           req.MiddleName,
-			LastName:             req.LastName,
-			FullName:             req.FullName,
-			Suffix:               req.Suffix,
-			MemberGenderID:       req.MemberGenderID,
-			BirthDate:            req.BirthDate,
-			ContactNumber:        req.ContactNumber,
-			CivilStatus:          req.CivilStatus,
-			MemberOccupationID:   req.MemberOccupationID,
-			Status:               req.Status,
-			IsMutualFundMember:   req.IsMutualFundMember,
-			IsMicroFinanceMember: req.IsMicroFinanceMember,
-			MemberTypeID:         req.MemberTypeID,
-		}
-		if err := c.model.MemberProfileManager.CreateWithTx(context, tx, profile); err != nil {
-			tx.Rollback()
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not create member profile: %v", err))
-		}
 		userProfile := &model.User{
 			Email:         req.AccountInfo.Email,
 			UserName:      req.AccountInfo.UserName,
@@ -424,6 +391,40 @@ func (c *Controller) MemberProfileController() {
 			tx.Rollback()
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not create user profile: %v", err))
 		}
+		if tx.Error != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+		}
+		profile := &model.MemberProfile{
+			OrganizationID:       user.OrganizationID,
+			BranchID:             *user.BranchID,
+			CreatedAt:            time.Now().UTC(),
+			UpdatedAt:            time.Now().UTC(),
+			CreatedByID:          user.UserID,
+			UpdatedByID:          user.UserID,
+			UserID:               &userProfile.ID,
+			OldReferenceID:       req.OldReferenceID,
+			Passbook:             req.Passbook,
+			FirstName:            req.FirstName,
+			MiddleName:           req.MiddleName,
+			LastName:             req.LastName,
+			FullName:             req.FullName,
+			Suffix:               req.Suffix,
+			MemberGenderID:       req.MemberGenderID,
+			BirthDate:            req.BirthDate,
+			ContactNumber:        req.ContactNumber,
+			CivilStatus:          req.CivilStatus,
+			MemberOccupationID:   req.MemberOccupationID,
+			Status:               req.Status,
+			IsMutualFundMember:   req.IsMutualFundMember,
+			IsMicroFinanceMember: req.IsMicroFinanceMember,
+			MemberTypeID:         req.MemberTypeID,
+		}
+		if err := c.model.MemberProfileManager.CreateWithTx(context, tx, profile); err != nil {
+			tx.Rollback()
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not create member profile: %v", err))
+		}
+
 		developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, user.ID.String())
 		if err != nil {
 			tx.Rollback()
