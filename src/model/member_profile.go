@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	horizon_services "github.com/lands-horizon/horizon-server/services"
+	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
@@ -572,4 +573,136 @@ func (m *Model) MemberProfileFindUserByID(ctx context.Context, userId uuid.UUID,
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})
+}
+func (m *Model) MemberProfileDestroy(ctx context.Context, tx *gorm.DB, id uuid.UUID) error {
+	memberProfile, err := m.MemberProfileManager.GetByID(ctx, id)
+	if err != nil {
+		return eris.Wrapf(err, "failed to get MemberProfile by ID: %s", id)
+	}
+	memberAddresses, err := m.MemberAddressManager.Find(ctx, &MemberAddress{
+		MemberProfileID: &memberProfile.ID,
+		BranchID:        memberProfile.BranchID,
+		OrganizationID:  memberProfile.OrganizationID,
+	})
+	if err != nil {
+		return eris.Wrap(err, "failed to find member addresses")
+	}
+	for _, memberAddress := range memberAddresses {
+		if err := m.MemberAddressManager.DeleteByIDWithTx(ctx, tx, memberAddress.ID); err != nil {
+			return eris.Wrapf(err, "failed to delete member address: %s", memberAddress.ID)
+		}
+	}
+
+	memberAssets, err := m.MemberAssetManager.Find(ctx, &MemberAsset{
+		MemberProfileID: &memberProfile.ID,
+		BranchID:        memberProfile.BranchID,
+		OrganizationID:  memberProfile.OrganizationID,
+	})
+	if err != nil {
+		return eris.Wrap(err, "failed to find member assets")
+	}
+	for _, memberAsset := range memberAssets {
+		if err := m.MemberAssetManager.DeleteByIDWithTx(ctx, tx, memberAsset.ID); err != nil {
+			return eris.Wrapf(err, "failed to delete member asset: %s", memberAsset.ID)
+		}
+	}
+
+	memberIncomes, err := m.MemberIncomeManager.Find(ctx, &MemberIncome{
+		MemberProfileID: memberProfile.ID,
+		BranchID:        memberProfile.BranchID,
+		OrganizationID:  memberProfile.OrganizationID,
+	})
+	if err != nil {
+		return eris.Wrap(err, "failed to find member incomes")
+	}
+	for _, memberIncome := range memberIncomes {
+		if err := m.MemberIncomeManager.DeleteByIDWithTx(ctx, tx, memberIncome.ID); err != nil {
+			return eris.Wrapf(err, "failed to delete member income: %s", memberIncome.ID)
+		}
+	}
+
+	memberExpenses, err := m.MemberExpenseManager.Find(ctx, &MemberExpense{
+		MemberProfileID: memberProfile.ID,
+		BranchID:        memberProfile.BranchID,
+		OrganizationID:  memberProfile.OrganizationID,
+	})
+	if err != nil {
+		return eris.Wrap(err, "failed to find member expenses")
+	}
+	for _, memberExpense := range memberExpenses {
+		if err := m.MemberExpenseManager.DeleteByIDWithTx(ctx, tx, memberExpense.ID); err != nil {
+			return eris.Wrapf(err, "failed to delete member expense: %s", memberExpense.ID)
+		}
+	}
+
+	memberBenefits, err := m.MemberGovernmentBenefitManager.Find(ctx, &MemberGovernmentBenefit{
+		MemberProfileID: memberProfile.ID,
+		BranchID:        memberProfile.BranchID,
+		OrganizationID:  memberProfile.OrganizationID,
+	})
+	if err != nil {
+		return eris.Wrap(err, "failed to find member government benefits")
+	}
+	for _, memberBenefit := range memberBenefits {
+		if err := m.MemberGovernmentBenefitManager.DeleteByIDWithTx(ctx, tx, memberBenefit.ID); err != nil {
+			return eris.Wrapf(err, "failed to delete member government benefit: %s", memberBenefit.ID)
+		}
+	}
+	memberJointAccounts, err := m.MemberJointAccountManager.Find(ctx, &MemberJointAccount{
+		MemberProfileID: memberProfile.ID,
+		BranchID:        memberProfile.BranchID,
+		OrganizationID:  memberProfile.OrganizationID,
+	})
+	if err != nil {
+		return eris.Wrap(err, "failed to find member joint accounts")
+	}
+	for _, memberJointAccount := range memberJointAccounts {
+		if err := m.MemberJointAccountManager.DeleteByIDWithTx(ctx, tx, memberJointAccount.ID); err != nil {
+			return eris.Wrapf(err, "failed to delete member joint account: %s", memberJointAccount.ID)
+		}
+	}
+
+	memberRelativeAccounts, err := m.MemberRelativeAccountManager.Find(ctx, &MemberRelativeAccount{
+		MemberProfileID: memberProfile.ID,
+		BranchID:        memberProfile.BranchID,
+		OrganizationID:  memberProfile.OrganizationID,
+	})
+	if err != nil {
+		return eris.Wrap(err, "failed to find member relative accounts")
+	}
+	for _, memberRelativeAccount := range memberRelativeAccounts {
+		if err := m.MemberRelativeAccountManager.DeleteByIDWithTx(ctx, tx, memberRelativeAccount.ID); err != nil {
+			return eris.Wrapf(err, "failed to delete member relative account: %s", memberRelativeAccount.ID)
+		}
+	}
+	memberEducations, err := m.MemberEducationalAttainmentManager.Find(ctx, &MemberEducationalAttainment{
+		MemberProfileID: memberProfile.ID,
+		BranchID:        memberProfile.BranchID,
+		OrganizationID:  memberProfile.OrganizationID,
+	})
+	if err != nil {
+		return eris.Wrap(err, "failed to find member educational attainments")
+	}
+	for _, memberEducation := range memberEducations {
+		if err := m.MemberEducationalAttainmentManager.DeleteByIDWithTx(ctx, tx, memberEducation.ID); err != nil {
+			return eris.Wrapf(err, "failed to delete member educational attainment: %s", memberEducation.ID)
+		}
+	}
+	memberContacts, err := m.MemberContactReferenceManager.Find(ctx, &MemberContactReference{
+		MemberProfileID: memberProfile.ID,
+		BranchID:        memberProfile.BranchID,
+		OrganizationID:  memberProfile.OrganizationID,
+	})
+	if err != nil {
+		return eris.Wrap(err, "failed to find member contact references")
+	}
+	for _, memberContact := range memberContacts {
+		if err := m.MemberContactReferenceManager.DeleteByIDWithTx(ctx, tx, memberContact.ID); err != nil {
+			return eris.Wrapf(err, "failed to delete member contact reference: %s", memberContact.ID)
+		}
+	}
+	if err := m.MemberProfileDelete(ctx, tx, memberProfile.ID); err != nil {
+		return eris.Wrapf(err, "failed to delete member profile: %s", memberProfile.ID)
+	}
+	return m.MemberProfileDelete(ctx, tx, memberProfile.ID)
 }
