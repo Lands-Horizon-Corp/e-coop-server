@@ -402,6 +402,8 @@ func (c *Controller) MemberProfileController() {
 			// Delete all addresses
 			memberAddresses, err := c.model.MemberAddressManager.Find(context, &model.MemberAddress{
 				MemberProfileID: &memberProfile.ID,
+				BranchID:        memberProfile.BranchID,
+				OrganizationID:  memberProfile.OrganizationID,
 			})
 			if err != nil {
 				tx.Rollback()
@@ -417,6 +419,8 @@ func (c *Controller) MemberProfileController() {
 			// Delete all assets
 			memberAssets, err := c.model.MemberAssetManager.Find(context, &model.MemberAsset{
 				MemberProfileID: &memberProfile.ID,
+				BranchID:        memberProfile.BranchID,
+				OrganizationID:  memberProfile.OrganizationID,
 			})
 			if err != nil {
 				tx.Rollback()
@@ -432,6 +436,8 @@ func (c *Controller) MemberProfileController() {
 			// Delete all incomes
 			memberIncomes, err := c.model.MemberIncomeManager.Find(context, &model.MemberIncome{
 				MemberProfileID: memberProfile.ID,
+				BranchID:        memberProfile.BranchID,
+				OrganizationID:  memberProfile.OrganizationID,
 			})
 			if err != nil {
 				tx.Rollback()
@@ -447,6 +453,8 @@ func (c *Controller) MemberProfileController() {
 			// Delete all expenses
 			memberExpenses, err := c.model.MemberExpenseManager.Find(context, &model.MemberExpense{
 				MemberProfileID: memberProfile.ID,
+				BranchID:        memberProfile.BranchID,
+				OrganizationID:  memberProfile.OrganizationID,
 			})
 			if err != nil {
 				tx.Rollback()
@@ -462,6 +470,8 @@ func (c *Controller) MemberProfileController() {
 			// Delete all government benefits
 			memberBenefits, err := c.model.MemberGovernmentBenefitManager.Find(context, &model.MemberGovernmentBenefit{
 				MemberProfileID: memberProfile.ID,
+				BranchID:        memberProfile.BranchID,
+				OrganizationID:  memberProfile.OrganizationID,
 			})
 			if err != nil {
 				tx.Rollback()
@@ -477,6 +487,8 @@ func (c *Controller) MemberProfileController() {
 			// Delete all joint accounts
 			memberJointAccounts, err := c.model.MemberJointAccountManager.Find(context, &model.MemberJointAccount{
 				MemberProfileID: memberProfile.ID,
+				BranchID:        memberProfile.BranchID,
+				OrganizationID:  memberProfile.OrganizationID,
 			})
 			if err != nil {
 				tx.Rollback()
@@ -492,6 +504,8 @@ func (c *Controller) MemberProfileController() {
 			// Delete all relative accounts
 			memberRelativeAccounts, err := c.model.MemberRelativeAccountManager.Find(context, &model.MemberRelativeAccount{
 				MemberProfileID: memberProfile.ID,
+				BranchID:        memberProfile.BranchID,
+				OrganizationID:  memberProfile.OrganizationID,
 			})
 			if err != nil {
 				tx.Rollback()
@@ -507,6 +521,8 @@ func (c *Controller) MemberProfileController() {
 			// Delete all educational attainments
 			memberEducations, err := c.model.MemberEducationalAttainmentManager.Find(context, &model.MemberEducationalAttainment{
 				MemberProfileID: memberProfile.ID,
+				BranchID:        memberProfile.BranchID,
+				OrganizationID:  memberProfile.OrganizationID,
 			})
 			if err != nil {
 				tx.Rollback()
@@ -522,6 +538,8 @@ func (c *Controller) MemberProfileController() {
 			// Delete all contact references
 			memberContacts, err := c.model.MemberContactReferenceManager.Find(context, &model.MemberContactReference{
 				MemberProfileID: memberProfile.ID,
+				BranchID:        memberProfile.BranchID,
+				OrganizationID:  memberProfile.OrganizationID,
 			})
 			if err != nil {
 				tx.Rollback()
