@@ -133,8 +133,14 @@ func (c *Controller) UserOrganinzationController() {
 			BranchID:       user.BranchID,
 			UserType:       "member",
 		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
 		filteredUserOrganizations := []*model.UserOrganization{}
 		for _, uo := range userOrganization {
+			if uo.BranchID == nil {
+				continue
+			}
 			userProfile, _ := c.model.MemberProfileFindUserByID(context, uo.UserID, uo.OrganizationID, *uo.BranchID)
 			if userProfile == nil {
 				filteredUserOrganizations = append(filteredUserOrganizations, uo)
