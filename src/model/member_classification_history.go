@@ -72,7 +72,7 @@ func (m *Model) MemberClassificationHistory() {
 	]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "DeletedBy",
-			"Organization", "Branch", "MemberType", "MemberProfile",
+			"Organization", "Branch", "MemberClassification", "MemberProfile",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *MemberClassificationHistory) *MemberClassificationHistoryResponse {

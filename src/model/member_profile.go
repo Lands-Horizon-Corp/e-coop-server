@@ -181,11 +181,11 @@ type (
 		Passbook                   string     `json:"passbook,omitempty" validate:"max=255"`
 		OldReferenceID             string     `json:"old_reference_id,omitempty" validate:"max=50"`
 		Status                     string     `json:"status,omitempty" validate:"max=50"`
-		MemberTypeID               *uuid.UUID `json:"member_type_id"`
-		MemberGroupID              *uuid.UUID `json:"member_group_id"`
-		MemberClassificationID     *uuid.UUID `json:"member_classification_id"`
-		MemberCenterID             *uuid.UUID `json:"member_center_id"`
-		RecruitedByMemberProfileID *uuid.UUID `json:"recruited_by_member_profile_id"`
+		MemberTypeID               *uuid.UUID `json:"member_type_id,omitempty"`
+		MemberGroupID              *uuid.UUID `json:"member_group_id,omitempty"`
+		MemberClassificationID     *uuid.UUID `json:"member_classification_id,omitempty"`
+		MemberCenterID             *uuid.UUID `json:"member_center_id,omitempty"`
+		RecruitedByMemberProfileID *uuid.UUID `json:"recruited_by_member_profile_id,omitempty"`
 		IsMutualFundMember         bool       `json:"is_mutual_fund_member"`
 		IsMicroFinanceMember       bool       `json:"is_micro_finance_member"`
 	}
