@@ -304,6 +304,7 @@ func (c *Model) Start(context context.Context) error {
 	c.MemberCenter()
 	c.MemberCenterHistory()
 	c.MemberClassification()
+	c.MemberClassificationHistory()
 	c.MemberClassificationInterestRate()
 	c.MemberCloseRemark()
 	c.MemberContactReference()
