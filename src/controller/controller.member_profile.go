@@ -1807,7 +1807,7 @@ func (c *Controller) MemberGenderController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.MemberGenderHistoryManager.ToModels(memberGenderHistory))
+		return ctx.JSON(http.StatusOK, c.model.MemberGenderHistoryManager.Pagination(context, ctx, memberGenderHistory))
 	})
 
 	req.RegisterRoute(horizon.Route{
@@ -2011,7 +2011,7 @@ func (c *Controller) MemberCenterController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-center-history/member-profile/:member_profile_id",
+		Route:    "/member-center-history/member-profile/:member_profile_id/search",
 		Method:   "GET",
 		Response: "TMemberCenterHistory[]",
 		Note:     "Get member center history by member profile ID",
@@ -2029,7 +2029,7 @@ func (c *Controller) MemberCenterController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.MemberCenterHistoryManager.ToModels(memberCenterHistory))
+		return ctx.JSON(http.StatusOK, c.model.MemberCenterHistoryManager.Pagination(context, ctx, memberCenterHistory))
 	})
 
 	req.RegisterRoute(horizon.Route{
@@ -2233,7 +2233,7 @@ func (c *Controller) MemberTypeController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-type-history/member-profile/:member_profile_id",
+		Route:    "/member-type-history/member-profile/:member_profile_id/search",
 		Method:   "GET",
 		Response: "TMemberTypeHistory[]",
 		Note:     "Get member type history by member profile ID",
@@ -2251,7 +2251,7 @@ func (c *Controller) MemberTypeController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.MemberTypeHistoryManager.ToModels(memberTypeHistory))
+		return ctx.JSON(http.StatusOK, c.model.MemberTypeHistoryManager.Pagination(context, ctx, memberTypeHistory))
 	})
 
 	req.RegisterRoute(horizon.Route{
@@ -2455,7 +2455,7 @@ func (c *Controller) MemberClassificationController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-classification-history/member-profile/:member_profile_id",
+		Route:    "/member-classification-history/member-profile/:member_profile_id/search",
 		Method:   "GET",
 		Response: "TMemberClassificationHistory[]",
 		Note:     "Get member classification history by member profile ID",
@@ -2473,7 +2473,7 @@ func (c *Controller) MemberClassificationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.MemberClassificationHistoryManager.ToModels(memberClassificationHistory))
+		return ctx.JSON(http.StatusOK, c.model.MemberClassificationHistoryManager.Pagination(context, ctx, memberClassificationHistory))
 	})
 
 	req.RegisterRoute(horizon.Route{
@@ -2679,7 +2679,7 @@ func (c *Controller) MemberOccupationController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-occupation-history/member-profile/:member_profile_id",
+		Route:    "/member-occupation-history/member-profile/:member_profile_id/search",
 		Method:   "GET",
 		Response: "TMemberOccupationHistory[]",
 		Note:     "Get member occupation history by member profile ID",
@@ -2697,7 +2697,7 @@ func (c *Controller) MemberOccupationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.MemberOccupationHistoryManager.ToModels(memberOccupationHistory))
+		return ctx.JSON(http.StatusOK, c.model.MemberOccupationHistoryManager.Pagination(context, ctx, memberOccupationHistory))
 	})
 
 	req.RegisterRoute(horizon.Route{
@@ -2900,7 +2900,7 @@ func (c *Controller) MemberGroupController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-group-history/member-profile/:member_profile_id",
+		Route:    "/member-group-history/member-profile/:member_profile_id/search",
 		Method:   "GET",
 		Response: "TMemberGroupHistory[]",
 		Note:     "Get member group history by member profile ID",
@@ -2918,7 +2918,8 @@ func (c *Controller) MemberGroupController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.MemberGroupHistoryManager.ToModels(memberGroupHistory))
+		return ctx.JSON(http.StatusOK, c.model.MemberGroupHistoryManager.Pagination(context, ctx, memberGroupHistory))
+
 	})
 
 	req.RegisterRoute(horizon.Route{
