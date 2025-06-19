@@ -586,6 +586,20 @@ func tryParseTime(val string) (time.Time, error) {
 // --- Helper for Empty Check ---
 
 func isEmpty(val reflect.Value) bool {
+	if !val.IsValid() {
+		return true
+	}
+
+	// Handle time.Time and *time.Time explicitly
+	if val.CanInterface() {
+		switch v := val.Interface().(type) {
+		case time.Time:
+			return v.IsZero()
+		case *time.Time:
+			return v == nil || v.IsZero()
+		}
+	}
+
 	switch val.Kind() {
 	case reflect.String:
 		return val.Len() == 0
