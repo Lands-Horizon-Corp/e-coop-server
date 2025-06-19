@@ -69,31 +69,42 @@ type PaginationResult[T any] struct {
 }
 
 // --- Filtering Function ---
-func findFieldByTagOrName(val reflect.Value, fieldName string) reflect.Value {
+
+// findFieldByTagOrName supports dot notation for nested fields, e.g., "branch.name"
+func findFieldByTagOrName(val reflect.Value, fieldPath string) reflect.Value {
 	if val.Kind() == reflect.Ptr {
 		val = val.Elem()
 	}
-	t := val.Type()
-	for i := 0; i < t.NumField(); i++ {
-		f := val.Type().Field(i)
-
-		tag := f.Tag.Get("json")
-		tagName := strings.Split(tag, ",")[0]
-		if tagName != "" && strings.EqualFold(tagName, fieldName) {
-			return val.Field(i)
+	parts := strings.Split(fieldPath, ".")
+	for i, part := range parts {
+		t := val.Type()
+		found := false
+		for j := 0; j < t.NumField(); j++ {
+			f := t.Field(j)
+			tag := f.Tag.Get("json")
+			tagName := strings.Split(tag, ",")[0]
+			if (tagName != "" && strings.EqualFold(tagName, part)) || strings.EqualFold(f.Name, part) {
+				val = val.Field(j)
+				found = true
+				break
+			}
 		}
-		if strings.EqualFold(f.Name, fieldName) {
-			return val.Field(i)
+		if !found {
+			return reflect.Value{}
 		}
-		if f.Anonymous && val.Field(i).Kind() == reflect.Struct {
-			found := findFieldByTagOrName(val.Field(i), fieldName)
-			if found.IsValid() {
-				return found
+		// If not last part, dereference pointer or struct
+		if i < len(parts)-1 {
+			if val.Kind() == reflect.Ptr && !val.IsNil() {
+				val = val.Elem()
+			}
+			if val.Kind() != reflect.Struct {
+				return reflect.Value{}
 			}
 		}
 	}
-	return reflect.Value{}
+	return val
 }
+
 func FilterSlice[T any](ctx context.Context, data []*T, filters []Filter, logic FilterLogic) []*T {
 	if len(filters) == 0 {
 		return data
@@ -331,12 +342,8 @@ func SortSlice[T any](ctx context.Context, data []*T, sortFields []SortField) []
 		}
 
 		for _, sortField := range sortFields {
-			fieldA := aVal.FieldByNameFunc(func(name string) bool {
-				return strings.EqualFold(name, sortField.Field)
-			})
-			fieldB := bVal.FieldByNameFunc(func(name string) bool {
-				return strings.EqualFold(name, sortField.Field)
-			})
+			fieldA := findFieldByTagOrName(aVal, sortField.Field)
+			fieldB := findFieldByTagOrName(bVal, sortField.Field)
 			if !fieldA.IsValid() || !fieldB.IsValid() {
 				continue
 			}
