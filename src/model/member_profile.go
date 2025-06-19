@@ -385,7 +385,7 @@ func (m *Model) MemberProfileDelete(context context.Context, tx *gorm.DB, member
 	}
 
 	memberCloseRemarks, err := m.MemberCloseRemarkManager.Find(context, &MemberCloseRemark{
-		MemberProfileID: memberProfileId,
+		MemberProfileID: &memberProfileId,
 	})
 	if err != nil {
 		return err

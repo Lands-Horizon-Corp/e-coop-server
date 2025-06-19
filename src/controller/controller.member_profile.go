@@ -183,7 +183,7 @@ func (c *Controller) MemberProfileController() {
 			value := &model.MemberCloseRemark{
 				Reason:          req.Reason,
 				Description:     req.Description,
-				MemberProfileID: *memberProfileID,
+				MemberProfileID: memberProfileID,
 				CreatedAt:       time.Now().UTC(),
 				CreatedByID:     userOrg.UserID,
 				UpdatedAt:       time.Now().UTC(),

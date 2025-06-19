@@ -28,7 +28,7 @@ type (
 		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_member_close_remark"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
-		MemberProfileID uuid.UUID      `gorm:"type:uuid;not null"`
+		MemberProfileID *uuid.UUID     `gorm:"type:uuid" json:"member_profile_id,omitempty"`
 		MemberProfile   *MemberProfile `gorm:"foreignKey:MemberProfileID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_profile,omitempty"`
 
 		Reason      string `gorm:"type:varchar(255)"`
@@ -80,7 +80,7 @@ func (m *Model) MemberCloseRemark() {
 				Organization:    m.OrganizationManager.ToModel(data.Organization),
 				BranchID:        data.BranchID,
 				Branch:          m.BranchManager.ToModel(data.Branch),
-				MemberProfileID: data.MemberProfileID,
+				MemberProfileID: *data.MemberProfileID,
 				MemberProfile:   m.MemberProfileManager.ToModel(data.MemberProfile),
 				Reason:          data.Reason,
 				Description:     data.Description,
