@@ -146,7 +146,11 @@ func getFieldValue(val reflect.Value, fieldPath string) reflect.Value {
 		val = val.Elem()
 	}
 
+	// Make fieldPath case-insensitive by lowering all parts
 	parts := strings.Split(fieldPath, ".")
+	for i, p := range parts {
+		parts[i] = strings.ToLower(p)
+	}
 	current := val
 	for _, part := range parts {
 		if current.Kind() != reflect.Struct {
@@ -159,7 +163,8 @@ func getFieldValue(val reflect.Value, fieldPath string) reflect.Value {
 			f := t.Field(i)
 			tag := f.Tag.Get("json")
 			tagName := strings.Split(tag, ",")[0]
-			if (tagName != "" && strings.EqualFold(tagName, part)) || strings.EqualFold(f.Name, part) {
+			// Lowercase for case-insensitive comparison
+			if (tagName != "" && strings.ToLower(tagName) == part) || strings.ToLower(f.Name) == part {
 				current = current.Field(i)
 				found = true
 				break
@@ -308,7 +313,9 @@ func compareValues(a, b any) int {
 	// String comparisons (case-insensitive)
 	as := fmt.Sprintf("%v", a)
 	bs := fmt.Sprintf("%v", b)
-	return strings.Compare(strings.ToLower(as), strings.ToLower(bs))
+	as = strings.ToLower(as)
+	bs = strings.ToLower(bs)
+	return strings.Compare(as, bs)
 }
 
 func compareForEquality(a, b any) bool {
@@ -343,12 +350,13 @@ func FilterSlice[T any](ctx context.Context, data []*T, filters []Filter, logic 
 		}
 
 		matches := logic == FilterLogicAnd
+	FilterLoop:
 		for _, filter := range filters {
 			fieldVal := getFieldValue(val, filter.Field)
 			if !fieldVal.IsValid() {
 				if logic == FilterLogicAnd {
 					matches = false
-					break
+					break FilterLoop
 				}
 				continue
 			}
@@ -392,11 +400,11 @@ func FilterSlice[T any](ctx context.Context, data []*T, filters []Filter, logic 
 
 			if logic == FilterLogicAnd && !match {
 				matches = false
-				break
+				break FilterLoop
 			}
 			if logic == FilterLogicOr && match {
 				matches = true
-				break
+				break FilterLoop
 			}
 		}
 
@@ -542,19 +550,23 @@ func handleStringFilter(itemValue, filterValue any, mode string) bool {
 	itemStr := fmt.Sprintf("%v", itemValue)
 	filterStr := fmt.Sprintf("%v", filterValue)
 
+	// Lowercase both for case-insensitive comparison
+	itemStr = strings.ToLower(itemStr)
+	filterStr = strings.ToLower(filterStr)
+
 	switch mode {
 	case FilterModeEqual:
-		return strings.EqualFold(itemStr, filterStr)
+		return itemStr == filterStr
 	case FilterModeNotEqual:
-		return !strings.EqualFold(itemStr, filterStr)
+		return itemStr != filterStr
 	case FilterModeContains:
-		return strings.Contains(strings.ToLower(itemStr), strings.ToLower(filterStr))
+		return strings.Contains(itemStr, filterStr)
 	case FilterModeNotContains:
-		return !strings.Contains(strings.ToLower(itemStr), strings.ToLower(filterStr))
+		return !strings.Contains(itemStr, filterStr)
 	case FilterModeStartsWith:
-		return strings.HasPrefix(strings.ToLower(itemStr), strings.ToLower(filterStr))
+		return strings.HasPrefix(itemStr, filterStr)
 	case FilterModeEndsWith:
-		return strings.HasSuffix(strings.ToLower(itemStr), strings.ToLower(filterStr))
+		return strings.HasSuffix(itemStr, filterStr)
 	}
 	return false
 }
