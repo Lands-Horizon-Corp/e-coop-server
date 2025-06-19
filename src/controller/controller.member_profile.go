@@ -726,12 +726,12 @@ func (c *Controller) MemberProfileController() {
 		if err != nil {
 			return c.NotFound(ctx, fmt.Sprintf("MemberProfile with ID %s not found", memberProfileId))
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.NoContent(http.StatusNoContent)
 		}
 		profile.UpdatedAt = time.Now().UTC()
-		profile.UpdatedByID = user.UserID
+		profile.UpdatedByID = userOrg.UserID
 		profile.Passbook = req.Passbook
 		profile.OldReferenceID = req.OldReferenceID
 		profile.Status = req.Status
@@ -739,12 +739,12 @@ func (c *Controller) MemberProfileController() {
 		// MemberTypeID
 		if req.MemberTypeID != nil {
 			data := &model.MemberTypeHistory{
-				OrganizationID:  user.OrganizationID,
-				BranchID:        *user.BranchID,
+				OrganizationID:  userOrg.OrganizationID,
+				BranchID:        *userOrg.BranchID,
 				CreatedAt:       time.Now().UTC(),
 				UpdatedAt:       time.Now().UTC(),
-				CreatedByID:     user.UserID,
-				UpdatedByID:     user.UserID,
+				CreatedByID:     userOrg.UserID,
+				UpdatedByID:     userOrg.UserID,
 				MemberProfileID: *memberProfileId,
 				MemberTypeID:    *req.MemberTypeID,
 			}
@@ -757,12 +757,12 @@ func (c *Controller) MemberProfileController() {
 		// MemberGroupID
 		if req.MemberGroupID != nil {
 			data := &model.MemberGroupHistory{
-				OrganizationID:  user.OrganizationID,
-				BranchID:        *user.BranchID,
+				OrganizationID:  userOrg.OrganizationID,
+				BranchID:        *userOrg.BranchID,
 				CreatedAt:       time.Now().UTC(),
 				UpdatedAt:       time.Now().UTC(),
-				CreatedByID:     user.UserID,
-				UpdatedByID:     user.UserID,
+				CreatedByID:     userOrg.UserID,
+				UpdatedByID:     userOrg.UserID,
 				MemberProfileID: *memberProfileId,
 				MemberGroupID:   *req.MemberGroupID,
 			}
@@ -775,12 +775,12 @@ func (c *Controller) MemberProfileController() {
 		// MemberClassificationID
 		if req.MemberClassificationID != nil {
 			data := &model.MemberClassificationHistory{
-				OrganizationID:         user.OrganizationID,
-				BranchID:               *user.BranchID,
+				OrganizationID:         userOrg.OrganizationID,
+				BranchID:               *userOrg.BranchID,
 				CreatedAt:              time.Now().UTC(),
 				UpdatedAt:              time.Now().UTC(),
-				CreatedByID:            user.UserID,
-				UpdatedByID:            user.UserID,
+				CreatedByID:            userOrg.UserID,
+				UpdatedByID:            userOrg.UserID,
 				MemberProfileID:        *memberProfileId,
 				MemberClassificationID: *req.MemberClassificationID,
 			}
@@ -793,12 +793,12 @@ func (c *Controller) MemberProfileController() {
 		// MemberCenterID
 		if req.MemberCenterID != nil {
 			data := &model.MemberCenterHistory{
-				OrganizationID:  user.OrganizationID,
-				BranchID:        *user.BranchID,
+				OrganizationID:  userOrg.OrganizationID,
+				BranchID:        *userOrg.BranchID,
 				CreatedAt:       time.Now().UTC(),
 				UpdatedAt:       time.Now().UTC(),
-				CreatedByID:     user.UserID,
-				UpdatedByID:     user.UserID,
+				CreatedByID:     userOrg.UserID,
+				UpdatedByID:     userOrg.UserID,
 				MemberProfileID: *memberProfileId,
 				MemberCenterID:  *req.MemberCenterID,
 			}
