@@ -737,7 +737,7 @@ func (c *Controller) MemberProfileController() {
 		profile.Status = req.Status
 
 		// MemberTypeID
-		if profile.MemberTypeID != &req.MemberTypeID {
+		if !uuidPtrEqual(profile.MemberTypeID, &req.MemberTypeID) {
 			if err := c.model.MemberTypeHistoryManager.Create(context, &model.MemberTypeHistory{
 				OrganizationID:  user.OrganizationID,
 				BranchID:        *user.BranchID,
@@ -749,14 +749,12 @@ func (c *Controller) MemberProfileController() {
 				MemberTypeID:    req.MemberTypeID,
 			}); err != nil {
 				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could update member profile: %v", err))
-
 			}
 			profile.MemberTypeID = &req.MemberTypeID
 		}
 
 		// MemberGroupID
-		if profile.MemberGroupID != &req.MemberGroupID {
-
+		if !uuidPtrEqual(profile.MemberGroupID, &req.MemberGroupID) {
 			if err := c.model.MemberGroupHistoryManager.Create(context, &model.MemberGroupHistory{
 				OrganizationID:  user.OrganizationID,
 				BranchID:        *user.BranchID,
@@ -773,7 +771,7 @@ func (c *Controller) MemberProfileController() {
 		}
 
 		// MemberClassificationID
-		if profile.MemberClassificationID != &req.MemberClassificationID {
+		if !uuidPtrEqual(profile.MemberClassificationID, &req.MemberClassificationID) {
 			if err := c.model.MemberClassificationHistoryManager.Create(context, &model.MemberClassificationHistory{
 				OrganizationID:         user.OrganizationID,
 				BranchID:               *user.BranchID,
@@ -786,11 +784,11 @@ func (c *Controller) MemberProfileController() {
 			}); err != nil {
 				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not update member classification history: %v", err))
 			}
-
+			profile.MemberClassificationID = &req.MemberClassificationID
 		}
 
 		// MemberCenterID
-		if profile.MemberCenterID != &req.MemberCenterID {
+		if !uuidPtrEqual(profile.MemberCenterID, &req.MemberCenterID) {
 			if err := c.model.MemberCenterHistoryManager.Create(context, &model.MemberCenterHistory{
 				OrganizationID:  user.OrganizationID,
 				BranchID:        *user.BranchID,
@@ -803,7 +801,6 @@ func (c *Controller) MemberProfileController() {
 			}); err != nil {
 				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not update member center history: %v", err))
 			}
-
 			profile.MemberCenterID = &req.MemberCenterID
 		}
 

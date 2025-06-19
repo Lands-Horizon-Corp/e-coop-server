@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/src"
 	"github.com/lands-horizon/horizon-server/src/cooperative_tokens"
@@ -118,4 +119,13 @@ func (c *Controller) NotFound(ctx echo.Context, resource string) error {
 
 func (c *Controller) InternalServerError(ctx echo.Context, err error) error {
 	return c.ErrorResponse(ctx, http.StatusInternalServerError, "Internal server error")
+}
+func uuidPtrEqual(a, b *uuid.UUID) bool {
+	if a == nil && b == nil {
+		return true
+	}
+	if a == nil || b == nil {
+		return false
+	}
+	return *a == *b
 }
