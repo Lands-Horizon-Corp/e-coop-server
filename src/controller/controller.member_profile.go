@@ -365,6 +365,9 @@ func (c *Controller) MemberProfileController() {
 		if err != nil {
 			return ctx.NoContent(http.StatusNoContent)
 		}
+		fmt.Println(req.AccountInfo)
+		fmt.Println(req)
+		fmt.Println("----")
 		hashedPwd, err := c.provider.Service.Security.HashPassword(context, req.AccountInfo.Password)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to hash password")
