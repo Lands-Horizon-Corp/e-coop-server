@@ -133,17 +133,17 @@ func (c *Controller) UserOrganinzationController() {
 			BranchID:       user.BranchID,
 			UserType:       "member",
 		})
-		filteredUserOrganizations := []model.UserOrganization{}
+		filteredUserOrganizations := []*model.UserOrganization{}
 		for _, uo := range userOrganization {
 			userProfile, _ := c.model.MemberProfileFindUserByID(context, user.ID, uo.OrganizationID, *uo.BranchID)
 			if userProfile == nil {
-				filteredUserOrganizations = append(filteredUserOrganizations, *uo)
+				filteredUserOrganizations = append(filteredUserOrganizations, uo)
 			}
 		}
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.Pagination(context, ctx, userOrganization))
+		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.Pagination(context, ctx, filteredUserOrganizations))
 	})
 
 	req.RegisterRoute(horizon.Route{
