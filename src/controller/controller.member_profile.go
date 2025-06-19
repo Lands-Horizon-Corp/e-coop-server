@@ -737,7 +737,7 @@ func (c *Controller) MemberProfileController() {
 		profile.Status = req.Status
 
 		// MemberTypeID
-		if req.MemberTypeID != uuid.Nil {
+		if req.MemberTypeID != nil {
 			data := &model.MemberTypeHistory{
 				OrganizationID:  user.OrganizationID,
 				BranchID:        *user.BranchID,
@@ -746,16 +746,16 @@ func (c *Controller) MemberProfileController() {
 				CreatedByID:     user.UserID,
 				UpdatedByID:     user.UserID,
 				MemberProfileID: *memberProfileId,
-				MemberTypeID:    req.MemberTypeID,
+				MemberTypeID:    *req.MemberTypeID,
 			}
 			if err := c.model.MemberTypeHistoryManager.Create(context, data); err != nil {
 				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could update member profile: %v", err))
 			}
-			profile.MemberTypeID = &req.MemberTypeID
+			profile.MemberTypeID = req.MemberTypeID
 		}
 
 		// MemberGroupID
-		if req.MemberGroupID != uuid.Nil {
+		if req.MemberGroupID != nil {
 			data := &model.MemberGroupHistory{
 				OrganizationID:  user.OrganizationID,
 				BranchID:        *user.BranchID,
@@ -764,16 +764,16 @@ func (c *Controller) MemberProfileController() {
 				CreatedByID:     user.UserID,
 				UpdatedByID:     user.UserID,
 				MemberProfileID: *memberProfileId,
-				MemberGroupID:   req.MemberGroupID,
+				MemberGroupID:   *req.MemberGroupID,
 			}
 			if err := c.model.MemberGroupHistoryManager.Create(context, data); err != nil {
 				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not update member group history: %v", err))
 			}
-			profile.MemberGroupID = &req.MemberGroupID
+			profile.MemberGroupID = req.MemberGroupID
 		}
 
 		// MemberClassificationID
-		if req.MemberClassificationID != uuid.Nil {
+		if req.MemberClassificationID != nil {
 			data := &model.MemberClassificationHistory{
 				OrganizationID:         user.OrganizationID,
 				BranchID:               *user.BranchID,
@@ -782,16 +782,16 @@ func (c *Controller) MemberProfileController() {
 				CreatedByID:            user.UserID,
 				UpdatedByID:            user.UserID,
 				MemberProfileID:        *memberProfileId,
-				MemberClassificationID: req.MemberClassificationID,
+				MemberClassificationID: *req.MemberClassificationID,
 			}
 			if err := c.model.MemberClassificationHistoryManager.Create(context, data); err != nil {
 				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not update member classification history: %v", err))
 			}
-			profile.MemberClassificationID = &req.MemberClassificationID
+			profile.MemberClassificationID = req.MemberClassificationID
 		}
 
 		// MemberCenterID
-		if req.MemberCenterID != uuid.Nil {
+		if req.MemberCenterID != nil {
 			data := &model.MemberCenterHistory{
 				OrganizationID:  user.OrganizationID,
 				BranchID:        *user.BranchID,
@@ -800,16 +800,16 @@ func (c *Controller) MemberProfileController() {
 				CreatedByID:     user.UserID,
 				UpdatedByID:     user.UserID,
 				MemberProfileID: *memberProfileId,
-				MemberCenterID:  req.MemberCenterID,
+				MemberCenterID:  *req.MemberCenterID,
 			}
 			if err := c.model.MemberCenterHistoryManager.Create(context, data); err != nil {
 				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not update member center history: %v", err))
 			}
-			profile.MemberCenterID = &req.MemberCenterID
+			profile.MemberCenterID = req.MemberCenterID
 		}
 
-		if req.RecruitedByMemberProfileID != uuid.Nil {
-			profile.RecruitedByMemberProfileID = &req.RecruitedByMemberProfileID
+		if req.RecruitedByMemberProfileID != nil {
+			profile.RecruitedByMemberProfileID = req.RecruitedByMemberProfileID
 		}
 		profile.IsMutualFundMember = req.IsMutualFundMember
 		profile.IsMicroFinanceMember = req.IsMicroFinanceMember
