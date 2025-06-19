@@ -354,6 +354,7 @@ func (c *Controller) MemberProfileController() {
 		Note:     "Quickly create a new member profile with minimal required fields.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
+		// ...existing code...
 		var req model.MemberProfileQuickCreateRequest
 		if err := ctx.Bind(&req); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -365,39 +366,44 @@ func (c *Controller) MemberProfileController() {
 		if err != nil {
 			return ctx.NoContent(http.StatusNoContent)
 		}
-		fmt.Println(req.AccountInfo)
-		fmt.Println(req)
-		fmt.Println("----")
-		hashedPwd, err := c.provider.Service.Security.HashPassword(context, req.AccountInfo.Password)
-		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, "failed to hash password")
-		}
+
 		tx := c.provider.Service.Database.Client().Begin()
-		userProfile := &model.User{
-			Email:         req.AccountInfo.Email,
-			UserName:      req.AccountInfo.UserName,
-			ContactNumber: req.ContactNumber,
-			Password:      hashedPwd,
 
-			FullName:   &req.FullName,
-			FirstName:  &req.FirstName,
-			MiddleName: &req.MiddleName,
-			LastName:   &req.LastName,
-			Suffix:     &req.Suffix,
+		var userProfile *model.User
+		var userProfileID *uuid.UUID
 
-			IsEmailVerified:   false,
-			IsContactVerified: false,
-			CreatedAt:         time.Now().UTC(),
-			UpdatedAt:         time.Now().UTC(),
+		if req.AccountInfo != nil {
+			hashedPwd, err := c.provider.Service.Security.HashPassword(context, req.AccountInfo.Password)
+			if err != nil {
+				tx.Rollback()
+				return echo.NewHTTPError(http.StatusInternalServerError, "failed to hash password")
+			}
+			userProfile = &model.User{
+				Email:             req.AccountInfo.Email,
+				UserName:          req.AccountInfo.UserName,
+				ContactNumber:     req.ContactNumber,
+				Password:          hashedPwd,
+				FullName:          &req.FullName,
+				FirstName:         &req.FirstName,
+				MiddleName:        &req.MiddleName,
+				LastName:          &req.LastName,
+				Suffix:            &req.Suffix,
+				IsEmailVerified:   false,
+				IsContactVerified: false,
+				CreatedAt:         time.Now().UTC(),
+				UpdatedAt:         time.Now().UTC(),
+			}
+			if err := c.model.UserManager.CreateWithTx(context, tx, userProfile); err != nil {
+				tx.Rollback()
+				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not create user profile: %v", err))
+			}
+			if tx.Error != nil {
+				tx.Rollback()
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+			}
+			userProfileID = &userProfile.ID
 		}
-		if err := c.model.UserManager.CreateWithTx(context, tx, userProfile); err != nil {
-			tx.Rollback()
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not create user profile: %v", err))
-		}
-		if tx.Error != nil {
-			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
-		}
+
 		profile := &model.MemberProfile{
 			OrganizationID:       user.OrganizationID,
 			BranchID:             *user.BranchID,
@@ -405,7 +411,7 @@ func (c *Controller) MemberProfileController() {
 			UpdatedAt:            time.Now().UTC(),
 			CreatedByID:          user.UserID,
 			UpdatedByID:          user.UserID,
-			UserID:               &userProfile.ID,
+			UserID:               userProfileID,
 			OldReferenceID:       req.OldReferenceID,
 			Passbook:             req.Passbook,
 			FirstName:            req.FirstName,
@@ -428,41 +434,41 @@ func (c *Controller) MemberProfileController() {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not create member profile: %v", err))
 		}
 
-		developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, user.ID.String())
-		if err != nil {
-			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "something wrong generting developer key"})
-		}
-
-		developerKey = developerKey + uuid.NewString() + "-horizon"
-		userOrg := &model.UserOrganization{
-			CreatedAt:              time.Now().UTC(),
-			CreatedByID:            user.ID,
-			UpdatedAt:              time.Now().UTC(),
-			UpdatedByID:            user.ID,
-			OrganizationID:         user.OrganizationID,
-			BranchID:               user.BranchID,
-			UserID:                 user.ID,
-			UserType:               "member",
-			Description:            "",
-			ApplicationDescription: "anything",
-			ApplicationStatus:      "pending",
-			DeveloperSecretKey:     developerKey,
-			PermissionName:         "member",
-			PermissionDescription:  "",
-			Permissions:            []string{},
-
-			UserSettingDescription:  "user settings",
-			UserSettingStartOR:      0,
-			UserSettingEndOR:        0,
-			UserSettingUsedOR:       0,
-			UserSettingStartVoucher: 0,
-			UserSettingEndVoucher:   0,
-			UserSettingUsedVoucher:  0,
-		}
-		if err := c.model.UserOrganizationManager.CreateWithTx(context, tx, userOrg); err != nil {
-			tx.Rollback()
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": err.Error()})
+		if userProfile != nil {
+			developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, user.ID.String())
+			if err != nil {
+				tx.Rollback()
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "something wrong generating developer key"})
+			}
+			developerKey = developerKey + uuid.NewString() + "-horizon"
+			userOrg := &model.UserOrganization{
+				CreatedAt:               time.Now().UTC(),
+				CreatedByID:             user.ID,
+				UpdatedAt:               time.Now().UTC(),
+				UpdatedByID:             user.ID,
+				OrganizationID:          user.OrganizationID,
+				BranchID:                user.BranchID,
+				UserID:                  user.ID,
+				UserType:                "member",
+				Description:             "",
+				ApplicationDescription:  "anything",
+				ApplicationStatus:       "pending",
+				DeveloperSecretKey:      developerKey,
+				PermissionName:          "member",
+				PermissionDescription:   "",
+				Permissions:             []string{},
+				UserSettingDescription:  "user settings",
+				UserSettingStartOR:      0,
+				UserSettingEndOR:        0,
+				UserSettingUsedOR:       0,
+				UserSettingStartVoucher: 0,
+				UserSettingEndVoucher:   0,
+				UserSettingUsedVoucher:  0,
+			}
+			if err := c.model.UserOrganizationManager.CreateWithTx(context, tx, userOrg); err != nil {
+				tx.Rollback()
+				return ctx.JSON(http.StatusForbidden, map[string]string{"error": err.Error()})
+			}
 		}
 
 		if err := tx.Commit().Error; err != nil {
