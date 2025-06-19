@@ -12,70 +12,62 @@ import (
 
 type (
 	MemberProfile struct {
-		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-		CreatedAt   time.Time      `gorm:"not null;default:now()"`
-		CreatedByID uuid.UUID      `gorm:"type:uuid"`
-		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt   time.Time      `gorm:"not null;default:now()"`
-		UpdatedByID uuid.UUID      `gorm:"type:uuid"`
-		UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt   gorm.DeletedAt `gorm:"index"`
-		DeletedByID *uuid.UUID     `gorm:"type:uuid"`
-		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
-
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_member_profile"`
-		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_member_profile"`
-		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"branch,omitempty"`
-
-		MediaID          *uuid.UUID `gorm:"type:uuid"`
-		Media            *Media     `gorm:"foreignKey:MediaID;constraint:OnDelete:SET NULL,OnUpdate:CASCADE;" json:"media,omitempty"`
-		SignatureMediaID *uuid.UUID `gorm:"type:uuid"`
-		SignatureMedia   *Media     `gorm:"foreignKey:SignatureMediaID;constraint:OnDelete:SET NULL,OnUpdate:CASCADE;" json:"signature_media,omitempty"`
-
-		UserID *uuid.UUID `gorm:"type:uuid"` // Now nullable
-		User   *User      `gorm:"foreignKey:UserID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"user,omitempty"`
-
-		MemberTypeID                   *uuid.UUID            `gorm:"type:uuid"`
+		ID                             uuid.UUID             `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
+		CreatedAt                      time.Time             `gorm:"not null;default:now()" json:"created_at"`
+		CreatedByID                    uuid.UUID             `gorm:"type:uuid" json:"created_by,omitempty"`
+		CreatedBy                      *User                 `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by_user,omitempty"`
+		UpdatedAt                      time.Time             `gorm:"not null;default:now()" json:"updated_at"`
+		UpdatedByID                    uuid.UUID             `gorm:"type:uuid" json:"updated_by,omitempty"`
+		UpdatedBy                      *User                 `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by_user,omitempty"`
+		DeletedAt                      gorm.DeletedAt        `gorm:"index" json:"deleted_at"`
+		DeletedByID                    *uuid.UUID            `gorm:"type:uuid" json:"deleted_by,omitempty"`
+		DeletedBy                      *User                 `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by_user,omitempty"`
+		OrganizationID                 uuid.UUID             `gorm:"type:uuid;not null;index:idx_organization_branch_member_profile" json:"organization_id"`
+		Organization                   *Organization         `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
+		BranchID                       uuid.UUID             `gorm:"type:uuid;not null;index:idx_organization_branch_member_profile" json:"branch_id"`
+		Branch                         *Branch               `gorm:"foreignKey:BranchID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"branch,omitempty"`
+		MediaID                        *uuid.UUID            `gorm:"type:uuid" json:"media_id,omitempty"`
+		Media                          *Media                `gorm:"foreignKey:MediaID;constraint:OnDelete:SET NULL,OnUpdate:CASCADE;" json:"media,omitempty"`
+		SignatureMediaID               *uuid.UUID            `gorm:"type:uuid" json:"signature_media_id,omitempty"`
+		SignatureMedia                 *Media                `gorm:"foreignKey:SignatureMediaID;constraint:OnDelete:SET NULL,OnUpdate:CASCADE;" json:"signature_media,omitempty"`
+		UserID                         *uuid.UUID            `gorm:"type:uuid" json:"user_id,omitempty"`
+		User                           *User                 `gorm:"foreignKey:UserID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"user,omitempty"`
+		MemberTypeID                   *uuid.UUID            `gorm:"type:uuid" json:"member_type_id,omitempty"`
 		MemberType                     *MemberType           `gorm:"foreignKey:MemberTypeID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_type,omitempty"`
-		MemberGroupID                  *uuid.UUID            `gorm:"type:uuid"`
+		MemberGroupID                  *uuid.UUID            `gorm:"type:uuid" json:"member_group_id,omitempty"`
 		MemberGroup                    *MemberGroup          `gorm:"foreignKey:MemberGroupID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_group,omitempty"`
-		MemberGenderID                 *uuid.UUID            `gorm:"type:uuid"`
+		MemberGenderID                 *uuid.UUID            `gorm:"type:uuid" json:"member_gender_id,omitempty"`
 		MemberGender                   *MemberGender         `gorm:"foreignKey:MemberGenderID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_gender,omitempty"`
-		MemberCenterID                 *uuid.UUID            `gorm:"type:uuid"`
+		MemberCenterID                 *uuid.UUID            `gorm:"type:uuid" json:"member_center_id,omitempty"`
 		MemberCenter                   *MemberCenter         `gorm:"foreignKey:MemberCenterID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_center,omitempty"`
-		MemberOccupationID             *uuid.UUID            `gorm:"type:uuid"`
+		MemberOccupationID             *uuid.UUID            `gorm:"type:uuid" json:"member_occupation_id,omitempty"`
 		MemberOccupation               *MemberOccupation     `gorm:"foreignKey:MemberOccupationID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_occupation,omitempty"`
-		MemberClassificationID         *uuid.UUID            `gorm:"type:uuid"`
+		MemberClassificationID         *uuid.UUID            `gorm:"type:uuid" json:"member_classification_id,omitempty"`
 		MemberClassification           *MemberClassification `gorm:"foreignKey:MemberClassificationID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_classification,omitempty"`
-		MemberVerifiedByEmployeeUserID *uuid.UUID            `gorm:"type:uuid"`
+		MemberVerifiedByEmployeeUserID *uuid.UUID            `gorm:"type:uuid" json:"member_verified_by_employee_user_id,omitempty"`
 		MemberVerifiedByEmployeeUser   *User                 `gorm:"foreignKey:MemberVerifiedByEmployeeUserID;constraint:OnDelete:SET NULL,OnUpdate:CASCADE;" json:"member_verified_by_employee_user,omitempty"`
-		RecruitedByMemberProfileID     *uuid.UUID            `gorm:"type:uuid"`
+		RecruitedByMemberProfileID     *uuid.UUID            `gorm:"type:uuid" json:"recruited_by_member_profile_id,omitempty"`
 		RecruitedByMemberProfile       *MemberProfile        `gorm:"foreignKey:RecruitedByMemberProfileID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"recruited_by_member_profile,omitempty"`
-
-		IsClosed             bool `gorm:"not null;default:false"`
-		IsMutualFundMember   bool `gorm:"not null;default:false"`
-		IsMicroFinanceMember bool `gorm:"not null;default:false"`
-
-		FirstName  string     `gorm:"type:varchar(255);not null"`
-		MiddleName string     `gorm:"type:varchar(255)"`
-		LastName   string     `gorm:"type:varchar(255);not null"`
-		FullName   string     `gorm:"type:varchar(255);not null;index:idx_full_name"`
-		Suffix     string     `gorm:"type:varchar(50)"`
-		BirthDate  *time.Time `gorm:"type:date"`
-		Status     string     `gorm:"type:varchar(50);not null;default:'pending'"`
-
-		Description           string `gorm:"type:text"`
-		Notes                 string `gorm:"type:text"`
-		ContactNumber         string `gorm:"type:varchar(255)"`
-		OldReferenceID        string `gorm:"type:varchar(50)"`
-		Passbook              string `gorm:"type:varchar(255)"`
-		Occupation            string `gorm:"type:varchar(255)"`
-		BusinessAddress       string `gorm:"type:varchar(255)"`
-		BusinessContactNumber string `gorm:"type:varchar(255)"`
-		CivilStatus           string `gorm:"type:varchar(50);not null;default:'single'"`
+		IsClosed                       bool                  `gorm:"not null;default:false" json:"is_closed"`
+		IsMutualFundMember             bool                  `gorm:"not null;default:false" json:"is_mutual_fund_member"`
+		IsMicroFinanceMember           bool                  `gorm:"not null;default:false" json:"is_micro_finance_member"`
+		FirstName                      string                `gorm:"type:varchar(255);not null" json:"first_name"`
+		MiddleName                     string                `gorm:"type:varchar(255)" json:"middle_name,omitempty"`
+		LastName                       string                `gorm:"type:varchar(255);not null" json:"last_name"`
+		FullName                       string                `gorm:"type:varchar(255);not null;index:idx_full_name" json:"full_name"`
+		Suffix                         string                `gorm:"type:varchar(50)" json:"suffix,omitempty"`
+		BirthDate                      *time.Time            `gorm:"type:date" json:"birth_date,omitempty"`
+		Status                         string                `gorm:"type:varchar(50);not null;default:'pending'" json:"status"`
+		Description                    string                `gorm:"type:text" json:"description,omitempty"`
+		Notes                          string                `gorm:"type:text" json:"notes,omitempty"`
+		ContactNumber                  string                `gorm:"type:varchar(255)" json:"contact_number,omitempty"`
+		OldReferenceID                 string                `gorm:"type:varchar(50)" json:"old_reference_id,omitempty"`
+		Passbook                       string                `gorm:"type:varchar(255)" json:"passbook,omitempty"`
+		Occupation                     string                `gorm:"type:varchar(255)" json:"occupation,omitempty"`
+		BusinessAddress                string                `gorm:"type:varchar(255)" json:"business_address,omitempty"`
+		BusinessContactNumber          string                `gorm:"type:varchar(255)" json:"business_contact_number,omitempty"`
+		CivilStatus                    string                `gorm:"type:varchar(50);not null;default:'single'" json:"civil_status"`
 	}
-
 	MemberProfileResponse struct {
 		ID                             uuid.UUID                     `json:"id"`
 		CreatedAt                      string                        `json:"created_at"`
