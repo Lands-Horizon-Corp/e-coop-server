@@ -150,7 +150,7 @@ func (c *Controller) MemberProfileController() {
 
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-profile/:member_profile_id/close",
-		Method:   "POST",
+		Method:   "PUT",
 		Request:  "[]TMemberCloseRemarkRequest",
 		Response: "TMemberProfile",
 	}, func(ctx echo.Context) error {
