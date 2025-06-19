@@ -118,6 +118,7 @@ func findFieldByTagOrName(val reflect.Value, fieldPath string) reflect.Value {
 	// More than one dot is not supported (not one-to-one)
 	return reflect.Value{}
 }
+
 func FilterSlice[T any](ctx context.Context, data []*T, filters []Filter, logic FilterLogic) []*T {
 	if len(filters) == 0 {
 		return data
@@ -137,9 +138,15 @@ func FilterSlice[T any](ctx context.Context, data []*T, filters []Filter, logic 
 		for _, filter := range filters {
 			fieldVal := findFieldByTagOrName(val, filter.Field)
 
+			// --- FIX: For AND, missing field means fail; for OR, skip ---
 			if !fieldVal.IsValid() {
+				if logic == FilterLogicAnd {
+					matches = false
+					break
+				}
 				continue
 			}
+
 			itemValue := fieldVal.Interface()
 			match := false
 			if filter.DataType == "date" && isWholeDaySupportedMode(filter.Mode) {
