@@ -804,7 +804,9 @@ func (c *Controller) MemberProfileController() {
 			profile.MemberCenterID = &req.MemberCenterID
 		}
 
-		profile.RecruitedByMemberProfileID = &req.RecruitedByMemberProfileID
+		if !uuidPtrEqual(profile.RecruitedByMemberProfileID, &req.RecruitedByMemberProfileID) && req.RecruitedByMemberProfileID != uuid.Nil {
+			profile.RecruitedByMemberProfileID = &req.RecruitedByMemberProfileID
+		}
 		profile.IsMutualFundMember = req.IsMutualFundMember
 		profile.IsMicroFinanceMember = req.IsMicroFinanceMember
 
