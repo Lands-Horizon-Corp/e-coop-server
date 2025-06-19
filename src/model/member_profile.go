@@ -267,7 +267,7 @@ func (m *Model) MemberProfile() {
 			"MemberType", "MemberGroup", "MemberGender", "MemberCenter",
 			"MemberOccupation", "MemberClassification", "MemberVerifiedByEmployeeUser", "RecruitedByMemberProfile",
 			"RecruitedByMemberProfile.Media",
-			"MemberCloseRemark",
+			"MemberCloseRemarks",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *MemberProfile) *MemberProfileResponse {
