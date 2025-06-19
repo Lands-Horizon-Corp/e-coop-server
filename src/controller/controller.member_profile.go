@@ -737,8 +737,8 @@ func (c *Controller) MemberProfileController() {
 		profile.Status = req.Status
 
 		// MemberTypeID
-		if !uuidPtrEqual(profile.MemberTypeID, &req.MemberTypeID) && req.MemberTypeID != uuid.Nil {
-			if err := c.model.MemberTypeHistoryManager.Create(context, &model.MemberTypeHistory{
+		if req.MemberTypeID != uuid.Nil {
+			data := &model.MemberTypeHistory{
 				OrganizationID:  user.OrganizationID,
 				BranchID:        *user.BranchID,
 				CreatedAt:       time.Now().UTC(),
@@ -747,15 +747,16 @@ func (c *Controller) MemberProfileController() {
 				UpdatedByID:     user.UserID,
 				MemberProfileID: *memberProfileId,
 				MemberTypeID:    req.MemberTypeID,
-			}); err != nil {
+			}
+			if err := c.model.MemberTypeHistoryManager.Create(context, data); err != nil {
 				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could update member profile: %v", err))
 			}
 			profile.MemberTypeID = &req.MemberTypeID
 		}
 
 		// MemberGroupID
-		if !uuidPtrEqual(profile.MemberGroupID, &req.MemberGroupID) && req.MemberGroupID != uuid.Nil {
-			if err := c.model.MemberGroupHistoryManager.Create(context, &model.MemberGroupHistory{
+		if req.MemberGroupID != uuid.Nil {
+			data := &model.MemberGroupHistory{
 				OrganizationID:  user.OrganizationID,
 				BranchID:        *user.BranchID,
 				CreatedAt:       time.Now().UTC(),
@@ -764,15 +765,16 @@ func (c *Controller) MemberProfileController() {
 				UpdatedByID:     user.UserID,
 				MemberProfileID: *memberProfileId,
 				MemberGroupID:   req.MemberGroupID,
-			}); err != nil {
+			}
+			if err := c.model.MemberGroupHistoryManager.Create(context, data); err != nil {
 				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not update member group history: %v", err))
 			}
 			profile.MemberGroupID = &req.MemberGroupID
 		}
 
 		// MemberClassificationID
-		if !uuidPtrEqual(profile.MemberClassificationID, &req.MemberClassificationID) && req.MemberClassificationID != uuid.Nil {
-			if err := c.model.MemberClassificationHistoryManager.Create(context, &model.MemberClassificationHistory{
+		if req.MemberClassificationID != uuid.Nil {
+			data := &model.MemberClassificationHistory{
 				OrganizationID:         user.OrganizationID,
 				BranchID:               *user.BranchID,
 				CreatedAt:              time.Now().UTC(),
@@ -781,15 +783,16 @@ func (c *Controller) MemberProfileController() {
 				UpdatedByID:            user.UserID,
 				MemberProfileID:        *memberProfileId,
 				MemberClassificationID: req.MemberClassificationID,
-			}); err != nil {
+			}
+			if err := c.model.MemberClassificationHistoryManager.Create(context, data); err != nil {
 				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not update member classification history: %v", err))
 			}
 			profile.MemberClassificationID = &req.MemberClassificationID
 		}
 
 		// MemberCenterID
-		if !uuidPtrEqual(profile.MemberCenterID, &req.MemberCenterID) && req.MemberCenterID != uuid.Nil {
-			if err := c.model.MemberCenterHistoryManager.Create(context, &model.MemberCenterHistory{
+		if req.MemberCenterID != uuid.Nil {
+			data := &model.MemberCenterHistory{
 				OrganizationID:  user.OrganizationID,
 				BranchID:        *user.BranchID,
 				CreatedAt:       time.Now().UTC(),
@@ -798,13 +801,14 @@ func (c *Controller) MemberProfileController() {
 				UpdatedByID:     user.UserID,
 				MemberProfileID: *memberProfileId,
 				MemberCenterID:  req.MemberCenterID,
-			}); err != nil {
+			}
+			if err := c.model.MemberCenterHistoryManager.Create(context, data); err != nil {
 				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not update member center history: %v", err))
 			}
 			profile.MemberCenterID = &req.MemberCenterID
 		}
 
-		if !uuidPtrEqual(profile.RecruitedByMemberProfileID, &req.RecruitedByMemberProfileID) && req.RecruitedByMemberProfileID != uuid.Nil {
+		if req.RecruitedByMemberProfileID != uuid.Nil {
 			profile.RecruitedByMemberProfileID = &req.RecruitedByMemberProfileID
 		}
 		profile.IsMutualFundMember = req.IsMutualFundMember
