@@ -654,7 +654,7 @@ func (c *Controller) UserOrganinzationController() {
 		}
 
 		// Only allow org admins/owners to reject applications
-		if user.UserType != "owner" && user.UserType != "admin" {
+		if user.UserType != "owner" && user.UserType != "admin" && user.UserType != "employee" {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "only organization owners or admins can reject applications"})
 		}
 
