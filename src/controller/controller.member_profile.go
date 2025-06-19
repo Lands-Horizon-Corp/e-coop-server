@@ -744,7 +744,7 @@ func (c *Controller) MemberProfileController() {
 		profile.Status = req.Status
 
 		// MemberTypeID
-		if req.MemberTypeID != nil {
+		if req.MemberTypeID != nil && profile.MemberTypeID != req.MemberTypeID {
 			data := &model.MemberTypeHistory{
 				OrganizationID:  userOrg.OrganizationID,
 				BranchID:        *userOrg.BranchID,
@@ -762,7 +762,7 @@ func (c *Controller) MemberProfileController() {
 		}
 
 		// MemberGroupID
-		if req.MemberGroupID != nil {
+		if req.MemberGroupID != nil && profile.MemberGroupID != req.MemberGroupID {
 			data := &model.MemberGroupHistory{
 				OrganizationID:  userOrg.OrganizationID,
 				BranchID:        *userOrg.BranchID,
@@ -780,7 +780,7 @@ func (c *Controller) MemberProfileController() {
 		}
 
 		// MemberClassificationID
-		if req.MemberClassificationID != nil {
+		if req.MemberClassificationID != nil && profile.MemberClassificationID != req.MemberClassificationID {
 			data := &model.MemberClassificationHistory{
 				OrganizationID:         userOrg.OrganizationID,
 				BranchID:               *userOrg.BranchID,
@@ -798,7 +798,7 @@ func (c *Controller) MemberProfileController() {
 		}
 
 		// MemberCenterID
-		if req.MemberCenterID != nil {
+		if req.MemberCenterID != nil && profile.MemberCenterID != req.MemberCenterID {
 			data := &model.MemberCenterHistory{
 				OrganizationID:  userOrg.OrganizationID,
 				BranchID:        *userOrg.BranchID,
