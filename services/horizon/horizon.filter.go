@@ -125,6 +125,8 @@ func FilterSlice[T any](ctx context.Context, data []*T, filters []Filter, logic 
 		matches := logic == FilterLogicAnd
 		for _, filter := range filters {
 			fieldVal := findFieldByTagOrName(val, filter.Field)
+			fmt.Println(fieldVal, filter.Field, filter.Mode, filter.Value)
+			fmt.Println("---")
 			if !fieldVal.IsValid() {
 				// Ignore columns not specified in filters!
 				continue
