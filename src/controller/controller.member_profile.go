@@ -41,7 +41,7 @@ func (c *Controller) MemberProfileController() {
 
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-profile/:member_profile_id/user-account",
-		Method:   "PUT",
+		Method:   "POST",
 		Request:  "MemberProfilePersonalInfoRequest",
 		Response: "MemberProfile",
 		Note:     "Quickly create a new member profile with minimal required fields.",
