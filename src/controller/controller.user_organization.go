@@ -135,7 +135,7 @@ func (c *Controller) UserOrganinzationController() {
 		})
 		filteredUserOrganizations := []*model.UserOrganization{}
 		for _, uo := range userOrganization {
-			userProfile, _ := c.model.MemberProfileFindUserByID(context, user.ID, uo.OrganizationID, *uo.BranchID)
+			userProfile, _ := c.model.MemberProfileFindUserByID(context, uo.UserID, uo.OrganizationID, *uo.BranchID)
 			if userProfile == nil {
 				filteredUserOrganizations = append(filteredUserOrganizations, uo)
 			}
