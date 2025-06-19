@@ -697,7 +697,7 @@ func (c *Controller) MemberProfileController() {
 		profile.ContactNumber = req.ContactNumber
 		profile.CivilStatus = req.CivilStatus
 
-		if req.MemberGenderID != nil && uuidPtrEqual(profile.MemberGenderID, req.MemberGenderID) {
+		if req.MemberGenderID != nil && !uuidPtrEqual(profile.MemberGenderID, req.MemberGenderID) {
 			data := &model.MemberGenderHistory{
 				OrganizationID:  userOrg.OrganizationID,
 				BranchID:        *userOrg.BranchID,
@@ -713,7 +713,7 @@ func (c *Controller) MemberProfileController() {
 			}
 			profile.MemberGenderID = req.MemberGenderID
 		}
-		if req.MemberOccupationID != nil && uuidPtrEqual(profile.MemberOccupationID, req.MemberOccupationID) {
+		if req.MemberOccupationID != nil && !uuidPtrEqual(profile.MemberOccupationID, req.MemberOccupationID) {
 			data := &model.MemberOccupationHistory{
 				OrganizationID:     userOrg.OrganizationID,
 				BranchID:           *userOrg.BranchID,
@@ -776,7 +776,7 @@ func (c *Controller) MemberProfileController() {
 		profile.Status = req.Status
 
 		// MemberTypeID
-		if req.MemberTypeID != nil && uuidPtrEqual(profile.MemberTypeID, req.MemberTypeID) {
+		if req.MemberTypeID != nil && !uuidPtrEqual(profile.MemberTypeID, req.MemberTypeID) {
 			data := &model.MemberTypeHistory{
 				OrganizationID:  userOrg.OrganizationID,
 				BranchID:        *userOrg.BranchID,
@@ -794,7 +794,7 @@ func (c *Controller) MemberProfileController() {
 		}
 
 		// MemberGroupID
-		if req.MemberGroupID != nil && uuidPtrEqual(profile.MemberGroupID, req.MemberGroupID) {
+		if req.MemberGroupID != nil && !uuidPtrEqual(profile.MemberGroupID, req.MemberGroupID) {
 			data := &model.MemberGroupHistory{
 				OrganizationID:  userOrg.OrganizationID,
 				BranchID:        *userOrg.BranchID,
@@ -812,7 +812,7 @@ func (c *Controller) MemberProfileController() {
 		}
 
 		// MemberClassificationID
-		if req.MemberClassificationID != nil && uuidPtrEqual(profile.MemberClassificationID, req.MemberClassificationID) {
+		if req.MemberClassificationID != nil && !uuidPtrEqual(profile.MemberClassificationID, req.MemberClassificationID) {
 			data := &model.MemberClassificationHistory{
 				OrganizationID:         userOrg.OrganizationID,
 				BranchID:               *userOrg.BranchID,
@@ -830,7 +830,7 @@ func (c *Controller) MemberProfileController() {
 		}
 
 		// MemberCenterID
-		if req.MemberCenterID != nil && uuidPtrEqual(profile.MemberCenterID, req.MemberCenterID) {
+		if req.MemberCenterID != nil && !uuidPtrEqual(profile.MemberCenterID, req.MemberCenterID) {
 			data := &model.MemberCenterHistory{
 				OrganizationID:  userOrg.OrganizationID,
 				BranchID:        *userOrg.BranchID,
