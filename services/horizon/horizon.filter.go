@@ -72,6 +72,7 @@ type PaginationResult[T any] struct {
 func findFieldByTagOrName(val reflect.Value, fieldName string) reflect.Value {
 	if val.Kind() == reflect.Ptr {
 		if val.IsNil() {
+			fmt.Printf("findFieldByTagOrName: field=%s, value=<nil pointer>\n", fieldName)
 			return reflect.Value{}
 		}
 		val = val.Elem()
@@ -86,11 +87,14 @@ func findFieldByTagOrName(val reflect.Value, fieldName string) reflect.Value {
 		tagName := strings.Split(tag, ",")[0]
 		if (tagName != "" && strings.EqualFold(tagName, currentField)) || strings.EqualFold(f.Name, currentField) {
 			fieldVal := val.Field(i)
+			fmt.Printf("findFieldByTagOrName: field=%s, structField=%s, tag=%s, value=%#v, kind=%s\n",
+				fieldName, f.Name, tagName, fieldVal.Interface(), fieldVal.Kind())
 			if len(parts) == 1 {
 				return fieldVal
 			}
 			// If pointer, check for nil before recursing
 			if fieldVal.Kind() == reflect.Ptr && fieldVal.IsNil() {
+				fmt.Printf("findFieldByTagOrName: nested field=%s, value=<nil pointer>\n", parts[1])
 				return reflect.Value{}
 			}
 			return findFieldByTagOrName(fieldVal, parts[1])
@@ -102,6 +106,7 @@ func findFieldByTagOrName(val reflect.Value, fieldName string) reflect.Value {
 			}
 		}
 	}
+	fmt.Printf("findFieldByTagOrName: field=%s not found in type=%s\n", fieldName, val.Type().Name())
 	return reflect.Value{}
 }
 func FilterSlice[T any](ctx context.Context, data []*T, filters []Filter, logic FilterLogic) []*T {
