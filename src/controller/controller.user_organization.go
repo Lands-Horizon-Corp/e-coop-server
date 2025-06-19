@@ -117,6 +117,36 @@ func (c *Controller) UserOrganinzationController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
+		Route:    "/user-organization/none-member-profle/search",
+		Method:   "GET",
+		Request:  "Filter<TUserOrganization>",
+		Response: "Paginated<TUserOrganization>",
+		Note:     "Get pagination user organization",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.NoContent(http.StatusNoContent)
+		}
+		userOrganization, err := c.model.UserOrganizationManager.Find(context, &model.UserOrganization{
+			OrganizationID: user.OrganizationID,
+			BranchID:       user.BranchID,
+			UserType:       "member",
+		})
+		filteredUserOrganizations := []model.UserOrganization{}
+		for _, uo := range userOrganization {
+			userProfile, _ := c.model.MemberProfileFindUserByID(context, user.ID, uo.OrganizationID, *uo.BranchID)
+			if userProfile != nil {
+				filteredUserOrganizations = append(filteredUserOrganizations, *uo)
+			}
+		}
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.Pagination(context, ctx, userOrganization))
+	})
+
+	req.RegisterRoute(horizon.Route{
 		Route:    "/user-organization/user/:user_id",
 		Method:   "GET",
 		Response: "TUserOrganization[]",

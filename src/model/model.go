@@ -989,14 +989,23 @@ func (m *Model) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, userID u
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
+	if err != nil {
+		return eris.Wrapf(err, "failed to get invitation codes")
+	}
 	banks, err := m.BankManager.Find(ctx, &Bank{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
+	if err != nil {
+		return eris.Wrapf(err, "failed to get banks")
+	}
 	billAndCoins, err := m.BillAndCoinsManager.Find(ctx, &BillAndCoins{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
+	if err != nil {
+		return eris.Wrapf(err, "failed to get bill and coins")
+	}
 	// 4. Delete Holidays
 	holidays, err := m.HolidayManager.Find(ctx, &Holiday{
 		OrganizationID: organizationID,
@@ -1010,24 +1019,15 @@ func (m *Model) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, userID u
 			return eris.Wrapf(err, "failed to destroy holiday %s", data.Name)
 		}
 	}
-	if err != nil {
-		return eris.Wrapf(err, "failed to get bill and coins")
-	}
 	for _, data := range billAndCoins {
 		if err := m.BillAndCoinsManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy bill or coin %s", data.Name)
 		}
 	}
-	if err != nil {
-		return eris.Wrapf(err, "failed to get banks")
-	}
 	for _, data := range banks {
 		if err := m.BankManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy bank %s", data.Name)
 		}
-	}
-	if err != nil {
-		return eris.Wrapf(err, "failed to get invitation codes")
 	}
 	for _, data := range invitationCodes {
 		if err := m.InvitationCodeManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {

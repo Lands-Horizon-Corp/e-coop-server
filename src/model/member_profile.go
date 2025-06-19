@@ -244,6 +244,7 @@ func (m *Model) MemberProfile() {
 			"Branch", "Organization",
 			"Media", "SignatureMedia",
 			"User",
+			"User.Media",
 			"MemberType", "MemberGroup", "MemberGender", "MemberCenter",
 			"MemberOccupation", "MemberClassification", "MemberVerifiedByEmployeeUser", "RecruitedByMemberProfile",
 		},
@@ -547,4 +548,12 @@ func (m *Model) MemberProfileDelete(context context.Context, tx *gorm.DB, member
 	}
 
 	return m.MemberProfileManager.DeleteByIDWithTx(context, tx, memberProfileId)
+}
+
+func (m *Model) MemberProfileFindUserByID(ctx context.Context, userId uuid.UUID, orgId uuid.UUID, branchId uuid.UUID) (*MemberProfile, error) {
+	return m.MemberProfileManager.FindOne(ctx, &MemberProfile{
+		UserID:         &userId,
+		OrganizationID: orgId,
+		BranchID:       branchId,
+	})
 }
