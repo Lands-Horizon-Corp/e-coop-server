@@ -71,19 +71,29 @@ type PaginationResult[T any] struct {
 // --- Filtering Function ---
 func findFieldByTagOrName(val reflect.Value, fieldName string) reflect.Value {
 	if val.Kind() == reflect.Ptr {
+		if val.IsNil() {
+			return reflect.Value{}
+		}
 		val = val.Elem()
 	}
+	parts := strings.SplitN(fieldName, ".", 2)
+	currentField := parts[0]
+
 	t := val.Type()
 	for i := 0; i < t.NumField(); i++ {
-		f := val.Type().Field(i)
-
+		f := t.Field(i)
 		tag := f.Tag.Get("json")
 		tagName := strings.Split(tag, ",")[0]
-		if tagName != "" && strings.EqualFold(tagName, fieldName) {
-			return val.Field(i)
-		}
-		if strings.EqualFold(f.Name, fieldName) {
-			return val.Field(i)
+		if (tagName != "" && strings.EqualFold(tagName, currentField)) || strings.EqualFold(f.Name, currentField) {
+			fieldVal := val.Field(i)
+			if len(parts) == 1 {
+				return fieldVal
+			}
+			// If pointer, check for nil before recursing
+			if fieldVal.Kind() == reflect.Ptr && fieldVal.IsNil() {
+				return reflect.Value{}
+			}
+			return findFieldByTagOrName(fieldVal, parts[1])
 		}
 		if f.Anonymous && val.Field(i).Kind() == reflect.Struct {
 			found := findFieldByTagOrName(val.Field(i), fieldName)
