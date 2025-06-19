@@ -78,7 +78,7 @@ type (
 		MemberRelativeAccounts       []*MemberRelativeAccount       `gorm:"foreignKey:MemberProfileID" json:"member_relative_accounts,omitempty"`
 		MemberEducationalAttainments []*MemberEducationalAttainment `gorm:"foreignKey:MemberProfileID" json:"member_educational_attainments,omitempty"`
 		MemberContactReferences      []*MemberContactReference      `gorm:"foreignKey:MemberProfileID" json:"member_contact_references,omitempty"`
-		MemberCloseRemarks           []*MemberCloseRemark           `gorm:"foreignKey:MemberProfileID;references:ID" json:"member_close_remarks,omitempty"`
+		MemberCloseRemarks           []*MemberCloseRemark           `gorm:"foreignKey:MemberProfileID" json:"member_close_remarks,omitempty"`
 	}
 	MemberProfileResponse struct {
 		ID                             uuid.UUID                     `json:"id"`
