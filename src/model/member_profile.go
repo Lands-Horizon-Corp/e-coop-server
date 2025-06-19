@@ -67,6 +67,16 @@ type (
 		BusinessAddress                string                `gorm:"type:varchar(255)" json:"business_address,omitempty"`
 		BusinessContactNumber          string                `gorm:"type:varchar(255)" json:"business_contact_number,omitempty"`
 		CivilStatus                    string                `gorm:"type:varchar(50);not null;default:'single'" json:"civil_status"`
+
+		MemberAddresses              []*MemberAddress               `gorm:"foreignKey:MemberProfileID" json:"member_addresses,omitempty"`
+		MemberAssets                 []*MemberAsset                 `gorm:"foreignKey:MemberProfileID" json:"member_assets,omitempty"`
+		MemberIncomes                []*MemberIncome                `gorm:"foreignKey:MemberProfileID" json:"member_incomes,omitempty"`
+		MemberExpenses               []*MemberExpense               `gorm:"foreignKey:MemberProfileID" json:"member_expenses,omitempty"`
+		MemberGovernmentBenefits     []*MemberGovernmentBenefit     `gorm:"foreignKey:MemberProfileID" json:"member_government_benefits,omitempty"`
+		MemberJointAccounts          []*MemberJointAccount          `gorm:"foreignKey:MemberProfileID" json:"member_joint_accounts,omitempty"`
+		MemberRelativeAccounts       []*MemberRelativeAccount       `gorm:"foreignKey:MemberProfileID" json:"member_relative_accounts,omitempty"`
+		MemberEducationalAttainments []*MemberEducationalAttainment `gorm:"foreignKey:MemberProfileID" json:"member_educational_attainments,omitempty"`
+		MemberContactReferences      []*MemberContactReference      `gorm:"foreignKey:MemberProfileID" json:"member_contact_references,omitempty"`
 	}
 	MemberProfileResponse struct {
 		ID                             uuid.UUID                     `json:"id"`
