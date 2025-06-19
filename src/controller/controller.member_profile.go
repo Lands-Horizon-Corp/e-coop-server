@@ -397,46 +397,43 @@ func (c *Controller) MemberProfileController() {
 			// Delete all connections for this member profile
 			if err := c.model.MemberAddressManager.DeleteByIDWithTx(context, tx, memberProfileID); err != nil {
 				tx.Rollback()
-				return c.InternalServerError(ctx, err)
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
 			}
 			if err := c.model.MemberAssetManager.DeleteByIDWithTx(context, tx, memberProfileID); err != nil {
 				tx.Rollback()
-				return c.InternalServerError(ctx, err)
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
 			}
 			if err := c.model.MemberIncomeManager.DeleteByIDWithTx(context, tx, memberProfileID); err != nil {
 				tx.Rollback()
-				return c.InternalServerError(ctx, err)
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
 			}
 			if err := c.model.MemberExpenseManager.DeleteByIDWithTx(context, tx, memberProfileID); err != nil {
 				tx.Rollback()
-				return c.InternalServerError(ctx, err)
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
 			}
 			if err := c.model.MemberGovernmentBenefitManager.DeleteByIDWithTx(context, tx, memberProfileID); err != nil {
 				tx.Rollback()
-				return c.InternalServerError(ctx, err)
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
 			}
 			if err := c.model.MemberJointAccountManager.DeleteByIDWithTx(context, tx, memberProfileID); err != nil {
 				tx.Rollback()
-				return c.InternalServerError(ctx, err)
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
 			}
 			if err := c.model.MemberRelativeAccountManager.DeleteByIDWithTx(context, tx, memberProfileID); err != nil {
 				tx.Rollback()
-				return c.InternalServerError(ctx, err)
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
 			}
 			if err := c.model.MemberEducationalAttainmentManager.DeleteByIDWithTx(context, tx, memberProfileID); err != nil {
 				tx.Rollback()
-				return c.InternalServerError(ctx, err)
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
 			}
 			if err := c.model.MemberContactReferenceManager.DeleteByIDWithTx(context, tx, memberProfileID); err != nil {
 				tx.Rollback()
-				return c.InternalServerError(ctx, err)
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
 			}
-			// Add more connections here as needed (e.g., remarks, histories, etc.)
-
-			// Finally, delete the member profile itself
 			if err := c.model.MemberProfileDelete(context, tx, memberProfileID); err != nil {
 				tx.Rollback()
-				return c.InternalServerError(ctx, err)
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
 			}
 		}
 		if err := tx.Commit().Error; err != nil {
@@ -864,13 +861,17 @@ func (c *Controller) MemberEducationalAttainmentController() {
 	req := c.provider.Service.Request
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-educational-attainment",
+		Route:    "/member-educational-attainment/member-profile/:member_profile_id",
 		Method:   "POST",
 		Request:  "TMemberEducationalAttainment",
 		Response: "TMemberEducationalAttainment",
 		Note:     "Create a new educational attainment record for a member.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
+		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid member profile ID")
+		}
 		req, err := c.model.MemberEducationalAttainmentManager.Validate(ctx)
 		if err != nil {
 			return c.BadRequest(ctx, err.Error())
@@ -881,7 +882,7 @@ func (c *Controller) MemberEducationalAttainmentController() {
 		}
 
 		value := &model.MemberEducationalAttainment{
-			MemberProfileID:       req.MemberProfileID,
+			MemberProfileID:       *memberProfileID,
 			Name:                  req.Name,
 			SchoolName:            req.SchoolName,
 			SchoolYear:            req.SchoolYear,
@@ -958,6 +959,48 @@ func (c *Controller) MemberEducationalAttainmentController() {
 			return c.BadRequest(ctx, "Invalid member educational attainment ID")
 		}
 		if err := c.model.MemberEducationalAttainmentManager.DeleteByID(context, *memberEducationalAttainmentID); err != nil {
+			return c.InternalServerError(ctx, err)
+		}
+		return ctx.NoContent(http.StatusNoContent)
+	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:   "/member-educational-attainment/bulk-delete",
+		Method:  "DELETE",
+		Request: "string[]",
+		Note:    "Delete multiple member educational attainment records",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		var reqBody struct {
+			IDs []string `json:"ids"`
+		}
+		if err := ctx.Bind(&reqBody); err != nil {
+			return c.BadRequest(ctx, "Invalid request body")
+		}
+		if len(reqBody.IDs) == 0 {
+			return c.BadRequest(ctx, "No IDs provided")
+		}
+		tx := c.provider.Service.Database.Client().Begin()
+		if tx.Error != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+		}
+		for _, rawID := range reqBody.IDs {
+			bankID, err := uuid.Parse(rawID)
+			if err != nil {
+				tx.Rollback()
+				return c.BadRequest(ctx, fmt.Sprintf("Invalid UUID: %s", rawID))
+			}
+			if _, err := c.model.MemberEducationalAttainmentManager.GetByID(context, bankID); err != nil {
+				tx.Rollback()
+				return c.NotFound(ctx, fmt.Sprintf("MemberEducationalAttainment with ID %s", rawID))
+			}
+			if err := c.model.MemberEducationalAttainmentManager.DeleteByIDWithTx(context, tx, bankID); err != nil {
+				tx.Rollback()
+				return c.InternalServerError(ctx, err)
+			}
+		}
+		if err := tx.Commit().Error; err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 		return ctx.NoContent(http.StatusNoContent)
