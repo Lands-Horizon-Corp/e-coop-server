@@ -232,7 +232,7 @@ type (
 		IsMutualFundMember   bool         `json:"is_mutual_fund_member"`
 		IsMicroFinanceMember bool         `json:"is_micro_finance_member"`
 		MemberTypeID         *uuid.UUID   `json:"member_type_id"`
-		AccountInfo          *AccountInfo `json:"new_user_info,omitempty" validate:"omitempty,dive"`
+		AccountInfo          *AccountInfo `json:"new_user_info,omitempty" validate:"omitempty"`
 	}
 )
 
