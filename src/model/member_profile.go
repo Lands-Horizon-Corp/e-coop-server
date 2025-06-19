@@ -704,5 +704,5 @@ func (m *Model) MemberProfileDestroy(ctx context.Context, tx *gorm.DB, id uuid.U
 	if err := m.MemberProfileDelete(ctx, tx, memberProfile.ID); err != nil {
 		return eris.Wrapf(err, "failed to delete member profile: %s", memberProfile.ID)
 	}
-	return m.MemberProfileDelete(ctx, tx, memberProfile.ID)
+	return err
 }
