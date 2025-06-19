@@ -54,9 +54,8 @@ type (
 	}
 
 	MemberCloseRemarkRequest struct {
-		MemberProfileID uuid.UUID `json:"member_profile_id" validate:"required"`
-		Reason          string    `json:"reason,omitempty"`
-		Description     string    `json:"description,omitempty"`
+		Reason      string `json:"reason,omitempty"`
+		Description string `json:"description,omitempty"`
 	}
 )
 

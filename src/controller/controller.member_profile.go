@@ -149,6 +149,72 @@ func (c *Controller) MemberProfileController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
+		Route:    "/member-profile/:member_profile_id/close",
+		Method:   "POST",
+		Request:  "[]TMemberCloseRemarkRequest",
+		Response: "TMemberProfile",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid member profile ID")
+		}
+		var reqs []model.MemberCloseRemarkRequest
+		if err := ctx.Bind(&reqs); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return err
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return c.BadRequest(ctx, "User is not authorized")
+		}
+		tx := c.provider.Service.Database.Client().Begin()
+		if tx.Error != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+		}
+		for _, req := range reqs {
+			if err := c.provider.Service.Validator.Struct(req); err != nil {
+				tx.Rollback()
+				return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+			}
+			value := &model.MemberCloseRemark{
+				Reason:          req.Reason,
+				Description:     req.Description,
+				MemberProfileID: *memberProfileID,
+				CreatedAt:       time.Now().UTC(),
+				CreatedByID:     userOrg.UserID,
+				UpdatedAt:       time.Now().UTC(),
+				UpdatedByID:     userOrg.UserID,
+				BranchID:        *userOrg.BranchID,
+				OrganizationID:  userOrg.OrganizationID,
+			}
+			if err := c.model.MemberCloseRemarkManager.CreateWithTx(context, tx, value); err != nil {
+				tx.Rollback()
+				return c.InternalServerError(ctx, err)
+			}
+		}
+
+		memberProfile, err := c.model.MemberProfileManager.GetByID(context, *memberProfileID)
+		if err != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+
+		memberProfile.IsClosed = true
+		if err := c.model.MemberProfileManager.UpdateFieldsWithTx(context, tx, memberProfile.ID, memberProfile); err != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		if err := tx.Commit().Error; err != nil {
+			return c.InternalServerError(ctx, err)
+		}
+		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(memberProfile))
+	})
+
+	req.RegisterRoute(horizon.Route{
 		Route:    "/member-profile/:member_profile_id/connect-user-account/:user_id",
 		Method:   "PUT",
 		Response: "TMemberProfile",
@@ -409,59 +475,6 @@ func (c *Controller) MemberProfileController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 	// ...existing code...
-
-	req.RegisterRoute(horizon.Route{
-		Route:    "/member-profile/:member_profile_id/close",
-		Method:   "POST",
-		Request:  "MemberCloseRemarkRequest",
-		Response: "MemberCloseRemark",
-		Note:     "Close the specified member profile by member_profile_id. Requires a remark for closing.",
-	}, func(ctx echo.Context) error {
-		context := ctx.Request().Context()
-		var req model.MemberCloseRemarkRequest
-		if err := ctx.Bind(&req); err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
-		}
-		if err := c.provider.Service.Validator.Struct(req); err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
-		}
-		memberProfile, err := c.model.MemberProfileManager.GetByID(context, req.MemberProfileID)
-		if err != nil {
-			return c.NotFound(ctx, fmt.Sprintf("MemberProfile with ID %s not found", req.MemberProfileID))
-		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
-		if err != nil {
-			return ctx.NoContent(http.StatusNoContent)
-		}
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
-		}
-		memberProfile.IsClosed = true
-		if err := c.model.MemberProfileManager.UpdateFieldsWithTx(context, tx, memberProfile.ID, memberProfile); err != nil {
-			tx.Rollback()
-			return echo.NewHTTPError(http.StatusInternalServerError, "failed to close member profile: "+err.Error())
-		}
-		if err := tx.Commit().Error; err != nil {
-			return c.InternalServerError(ctx, err)
-		}
-		value := &model.MemberCloseRemark{
-			MemberProfileID: req.MemberProfileID,
-			Reason:          req.Reason,
-			Description:     req.Description,
-			CreatedAt:       time.Now().UTC(),
-			CreatedByID:     user.UserID,
-			UpdatedAt:       time.Now().UTC(),
-			UpdatedByID:     user.UserID,
-			BranchID:        *user.BranchID,
-			OrganizationID:  user.OrganizationID,
-		}
-		if err := c.model.MemberCloseRemarkManager.Create(context, value); err != nil {
-			return c.InternalServerError(ctx, err)
-		}
-		return ctx.JSON(http.StatusOK, c.model.MemberCloseRemarkManager.ToModel(value))
-	})
 
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-profile/:member_profile_id/connect-user",
