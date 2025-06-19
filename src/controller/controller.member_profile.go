@@ -737,7 +737,7 @@ func (c *Controller) MemberProfileController() {
 		profile.Status = req.Status
 
 		// MemberTypeID
-		if !uuidPtrEqual(profile.MemberTypeID, &req.MemberTypeID) {
+		if !uuidPtrEqual(profile.MemberTypeID, &req.MemberTypeID) && req.MemberTypeID != uuid.Nil {
 			if err := c.model.MemberTypeHistoryManager.Create(context, &model.MemberTypeHistory{
 				OrganizationID:  user.OrganizationID,
 				BranchID:        *user.BranchID,
@@ -754,7 +754,7 @@ func (c *Controller) MemberProfileController() {
 		}
 
 		// MemberGroupID
-		if !uuidPtrEqual(profile.MemberGroupID, &req.MemberGroupID) {
+		if !uuidPtrEqual(profile.MemberGroupID, &req.MemberGroupID) && req.MemberGroupID != uuid.Nil {
 			if err := c.model.MemberGroupHistoryManager.Create(context, &model.MemberGroupHistory{
 				OrganizationID:  user.OrganizationID,
 				BranchID:        *user.BranchID,
@@ -771,7 +771,7 @@ func (c *Controller) MemberProfileController() {
 		}
 
 		// MemberClassificationID
-		if !uuidPtrEqual(profile.MemberClassificationID, &req.MemberClassificationID) {
+		if !uuidPtrEqual(profile.MemberClassificationID, &req.MemberClassificationID) && req.MemberClassificationID != uuid.Nil {
 			if err := c.model.MemberClassificationHistoryManager.Create(context, &model.MemberClassificationHistory{
 				OrganizationID:         user.OrganizationID,
 				BranchID:               *user.BranchID,
@@ -788,7 +788,7 @@ func (c *Controller) MemberProfileController() {
 		}
 
 		// MemberCenterID
-		if !uuidPtrEqual(profile.MemberCenterID, &req.MemberCenterID) {
+		if !uuidPtrEqual(profile.MemberCenterID, &req.MemberCenterID) && req.MemberCenterID != uuid.Nil {
 			if err := c.model.MemberCenterHistoryManager.Create(context, &model.MemberCenterHistory{
 				OrganizationID:  user.OrganizationID,
 				BranchID:        *user.BranchID,
