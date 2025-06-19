@@ -41,7 +41,7 @@ func (c *Controller) MemberProfileController() {
 
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-profile/:member_profile_id/connect-user-account/:user_id",
-		Method:   "POST",
+		Method:   "PUT",
 		Response: "TMemberProfile",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
