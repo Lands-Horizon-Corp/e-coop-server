@@ -78,6 +78,7 @@ type (
 		MemberRelativeAccounts       []*MemberRelativeAccount       `gorm:"foreignKey:MemberProfileID" json:"member_relative_accounts,omitempty"`
 		MemberEducationalAttainments []*MemberEducationalAttainment `gorm:"foreignKey:MemberProfileID" json:"member_educational_attainments,omitempty"`
 		MemberContactReferences      []*MemberContactReference      `gorm:"foreignKey:MemberProfileID" json:"member_contact_references,omitempty"`
+		MemberCloseRemarks           []*MemberCloseRemark           `gorm:"foreignKey:MemberProfileID" json:"member_close_remarks,omitempty"`
 	}
 	MemberProfileResponse struct {
 		ID                             uuid.UUID                     `json:"id"`
@@ -131,6 +132,8 @@ type (
 		BusinessAddress                string                        `json:"business_address"`
 		BusinessContactNumber          string                        `json:"business_contact_number"`
 		CivilStatus                    string                        `json:"civil_status"`
+
+		MemberCloseRemark []*MemberCloseRemarkResponse `json:"member_close_remarks,omitempty"`
 	}
 
 	MemberProfileRequest struct {
@@ -264,6 +267,7 @@ func (m *Model) MemberProfile() {
 			"MemberType", "MemberGroup", "MemberGender", "MemberCenter",
 			"MemberOccupation", "MemberClassification", "MemberVerifiedByEmployeeUser", "RecruitedByMemberProfile",
 			"RecruitedByMemberProfile.Media",
+			"MemberCloseRemark",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *MemberProfile) *MemberProfileResponse {
@@ -327,6 +331,8 @@ func (m *Model) MemberProfile() {
 				BusinessAddress:                data.BusinessAddress,
 				BusinessContactNumber:          data.BusinessContactNumber,
 				CivilStatus:                    data.CivilStatus,
+
+				MemberCloseRemark: m.MemberCloseRemarkManager.ToModels(data.MemberCloseRemarks),
 			}
 		},
 
