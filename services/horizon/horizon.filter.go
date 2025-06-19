@@ -100,14 +100,13 @@ func findFieldByTagOrName(val reflect.Value, fieldName string) reflect.Value {
 		tagName := strings.Split(tag, ",")[0]
 		if (tagName != "" && strings.EqualFold(tagName, currentField)) || strings.EqualFold(f.Name, currentField) {
 			fieldVal := val.Field(i)
-			fmt.Printf("findFieldByTagOrName: field=%s, structField=%s, tag=%s, value=%#v, kind=%s\n",
-				fieldName, f.Name, tagName, valueToAnything(fieldVal), fieldVal.Kind())
+
 			if len(parts) == 1 {
 				return fieldVal
 			}
 			// If pointer, check for nil before recursing
 			if fieldVal.Kind() == reflect.Ptr && fieldVal.IsNil() {
-				fmt.Printf("findFieldByTagOrName: nested field=%s, value=<nil pointer>\n", parts[1])
+
 				return reflect.Value{}
 			}
 			return findFieldByTagOrName(fieldVal, parts[1])
@@ -140,8 +139,7 @@ func FilterSlice[T any](ctx context.Context, data []*T, filters []Filter, logic 
 		matches := logic == FilterLogicAnd
 		for _, filter := range filters {
 			fieldVal := findFieldByTagOrName(val, filter.Field)
-			fmt.Println(fieldVal, filter.Field, filter.DataType, filter.Mode, filter.Value)
-			fmt.Println("---------------------")
+
 			if !fieldVal.IsValid() {
 				// Treat missing field as non-match for this filter
 				if logic == FilterLogicAnd {
