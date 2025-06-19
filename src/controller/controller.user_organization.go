@@ -138,12 +138,16 @@ func (c *Controller) UserOrganinzationController() {
 			userProfile, _ := c.model.MemberProfileFindUserByID(context, uo.UserID, uo.OrganizationID, *uo.BranchID)
 			if userProfile == nil {
 				filteredUserOrganizations = append(filteredUserOrganizations, uo)
+				fmt.Println(uo.User.FullName)
+				fmt.Println(uo.User.Email)
+				fmt.Println(uo.User.UserName)
 			}
 		}
+		fmt.Println("---")
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
-		fmt.Println(&filteredUserOrganizations)
+
 		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.Pagination(context, ctx, filteredUserOrganizations))
 	})
 
