@@ -443,12 +443,12 @@ func (c *Controller) MemberProfileController() {
 			developerKey = developerKey + uuid.NewString() + "-horizon"
 			userOrg := &model.UserOrganization{
 				CreatedAt:               time.Now().UTC(),
-				CreatedByID:             user.ID,
+				CreatedByID:             user.UserID,
 				UpdatedAt:               time.Now().UTC(),
-				UpdatedByID:             user.ID,
+				UpdatedByID:             user.UserID,
 				OrganizationID:          user.OrganizationID,
 				BranchID:                user.BranchID,
-				UserID:                  user.ID,
+				UserID:                  user.UserID,
 				UserType:                "member",
 				Description:             "",
 				ApplicationDescription:  "anything",
