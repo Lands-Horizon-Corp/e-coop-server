@@ -72,9 +72,11 @@ type PaginationResult[T any] struct {
 // findFieldByTagOrName supports dot notation for nested fields, e.g. "user.full_name"
 func findFieldByTagOrName(val reflect.Value, fieldName string) reflect.Value {
 	if val.Kind() == reflect.Ptr {
+		if val.IsNil() {
+			return reflect.Value{}
+		}
 		val = val.Elem()
 	}
-	// Support nested fields with dot notation
 	parts := strings.SplitN(fieldName, ".", 2)
 	currentField := parts[0]
 
@@ -83,12 +85,15 @@ func findFieldByTagOrName(val reflect.Value, fieldName string) reflect.Value {
 		f := t.Field(i)
 		tag := f.Tag.Get("json")
 		tagName := strings.Split(tag, ",")[0]
-		if tagName != "" && strings.EqualFold(tagName, currentField) || strings.EqualFold(f.Name, currentField) {
+		if (tagName != "" && strings.EqualFold(tagName, currentField)) || strings.EqualFold(f.Name, currentField) {
 			fieldVal := val.Field(i)
 			if len(parts) == 1 {
 				return fieldVal
 			}
-			// If there are more parts, recurse into the nested struct
+			// If pointer, check for nil before recursing
+			if fieldVal.Kind() == reflect.Ptr && fieldVal.IsNil() {
+				return reflect.Value{}
+			}
 			return findFieldByTagOrName(fieldVal, parts[1])
 		}
 		if f.Anonymous && val.Field(i).Kind() == reflect.Struct {
