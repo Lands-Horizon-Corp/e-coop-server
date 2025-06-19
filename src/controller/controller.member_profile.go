@@ -1116,13 +1116,17 @@ func (c *Controller) MemberAddressController() {
 	req := c.provider.Service.Request
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-address",
+		Route:    "/member-address/member-profile/:member_profile_id",
 		Method:   "POST",
 		Request:  "TMemberAddress",
 		Response: "TMemberAddress",
 		Note:     "Create a new address record for a member.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
+		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid member profile ID")
+		}
 		req, err := c.model.MemberAddressManager.Validate(ctx)
 		if err != nil {
 			return c.BadRequest(ctx, err.Error())
@@ -1133,7 +1137,7 @@ func (c *Controller) MemberAddressController() {
 		}
 
 		value := &model.MemberAddress{
-			MemberProfileID: req.MemberProfileID,
+			MemberProfileID: memberProfileID,
 
 			Label:         req.Label,
 			City:          req.City,
@@ -1226,13 +1230,17 @@ func (c *Controller) MemberContactReferenceController() {
 	req := c.provider.Service.Request
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-contact-reference",
+		Route:    "/member-contact-reference/member-profile/:member_profile_id",
 		Method:   "POST",
 		Request:  "TMemberContactReference",
 		Response: "TMemberContactReference",
 		Note:     "Create a new contact reference for a member.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
+		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid member profile ID")
+		}
 		req, err := c.model.MemberContactReferenceManager.Validate(ctx)
 		if err != nil {
 			return c.BadRequest(ctx, err.Error())
@@ -1243,7 +1251,7 @@ func (c *Controller) MemberContactReferenceController() {
 		}
 
 		value := &model.MemberContactReference{
-			MemberProfileID: req.MemberProfileID,
+			MemberProfileID: *memberProfileID,
 
 			Name:          req.Name,
 			Description:   req.Description,
@@ -1326,13 +1334,17 @@ func (c *Controller) MemberAssetController() {
 	req := c.provider.Service.Request
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-asset",
+		Route:    "/member-asset/member-profile/:member_profile_id",
 		Method:   "POST",
 		Request:  "TMemberAsset",
 		Response: "TMemberAsset",
 		Note:     "Create a new asset record for a member.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
+		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid member profile ID")
+		}
 		req, err := c.model.MemberAssetManager.Validate(ctx)
 		if err != nil {
 			return c.BadRequest(ctx, err.Error())
@@ -1343,7 +1355,7 @@ func (c *Controller) MemberAssetController() {
 		}
 
 		value := &model.MemberAsset{
-			MemberProfileID: req.MemberProfileID,
+			MemberProfileID: memberProfileID,
 
 			MediaID:     req.MediaID,
 			Name:        req.Name,
@@ -1429,13 +1441,17 @@ func (c *Controller) MemberIncomeController() {
 	req := c.provider.Service.Request
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-income",
+		Route:    "/member-income/member-profile/:member_profile_id",
 		Method:   "POST",
 		Request:  "TMemberIncome",
 		Response: "TMemberIncome",
 		Note:     "Create a new income record for a member.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
+		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid member profile ID")
+		}
 		req, err := c.model.MemberIncomeManager.Validate(ctx)
 		if err != nil {
 			return c.BadRequest(ctx, err.Error())
@@ -1446,7 +1462,7 @@ func (c *Controller) MemberIncomeController() {
 		}
 
 		value := &model.MemberIncome{
-			MemberProfileID: req.MemberProfileID,
+			MemberProfileID: *memberProfileID,
 
 			MediaID:     req.MediaID,
 			Name:        req.Name,
@@ -1530,13 +1546,17 @@ func (c *Controller) MemberExpenseController() {
 	req := c.provider.Service.Request
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-expense",
+		Route:    "/member-expense/member-profile/:member_profile_id",
 		Method:   "POST",
 		Request:  "TMemberExpense",
 		Response: "TMemberExpense",
 		Note:     "Create a new expense record for a member.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
+		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid member profile ID")
+		}
 		req, err := c.model.MemberExpenseManager.Validate(ctx)
 		if err != nil {
 			return c.BadRequest(ctx, err.Error())
@@ -1547,7 +1567,7 @@ func (c *Controller) MemberExpenseController() {
 		}
 
 		value := &model.MemberExpense{
-			MemberProfileID: req.MemberProfileID,
+			MemberProfileID: *memberProfileID,
 
 			Name:        req.Name,
 			Amount:      req.Amount,
@@ -1630,13 +1650,17 @@ func (c *Controller) MemberGovernmentBenefitController() {
 	req := c.provider.Service.Request
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-government-benefit",
+		Route:    "/member-government-benefit/member-profile/:member_profile_id",
 		Method:   "POST",
 		Request:  "TMemberGovernmentBenefit",
 		Response: "TMemberGovernmentBenefit",
 		Note:     "Create a new government benefit record for a member.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
+		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid member profile ID")
+		}
 		req, err := c.model.MemberGovernmentBenefitManager.Validate(ctx)
 		if err != nil {
 			return c.BadRequest(ctx, err.Error())
@@ -1647,7 +1671,7 @@ func (c *Controller) MemberGovernmentBenefitController() {
 		}
 
 		value := &model.MemberGovernmentBenefit{
-			MemberProfileID: req.MemberProfileID,
+			MemberProfileID: *memberProfileID,
 
 			FrontMediaID: req.FrontMediaID,
 			BackMediaID:  req.BackMediaID,
@@ -1738,13 +1762,17 @@ func (c *Controller) MemberJointAccountController() {
 	req := c.provider.Service.Request
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-joint-account",
+		Route:    "/member-joint-account/member-profile/:member_profile_id",
 		Method:   "POST",
 		Request:  "TMemberJointAccount",
 		Response: "TMemberJointAccount",
 		Note:     "Create a new joint account record for a member.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
+		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid member profile ID")
+		}
 		req, err := c.model.MemberJointAccountManager.Validate(ctx)
 		if err != nil {
 			return c.BadRequest(ctx, err.Error())
@@ -1755,7 +1783,7 @@ func (c *Controller) MemberJointAccountController() {
 		}
 
 		value := &model.MemberJointAccount{
-			MemberProfileID: req.MemberProfileID,
+			MemberProfileID: *memberProfileID,
 
 			PictureMediaID:     req.PictureMediaID,
 			SignatureMediaID:   req.SignatureMediaID,
@@ -1859,6 +1887,10 @@ func (c *Controller) MemberRelativeAccountController() {
 		Note:     "Create a new relative account record for a member.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
+		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid member profile ID")
+		}
 		req, err := c.model.MemberRelativeAccountManager.Validate(ctx)
 		if err != nil {
 			return c.BadRequest(ctx, err.Error())
@@ -1869,7 +1901,7 @@ func (c *Controller) MemberRelativeAccountController() {
 		}
 
 		value := &model.MemberRelativeAccount{
-			MemberProfileID:         req.MemberProfileID,
+			MemberProfileID:         *memberProfileID,
 			RelativeMemberProfileID: req.RelativeMemberProfileID,
 			FamilyRelationship:      req.FamilyRelationship,
 			Description:             req.Description,
