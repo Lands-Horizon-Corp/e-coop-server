@@ -693,11 +693,26 @@ func (c *Controller) MemberProfileController() {
 		profile.LastName = req.LastName
 		profile.FullName = req.FullName
 		profile.Suffix = req.Suffix
-		profile.MemberGenderID = req.MemberGenderID
 		profile.BirthDate = req.BirthDate
 		profile.ContactNumber = req.ContactNumber
 		profile.CivilStatus = req.CivilStatus
 
+		if req.MemberGenderID != nil && uuidPtrEqual(profile.MemberGenderID, req.MemberGenderID) {
+			data := &model.MemberGenderHistory{
+				OrganizationID:  userOrg.OrganizationID,
+				BranchID:        *userOrg.BranchID,
+				CreatedAt:       time.Now().UTC(),
+				UpdatedAt:       time.Now().UTC(),
+				CreatedByID:     userOrg.UserID,
+				UpdatedByID:     userOrg.UserID,
+				MemberProfileID: *memberProfileId,
+				MemberGenderID:  *req.MemberGenderID,
+			}
+			if err := c.model.MemberGenderHistoryManager.Create(context, data); err != nil {
+				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not update member gender history: %v", err))
+			}
+			profile.MemberGenderID = req.MemberGenderID
+		}
 		if req.MemberOccupationID != nil && uuidPtrEqual(profile.MemberOccupationID, req.MemberOccupationID) {
 			data := &model.MemberOccupationHistory{
 				OrganizationID:     userOrg.OrganizationID,
