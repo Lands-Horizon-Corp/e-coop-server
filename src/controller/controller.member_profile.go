@@ -745,7 +745,7 @@ func (c *Controller) MemberProfileController() {
 				UpdatedAt:       time.Now().UTC(),
 				CreatedByID:     user.UserID,
 				UpdatedByID:     user.UserID,
-				MemberProfileID: profile.ID,
+				MemberProfileID: *memberProfileId,
 				MemberTypeID:    req.MemberTypeID,
 			}); err != nil {
 				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could update member profile: %v", err))
@@ -764,7 +764,7 @@ func (c *Controller) MemberProfileController() {
 				UpdatedAt:       time.Now().UTC(),
 				CreatedByID:     user.UserID,
 				UpdatedByID:     user.UserID,
-				MemberProfileID: profile.ID,
+				MemberProfileID: *memberProfileId,
 				MemberGroupID:   req.MemberGroupID,
 			}); err != nil {
 				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not update member group history: %v", err))
@@ -781,7 +781,7 @@ func (c *Controller) MemberProfileController() {
 				UpdatedAt:              time.Now().UTC(),
 				CreatedByID:            user.UserID,
 				UpdatedByID:            user.UserID,
-				MemberProfileID:        profile.ID,
+				MemberProfileID:        *memberProfileId,
 				MemberClassificationID: req.MemberClassificationID,
 			}); err != nil {
 				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not update member classification history: %v", err))
@@ -798,7 +798,7 @@ func (c *Controller) MemberProfileController() {
 				UpdatedAt:       time.Now().UTC(),
 				CreatedByID:     user.UserID,
 				UpdatedByID:     user.UserID,
-				MemberProfileID: profile.ID,
+				MemberProfileID: *memberProfileId,
 				MemberCenterID:  req.MemberCenterID,
 			}); err != nil {
 				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not update member center history: %v", err))
