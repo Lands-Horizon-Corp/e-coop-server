@@ -226,6 +226,19 @@ type (
 		MemberTypeID         *uuid.UUID   `json:"member_type_id"`
 		AccountInfo          *AccountInfo `json:"new_user_info,omitempty" validate:"omitempty"`
 	}
+
+	MemberProfileUserAccountRequest struct {
+		Password      string `json:"password,omitempty" validate:"omitempty,min=6,max=100"`
+		UserName      string `json:"user_name" validate:"required,min=1,max=50"`
+		FirstName     string `json:"first_name" validate:"required,min=1,max=50"`
+		LastName      string `json:"last_name" validate:"required,min=1,max=50"`
+		MiddleName    string `json:"middle_name,omitempty" validate:"max=50"`
+		FullName      string `json:"full_name" validate:"required,min=1,max=150"`
+		Suffix        string `json:"suffix,omitempty" validate:"max=20"`
+		Email         string `json:"email" validate:"required,email,max=100"`
+		ContactNumber string `json:"contact_number" validate:"required,max=20"`
+		Birthdate     string `json:"birthdate" validate:"required,datetime=2006-01-02"`
+	}
 )
 
 func (m *Model) MemberProfile() {

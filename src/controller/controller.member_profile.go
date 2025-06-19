@@ -40,6 +40,115 @@ func (c *Controller) MemberProfileController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
+		Route:    "/member-profile/:member_profile_id/user-account",
+		Method:   "PUT",
+		Request:  "MemberProfilePersonalInfoRequest",
+		Response: "MemberProfile",
+		Note:     "Quickly create a new member profile with minimal required fields.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+
+		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+		var req model.MemberProfileUserAccountRequest
+		if err := ctx.Bind(&req); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.NoContent(http.StatusNoContent)
+		}
+
+		tx := c.provider.Service.Database.Client().Begin()
+		hashedPwd, err := c.provider.Service.Security.HashPassword(context, req.Password)
+		if err != nil {
+			tx.Rollback()
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to hash password")
+		}
+		userProfile := &model.User{
+			Email:             req.Email,
+			UserName:          req.UserName,
+			ContactNumber:     req.ContactNumber,
+			Password:          hashedPwd,
+			FullName:          req.FullName,
+			FirstName:         &req.FirstName,
+			MiddleName:        &req.MiddleName,
+			LastName:          &req.LastName,
+			Suffix:            &req.Suffix,
+			IsEmailVerified:   false,
+			IsContactVerified: false,
+			CreatedAt:         time.Now().UTC(),
+			UpdatedAt:         time.Now().UTC(),
+		}
+		if err := c.model.UserManager.CreateWithTx(context, tx, userProfile); err != nil {
+			tx.Rollback()
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not create user profile: %v", err))
+		}
+		if tx.Error != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+		}
+		memberProfile, err := c.model.MemberProfileManager.GetByID(context, *memberProfileID)
+		if err != nil {
+			tx.Rollback()
+			return c.NotFound(ctx, fmt.Sprintf("MemberProfile with ID %s not found", memberProfileID))
+		}
+		memberProfile.UserID = &userProfile.ID
+		memberProfile.UpdatedAt = time.Now().UTC()
+		memberProfile.UpdatedByID = userOrg.UserID
+
+		if err := c.model.MemberProfileManager.UpdateFieldsWithTx(context, tx, memberProfile.ID, memberProfile); err != nil {
+			tx.Rollback()
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not create member profile: %v", err))
+		}
+
+		developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, userProfile.ID.String())
+		if err != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "something wrong generating developer key"})
+		}
+		developerKey = developerKey + uuid.NewString() + "-horizon"
+		newUserOrg := &model.UserOrganization{
+			CreatedAt:               time.Now().UTC(),
+			CreatedByID:             userOrg.UserID,
+			UpdatedAt:               time.Now().UTC(),
+			UpdatedByID:             userOrg.UserID,
+			OrganizationID:          userOrg.OrganizationID,
+			BranchID:                userOrg.BranchID,
+			UserID:                  userProfile.ID,
+			UserType:                "member",
+			Description:             "",
+			ApplicationDescription:  "anything",
+			ApplicationStatus:       "accepted",
+			DeveloperSecretKey:      developerKey,
+			PermissionName:          "member",
+			PermissionDescription:   "",
+			Permissions:             []string{},
+			UserSettingDescription:  "user settings",
+			UserSettingStartOR:      0,
+			UserSettingEndOR:        0,
+			UserSettingUsedOR:       0,
+			UserSettingStartVoucher: 0,
+			UserSettingEndVoucher:   0,
+			UserSettingUsedVoucher:  0,
+		}
+		if err := c.model.UserOrganizationManager.CreateWithTx(context, tx, newUserOrg); err != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": err.Error()})
+		}
+
+		if err := tx.Commit().Error; err != nil {
+			return c.InternalServerError(ctx, err)
+		}
+		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(memberProfile))
+	})
+
+	req.RegisterRoute(horizon.Route{
 		Route:    "/member-profile/:member_profile_id/connect-user-account/:user_id",
 		Method:   "PUT",
 		Response: "TMemberProfile",
@@ -74,6 +183,7 @@ func (c *Controller) MemberProfileController() {
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(memberProfile))
 	})
+
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-profile/:member_profile_id/disconnect",
 		Method:   "PUT",
@@ -517,7 +627,7 @@ func (c *Controller) MemberProfileController() {
 				UserType:                "member",
 				Description:             "",
 				ApplicationDescription:  "anything",
-				ApplicationStatus:       "pending",
+				ApplicationStatus:       "accepted",
 				DeveloperSecretKey:      developerKey,
 				PermissionName:          "member",
 				PermissionDescription:   "",
