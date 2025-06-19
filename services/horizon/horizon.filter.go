@@ -122,14 +122,45 @@ func FilterSlice[T any](ctx context.Context, data []*T, filters []Filter, logic 
 		matches := logic == FilterLogicAnd
 		for _, filter := range filters {
 			fieldVal := findFieldByTagOrName(val, filter.Field)
-
 			if !fieldVal.IsValid() {
 				continue
 			}
 			itemValue := fieldVal.Interface()
 			match := false
-			if filter.DataType == "date" && isWholeDaySupportedMode(filter.Mode) {
 
+			// --- TEXT DATA TYPE HANDLER ---
+			if filter.DataType == "text" {
+				itemStr := fmt.Sprintf("%v", itemValue)
+				filterStr := fmt.Sprintf("%v", filter.Value)
+				switch filter.Mode {
+				case FilterModeEqual:
+					match = strings.EqualFold(itemStr, filterStr)
+				case FilterModeNotEqual:
+					match = !strings.EqualFold(itemStr, filterStr)
+				case FilterModeContains:
+					match = strings.Contains(strings.ToLower(itemStr), strings.ToLower(filterStr))
+				case FilterModeNotContains:
+					match = !strings.Contains(strings.ToLower(itemStr), strings.ToLower(filterStr))
+				case FilterModeStartsWith:
+					match = strings.HasPrefix(strings.ToLower(itemStr), strings.ToLower(filterStr))
+				case FilterModeEndsWith:
+					match = strings.HasSuffix(strings.ToLower(itemStr), strings.ToLower(filterStr))
+				default:
+					match = false
+				}
+				if logic == FilterLogicAnd && !match {
+					matches = false
+					break
+				}
+				if logic == FilterLogicOr && match {
+					matches = true
+					break
+				}
+				continue
+			}
+
+			// --- DATE DATA TYPE HANDLER ---
+			if filter.DataType == "date" && isWholeDaySupportedMode(filter.Mode) {
 				valStr := fmt.Sprintf("%v", filter.Value)
 				filterTime, filterErr := tryParseTime(valStr)
 				var itemTime time.Time
@@ -203,7 +234,8 @@ func FilterSlice[T any](ctx context.Context, data []*T, filters []Filter, logic 
 				}
 				continue
 			}
-			// ...rest of your filter logic...
+
+			// --- DEFAULT STRING/NUMBER/BOOL HANDLER ---
 			switch filter.Mode {
 			case FilterModeEqual, FilterModeNotEqual,
 				FilterModeContains, FilterModeNotContains,
@@ -220,7 +252,7 @@ func FilterSlice[T any](ctx context.Context, data []*T, filters []Filter, logic 
 				match = false
 			}
 
-			// Boolean support (direct type assertion)
+			// --- BOOLEAN DATA TYPE HANDLER ---
 			if filter.DataType == "boolean" {
 				bv := toBool(itemValue)
 				fv := toBool(filter.Value)
@@ -247,7 +279,6 @@ func FilterSlice[T any](ctx context.Context, data []*T, filters []Filter, logic 
 	}
 	return result
 }
-
 func isWholeDaySupportedMode(mode string) bool {
 	switch mode {
 	case FilterModeEqual, FilterModeNotEqual,
