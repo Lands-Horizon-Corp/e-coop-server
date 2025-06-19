@@ -75,36 +75,49 @@ func findFieldByTagOrName(val reflect.Value, fieldPath string) reflect.Value {
 	if val.Kind() == reflect.Ptr {
 		val = val.Elem()
 	}
-	parts := strings.Split(fieldPath, ".")
-	for i, part := range parts {
+	parts := strings.SplitN(fieldPath, ".", 3)
+	// If only one part, just look for the field
+	if len(parts) == 1 {
 		t := val.Type()
-		found := false
-		for j := 0; j < t.NumField(); j++ {
-			f := t.Field(j)
+		for i := 0; i < t.NumField(); i++ {
+			f := t.Field(i)
 			tag := f.Tag.Get("json")
 			tagName := strings.Split(tag, ",")[0]
-			if (tagName != "" && strings.EqualFold(tagName, part)) || strings.EqualFold(f.Name, part) {
-				val = val.Field(j)
-				found = true
-				break
+			if (tagName != "" && strings.EqualFold(tagName, parts[0])) || strings.EqualFold(f.Name, parts[0]) {
+				return val.Field(i)
 			}
 		}
-		if !found {
-			return reflect.Value{}
-		}
-		// If not last part, dereference pointer or struct
-		if i < len(parts)-1 {
-			if val.Kind() == reflect.Ptr && !val.IsNil() {
-				val = val.Elem()
-			}
-			if val.Kind() != reflect.Struct {
-				return reflect.Value{}
+		return reflect.Value{}
+	}
+	// Only allow one level of nesting
+	if len(parts) == 2 {
+		t := val.Type()
+		for i := 0; i < t.NumField(); i++ {
+			f := t.Field(i)
+			tag := f.Tag.Get("json")
+			tagName := strings.Split(tag, ",")[0]
+			if (tagName != "" && strings.EqualFold(tagName, parts[0])) || strings.EqualFold(f.Name, parts[0]) {
+				nested := val.Field(i)
+				if nested.Kind() == reflect.Ptr && !nested.IsNil() {
+					nested = nested.Elem()
+				}
+				if nested.Kind() == reflect.Struct {
+					nt := nested.Type()
+					for j := 0; j < nt.NumField(); j++ {
+						nf := nt.Field(j)
+						ntag := nf.Tag.Get("json")
+						ntagName := strings.Split(ntag, ",")[0]
+						if (ntagName != "" && strings.EqualFold(ntagName, parts[1])) || strings.EqualFold(nf.Name, parts[1]) {
+							return nested.Field(j)
+						}
+					}
+				}
 			}
 		}
 	}
-	return val
+	// More than one dot is not supported (not one-to-one)
+	return reflect.Value{}
 }
-
 func FilterSlice[T any](ctx context.Context, data []*T, filters []Filter, logic FilterLogic) []*T {
 	if len(filters) == 0 {
 		return data
