@@ -146,9 +146,6 @@ func (c *Controller) UserOrganinzationController() {
 				filteredUserOrganizations = append(filteredUserOrganizations, uo)
 			}
 		}
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-		}
 
 		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.Pagination(context, ctx, filteredUserOrganizations))
 	})

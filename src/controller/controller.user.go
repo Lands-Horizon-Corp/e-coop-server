@@ -203,7 +203,7 @@ func (c *Controller) UserController() {
 			Subject: "Forgot Password: Lands Horizon",
 			Body:    "templates/email-change-password.html",
 			Vars: map[string]string{
-				"name":      *user.FullName,
+				"name":      user.FullName,
 				"eventLink": fallbackStr + "/auth/password-reset/" + token,
 			},
 		}); err != nil {

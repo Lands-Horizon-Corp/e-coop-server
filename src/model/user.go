@@ -29,7 +29,7 @@ type (
 		FirstName         *string        `gorm:"type:varchar(100)" json:"first_name,omitempty"`
 		MiddleName        *string        `gorm:"type:varchar(100)" json:"middle_name,omitempty"`
 		LastName          *string        `gorm:"type:varchar(100)" json:"last_name,omitempty"`
-		FullName          *string        `gorm:"type:varchar(255)" json:"full_name,omitempty"`
+		FullName          string         `gorm:"type:varchar(255)" json:"full_name,omitempty"`
 		Suffix            *string        `gorm:"type:varchar(50)" json:"suffix,omitempty"`
 		Description       *string        `gorm:"type:text"`
 		Email             string         `gorm:"type:varchar(255);not null;unique" json:"email"`
@@ -55,7 +55,7 @@ type (
 		FirstName         *string           `json:"first_name,omitempty"`
 		MiddleName        *string           `json:"middle_name,omitempty"`
 		LastName          *string           `json:"last_name,omitempty"`
-		FullName          *string           `json:"full_name,omitempty"`
+		FullName          string            `json:"full_name,omitempty"`
 		Suffix            *string           `json:"suffix,omitempty"`
 		Email             string            `json:"email"`
 		IsEmailVerified   bool              `json:"is_email_verified"`
@@ -89,7 +89,7 @@ type (
 		Password      string     `json:"password" validate:"required,min=8"`
 		Birthdate     time.Time  `json:"birthdate,omitempty"`
 		UserName      string     `json:"user_name" validate:"required,min=3,max=100"`
-		FullName      *string    `json:"full_name,omitempty"`
+		FullName      string     `json:"full_name,omitempty"`
 		FirstName     *string    `json:"first_name,omitempty"`
 		MiddleName    *string    `json:"middle_name,omitempty"`
 		LastName      *string    `json:"last_name,omitempty"`
@@ -161,7 +161,7 @@ type (
 		FirstName   *string   `json:"first_name,omitempty"`
 		MiddleName  *string   `json:"middle_name,omitempty"`
 		LastName    *string   `json:"last_name,omitempty"`
-		FullName    *string   `json:"full_name,omitempty"`
+		FullName    string    `json:"full_name,omitempty"`
 		Suffix      *string   `json:"suffix,omitempty"`
 	}
 

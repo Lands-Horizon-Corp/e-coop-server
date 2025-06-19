@@ -383,7 +383,7 @@ func (c *Controller) MemberProfileController() {
 				UserName:          req.AccountInfo.UserName,
 				ContactNumber:     req.ContactNumber,
 				Password:          hashedPwd,
-				FullName:          &req.FullName,
+				FullName:          req.FullName,
 				FirstName:         &req.FirstName,
 				MiddleName:        &req.MiddleName,
 				LastName:          &req.LastName,
