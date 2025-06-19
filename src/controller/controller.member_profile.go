@@ -365,6 +365,7 @@ func (c *Controller) MemberProfileController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
+	// ...existing code...
 	req.RegisterRoute(horizon.Route{
 		Route:   "/member-profile/bulk-delete",
 		Method:  "DELETE",
@@ -388,52 +389,155 @@ func (c *Controller) MemberProfileController() {
 		}
 
 		for _, rawID := range reqBody.IDs {
-			memberProfileID, err := uuid.Parse(rawID)
+			if rawID == "" {
+				continue
+			}
+			id := uuid.MustParse(rawID)
+			memberProfile, err := c.model.MemberProfileManager.GetByID(context, id)
 			if err != nil {
 				tx.Rollback()
 				return c.BadRequest(ctx, fmt.Sprintf("Invalid UUID: %s", rawID))
 			}
 
-			// Delete all connections for this member profile
-			if err := c.model.MemberAddressManager.DeleteByIDWithTx(context, tx, memberProfileID); err != nil {
+			// Delete all addresses
+			memberAddresses, err := c.model.MemberAddressManager.Find(context, &model.MemberAddress{
+				MemberProfileID: &memberProfile.ID,
+			})
+			if err != nil {
 				tx.Rollback()
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 			}
-			if err := c.model.MemberAssetManager.DeleteByIDWithTx(context, tx, memberProfileID); err != nil {
-				tx.Rollback()
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+			for _, memberAddress := range memberAddresses {
+				if err := c.model.MemberAddressManager.DeleteByIDWithTx(context, tx, memberAddress.ID); err != nil {
+					tx.Rollback()
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				}
 			}
-			if err := c.model.MemberIncomeManager.DeleteByIDWithTx(context, tx, memberProfileID); err != nil {
+
+			// Delete all assets
+			memberAssets, err := c.model.MemberAssetManager.Find(context, &model.MemberAsset{
+				MemberProfileID: &memberProfile.ID,
+			})
+			if err != nil {
 				tx.Rollback()
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 			}
-			if err := c.model.MemberExpenseManager.DeleteByIDWithTx(context, tx, memberProfileID); err != nil {
-				tx.Rollback()
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+			for _, memberAsset := range memberAssets {
+				if err := c.model.MemberAssetManager.DeleteByIDWithTx(context, tx, memberAsset.ID); err != nil {
+					tx.Rollback()
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				}
 			}
-			if err := c.model.MemberGovernmentBenefitManager.DeleteByIDWithTx(context, tx, memberProfileID); err != nil {
+
+			// Delete all incomes
+			memberIncomes, err := c.model.MemberIncomeManager.Find(context, &model.MemberIncome{
+				MemberProfileID: memberProfile.ID,
+			})
+			if err != nil {
 				tx.Rollback()
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 			}
-			if err := c.model.MemberJointAccountManager.DeleteByIDWithTx(context, tx, memberProfileID); err != nil {
-				tx.Rollback()
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+			for _, memberIncome := range memberIncomes {
+				if err := c.model.MemberIncomeManager.DeleteByIDWithTx(context, tx, memberIncome.ID); err != nil {
+					tx.Rollback()
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				}
 			}
-			if err := c.model.MemberRelativeAccountManager.DeleteByIDWithTx(context, tx, memberProfileID); err != nil {
+
+			// Delete all expenses
+			memberExpenses, err := c.model.MemberExpenseManager.Find(context, &model.MemberExpense{
+				MemberProfileID: memberProfile.ID,
+			})
+			if err != nil {
 				tx.Rollback()
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 			}
-			if err := c.model.MemberEducationalAttainmentManager.DeleteByIDWithTx(context, tx, memberProfileID); err != nil {
-				tx.Rollback()
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+			for _, memberExpense := range memberExpenses {
+				if err := c.model.MemberExpenseManager.DeleteByIDWithTx(context, tx, memberExpense.ID); err != nil {
+					tx.Rollback()
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				}
 			}
-			if err := c.model.MemberContactReferenceManager.DeleteByIDWithTx(context, tx, memberProfileID); err != nil {
+
+			// Delete all government benefits
+			memberBenefits, err := c.model.MemberGovernmentBenefitManager.Find(context, &model.MemberGovernmentBenefit{
+				MemberProfileID: memberProfile.ID,
+			})
+			if err != nil {
 				tx.Rollback()
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 			}
-			if err := c.model.MemberProfileDelete(context, tx, memberProfileID); err != nil {
+			for _, memberBenefit := range memberBenefits {
+				if err := c.model.MemberGovernmentBenefitManager.DeleteByIDWithTx(context, tx, memberBenefit.ID); err != nil {
+					tx.Rollback()
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				}
+			}
+
+			// Delete all joint accounts
+			memberJointAccounts, err := c.model.MemberJointAccountManager.Find(context, &model.MemberJointAccount{
+				MemberProfileID: memberProfile.ID,
+			})
+			if err != nil {
 				tx.Rollback()
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			}
+			for _, memberJointAccount := range memberJointAccounts {
+				if err := c.model.MemberJointAccountManager.DeleteByIDWithTx(context, tx, memberJointAccount.ID); err != nil {
+					tx.Rollback()
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				}
+			}
+
+			// Delete all relative accounts
+			memberRelativeAccounts, err := c.model.MemberRelativeAccountManager.Find(context, &model.MemberRelativeAccount{
+				MemberProfileID: memberProfile.ID,
+			})
+			if err != nil {
+				tx.Rollback()
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			}
+			for _, memberRelativeAccount := range memberRelativeAccounts {
+				if err := c.model.MemberRelativeAccountManager.DeleteByIDWithTx(context, tx, memberRelativeAccount.ID); err != nil {
+					tx.Rollback()
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				}
+			}
+
+			// Delete all educational attainments
+			memberEducations, err := c.model.MemberEducationalAttainmentManager.Find(context, &model.MemberEducationalAttainment{
+				MemberProfileID: memberProfile.ID,
+			})
+			if err != nil {
+				tx.Rollback()
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			}
+			for _, memberEducation := range memberEducations {
+				if err := c.model.MemberEducationalAttainmentManager.DeleteByIDWithTx(context, tx, memberEducation.ID); err != nil {
+					tx.Rollback()
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				}
+			}
+
+			// Delete all contact references
+			memberContacts, err := c.model.MemberContactReferenceManager.Find(context, &model.MemberContactReference{
+				MemberProfileID: memberProfile.ID,
+			})
+			if err != nil {
+				tx.Rollback()
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			}
+			for _, memberContact := range memberContacts {
+				if err := c.model.MemberContactReferenceManager.DeleteByIDWithTx(context, tx, memberContact.ID); err != nil {
+					tx.Rollback()
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				}
+			}
+
+			// Finally, delete the member profile itself
+			if err := c.model.MemberProfileDelete(context, tx, memberProfile.ID); err != nil {
+				tx.Rollback()
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 			}
 		}
 		if err := tx.Commit().Error; err != nil {
@@ -441,6 +545,7 @@ func (c *Controller) MemberProfileController() {
 		}
 		return ctx.NoContent(http.StatusNoContent)
 	})
+	// ...existing code...
 
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-profile/:member_profile_id/close",
