@@ -682,12 +682,12 @@ func (c *Controller) MemberProfileController() {
 		if err != nil {
 			return c.NotFound(ctx, fmt.Sprintf("MemberProfile with ID %s not found", memberProfileId))
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.NoContent(http.StatusNoContent)
 		}
 		profile.UpdatedAt = time.Now().UTC()
-		profile.UpdatedByID = user.UserID
+		profile.UpdatedByID = userOrg.UserID
 		profile.FirstName = req.FirstName
 		profile.MiddleName = req.MiddleName
 		profile.LastName = req.LastName
@@ -697,7 +697,24 @@ func (c *Controller) MemberProfileController() {
 		profile.BirthDate = req.BirthDate
 		profile.ContactNumber = req.ContactNumber
 		profile.CivilStatus = req.CivilStatus
-		profile.MemberOccupationID = req.MemberOccupationID
+
+		if req.MemberOccupationID != nil && profile.MemberOccupationID != req.MemberOccupationID {
+			data := &model.MemberOccupationHistory{
+				OrganizationID:     userOrg.OrganizationID,
+				BranchID:           *userOrg.BranchID,
+				CreatedAt:          time.Now().UTC(),
+				UpdatedAt:          time.Now().UTC(),
+				CreatedByID:        userOrg.UserID,
+				UpdatedByID:        userOrg.UserID,
+				MemberProfileID:    *memberProfileId,
+				MemberOccupationID: *req.MemberOccupationID,
+			}
+			if err := c.model.MemberOccupationHistoryManager.Create(context, data); err != nil {
+				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not update member occupation history: %v", err))
+			}
+			profile.MemberOccupationID = req.MemberOccupationID
+		}
+
 		profile.BusinessAddress = req.BusinessAddress
 		profile.BusinessContactNumber = req.BusinessContactNumber
 		profile.Notes = req.Notes
