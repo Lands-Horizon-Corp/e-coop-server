@@ -1806,7 +1806,7 @@ func (c *Controller) MemberGenderController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-gender-history/member-profile/:member_profile_id",
+		Route:    "/member-gender-history/member-profile/:member_profile_id/search",
 		Method:   "GET",
 		Response: "TMemberGenderHistory[]",
 		Note:     "Get member gender history by member profile ID",
