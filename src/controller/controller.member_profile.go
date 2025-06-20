@@ -856,7 +856,6 @@ func (c *Controller) MemberEducationalAttainmentController() {
 
 		value := &model.MemberEducationalAttainment{
 			MemberProfileID:       *memberProfileID,
-			Name:                  req.Name,
 			SchoolName:            req.SchoolName,
 			SchoolYear:            req.SchoolYear,
 			ProgramCourse:         req.ProgramCourse,
@@ -909,7 +908,6 @@ func (c *Controller) MemberEducationalAttainmentController() {
 		value.BranchID = *user.BranchID
 
 		value.MemberProfileID = req.MemberProfileID
-		value.Name = req.Name
 		value.SchoolName = req.SchoolName
 		value.SchoolYear = req.SchoolYear
 		value.ProgramCourse = req.ProgramCourse
