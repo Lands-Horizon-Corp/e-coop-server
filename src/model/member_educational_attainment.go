@@ -35,7 +35,7 @@ type (
 		SchoolName            string `gorm:"type:varchar(255)"`
 		SchoolYear            int    `gorm:"type:int"`
 		ProgramCourse         string `gorm:"type:varchar(255)"`
-		EducationalAttainment string `gorm:"type:varchar(255)"` // Bachelors Degree, Phd, Masteral
+		EducationalAttainment string `gorm:"type:varchar(255)"`
 		Description           string `gorm:"type:text"`
 	}
 
