@@ -1557,7 +1557,8 @@ func (c *Controller) MemberGovernmentBenefitController() {
 		}
 
 		if err := c.model.MemberGovernmentBenefitManager.Create(context, value); err != nil {
-			return c.InternalServerError(ctx, err)
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": err.Error()})
+
 		}
 
 		return ctx.JSON(http.StatusOK, c.model.MemberGovernmentBenefitManager.ToModel(value))
