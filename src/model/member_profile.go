@@ -261,6 +261,7 @@ func (m *Model) MemberProfile() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "DeletedBy",
 			"Branch", "Organization",
+			"Branch.Media", "Organization.Media",
 			"Media", "SignatureMedia",
 			"User",
 			"User.Media",
