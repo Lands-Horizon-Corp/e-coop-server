@@ -870,7 +870,8 @@ func (c *Controller) MemberEducationalAttainmentController() {
 		}
 
 		if err := c.model.MemberEducationalAttainmentManager.Create(context, value); err != nil {
-			return c.InternalServerError(ctx, err)
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 
 		return ctx.JSON(http.StatusOK, c.model.MemberEducationalAttainmentManager.ToModel(value))
