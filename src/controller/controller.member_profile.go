@@ -236,12 +236,6 @@ func (c *Controller) MemberProfileController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
 
-		if !c.model.UserOrganizationMemberCanJoin(
-			context,
-			*userID, userOrg.OrganizationID, *userOrg.BranchID) {
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "cannot join as member"})
-		}
-
 		user, err := c.model.UserManager.GetByID(context, *userID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
