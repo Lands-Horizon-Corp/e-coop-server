@@ -70,6 +70,7 @@ type (
 		BusinessContactNumber          string                `gorm:"type:varchar(255)" json:"business_contact_number,omitempty"`
 		CivilStatus                    string                `gorm:"type:varchar(50);not null;default:'single'" json:"civil_status"`
 
+		RecruitedMembers             []*MemberProfile               `gorm:"foreignKey:RecruitedByMemberProfileID" json:"recruited_members,omitempty"`
 		MemberAddresses              []*MemberAddress               `gorm:"foreignKey:MemberProfileID" json:"member_addresses,omitempty"`
 		MemberAssets                 []*MemberAsset                 `gorm:"foreignKey:MemberProfileID" json:"member_assets,omitempty"`
 		MemberIncomes                []*MemberIncome                `gorm:"foreignKey:MemberProfileID" json:"member_incomes,omitempty"`
@@ -146,6 +147,7 @@ type (
 		MemberEducationalAttainments []*MemberEducationalAttainmentResponse `json:"member_educational_attainments,omitempty"`
 		MemberContactReferences      []*MemberContactReferenceResponse      `json:"member_contact_references,omitempty"`
 		MemberCloseRemarks           []*MemberCloseRemarkResponse           `json:"member_close_remarks,omitempty"`
+		RecruitedMembers             []*MemberProfileResponse               `json:"recruited_members,omitempty"`
 	}
 
 	MemberProfileRequest struct {
@@ -290,7 +292,7 @@ func (m *Model) MemberProfile() {
 
 			"MemberRelativeAccounts", "MemberRelativeAccounts.RelativeMemberProfile", "MemberRelativeAccounts.RelativeMemberProfile.Media",
 			"RecruitedByMemberProfile", "RecruitedByMemberProfile.Media",
-
+			"RecruitedMembers", "RecruitedMembers.Media",
 			"MemberEducationalAttainments",
 			"MemberContactReferences",
 			"MemberCloseRemarks",
@@ -381,6 +383,7 @@ func (m *Model) MemberProfile() {
 				MemberEducationalAttainments:   m.MemberEducationalAttainmentManager.ToModels(data.MemberEducationalAttainments),
 				MemberContactReferences:        m.MemberContactReferenceManager.ToModels(data.MemberContactReferences),
 				MemberCloseRemarks:             m.MemberCloseRemarkManager.ToModels(data.MemberCloseRemarks),
+				RecruitedMembers:               m.MemberProfileManager.ToModels(data.RecruitedMembers),
 			}
 		},
 
