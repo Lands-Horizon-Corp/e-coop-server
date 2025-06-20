@@ -28,9 +28,8 @@ type (
 		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_member_income"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
-		MediaID uuid.UUID `gorm:"type:uuid"`
-		Media   *Media    `gorm:"foreignKey:MediaID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"media,omitempty"`
-
+		MediaID         *uuid.UUID     `gorm:"type:uuid" json:"media_id,omitempty"`
+		Media           *Media         `gorm:"foreignKey:MediaID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"media,omitempty"`
 		MemberProfileID uuid.UUID      `gorm:"type:uuid;not null"`
 		MemberProfile   *MemberProfile `gorm:"foreignKey:MemberProfileID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_profile,omitempty"`
 
@@ -51,7 +50,7 @@ type (
 		Organization    *OrganizationResponse  `json:"organization,omitempty"`
 		BranchID        uuid.UUID              `json:"branch_id"`
 		Branch          *BranchResponse        `json:"branch,omitempty"`
-		MediaID         uuid.UUID              `json:"media_id"`
+		MediaID         *uuid.UUID             `json:"media_id,omitempty"`
 		Media           *MediaResponse         `json:"media,omitempty"`
 		MemberProfileID uuid.UUID              `json:"member_profile_id"`
 		MemberProfile   *MemberProfileResponse `json:"member_profile,omitempty"`
