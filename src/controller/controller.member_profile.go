@@ -566,30 +566,29 @@ func (c *Controller) MemberProfileController() {
 		}
 
 		profile := &model.MemberProfile{
-			OrganizationID:             user.OrganizationID,
-			BranchID:                   *user.BranchID,
-			CreatedAt:                  time.Now().UTC(),
-			UpdatedAt:                  time.Now().UTC(),
-			CreatedByID:                user.UserID,
-			UpdatedByID:                user.UserID,
-			UserID:                     userProfileID,
-			OldReferenceID:             req.OldReferenceID,
-			Passbook:                   req.Passbook,
-			FirstName:                  req.FirstName,
-			MiddleName:                 req.MiddleName,
-			LastName:                   req.LastName,
-			FullName:                   req.FullName,
-			Suffix:                     req.Suffix,
-			MemberGenderID:             req.MemberGenderID,
-			BirthDate:                  req.BirthDate,
-			ContactNumber:              req.ContactNumber,
-			CivilStatus:                req.CivilStatus,
-			MemberOccupationID:         req.MemberOccupationID,
-			Status:                     req.Status,
-			IsMutualFundMember:         req.IsMutualFundMember,
-			IsMicroFinanceMember:       req.IsMicroFinanceMember,
-			MemberTypeID:               req.MemberTypeID,
-			RecruitedByMemberProfileID: &user.UserID,
+			OrganizationID:       user.OrganizationID,
+			BranchID:             *user.BranchID,
+			CreatedAt:            time.Now().UTC(),
+			UpdatedAt:            time.Now().UTC(),
+			CreatedByID:          user.UserID,
+			UpdatedByID:          user.UserID,
+			UserID:               userProfileID,
+			OldReferenceID:       req.OldReferenceID,
+			Passbook:             req.Passbook,
+			FirstName:            req.FirstName,
+			MiddleName:           req.MiddleName,
+			LastName:             req.LastName,
+			FullName:             req.FullName,
+			Suffix:               req.Suffix,
+			MemberGenderID:       req.MemberGenderID,
+			BirthDate:            req.BirthDate,
+			ContactNumber:        req.ContactNumber,
+			CivilStatus:          req.CivilStatus,
+			MemberOccupationID:   req.MemberOccupationID,
+			Status:               req.Status,
+			IsMutualFundMember:   req.IsMutualFundMember,
+			IsMicroFinanceMember: req.IsMicroFinanceMember,
+			MemberTypeID:         req.MemberTypeID,
 		}
 		if err := c.model.MemberProfileManager.CreateWithTx(context, tx, profile); err != nil {
 			tx.Rollback()
@@ -827,9 +826,6 @@ func (c *Controller) MemberProfileController() {
 			profile.MemberCenterID = req.MemberCenterID
 		}
 
-		if req.RecruitedByMemberProfileID != nil {
-			profile.RecruitedByMemberProfileID = req.RecruitedByMemberProfileID
-		}
 		profile.IsMutualFundMember = req.IsMutualFundMember
 		profile.IsMicroFinanceMember = req.IsMicroFinanceMember
 
