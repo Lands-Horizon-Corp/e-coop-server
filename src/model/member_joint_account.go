@@ -76,7 +76,6 @@ type (
 	}
 
 	MemberJointAccountRequest struct {
-		MemberProfileID    uuid.UUID `json:"member_profile_id" validate:"required"`
 		PictureMediaID     uuid.UUID `json:"picture_media_id" validate:"required"`
 		SignatureMediaID   uuid.UUID `json:"signature_media_id" validate:"required"`
 		Description        string    `json:"description,omitempty"`

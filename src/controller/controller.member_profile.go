@@ -1710,7 +1710,6 @@ func (c *Controller) MemberJointAccountController() {
 		value.UpdatedByID = user.UserID
 		value.OrganizationID = user.OrganizationID
 		value.BranchID = *user.BranchID
-		value.MemberProfileID = req.MemberProfileID
 		value.PictureMediaID = req.PictureMediaID
 		value.SignatureMediaID = req.SignatureMediaID
 		value.Description = req.Description
