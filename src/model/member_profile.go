@@ -284,7 +284,7 @@ func (m *Model) MemberProfile() {
 			"MemberAddresses",
 			"MemberAssets", "MemberAssets.Media",
 			"MemberIncomes", "MemberIncomes.Media",
-			"MemberExpenses", "MemberExpenses.Media",
+			"MemberExpenses",
 			"MemberGovernmentBenefits", "MemberGovernmentBenefits.FrontMedia", "MemberGovernmentBenefits.BackMedia",
 			"MemberJointAccounts", "MemberJointAccounts.PictureMedia", "MemberJointAccounts.SignatureMedia",
 
