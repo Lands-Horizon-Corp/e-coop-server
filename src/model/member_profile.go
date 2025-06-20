@@ -289,6 +289,7 @@ func (m *Model) MemberProfile() {
 			"MemberJointAccounts", "MemberJointAccounts.PictureMedia", "MemberJointAccounts.SignatureMedia",
 
 			"MemberRelativeAccounts", "MemberRelativeAccounts.RelativeMemberProfile", "MemberRelativeAccounts.RelativeMemberProfile.Media",
+			"RecruitedByMemberProfile",
 
 			"MemberEducationalAttainments",
 			"MemberContactReferences",
