@@ -269,6 +269,7 @@ func (m *Model) MemberProfile() {
 			"User.Media",
 			"MemberType", "MemberGroup", "MemberGender", "MemberCenter",
 			"MemberOccupation", "MemberClassification", "MemberVerifiedByEmployeeUser", "RecruitedByMemberProfile",
+			"MemberVerifiedByEmployeeUser.Media",
 			"RecruitedByMemberProfile.Media",
 			"MemberCloseRemarks",
 		},

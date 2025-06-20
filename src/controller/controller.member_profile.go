@@ -251,6 +251,7 @@ func (c *Controller) MemberProfileController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
 		memberProfile.UserID = &user.ID
+		memberProfile.MemberVerifiedByEmployeeUserID = &userOrg.UserID
 		if err := c.model.MemberProfileManager.UpdateFields(context, memberProfile.ID, memberProfile); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
@@ -289,7 +290,7 @@ func (c *Controller) MemberProfileController() {
 
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-profile/:member_profile_id/approve",
-		Method:   "POST",
+		Method:   "PUT",
 		Response: "MemberProfile",
 		Note:     "Approve member profiles",
 	}, func(ctx echo.Context) error {
@@ -565,29 +566,30 @@ func (c *Controller) MemberProfileController() {
 		}
 
 		profile := &model.MemberProfile{
-			OrganizationID:       user.OrganizationID,
-			BranchID:             *user.BranchID,
-			CreatedAt:            time.Now().UTC(),
-			UpdatedAt:            time.Now().UTC(),
-			CreatedByID:          user.UserID,
-			UpdatedByID:          user.UserID,
-			UserID:               userProfileID,
-			OldReferenceID:       req.OldReferenceID,
-			Passbook:             req.Passbook,
-			FirstName:            req.FirstName,
-			MiddleName:           req.MiddleName,
-			LastName:             req.LastName,
-			FullName:             req.FullName,
-			Suffix:               req.Suffix,
-			MemberGenderID:       req.MemberGenderID,
-			BirthDate:            req.BirthDate,
-			ContactNumber:        req.ContactNumber,
-			CivilStatus:          req.CivilStatus,
-			MemberOccupationID:   req.MemberOccupationID,
-			Status:               req.Status,
-			IsMutualFundMember:   req.IsMutualFundMember,
-			IsMicroFinanceMember: req.IsMicroFinanceMember,
-			MemberTypeID:         req.MemberTypeID,
+			OrganizationID:             user.OrganizationID,
+			BranchID:                   *user.BranchID,
+			CreatedAt:                  time.Now().UTC(),
+			UpdatedAt:                  time.Now().UTC(),
+			CreatedByID:                user.UserID,
+			UpdatedByID:                user.UserID,
+			UserID:                     userProfileID,
+			OldReferenceID:             req.OldReferenceID,
+			Passbook:                   req.Passbook,
+			FirstName:                  req.FirstName,
+			MiddleName:                 req.MiddleName,
+			LastName:                   req.LastName,
+			FullName:                   req.FullName,
+			Suffix:                     req.Suffix,
+			MemberGenderID:             req.MemberGenderID,
+			BirthDate:                  req.BirthDate,
+			ContactNumber:              req.ContactNumber,
+			CivilStatus:                req.CivilStatus,
+			MemberOccupationID:         req.MemberOccupationID,
+			Status:                     req.Status,
+			IsMutualFundMember:         req.IsMutualFundMember,
+			IsMicroFinanceMember:       req.IsMicroFinanceMember,
+			MemberTypeID:               req.MemberTypeID,
+			RecruitedByMemberProfileID: &user.UserID,
 		}
 		if err := c.model.MemberProfileManager.CreateWithTx(context, tx, profile); err != nil {
 			tx.Rollback()
