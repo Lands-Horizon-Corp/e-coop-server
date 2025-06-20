@@ -1619,18 +1619,11 @@ func (c *Controller) MemberGovernmentBenefitController() {
 		if err != nil {
 			return c.BadRequest(ctx, "Invalid member government benefit ID")
 		}
-		memberGov, err := c.model.MemberGovernmentBenefitManager.GetByID(context, *memberGovernmentBenefitID)
-		if err != nil {
-			return c.NotFound(ctx, "MemberGovernmentBenefit")
-		}
+
 		if err := c.model.MemberGovernmentBenefitManager.DeleteByID(context, *memberGovernmentBenefitID); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
-		member, err := c.model.MemberProfileManager.GetByID(context, memberGov.MemberProfileID)
-		if err != nil {
-			return c.NotFound(ctx, "MemberProfile")
-		}
-		return ctx.JSON(http.StatusOK, member)
+		return ctx.NoContent(http.StatusNoContent)
 	})
 }
 
