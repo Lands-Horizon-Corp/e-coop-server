@@ -746,6 +746,7 @@ func (c *Controller) MemberProfileController() {
 		profile.UpdatedByID = userOrg.UserID
 		profile.Passbook = req.Passbook
 		profile.OldReferenceID = req.OldReferenceID
+		profile.RecruitedByMemberProfileID = req.RecruitedByMemberProfileID
 		profile.Status = req.Status
 
 		// MemberTypeID
