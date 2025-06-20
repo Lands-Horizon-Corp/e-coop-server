@@ -61,7 +61,7 @@ type (
 	}
 
 	MemberIncomeRequest struct {
-		MediaID     uuid.UUID  `json:"media_id" validate:"required"`
+		MediaID     *uuid.UUID `json:"media_id"`
 		Name        string     `json:"name" validate:"required,min=1,max=255"`
 		Amount      float64    `json:"amount" validate:"required"`
 		ReleaseDate *time.Time `json:"release_date,omitempty"`

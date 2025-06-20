@@ -1331,7 +1331,7 @@ func (c *Controller) MemberIncomeController() {
 		value := &model.MemberIncome{
 			MemberProfileID: *memberProfileID,
 
-			MediaID:     req.MediaID,
+			MediaID:     *req.MediaID,
 			Name:        req.Name,
 			Amount:      req.Amount,
 			ReleaseDate: req.ReleaseDate,
@@ -1382,7 +1382,7 @@ func (c *Controller) MemberIncomeController() {
 		value.OrganizationID = user.OrganizationID
 		value.BranchID = *user.BranchID
 
-		value.MediaID = req.MediaID
+		value.MediaID = *req.MediaID
 		value.Name = req.Name
 		value.Amount = req.Amount
 		value.ReleaseDate = req.ReleaseDate
