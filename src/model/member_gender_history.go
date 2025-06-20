@@ -93,6 +93,7 @@ func (m *Model) MemberGenderHistory() {
 				fmt.Sprintf("member_gender_history.create.%s", data.ID),
 				fmt.Sprintf("member_gender_history.create.branch.%s", data.BranchID),
 				fmt.Sprintf("member_gender_history.create.organization.%s", data.OrganizationID),
+				fmt.Sprintf("member_gender_history.create.member_profile.%s", data.MemberProfileID),
 			}
 		},
 		Updated: func(data *MemberGenderHistory) []string {
@@ -101,6 +102,7 @@ func (m *Model) MemberGenderHistory() {
 				fmt.Sprintf("member_gender_history.update.%s", data.ID),
 				fmt.Sprintf("member_gender_history.update.branch.%s", data.BranchID),
 				fmt.Sprintf("member_gender_history.update.organization.%s", data.OrganizationID),
+				fmt.Sprintf("member_gender_history.update.member_profile.%s", data.MemberProfileID),
 			}
 		},
 		Deleted: func(data *MemberGenderHistory) []string {
@@ -109,6 +111,7 @@ func (m *Model) MemberGenderHistory() {
 				fmt.Sprintf("member_gender_history.delete.%s", data.ID),
 				fmt.Sprintf("member_gender_history.delete.branch.%s", data.BranchID),
 				fmt.Sprintf("member_gender_history.delete.organization.%s", data.OrganizationID),
+				fmt.Sprintf("member_gender_history.delete.member_profile.%s", data.MemberProfileID),
 			}
 		},
 	})

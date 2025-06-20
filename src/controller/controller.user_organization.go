@@ -117,6 +117,40 @@ func (c *Controller) UserOrganinzationController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
+		Route:    "/user-organization/none-member-profle/search",
+		Method:   "GET",
+		Request:  "Filter<TUserOrganization>",
+		Response: "Paginated<TUserOrganization>",
+		Note:     "Get pagination user organization",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.NoContent(http.StatusNoContent)
+		}
+		userOrganization, err := c.model.UserOrganizationManager.Find(context, &model.UserOrganization{
+			OrganizationID: user.OrganizationID,
+			BranchID:       user.BranchID,
+			UserType:       "member",
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		filteredUserOrganizations := []*model.UserOrganization{}
+		for _, uo := range userOrganization {
+			if uo.BranchID == nil {
+				continue
+			}
+			userProfile, _ := c.model.MemberProfileFindUserByID(context, uo.UserID, uo.OrganizationID, *uo.BranchID)
+			if userProfile == nil {
+				filteredUserOrganizations = append(filteredUserOrganizations, uo)
+			}
+		}
+
+		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.Pagination(context, ctx, filteredUserOrganizations))
+	})
+
+	req.RegisterRoute(horizon.Route{
 		Route:    "/user-organization/user/:user_id",
 		Method:   "GET",
 		Response: "TUserOrganization[]",
@@ -247,7 +281,7 @@ func (c *Controller) UserOrganinzationController() {
 		}
 		userOrganization, err := c.model.GetUserOrganizationByBranch(context, branch.OrganizationID, branch.ID, &isPending)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModels(userOrganization))
 	})
@@ -273,10 +307,14 @@ func (c *Controller) UserOrganinzationController() {
 		if user.ID != userOrganization.UserID {
 			return ctx.NoContent(http.StatusForbidden)
 		}
-		if err := c.userOrganizationToken.SetUserOrganization(context, ctx, userOrganization); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		if userOrganization.ApplicationStatus == "accepted" {
+			if err := c.userOrganizationToken.SetUserOrganization(context, ctx, userOrganization); err != nil {
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			}
+			return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModel(userOrganization))
 		}
-		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModel(userOrganization))
+		return ctx.JSON(http.StatusForbidden, map[string]string{"error": "switching forbidden - user is " + userOrganization.UserType})
+
 	})
 
 	req.RegisterRoute(horizon.Route{
@@ -305,7 +343,7 @@ func (c *Controller) UserOrganinzationController() {
 		}
 		userOrg.DeveloperSecretKey = developerKey + uuid.NewString() + "-horizon"
 		if err := c.model.UserOrganizationManager.UpdateFields(context, userOrg.ID, userOrg); err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update user: "+err.Error())
+			return echo.NewHTTPError(http.StatusForbidden, "failed to update user: "+err.Error())
 		}
 		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModel(userOrg))
 	})
@@ -331,15 +369,16 @@ func (c *Controller) UserOrganinzationController() {
 				"error": "invitation code not found",
 			})
 		}
-		if invitationCode.UserType == "member" {
+		switch invitationCode.UserType {
+		case "member":
 			if !c.model.UserOrganizationMemberCanJoin(context, user.ID, invitationCode.OrganizationID, invitationCode.BranchID) {
 				return ctx.JSON(http.StatusForbidden, map[string]string{"error": "cannot join as member"})
 			}
-		} else if invitationCode.UserType == "employee" {
+		case "employee":
 			if !c.model.UserOrganizationEmployeeCanJoin(context, user.ID, invitationCode.OrganizationID, invitationCode.BranchID) {
 				return ctx.JSON(http.StatusForbidden, map[string]string{"error": "cannot join as employee"})
 			}
-		} else {
+		default:
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "cannot join as employee"})
 		}
 
@@ -384,6 +423,7 @@ func (c *Controller) UserOrganinzationController() {
 
 		}
 		if err := c.model.UserOrganizationManager.CreateWithTx(context, tx, userOrg); err != nil {
+			tx.Rollback()
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": err.Error()})
 		}
 		if err := tx.Commit().Error; err != nil {
@@ -614,7 +654,7 @@ func (c *Controller) UserOrganinzationController() {
 		}
 
 		// Only allow org admins/owners to reject applications
-		if user.UserType != "owner" && user.UserType != "admin" {
+		if user.UserType != "owner" && user.UserType != "admin" && user.UserType != "employee" {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "only organization owners or admins can reject applications"})
 		}
 

@@ -13,9 +13,9 @@ import (
 
 type (
 	QRMemberProfile struct {
-		Firstname       string `json:"first_name"`
-		Lastname        string `json:"last_name"`
-		Middlename      string `json:"middle_name"`
+		FirstName       string `json:"first_name"`
+		LastName        string `json:"last_name"`
+		MiddleName      string `json:"middle_name"`
 		ContactNumber   string `json:"contact_number"`
 		MemberProfileID string `json:"member_profile_id"`
 		BranchID        string `json:"branch_id"`
@@ -304,8 +304,8 @@ func (c *Model) Start(context context.Context) error {
 	c.MemberCenter()
 	c.MemberCenterHistory()
 	c.MemberClassification()
+	c.MemberClassificationHistory()
 	c.MemberClassificationInterestRate()
-	c.MemberCloseRemark()
 	c.MemberContactReference()
 	c.MemberDamayanExtensionEntry()
 	c.MemberDeductionEntry()
@@ -323,6 +323,7 @@ func (c *Model) Start(context context.Context) error {
 	c.MemberOccupationHistory()
 	c.MemberOtherInformationEntry()
 	c.MemberProfile()
+	c.MemberCloseRemark()
 	c.MemberRelativeAccount()
 	c.MemberType()
 	c.MemberTypeHistory()
@@ -361,6 +362,199 @@ func (c *Model) Start(context context.Context) error {
 
 func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now()
+	expiration := now.AddDate(0, 1, 0) // 1 month from now
+
+	invitationCodes := []*InvitationCode{
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			UserType:       "employee",
+			Code:           uuid.New().String(),
+			ExpirationDate: expiration,
+			MaxUse:         5,
+			CurrentUse:     0,
+			Description:    "Invitation code for employees (max 5 uses)",
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			UserType:       "member",
+			Code:           uuid.New().String(),
+			ExpirationDate: expiration,
+			MaxUse:         1000,
+			CurrentUse:     0,
+			Description:    "Invitation code for members (max 1000 uses)",
+		},
+	}
+
+	for _, data := range invitationCodes {
+		if err := m.InvitationCodeManager.CreateWithTx(context, tx, data); err != nil {
+			return eris.Wrapf(err, "failed to seed invitation code for %s", data.UserType)
+		}
+	}
+	banks := []*Bank{
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "BDO Unibank, Inc.",
+			Description:    "The largest bank in the Philippines by assets, BDO offers a wide range of financial services.",
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Bank of the Philippine Islands (BPI)",
+			Description:    "One of the oldest banks in Southeast Asia, BPI provides banking and financial solutions.",
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Metropolitan Bank & Trust Company (Metrobank)",
+			Description:    "A major universal bank in the Philippines, known for its extensive branch network.",
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Land Bank of the Philippines (Landbank)",
+			Description:    "A government-owned bank focused on serving farmers and fishermen.",
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Philippine National Bank (PNB)",
+			Description:    "One of the country’s largest banks, offering a full range of banking services.",
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "China Banking Corporation (Chinabank)",
+			Description:    "A leading private universal bank in the Philippines.",
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Security Bank Corporation",
+			Description:    "A universal bank known for its innovative banking products.",
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Union Bank of the Philippines (UnionBank)",
+			Description:    "A universal bank recognized for its digital banking leadership.",
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Development Bank of the Philippines (DBP)",
+			Description:    "A government-owned development bank supporting infrastructure and social projects.",
+		},
+	}
+	for _, data := range banks {
+		if err := m.BankManager.CreateWithTx(context, tx, data); err != nil {
+			return eris.Wrapf(err, "failed to seed bank %s", data.Name)
+		}
+	}
+	billAndCoins := []*BillAndCoins{
+		// Banknotes (New Generation Currency Series)
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₱1000 Bill", Value: 1000.00, CountryCode: "PHP"},
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₱500 Bill", Value: 500.00, CountryCode: "PHP"},
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₱200 Bill", Value: 200.00, CountryCode: "PHP"},
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₱100 Bill", Value: 100.00, CountryCode: "PHP"},
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₱50 Bill", Value: 50.00, CountryCode: "PHP"},
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₱20 Bill", Value: 20.00, CountryCode: "PHP"},
+
+		// Coins (New Generation Currency Series)
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₱20 Coin", Value: 20.00, CountryCode: "PHP"},
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₱10 Coin", Value: 10.00, CountryCode: "PHP"},
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₱5 Coin", Value: 5.00, CountryCode: "PHP"},
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₱1 Coin", Value: 1.00, CountryCode: "PHP"},
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "25 Sentimo Coin", Value: 0.25, CountryCode: "PHP"},
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "5 Sentimo Coin", Value: 0.05, CountryCode: "PHP"},
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "1 Sentimo Coin", Value: 0.01, CountryCode: "PHP"},
+	}
+	year := now.Year()
+	holidays := []*Holiday{
+		// Regular Holidays
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year."},
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 9, 0, 0, 0, 0, time.UTC), Name: "Araw ng Kagitingan", Description: "Day of Valor."},
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 5, 1, 0, 0, 0, 0, time.UTC), Name: "Labor Day", Description: "Celebration of workers and laborers."},
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 6, 12, 0, 0, 0, 0, time.UTC), Name: "Independence Day", Description: "Commemorates Philippine independence from Spain."},
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 8, 26, 0, 0, 0, 0, time.UTC), Name: "National Heroes Day", Description: "Honoring Philippine national heroes."},
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 11, 30, 0, 0, 0, 0, time.UTC), Name: "Bonifacio Day", Description: "Commemorates the birth of Andres Bonifacio."},
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 25, 0, 0, 0, 0, time.UTC), Name: "Christmas Day", Description: "Celebration of the birth of Jesus Christ."},
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 30, 0, 0, 0, 0, time.UTC), Name: "Rizal Day", Description: "Commemorates the life of Dr. Jose Rizal."},
+
+		// Special (Non-Working) Holidays
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 25, 0, 0, 0, 0, time.UTC), Name: "EDSA People Power Revolution", Description: "Commemorates the 1986 EDSA Revolution."},
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 8, 21, 0, 0, 0, 0, time.UTC), Name: "Ninoy Aquino Day", Description: "Commemorates the assassination of Benigno Aquino Jr."},
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 11, 1, 0, 0, 0, 0, time.UTC), Name: "All Saints' Day", Description: "Honoring all the saints."},
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 8, 0, 0, 0, 0, time.UTC), Name: "Feast of the Immaculate Conception", Description: "Catholic feast day."},
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 31, 0, 0, 0, 0, time.UTC), Name: "New Year's Eve", Description: "Last day of the year."},
+
+		// Religious Holidays (dates vary, set as placeholders)
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 28, 0, 0, 0, 0, time.UTC), Name: "Maundy Thursday", Description: "Christian Holy Week."},
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 29, 0, 0, 0, 0, time.UTC), Name: "Good Friday", Description: "Christian Holy Week."},
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 9, 0, 0, 0, 0, time.UTC), Name: "Black Saturday", Description: "Christian Holy Week."},
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 10, 0, 0, 0, 0, time.UTC), Name: "Easter Sunday", Description: "Christian Holy Week."},
+
+		// Islamic Holidays (dates vary each year, set as placeholders)
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 10, 0, 0, 0, 0, time.UTC), Name: "Eid'l Fitr", Description: "End of Ramadan (date varies)."},
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 6, 17, 0, 0, 0, 0, time.UTC), Name: "Eid'l Adha", Description: "Feast of Sacrifice (date varies)."},
+	}
+
+	for _, data := range holidays {
+		if err := m.HolidayManager.CreateWithTx(context, tx, data); err != nil {
+			return eris.Wrapf(err, "failed to seed holiday %s", data.Name)
+		}
+	}
+	for _, data := range billAndCoins {
+		if err := m.BillAndCoinsManager.CreateWithTx(context, tx, data); err != nil {
+			return eris.Wrapf(err, "failed to seed bill or coin %s", data.Name)
+		}
+	}
 	memberClassifications := []*MemberClassification{
 		{
 
@@ -792,6 +986,56 @@ func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID 
 }
 
 func (m *Model) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+	invitationCodes, err := m.InvitationCodeManager.Find(ctx, &InvitationCode{
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+	})
+	if err != nil {
+		return eris.Wrapf(err, "failed to get invitation codes")
+	}
+	banks, err := m.BankManager.Find(ctx, &Bank{
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+	})
+	if err != nil {
+		return eris.Wrapf(err, "failed to get banks")
+	}
+	billAndCoins, err := m.BillAndCoinsManager.Find(ctx, &BillAndCoins{
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+	})
+	if err != nil {
+		return eris.Wrapf(err, "failed to get bill and coins")
+	}
+	// 4. Delete Holidays
+	holidays, err := m.HolidayManager.Find(ctx, &Holiday{
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+	})
+	if err != nil {
+		return eris.Wrapf(err, "failed to get holidays")
+	}
+	for _, data := range holidays {
+		if err := m.HolidayManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+			return eris.Wrapf(err, "failed to destroy holiday %s", data.Name)
+		}
+	}
+	for _, data := range billAndCoins {
+		if err := m.BillAndCoinsManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+			return eris.Wrapf(err, "failed to destroy bill or coin %s", data.Name)
+		}
+	}
+	for _, data := range banks {
+		if err := m.BankManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+			return eris.Wrapf(err, "failed to destroy bank %s", data.Name)
+		}
+	}
+	for _, data := range invitationCodes {
+		if err := m.InvitationCodeManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+			return eris.Wrapf(err, "failed to destroy invitation code %s", data.Code)
+		}
+	}
+
 	// 1. Delete MemberType
 	memberTypes, err := m.MemberTypeManager.Find(ctx, &MemberType{
 		OrganizationID: organizationID,

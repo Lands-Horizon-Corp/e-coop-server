@@ -68,22 +68,48 @@ type PaginationResult[T any] struct {
 	Sort      []SortField `json:"sort"`
 }
 
-// --- Filtering Function ---
-func findFieldByTagOrName(val reflect.Value, fieldName string) reflect.Value {
-	if val.Kind() == reflect.Ptr {
+func valueToAnything(val reflect.Value) any {
+	if !val.IsValid() {
+		return nil
+	}
+	// Unwrap pointer or interface recursively
+	for val.Kind() == reflect.Ptr || val.Kind() == reflect.Interface {
+		if val.IsNil() {
+			return nil
+		}
 		val = val.Elem()
 	}
+	return val.Interface()
+}
+
+func findFieldByTagOrName(val reflect.Value, fieldName string) reflect.Value {
+	if val.Kind() == reflect.Ptr {
+		if val.IsNil() {
+			fmt.Printf("findFieldByTagOrName: field=%s, value=<nil pointer>\n", fieldName)
+			return reflect.Value{}
+		}
+		val = val.Elem()
+	}
+	parts := strings.SplitN(fieldName, ".", 2)
+	currentField := parts[0]
+
 	t := val.Type()
 	for i := 0; i < t.NumField(); i++ {
-		f := val.Type().Field(i)
-
+		f := t.Field(i)
 		tag := f.Tag.Get("json")
 		tagName := strings.Split(tag, ",")[0]
-		if tagName != "" && strings.EqualFold(tagName, fieldName) {
-			return val.Field(i)
-		}
-		if strings.EqualFold(f.Name, fieldName) {
-			return val.Field(i)
+		if (tagName != "" && strings.EqualFold(tagName, currentField)) || strings.EqualFold(f.Name, currentField) {
+			fieldVal := val.Field(i)
+
+			if len(parts) == 1 {
+				return fieldVal
+			}
+			// If pointer, check for nil before recursing
+			if fieldVal.Kind() == reflect.Ptr && fieldVal.IsNil() {
+
+				return reflect.Value{}
+			}
+			return findFieldByTagOrName(fieldVal, parts[1])
 		}
 		if f.Anonymous && val.Field(i).Kind() == reflect.Struct {
 			found := findFieldByTagOrName(val.Field(i), fieldName)
@@ -92,6 +118,7 @@ func findFieldByTagOrName(val reflect.Value, fieldName string) reflect.Value {
 			}
 		}
 	}
+	fmt.Printf("findFieldByTagOrName: field=%s not found in type=%s\n", fieldName, val.Type().Name())
 	return reflect.Value{}
 }
 func FilterSlice[T any](ctx context.Context, data []*T, filters []Filter, logic FilterLogic) []*T {
@@ -114,12 +141,50 @@ func FilterSlice[T any](ctx context.Context, data []*T, filters []Filter, logic 
 			fieldVal := findFieldByTagOrName(val, filter.Field)
 
 			if !fieldVal.IsValid() {
+				// Treat missing field as non-match for this filter
+				if logic == FilterLogicAnd {
+					matches = false
+					break
+				}
+				// For OR, just skip to next filter
 				continue
 			}
 			itemValue := fieldVal.Interface()
 			match := false
-			if filter.DataType == "date" && isWholeDaySupportedMode(filter.Mode) {
 
+			// --- TEXT DATA TYPE HANDLER ---
+			if filter.DataType == "text" {
+				itemStr := fmt.Sprintf("%v", itemValue)
+				filterStr := fmt.Sprintf("%v", filter.Value)
+				switch filter.Mode {
+				case FilterModeEqual:
+					match = strings.EqualFold(itemStr, filterStr)
+				case FilterModeNotEqual:
+					match = !strings.EqualFold(itemStr, filterStr)
+				case FilterModeContains:
+					match = strings.Contains(strings.ToLower(itemStr), strings.ToLower(filterStr))
+				case FilterModeNotContains:
+					match = !strings.Contains(strings.ToLower(itemStr), strings.ToLower(filterStr))
+				case FilterModeStartsWith:
+					match = strings.HasPrefix(strings.ToLower(itemStr), strings.ToLower(filterStr))
+				case FilterModeEndsWith:
+					match = strings.HasSuffix(strings.ToLower(itemStr), strings.ToLower(filterStr))
+				default:
+					match = false
+				}
+				if logic == FilterLogicAnd && !match {
+					matches = false
+					break
+				}
+				if logic == FilterLogicOr && match {
+					matches = true
+					break
+				}
+				continue
+			}
+
+			// --- DATE DATA TYPE HANDLER ---
+			if filter.DataType == "date" && isWholeDaySupportedMode(filter.Mode) {
 				valStr := fmt.Sprintf("%v", filter.Value)
 				filterTime, filterErr := tryParseTime(valStr)
 				var itemTime time.Time
@@ -193,7 +258,8 @@ func FilterSlice[T any](ctx context.Context, data []*T, filters []Filter, logic 
 				}
 				continue
 			}
-			// ...rest of your filter logic...
+
+			// --- DEFAULT STRING/NUMBER/BOOL HANDLER ---
 			switch filter.Mode {
 			case FilterModeEqual, FilterModeNotEqual,
 				FilterModeContains, FilterModeNotContains,
@@ -210,7 +276,7 @@ func FilterSlice[T any](ctx context.Context, data []*T, filters []Filter, logic 
 				match = false
 			}
 
-			// Boolean support (direct type assertion)
+			// --- BOOLEAN DATA TYPE HANDLER ---
 			if filter.DataType == "boolean" {
 				bv := toBool(itemValue)
 				fv := toBool(filter.Value)
@@ -237,7 +303,6 @@ func FilterSlice[T any](ctx context.Context, data []*T, filters []Filter, logic 
 	}
 	return result
 }
-
 func isWholeDaySupportedMode(mode string) bool {
 	switch mode {
 	case FilterModeEqual, FilterModeNotEqual,

@@ -16,6 +16,24 @@ func (c *Controller) UserController() {
 	req := c.provider.Service.Request
 
 	req.RegisterRoute(horizon.Route{
+		Route:    "/user/:user_id",
+		Method:   "GET",
+		Response: "TUserRating[]",
+		Note:     "Returns all user ratings given by the specified user (rater).",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userId, err := horizon.EngineUUIDParam(ctx, "user_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid user ID")
+		}
+		userRating, err := c.model.UserManager.GetByIDRaw(context, *userId)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, userRating)
+	})
+
+	req.RegisterRoute(horizon.Route{
 		Route:    "/authentication/current",
 		Method:   "GET",
 		Response: "TUser",
@@ -203,7 +221,7 @@ func (c *Controller) UserController() {
 			Subject: "Forgot Password: Lands Horizon",
 			Body:    "templates/email-change-password.html",
 			Vars: map[string]string{
-				"name":      *user.FullName,
+				"name":      user.FullName,
 				"eventLink": fallbackStr + "/auth/password-reset/" + token,
 			},
 		}); err != nil {

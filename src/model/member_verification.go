@@ -25,14 +25,14 @@ type (
 
 		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_member_verification"`
 		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_member_verification"`
+		BranchID       *uuid.UUID    `gorm:"type:uuid;not null;index:idx_organization_branch_member_verification"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
-		MemberProfileID uuid.UUID      `gorm:"type:uuid;not null"`
+		MemberProfileID *uuid.UUID     `gorm:"type:uuid;not null"`
 		MemberProfile   *MemberProfile `gorm:"foreignKey:MemberProfileID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"member_profile,omitempty"`
 
-		VerifiedByUserID uuid.UUID `gorm:"type:uuid"`
-		VerifiedByUser   *User     `gorm:"foreignKey:VerifiedByUserID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"verified_by_user,omitempty"`
+		VerifiedByUserID *uuid.UUID `gorm:"type:uuid"`
+		VerifiedByUser   *User      `gorm:"foreignKey:VerifiedByUserID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"verified_by_user,omitempty"`
 
 		Status string `gorm:"type:varchar(50);not null;default:'pending'"`
 	}
@@ -82,11 +82,11 @@ func (m *Model) MemberVerification() {
 				UpdatedBy:        m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID:   data.OrganizationID,
 				Organization:     m.OrganizationManager.ToModel(data.Organization),
-				BranchID:         data.BranchID,
+				BranchID:         *data.BranchID,
 				Branch:           m.BranchManager.ToModel(data.Branch),
-				MemberProfileID:  data.MemberProfileID,
+				MemberProfileID:  *data.MemberProfileID,
 				MemberProfile:    m.MemberProfileManager.ToModel(data.MemberProfile),
-				VerifiedByUserID: data.VerifiedByUserID,
+				VerifiedByUserID: *data.VerifiedByUserID,
 				VerifiedByUser:   m.UserManager.ToModel(data.VerifiedByUser),
 				Status:           data.Status,
 			}
@@ -122,6 +122,6 @@ func (m *Model) MemberVerification() {
 func (m *Model) MemberVerificationCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberVerification, error) {
 	return m.MemberVerificationManager.Find(context, &MemberVerification{
 		OrganizationID: orgId,
-		BranchID:       branchId,
+		BranchID:       &branchId,
 	})
 }

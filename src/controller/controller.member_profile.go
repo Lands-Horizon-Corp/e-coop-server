@@ -40,8 +40,257 @@ func (c *Controller) MemberProfileController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-profile/:member_profile_id/approve",
+		Route:    "/member-profile/:member_profile_id/user-account",
 		Method:   "POST",
+		Request:  "MemberProfilePersonalInfoRequest",
+		Response: "MemberProfile",
+		Note:     "Quickly create a new member profile with minimal required fields.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+
+		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+		var req model.MemberProfileUserAccountRequest
+		if err := ctx.Bind(&req); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.NoContent(http.StatusNoContent)
+		}
+
+		tx := c.provider.Service.Database.Client().Begin()
+		hashedPwd, err := c.provider.Service.Security.HashPassword(context, req.Password)
+		if err != nil {
+			tx.Rollback()
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to hash password")
+		}
+		userProfile := &model.User{
+			Email:             req.Email,
+			UserName:          req.UserName,
+			ContactNumber:     req.ContactNumber,
+			Password:          hashedPwd,
+			FullName:          req.FullName,
+			FirstName:         &req.FirstName,
+			MiddleName:        &req.MiddleName,
+			LastName:          &req.LastName,
+			Suffix:            &req.Suffix,
+			IsEmailVerified:   false,
+			IsContactVerified: false,
+			CreatedAt:         time.Now().UTC(),
+			UpdatedAt:         time.Now().UTC(),
+		}
+		if err := c.model.UserManager.CreateWithTx(context, tx, userProfile); err != nil {
+			tx.Rollback()
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not create user profile: %v", err))
+		}
+		if tx.Error != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+		}
+		memberProfile, err := c.model.MemberProfileManager.GetByID(context, *memberProfileID)
+		if err != nil {
+			tx.Rollback()
+			return c.NotFound(ctx, fmt.Sprintf("MemberProfile with ID %s not found", memberProfileID))
+		}
+		memberProfile.UserID = &userProfile.ID
+		memberProfile.UpdatedAt = time.Now().UTC()
+		memberProfile.UpdatedByID = userOrg.UserID
+
+		if err := c.model.MemberProfileManager.UpdateFieldsWithTx(context, tx, memberProfile.ID, memberProfile); err != nil {
+			tx.Rollback()
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not create member profile: %v", err))
+		}
+
+		developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, userProfile.ID.String())
+		if err != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "something wrong generating developer key"})
+		}
+		developerKey = developerKey + uuid.NewString() + "-horizon"
+		newUserOrg := &model.UserOrganization{
+			CreatedAt:               time.Now().UTC(),
+			CreatedByID:             userOrg.UserID,
+			UpdatedAt:               time.Now().UTC(),
+			UpdatedByID:             userOrg.UserID,
+			OrganizationID:          userOrg.OrganizationID,
+			BranchID:                userOrg.BranchID,
+			UserID:                  userProfile.ID,
+			UserType:                "member",
+			Description:             "",
+			ApplicationDescription:  "anything",
+			ApplicationStatus:       "accepted",
+			DeveloperSecretKey:      developerKey,
+			PermissionName:          "member",
+			PermissionDescription:   "",
+			Permissions:             []string{},
+			UserSettingDescription:  "user settings",
+			UserSettingStartOR:      0,
+			UserSettingEndOR:        0,
+			UserSettingUsedOR:       0,
+			UserSettingStartVoucher: 0,
+			UserSettingEndVoucher:   0,
+			UserSettingUsedVoucher:  0,
+		}
+		if err := c.model.UserOrganizationManager.CreateWithTx(context, tx, newUserOrg); err != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": err.Error()})
+		}
+
+		if err := tx.Commit().Error; err != nil {
+			return c.InternalServerError(ctx, err)
+		}
+		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(memberProfile))
+	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:    "/member-profile/:member_profile_id/close",
+		Method:   "PUT",
+		Request:  "[]TMemberCloseRemarkRequest",
+		Response: "TMemberProfile",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid member profile ID")
+		}
+		var reqs []model.MemberCloseRemarkRequest
+		if err := ctx.Bind(&reqs); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return err
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return c.BadRequest(ctx, "User is not authorized")
+		}
+		tx := c.provider.Service.Database.Client().Begin()
+		if tx.Error != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+		}
+		for _, req := range reqs {
+			if err := c.provider.Service.Validator.Struct(req); err != nil {
+				tx.Rollback()
+				return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+			}
+			value := &model.MemberCloseRemark{
+				Reason:          req.Reason,
+				Description:     req.Description,
+				MemberProfileID: memberProfileID,
+				CreatedAt:       time.Now().UTC(),
+				CreatedByID:     userOrg.UserID,
+				UpdatedAt:       time.Now().UTC(),
+				UpdatedByID:     userOrg.UserID,
+				BranchID:        *userOrg.BranchID,
+				OrganizationID:  userOrg.OrganizationID,
+			}
+			if err := c.model.MemberCloseRemarkManager.CreateWithTx(context, tx, value); err != nil {
+				tx.Rollback()
+				return c.InternalServerError(ctx, err)
+			}
+		}
+
+		memberProfile, err := c.model.MemberProfileManager.GetByID(context, *memberProfileID)
+		if err != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+
+		memberProfile.IsClosed = true
+		if err := c.model.MemberProfileManager.UpdateFieldsWithTx(context, tx, memberProfile.ID, memberProfile); err != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		if err := tx.Commit().Error; err != nil {
+			return c.InternalServerError(ctx, err)
+		}
+		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(memberProfile))
+	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:    "/member-profile/:member_profile_id/connect-user-account/:user_id",
+		Method:   "PUT",
+		Response: "TMemberProfile",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid member profile ID")
+		}
+		userID, err := horizon.EngineUUIDParam(ctx, "user_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid user ID")
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
+		}
+
+		if !c.model.UserOrganizationMemberCanJoin(
+			context,
+			*userID, userOrg.OrganizationID, *userOrg.BranchID) {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "cannot join as member"})
+		}
+
+		user, err := c.model.UserManager.GetByID(context, *userID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		memberProfile, err := c.model.MemberProfileManager.GetByID(context, *memberProfileID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		memberProfile.UserID = &user.ID
+		memberProfile.MemberVerifiedByEmployeeUserID = &userOrg.UserID
+		if err := c.model.MemberProfileManager.UpdateFields(context, memberProfile.ID, memberProfile); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(memberProfile))
+	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:    "/member-profile/:member_profile_id/disconnect",
+		Method:   "PUT",
+		Response: "TMemberProfile",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid member profile ID")
+		}
+
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
+		}
+
+		memberProfile, err := c.model.MemberProfileManager.GetByID(context, *memberProfileID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		memberProfile.UserID = nil
+		if err := c.model.MemberProfileManager.UpdateFields(context, memberProfile.ID, memberProfile); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(memberProfile))
+	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:    "/member-profile/:member_profile_id/approve",
+		Method:   "PUT",
 		Response: "MemberProfile",
 		Note:     "Approve member profiles",
 	}, func(ctx echo.Context) error {
@@ -137,27 +386,6 @@ func (c *Controller) MemberProfileController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-verification",
-		Method:   "GET",
-		Response: "[]MemberVerification",
-		Note:     "Retrieve a list of all member profiles.",
-	}, func(ctx echo.Context) error {
-		context := ctx.Request().Context()
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
-		if err != nil {
-			return err
-		}
-		memberVerification, err := c.model.MemberVerificationManager.Find(context, &model.MemberVerification{
-			OrganizationID: userOrg.OrganizationID,
-			BranchID:       *userOrg.BranchID,
-		})
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-		}
-		return ctx.JSON(http.StatusOK, c.model.MemberVerificationManager.ToModels(memberVerification))
-	})
-
-	req.RegisterRoute(horizon.Route{
 		Route:    "/member-profile/:member_profile_id",
 		Method:   "GET",
 		Response: "MemberProfile",
@@ -195,7 +423,7 @@ func (c *Controller) MemberProfileController() {
 		if err != nil {
 			return c.NotFound(ctx, fmt.Sprintf("MemberProfile with ID %s not found", memberProfileID.String()))
 		}
-		if err := c.model.MemberProfileDelete(context, tx, memberProfile.ID); err != nil {
+		if err := c.model.MemberProfileDestroy(context, tx, memberProfile.ID); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
 		if err := tx.Commit().Error; err != nil {
@@ -204,11 +432,12 @@ func (c *Controller) MemberProfileController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
+	// ...existing code...
 	req.RegisterRoute(horizon.Route{
 		Route:   "/member-profile/bulk-delete",
 		Method:  "DELETE",
 		Request: "string[]",
-		Note:    "Delete multiple member profile records",
+		Note:    "Delete multiple member profile records and all their connections",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody struct {
@@ -227,16 +456,18 @@ func (c *Controller) MemberProfileController() {
 		}
 
 		for _, rawID := range reqBody.IDs {
-			memberProfileID, err := uuid.Parse(rawID)
+			if rawID == "" {
+				continue
+			}
+			id := uuid.MustParse(rawID)
+			memberProfile, err := c.model.MemberProfileManager.GetByID(context, id)
 			if err != nil {
+				tx.Rollback()
 				return c.BadRequest(ctx, fmt.Sprintf("Invalid UUID: %s", rawID))
 			}
-			memberProfile, err := c.model.MemberProfileManager.GetByID(context, memberProfileID)
-			if err != nil {
-				return c.NotFound(ctx, fmt.Sprintf("MemberProfile with ID %s not found", rawID))
-			}
-			if err := c.model.MemberProfileDelete(context, tx, memberProfile.ID); err != nil {
-				return c.InternalServerError(ctx, err)
+			if err := c.model.MemberProfileDestroy(context, tx, memberProfile.ID); err != nil {
+				tx.Rollback()
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 			}
 		}
 		if err := tx.Commit().Error; err != nil {
@@ -244,59 +475,7 @@ func (c *Controller) MemberProfileController() {
 		}
 		return ctx.NoContent(http.StatusNoContent)
 	})
-
-	req.RegisterRoute(horizon.Route{
-		Route:    "/member-profile/:member_profile_id/close",
-		Method:   "POST",
-		Request:  "MemberCloseRemarkRequest",
-		Response: "MemberCloseRemark",
-		Note:     "Close the specified member profile by member_profile_id. Requires a remark for closing.",
-	}, func(ctx echo.Context) error {
-		context := ctx.Request().Context()
-		var req model.MemberCloseRemarkRequest
-		if err := ctx.Bind(&req); err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
-		}
-		if err := c.provider.Service.Validator.Struct(req); err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
-		}
-		memberProfile, err := c.model.MemberProfileManager.GetByID(context, req.MemberProfileID)
-		if err != nil {
-			return c.NotFound(ctx, fmt.Sprintf("MemberProfile with ID %s not found", req.MemberProfileID))
-		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
-		if err != nil {
-			return ctx.NoContent(http.StatusNoContent)
-		}
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
-		}
-		memberProfile.IsClosed = true
-		if err := c.model.MemberProfileManager.UpdateFieldsWithTx(context, tx, memberProfile.ID, memberProfile); err != nil {
-			tx.Rollback()
-			return echo.NewHTTPError(http.StatusInternalServerError, "failed to close member profile: "+err.Error())
-		}
-		if err := tx.Commit().Error; err != nil {
-			return c.InternalServerError(ctx, err)
-		}
-		value := &model.MemberCloseRemark{
-			MemberProfileID: req.MemberProfileID,
-			Reason:          req.Reason,
-			Description:     req.Description,
-			CreatedAt:       time.Now().UTC(),
-			CreatedByID:     user.UserID,
-			UpdatedAt:       time.Now().UTC(),
-			UpdatedByID:     user.UserID,
-			BranchID:        *user.BranchID,
-			OrganizationID:  user.OrganizationID,
-		}
-		if err := c.model.MemberCloseRemarkManager.Create(context, value); err != nil {
-			return c.InternalServerError(ctx, err)
-		}
-		return ctx.JSON(http.StatusOK, c.model.MemberCloseRemarkManager.ToModel(value))
-	})
+	// ...existing code...
 
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-profile/:member_profile_id/connect-user",
@@ -321,7 +500,7 @@ func (c *Controller) MemberProfileController() {
 		if err != nil {
 			return c.NotFound(ctx, fmt.Sprintf("MemberProfile with ID %s not found", memberProfileId))
 		}
-		memberProfile.UserID = *req.UserID
+		memberProfile.UserID = req.UserID
 		if err := c.model.MemberProfileManager.UpdateFields(context, memberProfile.ID, memberProfile); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update member profile by specifying user connection: "+err.Error())
 		}
@@ -336,6 +515,7 @@ func (c *Controller) MemberProfileController() {
 		Note:     "Quickly create a new member profile with minimal required fields.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
+		// ...existing code...
 		var req model.MemberProfileQuickCreateRequest
 		if err := ctx.Bind(&req); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -347,53 +527,112 @@ func (c *Controller) MemberProfileController() {
 		if err != nil {
 			return ctx.NoContent(http.StatusNoContent)
 		}
+
 		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+
+		var userProfile *model.User
+		var userProfileID *uuid.UUID
+
+		if req.AccountInfo != nil {
+			hashedPwd, err := c.provider.Service.Security.HashPassword(context, req.AccountInfo.Password)
+			if err != nil {
+				tx.Rollback()
+				return echo.NewHTTPError(http.StatusInternalServerError, "failed to hash password")
+			}
+			userProfile = &model.User{
+				Email:             req.AccountInfo.Email,
+				UserName:          req.AccountInfo.UserName,
+				ContactNumber:     req.ContactNumber,
+				Password:          hashedPwd,
+				FullName:          req.FullName,
+				FirstName:         &req.FirstName,
+				MiddleName:        &req.MiddleName,
+				LastName:          &req.LastName,
+				Suffix:            &req.Suffix,
+				IsEmailVerified:   false,
+				IsContactVerified: false,
+				CreatedAt:         time.Now().UTC(),
+				UpdatedAt:         time.Now().UTC(),
+			}
+			if err := c.model.UserManager.CreateWithTx(context, tx, userProfile); err != nil {
+				tx.Rollback()
+				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not create user profile: %v", err))
+			}
+			if tx.Error != nil {
+				tx.Rollback()
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+			}
+			userProfileID = &userProfile.ID
 		}
+
 		profile := &model.MemberProfile{
-			OrganizationID:         user.OrganizationID,
-			BranchID:               *user.BranchID,
-			UserID:                 user.UserID,
-			CreatedAt:              time.Now().UTC(),
-			UpdatedAt:              time.Now().UTC(),
-			CreatedByID:            user.UserID,
-			UpdatedByID:            user.UserID,
-			OldReferenceID:         req.OldReferenceID,
-			Passbook:               req.Passbook,
-			FirstName:              req.FirstName,
-			MiddleName:             req.MiddleName,
-			LastName:               req.LastName,
-			FullName:               req.FullName,
-			Suffix:                 req.Suffix,
-			MemberGenderID:         req.MemberGenderID,
-			BirthDate:              req.BirthDate,
-			ContactNumber:          req.ContactNumber,
-			CivilStatus:            req.CivilStatus,
-			MemberOccupationID:     req.MemberOccupationID,
-			Status:                 req.Status,
-			IsMutualFundMember:     req.IsMutualFundMember,
-			IsMicroFinanceMember:   req.IsMicroFinanceMember,
-			MemberTypeID:           &req.MemberTypeID,
-			MemberClassificationID: &req.MemberClassificationID,
+			OrganizationID:             user.OrganizationID,
+			BranchID:                   *user.BranchID,
+			CreatedAt:                  time.Now().UTC(),
+			UpdatedAt:                  time.Now().UTC(),
+			CreatedByID:                user.UserID,
+			UpdatedByID:                user.UserID,
+			UserID:                     userProfileID,
+			OldReferenceID:             req.OldReferenceID,
+			Passbook:                   req.Passbook,
+			FirstName:                  req.FirstName,
+			MiddleName:                 req.MiddleName,
+			LastName:                   req.LastName,
+			FullName:                   req.FullName,
+			Suffix:                     req.Suffix,
+			MemberGenderID:             req.MemberGenderID,
+			BirthDate:                  req.BirthDate,
+			ContactNumber:              req.ContactNumber,
+			CivilStatus:                req.CivilStatus,
+			MemberOccupationID:         req.MemberOccupationID,
+			Status:                     req.Status,
+			IsMutualFundMember:         req.IsMutualFundMember,
+			IsMicroFinanceMember:       req.IsMicroFinanceMember,
+			MemberTypeID:               req.MemberTypeID,
+			RecruitedByMemberProfileID: &user.UserID,
 		}
 		if err := c.model.MemberProfileManager.CreateWithTx(context, tx, profile); err != nil {
+			tx.Rollback()
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not create member profile: %v", err))
 		}
-		verification := &model.MemberVerification{
-			OrganizationID:  user.OrganizationID,
-			BranchID:        *user.BranchID,
-			CreatedAt:       time.Now().UTC(),
-			UpdatedAt:       time.Now().UTC(),
-			CreatedByID:     user.UserID,
-			UpdatedByID:     user.UserID,
-			MemberProfileID: profile.ID,
-			Status:          "pending",
+
+		if userProfile != nil {
+			developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, user.ID.String())
+			if err != nil {
+				tx.Rollback()
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "something wrong generating developer key"})
+			}
+			developerKey = developerKey + uuid.NewString() + "-horizon"
+			userOrg := &model.UserOrganization{
+				CreatedAt:               time.Now().UTC(),
+				CreatedByID:             user.UserID,
+				UpdatedAt:               time.Now().UTC(),
+				UpdatedByID:             user.UserID,
+				OrganizationID:          user.OrganizationID,
+				BranchID:                user.BranchID,
+				UserID:                  user.UserID,
+				UserType:                "member",
+				Description:             "",
+				ApplicationDescription:  "anything",
+				ApplicationStatus:       "accepted",
+				DeveloperSecretKey:      developerKey,
+				PermissionName:          "member",
+				PermissionDescription:   "",
+				Permissions:             []string{},
+				UserSettingDescription:  "user settings",
+				UserSettingStartOR:      0,
+				UserSettingEndOR:        0,
+				UserSettingUsedOR:       0,
+				UserSettingStartVoucher: 0,
+				UserSettingEndVoucher:   0,
+				UserSettingUsedVoucher:  0,
+			}
+			if err := c.model.UserOrganizationManager.CreateWithTx(context, tx, userOrg); err != nil {
+				tx.Rollback()
+				return ctx.JSON(http.StatusForbidden, map[string]string{"error": err.Error()})
+			}
 		}
-		if err := c.model.MemberVerificationManager.CreateWithTx(context, tx, verification); err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not create member verification: %v", err))
-		}
+
 		if err := tx.Commit().Error; err != nil {
 			return c.InternalServerError(ctx, err)
 		}
@@ -423,26 +662,60 @@ func (c *Controller) MemberProfileController() {
 		if err != nil {
 			return c.NotFound(ctx, fmt.Sprintf("MemberProfile with ID %s not found", memberProfileId))
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.NoContent(http.StatusNoContent)
 		}
 		profile.UpdatedAt = time.Now().UTC()
-		profile.UpdatedByID = user.UserID
+		profile.UpdatedByID = userOrg.UserID
 		profile.FirstName = req.FirstName
 		profile.MiddleName = req.MiddleName
 		profile.LastName = req.LastName
 		profile.FullName = req.FullName
 		profile.Suffix = req.Suffix
-		profile.MemberGenderID = req.MemberGenderID
 		profile.BirthDate = req.BirthDate
 		profile.ContactNumber = req.ContactNumber
 		profile.CivilStatus = req.CivilStatus
-		profile.MemberOccupationID = req.MemberOccupationID
+
+		if req.MemberGenderID != nil && !uuidPtrEqual(profile.MemberGenderID, req.MemberGenderID) {
+			data := &model.MemberGenderHistory{
+				OrganizationID:  userOrg.OrganizationID,
+				BranchID:        *userOrg.BranchID,
+				CreatedAt:       time.Now().UTC(),
+				UpdatedAt:       time.Now().UTC(),
+				CreatedByID:     userOrg.UserID,
+				UpdatedByID:     userOrg.UserID,
+				MemberProfileID: *memberProfileId,
+				MemberGenderID:  *req.MemberGenderID,
+			}
+			if err := c.model.MemberGenderHistoryManager.Create(context, data); err != nil {
+				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not update member gender history: %v", err))
+			}
+			profile.MemberGenderID = req.MemberGenderID
+		}
+		if req.MemberOccupationID != nil && !uuidPtrEqual(profile.MemberOccupationID, req.MemberOccupationID) {
+			data := &model.MemberOccupationHistory{
+				OrganizationID:     userOrg.OrganizationID,
+				BranchID:           *userOrg.BranchID,
+				CreatedAt:          time.Now().UTC(),
+				UpdatedAt:          time.Now().UTC(),
+				CreatedByID:        userOrg.UserID,
+				UpdatedByID:        userOrg.UserID,
+				MemberProfileID:    *memberProfileId,
+				MemberOccupationID: *req.MemberOccupationID,
+			}
+			if err := c.model.MemberOccupationHistoryManager.Create(context, data); err != nil {
+				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not update member occupation history: %v", err))
+			}
+			profile.MemberOccupationID = req.MemberOccupationID
+		}
+
 		profile.BusinessAddress = req.BusinessAddress
 		profile.BusinessContactNumber = req.BusinessContactNumber
 		profile.Notes = req.Notes
 		profile.Description = req.Description
+		profile.MediaID = req.MediaID
+		profile.SignatureMediaID = req.SignatureMediaID
 		if err := c.model.MemberProfileManager.UpdateFields(context, profile.ID, profile); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could update member profile: %v", err))
 		}
@@ -472,105 +745,116 @@ func (c *Controller) MemberProfileController() {
 		if err != nil {
 			return c.NotFound(ctx, fmt.Sprintf("MemberProfile with ID %s not found", memberProfileId))
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.NoContent(http.StatusNoContent)
 		}
 		profile.UpdatedAt = time.Now().UTC()
-		profile.UpdatedByID = user.UserID
+		profile.UpdatedByID = userOrg.UserID
 		profile.Passbook = req.Passbook
 		profile.OldReferenceID = req.OldReferenceID
 		profile.Status = req.Status
 
-		if profile.MemberTypeID != req.MemberTypeID {
-			profile.MemberTypeID = req.MemberTypeID
-			if err := c.model.MemberTypeHistoryManager.Create(context, &model.MemberTypeHistory{
-				OrganizationID:  user.OrganizationID,
-				BranchID:        *user.BranchID,
+		// MemberTypeID
+		if req.MemberTypeID != nil && !uuidPtrEqual(profile.MemberTypeID, req.MemberTypeID) {
+			data := &model.MemberTypeHistory{
+				OrganizationID:  userOrg.OrganizationID,
+				BranchID:        *userOrg.BranchID,
 				CreatedAt:       time.Now().UTC(),
 				UpdatedAt:       time.Now().UTC(),
-				CreatedByID:     user.UserID,
-				UpdatedByID:     user.UserID,
-				MemberProfileID: profile.ID,
+				CreatedByID:     userOrg.UserID,
+				UpdatedByID:     userOrg.UserID,
+				MemberProfileID: *memberProfileId,
 				MemberTypeID:    *req.MemberTypeID,
-			}); err != nil {
+			}
+			if err := c.model.MemberTypeHistoryManager.Create(context, data); err != nil {
 				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could update member profile: %v", err))
 			}
-
+			profile.MemberTypeID = req.MemberTypeID
 		}
 
-		// Compare and set MemberGroupID with history
-		if profile.MemberGroupID != req.MemberGroupID {
-			if err := c.model.MemberGroupHistoryManager.Create(context, &model.MemberGroupHistory{
-				OrganizationID:  user.OrganizationID,
-				BranchID:        *user.BranchID,
+		// MemberGroupID
+		if req.MemberGroupID != nil && !uuidPtrEqual(profile.MemberGroupID, req.MemberGroupID) {
+			data := &model.MemberGroupHistory{
+				OrganizationID:  userOrg.OrganizationID,
+				BranchID:        *userOrg.BranchID,
 				CreatedAt:       time.Now().UTC(),
 				UpdatedAt:       time.Now().UTC(),
-				CreatedByID:     user.UserID,
-				UpdatedByID:     user.UserID,
-				MemberProfileID: profile.ID,
+				CreatedByID:     userOrg.UserID,
+				UpdatedByID:     userOrg.UserID,
+				MemberProfileID: *memberProfileId,
 				MemberGroupID:   *req.MemberGroupID,
-			}); err != nil {
+			}
+			if err := c.model.MemberGroupHistoryManager.Create(context, data); err != nil {
 				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not update member group history: %v", err))
 			}
 			profile.MemberGroupID = req.MemberGroupID
 		}
 
-		// Compare and set MemberClassificationID with history
-		if profile.MemberClassificationID != req.MemberClassificationID {
-			if err := c.model.MemberClassificationHistoryManager.Create(context, &model.MemberClassificationHistory{
-				OrganizationID:         user.OrganizationID,
-				BranchID:               *user.BranchID,
+		// MemberClassificationID
+		if req.MemberClassificationID != nil && !uuidPtrEqual(profile.MemberClassificationID, req.MemberClassificationID) {
+			data := &model.MemberClassificationHistory{
+				OrganizationID:         userOrg.OrganizationID,
+				BranchID:               *userOrg.BranchID,
 				CreatedAt:              time.Now().UTC(),
 				UpdatedAt:              time.Now().UTC(),
-				CreatedByID:            user.UserID,
-				UpdatedByID:            user.UserID,
-				MemberProfileID:        profile.ID,
+				CreatedByID:            userOrg.UserID,
+				UpdatedByID:            userOrg.UserID,
+				MemberProfileID:        *memberProfileId,
 				MemberClassificationID: *req.MemberClassificationID,
-			}); err != nil {
+			}
+			if err := c.model.MemberClassificationHistoryManager.Create(context, data); err != nil {
 				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not update member classification history: %v", err))
 			}
 			profile.MemberClassificationID = req.MemberClassificationID
 		}
 
-		// Compare and set MemberCenterID with history
-		if profile.MemberCenterID != req.MemberCenterID {
-			if err := c.model.MemberCenterHistoryManager.Create(context, &model.MemberCenterHistory{
-				OrganizationID:  user.OrganizationID,
-				BranchID:        *user.BranchID,
+		// MemberCenterID
+		if req.MemberCenterID != nil && !uuidPtrEqual(profile.MemberCenterID, req.MemberCenterID) {
+			data := &model.MemberCenterHistory{
+				OrganizationID:  userOrg.OrganizationID,
+				BranchID:        *userOrg.BranchID,
 				CreatedAt:       time.Now().UTC(),
 				UpdatedAt:       time.Now().UTC(),
-				CreatedByID:     user.UserID,
-				UpdatedByID:     user.UserID,
-				MemberProfileID: profile.ID,
-			}); err != nil {
+				CreatedByID:     userOrg.UserID,
+				UpdatedByID:     userOrg.UserID,
+				MemberProfileID: *memberProfileId,
+				MemberCenterID:  *req.MemberCenterID,
+			}
+			if err := c.model.MemberCenterHistoryManager.Create(context, data); err != nil {
 				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not update member center history: %v", err))
 			}
 			profile.MemberCenterID = req.MemberCenterID
 		}
 
-		profile.RecruitedByMemberProfileID = req.RecruitedByMemberProfileID
-		profile.IsMutualFundMember = *req.IsMutualFundMember
-		profile.IsMicroFinanceMember = *req.IsMicroFinanceMember
+		if req.RecruitedByMemberProfileID != nil {
+			profile.RecruitedByMemberProfileID = req.RecruitedByMemberProfileID
+		}
+		profile.IsMutualFundMember = req.IsMutualFundMember
+		profile.IsMicroFinanceMember = req.IsMicroFinanceMember
+
 		if err := c.model.MemberProfileManager.UpdateFields(context, profile.ID, profile); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could update member profile: %v", err))
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(profile))
 	})
-
 }
 
 func (c *Controller) MemberEducationalAttainmentController() {
 	req := c.provider.Service.Request
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-educational-attainment",
+		Route:    "/member-educational-attainment/member-profile/:member_profile_id",
 		Method:   "POST",
 		Request:  "TMemberEducationalAttainment",
 		Response: "TMemberEducationalAttainment",
 		Note:     "Create a new educational attainment record for a member.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
+		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid member profile ID")
+		}
 		req, err := c.model.MemberEducationalAttainmentManager.Validate(ctx)
 		if err != nil {
 			return c.BadRequest(ctx, err.Error())
@@ -581,7 +865,7 @@ func (c *Controller) MemberEducationalAttainmentController() {
 		}
 
 		value := &model.MemberEducationalAttainment{
-			MemberProfileID:       req.MemberProfileID,
+			MemberProfileID:       *memberProfileID,
 			Name:                  req.Name,
 			SchoolName:            req.SchoolName,
 			SchoolYear:            req.SchoolYear,
@@ -662,19 +946,65 @@ func (c *Controller) MemberEducationalAttainmentController() {
 		}
 		return ctx.NoContent(http.StatusNoContent)
 	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:   "/member-educational-attainment/bulk-delete",
+		Method:  "DELETE",
+		Request: "string[]",
+		Note:    "Delete multiple member educational attainment records",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		var reqBody struct {
+			IDs []string `json:"ids"`
+		}
+		if err := ctx.Bind(&reqBody); err != nil {
+			return c.BadRequest(ctx, "Invalid request body")
+		}
+		if len(reqBody.IDs) == 0 {
+			return c.BadRequest(ctx, "No IDs provided")
+		}
+		tx := c.provider.Service.Database.Client().Begin()
+		if tx.Error != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+		}
+		for _, rawID := range reqBody.IDs {
+			bankID, err := uuid.Parse(rawID)
+			if err != nil {
+				tx.Rollback()
+				return c.BadRequest(ctx, fmt.Sprintf("Invalid UUID: %s", rawID))
+			}
+			if _, err := c.model.MemberEducationalAttainmentManager.GetByID(context, bankID); err != nil {
+				tx.Rollback()
+				return c.NotFound(ctx, fmt.Sprintf("MemberEducationalAttainment with ID %s", rawID))
+			}
+			if err := c.model.MemberEducationalAttainmentManager.DeleteByIDWithTx(context, tx, bankID); err != nil {
+				tx.Rollback()
+				return c.InternalServerError(ctx, err)
+			}
+		}
+		if err := tx.Commit().Error; err != nil {
+			return c.InternalServerError(ctx, err)
+		}
+		return ctx.NoContent(http.StatusNoContent)
+	})
 }
 
 func (c *Controller) MemberAddressController() {
 	req := c.provider.Service.Request
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-address",
+		Route:    "/member-address/member-profile/:member_profile_id",
 		Method:   "POST",
 		Request:  "TMemberAddress",
 		Response: "TMemberAddress",
 		Note:     "Create a new address record for a member.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
+		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid member profile ID")
+		}
 		req, err := c.model.MemberAddressManager.Validate(ctx)
 		if err != nil {
 			return c.BadRequest(ctx, err.Error())
@@ -685,7 +1015,7 @@ func (c *Controller) MemberAddressController() {
 		}
 
 		value := &model.MemberAddress{
-			MemberProfileID: req.MemberProfileID,
+			MemberProfileID: memberProfileID,
 
 			Label:         req.Label,
 			City:          req.City,
@@ -778,13 +1108,17 @@ func (c *Controller) MemberContactReferenceController() {
 	req := c.provider.Service.Request
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-contact-reference",
+		Route:    "/member-contact-reference/member-profile/:member_profile_id",
 		Method:   "POST",
 		Request:  "TMemberContactReference",
 		Response: "TMemberContactReference",
 		Note:     "Create a new contact reference for a member.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
+		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid member profile ID")
+		}
 		req, err := c.model.MemberContactReferenceManager.Validate(ctx)
 		if err != nil {
 			return c.BadRequest(ctx, err.Error())
@@ -795,7 +1129,7 @@ func (c *Controller) MemberContactReferenceController() {
 		}
 
 		value := &model.MemberContactReference{
-			MemberProfileID: req.MemberProfileID,
+			MemberProfileID: *memberProfileID,
 
 			Name:          req.Name,
 			Description:   req.Description,
@@ -878,13 +1212,17 @@ func (c *Controller) MemberAssetController() {
 	req := c.provider.Service.Request
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-asset",
+		Route:    "/member-asset/member-profile/:member_profile_id",
 		Method:   "POST",
 		Request:  "TMemberAsset",
 		Response: "TMemberAsset",
 		Note:     "Create a new asset record for a member.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
+		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid member profile ID")
+		}
 		req, err := c.model.MemberAssetManager.Validate(ctx)
 		if err != nil {
 			return c.BadRequest(ctx, err.Error())
@@ -895,7 +1233,7 @@ func (c *Controller) MemberAssetController() {
 		}
 
 		value := &model.MemberAsset{
-			MemberProfileID: req.MemberProfileID,
+			MemberProfileID: memberProfileID,
 
 			MediaID:     req.MediaID,
 			Name:        req.Name,
@@ -981,13 +1319,17 @@ func (c *Controller) MemberIncomeController() {
 	req := c.provider.Service.Request
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-income",
+		Route:    "/member-income/member-profile/:member_profile_id",
 		Method:   "POST",
 		Request:  "TMemberIncome",
 		Response: "TMemberIncome",
 		Note:     "Create a new income record for a member.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
+		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid member profile ID")
+		}
 		req, err := c.model.MemberIncomeManager.Validate(ctx)
 		if err != nil {
 			return c.BadRequest(ctx, err.Error())
@@ -998,7 +1340,7 @@ func (c *Controller) MemberIncomeController() {
 		}
 
 		value := &model.MemberIncome{
-			MemberProfileID: req.MemberProfileID,
+			MemberProfileID: *memberProfileID,
 
 			MediaID:     req.MediaID,
 			Name:        req.Name,
@@ -1082,13 +1424,17 @@ func (c *Controller) MemberExpenseController() {
 	req := c.provider.Service.Request
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-expense",
+		Route:    "/member-expense/member-profile/:member_profile_id",
 		Method:   "POST",
 		Request:  "TMemberExpense",
 		Response: "TMemberExpense",
 		Note:     "Create a new expense record for a member.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
+		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid member profile ID")
+		}
 		req, err := c.model.MemberExpenseManager.Validate(ctx)
 		if err != nil {
 			return c.BadRequest(ctx, err.Error())
@@ -1099,7 +1445,7 @@ func (c *Controller) MemberExpenseController() {
 		}
 
 		value := &model.MemberExpense{
-			MemberProfileID: req.MemberProfileID,
+			MemberProfileID: *memberProfileID,
 
 			Name:        req.Name,
 			Amount:      req.Amount,
@@ -1182,13 +1528,17 @@ func (c *Controller) MemberGovernmentBenefitController() {
 	req := c.provider.Service.Request
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-government-benefit",
+		Route:    "/member-government-benefit/member-profile/:member_profile_id",
 		Method:   "POST",
 		Request:  "TMemberGovernmentBenefit",
 		Response: "TMemberGovernmentBenefit",
 		Note:     "Create a new government benefit record for a member.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
+		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid member profile ID")
+		}
 		req, err := c.model.MemberGovernmentBenefitManager.Validate(ctx)
 		if err != nil {
 			return c.BadRequest(ctx, err.Error())
@@ -1199,7 +1549,7 @@ func (c *Controller) MemberGovernmentBenefitController() {
 		}
 
 		value := &model.MemberGovernmentBenefit{
-			MemberProfileID: req.MemberProfileID,
+			MemberProfileID: *memberProfileID,
 
 			FrontMediaID: req.FrontMediaID,
 			BackMediaID:  req.BackMediaID,
@@ -1290,13 +1640,17 @@ func (c *Controller) MemberJointAccountController() {
 	req := c.provider.Service.Request
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-joint-account",
+		Route:    "/member-joint-account/member-profile/:member_profile_id",
 		Method:   "POST",
 		Request:  "TMemberJointAccount",
 		Response: "TMemberJointAccount",
 		Note:     "Create a new joint account record for a member.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
+		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid member profile ID")
+		}
 		req, err := c.model.MemberJointAccountManager.Validate(ctx)
 		if err != nil {
 			return c.BadRequest(ctx, err.Error())
@@ -1307,7 +1661,7 @@ func (c *Controller) MemberJointAccountController() {
 		}
 
 		value := &model.MemberJointAccount{
-			MemberProfileID: req.MemberProfileID,
+			MemberProfileID: *memberProfileID,
 
 			PictureMediaID:     req.PictureMediaID,
 			SignatureMediaID:   req.SignatureMediaID,
@@ -1411,6 +1765,10 @@ func (c *Controller) MemberRelativeAccountController() {
 		Note:     "Create a new relative account record for a member.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
+		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid member profile ID")
+		}
 		req, err := c.model.MemberRelativeAccountManager.Validate(ctx)
 		if err != nil {
 			return c.BadRequest(ctx, err.Error())
@@ -1421,7 +1779,7 @@ func (c *Controller) MemberRelativeAccountController() {
 		}
 
 		value := &model.MemberRelativeAccount{
-			MemberProfileID:         req.MemberProfileID,
+			MemberProfileID:         *memberProfileID,
 			RelativeMemberProfileID: req.RelativeMemberProfileID,
 			FamilyRelationship:      req.FamilyRelationship,
 			Description:             req.Description,
@@ -1521,7 +1879,7 @@ func (c *Controller) MemberGenderController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-gender-history/member-profile/:member_profile_id",
+		Route:    "/member-gender-history/member-profile/:member_profile_id/search",
 		Method:   "GET",
 		Response: "TMemberGenderHistory[]",
 		Note:     "Get member gender history by member profile ID",
@@ -1539,7 +1897,7 @@ func (c *Controller) MemberGenderController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.MemberGenderHistoryManager.ToModels(memberGenderHistory))
+		return ctx.JSON(http.StatusOK, c.model.MemberGenderHistoryManager.Pagination(context, ctx, memberGenderHistory))
 	})
 
 	req.RegisterRoute(horizon.Route{
@@ -1743,7 +2101,7 @@ func (c *Controller) MemberCenterController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-center-history/member-profile/:member_profile_id",
+		Route:    "/member-center-history/member-profile/:member_profile_id/search",
 		Method:   "GET",
 		Response: "TMemberCenterHistory[]",
 		Note:     "Get member center history by member profile ID",
@@ -1761,7 +2119,7 @@ func (c *Controller) MemberCenterController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.MemberCenterHistoryManager.ToModels(memberCenterHistory))
+		return ctx.JSON(http.StatusOK, c.model.MemberCenterHistoryManager.Pagination(context, ctx, memberCenterHistory))
 	})
 
 	req.RegisterRoute(horizon.Route{
@@ -1965,7 +2323,7 @@ func (c *Controller) MemberTypeController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-type-history/member-profile/:member_profile_id",
+		Route:    "/member-type-history/member-profile/:member_profile_id/search",
 		Method:   "GET",
 		Response: "TMemberTypeHistory[]",
 		Note:     "Get member type history by member profile ID",
@@ -1983,7 +2341,7 @@ func (c *Controller) MemberTypeController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.MemberTypeHistoryManager.ToModels(memberTypeHistory))
+		return ctx.JSON(http.StatusOK, c.model.MemberTypeHistoryManager.Pagination(context, ctx, memberTypeHistory))
 	})
 
 	req.RegisterRoute(horizon.Route{
@@ -2187,7 +2545,7 @@ func (c *Controller) MemberClassificationController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-classification-history/member-profile/:member_profile_id",
+		Route:    "/member-classification-history/member-profile/:member_profile_id/search",
 		Method:   "GET",
 		Response: "TMemberClassificationHistory[]",
 		Note:     "Get member classification history by member profile ID",
@@ -2205,7 +2563,7 @@ func (c *Controller) MemberClassificationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.MemberClassificationHistoryManager.ToModels(memberClassificationHistory))
+		return ctx.JSON(http.StatusOK, c.model.MemberClassificationHistoryManager.Pagination(context, ctx, memberClassificationHistory))
 	})
 
 	req.RegisterRoute(horizon.Route{
@@ -2411,7 +2769,7 @@ func (c *Controller) MemberOccupationController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-occupation-history/member-profile/:member_profile_id",
+		Route:    "/member-occupation-history/member-profile/:member_profile_id/search",
 		Method:   "GET",
 		Response: "TMemberOccupationHistory[]",
 		Note:     "Get member occupation history by member profile ID",
@@ -2429,7 +2787,7 @@ func (c *Controller) MemberOccupationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.MemberOccupationHistoryManager.ToModels(memberOccupationHistory))
+		return ctx.JSON(http.StatusOK, c.model.MemberOccupationHistoryManager.Pagination(context, ctx, memberOccupationHistory))
 	})
 
 	req.RegisterRoute(horizon.Route{
@@ -2632,7 +2990,7 @@ func (c *Controller) MemberGroupController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-group-history/member-profile/:member_profile_id",
+		Route:    "/member-group-history/member-profile/:member_profile_id/search",
 		Method:   "GET",
 		Response: "TMemberGroupHistory[]",
 		Note:     "Get member group history by member profile ID",
@@ -2650,7 +3008,8 @@ func (c *Controller) MemberGroupController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.MemberGroupHistoryManager.ToModels(memberGroupHistory))
+		return ctx.JSON(http.StatusOK, c.model.MemberGroupHistoryManager.Pagination(context, ctx, memberGroupHistory))
+
 	})
 
 	req.RegisterRoute(horizon.Route{

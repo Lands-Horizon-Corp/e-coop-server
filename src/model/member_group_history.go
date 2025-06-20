@@ -93,6 +93,7 @@ func (m *Model) MemberGroupHistory() {
 				fmt.Sprintf("member_group_history.create.%s", data.ID),
 				fmt.Sprintf("member_group_history.create.branch.%s", data.BranchID),
 				fmt.Sprintf("member_group_history.create.organization.%s", data.OrganizationID),
+				fmt.Sprintf("member_group_history.create.member_profile.%s", data.MemberProfileID),
 			}
 		},
 		Updated: func(data *MemberGroupHistory) []string {
@@ -101,6 +102,7 @@ func (m *Model) MemberGroupHistory() {
 				fmt.Sprintf("member_group_history.update.%s", data.ID),
 				fmt.Sprintf("member_group_history.update.branch.%s", data.BranchID),
 				fmt.Sprintf("member_group_history.update.organization.%s", data.OrganizationID),
+				fmt.Sprintf("member_group_history.update.member_profile.%s", data.MemberProfileID),
 			}
 		},
 		Deleted: func(data *MemberGroupHistory) []string {
@@ -109,6 +111,7 @@ func (m *Model) MemberGroupHistory() {
 				fmt.Sprintf("member_group_history.delete.%s", data.ID),
 				fmt.Sprintf("member_group_history.delete.branch.%s", data.BranchID),
 				fmt.Sprintf("member_group_history.delete.organization.%s", data.OrganizationID),
+				fmt.Sprintf("member_group_history.delete.member_profile.%s", data.MemberProfileID),
 			}
 		},
 	})
