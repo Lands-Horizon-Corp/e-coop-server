@@ -314,7 +314,7 @@ func (c *Controller) MemberProfileController() {
 
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-profile/:member_profile_id/reject",
-		Method:   "POST",
+		Method:   "PUT",
 		Response: "MemberProfile",
 		Note:     "Reject member profile",
 	}, func(ctx echo.Context) error {
