@@ -1748,7 +1748,7 @@ func (c *Controller) MemberRelativeAccountController() {
 	req := c.provider.Service.Request
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-relative-account/:member_profile_id",
+		Route:    "/member-relative-account/member-profile/:member_profile_id",
 		Method:   "POST",
 		Request:  "TMemberRelativeAccount",
 		Response: "TMemberRelativeAccount",
