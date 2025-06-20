@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	horizon_services "github.com/lands-horizon/horizon-server/services"
+	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
@@ -133,6 +134,7 @@ type (
 		BusinessContactNumber          string                        `json:"business_contact_number"`
 		CivilStatus                    string                        `json:"civil_status"`
 
+		QRCode            *horizon.QRResult            `json:"qr_code,omitempty"`
 		MemberCloseRemark []*MemberCloseRemarkResponse `json:"member_close_remarks,omitempty"`
 	}
 
@@ -272,6 +274,7 @@ func (m *Model) MemberProfile() {
 		},
 		Service: m.provider.Service,
 		Resource: func(data *MemberProfile) *MemberProfileResponse {
+			context := context.Background()
 			if data == nil {
 				return nil
 			}
@@ -279,6 +282,18 @@ func (m *Model) MemberProfile() {
 			if data.BirthDate != nil {
 				s := data.BirthDate.Format("2006-01-02")
 				birthdateStr = &s
+			}
+			result, err := m.provider.Service.QR.EncodeQR(context, &QRMemberProfile{
+				FirstName:       data.FirstName,
+				LastName:        data.LastName,
+				MiddleName:      data.MiddleName,
+				ContactNumber:   data.ContactNumber,
+				MemberProfileID: data.ID.String(),
+				BranchID:        data.BranchID.String(),
+				OrganizationID:  data.OrganizationID.String(),
+			}, "member-qr")
+			if err != nil {
+				return nil
 			}
 			return &MemberProfileResponse{
 				ID:                             data.ID,
@@ -332,8 +347,8 @@ func (m *Model) MemberProfile() {
 				BusinessAddress:                data.BusinessAddress,
 				BusinessContactNumber:          data.BusinessContactNumber,
 				CivilStatus:                    data.CivilStatus,
-
-				MemberCloseRemark: m.MemberCloseRemarkManager.ToModels(data.MemberCloseRemarks),
+				QRCode:                         result,
+				MemberCloseRemark:              m.MemberCloseRemarkManager.ToModels(data.MemberCloseRemarks),
 			}
 		},
 
