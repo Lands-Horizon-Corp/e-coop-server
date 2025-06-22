@@ -45,10 +45,7 @@ func NewTokenService[T jwt.Claims](name string, secret []byte, ssl bool) TokenSe
 
 // CleanToken implements TokenService.
 func (h *HorizonTokenService[T]) CleanToken(ctx context.Context, c echo.Context) {
-	samesite := http.SameSiteLaxMode
-	if h.ssl {
-		samesite = http.SameSiteNoneMode
-	}
+
 	cookie := &http.Cookie{
 		Name:     h.Name,
 		Value:    "",
@@ -56,7 +53,7 @@ func (h *HorizonTokenService[T]) CleanToken(ctx context.Context, c echo.Context)
 		Expires:  time.Now().Add(-1 * time.Hour),
 		HttpOnly: true,
 		Secure:   c.Request().TLS != nil,
-		SameSite: samesite,
+		SameSite: http.SameSiteNoneMode,
 	}
 	c.SetCookie(cookie)
 }
@@ -89,10 +86,7 @@ func (h *HorizonTokenService[T]) SetToken(ctx context.Context, c echo.Context, c
 	if err != nil {
 		return eris.Wrap(err, "GenerateToken failed")
 	}
-	samesite := http.SameSiteLaxMode
-	if h.ssl {
-		samesite = http.SameSiteNoneMode
-	}
+
 	cookie := &http.Cookie{
 		Name:     h.Name,
 		Value:    tok,
@@ -100,7 +94,7 @@ func (h *HorizonTokenService[T]) SetToken(ctx context.Context, c echo.Context, c
 		Expires:  time.Now().Add(expiry),
 		HttpOnly: true,
 		Secure:   c.Request().TLS != nil,
-		SameSite: samesite,
+		SameSite: http.SameSiteNoneMode,
 	}
 	c.SetCookie(cookie)
 	return nil
