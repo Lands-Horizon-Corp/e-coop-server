@@ -43,7 +43,7 @@ type HorizonServiceConfig struct {
 func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 	service := &HorizonService{}
 	service.Validator = validator.New()
-	env := "./.env"
+	env := ".env"
 	if cfg.EnvironmentConfig != nil {
 		env = cfg.EnvironmentConfig.Path
 	}

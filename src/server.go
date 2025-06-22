@@ -12,7 +12,7 @@ type Provider struct {
 func NewProvider() *Provider {
 	horizonService := horizon_services.NewHorizonService(horizon_services.HorizonServiceConfig{
 		EnvironmentConfig: &horizon_services.EnvironmentServiceConfig{
-			Path: "./.env",
+			Path: ".env",
 		},
 	})
 	return &Provider{
