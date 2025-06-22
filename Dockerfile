@@ -11,7 +11,8 @@ RUN go build -o app .
 FROM alpine:latest
 WORKDIR /app
 COPY --from=builder /app/app .
-COPY ./config/nats.conf .
+COPY --from=builder /app/.env .env         
+COPY ./config/nats.conf ./config/nats.conf
 EXPOSE 8000 8001 4222 8222 8080
 
 RUN apk add --no-cache curl tar && \

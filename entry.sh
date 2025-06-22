@@ -1,8 +1,10 @@
 #!/bin/sh
-# filepath: /home/zalven/Desktop/horizon-engine/entrypoint.sh
 
 # Start NATS server in the background
-nats-server -c nats.conf &
+nats-server -c config/nats.conf &
 
-# Start your Go app in the foreground
+# Wait a moment to ensure NATS is up
+sleep 2
+
+# Start your Go app (it will load .env from current directory)
 ./app server
