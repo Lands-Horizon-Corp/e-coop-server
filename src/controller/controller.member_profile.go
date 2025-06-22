@@ -603,7 +603,7 @@ func (c *Controller) MemberProfileController() {
 				UpdatedByID:             user.UserID,
 				OrganizationID:          user.OrganizationID,
 				BranchID:                user.BranchID,
-				UserID:                  user.UserID,
+				UserID:                  *userProfileID,
 				UserType:                "member",
 				Description:             "",
 				ApplicationDescription:  "anything",
