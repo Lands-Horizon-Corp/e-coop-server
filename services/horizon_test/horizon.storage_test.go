@@ -61,7 +61,7 @@ func TestHorizonStorage_UploadFromPath(t *testing.T) {
 func TestHorizonStorage_GeneratePresignedURL(t *testing.T) {
 	env := horizon.NewEnvironmentService("../../.env")
 
-	testBucket := env.GetString("STORAGE_BUCKET", "my-bucket")
+	testBucket := env.GetString("STORAGE_BUCKET", "cooperatives-development")
 
 	ctx := context.Background()
 	hs := createTestService(t)
@@ -119,7 +119,7 @@ func createTestService(t *testing.T) *horizon.HorizonStorage {
 
 	accessKey := env.GetString("STORAGE_ACCESS_KEY", "minioadmin")
 	secretKey := env.GetString("STORAGE_SECRET_KEY", "minioadmin")
-	testBucket := env.GetString("STORAGE_BUCKET", "my-bucket")
+	testBucket := env.GetString("STORAGE_BUCKET", "cooperatives-development")
 	endpoint := env.GetString("STORAGE_URL", "")
 	region := env.GetString("STORAGE_REGION", "")
 	driver := env.GetString("STORAGE_DRIVER", "")

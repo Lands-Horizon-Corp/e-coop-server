@@ -93,7 +93,7 @@ func (h *HorizonStorage) Run(ctx context.Context) error {
 	// Initialize MinIO client
 	client, err := minio.New(h.endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(h.storageAccessKey, h.storageSecretKey, ""),
-		Secure: false,
+		Secure: true,
 		Region: h.region,
 		BucketLookup: func() minio.BucketLookupType {
 			if h.driver == "s3" {
@@ -103,7 +103,7 @@ func (h *HorizonStorage) Run(ctx context.Context) error {
 		}(),
 	})
 	if err != nil {
-		return eris.Wrap(err, "failed to initialize MinIO client")
+		return eris.Wrapf(err, "failed to initialize %s client", h.driver)
 	}
 	h.client = client
 
