@@ -7,6 +7,8 @@ nats-server -c config/nats.conf &
 sleep 2
 
 # Reset and seed the database
+./app cache:clean
+./app db:migrate
 ./app db:reset
 ./app db:seed
 

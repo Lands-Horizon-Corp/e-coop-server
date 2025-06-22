@@ -31,20 +31,19 @@ primary_region = 'sin'
     port = 8222
 
 [[services]]
-  internal_port = 8080
+  internal_port = 8000
   protocol = "tcp"
   processes = ["app"]
   [[services.ports]]
     port = 443
     handlers = ["tls", "http"]
 
-# Add this section to expose port 8000
 [[services]]
-  internal_port = 8000
+  internal_port = 8080
   protocol = "tcp"
   processes = ["app"]
   [[services.ports]]
-    port = 443
+    port = 8080
     handlers = ["tls", "http"]
 
 [[vm]]
