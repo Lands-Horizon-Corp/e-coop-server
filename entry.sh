@@ -1,10 +1,10 @@
-#!/bin/sh
+#!/bin/bash
 
-# Start NATS server in the background
 nats-server -c config/nats.conf &
 
-# Wait a moment to ensure NATS is up
 sleep 2
 
-# Start your Go app (it will load .env from current directory)
+./app db:reset
+./app db:seed
+
 ./app server

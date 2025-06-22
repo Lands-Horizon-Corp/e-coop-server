@@ -38,6 +38,15 @@ primary_region = 'sin'
     port = 443
     handlers = ["tls", "http"]
 
+# Add this section to expose port 8000
+[[services]]
+  internal_port = 8000
+  protocol = "tcp"
+  processes = ["app"]
+  [[services.ports]]
+    port = 443
+    handlers = ["tls", "http"]
+
 [[vm]]
   memory = '1gb'
   cpu_kind = 'shared'
