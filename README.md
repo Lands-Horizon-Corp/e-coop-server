@@ -94,14 +94,14 @@ http://localhost:8000/routes
 
 # Having running port problems
 
-```
+```bash
 chmod +x kill_ports.sh
 ./kill_ports.sh
 ```
 
 # Deploymnet
 
-```
+```bash
 # Deploy changes
 fly deploy
 
