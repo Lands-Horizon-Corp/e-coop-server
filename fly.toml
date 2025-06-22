@@ -1,0 +1,43 @@
+# fly.toml app configuration file generated for cooperatives-development on 2025-06-22T15:40:52+08:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'cooperatives-development'
+primary_region = 'sin'
+
+[build]
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ['app']
+
+[[services]]
+  internal_port = 4222
+  protocol = "tcp"
+  processes = ["app"]
+  [services.ports]
+    port = 4222
+
+[[services]]
+  internal_port = 8222
+  protocol = "tcp"
+  processes = ["app"]
+  [services.ports]
+    port = 8222
+
+[[services]]
+  internal_port = 8080
+  protocol = "tcp"
+  processes = ["app"]
+  [services.ports]
+    port = 8080
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1

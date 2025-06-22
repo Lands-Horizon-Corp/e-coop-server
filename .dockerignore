@@ -1,0 +1,71 @@
+# flyctl launch added from .gitignore
+
+# If you prefer the allow list template instead of the deny list, see community template:
+
+# https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
+
+#
+
+# Binaries for programs and plugins
+
+**/\*.exe
+**/_.exe~
+\*\*/_.dll
+**/\*.so
+**/\*.dylib
+
+# Test binary, built with `go test -c`
+
+\*_/_.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+
+\*_/_.out
+
+# Dependency directories (remove the comment below to include it)
+
+# vendor/
+
+# Go workspace file
+
+**/go.work
+**/go.work.sum
+
+# env file
+
+\*\*/main
+
+\*\*/main
+
+**/.env.production
+**/.env.development
+**/.env.local
+**/.env.staging
+
+# flyctl launch added from certs/.gitignore
+
+# Ignore all files and directories
+
+certs/\*_/_
+
+# Except this specific file
+
+!certs/\*\*/.gitignore
+
+# flyctl launch added from script/.venv/.gitignore
+
+script/.venv/\*_/_
+
+# flyctl launch added from tls/.gitignore
+
+# Ignore everything
+
+tls/\*_/_
+
+# But do not ignore this .gitignore file
+
+!tls/\*\*/.gitignore
+
+# This is for TLS Storage
+
+fly.toml
