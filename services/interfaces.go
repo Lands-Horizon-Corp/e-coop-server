@@ -33,8 +33,9 @@ type CacheServiceConfig struct {
 }
 
 type BrokerServiceConfig struct {
-	Host string `env:"NATS_HOST"`
-	Port int    `env:"NATS_CLIENT_PORT"`
+	Host     string `env:"NATS_HOST"`
+	Port     int    `env:"NATS_CLIENT_PORT"`
+	ClientID string `env:"NATS_CLIENT_ID"`
 }
 
 type SecurityServiceConfig struct {

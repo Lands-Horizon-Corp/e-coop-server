@@ -82,7 +82,6 @@ type HorizonAPIService struct {
 	metricsPort int
 	clientURL   string
 	clientName  string
-	ssl         bool
 
 	routesList []Route
 
@@ -97,15 +96,12 @@ func NewHorizonAPIService(
 	metricsPort int,
 	clientURL string,
 	clientName string,
-	ssl bool,
-	certPath string,
-	keyPath string,
 ) APIService {
 	service := echo.New()
 	loadTemplatesIfExists(service, "public/views/*.html")
 
 	service.Pre(middleware.RemoveTrailingSlash())
-
+	service.Use(middleware.BodyLimit("10mb"))
 	service.Use(middleware.SecureWithConfig(middleware.SecureConfig{
 		XSSProtection:         "1; mode=block",
 		ContentTypeNosniff:    "nosniff",
@@ -114,27 +110,6 @@ func NewHorizonAPIService(
 		HSTSExcludeSubdomains: true,
 		HSTSPreloadEnabled:    true,
 		ReferrerPolicy:        "strict-origin-when-cross-origin",
-	}))
-
-	service.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
-		LogURI:           true,
-		LogURIPath:       true,
-		LogStatus:        true,
-		LogMethod:        true,
-		LogRemoteIP:      true,
-		LogHost:          true,
-		LogUserAgent:     true,
-		LogReferer:       true,
-		LogLatency:       true,
-		LogRequestID:     true,
-		LogContentLength: true,
-		LogResponseSize:  true,
-		LogHeaders:       []string{"Authorization", "Content-Type"},
-		LogQueryParams:   []string{"*"},
-		LogFormValues:    []string{"*"},
-		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
-			return nil
-		},
 	}))
 
 	// 5. Rate limiting
@@ -187,7 +162,7 @@ func NewHorizonAPIService(
 	service.Use(echoprometheus.NewMiddleware(clientName))
 
 	service.Use(middleware.GzipWithConfig(middleware.GzipConfig{
-		Level: 5,
+		Level: 6,
 	}))
 	service.GET("/health", func(c echo.Context) error {
 		return c.String(200, "OK")
@@ -199,9 +174,6 @@ func NewHorizonAPIService(
 		clientURL:   clientURL,
 		clientName:  clientName,
 		routesList:  []Route{},
-		ssl:         ssl,
-		certPath:    certPath,
-		keyPath:     keyPath,
 	}
 }
 
@@ -261,16 +233,9 @@ func (h *HorizonAPIService) Run(ctx context.Context) error {
 		}
 	}()
 	go func() {
-		if !h.ssl {
-			h.service.Logger.Fatal(h.service.Start(
-				fmt.Sprintf(":%d", h.serverPort),
-			))
-		} else {
-			h.service.Logger.Fatal(h.service.StartTLS(
-				fmt.Sprintf(":%d", h.serverPort),
-				h.certPath, h.keyPath,
-			))
-		}
+		h.service.Logger.Fatal(h.service.Start(
+			fmt.Sprintf(":%d", h.serverPort),
+		))
 
 	}()
 	return nil
