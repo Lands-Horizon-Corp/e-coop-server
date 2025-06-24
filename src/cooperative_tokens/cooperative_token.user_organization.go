@@ -36,7 +36,6 @@ func NewUserOrganizatonToken(provider *src.Provider, model *model.Model) (*UserO
 	context := context.Background()
 	appName := provider.Service.Environment.GetString("APP_NAME", "")
 	appToken := provider.Service.Environment.GetString("APP_TOKEN", "")
-	isStaging := provider.Service.Environment.GetString("APP_ENV", "development") == "staging"
 
 	token, err := provider.Service.Security.GenerateUUIDv5(context, appToken+"-user-organization")
 	if err != nil {
@@ -46,7 +45,7 @@ func NewUserOrganizatonToken(provider *src.Provider, model *model.Model) (*UserO
 	tokenService := horizon.NewTokenService[UserOrganizatonClaim](
 		fmt.Sprintf("%s-%s", "X-SECURE-TOKEN-ORGANIZATION", appName),
 		[]byte(token),
-		isStaging,
+		true,
 	)
 	return &UserOrganizatonToken{Token: tokenService, model: model}, nil
 }
