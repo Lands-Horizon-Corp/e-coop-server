@@ -48,6 +48,7 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 		env = cfg.EnvironmentConfig.Path
 	}
 	service.Environment = horizon.NewEnvironmentService(env)
+	isStaging := service.Environment.GetString("APP_ENV", "development") == "staging"
 
 	if cfg.BrokerConfig != nil {
 		service.Broker = horizon.NewHorizonMessageBroker(
@@ -127,6 +128,7 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 			cfg.StorageConfig.Region,
 			cfg.StorageConfig.Driver,
 			cfg.StorageConfig.MaxFilezize,
+			isStaging,
 		)
 	} else {
 		service.Storage = horizon.NewHorizonStorageService(
@@ -136,7 +138,8 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 			service.Environment.GetString("STORAGE_BUCKET", ""),
 			service.Environment.GetString("STORAGE_REGION", ""),
 			service.Environment.GetString("STORAGE_DRIVER", ""),
-			service.Environment.GetInt64("STORAGE_MAX_SIZE", 0),
+			service.Environment.GetInt64("STORAGE_MAX_SIZE", 1001024*1024*10),
+			isStaging,
 		)
 	}
 

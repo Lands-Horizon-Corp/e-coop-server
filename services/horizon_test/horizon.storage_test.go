@@ -135,7 +135,8 @@ func createTestService(t *testing.T) *horizon.HorizonStorage {
 		testBucket,
 		region,
 		driver,
-		1024*1024*10, // 10MB max size
+		1024*1024*10,
+		false,
 	).(*horizon.HorizonStorage)
 
 	ctx := context.Background()

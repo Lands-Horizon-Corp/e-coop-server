@@ -53,6 +53,7 @@ type HorizonStorage struct {
 	region           string
 	maxFileSize      int64
 	client           *minio.Client
+	ssl              bool
 }
 
 func NewHorizonStorageService(
@@ -63,6 +64,7 @@ func NewHorizonStorageService(
 	region,
 	driver string,
 	maxSize int64,
+	ssl bool,
 ) StorageService {
 	return &HorizonStorage{
 		driver:           driver,
@@ -72,6 +74,7 @@ func NewHorizonStorageService(
 		storageBucket:    bucket,
 		region:           region,
 		maxFileSize:      maxSize,
+		ssl:              ssl,
 	}
 }
 
@@ -93,7 +96,7 @@ func (h *HorizonStorage) Run(ctx context.Context) error {
 	// Initialize MinIO client
 	client, err := minio.New(h.endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(h.storageAccessKey, h.storageSecretKey, ""),
-		Secure: true,
+		Secure: h.ssl,
 		Region: h.region,
 		BucketLookup: func() minio.BucketLookupType {
 			if h.driver == "s3" {
