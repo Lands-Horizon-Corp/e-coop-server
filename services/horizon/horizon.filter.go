@@ -68,20 +68,6 @@ type PaginationResult[T any] struct {
 	Sort      []SortField `json:"sort"`
 }
 
-func valueToAnything(val reflect.Value) any {
-	if !val.IsValid() {
-		return nil
-	}
-	// Unwrap pointer or interface recursively
-	for val.Kind() == reflect.Ptr || val.Kind() == reflect.Interface {
-		if val.IsNil() {
-			return nil
-		}
-		val = val.Elem()
-	}
-	return val.Interface()
-}
-
 func findFieldByTagOrName(val reflect.Value, fieldName string) reflect.Value {
 	if val.Kind() == reflect.Ptr {
 		if val.IsNil() {

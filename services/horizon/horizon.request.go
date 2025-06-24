@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 	"path/filepath"
-	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -89,7 +88,29 @@ type HorizonAPIService struct {
 	keyPath  string
 }
 
-var suspiciousPathPattern = regexp.MustCompile(`(?i)\.(env|yaml|yml|ini|config|conf|xml|git|htaccess|htpasswd|backup|secret|credential|password|private|key|token|dump|database|db|logs|debug)$|dockerfile|Dockerfile`)
+var forbiddenExtensions = []string{
+	".env", ".yaml", ".yml", ".ini", ".config", ".conf", ".xml", ".git",
+	".htaccess", ".htpasswd", ".backup", ".secret", ".credential", ".password",
+	".private", ".key", ".token", ".dump", ".database", ".db", ".logs", ".debug",
+}
+var forbiddenSubstrings = []string{
+	"dockerfile",
+}
+
+func isSuspiciousPath(path string) bool {
+	lowerPath := strings.ToLower(path)
+	for _, ext := range forbiddenExtensions {
+		if strings.HasSuffix(lowerPath, ext) {
+			return true
+		}
+	}
+	for _, substr := range forbiddenSubstrings {
+		if strings.Contains(lowerPath, substr) {
+			return true
+		}
+	}
+	return false
+}
 
 func NewHorizonAPIService(
 	serverPort int,
@@ -113,15 +134,35 @@ func NewHorizonAPIService(
 	}))
 
 	// 5. Rate limiting
-	service.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(rate.Limit(20))))
+	service.Use(middleware.RateLimiterWithConfig(middleware.RateLimiterConfig{
+		Skipper: middleware.DefaultSkipper,
+		Store: middleware.NewRateLimiterMemoryStoreWithConfig(
+			middleware.RateLimiterMemoryStoreConfig{
+				Rate:      rate.Limit(10),
+				Burst:     30,
+				ExpiresIn: 5 * time.Minute,
+			},
+		),
+		IdentifierExtractor: func(ctx echo.Context) (string, error) {
+			id := ctx.RealIP()
+			return id, nil
+		},
+		ErrorHandler: func(context echo.Context, err error) error {
+			return context.JSON(http.StatusForbidden, map[string]string{"error": "rate limit error"})
+		},
+		DenyHandler: func(context echo.Context, identifier string, err error) error {
+			return context.JSON(http.StatusTooManyRequests, map[string]string{"error": "rate limit exceeded"})
+		},
+	}))
 
+	// In your middleware (replace the regexp check):
 	service.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			path := strings.ToLower(c.Request().URL.Path)
-			if suspiciousPattern := suspiciousPathPattern.MatchString(path); suspiciousPattern {
+			path := c.Request().URL.Path
+			if isSuspiciousPath(path) {
 				return c.String(http.StatusForbidden, "Access forbidden")
 			}
-			if strings.HasPrefix(path, "/.well-known/") {
+			if strings.HasPrefix(strings.ToLower(path), "/.well-known/") {
 				return c.String(http.StatusNotFound, "Path not found")
 			}
 			return next(c)
@@ -160,7 +201,6 @@ func NewHorizonAPIService(
 
 	// 9. Metrics middleware
 	service.Use(echoprometheus.NewMiddleware(clientName))
-
 	service.Use(middleware.GzipWithConfig(middleware.GzipConfig{
 		Level: 6,
 	}))
