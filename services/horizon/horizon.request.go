@@ -7,6 +7,7 @@ import (
 	"html/template"
 	"io"
 	"net/http"
+	"net/url"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -19,48 +20,28 @@ import (
 	"golang.org/x/time/rate"
 )
 
-/*
-req.RegisterRoute(horizon.Route{
-	Route:    "/sure",
-	Method:   "POST",
-	Request:  "",
-	Response: "string", // or "OK"
-	Note:     "Health check endpoint",
-}, func(c echo.Context) error {
-	return c.String(200, "OK")
-})
-*/
-// APIService defines the interface for an API server with methods for lifecycle control, route registration, and client access.
+// APIService defines the interface for an API server.
 type APIService interface {
-	// Run starts the API service and listens for incoming requests.
 	Run(ctx context.Context) error
-
-	// Stop gracefully shuts down the API service.
 	Stop(ctx context.Context) error
-
-	// Client returns the underlying Echo instance for advanced customizations.
 	Client() *echo.Echo
-
-	// GetRoute returns a list of all registered routes.
 	GetRoute() []Route
-
 	RegisterRoute(route Route, callback func(c echo.Context) error, m ...echo.MiddlewareFunc)
 }
 
+// TemplateRenderer implements echo.Renderer for HTML templates.
 type TemplateRenderer struct {
 	templates *template.Template
 }
 
 func (t *TemplateRenderer) Render(w io.Writer, name string, data any, c echo.Context) error {
-
-	// Add global methods if data is a map
-	if viewContext, isMap := data.(map[string]any); isMap {
+	if viewContext, ok := data.(map[string]any); ok {
 		viewContext["reverse"] = c.Echo().Reverse
 	}
-
 	return t.templates.ExecuteTemplate(w, name, data)
 }
 
+// Route describes an API route.
 type Route struct {
 	Route    string
 	Request  string
@@ -75,55 +56,58 @@ type GroupedRoute struct {
 	Routes []Route
 }
 
+// HorizonAPIService implements APIService.
 type HorizonAPIService struct {
 	service     *echo.Echo
 	serverPort  int
 	metricsPort int
 	clientURL   string
 	clientName  string
-
-	routesList []Route
-
-	certPath string
-	keyPath  string
+	routesList  []Route
+	certPath    string
+	keyPath     string
 }
 
-var forbiddenExtensions = []string{
-	".env", ".yaml", ".yml", ".ini", ".config", ".conf", ".xml", ".git",
-	".htaccess", ".htpasswd", ".backup", ".secret", ".credential", ".password",
-	".private", ".key", ".token", ".dump", ".database", ".db", ".logs", ".debug",
-}
-var forbiddenSubstrings = []string{
-	"dockerfile",
-}
+var (
+	forbiddenExtensions = []string{
+		".env", ".yaml", ".yml", ".ini", ".config", ".conf", ".xml", ".git",
+		".htaccess", ".htpasswd", ".backup", ".secret", ".credential", ".password",
+		".private", ".key", ".token", ".dump", ".database", ".db", ".logs", ".debug",
+	}
+	forbiddenSubstrings = []string{
+		"dockerfile",
+	}
+)
+
+// isSuspiciousPath checks if a path is forbidden.
 
 func isSuspiciousPath(path string) bool {
-	lowerPath := strings.ToLower(path)
+	lower := strings.ToLower(path)
+	decoded, _ := url.PathUnescape(lower)
 	for _, ext := range forbiddenExtensions {
-		if strings.HasSuffix(lowerPath, ext) {
+		if strings.HasSuffix(lower, ext) || strings.HasSuffix(decoded, ext) {
 			return true
 		}
 	}
 	for _, substr := range forbiddenSubstrings {
-		if strings.Contains(lowerPath, substr) {
+		if strings.Contains(lower, substr) || strings.Contains(decoded, substr) {
 			return true
 		}
 	}
 	return false
 }
 
+// NewHorizonAPIService creates a new API service with sensible defaults.
 func NewHorizonAPIService(
-	serverPort int,
-	metricsPort int,
-	clientURL string,
-	clientName string,
+	serverPort, metricsPort int,
+	clientURL, clientName string,
 ) APIService {
-	service := echo.New()
-	loadTemplatesIfExists(service, "public/views/*.html")
+	e := echo.New()
+	loadTemplatesIfExists(e, "public/views/*.html")
 
-	service.Pre(middleware.RemoveTrailingSlash())
-	service.Use(middleware.BodyLimit("10mb"))
-	service.Use(middleware.SecureWithConfig(middleware.SecureConfig{
+	e.Pre(middleware.RemoveTrailingSlash())
+	e.Use(middleware.BodyLimit("10mb"))
+	e.Use(middleware.SecureWithConfig(middleware.SecureConfig{
 		XSSProtection:         "1; mode=block",
 		ContentTypeNosniff:    "nosniff",
 		XFrameOptions:         "DENY",
@@ -132,9 +116,7 @@ func NewHorizonAPIService(
 		HSTSPreloadEnabled:    true,
 		ReferrerPolicy:        "strict-origin-when-cross-origin",
 	}))
-
-	// 5. Rate limiting
-	service.Use(middleware.RateLimiterWithConfig(middleware.RateLimiterConfig{
+	e.Use(middleware.RateLimiterWithConfig(middleware.RateLimiterConfig{
 		Skipper: middleware.DefaultSkipper,
 		Store: middleware.NewRateLimiterMemoryStoreWithConfig(
 			middleware.RateLimiterMemoryStoreConfig{
@@ -144,19 +126,16 @@ func NewHorizonAPIService(
 			},
 		),
 		IdentifierExtractor: func(ctx echo.Context) (string, error) {
-			id := ctx.RealIP()
-			return id, nil
+			return ctx.RealIP(), nil
 		},
-		ErrorHandler: func(context echo.Context, err error) error {
-			return context.JSON(http.StatusForbidden, map[string]string{"error": "rate limit error"})
+		ErrorHandler: func(c echo.Context, err error) error {
+			return c.JSON(http.StatusForbidden, map[string]string{"error": "rate limit error"})
 		},
-		DenyHandler: func(context echo.Context, identifier string, err error) error {
-			return context.JSON(http.StatusTooManyRequests, map[string]string{"error": "rate limit exceeded"})
+		DenyHandler: func(c echo.Context, _ string, _ error) error {
+			return c.JSON(http.StatusTooManyRequests, map[string]string{"error": "rate limit exceeded"})
 		},
 	}))
-
-	// In your middleware (replace the regexp check):
-	service.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			path := c.Request().URL.Path
 			if isSuspiciousPath(path) {
@@ -168,47 +147,34 @@ func NewHorizonAPIService(
 			return next(c)
 		}
 	})
-
-	service.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		Skipper:      middleware.DefaultSkipper,
-		AllowOrigins: []string{"*"},
-		AllowOriginFunc: func(origin string) (bool, error) {
-			return true, nil
-		},
-		AllowMethods: []string{
-			http.MethodGet,
-			http.MethodPost,
-			http.MethodPatch,
-			http.MethodPut,
-			http.MethodDelete,
-			http.MethodOptions,
-		}, AllowHeaders: []string{
-			echo.HeaderOrigin,
-			echo.HeaderContentType,
-			echo.HeaderAccept,
-			echo.HeaderAuthorization,
-			echo.HeaderXRequestedWith,
-			echo.HeaderXCSRFToken,
-			"X-Longitude",
-			"X-Latitude",
-			"Location",
-			"X-Device-Type",
-			"X-User-Agent",
-		}, ExposeHeaders: []string{echo.HeaderContentLength},
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins:     []string{"*"},
+		AllowOriginFunc:  func(string) (bool, error) { return true, nil },
+		AllowMethods:     []string{http.MethodGet, http.MethodPost, http.MethodPatch, http.MethodPut, http.MethodDelete, http.MethodOptions},
+		AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization, echo.HeaderXRequestedWith, echo.HeaderXCSRFToken, "X-Longitude", "X-Latitude", "Location", "X-Device-Type", "X-User-Agent"},
+		ExposeHeaders:    []string{echo.HeaderContentLength},
 		AllowCredentials: true,
 		MaxAge:           3600,
 	}))
-
-	// 9. Metrics middleware
-	service.Use(echoprometheus.NewMiddleware(clientName))
-	service.Use(middleware.GzipWithConfig(middleware.GzipConfig{
+	e.Use(echoprometheus.NewMiddleware(clientName))
+	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
 		Level: 6,
+		Skipper: func(c echo.Context) bool {
+			ct := c.Response().Header().Get(echo.HeaderContentType)
+			return strings.HasPrefix(ct, "image/") ||
+				strings.HasPrefix(ct, "video/") ||
+				strings.HasPrefix(ct, "audio/") ||
+				strings.HasPrefix(ct, "application/zip") ||
+				strings.HasPrefix(ct, "application/pdf")
+		},
 	}))
-	service.GET("/health", func(c echo.Context) error {
-		return c.String(200, "OK")
+
+	e.GET("/health", func(c echo.Context) error {
+		return c.String(http.StatusOK, "OK")
 	})
+
 	return &HorizonAPIService{
-		service:     service,
+		service:     e,
 		serverPort:  serverPort,
 		metricsPort: metricsPort,
 		clientURL:   clientURL,
@@ -217,28 +183,25 @@ func NewHorizonAPIService(
 	}
 }
 
-// Client implements APIService.
-func (h *HorizonAPIService) Client() *echo.Echo {
-	return h.service
-}
+// Client returns the Echo instance.
+func (h *HorizonAPIService) Client() *echo.Echo { return h.service }
 
-// GetRoute implements APIService.
-func (h *HorizonAPIService) GetRoute() []Route {
-	return h.routesList
-}
+// GetRoute returns all registered routes.
+func (h *HorizonAPIService) GetRoute() []Route { return h.routesList }
 
+// RegisterRoute registers a new route and its handler.
 func (h *HorizonAPIService) RegisterRoute(route Route, callback func(c echo.Context) error, m ...echo.MiddlewareFunc) {
 	method := strings.ToUpper(strings.TrimSpace(route.Method))
 	switch method {
-	case "GET":
+	case http.MethodGet:
 		h.service.GET(route.Route, callback, m...)
-	case "POST":
+	case http.MethodPost:
 		h.service.POST(route.Route, callback, m...)
-	case "PUT":
+	case http.MethodPut:
 		h.service.PUT(route.Route, callback, m...)
-	case "PATCH":
+	case http.MethodPatch:
 		h.service.PATCH(route.Route, callback, m...)
-	case "DELETE":
+	case http.MethodDelete:
 		h.service.DELETE(route.Route, callback, m...)
 	default:
 		panic(fmt.Sprintf("Unsupported HTTP method: %s", method))
@@ -252,54 +215,49 @@ func (h *HorizonAPIService) RegisterRoute(route Route, callback func(c echo.Cont
 	})
 }
 
-// Run implements APIService.
+// Run starts the API and metrics servers.
 func (h *HorizonAPIService) Run(ctx context.Context) error {
-
 	h.service.GET("/routes", func(c echo.Context) error {
 		return c.Render(http.StatusOK, "routes.html", map[string]any{
 			"routes": h.GroupedRoutes(),
 		})
-
 	}).Name = "horizon-routes"
 
 	h.service.Any("/*", func(c echo.Context) error {
 		return c.String(http.StatusNotFound, "404 - Route not found")
 	})
+
 	go func() {
 		metrics := echo.New()
 		metrics.GET("/metrics", echoprometheus.NewHandler())
 		if err := metrics.Start(fmt.Sprintf(":%d", h.metricsPort)); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			// skip
+			// log error if needed
 		}
 	}()
 	go func() {
-		h.service.Logger.Fatal(h.service.Start(
-			fmt.Sprintf(":%d", h.serverPort),
-		))
-
+		h.service.Logger.Fatal(h.service.Start(fmt.Sprintf(":%d", h.serverPort)))
 	}()
 	return nil
 }
 
-// Stop implements APIService.
+// Stop gracefully shuts down the API server.
 func (h *HorizonAPIService) Stop(ctx context.Context) error {
 	if err := h.service.Shutdown(ctx); err != nil {
 		return eris.New("failed to gracefully shutdown server")
 	}
 	return nil
 }
-func (h *HorizonAPIService) GroupedRoutes() []GroupedRoute {
-	time.Sleep(5 * time.Second) // Simulate delay, can be removed if not needed.
 
+// GroupedRoutes groups routes by their first path segment.
+func (h *HorizonAPIService) GroupedRoutes() []GroupedRoute {
+	// time.Sleep(5 * time.Second) // Remove or comment out in production.
 	grouped := make(map[string][]Route)
 	for _, rt := range h.routesList {
 		trimmed := strings.TrimPrefix(rt.Route, "/")
 		segments := strings.Split(trimmed, "/")
-		var key string
+		key := "/"
 		if len(segments) > 0 && segments[0] != "" {
 			key = segments[0]
-		} else {
-			key = "/"
 		}
 		grouped[key] = append(grouped[key], rt)
 	}
@@ -324,17 +282,13 @@ func (h *HorizonAPIService) GroupedRoutes() []GroupedRoute {
 	return result
 }
 
-func loadTemplatesIfExists(service *echo.Echo, pattern string) {
-	// Check if any files match the pattern
+// loadTemplatesIfExists sets the renderer if templates are found.
+func loadTemplatesIfExists(e *echo.Echo, pattern string) {
 	matches, err := filepath.Glob(pattern)
 	if err != nil || len(matches) == 0 {
-		// No templates found, skip setting renderer
 		return
 	}
-
-	// Parse templates if found
-	renderer := &TemplateRenderer{
+	e.Renderer = &TemplateRenderer{
 		templates: template.Must(template.ParseGlob(pattern)),
 	}
-	service.Renderer = renderer
 }
