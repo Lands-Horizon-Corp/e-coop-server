@@ -138,7 +138,7 @@ func (h *HorizonAuthService[T]) SetCSRF(ctx context.Context, c echo.Context, cla
 		Path:     "/",
 		Expires:  time.Now().Add(expiry),
 		HttpOnly: true,
-		Secure:   true,
+		Secure:   h.ssl,
 		SameSite: http.SameSiteNoneMode,
 	})
 
@@ -166,7 +166,7 @@ func (h *HorizonAuthService[T]) ClearCSRF(ctx context.Context, c echo.Context) {
 		Path:     "/",
 		Expires:  time.Unix(0, 0),
 		HttpOnly: true,
-		Secure:   true,
+		Secure:   h.ssl,
 		SameSite: http.SameSiteNoneMode,
 	})
 }
@@ -326,7 +326,7 @@ func (h *HorizonAuthService[T]) LogoutOtherDevices(ctx context.Context, c echo.C
 		Path:     "/",
 		Expires:  time.Unix(0, 0),
 		HttpOnly: true,
-		Secure:   true,
+		Secure:   h.ssl,
 		SameSite: http.SameSiteNoneMode,
 	})
 	return nil
