@@ -306,6 +306,7 @@ func (c *Controller) MemberProfileController() {
 			return c.NotFound(ctx, "MemberProfile")
 		}
 		memberProfile.Status = "verified"
+		memberProfile.MemberVerifiedByEmployeeUserID = &userOrg.UserID
 		if err := c.model.MemberProfileManager.UpdateFields(context, memberProfile.ID, memberProfile); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update member profile: "+err.Error())
 		}
