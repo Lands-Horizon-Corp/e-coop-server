@@ -2,13 +2,10 @@ package horizon
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"html/template"
 	"io"
 	"net/http"
-	"net/url"
-	"path/filepath"
 	"sort"
 	"strings"
 	"time"
@@ -17,6 +14,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rotisserie/eris"
+	"go.uber.org/zap"
 	"golang.org/x/time/rate"
 )
 
@@ -79,31 +77,16 @@ var (
 	}
 )
 
-// isSuspiciousPath checks if a path is forbidden.
-
-func isSuspiciousPath(path string) bool {
-	lower := strings.ToLower(path)
-	decoded, _ := url.PathUnescape(lower)
-	for _, ext := range forbiddenExtensions {
-		if strings.HasSuffix(lower, ext) || strings.HasSuffix(decoded, ext) {
-			return true
-		}
-	}
-	for _, substr := range forbiddenSubstrings {
-		if strings.Contains(lower, substr) || strings.Contains(decoded, substr) {
-			return true
-		}
-	}
-	return false
-}
-
 // NewHorizonAPIService creates a new API service with sensible defaults.
 func NewHorizonAPIService(
 	serverPort, metricsPort int,
 	clientURL, clientName string,
 ) APIService {
 	e := echo.New()
-	loadTemplatesIfExists(e, "public/views/*.html")
+	logger, _ := zap.NewProduction()
+	defer logger.Sync() // flushes buffer, if any
+
+	LoadTemplatesIfExists(e, "public/views/*.html")
 
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.BodyLimit("10mb"))
@@ -138,7 +121,7 @@ func NewHorizonAPIService(
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			path := c.Request().URL.Path
-			if isSuspiciousPath(path) {
+			if IsSuspiciousPath(path) {
 				return c.String(http.StatusForbidden, "Access forbidden")
 			}
 			if strings.HasPrefix(strings.ToLower(path), "/.well-known/") {
@@ -147,14 +130,42 @@ func NewHorizonAPIService(
 			return next(c)
 		}
 	})
+
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins:     []string{"*"},
-		AllowOriginFunc:  func(string) (bool, error) { return true, nil },
+		AllowOrigins: []string{
+			"https://ecoop-suite.netlify.app",
+			"https://ecoop-suite.com",
+			"https://localhost:3000",
+			"https://localhost:3001",
+			"https://localhost:3002",
+			"https://localhost:3003",
+		},
 		AllowMethods:     []string{http.MethodGet, http.MethodPost, http.MethodPatch, http.MethodPut, http.MethodDelete, http.MethodOptions},
 		AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization, echo.HeaderXRequestedWith, echo.HeaderXCSRFToken, "X-Longitude", "X-Latitude", "Location", "X-Device-Type", "X-User-Agent"},
 		ExposeHeaders:    []string{echo.HeaderContentLength},
 		AllowCredentials: true,
 		MaxAge:           3600,
+	}))
+	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
+		LogStatus:   true,
+		LogURI:      true,
+		LogError:    true,
+		HandleError: true,
+		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
+			if v.Error == nil {
+				logger.Info("REQUEST",
+					zap.String("uri", v.URI),
+					zap.Int("status", v.Status),
+				)
+			} else {
+				logger.Error("REQUEST_ERROR",
+					zap.String("uri", v.URI),
+					zap.Int("status", v.Status),
+					zap.String("err", v.Error.Error()),
+				)
+			}
+			return nil
+		},
 	}))
 	e.Use(echoprometheus.NewMiddleware(clientName))
 	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
@@ -228,13 +239,6 @@ func (h *HorizonAPIService) Run(ctx context.Context) error {
 	})
 
 	go func() {
-		metrics := echo.New()
-		metrics.GET("/metrics", echoprometheus.NewHandler())
-		if err := metrics.Start(fmt.Sprintf(":%d", h.metricsPort)); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			// log error if needed
-		}
-	}()
-	go func() {
 		h.service.Logger.Fatal(h.service.Start(fmt.Sprintf(":%d", h.serverPort)))
 	}()
 	return nil
@@ -280,15 +284,4 @@ func (h *HorizonAPIService) GroupedRoutes() []GroupedRoute {
 		})
 	}
 	return result
-}
-
-// loadTemplatesIfExists sets the renderer if templates are found.
-func loadTemplatesIfExists(e *echo.Echo, pattern string) {
-	matches, err := filepath.Glob(pattern)
-	if err != nil || len(matches) == 0 {
-		return
-	}
-	e.Renderer = &TemplateRenderer{
-		templates: template.Must(template.ParseGlob(pattern)),
-	}
 }

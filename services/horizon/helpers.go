@@ -4,12 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"html/template"
 	"math/rand"
 	"net"
 	"net/http"
 	"net/mail"
 	"net/url"
 	"os"
+	"path/filepath"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -284,4 +286,38 @@ func ParseCoordinate(value string) float64 {
 		return 0.0
 	}
 	return coord
+}
+
+// LoadTemplatesIfExists sets the renderer if templates are found.
+func LoadTemplatesIfExists(e *echo.Echo, pattern string) {
+	matches, err := filepath.Glob(pattern)
+	if err != nil || len(matches) == 0 {
+		return
+	}
+	e.Renderer = &TemplateRenderer{
+		templates: template.Must(template.ParseGlob(pattern)),
+	}
+}
+
+// isSuspiciousPath checks if a path is forbidden.
+
+func IsSuspiciousPath(path string) bool {
+	lower := strings.ToLower(path)
+	decoded, _ := url.PathUnescape(lower)
+	if strings.Contains(lower, "../") || strings.Contains(decoded, "../") ||
+		strings.Contains(lower, "..\\") || strings.Contains(decoded, "..\\") ||
+		strings.Contains(lower, "%2e%2e%2f") || strings.Contains(lower, "%2e%2e%5c") {
+		return true
+	}
+	for _, ext := range forbiddenExtensions {
+		if strings.HasSuffix(lower, ext) || strings.HasSuffix(decoded, ext) {
+			return true
+		}
+	}
+	for _, substr := range forbiddenSubstrings {
+		if strings.Contains(lower, substr) || strings.Contains(decoded, substr) {
+			return true
+		}
+	}
+	return false
 }
