@@ -123,6 +123,7 @@ func createTestService(t *testing.T) *horizon.HorizonStorage {
 	endpoint := env.GetString("STORAGE_URL", "")
 	region := env.GetString("STORAGE_REGION", "")
 	driver := env.GetString("STORAGE_DRIVER", "")
+	isStaging := env.GetString("APP_ENV", "development") == "staging"
 
 	if accessKey == "" || secretKey == "" {
 		t.Fatal("Missing required environment variables for B2 testing")
@@ -136,7 +137,7 @@ func createTestService(t *testing.T) *horizon.HorizonStorage {
 		region,
 		driver,
 		1024*1024*10,
-		false,
+		isStaging,
 	).(*horizon.HorizonStorage)
 
 	ctx := context.Background()

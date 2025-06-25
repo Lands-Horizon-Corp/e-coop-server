@@ -94,7 +94,7 @@ http://localhost:8000/routes
 
 # Having running port problems
 
-```bash
+```bashF
 chmod +x kill_ports.sh
 ./kill_ports.sh
 ```
