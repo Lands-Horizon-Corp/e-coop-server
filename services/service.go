@@ -237,6 +237,7 @@ func (h *HorizonService) Run(ctx context.Context) error {
 			return h.Broker.Run(ctx)
 		}); err != nil {
 			printStatus("Broker", "fail")
+			fmt.Fprintf(os.Stderr, "Broker error: %v\n", err)
 			return err
 		}
 		printStatus("Broker", "ok")
@@ -247,6 +248,7 @@ func (h *HorizonService) Run(ctx context.Context) error {
 			return h.Cron.Run(ctx)
 		}); err != nil {
 			printStatus("Cron", "fail")
+			fmt.Fprintf(os.Stderr, "Cron error: %v\n", err)
 			return err
 		}
 		printStatus("Cron", "ok")
@@ -258,6 +260,7 @@ func (h *HorizonService) Run(ctx context.Context) error {
 			return h.Cache.Run(ctx)
 		}); err != nil {
 			printStatus("Cache", "fail")
+			fmt.Fprintf(os.Stderr, "Cache error: %v\n", err)
 			return err
 		}
 		printStatus("Cache", "ok")
@@ -269,6 +272,7 @@ func (h *HorizonService) Run(ctx context.Context) error {
 			return h.Storage.Run(ctx)
 		}); err != nil {
 			printStatus("Storage", "fail")
+			fmt.Fprintf(os.Stderr, "Storage error: %v\n", err)
 			return err
 		}
 		printStatus("Storage", "ok")
@@ -280,6 +284,7 @@ func (h *HorizonService) Run(ctx context.Context) error {
 			return h.Database.Run(ctx)
 		}); err != nil {
 			printStatus("Database", "fail")
+			fmt.Fprintf(os.Stderr, "Database error: %v\n", err)
 			return err
 		}
 		printStatus("Database", "ok")
@@ -287,9 +292,11 @@ func (h *HorizonService) Run(ctx context.Context) error {
 
 	if h.OTP != nil {
 		if h.Cache == nil {
+			fmt.Fprintln(os.Stderr, "OTP service requires a cache service")
 			return eris.New("OTP service requires a cache service")
 		}
 		if h.Security == nil {
+			fmt.Fprintln(os.Stderr, "OTP service requires a security service")
 			return eris.New("OTP service requires a security service")
 		}
 	}
@@ -300,6 +307,7 @@ func (h *HorizonService) Run(ctx context.Context) error {
 			return h.SMS.Run(ctx)
 		}); err != nil {
 			printStatus("SMS", "fail")
+			fmt.Fprintf(os.Stderr, "SMS error: %v\n", err)
 			return err
 		}
 		printStatus("SMS", "ok")
@@ -311,6 +319,7 @@ func (h *HorizonService) Run(ctx context.Context) error {
 			return h.SMTP.Run(ctx)
 		}); err != nil {
 			printStatus("SMTP", "fail")
+			fmt.Fprintf(os.Stderr, "SMTP error: %v\n", err)
 			return err
 		}
 		printStatus("SMTP", "ok")
@@ -322,6 +331,7 @@ func (h *HorizonService) Run(ctx context.Context) error {
 			return h.Request.Run(ctx)
 		}); err != nil {
 			printStatus("Request", "fail")
+			fmt.Fprintf(os.Stderr, "Request error: %v\n", err)
 			return err
 		}
 		printStatus("Request", "ok")
