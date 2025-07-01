@@ -116,7 +116,7 @@ type (
 		PaidByPosition         string     `gorm:"type:varchar(255)"`
 
 		EndedAt        *time.Time     `gorm:"type:timestamp"`
-		TotalBatchTime *time.Duration `gorm:"type:timestamp"`
+		TotalBatchTime *time.Duration `gorm:"type:interval"`
 	}
 
 	TransactionBatchResponse struct {
