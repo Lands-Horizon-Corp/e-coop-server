@@ -100,6 +100,7 @@ func (c *Controller) Start() error {
 	c.CashCountController()
 	c.BatchFundingController()
 	c.CheckRemittanceController()
+	c.OnlineRemittanceController()
 	return nil
 }
 

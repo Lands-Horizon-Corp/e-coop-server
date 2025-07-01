@@ -461,3 +461,48 @@ func (c *Controller) CheckRemittanceController() {
 		return ctx.JSON(http.StatusOK, c.model.CheckRemittanceManager.ToModels(checkRemittance))
 	})
 }
+
+func (c *Controller) OnlineRemittanceController() {
+	req := c.provider.Service.Request
+
+	req.RegisterRoute(horizon.Route{
+		Route:    "/online-remittance",
+		Method:   "GET",
+		Response: "IOnlineRemittance[]",
+		Note:     "Retrieve batch online remittance (JWT) for the current transaction batch before ending.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return err
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return c.BadRequest(ctx, "User is not authorized")
+		}
+
+		// Find the current active transaction batch
+		transactionBatch, err := c.model.TransactionBatchManager.FindOne(context, &model.TransactionBatch{
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			IsClosed:       false,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		if transactionBatch == nil {
+			return c.BadRequest(ctx, "No active transaction batch found")
+		}
+
+		// Retrieve online remittance for the current transaction batch
+		onlineRemittance, err := c.model.OnlineRemittanceManager.Find(context, &model.OnlineRemittance{
+			TransactionBatchID: &transactionBatch.ID,
+			OrganizationID:     userOrg.OrganizationID,
+			BranchID:           *userOrg.BranchID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+
+		return ctx.JSON(http.StatusOK, c.model.OnlineRemittanceManager.ToModels(onlineRemittance))
+	})
+}
