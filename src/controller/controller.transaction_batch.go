@@ -417,6 +417,132 @@ func (c *Controller) CashCountController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
+		Route:    "/cash-count/",
+		Method:   "PUT",
+		Response: "ICashCount[]",
+		Request:  "ICashCount[]",
+		Note:     "Update a cash count bill in the current transaction batch before ending.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return err
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return c.BadRequest(ctx, "User is not authorized")
+		}
+
+		// Bind the incoming cash count array
+		var cashCountRequests []model.CashCountRequest
+		if err := ctx.Bind(&cashCountRequests); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+
+		// Find the current active transaction batch
+
+		transactionBatch, err := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]interface{}{
+			"organization_id": userOrg.OrganizationID,
+			"branch_id":       *userOrg.BranchID,
+			"is_closed":       false,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		if transactionBatch == nil {
+			return c.BadRequest(ctx, "No active transaction batch found")
+		}
+
+		// Validate and update each cash count
+		var updatedCashCounts []*model.CashCount
+		for _, cashCountReq := range cashCountRequests {
+			// Validate each cash count request
+			if err := c.provider.Service.Validator.Struct(cashCountReq); err != nil {
+				return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+			}
+
+			// Verify the cash count belongs to the current transaction batch
+			if cashCountReq.TransactionBatchID != transactionBatch.ID {
+				return c.BadRequest(ctx, "Cash count does not belong to current transaction batch")
+			}
+
+			// Handle update or create based on ID presence
+			if cashCountReq.ID != nil {
+				// Update existing cash count
+				err := c.model.CashCountManager.UpdateFields(context, *cashCountReq.ID, &model.CashCount{
+					CountryCode:        cashCountReq.CountryCode,
+					OrganizationID:     userOrg.OrganizationID,
+					BranchID:           *userOrg.BranchID,
+					TransactionBatchID: cashCountReq.TransactionBatchID,
+					BillAmount:         cashCountReq.BillAmount,
+					Quantity:           cashCountReq.Quantity,
+					Amount:             cashCountReq.BillAmount * float64(cashCountReq.Quantity),
+					UpdatedAt:          time.Now().UTC(),
+					UpdatedByID:        userOrg.UserID,
+				})
+				if err != nil {
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update cash count: " + err.Error()})
+				}
+
+				// Retrieve the updated cash count
+				updatedCashCount, err := c.model.CashCountManager.GetByID(context, *cashCountReq.ID)
+				if err != nil {
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated cash count: " + err.Error()})
+				}
+				updatedCashCounts = append(updatedCashCounts, updatedCashCount)
+			} else {
+				// Create new cash count
+				newCashCount := &model.CashCount{
+					CreatedAt:          time.Now().UTC(),
+					CreatedByID:        userOrg.UserID,
+					UpdatedAt:          time.Now().UTC(),
+					UpdatedByID:        userOrg.UserID,
+					CountryCode:        cashCountReq.CountryCode,
+					OrganizationID:     userOrg.OrganizationID,
+					BranchID:           *userOrg.BranchID,
+					TransactionBatchID: cashCountReq.TransactionBatchID,
+					EmployeeUserID:     userOrg.UserID,
+					BillAmount:         cashCountReq.BillAmount,
+					Quantity:           cashCountReq.Quantity,
+					Amount:             cashCountReq.BillAmount * float64(cashCountReq.Quantity),
+				}
+
+				if err := c.model.CashCountManager.Create(context, newCashCount); err != nil {
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create cash count: " + err.Error()})
+				}
+				updatedCashCounts = append(updatedCashCounts, newCashCount)
+			}
+		}
+
+		// Recalculate transaction batch totals
+		allCashCounts, err := c.model.CashCountManager.Find(context, &model.CashCount{
+			TransactionBatchID: transactionBatch.ID,
+			OrganizationID:     userOrg.OrganizationID,
+			BranchID:           *userOrg.BranchID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+
+		// Calculate new total cash count value
+		var totalCashCount float64
+		for _, cashCount := range allCashCounts {
+			totalCashCount += cashCount.Amount
+		}
+
+		// Update transaction batch totals
+		transactionBatch.CashCountTotal = totalCashCount
+		transactionBatch.GrandTotal = totalCashCount + transactionBatch.DepositInBank
+		transactionBatch.TotalCashHandled = transactionBatch.BeginningBalance + transactionBatch.DepositInBank + totalCashCount
+		transactionBatch.UpdatedAt = time.Now().UTC()
+		transactionBatch.UpdatedByID = userOrg.UserID
+
+		if err := c.model.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update transaction batch: " + err.Error()})
+		}
+
+		return ctx.JSON(http.StatusOK, c.model.CashCountManager.ToModels(updatedCashCounts))
+	})
+	req.RegisterRoute(horizon.Route{
 		Route:    "/cash-count/:id",
 		Method:   "DELETE",
 		Response: "ICashCount",

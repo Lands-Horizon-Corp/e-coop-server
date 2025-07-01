@@ -62,14 +62,15 @@ type (
 	}
 
 	CashCountRequest struct {
-		OrganizationID     uuid.UUID `json:"organization_id" validate:"required"`
-		BranchID           uuid.UUID `json:"branch_id" validate:"required"`
-		EmployeeUserID     uuid.UUID `json:"employee_user_id" validate:"required"`
-		TransactionBatchID uuid.UUID `json:"transaction_batch_id" validate:"required"`
-		CountryCode        string    `json:"country_code" validate:"required,min=1,max=5"`
-		BillAmount         float64   `json:"bill_amount,omitempty"`
-		Quantity           int       `json:"quantity,omitempty"`
-		Amount             float64   `json:"amount,omitempty"`
+		ID                 *uuid.UUID `json:"id,omitempty"`
+		OrganizationID     uuid.UUID  `json:"organization_id" validate:"required"`
+		BranchID           uuid.UUID  `json:"branch_id" validate:"required"`
+		EmployeeUserID     uuid.UUID  `json:"employee_user_id" validate:"required"`
+		TransactionBatchID uuid.UUID  `json:"transaction_batch_id" validate:"required"`
+		CountryCode        string     `json:"country_code" validate:"required,min=1,max=5"`
+		BillAmount         float64    `json:"bill_amount,omitempty"`
+		Quantity           int        `json:"quantity,omitempty"`
+		Amount             float64    `json:"amount,omitempty"`
 	}
 )
 
