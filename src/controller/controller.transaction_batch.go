@@ -279,10 +279,10 @@ func (c *Controller) TransactionBatchController() {
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
 			return c.BadRequest(ctx, "User is not authorized")
 		}
-		transactionBatch, err := c.model.TransactionBatchManager.FindOne(context, &model.TransactionBatch{
-			OrganizationID: userOrg.OrganizationID,
-			BranchID:       *userOrg.BranchID,
-			IsClosed:       false,
+		transactionBatch, err := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]interface{}{
+			"organization_id": userOrg.OrganizationID,
+			"branch_id":       *userOrg.BranchID,
+			"is_closed":       false,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
@@ -475,10 +475,10 @@ func (c *Controller) CashCountController() {
 		}
 
 		// Find the current active transaction batch
-		transactionBatch, err := c.model.TransactionBatchManager.FindOne(context, &model.TransactionBatch{
-			OrganizationID: userOrg.OrganizationID,
-			BranchID:       *userOrg.BranchID,
-			IsClosed:       false,
+		transactionBatch, err := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]interface{}{
+			"organization_id": userOrg.OrganizationID,
+			"branch_id":       *userOrg.BranchID,
+			"is_closed":       false,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
@@ -721,10 +721,10 @@ func (c *Controller) BatchFundingController() {
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
 			return c.BadRequest(ctx, "User is not authorized")
 		}
-		transactionBatch, err := c.model.TransactionBatchManager.FindOne(context, &model.TransactionBatch{
-			OrganizationID: userOrg.OrganizationID,
-			BranchID:       *userOrg.BranchID,
-			IsClosed:       false,
+		transactionBatch, err := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]interface{}{
+			"organization_id": userOrg.OrganizationID,
+			"branch_id":       *userOrg.BranchID,
+			"is_closed":       false,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
@@ -1017,10 +1017,10 @@ func (c *Controller) CheckRemittanceController() {
 		}
 
 		// Find the current active transaction batch
-		transactionBatch, err := c.model.TransactionBatchManager.FindOne(context, &model.TransactionBatch{
-			OrganizationID: userOrg.OrganizationID,
-			BranchID:       *userOrg.BranchID,
-			IsClosed:       false,
+		transactionBatch, err := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]interface{}{
+			"organization_id": userOrg.OrganizationID,
+			"branch_id":       *userOrg.BranchID,
+			"is_closed":       false,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
