@@ -330,7 +330,39 @@ func (c *Controller) CashCountController() {
 		Response: "ICashCount[]",
 		Note:     "Retrieve batch cash count bills (JWT) for the current transaction batch before ending.",
 	}, func(ctx echo.Context) error {
-		return nil
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return err
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return c.BadRequest(ctx, "User is not authorized")
+		}
+
+		// Find the current active transaction batch
+		transactionBatch, err := c.model.TransactionBatchManager.FindOne(context, &model.TransactionBatch{
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			IsClosed:       false,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		if transactionBatch == nil {
+			return c.BadRequest(ctx, "No active transaction batch found")
+		}
+
+		// Retrieve cash counts for the current transaction batch
+		cashCounts, err := c.model.CashCountManager.Find(context, &model.CashCount{
+			TransactionBatchID: transactionBatch.ID,
+			OrganizationID:     userOrg.OrganizationID,
+			BranchID:           *userOrg.BranchID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+
+		return ctx.JSON(http.StatusOK, c.model.CashCountManager.ToModels(cashCounts))
 	})
 
 	req.RegisterRoute(horizon.Route{
