@@ -157,12 +157,11 @@ func (c *Controller) TransactionBatchController() {
 			tx.Rollback()
 			return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": err.Error()})
 		}
-		result, err := c.model.TransactionBatchMinimal(context, transBatch.ID)
-		if err != nil {
-			tx.Rollback()
+		if err := tx.Commit().Error; err != nil {
 			return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": err.Error()})
 		}
-		if err := tx.Commit().Error; err != nil {
+		result, err := c.model.TransactionBatchMinimal(context, transBatch.ID)
+		if err != nil {
 			return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, result)
