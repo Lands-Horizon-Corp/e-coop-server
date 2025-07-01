@@ -1031,8 +1031,10 @@ func (c *Controller) CheckRemittanceController() {
 
 		// Update the check remittance fields
 		updatedCheckRemittance := &model.CheckRemittance{
-			UpdatedAt:   time.Now().UTC(),
-			UpdatedByID: userOrg.UserID,
+			UpdatedAt:      time.Now().UTC(),
+			UpdatedByID:    userOrg.UserID,
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
 
 			BankID:          req.BankID,
 			MediaID:         req.MediaID,
@@ -1382,8 +1384,10 @@ func (c *Controller) OnlineRemittanceController() {
 
 		// Update the online remittance fields
 		updatedOnlineRemittance := &model.OnlineRemittance{
-			UpdatedAt:   time.Now().UTC(),
-			UpdatedByID: userOrg.UserID,
+			UpdatedAt:      time.Now().UTC(),
+			UpdatedByID:    userOrg.UserID,
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
 
 			BankID:          req.BankID,
 			MediaID:         req.MediaID,
