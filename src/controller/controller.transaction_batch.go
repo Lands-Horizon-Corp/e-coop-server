@@ -50,10 +50,12 @@ func (c *Controller) TransactionBatchController() {
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
 			return c.BadRequest(ctx, "User is not authorized")
 		}
-		transactionBatch, _ := c.model.TransactionBatchManager.FindOne(context, &model.TransactionBatch{
-			OrganizationID: userOrg.OrganizationID,
-			BranchID:       *userOrg.BranchID,
-			IsClosed:       false,
+
+		transactionBatch, err := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]interface{}{
+			"organization_id": userOrg.OrganizationID,
+			"branch_id":       *userOrg.BranchID,
+
+			"is_closed": false,
 		})
 		if transactionBatch == nil {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "No current transaction batch"})
