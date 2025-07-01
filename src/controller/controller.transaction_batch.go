@@ -484,7 +484,8 @@ func (c *Controller) CashCountController() {
 			// Handle update or create based on ID presence
 			if cashCountReq.ID != nil {
 				// Update existing cash count
-				err := c.model.CashCountManager.UpdateFields(context, *cashCountReq.ID, &model.CashCount{
+				data := &model.CashCount{
+					ID:                 *cashCountReq.ID,
 					CountryCode:        cashCountReq.CountryCode,
 					TransactionBatchID: transactionBatch.ID,
 					EmployeeUserID:     userOrg.UserID,
@@ -498,12 +499,11 @@ func (c *Controller) CashCountController() {
 					UpdatedByID:    userOrg.UserID,
 					OrganizationID: userOrg.OrganizationID,
 					BranchID:       *userOrg.BranchID,
-				})
-				if err != nil {
-					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update cash count: " + err.Error()})
+				}
+				if err := c.model.CashCountManager.UpdateFields(context, *cashCountReq.ID, data); err != nil {
+					return echo.NewHTTPError(http.StatusForbidden, "failed to update user: "+err.Error())
 				}
 
-				// Retrieve the updated cash count
 				updatedCashCount, err := c.model.CashCountManager.GetByID(context, *cashCountReq.ID)
 				if err != nil {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated cash count: " + err.Error()})
