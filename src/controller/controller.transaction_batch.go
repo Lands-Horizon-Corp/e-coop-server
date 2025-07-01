@@ -169,7 +169,7 @@ func (c *Controller) TransactionBatchController() {
 
 	req.RegisterRoute(horizon.Route{
 		Route:    "/transaction-batch/end",
-		Method:   "POST",
+		Method:   "PUT",
 		Response: "ITransactionBatch",
 		Request:  "ITransactionBatch",
 		Note:     "End the current transaction batch for the authenticated user",
