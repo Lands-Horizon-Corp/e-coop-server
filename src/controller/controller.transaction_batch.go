@@ -160,10 +160,10 @@ func (c *Controller) TransactionBatchController() {
 		result, err := c.model.TransactionBatchMinimal(context, transBatch.ID)
 		if err != nil {
 			tx.Rollback()
-			return c.InternalServerError(ctx, err)
+			return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": err.Error()})
 		}
 		if err := tx.Commit().Error; err != nil {
-			return c.InternalServerError(ctx, err)
+			return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, result)
 	})
