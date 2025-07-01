@@ -88,14 +88,11 @@ func (c *Controller) TransactionBatchController() {
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
 			return c.BadRequest(ctx, "User is not authorized")
 		}
-		transactionBatch, err := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]interface{}{
+		transactionBatch, _ := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]interface{}{
 			"organization_id": userOrg.OrganizationID,
 			"branch_id":       *userOrg.BranchID,
 			"is_closed":       false,
 		})
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-		}
 		if transactionBatch != nil {
 			return c.BadRequest(ctx, "There is ongoing transaction batch")
 		}
