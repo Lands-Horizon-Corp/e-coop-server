@@ -69,7 +69,100 @@ func (c *Controller) TransactionBatchController() {
 		}
 		return ctx.JSON(http.StatusOK, c.model.TransactionBatchManager.ToModel(transactionBatch))
 	})
+	req.RegisterRoute(horizon.Route{
+		Route:    "/transaction-batch/:transaction_batch_id/deposit-in-bank",
+		Method:   "PUT",
+		Response: "ITransactionBatch",
+		Request:  "IDepositInBankRequest",
+		Note:     "Update the deposit in bank amount for a specific transaction batch",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
 
+		// Get transaction batch ID from URL parameter
+		transactionBatchId, err := horizon.EngineUUIDParam(ctx, "transaction_batch_id")
+		if err != nil {
+			return err
+		}
+
+		// Get current user organization
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return err
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return c.BadRequest(ctx, "User is not authorized")
+		}
+
+		// Bind the deposit in bank request
+		type DepositInBankRequest struct {
+			DepositInBank float64 `json:"deposit_in_bank" validate:"required,min=0"`
+		}
+		var req DepositInBankRequest
+		if err := ctx.Bind(&req); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+
+		// Validate the request
+		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+
+		// Get the transaction batch by ID
+		transactionBatch, err := c.model.TransactionBatchManager.GetByID(context, *transactionBatchId)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Transaction batch not found"})
+		}
+
+		// Verify the transaction batch belongs to the user's organization and branch
+		if transactionBatch.OrganizationID != userOrg.OrganizationID ||
+			transactionBatch.BranchID != *userOrg.BranchID {
+			return c.BadRequest(ctx, "Transaction batch not found in your organization/branch")
+		}
+
+		// Check if the transaction batch is still open
+		if transactionBatch.IsClosed {
+			return c.BadRequest(ctx, "Cannot update deposit for a closed transaction batch")
+		}
+
+		// Get all cash counts for recalculating totals
+		cashCounts, err := c.model.CashCountManager.Find(context, &model.CashCount{
+			TransactionBatchID: transactionBatch.ID,
+			OrganizationID:     userOrg.OrganizationID,
+			BranchID:           *userOrg.BranchID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+
+		// Calculate total cash count value
+		var totalCashCount float64
+		for _, cashCount := range cashCounts {
+			totalCashCount += cashCount.Amount
+		}
+
+		// Update transaction batch with new deposit amount and recalculated totals
+		transactionBatch.DepositInBank = req.DepositInBank
+		transactionBatch.GrandTotal = totalCashCount + req.DepositInBank
+		transactionBatch.TotalCashHandled = transactionBatch.BeginningBalance + req.DepositInBank + totalCashCount
+		transactionBatch.TotalDepositInBank = req.DepositInBank
+		transactionBatch.UpdatedAt = time.Now().UTC()
+		transactionBatch.UpdatedByID = userOrg.UserID
+
+		// Save the updated transaction batch
+		if err := c.model.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update transaction batch: " + err.Error()})
+		}
+
+		// Return the updated transaction batch
+		if !transactionBatch.CanView {
+			result, err := c.model.TransactionBatchMinimal(context, transactionBatch.ID)
+			if err != nil {
+				return c.InternalServerError(ctx, err)
+			}
+			return ctx.JSON(http.StatusOK, result)
+		}
+		return ctx.JSON(http.StatusOK, c.model.TransactionBatchManager.ToModel(transactionBatch))
+	})
 	req.RegisterRoute(horizon.Route{
 		Route:    "/transaction-batch",
 		Method:   "POST",
