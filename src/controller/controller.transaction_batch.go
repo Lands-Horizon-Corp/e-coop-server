@@ -517,7 +517,7 @@ func (c *Controller) BatchFundingController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/batch-funding/transaction-batch/:transaction_batch_id",
+		Route:    "/batch-funding/transaction-batch/:transaction_batch_id/search",
 		Method:   "GET",
 		Request:  "Filter<IBatchFunding>",
 		Response: "Paginated<IBatchFunding>",
