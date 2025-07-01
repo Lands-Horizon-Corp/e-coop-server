@@ -208,7 +208,7 @@ type (
 		PaidByName             string         `json:"paid_by_name"`
 		PaidByPosition         string         `json:"paid_by_position"`
 
-		EndedAt string `json:"ended_at,omitempty"`
+		EndedAt *string `json:"ended_at,omitempty"`
 	}
 
 	TransactionBatchRequest struct {
@@ -309,6 +309,12 @@ func (m *Model) TransactionBatch() {
 				requestView = &s
 			}
 
+			var endedAt *string
+			if data.EndedAt != nil {
+				s := data.EndedAt.Format(time.RFC3339)
+				endedAt = &s
+			}
+
 			return &TransactionBatchResponse{
 				ID:                            data.ID,
 				CreatedAt:                     data.CreatedAt.Format(time.RFC3339),
@@ -387,7 +393,7 @@ func (m *Model) TransactionBatch() {
 				PaidBySignatureMedia:          m.MediaManager.ToModel(data.PaidBySignatureMedia),
 				PaidByName:                    data.PaidByName,
 				PaidByPosition:                data.PaidByPosition,
-				EndedAt:                       data.EndedAt.Format(time.RFC3339),
+				EndedAt:                       endedAt,
 			}
 		},
 		Created: func(data *TransactionBatch) []string {
@@ -428,6 +434,11 @@ func (m *Model) TransactionBatchMinimal(context context.Context, id uuid.UUID) (
 		requestView = &s
 	}
 
+	var endedAt *string
+	if data.EndedAt != nil {
+		s := data.EndedAt.Format(time.RFC3339)
+		endedAt = &s
+	}
 	return &TransactionBatchResponse{
 		ID:               data.ID,
 		CreatedAt:        data.CreatedAt.Format(time.RFC3339),
@@ -451,7 +462,7 @@ func (m *Model) TransactionBatchMinimal(context context.Context, id uuid.UUID) (
 		CanView:          data.CanView,
 		IsClosed:         data.IsClosed,
 		RequestView:      requestView,
-		EndedAt:          data.EndedAt.Format(time.RFC3339),
+		EndedAt:          endedAt,
 	}, nil
 }
 
