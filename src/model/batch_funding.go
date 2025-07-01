@@ -82,6 +82,7 @@ func (m *Model) BatchFunding() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization",
 			"TransactionBatch", "ProvidedByUser", "SignatureMedia",
+			"ProvidedByUser.Media", "SignatureMedia.Media",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *BatchFunding) *BatchFundingResponse {
