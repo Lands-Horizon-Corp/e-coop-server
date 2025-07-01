@@ -195,7 +195,7 @@ func (c *Controller) TransactionBatchController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "No current transaction batch"})
 		}
 		now := time.Now().UTC()
-		totalTime := transactionBatch.CreatedAt.Sub(now)
+		totalTime := now.Sub(transactionBatch.CreatedAt)
 		transactionBatch.IsClosed = true
 		transactionBatch.EmployeeBySignatureMediaID = req.EmployeeBySignatureMediaID
 		transactionBatch.EmployeeByName = req.EmployeeByName
