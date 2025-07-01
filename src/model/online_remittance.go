@@ -97,6 +97,7 @@ func (m *Model) OnlineRemittance() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization",
 			"Bank", "Media", "EmployeeUser", "TransactionBatch",
+			"Bank.Media",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *OnlineRemittance) *OnlineRemittanceResponse {
