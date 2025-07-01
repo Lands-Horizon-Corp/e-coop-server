@@ -74,8 +74,6 @@ type (
 	}
 
 	OnlineRemittanceRequest struct {
-		OrganizationID     uuid.UUID  `json:"organization_id" validate:"required"`
-		BranchID           uuid.UUID  `json:"branch_id" validate:"required"`
 		BankID             uuid.UUID  `json:"bank_id" validate:"required"`
 		MediaID            *uuid.UUID `json:"media_id,omitempty"`
 		EmployeeUserID     *uuid.UUID `json:"employee_user_id,omitempty"`
