@@ -128,11 +128,10 @@ func (c *Controller) TransactionBatchController() {
 			TotalActualRemittance:         0,
 			TotalActualSupposedComparison: 0,
 
-			IsClosed:       false,
-			CanView:        false,
-			RequestView:    nil,
-			EndedAt:        nil,
-			TotalBatchTime: nil,
+			IsClosed:    false,
+			CanView:     false,
+			RequestView: nil,
+			EndedAt:     nil,
 		}
 		if err := c.model.TransactionBatchManager.CreateWithTx(context, tx, transBatch); err != nil {
 			tx.Rollback()
@@ -198,13 +197,11 @@ func (c *Controller) TransactionBatchController() {
 			return c.BadRequest(ctx, "No active transaction batch found")
 		}
 		now := time.Now().UTC()
-		totalTime := now.Sub(transactionBatch.CreatedAt)
 		transactionBatch.IsClosed = true
 		transactionBatch.EmployeeBySignatureMediaID = req.EmployeeBySignatureMediaID
 		transactionBatch.EmployeeByName = req.EmployeeByName
 		transactionBatch.EmployeeByPosition = req.EmployeeByPosition
 		transactionBatch.EndedAt = &now
-		transactionBatch.TotalBatchTime = &totalTime
 		if err := c.model.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update transaction batch: "+err.Error())
 		}

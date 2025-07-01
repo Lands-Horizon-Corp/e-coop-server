@@ -115,8 +115,7 @@ type (
 		PaidByName             string     `gorm:"type:varchar(255)"`
 		PaidByPosition         string     `gorm:"type:varchar(255)"`
 
-		EndedAt        *time.Time     `gorm:"type:timestamp"`
-		TotalBatchTime *time.Duration `gorm:"type:interval"`
+		EndedAt *time.Time `gorm:"type:timestamp"`
 	}
 
 	TransactionBatchResponse struct {
@@ -209,8 +208,7 @@ type (
 		PaidByName             string         `json:"paid_by_name"`
 		PaidByPosition         string         `json:"paid_by_position"`
 
-		EndedAt        *string `json:"ended_at,omitempty"`
-		TotalBatchTime *string `json:"total_batch_time,omitempty"`
+		EndedAt string `json:"ended_at,omitempty"`
 	}
 
 	TransactionBatchRequest struct {
@@ -273,7 +271,6 @@ type (
 		PaidByName                    string         `json:"paid_by_name,omitempty"`
 		PaidByPosition                string         `json:"paid_by_position,omitempty"`
 		EndedAt                       *time.Time     `json:"ended_at,omitempty"`
-		TotalBatchTime                *time.Time     `json:"total_batch_time,omitempty"`
 	}
 
 	TransactionBatchEndRequest struct {
@@ -310,11 +307,6 @@ func (m *Model) TransactionBatch() {
 			if data.RequestView != nil {
 				s := data.RequestView.Format(time.RFC3339)
 				requestView = &s
-			}
-			var endedAt, totalBatchTime *string
-			if data.EndedAt != nil {
-				s := data.EndedAt.Format(time.RFC3339)
-				endedAt = &s
 			}
 
 			return &TransactionBatchResponse{
@@ -395,8 +387,7 @@ func (m *Model) TransactionBatch() {
 				PaidBySignatureMedia:          m.MediaManager.ToModel(data.PaidBySignatureMedia),
 				PaidByName:                    data.PaidByName,
 				PaidByPosition:                data.PaidByPosition,
-				EndedAt:                       endedAt,
-				TotalBatchTime:                totalBatchTime,
+				EndedAt:                       data.EndedAt.Format(time.RFC3339),
 			}
 		},
 		Created: func(data *TransactionBatch) []string {
@@ -436,11 +427,6 @@ func (m *Model) TransactionBatchMinimal(context context.Context, id uuid.UUID) (
 		s := data.RequestView.Format(time.RFC3339)
 		requestView = &s
 	}
-	var endedAt, totalBatchTime *string
-	if data.EndedAt != nil {
-		s := data.EndedAt.Format(time.RFC3339)
-		endedAt = &s
-	}
 
 	return &TransactionBatchResponse{
 		ID:               data.ID,
@@ -465,8 +451,7 @@ func (m *Model) TransactionBatchMinimal(context context.Context, id uuid.UUID) (
 		CanView:          data.CanView,
 		IsClosed:         data.IsClosed,
 		RequestView:      requestView,
-		EndedAt:          endedAt,
-		TotalBatchTime:   totalBatchTime,
+		EndedAt:          data.EndedAt.Format(time.RFC3339),
 	}, nil
 }
 
