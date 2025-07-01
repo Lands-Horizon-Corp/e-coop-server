@@ -394,7 +394,7 @@ func (c *Controller) CashCountController() {
 	})
 }
 
-func (c *Controller) BatchFunding() {
+func (c *Controller) BatchFundingController() {
 	req := c.provider.Service.Request
 
 	req.RegisterRoute(horizon.Route{
@@ -417,6 +417,47 @@ func (c *Controller) BatchFunding() {
 	})
 }
 
-func (C *Controller) CheckRemittance() {
+func (c *Controller) CheckRemittanceController() {
+	req := c.provider.Service.Request
 
+	req.RegisterRoute(horizon.Route{
+		Route:    "/check-remittance",
+		Method:   "GET",
+		Response: "ICheckRemittance[]",
+		Note:     "Retrieve batch check remittance (JWT) for the current transaction batch before ending.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return err
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return c.BadRequest(ctx, "User is not authorized")
+		}
+
+		// Find the current active transaction batch
+		transactionBatch, err := c.model.TransactionBatchManager.FindOne(context, &model.TransactionBatch{
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			IsClosed:       false,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		if transactionBatch == nil {
+			return c.BadRequest(ctx, "No active transaction batch found")
+		}
+
+		// Retrieve check remittance for the current transaction batch
+		checkRemittance, err := c.model.CheckRemittanceManager.Find(context, &model.CheckRemittance{
+			TransactionBatchID: &transactionBatch.ID,
+			OrganizationID:     userOrg.OrganizationID,
+			BranchID:           *userOrg.BranchID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+
+		return ctx.JSON(http.StatusOK, c.model.CheckRemittanceManager.ToModels(checkRemittance))
+	})
 }
