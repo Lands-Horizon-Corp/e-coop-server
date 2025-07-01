@@ -404,7 +404,75 @@ func (c *Controller) BatchFundingController() {
 		Response: "IBatchFunding",
 		Note:     "Sart: create batch funding based on current transaction batch",
 	}, func(ctx echo.Context) error {
-		return nil
+		context := ctx.Request().Context()
+		batchFundingReq, err := c.model.BatchFundingManager.Validate(ctx)
+		if err != nil {
+			return err
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return err
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return c.BadRequest(ctx, "User is not authorized")
+		}
+		transactionBatch, err := c.model.TransactionBatchManager.FindOne(context, &model.TransactionBatch{
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			IsClosed:       false,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		if transactionBatch == nil {
+			return c.BadRequest(ctx, "No active transaction batch found")
+		}
+
+		cashCounts, err := c.model.CashCountManager.Find(context, &model.CashCount{
+			TransactionBatchID: transactionBatch.ID,
+			OrganizationID:     userOrg.OrganizationID,
+			BranchID:           *userOrg.BranchID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+
+		// Calculate total cash count value
+		var totalCashCount float64
+		for _, cashCount := range cashCounts {
+			totalCashCount += cashCount.Amount * float64(cashCount.Quantity)
+		}
+
+		transactionBatch.BeginningBalance += batchFundingReq.Amount
+		transactionBatch.TotalCashHandled = batchFundingReq.Amount + transactionBatch.DepositInBank + totalCashCount
+		transactionBatch.CashCountTotal = totalCashCount
+		transactionBatch.GrandTotal = totalCashCount + transactionBatch.DepositInBank
+
+		if err := c.model.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
+			return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": err.Error()})
+		}
+		batchFunding := &model.BatchFunding{
+			CreatedAt:          time.Now().UTC(),
+			CreatedByID:        userOrg.UserID,
+			UpdatedAt:          time.Now().UTC(),
+			UpdatedByID:        userOrg.UserID,
+			OrganizationID:     userOrg.OrganizationID,
+			BranchID:           *userOrg.BranchID,
+			TransactionBatchID: transactionBatch.ID,
+
+			ProvidedByUserID: userOrg.UserID,
+			Name:             batchFundingReq.Name,
+			Description:      batchFundingReq.Description,
+			Amount:           batchFundingReq.Amount,
+			SignatureMediaID: batchFundingReq.SignatureMediaID,
+		}
+
+		if err := c.model.BatchFundingManager.Create(context, batchFunding); err != nil {
+			return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": err.Error()})
+		}
+
+		return ctx.JSON(http.StatusOK, c.model.BatchFundingManager.ToModel(batchFunding))
+
 	})
 
 	req.RegisterRoute(horizon.Route{
