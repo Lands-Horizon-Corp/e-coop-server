@@ -154,7 +154,9 @@ func (c *Controller) TransactionBatchController() {
 			Amount:           req.Amount,
 			SignatureMediaID: req.SignatureMediaID,
 		}
+		fmt.Println(transBatch)
 		fmt.Println(batchFunding)
+		fmt.Println("-----")
 		if err := c.model.BatchFundingManager.CreateWithTx(context, tx, batchFunding); err != nil {
 			tx.Rollback()
 			return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": err.Error()})
