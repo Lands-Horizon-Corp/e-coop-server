@@ -56,7 +56,7 @@ func (c *Controller) TransactionBatchController() {
 			IsClosed:       false,
 		})
 		if transactionBatch == nil {
-			return ctx.NoContent(http.StatusNoContent)
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "No current transaction batch"})
 		}
 		if !transactionBatch.CanView {
 			result, err := c.model.TransactionBatchMinimal(context, transactionBatch.ID)
@@ -186,13 +186,16 @@ func (c *Controller) TransactionBatchController() {
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
 			return c.BadRequest(ctx, "User is not authorized")
 		}
-		transactionBatch, _ := c.model.TransactionBatchManager.FindOne(context, &model.TransactionBatch{
+		transactionBatch, err := c.model.TransactionBatchManager.FindOne(context, &model.TransactionBatch{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			IsClosed:       false,
 		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
 		if transactionBatch == nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "No current transaction batch"})
+			return c.BadRequest(ctx, "No active transaction batch found")
 		}
 		now := time.Now().UTC()
 		totalTime := now.Sub(transactionBatch.CreatedAt)
