@@ -486,15 +486,18 @@ func (c *Controller) CashCountController() {
 				// Update existing cash count
 				err := c.model.CashCountManager.UpdateFields(context, *cashCountReq.ID, &model.CashCount{
 					CountryCode:        cashCountReq.CountryCode,
-					OrganizationID:     userOrg.OrganizationID,
-					BranchID:           *userOrg.BranchID,
 					TransactionBatchID: transactionBatch.ID,
 					EmployeeUserID:     userOrg.UserID,
 					BillAmount:         cashCountReq.BillAmount,
 					Quantity:           cashCountReq.Quantity,
 					Amount:             cashCountReq.Amount,
-					UpdatedAt:          time.Now().UTC(),
-					UpdatedByID:        userOrg.UserID,
+
+					CreatedAt:      time.Now().UTC(),
+					CreatedByID:    userOrg.UserID,
+					UpdatedAt:      time.Now().UTC(),
+					UpdatedByID:    userOrg.UserID,
+					OrganizationID: userOrg.OrganizationID,
+					BranchID:       *userOrg.BranchID,
 				})
 				if err != nil {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update cash count: " + err.Error()})
@@ -509,13 +512,14 @@ func (c *Controller) CashCountController() {
 			} else {
 				// Create new cash count
 				newCashCount := &model.CashCount{
-					CreatedAt:          time.Now().UTC(),
-					CreatedByID:        userOrg.UserID,
-					UpdatedAt:          time.Now().UTC(),
-					UpdatedByID:        userOrg.UserID,
+					CreatedAt:      time.Now().UTC(),
+					CreatedByID:    userOrg.UserID,
+					UpdatedAt:      time.Now().UTC(),
+					UpdatedByID:    userOrg.UserID,
+					OrganizationID: userOrg.OrganizationID,
+					BranchID:       *userOrg.BranchID,
+
 					CountryCode:        cashCountReq.CountryCode,
-					OrganizationID:     userOrg.OrganizationID,
-					BranchID:           *userOrg.BranchID,
 					TransactionBatchID: transactionBatch.ID,
 					EmployeeUserID:     userOrg.UserID,
 					BillAmount:         cashCountReq.BillAmount,
@@ -559,6 +563,7 @@ func (c *Controller) CashCountController() {
 		var responseRequests []model.CashCountRequest
 		for _, cashCount := range updatedCashCounts {
 			responseRequests = append(responseRequests, model.CashCountRequest{
+
 				ID:                 &cashCount.ID,
 				TransactionBatchID: cashCount.TransactionBatchID,
 				EmployeeUserID:     cashCount.EmployeeUserID,
