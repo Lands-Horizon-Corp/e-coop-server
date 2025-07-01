@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -153,6 +154,7 @@ func (c *Controller) TransactionBatchController() {
 			Amount:           req.Amount,
 			SignatureMediaID: req.SignatureMediaID,
 		}
+		fmt.Println(batchFunding)
 		if err := c.model.BatchFundingManager.CreateWithTx(context, tx, batchFunding); err != nil {
 			tx.Rollback()
 			return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": err.Error()})
