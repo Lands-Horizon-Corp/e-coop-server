@@ -499,6 +499,7 @@ func (c *Controller) CashCountController() {
 					UpdatedByID:    userOrg.UserID,
 					OrganizationID: userOrg.OrganizationID,
 					BranchID:       *userOrg.BranchID,
+					Name:           cashCountReq.Name,
 				}
 				if err := c.model.CashCountManager.UpdateFields(context, *cashCountReq.ID, data); err != nil {
 					return echo.NewHTTPError(http.StatusForbidden, "failed to update user: "+err.Error())
@@ -525,6 +526,7 @@ func (c *Controller) CashCountController() {
 					BillAmount:         cashCountReq.BillAmount,
 					Quantity:           cashCountReq.Quantity,
 					Amount:             cashCountReq.Amount,
+					Name:               cashCountReq.Name,
 				}
 
 				if err := c.model.CashCountManager.Create(context, newCashCount); err != nil {

@@ -34,6 +34,7 @@ type (
 		TransactionBatch   *TransactionBatch `gorm:"foreignKey:TransactionBatchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"transaction_batch,omitempty"`
 
 		CountryCode string  `gorm:"type:varchar(5);not null"`
+		Name        string  `gorm:"type:varchar(100);not null"`
 		BillAmount  float64 `gorm:"type:decimal"`
 		Quantity    int     `gorm:"type:int"`
 		Amount      float64 `gorm:"type:decimal"`
@@ -59,6 +60,7 @@ type (
 		BillAmount         float64                   `json:"bill_amount"`
 		Quantity           int                       `json:"quantity"`
 		Amount             float64                   `json:"amount"`
+		Name               string                    `json:"name"`
 	}
 
 	CashCountRequest struct {
@@ -69,6 +71,7 @@ type (
 		BillAmount         float64    `json:"bill_amount,omitempty"`
 		Quantity           int        `json:"quantity,omitempty"`
 		Amount             float64    `json:"amount,omitempty"`
+		Name               string     `json:"name,omitempty"`
 	}
 )
 
@@ -106,6 +109,7 @@ func (m *Model) CashCount() {
 				BillAmount:         data.BillAmount,
 				Quantity:           data.Quantity,
 				Amount:             data.Amount,
+				Name:               data.Name,
 			}
 		},
 		Created: func(data *CashCount) []string {
