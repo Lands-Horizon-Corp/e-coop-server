@@ -317,7 +317,47 @@ func (c *Controller) TransactionBatchController() {
 		Method: "PUT",
 		Note:   "Accept a view (blotter) request for a transaction batch by ID",
 	}, func(ctx echo.Context) error {
-		return nil
+		context := ctx.Request().Context()
+
+		// Get transaction batch ID from URL parameter
+		transactionBatchId, err := horizon.EngineUUIDParam(ctx, "transaction_batch_id")
+		if err != nil {
+			return err
+		}
+
+		// Get current user organization
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return err
+		}
+
+		// Check authorization
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return c.BadRequest(ctx, "User is not authorized")
+		}
+
+		// Get the transaction batch by ID
+		transactionBatch, err := c.model.TransactionBatchManager.GetByID(context, *transactionBatchId)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Transaction batch not found"})
+		}
+
+		// Verify the transaction batch belongs to the user's organization and branch
+		if transactionBatch.OrganizationID != userOrg.OrganizationID ||
+			transactionBatch.BranchID != *userOrg.BranchID {
+			return c.BadRequest(ctx, "Transaction batch not found in your organization/branch")
+		}
+
+		// Update CanView to true
+		transactionBatch.CanView = true
+
+		// Update the transaction batch
+		if err := c.model.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update transaction batch: " + err.Error()})
+		}
+
+		// Return the updated transaction batch
+		return ctx.JSON(http.StatusOK, c.model.TransactionBatchManager.ToModel(transactionBatch))
 	})
 }
 
