@@ -874,6 +874,106 @@ func (c *Controller) CheckRemittanceController() {
 
 		return ctx.JSON(http.StatusOK, c.model.CheckRemittanceManager.ToModels(checkRemittance))
 	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:    "/check-remittance",
+		Method:   "POST",
+		Response: "ICheckRemittance",
+		Request:  "ICheckRemittance",
+		Note:     "Create a new check remittance for the current transaction batch before ending.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+
+		// Validate the check remittance request
+		req, err := c.model.CheckRemittanceManager.Validate(ctx)
+		if err != nil {
+			return err
+		}
+
+		// Get current user organization
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return err
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return c.BadRequest(ctx, "User is not authorized")
+		}
+
+		// Find the current active transaction batch
+		transactionBatch, err := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]interface{}{
+			"organization_id": userOrg.OrganizationID,
+			"branch_id":       *userOrg.BranchID,
+			"is_closed":       false,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		if transactionBatch == nil {
+			return c.BadRequest(ctx, "No active transaction batch found")
+		}
+
+		// Set required fields for the check remittance
+		checkRemittance := &model.CheckRemittance{
+			CreatedAt:      time.Now().UTC(),
+			CreatedByID:    userOrg.UserID,
+			UpdatedAt:      time.Now().UTC(),
+			UpdatedByID:    userOrg.UserID,
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+
+			BankID:             req.BankID,
+			MediaID:            req.MediaID,
+			EmployeeUserID:     &userOrg.UserID,
+			TransactionBatchID: &transactionBatch.ID,
+			CountryCode:        req.CountryCode,
+			ReferenceNumber:    req.ReferenceNumber,
+			AccountName:        req.AccountName,
+			Amount:             req.Amount,
+			DateEntry:          req.DateEntry,
+			Description:        req.Description,
+		}
+
+		// Set default date entry if not provided
+		if checkRemittance.DateEntry == nil {
+			now := time.Now().UTC()
+			checkRemittance.DateEntry = &now
+		}
+
+		// Create the check remittance
+		if err := c.model.CheckRemittanceManager.Create(context, checkRemittance); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create check remittance: " + err.Error()})
+		}
+
+		// Get all check remittances for recalculating transaction batch totals
+		allCheckRemittances, err := c.model.CheckRemittanceManager.Find(context, &model.CheckRemittance{
+			TransactionBatchID: &transactionBatch.ID,
+			OrganizationID:     userOrg.OrganizationID,
+			BranchID:           *userOrg.BranchID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+
+		// Calculate total check remittance amount
+		var totalCheckRemittance float64
+		for _, remittance := range allCheckRemittances {
+			totalCheckRemittance += remittance.Amount
+		}
+
+		// Update transaction batch totals
+		transactionBatch.TotalCheckRemittance = totalCheckRemittance
+		transactionBatch.TotalActualRemittance = transactionBatch.TotalCheckRemittance + transactionBatch.TotalOnlineRemittance + transactionBatch.TotalDepositInBank
+		transactionBatch.UpdatedAt = time.Now().UTC()
+		transactionBatch.UpdatedByID = userOrg.UserID
+
+		// Save the updated transaction batch
+		if err := c.model.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update transaction batch: " + err.Error()})
+		}
+
+		// Return the created check remittance
+		return ctx.JSON(http.StatusOK, c.model.CheckRemittanceManager.ToModel(checkRemittance))
+	})
 }
 
 func (c *Controller) OnlineRemittanceController() {
