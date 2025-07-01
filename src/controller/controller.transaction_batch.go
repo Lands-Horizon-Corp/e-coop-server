@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -77,7 +76,7 @@ func (c *Controller) TransactionBatchController() {
 		Note:     "Create and start a new transaction batch; returns the created batch. (Will populate Cashcount)",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.model.BatchFundingManager.Validate(ctx)
+		batchFundingReq, err := c.model.BatchFundingManager.Validate(ctx)
 		if err != nil {
 			return err
 		}
@@ -110,7 +109,7 @@ func (c *Controller) TransactionBatchController() {
 			BranchID:       *userOrg.BranchID,
 			EmployeeUserID: &userOrg.UserID,
 
-			BeginningBalance:              req.Amount,
+			BeginningBalance:              batchFundingReq.Amount,
 			DepositInBank:                 0,
 			CashCountTotal:                0,
 			GrandTotal:                    0,
@@ -149,14 +148,11 @@ func (c *Controller) TransactionBatchController() {
 			TransactionBatchID: transBatch.ID,
 
 			ProvidedByUserID: userOrg.UserID,
-			Name:             req.Name,
-			Description:      req.Description,
-			Amount:           req.Amount,
-			SignatureMediaID: req.SignatureMediaID,
+			Name:             batchFundingReq.Name,
+			Description:      batchFundingReq.Description,
+			Amount:           batchFundingReq.Amount,
+			SignatureMediaID: batchFundingReq.SignatureMediaID,
 		}
-		fmt.Println(transBatch)
-		fmt.Println(batchFunding)
-		fmt.Println("-----")
 		if err := c.model.BatchFundingManager.CreateWithTx(context, tx, batchFunding); err != nil {
 			tx.Rollback()
 			return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": err.Error()})
