@@ -95,7 +95,7 @@ func (c *Controller) TransactionBatchController() {
 
 		// Bind the deposit in bank request
 		type DepositInBankRequest struct {
-			DepositInBank float64 `json:"deposit_in_bank" validate:"required,min=0"`
+			DepositInBank float64 `json:"deposit_in_bank" validate:"min=0"`
 		}
 		var req DepositInBankRequest
 		if err := ctx.Bind(&req); err != nil {
