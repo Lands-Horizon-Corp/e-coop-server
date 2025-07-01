@@ -1035,6 +1035,7 @@ func (c *Controller) CheckRemittanceController() {
 			UpdatedByID:    userOrg.UserID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
+			CreatedByID:    userOrg.UserID,
 
 			BankID:          req.BankID,
 			MediaID:         req.MediaID,
@@ -1388,6 +1389,7 @@ func (c *Controller) OnlineRemittanceController() {
 			UpdatedByID:    userOrg.UserID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
+			CreatedByID:    userOrg.UserID,
 
 			BankID:          req.BankID,
 			MediaID:         req.MediaID,
