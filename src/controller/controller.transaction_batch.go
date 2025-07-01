@@ -306,6 +306,7 @@ func (c *Controller) TransactionBatchController() {
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			CanView:        false,
+			IsClosed:       false,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
