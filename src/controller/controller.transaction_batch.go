@@ -1037,14 +1037,15 @@ func (c *Controller) CheckRemittanceController() {
 			BranchID:       *userOrg.BranchID,
 			CreatedByID:    userOrg.UserID,
 
-			BankID:          req.BankID,
-			MediaID:         req.MediaID,
-			CountryCode:     req.CountryCode,
-			ReferenceNumber: req.ReferenceNumber,
-			AccountName:     req.AccountName,
-			Amount:          req.Amount,
-			DateEntry:       req.DateEntry,
-			Description:     req.Description,
+			TransactionBatchID: &transactionBatch.ID,
+			BankID:             req.BankID,
+			MediaID:            req.MediaID,
+			CountryCode:        req.CountryCode,
+			ReferenceNumber:    req.ReferenceNumber,
+			AccountName:        req.AccountName,
+			Amount:             req.Amount,
+			DateEntry:          req.DateEntry,
+			Description:        req.Description,
 		}
 
 		// Set default date entry if not provided
@@ -1267,23 +1268,23 @@ func (c *Controller) OnlineRemittanceController() {
 
 		// Set required fields for the online remittance
 		onlineRemittance := &model.OnlineRemittance{
-			CreatedAt:      time.Now().UTC(),
-			CreatedByID:    userOrg.UserID,
-			UpdatedAt:      time.Now().UTC(),
-			UpdatedByID:    userOrg.UserID,
-			OrganizationID: userOrg.OrganizationID,
-			BranchID:       *userOrg.BranchID,
-
-			BankID:             req.BankID,
-			MediaID:            req.MediaID,
-			EmployeeUserID:     &userOrg.UserID,
+			CreatedAt:          time.Now().UTC(),
+			CreatedByID:        userOrg.UserID,
+			UpdatedAt:          time.Now().UTC(),
+			UpdatedByID:        userOrg.UserID,
+			OrganizationID:     userOrg.OrganizationID,
+			BranchID:           *userOrg.BranchID,
 			TransactionBatchID: &transactionBatch.ID,
-			CountryCode:        req.CountryCode,
-			ReferenceNumber:    req.ReferenceNumber,
-			AccountName:        req.AccountName,
-			Amount:             req.Amount,
-			DateEntry:          req.DateEntry,
-			Description:        req.Description,
+
+			BankID:          req.BankID,
+			MediaID:         req.MediaID,
+			EmployeeUserID:  &userOrg.UserID,
+			CountryCode:     req.CountryCode,
+			ReferenceNumber: req.ReferenceNumber,
+			AccountName:     req.AccountName,
+			Amount:          req.Amount,
+			DateEntry:       req.DateEntry,
+			Description:     req.Description,
 		}
 
 		// Set default date entry if not provided
@@ -1385,20 +1386,20 @@ func (c *Controller) OnlineRemittanceController() {
 
 		// Update the online remittance fields
 		updatedOnlineRemittance := &model.OnlineRemittance{
-			UpdatedAt:      time.Now().UTC(),
-			UpdatedByID:    userOrg.UserID,
-			OrganizationID: userOrg.OrganizationID,
-			BranchID:       *userOrg.BranchID,
-			CreatedByID:    userOrg.UserID,
-
-			BankID:          req.BankID,
-			MediaID:         req.MediaID,
-			CountryCode:     req.CountryCode,
-			ReferenceNumber: req.ReferenceNumber,
-			AccountName:     req.AccountName,
-			Amount:          req.Amount,
-			DateEntry:       req.DateEntry,
-			Description:     req.Description,
+			UpdatedAt:          time.Now().UTC(),
+			UpdatedByID:        userOrg.UserID,
+			OrganizationID:     userOrg.OrganizationID,
+			BranchID:           *userOrg.BranchID,
+			CreatedByID:        userOrg.UserID,
+			TransactionBatchID: &transactionBatch.ID,
+			BankID:             req.BankID,
+			MediaID:            req.MediaID,
+			CountryCode:        req.CountryCode,
+			ReferenceNumber:    req.ReferenceNumber,
+			AccountName:        req.AccountName,
+			Amount:             req.Amount,
+			DateEntry:          req.DateEntry,
+			Description:        req.Description,
 		}
 
 		// Set default date entry if not provided
