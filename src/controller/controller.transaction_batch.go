@@ -417,7 +417,7 @@ func (c *Controller) CashCountController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/cash-count/",
+		Route:    "/cash-count",
 		Method:   "PUT",
 		Response: "ICashCount[]",
 		Request:  "ICashCount[]",
