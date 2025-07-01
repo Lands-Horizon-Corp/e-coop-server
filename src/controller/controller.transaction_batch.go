@@ -519,10 +519,51 @@ func (c *Controller) BatchFundingController() {
 	req.RegisterRoute(horizon.Route{
 		Route:    "/batch-funding/transaction-batch/:transaction_batch_id",
 		Method:   "GET",
-		Response: "IBatchFunding[]",
-		Note:     "Get all batch funding of transaction batch.",
+		Request:  "Filter<IBatchFunding>",
+		Response: "Paginated<IBatchFunding>",
+		Note:     "Get all batch funding of transaction batch with pagination.",
 	}, func(ctx echo.Context) error {
-		return nil
+		context := ctx.Request().Context()
+
+		// Get transaction batch ID from URL parameter
+		transactionBatchId, err := horizon.EngineUUIDParam(ctx, "transaction_batch_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid transaction batch ID")
+		}
+
+		// Get current user organization for authorization
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.NoContent(http.StatusNoContent)
+		}
+
+		// Check if user is authorized
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return c.BadRequest(ctx, "User is not authorized")
+		}
+
+		// Verify the transaction batch exists and belongs to the user's organization/branch
+		transactionBatch, err := c.model.TransactionBatchManager.GetByID(context, *transactionBatchId)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Transaction batch not found"})
+		}
+
+		// Verify the transaction batch belongs to the current user's organization and branch
+		if transactionBatch.OrganizationID != userOrg.OrganizationID || transactionBatch.BranchID != *userOrg.BranchID {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this transaction batch"})
+		}
+
+		// Find all batch funding records for the transaction batch
+		batchFunding, err := c.model.BatchFundingManager.Find(context, &model.BatchFunding{
+			OrganizationID:     userOrg.OrganizationID,
+			BranchID:           *userOrg.BranchID,
+			TransactionBatchID: *transactionBatchId,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+
+		return ctx.JSON(http.StatusOK, c.model.BatchFundingManager.Pagination(context, ctx, batchFunding))
 	})
 }
 
