@@ -63,8 +63,6 @@ type (
 
 	CashCountRequest struct {
 		ID                 *uuid.UUID `json:"id,omitempty"`
-		OrganizationID     uuid.UUID  `json:"organization_id" validate:"required"`
-		BranchID           uuid.UUID  `json:"branch_id" validate:"required"`
 		EmployeeUserID     uuid.UUID  `json:"employee_user_id" validate:"required"`
 		TransactionBatchID uuid.UUID  `json:"transaction_batch_id" validate:"required"`
 		CountryCode        string     `json:"country_code" validate:"required,min=1,max=5"`

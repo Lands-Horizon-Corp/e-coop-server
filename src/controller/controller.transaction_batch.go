@@ -475,8 +475,6 @@ func (c *Controller) CashCountController() {
 			}
 
 			// Set required fields
-			cashCountReq.OrganizationID = userOrg.OrganizationID
-			cashCountReq.BranchID = *userOrg.BranchID
 			cashCountReq.TransactionBatchID = transactionBatch.ID
 			cashCountReq.EmployeeUserID = userOrg.UserID
 
@@ -562,8 +560,6 @@ func (c *Controller) CashCountController() {
 		for _, cashCount := range updatedCashCounts {
 			responseRequests = append(responseRequests, model.CashCountRequest{
 				ID:                 &cashCount.ID,
-				OrganizationID:     cashCount.OrganizationID,
-				BranchID:           cashCount.BranchID,
 				TransactionBatchID: cashCount.TransactionBatchID,
 				EmployeeUserID:     cashCount.EmployeeUserID,
 				CountryCode:        cashCount.CountryCode,
