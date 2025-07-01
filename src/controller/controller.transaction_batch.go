@@ -132,7 +132,6 @@ func (c *Controller) TransactionBatchController() {
 			IsClosed:    false,
 			CanView:     false,
 			RequestView: nil,
-			EndedAt:     nil,
 		}
 		if err := c.model.TransactionBatchManager.CreateWithTx(context, tx, transBatch); err != nil {
 			tx.Rollback()
