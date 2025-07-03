@@ -28,8 +28,9 @@ type (
 		DeletedByID *uuid.UUID `gorm:"type:uuid"`
 		DeletedBy   *User      `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
 
-		GeneralLedgerDefinitionID       *uuid.UUID                     `gorm:"type:uuid" json:"general_ledger_definition_id,omitempty"`
-		GeneralLedgerDefinition         []*GeneralLedgerDefinition     `gorm:"foreignKey:GeneralLedgerDefinitionID" json:"general_ledger_definition,omitempty"`
+		GeneralLedgerDefinitionEntryID *uuid.UUID                 `gorm:"type:uuid" json:"general_ledger_definition_entry_id,omitempty"`
+		GeneralLedgerDefinitionEntries []*GeneralLedgerDefinition `gorm:"foreignKey:GeneralLedgerDefinitionID" json:"general_ledger_definition_entries,omitempty"`
+
 		GeneralLedgerAccountsGroupingID *uuid.UUID                     `gorm:"type:uuid" json:"general_ledger_accounts_grouping_id,omitempty"`
 		GeneralLedgerAccountsGrouping   *GeneralLedgerAccountsGrouping `gorm:"foreignKey:GeneralLedgerAccountsGroupingID" json:"general_ledger_accounts_grouping,omitempty"`
 
@@ -63,8 +64,8 @@ type (
 		DeletedByID    *uuid.UUID            `json:"deleted_by_id,omitempty"`
 		DeletedBy      *UserResponse         `json:"deleted_by,omitempty"`
 
-		GeneralLedgerDefinitionID *uuid.UUID                         `json:"general_ledger_definition_id,omitempty"`
-		GeneralLedgerDefinition   []*GeneralLedgerDefinitionResponse `json:"general_ledger_definition,omitempty"`
+		GeneralLedgerDefinitionEntryID *uuid.UUID                         `json:"general_ledger_definition_entry_id,omitempty"`
+		GeneralLedgerDefinitionEntries []*GeneralLedgerDefinitionResponse `json:"general_ledger_definition_entries,omitempty"`
 
 		GeneralLedgerAccountsGroupingID *uuid.UUID                             `json:"general_ledger_accounts_grouping_id,omitempty"`
 		GeneralLedgerAccountsGrouping   *GeneralLedgerAccountsGroupingResponse `json:"general_ledger_accounts_grouping,omitempty"`
@@ -93,7 +94,7 @@ type (
 		GeneralLedgerType               GeneralLedgerType `json:"general_ledger_type" validate:"required"`
 		BeginningBalanceOfTheYearCredit int               `json:"beginning_balance_of_the_year_credit,omitempty"`
 		BeginningBalanceOfTheYearDebit  int               `json:"beginning_balance_of_the_year_debit,omitempty"`
-		GeneralLedgerDefinitionID       *uuid.UUID        `json:"general_ledger_definition_id,omitempty"`
+		GeneralLedgerDefinitionEntryID  *uuid.UUID        `json:"general_ledger_definition_id,omitempty"`
 		GeneralLedgerAccountsGroupingID *uuid.UUID        `json:"general_ledger_accounts_grouping_id,omitempty"`
 	}
 )
@@ -145,8 +146,8 @@ func (m *Model) GeneralLedgerDefinition() {
 				DeletedByID:    data.DeletedByID,
 				DeletedBy:      m.UserManager.ToModel(data.DeletedBy),
 
-				GeneralLedgerDefinitionID:       data.GeneralLedgerDefinitionID,
-				GeneralLedgerDefinition:         m.GeneralLedgerDefinitionManager.ToModels(data.GeneralLedgerDefinition),
+				GeneralLedgerDefinitionEntryID:  data.GeneralLedgerDefinitionEntryID,
+				GeneralLedgerDefinitionEntries:  m.GeneralLedgerDefinitionManager.ToModels(data.GeneralLedgerDefinitionEntries),
 				GeneralLedgerAccountsGroupingID: data.GeneralLedgerAccountsGroupingID,
 				GeneralLedgerAccountsGrouping:   m.GeneralLedgerAccountsGroupingManager.ToModel(data.GeneralLedgerAccountsGrouping),
 

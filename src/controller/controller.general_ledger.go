@@ -93,7 +93,7 @@ func (c *Controller) GeneralLedgerController() {
 			BranchID:                        *userOrg.BranchID,
 			CreatedByID:                     userOrg.UserID,
 			UpdatedByID:                     userOrg.UserID,
-			GeneralLedgerDefinitionID:       req.GeneralLedgerDefinitionID,
+			GeneralLedgerDefinitionEntryID:  req.GeneralLedgerDefinitionEntryID,
 			GeneralLedgerAccountsGroupingID: req.GeneralLedgerAccountsGroupingID,
 			Name:                            req.Name,
 			Description:                     req.Description,
@@ -154,7 +154,7 @@ func (c *Controller) GeneralLedgerController() {
 		}
 
 		// Update fields
-		glDefinition.GeneralLedgerDefinitionID = req.GeneralLedgerDefinitionID
+		glDefinition.GeneralLedgerDefinitionEntryID = req.GeneralLedgerDefinitionEntryID
 		glDefinition.Name = req.Name
 		glDefinition.Description = req.Description
 		glDefinition.Index = req.Index
