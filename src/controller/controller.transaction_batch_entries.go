@@ -38,6 +38,31 @@ func (c *Controller) TransactionBatchEntriesController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
+		Route:    "/withdrawal-entry/transaction-batch/:transaction_batch_id/search",
+		Method:   "GET",
+		Response: "WithdrawalEntry[]",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.NoContent(http.StatusNoContent)
+		}
+		transactionBatchID, err := horizon.EngineUUIDParam(ctx, "transaction_batch_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction batch ID"})
+		}
+		withdrawal, err := c.model.WithdrawalEntryManager.Find(context, &model.WithdrawalEntry{
+			TransactionBatchID: transactionBatchID,
+			OrganizationID:     userOrg.OrganizationID,
+			BranchID:           *userOrg.BranchID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.WithdrawalEntryManager.Pagination(context, ctx, withdrawal))
+	})
+
+	req.RegisterRoute(horizon.Route{
 		Route:    "/online-entry/transaction-batch/:transaction_batch_id/search",
 		Method:   "GET",
 		Response: "OnlineEntry[]",
