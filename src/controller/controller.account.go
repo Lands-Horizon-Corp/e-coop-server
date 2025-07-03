@@ -146,14 +146,14 @@ func (c *Controller) AccountController() {
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
 			return c.BadRequest(ctx, "User is not authorized")
 		}
-		account, err := c.model.AccountManager.Find(context, &model.Account{
+		account, err := c.model.AccountCategoryManager.Find(context, &model.AccountCategory{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.AccountManager.Pagination(context, ctx, account))
+		return ctx.JSON(http.StatusOK, c.model.AccountCategoryManager.Pagination(context, ctx, account))
 	})
 
 	req.RegisterRoute(horizon.Route{
