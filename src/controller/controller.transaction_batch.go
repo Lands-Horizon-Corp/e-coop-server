@@ -454,28 +454,26 @@ func (c *Controller) TransactionBatchController() {
 
 		// Use GORM's DB.Where to handle date range filtering
 		db := c.provider.Service.Database.Client().Model(new(model.TransactionBatch))
+		// Add necessary preloads using array
+		preloads := []string{
+			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization",
+			"EmployeeUser",
+			"EmployeeUser.Media",
+			"ApprovedBySignatureMedia",
+			"PreparedBySignatureMedia",
+			"CertifiedBySignatureMedia",
+			"VerifiedBySignatureMedia",
+			"CheckBySignatureMedia",
+			"AcknowledgeBySignatureMedia",
+			"NotedBySignatureMedia",
+			"PostedBySignatureMedia",
+			"PaidBySignatureMedia",
+		}
 
-		// Add necessary preloads
-		// Add necessary preloads
-		db = db.Preload("CreatedBy")
-		db = db.Preload("UpdatedBy")
-		db = db.Preload("DeletedBy")
-		db = db.Preload("Branch")
-		db = db.Preload("Organization")
-		db = db.Preload("EmployeeUser")
-		db = db.Preload("EmployeeUser.Media")
-		db = db.Preload("CashCounts")
-		db = db.Preload("CheckRemittances")
-		db = db.Preload("OnlineRemittances")
-		db = db.Preload("ApprovedBySignatureMedia")
-		db = db.Preload("PreparedBySignatureMedia")
-		db = db.Preload("CertifiedBySignatureMedia")
-		db = db.Preload("VerifiedBySignatureMedia")
-		db = db.Preload("CheckBySignatureMedia")
-		db = db.Preload("AcknowledgeBySignatureMedia")
-		db = db.Preload("NotedBySignatureMedia")
-		db = db.Preload("PostedBySignatureMedia")
-		db = db.Preload("PaidBySignatureMedia")
+		// Apply preloads
+		for _, preload := range preloads {
+			db = db.Preload(preload)
+		}
 
 		// Apply conditions
 		for field, value := range conditions {
