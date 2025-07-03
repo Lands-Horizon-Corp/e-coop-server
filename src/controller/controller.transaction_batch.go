@@ -461,6 +461,7 @@ func (c *Controller) TransactionBatchController() {
 		db = db.Preload("OnlineRemittances")
 		db = db.Preload("BatchFundings")
 		db = db.Preload("EmployeeUser")
+		db = db.Preload("EmployeeUser.Media")
 
 		// Apply conditions
 		for field, value := range conditions {
