@@ -160,6 +160,32 @@ func (c *Controller) AccountController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
+		Route:    "/account-category/search",
+		Method:   "GET",
+		Response: "IAccountCategory[]",
+		Note:     "List all account categories for the current branch",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return err
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return c.BadRequest(ctx, "User is not authorized")
+		}
+
+		accountCategories, err := c.model.AccountCategoryManager.FindRaw(context, &model.AccountCategory{
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+
+		return ctx.JSON(http.StatusOK, accountCategories)
+	})
+
+	req.RegisterRoute(horizon.Route{
 		Route:    "/account-category/:account_category_id",
 		Method:   "GET",
 		Response: "IAccountCategory",
@@ -346,6 +372,29 @@ func (c *Controller) AccountController() {
 		return ctx.JSON(http.StatusOK, c.model.AccountClassificationManager.Pagination(context, ctx, account))
 	})
 
+	req.RegisterRoute(horizon.Route{
+		Route:    "/account-classification",
+		Method:   "GET",
+		Response: "IAccount[]",
+		Note:     "List all accounts classification for the current branch",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return err
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return c.BadRequest(ctx, "User is not authorized")
+		}
+		account, err := c.model.AccountClassificationManager.FindRaw(context, &model.AccountClassification{
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, account)
+	})
 	req.RegisterRoute(horizon.Route{
 		Route:    "/account-classification/:account_classification_id",
 		Method:   "GET",
