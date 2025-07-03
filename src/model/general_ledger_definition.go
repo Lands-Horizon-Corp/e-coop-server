@@ -29,8 +29,8 @@ type (
 		DeletedBy   *User      `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
 
 		GeneralLedgerDefinitionEntryID  *uuid.UUID                     `gorm:"type:uuid" json:"general_ledger_definition_entry_id,omitempty"`
-		GeneralLedgerDefinition         *GeneralLedgerDefinition       `gorm:"foreignKey:GeneralLedgerDefinitionEntryID" json:"parent,omitempty"`
-		GeneralLedgerDefinitionEntries  []*GeneralLedgerDefinition     `gorm:"foreignKey:GeneralLedgerDefinitionEntryID" json:"children,omitempty"`
+		GeneralLedgerDefinition         *GeneralLedgerDefinition       `gorm:"foreignKey:GeneralLedgerDefinitionEntryID" json:"general_ledger_definition_entry,omitempty"`
+		GeneralLedgerDefinitionEntries  []*GeneralLedgerDefinition     `gorm:"foreignKey:GeneralLedgerDefinitionEntryID" json:"general_ledger_definition_entries,omitempty"`
 		GeneralLedgerAccountsGroupingID *uuid.UUID                     `gorm:"type:uuid" json:"general_ledger_accounts_grouping_id,omitempty"`
 		GeneralLedgerAccountsGrouping   *GeneralLedgerAccountsGrouping `gorm:"foreignKey:GeneralLedgerAccountsGroupingID" json:"general_ledger_accounts_grouping,omitempty"`
 
@@ -96,7 +96,7 @@ type (
 		BeginningBalanceOfTheYearCredit int               `json:"beginning_balance_of_the_year_credit,omitempty"`
 		BeginningBalanceOfTheYearDebit  int               `json:"beginning_balance_of_the_year_debit,omitempty"`
 		GeneralLedgerDefinitionEntryID  *uuid.UUID        `json:"general_ledger_definition_entries_id,omitempty"`
-		GeneralLedgerAccountsGroupingID *uuid.UUID `json:"general_ledger_accounts_grouping_id,omitempty"`
+		GeneralLedgerAccountsGroupingID *uuid.UUID        `json:"general_ledger_accounts_grouping_id,omitempty"`
 	}
 )
 
