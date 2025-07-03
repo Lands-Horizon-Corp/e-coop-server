@@ -133,6 +133,10 @@ func (m *Model) GeneralLedgerDefinition() {
 				t := data.DeletedAt.Time.Format(time.RFC3339)
 				deletedAt = &t
 			}
+			entries := m.GeneralLedgerDefinitionManager.ToModels(data.GeneralLedgerDefinitionEntries)
+			if len(entries) == 0 {
+				entries = []*GeneralLedgerDefinitionResponse{}
+			}
 			return &GeneralLedgerDefinitionResponse{
 				ID:             data.ID,
 				OrganizationID: data.OrganizationID,
@@ -147,7 +151,7 @@ func (m *Model) GeneralLedgerDefinition() {
 				DeletedBy:      m.UserManager.ToModel(data.DeletedBy),
 
 				GeneralLedgerDefinitionEntryID:  data.GeneralLedgerDefinitionEntryID,
-				GeneralLedgerDefinitionEntries:  m.GeneralLedgerDefinitionManager.ToModels(data.GeneralLedgerDefinitionEntries),
+				GeneralLedgerDefinitionEntries:  entries,
 				GeneralLedgerAccountsGroupingID: data.GeneralLedgerAccountsGroupingID,
 				GeneralLedgerAccountsGrouping:   m.GeneralLedgerAccountsGroupingManager.ToModel(data.GeneralLedgerAccountsGrouping),
 
