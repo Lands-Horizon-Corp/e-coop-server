@@ -55,6 +55,80 @@ func (c *Controller) TransactionBatchController() {
 		}
 		return ctx.JSON(http.StatusOK, c.model.TransactionBatchManager.Pagination(context, ctx, transactionBatch))
 	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:    "/transaction-batch/:transaction_batch_id/signature",
+		Method:   "GET",
+		Request:  "Filter<TTransactionBatch>",
+		Response: "Paginated<TTransactionBatch>",
+		Note:     "Get pagination for transaction batches",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		var req model.TransactionBatchSignatureRequest
+		if err := ctx.Bind(&req); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+		transactionBatchId, err := horizon.EngineUUIDParam(ctx, "transaction_batch_id")
+		if err != nil {
+			return err
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return err
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return c.BadRequest(ctx, "User is not authorized")
+		}
+		transactionBatch, err := c.model.TransactionBatchManager.GetByID(context, *transactionBatchId)
+		if err != nil {
+			return err
+		}
+		if transactionBatch == nil {
+			return c.NotFound(ctx, "Transaction batch not found")
+		}
+		transactionBatch.EmployeeBySignatureMediaID = req.EmployeeBySignatureMediaID
+		transactionBatch.EmployeeByName = req.EmployeeByName
+		transactionBatch.EmployeeByPosition = req.EmployeeByPosition
+		transactionBatch.ApprovedBySignatureMediaID = req.ApprovedBySignatureMediaID
+		transactionBatch.ApprovedByName = req.ApprovedByName
+		transactionBatch.ApprovedByPosition = req.ApprovedByPosition
+		transactionBatch.PreparedBySignatureMediaID = req.PreparedBySignatureMediaID
+		transactionBatch.PreparedByName = req.PreparedByName
+		transactionBatch.PreparedByPosition = req.PreparedByPosition
+		transactionBatch.CertifiedBySignatureMediaID = req.CertifiedBySignatureMediaID
+		transactionBatch.CertifiedByName = req.CertifiedByName
+		transactionBatch.CertifiedByPosition = req.CertifiedByPosition
+		transactionBatch.VerifiedBySignatureMediaID = req.VerifiedBySignatureMediaID
+		transactionBatch.VerifiedByName = req.VerifiedByName
+		transactionBatch.VerifiedByPosition = req.VerifiedByPosition
+		transactionBatch.CheckBySignatureMediaID = req.CheckBySignatureMediaID
+		transactionBatch.CheckByName = req.CheckByName
+		transactionBatch.CheckByPosition = req.CheckByPosition
+		transactionBatch.AcknowledgeBySignatureMediaID = req.AcknowledgeBySignatureMediaID
+		transactionBatch.AcknowledgeByName = req.AcknowledgeByName
+		transactionBatch.AcknowledgeByPosition = req.AcknowledgeByPosition
+		transactionBatch.NotedBySignatureMediaID = req.NotedBySignatureMediaID
+		transactionBatch.NotedByName = req.NotedByName
+		transactionBatch.NotedByPosition = req.NotedByPosition
+		transactionBatch.PostedBySignatureMediaID = req.PostedBySignatureMediaID
+		transactionBatch.PostedByName = req.PostedByName
+		transactionBatch.PostedByPosition = req.PostedByPosition
+		transactionBatch.PaidBySignatureMediaID = req.PaidBySignatureMediaID
+		transactionBatch.PaidByName = req.PaidByName
+		transactionBatch.PaidByPosition = req.PaidByPosition
+
+		transactionBatch.UpdatedAt = time.Now().UTC()
+		transactionBatch.UpdatedByID = userOrg.UserID
+
+		if err := c.model.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.TransactionBatchManager.ToModel(transactionBatch))
+	})
+
 	req.RegisterRoute(horizon.Route{
 		Route:    "/transaction-batch/current",
 		Method:   "GET",

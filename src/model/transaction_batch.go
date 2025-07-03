@@ -273,6 +273,57 @@ type (
 		EndedAt                       *time.Time     `json:"ended_at,omitempty"`
 	}
 
+	TransactionBatchSignatureRequest struct {
+		// Employee signature fields
+		EmployeeBySignatureMediaID *uuid.UUID `json:"employee_by_signature_media_id,omitempty"`
+		EmployeeByName             string     `json:"employee_by_name,omitempty"`
+		EmployeeByPosition         string     `json:"employee_by_position,omitempty"`
+
+		// Approved signature fields
+		ApprovedBySignatureMediaID *uuid.UUID `json:"approved_by_signature_media_id,omitempty"`
+		ApprovedByName             string     `json:"approved_by_name,omitempty"`
+		ApprovedByPosition         string     `json:"approved_by_position,omitempty"`
+
+		// Prepared signature fields
+		PreparedBySignatureMediaID *uuid.UUID `json:"prepared_by_signature_media_id,omitempty"`
+		PreparedByName             string     `json:"prepared_by_name,omitempty"`
+		PreparedByPosition         string     `json:"prepared_by_position,omitempty"`
+
+		// Certified signature fields
+		CertifiedBySignatureMediaID *uuid.UUID `json:"certified_by_signature_media_id,omitempty"`
+		CertifiedByName             string     `json:"certified_by_name,omitempty"`
+		CertifiedByPosition         string     `json:"certified_by_position,omitempty"`
+
+		// Verified signature fields
+		VerifiedBySignatureMediaID *uuid.UUID `json:"verified_by_signature_media_id,omitempty"`
+		VerifiedByName             string     `json:"verified_by_name,omitempty"`
+		VerifiedByPosition         string     `json:"verified_by_position,omitempty"`
+
+		// Check signature fields
+		CheckBySignatureMediaID *uuid.UUID `json:"check_by_signature_media_id,omitempty"`
+		CheckByName             string     `json:"check_by_name,omitempty"`
+		CheckByPosition         string     `json:"check_by_position,omitempty"`
+
+		// Acknowledge signature fields
+		AcknowledgeBySignatureMediaID *uuid.UUID `json:"acknowledge_by_signature_media_id,omitempty"`
+		AcknowledgeByName             string     `json:"acknowledge_by_name,omitempty"`
+		AcknowledgeByPosition         string     `json:"acknowledge_by_position,omitempty"`
+
+		// Noted signature fields
+		NotedBySignatureMediaID *uuid.UUID `json:"noted_by_signature_media_id,omitempty"`
+		NotedByName             string     `json:"noted_by_name,omitempty"`
+		NotedByPosition         string     `json:"noted_by_position,omitempty"`
+
+		// Posted signature fields
+		PostedBySignatureMediaID *uuid.UUID `json:"posted_by_signature_media_id,omitempty"`
+		PostedByName             string     `json:"posted_by_name,omitempty"`
+		PostedByPosition         string     `json:"posted_by_position,omitempty"`
+
+		// Paid signature fields
+		PaidBySignatureMediaID *uuid.UUID `json:"paid_by_signature_media_id,omitempty"`
+		PaidByName             string     `json:"paid_by_name,omitempty"`
+		PaidByPosition         string     `json:"paid_by_position,omitempty"`
+	}
 	TransactionBatchEndRequest struct {
 		EmployeeBySignatureMediaID *uuid.UUID `json:"employee_by_signature_media_id,omitempty"`
 		EmployeeByName             string     `json:"employee_by_name"`
