@@ -147,23 +147,15 @@ func (c *Controller) AccountController() {
 			return c.BadRequest(ctx, "User is not authorized")
 		}
 
-		// Add debug logging
-		fmt.Printf("Searching for account categories - OrgID: %s, BranchID: %s\n", userOrg.OrganizationID.String(), userOrg.BranchID.String())
-
 		accountCategories, err := c.model.AccountCategoryManager.Find(context, &model.AccountCategory{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
 		if err != nil {
-			fmt.Printf("Find error: %v\n", err)
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
 
-		fmt.Printf("Found %d account categories\n", len(accountCategories))
-
 		result := c.model.AccountCategoryManager.Pagination(context, ctx, accountCategories)
-		fmt.Printf("Pagination result: %+v\n", result)
-
 		return ctx.JSON(http.StatusOK, result)
 	})
 
