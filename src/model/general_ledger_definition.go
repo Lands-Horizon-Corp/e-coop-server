@@ -28,14 +28,11 @@ type (
 		DeletedByID *uuid.UUID `gorm:"type:uuid"`
 		DeletedBy   *User      `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
 
-		ParentID                       *uuid.UUID                 `gorm:"type:uuid" json:"parent_id,omitempty"`
-		GeneralLedgerDefinition        *GeneralLedgerDefinition   `gorm:"foreignKey:ParentID" json:"parent,omitempty"`
-		GeneralLedgerDefinitionEntries []*GeneralLedgerDefinition `gorm:"foreignKey:ParentID" json:"children,omitempty"`
+		GeneralLedgerDefinitionEntryID *uuid.UUID                 `gorm:"type:uuid" json:"general_ledger_definition_entry_id,omitempty"`
+		GeneralLedgerDefinition        *GeneralLedgerDefinition   `gorm:"foreignKey:GeneralLedgerDefinitionEntryID" json:"parent,omitempty"`
+		GeneralLedgerDefinitionEntries []*GeneralLedgerDefinition `gorm:"foreignKey:GeneralLedgerDefinitionEntryID" json:"children,omitempty"`
 
 		Accounts []*Account `gorm:"foreignKey:GeneralLedgerDefinitionID" json:"accounts"`
-
-		GeneralLedgerAccountsGroupingID *uuid.UUID                     `gorm:"type:uuid" json:"general_ledger_accounts_grouping_id,omitempty"`
-		GeneralLedgerAccountsGrouping   *GeneralLedgerAccountsGrouping `gorm:"foreignKey:GeneralLedgerAccountsGroupingID;constraint:OnDelete:SET NULL;" json:"grouping,omitempty"`
 
 		Name              string            `gorm:"type:varchar(255);not null;"`
 		Description       string            `gorm:"type:text"`
@@ -71,9 +68,6 @@ type (
 
 		Accounts []*AccountResponse `json:"accounts"`
 
-		GeneralLedgerAccountsGroupingID *uuid.UUID                             `json:"general_ledger_accounts_grouping_id,omitempty"`
-		GeneralLedgerAccountsGrouping   *GeneralLedgerAccountsGroupingResponse `json:"grouping,omitempty"`
-
 		Name                            string            `json:"name"`
 		Description                     string            `json:"description"`
 		Index                           int               `json:"index"`
@@ -88,17 +82,15 @@ type (
 	}
 
 	GeneralLedgerDefinitionRequest struct {
-		Name                             string            `json:"name" validate:"required,min=1,max=255"`
-		Description                      string            `json:"description,omitempty"`
-		Index                            int               `json:"index,omitempty"`
-		NameInTotal                      string            `json:"name_in_total,omitempty"`
-		IsPosting                        bool              `json:"is_posting,omitempty"`
-		GeneralLedgerType                GeneralLedgerType `json:"general_ledger_type" validate:"required"`
-		BeginningBalanceOfTheYearCredit  int               `json:"beginning_balance_of_the_year_credit,omitempty"`
-		BeginningBalanceOfTheYearDebit   int               `json:"beginning_balance_of_the_year_debit,omitempty"`
-		GeneralLedgerDefinitionEntriesID *uuid.UUID        `json:"general_ledger_definition_entries_id,omitempty"`
-
-		GeneralLedgerAccountsGroupingID *uuid.UUID `json:"general_ledger_accounts_grouping_id,omitempty"`
+		Name                            string            `json:"name" validate:"required,min=1,max=255"`
+		Description                     string            `json:"description,omitempty"`
+		Index                           int               `json:"index,omitempty"`
+		NameInTotal                     string            `json:"name_in_total,omitempty"`
+		IsPosting                       bool              `json:"is_posting,omitempty"`
+		GeneralLedgerType               GeneralLedgerType `json:"general_ledger_type" validate:"required"`
+		BeginningBalanceOfTheYearCredit int               `json:"beginning_balance_of_the_year_credit,omitempty"`
+		BeginningBalanceOfTheYearDebit  int               `json:"beginning_balance_of_the_year_debit,omitempty"`
+		GeneralLedgerDefinitionEntryID  *uuid.UUID        `json:"general_ledger_definition_entries_id,omitempty"`
 	}
 )
 
@@ -107,7 +99,7 @@ func (m *Model) GeneralLedgerDefinition() {
 	m.GeneralLedgerDefinitionManager = horizon_services.NewRepository(horizon_services.RepositoryParams[GeneralLedgerDefinition, GeneralLedgerDefinitionResponse, GeneralLedgerDefinitionRequest]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization",
-			"Parent",
+			"GeneralLedgerDefinitionEntries",
 			"Children",
 			"Accounts",
 			"GeneralLedgerAccountsGrouping",
@@ -135,7 +127,7 @@ func (m *Model) GeneralLedgerDefinition() {
 				DeletedByID:    data.DeletedByID,
 				DeletedBy:      m.UserManager.ToModel(data.DeletedBy),
 
-				GeneralLedgerDefinitionEntryID: data.ParentID,
+				GeneralLedgerDefinitionEntryID: data.GeneralLedgerDefinitionEntryID,
 				GeneralLedgerDefinitionEntry:   m.GeneralLedgerDefinitionManager.ToModel(data.GeneralLedgerDefinition),
 				GeneralLedgerDefinitionEntries: m.GeneralLedgerDefinitionManager.ToModels(data.GeneralLedgerDefinitionEntries),
 
@@ -151,8 +143,6 @@ func (m *Model) GeneralLedgerDefinition() {
 				CreatedAt:                       data.CreatedAt.Format(time.RFC3339),
 				UpdatedAt:                       data.UpdatedAt.Format(time.RFC3339),
 				DeletedAt:                       deletedAt,
-				GeneralLedgerAccountsGroupingID: data.GeneralLedgerAccountsGroupingID,
-				GeneralLedgerAccountsGrouping:   m.GeneralLedgerAccountsGroupingManager.ToModel(data.GeneralLedgerAccountsGrouping),
 			}
 		},
 		Created: func(data *GeneralLedgerDefinition) []string {
