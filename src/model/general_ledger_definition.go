@@ -33,7 +33,7 @@ type (
 		GeneralLedgerAccountsGroupingID *uuid.UUID                     `gorm:"type:uuid" json:"general_ledger_accounts_grouping_id,omitempty"`
 		GeneralLedgerAccountsGrouping   *GeneralLedgerAccountsGrouping `gorm:"foreignKey:GeneralLedgerAccountsGroupingID" json:"general_ledger_accounts_grouping,omitempty"`
 
-		Accounts []*Account `gorm:"foreignKey:GeneralLedgerDefinitionID" json:"accounts"`
+		Accounts []*Account `gorm:"foreignKey:GeneralLedgerDefinitionID;constraint:OnDelete:SET NULL,OnUpdate:CASCADE;" json:"accounts"`
 
 		Name              string            `gorm:"type:varchar(255);not null;"`
 		Description       string            `gorm:"type:text"`
