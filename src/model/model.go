@@ -1045,6 +1045,8 @@ func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID 
 		},
 	}
 
+	// ...existing code...
+
 	// Create groupings and their definitions
 	for i, groupingData := range generalLedgerAccountsGrouping {
 		if err := m.GeneralLedgerAccountsGroupingManager.CreateWithTx(context, tx, groupingData); err != nil {
@@ -1056,6 +1058,32 @@ func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID 
 
 		switch i {
 		case 0: // Assets
+			// First create parent definitions
+			currentAssetsParent := &GeneralLedgerDefinition{
+				CreatedAt:                       now,
+				UpdatedAt:                       now,
+				CreatedByID:                     userID,
+				UpdatedByID:                     userID,
+				OrganizationID:                  organizationID,
+				BranchID:                        branchID,
+				GeneralLedgerAccountsGroupingID: &groupingData.ID,
+				Name:                            "Current Assets",
+				Description:                     "Assets expected to be converted to cash within one year",
+				Index:                           0,
+				NameInTotal:                     "Current Assets",
+				IsPosting:                       false,
+				GeneralLedgerType:               "Asset",
+				BeginningBalanceOfTheYearCredit: 0,
+				BeginningBalanceOfTheYearDebit:  0,
+				GeneralLedgerDefinitionEntryID:  nil,
+			}
+
+			// Create the parent first
+			if err := m.GeneralLedgerDefinitionManager.CreateWithTx(context, tx, currentAssetsParent); err != nil {
+				return eris.Wrapf(err, "failed to seed general ledger definition %s", currentAssetsParent.Name)
+			}
+
+			// Now create children with ParentID reference
 			definitions = []*GeneralLedgerDefinition{
 				{
 					CreatedAt:                       now,
@@ -1065,23 +1093,7 @@ func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID 
 					OrganizationID:                  organizationID,
 					BranchID:                        branchID,
 					GeneralLedgerAccountsGroupingID: &groupingData.ID,
-					Name:                            "Current Assets",
-					Description:                     "Assets expected to be converted to cash within one year",
-					Index:                           0,
-					NameInTotal:                     "Current Assets",
-					IsPosting:                       false,
-					GeneralLedgerType:               "Asset",
-					BeginningBalanceOfTheYearCredit: 0,
-					BeginningBalanceOfTheYearDebit:  0,
-				},
-				{
-					CreatedAt:                       now,
-					UpdatedAt:                       now,
-					CreatedByID:                     userID,
-					UpdatedByID:                     userID,
-					OrganizationID:                  organizationID,
-					BranchID:                        branchID,
-					GeneralLedgerAccountsGroupingID: &groupingData.ID,
+					GeneralLedgerDefinitionEntryID:  &currentAssetsParent.ID,
 					Name:                            "Cash on Hand",
 					Description:                     "Physical cash and currency held by the organization",
 					Index:                           1,
@@ -1099,6 +1111,7 @@ func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID 
 					OrganizationID:                  organizationID,
 					BranchID:                        branchID,
 					GeneralLedgerAccountsGroupingID: &groupingData.ID,
+					GeneralLedgerDefinitionEntryID:  &currentAssetsParent.ID,
 					Name:                            "Cash on Bank",
 					Description:                     "Funds deposited in bank accounts",
 					Index:                           2,
@@ -1116,6 +1129,7 @@ func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID 
 					OrganizationID:                  organizationID,
 					BranchID:                        branchID,
 					GeneralLedgerAccountsGroupingID: &groupingData.ID,
+					GeneralLedgerDefinitionEntryID:  &currentAssetsParent.ID,
 					Name:                            "Accounts Receivable",
 					Description:                     "Money owed to the organization by members and customers",
 					Index:                           3,
@@ -1133,6 +1147,7 @@ func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID 
 					OrganizationID:                  organizationID,
 					BranchID:                        branchID,
 					GeneralLedgerAccountsGroupingID: &groupingData.ID,
+					GeneralLedgerDefinitionEntryID:  &currentAssetsParent.ID,
 					Name:                            "Inventory",
 					Description:                     "Goods and materials held for sale or production",
 					Index:                           4,
@@ -1150,6 +1165,7 @@ func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID 
 					OrganizationID:                  organizationID,
 					BranchID:                        branchID,
 					GeneralLedgerAccountsGroupingID: &groupingData.ID,
+					GeneralLedgerDefinitionEntryID:  nil,
 					Name:                            "Property, Plant & Equipment",
 					Description:                     "Long-term physical assets used in operations",
 					Index:                           5,
@@ -1162,6 +1178,54 @@ func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID 
 			}
 
 		case 1: // Liabilities, Equity & Reserves
+			// Create parent for liabilities
+			liabilitiesParent := &GeneralLedgerDefinition{
+				CreatedAt:                       now,
+				UpdatedAt:                       now,
+				CreatedByID:                     userID,
+				UpdatedByID:                     userID,
+				OrganizationID:                  organizationID,
+				BranchID:                        branchID,
+				GeneralLedgerAccountsGroupingID: &groupingData.ID,
+				Name:                            "Current Liabilities",
+				Description:                     "Short-term debts and obligations",
+				Index:                           0,
+				NameInTotal:                     "Current Liabilities",
+				IsPosting:                       false,
+				GeneralLedgerType:               "Liability",
+				BeginningBalanceOfTheYearCredit: 0,
+				BeginningBalanceOfTheYearDebit:  0,
+				GeneralLedgerDefinitionEntryID:  nil,
+			}
+
+			// Create parent for equity
+			equityParent := &GeneralLedgerDefinition{
+				CreatedAt:                       now,
+				UpdatedAt:                       now,
+				CreatedByID:                     userID,
+				UpdatedByID:                     userID,
+				OrganizationID:                  organizationID,
+				BranchID:                        branchID,
+				GeneralLedgerAccountsGroupingID: &groupingData.ID,
+				Name:                            "Member Equity",
+				Description:                     "Member ownership and retained earnings",
+				Index:                           1,
+				NameInTotal:                     "Member Equity",
+				IsPosting:                       false,
+				GeneralLedgerType:               "Equity",
+				BeginningBalanceOfTheYearCredit: 0,
+				BeginningBalanceOfTheYearDebit:  0,
+				GeneralLedgerDefinitionEntryID:  nil,
+			}
+
+			// Create parents first
+			if err := m.GeneralLedgerDefinitionManager.CreateWithTx(context, tx, liabilitiesParent); err != nil {
+				return eris.Wrapf(err, "failed to seed general ledger definition %s", liabilitiesParent.Name)
+			}
+			if err := m.GeneralLedgerDefinitionManager.CreateWithTx(context, tx, equityParent); err != nil {
+				return eris.Wrapf(err, "failed to seed general ledger definition %s", equityParent.Name)
+			}
+
 			definitions = []*GeneralLedgerDefinition{
 				{
 					CreatedAt:                       now,
@@ -1171,9 +1235,10 @@ func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID 
 					OrganizationID:                  organizationID,
 					BranchID:                        branchID,
 					GeneralLedgerAccountsGroupingID: &groupingData.ID,
+					GeneralLedgerDefinitionEntryID:  &liabilitiesParent.ID,
 					Name:                            "Accounts Payable",
 					Description:                     "Money owed to suppliers and creditors",
-					Index:                           1,
+					Index:                           2,
 					NameInTotal:                     "Accounts Payable",
 					IsPosting:                       true,
 					GeneralLedgerType:               "Liability",
@@ -1188,9 +1253,10 @@ func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID 
 					OrganizationID:                  organizationID,
 					BranchID:                        branchID,
 					GeneralLedgerAccountsGroupingID: &groupingData.ID,
+					GeneralLedgerDefinitionEntryID:  &liabilitiesParent.ID,
 					Name:                            "Member Deposits",
 					Description:                     "Funds deposited by cooperative members",
-					Index:                           2,
+					Index:                           3,
 					NameInTotal:                     "Member Deposits",
 					IsPosting:                       true,
 					GeneralLedgerType:               "Liability",
@@ -1205,9 +1271,10 @@ func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID 
 					OrganizationID:                  organizationID,
 					BranchID:                        branchID,
 					GeneralLedgerAccountsGroupingID: &groupingData.ID,
+					GeneralLedgerDefinitionEntryID:  &equityParent.ID,
 					Name:                            "Share Capital",
 					Description:                     "Member contributions to cooperative capital",
-					Index:                           3,
+					Index:                           4,
 					NameInTotal:                     "Share Capital",
 					IsPosting:                       true,
 					GeneralLedgerType:               "Equity",
@@ -1222,9 +1289,10 @@ func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID 
 					OrganizationID:                  organizationID,
 					BranchID:                        branchID,
 					GeneralLedgerAccountsGroupingID: &groupingData.ID,
+					GeneralLedgerDefinitionEntryID:  &equityParent.ID,
 					Name:                            "Retained Earnings",
 					Description:                     "Accumulated profits retained in the cooperative",
-					Index:                           4,
+					Index:                           5,
 					NameInTotal:                     "Retained Earnings",
 					IsPosting:                       true,
 					GeneralLedgerType:               "Equity",
@@ -1243,6 +1311,7 @@ func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID 
 					OrganizationID:                  organizationID,
 					BranchID:                        branchID,
 					GeneralLedgerAccountsGroupingID: &groupingData.ID,
+					GeneralLedgerDefinitionEntryID:  nil,
 					Name:                            "Interest Income",
 					Description:                     "Income earned from loans and investments",
 					Index:                           1,
@@ -1260,6 +1329,7 @@ func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID 
 					OrganizationID:                  organizationID,
 					BranchID:                        branchID,
 					GeneralLedgerAccountsGroupingID: &groupingData.ID,
+					GeneralLedgerDefinitionEntryID:  nil,
 					Name:                            "Service Fees",
 					Description:                     "Fees collected for various cooperative services",
 					Index:                           2,
@@ -1277,6 +1347,7 @@ func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID 
 					OrganizationID:                  organizationID,
 					BranchID:                        branchID,
 					GeneralLedgerAccountsGroupingID: &groupingData.ID,
+					GeneralLedgerDefinitionEntryID:  nil,
 					Name:                            "Membership Fees",
 					Description:                     "Fees collected from new and existing members",
 					Index:                           3,
@@ -1289,6 +1360,31 @@ func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID 
 			}
 
 		case 3: // Expenses
+			// Create parent for expenses
+			operatingExpensesParent := &GeneralLedgerDefinition{
+				CreatedAt:                       now,
+				UpdatedAt:                       now,
+				CreatedByID:                     userID,
+				UpdatedByID:                     userID,
+				OrganizationID:                  organizationID,
+				BranchID:                        branchID,
+				GeneralLedgerAccountsGroupingID: &groupingData.ID,
+				Name:                            "Operating Expenses",
+				Description:                     "General expenses for daily operations",
+				Index:                           0,
+				NameInTotal:                     "Operating Expenses",
+				IsPosting:                       false,
+				GeneralLedgerType:               "Expense",
+				BeginningBalanceOfTheYearCredit: 0,
+				BeginningBalanceOfTheYearDebit:  0,
+				GeneralLedgerDefinitionEntryID:  nil,
+			}
+
+			// Create parent first
+			if err := m.GeneralLedgerDefinitionManager.CreateWithTx(context, tx, operatingExpensesParent); err != nil {
+				return eris.Wrapf(err, "failed to seed general ledger definition %s", operatingExpensesParent.Name)
+			}
+
 			definitions = []*GeneralLedgerDefinition{
 				{
 					CreatedAt:                       now,
@@ -1298,23 +1394,7 @@ func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID 
 					OrganizationID:                  organizationID,
 					BranchID:                        branchID,
 					GeneralLedgerAccountsGroupingID: &groupingData.ID,
-					Name:                            "Operating Expenses",
-					Description:                     "General expenses for daily operations",
-					Index:                           0,
-					NameInTotal:                     "Operating Expenses",
-					IsPosting:                       false,
-					GeneralLedgerType:               "Expense",
-					BeginningBalanceOfTheYearCredit: 0,
-					BeginningBalanceOfTheYearDebit:  0,
-				},
-				{
-					CreatedAt:                       now,
-					UpdatedAt:                       now,
-					CreatedByID:                     userID,
-					UpdatedByID:                     userID,
-					OrganizationID:                  organizationID,
-					BranchID:                        branchID,
-					GeneralLedgerAccountsGroupingID: &groupingData.ID,
+					GeneralLedgerDefinitionEntryID:  &operatingExpensesParent.ID,
 					Name:                            "Salaries and Wages",
 					Description:                     "Employee compensation and benefits",
 					Index:                           1,
@@ -1332,6 +1412,7 @@ func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID 
 					OrganizationID:                  organizationID,
 					BranchID:                        branchID,
 					GeneralLedgerAccountsGroupingID: &groupingData.ID,
+					GeneralLedgerDefinitionEntryID:  &operatingExpensesParent.ID,
 					Name:                            "Utilities Expense",
 					Description:                     "Electricity, water, internet, and other utilities",
 					Index:                           2,
@@ -1349,6 +1430,7 @@ func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID 
 					OrganizationID:                  organizationID,
 					BranchID:                        branchID,
 					GeneralLedgerAccountsGroupingID: &groupingData.ID,
+					GeneralLedgerDefinitionEntryID:  &operatingExpensesParent.ID,
 					Name:                            "Office Supplies",
 					Description:                     "Stationery, printing materials, and office consumables",
 					Index:                           3,
@@ -1366,6 +1448,7 @@ func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID 
 					OrganizationID:                  organizationID,
 					BranchID:                        branchID,
 					GeneralLedgerAccountsGroupingID: &groupingData.ID,
+					GeneralLedgerDefinitionEntryID:  &operatingExpensesParent.ID,
 					Name:                            "Rent Expense",
 					Description:                     "Monthly rental for office space and facilities",
 					Index:                           4,
@@ -1378,13 +1461,15 @@ func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID 
 			}
 		}
 
-		// Create the definitions for this grouping
+		// Create the child definitions for this grouping
 		for _, definitionData := range definitions {
 			if err := m.GeneralLedgerDefinitionManager.CreateWithTx(context, tx, definitionData); err != nil {
 				return eris.Wrapf(err, "failed to seed general ledger definition %s", definitionData.Name)
 			}
 		}
 	}
+
+	// ...existing code...
 	// Financial Statement Accounts Grouping seeder
 	financialStatementGrouping := []*FinancialStatementGrouping{
 		{
