@@ -58,7 +58,7 @@ func (c *Controller) TransactionBatchController() {
 
 	req.RegisterRoute(horizon.Route{
 		Route:    "/transaction-batch/:transaction_batch_id/signature",
-		Method:   "GET",
+		Method:   "PUT",
 		Request:  "Filter<TTransactionBatch>",
 		Response: "Paginated<TTransactionBatch>",
 		Note:     "Get pagination for transaction batches",
