@@ -34,8 +34,8 @@ type (
 		ChildDefinitions   []*FinancialStatementDefinition `gorm:"foreignKey:ParentDefinitionID" json:"child_definitions,omitempty"`
 
 		// Many-to-one relationship with FinancialStatementGrouping
-		FinancialStatementsroupingID *uuid.UUID                  `gorm:"type:uuid;index" json:"financial_statement_grouping_id,omitempty"`
-		FinancialStatementsrouping   *FinancialStatementsrouping `gorm:"foreignKey:FinancialStatementsroupingID;constraint:OnDelete:SET NULL;" json:"grouping,omitempty"`
+		FinancialStatementGroupingID *uuid.UUID                  `gorm:"type:uuid;index" json:"financial_statement_grouping_id,omitempty"`
+		FinancialStatementGrouping   *FinancialStatementGrouping `gorm:"foreignKey:FinancialStatementGroupingID;constraint:OnDelete:SET NULL;" json:"grouping,omitempty"`
 
 		Name                   string `gorm:"type:varchar(255);not null;unique"`
 		Description            string `gorm:"type:text"`
@@ -109,8 +109,8 @@ func (m *Model) FinancialStatementDefinition() {
 				ParentDefinitionID:           data.ParentDefinitionID,
 				ParentDefinition:             m.FinancialStatementDefinitionManager.ToModel(data.ParentDefinition),
 				ChildDefinitions:             m.FinancialStatementDefinitionManager.ToModels(data.ChildDefinitions),
-				FinancialStatementGroupingID: data.FinancialStatementsroupingID,
-				FinancialStatementGrouping:   m.FinancialStatementGroupingManager.ToModel(data.FinancialStatementsrouping),
+				FinancialStatementGroupingID: data.FinancialStatementGroupingID,
+				FinancialStatementGrouping:   m.FinancialStatementGroupingManager.ToModel(data.FinancialStatementGrouping),
 
 				Name:                   data.Name,
 				Description:            data.Description,

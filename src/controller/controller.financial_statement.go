@@ -24,7 +24,7 @@ func (c *Controller) FinancialStatementController() {
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
 			return c.BadRequest(ctx, "User is not authorized")
 		}
-		gl, err := c.model.FinancialStatementGroupingManager.FindRaw(context, &model.FinancialStatementsrouping{
+		gl, err := c.model.FinancialStatementGroupingManager.FindRaw(context, &model.FinancialStatementGrouping{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})

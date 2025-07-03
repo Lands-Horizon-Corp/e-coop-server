@@ -14,7 +14,7 @@ import (
 type AccountingPrinciple string
 
 type (
-	FinancialStatementsrouping struct {
+	FinancialStatementGrouping struct {
 		ID             uuid.UUID     `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_financial_statement_grouping"`
 		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
@@ -41,7 +41,7 @@ type (
 		UpdatedAt time.Time      `gorm:"not null;default:now()"`
 		DeletedAt gorm.DeletedAt `gorm:"index"`
 
-		FinancialStatementDefinitions []*FinancialStatementDefinition `gorm:"foreignKey:FinancialStatementAccountsGroupingID" json:"financial_statement_definitions,omitempty"`
+		FinancialStatementDefinitions []*FinancialStatementDefinition `gorm:"foreignKey:FinancialStatementGroupingID" json:"financial_statement_definitions,omitempty"`
 	}
 
 	FinancialStatementGroupingResponse struct {
@@ -81,15 +81,15 @@ type (
 	}
 )
 
-func (m *Model) FinancialStatementAccountsGrouping() {
-	m.Migration = append(m.Migration, &FinancialStatementsrouping{})
-	m.FinancialStatementGroupingManager = horizon_services.NewRepository(horizon_services.RepositoryParams[FinancialStatementsrouping, FinancialStatementGroupingResponse, FinancialStatementGroupingRequest]{
+func (m *Model) FinancialStatementGrouping() {
+	m.Migration = append(m.Migration, &FinancialStatementGrouping{})
+	m.FinancialStatementGroupingManager = horizon_services.NewRepository(horizon_services.RepositoryParams[FinancialStatementGrouping, FinancialStatementGroupingResponse, FinancialStatementGroupingRequest]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization", "IconMedia",
 			"FinancialStatementDefinitions",
 		},
 		Service: m.provider.Service,
-		Resource: func(data *FinancialStatementsrouping) *FinancialStatementGroupingResponse {
+		Resource: func(data *FinancialStatementGrouping) *FinancialStatementGroupingResponse {
 			if data == nil {
 				return nil
 			}
@@ -123,7 +123,7 @@ func (m *Model) FinancialStatementAccountsGrouping() {
 				FinancialStatementDefinitions: m.FinancialStatementDefinitionManager.ToModels(data.FinancialStatementDefinitions),
 			}
 		},
-		Created: func(data *FinancialStatementsrouping) []string {
+		Created: func(data *FinancialStatementGrouping) []string {
 			return []string{
 				"financial_statement_grouping.create",
 				fmt.Sprintf("financial_statement_grouping.create.%s", data.ID),
@@ -131,7 +131,7 @@ func (m *Model) FinancialStatementAccountsGrouping() {
 				fmt.Sprintf("financial_statement_grouping.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *FinancialStatementsrouping) []string {
+		Updated: func(data *FinancialStatementGrouping) []string {
 			return []string{
 				"financial_statement_grouping.update",
 				fmt.Sprintf("financial_statement_grouping.update.%s", data.ID),
@@ -139,7 +139,7 @@ func (m *Model) FinancialStatementAccountsGrouping() {
 				fmt.Sprintf("financial_statement_grouping.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *FinancialStatementsrouping) []string {
+		Deleted: func(data *FinancialStatementGrouping) []string {
 			return []string{
 				"financial_statement_grouping.delete",
 				fmt.Sprintf("financial_statement_grouping.delete.%s", data.ID),
@@ -150,8 +150,8 @@ func (m *Model) FinancialStatementAccountsGrouping() {
 	})
 }
 
-func (m *Model) FinancialStatementAccountsGroupingCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*FinancialStatementsrouping, error) {
-	return m.FinancialStatementGroupingManager.Find(context, &FinancialStatementsrouping{
+func (m *Model) FinancialStatementGroupingCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*FinancialStatementGrouping, error) {
+	return m.FinancialStatementGroupingManager.Find(context, &FinancialStatementGrouping{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

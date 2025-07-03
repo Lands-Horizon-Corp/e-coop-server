@@ -102,7 +102,7 @@ type (
 
 		// GL/FS
 		FinancialStatementDefinitionManager             horizon_services.Repository[FinancialStatementDefinition, FinancialStatementDefinitionResponse, FinancialStatementDefinitionRequest]
-		FinancialStatementGroupingManager               horizon_services.Repository[FinancialStatementsrouping, FinancialStatementGroupingResponse, FinancialStatementGroupingRequest]
+		FinancialStatementGroupingManager               horizon_services.Repository[FinancialStatementGrouping, FinancialStatementGroupingResponse, FinancialStatementGroupingRequest]
 		GeneralLedgerAccountsGroupingManager            horizon_services.Repository[GeneralLedgerAccountsGrouping, GeneralLedgerAccountsGroupingResponse, GeneralLedgerAccountsGroupingRequest]
 		GeneralLedgerDefinitionManager                  horizon_services.Repository[GeneralLedgerDefinition, GeneralLedgerDefinitionResponse, GeneralLedgerDefinitionRequest]
 		GeneralAccountGroupingNetSurplusPositiveManager horizon_services.Repository[GeneralAccountGroupingNetSurplusPositive, GeneralAccountGroupingNetSurplusPositiveResponse, GeneralAccountGroupingNetSurplusPositiveRequest]
@@ -258,7 +258,7 @@ func (c *Model) Start(context context.Context) error {
 	c.Disbursement()
 	c.DisbursementTransaction()
 	c.Feedback()
-	c.FinancialStatementAccountsGrouping()
+	c.FinancialStatementGrouping()
 	c.FinancialStatementDefinition()
 	c.FinesMaturity()
 	c.Footstep()
@@ -1049,6 +1049,80 @@ func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID 
 			return eris.Wrapf(err, "failed to seed general ledger accounts grouping %s", data.Name)
 		}
 	}
+
+	// Financial Statement Accounts Grouping seeder
+	financialStatementGrouping := []*FinancialStatementGrouping{
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Assets",
+			Description:    "Resources owned by the cooperative that have economic value and can provide future benefits.",
+			Debit:          "normal",
+			Credit:         "contra",
+			Code:           1000.00,
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Liabilities",
+			Description:    "Debts and obligations owed by the cooperative to external parties.",
+			Debit:          "contra",
+			Credit:         "normal",
+			Code:           2000.00,
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Equity",
+			Description:    "Ownership interest of members in the cooperative, including contributed capital and retained earnings.",
+			Debit:          "contra",
+			Credit:         "normal",
+			Code:           3000.00,
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Revenue",
+			Description:    "Income generated from the cooperative's operations and other income-generating activities.",
+			Debit:          "contra",
+			Credit:         "normal",
+			Code:           4000.00,
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Expenses",
+			Description:    "Costs incurred in the normal course of business operations and other business activities.",
+			Debit:          "normal",
+			Credit:         "contra",
+			Code:           5000.00,
+		},
+	}
+	for _, data := range financialStatementGrouping {
+		if err := m.FinancialStatementGroupingManager.CreateWithTx(context, tx, data); err != nil {
+			return eris.Wrapf(err, "failed to seed financial statement accounts grouping %s", data.Name)
+		}
+	}
 	return nil
 }
 
@@ -1200,5 +1274,18 @@ func (m *Model) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, userID u
 		}
 	}
 
+	// Financial Statement Accounts Grouping destroyer
+	FinancialStatementGroupings, err := m.FinancialStatementGroupingManager.Find(ctx, &FinancialStatementGrouping{
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+	})
+	if err != nil {
+		return eris.Wrapf(err, "failed to get financial statement accounts groupings")
+	}
+	for _, data := range FinancialStatementGroupings {
+		if err := m.FinancialStatementGroupingManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+			return eris.Wrapf(err, "failed to destroy financial statement accounts grouping %s", data.Name)
+		}
+	}
 	return nil
 }
