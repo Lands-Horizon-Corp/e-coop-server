@@ -135,8 +135,8 @@ func (c *Controller) AccountController() {
 	req.RegisterRoute(horizon.Route{
 		Route:    "/account-category/search",
 		Method:   "GET",
-		Response: "IAccount[]",
-		Note:     "List all accounts for the current branch",
+		Response: "IAccountCategory[]",
+		Note:     "List all account categories for the current branch",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -146,14 +146,25 @@ func (c *Controller) AccountController() {
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
 			return c.BadRequest(ctx, "User is not authorized")
 		}
-		account, err := c.model.AccountCategoryManager.Find(context, &model.AccountCategory{
+
+		// Add debug logging
+		fmt.Printf("Searching for account categories - OrgID: %s, BranchID: %s\n", userOrg.OrganizationID.String(), userOrg.BranchID.String())
+
+		accountCategories, err := c.model.AccountCategoryManager.Find(context, &model.AccountCategory{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
 		if err != nil {
+			fmt.Printf("Find error: %v\n", err)
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.AccountCategoryManager.Pagination(context, ctx, account))
+
+		fmt.Printf("Found %d account categories\n", len(accountCategories))
+
+		result := c.model.AccountCategoryManager.Pagination(context, ctx, accountCategories)
+		fmt.Printf("Pagination result: %+v\n", result)
+
+		return ctx.JSON(http.StatusOK, result)
 	})
 
 	req.RegisterRoute(horizon.Route{
@@ -207,7 +218,7 @@ func (c *Controller) AccountController() {
 		if err := c.model.AccountCategoryManager.Create(context, accountCategory); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
-		return ctx.JSON(http.StatusCreated, accountCategory)
+		return ctx.JSON(http.StatusCreated, c.model.AccountCategoryManager.ToModel(accountCategory))
 	})
 
 	req.RegisterRoute(horizon.Route{
@@ -503,31 +514,6 @@ func (c *Controller) AccountController() {
 			return c.InternalServerError(ctx, err)
 		}
 		return ctx.NoContent(http.StatusNoContent)
-	})
-
-	// Also add a search endpoint for account classifications
-	req.RegisterRoute(horizon.Route{
-		Route:    "/account-classification/search",
-		Method:   "GET",
-		Response: "IAccountClassification[]",
-		Note:     "List all account classifications for the current branch",
-	}, func(ctx echo.Context) error {
-		context := ctx.Request().Context()
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
-		if err != nil {
-			return err
-		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
-			return c.BadRequest(ctx, "User is not authorized")
-		}
-		accountClassifications, err := c.model.AccountClassificationManager.Find(context, &model.AccountClassification{
-			OrganizationID: userOrg.OrganizationID,
-			BranchID:       *userOrg.BranchID,
-		})
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-		}
-		return ctx.JSON(http.StatusOK, c.model.AccountClassificationManager.Pagination(context, ctx, accountClassifications))
 	})
 
 }
