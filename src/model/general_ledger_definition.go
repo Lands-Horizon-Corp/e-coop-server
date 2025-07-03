@@ -106,22 +106,22 @@ func (m *Model) GeneralLedgerDefinition() {
 			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization",
 			"Accounts",
 			"GeneralLedgerAccountsGrouping",
-			"GeneralLedgerDefinition",                         // Parent
-			"GeneralLedgerDefinition",                         // Children level 1
-			"GeneralLedgerDefinition.GeneralLedgerDefinition", // Parent of children
-			"GeneralLedgerDefinition.GeneralLedgerDefinition", // Children level 2
-			"GeneralLedgerDefinition.GeneralLedgerDefinition.GeneralLedgerDefinition",                                                 // Parent of level 2
-			"GeneralLedgerDefinition.GeneralLedgerDefinition.GeneralLedgerDefinition",                                                 // Children level 3
-			"GeneralLedgerDefinition.GeneralLedgerDefinition.GeneralLedgerDefinition.GeneralLedgerDefinition",                         // Parent of level 3
-			"GeneralLedgerDefinition.GeneralLedgerDefinition.GeneralLedgerDefinition.GeneralLedgerDefinition",                         // Children level 4
-			"GeneralLedgerDefinition.GeneralLedgerDefinition.GeneralLedgerDefinition.GeneralLedgerDefinition.GeneralLedgerDefinition", // Parent of level 4
-			"GeneralLedgerDefinition.GeneralLedgerDefinition.GeneralLedgerDefinition.GeneralLedgerDefinition.GeneralLedgerDefinition", // Children level 5
+			"GeneralLedgerDefinitionEntries", // Parent
+			"GeneralLedgerDefinitionEntries", // Children level 1
+			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries",                                                                                              // Parent of children
+			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries",                                                                                              // Children level 2
+			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries",                                                               // Parent of level 2
+			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries",                                                               // Children level 3
+			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries",                                // Parent of level 3
+			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries",                                // Children level 4
+			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries", // Parent of level 4
+			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries", // Children level 5
 			// Preload accounts for each level
-			"GeneralLedgerDefinition.Accounts",
-			"GeneralLedgerDefinition.GeneralLedgerDefinition.Accounts",
-			"GeneralLedgerDefinition.GeneralLedgerDefinition.GeneralLedgerDefinition.Accounts",
-			"GeneralLedgerDefinition.GeneralLedgerDefinition.GeneralLedgerDefinition.GeneralLedgerDefinition.Accounts",
-			"GeneralLedgerDefinition.GeneralLedgerDefinition.GeneralLedgerDefinition.GeneralLedgerDefinition.GeneralLedgerDefinition.Accounts",
+			"GeneralLedgerDefinitionEntries.Accounts",
+			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.Accounts",
+			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.Accounts",
+			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.Accounts",
+			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.Accounts",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *GeneralLedgerDefinition) *GeneralLedgerDefinitionResponse {
