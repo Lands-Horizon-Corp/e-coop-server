@@ -94,6 +94,7 @@ func (c *Controller) GeneralLedgerController() {
 			CreatedByID:                     userOrg.UserID,
 			UpdatedByID:                     userOrg.UserID,
 			GeneralLedgerDefinitionEntryID:  req.GeneralLedgerDefinitionEntryID,
+			GeneralLedgerAccountsGroupingID: req.GeneralLedgerAccountsGroupingID,
 			Name:                            req.Name,
 			Description:                     req.Description,
 			Index:                           req.Index,
