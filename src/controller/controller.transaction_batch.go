@@ -38,6 +38,24 @@ func (c *Controller) TransactionBatchController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
+		Route:    "/transaction-batch/search",
+		Method:   "GET",
+		Request:  "Filter<TTransactionBatch>",
+		Response: "Paginated<TTransactionBatch>",
+		Note:     "Get pagination for transaction batches",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.NoContent(http.StatusNoContent)
+		}
+		transactionBatch, err := c.model.TransactionBatchCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.TransactionBatchManager.Pagination(context, ctx, transactionBatch))
+	})
+	req.RegisterRoute(horizon.Route{
 		Route:    "/transaction-batch/current",
 		Method:   "GET",
 		Response: "ITransactionBatch",
@@ -426,16 +444,25 @@ func (c *Controller) TransactionBatchController() {
 		startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 		endOfDay := startOfDay.Add(24 * time.Hour)
 
-		transactionBatch, err := c.model.TransactionBatchManager.FindWithConditions(context, map[string]interface{}{
+		// Create conditions map without the operators in keys
+		conditions := map[string]interface{}{
 			"organization_id": userOrg.OrganizationID,
 			"branch_id":       *userOrg.BranchID,
 			"is_closed":       true,
-			"created_at >= ?": startOfDay,
-			"created_at < ?":  endOfDay,
-		})
-		if err != nil {
+		}
+
+		// Use GORM's DB.Where to handle date range filtering
+		db := c.provider.Service.Database.Client().Model(new(model.TransactionBatch))
+		for field, value := range conditions {
+			db = db.Where(field+" = ?", value)
+		}
+		db = db.Where("created_at >= ? AND created_at < ?", startOfDay, endOfDay)
+
+		var transactionBatch []*model.TransactionBatch
+		if err := db.Order("updated_at DESC").Find(&transactionBatch).Error; err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
+
 		return ctx.JSON(http.StatusOK, c.model.TransactionBatchManager.ToModels(transactionBatch))
 	})
 	req.RegisterRoute(horizon.Route{
