@@ -160,7 +160,7 @@ func (c *Controller) AccountController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/account-category/search",
+		Route:    "/account-category",
 		Method:   "GET",
 		Response: "IAccountCategory[]",
 		Note:     "List all account categories for the current branch",
