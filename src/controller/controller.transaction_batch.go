@@ -467,7 +467,6 @@ func (c *Controller) TransactionBatchController() {
 		db = db.Preload("CashCounts")
 		db = db.Preload("CheckRemittances")
 		db = db.Preload("OnlineRemittances")
-		db = db.Preload("BatchFundings")
 		db = db.Preload("ApprovedBySignatureMedia")
 		db = db.Preload("PreparedBySignatureMedia")
 		db = db.Preload("CertifiedBySignatureMedia")
