@@ -105,6 +105,7 @@ func (c *Controller) Start() error {
 
 	// Accounts
 	c.AccountController()
+	c.GeneralLedgerController()
 	return nil
 }
 
