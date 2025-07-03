@@ -316,7 +316,7 @@ type AccountRequest struct {
 	MemberTypeID                   *uuid.UUID `json:"member_type_id,omitempty"`
 
 	Name        string      `json:"name" validate:"required,min=1,max=255"`
-	Description string      `json:"description" validate:"required"`
+	Description string      `json:"description"`
 	MinAmount   float64     `json:"min_amount,omitempty"`
 	MaxAmount   float64     `json:"max_amount,omitempty"`
 	Index       int         `json:"index,omitempty"`
