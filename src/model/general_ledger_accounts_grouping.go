@@ -76,6 +76,7 @@ func (m *Model) GeneralLedgerAccountsGrouping() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Branch", "Organization",
 			"GeneralLedgerDefinitions",
+			"GeneralLedgerDefinitions.Accounts",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *GeneralLedgerAccountsGrouping) *GeneralLedgerAccountsGroupingResponse {
