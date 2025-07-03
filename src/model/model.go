@@ -226,7 +226,7 @@ func (c *Model) Start(context context.Context) error {
 	// Models
 	c.AccountCategory()
 	c.AccountClassification()
-	c.Account()
+
 	c.AccountTag()
 	c.AdjustmentEntry()
 	c.AdjustmentEntryTag()
@@ -271,6 +271,7 @@ func (c *Model) Start(context context.Context) error {
 	c.GeneralLedgerTransaction()
 	c.GeneratedReport()
 	c.GeneralLedgerDefinition()
+	c.Account()
 	c.GroceryComputationSheet()
 	c.GroceryComputationSheetMonthly()
 	c.Holiday()
