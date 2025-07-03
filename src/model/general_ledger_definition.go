@@ -106,7 +106,6 @@ func (m *Model) GeneralLedgerDefinition() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization",
 			"GeneralLedgerDefinitionEntries",
-			"Children",
 			"Accounts",
 			"GeneralLedgerAccountsGrouping",
 		},
