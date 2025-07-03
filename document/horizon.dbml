@@ -1657,7 +1657,7 @@ Ref: general_ledger_accounts_grouping.organization_id > organization.id [delete:
 Ref: general_ledger_accounts_grouping.branch_id > branch.id [delete:cascade, update:cascade]
 
 // 🔑
-Table financial_statement_accounts_grouping {
+Table financial_statement_grouping {
   id varchar(50) [primary key, unique, default: `uuid_generate_v4()`]
 
   organization_id varchar(50)
@@ -1686,9 +1686,9 @@ Table financial_statement_accounts_grouping {
 
 }
 
-Ref: financial_statement_accounts_grouping.organization_id > organization.id [delete:cascade, update:cascade]
-Ref: financial_statement_accounts_grouping.branch_id > branch.id [delete:cascade, update:cascade]
-Ref: financial_statement_accounts_grouping.icon_media_id > media.id [delete:restrict, update:cascade]
+Ref: financial_statement_grouping.organization_id > organization.id [delete:cascade, update:cascade]
+Ref: financial_statement_grouping.branch_id > branch.id [delete:cascade, update:cascade]
+Ref: financial_statement_grouping.icon_media_id > media.id [delete:restrict, update:cascade]
 
 // Financial Statement Definition Types
 enum financial_statement_definition_types {
