@@ -84,17 +84,17 @@ type (
 	}
 
 	CashEntryRequest struct {
-		AccountID            *uuid.UUID `json:"account_id,omitempty"`
-		MemberProfileID      *uuid.UUID `json:"member_profile_id,omitempty"`
-		MemberJointAccountID *uuid.UUID `json:"member_joint_account_id,omitempty"`
-		TransactionBatchID   *uuid.UUID `json:"transaction_batch_id,omitempty"`
-		GALedgerID           *uuid.UUID `json:"general_accounting_ledger_id,omitempty"`
-		TransactionID        *uuid.UUID `json:"transaction_id,omitempty"`
-		EmployeeUserID       *uuid.UUID `json:"employee_user_id,omitempty"`
-		DisbursementTxnID    *uuid.UUID `json:"disbursement_transaction_id,omitempty"`
-		ReferenceNumber      string     `json:"reference_number" validate:"required,min=1,max=255"`
-		Debit                float64    `json:"debit"`
-		Credit               float64    `json:"credit"`
+		AccountID                 *uuid.UUID `json:"account_id,omitempty"`
+		MemberProfileID           *uuid.UUID `json:"member_profile_id,omitempty"`
+		MemberJointAccountID      *uuid.UUID `json:"member_joint_account_id,omitempty"`
+		TransactionBatchID        *uuid.UUID `json:"transaction_batch_id,omitempty"`
+		GALedgerID                *uuid.UUID `json:"general_accounting_ledger_id,omitempty"`
+		TransactionID             *uuid.UUID `json:"transaction_id,omitempty"`
+		EmployeeUserID            *uuid.UUID `json:"employee_user_id,omitempty"`
+		DisbursementTransactionID *uuid.UUID `json:"disbursement_transaction_id,omitempty"`
+		ReferenceNumber           string     `json:"reference_number" validate:"required,min=1,max=255"`
+		Debit                     float64    `json:"debit"`
+		Credit                    float64    `json:"credit"`
 	}
 )
 
@@ -102,7 +102,7 @@ func (m *Model) CashEntry() {
 	m.Migration = append(m.Migration, &CashEntry{})
 	m.CashEntryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[CashEntry, CashEntryResponse, CashEntryRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization", "Account", "MemberProfile",
-			"MemberJointAccount", "TransactionBatch", "GALedger", "Transaction", "EmployeeUser", "DisbursementTxn"},
+			"MemberJointAccount", "TransactionBatch", "GALedger", "Transaction", "EmployeeUser", "DisbursementTransaction"},
 		Service: m.provider.Service,
 		Resource: func(data *CashEntry) *CashEntryResponse {
 			if data == nil {
