@@ -34,6 +34,8 @@ type (
 		Description string  `gorm:"type:text;not null"`
 		FromCode    float64 `gorm:"type:decimal;default:0"`
 		ToCode      float64 `gorm:"type:decimal;default:0"`
+
+		GeneralLedgerDefinitionEntries []*GeneralLedgerDefinition `gorm:"foreignKey:GeneralLedgerAccountsGroupingID" json:"general_ledger_definition,omitempty"`
 	}
 
 	GeneralLedgerAccountsGroupingResponse struct {
@@ -54,6 +56,8 @@ type (
 		Description    string                `json:"description"`
 		FromCode       float64               `json:"from_code"`
 		ToCode         float64               `json:"to_code"`
+
+		GeneralLedgerDefinitionEntries []*GeneralLedgerDefinitionResponse `json:"general_ledger_definition,omitempty"`
 	}
 
 	GeneralLedgerAccountsGroupingRequest struct {
@@ -69,8 +73,30 @@ type (
 func (m *Model) GeneralLedgerAccountsGrouping() {
 	m.Migration = append(m.Migration, &GeneralLedgerAccountsGrouping{})
 	m.GeneralLedgerAccountsGroupingManager = horizon_services.NewRepository(horizon_services.RepositoryParams[GeneralLedgerAccountsGrouping, GeneralLedgerAccountsGroupingResponse, GeneralLedgerAccountsGroupingRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
-		Service:  m.provider.Service,
+		Preloads: []string{
+			"CreatedBy", "UpdatedBy", "Branch", "Organization",
+			"GeneralLedgerDefinitionEntries",
+			"GeneralLedgerDefinitionEntries.Accounts",
+			"GeneralLedgerDefinitionEntries.GeneralLedgerAccountsGrouping",
+			"GeneralLedgerDefinitionEntries.CreatedBy",
+			"GeneralLedgerDefinitionEntries.UpdatedBy",
+			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries",
+			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries",
+			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.Accounts",
+			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries",
+			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries",
+			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.Accounts",
+			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries",
+			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries",
+			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.Accounts",
+			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries",
+			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries",
+			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.Accounts",
+			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries",
+			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries",
+			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.Accounts",
+		},
+		Service: m.provider.Service,
 		Resource: func(data *GeneralLedgerAccountsGrouping) *GeneralLedgerAccountsGroupingResponse {
 			if data == nil {
 				return nil
@@ -93,6 +119,8 @@ func (m *Model) GeneralLedgerAccountsGrouping() {
 				Description:    data.Description,
 				FromCode:       data.FromCode,
 				ToCode:         data.ToCode,
+
+				GeneralLedgerDefinitionEntries: m.GeneralLedgerDefinitionManager.ToModels(data.GeneralLedgerDefinitionEntries),
 			}
 		},
 		Created: func(data *GeneralLedgerAccountsGrouping) []string {

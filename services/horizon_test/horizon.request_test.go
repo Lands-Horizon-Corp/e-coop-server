@@ -23,14 +23,12 @@ func TestMain(m *testing.M) {
 	metricsPort := horizon.GetFreePort()
 	clientUrl := env.GetString("APP_CLIENT_URL", "http://localhost:3000")
 	clientName := env.GetString("APP_CLIENT_NAME", "test-client")
-	// isStaging := env.GetString("APP_ENV", "development") == "staging"
-	isStaging := false
 	baseURL := "http://localhost:" + fmt.Sprint(apiPort)
 
 	// Assign package-level variables, do NOT use := to avoid shadowing
 	testCtx := context.Background()
 
-	service := horizon.NewHorizonAPIService(apiPort, metricsPort, clientUrl, clientName, isStaging, "", "")
+	service := horizon.NewHorizonAPIService(apiPort, metricsPort, clientUrl, clientName)
 	go func() {
 		if err := service.Run(testCtx); err != nil {
 			println("Server exited with error:", err.Error())

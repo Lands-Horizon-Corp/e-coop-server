@@ -65,12 +65,11 @@ type (
 	}
 
 	MemberAssetRequest struct {
-		Name            string     `json:"name" validate:"required,min=1,max=255"`
-		EntryDate       time.Time  `json:"entry_date" validate:"required"`
-		Description     string     `json:"description" validate:"required"`
-		Cost            float64    `json:"cost,omitempty"`
-		MediaID         *uuid.UUID `json:"media_id,omitempty"`
-		MemberProfileID *uuid.UUID `json:"member_profile_id,omitempty"`
+		Name        string     `json:"name" validate:"required,min=1,max=255"`
+		EntryDate   time.Time  `json:"entry_date" validate:"required"`
+		Description string     `json:"description" validate:"required"`
+		Cost        float64    `json:"cost,omitempty"`
+		MediaID     *uuid.UUID `json:"media_id,omitempty"`
 	}
 )
 

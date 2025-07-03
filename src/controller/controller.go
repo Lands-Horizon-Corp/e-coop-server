@@ -98,6 +98,16 @@ func (c *Controller) Start() error {
 	// Transaction batch
 	c.TransactionBatchController()
 	c.CashCountController()
+	c.BatchFundingController()
+	c.CheckRemittanceController()
+	c.TransactionBatchEntriesController()
+	c.OnlineRemittanceController()
+
+	// Accounts
+	c.AccountController()
+	c.GeneralLedgerController()
+	c.FinancialStatementController()
+	c.AccountTagController()
 	return nil
 }
 

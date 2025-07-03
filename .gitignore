@@ -31,3 +31,4 @@ main
 .env.production
 .env.development
 .env.local
+.env.staging

@@ -236,12 +236,6 @@ func (c *Controller) MemberProfileController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
 
-		if !c.model.UserOrganizationMemberCanJoin(
-			context,
-			*userID, userOrg.OrganizationID, *userOrg.BranchID) {
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "cannot join as member"})
-		}
-
 		user, err := c.model.UserManager.GetByID(context, *userID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
@@ -312,6 +306,7 @@ func (c *Controller) MemberProfileController() {
 			return c.NotFound(ctx, "MemberProfile")
 		}
 		memberProfile.Status = "verified"
+		memberProfile.MemberVerifiedByEmployeeUserID = &userOrg.UserID
 		if err := c.model.MemberProfileManager.UpdateFields(context, memberProfile.ID, memberProfile); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update member profile: "+err.Error())
 		}
@@ -320,7 +315,7 @@ func (c *Controller) MemberProfileController() {
 
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-profile/:member_profile_id/reject",
-		Method:   "POST",
+		Method:   "PUT",
 		Response: "MemberProfile",
 		Note:     "Reject member profile",
 	}, func(ctx echo.Context) error {
@@ -566,30 +561,29 @@ func (c *Controller) MemberProfileController() {
 		}
 
 		profile := &model.MemberProfile{
-			OrganizationID:             user.OrganizationID,
-			BranchID:                   *user.BranchID,
-			CreatedAt:                  time.Now().UTC(),
-			UpdatedAt:                  time.Now().UTC(),
-			CreatedByID:                user.UserID,
-			UpdatedByID:                user.UserID,
-			UserID:                     userProfileID,
-			OldReferenceID:             req.OldReferenceID,
-			Passbook:                   req.Passbook,
-			FirstName:                  req.FirstName,
-			MiddleName:                 req.MiddleName,
-			LastName:                   req.LastName,
-			FullName:                   req.FullName,
-			Suffix:                     req.Suffix,
-			MemberGenderID:             req.MemberGenderID,
-			BirthDate:                  req.BirthDate,
-			ContactNumber:              req.ContactNumber,
-			CivilStatus:                req.CivilStatus,
-			MemberOccupationID:         req.MemberOccupationID,
-			Status:                     req.Status,
-			IsMutualFundMember:         req.IsMutualFundMember,
-			IsMicroFinanceMember:       req.IsMicroFinanceMember,
-			MemberTypeID:               req.MemberTypeID,
-			RecruitedByMemberProfileID: &user.UserID,
+			OrganizationID:       user.OrganizationID,
+			BranchID:             *user.BranchID,
+			CreatedAt:            time.Now().UTC(),
+			UpdatedAt:            time.Now().UTC(),
+			CreatedByID:          user.UserID,
+			UpdatedByID:          user.UserID,
+			UserID:               userProfileID,
+			OldReferenceID:       req.OldReferenceID,
+			Passbook:             req.Passbook,
+			FirstName:            req.FirstName,
+			MiddleName:           req.MiddleName,
+			LastName:             req.LastName,
+			FullName:             req.FullName,
+			Suffix:               req.Suffix,
+			MemberGenderID:       req.MemberGenderID,
+			BirthDate:            req.BirthDate,
+			ContactNumber:        req.ContactNumber,
+			CivilStatus:          req.CivilStatus,
+			MemberOccupationID:   req.MemberOccupationID,
+			Status:               req.Status,
+			IsMutualFundMember:   req.IsMutualFundMember,
+			IsMicroFinanceMember: req.IsMicroFinanceMember,
+			MemberTypeID:         req.MemberTypeID,
 		}
 		if err := c.model.MemberProfileManager.CreateWithTx(context, tx, profile); err != nil {
 			tx.Rollback()
@@ -610,7 +604,7 @@ func (c *Controller) MemberProfileController() {
 				UpdatedByID:             user.UserID,
 				OrganizationID:          user.OrganizationID,
 				BranchID:                user.BranchID,
-				UserID:                  user.UserID,
+				UserID:                  *userProfileID,
 				UserType:                "member",
 				Description:             "",
 				ApplicationDescription:  "anything",
@@ -753,6 +747,7 @@ func (c *Controller) MemberProfileController() {
 		profile.UpdatedByID = userOrg.UserID
 		profile.Passbook = req.Passbook
 		profile.OldReferenceID = req.OldReferenceID
+		profile.RecruitedByMemberProfileID = req.RecruitedByMemberProfileID
 		profile.Status = req.Status
 
 		// MemberTypeID
@@ -827,9 +822,6 @@ func (c *Controller) MemberProfileController() {
 			profile.MemberCenterID = req.MemberCenterID
 		}
 
-		if req.RecruitedByMemberProfileID != nil {
-			profile.RecruitedByMemberProfileID = req.RecruitedByMemberProfileID
-		}
 		profile.IsMutualFundMember = req.IsMutualFundMember
 		profile.IsMicroFinanceMember = req.IsMicroFinanceMember
 
@@ -866,7 +858,6 @@ func (c *Controller) MemberEducationalAttainmentController() {
 
 		value := &model.MemberEducationalAttainment{
 			MemberProfileID:       *memberProfileID,
-			Name:                  req.Name,
 			SchoolName:            req.SchoolName,
 			SchoolYear:            req.SchoolYear,
 			ProgramCourse:         req.ProgramCourse,
@@ -881,7 +872,8 @@ func (c *Controller) MemberEducationalAttainmentController() {
 		}
 
 		if err := c.model.MemberEducationalAttainmentManager.Create(context, value); err != nil {
-			return c.InternalServerError(ctx, err)
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 
 		return ctx.JSON(http.StatusOK, c.model.MemberEducationalAttainmentManager.ToModel(value))
@@ -919,7 +911,6 @@ func (c *Controller) MemberEducationalAttainmentController() {
 		value.BranchID = *user.BranchID
 
 		value.MemberProfileID = req.MemberProfileID
-		value.Name = req.Name
 		value.SchoolName = req.SchoolName
 		value.SchoolYear = req.SchoolYear
 		value.ProgramCourse = req.ProgramCourse
@@ -1568,7 +1559,8 @@ func (c *Controller) MemberGovernmentBenefitController() {
 		}
 
 		if err := c.model.MemberGovernmentBenefitManager.Create(context, value); err != nil {
-			return c.InternalServerError(ctx, err)
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": err.Error()})
+
 		}
 
 		return ctx.JSON(http.StatusOK, c.model.MemberGovernmentBenefitManager.ToModel(value))
@@ -1629,6 +1621,7 @@ func (c *Controller) MemberGovernmentBenefitController() {
 		if err != nil {
 			return c.BadRequest(ctx, "Invalid member government benefit ID")
 		}
+
 		if err := c.model.MemberGovernmentBenefitManager.DeleteByID(context, *memberGovernmentBenefitID); err != nil {
 			return c.InternalServerError(ctx, err)
 		}
@@ -1719,7 +1712,6 @@ func (c *Controller) MemberJointAccountController() {
 		value.UpdatedByID = user.UserID
 		value.OrganizationID = user.OrganizationID
 		value.BranchID = *user.BranchID
-		value.MemberProfileID = req.MemberProfileID
 		value.PictureMediaID = req.PictureMediaID
 		value.SignatureMediaID = req.SignatureMediaID
 		value.Description = req.Description
@@ -1758,7 +1750,7 @@ func (c *Controller) MemberRelativeAccountController() {
 	req := c.provider.Service.Request
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-relative-account",
+		Route:    "/member-relative-account/member-profile/:member_profile_id",
 		Method:   "POST",
 		Request:  "TMemberRelativeAccount",
 		Response: "TMemberRelativeAccount",

@@ -28,8 +28,14 @@ type (
 		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_financial_statement_definition"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
-		FinancialStatementDefinitionID *uuid.UUID                    `gorm:"type:uuid"`
-		ParentDefinition               *FinancialStatementDefinition `gorm:"foreignKey:FinancialStatementDefinitionID" json:"parent_definition,omitempty"`
+		// Self-referencing relationship for parent-child hierarchy
+		ParentDefinitionID *uuid.UUID                      `gorm:"type:uuid;column:financial_statement_definition_id"`
+		ParentDefinition   *FinancialStatementDefinition   `gorm:"foreignKey:ParentDefinitionID" json:"parent_definition,omitempty"`
+		ChildDefinitions   []*FinancialStatementDefinition `gorm:"foreignKey:ParentDefinitionID" json:"child_definitions,omitempty"`
+
+		// Many-to-one relationship with FinancialStatementGrouping
+		FinancialStatementGroupingID *uuid.UUID                  `gorm:"type:uuid;index" json:"financial_statement_grouping_id,omitempty"`
+		FinancialStatementGrouping   *FinancialStatementGrouping `gorm:"foreignKey:FinancialStatementGroupingID;constraint:OnDelete:SET NULL;" json:"grouping,omitempty"`
 
 		Name                   string `gorm:"type:varchar(255);not null;unique"`
 		Description            string `gorm:"type:text"`
@@ -40,25 +46,31 @@ type (
 	}
 
 	FinancialStatementDefinitionResponse struct {
-		ID                             uuid.UUID                             `json:"id"`
-		CreatedAt                      string                                `json:"created_at"`
-		CreatedByID                    uuid.UUID                             `json:"created_by_id"`
-		CreatedBy                      *UserResponse                         `json:"created_by,omitempty"`
-		UpdatedAt                      string                                `json:"updated_at"`
-		UpdatedByID                    uuid.UUID                             `json:"updated_by_id"`
-		UpdatedBy                      *UserResponse                         `json:"updated_by,omitempty"`
-		OrganizationID                 uuid.UUID                             `json:"organization_id"`
-		Organization                   *OrganizationResponse                 `json:"organization,omitempty"`
-		BranchID                       uuid.UUID                             `json:"branch_id"`
-		Branch                         *BranchResponse                       `json:"branch,omitempty"`
-		FinancialStatementDefinitionID *uuid.UUID                            `json:"financial_statement_definition_id,omitempty"`
-		ParentDefinition               *FinancialStatementDefinitionResponse `json:"parent_definition,omitempty"`
-		Name                           string                                `json:"name"`
-		Description                    string                                `json:"description"`
-		Index                          int                                   `json:"index"`
-		NameInTotal                    string                                `json:"name_in_total"`
-		IsPosting                      bool                                  `json:"is_posting"`
-		FinancialStatementType         string                                `json:"financial_statement_type"`
+		ID             uuid.UUID             `json:"id"`
+		CreatedAt      string                `json:"created_at"`
+		CreatedByID    uuid.UUID             `json:"created_by_id"`
+		CreatedBy      *UserResponse         `json:"created_by,omitempty"`
+		UpdatedAt      string                `json:"updated_at"`
+		UpdatedByID    uuid.UUID             `json:"updated_by_id"`
+		UpdatedBy      *UserResponse         `json:"updated_by,omitempty"`
+		OrganizationID uuid.UUID             `json:"organization_id"`
+		Organization   *OrganizationResponse `json:"organization,omitempty"`
+		BranchID       uuid.UUID             `json:"branch_id"`
+		Branch         *BranchResponse       `json:"branch,omitempty"`
+
+		ParentDefinitionID *uuid.UUID                              `json:"parent_definition_id,omitempty"`
+		ParentDefinition   *FinancialStatementDefinitionResponse   `json:"parent_definition,omitempty"`
+		ChildDefinitions   []*FinancialStatementDefinitionResponse `json:"child_definitions,omitempty"`
+
+		FinancialStatementGroupingID *uuid.UUID                          `json:"financial_statement_grouping_id,omitempty"`
+		FinancialStatementGrouping   *FinancialStatementGroupingResponse `json:"grouping,omitempty"`
+
+		Name                   string `json:"name"`
+		Description            string `json:"description"`
+		Index                  int    `json:"index"`
+		NameInTotal            string `json:"name_in_total"`
+		IsPosting              bool   `json:"is_posting"`
+		FinancialStatementType string `json:"financial_statement_type"`
 	}
 
 	FinancialStatementDefinitionRequest struct {
@@ -75,32 +87,37 @@ type (
 func (m *Model) FinancialStatementDefinition() {
 	m.Migration = append(m.Migration, &FinancialStatementDefinition{})
 	m.FinancialStatementDefinitionManager = horizon_services.NewRepository(horizon_services.RepositoryParams[FinancialStatementDefinition, FinancialStatementDefinitionResponse, FinancialStatementDefinitionRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization", "ParentDefinition"},
+		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization", "ParentDefinition", "ChildDefinitions", "FinancialStatementGrouping"},
 		Service:  m.provider.Service,
 		Resource: func(data *FinancialStatementDefinition) *FinancialStatementDefinitionResponse {
 			if data == nil {
 				return nil
 			}
 			return &FinancialStatementDefinitionResponse{
-				ID:                             data.ID,
-				CreatedAt:                      data.CreatedAt.Format(time.RFC3339),
-				CreatedByID:                    data.CreatedByID,
-				CreatedBy:                      m.UserManager.ToModel(data.CreatedBy),
-				UpdatedAt:                      data.UpdatedAt.Format(time.RFC3339),
-				UpdatedByID:                    data.UpdatedByID,
-				UpdatedBy:                      m.UserManager.ToModel(data.UpdatedBy),
-				OrganizationID:                 data.OrganizationID,
-				Organization:                   m.OrganizationManager.ToModel(data.Organization),
-				BranchID:                       data.BranchID,
-				Branch:                         m.BranchManager.ToModel(data.Branch),
-				FinancialStatementDefinitionID: data.FinancialStatementDefinitionID,
-				ParentDefinition:               m.FinancialStatementDefinitionManager.ToModel(data.ParentDefinition),
-				Name:                           data.Name,
-				Description:                    data.Description,
-				Index:                          data.Index,
-				NameInTotal:                    data.NameInTotal,
-				IsPosting:                      data.IsPosting,
-				FinancialStatementType:         data.FinancialStatementType,
+				ID:             data.ID,
+				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
+				CreatedByID:    data.CreatedByID,
+				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
+				UpdatedByID:    data.UpdatedByID,
+				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				OrganizationID: data.OrganizationID,
+				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				BranchID:       data.BranchID,
+				Branch:         m.BranchManager.ToModel(data.Branch),
+
+				ParentDefinitionID:           data.ParentDefinitionID,
+				ParentDefinition:             m.FinancialStatementDefinitionManager.ToModel(data.ParentDefinition),
+				ChildDefinitions:             m.FinancialStatementDefinitionManager.ToModels(data.ChildDefinitions),
+				FinancialStatementGroupingID: data.FinancialStatementGroupingID,
+				FinancialStatementGrouping:   m.FinancialStatementGroupingManager.ToModel(data.FinancialStatementGrouping),
+
+				Name:                   data.Name,
+				Description:            data.Description,
+				Index:                  data.Index,
+				NameInTotal:            data.NameInTotal,
+				IsPosting:              data.IsPosting,
+				FinancialStatementType: data.FinancialStatementType,
 			}
 		},
 		Created: func(data *FinancialStatementDefinition) []string {

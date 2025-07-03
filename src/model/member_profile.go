@@ -70,6 +70,7 @@ type (
 		BusinessContactNumber          string                `gorm:"type:varchar(255)" json:"business_contact_number,omitempty"`
 		CivilStatus                    string                `gorm:"type:varchar(50);not null;default:'single'" json:"civil_status"`
 
+		RecruitedMembers             []*MemberProfile               `gorm:"foreignKey:RecruitedByMemberProfileID" json:"recruited_members,omitempty"`
 		MemberAddresses              []*MemberAddress               `gorm:"foreignKey:MemberProfileID" json:"member_addresses,omitempty"`
 		MemberAssets                 []*MemberAsset                 `gorm:"foreignKey:MemberProfileID" json:"member_assets,omitempty"`
 		MemberIncomes                []*MemberIncome                `gorm:"foreignKey:MemberProfileID" json:"member_incomes,omitempty"`
@@ -134,8 +135,19 @@ type (
 		BusinessContactNumber          string                        `json:"business_contact_number"`
 		CivilStatus                    string                        `json:"civil_status"`
 
-		QRCode            *horizon.QRResult            `json:"qr_code,omitempty"`
-		MemberCloseRemark []*MemberCloseRemarkResponse `json:"member_close_remarks,omitempty"`
+		QRCode *horizon.QRResult `json:"qr_code,omitempty"`
+
+		MemberAddresses              []*MemberAddressReponse                `json:"member_addresses,omitempty"`
+		MemberAssets                 []*MemberAssetResponse                 `json:"member_assets,omitempty"`
+		MemberIncomes                []*MemberIncomeResponse                `json:"member_incomes,omitempty"`
+		MemberExpenses               []*MemberExpenseResponse               `json:"member_expenses,omitempty"`
+		MemberGovernmentBenefits     []*MemberGovernmentBenefitResponse     `json:"member_government_benefits,omitempty"`
+		MemberJointAccounts          []*MemberJointAccountResponse          `json:"member_joint_accounts,omitempty"`
+		MemberRelativeAccounts       []*MemberRelativeAccountResponse       `json:"member_relative_accounts,omitempty"`
+		MemberEducationalAttainments []*MemberEducationalAttainmentResponse `json:"member_educational_attainments,omitempty"`
+		MemberContactReferences      []*MemberContactReferenceResponse      `json:"member_contact_references,omitempty"`
+		MemberCloseRemarks           []*MemberCloseRemarkResponse           `json:"member_close_remarks,omitempty"`
+		RecruitedMembers             []*MemberProfileResponse               `json:"recruited_members,omitempty"`
 	}
 
 	MemberProfileRequest struct {
@@ -268,9 +280,21 @@ func (m *Model) MemberProfile() {
 			"User",
 			"User.Media",
 			"MemberType", "MemberGroup", "MemberGender", "MemberCenter",
-			"MemberOccupation", "MemberClassification", "MemberVerifiedByEmployeeUser", "RecruitedByMemberProfile",
+			"MemberOccupation", "MemberClassification", "MemberVerifiedByEmployeeUser",
 			"MemberVerifiedByEmployeeUser.Media",
-			"RecruitedByMemberProfile.Media",
+
+			"MemberAddresses",
+			"MemberAssets", "MemberAssets.Media",
+			"MemberIncomes", "MemberIncomes.Media",
+			"MemberExpenses",
+			"MemberGovernmentBenefits", "MemberGovernmentBenefits.FrontMedia", "MemberGovernmentBenefits.BackMedia",
+			"MemberJointAccounts", "MemberJointAccounts.PictureMedia", "MemberJointAccounts.SignatureMedia",
+
+			"MemberRelativeAccounts", "MemberRelativeAccounts.RelativeMemberProfile", "MemberRelativeAccounts.RelativeMemberProfile.Media",
+			"RecruitedByMemberProfile", "RecruitedByMemberProfile.Media",
+			"RecruitedMembers", "RecruitedMembers.Media",
+			"MemberEducationalAttainments",
+			"MemberContactReferences",
 			"MemberCloseRemarks",
 		},
 		Service: m.provider.Service,
@@ -349,7 +373,17 @@ func (m *Model) MemberProfile() {
 				BusinessContactNumber:          data.BusinessContactNumber,
 				CivilStatus:                    data.CivilStatus,
 				QRCode:                         result,
-				MemberCloseRemark:              m.MemberCloseRemarkManager.ToModels(data.MemberCloseRemarks),
+				MemberAddresses:                m.MemberAddressManager.ToModels(data.MemberAddresses),
+				MemberAssets:                   m.MemberAssetManager.ToModels(data.MemberAssets),
+				MemberIncomes:                  m.MemberIncomeManager.ToModels(data.MemberIncomes),
+				MemberExpenses:                 m.MemberExpenseManager.ToModels(data.MemberExpenses),
+				MemberGovernmentBenefits:       m.MemberGovernmentBenefitManager.ToModels(data.MemberGovernmentBenefits),
+				MemberJointAccounts:            m.MemberJointAccountManager.ToModels(data.MemberJointAccounts),
+				MemberRelativeAccounts:         m.MemberRelativeAccountManager.ToModels(data.MemberRelativeAccounts),
+				MemberEducationalAttainments:   m.MemberEducationalAttainmentManager.ToModels(data.MemberEducationalAttainments),
+				MemberContactReferences:        m.MemberContactReferenceManager.ToModels(data.MemberContactReferences),
+				MemberCloseRemarks:             m.MemberCloseRemarkManager.ToModels(data.MemberCloseRemarks),
+				RecruitedMembers:               m.MemberProfileManager.ToModels(data.RecruitedMembers),
 			}
 		},
 

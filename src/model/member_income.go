@@ -28,9 +28,8 @@ type (
 		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_member_income"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
-		MediaID uuid.UUID `gorm:"type:uuid"`
-		Media   *Media    `gorm:"foreignKey:MediaID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"media,omitempty"`
-
+		MediaID         *uuid.UUID     `gorm:"type:uuid" json:"media_id,omitempty"`
+		Media           *Media         `gorm:"foreignKey:MediaID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"media,omitempty"`
 		MemberProfileID uuid.UUID      `gorm:"type:uuid;not null"`
 		MemberProfile   *MemberProfile `gorm:"foreignKey:MemberProfileID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_profile,omitempty"`
 
@@ -51,7 +50,7 @@ type (
 		Organization    *OrganizationResponse  `json:"organization,omitempty"`
 		BranchID        uuid.UUID              `json:"branch_id"`
 		Branch          *BranchResponse        `json:"branch,omitempty"`
-		MediaID         uuid.UUID              `json:"media_id"`
+		MediaID         *uuid.UUID             `json:"media_id,omitempty"`
 		Media           *MediaResponse         `json:"media,omitempty"`
 		MemberProfileID uuid.UUID              `json:"member_profile_id"`
 		MemberProfile   *MemberProfileResponse `json:"member_profile,omitempty"`
@@ -61,11 +60,10 @@ type (
 	}
 
 	MemberIncomeRequest struct {
-		MemberProfileID uuid.UUID  `json:"member_profile_id" validate:"required"`
-		MediaID         uuid.UUID  `json:"media_id" validate:"required"`
-		Name            string     `json:"name" validate:"required,min=1,max=255"`
-		Amount          float64    `json:"amount" validate:"required"`
-		ReleaseDate     *time.Time `json:"release_date,omitempty"`
+		MediaID     *uuid.UUID `json:"media_id"`
+		Name        string     `json:"name" validate:"required,min=1,max=255"`
+		Amount      float64    `json:"amount" validate:"required"`
+		ReleaseDate *time.Time `json:"release_date,omitempty"`
 	}
 )
 

@@ -18,12 +18,10 @@ func TestHorizonMessageBroker(t *testing.T) {
 	env := horizon.NewEnvironmentService("../../.env")
 	host := env.GetString("NATS_HOST", "localhost")
 	port := env.GetInt("NATS_CLIENT_PORT", 4222)
-	// isStaging := env.GetString("APP_ENV", "development") == "staging"
-	isStaging := false
 	ctx := context.Background()
 
 	t.Run("Connect and Disconnect", func(t *testing.T) {
-		broker := horizon.NewHorizonMessageBroker(host, port, isStaging, "", "")
+		broker := horizon.NewHorizonMessageBroker(host, port, "test-client")
 		err := broker.Run(ctx)
 		require.NoError(t, err, "should connect without error")
 		err = broker.Stop(ctx)
@@ -31,7 +29,7 @@ func TestHorizonMessageBroker(t *testing.T) {
 	})
 
 	t.Run("Publish and Subscribe", func(t *testing.T) {
-		broker := horizon.NewHorizonMessageBroker(host, port, isStaging, "", "")
+		broker := horizon.NewHorizonMessageBroker(host, port, "test-client")
 		err := broker.Run(ctx)
 		require.NoError(t, err)
 		defer broker.Stop(ctx)
@@ -72,7 +70,7 @@ func TestHorizonMessageBroker(t *testing.T) {
 	})
 
 	t.Run("Dispatch to Multiple Topics", func(t *testing.T) {
-		broker := horizon.NewHorizonMessageBroker(host, port, isStaging, "", "")
+		broker := horizon.NewHorizonMessageBroker(host, port, "test-client")
 		err := broker.Run(ctx)
 		require.NoError(t, err)
 		defer broker.Stop(ctx)
@@ -132,7 +130,7 @@ func TestHorizonMessageBroker(t *testing.T) {
 	})
 
 	t.Run("Publish Without Connection", func(t *testing.T) {
-		broker := horizon.NewHorizonMessageBroker(host, port, isStaging, "", "")
+		broker := horizon.NewHorizonMessageBroker(host, port, "test-client")
 		// Intentionally not calling Run
 
 		err := broker.Publish(ctx, "test.topic", "payload")
@@ -141,7 +139,7 @@ func TestHorizonMessageBroker(t *testing.T) {
 	})
 
 	t.Run("Subscribe Without Connection", func(t *testing.T) {
-		broker := horizon.NewHorizonMessageBroker(host, port, isStaging, "", "")
+		broker := horizon.NewHorizonMessageBroker(host, port, "test-client")
 		// Intentionally not calling Run
 
 		err := broker.Subscribe(ctx, "test.topic", func(any) error { return nil })

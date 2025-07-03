@@ -68,7 +68,8 @@ type Repository[TData any, TResponse any, TRequest any] interface {
 	// Optionally preloads related entities.
 	Find(ctx context.Context, fields *TData, preloads ...string) ([]*TData, error)
 	FindRaw(ctx context.Context, fields *TData, preloads ...string) ([]*TResponse, error)
-
+	FindWithConditions(ctx context.Context, conditions map[string]interface{}, preloads ...string) ([]*TData, error)
+	FindOneWithConditions(ctx context.Context, conditions map[string]interface{}, preloads ...string) (*TData, error)
 	// FindOne retrieves a single entity that matches the non-zero fields of the provided struct.
 	// Optionally preloads related entities.
 	FindOne(ctx context.Context, fields *TData, preloads ...string) (*TData, error)
@@ -451,6 +452,46 @@ func (c *CollectionManager[TData, TResponse, TRequest]) DeleteWithTx(ctx context
 	}
 	c.DeletedBroadcast(ctx, entity)
 	return nil
+}
+
+func (c *CollectionManager[TData, TResponse, TRequest]) FindWithConditions(ctx context.Context, conditions map[string]interface{}, preloads ...string) ([]*TData, error) {
+	var entities []*TData
+	db := c.service.Database.Client().Model(new(TData))
+
+	// Apply conditions that include zero values
+	for field, value := range conditions {
+		db = db.Where(field+" = ?", value)
+	}
+
+	preloads = horizon.MergeString(c.preloads, preloads)
+	for _, preload := range preloads {
+		db = db.Preload(preload)
+	}
+
+	if err := db.Order("updated_at DESC").Find(&entities).Error; err != nil {
+		return nil, eris.Wrap(err, "failed to find entities with conditions")
+	}
+	return entities, nil
+}
+
+func (c *CollectionManager[TData, TResponse, TRequest]) FindOneWithConditions(ctx context.Context, conditions map[string]interface{}, preloads ...string) (*TData, error) {
+	var entity TData
+	db := c.service.Database.Client().Model(new(TData))
+
+	// Apply conditions that include zero values
+	for field, value := range conditions {
+		db = db.Where(field+" = ?", value)
+	}
+
+	preloads = horizon.MergeString(c.preloads, preloads)
+	for _, preload := range preloads {
+		db = db.Preload(preload)
+	}
+
+	if err := db.Order("updated_at DESC").First(&entity).Error; err != nil {
+		return nil, eris.Wrap(err, "failed to find entity with conditions")
+	}
+	return &entity, nil
 }
 
 // Find implements Repository.

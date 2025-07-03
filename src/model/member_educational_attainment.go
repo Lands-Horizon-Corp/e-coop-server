@@ -31,11 +31,10 @@ type (
 		MemberProfileID uuid.UUID      `gorm:"type:uuid;not null"`
 		MemberProfile   *MemberProfile `gorm:"foreignKey:MemberProfileID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_profile,omitempty"`
 
-		Name                  string `gorm:"type:varchar(255);not null"`
 		SchoolName            string `gorm:"type:varchar(255)"`
 		SchoolYear            int    `gorm:"type:int"`
 		ProgramCourse         string `gorm:"type:varchar(255)"`
-		EducationalAttainment string `gorm:"type:varchar(255)"` // Bachelors Degree, Phd, Masteral
+		EducationalAttainment string `gorm:"type:varchar(255)"`
 		Description           string `gorm:"type:text"`
 	}
 
@@ -63,8 +62,7 @@ type (
 
 	MemberEducationalAttainmentRequest struct {
 		MemberProfileID       uuid.UUID `json:"member_profile_id" validate:"required"`
-		Name                  string    `json:"name" validate:"required,min=1,max=255"`
-		SchoolName            string    `json:"school_name,omitempty"`
+		SchoolName            string    `json:"school_name,omitempty" validate:"required,min=1,max=255"`
 		SchoolYear            int       `json:"school_year,omitempty"`
 		ProgramCourse         string    `json:"program_course,omitempty"`
 		EducationalAttainment string    `json:"educational_attainment,omitempty"`
@@ -95,7 +93,6 @@ func (m *Model) MemberEducationalAttainment() {
 				Branch:                m.BranchManager.ToModel(data.Branch),
 				MemberProfileID:       data.MemberProfileID,
 				MemberProfile:         m.MemberProfileManager.ToModel(data.MemberProfile),
-				Name:                  data.Name,
 				SchoolName:            data.SchoolName,
 				SchoolYear:            data.SchoolYear,
 				ProgramCourse:         data.ProgramCourse,

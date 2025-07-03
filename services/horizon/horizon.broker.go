@@ -2,7 +2,6 @@ package horizon
 
 import (
 	"context"
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
 
@@ -22,49 +21,26 @@ type MessageBrokerService interface {
 type HorizonMessageBroker struct {
 	host     string
 	port     int
-	ssl      bool
 	nc       *nats.Conn
-	certPath string
-	keyPath  string
+	clientId string
 }
 
 // NewHorizonMessageBroker initializes the broker with optional TLS cert paths
-func NewHorizonMessageBroker(host string, port int, ssl bool, certPath, keyPath string) MessageBrokerService {
+func NewHorizonMessageBroker(host string, port int, clientId string) MessageBrokerService {
 	return &HorizonMessageBroker{
 		host:     host,
 		port:     port,
-		ssl:      ssl,
-		certPath: certPath,
-		keyPath:  keyPath,
+		clientId: clientId,
 	}
 }
 
 func (h *HorizonMessageBroker) Run(ctx context.Context) error {
 	var natsURL string
-	if h.ssl {
-		natsURL = fmt.Sprintf("tls://%s:%d", h.host, h.port)
-	} else {
-		natsURL = fmt.Sprintf("nats://%s:%d", h.host, h.port)
-	}
-
+	natsURL = fmt.Sprintf("nats://%s:%d", h.host, h.port)
 	options := []nats.Option{
 		nats.ErrorHandler(func(_ *nats.Conn, sub *nats.Subscription, err error) {
 			fmt.Printf("Error in subscription to %s: %v\n", sub.Subject, err)
 		}),
-	}
-
-	if h.ssl {
-		cert, err := tls.LoadX509KeyPair(h.certPath, h.keyPath)
-		if err != nil {
-			return eris.Wrap(err, "failed to load TLS certificate and key")
-		}
-
-		tlsConfig := &tls.Config{
-			Certificates:       []tls.Certificate{cert},
-			InsecureSkipVerify: false,
-		}
-
-		options = append(options, nats.Secure(tlsConfig))
 	}
 
 	nc, err := nats.Connect(natsURL, options...)
@@ -111,7 +87,7 @@ func (h *HorizonMessageBroker) Publish(ctx context.Context, topic string, payloa
 		return eris.Wrap(err, "failed to marshal payload")
 	}
 
-	if err := h.nc.Publish(topic, data); err != nil {
+	if err := h.nc.Publish(topic+h.clientId, data); err != nil {
 		return eris.Wrap(err, fmt.Sprintf("failed to publish to topic %s", topic))
 	}
 
@@ -123,7 +99,7 @@ func (h *HorizonMessageBroker) Subscribe(ctx context.Context, topic string, hand
 		return eris.New("NATS connection not initialized")
 	}
 
-	_, err := h.nc.Subscribe(topic, func(msg *nats.Msg) {
+	_, err := h.nc.Subscribe(topic+h.clientId, func(msg *nats.Msg) {
 		var payload map[string]any
 		if err := json.Unmarshal(msg.Data, &payload); err != nil {
 			fmt.Printf("Failed to unmarshal message from topic %s: %v\n", topic, err)

@@ -134,7 +134,7 @@ type (
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
 		GeneralLedgerDefinitionID *uuid.UUID               `gorm:"type:uuid" json:"general_ledger_definition_id"`
-		GeneralLedgerDefinition   *GeneralLedgerDefinition `gorm:"foreignKey:GeneralLedgerDefinitionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"general_ledger_definition,omitempty"`
+		GeneralLedgerDefinition   *GeneralLedgerDefinition `gorm:"foreignKey:GeneralLedgerDefinitionID" json:"general_ledger_definition,omitempty"`
 
 		FinancialStatementDefinitionID *uuid.UUID                    `gorm:"type:uuid" json:"financial_statement_definition_id"`
 		FinancialStatementDefinition   *FinancialStatementDefinition `gorm:"foreignKey:FinancialStatementDefinitionID;constraint:OnDelete:SET NULL;" json:"financial_statement_definition,omitempty"`
@@ -309,8 +309,6 @@ type AccountResponse struct {
 }
 
 type AccountRequest struct {
-	OrganizationID                 uuid.UUID  `json:"organization_id" validate:"required"`
-	BranchID                       uuid.UUID  `json:"branch_id" validate:"required"`
 	GeneralLedgerDefinitionID      *uuid.UUID `json:"general_ledger_definition_id,omitempty"`
 	FinancialStatementDefinitionID *uuid.UUID `json:"financial_statement_definition_id,omitempty"`
 	AccountClassificationID        *uuid.UUID `json:"account_classification_id,omitempty"`
@@ -318,7 +316,7 @@ type AccountRequest struct {
 	MemberTypeID                   *uuid.UUID `json:"member_type_id,omitempty"`
 
 	Name        string      `json:"name" validate:"required,min=1,max=255"`
-	Description string      `json:"description" validate:"required"`
+	Description string      `json:"description"`
 	MinAmount   float64     `json:"min_amount,omitempty"`
 	MaxAmount   float64     `json:"max_amount,omitempty"`
 	Index       int         `json:"index,omitempty"`

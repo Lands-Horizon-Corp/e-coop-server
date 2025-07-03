@@ -66,14 +66,11 @@ type (
 	}
 
 	BatchFundingRequest struct {
-		OrganizationID     uuid.UUID  `json:"organization_id" validate:"required"`
-		BranchID           uuid.UUID  `json:"branch_id" validate:"required"`
-		TransactionBatchID uuid.UUID  `json:"transaction_batch_id" validate:"required"`
-		ProvidedByUserID   uuid.UUID  `json:"provided_by_user_id" validate:"required"`
-		SignatureMediaID   *uuid.UUID `json:"signature_media_id,omitempty"`
-		Name               string     `json:"name" validate:"required,min=1,max=50"`
-		Amount             float64    `json:"amount,omitempty"`
-		Description        string     `json:"description,omitempty"`
+		ProvidedByUserID uuid.UUID  `json:"provided_by_user_id" validate:"required"`
+		SignatureMediaID *uuid.UUID `json:"signature_media_id,omitempty"`
+		Name             string     `json:"name" validate:"required,min=1,max=50"`
+		Amount           float64    `json:"amount,omitempty"`
+		Description      string     `json:"description,omitempty"`
 	}
 )
 
@@ -85,6 +82,7 @@ func (m *Model) BatchFunding() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization",
 			"TransactionBatch", "ProvidedByUser", "SignatureMedia",
+			"ProvidedByUser.Media",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *BatchFunding) *BatchFundingResponse {

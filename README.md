@@ -61,16 +61,19 @@ go run . cache:clean
 ### 6. Database Management
 
 #### Automigrate All Tables:
+
 ```bash
 go run . db:migrate
 ```
 
 #### Seed the Database:
+
 ```bash
 go run . db:seed
 ```
 
-#### Reset the Database (Optional): this will delete all  tables, the seeds, and automigrate
+#### Reset the Database (Optional): this will delete all tables, the seeds, and automigrate
+
 ```bash
 go run . db:reset
 ```
@@ -84,14 +87,25 @@ go run . server
 ```
 
 ### 8. Visit & view all available routes
+
 ```
 http://localhost:8000/routes
 ```
 
+# Having running port problems
 
-
-# Having running port problems 
-```
+```bashF
 chmod +x kill_ports.sh
 ./kill_ports.sh
+```
+
+# Deploymnet
+
+```bash
+# Deploy changes
+fly deploy
+
+# Reset the machines and log the output
+fly machine restart 148e4d55f36278 && fly machine restart 90802d3ea0ed38; fly logs
+
 ```
