@@ -454,6 +454,15 @@ func (c *Controller) TransactionBatchController() {
 
 		// Use GORM's DB.Where to handle date range filtering
 		db := c.provider.Service.Database.Client().Model(new(model.TransactionBatch))
+
+		// Add necessary preloads
+		db = db.Preload("CashCounts")
+		db = db.Preload("CheckRemittances")
+		db = db.Preload("OnlineRemittances")
+		db = db.Preload("BatchFundings")
+		db = db.Preload("EmployeeUser")
+
+		// Apply conditions
 		for field, value := range conditions {
 			db = db.Where(field+" = ?", value)
 		}
