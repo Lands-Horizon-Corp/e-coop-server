@@ -310,6 +310,7 @@ func (c *Controller) TransactionBatchController() {
 		}
 		now := time.Now().UTC()
 		transactionBatch.IsClosed = true
+		transactionBatch.EmployeeUserID = &userOrg.UserID
 		transactionBatch.EmployeeBySignatureMediaID = req.EmployeeBySignatureMediaID
 		transactionBatch.EmployeeByName = req.EmployeeByName
 		transactionBatch.EmployeeByPosition = req.EmployeeByPosition
@@ -445,7 +446,7 @@ func (c *Controller) TransactionBatchController() {
 		endOfDay := startOfDay.Add(24 * time.Hour)
 
 		// Create conditions map without the operators in keys
-		conditions := map[string]interface{}{
+		conditions := map[string]any{
 			"organization_id": userOrg.OrganizationID,
 			"branch_id":       *userOrg.BranchID,
 			"is_closed":       true,

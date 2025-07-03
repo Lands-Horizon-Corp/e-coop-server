@@ -288,6 +288,7 @@ func (m *Model) TransactionBatch() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization",
 			"EmployeeUser",
+			"EmployeeUser.Media",
 			"ApprovedBySignatureMedia",
 			"PreparedBySignatureMedia",
 			"CertifiedBySignatureMedia",
