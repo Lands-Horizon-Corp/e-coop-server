@@ -309,8 +309,6 @@ type AccountResponse struct {
 }
 
 type AccountRequest struct {
-	OrganizationID                 uuid.UUID  `json:"organization_id" validate:"required"`
-	BranchID                       uuid.UUID  `json:"branch_id" validate:"required"`
 	GeneralLedgerDefinitionID      *uuid.UUID `json:"general_ledger_definition_id,omitempty"`
 	FinancialStatementDefinitionID *uuid.UUID `json:"financial_statement_definition_id,omitempty"`
 	AccountClassificationID        *uuid.UUID `json:"account_classification_id,omitempty"`
