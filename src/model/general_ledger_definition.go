@@ -28,9 +28,9 @@ type (
 		DeletedByID *uuid.UUID `gorm:"type:uuid"`
 		DeletedBy   *User      `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
 
-		ParentID *uuid.UUID                 `gorm:"type:uuid" json:"parent_id,omitempty"`
-		Parent   *GeneralLedgerDefinition   `gorm:"foreignKey:ParentID" json:"parent,omitempty"`
-		Children []*GeneralLedgerDefinition `gorm:"foreignKey:ParentID" json:"children,omitempty"`
+		ParentID                       *uuid.UUID                 `gorm:"type:uuid" json:"parent_id,omitempty"`
+		GeneralLedgerDefinition        *GeneralLedgerDefinition   `gorm:"foreignKey:ParentID" json:"parent,omitempty"`
+		GeneralLedgerDefinitionEntries []*GeneralLedgerDefinition `gorm:"foreignKey:ParentID" json:"children,omitempty"`
 
 		Accounts []*Account `gorm:"foreignKey:GeneralLedgerDefinitionID" json:"accounts"`
 
@@ -136,8 +136,8 @@ func (m *Model) GeneralLedgerDefinition() {
 				DeletedBy:      m.UserManager.ToModel(data.DeletedBy),
 
 				GeneralLedgerDefinitionEntryID: data.ParentID,
-				GeneralLedgerDefinitionEntry:   m.GeneralLedgerDefinitionManager.ToModel(data.Parent),
-				GeneralLedgerDefinitionEntries: m.GeneralLedgerDefinitionManager.ToModels(data.Children),
+				GeneralLedgerDefinitionEntry:   m.GeneralLedgerDefinitionManager.ToModel(data.GeneralLedgerDefinition),
+				GeneralLedgerDefinitionEntries: m.GeneralLedgerDefinitionManager.ToModels(data.GeneralLedgerDefinitionEntries),
 
 				Accounts:                        m.AccountManager.ToModels(data.Accounts),
 				Name:                            data.Name,
