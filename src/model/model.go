@@ -1050,6 +1050,365 @@ func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID 
 		}
 	}
 
+	// Get the created groupings to reference their IDs
+	assetsGrouping, err := m.GeneralLedgerAccountsGroupingManager.FindOne(context, &GeneralLedgerAccountsGrouping{
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+		Name:           "Assets",
+	})
+	if err != nil {
+		return eris.Wrapf(err, "failed to get assets grouping")
+	}
+
+	liabilitiesGrouping, err := m.GeneralLedgerAccountsGroupingManager.FindOne(context, &GeneralLedgerAccountsGrouping{
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+		Name:           "Liabilities, Equity & Reserves",
+	})
+	if err != nil {
+		return eris.Wrapf(err, "failed to get liabilities grouping")
+	}
+
+	incomeGrouping, err := m.GeneralLedgerAccountsGroupingManager.FindOne(context, &GeneralLedgerAccountsGrouping{
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+		Name:           "Income",
+	})
+	if err != nil {
+		return eris.Wrapf(err, "failed to get income grouping")
+	}
+
+	expensesGrouping, err := m.GeneralLedgerAccountsGroupingManager.FindOne(context, &GeneralLedgerAccountsGrouping{
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+		Name:           "Expenses",
+	})
+	if err != nil {
+		return eris.Wrapf(err, "failed to get expenses grouping")
+	}
+
+	// General Ledger Definitions seeder
+	generalLedgerDefinitions := []*GeneralLedgerDefinition{
+		// ASSETS (1000-1999)
+		{
+			CreatedAt:                       now,
+			UpdatedAt:                       now,
+			CreatedByID:                     userID,
+			UpdatedByID:                     userID,
+			OrganizationID:                  organizationID,
+			BranchID:                        branchID,
+			GeneralLedgerAccountsGroupingID: &assetsGrouping.ID,
+			Name:                            "Current Assets",
+			Description:                     "Assets expected to be converted to cash within one year",
+			Index:                           1,
+			NameInTotal:                     "Current Assets",
+			IsPosting:                       false,
+			GeneralLedgerType:               "Asset",
+			BeginningBalanceOfTheYearCredit: 0,
+			BeginningBalanceOfTheYearDebit:  0,
+		},
+		{
+			CreatedAt:                       now,
+			UpdatedAt:                       now,
+			CreatedByID:                     userID,
+			UpdatedByID:                     userID,
+			OrganizationID:                  organizationID,
+			BranchID:                        branchID,
+			GeneralLedgerAccountsGroupingID: &assetsGrouping.ID,
+			Name:                            "Cash on Hand",
+			Description:                     "Physical cash and currency held by the organization",
+			Index:                           1,
+			NameInTotal:                     "Cash on Hand",
+			IsPosting:                       true,
+			GeneralLedgerType:               "Asset",
+			BeginningBalanceOfTheYearCredit: 0,
+			BeginningBalanceOfTheYearDebit:  0,
+		},
+		{
+			CreatedAt:                       now,
+			UpdatedAt:                       now,
+			CreatedByID:                     userID,
+			UpdatedByID:                     userID,
+			OrganizationID:                  organizationID,
+			BranchID:                        branchID,
+			GeneralLedgerAccountsGroupingID: &assetsGrouping.ID,
+			Name:                            "Cash on Bank",
+			Description:                     "Funds deposited in bank accounts",
+			Index:                           2,
+			NameInTotal:                     "Cash on Bank",
+			IsPosting:                       true,
+			GeneralLedgerType:               "Asset",
+			BeginningBalanceOfTheYearCredit: 0,
+			BeginningBalanceOfTheYearDebit:  0,
+		},
+		{
+			CreatedAt:                       now,
+			UpdatedAt:                       now,
+			CreatedByID:                     userID,
+			UpdatedByID:                     userID,
+			OrganizationID:                  organizationID,
+			BranchID:                        branchID,
+			GeneralLedgerAccountsGroupingID: &assetsGrouping.ID,
+			Name:                            "Accounts Receivable",
+			Description:                     "Money owed to the organization by members and customers",
+			Index:                           3,
+			NameInTotal:                     "Accounts Receivable",
+			IsPosting:                       true,
+			GeneralLedgerType:               "Asset",
+			BeginningBalanceOfTheYearCredit: 0,
+			BeginningBalanceOfTheYearDebit:  0,
+		},
+		{
+			CreatedAt:                       now,
+			UpdatedAt:                       now,
+			CreatedByID:                     userID,
+			UpdatedByID:                     userID,
+			OrganizationID:                  organizationID,
+			BranchID:                        branchID,
+			GeneralLedgerAccountsGroupingID: &assetsGrouping.ID,
+			Name:                            "Inventory",
+			Description:                     "Goods and materials held for sale or production",
+			Index:                           4,
+			NameInTotal:                     "Inventory",
+			IsPosting:                       true,
+			GeneralLedgerType:               "Asset",
+			BeginningBalanceOfTheYearCredit: 0,
+			BeginningBalanceOfTheYearDebit:  0,
+		},
+		{
+			CreatedAt:                       now,
+			UpdatedAt:                       now,
+			CreatedByID:                     userID,
+			UpdatedByID:                     userID,
+			OrganizationID:                  organizationID,
+			BranchID:                        branchID,
+			GeneralLedgerAccountsGroupingID: &assetsGrouping.ID,
+			Name:                            "Property, Plant & Equipment",
+			Description:                     "Long-term physical assets used in operations",
+			Index:                           5,
+			NameInTotal:                     "PPE",
+			IsPosting:                       true,
+			GeneralLedgerType:               "Asset",
+			BeginningBalanceOfTheYearCredit: 0,
+			BeginningBalanceOfTheYearDebit:  0,
+		},
+
+		// LIABILITIES, EQUITY & RESERVES (2000-3999)
+		{
+			CreatedAt:                       now,
+			UpdatedAt:                       now,
+			CreatedByID:                     userID,
+			UpdatedByID:                     userID,
+			OrganizationID:                  organizationID,
+			BranchID:                        branchID,
+			GeneralLedgerAccountsGroupingID: &liabilitiesGrouping.ID,
+			Name:                            "Accounts Payable",
+			Description:                     "Money owed to suppliers and creditors",
+			Index:                           1,
+			NameInTotal:                     "Accounts Payable",
+			IsPosting:                       true,
+			GeneralLedgerType:               "Liability",
+			BeginningBalanceOfTheYearCredit: 0,
+			BeginningBalanceOfTheYearDebit:  0,
+		},
+		{
+			CreatedAt:                       now,
+			UpdatedAt:                       now,
+			CreatedByID:                     userID,
+			UpdatedByID:                     userID,
+			OrganizationID:                  organizationID,
+			BranchID:                        branchID,
+			GeneralLedgerAccountsGroupingID: &liabilitiesGrouping.ID,
+			Name:                            "Member Deposits",
+			Description:                     "Funds deposited by cooperative members",
+			Index:                           2,
+			NameInTotal:                     "Member Deposits",
+			IsPosting:                       true,
+			GeneralLedgerType:               "Liability",
+			BeginningBalanceOfTheYearCredit: 0,
+			BeginningBalanceOfTheYearDebit:  0,
+		},
+		{
+			CreatedAt:                       now,
+			UpdatedAt:                       now,
+			CreatedByID:                     userID,
+			UpdatedByID:                     userID,
+			OrganizationID:                  organizationID,
+			BranchID:                        branchID,
+			GeneralLedgerAccountsGroupingID: &liabilitiesGrouping.ID,
+			Name:                            "Share Capital",
+			Description:                     "Member contributions to cooperative capital",
+			Index:                           3,
+			NameInTotal:                     "Share Capital",
+			IsPosting:                       true,
+			GeneralLedgerType:               "Equity",
+			BeginningBalanceOfTheYearCredit: 0,
+			BeginningBalanceOfTheYearDebit:  0,
+		},
+		{
+			CreatedAt:                       now,
+			UpdatedAt:                       now,
+			CreatedByID:                     userID,
+			UpdatedByID:                     userID,
+			OrganizationID:                  organizationID,
+			BranchID:                        branchID,
+			GeneralLedgerAccountsGroupingID: &liabilitiesGrouping.ID,
+			Name:                            "Retained Earnings",
+			Description:                     "Accumulated profits retained in the cooperative",
+			Index:                           4,
+			NameInTotal:                     "Retained Earnings",
+			IsPosting:                       true,
+			GeneralLedgerType:               "Equity",
+			BeginningBalanceOfTheYearCredit: 0,
+			BeginningBalanceOfTheYearDebit:  0,
+		},
+
+		// INCOME (4000-4999)
+		{
+			CreatedAt:                       now,
+			UpdatedAt:                       now,
+			CreatedByID:                     userID,
+			UpdatedByID:                     userID,
+			OrganizationID:                  organizationID,
+			BranchID:                        branchID,
+			GeneralLedgerAccountsGroupingID: &incomeGrouping.ID,
+			Name:                            "Interest Income",
+			Description:                     "Income earned from loans and investments",
+			Index:                           1,
+			NameInTotal:                     "Interest Income",
+			IsPosting:                       true,
+			GeneralLedgerType:               "Revenue",
+			BeginningBalanceOfTheYearCredit: 0,
+			BeginningBalanceOfTheYearDebit:  0,
+		},
+		{
+			CreatedAt:                       now,
+			UpdatedAt:                       now,
+			CreatedByID:                     userID,
+			UpdatedByID:                     userID,
+			OrganizationID:                  organizationID,
+			BranchID:                        branchID,
+			GeneralLedgerAccountsGroupingID: &incomeGrouping.ID,
+			Name:                            "Service Fees",
+			Description:                     "Fees collected for various cooperative services",
+			Index:                           2,
+			NameInTotal:                     "Service Fees",
+			IsPosting:                       true,
+			GeneralLedgerType:               "Revenue",
+			BeginningBalanceOfTheYearCredit: 0,
+			BeginningBalanceOfTheYearDebit:  0,
+		},
+		{
+			CreatedAt:                       now,
+			UpdatedAt:                       now,
+			CreatedByID:                     userID,
+			UpdatedByID:                     userID,
+			OrganizationID:                  organizationID,
+			BranchID:                        branchID,
+			GeneralLedgerAccountsGroupingID: &incomeGrouping.ID,
+			Name:                            "Membership Fees",
+			Description:                     "Fees collected from new and existing members",
+			Index:                           3,
+			NameInTotal:                     "Membership Fees",
+			IsPosting:                       true,
+			GeneralLedgerType:               "Revenue",
+			BeginningBalanceOfTheYearCredit: 0,
+			BeginningBalanceOfTheYearDebit:  0,
+		},
+
+		// EXPENSES (5000-5999)
+		{
+			CreatedAt:                       now,
+			UpdatedAt:                       now,
+			CreatedByID:                     userID,
+			UpdatedByID:                     userID,
+			OrganizationID:                  organizationID,
+			BranchID:                        branchID,
+			GeneralLedgerAccountsGroupingID: &expensesGrouping.ID,
+			Name:                            "Operating Expenses",
+			Description:                     "General expenses for daily operations",
+			Index:                           1,
+			NameInTotal:                     "Operating Expenses",
+			IsPosting:                       false,
+			GeneralLedgerType:               "Expense",
+			BeginningBalanceOfTheYearCredit: 0,
+			BeginningBalanceOfTheYearDebit:  0,
+		},
+		{
+			CreatedAt:                       now,
+			UpdatedAt:                       now,
+			CreatedByID:                     userID,
+			UpdatedByID:                     userID,
+			OrganizationID:                  organizationID,
+			BranchID:                        branchID,
+			GeneralLedgerAccountsGroupingID: &expensesGrouping.ID,
+			Name:                            "Salaries and Wages",
+			Description:                     "Employee compensation and benefits",
+			Index:                           1,
+			NameInTotal:                     "Salaries and Wages",
+			IsPosting:                       true,
+			GeneralLedgerType:               "Expense",
+			BeginningBalanceOfTheYearCredit: 0,
+			BeginningBalanceOfTheYearDebit:  0,
+		},
+		{
+			CreatedAt:                       now,
+			UpdatedAt:                       now,
+			CreatedByID:                     userID,
+			UpdatedByID:                     userID,
+			OrganizationID:                  organizationID,
+			BranchID:                        branchID,
+			GeneralLedgerAccountsGroupingID: &expensesGrouping.ID,
+			Name:                            "Utilities Expense",
+			Description:                     "Electricity, water, internet, and other utilities",
+			Index:                           2,
+			NameInTotal:                     "Utilities",
+			IsPosting:                       true,
+			GeneralLedgerType:               "Expense",
+			BeginningBalanceOfTheYearCredit: 0,
+			BeginningBalanceOfTheYearDebit:  0,
+		},
+		{
+			CreatedAt:                       now,
+			UpdatedAt:                       now,
+			CreatedByID:                     userID,
+			UpdatedByID:                     userID,
+			OrganizationID:                  organizationID,
+			BranchID:                        branchID,
+			GeneralLedgerAccountsGroupingID: &expensesGrouping.ID,
+			Name:                            "Office Supplies",
+			Description:                     "Stationery, printing materials, and office consumables",
+			Index:                           3,
+			NameInTotal:                     "Office Supplies",
+			IsPosting:                       true,
+			GeneralLedgerType:               "Expense",
+			BeginningBalanceOfTheYearCredit: 0,
+			BeginningBalanceOfTheYearDebit:  0,
+		},
+		{
+			CreatedAt:                       now,
+			UpdatedAt:                       now,
+			CreatedByID:                     userID,
+			UpdatedByID:                     userID,
+			OrganizationID:                  organizationID,
+			BranchID:                        branchID,
+			GeneralLedgerAccountsGroupingID: &expensesGrouping.ID,
+			Name:                            "Rent Expense",
+			Description:                     "Monthly rental for office space and facilities",
+			Index:                           4,
+			NameInTotal:                     "Rent",
+			IsPosting:                       true,
+			GeneralLedgerType:               "Expense",
+			BeginningBalanceOfTheYearCredit: 0,
+			BeginningBalanceOfTheYearDebit:  0,
+		},
+	}
+
+	for _, data := range generalLedgerDefinitions {
+		if err := m.GeneralLedgerDefinitionManager.CreateWithTx(context, tx, data); err != nil {
+			return eris.Wrapf(err, "failed to seed general ledger definition %s", data.Name)
+		}
+	}
 	// Financial Statement Accounts Grouping seeder
 	financialStatementGrouping := []*FinancialStatementGrouping{
 		{
@@ -1258,6 +1617,19 @@ func (m *Model) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, userID u
 	for _, data := range memberClassifications {
 		if err := m.MemberClassificationManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy member classification %s", data.Name)
+		}
+	}
+
+	generalLedgerDefinitions, err := m.GeneralLedgerDefinitionManager.Find(ctx, &GeneralLedgerDefinition{
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+	})
+	if err != nil {
+		return eris.Wrapf(err, "failed to get general ledger definitions")
+	}
+	for _, data := range generalLedgerDefinitions {
+		if err := m.GeneralLedgerDefinitionManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+			return eris.Wrapf(err, "failed to destroy general ledger definition %s", data.Name)
 		}
 	}
 
