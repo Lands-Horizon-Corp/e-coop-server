@@ -35,7 +35,7 @@ type (
 		FromCode    float64 `gorm:"type:decimal;default:0"`
 		ToCode      float64 `gorm:"type:decimal;default:0"`
 
-		GeneralLedgerDefinitionEntries []*GeneralLedgerDefinition `gorm:"foreignKey:GeneralLedgerAccountsGroupingID" json:"general_ledger_definitions,omitempty"`
+		GeneralLedgerDefinitionEntries []*GeneralLedgerDefinition `gorm:"foreignKey:GeneralLedgerAccountsGroupingID" json:"general_ledger_definition,omitempty"`
 	}
 
 	GeneralLedgerAccountsGroupingResponse struct {
@@ -57,7 +57,7 @@ type (
 		FromCode       float64               `json:"from_code"`
 		ToCode         float64               `json:"to_code"`
 
-		GeneralLedgerDefinitionEntries []*GeneralLedgerDefinitionResponse `json:"general_ledger_definitions,omitempty"`
+		GeneralLedgerDefinitionEntries []*GeneralLedgerDefinitionResponse `json:"general_ledger_definition,omitempty"`
 	}
 
 	GeneralLedgerAccountsGroupingRequest struct {
