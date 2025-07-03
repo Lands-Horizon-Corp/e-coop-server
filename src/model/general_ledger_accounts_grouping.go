@@ -57,7 +57,7 @@ type (
 		FromCode       float64               `json:"from_code"`
 		ToCode         float64               `json:"to_code"`
 
-		GeneralLedgerDefinitionEntriess []*GeneralLedgerDefinitionResponse `json:"general_ledger_definitions,omitempty"`
+		GeneralLedgerDefinitionEntries []*GeneralLedgerDefinitionResponse `json:"general_ledger_definitions,omitempty"`
 	}
 
 	GeneralLedgerAccountsGroupingRequest struct {
@@ -75,26 +75,26 @@ func (m *Model) GeneralLedgerAccountsGrouping() {
 	m.GeneralLedgerAccountsGroupingManager = horizon_services.NewRepository(horizon_services.RepositoryParams[GeneralLedgerAccountsGrouping, GeneralLedgerAccountsGroupingResponse, GeneralLedgerAccountsGroupingRequest]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Branch", "Organization",
-			"GeneralLedgerDefinitionEntriess",
-			"GeneralLedgerDefinitionEntriess.Accounts",
-			"GeneralLedgerDefinitionEntriess.GeneralLedgerAccountsGrouping",
-			"GeneralLedgerDefinitionEntriess.CreatedBy",
-			"GeneralLedgerDefinitionEntriess.UpdatedBy",
-			"GeneralLedgerDefinitionEntriess.GeneralLedgerDefinitionEntries",
-			"GeneralLedgerDefinitionEntriess.GeneralLedgerDefinitionEntries",
-			"GeneralLedgerDefinitionEntriess.GeneralLedgerDefinitionEntries.Accounts",
-			"GeneralLedgerDefinitionEntriess.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries",
-			"GeneralLedgerDefinitionEntriess.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries",
-			"GeneralLedgerDefinitionEntriess.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.Accounts",
-			"GeneralLedgerDefinitionEntriess.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries",
-			"GeneralLedgerDefinitionEntriess.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries",
-			"GeneralLedgerDefinitionEntriess.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.Accounts",
-			"GeneralLedgerDefinitionEntriess.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries",
-			"GeneralLedgerDefinitionEntriess.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries",
-			"GeneralLedgerDefinitionEntriess.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.Accounts",
-			"GeneralLedgerDefinitionEntriess.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries",
-			"GeneralLedgerDefinitionEntriess.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries",
-			"GeneralLedgerDefinitionEntriess.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.Accounts",
+			"GeneralLedgerDefinitionEntries",
+			"GeneralLedgerDefinitionEntries.Accounts",
+			"GeneralLedgerDefinitionEntries.GeneralLedgerAccountsGrouping",
+			"GeneralLedgerDefinitionEntries.CreatedBy",
+			"GeneralLedgerDefinitionEntries.UpdatedBy",
+			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries",
+			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries",
+			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.Accounts",
+			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries",
+			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries",
+			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.Accounts",
+			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries",
+			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries",
+			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.Accounts",
+			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries",
+			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries",
+			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.Accounts",
+			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries",
+			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries",
+			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.Accounts",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *GeneralLedgerAccountsGrouping) *GeneralLedgerAccountsGroupingResponse {
@@ -120,7 +120,7 @@ func (m *Model) GeneralLedgerAccountsGrouping() {
 				FromCode:       data.FromCode,
 				ToCode:         data.ToCode,
 
-				GeneralLedgerDefinitionEntriess: m.GeneralLedgerDefinitionManager.ToModels(data.GeneralLedgerDefinitionEntries),
+				GeneralLedgerDefinitionEntries: m.GeneralLedgerDefinitionManager.ToModels(data.GeneralLedgerDefinitionEntries),
 			}
 		},
 		Created: func(data *GeneralLedgerAccountsGrouping) []string {
