@@ -32,6 +32,24 @@ func (c *Controller) PermissionTemplateController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
+		Route:    "/permission-template/search",
+		Method:   "GET",
+		Response: "TPermissionTemplate[]",
+		Note:     "Fetches all permission templates associated with the current user's branch.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return err
+		}
+		permissionTemplates, err := c.model.GetPermissionTemplateByBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.PermissionTemplateManager.Pagination(context, ctx, permissionTemplates))
+	})
+
+	req.RegisterRoute(horizon.Route{
 		Route:    "/permission-template/:permission_template_id",
 		Method:   "GET",
 		Response: "TPermissionTemplate",
