@@ -131,6 +131,198 @@ func (c *Controller) AccountController() {
 		return ctx.JSON(http.StatusCreated, account)
 	})
 
+	req.RegisterRoute(horizon.Route{
+		Route:    "/account/:account_id",
+		Method:   "GET",
+		Response: "IAccount",
+		Note:     "Get an account by ID",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		accountID, err := horizon.EngineUUIDParam(ctx, "account_id")
+		if err != nil {
+			return err
+		}
+		account, err := c.model.AccountManager.GetByID(context, *accountID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.AccountManager.ToModel(account))
+	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:    "/account/:account_id",
+		Method:   "PUT",
+		Response: "IAccount",
+		Note:     "Update an account",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		req, err := c.model.AccountManager.Validate(ctx)
+		if err != nil {
+			return c.BadRequest(ctx, err.Error())
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return err
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return c.BadRequest(ctx, "User is not authorized")
+		}
+		accountID, err := horizon.EngineUUIDParam(ctx, "account_id")
+		if err != nil {
+			return err
+		}
+		account, err := c.model.AccountManager.GetByID(context, *accountID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+
+		// Update account fields
+		account.UpdatedByID = userOrg.UserID
+		account.UpdatedAt = time.Now().UTC()
+		account.BranchID = *userOrg.BranchID
+		account.OrganizationID = userOrg.OrganizationID
+
+		account.GeneralLedgerDefinitionID = req.GeneralLedgerDefinitionID
+		account.FinancialStatementDefinitionID = req.FinancialStatementDefinitionID
+		account.AccountClassificationID = req.AccountClassificationID
+		account.AccountCategoryID = req.AccountCategoryID
+		account.MemberTypeID = req.MemberTypeID
+		account.Name = req.Name
+		account.Description = req.Description
+		account.MinAmount = req.MinAmount
+		account.MaxAmount = req.MaxAmount
+		account.Index = req.Index
+		account.Type = req.Type
+		account.IsInternal = req.IsInternal
+		account.CashOnHand = req.CashOnHand
+		account.PaidUpShareCapital = req.PaidUpShareCapital
+		account.ComputationType = req.ComputationType
+		account.FinesAmort = req.FinesAmort
+		account.FinesMaturity = req.FinesMaturity
+		account.InterestStandard = req.InterestStandard
+		account.InterestSecured = req.InterestSecured
+		account.ComputationSheetID = req.ComputationSheetID
+		account.CohCibFinesGracePeriodEntryCashHand = req.CohCibFinesGracePeriodEntryCashHand
+		account.CohCibFinesGracePeriodEntryCashInBank = req.CohCibFinesGracePeriodEntryCashInBank
+		account.CohCibFinesGracePeriodEntryDailyAmortization = req.CohCibFinesGracePeriodEntryDailyAmortization
+		account.CohCibFinesGracePeriodEntryDailyMaturity = req.CohCibFinesGracePeriodEntryDailyMaturity
+		account.CohCibFinesGracePeriodEntryWeeklyAmortization = req.CohCibFinesGracePeriodEntryWeeklyAmortization
+		account.CohCibFinesGracePeriodEntryWeeklyMaturity = req.CohCibFinesGracePeriodEntryWeeklyMaturity
+		account.CohCibFinesGracePeriodEntryMonthlyAmortization = req.CohCibFinesGracePeriodEntryMonthlyAmortization
+		account.CohCibFinesGracePeriodEntryMonthlyMaturity = req.CohCibFinesGracePeriodEntryMonthlyMaturity
+		account.CohCibFinesGracePeriodEntrySemiMonthlyAmortization = req.CohCibFinesGracePeriodEntrySemiMonthlyAmortization
+		account.CohCibFinesGracePeriodEntrySemiMonthlyMaturity = req.CohCibFinesGracePeriodEntrySemiMonthlyMaturity
+		account.CohCibFinesGracePeriodEntryQuarterlyAmortization = req.CohCibFinesGracePeriodEntryQuarterlyAmortization
+		account.CohCibFinesGracePeriodEntryQuarterlyMaturity = req.CohCibFinesGracePeriodEntryQuarterlyMaturity
+		account.CohCibFinesGracePeriodEntrySemiAnualAmortization = req.CohCibFinesGracePeriodEntrySemiAnualAmortization
+		account.CohCibFinesGracePeriodEntrySemiAnualMaturity = req.CohCibFinesGracePeriodEntrySemiAnualMaturity
+		account.CohCibFinesGracePeriodEntryLumpsumAmortization = req.CohCibFinesGracePeriodEntryLumpsumAmortization
+		account.CohCibFinesGracePeriodEntryLumpsumMaturity = req.CohCibFinesGracePeriodEntryLumpsumMaturity
+		account.FinancialStatementType = string(req.FinancialStatementType)
+		account.GeneralLedgerType = req.GeneralLedgerType
+		account.AlternativeCode = req.AlternativeCode
+		account.FinesGracePeriodAmortization = req.FinesGracePeriodAmortization
+		account.AdditionalGracePeriod = req.AdditionalGracePeriod
+		account.NumberGracePeriodDaily = req.NumberGracePeriodDaily
+		account.FinesGracePeriodMaturity = req.FinesGracePeriodMaturity
+		account.YearlySubscriptionFee = req.YearlySubscriptionFee
+		account.LoanCutOffDays = req.LoanCutOffDays
+		account.LumpsumComputationType = string(req.LumpsumComputationType)
+		account.InterestFinesComputationDiminishing = string(req.InterestFinesComputationDiminishing)
+		account.InterestFinesComputationDiminishingStraightYearly = string(req.InterestFinesComputationDiminishingStraightYearly)
+		account.EarnedUnearnedInterest = string(req.EarnedUnearnedInterest)
+		account.LoanSavingType = string(req.LoanSavingType)
+		account.InterestDeduction = string(req.InterestDeduction)
+		account.OtherDeductionEntry = string(req.OtherDeductionEntry)
+		account.InterestSavingTypeDiminishingStraight = string(req.InterestSavingTypeDiminishingStraight)
+		account.OtherInformationOfAnAccount = string(req.OtherInformationOfAnAccount)
+		account.HeaderRow = req.HeaderRow
+		account.CenterRow = req.CenterRow
+		account.TotalRow = req.TotalRow
+		account.GeneralLedgerGroupingExcludeAccount = req.GeneralLedgerGroupingExcludeAccount
+
+		if err := c.model.AccountManager.UpdateFields(context, account.ID, account); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.AccountManager.ToModel(account))
+	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:    "/account/:account_id",
+		Method:   "DELETE",
+		Response: "IAccount",
+		Note:     "Delete an account",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return err
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return c.BadRequest(ctx, "User is not authorized")
+		}
+		accountID, err := horizon.EngineUUIDParam(ctx, "account_id")
+		if err != nil {
+			return err
+		}
+		account, err := c.model.AccountManager.GetByID(context, *accountID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		if err := c.model.AccountManager.DeleteByID(context, account.ID); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.AccountManager.ToModel(account))
+	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:   "/account/bulk-delete",
+		Method:  "DELETE",
+		Request: "string[]",
+		Note:    "Delete multiple accounts",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		var reqBody struct {
+			IDs []string `json:"ids"`
+		}
+		if err := ctx.Bind(&reqBody); err != nil {
+			return c.BadRequest(ctx, "Invalid request body")
+		}
+		if len(reqBody.IDs) == 0 {
+			return c.BadRequest(ctx, "No IDs provided")
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return err
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return c.BadRequest(ctx, "User is not authorized")
+		}
+		tx := c.provider.Service.Database.Client().Begin()
+		if tx.Error != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+		}
+		for _, rawID := range reqBody.IDs {
+			id, err := uuid.Parse(rawID)
+			if err != nil {
+				tx.Rollback()
+				return c.BadRequest(ctx, fmt.Sprintf("Invalid UUID: %s", rawID))
+			}
+			if _, err := c.model.AccountManager.GetByID(context, id); err != nil {
+				tx.Rollback()
+				return c.NotFound(ctx, fmt.Sprintf("Account with ID %s", rawID))
+			}
+			if err := c.model.AccountManager.DeleteByIDWithTx(context, tx, id); err != nil {
+				tx.Rollback()
+				return c.InternalServerError(ctx, err)
+			}
+		}
+		if err := tx.Commit().Error; err != nil {
+			return c.InternalServerError(ctx, err)
+		}
+		return ctx.NoContent(http.StatusNoContent)
+	})
 	// Account Category Search
 	req.RegisterRoute(horizon.Route{
 		Route:    "/account-category/search",
@@ -185,6 +377,29 @@ func (c *Controller) AccountController() {
 		return ctx.JSON(http.StatusOK, accountCategories)
 	})
 
+	req.RegisterRoute(horizon.Route{
+		Route:    "/account-classification",
+		Method:   "GET",
+		Response: "IAccount[]",
+		Note:     "List all accounts classification for the current branch",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return err
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return c.BadRequest(ctx, "User is not authorized")
+		}
+		account, err := c.model.AccountClassificationManager.FindRaw(context, &model.AccountClassification{
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, account)
+	})
 	req.RegisterRoute(horizon.Route{
 		Route:    "/account-category/:account_category_id",
 		Method:   "GET",
