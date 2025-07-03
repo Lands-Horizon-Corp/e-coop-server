@@ -407,6 +407,30 @@ func (c *Controller) TransactionBatchController() {
 		}
 		return ctx.JSON(http.StatusOK, c.model.TransactionBatchManager.ToModels(transactionBatch))
 	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:  "/transaction-batch/ended-batch",
+		Method: "GET",
+		Note:   "List all approvals (blotter) requests for transaction batches",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return err
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return c.BadRequest(ctx, "User is not authorized")
+		}
+		transactionBatch, err := c.model.TransactionBatchManager.FindWithConditions(context, map[string]interface{}{
+			"organization_id": userOrg.OrganizationID,
+			"branch_id":       *userOrg.BranchID,
+			"is_closed":       true,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.TransactionBatchManager.ToModels(transactionBatch))
+	})
 	req.RegisterRoute(horizon.Route{
 		Route:  "/transaction-batch/:transaction_batch_id/view-accept",
 		Method: "PUT",
