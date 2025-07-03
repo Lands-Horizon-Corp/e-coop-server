@@ -134,7 +134,7 @@ func (m *Model) GeneralLedgerDefinition() {
 				deletedAt = &t
 			}
 			entries := m.GeneralLedgerDefinitionManager.ToModels(data.GeneralLedgerDefinitionEntries)
-			if len(entries) == 0 {
+			if len(entries) == 0 || entries == nil {
 				entries = []*GeneralLedgerDefinitionResponse{}
 			}
 			return &GeneralLedgerDefinitionResponse{
