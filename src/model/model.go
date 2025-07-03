@@ -139,6 +139,7 @@ type (
 		WithdrawalEntryManager  horizon_services.Repository[WithdrawalEntry, WithdrawalEntryResponse, WithdrawalEntryRequest]
 		DepositEntryManager     horizon_services.Repository[DepositEntry, DepositEntryResponse, DepositEntryRequest]
 		TransactionEntryManager horizon_services.Repository[TransactionEntry, TransactionEntryResponse, TransactionEntryRequest]
+		CashEntryManager        horizon_services.Repository[CashEntry, CashEntryResponse, CashEntryRequest]
 		// Disbursements
 		DisbursementTransactionManager horizon_services.Repository[DisbursementTransaction, DisbursementTransactionResponse, DisbursementTransactionRequest]
 		DisbursementManager            horizon_services.Repository[Disbursement, DisbursementResponse, DisbursementRequest]
@@ -357,6 +358,8 @@ func (c *Model) Start(context context.Context) error {
 	c.UserRating()
 	c.VoucherPayTo()
 	c.WithdrawalEntry()
+	c.CashEntry()
+
 	return nil
 }
 
