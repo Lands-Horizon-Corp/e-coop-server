@@ -1044,6 +1044,7 @@ func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID 
 			ToCode:         5999.99,
 		},
 	}
+
 	// Create groupings and their definitions
 	for i, groupingData := range generalLedgerAccountsGrouping {
 		if err := m.GeneralLedgerAccountsGroupingManager.CreateWithTx(context, tx, groupingData); err != nil {
@@ -1066,7 +1067,7 @@ func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID 
 					GeneralLedgerAccountsGroupingID: &groupingData.ID,
 					Name:                            "Current Assets",
 					Description:                     "Assets expected to be converted to cash within one year",
-					Index:                           1,
+					Index:                           0,
 					NameInTotal:                     "Current Assets",
 					IsPosting:                       false,
 					GeneralLedgerType:               "Asset",
@@ -1299,7 +1300,7 @@ func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID 
 					GeneralLedgerAccountsGroupingID: &groupingData.ID,
 					Name:                            "Operating Expenses",
 					Description:                     "General expenses for daily operations",
-					Index:                           1,
+					Index:                           0,
 					NameInTotal:                     "Operating Expenses",
 					IsPosting:                       false,
 					GeneralLedgerType:               "Expense",
