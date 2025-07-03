@@ -456,12 +456,27 @@ func (c *Controller) TransactionBatchController() {
 		db := c.provider.Service.Database.Client().Model(new(model.TransactionBatch))
 
 		// Add necessary preloads
+		// Add necessary preloads
+		db = db.Preload("CreatedBy")
+		db = db.Preload("UpdatedBy")
+		db = db.Preload("DeletedBy")
+		db = db.Preload("Branch")
+		db = db.Preload("Organization")
+		db = db.Preload("EmployeeUser")
+		db = db.Preload("EmployeeUser.Media")
 		db = db.Preload("CashCounts")
 		db = db.Preload("CheckRemittances")
 		db = db.Preload("OnlineRemittances")
 		db = db.Preload("BatchFundings")
-		db = db.Preload("EmployeeUser")
-		db = db.Preload("EmployeeUser.Media")
+		db = db.Preload("ApprovedBySignatureMedia")
+		db = db.Preload("PreparedBySignatureMedia")
+		db = db.Preload("CertifiedBySignatureMedia")
+		db = db.Preload("VerifiedBySignatureMedia")
+		db = db.Preload("CheckBySignatureMedia")
+		db = db.Preload("AcknowledgeBySignatureMedia")
+		db = db.Preload("NotedBySignatureMedia")
+		db = db.Preload("PostedBySignatureMedia")
+		db = db.Preload("PaidBySignatureMedia")
 
 		// Apply conditions
 		for field, value := range conditions {
