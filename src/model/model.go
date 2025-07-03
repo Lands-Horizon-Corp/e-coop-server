@@ -985,6 +985,70 @@ func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID 
 			return eris.Wrapf(err, "failed to seed member type %s", data.Name)
 		}
 	}
+
+	generalLedgerAccountsGrouping := []*GeneralLedgerAccountsGrouping{
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Assets",
+			Description:    "Represents resources owned by the organization that have economic value and can provide future benefits.",
+			Debit:          0.00,
+			Credit:         0.00,
+			FromCode:       1000.00,
+			ToCode:         1999.99,
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Liabilities, Equity & Reserves",
+			Description:    "Encompasses the organization's debts, obligations, member equity contributions, and retained earnings reserves.",
+			Debit:          0.00,
+			Credit:         0.00,
+			FromCode:       2000.00,
+			ToCode:         3999.99,
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Income",
+			Description:    "Revenue generated from the organization's primary operations, services, and other income-generating activities.",
+			Debit:          0.00,
+			Credit:         0.00,
+			FromCode:       4000.00,
+			ToCode:         4999.99,
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Expenses",
+			Description:    "Costs incurred in the normal course of business operations, including administrative, operational, and member service expenses.",
+			Debit:          0.00,
+			Credit:         0.00,
+			FromCode:       5000.00,
+			ToCode:         5999.99,
+		},
+	}
+	for _, data := range generalLedgerAccountsGrouping {
+		if err := m.GeneralLedgerAccountsGroupingManager.CreateWithTx(context, tx, data); err != nil {
+			return eris.Wrapf(err, "failed to seed general ledger accounts grouping %s", data.Name)
+		}
+	}
 	return nil
 }
 
@@ -1120,6 +1184,19 @@ func (m *Model) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, userID u
 	for _, data := range memberClassifications {
 		if err := m.MemberClassificationManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy member classification %s", data.Name)
+		}
+	}
+
+	generalLedgerAccountsGroupings, err := m.GeneralLedgerAccountsGroupingManager.Find(ctx, &GeneralLedgerAccountsGrouping{
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+	})
+	if err != nil {
+		return eris.Wrapf(err, "failed to get general ledger accounts groupings")
+	}
+	for _, data := range generalLedgerAccountsGroupings {
+		if err := m.GeneralLedgerAccountsGroupingManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+			return eris.Wrapf(err, "failed to destroy general ledger accounts grouping %s", data.Name)
 		}
 	}
 
