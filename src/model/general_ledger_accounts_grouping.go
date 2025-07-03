@@ -34,6 +34,8 @@ type (
 		Description string  `gorm:"type:text;not null"`
 		FromCode    float64 `gorm:"type:decimal;default:0"`
 		ToCode      float64 `gorm:"type:decimal;default:0"`
+
+		GeneralLedgerDefinitions []*GeneralLedgerDefinition `gorm:"foreignKey:GeneralLedgerAccountsGroupingID" json:"general_ledger_definitions,omitempty"`
 	}
 
 	GeneralLedgerAccountsGroupingResponse struct {
@@ -54,6 +56,8 @@ type (
 		Description    string                `json:"description"`
 		FromCode       float64               `json:"from_code"`
 		ToCode         float64               `json:"to_code"`
+
+		GeneralLedgerDefinitions []*GeneralLedgerDefinitionResponse `json:"general_ledger_definitions,omitempty"`
 	}
 
 	GeneralLedgerAccountsGroupingRequest struct {
@@ -69,8 +73,11 @@ type (
 func (m *Model) GeneralLedgerAccountsGrouping() {
 	m.Migration = append(m.Migration, &GeneralLedgerAccountsGrouping{})
 	m.GeneralLedgerAccountsGroupingManager = horizon_services.NewRepository(horizon_services.RepositoryParams[GeneralLedgerAccountsGrouping, GeneralLedgerAccountsGroupingResponse, GeneralLedgerAccountsGroupingRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
-		Service:  m.provider.Service,
+		Preloads: []string{
+			"CreatedBy", "UpdatedBy", "Branch", "Organization",
+			"GeneralLedgerDefinitions",
+		},
+		Service: m.provider.Service,
 		Resource: func(data *GeneralLedgerAccountsGrouping) *GeneralLedgerAccountsGroupingResponse {
 			if data == nil {
 				return nil
@@ -93,6 +100,8 @@ func (m *Model) GeneralLedgerAccountsGrouping() {
 				Description:    data.Description,
 				FromCode:       data.FromCode,
 				ToCode:         data.ToCode,
+
+				GeneralLedgerDefinitions: m.GeneralLedgerDefinitionManager.ToModels(data.GeneralLedgerDefinitions),
 			}
 		},
 		Created: func(data *GeneralLedgerAccountsGrouping) []string {
