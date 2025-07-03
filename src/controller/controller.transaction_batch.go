@@ -411,7 +411,7 @@ func (c *Controller) TransactionBatchController() {
 	req.RegisterRoute(horizon.Route{
 		Route:  "/transaction-batch/ended-batch",
 		Method: "GET",
-		Note:   "List all approvals (blotter) requests for transaction batches",
+		Note:   "List all approvals (blotter) requests for transaction batches from the current day",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -421,10 +421,17 @@ func (c *Controller) TransactionBatchController() {
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
 			return c.BadRequest(ctx, "User is not authorized")
 		}
+
+		now := time.Now().UTC()
+		startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+		endOfDay := startOfDay.Add(24 * time.Hour)
+
 		transactionBatch, err := c.model.TransactionBatchManager.FindWithConditions(context, map[string]interface{}{
 			"organization_id": userOrg.OrganizationID,
 			"branch_id":       *userOrg.BranchID,
 			"is_closed":       true,
+			"created_at >= ?": startOfDay,
+			"created_at < ?":  endOfDay,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
