@@ -36,6 +36,8 @@ type (
 		FinancialStatementGroupingID *uuid.UUID                  `gorm:"type:uuid;index" json:"financial_statement_grouping_id,omitempty"`
 		FinancialStatementGrouping   *FinancialStatementGrouping `gorm:"foreignKey:FinancialStatementGroupingID;constraint:OnDelete:SET NULL;" json:"grouping,omitempty"`
 
+		Accounts []*Account `gorm:"foreignKey:FinancialStatementDefinitionID" json:"accounts"`
+
 		Name                   string `gorm:"type:varchar(255);not null;unique"`
 		Description            string `gorm:"type:text"`
 		Index                  int    `gorm:"default:0"`
@@ -60,17 +62,15 @@ type (
 		FinancialStatementDefinitionEntriesID *uuid.UUID                              `json:"financial_statement_definition_entries_id,omitempty"`
 		FinancialStatementDefinitionEntries   []*FinancialStatementDefinitionResponse `json:"financial_statement_definition_entries,omitempty"`
 
-		Accounts []*Account `gorm:"foreignKey:FinancialStatementDefinitionID" json:"accounts"`
-
 		FinancialStatementGroupingID *uuid.UUID                          `json:"financial_statement_grouping_id,omitempty"`
 		FinancialStatementGrouping   *FinancialStatementGroupingResponse `json:"grouping,omitempty"`
-
-		Name                   string `json:"name"`
-		Description            string `json:"description"`
-		Index                  int    `json:"index"`
-		NameInTotal            string `json:"name_in_total"`
-		IsPosting              bool   `json:"is_posting"`
-		FinancialStatementType string `json:"financial_statement_type"`
+		Accounts                     []*AccountResponse                  `json:"accounts,omitempty"`
+		Name                         string                              `json:"name"`
+		Description                  string                              `json:"description"`
+		Index                        int                                 `json:"index"`
+		NameInTotal                  string                              `json:"name_in_total"`
+		IsPosting                    bool                                `json:"is_posting"`
+		FinancialStatementType       string                              `json:"financial_statement_type"`
 	}
 
 	FinancialStatementDefinitionRequest struct {
@@ -137,6 +137,7 @@ func (m *Model) FinancialStatementDefinition() {
 
 				FinancialStatementGroupingID: data.FinancialStatementGroupingID,
 				FinancialStatementGrouping:   m.FinancialStatementGroupingManager.ToModel(data.FinancialStatementGrouping),
+				Accounts:                     m.AccountManager.ToModels(data.Accounts),
 
 				Name:                   data.Name,
 				Description:            data.Description,
