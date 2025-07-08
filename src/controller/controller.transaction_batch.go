@@ -144,7 +144,7 @@ func (c *Controller) TransactionBatchController() {
 			return c.BadRequest(ctx, "User is not authorized")
 		}
 
-		transactionBatch, err := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]interface{}{
+		transactionBatch, err := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
 			"organization_id": userOrg.OrganizationID,
 			"branch_id":       *userOrg.BranchID,
 			"is_closed":       false,
@@ -274,7 +274,7 @@ func (c *Controller) TransactionBatchController() {
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
 			return c.BadRequest(ctx, "User is not authorized")
 		}
-		transactionBatch, _ := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]interface{}{
+		transactionBatch, _ := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
 			"organization_id": userOrg.OrganizationID,
 			"branch_id":       *userOrg.BranchID,
 			"is_closed":       false,
@@ -371,7 +371,7 @@ func (c *Controller) TransactionBatchController() {
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
 			return c.BadRequest(ctx, "User is not authorized")
 		}
-		transactionBatch, err := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]interface{}{
+		transactionBatch, err := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
 			"organization_id": userOrg.OrganizationID,
 			"branch_id":       *userOrg.BranchID,
 			"is_closed":       false,
@@ -489,7 +489,7 @@ func (c *Controller) TransactionBatchController() {
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
 			return c.BadRequest(ctx, "User is not authorized")
 		}
-		transactionBatch, err := c.model.TransactionBatchManager.FindWithConditions(context, map[string]interface{}{
+		transactionBatch, err := c.model.TransactionBatchManager.FindWithConditions(context, map[string]any{
 			"organization_id": userOrg.OrganizationID,
 			"branch_id":       *userOrg.BranchID,
 			"can_view":        false,
@@ -630,7 +630,7 @@ func (c *Controller) CashCountController() {
 		}
 
 		// Find the current active transaction batch
-		transactionBatch, err := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]interface{}{
+		transactionBatch, err := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
 			"organization_id": userOrg.OrganizationID,
 			"branch_id":       *userOrg.BranchID,
 			"is_closed":       false,
@@ -693,7 +693,7 @@ func (c *Controller) CashCountController() {
 		}
 
 		// Find the current active transaction batch
-		transactionBatch, err := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]interface{}{
+		transactionBatch, err := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
 			"organization_id": userOrg.OrganizationID,
 			"branch_id":       *userOrg.BranchID,
 			"is_closed":       false,
@@ -876,7 +876,7 @@ func (c *Controller) BatchFundingController() {
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
 			return c.BadRequest(ctx, "User is not authorized")
 		}
-		transactionBatch, err := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]interface{}{
+		transactionBatch, err := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
 			"organization_id": userOrg.OrganizationID,
 			"branch_id":       *userOrg.BranchID,
 			"is_closed":       false,
@@ -1005,7 +1005,7 @@ func (c *Controller) CheckRemittanceController() {
 		}
 
 		// Find the current active transaction batch
-		transactionBatch, err := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]interface{}{
+		transactionBatch, err := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
 			"organization_id": userOrg.OrganizationID,
 			"branch_id":       *userOrg.BranchID,
 			"is_closed":       false,
@@ -1055,7 +1055,7 @@ func (c *Controller) CheckRemittanceController() {
 		}
 
 		// Find the current active transaction batch
-		transactionBatch, err := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]interface{}{
+		transactionBatch, err := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
 			"organization_id": userOrg.OrganizationID,
 			"branch_id":       *userOrg.BranchID,
 			"is_closed":       false,
@@ -1172,7 +1172,7 @@ func (c *Controller) CheckRemittanceController() {
 		}
 
 		// Find the current active transaction batch
-		transactionBatch, err := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]interface{}{
+		transactionBatch, err := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
 			"organization_id": userOrg.OrganizationID,
 			"branch_id":       *userOrg.BranchID,
 			"is_closed":       false,
@@ -1285,7 +1285,7 @@ func (c *Controller) CheckRemittanceController() {
 		}
 
 		// Find the current active transaction batch
-		transactionBatch, err := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]interface{}{
+		transactionBatch, err := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
 			"organization_id": userOrg.OrganizationID,
 			"branch_id":       *userOrg.BranchID,
 			"is_closed":       false,
@@ -1359,7 +1359,7 @@ func (c *Controller) OnlineRemittanceController() {
 		}
 
 		// Find the current active transaction batch
-		transactionBatch, err := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]interface{}{
+		transactionBatch, err := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
 			"organization_id": userOrg.OrganizationID,
 			"branch_id":       *userOrg.BranchID,
 			"is_closed":       false,
@@ -1409,7 +1409,7 @@ func (c *Controller) OnlineRemittanceController() {
 		}
 
 		// Find the current active transaction batch
-		transactionBatch, err := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]interface{}{
+		transactionBatch, err := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
 			"organization_id": userOrg.OrganizationID,
 			"branch_id":       *userOrg.BranchID,
 			"is_closed":       false,
@@ -1527,7 +1527,7 @@ func (c *Controller) OnlineRemittanceController() {
 		}
 
 		// Find the current active transaction batch
-		transactionBatch, err := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]interface{}{
+		transactionBatch, err := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
 			"organization_id": userOrg.OrganizationID,
 			"branch_id":       *userOrg.BranchID,
 			"is_closed":       false,
@@ -1639,7 +1639,7 @@ func (c *Controller) OnlineRemittanceController() {
 		}
 
 		// Find the current active transaction batch
-		transactionBatch, err := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]interface{}{
+		transactionBatch, err := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
 			"organization_id": userOrg.OrganizationID,
 			"branch_id":       *userOrg.BranchID,
 			"is_closed":       false,

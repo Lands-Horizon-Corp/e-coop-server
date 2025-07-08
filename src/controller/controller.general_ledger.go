@@ -285,4 +285,151 @@ func (c *Controller) GeneralLedgerController() {
 		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerDefinitionManager.ToModel(glDefinition))
 	})
 
+	req.RegisterRoute(horizon.Route{
+		Route:    "/member-general-ledger/member-profile/:member_profile_id/total",
+		Method:   "GET",
+		Response: "MemberGeneralLedgerTotal",
+		Note:     "Get total amount for a specific member profile's general ledger entries",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+
+		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid member profile ID")
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return err
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return c.BadRequest(ctx, "User is not authorized")
+		}
+		entries, err := c.model.MemberAccountingLedgerManager.Find(context, &model.MemberAccountingLedger{
+			MemberProfileID: *memberProfileID,
+			OrganizationID:  userOrg.OrganizationID,
+			BranchID:        *userOrg.BranchID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		var totalAmount float64
+		for _, entry := range entries {
+			totalAmount += entry.Balance
+		}
+		return ctx.JSON(http.StatusOK, map[string]any{
+			"total_amount": totalAmount,
+		})
+	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:    "/member-general-ledger/member-profile/:member_profile_id",
+		Method:   "GET",
+		Response: "MemberGeneralLedgerTotal",
+		Note:     "Get total amount for a specific member profile's general ledger entries",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+
+		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid member profile ID")
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return err
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return c.BadRequest(ctx, "User is not authorized")
+		}
+		entries, err := c.model.MemberAccountingLedgerManager.Find(context, &model.MemberAccountingLedger{
+			MemberProfileID: *memberProfileID,
+			OrganizationID:  userOrg.OrganizationID,
+			BranchID:        *userOrg.BranchID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.MemberAccountingLedgerManager.Pagination(context, ctx, entries))
+
+	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:    "/general-ledger/member-profile/:member_profile_id/account/:account_id",
+		Method:   "GET",
+		Response: "MemberGeneralLedgerTotal",
+		Note:     "Get total amount for a specific member profile's general ledger entries",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+
+		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid member profile ID")
+		}
+		accountID, err := horizon.EngineUUIDParam(ctx, "account_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid account ID")
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return err
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return c.BadRequest(ctx, "User is not authorized")
+		}
+		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
+			MemberProfileID: memberProfileID,
+			OrganizationID:  userOrg.OrganizationID,
+			BranchID:        *userOrg.BranchID,
+			AccountID:       accountID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.Pagination(context, ctx, entries))
+	})
+	req.RegisterRoute(horizon.Route{
+		Route:    "/general-ledger/member-profile/:member_profile_id/account/:account_id/total",
+		Method:   "GET",
+		Response: "MemberGeneralLedgerTotal",
+		Note:     "Get total amount for a specific member profile's general ledger entries",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+
+		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid member profile ID")
+		}
+		accountID, err := horizon.EngineUUIDParam(ctx, "account_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid account ID")
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return err
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return c.BadRequest(ctx, "User is not authorized")
+		}
+		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
+			MemberProfileID: memberProfileID,
+			OrganizationID:  userOrg.OrganizationID,
+			BranchID:        *userOrg.BranchID,
+			AccountID:       accountID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		var totalAmount float64
+		var debit float64
+		var credit float64
+		for _, entry := range entries {
+			totalAmount += entry.Debit - entry.Credit
+			debit += entry.Debit
+			credit += entry.Credit
+		}
+		return ctx.JSON(http.StatusOK, map[string]any{
+			"balance": totalAmount,
+			"debit":   debit,
+			"credit":  credit,
+		})
+	})
 }
