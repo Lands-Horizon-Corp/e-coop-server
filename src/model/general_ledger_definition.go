@@ -3,6 +3,7 @@ package model
 import (
 	"context"
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/google/uuid"
@@ -133,6 +134,15 @@ func (m *Model) GeneralLedgerDefinition() {
 				t := data.DeletedAt.Time.Format(time.RFC3339)
 				deletedAt = &t
 			}
+			// Sort GeneralLedgerDefinitionEntries by Index
+			sort.Slice(data.GeneralLedgerDefinitionEntries, func(i, j int) bool {
+				return data.GeneralLedgerDefinitionEntries[i].Index < data.GeneralLedgerDefinitionEntries[j].Index
+			})
+			// Sort Accounts by Index
+			sort.Slice(data.Accounts, func(i, j int) bool {
+				return data.Accounts[i].Index < data.Accounts[j].Index
+			})
+
 			entries := m.GeneralLedgerDefinitionManager.ToModels(data.GeneralLedgerDefinitionEntries)
 			if len(entries) == 0 || entries == nil {
 				entries = []*GeneralLedgerDefinitionResponse{}

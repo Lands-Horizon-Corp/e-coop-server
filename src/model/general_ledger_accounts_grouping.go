@@ -3,6 +3,7 @@ package model
 import (
 	"context"
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/google/uuid"
@@ -101,6 +102,9 @@ func (m *Model) GeneralLedgerAccountsGrouping() {
 			if data == nil {
 				return nil
 			}
+			sort.Slice(data.GeneralLedgerDefinitionEntries, func(i, j int) bool {
+				return data.GeneralLedgerDefinitionEntries[i].Index < data.GeneralLedgerDefinitionEntries[j].Index
+			})
 			return &GeneralLedgerAccountsGroupingResponse{
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),

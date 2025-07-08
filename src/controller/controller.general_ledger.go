@@ -284,6 +284,90 @@ func (c *Controller) GeneralLedgerController() {
 
 		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerDefinitionManager.ToModel(glDefinition))
 	})
+	req.RegisterRoute(horizon.Route{
+		Route:    "/general-ledger-grouping/general-ledger-definition/:general_ledger_definition_id/account/:account_id/index",
+		Method:   "PUT",
+		Request:  "UpdateAccountIndexRequest",
+		Response: "GeneralLedgerDefinitionResponse",
+		Note:     "Update the index of an account within a general ledger definition and reorder accordingly",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		glDefinitionID, err := horizon.EngineUUIDParam(ctx, "general_ledger_definition_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid general ledger definition ID")
+		}
+		accountID, err := horizon.EngineUUIDParam(ctx, "account_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid account ID")
+		}
+		type UpdateAccountIndexRequest struct {
+			GeneralLedgerDefinitionIndex int `json:"general_ledger_definition_index"`
+			AccountIndex                 int `json:"account_index"`
+		}
+		var reqBody UpdateAccountIndexRequest
+		if err := ctx.Bind(&reqBody); err != nil {
+			return c.BadRequest(ctx, "Invalid payload")
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return err
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return c.BadRequest(ctx, "User is not authorized")
+		}
+		glDefinition, err := c.model.GeneralLedgerDefinitionManager.GetByID(context, *glDefinitionID)
+		if err != nil {
+			return c.NotFound(ctx, "General Ledger Definition")
+		}
+		account, err := c.model.AccountManager.GetByID(context, *accountID)
+		if err != nil {
+			return c.NotFound(ctx, "Account")
+		}
+		if account.GeneralLedgerDefinitionID == nil || *account.GeneralLedgerDefinitionID != *glDefinitionID {
+			account.GeneralLedgerDefinitionID = glDefinitionID
+		}
+		accounts, err := c.model.AccountManager.Find(context, &model.Account{
+			GeneralLedgerDefinitionID: glDefinitionID,
+			OrganizationID:            userOrg.OrganizationID,
+			BranchID:                  *userOrg.BranchID,
+		})
+		if err != nil {
+			return c.InternalServerError(ctx, err)
+		}
+		var updatedAccounts []*model.Account
+		for _, acc := range accounts {
+			if acc.ID != account.ID {
+				updatedAccounts = append(updatedAccounts, acc)
+			}
+		}
+		if reqBody.AccountIndex < 0 {
+			reqBody.AccountIndex = 0
+		}
+		if reqBody.AccountIndex > len(updatedAccounts) {
+			reqBody.AccountIndex = len(updatedAccounts)
+		}
+		updatedAccounts = append(updatedAccounts[:reqBody.AccountIndex], append([]*model.Account{account}, updatedAccounts[reqBody.AccountIndex:]...)...)
+		for idx, acc := range updatedAccounts {
+			acc.Index = idx
+			acc.UpdatedAt = time.Now().UTC()
+			acc.UpdatedByID = userOrg.UserID
+			if err := c.model.AccountManager.UpdateFields(context, acc.ID, acc); err != nil {
+				return c.InternalServerError(ctx, err)
+			}
+		}
+
+		// Optionally, update the GL Definition's index if needed
+		if glDefinition.Index != reqBody.GeneralLedgerDefinitionIndex {
+			glDefinition.Index = reqBody.GeneralLedgerDefinitionIndex
+			glDefinition.UpdatedAt = time.Now().UTC()
+			glDefinition.UpdatedByID = userOrg.UserID
+			if err := c.model.GeneralLedgerDefinitionManager.UpdateFields(context, glDefinition.ID, glDefinition); err != nil {
+				return c.InternalServerError(ctx, err)
+			}
+		}
+
+		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerDefinitionManager.ToModel(glDefinition))
+	})
 
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-accounting-ledger/member-profile/:member_profile_id/total",
@@ -339,6 +423,9 @@ func (c *Controller) GeneralLedgerController() {
 		}
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
 			return c.BadRequest(ctx, "User is not authorized")
+		}
+		if userOrg.BranchID == nil {
+			return c.BadRequest(ctx, "Branch ID is missing for user organization")
 		}
 		entries, err := c.model.MemberAccountingLedgerManager.Find(context, &model.MemberAccountingLedger{
 			MemberProfileID: *memberProfileID,
