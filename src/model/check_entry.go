@@ -44,8 +44,8 @@ type (
 		Transaction               *Transaction             `gorm:"foreignKey:TransactionID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"transaction,omitempty"`
 		TransactionBatchID        *uuid.UUID               `gorm:"type:uuid"`
 		TransactionBatch          *TransactionBatch        `gorm:"foreignKey:TransactionBatchID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"transaction_batch,omitempty"`
-		GeneralAccountingLedgerID *uuid.UUID               `gorm:"type:uuid"`
-		GeneralAccountingLedger   *GeneralAccountingLedger `gorm:"foreignKey:GeneralAccountingLedgerID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"general_accounting_ledger,omitempty"`
+		GeneralLedgerID           *uuid.UUID               `gorm:"type:uuid"`
+		GeneralLedger             *GeneralLedger           `gorm:"foreignKey:GeneralLedgerID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"general_ledger,omitempty"`
 		DisbursementTransactionID *uuid.UUID               `gorm:"type:uuid"`
 		DisbursementTransaction   *DisbursementTransaction `gorm:"foreignKey:DisbursementTransactionID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"disbursement_transaction,omitempty"`
 
@@ -83,8 +83,8 @@ type (
 		Transaction               *TransactionResponse             `json:"transaction,omitempty"`
 		TransactionBatchID        *uuid.UUID                       `json:"transaction_batch_id,omitempty"`
 		TransactionBatch          *TransactionBatchResponse        `json:"transaction_batch,omitempty"`
-		GeneralAccountingLedgerID *uuid.UUID                       `json:"general_accounting_ledger_id,omitempty"`
-		GeneralAccountingLedger   *GeneralAccountingLedgerResponse `json:"general_accounting_ledger,omitempty"`
+		GeneralLedgerID           *uuid.UUID                       `json:"general_ledger_id,omitempty"`
+		GeneralLedger             *GeneralLedgerResponse           `json:"general_ledger,omitempty"`
 		DisbursementTransactionID *uuid.UUID                       `json:"disbursement_transaction_id,omitempty"`
 		DisbursementTransaction   *DisbursementTransactionResponse `json:"disbursement_transaction,omitempty"`
 		Credit                    float64                          `json:"credit"`
@@ -104,7 +104,7 @@ type (
 		EmployeeUserID            *uuid.UUID `json:"employee_user_id,omitempty"`
 		TransactionID             *uuid.UUID `json:"transaction_id,omitempty"`
 		TransactionBatchID        *uuid.UUID `json:"transaction_batch_id,omitempty"`
-		GeneralAccountingLedgerID *uuid.UUID `json:"general_accounting_ledger_id,omitempty"`
+		GeneralLedgerID           *uuid.UUID `json:"general_ledger_id,omitempty"`
 		DisbursementTransactionID *uuid.UUID `json:"disbursement_transaction_id,omitempty"`
 		Credit                    float64    `json:"credit,omitempty"`
 		Debit                     float64    `json:"debit,omitempty"`
@@ -121,7 +121,7 @@ func (m *Model) CheckEntry() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization",
 			"Account", "Media", "Bank", "MemberProfile", "MemberJointAccount", "EmployeeUser",
-			"Transaction", "TransactionBatch", "GeneralAccountingLedger", "DisbursementTransaction",
+			"Transaction", "TransactionBatch", "GeneralLedger", "DisbursementTransaction",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *CheckEntry) *CheckEntryResponse {
@@ -161,8 +161,8 @@ func (m *Model) CheckEntry() {
 				Transaction:               m.TransactionManager.ToModel(data.Transaction),
 				TransactionBatchID:        data.TransactionBatchID,
 				TransactionBatch:          m.TransactionBatchManager.ToModel(data.TransactionBatch),
-				GeneralAccountingLedgerID: data.GeneralAccountingLedgerID,
-				GeneralAccountingLedger:   m.GeneralAccountingLedgerManager.ToModel(data.GeneralAccountingLedger),
+				GeneralLedgerID:           data.GeneralLedgerID,
+				GeneralLedger:             m.GeneralLedgerManager.ToModel(data.GeneralLedger),
 				DisbursementTransactionID: data.DisbursementTransactionID,
 				DisbursementTransaction:   m.DisbursementTransactionManager.ToModel(data.DisbursementTransaction),
 				Credit:                    data.Credit,

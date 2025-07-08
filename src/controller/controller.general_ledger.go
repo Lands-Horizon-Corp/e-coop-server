@@ -284,4 +284,5 @@ func (c *Controller) GeneralLedgerController() {
 
 		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerDefinitionManager.ToModel(glDefinition))
 	})
+
 }
