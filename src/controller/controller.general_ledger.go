@@ -432,4 +432,33 @@ func (c *Controller) GeneralLedgerController() {
 			"credit":  credit,
 		})
 	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:    "/general-ledger/account/:account_id",
+		Method:   "GET",
+		Response: "GeneralLedger[]",
+		Note:     "Get all general ledger entries for an account with pagination",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		accountID, err := horizon.EngineUUIDParam(ctx, "account_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid account ID")
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return err
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return c.BadRequest(ctx, "User is not authorized")
+		}
+		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
+			AccountID:      accountID,
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.Pagination(context, ctx, entries))
+	})
 }
