@@ -287,7 +287,7 @@ func (c *Controller) GeneralLedgerController() {
 	req.RegisterRoute(horizon.Route{
 		Route:    "/general-ledger-grouping/general-ledger-definition/:general_ledger_definition_id/account/:account_id/index",
 		Method:   "PUT",
-		Request:  "UpdateAccountIndexRequest",
+		Request:  "UpdateAccountIndexRequest {general_ledger_definition_index: int, account_index: int}",
 		Response: "GeneralLedgerDefinitionResponse",
 		Note:     "Update the index of an account within a general ledger definition and reorder accordingly",
 	}, func(ctx echo.Context) error {
@@ -514,9 +514,9 @@ func (c *Controller) GeneralLedgerController() {
 			credit += entry.Credit
 		}
 		return ctx.JSON(http.StatusOK, map[string]any{
-			"balance": totalAmount,
-			"debit":   debit,
-			"credit":  credit,
+			"balance":      totalAmount,
+			"total_debit":  debit,
+			"total_credit": credit,
 		})
 	})
 
