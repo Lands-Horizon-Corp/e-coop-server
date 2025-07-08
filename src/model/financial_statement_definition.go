@@ -29,9 +29,8 @@ type (
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
 		// Self-referencing relationship for parent-child hierarchy
-		ParentDefinitionID *uuid.UUID                      `gorm:"type:uuid;column:financial_statement_definition_id"`
-		ParentDefinition   *FinancialStatementDefinition   `gorm:"foreignKey:ParentDefinitionID" json:"parent_definition,omitempty"`
-		ChildDefinitions   []*FinancialStatementDefinition `gorm:"foreignKey:ParentDefinitionID" json:"child_definitions,omitempty"`
+		FinancialStatementDefinitionEntriesID *uuid.UUID                      `gorm:"type:uuid;column:financial_statement_definition_entries_id;index" json:"parent_definition_id,omitempty"`
+		FinancialStatementDefinitionEntries   []*FinancialStatementDefinition `gorm:"foreignKey:FinancialStatementDefinitionEntriesID" json:"financial_statement_definition_entries,omitempty"`
 
 		// Many-to-one relationship with FinancialStatementGrouping
 		FinancialStatementGroupingID *uuid.UUID                  `gorm:"type:uuid;index" json:"financial_statement_grouping_id,omitempty"`
@@ -58,9 +57,8 @@ type (
 		BranchID       uuid.UUID             `json:"branch_id"`
 		Branch         *BranchResponse       `json:"branch,omitempty"`
 
-		ParentDefinitionID *uuid.UUID                              `json:"parent_definition_id,omitempty"`
-		ParentDefinition   *FinancialStatementDefinitionResponse   `json:"parent_definition,omitempty"`
-		ChildDefinitions   []*FinancialStatementDefinitionResponse `json:"child_definitions,omitempty"`
+		FinancialStatementDefinitionEntriesID *uuid.UUID                              `json:"financial_statement_definition_entries_id,omitempty"`
+		FinancialStatementDefinitionEntries   []*FinancialStatementDefinitionResponse `json:"financial_statement_definition_entries,omitempty"`
 
 		FinancialStatementGroupingID *uuid.UUID                          `json:"financial_statement_grouping_id,omitempty"`
 		FinancialStatementGrouping   *FinancialStatementGroupingResponse `json:"grouping,omitempty"`
@@ -106,9 +104,9 @@ func (m *Model) FinancialStatementDefinition() {
 				BranchID:       data.BranchID,
 				Branch:         m.BranchManager.ToModel(data.Branch),
 
-				ParentDefinitionID:           data.ParentDefinitionID,
-				ParentDefinition:             m.FinancialStatementDefinitionManager.ToModel(data.ParentDefinition),
-				ChildDefinitions:             m.FinancialStatementDefinitionManager.ToModels(data.ChildDefinitions),
+				FinancialStatementDefinitionEntriesID: data.FinancialStatementDefinitionEntriesID,
+				FinancialStatementDefinitionEntries:   m.FinancialStatementDefinitionManager.ToModels(data.FinancialStatementDefinitionEntries),
+
 				FinancialStatementGroupingID: data.FinancialStatementGroupingID,
 				FinancialStatementGrouping:   m.FinancialStatementGroupingManager.ToModel(data.FinancialStatementGrouping),
 
