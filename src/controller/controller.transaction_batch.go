@@ -530,7 +530,7 @@ func (c *Controller) TransactionBatchController() {
 		db := c.provider.Service.Database.Client().Model(new(model.TransactionBatch))
 		// Add necessary preloads using array
 		preloads := []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization",
 			"EmployeeUser",
 			"EmployeeUser.Media",
 			"ApprovedBySignatureMedia",

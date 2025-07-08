@@ -104,7 +104,7 @@ func (m *Model) GeneralLedgerDefinition() {
 	m.Migration = append(m.Migration, &GeneralLedgerDefinition{})
 	m.GeneralLedgerDefinitionManager = horizon_services.NewRepository(horizon_services.RepositoryParams[GeneralLedgerDefinition, GeneralLedgerDefinitionResponse, GeneralLedgerDefinitionRequest]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization",
 			"Accounts",
 			"GeneralLedgerAccountsGrouping",
 			"GeneralLedgerDefinitionEntries", // Parent

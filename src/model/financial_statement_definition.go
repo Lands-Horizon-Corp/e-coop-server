@@ -95,7 +95,7 @@ func (m *Model) FinancialStatementDefinition() {
 			"ParentDefinition",
 			"ChildDefinitions",
 			"FinancialStatementGrouping",
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization",
 			"Accounts",
 			"FinancialStatementGrouping", // Parent
 			"FinancialStatementGrouping", // Children level 1

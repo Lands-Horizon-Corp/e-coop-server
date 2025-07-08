@@ -389,7 +389,7 @@ func (m *Model) Account() {
 		Account, AccountResponse, AccountRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization",
 			"AccountClassification", "AccountCategory",
 		},
 		Service: m.provider.Service,

@@ -71,7 +71,7 @@ func (m *Model) InterestRatePercentage() {
 		InterestRatePercentage, InterestRatePercentageResponse, InterestRatePercentageRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization", "MemberClassificationInterestRate",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization", "MemberClassificationInterestRate",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *InterestRatePercentage) *InterestRatePercentageResponse {

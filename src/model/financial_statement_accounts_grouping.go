@@ -85,7 +85,7 @@ func (m *Model) FinancialStatementGrouping() {
 	m.Migration = append(m.Migration, &FinancialStatementGrouping{})
 	m.FinancialStatementGroupingManager = horizon_services.NewRepository(horizon_services.RepositoryParams[FinancialStatementGrouping, FinancialStatementGroupingResponse, FinancialStatementGroupingRequest]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization", "IconMedia",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization", "IconMedia",
 			"FinancialStatementDefinitions",
 		},
 		Service: m.provider.Service,

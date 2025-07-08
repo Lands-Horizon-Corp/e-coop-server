@@ -75,7 +75,7 @@ func (m *Model) JournalVoucherTag() {
 		JournalVoucherTag, JournalVoucherTagResponse, JournalVoucherTagRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization", "JournalVoucher",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization", "JournalVoucher",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *JournalVoucherTag) *JournalVoucherTagResponse {

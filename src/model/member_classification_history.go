@@ -71,7 +71,7 @@ func (m *Model) MemberClassificationHistory() {
 		MemberClassificationHistoryRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy",
+			"CreatedBy", "UpdatedBy",
 			"Organization", "Branch", "MemberClassification", "MemberProfile",
 		},
 		Service: m.provider.Service,

@@ -93,7 +93,7 @@ func (m *Model) OnlineRemittance() {
 		OnlineRemittance, OnlineRemittanceResponse, OnlineRemittanceRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization",
 			"Bank", "Media", "EmployeeUser", "TransactionBatch",
 			"Bank.Media",
 		},

@@ -116,7 +116,7 @@ func (m *Model) OnlineEntry() {
 		OnlineEntry, OnlineEntryResponse, OnlineEntryRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization",
 			"Bank", "Account", "MemberProfile", "MemberJointAccount",
 			"TransactionBatch", "GeneralLedger", "Transaction",
 			"EmployeeUser", "DisbursementTransaction",

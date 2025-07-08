@@ -100,7 +100,7 @@ func (m *Model) TimeDepositComputation() {
 		TimeDepositComputation, TimeDepositComputationResponse, TimeDepositComputationRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization", "TimeDepositType",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization", "TimeDepositType",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *TimeDepositComputation) *TimeDepositComputationResponse {

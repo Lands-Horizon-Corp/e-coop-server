@@ -119,7 +119,7 @@ func (m *Model) CheckEntry() {
 		CheckEntry, CheckEntryResponse, CheckEntryRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization",
 			"Account", "Media", "Bank", "MemberProfile", "MemberJointAccount", "EmployeeUser",
 			"Transaction", "TransactionBatch", "GeneralLedger", "DisbursementTransaction",
 		},

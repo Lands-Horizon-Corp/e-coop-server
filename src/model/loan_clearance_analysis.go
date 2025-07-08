@@ -76,7 +76,7 @@ func (m *Model) LoanClearanceAnalysis() {
 		LoanClearanceAnalysis, LoanClearanceAnalysisResponse, LoanClearanceAnalysisRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization", "LoanTransaction",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization", "LoanTransaction",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *LoanClearanceAnalysis) *LoanClearanceAnalysisResponse {

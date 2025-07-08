@@ -84,7 +84,7 @@ func (m *Model) CashCheckVoucherEntry() {
 		CashCheckVoucherEntry, CashCheckVoucherEntryResponse, CashCheckVoucherEntryRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization",
 			"Account", "EmployeeUser", "TransactionBatch", "CashCheckVoucher",
 		},
 		Service: m.provider.Service,

@@ -119,7 +119,7 @@ func (m *Model) CashCheckVoucherDisbursementEntry() {
 		CashCheckVoucherDisbursementEntry, CashCheckVoucherDisbursementEntryResponse, CashCheckVoucherDisbursementEntryRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization",
 			"PrintedByUser", "ApprovedByUser", "ReleasedByUser",
 			"EmployeeUser", "Account", "CashCheckVoucher", "TransactionBatch",
 		},

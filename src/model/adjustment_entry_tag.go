@@ -75,7 +75,7 @@ func (m *Model) AdjustmentEntryTag() {
 		AdjustmentEntryTag, AdjustmentEntryTagResponse, AdjustmentEntryTagRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization", "AdjustmentEntry",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization", "AdjustmentEntry",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *AdjustmentEntryTag) *AdjustmentEntryTagResponse {

@@ -75,7 +75,7 @@ func (m *Model) LoanTag() {
 		LoanTag, LoanTagResponse, LoanTagRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization", "LoanTransaction",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization", "LoanTransaction",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *LoanTag) *LoanTagResponse {

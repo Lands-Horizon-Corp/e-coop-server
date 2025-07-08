@@ -84,7 +84,7 @@ func (m *Model) ChargesRateMemberTypeModeOfPayment() {
 		ChargesRateMemberTypeModeOfPayment, ChargesRateMemberTypeModeOfPaymentResponse, ChargesRateMemberTypeModeOfPaymentRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization", "MemberType",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization", "MemberType",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *ChargesRateMemberTypeModeOfPayment) *ChargesRateMemberTypeModeOfPaymentResponse {

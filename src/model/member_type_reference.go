@@ -93,7 +93,7 @@ func (m *Model) MemberTypeReference() {
 		MemberTypeReference, MemberTypeReferenceResponse, MemberTypeReferenceRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization", "Account", "MemberType",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization", "Account", "MemberType",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *MemberTypeReference) *MemberTypeReferenceResponse {

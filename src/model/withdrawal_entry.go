@@ -106,7 +106,7 @@ func (m *Model) WithdrawalEntry() {
 		WithdrawalEntry, WithdrawalEntryResponse, WithdrawalEntryRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization",
 			"MemberProfile", "Transaction", "MemberJointAccount", "GeneralLedger",
 			"TransactionBatch", "SignatureMedia", "Account", "EmployeeUser",
 		},

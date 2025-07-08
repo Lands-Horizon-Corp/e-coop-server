@@ -81,7 +81,7 @@ func (m *Model) CashCount() {
 		CashCount, CashCountResponse, CashCountRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization",
 			"EmployeeUser", "TransactionBatch",
 		},
 		Service: m.provider.Service,

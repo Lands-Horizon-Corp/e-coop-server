@@ -251,7 +251,7 @@ func (m *Model) CashCheckVoucher() {
 		CashCheckVoucher, CashCheckVoucherResponse, CashCheckVoucherRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization",
 			"EmployeeUser", "TransactionBatch", "PrintedByUser", "ApprovedByUser", "ReleasedByUser",
 			"ApprovedBySignatureMedia", "PreparedBySignatureMedia", "CertifiedBySignatureMedia",
 			"VerifiedBySignatureMedia", "CheckBySignatureMedia", "AcknowledgeBySignatureMedia",

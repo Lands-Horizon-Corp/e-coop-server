@@ -71,7 +71,7 @@ func (m *Model) TagTemplate() {
 		TagTemplate, TagTemplateResponse, TagTemplateRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *TagTemplate) *TagTemplateResponse {

@@ -106,7 +106,7 @@ func (m *Model) TransactionEntry() {
 		TransactionEntry, TransactionEntryResponse, TransactionEntryRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization",
 			"MemberProfile", "EmployeeUser", "Transaction", "MemberJointAccount",
 			"GeneralLedger", "TransactionBatch", "SignatureMedia", "Account",
 		},

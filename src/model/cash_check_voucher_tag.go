@@ -75,7 +75,7 @@ func (m *Model) CashCheckVoucherTag() {
 		CashCheckVoucherTag, CashCheckVoucherTagResponse, CashCheckVoucherTagRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization", "CashCheckVoucher",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization", "CashCheckVoucher",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *CashCheckVoucherTag) *CashCheckVoucherTagResponse {

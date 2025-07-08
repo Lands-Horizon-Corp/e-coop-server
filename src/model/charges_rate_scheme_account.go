@@ -65,7 +65,7 @@ func (m *Model) ChargesRateSchemeAccount() {
 		ChargesRateSchemeAccount, ChargesRateSchemeAccountResponse, ChargesRateSchemeAccountRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization", "ChargesRateScheme", "Account",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization", "ChargesRateScheme", "Account",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *ChargesRateSchemeAccount) *ChargesRateSchemeAccountResponse {

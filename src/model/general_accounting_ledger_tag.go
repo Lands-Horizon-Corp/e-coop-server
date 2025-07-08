@@ -78,7 +78,7 @@ func (m *Model) GeneralLedgerTag() {
 		GeneralLedgerTag, GeneralLedgerTagResponse, GeneralLedgerTagRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization", "GeneralLedger",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization", "GeneralLedger",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *GeneralLedgerTag) *GeneralLedgerTagResponse {

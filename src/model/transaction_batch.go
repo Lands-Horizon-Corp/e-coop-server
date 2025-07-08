@@ -337,7 +337,7 @@ func (m *Model) TransactionBatch() {
 		TransactionBatch, TransactionBatchResponse, TransactionBatchRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization",
 			"EmployeeUser",
 			"EmployeeUser.Media",
 			"ApprovedBySignatureMedia",

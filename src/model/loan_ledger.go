@@ -52,7 +52,7 @@ func (m *Model) LoanLedger() {
 		LoanLedger, LoanLedgerResponse, LoanLedgerRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *LoanLedger) *LoanLedgerResponse {

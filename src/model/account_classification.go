@@ -59,7 +59,7 @@ func (m *Model) AccountClassification() {
 	m.AccountClassificationManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		AccountClassification, AccountClassificationResponse, AccountClassificationRequest,
 	]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization"},
+		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
 		Service:  m.provider.Service,
 		Resource: func(data *AccountClassification) *AccountClassificationResponse {
 			if data == nil {

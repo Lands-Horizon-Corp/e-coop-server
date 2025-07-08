@@ -80,7 +80,7 @@ func (m *Model) BatchFunding() {
 		BatchFunding, BatchFundingResponse, BatchFundingRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization",
 			"TransactionBatch", "ProvidedByUser", "SignatureMedia",
 			"ProvidedByUser.Media",
 		},
