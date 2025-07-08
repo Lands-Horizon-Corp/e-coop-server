@@ -286,7 +286,7 @@ func (c *Controller) GeneralLedgerController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-general-ledger/member-profile/:member_profile_id/total",
+		Route:    "/member-accounting-ledger/member-profile/:member_profile_id/total",
 		Method:   "GET",
 		Response: "MemberGeneralLedgerTotal",
 		Note:     "Get total amount for a specific member profile's general ledger entries",
@@ -322,7 +322,7 @@ func (c *Controller) GeneralLedgerController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-general-ledger/member-profile/:member_profile_id",
+		Route:    "/member-accounting-ledger/member-profile/:member_profile_id",
 		Method:   "GET",
 		Response: "MemberGeneralLedgerTotal",
 		Note:     "Get total amount for a specific member profile's general ledger entries",
