@@ -60,6 +60,8 @@ type (
 		FinancialStatementDefinitionEntriesID *uuid.UUID                              `json:"financial_statement_definition_entries_id,omitempty"`
 		FinancialStatementDefinitionEntries   []*FinancialStatementDefinitionResponse `json:"financial_statement_definition_entries,omitempty"`
 
+		Accounts []*Account `gorm:"foreignKey:FinancialStatementDefinitionID" json:"accounts"`
+
 		FinancialStatementGroupingID *uuid.UUID                          `json:"financial_statement_grouping_id,omitempty"`
 		FinancialStatementGrouping   *FinancialStatementGroupingResponse `json:"grouping,omitempty"`
 
@@ -85,8 +87,34 @@ type (
 func (m *Model) FinancialStatementDefinition() {
 	m.Migration = append(m.Migration, &FinancialStatementDefinition{})
 	m.FinancialStatementDefinitionManager = horizon_services.NewRepository(horizon_services.RepositoryParams[FinancialStatementDefinition, FinancialStatementDefinitionResponse, FinancialStatementDefinitionRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization", "ParentDefinition", "ChildDefinitions", "FinancialStatementGrouping"},
-		Service:  m.provider.Service,
+		Preloads: []string{
+			"CreatedBy",
+			"UpdatedBy",
+			"Branch",
+			"Organization",
+			"ParentDefinition",
+			"ChildDefinitions",
+			"FinancialStatementGrouping",
+			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization",
+			"Accounts",
+			"FinancialStatementGrouping", // Parent
+			"FinancialStatementGrouping", // Children level 1
+			"FinancialStatementGrouping.FinancialStatementGrouping",                                                                                  // Parent of children
+			"FinancialStatementGrouping.FinancialStatementGrouping",                                                                                  // Children level 2
+			"FinancialStatementGrouping.FinancialStatementGrouping.FinancialStatementGrouping",                                                       // Parent of level 2
+			"FinancialStatementGrouping.FinancialStatementGrouping.FinancialStatementGrouping",                                                       // Children level 3
+			"FinancialStatementGrouping.FinancialStatementGrouping.FinancialStatementGrouping.FinancialStatementGrouping",                            // Parent of level 3
+			"FinancialStatementGrouping.FinancialStatementGrouping.FinancialStatementGrouping.FinancialStatementGrouping",                            // Children level 4
+			"FinancialStatementGrouping.FinancialStatementGrouping.FinancialStatementGrouping.FinancialStatementGrouping.FinancialStatementGrouping", // Parent of level 4
+			"FinancialStatementGrouping.FinancialStatementGrouping.FinancialStatementGrouping.FinancialStatementGrouping.FinancialStatementGrouping", // Children level 5
+			// Preload accounts for each level
+			"FinancialStatementGrouping.Accounts",
+			"FinancialStatementGrouping.FinancialStatementGrouping.Accounts",
+			"FinancialStatementGrouping.FinancialStatementGrouping.FinancialStatementGrouping.Accounts",
+			"FinancialStatementGrouping.FinancialStatementGrouping.FinancialStatementGrouping.FinancialStatementGrouping.Accounts",
+			"FinancialStatementGrouping.FinancialStatementGrouping.FinancialStatementGrouping.FinancialStatementGrouping.FinancialStatementGrouping.Accounts",
+		},
+		Service: m.provider.Service,
 		Resource: func(data *FinancialStatementDefinition) *FinancialStatementDefinitionResponse {
 			if data == nil {
 				return nil
