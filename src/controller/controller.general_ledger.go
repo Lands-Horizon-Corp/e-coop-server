@@ -51,8 +51,8 @@ func (c *Controller) GeneralLedgerController() {
 				// Remove all entries that have GeneralLedgerDefinitionEntryID not nil
 				var filteredEntries []*model.GeneralLedgerDefinition
 				for _, entry := range entries {
-					fmt.Println(entry.GeneralLedgerDefinitionEntryID == nil, entry.Name)
-					if entry.GeneralLedgerDefinitionEntryID == nil {
+					fmt.Println(entry.GeneralLedgerDefinitionEntryID != nil, entry.Name)
+					if entry.GeneralLedgerDefinitionEntryID != nil {
 						filteredEntries = append(filteredEntries, entry)
 
 					}
