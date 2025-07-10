@@ -401,7 +401,9 @@ func (c *Controller) GeneralLedgerController() {
 			totalAmount += entry.Balance
 		}
 		return ctx.JSON(http.StatusOK, map[string]any{
-			"total_amount": totalAmount,
+			"total_amount":                     totalAmount,
+			"total_share_capital_plus_savings": 0,
+			"total_loans":                      totalAmount,
 		})
 	})
 
@@ -439,7 +441,7 @@ func (c *Controller) GeneralLedgerController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/general-ledger/member-profile/:member_profile_id/account/:account_id",
+		Route:    "/general-ledger/member-profile/:member_profile_id/account/:account_id/search",
 		Method:   "GET",
 		Response: "MemberGeneralLedgerTotal",
 		Note:     "Get total amount for a specific member profile's general ledger entries",
