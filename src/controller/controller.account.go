@@ -772,6 +772,43 @@ func (c *Controller) AccountController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
+	// Update only the index of an account using URL param
+	req.RegisterRoute(horizon.Route{
+		Route:    "/account/:account_id/index/:index",
+		Method:   "PUT",
+		Response: "IAccount",
+		Note:     "Update only the index field of an account using URL param",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return err
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return c.BadRequest(ctx, "User is not authorized")
+		}
+		accountID, err := horizon.EngineUUIDParam(ctx, "account_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid account ID")
+		}
+		indexParam := ctx.Param("index")
+		var newIndex int
+		_, err = fmt.Sscanf(indexParam, "%d", &newIndex)
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid index value")
+		}
+		account, err := c.model.AccountManager.GetByID(context, *accountID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		account.Index = newIndex
+		account.UpdatedAt = time.Now().UTC()
+		account.UpdatedByID = userOrg.UserID
+		if err := c.model.AccountManager.UpdateFields(context, account.ID, account); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.AccountManager.ToModel(account))
+	})
 }
 
 func (c *Controller) AccountTagController() {
