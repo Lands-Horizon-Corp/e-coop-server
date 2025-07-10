@@ -37,15 +37,22 @@ func (c *Controller) GeneralLedgerController() {
 		for _, grouping := range gl {
 			if grouping != nil {
 				entries, err := c.model.GeneralLedgerDefinitionManager.FindWithConditions(context, map[string]any{
-					"organization_id": userOrg.OrganizationID,
-					"branch_id":       *userOrg.BranchID,
-					// "general_ledger_definition_entry_id":  nil,
+					"organization_id":                     userOrg.OrganizationID,
+					"branch_id":                           *userOrg.BranchID,
 					"general_ledger_accounts_grouping_id": &grouping.ID,
 				})
 				if err != nil {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 				}
-				grouping.GeneralLedgerDefinitionEntries = entries
+
+				// Filter: keep only entries where GeneralLedgerDefinitionEntryID is nil
+				var topLevelEntries []*model.GeneralLedgerDefinition
+				for _, entry := range entries {
+					if entry.GeneralLedgerDefinitionEntryID == nil {
+						topLevelEntries = append(topLevelEntries, entry)
+					}
+				}
+				grouping.GeneralLedgerDefinitionEntries = topLevelEntries
 			}
 		}
 		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerAccountsGroupingManager.ToModels(gl))
