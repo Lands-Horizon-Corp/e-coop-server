@@ -107,8 +107,8 @@ func (m *Model) GeneralLedgerDefinition() {
 			"CreatedBy", "UpdatedBy", "Branch", "Organization",
 			"Accounts",
 			"GeneralLedgerAccountsGrouping",
-			"GeneralLedgerDefinitionEntries", // Parent
-			"GeneralLedgerDefinitionEntries", // Children level 1
+			"GeneralLedgerDefinitionEntries",
+			"GeneralLedgerDefinitionEntries",
 			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries",                                                                                              // Parent of children
 			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries",                                                                                              // Children level 2
 			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries",                                                               // Parent of level 2
