@@ -45,14 +45,14 @@ func (c *Controller) GeneralLedgerController() {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 				}
 
-				// Filter: keep only entries where GeneralLedgerDefinitionEntryID is nil
-				var topLevelEntries []*model.GeneralLedgerDefinition
+				// Remove all entries that have GeneralLedgerDefinitionEntryID not nil
+				var filteredEntries []*model.GeneralLedgerDefinition
 				for _, entry := range entries {
 					if entry.GeneralLedgerDefinitionEntryID == nil {
-						topLevelEntries = append(topLevelEntries, entry)
+						filteredEntries = append(filteredEntries, entry)
 					}
 				}
-				grouping.GeneralLedgerDefinitionEntries = topLevelEntries
+				grouping.GeneralLedgerDefinitionEntries = filteredEntries
 			}
 		}
 		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerAccountsGroupingManager.ToModels(gl))
