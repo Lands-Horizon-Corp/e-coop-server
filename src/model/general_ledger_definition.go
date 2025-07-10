@@ -95,7 +95,7 @@ type (
 		GeneralLedgerType               GeneralLedgerType `json:"general_ledger_type" validate:"required"`
 		BeginningBalanceOfTheYearCredit int               `json:"beginning_balance_of_the_year_credit,omitempty"`
 		BeginningBalanceOfTheYearDebit  int               `json:"beginning_balance_of_the_year_debit,omitempty"`
-		GeneralLedgerDefinitionEntryID  *uuid.UUID        `json:"general_ledger_definition_id,omitempty"`
+		GeneralLedgerDefinitionEntryID  *uuid.UUID        `json:"general_ledger_definition_entries_id,omitempty"`
 		GeneralLedgerAccountsGroupingID *uuid.UUID        `json:"general_ledger_accounts_grouping_id,omitempty"`
 	}
 )
