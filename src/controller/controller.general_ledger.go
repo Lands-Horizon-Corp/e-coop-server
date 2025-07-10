@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -47,19 +46,13 @@ func (c *Controller) GeneralLedgerController() {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 				}
 
-				fmt.Println(grouping.Name)
-				// Remove all entries that have GeneralLedgerDefinitionEntryID not nil
 				var filteredEntries []*model.GeneralLedgerDefinition
 				for _, entry := range entries {
-					fmt.Println(entry.GeneralLedgerDefinitionEntryID != nil, entry.Name)
-					if entry.GeneralLedgerDefinitionEntryID != nil {
+					if entry.GeneralLedgerDefinitionEntryID == nil {
 						filteredEntries = append(filteredEntries, entry)
-						fmt.Println(entry.GeneralLedgerDefinitionEntries, entry.Name, "--")
 
 					}
 				}
-
-				fmt.Println()
 
 				grouping.GeneralLedgerDefinitionEntries = filteredEntries
 			}
