@@ -549,12 +549,12 @@ func (c *Controller) GeneralLedgerController() {
 		}
 		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.Pagination(context, ctx, entries))
 	})
-	// Delete a general ledger definition by ID
+	// Delete a general ledger definition by ID, only if no accounts are linked
 	req.RegisterRoute(horizon.Route{
 		Route:    "/general-ledger-definition/:general_definition_id",
 		Method:   "DELETE",
 		Response: "GeneralLedgerDefinitionResponse",
-		Note:     "Delete a general ledger definition by ID",
+		Note:     "Delete a general ledger definition by ID, only if no accounts are linked",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		glDefinitionID, err := horizon.EngineUUIDParam(ctx, "general_definition_id")
@@ -571,6 +571,18 @@ func (c *Controller) GeneralLedgerController() {
 		glDefinition, err := c.model.GeneralLedgerDefinitionManager.GetByID(context, *glDefinitionID)
 		if err != nil {
 			return c.NotFound(ctx, "General Ledger Definition")
+		}
+		// Check if any accounts are linked to this general ledger definition
+		accounts, err := c.model.AccountManager.Find(context, &model.Account{
+			GeneralLedgerDefinitionID: glDefinitionID,
+			OrganizationID:            userOrg.OrganizationID,
+			BranchID:                  *userOrg.BranchID,
+		})
+		if err != nil {
+			return c.InternalServerError(ctx, err)
+		}
+		if len(accounts) > 0 {
+			return c.BadRequest(ctx, "Cannot delete: accounts are linked to this general ledger definition")
 		}
 		if err := c.model.GeneralLedgerDefinitionManager.DeleteByID(context, glDefinition.ID); err != nil {
 			return c.InternalServerError(ctx, err)
