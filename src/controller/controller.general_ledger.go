@@ -27,14 +27,26 @@ func (c *Controller) GeneralLedgerController() {
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
 			return c.BadRequest(ctx, "User is not authorized")
 		}
-		gl, err := c.model.GeneralLedgerAccountsGroupingManager.FindRaw(context, &model.GeneralLedgerAccountsGrouping{
+		gl, err := c.model.GeneralLedgerAccountsGroupingManager.Find(context, &model.GeneralLedgerAccountsGrouping{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, gl)
+		entries, err := c.model.GeneralLedgerDefinitionManager.Find(context, &model.GeneralLedgerDefinition{
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		for _, grouping := range gl {
+			if grouping != nil {
+				grouping.GeneralLedgerDefinitionEntries = entries
+			}
+		}
+		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerAccountsGroupingManager.ToModels(gl))
 	})
 
 	req.RegisterRoute(horizon.Route{

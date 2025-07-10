@@ -76,12 +76,6 @@ func (m *Model) GeneralLedgerAccountsGrouping() {
 	m.GeneralLedgerAccountsGroupingManager = horizon_services.NewRepository(horizon_services.RepositoryParams[GeneralLedgerAccountsGrouping, GeneralLedgerAccountsGroupingResponse, GeneralLedgerAccountsGroupingRequest]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Branch", "Organization",
-			"GeneralLedgerDefinitionEntries",
-			"GeneralLedgerDefinitionEntries.Accounts",
-			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries",
-			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.Accounts",
-			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries",
-			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.Accounts",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *GeneralLedgerAccountsGrouping) *GeneralLedgerAccountsGroupingResponse {
