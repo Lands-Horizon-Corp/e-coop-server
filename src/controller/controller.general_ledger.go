@@ -37,9 +37,9 @@ func (c *Controller) GeneralLedgerController() {
 		for _, grouping := range gl {
 			if grouping != nil {
 				entries, err := c.model.GeneralLedgerDefinitionManager.FindWithConditions(context, map[string]any{
-					"organization_id":                     userOrg.OrganizationID,
-					"branch_id":                           *userOrg.BranchID,
-					"general_ledger_definition_entry_id":  nil,
+					"organization_id": userOrg.OrganizationID,
+					"branch_id":       *userOrg.BranchID,
+					// "general_ledger_definition_entry_id":  nil,
 					"general_ledger_accounts_grouping_id": &grouping.ID,
 				})
 				if err != nil {
