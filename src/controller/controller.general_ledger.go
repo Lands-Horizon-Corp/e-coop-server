@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -36,6 +37,7 @@ func (c *Controller) GeneralLedgerController() {
 		}
 		for _, grouping := range gl {
 			if grouping != nil {
+				grouping.GeneralLedgerDefinitionEntries = []*model.GeneralLedgerDefinition{}
 				entries, err := c.model.GeneralLedgerDefinitionManager.FindWithConditions(context, map[string]any{
 					"organization_id":                     userOrg.OrganizationID,
 					"branch_id":                           *userOrg.BranchID,
@@ -50,6 +52,7 @@ func (c *Controller) GeneralLedgerController() {
 				for _, entry := range entries {
 					if entry.GeneralLedgerDefinitionEntryID == nil {
 						filteredEntries = append(filteredEntries, entry)
+						fmt.Println(filteredEntries)
 					}
 				}
 				grouping.GeneralLedgerDefinitionEntries = filteredEntries
