@@ -406,7 +406,7 @@ func (c *Controller) GeneralLedgerController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-accounting-ledger/member-profile/:member_profile_id",
+		Route:    "/member-accounting-ledger/member-profile/:member_profile_id/sarch",
 		Method:   "GET",
 		Response: "MemberGeneralLedgerTotal",
 		Note:     "Get total amount for a specific member profile's general ledger entries",
@@ -436,7 +436,6 @@ func (c *Controller) GeneralLedgerController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberAccountingLedgerManager.Pagination(context, ctx, entries))
-
 	})
 
 	req.RegisterRoute(horizon.Route{
