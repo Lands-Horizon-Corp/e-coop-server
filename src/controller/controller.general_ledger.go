@@ -35,8 +35,9 @@ func (c *Controller) GeneralLedgerController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
 		entries, err := c.model.GeneralLedgerDefinitionManager.Find(context, &model.GeneralLedgerDefinition{
-			OrganizationID: userOrg.OrganizationID,
-			BranchID:       *userOrg.BranchID,
+			OrganizationID:                 userOrg.OrganizationID,
+			BranchID:                       *userOrg.BranchID,
+			GeneralLedgerDefinitionEntryID: nil,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
