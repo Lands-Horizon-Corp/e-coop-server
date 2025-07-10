@@ -572,6 +572,9 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return c.NotFound(ctx, "General Ledger Definition")
 		}
+		if len(glDefinition.GeneralLedgerDefinitionEntries) > 0 {
+			return c.BadRequest(ctx, "Cannot delete: general ledger definition has entries")
+		}
 		// Check if any accounts are linked to this general ledger definition
 		accounts, err := c.model.AccountManager.Find(context, &model.Account{
 			GeneralLedgerDefinitionID: glDefinitionID,
