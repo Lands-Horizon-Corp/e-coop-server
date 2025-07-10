@@ -84,6 +84,7 @@ type (
 		CreatedAt                       string            `json:"created_at"`
 		UpdatedAt                       string            `json:"updated_at"`
 		DeletedAt                       *string           `json:"deleted_at,omitempty"`
+		Depth                           int               `json:"depth"`
 	}
 
 	GeneralLedgerDefinitionRequest struct {
@@ -177,6 +178,7 @@ func (m *Model) GeneralLedgerDefinition() {
 				CreatedAt:                       data.CreatedAt.Format(time.RFC3339),
 				UpdatedAt:                       data.UpdatedAt.Format(time.RFC3339),
 				DeletedAt:                       deletedAt,
+				Depth:                           0,
 			}
 		},
 		Created: func(data *GeneralLedgerDefinition) []string {

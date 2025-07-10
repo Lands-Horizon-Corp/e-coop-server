@@ -809,6 +809,38 @@ func (c *Controller) AccountController() {
 		}
 		return ctx.JSON(http.StatusOK, c.model.AccountManager.ToModel(account))
 	})
+
+	// Remove GeneralLedgerDefinitionID from an account
+	req.RegisterRoute(horizon.Route{
+		Route:    "/account/:account_id/general-ledger-definition/remove",
+		Method:   "PUT",
+		Response: "IAccount",
+		Note:     "Remove the GeneralLedgerDefinitionID from an account",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return err
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return c.BadRequest(ctx, "User is not authorized")
+		}
+		accountID, err := horizon.EngineUUIDParam(ctx, "account_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid account ID")
+		}
+		account, err := c.model.AccountManager.GetByID(context, *accountID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		account.GeneralLedgerDefinitionID = nil
+		account.UpdatedAt = time.Now().UTC()
+		account.UpdatedByID = userOrg.UserID
+		if err := c.model.AccountManager.UpdateFields(context, account.ID, account); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.AccountManager.ToModel(account))
+	})
 }
 
 func (c *Controller) AccountTagController() {
