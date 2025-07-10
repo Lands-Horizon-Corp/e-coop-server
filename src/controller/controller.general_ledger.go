@@ -549,4 +549,32 @@ func (c *Controller) GeneralLedgerController() {
 		}
 		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.Pagination(context, ctx, entries))
 	})
+	// Delete a general ledger definition by ID
+	req.RegisterRoute(horizon.Route{
+		Route:    "/general-ledger-definition/:general_definition_id",
+		Method:   "DELETE",
+		Response: "GeneralLedgerDefinitionResponse",
+		Note:     "Delete a general ledger definition by ID",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		glDefinitionID, err := horizon.EngineUUIDParam(ctx, "general_definition_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid general ledger definition ID")
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return err
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return c.BadRequest(ctx, "User is not authorized")
+		}
+		glDefinition, err := c.model.GeneralLedgerDefinitionManager.GetByID(context, *glDefinitionID)
+		if err != nil {
+			return c.NotFound(ctx, "General Ledger Definition")
+		}
+		if err := c.model.GeneralLedgerDefinitionManager.DeleteByID(context, glDefinition.ID); err != nil {
+			return c.InternalServerError(ctx, err)
+		}
+		return ctx.NoContent(http.StatusNoContent)
+	})
 }
