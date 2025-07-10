@@ -34,16 +34,17 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
-		entries, err := c.model.GeneralLedgerDefinitionManager.Find(context, &model.GeneralLedgerDefinition{
-			OrganizationID:                 userOrg.OrganizationID,
-			BranchID:                       *userOrg.BranchID,
-			GeneralLedgerDefinitionEntryID: nil,
-		})
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-		}
 		for _, grouping := range gl {
 			if grouping != nil {
+				entries, err := c.model.GeneralLedgerDefinitionManager.FindWithConditions(context, map[string]any{
+					"organization_id":                     userOrg.OrganizationID,
+					"branch_id":                           *userOrg.BranchID,
+					"general_ledger_definition_entry_id":  nil,
+					"general_ledger_accounts_grouping_id": &grouping.ID,
+				})
+				if err != nil {
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				}
 				grouping.GeneralLedgerDefinitionEntries = entries
 			}
 		}
