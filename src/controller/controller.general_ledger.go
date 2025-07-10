@@ -522,7 +522,7 @@ func (c *Controller) GeneralLedgerController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/general-ledger/account/:account_id",
+		Route:    "/general-ledger/account/:account_id/search",
 		Method:   "GET",
 		Response: "GeneralLedger[]",
 		Note:     "Get all general ledger entries for an account with pagination",
