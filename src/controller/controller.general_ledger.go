@@ -54,10 +54,11 @@ func (c *Controller) GeneralLedgerController() {
 					fmt.Println(entry.GeneralLedgerDefinitionEntryID != nil, entry.Name)
 					if entry.GeneralLedgerDefinitionEntryID != nil {
 						filteredEntries = append(filteredEntries, entry)
+						fmt.Println(entry.GeneralLedgerDefinitionEntries, entry.Name, "--")
 
 					}
 				}
-				fmt.Println(filteredEntries)
+
 				fmt.Println()
 
 				grouping.GeneralLedgerDefinitionEntries = filteredEntries
