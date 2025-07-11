@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/go-playground/validator"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/horizon"
@@ -26,14 +27,18 @@ func (c *Controller) UserOrganinzationController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "invalid user_organization_id"})
 		}
 
-		// Bind payload
 		var payload struct {
-			PermissionName        string   `json:"permission_name"`
-			PermissionDescription string   `json:"permission_description"`
-			Permissions           []string `json:"permissions"`
+			PermissionName        string   `json:"permission_name" validate:"required"`
+			PermissionDescription string   `json:"permission_description" validate:"required"`
+			Permissions           []string `json:"permissions" validate:"required,min=1,dive,required"`
 		}
 		if err := ctx.Bind(&payload); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "invalid payload"})
+		}
+
+		validate := validator.New()
+		if err := validate.Struct(payload); err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 		}
 
 		// Get user organization
@@ -448,9 +453,10 @@ func (c *Controller) UserOrganinzationController() {
 			ApplicationDescription: "anything",
 			ApplicationStatus:      "pending",
 			DeveloperSecretKey:     developerKey,
-			PermissionName:         invitationCode.UserType,
-			PermissionDescription:  "",
-			Permissions:            []string{},
+
+			PermissionName:        invitationCode.PermissionName,
+			PermissionDescription: invitationCode.PermissionDescription,
+			Permissions:           invitationCode.Permissions,
 
 			UserSettingDescription:  "user settings",
 			UserSettingStartOR:      0,
@@ -526,13 +532,13 @@ func (c *Controller) UserOrganinzationController() {
 			OrganizationID:         *orgId,
 			BranchID:               branchId,
 			UserID:                 user.ID,
-			UserType:               req.UserType,
+			UserType:               "member",
 			Description:            req.Description,
 			ApplicationDescription: "",
 			ApplicationStatus:      "pending",
 			DeveloperSecretKey:     developerKey,
-			PermissionName:         req.UserType,
-			PermissionDescription:  "",
+			PermissionName:         "member",
+			PermissionDescription:  "just a member",
 			Permissions:            []string{},
 
 			UserSettingDescription:  "",
