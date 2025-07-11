@@ -99,6 +99,10 @@ func (m *Model) InvitationCode() {
 			if data == nil {
 				return nil
 			}
+			if data.Permissions == nil {
+				data.Permissions = []string{}
+			}
+
 			return &InvitationCodeResponse{
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),

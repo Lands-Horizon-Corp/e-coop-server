@@ -133,6 +133,9 @@ func (m *Model) UserOrganization() {
 			if data == nil {
 				return nil
 			}
+			if data.Permissions == nil {
+				data.Permissions = []string{}
+			}
 			return &UserOrganizationResponse{
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
