@@ -15,7 +15,55 @@ import (
 func (c *Controller) UserOrganinzationController() {
 
 	req := c.provider.Service.Request
+	req.RegisterRoute(horizon.Route{
+		Route:  "/user-organization/:user_organization_id/permission",
+		Method: "PUT",
+		Note:   "Update the permission fields of a user organization.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrgId, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "invalid user_organization_id"})
+		}
 
+		// Bind payload
+		var payload struct {
+			PermissionName        string   `json:"permission_name"`
+			PermissionDescription string   `json:"permission_description"`
+			Permissions           []string `json:"permissions"`
+		}
+		if err := ctx.Bind(&payload); err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "invalid payload"})
+		}
+
+		// Get user organization
+		userOrg, err := c.model.UserOrganizationManager.GetByID(context, *userOrgId)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "user organization not found"})
+		}
+
+		// Optionally: check if current user is allowed to update (owner/admin)
+		currentUserOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+		}
+		if currentUserOrg.UserType != "owner" && currentUserOrg.UserType != "admin" {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "only owner or admin can update permissions"})
+		}
+
+		// Update fields
+		userOrg.PermissionName = payload.PermissionName
+		userOrg.PermissionDescription = payload.PermissionDescription
+		userOrg.Permissions = payload.Permissions
+		userOrg.UpdatedAt = time.Now().UTC()
+		userOrg.UpdatedByID = currentUserOrg.UserID
+
+		if err := c.model.UserOrganizationManager.UpdateFields(context, userOrg.ID, userOrg); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "failed to update permissions: " + err.Error()})
+		}
+
+		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModel(userOrg))
+	})
 	req.RegisterRoute(horizon.Route{
 		Route:  "/user-organization/:organization_id/seed",
 		Method: "POST",
