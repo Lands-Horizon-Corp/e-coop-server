@@ -74,13 +74,14 @@ type (
 	}
 
 	FinancialStatementDefinitionRequest struct {
-		Name                           string     `json:"name" validate:"required,min=1,max=255"`
-		Description                    string     `json:"description,omitempty"`
-		Index                          int        `json:"index,omitempty"`
-		NameInTotal                    string     `json:"name_in_total,omitempty"`
-		IsPosting                      bool       `json:"is_posting,omitempty"`
-		FinancialStatementType         string     `json:"financial_statement_type,omitempty"`
-		FinancialStatementDefinitionID *uuid.UUID `json:"financial_statement_definition_id,omitempty"`
+		Name                                  string     `json:"name" validate:"required,min=1,max=255"`
+		Description                           string     `json:"description,omitempty"`
+		Index                                 int        `json:"index,omitempty"`
+		NameInTotal                           string     `json:"name_in_total,omitempty"`
+		IsPosting                             bool       `json:"is_posting,omitempty"`
+		FinancialStatementType                string     `json:"financial_statement_type,omitempty"`
+		FinancialStatementDefinitionEntriesID *uuid.UUID `json:"financial_statement_definition_entries_id,omitempty"`
+		FinancialStatementGroupingID          *uuid.UUID `json:"financial_statement_grouping_id,omitempty"`
 	}
 )
 
