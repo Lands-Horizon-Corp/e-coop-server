@@ -78,7 +78,7 @@ func (c *Controller) FootstepController() {
 		}
 		footstep, err := c.model.FootstepManager.GetByIDRaw(context, *footstepId)
 		if err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.JSON(http.StatusOK, footstep)
@@ -154,7 +154,7 @@ func (c *Controller) NotificationController() {
 			notification.IsViewed = true
 			if err := c.model.NotificationManager.UpdateFields(context, notification.ID, notification); err != nil {
 				tx.Rollback()
-				return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 			}
 		}
@@ -167,7 +167,7 @@ func (c *Controller) NotificationController() {
 
 		if err := tx.Commit().Error; err != nil {
 			tx.Rollback()
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 
@@ -184,7 +184,7 @@ func (c *Controller) NotificationController() {
 			return c.BadRequest(ctx, "Invalid notification ID")
 		}
 		if err := c.model.NotificationManager.DeleteByID(context, *notificationId); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.NoContent(http.StatusNoContent)

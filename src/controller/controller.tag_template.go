@@ -104,7 +104,7 @@ func (c *Controller) TagTemplateController() {
 		}
 
 		if err := c.model.TagTemplateManager.Create(context, template); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 
@@ -144,7 +144,7 @@ func (c *Controller) TagTemplateController() {
 		template.UpdatedAt = time.Now().UTC()
 		template.UpdatedByID = user.UserID
 		if err := c.model.TagTemplateManager.UpdateFields(context, template.ID, template); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.JSON(http.StatusOK, c.model.TagTemplateManager.ToModel(template))
@@ -160,7 +160,7 @@ func (c *Controller) TagTemplateController() {
 			return c.BadRequest(ctx, "Invalid tag template ID")
 		}
 		if err := c.model.TagTemplateManager.DeleteByID(context, *id); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.NoContent(http.StatusNoContent)
@@ -199,12 +199,12 @@ func (c *Controller) TagTemplateController() {
 			}
 			if err := c.model.TagTemplateManager.DeleteByIDWithTx(context, tx, id); err != nil {
 				tx.Rollback()
-				return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 			}
 		}
 		if err := tx.Commit().Error; err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.NoContent(http.StatusNoContent)

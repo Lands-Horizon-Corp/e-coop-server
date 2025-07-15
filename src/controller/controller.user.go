@@ -715,7 +715,7 @@ func (c *Controller) UserRatingController() {
 		}
 
 		if err := c.model.UserRatingManager.Create(context, userRating); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 
@@ -734,7 +734,7 @@ func (c *Controller) UserRatingController() {
 			return c.BadRequest(ctx, "Invalid rating ID")
 		}
 		if err := c.model.UserRatingManager.DeleteByID(context, *userRatingId); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.NoContent(http.StatusNoContent)

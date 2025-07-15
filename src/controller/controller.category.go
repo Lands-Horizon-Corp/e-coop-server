@@ -22,7 +22,7 @@ func (c *Controller) CategoryController() {
 		context := ctx.Request().Context()
 		categories, err := c.model.CategoryManager.ListRaw(context)
 		if err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.JSON(http.StatusOK, categories)
@@ -69,7 +69,7 @@ func (c *Controller) CategoryController() {
 		}
 
 		if err := c.model.CategoryManager.Create(context, category); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 
@@ -105,7 +105,7 @@ func (c *Controller) CategoryController() {
 		category.UpdatedAt = time.Now().UTC()
 
 		if err := c.model.CategoryManager.UpdateFields(context, category.ID, category); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 
@@ -123,7 +123,7 @@ func (c *Controller) CategoryController() {
 		}
 
 		if err := c.model.CategoryManager.DeleteByID(context, *categoryID); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 
@@ -169,13 +169,13 @@ func (c *Controller) CategoryController() {
 
 			if err := c.model.CategoryManager.DeleteByIDWithTx(context, tx, categoryID); err != nil {
 				tx.Rollback()
-				return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 			}
 		}
 
 		if err := tx.Commit().Error; err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 

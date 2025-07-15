@@ -478,7 +478,7 @@ func (c *Controller) UserOrganinzationController() {
 		}
 		if err := tx.Commit().Error; err != nil {
 			tx.Rollback()
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModel(userOrg))
@@ -735,7 +735,7 @@ func (c *Controller) UserOrganinzationController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
 		}
 		if err := c.model.UserOrganizationManager.DeleteByID(context, userOrg.ID); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.NoContent(http.StatusNoContent)
@@ -778,13 +778,13 @@ func (c *Controller) UserOrganinzationController() {
 
 			if err := c.model.UserOrganizationManager.DeleteByIDWithTx(context, tx, userOrgId); err != nil {
 				tx.Rollback()
-				return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 			}
 		}
 
 		if err := tx.Commit().Error; err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 
@@ -803,7 +803,7 @@ func (c *Controller) UserOrganinzationController() {
 		}
 		employees, err := c.model.Employees(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModels(employees))
@@ -821,7 +821,7 @@ func (c *Controller) UserOrganinzationController() {
 		}
 		members, err := c.model.Members(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModels(members))

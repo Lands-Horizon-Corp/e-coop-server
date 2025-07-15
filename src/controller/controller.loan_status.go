@@ -97,7 +97,7 @@ func (c *Controller) LoanStatusController() {
 		}
 
 		if err := c.model.LoanStatusManager.Create(context, status); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 
@@ -136,7 +136,7 @@ func (c *Controller) LoanStatusController() {
 		status.UpdatedAt = time.Now().UTC()
 		status.UpdatedByID = user.UserID
 		if err := c.model.LoanStatusManager.UpdateFields(context, status.ID, status); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.JSON(http.StatusOK, c.model.LoanStatusManager.ToModel(status))
@@ -152,7 +152,7 @@ func (c *Controller) LoanStatusController() {
 			return c.BadRequest(ctx, "Invalid loan status ID")
 		}
 		if err := c.model.LoanStatusManager.DeleteByID(context, *id); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.NoContent(http.StatusNoContent)
@@ -191,12 +191,12 @@ func (c *Controller) LoanStatusController() {
 			}
 			if err := c.model.LoanStatusManager.DeleteByIDWithTx(context, tx, id); err != nil {
 				tx.Rollback()
-				return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 			}
 		}
 		if err := tx.Commit().Error; err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.NoContent(http.StatusNoContent)

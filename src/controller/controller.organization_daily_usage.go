@@ -39,7 +39,7 @@ func (c *Controller) OrganizationDailyUsage() {
 		}
 		dailyUsage, err := c.model.OrganizationDailyUsageManager.GetByIDRaw(context, *dailyUsageId)
 		if err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.JSON(http.StatusOK, dailyUsage)

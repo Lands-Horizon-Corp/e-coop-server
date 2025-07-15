@@ -79,7 +79,7 @@ func (c *Controller) TimesheetController() {
 			}
 
 			if err := c.model.TimesheetManager.Create(context, newTimesheet); err != nil {
-				return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 			}
 			return ctx.JSON(http.StatusOK, c.model.TimesheetManager.ToModel(newTimesheet))
@@ -108,7 +108,7 @@ func (c *Controller) TimesheetController() {
 		}
 		timesheet, err := c.model.TimesheetManager.GetByIDRaw(context, *timesheetID)
 		if err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.JSON(http.StatusOK, timesheet)

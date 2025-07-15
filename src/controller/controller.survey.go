@@ -22,7 +22,7 @@ func (c *Controller) FeedbackController() {
 		context := ctx.Request().Context()
 		feedback, err := c.model.FeedbackManager.ListRaw(context)
 		if err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.JSON(http.StatusOK, feedback)
@@ -69,7 +69,7 @@ func (c *Controller) FeedbackController() {
 		}
 
 		if err := c.model.FeedbackManager.Create(context, feedback); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 
@@ -87,7 +87,7 @@ func (c *Controller) FeedbackController() {
 		}
 
 		if err := c.model.FeedbackManager.DeleteByID(context, *feedbackID); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 
@@ -133,13 +133,13 @@ func (c *Controller) FeedbackController() {
 
 			if err := c.model.FeedbackManager.DeleteByIDWithTx(context, tx, feedbackID); err != nil {
 				tx.Rollback()
-				return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 			}
 		}
 
 		if err := tx.Commit().Error; err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 
@@ -158,7 +158,7 @@ func (c *Controller) ContactController() {
 		context := ctx.Request().Context()
 		contact, err := c.model.ContactUsManager.ListRaw(context)
 		if err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 
@@ -207,7 +207,7 @@ func (c *Controller) ContactController() {
 		}
 
 		if err := c.model.ContactUsManager.Create(context, contact); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 
@@ -225,7 +225,7 @@ func (c *Controller) ContactController() {
 		}
 
 		if err := c.model.ContactUsManager.DeleteByID(context, *contactID); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 
@@ -271,13 +271,13 @@ func (c *Controller) ContactController() {
 
 			if err := c.model.ContactUsManager.DeleteByIDWithTx(context, tx, contactID); err != nil {
 				tx.Rollback()
-				return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 			}
 		}
 
 		if err := tx.Commit().Error; err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 

@@ -124,7 +124,7 @@ func (c *Controller) InvitationCode() {
 		}
 
 		if err := c.model.InvitationCodeManager.Create(context, data); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.JSON(http.StatusOK, c.model.InvitationCodeManager.ToModel(data))
@@ -186,7 +186,7 @@ func (c *Controller) InvitationCode() {
 			return c.BadRequest(ctx, "Invalid invitation code ID")
 		}
 		if err := c.model.InvitationCodeManager.DeleteByID(context, *invitationCodeId); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.NoContent(http.StatusNoContent)
@@ -231,13 +231,13 @@ func (c *Controller) InvitationCode() {
 
 			if err := c.model.InvitationCodeManager.DeleteByIDWithTx(context, tx, invitationCodeId); err != nil {
 				tx.Rollback()
-				return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 			}
 		}
 
 		if err := tx.Commit().Error; err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 

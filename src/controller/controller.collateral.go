@@ -96,7 +96,7 @@ func (c *Controller) CollateralController() {
 		}
 
 		if err := c.model.CollateralManager.Create(context, collateral); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 
@@ -134,7 +134,7 @@ func (c *Controller) CollateralController() {
 		collateral.UpdatedAt = time.Now().UTC()
 		collateral.UpdatedByID = user.UserID
 		if err := c.model.CollateralManager.UpdateFields(context, collateral.ID, collateral); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.JSON(http.StatusOK, c.model.CollateralManager.ToModel(collateral))
@@ -150,7 +150,7 @@ func (c *Controller) CollateralController() {
 			return c.BadRequest(ctx, "Invalid collateral ID")
 		}
 		if err := c.model.CollateralManager.DeleteByID(context, *collateralID); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.NoContent(http.StatusNoContent)
@@ -189,12 +189,12 @@ func (c *Controller) CollateralController() {
 			}
 			if err := c.model.CollateralManager.DeleteByIDWithTx(context, tx, collateralID); err != nil {
 				tx.Rollback()
-				return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 			}
 		}
 		if err := tx.Commit().Error; err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.NoContent(http.StatusNoContent)

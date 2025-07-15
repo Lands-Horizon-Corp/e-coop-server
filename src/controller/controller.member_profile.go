@@ -143,7 +143,7 @@ func (c *Controller) MemberProfileController() {
 		}
 
 		if err := tx.Commit().Error; err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(memberProfile))
@@ -194,7 +194,7 @@ func (c *Controller) MemberProfileController() {
 			}
 			if err := c.model.MemberCloseRemarkManager.CreateWithTx(context, tx, value); err != nil {
 				tx.Rollback()
-				return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 			}
 		}
@@ -211,7 +211,7 @@ func (c *Controller) MemberProfileController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
 		if err := tx.Commit().Error; err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(memberProfile))
@@ -422,11 +422,11 @@ func (c *Controller) MemberProfileController() {
 			return c.NotFound(ctx, fmt.Sprintf("MemberProfile with ID %s not found", memberProfileID.String()))
 		}
 		if err := c.model.MemberProfileDestroy(context, tx, memberProfile.ID); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		if err := tx.Commit().Error; err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.NoContent(http.StatusNoContent)
@@ -471,7 +471,7 @@ func (c *Controller) MemberProfileController() {
 			}
 		}
 		if err := tx.Commit().Error; err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.NoContent(http.StatusNoContent)
@@ -634,7 +634,7 @@ func (c *Controller) MemberProfileController() {
 		}
 
 		if err := tx.Commit().Error; err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(profile))
@@ -924,7 +924,7 @@ func (c *Controller) MemberEducationalAttainmentController() {
 		value.EducationalAttainment = req.EducationalAttainment
 		value.Description = req.Description
 		if err := c.model.MemberEducationalAttainmentManager.UpdateFields(context, value.ID, value); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberEducationalAttainmentManager.ToModel(value))
@@ -941,7 +941,7 @@ func (c *Controller) MemberEducationalAttainmentController() {
 			return c.BadRequest(ctx, "Invalid member educational attainment ID")
 		}
 		if err := c.model.MemberEducationalAttainmentManager.DeleteByID(context, *memberEducationalAttainmentID); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.NoContent(http.StatusNoContent)
@@ -980,12 +980,12 @@ func (c *Controller) MemberEducationalAttainmentController() {
 			}
 			if err := c.model.MemberEducationalAttainmentManager.DeleteByIDWithTx(context, tx, bankID); err != nil {
 				tx.Rollback()
-				return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 			}
 		}
 		if err := tx.Commit().Error; err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.NoContent(http.StatusNoContent)
@@ -1037,7 +1037,7 @@ func (c *Controller) MemberAddressController() {
 		}
 
 		if err := c.model.MemberAddressManager.Create(context, value); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 
@@ -1085,7 +1085,7 @@ func (c *Controller) MemberAddressController() {
 		value.Landmark = req.Landmark
 		value.Address = req.Address
 		if err := c.model.MemberAddressManager.UpdateFields(context, value.ID, value); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberAddressManager.ToModel(value))
@@ -1102,7 +1102,7 @@ func (c *Controller) MemberAddressController() {
 			return c.BadRequest(ctx, "Invalid member address ID")
 		}
 		if err := c.model.MemberAddressManager.DeleteByID(context, *memberAddressID); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.NoContent(http.StatusNoContent)
@@ -1149,7 +1149,7 @@ func (c *Controller) MemberContactReferenceController() {
 		}
 
 		if err := c.model.MemberContactReferenceManager.Create(context, value); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 
@@ -1192,7 +1192,7 @@ func (c *Controller) MemberContactReferenceController() {
 		value.ContactNumber = req.ContactNumber
 
 		if err := c.model.MemberContactReferenceManager.UpdateFields(context, value.ID, value); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberContactReferenceManager.ToModel(value))
@@ -1209,7 +1209,7 @@ func (c *Controller) MemberContactReferenceController() {
 			return c.BadRequest(ctx, "Invalid member contact reference ID")
 		}
 		if err := c.model.MemberContactReferenceManager.DeleteByID(context, *memberContactReferenceID); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.NoContent(http.StatusNoContent)
@@ -1258,7 +1258,7 @@ func (c *Controller) MemberAssetController() {
 		}
 
 		if err := c.model.MemberAssetManager.Create(context, value); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 
@@ -1302,7 +1302,7 @@ func (c *Controller) MemberAssetController() {
 		value.Cost = req.Cost
 
 		if err := c.model.MemberAssetManager.UpdateFields(context, value.ID, value); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberAssetManager.ToModel(value))
@@ -1319,7 +1319,7 @@ func (c *Controller) MemberAssetController() {
 			return c.BadRequest(ctx, "Invalid member asset ID")
 		}
 		if err := c.model.MemberAssetManager.DeleteByID(context, *memberAssetID); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.NoContent(http.StatusNoContent)
@@ -1367,7 +1367,7 @@ func (c *Controller) MemberIncomeController() {
 		}
 
 		if err := c.model.MemberIncomeManager.Create(context, value); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 
@@ -1410,7 +1410,7 @@ func (c *Controller) MemberIncomeController() {
 		value.Amount = req.Amount
 		value.ReleaseDate = req.ReleaseDate
 		if err := c.model.MemberIncomeManager.UpdateFields(context, value.ID, value); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberIncomeManager.ToModel(value))
@@ -1427,7 +1427,7 @@ func (c *Controller) MemberIncomeController() {
 			return c.BadRequest(ctx, "Invalid member income ID")
 		}
 		if err := c.model.MemberIncomeManager.DeleteByID(context, *memberIncomeID); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.NoContent(http.StatusNoContent)
@@ -1474,7 +1474,7 @@ func (c *Controller) MemberExpenseController() {
 		}
 
 		if err := c.model.MemberExpenseManager.Create(context, value); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 
@@ -1517,7 +1517,7 @@ func (c *Controller) MemberExpenseController() {
 		value.Amount = req.Amount
 		value.Description = req.Description
 		if err := c.model.MemberExpenseManager.UpdateFields(context, value.ID, value); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberExpenseManager.ToModel(value))
@@ -1534,7 +1534,7 @@ func (c *Controller) MemberExpenseController() {
 			return c.BadRequest(ctx, "Invalid member expense ID")
 		}
 		if err := c.model.MemberExpenseManager.DeleteByID(context, *memberExpenseID); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.NoContent(http.StatusNoContent)
@@ -1632,7 +1632,7 @@ func (c *Controller) MemberGovernmentBenefitController() {
 		value.ExpiryDate = req.ExpiryDate
 
 		if err := c.model.MemberGovernmentBenefitManager.UpdateFields(context, value.ID, value); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberGovernmentBenefitManager.ToModel(value))
@@ -1650,7 +1650,7 @@ func (c *Controller) MemberGovernmentBenefitController() {
 		}
 
 		if err := c.model.MemberGovernmentBenefitManager.DeleteByID(context, *memberGovernmentBenefitID); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.NoContent(http.StatusNoContent)
@@ -1704,7 +1704,7 @@ func (c *Controller) MemberJointAccountController() {
 		}
 
 		if err := c.model.MemberJointAccountManager.Create(context, value); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 
@@ -1753,7 +1753,7 @@ func (c *Controller) MemberJointAccountController() {
 		value.FamilyRelationship = req.FamilyRelationship
 
 		if err := c.model.MemberJointAccountManager.UpdateFields(context, value.ID, value); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberJointAccountManager.ToModel(value))
@@ -1770,7 +1770,7 @@ func (c *Controller) MemberJointAccountController() {
 			return c.BadRequest(ctx, "Invalid member joint account ID")
 		}
 		if err := c.model.MemberJointAccountManager.DeleteByID(context, *memberJointAccountID); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.NoContent(http.StatusNoContent)
@@ -1815,7 +1815,7 @@ func (c *Controller) MemberRelativeAccountController() {
 		}
 
 		if err := c.model.MemberRelativeAccountManager.Create(context, value); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 
@@ -1859,7 +1859,7 @@ func (c *Controller) MemberRelativeAccountController() {
 		value.FamilyRelationship = req.FamilyRelationship
 
 		if err := c.model.MemberRelativeAccountManager.UpdateFields(context, value.ID, value); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberRelativeAccountManager.ToModel(value))
@@ -1876,7 +1876,7 @@ func (c *Controller) MemberRelativeAccountController() {
 			return c.BadRequest(ctx, "Invalid member relative account ID")
 		}
 		if err := c.model.MemberRelativeAccountManager.DeleteByID(context, *memberRelativeAccountID); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.NoContent(http.StatusNoContent)
@@ -1992,7 +1992,7 @@ func (c *Controller) MemberGenderController() {
 		}
 
 		if err := c.model.MemberGenderManager.Create(context, memberGender); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 
@@ -2034,7 +2034,7 @@ func (c *Controller) MemberGenderController() {
 		memberGender.Name = req.Name
 		memberGender.Description = req.Description
 		if err := c.model.MemberGenderManager.UpdateFields(context, memberGender.ID, memberGender); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberGenderManager.ToModel(memberGender))
@@ -2051,7 +2051,7 @@ func (c *Controller) MemberGenderController() {
 			return c.BadRequest(ctx, "Invalid member gender ID")
 		}
 		if err := c.model.MemberGenderManager.DeleteByID(context, *memberGenderID); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.NoContent(http.StatusNoContent)
@@ -2096,13 +2096,13 @@ func (c *Controller) MemberGenderController() {
 
 			if err := c.model.MemberGenderManager.DeleteByIDWithTx(context, tx, memberGenderID); err != nil {
 				tx.Rollback()
-				return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 			}
 		}
 
 		if err := tx.Commit().Error; err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 
@@ -2220,7 +2220,7 @@ func (c *Controller) MemberCenterController() {
 		}
 
 		if err := c.model.MemberCenterManager.Create(context, memberCenter); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 
@@ -2261,7 +2261,7 @@ func (c *Controller) MemberCenterController() {
 		memberCenter.Name = req.Name
 		memberCenter.Description = req.Description
 		if err := c.model.MemberCenterManager.UpdateFields(context, memberCenter.ID, memberCenter); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberCenterManager.ToModel(memberCenter))
@@ -2278,7 +2278,7 @@ func (c *Controller) MemberCenterController() {
 			return c.BadRequest(ctx, "Invalid member center ID")
 		}
 		if err := c.model.MemberCenterManager.DeleteByID(context, *memberCenterID); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.NoContent(http.StatusNoContent)
@@ -2323,13 +2323,13 @@ func (c *Controller) MemberCenterController() {
 
 			if err := c.model.MemberCenterManager.DeleteByIDWithTx(context, tx, memberCenterID); err != nil {
 				tx.Rollback()
-				return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 			}
 		}
 
 		if err := tx.Commit().Error; err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 
@@ -2446,7 +2446,7 @@ func (c *Controller) MemberTypeController() {
 		}
 
 		if err := c.model.MemberTypeManager.Create(context, memberType); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 
@@ -2488,7 +2488,7 @@ func (c *Controller) MemberTypeController() {
 		memberType.Description = req.Description
 		memberType.Prefix = req.Prefix
 		if err := c.model.MemberTypeManager.UpdateFields(context, memberType.ID, memberType); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberTypeManager.ToModel(memberType))
@@ -2505,7 +2505,7 @@ func (c *Controller) MemberTypeController() {
 			return c.BadRequest(ctx, "Invalid member type ID")
 		}
 		if err := c.model.MemberTypeManager.DeleteByID(context, *memberTypeID); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.NoContent(http.StatusNoContent)
@@ -2550,13 +2550,13 @@ func (c *Controller) MemberTypeController() {
 
 			if err := c.model.MemberTypeManager.DeleteByIDWithTx(context, tx, memberTypeID); err != nil {
 				tx.Rollback()
-				return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 			}
 		}
 
 		if err := tx.Commit().Error; err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 
@@ -2675,7 +2675,7 @@ func (c *Controller) MemberClassificationController() {
 		}
 
 		if err := c.model.MemberClassificationManager.Create(context, memberClassification); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 
@@ -2717,7 +2717,7 @@ func (c *Controller) MemberClassificationController() {
 		memberClassification.Description = req.Description
 		memberClassification.Icon = req.Icon
 		if err := c.model.MemberClassificationManager.UpdateFields(context, memberClassification.ID, memberClassification); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberClassificationManager.ToModel(memberClassification))
@@ -2734,7 +2734,7 @@ func (c *Controller) MemberClassificationController() {
 			return c.BadRequest(ctx, "Invalid member classification ID")
 		}
 		if err := c.model.MemberClassificationManager.DeleteByID(context, *memberClassificationID); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.NoContent(http.StatusNoContent)
@@ -2779,13 +2779,13 @@ func (c *Controller) MemberClassificationController() {
 
 			if err := c.model.MemberClassificationManager.DeleteByIDWithTx(context, tx, memberClassificationID); err != nil {
 				tx.Rollback()
-				return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 			}
 		}
 
 		if err := tx.Commit().Error; err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 
@@ -2902,7 +2902,7 @@ func (c *Controller) MemberOccupationController() {
 		}
 
 		if err := c.model.MemberOccupationManager.Create(context, memberOccupation); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 
@@ -2943,7 +2943,7 @@ func (c *Controller) MemberOccupationController() {
 		memberOccupation.Name = req.Name
 		memberOccupation.Description = req.Description
 		if err := c.model.MemberOccupationManager.UpdateFields(context, memberOccupation.ID, memberOccupation); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberOccupationManager.ToModel(memberOccupation))
@@ -2960,7 +2960,7 @@ func (c *Controller) MemberOccupationController() {
 			return c.BadRequest(ctx, "Invalid member occupation ID")
 		}
 		if err := c.model.MemberOccupationManager.DeleteByID(context, *memberOccupationID); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.NoContent(http.StatusNoContent)
@@ -3005,13 +3005,13 @@ func (c *Controller) MemberOccupationController() {
 
 			if err := c.model.MemberOccupationManager.DeleteByIDWithTx(context, tx, memberOccupationID); err != nil {
 				tx.Rollback()
-				return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 			}
 		}
 
 		if err := tx.Commit().Error; err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 
@@ -3130,7 +3130,7 @@ func (c *Controller) MemberGroupController() {
 		}
 
 		if err := c.model.MemberGroupManager.Create(context, memberGroup); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 
@@ -3171,7 +3171,7 @@ func (c *Controller) MemberGroupController() {
 		memberGroup.Name = req.Name
 		memberGroup.Description = req.Description
 		if err := c.model.MemberGroupManager.UpdateFields(context, memberGroup.ID, memberGroup); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberGroupManager.ToModel(memberGroup))
@@ -3188,7 +3188,7 @@ func (c *Controller) MemberGroupController() {
 			return c.BadRequest(ctx, "Invalid member group ID")
 		}
 		if err := c.model.MemberGroupManager.DeleteByID(context, *memberGroupID); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.NoContent(http.StatusNoContent)
@@ -3233,13 +3233,13 @@ func (c *Controller) MemberGroupController() {
 
 			if err := c.model.MemberGroupManager.DeleteByIDWithTx(context, tx, memberGroupID); err != nil {
 				tx.Rollback()
-				return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 			}
 		}
 
 		if err := tx.Commit().Error; err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 

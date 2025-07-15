@@ -119,7 +119,7 @@ func (c *Controller) FinancialStatementController() {
 			UpdatedAt:                             time.Now().UTC(),
 		}
 		if err := c.model.FinancialStatementDefinitionManager.Create(context, fsDefinition); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 
@@ -176,7 +176,7 @@ func (c *Controller) FinancialStatementController() {
 
 		// Update the financial statement definition
 		if err := c.model.FinancialStatementDefinitionManager.UpdateFields(context, fsDefinition.ID, fsDefinition); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 
@@ -233,7 +233,7 @@ func (c *Controller) FinancialStatementController() {
 		account.UpdatedByID = userOrg.UserID
 
 		if err := c.model.AccountManager.UpdateFields(context, account.ID, account); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 
@@ -290,7 +290,7 @@ func (c *Controller) FinancialStatementController() {
 
 		// Update the financial statement definition
 		if err := c.model.FinancialStatementDefinitionManager.UpdateFields(context, fsDefinition.ID, fsDefinition); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 
@@ -344,7 +344,7 @@ func (c *Controller) FinancialStatementController() {
 			BranchID:                       *userOrg.BranchID,
 		})
 		if err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		var updatedAccounts []*model.Account
@@ -365,7 +365,7 @@ func (c *Controller) FinancialStatementController() {
 			acc.UpdatedAt = time.Now().UTC()
 			acc.UpdatedByID = userOrg.UserID
 			if err := c.model.AccountManager.UpdateFields(context, acc.ID, acc); err != nil {
-				return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 			}
 		}
@@ -376,7 +376,7 @@ func (c *Controller) FinancialStatementController() {
 			fsDefinition.UpdatedAt = time.Now().UTC()
 			fsDefinition.UpdatedByID = userOrg.UserID
 			if err := c.model.FinancialStatementDefinitionManager.UpdateFields(context, fsDefinition.ID, fsDefinition); err != nil {
-				return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 			}
 		}
@@ -443,14 +443,14 @@ func (c *Controller) FinancialStatementController() {
 			BranchID:                       *userOrg.BranchID,
 		})
 		if err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		if len(accounts) > 0 {
 			return c.BadRequest(ctx, "Cannot delete: accounts are linked to this financial statement definition")
 		}
 		if err := c.model.FinancialStatementDefinitionManager.DeleteByID(context, fsDefinition.ID); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 		return ctx.NoContent(http.StatusNoContent)

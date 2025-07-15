@@ -102,7 +102,7 @@ func (c *Controller) PermissionTemplateController() {
 		}
 
 		if err := c.model.PermissionTemplateManager.Create(context, newTemplate); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 
@@ -166,7 +166,7 @@ func (c *Controller) PermissionTemplateController() {
 		}
 
 		if err := c.model.PermissionTemplateManager.DeleteByID(context, *permissionTemplateID); err != nil {
-			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
 		}
 
