@@ -113,6 +113,7 @@ func (c *Controller) Start() error {
 	// Loans
 	c.LoanStatusController()
 	c.LoanPurposeController()
+	c.CollateralController()
 	return nil
 }
 
