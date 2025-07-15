@@ -51,9 +51,6 @@ func (c *Controller) UserOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
 		}
-		if currentUserOrg.UserType != "owner" && currentUserOrg.UserType != "admin" {
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "only owner or admin can update permissions"})
-		}
 
 		// Update fields
 		userOrg.PermissionName = payload.PermissionName
