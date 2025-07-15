@@ -1632,6 +1632,9 @@ func (c *Controller) InvitationCode() {
 		invitationCode.ExpirationDate = req.ExpirationDate
 		invitationCode.MaxUse = req.MaxUse
 		invitationCode.Description = req.Description
+		invitationCode.PermissionDescription = req.PermissionDescription
+		invitationCode.Permissions = req.Permissions
+		invitationCode.PermissionName = req.PermissionName
 
 		if err := c.model.InvitationCodeManager.UpdateFields(context, invitationCode.ID, invitationCode); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update user: "+err.Error())
