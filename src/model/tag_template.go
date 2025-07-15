@@ -57,11 +57,11 @@ type (
 	}
 
 	TagTemplateRequest struct {
-		Name        string      `json:"name" validate:"required,min=1,max=50"`
-		Description string      `json:"description,omitempty"`
-		Category    TagCategory `json:"category,omitempty"`
-		Color       string      `json:"color,omitempty"`
-		Icon        string      `json:"icon,omitempty"`
+		Name        string `json:"name" validate:"required,min=1,max=50"`
+		Description string `json:"description,omitempty"`
+		Category    string `json:"category,omitempty"`
+		Color       string `json:"color,omitempty"`
+		Icon        string `json:"icon,omitempty"`
 	}
 )
 
