@@ -95,25 +95,24 @@ func (m *Model) FinancialStatementDefinition() {
 			"Organization",
 			"ParentDefinition",
 			"ChildDefinitions",
-			"FinancialStatementGrouping",
 			"CreatedBy", "UpdatedBy", "Branch", "Organization",
 			"Accounts",
-			"FinancialStatementGrouping", // Parent
-			"FinancialStatementGrouping", // Children level 1
-			"FinancialStatementGrouping.FinancialStatementGrouping",                                                                                  // Parent of children
-			"FinancialStatementGrouping.FinancialStatementGrouping",                                                                                  // Children level 2
-			"FinancialStatementGrouping.FinancialStatementGrouping.FinancialStatementGrouping",                                                       // Parent of level 2
-			"FinancialStatementGrouping.FinancialStatementGrouping.FinancialStatementGrouping",                                                       // Children level 3
-			"FinancialStatementGrouping.FinancialStatementGrouping.FinancialStatementGrouping.FinancialStatementGrouping",                            // Parent of level 3
-			"FinancialStatementGrouping.FinancialStatementGrouping.FinancialStatementGrouping.FinancialStatementGrouping",                            // Children level 4
-			"FinancialStatementGrouping.FinancialStatementGrouping.FinancialStatementGrouping.FinancialStatementGrouping.FinancialStatementGrouping", // Parent of level 4
-			"FinancialStatementGrouping.FinancialStatementGrouping.FinancialStatementGrouping.FinancialStatementGrouping.FinancialStatementGrouping", // Children level 5
+			"FinancialStatementDefinitionEntries", // Parent
+			"FinancialStatementDefinitionEntries", // Children level 1
+			"FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries",                                                                                                             // Parent of children
+			"FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries",                                                                                                             // Children level 2
+			"FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries",                                                                         // Parent of level 2
+			"FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries",                                                                         // Children level 3
+			"FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries",                                     // Parent of level 3
+			"FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries",                                     // Children level 4
+			"FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries", // Parent of level 4
+			"FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries", // Children level 5
 			// Preload accounts for each level
-			"FinancialStatementGrouping.Accounts",
-			"FinancialStatementGrouping.FinancialStatementGrouping.Accounts",
-			"FinancialStatementGrouping.FinancialStatementGrouping.FinancialStatementGrouping.Accounts",
-			"FinancialStatementGrouping.FinancialStatementGrouping.FinancialStatementGrouping.FinancialStatementGrouping.Accounts",
-			"FinancialStatementGrouping.FinancialStatementGrouping.FinancialStatementGrouping.FinancialStatementGrouping.FinancialStatementGrouping.Accounts",
+			"FinancialStatementDefinitionEntries.Accounts",
+			"FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.Accounts",
+			"FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.Accounts",
+			"FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.Accounts",
+			"FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.Accounts",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *FinancialStatementDefinition) *FinancialStatementDefinitionResponse {
