@@ -14,7 +14,7 @@ func (c *Controller) FinancialStatementController() {
 	req := c.provider.Service.Request
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/financial-statements-grouping",
+		Route:    "/financial-statement-grouping",
 		Method:   "GET",
 		Response: "FinancialStatementGrouping[]",
 		Note:     "List all financial statement groupings for the current branch",
