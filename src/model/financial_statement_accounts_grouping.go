@@ -86,7 +86,6 @@ func (m *Model) FinancialStatementGrouping() {
 	m.FinancialStatementGroupingManager = horizon_services.NewRepository(horizon_services.RepositoryParams[FinancialStatementGrouping, FinancialStatementGroupingResponse, FinancialStatementGroupingRequest]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Branch", "Organization", "IconMedia",
-			"FinancialStatementDefinitionEntries",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *FinancialStatementGrouping) *FinancialStatementGroupingResponse {
