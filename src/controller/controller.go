@@ -109,6 +109,10 @@ func (c *Controller) Start() error {
 	c.GeneralLedgerController()
 	c.FinancialStatementController()
 	c.AccountTagController()
+
+	// Loans
+	c.LoanStatusController()
+	c.LoanPurposeController()
 	return nil
 }
 
