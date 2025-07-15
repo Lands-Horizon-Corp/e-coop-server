@@ -95,7 +95,8 @@ func (c *Controller) LoanPurposeController() {
 		}
 
 		if err := c.model.LoanPurposeManager.Create(context, purpose); err != nil {
-			return c.InternalServerError(ctx, err)
+			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 
 		return ctx.JSON(http.StatusOK, c.model.LoanPurposeManager.ToModel(purpose))
@@ -131,7 +132,8 @@ func (c *Controller) LoanPurposeController() {
 		purpose.UpdatedAt = time.Now().UTC()
 		purpose.UpdatedByID = user.UserID
 		if err := c.model.LoanPurposeManager.UpdateFields(context, purpose.ID, purpose); err != nil {
-			return c.InternalServerError(ctx, err)
+			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 		return ctx.JSON(http.StatusOK, c.model.LoanPurposeManager.ToModel(purpose))
 	})
@@ -146,7 +148,8 @@ func (c *Controller) LoanPurposeController() {
 			return c.BadRequest(ctx, "Invalid loan purpose ID")
 		}
 		if err := c.model.LoanPurposeManager.DeleteByID(context, *id); err != nil {
-			return c.InternalServerError(ctx, err)
+			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 		return ctx.NoContent(http.StatusNoContent)
 	})
@@ -184,11 +187,13 @@ func (c *Controller) LoanPurposeController() {
 			}
 			if err := c.model.LoanPurposeManager.DeleteByIDWithTx(context, tx, id); err != nil {
 				tx.Rollback()
-				return c.InternalServerError(ctx, err)
+				return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 			}
 		}
 		if err := tx.Commit().Error; err != nil {
-			return c.InternalServerError(ctx, err)
+			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 		return ctx.NoContent(http.StatusNoContent)
 	})

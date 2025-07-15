@@ -315,11 +315,13 @@ func (c *Controller) AccountController() {
 			}
 			if err := c.model.AccountManager.DeleteByIDWithTx(context, tx, id); err != nil {
 				tx.Rollback()
-				return c.InternalServerError(ctx, err)
+				return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 			}
 		}
 		if err := tx.Commit().Error; err != nil {
-			return c.InternalServerError(ctx, err)
+			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 		return ctx.NoContent(http.StatusNoContent)
 	})
@@ -553,11 +555,13 @@ func (c *Controller) AccountController() {
 			}
 			if err := c.model.AccountCategoryManager.DeleteByIDWithTx(context, tx, id); err != nil {
 				tx.Rollback()
-				return c.InternalServerError(ctx, err)
+				return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 			}
 		}
 		if err := tx.Commit().Error; err != nil {
-			return c.InternalServerError(ctx, err)
+			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 		return ctx.NoContent(http.StatusNoContent)
 	})
@@ -763,11 +767,13 @@ func (c *Controller) AccountController() {
 			}
 			if err := c.model.AccountClassificationManager.DeleteByIDWithTx(context, tx, id); err != nil {
 				tx.Rollback()
-				return c.InternalServerError(ctx, err)
+				return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 			}
 		}
 		if err := tx.Commit().Error; err != nil {
-			return c.InternalServerError(ctx, err)
+			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 		return ctx.NoContent(http.StatusNoContent)
 	})
@@ -933,7 +939,8 @@ func (c *Controller) AccountTagController() {
 		}
 
 		if err := c.model.AccountTagManager.Create(context, accountTag); err != nil {
-			return c.InternalServerError(ctx, err)
+			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 
 		return ctx.JSON(http.StatusOK, c.model.AccountTagManager.ToModel(accountTag))
@@ -974,7 +981,8 @@ func (c *Controller) AccountTagController() {
 		accountTag.UpdatedByID = user.UserID
 
 		if err := c.model.AccountTagManager.UpdateFields(context, accountTag.ID, accountTag); err != nil {
-			return c.InternalServerError(ctx, err)
+			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 		return ctx.JSON(http.StatusOK, c.model.AccountTagManager.ToModel(accountTag))
 	})
@@ -989,7 +997,8 @@ func (c *Controller) AccountTagController() {
 			return c.BadRequest(ctx, "Invalid account tag ID")
 		}
 		if err := c.model.AccountTagManager.DeleteByID(context, *accountTagID); err != nil {
-			return c.InternalServerError(ctx, err)
+			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 		return ctx.NoContent(http.StatusNoContent)
 	})
@@ -1027,11 +1036,13 @@ func (c *Controller) AccountTagController() {
 			}
 			if err := c.model.AccountTagManager.DeleteByIDWithTx(context, tx, accountTagID); err != nil {
 				tx.Rollback()
-				return c.InternalServerError(ctx, err)
+				return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 			}
 		}
 		if err := tx.Commit().Error; err != nil {
-			return c.InternalServerError(ctx, err)
+			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 		return ctx.NoContent(http.StatusNoContent)
 	})

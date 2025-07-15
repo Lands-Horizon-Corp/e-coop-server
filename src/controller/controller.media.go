@@ -222,11 +222,13 @@ func (c *Controller) MediaController() {
 			}
 			if err := c.model.MediaManager.DeleteByIDWithTx(context, tx, mediaID); err != nil {
 				tx.Rollback()
-				return c.InternalServerError(ctx, err)
+				return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 			}
 		}
 		if err := tx.Commit().Error; err != nil {
-			return c.InternalServerError(ctx, err)
+			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 
 		return ctx.NoContent(http.StatusNoContent)

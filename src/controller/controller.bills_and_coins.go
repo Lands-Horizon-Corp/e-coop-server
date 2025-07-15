@@ -98,7 +98,8 @@ func (c *Controller) BillAndCoinsController() {
 		}
 
 		if err := c.model.BillAndCoinsManager.Create(context, BillAndCoins); err != nil {
-			return c.InternalServerError(ctx, err)
+			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 
 		return ctx.JSON(http.StatusOK, c.model.BillAndCoinsManager.ToModel(BillAndCoins))
@@ -152,7 +153,8 @@ func (c *Controller) BillAndCoinsController() {
 			return c.BadRequest(ctx, "Invalid bills and coins ID")
 		}
 		if err := c.model.BillAndCoinsManager.DeleteByID(context, *BillAndCoinsID); err != nil {
-			return c.InternalServerError(ctx, err)
+			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 		return ctx.NoContent(http.StatusNoContent)
 	})
@@ -190,11 +192,13 @@ func (c *Controller) BillAndCoinsController() {
 			}
 			if err := c.model.BillAndCoinsManager.DeleteByIDWithTx(context, tx, BillAndCoinsID); err != nil {
 				tx.Rollback()
-				return c.InternalServerError(ctx, err)
+				return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 			}
 		}
 		if err := tx.Commit().Error; err != nil {
-			return c.InternalServerError(ctx, err)
+			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 		return ctx.NoContent(http.StatusNoContent)
 	})

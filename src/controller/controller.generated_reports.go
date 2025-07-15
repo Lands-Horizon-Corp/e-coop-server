@@ -67,7 +67,8 @@ func (c *Controller) GeneratedReports() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
 		if err := c.model.GeneratedReportManager.DeleteByID(context, generatedReport.ID); err != nil {
-			return c.InternalServerError(ctx, err)
+			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 		return ctx.NoContent(http.StatusNoContent)
 	})

@@ -20,7 +20,8 @@ func (c *Controller) OrganizationController() {
 		context := ctx.Request().Context()
 		organization, err := c.model.GetPublicOrganization(context)
 		if err != nil {
-			return c.InternalServerError(ctx, err)
+			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 		return ctx.JSON(http.StatusOK, c.model.OrganizationManager.ToModels(organization))
 	})

@@ -132,7 +132,8 @@ func (c *Controller) GeneralLedgerController() {
 
 		// Create the general ledger definition
 		if err := c.model.GeneralLedgerDefinitionManager.Create(context, glDefinition); err != nil {
-			return c.InternalServerError(ctx, err)
+			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 
 		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerDefinitionManager.ToModel(glDefinition))
@@ -191,7 +192,8 @@ func (c *Controller) GeneralLedgerController() {
 
 		// Update the general ledger definition
 		if err := c.model.GeneralLedgerDefinitionManager.UpdateFields(context, glDefinition.ID, glDefinition); err != nil {
-			return c.InternalServerError(ctx, err)
+			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 
 		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerDefinitionManager.ToModel(glDefinition))
@@ -246,14 +248,16 @@ func (c *Controller) GeneralLedgerController() {
 		account.UpdatedByID = userOrg.UserID
 
 		if err := c.model.AccountManager.UpdateFields(context, account.ID, account); err != nil {
-			return c.InternalServerError(ctx, err)
+			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 
 		glDefinition.UpdatedAt = time.Now().UTC()
 		glDefinition.UpdatedByID = userOrg.UserID
 
 		if err := c.model.GeneralLedgerDefinitionManager.UpdateFields(context, glDefinition.ID, glDefinition); err != nil {
-			return c.InternalServerError(ctx, err)
+			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerDefinitionManager.ToModel(glDefinition))
 	})
@@ -302,7 +306,8 @@ func (c *Controller) GeneralLedgerController() {
 
 		// Update the general ledger definition
 		if err := c.model.GeneralLedgerDefinitionManager.UpdateFields(context, glDefinition.ID, glDefinition); err != nil {
-			return c.InternalServerError(ctx, err)
+			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 
 		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerDefinitionManager.ToModel(glDefinition))
@@ -355,7 +360,8 @@ func (c *Controller) GeneralLedgerController() {
 			BranchID:                  *userOrg.BranchID,
 		})
 		if err != nil {
-			return c.InternalServerError(ctx, err)
+			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 		var updatedAccounts []*model.Account
 		for _, acc := range accounts {
@@ -375,7 +381,8 @@ func (c *Controller) GeneralLedgerController() {
 			acc.UpdatedAt = time.Now().UTC()
 			acc.UpdatedByID = userOrg.UserID
 			if err := c.model.AccountManager.UpdateFields(context, acc.ID, acc); err != nil {
-				return c.InternalServerError(ctx, err)
+				return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 			}
 		}
 
@@ -385,7 +392,8 @@ func (c *Controller) GeneralLedgerController() {
 			glDefinition.UpdatedAt = time.Now().UTC()
 			glDefinition.UpdatedByID = userOrg.UserID
 			if err := c.model.GeneralLedgerDefinitionManager.UpdateFields(context, glDefinition.ID, glDefinition); err != nil {
-				return c.InternalServerError(ctx, err)
+				return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 			}
 		}
 
@@ -605,13 +613,15 @@ func (c *Controller) GeneralLedgerController() {
 			BranchID:                  *userOrg.BranchID,
 		})
 		if err != nil {
-			return c.InternalServerError(ctx, err)
+			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 		if len(accounts) > 0 {
 			return c.BadRequest(ctx, "Cannot delete: accounts are linked to this general ledger definition")
 		}
 		if err := c.model.GeneralLedgerDefinitionManager.DeleteByID(context, glDefinition.ID); err != nil {
-			return c.InternalServerError(ctx, err)
+			return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 		return ctx.NoContent(http.StatusNoContent)
 	})

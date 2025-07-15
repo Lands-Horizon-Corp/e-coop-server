@@ -154,7 +154,8 @@ func (c *Controller) TransactionBatchController() {
 		if !transactionBatch.CanView {
 			result, err := c.model.TransactionBatchMinimal(context, transactionBatch.ID)
 			if err != nil {
-				return c.InternalServerError(ctx, err)
+				return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 			}
 			return ctx.JSON(http.StatusOK, result)
 		}
@@ -248,7 +249,8 @@ func (c *Controller) TransactionBatchController() {
 		if !transactionBatch.CanView {
 			result, err := c.model.TransactionBatchMinimal(context, transactionBatch.ID)
 			if err != nil {
-				return c.InternalServerError(ctx, err)
+				return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 			}
 			return ctx.JSON(http.StatusOK, result)
 		}
@@ -395,7 +397,8 @@ func (c *Controller) TransactionBatchController() {
 		if !transactionBatch.CanView {
 			result, err := c.model.TransactionBatchMinimal(context, transactionBatch.ID)
 			if err != nil {
-				return c.InternalServerError(ctx, err)
+				return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 			}
 			return ctx.JSON(http.StatusOK, result)
 		}
@@ -426,7 +429,8 @@ func (c *Controller) TransactionBatchController() {
 		if !transactionBatch.CanView {
 			result, err := c.model.TransactionBatchMinimal(context, transactionBatch.ID)
 			if err != nil {
-				return c.InternalServerError(ctx, err)
+				return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 			}
 			return ctx.JSON(http.StatusOK, result)
 		}
@@ -468,7 +472,8 @@ func (c *Controller) TransactionBatchController() {
 		if !transactionBatch.CanView {
 			result, err := c.model.TransactionBatchMinimal(context, transactionBatch.ID)
 			if err != nil {
-				return c.InternalServerError(ctx, err)
+				return 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 			}
 			return ctx.JSON(http.StatusOK, result)
 		}
