@@ -1,0 +1,24 @@
+package event
+
+import (
+	"github.com/lands-horizon/horizon-server/src/cooperative_tokens"
+	"github.com/lands-horizon/horizon-server/src/model"
+)
+
+type Event struct {
+	model                 *model.Model
+	userOrganizationToken *cooperative_tokens.UserOrganizatonToken
+	userToken             *cooperative_tokens.UserToken
+}
+
+func NewEvent(
+	model *model.Model,
+	userOrganizationToken *cooperative_tokens.UserOrganizatonToken,
+	userToken *cooperative_tokens.UserToken,
+) (*Event, error) {
+	return &Event{
+		userOrganizationToken: userOrganizationToken,
+		userToken:             userToken,
+		model:                 model,
+	}, nil
+}
