@@ -1540,6 +1540,125 @@ func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID 
 			return eris.Wrapf(err, "failed to seed financial statement accounts grouping %s", data.Name)
 		}
 	}
+	paymentTypes := []*PaymentType{
+		// Cash types
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Forward Cash On Hand",
+			Description:    "Physical cash received and forwarded for transactions.",
+			NumberOfDays:   0,
+			Type:           PaymentTypeCash,
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Cash On Hand",
+			Description:    "Cash available at the branch for immediate use.",
+			NumberOfDays:   0,
+			Type:           PaymentTypeCash,
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Petty Cash",
+			Description:    "Small amount of cash for minor expenses.",
+			NumberOfDays:   0,
+			Type:           PaymentTypeCash,
+		},
+		// Online types
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "E-Wallet",
+			Description:    "Digital wallet for online payments.",
+			NumberOfDays:   0,
+			Type:           PaymentTypeOnline,
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "E-Bank",
+			Description:    "Online banking transfer.",
+			NumberOfDays:   0,
+			Type:           PaymentTypeOnline,
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "GCash",
+			Description:    "GCash mobile wallet payment.",
+			NumberOfDays:   0,
+			Type:           PaymentTypeOnline,
+		},
+		// Check/Bank types
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Cheque",
+			Description:    "Payment via cheque/check.",
+			NumberOfDays:   3,
+			Type:           PaymentTypeCheck,
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Bank Transfer",
+			Description:    "Direct bank-to-bank transfer.",
+			NumberOfDays:   1,
+			Type:           PaymentTypeCheck,
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Manager's Check",
+			Description:    "Bank-issued check for secure payments.",
+			NumberOfDays:   2,
+			Type:           PaymentTypeCheck,
+		},
+	}
+
+	for _, data := range paymentTypes {
+		if err := m.PaymentTypeManager.CreateWithTx(context, tx, data); err != nil {
+			return eris.Wrapf(err, "failed to seed payment type %s", data.Name)
+		}
+	}
 	return nil
 }
 
@@ -1715,6 +1834,18 @@ func (m *Model) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, userID u
 	for _, data := range FinancialStatementGroupings {
 		if err := m.FinancialStatementGroupingManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy financial statement accounts grouping %s", data.Name)
+		}
+	}
+	paymentTypes, err := m.PaymentTypeManager.Find(ctx, &PaymentType{
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+	})
+	if err != nil {
+		return eris.Wrapf(err, "failed to get payment types")
+	}
+	for _, data := range paymentTypes {
+		if err := m.PaymentTypeManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+			return eris.Wrapf(err, "failed to destroy payment type %s", data.Name)
 		}
 	}
 	return nil

@@ -110,6 +110,7 @@ func (c *Controller) Start() error {
 	c.GeneralLedgerController()
 	c.FinancialStatementController()
 	c.AccountTagController()
+	c.PaymentTypeController()
 
 	// Loans
 	c.LoanStatusController()
