@@ -119,7 +119,7 @@ func (m *Model) AutomaticLoanDeduction() {
 		AutomaticLoanDeduction, AutomaticLoanDeductionResponse, AutomaticLoanDeductionRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization",
 			"Account", "ComputationSheet", "LinkAccount",
 		},
 		Service: m.provider.Service,

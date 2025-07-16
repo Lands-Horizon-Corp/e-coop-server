@@ -119,11 +119,9 @@ type (
 		AccountTagManager horizon_services.Repository[AccountTag, AccountTagResponse, AccountTagRequest]
 
 		// LEDGERS
-		GeneralAccountingLedgerManager       horizon_services.Repository[GeneralAccountingLedger, GeneralAccountingLedgerResponse, GeneralAccountingLedgerRequest]
-		GeneralAccountingLedgerTagManager    horizon_services.Repository[GeneralAccountingLedgerTag, GeneralAccountingLedgerTagResponse, GeneralAccountingLedgerTagRequest]
-		GeneralLedgerTransactionManager      horizon_services.Repository[GeneralLedgerTransaction, GeneralLedgerTransactionResponse, GeneralLedgerTransactionRequest]
-		GeneralLedgerTransactionEntryManager horizon_services.Repository[GeneralLedgerTransactionEntry, GeneralLedgerTransactionEntryResponse, GeneralLedgerTransactionEntryRequest]
-		MemberAccountingLedgerManager        horizon_services.Repository[MemberAccountingLedger, MemberAccountingLedgerResponse, MemberAccountingLedgerRequest]
+		GeneralLedgerManager          horizon_services.Repository[GeneralLedger, GeneralLedgerResponse, GeneralLedgerRequest]
+		GeneralLedgerTagManager       horizon_services.Repository[GeneralLedgerTag, GeneralLedgerTagResponse, GeneralLedgerTagRequest]
+		MemberAccountingLedgerManager horizon_services.Repository[MemberAccountingLedger, MemberAccountingLedgerResponse, MemberAccountingLedgerRequest]
 
 		// TRANSACTION START
 		TransactionBatchManager horizon_services.Repository[TransactionBatch, TransactionBatchResponse, TransactionBatchRequest]
@@ -263,11 +261,9 @@ func (c *Model) Start(context context.Context) error {
 	c.Footstep()
 	c.GeneralAccountGroupingNetSurplusNegative()
 	c.GeneralAccountGroupingNetSurplusPositive()
-	c.GeneralAccountingLedger()
-	c.GeneralAccountingLedgerTag()
+	c.GeneralLedger()
+	c.GeneralLedgerTag()
 	c.GeneralLedgerAccountsGrouping()
-	c.GeneralLedgerTransactionEntry()
-	c.GeneralLedgerTransaction()
 	c.GeneratedReport()
 	c.GeneralLedgerDefinition() // Create this first
 	c.Account()                 // Then create Account

@@ -3,6 +3,7 @@ package model
 import (
 	"context"
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/google/uuid"
@@ -28,8 +29,8 @@ type (
 		DeletedByID *uuid.UUID `gorm:"type:uuid"`
 		DeletedBy   *User      `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
 
-		GeneralLedgerDefinitionEntryID *uuid.UUID                 `gorm:"type:uuid" json:"general_ledger_definition_entry_id,omitempty"`
-		GeneralLedgerDefinitionEntries []*GeneralLedgerDefinition `gorm:"foreignKey:GeneralLedgerDefinitionEntryID" json:"general_ledger_definition,omitempty"`
+		GeneralLedgerDefinitionEntryID *uuid.UUID                 `gorm:"type:uuid" json:"general_ledger_definition_entries_id,omitempty"`
+		GeneralLedgerDefinitionEntries []*GeneralLedgerDefinition `gorm:"foreignKey:GeneralLedgerDefinitionEntryID" json:"general_ledger_definition_entries,omitempty"`
 
 		GeneralLedgerAccountsGroupingID *uuid.UUID                     `gorm:"type:uuid" json:"general_ledger_accounts_grouping_id,omitempty"`
 		GeneralLedgerAccountsGrouping   *GeneralLedgerAccountsGrouping `gorm:"foreignKey:GeneralLedgerAccountsGroupingID" json:"general_ledger_accounts_grouping,omitempty"`
@@ -64,7 +65,7 @@ type (
 		DeletedByID    *uuid.UUID            `json:"deleted_by_id,omitempty"`
 		DeletedBy      *UserResponse         `json:"deleted_by,omitempty"`
 
-		GeneralLedgerDefinitionEntryID *uuid.UUID                         `json:"general_ledger_definition_entry_id,omitempty"`
+		GeneralLedgerDefinitionEntryID *uuid.UUID                         `json:"general_ledger_definition_entries_id,omitempty"`
 		GeneralLedgerDefinitionEntries []*GeneralLedgerDefinitionResponse `json:"general_ledger_definition,omitempty"`
 
 		GeneralLedgerAccountsGroupingID *uuid.UUID                             `json:"general_ledger_accounts_grouping_id,omitempty"`
@@ -83,6 +84,7 @@ type (
 		CreatedAt                       string            `json:"created_at"`
 		UpdatedAt                       string            `json:"updated_at"`
 		DeletedAt                       *string           `json:"deleted_at,omitempty"`
+		Depth                           int               `json:"depth"`
 	}
 
 	GeneralLedgerDefinitionRequest struct {
@@ -94,7 +96,7 @@ type (
 		GeneralLedgerType               GeneralLedgerType `json:"general_ledger_type" validate:"required"`
 		BeginningBalanceOfTheYearCredit int               `json:"beginning_balance_of_the_year_credit,omitempty"`
 		BeginningBalanceOfTheYearDebit  int               `json:"beginning_balance_of_the_year_debit,omitempty"`
-		GeneralLedgerDefinitionEntryID  *uuid.UUID        `json:"general_ledger_definition_id,omitempty"`
+		GeneralLedgerDefinitionEntryID  *uuid.UUID        `json:"general_ledger_definition_entries_id,omitempty"`
 		GeneralLedgerAccountsGroupingID *uuid.UUID        `json:"general_ledger_accounts_grouping_id,omitempty"`
 	}
 )
@@ -103,11 +105,11 @@ func (m *Model) GeneralLedgerDefinition() {
 	m.Migration = append(m.Migration, &GeneralLedgerDefinition{})
 	m.GeneralLedgerDefinitionManager = horizon_services.NewRepository(horizon_services.RepositoryParams[GeneralLedgerDefinition, GeneralLedgerDefinitionResponse, GeneralLedgerDefinitionRequest]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization",
 			"Accounts",
 			"GeneralLedgerAccountsGrouping",
-			"GeneralLedgerDefinitionEntries", // Parent
-			"GeneralLedgerDefinitionEntries", // Children level 1
+			"GeneralLedgerDefinitionEntries",
+			"GeneralLedgerDefinitionEntries",
 			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries",                                                                                              // Parent of children
 			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries",                                                                                              // Children level 2
 			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries",                                                               // Parent of level 2
@@ -133,6 +135,15 @@ func (m *Model) GeneralLedgerDefinition() {
 				t := data.DeletedAt.Time.Format(time.RFC3339)
 				deletedAt = &t
 			}
+			// Sort GeneralLedgerDefinitionEntries by Index
+			sort.Slice(data.GeneralLedgerDefinitionEntries, func(i, j int) bool {
+				return data.GeneralLedgerDefinitionEntries[i].Index < data.GeneralLedgerDefinitionEntries[j].Index
+			})
+			// Sort Accounts by Index
+			sort.Slice(data.Accounts, func(i, j int) bool {
+				return data.Accounts[i].Index < data.Accounts[j].Index
+			})
+
 			entries := m.GeneralLedgerDefinitionManager.ToModels(data.GeneralLedgerDefinitionEntries)
 			if len(entries) == 0 || entries == nil {
 				entries = []*GeneralLedgerDefinitionResponse{}
@@ -167,6 +178,7 @@ func (m *Model) GeneralLedgerDefinition() {
 				CreatedAt:                       data.CreatedAt.Format(time.RFC3339),
 				UpdatedAt:                       data.UpdatedAt.Format(time.RFC3339),
 				DeletedAt:                       deletedAt,
+				Depth:                           0,
 			}
 		},
 		Created: func(data *GeneralLedgerDefinition) []string {

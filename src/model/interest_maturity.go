@@ -69,7 +69,7 @@ func (m *Model) InterestMaturity() {
 		InterestMaturity, InterestMaturityResponse, InterestMaturityRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization", "Account",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization", "Account",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *InterestMaturity) *InterestMaturityResponse {

@@ -98,7 +98,8 @@ func (c *Controller) HolidayController() {
 		}
 
 		if err := c.model.HolidayManager.Create(context, holiday); err != nil {
-			return c.InternalServerError(ctx, err)
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 
 		return ctx.JSON(http.StatusOK, c.model.HolidayManager.ToModel(holiday))
@@ -135,7 +136,8 @@ func (c *Controller) HolidayController() {
 		holiday.UpdatedAt = time.Now().UTC()
 		holiday.UpdatedByID = user.UserID
 		if err := c.model.HolidayManager.UpdateFields(context, holiday.ID, holiday); err != nil {
-			return c.InternalServerError(ctx, err)
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 		return ctx.JSON(http.StatusOK, c.model.HolidayManager.ToModel(holiday))
 	})
@@ -150,7 +152,8 @@ func (c *Controller) HolidayController() {
 			return c.BadRequest(ctx, "Invalid holiday ID")
 		}
 		if err := c.model.HolidayManager.DeleteByID(context, *holidayID); err != nil {
-			return c.InternalServerError(ctx, err)
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 		return ctx.NoContent(http.StatusNoContent)
 	})
@@ -188,11 +191,13 @@ func (c *Controller) HolidayController() {
 			}
 			if err := c.model.HolidayManager.DeleteByIDWithTx(context, tx, holidayID); err != nil {
 				tx.Rollback()
-				return c.InternalServerError(ctx, err)
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 			}
 		}
 		if err := tx.Commit().Error; err != nil {
-			return c.InternalServerError(ctx, err)
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 		return ctx.NoContent(http.StatusNoContent)
 	})

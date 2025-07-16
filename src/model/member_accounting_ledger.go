@@ -94,8 +94,7 @@ func (m *Model) MemberAccountingLedger() {
 		MemberAccountingLedger, MemberAccountingLedgerResponse, MemberAccountingLedgerRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy",
-			"Branch", "Organization", "Account", "MemberProfile",
+			"CreatedBy", "UpdatedBy", "Account", "MemberProfile",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *MemberAccountingLedger) *MemberAccountingLedgerResponse {

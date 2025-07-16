@@ -74,7 +74,7 @@ func (m *Model) PaymentType() {
 	m.PaymentTypeManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		PaymentType, PaymentTypeResponse, PaymentTypeRequest,
 	]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization"},
+		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
 		Service:  m.provider.Service,
 		Resource: func(data *PaymentType) *PaymentTypeResponse {
 			if data == nil {

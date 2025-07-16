@@ -29,13 +29,14 @@ type (
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
 		// Self-referencing relationship for parent-child hierarchy
-		ParentDefinitionID *uuid.UUID                      `gorm:"type:uuid;column:financial_statement_definition_id"`
-		ParentDefinition   *FinancialStatementDefinition   `gorm:"foreignKey:ParentDefinitionID" json:"parent_definition,omitempty"`
-		ChildDefinitions   []*FinancialStatementDefinition `gorm:"foreignKey:ParentDefinitionID" json:"child_definitions,omitempty"`
+		FinancialStatementDefinitionEntriesID *uuid.UUID                      `gorm:"type:uuid;column:financial_statement_definition_entries_id;index" json:"parent_definition_id,omitempty"`
+		FinancialStatementDefinitionEntries   []*FinancialStatementDefinition `gorm:"foreignKey:FinancialStatementDefinitionEntriesID" json:"financial_statement_definition_entries,omitempty"`
 
 		// Many-to-one relationship with FinancialStatementGrouping
 		FinancialStatementGroupingID *uuid.UUID                  `gorm:"type:uuid;index" json:"financial_statement_grouping_id,omitempty"`
 		FinancialStatementGrouping   *FinancialStatementGrouping `gorm:"foreignKey:FinancialStatementGroupingID;constraint:OnDelete:SET NULL;" json:"grouping,omitempty"`
+
+		Accounts []*Account `gorm:"foreignKey:FinancialStatementDefinitionID" json:"accounts"`
 
 		Name                   string `gorm:"type:varchar(255);not null;unique"`
 		Description            string `gorm:"type:text"`
@@ -58,37 +59,59 @@ type (
 		BranchID       uuid.UUID             `json:"branch_id"`
 		Branch         *BranchResponse       `json:"branch,omitempty"`
 
-		ParentDefinitionID *uuid.UUID                              `json:"parent_definition_id,omitempty"`
-		ParentDefinition   *FinancialStatementDefinitionResponse   `json:"parent_definition,omitempty"`
-		ChildDefinitions   []*FinancialStatementDefinitionResponse `json:"child_definitions,omitempty"`
+		FinancialStatementDefinitionEntriesID *uuid.UUID                              `json:"financial_statement_definition_entries_id,omitempty"`
+		FinancialStatementDefinitionEntries   []*FinancialStatementDefinitionResponse `json:"financial_statement_definition_entries,omitempty"`
 
 		FinancialStatementGroupingID *uuid.UUID                          `json:"financial_statement_grouping_id,omitempty"`
 		FinancialStatementGrouping   *FinancialStatementGroupingResponse `json:"grouping,omitempty"`
-
-		Name                   string `json:"name"`
-		Description            string `json:"description"`
-		Index                  int    `json:"index"`
-		NameInTotal            string `json:"name_in_total"`
-		IsPosting              bool   `json:"is_posting"`
-		FinancialStatementType string `json:"financial_statement_type"`
+		Accounts                     []*AccountResponse                  `json:"accounts,omitempty"`
+		Name                         string                              `json:"name"`
+		Description                  string                              `json:"description"`
+		Index                        int                                 `json:"index"`
+		NameInTotal                  string                              `json:"name_in_total"`
+		IsPosting                    bool                                `json:"is_posting"`
+		FinancialStatementType       string                              `json:"financial_statement_type"`
 	}
 
 	FinancialStatementDefinitionRequest struct {
-		Name                           string     `json:"name" validate:"required,min=1,max=255"`
-		Description                    string     `json:"description,omitempty"`
-		Index                          int        `json:"index,omitempty"`
-		NameInTotal                    string     `json:"name_in_total,omitempty"`
-		IsPosting                      bool       `json:"is_posting,omitempty"`
-		FinancialStatementType         string     `json:"financial_statement_type,omitempty"`
-		FinancialStatementDefinitionID *uuid.UUID `json:"financial_statement_definition_id,omitempty"`
+		Name                                  string     `json:"name" validate:"required,min=1,max=255"`
+		Description                           string     `json:"description,omitempty"`
+		Index                                 int        `json:"index,omitempty"`
+		NameInTotal                           string     `json:"name_in_total,omitempty"`
+		IsPosting                             bool       `json:"is_posting,omitempty"`
+		FinancialStatementType                string     `json:"financial_statement_type,omitempty"`
+		FinancialStatementDefinitionEntriesID *uuid.UUID `json:"financial_statement_definition_entries_id,omitempty"`
+		FinancialStatementGroupingID          *uuid.UUID `json:"financial_statement_grouping_id,omitempty"`
 	}
 )
 
 func (m *Model) FinancialStatementDefinition() {
 	m.Migration = append(m.Migration, &FinancialStatementDefinition{})
 	m.FinancialStatementDefinitionManager = horizon_services.NewRepository(horizon_services.RepositoryParams[FinancialStatementDefinition, FinancialStatementDefinitionResponse, FinancialStatementDefinitionRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization", "ParentDefinition", "ChildDefinitions", "FinancialStatementGrouping"},
-		Service:  m.provider.Service,
+		Preloads: []string{
+			"CreatedBy",
+			"UpdatedBy",
+			"Branch",
+			"Organization",
+			"Accounts",
+			"FinancialStatementDefinitionEntries", // Parent
+			"FinancialStatementDefinitionEntries", // Children level 1
+			"FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries",                                                                                                             // Parent of children
+			"FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries",                                                                                                             // Children level 2
+			"FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries",                                                                         // Parent of level 2
+			"FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries",                                                                         // Children level 3
+			"FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries",                                     // Parent of level 3
+			"FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries",                                     // Children level 4
+			"FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries", // Parent of level 4
+			"FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries", // Children level 5
+			// Preload accounts for each level
+			"FinancialStatementDefinitionEntries.Accounts",
+			"FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.Accounts",
+			"FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.Accounts",
+			"FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.Accounts",
+			"FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.Accounts",
+		},
+		Service: m.provider.Service,
 		Resource: func(data *FinancialStatementDefinition) *FinancialStatementDefinitionResponse {
 			if data == nil {
 				return nil
@@ -106,11 +129,12 @@ func (m *Model) FinancialStatementDefinition() {
 				BranchID:       data.BranchID,
 				Branch:         m.BranchManager.ToModel(data.Branch),
 
-				ParentDefinitionID:           data.ParentDefinitionID,
-				ParentDefinition:             m.FinancialStatementDefinitionManager.ToModel(data.ParentDefinition),
-				ChildDefinitions:             m.FinancialStatementDefinitionManager.ToModels(data.ChildDefinitions),
+				FinancialStatementDefinitionEntriesID: data.FinancialStatementDefinitionEntriesID,
+				FinancialStatementDefinitionEntries:   m.FinancialStatementDefinitionManager.ToModels(data.FinancialStatementDefinitionEntries),
+
 				FinancialStatementGroupingID: data.FinancialStatementGroupingID,
 				FinancialStatementGrouping:   m.FinancialStatementGroupingManager.ToModel(data.FinancialStatementGrouping),
+				Accounts:                     m.AccountManager.ToModels(data.Accounts),
 
 				Name:                   data.Name,
 				Description:            data.Description,

@@ -69,7 +69,7 @@ func (m *Model) LoanTermsAndConditionAmountReceipt() {
 		LoanTermsAndConditionAmountReceipt, LoanTermsAndConditionAmountReceiptResponse, LoanTermsAndConditionAmountReceiptRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization", "LoanTransaction", "Account",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization", "LoanTransaction", "Account",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *LoanTermsAndConditionAmountReceipt) *LoanTermsAndConditionAmountReceiptResponse {

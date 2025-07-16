@@ -41,32 +41,32 @@ type (
 		UpdatedAt time.Time      `gorm:"not null;default:now()"`
 		DeletedAt gorm.DeletedAt `gorm:"index"`
 
-		FinancialStatementDefinitions []*FinancialStatementDefinition `gorm:"foreignKey:FinancialStatementGroupingID" json:"financial_statement_definitions,omitempty"`
+		FinancialStatementDefinitionEntries []*FinancialStatementDefinition `gorm:"foreignKey:FinancialStatementGroupingID" json:"financial_statement_definition_entries,omitempty"`
 	}
 
 	FinancialStatementGroupingResponse struct {
-		ID                            uuid.UUID                               `json:"id"`
-		OrganizationID                uuid.UUID                               `json:"organization_id"`
-		Organization                  *OrganizationResponse                   `json:"organization,omitempty"`
-		BranchID                      uuid.UUID                               `json:"branch_id"`
-		Branch                        *BranchResponse                         `json:"branch,omitempty"`
-		CreatedByID                   uuid.UUID                               `json:"created_by_id"`
-		CreatedBy                     *UserResponse                           `json:"created_by,omitempty"`
-		UpdatedByID                   uuid.UUID                               `json:"updated_by_id"`
-		UpdatedBy                     *UserResponse                           `json:"updated_by,omitempty"`
-		DeletedByID                   *uuid.UUID                              `json:"deleted_by_id,omitempty"`
-		DeletedBy                     *UserResponse                           `json:"deleted_by,omitempty"`
-		IconMediaID                   *uuid.UUID                              `json:"icon_media_id,omitempty"`
-		IconMedia                     *MediaResponse                          `json:"icon_media,omitempty"`
-		Name                          string                                  `json:"name"`
-		Description                   string                                  `json:"description"`
-		Debit                         AccountingPrinciple                     `json:"debit"`
-		Credit                        AccountingPrinciple                     `json:"credit"`
-		Code                          float64                                 `json:"code"`
-		CreatedAt                     string                                  `json:"created_at"`
-		UpdatedAt                     string                                  `json:"updated_at"`
-		DeletedAt                     *string                                 `json:"deleted_at,omitempty"`
-		FinancialStatementDefinitions []*FinancialStatementDefinitionResponse `json:"financial_statement_definitions,omitempty"`
+		ID                                  uuid.UUID                               `json:"id"`
+		OrganizationID                      uuid.UUID                               `json:"organization_id"`
+		Organization                        *OrganizationResponse                   `json:"organization,omitempty"`
+		BranchID                            uuid.UUID                               `json:"branch_id"`
+		Branch                              *BranchResponse                         `json:"branch,omitempty"`
+		CreatedByID                         uuid.UUID                               `json:"created_by_id"`
+		CreatedBy                           *UserResponse                           `json:"created_by,omitempty"`
+		UpdatedByID                         uuid.UUID                               `json:"updated_by_id"`
+		UpdatedBy                           *UserResponse                           `json:"updated_by,omitempty"`
+		DeletedByID                         *uuid.UUID                              `json:"deleted_by_id,omitempty"`
+		DeletedBy                           *UserResponse                           `json:"deleted_by,omitempty"`
+		IconMediaID                         *uuid.UUID                              `json:"icon_media_id,omitempty"`
+		IconMedia                           *MediaResponse                          `json:"icon_media,omitempty"`
+		Name                                string                                  `json:"name"`
+		Description                         string                                  `json:"description"`
+		Debit                               AccountingPrinciple                     `json:"debit"`
+		Credit                              AccountingPrinciple                     `json:"credit"`
+		Code                                float64                                 `json:"code"`
+		CreatedAt                           string                                  `json:"created_at"`
+		UpdatedAt                           string                                  `json:"updated_at"`
+		DeletedAt                           *string                                 `json:"deleted_at,omitempty"`
+		FinancialStatementDefinitionEntries []*FinancialStatementDefinitionResponse `json:"financial_statement_definition_entries,omitempty"`
 	}
 
 	FinancialStatementGroupingRequest struct {
@@ -85,8 +85,7 @@ func (m *Model) FinancialStatementGrouping() {
 	m.Migration = append(m.Migration, &FinancialStatementGrouping{})
 	m.FinancialStatementGroupingManager = horizon_services.NewRepository(horizon_services.RepositoryParams[FinancialStatementGrouping, FinancialStatementGroupingResponse, FinancialStatementGroupingRequest]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization", "IconMedia",
-			"FinancialStatementDefinitions",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization", "IconMedia",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *FinancialStatementGrouping) *FinancialStatementGroupingResponse {
@@ -99,28 +98,28 @@ func (m *Model) FinancialStatementGrouping() {
 				deletedAt = &t
 			}
 			return &FinancialStatementGroupingResponse{
-				ID:                            data.ID,
-				OrganizationID:                data.OrganizationID,
-				Organization:                  m.OrganizationManager.ToModel(data.Organization),
-				BranchID:                      data.BranchID,
-				Branch:                        m.BranchManager.ToModel(data.Branch),
-				CreatedByID:                   data.CreatedByID,
-				CreatedBy:                     m.UserManager.ToModel(data.CreatedBy),
-				UpdatedByID:                   data.UpdatedByID,
-				UpdatedBy:                     m.UserManager.ToModel(data.UpdatedBy),
-				DeletedByID:                   data.DeletedByID,
-				DeletedBy:                     m.UserManager.ToModel(data.DeletedBy),
-				IconMediaID:                   data.IconMediaID,
-				IconMedia:                     m.MediaManager.ToModel(data.IconMedia),
-				Name:                          data.Name,
-				Description:                   data.Description,
-				Debit:                         data.Debit,
-				Credit:                        data.Credit,
-				Code:                          data.Code,
-				CreatedAt:                     data.CreatedAt.Format(time.RFC3339),
-				UpdatedAt:                     data.UpdatedAt.Format(time.RFC3339),
-				DeletedAt:                     deletedAt,
-				FinancialStatementDefinitions: m.FinancialStatementDefinitionManager.ToModels(data.FinancialStatementDefinitions),
+				ID:                                  data.ID,
+				OrganizationID:                      data.OrganizationID,
+				Organization:                        m.OrganizationManager.ToModel(data.Organization),
+				BranchID:                            data.BranchID,
+				Branch:                              m.BranchManager.ToModel(data.Branch),
+				CreatedByID:                         data.CreatedByID,
+				CreatedBy:                           m.UserManager.ToModel(data.CreatedBy),
+				UpdatedByID:                         data.UpdatedByID,
+				UpdatedBy:                           m.UserManager.ToModel(data.UpdatedBy),
+				DeletedByID:                         data.DeletedByID,
+				DeletedBy:                           m.UserManager.ToModel(data.DeletedBy),
+				IconMediaID:                         data.IconMediaID,
+				IconMedia:                           m.MediaManager.ToModel(data.IconMedia),
+				Name:                                data.Name,
+				Description:                         data.Description,
+				Debit:                               data.Debit,
+				Credit:                              data.Credit,
+				Code:                                data.Code,
+				CreatedAt:                           data.CreatedAt.Format(time.RFC3339),
+				UpdatedAt:                           data.UpdatedAt.Format(time.RFC3339),
+				DeletedAt:                           deletedAt,
+				FinancialStatementDefinitionEntries: m.FinancialStatementDefinitionManager.ToModels(data.FinancialStatementDefinitionEntries),
 			}
 		},
 		Created: func(data *FinancialStatementGrouping) []string {

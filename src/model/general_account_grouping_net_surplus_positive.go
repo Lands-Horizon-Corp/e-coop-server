@@ -70,7 +70,7 @@ func (m *Model) GeneralAccountGroupingNetSurplusPositive() {
 	m.Migration = append(m.Migration, &GeneralAccountGroupingNetSurplusPositive{})
 	m.GeneralAccountGroupingNetSurplusPositiveManager = horizon_services.NewRepository(horizon_services.RepositoryParams[GeneralAccountGroupingNetSurplusPositive, GeneralAccountGroupingNetSurplusPositiveResponse, GeneralAccountGroupingNetSurplusPositiveRequest]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization", "Account",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization", "Account",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *GeneralAccountGroupingNetSurplusPositive) *GeneralAccountGroupingNetSurplusPositiveResponse {

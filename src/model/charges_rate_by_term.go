@@ -149,7 +149,7 @@ func (m *Model) ChargesRateByTerm() {
 		ChargesRateByTerm, ChargesRateByTermResponse, ChargesRateByTermRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization", "ChargesRateScheme",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization", "ChargesRateScheme",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *ChargesRateByTerm) *ChargesRateByTermResponse {

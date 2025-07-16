@@ -59,7 +59,7 @@ func (m *Model) AccountCategory() {
 	m.AccountCategoryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		AccountCategory, AccountCategoryResponse, AccountCategoryRequest,
 	]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization"},
+		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
 		Service:  m.provider.Service,
 		Resource: func(data *AccountCategory) *AccountCategoryResponse {
 			if data == nil {

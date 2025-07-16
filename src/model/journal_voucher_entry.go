@@ -84,7 +84,7 @@ func (m *Model) JournalVoucherEntry() {
 		JournalVoucherEntry, JournalVoucherEntryResponse, JournalVoucherEntryRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization",
 			"Account", "MemberProfile", "EmployeeUser", "JournalVoucher",
 		},
 		Service: m.provider.Service,

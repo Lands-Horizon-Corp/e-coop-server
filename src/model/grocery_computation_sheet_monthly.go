@@ -69,7 +69,7 @@ func (m *Model) GroceryComputationSheetMonthly() {
 		GroceryComputationSheetMonthly, GroceryComputationSheetMonthlyResponse, GroceryComputationSheetMonthlyRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization", "GroceryComputationSheet",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization", "GroceryComputationSheet",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *GroceryComputationSheetMonthly) *GroceryComputationSheetMonthlyResponse {

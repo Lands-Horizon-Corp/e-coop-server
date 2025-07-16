@@ -68,8 +68,8 @@ type Repository[TData any, TResponse any, TRequest any] interface {
 	// Optionally preloads related entities.
 	Find(ctx context.Context, fields *TData, preloads ...string) ([]*TData, error)
 	FindRaw(ctx context.Context, fields *TData, preloads ...string) ([]*TResponse, error)
-	FindWithConditions(ctx context.Context, conditions map[string]interface{}, preloads ...string) ([]*TData, error)
-	FindOneWithConditions(ctx context.Context, conditions map[string]interface{}, preloads ...string) (*TData, error)
+	FindWithConditions(ctx context.Context, conditions map[string]any, preloads ...string) ([]*TData, error)
+	FindOneWithConditions(ctx context.Context, conditions map[string]any, preloads ...string) (*TData, error)
 	// FindOne retrieves a single entity that matches the non-zero fields of the provided struct.
 	// Optionally preloads related entities.
 	FindOne(ctx context.Context, fields *TData, preloads ...string) (*TData, error)
@@ -454,7 +454,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) DeleteWithTx(ctx context
 	return nil
 }
 
-func (c *CollectionManager[TData, TResponse, TRequest]) FindWithConditions(ctx context.Context, conditions map[string]interface{}, preloads ...string) ([]*TData, error) {
+func (c *CollectionManager[TData, TResponse, TRequest]) FindWithConditions(ctx context.Context, conditions map[string]any, preloads ...string) ([]*TData, error) {
 	var entities []*TData
 	db := c.service.Database.Client().Model(new(TData))
 
@@ -474,7 +474,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) FindWithConditions(ctx c
 	return entities, nil
 }
 
-func (c *CollectionManager[TData, TResponse, TRequest]) FindOneWithConditions(ctx context.Context, conditions map[string]interface{}, preloads ...string) (*TData, error) {
+func (c *CollectionManager[TData, TResponse, TRequest]) FindOneWithConditions(ctx context.Context, conditions map[string]any, preloads ...string) (*TData, error) {
 	var entity TData
 	db := c.service.Database.Client().Model(new(TData))
 

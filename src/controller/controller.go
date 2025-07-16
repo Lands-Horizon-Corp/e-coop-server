@@ -69,6 +69,7 @@ func (c *Controller) Start() error {
 	c.UserController()
 	c.UserOrganinzationController()
 	c.UserRatingController()
+	c.TagTemplateController()
 
 	// Member Profile
 	c.MemberGenderController()
@@ -78,6 +79,7 @@ func (c *Controller) Start() error {
 	c.MemberOccupationController()
 	c.MemberGroupController()
 	c.MemberProfileController()
+	c.MemberTypeReferenceController()
 
 	// member profile properties
 	c.MemberEducationalAttainmentController()
@@ -108,6 +110,11 @@ func (c *Controller) Start() error {
 	c.GeneralLedgerController()
 	c.FinancialStatementController()
 	c.AccountTagController()
+
+	// Loans
+	c.LoanStatusController()
+	c.LoanPurposeController()
+	c.CollateralController()
 	return nil
 }
 

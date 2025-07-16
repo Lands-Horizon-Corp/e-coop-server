@@ -26,7 +26,7 @@ const (
 // Assumes you have TypesOfPaymentType defined elsewhere, as in your payment_type model
 
 type (
-	GeneralAccountingLedger struct {
+	GeneralLedger struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
 		CreatedByID uuid.UUID      `gorm:"type:uuid"`
@@ -38,9 +38,9 @@ type (
 		DeletedByID *uuid.UUID     `gorm:"type:uuid"`
 		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
 
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_general_accounting_ledger"`
+		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_general_ledger"`
 		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_general_accounting_ledger"`
+		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_general_ledger"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
 		AccountID            *uuid.UUID          `gorm:"type:uuid"`
@@ -73,7 +73,7 @@ type (
 		Balance float64 `gorm:"type:decimal"`
 	}
 
-	GeneralAccountingLedgerResponse struct {
+	GeneralLedgerResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
 		CreatedByID    uuid.UUID             `json:"created_by_id"`
@@ -116,7 +116,7 @@ type (
 		Balance float64 `json:"balance"`
 	}
 
-	GeneralAccountingLedgerRequest struct {
+	GeneralLedgerRequest struct {
 		OrganizationID             uuid.UUID           `json:"organization_id" validate:"required"`
 		BranchID                   uuid.UUID           `json:"branch_id" validate:"required"`
 		AccountID                  *uuid.UUID          `json:"account_id,omitempty"`
@@ -138,21 +138,21 @@ type (
 	}
 )
 
-func (m *Model) GeneralAccountingLedger() {
-	m.Migration = append(m.Migration, &GeneralAccountingLedger{})
-	m.GeneralAccountingLedgerManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
-		GeneralAccountingLedger, GeneralAccountingLedgerResponse, GeneralAccountingLedgerRequest,
+func (m *Model) GeneralLedger() {
+	m.Migration = append(m.Migration, &GeneralLedger{})
+	m.GeneralLedgerManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+		GeneralLedger, GeneralLedgerResponse, GeneralLedgerRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization",
 			"Account", "Transaction", "TransactionBatch", "EmployeeUser", "MemberProfile", "MemberJointAccount", "PaymentType", "AdjustmentEntry",
 		},
 		Service: m.provider.Service,
-		Resource: func(data *GeneralAccountingLedger) *GeneralAccountingLedgerResponse {
+		Resource: func(data *GeneralLedger) *GeneralLedgerResponse {
 			if data == nil {
 				return nil
 			}
-			return &GeneralAccountingLedgerResponse{
+			return &GeneralLedgerResponse{
 				ID:                         data.ID,
 				CreatedAt:                  data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:                data.CreatedByID,
@@ -190,35 +190,35 @@ func (m *Model) GeneralAccountingLedger() {
 				Balance:                    data.Balance,
 			}
 		},
-		Created: func(data *GeneralAccountingLedger) []string {
+		Created: func(data *GeneralLedger) []string {
 			return []string{
-				"general_accounting_ledger.create",
-				fmt.Sprintf("general_accounting_ledger.create.%s", data.ID),
-				fmt.Sprintf("general_accounting_ledger.create.branch.%s", data.BranchID),
-				fmt.Sprintf("general_accounting_ledger.create.organization.%s", data.OrganizationID),
+				"general_ledger.create",
+				fmt.Sprintf("general_ledger.create.%s", data.ID),
+				fmt.Sprintf("general_ledger.create.branch.%s", data.BranchID),
+				fmt.Sprintf("general_ledger.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *GeneralAccountingLedger) []string {
+		Updated: func(data *GeneralLedger) []string {
 			return []string{
-				"general_accounting_ledger.update",
-				fmt.Sprintf("general_accounting_ledger.update.%s", data.ID),
-				fmt.Sprintf("general_accounting_ledger.update.branch.%s", data.BranchID),
-				fmt.Sprintf("general_accounting_ledger.update.organization.%s", data.OrganizationID),
+				"general_ledger.update",
+				fmt.Sprintf("general_ledger.update.%s", data.ID),
+				fmt.Sprintf("general_ledger.update.branch.%s", data.BranchID),
+				fmt.Sprintf("general_ledger.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *GeneralAccountingLedger) []string {
+		Deleted: func(data *GeneralLedger) []string {
 			return []string{
-				"general_accounting_ledger.delete",
-				fmt.Sprintf("general_accounting_ledger.delete.%s", data.ID),
-				fmt.Sprintf("general_accounting_ledger.delete.branch.%s", data.BranchID),
-				fmt.Sprintf("general_accounting_ledger.delete.organization.%s", data.OrganizationID),
+				"general_ledger.delete",
+				fmt.Sprintf("general_ledger.delete.%s", data.ID),
+				fmt.Sprintf("general_ledger.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("general_ledger.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})
 }
 
-func (m *Model) GeneralAccountingLedgerCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*GeneralAccountingLedger, error) {
-	return m.GeneralAccountingLedgerManager.Find(context, &GeneralAccountingLedger{
+func (m *Model) GeneralLedgerCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*GeneralLedger, error) {
+	return m.GeneralLedgerManager.Find(context, &GeneralLedger{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

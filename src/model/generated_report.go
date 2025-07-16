@@ -104,6 +104,7 @@ func (m *Model) GeneratedReport() {
 				fmt.Sprintf("generated_report.create.%s", data.ID),
 				fmt.Sprintf("generated_report.create.branch.%s", data.BranchID),
 				fmt.Sprintf("generated_report.create.organization.%s", data.OrganizationID),
+				fmt.Sprintf("generated_report.create.user.%s", data.UserID),
 			}
 		},
 		Updated: func(data *GeneratedReport) []string {
@@ -112,6 +113,7 @@ func (m *Model) GeneratedReport() {
 				fmt.Sprintf("generated_report.update.%s", data.ID),
 				fmt.Sprintf("generated_report.update.branch.%s", data.BranchID),
 				fmt.Sprintf("generated_report.update.organization.%s", data.OrganizationID),
+				fmt.Sprintf("generated_report.update.user.%s", data.UserID),
 			}
 		},
 		Deleted: func(data *GeneratedReport) []string {
@@ -120,6 +122,7 @@ func (m *Model) GeneratedReport() {
 				fmt.Sprintf("generated_report.delete.%s", data.ID),
 				fmt.Sprintf("generated_report.delete.branch.%s", data.BranchID),
 				fmt.Sprintf("generated_report.delete.organization.%s", data.OrganizationID),
+				fmt.Sprintf("generated_report.delete.user.%s", data.UserID),
 			}
 		},
 	})

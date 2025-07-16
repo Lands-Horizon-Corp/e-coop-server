@@ -74,7 +74,7 @@ func (m *Model) AccountTag() {
 	m.AccountTagManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		AccountTag, AccountTagResponse, AccountTagRequest,
 	]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization", "Account"},
+		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization", "Account"},
 		Service:  m.provider.Service,
 		Resource: func(data *AccountTag) *AccountTagResponse {
 			if data == nil {

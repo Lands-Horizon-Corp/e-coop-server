@@ -87,7 +87,7 @@ func (m *Model) TimeDepositComputationHeader() {
 		TimeDepositComputationHeader, TimeDepositComputationHeaderResponse, TimeDepositComputationHeaderRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *TimeDepositComputationHeader) *TimeDepositComputationHeaderResponse {

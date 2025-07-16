@@ -36,8 +36,8 @@ type (
 		MemberJointAccount        *MemberJointAccount      `gorm:"foreignKey:MemberJointAccountID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_joint_account,omitempty"`
 		TransactionBatchID        *uuid.UUID               `gorm:"type:uuid" json:"transaction_batch_id"`
 		TransactionBatch          *TransactionBatch        `gorm:"foreignKey:TransactionBatchID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"transaction_batch,omitempty"`
-		GeneralAccountingID       *uuid.UUID               `gorm:"type:uuid;column:general_accounting_ledger_id" json:"general_accounting_ledger_id"`
-		GeneralAccountingLedger   *GeneralAccountingLedger `gorm:"foreignKey:GeneralAccountingID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"general_accounting_ledger,omitempty"`
+		GeneralAccountingID       *uuid.UUID               `gorm:"type:uuid;column:general_ledger_id" json:"general_ledger_id"`
+		GeneralLedger             *GeneralLedger           `gorm:"foreignKey:GeneralAccountingID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"general_ledger,omitempty"`
 		TransactionID             *uuid.UUID               `gorm:"type:uuid" json:"transaction_id"`
 		Transaction               *Transaction             `gorm:"foreignKey:TransactionID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"transaction,omitempty"`
 		EmployeeUserID            *uuid.UUID               `gorm:"type:uuid" json:"employee_user_id"`
@@ -70,8 +70,8 @@ type (
 		MemberJointAccount        *MemberJointAccountResponse      `json:"member_joint_account,omitempty"`
 		TransactionBatchID        *uuid.UUID                       `json:"transaction_batch_id,omitempty"`
 		TransactionBatch          *TransactionBatchResponse        `json:"transaction_batch,omitempty"`
-		GeneralAccountingLedgerID *uuid.UUID                       `json:"general_accounting_ledger_id,omitempty"`
-		GeneralAccountingLedger   *GeneralAccountingLedgerResponse `json:"general_accounting_ledger,omitempty"`
+		GeneralLedgerID           *uuid.UUID                       `json:"general_ledger_id,omitempty"`
+		GeneralLedger             *GeneralLedgerResponse           `json:"general_ledger,omitempty"`
 		TransactionID             *uuid.UUID                       `json:"transaction_id,omitempty"`
 		Transaction               *TransactionResponse             `json:"transaction,omitempty"`
 		EmployeeUserID            *uuid.UUID                       `json:"employee_user_id,omitempty"`
@@ -88,7 +88,7 @@ type (
 		MemberProfileID           *uuid.UUID `json:"member_profile_id,omitempty"`
 		MemberJointAccountID      *uuid.UUID `json:"member_joint_account_id,omitempty"`
 		TransactionBatchID        *uuid.UUID `json:"transaction_batch_id,omitempty"`
-		GeneralAccountingLedgerID *uuid.UUID `json:"general_accounting_ledger_id,omitempty"`
+		GeneralLedgerID           *uuid.UUID `json:"general_ledger_id,omitempty"`
 		TransactionID             *uuid.UUID `json:"transaction_id,omitempty"`
 		EmployeeUserID            *uuid.UUID `json:"employee_user_id,omitempty"`
 		DisbursementTransactionID *uuid.UUID `json:"disbursement_transaction_id,omitempty"`
@@ -102,7 +102,7 @@ func (m *Model) CashEntry() {
 	m.Migration = append(m.Migration, &CashEntry{})
 	m.CashEntryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[CashEntry, CashEntryResponse, CashEntryRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization", "Account", "MemberProfile",
-			"MemberJointAccount", "TransactionBatch", "GeneralAccountingLedger", "Transaction", "EmployeeUser", "DisbursementTransaction"},
+			"MemberJointAccount", "TransactionBatch", "GeneralLedger", "Transaction", "EmployeeUser", "DisbursementTransaction"},
 		Service: m.provider.Service,
 		Resource: func(data *CashEntry) *CashEntryResponse {
 			if data == nil {
@@ -128,8 +128,8 @@ func (m *Model) CashEntry() {
 				MemberJointAccount:        m.MemberJointAccountManager.ToModel(data.MemberJointAccount),
 				TransactionBatchID:        data.TransactionBatchID,
 				TransactionBatch:          m.TransactionBatchManager.ToModel(data.TransactionBatch),
-				GeneralAccountingLedgerID: data.GeneralAccountingID,
-				GeneralAccountingLedger:   m.GeneralAccountingLedgerManager.ToModel(data.GeneralAccountingLedger),
+				GeneralLedgerID:           data.GeneralAccountingID,
+				GeneralLedger:             m.GeneralLedgerManager.ToModel(data.GeneralLedger),
 				TransactionID:             data.TransactionID,
 				Transaction:               m.TransactionManager.ToModel(data.Transaction),
 				EmployeeUserID:            data.EmployeeUserID,

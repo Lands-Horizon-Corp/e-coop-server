@@ -123,7 +123,7 @@ func (m *Model) Transaction() {
 		Transaction, TransactionResponse, TransactionRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization",
 			"Account", "SignatureMedia", "TransactionBatch", "EmployeeUser",
 			"MemberProfile", "MemberJointAccount",
 		},

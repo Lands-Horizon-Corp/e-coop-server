@@ -107,5 +107,4 @@ fly deploy
 
 # Reset the machines and log the output
 fly machine restart 148e4d55f36278 && fly machine restart 90802d3ea0ed38; fly logs
-
 ```

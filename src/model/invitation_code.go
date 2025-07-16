@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	horizon_services "github.com/lands-horizon/horizon-server/services"
 	"github.com/lands-horizon/horizon-server/services/horizon"
+	"github.com/lib/pq"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
@@ -35,6 +36,10 @@ type (
 		MaxUse         int       `gorm:"not null"`
 		CurrentUse     int       `gorm:"default:0"`
 		Description    string    `gorm:"type:text"`
+
+		PermissionName        string         `gorm:"type:varchar(255);not null" json:"permission_name"`
+		PermissionDescription string         `gorm:"type:varchar(255);not null" json:"permission_description"`
+		Permissions           pq.StringArray `gorm:"type:varchar(255)[]" json:"permissions"`
 	}
 
 	InvitationCodeResponse struct {
@@ -57,6 +62,10 @@ type (
 		CurrentUse     int               `json:"current_use"`
 		Description    string            `json:"description,omitempty"`
 		QRCode         *horizon.QRResult `json:"qr_code,omitempty"`
+
+		PermissionName        string   `json:"permission_name"`
+		PermissionDescription string   `json:"permission_description"`
+		Permissions           []string `json:"permissions"`
 	}
 
 	InvitationCodeRequest struct {
@@ -67,6 +76,10 @@ type (
 		ExpirationDate time.Time `json:"expiration_date" validate:"required"`
 		MaxUse         int       `json:"max_use" validate:"required"`
 		Description    string    `json:"description,omitempty"`
+
+		PermissionName        string   `json:"permission_name,omitempty"`
+		PermissionDescription string   `json:"permission_description,omitempty"`
+		Permissions           []string `json:"permissions,omitempty" validate:"dive"`
 	}
 )
 
@@ -86,6 +99,10 @@ func (m *Model) InvitationCode() {
 			if data == nil {
 				return nil
 			}
+			if data.Permissions == nil {
+				data.Permissions = []string{}
+			}
+
 			return &InvitationCodeResponse{
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
@@ -105,6 +122,10 @@ func (m *Model) InvitationCode() {
 				MaxUse:         data.MaxUse,
 				CurrentUse:     data.CurrentUse,
 				Description:    data.Description,
+
+				PermissionName:        data.PermissionName,
+				PermissionDescription: data.PermissionDescription,
+				Permissions:           data.Permissions,
 			}
 		},
 		Created: func(data *InvitationCode) []string {

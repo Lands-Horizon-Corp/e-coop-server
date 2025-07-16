@@ -22,7 +22,8 @@ func (c *Controller) SubscriptionPlanController() {
 		context := ctx.Request().Context()
 		categories, err := c.model.SubscriptionPlanManager.ListRaw(context)
 		if err != nil {
-			return c.InternalServerError(ctx, err)
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 		return ctx.JSON(http.StatusOK, categories)
 	})
@@ -73,7 +74,8 @@ func (c *Controller) SubscriptionPlanController() {
 		}
 
 		if err := c.model.SubscriptionPlanManager.Create(context, subscription_plan); err != nil {
-			return c.InternalServerError(ctx, err)
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 
 		return ctx.JSON(http.StatusOK, c.model.SubscriptionPlanManager.ToModel(subscription_plan))
@@ -113,7 +115,8 @@ func (c *Controller) SubscriptionPlanController() {
 		subscription_plan.UpdatedAt = time.Now().UTC()
 
 		if err := c.model.SubscriptionPlanManager.UpdateFields(context, subscription_plan.ID, subscription_plan); err != nil {
-			return c.InternalServerError(ctx, err)
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 
 		return ctx.JSON(http.StatusOK, c.model.SubscriptionPlanManager.ToModel(subscription_plan))
@@ -130,7 +133,8 @@ func (c *Controller) SubscriptionPlanController() {
 		}
 
 		if err := c.model.SubscriptionPlanManager.DeleteByID(context, *subscription_planID); err != nil {
-			return c.InternalServerError(ctx, err)
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 
 		return ctx.NoContent(http.StatusNoContent)
@@ -175,12 +179,14 @@ func (c *Controller) SubscriptionPlanController() {
 
 			if err := c.model.SubscriptionPlanManager.DeleteByIDWithTx(context, tx, subscription_planID); err != nil {
 				tx.Rollback()
-				return c.InternalServerError(ctx, err)
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 			}
 		}
 
 		if err := tx.Commit().Error; err != nil {
-			return c.InternalServerError(ctx, err)
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 
 		return ctx.NoContent(http.StatusNoContent)

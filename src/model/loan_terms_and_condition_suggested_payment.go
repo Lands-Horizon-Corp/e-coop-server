@@ -59,7 +59,7 @@ func (m *Model) LoanTermsAndConditionSuggestedPayment() {
 		LoanTermsAndConditionSuggestedPayment, LoanTermsAndConditionSuggestedPaymentResponse, LoanTermsAndConditionSuggestedPaymentRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization", "LoanTransaction",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization", "LoanTransaction",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *LoanTermsAndConditionSuggestedPayment) *LoanTermsAndConditionSuggestedPaymentResponse {

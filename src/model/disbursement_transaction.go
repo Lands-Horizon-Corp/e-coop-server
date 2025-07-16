@@ -83,7 +83,7 @@ func (m *Model) DisbursementTransaction() {
 		DisbursementTransaction, DisbursementTransactionResponse, DisbursementTransactionRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization",
 			"Disbursement", "TransactionBatch", "EmployeeUser",
 		},
 		Service: m.provider.Service,

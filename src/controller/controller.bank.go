@@ -97,7 +97,8 @@ func (c *Controller) BankController() {
 		}
 
 		if err := c.model.BankManager.Create(context, bank); err != nil {
-			return c.InternalServerError(ctx, err)
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 
 		return ctx.JSON(http.StatusOK, c.model.BankManager.ToModel(bank))
@@ -134,7 +135,8 @@ func (c *Controller) BankController() {
 		bank.UpdatedAt = time.Now().UTC()
 		bank.UpdatedByID = user.UserID
 		if err := c.model.BankManager.UpdateFields(context, bank.ID, bank); err != nil {
-			return c.InternalServerError(ctx, err)
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 		return ctx.JSON(http.StatusOK, c.model.BankManager.ToModel(bank))
 	})
@@ -149,7 +151,8 @@ func (c *Controller) BankController() {
 			return c.BadRequest(ctx, "Invalid bank ID")
 		}
 		if err := c.model.BankManager.DeleteByID(context, *bankID); err != nil {
-			return c.InternalServerError(ctx, err)
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 		return ctx.NoContent(http.StatusNoContent)
 	})
@@ -187,11 +190,13 @@ func (c *Controller) BankController() {
 			}
 			if err := c.model.BankManager.DeleteByIDWithTx(context, tx, bankID); err != nil {
 				tx.Rollback()
-				return c.InternalServerError(ctx, err)
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 			}
 		}
 		if err := tx.Commit().Error; err != nil {
-			return c.InternalServerError(ctx, err)
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 		return ctx.NoContent(http.StatusNoContent)
 	})

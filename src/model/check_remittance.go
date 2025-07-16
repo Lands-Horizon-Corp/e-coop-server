@@ -93,7 +93,7 @@ func (m *Model) CheckRemittance() {
 		CheckRemittance, CheckRemittanceResponse, CheckRemittanceRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization",
 			"Bank", "Media", "EmployeeUser", "TransactionBatch",
 			"Bank.Media",
 		},

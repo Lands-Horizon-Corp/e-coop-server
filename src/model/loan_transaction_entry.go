@@ -69,7 +69,7 @@ func (m *Model) LoanTransactionEntry() {
 		LoanTransactionEntry, LoanTransactionEntryResponse, LoanTransactionEntryRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization", "LoanTransaction",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization", "LoanTransaction",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *LoanTransactionEntry) *LoanTransactionEntryResponse {

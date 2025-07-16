@@ -22,7 +22,8 @@ func (c *Controller) CategoryController() {
 		context := ctx.Request().Context()
 		categories, err := c.model.CategoryManager.ListRaw(context)
 		if err != nil {
-			return c.InternalServerError(ctx, err)
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 		return ctx.JSON(http.StatusOK, categories)
 	})
@@ -68,7 +69,8 @@ func (c *Controller) CategoryController() {
 		}
 
 		if err := c.model.CategoryManager.Create(context, category); err != nil {
-			return c.InternalServerError(ctx, err)
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 
 		return ctx.JSON(http.StatusOK, c.model.CategoryManager.ToModel(category))
@@ -103,7 +105,8 @@ func (c *Controller) CategoryController() {
 		category.UpdatedAt = time.Now().UTC()
 
 		if err := c.model.CategoryManager.UpdateFields(context, category.ID, category); err != nil {
-			return c.InternalServerError(ctx, err)
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 
 		return ctx.JSON(http.StatusOK, c.model.CategoryManager.ToModel(category))
@@ -120,7 +123,8 @@ func (c *Controller) CategoryController() {
 		}
 
 		if err := c.model.CategoryManager.DeleteByID(context, *categoryID); err != nil {
-			return c.InternalServerError(ctx, err)
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 
 		return ctx.NoContent(http.StatusNoContent)
@@ -165,12 +169,14 @@ func (c *Controller) CategoryController() {
 
 			if err := c.model.CategoryManager.DeleteByIDWithTx(context, tx, categoryID); err != nil {
 				tx.Rollback()
-				return c.InternalServerError(ctx, err)
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 			}
 		}
 
 		if err := tx.Commit().Error; err != nil {
-			return c.InternalServerError(ctx, err)
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+
 		}
 
 		return ctx.NoContent(http.StatusNoContent)

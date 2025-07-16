@@ -104,7 +104,7 @@ func (m *Model) AdjustmentEntry() {
 		AdjustmentEntry, AdjustmentEntryResponse, AdjustmentEntryRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization",
 			"SignatureMedia", "Account", "MemberProfile", "EmployeeUser", "PaymentType",
 		},
 		Service: m.provider.Service,

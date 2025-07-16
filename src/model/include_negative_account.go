@@ -68,7 +68,7 @@ func (m *Model) IncludeNegativeAccount() {
 		IncludeNegativeAccount, IncludeNegativeAccountResponse, IncludeNegativeAccountRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization",
 			"ComputationSheet", "Account",
 		},
 		Service: m.provider.Service,
