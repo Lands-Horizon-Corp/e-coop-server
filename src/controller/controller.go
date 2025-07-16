@@ -79,6 +79,7 @@ func (c *Controller) Start() error {
 	c.MemberOccupationController()
 	c.MemberGroupController()
 	c.MemberProfileController()
+	c.MemberTypeReferenceController()
 
 	// member profile properties
 	c.MemberEducationalAttainmentController()
