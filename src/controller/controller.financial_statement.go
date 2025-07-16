@@ -60,6 +60,59 @@ func (c *Controller) FinancialStatementController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
+		Route:    "/financial-statement-grouping/:financial_statement_grouping_id",
+		Method:   "PUT",
+		Request:  "FinancialStatementGroupingRequest",
+		Response: "FinancialStatementGroupingResponse",
+		Note:     "Update an existing financial statement grouping",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+
+		// Get and validate grouping ID
+		groupingID, err := horizon.EngineUUIDParam(ctx, "financial_statement_grouping_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid financial statement grouping ID")
+		}
+
+		// Validate request
+		reqBody, err := c.model.FinancialStatementGroupingManager.Validate(ctx)
+		if err != nil {
+			return c.BadRequest(ctx, err.Error())
+		}
+
+		// Get current user organization
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return err
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return c.BadRequest(ctx, "User is not authorized")
+		}
+
+		// Get existing grouping
+		grouping, err := c.model.FinancialStatementGroupingManager.GetByID(context, *groupingID)
+		if err != nil {
+			return c.NotFound(ctx, "Financial Statement Grouping")
+		}
+
+		// Update fields
+		grouping.Name = reqBody.Name
+		grouping.Description = reqBody.Description
+		grouping.Debit = reqBody.Debit
+		grouping.Credit = reqBody.Credit
+		grouping.Code = reqBody.Code
+		grouping.IconMediaID = reqBody.IconMediaID
+		grouping.UpdatedAt = time.Now().UTC()
+		grouping.UpdatedByID = userOrg.UserID
+
+		// Save update
+		if err := c.model.FinancialStatementGroupingManager.UpdateFields(context, grouping.ID, grouping); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+
+		return ctx.JSON(http.StatusOK, c.model.FinancialStatementGroupingManager.ToModel(grouping))
+	})
+	req.RegisterRoute(horizon.Route{
 		Route:    "/financial-statement-definition",
 		Method:   "GET",
 		Response: "FinancialStatementDefinition[]",

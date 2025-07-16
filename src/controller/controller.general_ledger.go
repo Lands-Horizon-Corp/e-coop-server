@@ -59,6 +59,68 @@ func (c *Controller) GeneralLedgerController() {
 		}
 		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerAccountsGroupingManager.ToModels(gl))
 	})
+	// ...existing code...
+
+	req.RegisterRoute(horizon.Route{
+		Route:    "/general-ledger-accounts-grouping/:general_ledger_accounts_grouping_id",
+		Method:   "PUT",
+		Request:  "GeneralLedgerAccountsGroupingRequest",
+		Response: "GeneralLedgerAccountsGroupingResponse",
+		Note:     "Update an existing general ledger accounts grouping",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+
+		// Get and validate grouping ID
+		groupingID, err := horizon.EngineUUIDParam(ctx, "general_ledger_accounts_grouping_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid grouping ID")
+		}
+
+		// Validate request
+		reqBody, err := c.model.GeneralLedgerAccountsGroupingManager.Validate(ctx)
+		if err != nil {
+			return c.BadRequest(ctx, err.Error())
+		}
+
+		// Get current user organization
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return err
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return c.BadRequest(ctx, "User is not authorized")
+		}
+
+		// Get existing grouping
+		grouping, err := c.model.GeneralLedgerAccountsGroupingManager.GetByID(context, *groupingID)
+		if err != nil {
+			return c.NotFound(ctx, "General Ledger Accounts Grouping")
+		}
+
+		// Update fields
+		grouping.Name = reqBody.Name
+		grouping.Description = reqBody.Description
+		grouping.UpdatedAt = time.Now().UTC()
+		grouping.UpdatedByID = userOrg.UserID
+		grouping.FromCode = reqBody.FromCode
+		grouping.ToCode = reqBody.ToCode
+
+		// Parse Debit and Credit from string to float64 if needed
+		if debit, err := strconv.ParseFloat(reqBody.Debit, 64); err == nil {
+			grouping.Debit = debit
+		}
+		if credit, err := strconv.ParseFloat(reqBody.Credit, 64); err == nil {
+			grouping.Credit = credit
+		}
+
+		// Save update
+		if err := c.model.GeneralLedgerAccountsGroupingManager.UpdateFields(context, grouping.ID, grouping); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+
+		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerAccountsGroupingManager.ToModel(grouping))
+	})
+	// ...existing code...
 
 	req.RegisterRoute(horizon.Route{
 		Route:    "/general-ledger-definition",
