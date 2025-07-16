@@ -41,6 +41,7 @@ func (c *Controller) UserController() {
 		context := ctx.Request().Context()
 		user, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
+			c.userOrganizationToken.Token.CleanToken(context, ctx)
 			return ctx.NoContent(http.StatusNoContent)
 		}
 		userOrganization, _ := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
