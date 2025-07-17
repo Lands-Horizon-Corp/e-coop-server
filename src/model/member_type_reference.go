@@ -134,6 +134,7 @@ func (m *Model) MemberTypeReference() {
 				fmt.Sprintf("member_type_reference.create.%s", data.ID),
 				fmt.Sprintf("member_type_reference.create.branch.%s", data.BranchID),
 				fmt.Sprintf("member_type_reference.create.organization.%s", data.OrganizationID),
+				fmt.Sprintf("member_type_reference.create.member_type.%s", data.MemberTypeID),
 			}
 		},
 		Updated: func(data *MemberTypeReference) []string {
@@ -142,6 +143,7 @@ func (m *Model) MemberTypeReference() {
 				fmt.Sprintf("member_type_reference.update.%s", data.ID),
 				fmt.Sprintf("member_type_reference.update.branch.%s", data.BranchID),
 				fmt.Sprintf("member_type_reference.update.organization.%s", data.OrganizationID),
+				fmt.Sprintf("member_type_reference.update.member_type.%s", data.MemberTypeID),
 			}
 		},
 		Deleted: func(data *MemberTypeReference) []string {
@@ -150,6 +152,7 @@ func (m *Model) MemberTypeReference() {
 				fmt.Sprintf("member_type_reference.delete.%s", data.ID),
 				fmt.Sprintf("member_type_reference.delete.branch.%s", data.BranchID),
 				fmt.Sprintf("member_type_reference.delete.organization.%s", data.OrganizationID),
+				fmt.Sprintf("member_type_reference.update.member_type.%s", data.MemberTypeID),
 			}
 		},
 	})
