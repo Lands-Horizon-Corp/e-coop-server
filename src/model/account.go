@@ -212,7 +212,8 @@ type (
 		CenterRow int `gorm:"type:int" json:"center_row"`
 		TotalRow  int `gorm:"type:int" json:"total_row"`
 
-		GeneralLedgerGroupingExcludeAccount bool `gorm:"default:false" json:"general_ledger_grouping_exclude_account"`
+		AccountTags                         []*AccountTag `gorm:"foreignKey:AccountID;constraint:OnDelete:CASCADE;" json:"account_tags,omitempty"`
+		GeneralLedgerGroupingExcludeAccount bool          `gorm:"default:false" json:"general_ledger_grouping_exclude_account"`
 	}
 )
 
@@ -305,7 +306,8 @@ type AccountResponse struct {
 	CenterRow int `json:"center_row"`
 	TotalRow  int `json:"total_row"`
 
-	GeneralLedgerGroupingExcludeAccount bool `json:"general_ledger_grouping_exclude_account"`
+	GeneralLedgerGroupingExcludeAccount bool                  `json:"general_ledger_grouping_exclude_account"`
+	AccountTags                         []*AccountTagResponse `json:"account_tags,omitempty"`
 }
 
 type AccountRequest struct {
@@ -378,7 +380,8 @@ type AccountRequest struct {
 	CenterRow int `json:"center_row,omitempty"`
 	TotalRow  int `json:"total_row,omitempty"`
 
-	GeneralLedgerGroupingExcludeAccount bool `json:"general_ledger_grouping_exclude_account,omitempty"`
+	GeneralLedgerGroupingExcludeAccount bool                 `json:"general_ledger_grouping_exclude_account,omitempty"`
+	AccountTags                         []*AccountTagRequest `json:"account_tags,omitempty"`
 }
 
 // --- REGISTRATION ---
@@ -391,6 +394,7 @@ func (m *Model) Account() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Branch", "Organization",
 			"AccountClassification", "AccountCategory",
+			"AccountTags",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *Account) *AccountResponse {
@@ -474,6 +478,7 @@ func (m *Model) Account() {
 				CenterRow:                                          data.CenterRow,
 				TotalRow:                                           data.TotalRow,
 				GeneralLedgerGroupingExcludeAccount:                data.GeneralLedgerGroupingExcludeAccount,
+				AccountTags:                                        m.AccountTagManager.ToModels(data.AccountTags),
 			}
 		},
 		Created: func(data *Account) []string {
