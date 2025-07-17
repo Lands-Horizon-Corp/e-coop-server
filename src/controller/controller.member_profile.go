@@ -2367,7 +2367,7 @@ func (c *Controller) MemberTypeReferenceController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-type-reference/member-member-type/:member_type_id/search",
+		Route:    "/member-type-reference/member-type/:member_type_id/search",
 		Method:   "GET",
 		Request:  "Filter<IMemberTypeReference>",
 		Response: "Paginated<IMemberTypeReference>",
