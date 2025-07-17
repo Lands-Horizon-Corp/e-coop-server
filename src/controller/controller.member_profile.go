@@ -2367,33 +2367,43 @@ func (c *Controller) MemberTypeReferenceController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-type-reference/member-type/:member_type_id/search",
+		Route:    "/member-type-reference/member-type/:member_type_id",
 		Method:   "GET",
-		Request:  "Filter<IMemberTypeReference>",
-		Response: "Paginated<IMemberTypeReference>",
-		Note:     "Get pagination member type reference by member_type_id for the current branch",
+		Response: "TMemberTypeReference[]",
+		Note:     "Get all member type references by member_type_id for the current branch",
 	}, func(ctx echo.Context) error {
+		fmt.Println("DEBUG: Handler entered") // 1
 		context := ctx.Request().Context()
 		memberTypeID, err := horizon.EngineUUIDParam(ctx, "member_type_id")
-		if err != nil || memberTypeID == nil {
+		if err != nil {
+			fmt.Println("DEBUG: memberTypeID error:", err) // 2
+			return c.BadRequest(ctx, "Invalid member type ID")
+		}
+		if memberTypeID == nil {
+			fmt.Println("DEBUG: memberTypeID is nil") // 3
 			return c.BadRequest(ctx, "Invalid member type ID")
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
+			fmt.Println("DEBUG: userOrganizationToken error:", err) // 4
 			return ctx.NoContent(http.StatusNoContent)
 		}
 		if user.BranchID == nil {
+			fmt.Println("DEBUG: user.BranchID is nil") // 5
 			return c.BadRequest(ctx, "Branch ID is required")
 		}
-		value, err := c.model.MemberTypeReferenceManager.Find(context, &model.MemberTypeReference{
+		fmt.Println("DEBUG: About to call Find with org:", user.OrganizationID, "branch:", *user.BranchID, "memberTypeID:", *memberTypeID) // 6
+		refs, err := c.model.MemberTypeReferenceManager.Find(context, &model.MemberTypeReference{
 			OrganizationID: user.OrganizationID,
 			BranchID:       *user.BranchID,
 			MemberTypeID:   *memberTypeID,
 		})
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			fmt.Println("DEBUG: Find error:", err) // 7
+			return c.NotFound(ctx, "MemberTypeReference")
 		}
-		return ctx.JSON(http.StatusOK, c.model.MemberTypeReferenceManager.Pagination(context, ctx, value))
+		fmt.Println("DEBUG: Success, returning refs") // 8
+		return ctx.JSON(http.StatusOK, c.model.MemberTypeReferenceManager.ToModels(refs))
 	})
 
 	req.RegisterRoute(horizon.Route{
