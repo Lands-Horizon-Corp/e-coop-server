@@ -2341,16 +2341,25 @@ func (c *Controller) MemberTypeReferenceController() {
 	req := c.provider.Service.Request
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-type-reference",
+		Route:    "/member-type-reference/member-member-type/:member_type_id",
 		Method:   "GET",
 		Response: "TMemberTypeReference[]",
+		Note:     "Get all member type references by member_type_id for the current branch",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
+		memberTypeID, err := horizon.EngineUUIDParam(ctx, "member_type_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid member type ID")
+		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.NoContent(http.StatusNoContent)
 		}
-		refs, err := c.model.MemberTypeReferenceCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		refs, err := c.model.MemberTypeReferenceManager.Find(context, &model.MemberTypeReference{
+			OrganizationID: user.OrganizationID,
+			BranchID:       *user.BranchID,
+			MemberTypeID:   *memberTypeID,
+		})
 		if err != nil {
 			return c.NotFound(ctx, "MemberTypeReference")
 		}
@@ -2358,18 +2367,26 @@ func (c *Controller) MemberTypeReferenceController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-type-reference/search",
+		Route:    "/member-type-reference/member-member-type/:member_type_id/search",
 		Method:   "GET",
 		Request:  "Filter<IMemberTypeReference>",
 		Response: "Paginated<IMemberTypeReference>",
-		Note:     "Get pagination member type reference",
+		Note:     "Get pagination member type reference by member_type_id for the current branch",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
+		memberTypeID, err := horizon.EngineUUIDParam(ctx, "member_type_id")
+		if err != nil {
+			return c.BadRequest(ctx, "Invalid member type ID")
+		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.NoContent(http.StatusNoContent)
 		}
-		value, err := c.model.MemberTypeReferenceCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		value, err := c.model.MemberTypeReferenceManager.Find(context, &model.MemberTypeReference{
+			OrganizationID: user.OrganizationID,
+			BranchID:       *user.BranchID,
+			MemberTypeID:   *memberTypeID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
