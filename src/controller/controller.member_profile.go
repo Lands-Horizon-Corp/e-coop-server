@@ -2341,32 +2341,6 @@ func (c *Controller) MemberTypeReferenceController() {
 	req := c.provider.Service.Request
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-type-reference/member-type/:member_type_id",
-		Method:   "GET",
-		Response: "TMemberTypeReference[]",
-		Note:     "Get all member type references by member_type_id for the current branch",
-	}, func(ctx echo.Context) error {
-		context := ctx.Request().Context()
-		memberTypeID, err := horizon.EngineUUIDParam(ctx, "member_type_id")
-		if err != nil {
-			return c.BadRequest(ctx, "Invalid member type ID")
-		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
-		if err != nil {
-			return ctx.NoContent(http.StatusNoContent)
-		}
-		refs, err := c.model.MemberTypeReferenceManager.Find(context, &model.MemberTypeReference{
-			OrganizationID: user.OrganizationID,
-			BranchID:       *user.BranchID,
-			MemberTypeID:   *memberTypeID,
-		})
-		if err != nil {
-			return c.NotFound(ctx, "MemberTypeReference")
-		}
-		return ctx.JSON(http.StatusOK, c.model.MemberTypeReferenceManager.ToModels(refs))
-	})
-
-	req.RegisterRoute(horizon.Route{
 		Route:    "/member-type-reference/member-type/:member_type_id/search",
 		Method:   "GET",
 		Response: "TMemberTypeReference[]",
