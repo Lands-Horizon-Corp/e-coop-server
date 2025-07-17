@@ -2403,7 +2403,7 @@ func (c *Controller) MemberTypeReferenceController() {
 			return c.NotFound(ctx, "MemberTypeReference")
 		}
 		fmt.Println("DEBUG: Success, returning refs") // 8
-		return ctx.JSON(http.StatusOK, c.model.MemberTypeReferenceManager.ToModels(refs))
+		return ctx.JSON(http.StatusOK, c.model.MemberTypeReferenceManager.Pagination(context, ctx, refs))
 	})
 
 	req.RegisterRoute(horizon.Route{
