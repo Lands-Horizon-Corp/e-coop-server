@@ -88,6 +88,7 @@ func NewHorizonAPIService(
 
 	LoadTemplatesIfExists(e, "public/views/*.html")
 
+	e.Use(middleware.Recover())
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.BodyLimit("10mb"))
 	e.Use(middleware.SecureWithConfig(middleware.SecureConfig{
