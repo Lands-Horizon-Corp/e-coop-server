@@ -38,6 +38,27 @@ func (c *Controller) TransactionBatchEntriesController() {
 		}
 		return ctx.JSON(http.StatusOK, c.model.CheckEntryManager.Pagination(context, ctx, check))
 	})
+	req.RegisterRoute(horizon.Route{
+		Route:    "/check-entry/search",
+		Method:   "GET",
+		Response: "CheckEntry[]",
+		Note:     "Returns paginated check entries",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
+		}
+
+		check, err := c.model.CheckEntryManager.Find(context, &model.CheckEntry{
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve check entries: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.CheckEntryManager.Pagination(context, ctx, check))
+	})
 
 	// Returns paginated withdrawal entries for a given transaction batch.
 	req.RegisterRoute(horizon.Route{
@@ -86,6 +107,29 @@ func (c *Controller) TransactionBatchEntriesController() {
 			TransactionBatchID: transactionBatchID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve online entries: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.OnlineEntryManager.Pagination(context, ctx, online))
+	})
+
+	// Returns paginated online entries for a given transaction batch.
+	req.RegisterRoute(horizon.Route{
+		Route:    "/online-entry/search",
+		Method:   "GET",
+		Response: "OnlineEntry[]",
+		Note:     "Returns paginated online entries",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
+		}
+
+		online, err := c.model.OnlineEntryManager.Find(context, &model.OnlineEntry{
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve online entries: " + err.Error()})
