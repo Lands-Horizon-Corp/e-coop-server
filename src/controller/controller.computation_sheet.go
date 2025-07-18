@@ -16,6 +16,38 @@ import (
 func (c *Controller) ComputationSheetController() {
 	req := c.provider.Service.Request
 
+	// POST /computation-sheet/:computation_sheet_id/calculator: Returns sample calculation data.
+	req.RegisterRoute(horizon.Route{
+		Route:    "/computation-sheet/:computation_sheet_id/calculator",
+		Method:   "POST",
+		Response: "object",
+		Note:     "Returns sample payment calculation data for a computation sheet.",
+	}, func(ctx echo.Context) error {
+		// You can parse computation_sheet_id if needed, but for sample data, we ignore it.
+		// id, err := horizon.EngineUUIDParam(ctx, "computation_sheet_id")
+		// if err != nil {
+		//     return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
+		// }
+
+		// Generate sample data
+		now := time.Now().UTC()
+		sample := map[string]interface{}{
+			"payments": []map[string]interface{}{
+				{
+					"date":   now.Format("2006-01-02"),
+					"amount": 100,
+				},
+				{
+					"date":   now.AddDate(0, 0, 30).Format("2006-01-02"),
+					"amount": 100,
+				},
+			},
+			"total_amount":   200,
+			"total_interest": 40,
+		}
+		return ctx.JSON(http.StatusOK, sample)
+	})
+
 	// GET /computation-sheet: List all computation sheets for the current user's branch.
 	req.RegisterRoute(horizon.Route{
 		Route:    "/computation-sheet",
