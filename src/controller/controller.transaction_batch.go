@@ -193,7 +193,7 @@ func (c *Controller) TransactionBatchController() {
 			"is_closed":       false,
 		})
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batch: " + err.Error()})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Failed to retrieve transaction batch: " + err.Error()})
 		}
 		if transactionBatch == nil {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "No current transaction batch"})
