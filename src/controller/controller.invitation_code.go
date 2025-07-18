@@ -11,102 +11,115 @@ import (
 	"github.com/lands-horizon/horizon-server/src/model"
 )
 
+// InvitationCode manages endpoints for invitation code resources.
 func (c *Controller) InvitationCode() {
 	req := c.provider.Service.Request
 
-	// Retrieve all invitation codes for the current user's organization
+	// GET /invitation-code: Retrieve all invitation codes for the current user's organization and branch.
 	req.RegisterRoute(horizon.Route{
 		Route:    "/invitation-code",
 		Method:   "GET",
 		Response: "IInvitationCode[]",
-		Note:     "Retrieves a list of all invitation codes for the current organization (based on JWT user organization).",
+		Note:     "Returns all invitation codes for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return err
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization/branch not found"})
+		}
+		if userOrg.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		invitationCode, err := c.model.GetInvitationCodeByBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve invitation codes: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.InvitationCodeManager.ToModels(invitationCode))
 	})
+
+	// GET /invitation-code/search: Paginated search of invitation codes for current branch.
 	req.RegisterRoute(horizon.Route{
 		Route:    "/invitation-code/search",
 		Method:   "GET",
 		Request:  "Filter<TInvitationCode>",
 		Response: "Paginated<TInvitationCode>",
-		Note:     "Get pagination gender",
+		Note:     "Returns a paginated list of invitation codes for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.NoContent(http.StatusNoContent)
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization/branch not found"})
 		}
-		invitationCode, err := c.model.GetInvitationCodeByBranch(context, user.OrganizationID, *user.BranchID)
+		if userOrg.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		invitationCode, err := c.model.GetInvitationCodeByBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve invitation codes: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.InvitationCodeManager.Pagination(context, ctx, invitationCode))
 	})
-	// Retrieve all invitation codes that match a specific code in the current organization
+
+	// GET /invitation-code/code/:code: Retrieve an invitation code by its code string (for current organization).
 	req.RegisterRoute(horizon.Route{
 		Route:    "/invitation-code/code/:code",
 		Method:   "GET",
 		Response: "IInvitationCode",
-		Note:     "Retrieves invitation code matching the specified code for the current organization (based on JWT user organization).",
+		Note:     "Returns the invitation code matching the specified code for the current user's organization.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		code := ctx.Param("code")
 		invitationCode, err := c.model.GetInvitationCodeByCode(context, code)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Invitation code not found"})
 		}
-		return ctx.JSON(http.StatusAccepted, c.model.InvitationCodeManager.ToModel(invitationCode))
+		return ctx.JSON(http.StatusOK, c.model.InvitationCodeManager.ToModel(invitationCode))
 	})
 
-	// Retrieve a specific invitation code by its ID
+	// GET /invitation-code/:invitation_code_id: Retrieve a specific invitation code by its ID.
 	req.RegisterRoute(horizon.Route{
 		Route:    "/invitation-code/:invitation_code_id",
 		Method:   "GET",
 		Response: "IInvitationCode",
-		Note:     "Retrieves details of a specific invitation code by its ID.",
+		Note:     "Returns the details of a specific invitation code by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		invitationCodeId, err := horizon.EngineUUIDParam(ctx, "invitation_code_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid invitation code ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid invitation code ID"})
 		}
 		invitationCode, err := c.model.InvitationCodeManager.GetByID(context, *invitationCodeId)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Invitation code not found"})
 		}
-		return ctx.JSON(http.StatusAccepted, c.model.InvitationCodeManager.ToModel(invitationCode))
+		return ctx.JSON(http.StatusOK, c.model.InvitationCodeManager.ToModel(invitationCode))
 	})
 
-	// Create a new invitation code for the current user's organization
+	// POST /invitation-code: Create a new invitation code for the current user's organization and branch.
 	req.RegisterRoute(horizon.Route{
 		Route:    "/invitation-code",
 		Method:   "POST",
 		Response: "IInvitationCode",
 		Request:  "IInvitationCode",
-		Note:     "Creates a new invitation code under the current organization (based on JWT user organization).",
+		Note:     "Creates a new invitation code under the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.InvitationCodeManager.Validate(ctx)
 		if err != nil {
-			return c.BadRequest(ctx, err.Error())
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid invitation code data: " + err.Error()})
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return err
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization/branch not found"})
 		}
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "only owners and employees can perform this action"})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Only owners and employees can create invitation codes"})
 		}
 		if req.UserType == "owner" {
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "cannot create invitation code type owner"})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot create invitation code with user type 'owner'"})
+		}
+		if userOrg.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		data := &model.InvitationCode{
 			CreatedAt:      time.Now().UTC(),
@@ -122,15 +135,13 @@ func (c *Controller) InvitationCode() {
 			CurrentUse:     0,
 			Description:    req.Description,
 		}
-
 		if err := c.model.InvitationCodeManager.Create(context, data); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create invitation code: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.InvitationCodeManager.ToModel(data))
+		return ctx.JSON(http.StatusCreated, c.model.InvitationCodeManager.ToModel(data))
 	})
 
-	// Update an existing invitation code by its ID
+	// PUT /invitation-code/:invitation_code_id: Update an existing invitation code by its ID.
 	req.RegisterRoute(horizon.Route{
 		Route:    "/invitation-code/:invitation_code_id",
 		Method:   "PUT",
@@ -141,19 +152,22 @@ func (c *Controller) InvitationCode() {
 		context := ctx.Request().Context()
 		invitationCodeId, err := horizon.EngineUUIDParam(ctx, "invitation_code_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid invitation code ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid invitation code ID"})
 		}
 		req, err := c.model.InvitationCodeManager.Validate(ctx)
 		if err != nil {
-			return c.BadRequest(ctx, err.Error())
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid invitation code data: " + err.Error()})
 		}
 		invitationCode, err := c.model.InvitationCodeManager.GetByID(context, *invitationCodeId)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Invitation code not found"})
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return err
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization/branch not found"})
+		}
+		if userOrg.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		invitationCode.UpdatedAt = time.Now().UTC()
 		invitationCode.UpdatedByID = userOrg.UserID
@@ -169,12 +183,12 @@ func (c *Controller) InvitationCode() {
 		invitationCode.PermissionName = req.PermissionName
 
 		if err := c.model.InvitationCodeManager.UpdateFields(context, invitationCode.ID, invitationCode); err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update user: "+err.Error())
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update invitation code: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.InvitationCodeManager.ToModel(invitationCode))
 	})
 
-	// Delete a specific invitation code by its ID
+	// DELETE /invitation-code/:invitation_code_id: Delete a specific invitation code by its ID.
 	req.RegisterRoute(horizon.Route{
 		Route:  "/invitation-code/:invitation_code_id",
 		Method: "DELETE",
@@ -183,64 +197,54 @@ func (c *Controller) InvitationCode() {
 		context := ctx.Request().Context()
 		invitationCodeId, err := horizon.EngineUUIDParam(ctx, "invitation_code_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid invitation code ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid invitation code ID"})
 		}
 		if err := c.model.InvitationCodeManager.DeleteByID(context, *invitationCodeId); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete invitation code: " + err.Error()})
 		}
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
+	// DELETE /invitation-code/bulk-delete: Bulk delete invitation codes by IDs.
 	req.RegisterRoute(horizon.Route{
 		Route:   "/invitation-code/bulk-delete",
 		Method:  "DELETE",
 		Request: "string[]",
-		Note:    "Delete multiple member occupation records by their IDs",
+		Note:    "Deletes multiple invitation codes by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody struct {
 			IDs []string `json:"ids"`
 		}
-
 		if err := ctx.Bind(&reqBody); err != nil {
-			return c.BadRequest(ctx, "Invalid request body")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
 		}
-
 		if len(reqBody.IDs) == 0 {
-			return c.BadRequest(ctx, "No IDs provided")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
-
 		tx := c.provider.Service.Database.Client().Begin()
 		if tx.Error != nil {
 			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
-
 		for _, rawID := range reqBody.IDs {
 			invitationCodeId, err := uuid.Parse(rawID)
 			if err != nil {
 				tx.Rollback()
-				return c.BadRequest(ctx, fmt.Sprintf("Invalid UUID: %s", rawID))
+				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
 			}
-
 			if _, err := c.model.InvitationCodeManager.GetByID(context, invitationCodeId); err != nil {
 				tx.Rollback()
-				return c.NotFound(ctx, fmt.Sprintf("InvitationCode with ID %s", rawID))
+				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Invitation code not found with ID: %s", rawID)})
 			}
-
 			if err := c.model.InvitationCodeManager.DeleteByIDWithTx(context, tx, invitationCodeId); err != nil {
 				tx.Rollback()
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete invitation code: " + err.Error()})
 			}
 		}
-
 		if err := tx.Commit().Error; err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
-
 		return ctx.NoContent(http.StatusNoContent)
 	})
 }

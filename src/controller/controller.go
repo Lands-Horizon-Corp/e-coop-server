@@ -1,11 +1,7 @@
 package controller
 
 import (
-	"fmt"
-	"net/http"
-
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/src"
 	"github.com/lands-horizon/horizon-server/src/cooperative_tokens"
 	"github.com/lands-horizon/horizon-server/src/event"
@@ -119,25 +115,6 @@ func (c *Controller) Start() error {
 	return nil
 }
 
-// Error responses
-func (c *Controller) ErrorResponse(ctx echo.Context, statusCode int, message string) error {
-	return ctx.JSON(statusCode, map[string]any{
-		"success": false,
-		"error":   message,
-	})
-}
-
-func (c *Controller) BadRequest(ctx echo.Context, message string) error {
-	return c.ErrorResponse(ctx, http.StatusBadRequest, message)
-}
-
-func (c *Controller) NotFound(ctx echo.Context, resource string) error {
-	return c.ErrorResponse(ctx, http.StatusNotFound, fmt.Sprintf("%s not found", resource))
-}
-
-func (c *Controller) InternalServerError(ctx echo.Context, err error) error {
-	return c.ErrorResponse(ctx, http.StatusInternalServerError, "Internal server error")
-}
 func uuidPtrEqual(a, b *uuid.UUID) bool {
 	if a == nil && b == nil {
 		return true

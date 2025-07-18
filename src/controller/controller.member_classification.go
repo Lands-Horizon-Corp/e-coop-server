@@ -14,105 +14,109 @@ import (
 func (c *Controller) MemberClassificationController() {
 	req := c.provider.Service.Request
 
+	// Get all member classification history for the current branch
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-classification-history",
 		Method:   "GET",
 		Response: "TMemberClassificationHistory[]",
-		Note:     "Get member classification history for the current branch",
+		Note:     "Returns all member classification history entries for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.NoContent(http.StatusNoContent)
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		memberClassificationHistory, err := c.model.MemberClassificationHistoryCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member classification history: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberClassificationHistoryManager.ToModels(memberClassificationHistory))
 	})
 
+	// Get member classification history by member profile ID
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-classification-history/member-profile/:member_profile_id/search",
 		Method:   "GET",
 		Response: "TMemberClassificationHistory[]",
-		Note:     "Get member classification history by member profile ID",
+		Note:     "Returns member classification history for a specific member profile ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid member classification ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.NoContent(http.StatusNoContent)
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		memberClassificationHistory, err := c.model.MemberClassificationHistoryMemberProfileID(context, *memberProfileID, user.OrganizationID, *user.BranchID)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member classification history by profile: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberClassificationHistoryManager.Pagination(context, ctx, memberClassificationHistory))
 	})
 
+	// Get all member classifications for the current branch
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-classification",
 		Method:   "GET",
 		Response: "TMemberClassification[]",
-		Note:     "Get all member classification records for the current branch",
+		Note:     "Returns all member classifications for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.NoContent(http.StatusNoContent)
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		memberClassification, err := c.model.MemberClassificationCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member classifications: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberClassificationManager.ToModels(memberClassification))
 	})
 
+	// Get paginated member classifications
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-classification/search",
 		Method:   "GET",
 		Request:  "Filter<IMemberClassification>",
 		Response: "Paginated<IMemberClassification>",
-		Note:     "Get pagination member classification",
+		Note:     "Returns paginated member classifications for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.NoContent(http.StatusNoContent)
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		value, err := c.model.MemberClassificationCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member classifications for pagination: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberClassificationManager.Pagination(context, ctx, value))
 	})
 
+	// Create a new member classification
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-classification",
 		Method:   "POST",
 		Request:  "TMemberClassification",
 		Response: "TMemberClassification",
-		Note:     "Create a new member classification record",
+		Note:     "Creates a new member classification record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.MemberClassificationManager.Validate(ctx)
 		if err != nil {
-			return c.BadRequest(ctx, err.Error())
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.NoContent(http.StatusNoContent)
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
 		memberClassification := &model.MemberClassification{
-			Name:        req.Name,
-			Description: req.Description,
-			Icon:        req.Icon,
-
+			Name:           req.Name,
+			Description:    req.Description,
+			Icon:           req.Icon,
 			CreatedAt:      time.Now().UTC(),
 			CreatedByID:    user.UserID,
 			UpdatedAt:      time.Now().UTC(),
@@ -122,40 +126,37 @@ func (c *Controller) MemberClassificationController() {
 		}
 
 		if err := c.model.MemberClassificationManager.Create(context, memberClassification); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create member classification: " + err.Error()})
 		}
 
 		return ctx.JSON(http.StatusOK, c.model.MemberClassificationManager.ToModel(memberClassification))
 	})
 
+	// Update an existing member classification by ID
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-classification/:member_classification_id",
 		Method:   "PUT",
 		Request:  "TMemberClassification",
 		Response: "TMemberClassification",
-		Note:     "Update an existing member classification record by ID",
+		Note:     "Updates an existing member classification record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberClassificationID, err := horizon.EngineUUIDParam(ctx, "member_classification_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid member classification ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_classification_id: " + err.Error()})
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.NoContent(http.StatusNoContent)
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-
 		req, err := c.model.MemberClassificationManager.Validate(ctx)
 		if err != nil {
-			return c.BadRequest(ctx, err.Error())
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-
 		memberClassification, err := c.model.MemberClassificationManager.GetByID(context, *memberClassificationID)
 		if err != nil {
-			return c.NotFound(ctx, "MemberClassification")
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member classification not found: " + err.Error()})
 		}
-
 		memberClassification.UpdatedAt = time.Now().UTC()
 		memberClassification.UpdatedByID = user.UserID
 		memberClassification.OrganizationID = user.OrganizationID
@@ -164,34 +165,34 @@ func (c *Controller) MemberClassificationController() {
 		memberClassification.Description = req.Description
 		memberClassification.Icon = req.Icon
 		if err := c.model.MemberClassificationManager.UpdateFields(context, memberClassification.ID, memberClassification); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update member classification: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberClassificationManager.ToModel(memberClassification))
 	})
 
+	// Delete a member classification by ID
 	req.RegisterRoute(horizon.Route{
 		Route:  "/member-classification/:member_classification_id",
 		Method: "DELETE",
-		Note:   "Delete a member classification record by ID",
+		Note:   "Deletes a member classification record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberClassificationID, err := horizon.EngineUUIDParam(ctx, "member_classification_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid member classification ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_classification_id: " + err.Error()})
 		}
 		if err := c.model.MemberClassificationManager.DeleteByID(context, *memberClassificationID); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete member classification: " + err.Error()})
 		}
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
+	// Bulk delete member classifications by IDs
 	req.RegisterRoute(horizon.Route{
 		Route:   "/member-classification/bulk-delete",
 		Method:  "DELETE",
 		Request: "string[]",
-		Note:    "Delete multiple member classification records by their IDs",
+		Note:    "Deletes multiple member classification records by their IDs.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody struct {
@@ -199,43 +200,37 @@ func (c *Controller) MemberClassificationController() {
 		}
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			return c.BadRequest(ctx, "Invalid request body")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
-
 		if len(reqBody.IDs) == 0 {
-			return c.BadRequest(ctx, "No IDs provided")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for deletion."})
 		}
 
 		tx := c.provider.Service.Database.Client().Begin()
 		if tx.Error != nil {
 			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
 		}
 
 		for _, rawID := range reqBody.IDs {
 			memberClassificationID, err := uuid.Parse(rawID)
 			if err != nil {
 				tx.Rollback()
-				return c.BadRequest(ctx, fmt.Sprintf("Invalid UUID: %s", rawID))
+				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID '%s': %s", rawID, err.Error())})
 			}
-
 			if _, err := c.model.MemberClassificationManager.GetByID(context, memberClassificationID); err != nil {
 				tx.Rollback()
-				return c.NotFound(ctx, fmt.Sprintf("MemberClassification with ID %s", rawID))
+				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Member classification with ID '%s' not found: %s", rawID, err.Error())})
 			}
-
 			if err := c.model.MemberClassificationManager.DeleteByIDWithTx(context, tx, memberClassificationID); err != nil {
 				tx.Rollback()
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to delete member classification with ID '%s': %s", rawID, err.Error())})
 			}
 		}
 
 		if err := tx.Commit().Error; err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
-
 		return ctx.NoContent(http.StatusNoContent)
 	})
 }

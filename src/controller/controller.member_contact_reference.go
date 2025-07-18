@@ -12,105 +12,102 @@ import (
 func (c *Controller) MemberContactReferenceController() {
 	req := c.provider.Service.Request
 
+	// Create a new contact reference for a member profile
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-contact-reference/member-profile/:member_profile_id",
 		Method:   "POST",
 		Request:  "TMemberContactReference",
 		Response: "TMemberContactReference",
-		Note:     "Create a new contact reference for a member.",
+		Note:     "Creates a new contact reference entry for the specified member profile.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid member profile ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
 		req, err := c.model.MemberContactReferenceManager.Validate(ctx)
 		if err != nil {
-			return c.BadRequest(ctx, err.Error())
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.NoContent(http.StatusNoContent)
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
 		value := &model.MemberContactReference{
 			MemberProfileID: *memberProfileID,
-
-			Name:          req.Name,
-			Description:   req.Description,
-			ContactNumber: req.ContactNumber,
-
-			CreatedAt:      time.Now().UTC(),
-			CreatedByID:    user.UserID,
-			UpdatedAt:      time.Now().UTC(),
-			UpdatedByID:    user.UserID,
-			BranchID:       *user.BranchID,
-			OrganizationID: user.OrganizationID,
+			Name:            req.Name,
+			Description:     req.Description,
+			ContactNumber:   req.ContactNumber,
+			CreatedAt:       time.Now().UTC(),
+			CreatedByID:     user.UserID,
+			UpdatedAt:       time.Now().UTC(),
+			UpdatedByID:     user.UserID,
+			BranchID:        *user.BranchID,
+			OrganizationID:  user.OrganizationID,
 		}
 
 		if err := c.model.MemberContactReferenceManager.Create(context, value); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create contact reference: " + err.Error()})
 		}
 
 		return ctx.JSON(http.StatusOK, c.model.MemberContactReferenceManager.ToModel(value))
 	})
 
+	// Update an existing contact reference by its ID
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-contact-reference/:member_contact_reference_id",
 		Method:   "PUT",
 		Request:  "TMemberContactReference",
 		Response: "TMemberContactReference",
-		Note:     "Update an existing contact reference for a member.",
+		Note:     "Updates an existing contact reference by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberContactReferenceID, err := horizon.EngineUUIDParam(ctx, "member_contact_reference_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid member contact reference ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_contact_reference_id: " + err.Error()})
 		}
 		req, err := c.model.MemberContactReferenceManager.Validate(ctx)
 		if err != nil {
-			return c.BadRequest(ctx, err.Error())
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.NoContent(http.StatusNoContent)
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
 		value, err := c.model.MemberContactReferenceManager.GetByID(context, *memberContactReferenceID)
 		if err != nil {
-			return c.NotFound(ctx, "MemberContactReference")
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Contact reference not found: " + err.Error()})
 		}
 
 		value.UpdatedAt = time.Now().UTC()
 		value.UpdatedByID = user.UserID
 		value.OrganizationID = user.OrganizationID
 		value.BranchID = *user.BranchID
-
 		value.Name = req.Name
 		value.Description = req.Description
 		value.ContactNumber = req.ContactNumber
 
 		if err := c.model.MemberContactReferenceManager.UpdateFields(context, value.ID, value); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update contact reference: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberContactReferenceManager.ToModel(value))
 	})
 
+	// Delete a contact reference by its ID
 	req.RegisterRoute(horizon.Route{
 		Route:  "/member-contact-reference/:member_contact_reference_id",
 		Method: "DELETE",
-		Note:   "Delete a member's contact reference by ID.",
+		Note:   "Deletes a contact reference entry by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberContactReferenceID, err := horizon.EngineUUIDParam(ctx, "member_contact_reference_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid member contact reference ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_contact_reference_id: " + err.Error()})
 		}
 		if err := c.model.MemberContactReferenceManager.DeleteByID(context, *memberContactReferenceID); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete contact reference: " + err.Error()})
 		}
 		return ctx.NoContent(http.StatusNoContent)
 	})

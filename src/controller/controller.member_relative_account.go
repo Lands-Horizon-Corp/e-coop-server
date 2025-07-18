@@ -12,25 +12,26 @@ import (
 func (c *Controller) MemberRelativeAccountController() {
 	req := c.provider.Service.Request
 
+	// Create a new relative account record for a member profile
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-relative-account/member-profile/:member_profile_id",
 		Method:   "POST",
 		Request:  "TMemberRelativeAccount",
 		Response: "TMemberRelativeAccount",
-		Note:     "Create a new relative account record for a member.",
+		Note:     "Creates a new relative account record for the specified member profile.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid member profile ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
 		req, err := c.model.MemberRelativeAccountManager.Validate(ctx)
 		if err != nil {
-			return c.BadRequest(ctx, err.Error())
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.NoContent(http.StatusNoContent)
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
 		value := &model.MemberRelativeAccount{
@@ -47,37 +48,37 @@ func (c *Controller) MemberRelativeAccountController() {
 		}
 
 		if err := c.model.MemberRelativeAccountManager.Create(context, value); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create relative account record: " + err.Error()})
 		}
 
 		return ctx.JSON(http.StatusOK, c.model.MemberRelativeAccountManager.ToModel(value))
 	})
 
+	// Update an existing relative account record by its ID
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-relative-account/:member_relative_account_id",
 		Method:   "PUT",
 		Request:  "TMemberRelativeAccount",
 		Response: "TMemberRelativeAccount",
-		Note:     "Update an existing relative account record for a member.",
+		Note:     "Updates an existing relative account record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberRelativeAccountID, err := horizon.EngineUUIDParam(ctx, "member_relative_account_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid member relative account ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_relative_account_id: " + err.Error()})
 		}
 		req, err := c.model.MemberRelativeAccountManager.Validate(ctx)
 		if err != nil {
-			return c.BadRequest(ctx, err.Error())
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.NoContent(http.StatusNoContent)
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
 		value, err := c.model.MemberRelativeAccountManager.GetByID(context, *memberRelativeAccountID)
 		if err != nil {
-			return c.NotFound(ctx, "MemberRelativeAccount")
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Relative account record not found: " + err.Error()})
 		}
 
 		value.UpdatedAt = time.Now().UTC()
@@ -88,28 +89,26 @@ func (c *Controller) MemberRelativeAccountController() {
 		value.RelativeMemberProfileID = req.RelativeMemberProfileID
 		value.FamilyRelationship = req.FamilyRelationship
 		value.Description = req.Description
-		value.FamilyRelationship = req.FamilyRelationship
 
 		if err := c.model.MemberRelativeAccountManager.UpdateFields(context, value.ID, value); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update relative account record: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberRelativeAccountManager.ToModel(value))
 	})
 
+	// Delete a member's relative account record by its ID
 	req.RegisterRoute(horizon.Route{
 		Route:  "/member-relative-account/:member_relative_account_id",
 		Method: "DELETE",
-		Note:   "Delete a member's relative account record by ID.",
+		Note:   "Deletes a relative account record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberRelativeAccountID, err := horizon.EngineUUIDParam(ctx, "member_relative_account_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid member relative account ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_relative_account_id: " + err.Error()})
 		}
 		if err := c.model.MemberRelativeAccountManager.DeleteByID(context, *memberRelativeAccountID); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete relative account record: " + err.Error()})
 		}
 		return ctx.NoContent(http.StatusNoContent)
 	})

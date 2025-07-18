@@ -9,27 +9,29 @@ import (
 	"github.com/lands-horizon/horizon-server/src/model"
 )
 
+// BatchFundingController handles creation and retrieval of batch funding records with proper error handling and authorization checks.
 func (c *Controller) BatchFundingController() {
 	req := c.provider.Service.Request
 
+	// POST /batch-funding: Create a new batch funding for the current open transaction batch.
 	req.RegisterRoute(horizon.Route{
 		Route:    "/batch-funding",
 		Method:   "POST",
 		Request:  "IBatchFunding",
 		Response: "IBatchFunding",
-		Note:     "Sart: create batch funding based on current transaction batch",
+		Note:     "Creates a new batch funding for the currently active transaction batch of the user's organization and branch. Also updates the related transaction batch balances.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		batchFundingReq, err := c.model.BatchFundingManager.Validate(ctx)
 		if err != nil {
-			return err
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid batch funding data: " + err.Error()})
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return err
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unable to determine user organization. Please login again."})
 		}
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
-			return c.BadRequest(ctx, "User is not authorized")
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "You do not have permission to create batch funding."})
 		}
 		transactionBatch, err := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
 			"organization_id": userOrg.OrganizationID,
@@ -37,10 +39,10 @@ func (c *Controller) BatchFundingController() {
 			"is_closed":       false,
 		})
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not find an active transaction batch: " + err.Error()})
 		}
 		if transactionBatch == nil {
-			return c.BadRequest(ctx, "No active transaction batch found")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No active transaction batch is open for this branch."})
 		}
 
 		cashCounts, err := c.model.CashCountManager.Find(context, &model.CashCount{
@@ -49,10 +51,9 @@ func (c *Controller) BatchFundingController() {
 			BranchID:           *userOrg.BranchID,
 		})
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Unable to retrieve cash counts: " + err.Error()})
 		}
 
-		// Calculate total cash count value
 		var totalCashCount float64
 		for _, cashCount := range cashCounts {
 			totalCashCount += cashCount.Amount * float64(cashCount.Quantity)
@@ -64,7 +65,7 @@ func (c *Controller) BatchFundingController() {
 		transactionBatch.GrandTotal = totalCashCount + transactionBatch.DepositInBank
 
 		if err := c.model.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
-			return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusConflict, map[string]string{"error": "Could not update transaction batch balances: " + err.Error()})
 		}
 		batchFunding := &model.BatchFunding{
 			CreatedAt:          time.Now().UTC(),
@@ -74,67 +75,60 @@ func (c *Controller) BatchFundingController() {
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
 			TransactionBatchID: transactionBatch.ID,
-
-			ProvidedByUserID: userOrg.UserID,
-			Name:             batchFundingReq.Name,
-			Description:      batchFundingReq.Description,
-			Amount:           batchFundingReq.Amount,
-			SignatureMediaID: batchFundingReq.SignatureMediaID,
+			ProvidedByUserID:   userOrg.UserID,
+			Name:               batchFundingReq.Name,
+			Description:        batchFundingReq.Description,
+			Amount:             batchFundingReq.Amount,
+			SignatureMediaID:   batchFundingReq.SignatureMediaID,
 		}
 
 		if err := c.model.BatchFundingManager.Create(context, batchFunding); err != nil {
-			return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusConflict, map[string]string{"error": "Unable to create batch funding record: " + err.Error()})
 		}
 
 		return ctx.JSON(http.StatusOK, c.model.BatchFundingManager.ToModel(batchFunding))
-
 	})
 
+	// GET /batch-funding/transaction-batch/:transaction_batch_id/search: Paginated batch funding for a transaction batch.
 	req.RegisterRoute(horizon.Route{
 		Route:    "/batch-funding/transaction-batch/:transaction_batch_id/search",
 		Method:   "GET",
 		Request:  "Filter<IBatchFunding>",
 		Response: "Paginated<IBatchFunding>",
-		Note:     "Get all batch funding of transaction batch with pagination.",
+		Note:     "Retrieves a paginated list of batch funding records for the specified transaction batch, if the user is authorized for the branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		// Get transaction batch ID from URL parameter
 		transactionBatchId, err := horizon.EngineUUIDParam(ctx, "transaction_batch_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid transaction batch ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "The transaction batch ID provided is invalid."})
 		}
 
-		// Get current user organization for authorization
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.NoContent(http.StatusNoContent)
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unable to determine user organization. Please login again."})
 		}
 
-		// Check if user is authorized
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
-			return c.BadRequest(ctx, "User is not authorized")
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "You do not have permission to view batch funding records."})
 		}
 
-		// Verify the transaction batch exists and belongs to the user's organization/branch
 		transactionBatch, err := c.model.TransactionBatchManager.GetByID(context, *transactionBatchId)
 		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Transaction batch not found"})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Transaction batch not found for this ID."})
 		}
 
-		// Verify the transaction batch belongs to the current user's organization and branch
 		if transactionBatch.OrganizationID != userOrg.OrganizationID || transactionBatch.BranchID != *userOrg.BranchID {
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this transaction batch"})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this transaction batch. The batch does not belong to your organization or branch."})
 		}
 
-		// Find all batch funding records for the transaction batch
 		batchFunding, err := c.model.BatchFundingManager.Find(context, &model.BatchFunding{
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
 			TransactionBatchID: *transactionBatchId,
 		})
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Unable to retrieve batch funding records: " + err.Error()})
 		}
 
 		return ctx.JSON(http.StatusOK, c.model.BatchFundingManager.Pagination(context, ctx, batchFunding))

@@ -14,97 +14,103 @@ import (
 func (c *Controller) MemberTypeController() {
 	req := c.provider.Service.Request
 
+	// Get all member type history for the current branch
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-type-history",
 		Method:   "GET",
 		Response: "TMemberTypeHistory[]",
-		Note:     "Get member type history for the current branch",
+		Note:     "Returns all member type history entries for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.NoContent(http.StatusNoContent)
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		memberTypeHistory, err := c.model.MemberTypeHistoryCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member type history: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberTypeHistoryManager.ToModels(memberTypeHistory))
 	})
 
+	// Get member type history by member profile ID
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-type-history/member-profile/:member_profile_id/search",
 		Method:   "GET",
 		Response: "TMemberTypeHistory[]",
-		Note:     "Get member type history by member profile ID",
+		Note:     "Returns member type history for a specific member profile ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid member type ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.NoContent(http.StatusNoContent)
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		memberTypeHistory, err := c.model.MemberTypeHistoryMemberProfileID(context, *memberProfileID, user.OrganizationID, *user.BranchID)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member type history by profile: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberTypeHistoryManager.Pagination(context, ctx, memberTypeHistory))
 	})
 
+	// Get all member types for the current branch
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-type",
 		Method:   "GET",
 		Response: "TMemberType[]",
-		Note:     "Get all member type records for the current branch",
+		Note:     "Returns all member types for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.NoContent(http.StatusNoContent)
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		memberType, err := c.model.MemberTypeCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member types: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberTypeManager.ToModels(memberType))
 	})
+
+	// Get paginated member types for the current branch
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-type/search",
 		Method:   "GET",
 		Request:  "Filter<IMemberType>",
 		Response: "Paginated<IMemberType>",
-		Note:     "Get pagination member type",
+		Note:     "Returns paginated member types for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.NoContent(http.StatusNoContent)
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		value, err := c.model.MemberTypeCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member types for pagination: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberTypeManager.Pagination(context, ctx, value))
 	})
 
+	// Create a new member type
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-type",
 		Method:   "POST",
 		Request:  "TMemberType",
 		Response: "TMemberType",
-		Note:     "Create a new member type record",
+		Note:     "Creates a new member type record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.MemberTypeManager.Validate(ctx)
 		if err != nil {
-			return c.BadRequest(ctx, err.Error())
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.NoContent(http.StatusNoContent)
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
 		memberType := &model.MemberType{
@@ -120,38 +126,38 @@ func (c *Controller) MemberTypeController() {
 		}
 
 		if err := c.model.MemberTypeManager.Create(context, memberType); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create member type: " + err.Error()})
 		}
 
 		return ctx.JSON(http.StatusOK, c.model.MemberTypeManager.ToModel(memberType))
 	})
 
+	// Update an existing member type by ID
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-type/:member_type_id",
 		Method:   "PUT",
 		Request:  "TMemberType",
 		Response: "TMemberType",
-		Note:     "Update an existing member type record by ID",
+		Note:     "Updates an existing member type record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberTypeID, err := horizon.EngineUUIDParam(ctx, "member_type_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid member type ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_type_id: " + err.Error()})
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.NoContent(http.StatusNoContent)
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
 		req, err := c.model.MemberTypeManager.Validate(ctx)
 		if err != nil {
-			return c.BadRequest(ctx, err.Error())
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
 		memberType, err := c.model.MemberTypeManager.GetByID(context, *memberTypeID)
 		if err != nil {
-			return c.NotFound(ctx, "MemberType")
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberType with ID %s not found: %v", memberTypeID, err)})
 		}
 
 		memberType.UpdatedAt = time.Now().UTC()
@@ -162,34 +168,34 @@ func (c *Controller) MemberTypeController() {
 		memberType.Description = req.Description
 		memberType.Prefix = req.Prefix
 		if err := c.model.MemberTypeManager.UpdateFields(context, memberType.ID, memberType); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update member type: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberTypeManager.ToModel(memberType))
 	})
 
+	// Delete a member type by ID
 	req.RegisterRoute(horizon.Route{
 		Route:  "/member-type/:member_type_id",
 		Method: "DELETE",
-		Note:   "Delete a member type record by ID",
+		Note:   "Deletes a member type record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberTypeID, err := horizon.EngineUUIDParam(ctx, "member_type_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid member type ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_type_id: " + err.Error()})
 		}
 		if err := c.model.MemberTypeManager.DeleteByID(context, *memberTypeID); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete member type: " + err.Error()})
 		}
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
+	// Bulk delete member types by IDs
 	req.RegisterRoute(horizon.Route{
 		Route:   "/member-type/bulk-delete",
 		Method:  "DELETE",
 		Request: "string[]",
-		Note:    "Delete multiple member type records by their IDs",
+		Note:    "Deletes multiple member type records by their IDs.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody struct {
@@ -197,41 +203,39 @@ func (c *Controller) MemberTypeController() {
 		}
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			return c.BadRequest(ctx, "Invalid request body")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 
 		if len(reqBody.IDs) == 0 {
-			return c.BadRequest(ctx, "No IDs provided")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for deletion."})
 		}
 
 		tx := c.provider.Service.Database.Client().Begin()
 		if tx.Error != nil {
 			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
 		}
 
 		for _, rawID := range reqBody.IDs {
 			memberTypeID, err := uuid.Parse(rawID)
 			if err != nil {
 				tx.Rollback()
-				return c.BadRequest(ctx, fmt.Sprintf("Invalid UUID: %s", rawID))
+				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s - %v", rawID, err)})
 			}
 
 			if _, err := c.model.MemberTypeManager.GetByID(context, memberTypeID); err != nil {
 				tx.Rollback()
-				return c.NotFound(ctx, fmt.Sprintf("MemberType with ID %s", rawID))
+				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberType with ID %s not found: %v", rawID, err)})
 			}
 
 			if err := c.model.MemberTypeManager.DeleteByIDWithTx(context, tx, memberTypeID); err != nil {
 				tx.Rollback()
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to delete member type with ID %s: %v", rawID, err)})
 			}
 		}
 
 		if err := tx.Commit().Error; err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
 
 		return ctx.NoContent(http.StatusNoContent)

@@ -12,7 +12,7 @@ import (
 func (c *Controller) UserRatingController() {
 	req := c.provider.Service.Request
 
-	// Get all user ratings made by the specified user (rater)
+	// Returns all user ratings given by the specified user (rater)
 	req.RegisterRoute(horizon.Route{
 		Route:    "/user-rating/user-rater/:user_id",
 		Method:   "GET",
@@ -22,16 +22,16 @@ func (c *Controller) UserRatingController() {
 		context := ctx.Request().Context()
 		userId, err := horizon.EngineUUIDParam(ctx, "user_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid user ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_id: " + err.Error()})
 		}
 		userRating, err := c.model.GetUserRater(context, *userId)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user ratings given by user: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.UserRatingManager.ToModels(userRating))
 	})
 
-	// Get all user ratings received by the specified user (ratee)
+	// Returns all user ratings received by the specified user (ratee)
 	req.RegisterRoute(horizon.Route{
 		Route:    "/user-rating/user-ratee/:user_id",
 		Method:   "GET",
@@ -41,16 +41,16 @@ func (c *Controller) UserRatingController() {
 		context := ctx.Request().Context()
 		userId, err := horizon.EngineUUIDParam(ctx, "user_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid user ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_id: " + err.Error()})
 		}
 		userRating, err := c.model.GetUserRatee(context, *userId)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user ratings received by user: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.UserRatingManager.ToModels(userRating))
 	})
 
-	// Get a specific user rating by its ID
+	// Returns a specific user rating by its ID
 	req.RegisterRoute(horizon.Route{
 		Route:    "/user-rating/:user_rating_id",
 		Method:   "GET",
@@ -60,16 +60,16 @@ func (c *Controller) UserRatingController() {
 		context := ctx.Request().Context()
 		userRatingId, err := horizon.EngineUUIDParam(ctx, "user_rating_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid rating ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_rating_id: " + err.Error()})
 		}
 		userRating, err := c.model.UserRatingManager.GetByID(context, *userRatingId)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user rating: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.UserRatingManager.ToModel(userRating))
 	})
 
-	// Get all user ratings for the current user's branch
+	// Returns all user ratings in the current user's active branch
 	req.RegisterRoute(horizon.Route{
 		Route:    "/user-rating/branch",
 		Method:   "GET",
@@ -79,16 +79,16 @@ func (c *Controller) UserRatingController() {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return err
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		userRatig, err := c.model.UserRatingCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
+		userRating, err := c.model.UserRatingCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user ratings for branch: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.UserRatingManager.ToModels(userRatig))
+		return ctx.JSON(http.StatusOK, c.model.UserRatingManager.ToModels(userRating))
 	})
 
-	// Create a new user rating in the current branch
+	// Creates a new user rating in the current user's branch
 	req.RegisterRoute(horizon.Route{
 		Route:    "/user-rating",
 		Method:   "POST",
@@ -99,11 +99,11 @@ func (c *Controller) UserRatingController() {
 		context := ctx.Request().Context()
 		req, err := c.model.UserRatingManager.Validate(ctx)
 		if err != nil {
-			return c.BadRequest(ctx, err.Error())
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return err
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
 		userRating := &model.UserRating{
@@ -120,14 +120,13 @@ func (c *Controller) UserRatingController() {
 		}
 
 		if err := c.model.UserRatingManager.Create(context, userRating); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create user rating: " + err.Error()})
 		}
 
 		return ctx.JSON(http.StatusOK, c.model.UserRatingManager.ToModel(userRating))
 	})
 
-	// Delete a user rating by its ID
+	// Deletes a user rating by its ID
 	req.RegisterRoute(horizon.Route{
 		Route:  "/user-rating/:user_rating_id",
 		Method: "DELETE",
@@ -136,11 +135,10 @@ func (c *Controller) UserRatingController() {
 		context := ctx.Request().Context()
 		userRatingId, err := horizon.EngineUUIDParam(ctx, "user_rating_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid rating ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_rating_id: " + err.Error()})
 		}
 		if err := c.model.UserRatingManager.DeleteByID(context, *userRatingId); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete user rating: " + err.Error()})
 		}
 		return ctx.NoContent(http.StatusNoContent)
 	})

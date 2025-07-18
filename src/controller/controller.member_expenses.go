@@ -12,105 +12,103 @@ import (
 func (c *Controller) MemberExpenseController() {
 	req := c.provider.Service.Request
 
+	// Create a new expense record for a member profile
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-expense/member-profile/:member_profile_id",
 		Method:   "POST",
 		Request:  "TMemberExpense",
 		Response: "TMemberExpense",
-		Note:     "Create a new expense record for a member.",
+		Note:     "Creates a new expense record for the specified member profile.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid member profile ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
 		req, err := c.model.MemberExpenseManager.Validate(ctx)
 		if err != nil {
-			return c.BadRequest(ctx, err.Error())
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.NoContent(http.StatusNoContent)
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
 		value := &model.MemberExpense{
 			MemberProfileID: *memberProfileID,
-
-			Name:        req.Name,
-			Amount:      req.Amount,
-			Description: req.Description,
-
-			CreatedAt:      time.Now().UTC(),
-			CreatedByID:    user.UserID,
-			UpdatedAt:      time.Now().UTC(),
-			UpdatedByID:    user.UserID,
-			BranchID:       *user.BranchID,
-			OrganizationID: user.OrganizationID,
+			Name:            req.Name,
+			Amount:          req.Amount,
+			Description:     req.Description,
+			CreatedAt:       time.Now().UTC(),
+			CreatedByID:     user.UserID,
+			UpdatedAt:       time.Now().UTC(),
+			UpdatedByID:     user.UserID,
+			BranchID:        *user.BranchID,
+			OrganizationID:  user.OrganizationID,
 		}
 
 		if err := c.model.MemberExpenseManager.Create(context, value); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create member expense: " + err.Error()})
 		}
 
 		return ctx.JSON(http.StatusOK, c.model.MemberExpenseManager.ToModel(value))
 	})
 
+	// Update an existing expense record by its ID
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-expense/:member_expense_id",
 		Method:   "PUT",
 		Request:  "TMemberExpense",
 		Response: "TMemberExpense",
-		Note:     "Update an existing expense record for a member.",
+		Note:     "Updates an existing expense record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberExpenseID, err := horizon.EngineUUIDParam(ctx, "member_expense_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid member expense ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_expense_id: " + err.Error()})
 		}
 		req, err := c.model.MemberExpenseManager.Validate(ctx)
 		if err != nil {
-			return c.BadRequest(ctx, err.Error())
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.NoContent(http.StatusNoContent)
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
 		value, err := c.model.MemberExpenseManager.GetByID(context, *memberExpenseID)
 		if err != nil {
-			return c.NotFound(ctx, "MemberExpense")
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member expense not found: " + err.Error()})
 		}
 
 		value.UpdatedAt = time.Now().UTC()
 		value.UpdatedByID = user.UserID
 		value.OrganizationID = user.OrganizationID
 		value.BranchID = *user.BranchID
-
 		value.MemberProfileID = req.MemberProfileID
 		value.Name = req.Name
 		value.Amount = req.Amount
 		value.Description = req.Description
-		if err := c.model.MemberExpenseManager.UpdateFields(context, value.ID, value); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 
+		if err := c.model.MemberExpenseManager.UpdateFields(context, value.ID, value); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update member expense: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberExpenseManager.ToModel(value))
 	})
 
+	// Delete a member's expense record by its ID
 	req.RegisterRoute(horizon.Route{
 		Route:  "/member-expense/:member_expense_id",
 		Method: "DELETE",
-		Note:   "Delete a member's expense record by ID.",
+		Note:   "Deletes a member's expense record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberExpenseID, err := horizon.EngineUUIDParam(ctx, "member_expense_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid member expense ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_expense_id: " + err.Error()})
 		}
 		if err := c.model.MemberExpenseManager.DeleteByID(context, *memberExpenseID); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete member expense: " + err.Error()})
 		}
 		return ctx.NoContent(http.StatusNoContent)
 	})

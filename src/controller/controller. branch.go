@@ -12,97 +12,100 @@ import (
 	"github.com/lands-horizon/horizon-server/src/model"
 )
 
+// BranchController registers routes related to branch management.
 func (c *Controller) BranchController() {
 	req := c.provider.Service.Request
 
+	// GET /branch: List all branches or filter by user's organization from JWT if available.
 	req.RegisterRoute(horizon.Route{
 		Route:    "/branch",
 		Method:   "GET",
 		Response: "TBranch[]",
-		Note:     "If there's no user organization (e.g., unauthenticated), return all branches. If a user organization exists (from JWT), filter branches by that organization.",
+		Note:     "Returns all branches if unauthenticated; otherwise, returns branches filtered by the user's organization from JWT.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil || userOrg == nil {
 			branches, err := c.model.BranchManager.ListRaw(context)
 			if err != nil {
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not retrieve branches: " + err.Error()})
 			}
 			return ctx.JSON(http.StatusOK, branches)
 		}
 		branches, err := c.model.GetBranchesByOrganization(context, userOrg.OrganizationID)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not retrieve organization branches: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.BranchManager.ToModels(branches))
 	})
 
+	// GET /branch/organization/:organization_id: List branches by organization ID.
 	req.RegisterRoute(horizon.Route{
 		Route:    "/branch/organization/:organization_id",
 		Method:   "GET",
 		Response: "TBranch[]",
-		Note:     "Returns branches filtered by a specific organization ID provided in the URL path parameter.",
+		Note:     "Returns all branches belonging to the specified organization.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		orgId, err := horizon.EngineUUIDParam(ctx, "organization_id")
 		if err != nil {
-			return err
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization ID: " + err.Error()})
 		}
 		branches, err := c.model.GetBranchesByOrganization(context, *orgId)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not retrieve organization branches: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.BranchManager.ToModels(branches))
 	})
 
+	// POST /branch/organization/:organization_id: Create a branch for an organization.
 	req.RegisterRoute(horizon.Route{
 		Route:    "/branch/organization/:organization_id",
 		Method:   "POST",
 		Request:  "TBranch[]",
 		Response: "{branch: TBranch, user_organization: TUserOrganization}",
-		Note:     "Creates a new branch under a user organization. If the user organization doesn't have a branch yet, it will be updated. Otherwise, a new user organization record is created with the new branch.",
+		Note:     "Creates a new branch for the given organization. If the user already has a branch, a new user organization is created; otherwise, the user's current user organization is updated with the new branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		// Validate request payload
 		req, err := c.model.BranchManager.Validate(ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid branch data: " + err.Error()})
 		}
 
-		organzationId, err := horizon.EngineUUIDParam(ctx, "organization_id")
+		organizationId, err := horizon.EngineUUIDParam(ctx, "organization_id")
 		if err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user organization ID"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization ID: " + err.Error()})
 		}
 
 		user, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User not authenticated"})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication required"})
 		}
 
 		userOrganization, err := c.model.UserOrganizationManager.FindOne(context, &model.UserOrganization{
 			UserID:         user.ID,
-			OrganizationID: *organzationId,
+			OrganizationID: *organizationId,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
 		if userOrganization.UserType != "owner" {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User must be an owner of this organization"})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Only organization owners can create branches"})
 		}
 
 		organization, err := c.model.OrganizationManager.GetByID(context, userOrganization.OrganizationID)
 		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Associated organization not found"})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Organization not found"})
 		}
 
 		branchCount, err := c.model.GetBranchesByOrganizationCount(context, organization.ID)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to count organization branches"})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not count organization branches: " + err.Error()})
 		}
 
 		if branchCount >= int64(organization.SubscriptionPlanMaxBranches) {
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Branch limit reached for current subscription plan"})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Branch limit reached for the current subscription plan"})
 		}
 
 		branch := &model.Branch{
@@ -111,29 +114,28 @@ func (c *Controller) BranchController() {
 			UpdatedAt:      time.Now().UTC(),
 			UpdatedByID:    user.ID,
 			OrganizationID: userOrganization.OrganizationID,
-
-			MediaID:       req.MediaID,
-			Type:          req.Type,
-			Name:          req.Name,
-			Email:         req.Email,
-			Description:   req.Description,
-			CountryCode:   req.CountryCode,
-			ContactNumber: req.ContactNumber,
-			Address:       req.Address,
-			Province:      req.Province,
-			City:          req.City,
-			Region:        req.Region,
-			Barangay:      req.Barangay,
-			PostalCode:    req.PostalCode,
-			Latitude:      req.Latitude,
-			Longitude:     req.Longitude,
-			IsMainBranch:  req.IsMainBranch,
+			MediaID:        req.MediaID,
+			Type:           req.Type,
+			Name:           req.Name,
+			Email:          req.Email,
+			Description:    req.Description,
+			CountryCode:    req.CountryCode,
+			ContactNumber:  req.ContactNumber,
+			Address:        req.Address,
+			Province:       req.Province,
+			City:           req.City,
+			Region:         req.Region,
+			Barangay:       req.Barangay,
+			PostalCode:     req.PostalCode,
+			Latitude:       req.Latitude,
+			Longitude:      req.Longitude,
+			IsMainBranch:   req.IsMainBranch,
 		}
 
 		tx := c.provider.Service.Database.Client().Begin()
 		if tx.Error != nil {
 			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
 
 		if err := c.model.BranchManager.CreateWithTx(context, tx, branch); err != nil {
@@ -142,7 +144,7 @@ func (c *Controller) BranchController() {
 		}
 
 		if userOrganization.BranchID == nil {
-			// Update existing userOrganization
+			// Assign branch to existing user organization
 			userOrganization.BranchID = &branch.ID
 			userOrganization.UpdatedAt = time.Now().UTC()
 			userOrganization.UpdatedByID = user.ID
@@ -152,11 +154,11 @@ func (c *Controller) BranchController() {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user organization: " + err.Error()})
 			}
 		} else {
-			// Create new userOrganization with new branch
+			// Create new user organization for this branch
 			developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, user.ID.String())
 			if err != nil {
 				tx.Rollback()
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate developer key"})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate developer key: " + err.Error()})
 			}
 
 			newUserOrg := &model.UserOrganization{
@@ -182,43 +184,41 @@ func (c *Controller) BranchController() {
 
 		if err := tx.Commit().Error; err != nil {
 			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Transaction commit failed: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
 
-		// EVENT
+		// Event notification
 		c.event.Notification(context, ctx, event.NotificationEvent{
-			Title:       fmt.Sprintf("%s: %s", "Create: ", branch.Name),
-			Description: fmt.Sprintf("%s: %s", "Creates a new branch", branch.Name),
+			Title:       fmt.Sprintf("Create: %s", branch.Name),
+			Description: fmt.Sprintf("Created a new branch: %s", branch.Name),
 		})
 
 		return ctx.JSON(http.StatusOK, c.model.BranchManager.ToModel(branch))
 	})
 
+	// PUT /branch/:branch_id: Update an existing branch (only by owner).
 	req.RegisterRoute(horizon.Route{
 		Route:    "/branch/:branch_id",
 		Method:   "PUT",
 		Request:  "TBranch",
 		Response: "{branch: TBranch, user_organization: TUserOrganization}",
-		Note:     "Updates the branch information under the specified user organization. Only allowed if the user is an 'owner' and the user organization already has an existing branch.",
+		Note:     "Updates branch information for the specified branch. Only allowed for the owner of the branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		// Validate request body
 		req, err := c.model.BranchManager.Validate(ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid branch data: " + err.Error()})
 		}
 
-		// Get currently authenticated user
 		user, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authentication required: " + err.Error()})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication required"})
 		}
 
-		// Parse and validate user organization ID
 		branchId, err := horizon.EngineUUIDParam(ctx, "branch_id")
 		if err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user organization ID: " + err.Error()})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid branch ID: " + err.Error()})
 		}
 
 		userOrg, err := c.model.UserOrganizationManager.FindOne(context, &model.UserOrganization{
@@ -226,16 +226,15 @@ func (c *Controller) BranchController() {
 			BranchID: branchId,
 		})
 		if err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user user org ID: " + err.Error()})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization for this branch not found: " + err.Error()})
 		}
 		if userOrg.UserType != "owner" {
-			return c.BadRequest(ctx, "Unauthorized")
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Only the branch owner can update branch information"})
 		}
 
-		// Retrieve the branch
 		branch, err := c.model.BranchManager.GetByID(context, *branchId)
 		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Associated branch not found: " + err.Error()})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Branch not found: " + err.Error()})
 		}
 
 		// Update branch fields
@@ -258,37 +257,36 @@ func (c *Controller) BranchController() {
 		branch.Longitude = req.Longitude
 		branch.IsMainBranch = req.IsMainBranch
 
-		// Save changes to the branch
 		if err := c.model.BranchManager.UpdateFields(context, branch.ID, branch); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update branch: " + err.Error()})
 		}
 
-		// EVENT
 		c.event.Notification(context, ctx, event.NotificationEvent{
-			Title:       fmt.Sprintf("%s: %s", "Update: ", branch.Name),
-			Description: fmt.Sprintf("%s: %s", "Updates the branch", branch.Name),
+			Title:       fmt.Sprintf("Update: %s", branch.Name),
+			Description: fmt.Sprintf("Updated branch: %s", branch.Name),
 		})
 
 		return ctx.JSON(http.StatusOK, c.model.BranchManager.ToModel(branch))
 	})
 
+	// DELETE /branch/:branch_id: Delete a branch (owner only, if fewer than 3 members).
 	req.RegisterRoute(horizon.Route{
 		Route:  "/branch/:branch_id",
 		Method: "DELETE",
-		Note:   "Deletes a branch and the associated user organization if the user is the owner and fewer than 3 members exist under that branch.",
+		Note:   "Deletes the specified branch if the user is the owner and there are less than 3 members in the branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		branchId, err := horizon.EngineUUIDParam(ctx, "branch_id")
 		if err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user organization ID: " + err.Error()})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid branch ID: " + err.Error()})
 		}
 		user, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authentication required: " + err.Error()})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication required"})
 		}
 		branch, err := c.model.BranchManager.GetByID(context, *branchId)
 		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Branch not found"})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Branch not found: " + err.Error()})
 		}
 
 		userOrganization, err := c.model.UserOrganizationManager.FindOne(context, &model.UserOrganization{
@@ -297,24 +295,22 @@ func (c *Controller) BranchController() {
 			OrganizationID: branch.OrganizationID,
 		})
 		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}
 		if userOrganization.UserType != "owner" {
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owners can delete branches"})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Only the branch owner can delete this branch"})
 		}
 		count, err := c.model.CountUserOrganizationPerBranch(context, userOrganization.UserID, *userOrganization.BranchID)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to count user organizations: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not check branch membership: " + err.Error()})
 		}
 		if count > 2 {
-			return ctx.JSON(http.StatusForbidden, map[string]string{
-				"error": "Cannot delete branch with more than 2 members",
-			})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete branch with more than 2 members"})
 		}
 		tx := c.provider.Service.Database.Client().Begin()
 		if tx.Error != nil {
 			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
 		if err := c.model.BranchManager.DeleteByIDWithTx(context, tx, branch.ID); err != nil {
 			tx.Rollback()
@@ -326,13 +322,12 @@ func (c *Controller) BranchController() {
 		}
 		if err := tx.Commit().Error; err != nil {
 			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Transaction commit failed: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
 		c.event.Notification(context, ctx, event.NotificationEvent{
-			Title:       fmt.Sprintf("%s: %s", "Update: ", branch.Name),
-			Description: fmt.Sprintf("%s: %s", "Updates the branch", branch.Name),
+			Title:       fmt.Sprintf("Delete: %s", branch.Name),
+			Description: fmt.Sprintf("Deleted branch: %s", branch.Name),
 		})
 		return ctx.NoContent(http.StatusNoContent)
 	})
-
 }

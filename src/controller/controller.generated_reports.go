@@ -7,68 +7,70 @@ import (
 	"github.com/lands-horizon/horizon-server/services/horizon"
 )
 
+// GeneratedReports manages endpoints for generated report resources.
 func (c *Controller) GeneratedReports() {
 	req := c.provider.Service.Request
 
-	// Route: Get all generated reports for the current user
+	// GET /generated-report: Get all generated reports for the current user.
 	req.RegisterRoute(horizon.Route{
 		Route:    "/generated-report",
 		Method:   "GET",
 		Response: "TGeneratedReport[]",
-		Note:     "Retrieves all generated reports for the current user.",
+		Note:     "Returns all generated reports for the currently authenticated user.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
-			return err
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or user not found"})
 		}
 		generatedReports, err := c.model.GetGenerationReportByUser(context, user.ID)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve generated reports: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.GeneratedReportManager.ToModels(generatedReports))
 	})
 
-	// Route: Get a specific generated report by ID
+	// GET /generated-report/:generated_report_id: Get a specific generated report by ID.
 	req.RegisterRoute(horizon.Route{
 		Route:    "/generated-report/:generated_report_id",
 		Method:   "GET",
 		Response: "TGeneratedReport",
-		Note:     "Retrieves a specific generated report by its ID.",
+		Note:     "Returns a specific generated report by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		generatedReportID, err := horizon.EngineUUIDParam(ctx, "generated_report_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid generated report ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid generated report ID"})
 		}
 		generatedReport, err := c.model.GeneratedReportManager.GetByID(context, *generatedReportID)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Generated report not found"})
 		}
-		return ctx.JSON(http.StatusAccepted, c.model.GeneratedReportManager.ToModel(generatedReport))
+		return ctx.JSON(http.StatusOK, c.model.GeneratedReportManager.ToModel(generatedReport))
 	})
 
-	// Route: Delete a specific generated report by ID
+	// DELETE /generated-report/:generated_report_id: Delete a specific generated report by ID and its associated file.
 	req.RegisterRoute(horizon.Route{
 		Route:  "/generated-report/:generated_report_id",
 		Method: "DELETE",
-		Note:   "Deletes a specific generated report by its ID and the associated file.",
+		Note:   "Deletes the specified generated report by its ID and the associated file.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		generatedReportID, err := horizon.EngineUUIDParam(ctx, "generated_report_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid generated report ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid generated report ID"})
 		}
 		generatedReport, err := c.model.GeneratedReportManager.GetByID(context, *generatedReportID)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Generated report not found"})
 		}
-		if err := c.model.MediaDelete(context, *generatedReport.MediaID); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		if generatedReport.MediaID != nil {
+			if err := c.model.MediaDelete(context, *generatedReport.MediaID); err != nil {
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete associated media file: " + err.Error()})
+			}
 		}
 		if err := c.model.GeneratedReportManager.DeleteByID(context, generatedReport.ID); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete generated report: " + err.Error()})
 		}
 		return ctx.NoContent(http.StatusNoContent)
 	})

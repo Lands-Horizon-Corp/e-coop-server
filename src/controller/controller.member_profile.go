@@ -12,21 +12,22 @@ import (
 )
 
 func (c *Controller) MemberProfileController() {
-
 	req := c.provider.Service.Request
 
+	// Get all pending member profiles in the current branch
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-profile/pending",
 		Method:   "GET",
 		Response: "[]MemberProfile",
+		Note:     "Returns all pending member profiles for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return err
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
-			return c.BadRequest(ctx, "User is not authorized")
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
 		memberProfile, err := c.model.MemberProfileManager.Find(context, &model.MemberProfile{
 			OrganizationID: userOrg.OrganizationID,
@@ -34,41 +35,42 @@ func (c *Controller) MemberProfileController() {
 			Status:         "pending",
 		})
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get pending member profiles: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModels(memberProfile))
 	})
 
+	// Quickly create a new user account and link it to a member profile by ID
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-profile/:member_profile_id/user-account",
 		Method:   "POST",
 		Request:  "MemberProfilePersonalInfoRequest",
 		Response: "MemberProfile",
-		Note:     "Quickly create a new member profile with minimal required fields.",
+		Note:     "Links a minimal user account to a member profile by member_profile_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
 		var req model.MemberProfileUserAccountRequest
 		if err := ctx.Bind(&req); err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.NoContent(http.StatusNoContent)
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
 		tx := c.provider.Service.Database.Client().Begin()
 		hashedPwd, err := c.provider.Service.Security.HashPassword(context, req.Password)
 		if err != nil {
 			tx.Rollback()
-			return echo.NewHTTPError(http.StatusInternalServerError, "failed to hash password")
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to hash password: " + err.Error()})
 		}
 		userProfile := &model.User{
 			Email:             req.Email,
@@ -87,16 +89,16 @@ func (c *Controller) MemberProfileController() {
 		}
 		if err := c.model.UserManager.CreateWithTx(context, tx, userProfile); err != nil {
 			tx.Rollback()
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not create user profile: %v", err))
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not create user profile: " + err.Error()})
 		}
 		if tx.Error != nil {
 			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Database error: " + tx.Error.Error()})
 		}
 		memberProfile, err := c.model.MemberProfileManager.GetByID(context, *memberProfileID)
 		if err != nil {
 			tx.Rollback()
-			return c.NotFound(ctx, fmt.Sprintf("MemberProfile with ID %s not found", memberProfileID))
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found: %v", memberProfileID, err)})
 		}
 		memberProfile.UserID = &userProfile.ID
 		memberProfile.UpdatedAt = time.Now().UTC()
@@ -104,13 +106,13 @@ func (c *Controller) MemberProfileController() {
 
 		if err := c.model.MemberProfileManager.UpdateFieldsWithTx(context, tx, memberProfile.ID, memberProfile); err != nil {
 			tx.Rollback()
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not create member profile: %v", err))
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not update member profile: " + err.Error()})
 		}
 
 		developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, userProfile.ID.String())
 		if err != nil {
 			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "something wrong generating developer key"})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate developer key: " + err.Error()})
 		}
 		developerKey = developerKey + uuid.NewString() + "-horizon"
 		newUserOrg := &model.UserOrganization{
@@ -139,394 +141,264 @@ func (c *Controller) MemberProfileController() {
 		}
 		if err := c.model.UserOrganizationManager.CreateWithTx(context, tx, newUserOrg); err != nil {
 			tx.Rollback()
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Failed to create UserOrganization: " + err.Error()})
 		}
 
 		if err := tx.Commit().Error; err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(memberProfile))
 	})
 
-	req.RegisterRoute(horizon.Route{
-		Route:    "/member-profile/:member_profile_id/close",
-		Method:   "PUT",
-		Request:  "[]TMemberCloseRemarkRequest",
-		Response: "TMemberProfile",
-	}, func(ctx echo.Context) error {
-		context := ctx.Request().Context()
-		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
-		if err != nil {
-			return c.BadRequest(ctx, "Invalid member profile ID")
-		}
-		var reqs []model.MemberCloseRemarkRequest
-		if err := ctx.Bind(&reqs); err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
-		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
-		if err != nil {
-			return err
-		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
-			return c.BadRequest(ctx, "User is not authorized")
-		}
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
-		}
-		for _, req := range reqs {
-			if err := c.provider.Service.Validator.Struct(req); err != nil {
-				tx.Rollback()
-				return echo.NewHTTPError(http.StatusBadRequest, err.Error())
-			}
-			value := &model.MemberCloseRemark{
-				Reason:          req.Reason,
-				Description:     req.Description,
-				MemberProfileID: memberProfileID,
-				CreatedAt:       time.Now().UTC(),
-				CreatedByID:     userOrg.UserID,
-				UpdatedAt:       time.Now().UTC(),
-				UpdatedByID:     userOrg.UserID,
-				BranchID:        *userOrg.BranchID,
-				OrganizationID:  userOrg.OrganizationID,
-			}
-			if err := c.model.MemberCloseRemarkManager.CreateWithTx(context, tx, value); err != nil {
-				tx.Rollback()
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
-			}
-		}
-
-		memberProfile, err := c.model.MemberProfileManager.GetByID(context, *memberProfileID)
-		if err != nil {
-			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-		}
-
-		memberProfile.IsClosed = true
-		if err := c.model.MemberProfileManager.UpdateFieldsWithTx(context, tx, memberProfile.ID, memberProfile); err != nil {
-			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-		}
-		if err := tx.Commit().Error; err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
-		}
-		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(memberProfile))
-	})
-
-	req.RegisterRoute(horizon.Route{
-		Route:    "/member-profile/:member_profile_id/connect-user-account/:user_id",
-		Method:   "PUT",
-		Response: "TMemberProfile",
-	}, func(ctx echo.Context) error {
-		context := ctx.Request().Context()
-		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
-		if err != nil {
-			return c.BadRequest(ctx, "Invalid member profile ID")
-		}
-		userID, err := horizon.EngineUUIDParam(ctx, "user_id")
-		if err != nil {
-			return c.BadRequest(ctx, "Invalid user ID")
-		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
-		}
-
-		user, err := c.model.UserManager.GetByID(context, *userID)
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-		}
-		memberProfile, err := c.model.MemberProfileManager.GetByID(context, *memberProfileID)
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-		}
-		memberProfile.UserID = &user.ID
-		memberProfile.MemberVerifiedByEmployeeUserID = &userOrg.UserID
-		if err := c.model.MemberProfileManager.UpdateFields(context, memberProfile.ID, memberProfile); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-		}
-		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(memberProfile))
-	})
-
-	req.RegisterRoute(horizon.Route{
-		Route:    "/member-profile/:member_profile_id/disconnect",
-		Method:   "PUT",
-		Response: "TMemberProfile",
-	}, func(ctx echo.Context) error {
-		context := ctx.Request().Context()
-		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
-		if err != nil {
-			return c.BadRequest(ctx, "Invalid member profile ID")
-		}
-
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
-		}
-
-		memberProfile, err := c.model.MemberProfileManager.GetByID(context, *memberProfileID)
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-		}
-		memberProfile.UserID = nil
-		if err := c.model.MemberProfileManager.UpdateFields(context, memberProfile.ID, memberProfile); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-		}
-		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(memberProfile))
-	})
-
+	// Approve a member profile by ID
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-profile/:member_profile_id/approve",
 		Method:   "PUT",
 		Response: "MemberProfile",
-		Note:     "Approve member profiles",
+		Note:     "Approve a member profile by member_profile_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid member profile ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return err
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
-			return c.BadRequest(ctx, "User is not authorized")
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
-
 		memberProfile, err := c.model.MemberProfileManager.GetByID(context, *memberProfileID)
 		if err != nil {
-			return c.NotFound(ctx, "MemberProfile")
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found: %v", memberProfileID, err)})
 		}
 		memberProfile.Status = "verified"
 		memberProfile.MemberVerifiedByEmployeeUserID = &userOrg.UserID
 		if err := c.model.MemberProfileManager.UpdateFields(context, memberProfile.ID, memberProfile); err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update member profile: "+err.Error())
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update member profile: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(memberProfile))
 	})
 
+	// Reject a member profile by ID
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-profile/:member_profile_id/reject",
 		Method:   "PUT",
 		Response: "MemberProfile",
-		Note:     "Reject member profile",
+		Note:     "Reject a member profile by member_profile_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid member profile ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return err
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
-			return c.BadRequest(ctx, "User is not authorized")
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
-
 		memberProfile, err := c.model.MemberProfileManager.GetByID(context, *memberProfileID)
 		if err != nil {
-			return c.NotFound(ctx, "MemberProfile")
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found: %v", memberProfileID, err)})
 		}
-		memberProfile.Status = "not allowed	"
+		memberProfile.Status = "not allowed"
 		if err := c.model.MemberProfileManager.UpdateFields(context, memberProfile.ID, memberProfile); err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update member profile: "+err.Error())
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update member profile: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(memberProfile))
 	})
 
+	// Retrieve a list of all member profiles in the current branch
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-profile",
 		Method:   "GET",
 		Response: "[]IMemberProfile",
-		Note:     "Retrieve a list of all member profiles.",
+		Note:     "Returns all member profiles for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return err
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		memberProfile, err := c.model.MemberProfileCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member profiles: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModels(memberProfile))
 	})
 
+	// Retrieve paginated member profiles for the current branch
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-profile/search",
 		Method:   "GET",
 		Request:  "Filter<IMemberProfile>",
 		Response: "Paginated<IMemberProfile>",
-		Note:     "Get pagination member occupation",
+		Note:     "Returns paginated member profiles for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.NoContent(http.StatusNoContent)
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		value, err := c.model.MemberProfileCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member profiles for pagination: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.Pagination(context, ctx, value))
 	})
 
+	// Retrieve a specific member profile by member_profile_id
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-profile/:member_profile_id",
 		Method:   "GET",
 		Response: "MemberProfile",
-		Note:     "Retrieve a specific member profile by its member_profile_id.",
+		Note:     "Returns a specific member profile by its member_profile_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid member profile ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
 		memberProfile, err := c.model.MemberProfileManager.GetByIDRaw(context, *memberProfileID)
 		if err != nil {
-			return c.NotFound(ctx, "MemberProfile")
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found: %v", memberProfileID, err)})
 		}
 		return ctx.JSON(http.StatusOK, memberProfile)
 	})
 
+	// Delete a specific member profile by its member_profile_id
 	req.RegisterRoute(horizon.Route{
 		Route:  "/member-profile/:member_profile_id",
 		Method: "DELETE",
-		Note:   "Delete a specific member-profile by its member_profile_id.",
+		Note:   "Deletes a specific member profile and all its connections by member_profile_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid member profile ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
 		tx := c.provider.Service.Database.Client().Begin()
 		if tx.Error != nil {
 			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
 		}
 
 		memberProfile, err := c.model.MemberProfileManager.GetByID(context, *memberProfileID)
 		if err != nil {
-			return c.NotFound(ctx, fmt.Sprintf("MemberProfile with ID %s not found", memberProfileID.String()))
+			tx.Rollback()
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found: %v", memberProfileID.String(), err)})
 		}
 		if err := c.model.MemberProfileDestroy(context, tx, memberProfile.ID); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete member profile: " + err.Error()})
 		}
 		if err := tx.Commit().Error; err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// ...existing code...
+	// Bulk delete member profiles by IDs
 	req.RegisterRoute(horizon.Route{
 		Route:   "/member-profile/bulk-delete",
 		Method:  "DELETE",
 		Request: "string[]",
-		Note:    "Delete multiple member profile records and all their connections",
+		Note:    "Deletes multiple member profiles and all their connections by their IDs.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody struct {
 			IDs []string `json:"ids"`
 		}
 		if err := ctx.Bind(&reqBody); err != nil {
-			return c.BadRequest(ctx, "Invalid request body")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if len(reqBody.IDs) == 0 {
-			return c.BadRequest(ctx, "No IDs provided")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for deletion."})
 		}
 		tx := c.provider.Service.Database.Client().Begin()
 		if tx.Error != nil {
 			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
 		}
 
 		for _, rawID := range reqBody.IDs {
 			if rawID == "" {
 				continue
 			}
-			id := uuid.MustParse(rawID)
+			id, err := uuid.Parse(rawID)
+			if err != nil {
+				tx.Rollback()
+				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s - %v", rawID, err)})
+			}
 			memberProfile, err := c.model.MemberProfileManager.GetByID(context, id)
 			if err != nil {
 				tx.Rollback()
-				return c.BadRequest(ctx, fmt.Sprintf("Invalid UUID: %s", rawID))
+				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found: %v", rawID, err)})
 			}
 			if err := c.model.MemberProfileDestroy(context, tx, memberProfile.ID); err != nil {
 				tx.Rollback()
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to delete member profile with ID %s: %v", rawID, err)})
 			}
 		}
 		if err := tx.Commit().Error; err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
 		return ctx.NoContent(http.StatusNoContent)
 	})
-	// ...existing code...
 
+	// Connect the specified member profile to a user account
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-profile/:member_profile_id/connect-user",
 		Method:   "POST",
 		Request:  "MemberProfileAccountRequest",
 		Response: "MemberProfile",
-		Note:     "Connect the specified member profile to a user account using member_profile_id.",
+		Note:     "Connects the specified member profile to a user account by member_profile_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req model.MemberProfileAccountRequest
 		if err := ctx.Bind(&req); err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		memberProfileId, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid member educational attainment ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
 		memberProfile, err := c.model.MemberProfileManager.GetByID(context, *memberProfileId)
 		if err != nil {
-			return c.NotFound(ctx, fmt.Sprintf("MemberProfile with ID %s not found", memberProfileId))
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found: %v", memberProfileId, err)})
 		}
 		memberProfile.UserID = req.UserID
 		if err := c.model.MemberProfileManager.UpdateFields(context, memberProfile.ID, memberProfile); err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update member profile by specifying user connection: "+err.Error())
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update member profile: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(memberProfile))
 	})
 
+	// Quickly create a new member profile with minimal required fields
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-profile/quick-create",
 		Method:   "POST",
 		Request:  "MemberProfilePersonalInfoRequest",
 		Response: "MemberProfile",
-		Note:     "Quickly create a new member profile with minimal required fields.",
+		Note:     "Quickly creates a new member profile with minimal required fields.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		// ...existing code...
 		var req model.MemberProfileQuickCreateRequest
 		if err := ctx.Bind(&req); err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.NoContent(http.StatusNoContent)
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
 		tx := c.provider.Service.Database.Client().Begin()
@@ -538,7 +410,7 @@ func (c *Controller) MemberProfileController() {
 			hashedPwd, err := c.provider.Service.Security.HashPassword(context, req.AccountInfo.Password)
 			if err != nil {
 				tx.Rollback()
-				return echo.NewHTTPError(http.StatusInternalServerError, "failed to hash password")
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to hash password: " + err.Error()})
 			}
 			userProfile = &model.User{
 				Email:             req.AccountInfo.Email,
@@ -557,11 +429,11 @@ func (c *Controller) MemberProfileController() {
 			}
 			if err := c.model.UserManager.CreateWithTx(context, tx, userProfile); err != nil {
 				tx.Rollback()
-				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not create user profile: %v", err))
+				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not create user profile: " + err.Error()})
 			}
 			if tx.Error != nil {
 				tx.Rollback()
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Database error: " + tx.Error.Error()})
 			}
 			userProfileID = &userProfile.ID
 		}
@@ -593,14 +465,14 @@ func (c *Controller) MemberProfileController() {
 		}
 		if err := c.model.MemberProfileManager.CreateWithTx(context, tx, profile); err != nil {
 			tx.Rollback()
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not create member profile: %v", err))
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not create member profile: " + err.Error()})
 		}
 
 		if userProfile != nil {
 			developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, user.ID.String())
 			if err != nil {
 				tx.Rollback()
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "something wrong generating developer key"})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate developer key: " + err.Error()})
 			}
 			developerKey = developerKey + uuid.NewString() + "-horizon"
 			userOrg := &model.UserOrganization{
@@ -629,43 +501,43 @@ func (c *Controller) MemberProfileController() {
 			}
 			if err := c.model.UserOrganizationManager.CreateWithTx(context, tx, userOrg); err != nil {
 				tx.Rollback()
-				return ctx.JSON(http.StatusForbidden, map[string]string{"error": err.Error()})
+				return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Failed to create UserOrganization: " + err.Error()})
 			}
 		}
 
 		if err := tx.Commit().Error; err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(profile))
 	})
 
+	// Update the personal information of a member profile by ID
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-profile/:member_profile_id/personal-info",
 		Method:   "PUT",
 		Request:  "MemberProfilePersonalInfoRequest",
 		Response: "MemberProfile",
-		Note:     "Update the personal information of a member profile identified by member_profile_id.",
+		Note:     "Updates the personal information of a member profile by member_profile_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req model.MemberProfilePersonalInfoRequest
 		if err := ctx.Bind(&req); err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		memberProfileId, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid member educational attainment ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
 		profile, err := c.model.MemberProfileManager.GetByID(context, *memberProfileId)
 		if err != nil {
-			return c.NotFound(ctx, fmt.Sprintf("MemberProfile with ID %s not found", memberProfileId))
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found: %v", memberProfileId, err)})
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.NoContent(http.StatusNoContent)
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		profile.UpdatedAt = time.Now().UTC()
 		profile.UpdatedByID = userOrg.UserID
@@ -690,7 +562,7 @@ func (c *Controller) MemberProfileController() {
 				MemberGenderID:  *req.MemberGenderID,
 			}
 			if err := c.model.MemberGenderHistoryManager.Create(context, data); err != nil {
-				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not update member gender history: %v", err))
+				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not update member gender history: " + err.Error()})
 			}
 			profile.MemberGenderID = req.MemberGenderID
 		}
@@ -706,7 +578,7 @@ func (c *Controller) MemberProfileController() {
 				MemberOccupationID: *req.MemberOccupationID,
 			}
 			if err := c.model.MemberOccupationHistoryManager.Create(context, data); err != nil {
-				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not update member occupation history: %v", err))
+				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not update member occupation history: " + err.Error()})
 			}
 			profile.MemberOccupationID = req.MemberOccupationID
 		}
@@ -718,37 +590,38 @@ func (c *Controller) MemberProfileController() {
 		profile.MediaID = req.MediaID
 		profile.SignatureMediaID = req.SignatureMediaID
 		if err := c.model.MemberProfileManager.UpdateFields(context, profile.ID, profile); err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could update member profile: %v", err))
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not update member profile: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(profile))
 	})
 
+	// Update the membership information of a member profile by ID
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-profile/:member_profile_id/membership-info",
 		Method:   "PUT",
 		Request:  "MemberProfileMembershipInfoRequest",
 		Response: "MemberProfile",
-		Note:     "Update the membership information of a member profile identified by member_profile_id.",
+		Note:     "Updates the membership information of a member profile by member_profile_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req model.MemberProfileMembershipInfoRequest
 		if err := ctx.Bind(&req); err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		memberProfileId, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid member educational attainment ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
 		profile, err := c.model.MemberProfileManager.GetByID(context, *memberProfileId)
 		if err != nil {
-			return c.NotFound(ctx, fmt.Sprintf("MemberProfile with ID %s not found", memberProfileId))
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found: %v", memberProfileId, err)})
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.NoContent(http.StatusNoContent)
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		profile.UpdatedAt = time.Now().UTC()
 		profile.UpdatedByID = userOrg.UserID
@@ -757,7 +630,6 @@ func (c *Controller) MemberProfileController() {
 		profile.RecruitedByMemberProfileID = req.RecruitedByMemberProfileID
 		profile.Status = req.Status
 
-		// MemberTypeID
 		if req.MemberTypeID != nil && !uuidPtrEqual(profile.MemberTypeID, req.MemberTypeID) {
 			data := &model.MemberTypeHistory{
 				OrganizationID:  userOrg.OrganizationID,
@@ -770,12 +642,10 @@ func (c *Controller) MemberProfileController() {
 				MemberTypeID:    *req.MemberTypeID,
 			}
 			if err := c.model.MemberTypeHistoryManager.Create(context, data); err != nil {
-				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could update member profile: %v", err))
+				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not update member type history: " + err.Error()})
 			}
 			profile.MemberTypeID = req.MemberTypeID
 		}
-
-		// MemberGroupID
 		if req.MemberGroupID != nil && !uuidPtrEqual(profile.MemberGroupID, req.MemberGroupID) {
 			data := &model.MemberGroupHistory{
 				OrganizationID:  userOrg.OrganizationID,
@@ -788,12 +658,10 @@ func (c *Controller) MemberProfileController() {
 				MemberGroupID:   *req.MemberGroupID,
 			}
 			if err := c.model.MemberGroupHistoryManager.Create(context, data); err != nil {
-				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not update member group history: %v", err))
+				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not update member group history: " + err.Error()})
 			}
 			profile.MemberGroupID = req.MemberGroupID
 		}
-
-		// MemberClassificationID
 		if req.MemberClassificationID != nil && !uuidPtrEqual(profile.MemberClassificationID, req.MemberClassificationID) {
 			data := &model.MemberClassificationHistory{
 				OrganizationID:         userOrg.OrganizationID,
@@ -806,12 +674,10 @@ func (c *Controller) MemberProfileController() {
 				MemberClassificationID: *req.MemberClassificationID,
 			}
 			if err := c.model.MemberClassificationHistoryManager.Create(context, data); err != nil {
-				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not update member classification history: %v", err))
+				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not update member classification history: " + err.Error()})
 			}
 			profile.MemberClassificationID = req.MemberClassificationID
 		}
-
-		// MemberCenterID
 		if req.MemberCenterID != nil && !uuidPtrEqual(profile.MemberCenterID, req.MemberCenterID) {
 			data := &model.MemberCenterHistory{
 				OrganizationID:  userOrg.OrganizationID,
@@ -824,7 +690,7 @@ func (c *Controller) MemberProfileController() {
 				MemberCenterID:  *req.MemberCenterID,
 			}
 			if err := c.model.MemberCenterHistoryManager.Create(context, data); err != nil {
-				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could not update member center history: %v", err))
+				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not update member center history: " + err.Error()})
 			}
 			profile.MemberCenterID = req.MemberCenterID
 		}
@@ -833,7 +699,7 @@ func (c *Controller) MemberProfileController() {
 		profile.IsMicroFinanceMember = req.IsMicroFinanceMember
 
 		if err := c.model.MemberProfileManager.UpdateFields(context, profile.ID, profile); err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("could update member profile: %v", err))
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not update member profile: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(profile))
 	})

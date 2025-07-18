@@ -14,105 +14,108 @@ import (
 func (c *Controller) MemberGroupController() {
 	req := c.provider.Service.Request
 
+	// Get all member group history for the current branch
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-group-history",
 		Method:   "GET",
 		Response: "TMemberGroupHistory[]",
-		Note:     "Get member group history for the current branch",
+		Note:     "Returns all member group history entries for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.NoContent(http.StatusNoContent)
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		memberGroupHistory, err := c.model.MemberGroupHistoryCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member group history: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberGroupHistoryManager.ToModels(memberGroupHistory))
 	})
 
+	// Get member group history by member profile ID
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-group-history/member-profile/:member_profile_id/search",
 		Method:   "GET",
 		Response: "TMemberGroupHistory[]",
-		Note:     "Get member group history by member profile ID",
+		Note:     "Returns member group history for a specific member profile ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid member group ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.NoContent(http.StatusNoContent)
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		memberGroupHistory, err := c.model.MemberGroupHistoryMemberProfileID(context, *memberProfileID, user.OrganizationID, *user.BranchID)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member group history by profile: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberGroupHistoryManager.Pagination(context, ctx, memberGroupHistory))
-
 	})
 
+	// Get all member groups for the current branch
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-group",
 		Method:   "GET",
 		Response: "TMemberGroup[]",
-		Note:     "Get all member group records for the current branch",
+		Note:     "Returns all member groups for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.NoContent(http.StatusNoContent)
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		memberGroup, err := c.model.MemberGroupCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member groups: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberGroupManager.ToModels(memberGroup))
 	})
 
+	// Get paginated member groups
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-group/search",
 		Method:   "GET",
 		Request:  "Filter<IMemberGroup>",
 		Response: "Paginated<IMemberGroup>",
-		Note:     "Get pagination member group",
+		Note:     "Returns paginated member groups for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.NoContent(http.StatusNoContent)
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		value, err := c.model.MemberGroupCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member groups for pagination: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberGroupManager.Pagination(context, ctx, value))
 	})
 
+	// Create a new member group
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-group",
 		Method:   "POST",
 		Request:  "TMemberGroup",
 		Response: "TMemberGroup",
-		Note:     "Create a new member group record",
+		Note:     "Creates a new member group record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.MemberGroupManager.Validate(ctx)
 		if err != nil {
-			return c.BadRequest(ctx, err.Error())
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.NoContent(http.StatusNoContent)
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
 		memberGroup := &model.MemberGroup{
-			Name:        req.Name,
-			Description: req.Description,
-
+			Name:           req.Name,
+			Description:    req.Description,
 			CreatedAt:      time.Now().UTC(),
 			CreatedByID:    user.UserID,
 			UpdatedAt:      time.Now().UTC(),
@@ -122,40 +125,37 @@ func (c *Controller) MemberGroupController() {
 		}
 
 		if err := c.model.MemberGroupManager.Create(context, memberGroup); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create member group: " + err.Error()})
 		}
 
 		return ctx.JSON(http.StatusOK, c.model.MemberGroupManager.ToModel(memberGroup))
 	})
 
+	// Update an existing member group by ID
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-group/:member_group_id",
 		Method:   "PUT",
 		Request:  "TMemberGroup",
 		Response: "TMemberGroup",
-		Note:     "Update an existing member group record by ID",
+		Note:     "Updates an existing member group record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberGroupID, err := horizon.EngineUUIDParam(ctx, "member_group_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid member group ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_group_id: " + err.Error()})
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.NoContent(http.StatusNoContent)
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-
 		req, err := c.model.MemberGroupManager.Validate(ctx)
 		if err != nil {
-			return c.BadRequest(ctx, err.Error())
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-
 		memberGroup, err := c.model.MemberGroupManager.GetByID(context, *memberGroupID)
 		if err != nil {
-			return c.NotFound(ctx, "MemberGroup")
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member group not found: " + err.Error()})
 		}
-
 		memberGroup.UpdatedAt = time.Now().UTC()
 		memberGroup.UpdatedByID = user.UserID
 		memberGroup.OrganizationID = user.OrganizationID
@@ -163,34 +163,34 @@ func (c *Controller) MemberGroupController() {
 		memberGroup.Name = req.Name
 		memberGroup.Description = req.Description
 		if err := c.model.MemberGroupManager.UpdateFields(context, memberGroup.ID, memberGroup); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update member group: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberGroupManager.ToModel(memberGroup))
 	})
 
+	// Delete a member group by ID
 	req.RegisterRoute(horizon.Route{
 		Route:  "/member-group/:member_group_id",
 		Method: "DELETE",
-		Note:   "Delete a member group record by ID",
+		Note:   "Deletes a member group record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberGroupID, err := horizon.EngineUUIDParam(ctx, "member_group_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid member group ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_group_id: " + err.Error()})
 		}
 		if err := c.model.MemberGroupManager.DeleteByID(context, *memberGroupID); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete member group: " + err.Error()})
 		}
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
+	// Bulk delete member groups by IDs
 	req.RegisterRoute(horizon.Route{
 		Route:   "/member-group/bulk-delete",
 		Method:  "DELETE",
 		Request: "string[]",
-		Note:    "Delete multiple member group records by their IDs",
+		Note:    "Deletes multiple member group records by their IDs.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody struct {
@@ -198,41 +198,39 @@ func (c *Controller) MemberGroupController() {
 		}
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			return c.BadRequest(ctx, "Invalid request body")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 
 		if len(reqBody.IDs) == 0 {
-			return c.BadRequest(ctx, "No IDs provided")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for deletion."})
 		}
 
 		tx := c.provider.Service.Database.Client().Begin()
 		if tx.Error != nil {
 			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
 		}
 
 		for _, rawID := range reqBody.IDs {
 			memberGroupID, err := uuid.Parse(rawID)
 			if err != nil {
 				tx.Rollback()
-				return c.BadRequest(ctx, fmt.Sprintf("Invalid UUID: %s", rawID))
+				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID '%s': %s", rawID, err.Error())})
 			}
 
 			if _, err := c.model.MemberGroupManager.GetByID(context, memberGroupID); err != nil {
 				tx.Rollback()
-				return c.NotFound(ctx, fmt.Sprintf("MemberGroup with ID %s", rawID))
+				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Member group with ID '%s' not found: %s", rawID, err.Error())})
 			}
 
 			if err := c.model.MemberGroupManager.DeleteByIDWithTx(context, tx, memberGroupID); err != nil {
 				tx.Rollback()
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to delete member group with ID '%s': %s", rawID, err.Error())})
 			}
 		}
 
 		if err := tx.Commit().Error; err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
 
 		return ctx.NoContent(http.StatusNoContent)

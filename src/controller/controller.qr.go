@@ -7,12 +7,15 @@ import (
 	"github.com/lands-horizon/horizon-server/services/horizon"
 )
 
+// QRCodeController registers the route for decoding QR codes and fetching the associated user.
 func (c *Controller) QRCodeController() {
 	req := c.provider.Service.Request
+
 	req.RegisterRoute(horizon.Route{
 		Route:    "/qr-code/:code",
 		Method:   "GET",
 		Response: "TUser",
+		Note:     "Decodes a QR code and returns the associated user information.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		code := ctx.Param("code")
@@ -20,7 +23,7 @@ func (c *Controller) QRCodeController() {
 			Data: code,
 		})
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to decode QR code: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, qr)
 	})

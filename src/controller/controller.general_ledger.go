@@ -10,29 +10,31 @@ import (
 	"github.com/lands-horizon/horizon-server/src/model"
 )
 
+// GeneralLedgerController manages endpoints for general ledger accounts, definitions, and member ledgers.
 func (c *Controller) GeneralLedgerController() {
 	req := c.provider.Service.Request
 
+	// GET /general-ledger-accounts-grouping: List all general ledger account groupings for the current branch.
 	req.RegisterRoute(horizon.Route{
 		Route:    "/general-ledger-accounts-grouping",
 		Method:   "GET",
 		Response: "GeneralLedgerAccountsGrouping[]",
-		Note:     "List all general ledger accounts grouping for the current branch",
+		Note:     "Returns all general ledger account groupings for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return err
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
-			return c.BadRequest(ctx, "User is not authorized")
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view general ledger account groupings"})
 		}
 		gl, err := c.model.GeneralLedgerAccountsGroupingManager.Find(context, &model.GeneralLedgerAccountsGrouping{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger account groupings: " + err.Error()})
 		}
 		for _, grouping := range gl {
 			if grouping != nil {
@@ -43,61 +45,49 @@ func (c *Controller) GeneralLedgerController() {
 					"general_ledger_accounts_grouping_id": &grouping.ID,
 				})
 				if err != nil {
-					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger definitions: " + err.Error()})
 				}
 
 				var filteredEntries []*model.GeneralLedgerDefinition
 				for _, entry := range entries {
 					if entry.GeneralLedgerDefinitionEntryID == nil {
 						filteredEntries = append(filteredEntries, entry)
-
 					}
 				}
-
 				grouping.GeneralLedgerDefinitionEntries = filteredEntries
 			}
 		}
 		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerAccountsGroupingManager.ToModels(gl))
 	})
-	// ...existing code...
 
+	// PUT /general-ledger-accounts-grouping/:general_ledger_accounts_grouping_id: Update a general ledger account grouping.
 	req.RegisterRoute(horizon.Route{
 		Route:    "/general-ledger-accounts-grouping/:general_ledger_accounts_grouping_id",
 		Method:   "PUT",
 		Request:  "GeneralLedgerAccountsGroupingRequest",
 		Response: "GeneralLedgerAccountsGroupingResponse",
-		Note:     "Update an existing general ledger accounts grouping",
+		Note:     "Updates an existing general ledger account grouping by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-
-		// Get and validate grouping ID
 		groupingID, err := horizon.EngineUUIDParam(ctx, "general_ledger_accounts_grouping_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid grouping ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid general ledger account grouping ID"})
 		}
-
-		// Validate request
 		reqBody, err := c.model.GeneralLedgerAccountsGroupingManager.Validate(ctx)
 		if err != nil {
-			return c.BadRequest(ctx, err.Error())
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid grouping data: " + err.Error()})
 		}
-
-		// Get current user organization
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return err
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
-			return c.BadRequest(ctx, "User is not authorized")
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to update general ledger account groupings"})
 		}
-
-		// Get existing grouping
 		grouping, err := c.model.GeneralLedgerAccountsGroupingManager.GetByID(context, *groupingID)
 		if err != nil {
-			return c.NotFound(ctx, "General Ledger Accounts Grouping")
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "General ledger account grouping not found"})
 		}
-
-		// Update fields
 		grouping.Name = reqBody.Name
 		grouping.Description = reqBody.Description
 		grouping.UpdatedAt = time.Now().UTC()
@@ -105,7 +95,6 @@ func (c *Controller) GeneralLedgerController() {
 		grouping.FromCode = reqBody.FromCode
 		grouping.ToCode = reqBody.ToCode
 
-		// Parse Debit and Credit from string to float64 if needed
 		if debit, err := strconv.ParseFloat(reqBody.Debit, 64); err == nil {
 			grouping.Debit = debit
 		}
@@ -113,66 +102,57 @@ func (c *Controller) GeneralLedgerController() {
 			grouping.Credit = credit
 		}
 
-		// Save update
 		if err := c.model.GeneralLedgerAccountsGroupingManager.UpdateFields(context, grouping.ID, grouping); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update general ledger account grouping: " + err.Error()})
 		}
-
 		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerAccountsGroupingManager.ToModel(grouping))
 	})
-	// ...existing code...
 
+	// GET /general-ledger-definition: List all general ledger definitions for the current branch.
 	req.RegisterRoute(horizon.Route{
 		Route:    "/general-ledger-definition",
 		Method:   "GET",
 		Response: "GeneralLedgerDefinition[]",
-		Note:     "List all general ledger definitions for the current branch",
+		Note:     "Returns all general ledger definitions for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return err
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
-			return c.BadRequest(ctx, "User is not authorized")
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view general ledger definitions"})
 		}
 		gl, err := c.model.GeneralLedgerDefinitionManager.FindRaw(context, &model.GeneralLedgerDefinition{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger definitions: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, gl)
 	})
 
+	// POST /general-ledger-definition: Create a new general ledger definition.
 	req.RegisterRoute(horizon.Route{
 		Route:    "/general-ledger-definition",
 		Method:   "POST",
 		Request:  "GeneralLedgerDefinitionRequest",
 		Response: "GeneralLedgerDefinitionResponse",
-		Note:     "Create a new general ledger definition",
+		Note:     "Creates a new general ledger definition for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-
-		// Validate request
 		req, err := c.model.GeneralLedgerDefinitionManager.Validate(ctx)
 		if err != nil {
-			return c.BadRequest(ctx, err.Error())
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid general ledger definition data: " + err.Error()})
 		}
-
-		// Get current user organization
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return err
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-
-		// Check authorization
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
-			return c.BadRequest(ctx, "User is not authorized")
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to create general ledger definitions"})
 		}
-
-		// Create general ledger definition
 		glDefinition := &model.GeneralLedgerDefinition{
 			OrganizationID:                  userOrg.OrganizationID,
 			BranchID:                        *userOrg.BranchID,
@@ -191,55 +171,40 @@ func (c *Controller) GeneralLedgerController() {
 			CreatedAt:                       time.Now().UTC(),
 			UpdatedAt:                       time.Now().UTC(),
 		}
-
-		// Create the general ledger definition
 		if err := c.model.GeneralLedgerDefinitionManager.Create(context, glDefinition); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create general ledger definition: " + err.Error()})
 		}
-
-		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerDefinitionManager.ToModel(glDefinition))
+		return ctx.JSON(http.StatusCreated, c.model.GeneralLedgerDefinitionManager.ToModel(glDefinition))
 	})
 
+	// PUT /general-ledger-definition/:general_ledger_definition_id: Update a general ledger definition.
 	req.RegisterRoute(horizon.Route{
 		Route:    "/general-ledger-definition/:general_ledger_definition_id",
 		Method:   "PUT",
 		Request:  "GeneralLedgerDefinitionRequest",
 		Response: "GeneralLedgerDefinitionResponse",
-		Note:     "Update an existing general ledger definition",
+		Note:     "Updates an existing general ledger definition by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-
-		// Get and validate general ledger definition ID
 		glDefinitionID, err := horizon.EngineUUIDParam(ctx, "general_ledger_definition_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid general ledger definition ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid general ledger definition ID"})
 		}
-
-		// Validate request
 		req, err := c.model.GeneralLedgerDefinitionManager.Validate(ctx)
 		if err != nil {
-			return c.BadRequest(ctx, err.Error())
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid general ledger definition data: " + err.Error()})
 		}
-
-		// Get current user organization
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return err
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-
-		// Check authorization
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
-			return c.BadRequest(ctx, "User is not authorized")
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to update general ledger definitions"})
 		}
-
-		// Get existing general ledger definition
 		glDefinition, err := c.model.GeneralLedgerDefinitionManager.GetByID(context, *glDefinitionID)
 		if err != nil {
-			return c.NotFound(ctx, "General Ledger Definition")
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "General ledger definition not found"})
 		}
-
-		// Update fields
 		glDefinition.GeneralLedgerDefinitionEntryID = req.GeneralLedgerDefinitionEntryID
 		glDefinition.Name = req.Name
 		glDefinition.Description = req.Description
@@ -252,143 +217,115 @@ func (c *Controller) GeneralLedgerController() {
 		glDefinition.UpdatedAt = time.Now().UTC()
 		glDefinition.UpdatedByID = userOrg.UserID
 
-		// Update the general ledger definition
 		if err := c.model.GeneralLedgerDefinitionManager.UpdateFields(context, glDefinition.ID, glDefinition); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update general ledger definition: " + err.Error()})
 		}
-
 		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerDefinitionManager.ToModel(glDefinition))
 	})
+
+	// POST /general-ledger-definition/:general_ledger_definition_id/account/:account_id/connect: Connect an account to a general ledger definition.
 	req.RegisterRoute(horizon.Route{
 		Route:    "/general-ledger-definition/:general_ledger_definition_id/account/:account_id/connect",
 		Method:   "POST",
 		Response: "GeneralLedgerDefinitionResponse",
-		Note:     "Connect an account to a general ledger definition",
+		Note:     "Connects an account to a general ledger definition by their IDs.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-
 		glDefinitionID, err := horizon.EngineUUIDParam(ctx, "general_ledger_definition_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid general ledger definition ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid general ledger definition ID"})
 		}
-
 		accountID, err := horizon.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid account ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID"})
 		}
-
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return err
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
-			return c.BadRequest(ctx, "User is not authorized")
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to connect accounts"})
 		}
-
 		glDefinition, err := c.model.GeneralLedgerDefinitionManager.GetByID(context, *glDefinitionID)
 		if err != nil {
-			return c.NotFound(ctx, "General Ledger Definition")
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "General ledger definition not found"})
 		}
-
 		if glDefinition.OrganizationID != userOrg.OrganizationID || glDefinition.BranchID != *userOrg.BranchID {
-			return c.BadRequest(ctx, "General ledger definition not found in your organization")
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "General ledger definition does not belong to your organization/branch"})
 		}
-
 		account, err := c.model.AccountManager.GetByID(context, *accountID)
 		if err != nil {
-			return c.NotFound(ctx, "Account")
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found"})
 		}
-
 		if account.OrganizationID != userOrg.OrganizationID || account.BranchID != *userOrg.BranchID {
-			return c.BadRequest(ctx, "Account not found in your organization")
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Account does not belong to your organization/branch"})
 		}
-
 		account.GeneralLedgerDefinitionID = glDefinitionID
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
-
 		if err := c.model.AccountManager.UpdateFields(context, account.ID, account); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to connect account: " + err.Error()})
 		}
-
 		glDefinition.UpdatedAt = time.Now().UTC()
 		glDefinition.UpdatedByID = userOrg.UserID
-
 		if err := c.model.GeneralLedgerDefinitionManager.UpdateFields(context, glDefinition.ID, glDefinition); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update general ledger definition: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerDefinitionManager.ToModel(glDefinition))
 	})
 
+	// PUT /general-ledger-definition/:general_ledger_definition_id/index/:index: Update the index of a general ledger definition.
 	req.RegisterRoute(horizon.Route{
 		Route:    "/general-ledger-definition/:general_ledger_definition_id/index/:index",
 		Method:   "PUT",
 		Response: "GeneralLedgerDefinitionResponse",
-		Note:     "Update the index of a general ledger definition",
+		Note:     "Updates the index of a general ledger definition by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-
-		// Get and validate general ledger definition ID
 		glDefinitionID, err := horizon.EngineUUIDParam(ctx, "general_ledger_definition_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid general ledger definition ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid general ledger definition ID"})
 		}
-
-		// Get and validate index parameter
 		index, err := strconv.Atoi(ctx.Param("index"))
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid index value")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid index value"})
 		}
-
-		// Get current user organization
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return err
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-
-		// Check authorization
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
-			return c.BadRequest(ctx, "User is not authorized")
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to update general ledger definition index"})
 		}
-
-		// Get existing general ledger definition
 		glDefinition, err := c.model.GeneralLedgerDefinitionManager.GetByID(context, *glDefinitionID)
 		if err != nil {
-			return c.NotFound(ctx, "General Ledger Definition")
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "General ledger definition not found"})
 		}
-
-		// Update only the index and audit fields
 		glDefinition.Index = index
 		glDefinition.UpdatedAt = time.Now().UTC()
 		glDefinition.UpdatedByID = userOrg.UserID
-
-		// Update the general ledger definition
 		if err := c.model.GeneralLedgerDefinitionManager.UpdateFields(context, glDefinition.ID, glDefinition); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update index: " + err.Error()})
 		}
-
 		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerDefinitionManager.ToModel(glDefinition))
 	})
+
+	// PUT /general-ledger-grouping/general-ledger-definition/:general_ledger_definition_id/account/:account_id/index: Update the index of an account within a general ledger definition.
 	req.RegisterRoute(horizon.Route{
 		Route:    "/general-ledger-grouping/general-ledger-definition/:general_ledger_definition_id/account/:account_id/index",
 		Method:   "PUT",
 		Request:  "UpdateAccountIndexRequest {general_ledger_definition_index: int, account_index: int}",
 		Response: "GeneralLedgerDefinitionResponse",
-		Note:     "Update the index of an account within a general ledger definition and reorder accordingly",
+		Note:     "Updates the index of an account within a general ledger definition and reorders accordingly.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		glDefinitionID, err := horizon.EngineUUIDParam(ctx, "general_ledger_definition_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid general ledger definition ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid general ledger definition ID"})
 		}
 		accountID, err := horizon.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid account ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID"})
 		}
 		type UpdateAccountIndexRequest struct {
 			GeneralLedgerDefinitionIndex int `json:"general_ledger_definition_index"`
@@ -396,22 +333,22 @@ func (c *Controller) GeneralLedgerController() {
 		}
 		var reqBody UpdateAccountIndexRequest
 		if err := ctx.Bind(&reqBody); err != nil {
-			return c.BadRequest(ctx, "Invalid payload")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request payload"})
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return err
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
-			return c.BadRequest(ctx, "User is not authorized")
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to update account index"})
 		}
 		glDefinition, err := c.model.GeneralLedgerDefinitionManager.GetByID(context, *glDefinitionID)
 		if err != nil {
-			return c.NotFound(ctx, "General Ledger Definition")
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "General ledger definition not found"})
 		}
 		account, err := c.model.AccountManager.GetByID(context, *accountID)
 		if err != nil {
-			return c.NotFound(ctx, "Account")
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found"})
 		}
 		if account.GeneralLedgerDefinitionID == nil || *account.GeneralLedgerDefinitionID != *glDefinitionID {
 			account.GeneralLedgerDefinitionID = glDefinitionID
@@ -422,8 +359,7 @@ func (c *Controller) GeneralLedgerController() {
 			BranchID:                  *userOrg.BranchID,
 		})
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve accounts: " + err.Error()})
 		}
 		var updatedAccounts []*model.Account
 		for _, acc := range accounts {
@@ -443,43 +379,38 @@ func (c *Controller) GeneralLedgerController() {
 			acc.UpdatedAt = time.Now().UTC()
 			acc.UpdatedByID = userOrg.UserID
 			if err := c.model.AccountManager.UpdateFields(context, acc.ID, acc); err != nil {
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update account: " + err.Error()})
 			}
 		}
-
-		// Optionally, update the GL Definition's index if needed
 		if glDefinition.Index != reqBody.GeneralLedgerDefinitionIndex {
 			glDefinition.Index = reqBody.GeneralLedgerDefinitionIndex
 			glDefinition.UpdatedAt = time.Now().UTC()
 			glDefinition.UpdatedByID = userOrg.UserID
 			if err := c.model.GeneralLedgerDefinitionManager.UpdateFields(context, glDefinition.ID, glDefinition); err != nil {
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update general ledger definition index: " + err.Error()})
 			}
 		}
-
 		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerDefinitionManager.ToModel(glDefinition))
 	})
 
+	// GET /member-accounting-ledger/member-profile/:member_profile_id/total: Get total amount for a specific member profile's general ledger entries.
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-accounting-ledger/member-profile/:member_profile_id/total",
 		Method:   "GET",
 		Response: "MemberGeneralLedgerTotal",
-		Note:     "Get total amount for a specific member profile's general ledger entries",
+		Note:     "Returns the total amount for a specific member profile's general ledger entries.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid member profile ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return err
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
-			return c.BadRequest(ctx, "User is not authorized")
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger totals"})
 		}
 		entries, err := c.model.MemberAccountingLedgerManager.Find(context, &model.MemberAccountingLedger{
 			MemberProfileID: *memberProfileID,
@@ -487,7 +418,7 @@ func (c *Controller) GeneralLedgerController() {
 			BranchID:        *userOrg.BranchID,
 		})
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve member accounting ledger entries: " + err.Error()})
 		}
 		var totalAmount float64
 		for _, entry := range entries {
@@ -500,27 +431,27 @@ func (c *Controller) GeneralLedgerController() {
 		})
 	})
 
+	// GET /member-accounting-ledger/member-profile/:member_profile_id/search: Paginated ledger entries for a member profile.
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-accounting-ledger/member-profile/:member_profile_id/search",
 		Method:   "GET",
 		Response: "MemberGeneralLedgerTotal",
-		Note:     "Get total amount for a specific member profile's general ledger entries",
+		Note:     "Returns paginated general ledger entries for a specific member profile.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid member profile ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return err
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
-			return c.BadRequest(ctx, "User is not authorized")
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		if userOrg.BranchID == nil {
-			return c.BadRequest(ctx, "Branch ID is missing for user organization")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Branch ID is missing for user organization"})
 		}
 		entries, err := c.model.MemberAccountingLedgerManager.Find(context, &model.MemberAccountingLedger{
 			MemberProfileID: *memberProfileID,
@@ -528,33 +459,33 @@ func (c *Controller) GeneralLedgerController() {
 			BranchID:        *userOrg.BranchID,
 		})
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve member accounting ledger entries: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberAccountingLedgerManager.Pagination(context, ctx, entries))
 	})
 
+	// GET /general-ledger/member-profile/:member_profile_id/account/:account_id/search: Paginated ledger entries for a member profile and account.
 	req.RegisterRoute(horizon.Route{
 		Route:    "/general-ledger/member-profile/:member_profile_id/account/:account_id/search",
 		Method:   "GET",
 		Response: "MemberGeneralLedgerTotal",
-		Note:     "Get total amount for a specific member profile's general ledger entries",
+		Note:     "Returns paginated general ledger entries for a specific member profile and account.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid member profile ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
 		}
 		accountID, err := horizon.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid account ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID"})
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return err
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
-			return c.BadRequest(ctx, "User is not authorized")
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
 			MemberProfileID: memberProfileID,
@@ -563,32 +494,33 @@ func (c *Controller) GeneralLedgerController() {
 			AccountID:       accountID,
 		})
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.Pagination(context, ctx, entries))
 	})
+
+	// GET /general-ledger/member-profile/:member_profile_id/account/:account_id/total: Get total amount for a member profile and account.
 	req.RegisterRoute(horizon.Route{
 		Route:    "/general-ledger/member-profile/:member_profile_id/account/:account_id/total",
 		Method:   "GET",
 		Response: "MemberGeneralLedgerTotal",
-		Note:     "Get total amount for a specific member profile's general ledger entries",
+		Note:     "Returns the total amount for a specific member profile's general ledger entries for an account.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid member profile ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
 		}
 		accountID, err := horizon.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid account ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID"})
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return err
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
-			return c.BadRequest(ctx, "User is not authorized")
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger totals"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
 			MemberProfileID: memberProfileID,
@@ -597,7 +529,7 @@ func (c *Controller) GeneralLedgerController() {
 			AccountID:       accountID,
 		})
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
 		}
 		var totalAmount float64
 		var debit float64
@@ -614,23 +546,24 @@ func (c *Controller) GeneralLedgerController() {
 		})
 	})
 
+	// GET /general-ledger/account/:account_id/search: Paginated general ledger entries for an account.
 	req.RegisterRoute(horizon.Route{
 		Route:    "/general-ledger/account/:account_id/search",
 		Method:   "GET",
 		Response: "GeneralLedger[]",
-		Note:     "Get all general ledger entries for an account with pagination",
+		Note:     "Returns paginated general ledger entries for a specific account.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		accountID, err := horizon.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid account ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID"})
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return err
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
-			return c.BadRequest(ctx, "User is not authorized")
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view general ledger entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
 			AccountID:      accountID,
@@ -638,52 +571,50 @@ func (c *Controller) GeneralLedgerController() {
 			BranchID:       *userOrg.BranchID,
 		})
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.Pagination(context, ctx, entries))
 	})
-	// Delete a general ledger definition by ID, only if no accounts are linked
+
+	// DELETE /general-ledger-definition/:general_definition_id: Delete a general ledger definition by ID, only if no accounts are linked.
 	req.RegisterRoute(horizon.Route{
 		Route:    "/general-ledger-definition/:general_definition_id",
 		Method:   "DELETE",
 		Response: "GeneralLedgerDefinitionResponse",
-		Note:     "Delete a general ledger definition by ID, only if no accounts are linked",
+		Note:     "Deletes a general ledger definition by its ID, only if no accounts are linked.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		glDefinitionID, err := horizon.EngineUUIDParam(ctx, "general_definition_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid general ledger definition ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid general ledger definition ID"})
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return err
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
-			return c.BadRequest(ctx, "User is not authorized")
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to delete general ledger definitions"})
 		}
 		glDefinition, err := c.model.GeneralLedgerDefinitionManager.GetByID(context, *glDefinitionID)
 		if err != nil {
-			return c.NotFound(ctx, "General Ledger Definition")
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "General ledger definition not found"})
 		}
 		if len(glDefinition.GeneralLedgerDefinitionEntries) > 0 {
-			return c.BadRequest(ctx, "Cannot delete: general ledger definition has entries")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cannot delete: general ledger definition has sub-entries"})
 		}
-		// Check if any accounts are linked to this general ledger definition
 		accounts, err := c.model.AccountManager.Find(context, &model.Account{
 			GeneralLedgerDefinitionID: glDefinitionID,
 			OrganizationID:            userOrg.OrganizationID,
 			BranchID:                  *userOrg.BranchID,
 		})
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to check linked accounts: " + err.Error()})
 		}
 		if len(accounts) > 0 {
-			return c.BadRequest(ctx, "Cannot delete: accounts are linked to this general ledger definition")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cannot delete: accounts are linked to this general ledger definition"})
 		}
 		if err := c.model.GeneralLedgerDefinitionManager.DeleteByID(context, glDefinition.ID); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete general ledger definition: " + err.Error()})
 		}
 		return ctx.NoContent(http.StatusNoContent)
 	})

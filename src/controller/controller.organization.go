@@ -12,61 +12,66 @@ import (
 
 func (c *Controller) OrganizationController() {
 	req := c.provider.Service.Request
+
+	// Get all public organizations
 	req.RegisterRoute(horizon.Route{
 		Route:    "/organization",
 		Method:   "GET",
 		Response: "TOrganization[]",
+		Note:     "Returns all public organizations.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		organization, err := c.model.GetPublicOrganization(context)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve organizations: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.OrganizationManager.ToModels(organization))
 	})
 
+	// Get an organization by its ID
 	req.RegisterRoute(horizon.Route{
 		Route:    "/organization/:organization_id",
 		Method:   "GET",
 		Response: "TCategory",
+		Note:     "Returns a specific organization by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		organizationID, err := horizon.EngineUUIDParam(ctx, "organization_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid organization ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization_id: " + err.Error()})
 		}
 		organization, err := c.model.OrganizationManager.GetByIDRaw(context, *organizationID)
 		if err != nil {
-			return c.NotFound(ctx, "Organization")
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Organization not found: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, organization)
 	})
 
+	// Create a new organization (user must be logged in)
 	req.RegisterRoute(horizon.Route{
 		Route:    "/organization",
 		Method:   "POST",
 		Request:  "TOrganization",
 		Response: "{organization: TOrganization, user_organization: TUserOrganization}",
-		Note:     "(User must be logged in) This will be use to create an organization",
+		Note:     "Creates a new organization. User must be logged in.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.OrganizationManager.Validate(ctx)
 		if err != nil {
-			return err
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		user, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
-			return err
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get current user: " + err.Error()})
 		}
 		subscription, err := c.model.SubscriptionPlanManager.GetByID(context, *req.SubscriptionPlanID)
 		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Subscription plan not found"})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Subscription plan not found: " + err.Error()})
 		}
 		tx := c.provider.Service.Database.Client().Begin()
 		if tx.Error != nil {
 			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
 		}
 		var subscriptionEndDate time.Time
 		if req.SubscriptionPlanIsYearly {
@@ -76,37 +81,35 @@ func (c *Controller) OrganizationController() {
 		}
 
 		organization := &model.Organization{
-			CreatedAt:          time.Now().UTC(),
-			CreatedByID:        user.ID,
-			UpdatedAt:          time.Now().UTC(),
-			UpdatedByID:        user.ID,
-			Name:               req.Name,
-			Address:            req.Address,
-			Email:              req.Email,
-			ContactNumber:      req.ContactNumber,
-			Description:        req.Description,
-			Color:              req.Color,
-			TermsAndConditions: req.TermsAndConditions,
-			PrivacyPolicy:      req.PrivacyPolicy,
-			CookiePolicy:       req.CookiePolicy,
-			RefundPolicy:       req.RefundPolicy,
-			UserAgreement:      req.UserAgreement,
-			IsPrivate:          req.IsPrivate,
-			MediaID:            req.MediaID,
-			CoverMediaID:       req.CoverMediaID,
-
+			CreatedAt:                           time.Now().UTC(),
+			CreatedByID:                         user.ID,
+			UpdatedAt:                           time.Now().UTC(),
+			UpdatedByID:                         user.ID,
+			Name:                                req.Name,
+			Address:                             req.Address,
+			Email:                               req.Email,
+			ContactNumber:                       req.ContactNumber,
+			Description:                         req.Description,
+			Color:                               req.Color,
+			TermsAndConditions:                  req.TermsAndConditions,
+			PrivacyPolicy:                       req.PrivacyPolicy,
+			CookiePolicy:                        req.CookiePolicy,
+			RefundPolicy:                        req.RefundPolicy,
+			UserAgreement:                       req.UserAgreement,
+			IsPrivate:                           req.IsPrivate,
+			MediaID:                             req.MediaID,
+			CoverMediaID:                        req.CoverMediaID,
 			SubscriptionPlanMaxBranches:         subscription.MaxBranches,
 			SubscriptionPlanMaxEmployees:        subscription.MaxEmployees,
 			SubscriptionPlanMaxMembersPerBranch: subscription.MaxMembersPerBranch,
-
-			SubscriptionPlanID:    &subscription.ID,
-			SubscriptionStartDate: time.Now().UTC(),
-			SubscriptionEndDate:   subscriptionEndDate,
+			SubscriptionPlanID:                  &subscription.ID,
+			SubscriptionStartDate:               time.Now().UTC(),
+			SubscriptionEndDate:                 subscriptionEndDate,
 		}
 
 		if err := c.model.OrganizationManager.CreateWithTx(context, tx, organization); err != nil {
 			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create organization: " + err.Error()})
 		}
 
 		var longitude float64 = 0
@@ -118,24 +121,23 @@ func (c *Controller) OrganizationController() {
 			UpdatedAt:      time.Now().UTC(),
 			UpdatedByID:    user.ID,
 			OrganizationID: organization.ID,
-
-			MediaID:       req.MediaID,
-			Name:          req.Name,
-			Email:         *req.Email,
-			Description:   req.Description,
-			CountryCode:   "",
-			ContactNumber: req.ContactNumber,
-			Latitude:      &latitude,
-			Longitude:     &longitude,
+			MediaID:        req.MediaID,
+			Name:           req.Name,
+			Email:          *req.Email,
+			Description:    req.Description,
+			CountryCode:    "",
+			ContactNumber:  req.ContactNumber,
+			Latitude:       &latitude,
+			Longitude:      &longitude,
 		}
 		if err := c.model.BranchManager.CreateWithTx(context, tx, branch); err != nil {
 			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create branch: " + err.Error()})
 		}
 		developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, user.ID.String())
 		if err != nil {
 			tx.Rollback()
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "something wrong generting developer key"})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate developer key: " + err.Error()})
 		}
 		userOrganization := &model.UserOrganization{
 			CreatedAt:              time.Now().UTC(),
@@ -156,7 +158,7 @@ func (c *Controller) OrganizationController() {
 		}
 		if err := c.model.UserOrganizationManager.CreateWithTx(context, tx, userOrganization); err != nil {
 			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create user organization: " + err.Error()})
 		}
 		for _, category := range req.OrganizationCategories {
 			if err := c.model.OrganizationCategoryManager.CreateWithTx(context, tx, &model.OrganizationCategory{
@@ -166,12 +168,12 @@ func (c *Controller) OrganizationController() {
 				CategoryID:     &category.CategoryID,
 			}); err != nil {
 				tx.Rollback()
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create organization category: " + err.Error()})
 			}
 		}
 		if err := tx.Commit().Error; err != nil {
 			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, map[string]any{
 			"organization":      c.model.OrganizationManager.ToModel(organization),
@@ -179,31 +181,32 @@ func (c *Controller) OrganizationController() {
 		})
 	})
 
+	// Update an organization (user must be logged in)
 	req.RegisterRoute(horizon.Route{
 		Route:    "/organization/:organization_id",
 		Method:   "PUT",
 		Request:  "TOrganization",
 		Response: "{organization: TOrganization, user_organization: TUserOrganization}",
-		Note:     "(User must be logged in) This will be use to update an organization",
+		Note:     "Updates an organization. User must be logged in.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		organizationId, err := horizon.EngineUUIDParam(ctx, "organization_id")
 		if err != nil {
-			return err
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization_id: " + err.Error()})
 		}
 		req, err := c.model.OrganizationManager.Validate(ctx)
 		if err != nil {
-			return err
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
 		user, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
-			return err
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get current user: " + err.Error()})
 		}
 
 		organization, err := c.model.OrganizationManager.GetByID(context, *organizationId)
 		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Organization not found"})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Organization not found: " + err.Error()})
 		}
 		if organization.CreatedByID != user.ID {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "You are not authorized to update this organization"})
@@ -211,7 +214,7 @@ func (c *Controller) OrganizationController() {
 		tx := c.provider.Service.Database.Client().Begin()
 		if tx.Error != nil {
 			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
 		}
 		organization.Name = req.Name
 		organization.Address = req.Address
@@ -231,18 +234,18 @@ func (c *Controller) OrganizationController() {
 		organization.UpdatedByID = user.ID
 		if err := c.model.OrganizationManager.UpdateFieldsWithTx(context, tx, organization.ID, organization); err != nil {
 			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update organization: " + err.Error()})
 		}
 		organizationsFromCategory, err := c.model.GetOrganizationCategoryByOrganization(context, organization.ID)
 		if err != nil {
 			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get organization categories: " + err.Error()})
 		}
 
 		for _, category := range organizationsFromCategory {
 			if err := c.model.OrganizationCategoryManager.DeleteByIDWithTx(context, tx, category.ID); err != nil {
 				tx.Rollback()
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete organization category: " + err.Error()})
 			}
 		}
 
@@ -255,30 +258,31 @@ func (c *Controller) OrganizationController() {
 				CategoryID:     &category.CategoryID,
 			}); err != nil {
 				tx.Rollback()
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create organization category: " + err.Error()})
 			}
 		}
 
 		if err := tx.Commit().Error; err != nil {
 			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.OrganizationManager.ToModel(organization))
 	})
 
+	// Delete an organization (user must be logged in)
 	req.RegisterRoute(horizon.Route{
 		Route:  "/organization/:organization_id",
 		Method: "DELETE",
-		Note:   "(User must be logged in) This will be use to DELETE an organization",
+		Note:   "Deletes an organization. User must be logged in.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		organizationId, err := horizon.EngineUUIDParam(ctx, "organization_id")
 		if err != nil {
-			return err
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization_id: " + err.Error()})
 		}
 		organization, err := c.model.OrganizationManager.GetByID(context, *organizationId)
 		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Organization not found"})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Organization not found: " + err.Error()})
 		}
 		currentTime := time.Now().UTC()
 		if organization.SubscriptionEndDate.After(currentTime) {
@@ -286,55 +290,54 @@ func (c *Controller) OrganizationController() {
 		}
 		userOrganizations, err := c.model.GetUserOrganizationByOrganization(context, organization.ID, nil)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get user organizations: " + err.Error()})
 		}
 		if len(userOrganizations) >= 3 {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete organization with more than 2 user organizations"})
 		}
 		user, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
-			return err
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get current user: " + err.Error()})
 		}
 		tx := c.provider.Service.Database.Client().Begin()
 		if tx.Error != nil {
 			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
 		}
 		for _, category := range organization.OrganizationCategories {
 			if err := c.model.OrganizationCategoryManager.DeleteByIDWithTx(context, tx, category.ID); err != nil {
 				tx.Rollback()
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete organization category: " + err.Error()})
 			}
 		}
 		branches, err := c.model.GetBranchesByOrganization(context, organization.ID)
 		if err != nil {
 			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get branches for organization: " + err.Error()})
 		}
 		for _, branch := range branches {
 			if err := c.model.OrganizationDestroyer(context, tx, user.ID, *organizationId, branch.ID); err != nil {
 				tx.Rollback()
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to destroy organization branch: " + err.Error()})
 			}
 			if err := c.model.BranchManager.DeleteByIDWithTx(context, tx, branch.ID); err != nil {
 				tx.Rollback()
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete branch: " + err.Error()})
 			}
 		}
 		if err := c.model.OrganizationManager.DeleteByIDWithTx(context, tx, *organizationId); err != nil {
 			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete organization: " + err.Error()})
 		}
 		for _, userOrganization := range userOrganizations {
-
 			if err := c.model.UserOrganizationManager.DeleteByIDWithTx(context, tx, userOrganization.ID); err != nil {
 				tx.Rollback()
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete user organization: " + err.Error()})
 			}
 		}
 		if err := tx.Commit().Error; err != nil {
 			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
 		return ctx.NoContent(http.StatusNoContent)
 	})

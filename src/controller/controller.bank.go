@@ -11,83 +11,99 @@ import (
 	"github.com/lands-horizon/horizon-server/src/model"
 )
 
+// BankController registers routes for managing banks.
 func (c *Controller) BankController() {
 	req := c.provider.Service.Request
 
+	// GET /bank: List all banks for the current user's branch.
 	req.RegisterRoute(horizon.Route{
 		Route:    "/bank",
 		Method:   "GET",
 		Response: "TBank[]",
+		Note:     "Returns all banks for the current user's organization and branch. Returns empty if not authenticated.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.NoContent(http.StatusNoContent)
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		bank, err := c.model.BankCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		if user.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		banks, err := c.model.BankCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
-			return c.NotFound(ctx, "Bank")
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No banks found for the current branch"})
 		}
-
-		return ctx.JSON(http.StatusOK, c.model.BankManager.ToModels(bank))
+		return ctx.JSON(http.StatusOK, c.model.BankManager.ToModels(banks))
 	})
 
+	// GET /bank/search: Paginated search of banks for the current branch.
 	req.RegisterRoute(horizon.Route{
 		Route:    "/bank/search",
 		Method:   "GET",
 		Request:  "Filter<IBank>",
 		Response: "Paginated<IBank>",
-		Note:     "Get pagination bank",
+		Note:     "Returns a paginated list of banks for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.NoContent(http.StatusNoContent)
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		value, err := c.model.BankCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		if user.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		banks, err := c.model.BankCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch banks for pagination: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.BankManager.Pagination(context, ctx, value))
+		return ctx.JSON(http.StatusOK, c.model.BankManager.Pagination(context, ctx, banks))
 	})
+
+	// GET /bank/:bank_id: Get specific bank by ID.
 	req.RegisterRoute(horizon.Route{
 		Route:    "/bank/:bank_id",
 		Method:   "GET",
 		Response: "TBank",
+		Note:     "Returns a single bank by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		bankID, err := horizon.EngineUUIDParam(ctx, "bank_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid bank ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid bank ID"})
 		}
 		bank, err := c.model.BankManager.GetByIDRaw(context, *bankID)
 		if err != nil {
-			return c.NotFound(ctx, "Bank")
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Bank not found"})
 		}
 		return ctx.JSON(http.StatusOK, bank)
 	})
 
+	// POST /bank: Create a new bank.
 	req.RegisterRoute(horizon.Route{
 		Route:    "/bank",
 		Method:   "POST",
 		Request:  "TBank",
 		Response: "TBank",
+		Note:     "Creates a new bank for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.BankManager.Validate(ctx)
 		if err != nil {
-			return c.BadRequest(ctx, err.Error())
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid bank data: " + err.Error()})
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.NoContent(http.StatusNoContent)
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if user.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
 		bank := &model.Bank{
-			MediaID:     req.MediaID,
-			Name:        req.Name,
-			Description: req.Description,
-
+			MediaID:        req.MediaID,
+			Name:           req.Name,
+			Description:    req.Description,
 			CreatedAt:      time.Now().UTC(),
 			CreatedByID:    user.UserID,
 			UpdatedAt:      time.Now().UTC(),
@@ -97,37 +113,37 @@ func (c *Controller) BankController() {
 		}
 
 		if err := c.model.BankManager.Create(context, bank); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create bank: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, c.model.BankManager.ToModel(bank))
+		return ctx.JSON(http.StatusCreated, c.model.BankManager.ToModel(bank))
 	})
 
+	// PUT /bank/:bank_id: Update bank by ID.
 	req.RegisterRoute(horizon.Route{
 		Route:    "/bank/:bank_id",
 		Method:   "PUT",
 		Request:  "TBank",
 		Response: "TBank",
+		Note:     "Updates an existing bank by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		bankID, err := horizon.EngineUUIDParam(ctx, "bank_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid bank ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid bank ID"})
 		}
 
 		req, err := c.model.BankManager.Validate(ctx)
 		if err != nil {
-			return c.BadRequest(ctx, err.Error())
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid bank data: " + err.Error()})
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.NoContent(http.StatusNoContent)
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-
 		bank, err := c.model.BankManager.GetByID(context, *bankID)
 		if err != nil {
-			return c.NotFound(ctx, "Bank")
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Bank not found"})
 		}
 		bank.MediaID = req.MediaID
 		bank.Name = req.Name
@@ -135,68 +151,67 @@ func (c *Controller) BankController() {
 		bank.UpdatedAt = time.Now().UTC()
 		bank.UpdatedByID = user.UserID
 		if err := c.model.BankManager.UpdateFields(context, bank.ID, bank); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update bank: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.BankManager.ToModel(bank))
 	})
 
+	// DELETE /bank/:bank_id: Delete a bank by ID.
 	req.RegisterRoute(horizon.Route{
 		Route:  "/bank/:bank_id",
 		Method: "DELETE",
+		Note:   "Deletes the specified bank by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		bankID, err := horizon.EngineUUIDParam(ctx, "bank_id")
 		if err != nil {
-			return c.BadRequest(ctx, "Invalid bank ID")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid bank ID"})
 		}
 		if err := c.model.BankManager.DeleteByID(context, *bankID); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete bank: " + err.Error()})
 		}
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
+	// DELETE /bank/bulk-delete: Bulk delete banks by IDs.
 	req.RegisterRoute(horizon.Route{
 		Route:   "/bank/bulk-delete",
 		Method:  "DELETE",
 		Request: "string[]",
-		Note:    "Delete multiple bank records",
+		Note:    "Deletes multiple banks by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody struct {
 			IDs []string `json:"ids"`
 		}
 		if err := ctx.Bind(&reqBody); err != nil {
-			return c.BadRequest(ctx, "Invalid request body")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
 		}
 		if len(reqBody.IDs) == 0 {
-			return c.BadRequest(ctx, "No IDs provided")
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No bank IDs provided for bulk delete"})
 		}
 		tx := c.provider.Service.Database.Client().Begin()
 		if tx.Error != nil {
 			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
 		for _, rawID := range reqBody.IDs {
 			bankID, err := uuid.Parse(rawID)
 			if err != nil {
 				tx.Rollback()
-				return c.BadRequest(ctx, fmt.Sprintf("Invalid UUID: %s", rawID))
+				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
 			}
 			if _, err := c.model.BankManager.GetByID(context, bankID); err != nil {
 				tx.Rollback()
-				return c.NotFound(ctx, fmt.Sprintf("Bank with ID %s", rawID))
+				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Bank not found with ID: %s", rawID)})
 			}
 			if err := c.model.BankManager.DeleteByIDWithTx(context, tx, bankID); err != nil {
 				tx.Rollback()
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete bank: " + err.Error()})
 			}
 		}
 		if err := tx.Commit().Error; err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit bulk delete: " + err.Error()})
 		}
 		return ctx.NoContent(http.StatusNoContent)
 	})
