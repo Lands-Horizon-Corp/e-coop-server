@@ -50,8 +50,8 @@ type Route struct {
 
 // GroupedRoute holds a group of routes under a common key.
 type GroupedRoute struct {
-	Key    string
-	Routes []Route
+	Key    string  `json:"key"`
+	Routes []Route `json:"routes"`
 }
 
 // HorizonAPIService implements APIService.
