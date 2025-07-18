@@ -103,6 +103,8 @@ func (c *Controller) Start() error {
 
 	// Accounts
 	c.AccountController()
+	c.AccountCategoryController()
+	c.AccountClassificationController()
 	c.GeneralLedgerController()
 	c.FinancialStatementController()
 	c.AccountTagController()

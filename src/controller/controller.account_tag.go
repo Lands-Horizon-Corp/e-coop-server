@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/horizon"
+	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
 
@@ -90,13 +91,28 @@ func (c *Controller) AccountTagController() {
 		context := ctx.Request().Context()
 		req, err := c.model.AccountTagManager.Validate(ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create error",
+				Description: fmt.Sprintf("Failed to validate data for POST /account-tag: %v", err),
+				Module:      "account-tag",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account tag data: " + err.Error()})
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create error",
+				Description: "User organization not found or authentication failed for POST /account-tag",
+				Module:      "account-tag",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 		if user.BranchID == nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create error",
+				Description: "User is not assigned to a branch for POST /account-tag",
+				Module:      "account-tag",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
@@ -116,8 +132,19 @@ func (c *Controller) AccountTagController() {
 		}
 
 		if err := c.model.AccountTagManager.Create(context, accountTag); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create error",
+				Description: fmt.Sprintf("Failed to create account tag on POST /account-tag: %v", err),
+				Module:      "account-tag",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create account tag: " + err.Error()})
 		}
+
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "create success",
+			Description: fmt.Sprintf("Created account tag: %s (ID: %s)", accountTag.Name, accountTag.ID),
+			Module:      "account-tag",
+		})
 
 		return ctx.JSON(http.StatusOK, c.model.AccountTagManager.ToModel(accountTag))
 	})
@@ -133,18 +160,38 @@ func (c *Controller) AccountTagController() {
 		context := ctx.Request().Context()
 		accountTagID, err := horizon.EngineUUIDParam(ctx, "account_tag_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update error",
+				Description: fmt.Sprintf("Invalid account tag ID for PUT /account-tag/:account_tag_id: %v", err),
+				Module:      "account-tag",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account tag ID"})
 		}
 		req, err := c.model.AccountTagManager.Validate(ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update error",
+				Description: fmt.Sprintf("Failed to validate data for PUT /account-tag/:account_tag_id: %v", err),
+				Module:      "account-tag",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account tag data: " + err.Error()})
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update error",
+				Description: "User organization not found or authentication failed for PUT /account-tag/:account_tag_id",
+				Module:      "account-tag",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 		accountTag, err := c.model.AccountTagManager.GetByID(context, *accountTagID)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update error",
+				Description: fmt.Sprintf("Account tag not found for PUT /account-tag/:account_tag_id: %v", err),
+				Module:      "account-tag",
+			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account tag not found"})
 		}
 		accountTag.AccountID = req.AccountID
@@ -157,8 +204,20 @@ func (c *Controller) AccountTagController() {
 		accountTag.UpdatedByID = user.UserID
 
 		if err := c.model.AccountTagManager.UpdateFields(context, accountTag.ID, accountTag); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update error",
+				Description: fmt.Sprintf("Failed to update account tag for PUT /account-tag/:account_tag_id: %v", err),
+				Module:      "account-tag",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update account tag: " + err.Error()})
 		}
+
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "update success",
+			Description: fmt.Sprintf("Updated account tag: %s (ID: %s)", accountTag.Name, accountTag.ID),
+			Module:      "account-tag",
+		})
+
 		return ctx.JSON(http.StatusOK, c.model.AccountTagManager.ToModel(accountTag))
 	})
 
@@ -171,11 +230,26 @@ func (c *Controller) AccountTagController() {
 		context := ctx.Request().Context()
 		accountTagID, err := horizon.EngineUUIDParam(ctx, "account_tag_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete error",
+				Description: fmt.Sprintf("Invalid account tag ID for DELETE /account-tag/:account_tag_id: %v", err),
+				Module:      "account-tag",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account tag ID"})
 		}
 		if err := c.model.AccountTagManager.DeleteByID(context, *accountTagID); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete error",
+				Description: fmt.Sprintf("Failed to delete account tag for DELETE /account-tag/:account_tag_id: %v", err),
+				Module:      "account-tag",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete account tag: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "delete success",
+			Description: fmt.Sprintf("Deleted account tag ID: %s", accountTagID.String()),
+			Module:      "account-tag",
+		})
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
@@ -191,35 +265,75 @@ func (c *Controller) AccountTagController() {
 			IDs []string `json:"ids"`
 		}
 		if err := ctx.Bind(&reqBody); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete error",
+				Description: "Invalid request body for DELETE /account-tag/bulk-delete",
+				Module:      "account-tag",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
 		}
 		if len(reqBody.IDs) == 0 {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete error",
+				Description: "No IDs provided for bulk delete on DELETE /account-tag/bulk-delete",
+				Module:      "account-tag",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
 		tx := c.provider.Service.Database.Client().Begin()
 		if tx.Error != nil {
 			tx.Rollback()
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete error",
+				Description: fmt.Sprintf("Failed to start DB transaction for DELETE /account-tag/bulk-delete: %v", tx.Error),
+				Module:      "account-tag",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
 		for _, rawID := range reqBody.IDs {
 			accountTagID, err := uuid.Parse(rawID)
 			if err != nil {
 				tx.Rollback()
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "delete error",
+					Description: fmt.Sprintf("Invalid UUID in bulk delete: %s", rawID),
+					Module:      "account-tag",
+				})
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
 			}
 			if _, err := c.model.AccountTagManager.GetByID(context, accountTagID); err != nil {
 				tx.Rollback()
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "delete error",
+					Description: fmt.Sprintf("Account tag not found in bulk delete: %s", rawID),
+					Module:      "account-tag",
+				})
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Account tag not found with ID: %s", rawID)})
 			}
 			if err := c.model.AccountTagManager.DeleteByIDWithTx(context, tx, accountTagID); err != nil {
 				tx.Rollback()
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "delete error",
+					Description: fmt.Sprintf("Failed to delete account tag in bulk delete: %v", err),
+					Module:      "account-tag",
+				})
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete account tag: " + err.Error()})
 			}
 		}
 		if err := tx.Commit().Error; err != nil {
 			tx.Rollback()
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete error",
+				Description: fmt.Sprintf("Failed to commit bulk delete transaction for DELETE /account-tag/bulk-delete: %v", err),
+				Module:      "account-tag",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit bulk delete transaction: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "delete success",
+			Description: fmt.Sprintf("Bulk deleted account tags: %v", reqBody.IDs),
+			Module:      "account-tag",
+		})
 		return ctx.NoContent(http.StatusNoContent)
 	})
 }

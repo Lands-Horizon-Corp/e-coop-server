@@ -6,6 +6,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/horizon"
+	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
 
@@ -23,14 +24,29 @@ func (c *Controller) MemberRelativeAccountController() {
 		context := ctx.Request().Context()
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create member relative account failed: invalid member_profile_id: " + err.Error(),
+				Module:      "MemberRelativeAccount",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
 		req, err := c.model.MemberRelativeAccountManager.Validate(ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create member relative account failed: validation error: " + err.Error(),
+				Module:      "MemberRelativeAccount",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create member relative account failed: user org error: " + err.Error(),
+				Module:      "MemberRelativeAccount",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
@@ -48,8 +64,19 @@ func (c *Controller) MemberRelativeAccountController() {
 		}
 
 		if err := c.model.MemberRelativeAccountManager.Create(context, value); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create member relative account failed: " + err.Error(),
+				Module:      "MemberRelativeAccount",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create relative account record: " + err.Error()})
 		}
+
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "create-success",
+			Description: "Created member relative account for member_profile_id: " + memberProfileID.String(),
+			Module:      "MemberRelativeAccount",
+		})
 
 		return ctx.JSON(http.StatusOK, c.model.MemberRelativeAccountManager.ToModel(value))
 	})
@@ -65,19 +92,39 @@ func (c *Controller) MemberRelativeAccountController() {
 		context := ctx.Request().Context()
 		memberRelativeAccountID, err := horizon.EngineUUIDParam(ctx, "member_relative_account_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member relative account failed: invalid member_relative_account_id: " + err.Error(),
+				Module:      "MemberRelativeAccount",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_relative_account_id: " + err.Error()})
 		}
 		req, err := c.model.MemberRelativeAccountManager.Validate(ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member relative account failed: validation error: " + err.Error(),
+				Module:      "MemberRelativeAccount",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member relative account failed: user org error: " + err.Error(),
+				Module:      "MemberRelativeAccount",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
 		value, err := c.model.MemberRelativeAccountManager.GetByID(context, *memberRelativeAccountID)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member relative account failed: record not found: " + err.Error(),
+				Module:      "MemberRelativeAccount",
+			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Relative account record not found: " + err.Error()})
 		}
 
@@ -91,8 +138,18 @@ func (c *Controller) MemberRelativeAccountController() {
 		value.Description = req.Description
 
 		if err := c.model.MemberRelativeAccountManager.UpdateFields(context, value.ID, value); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member relative account failed: update error: " + err.Error(),
+				Module:      "MemberRelativeAccount",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update relative account record: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "update-success",
+			Description: "Updated member relative account ID: " + memberRelativeAccountID.String(),
+			Module:      "MemberRelativeAccount",
+		})
 		return ctx.JSON(http.StatusOK, c.model.MemberRelativeAccountManager.ToModel(value))
 	})
 
@@ -105,11 +162,26 @@ func (c *Controller) MemberRelativeAccountController() {
 		context := ctx.Request().Context()
 		memberRelativeAccountID, err := horizon.EngineUUIDParam(ctx, "member_relative_account_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete member relative account failed: invalid member_relative_account_id: " + err.Error(),
+				Module:      "MemberRelativeAccount",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_relative_account_id: " + err.Error()})
 		}
 		if err := c.model.MemberRelativeAccountManager.DeleteByID(context, *memberRelativeAccountID); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete member relative account failed: " + err.Error(),
+				Module:      "MemberRelativeAccount",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete relative account record: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "delete-success",
+			Description: "Deleted member relative account ID: " + memberRelativeAccountID.String(),
+			Module:      "MemberRelativeAccount",
+		})
 		return ctx.NoContent(http.StatusNoContent)
 	})
 }

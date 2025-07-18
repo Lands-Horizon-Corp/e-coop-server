@@ -22,9 +22,9 @@ type (
 		DeletedAt      gorm.DeletedAt `gorm:"index"`
 		DeletedByID    *uuid.UUID     `gorm:"type:uuid"`
 		DeletedBy      *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
-		OrganizationID uuid.UUID      `gorm:"type:uuid;not null;index:idx_branch_org_footstep"`
+		OrganizationID *uuid.UUID     `gorm:"type:uuid;index:idx_branch_org_footstep"`
 		Organization   *Organization  `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID      `gorm:"type:uuid;not null;index:idx_branch_org_footstep"`
+		BranchID       *uuid.UUID     `gorm:"type:uuid;index:idx_branch_org_footstep"`
 		Branch         *Branch        `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE;" json:"branch,omitempty"`
 
 		UserID  *uuid.UUID `gorm:"type:uuid"`
@@ -55,9 +55,9 @@ type (
 		UpdatedAt      string                `json:"updated_at"`
 		UpdatedByID    uuid.UUID             `json:"updated_by_id"`
 		UpdatedBy      *UserResponse         `json:"updated_by,omitempty"`
-		OrganizationID uuid.UUID             `json:"organization_id"`
+		OrganizationID *uuid.UUID            `json:"organization_id,omitempty"`
 		Organization   *OrganizationResponse `json:"organization,omitempty"`
-		BranchID       uuid.UUID             `json:"branch_id"`
+		BranchID       *uuid.UUID            `json:"branch_id,omitempty"`
 		Branch         *BranchResponse       `json:"branch,omitempty"`
 
 		UserID  *uuid.UUID     `json:"user_id,omitempty"`
@@ -167,15 +167,15 @@ func (m *Model) GetFootstepByUser(context context.Context, userId uuid.UUID) ([]
 
 func (m *Model) GetFootstepByBranch(context context.Context, organizationId uuid.UUID, branchId uuid.UUID) ([]*Footstep, error) {
 	return m.FootstepManager.Find(context, &Footstep{
-		OrganizationID: organizationId,
-		BranchID:       branchId,
+		OrganizationID: &organizationId,
+		BranchID:       &branchId,
 	})
 }
 
 func (m *Model) GetFootstepByUserOrganization(context context.Context, userId uuid.UUID, organizationId uuid.UUID, branchId uuid.UUID) ([]*Footstep, error) {
 	return m.FootstepManager.Find(context, &Footstep{
 		UserID:         &userId,
-		OrganizationID: organizationId,
-		BranchID:       branchId,
+		OrganizationID: &organizationId,
+		BranchID:       &branchId,
 	})
 }

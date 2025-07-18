@@ -6,6 +6,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/horizon"
+	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
 
@@ -24,17 +25,37 @@ func (c *Controller) MemberAddressController() {
 		context := ctx.Request().Context()
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create member address failed (/member-address/member-profile/:member_profile_id), invalid member profile ID.",
+				Module:      "MemberAddress",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
 		}
 		req, err := c.model.MemberAddressManager.Validate(ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create member address failed (/member-address/member-profile/:member_profile_id), validation error: " + err.Error(),
+				Module:      "MemberAddress",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid address data: " + err.Error()})
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create member address failed (/member-address/member-profile/:member_profile_id), user org error: " + err.Error(),
+				Module:      "MemberAddress",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization/branch not found"})
 		}
 		if user.BranchID == nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create member address failed (/member-address/member-profile/:member_profile_id), user not assigned to branch.",
+				Module:      "MemberAddress",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		value := &model.MemberAddress{
@@ -55,8 +76,18 @@ func (c *Controller) MemberAddressController() {
 			OrganizationID:  user.OrganizationID,
 		}
 		if err := c.model.MemberAddressManager.Create(context, value); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create member address failed (/member-address/member-profile/:member_profile_id), db error: " + err.Error(),
+				Module:      "MemberAddress",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create member address record: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "create-success",
+			Description: "Created member address (/member-address/member-profile/:member_profile_id): " + value.Label,
+			Module:      "MemberAddress",
+		})
 		return ctx.JSON(http.StatusCreated, c.model.MemberAddressManager.ToModel(value))
 	})
 
@@ -71,21 +102,46 @@ func (c *Controller) MemberAddressController() {
 		context := ctx.Request().Context()
 		memberAddressID, err := horizon.EngineUUIDParam(ctx, "member_address_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member address failed (/member-address/:member_address_id), invalid member address ID.",
+				Module:      "MemberAddress",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member address ID"})
 		}
 		req, err := c.model.MemberAddressManager.Validate(ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member address failed (/member-address/:member_address_id), validation error: " + err.Error(),
+				Module:      "MemberAddress",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid address data: " + err.Error()})
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member address failed (/member-address/:member_address_id), user org error: " + err.Error(),
+				Module:      "MemberAddress",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization/branch not found"})
 		}
 		if user.BranchID == nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member address failed (/member-address/:member_address_id), user not assigned to branch.",
+				Module:      "MemberAddress",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		value, err := c.model.MemberAddressManager.GetByID(context, *memberAddressID)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member address failed (/member-address/:member_address_id), record not found.",
+				Module:      "MemberAddress",
+			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member address record not found"})
 		}
 		value.UpdatedAt = time.Now().UTC()
@@ -103,8 +159,18 @@ func (c *Controller) MemberAddressController() {
 		value.Landmark = req.Landmark
 		value.Address = req.Address
 		if err := c.model.MemberAddressManager.UpdateFields(context, value.ID, value); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member address failed (/member-address/:member_address_id), db error: " + err.Error(),
+				Module:      "MemberAddress",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update member address record: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "update-success",
+			Description: "Updated member address (/member-address/:member_address_id): " + value.Label,
+			Module:      "MemberAddress",
+		})
 		return ctx.JSON(http.StatusOK, c.model.MemberAddressManager.ToModel(value))
 	})
 
@@ -117,11 +183,35 @@ func (c *Controller) MemberAddressController() {
 		context := ctx.Request().Context()
 		memberAddressID, err := horizon.EngineUUIDParam(ctx, "member_address_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete member address failed (/member-address/:member_address_id), invalid member address ID.",
+				Module:      "MemberAddress",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member address ID"})
 		}
+		value, err := c.model.MemberAddressManager.GetByID(context, *memberAddressID)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete member address failed (/member-address/:member_address_id), record not found.",
+				Module:      "MemberAddress",
+			})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member address record not found"})
+		}
 		if err := c.model.MemberAddressManager.DeleteByID(context, *memberAddressID); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete member address failed (/member-address/:member_address_id), db error: " + err.Error(),
+				Module:      "MemberAddress",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete member address record: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "delete-success",
+			Description: "Deleted member address (/member-address/:member_address_id): " + value.Label,
+			Module:      "MemberAddress",
+		})
 		return ctx.NoContent(http.StatusNoContent)
 	})
 }

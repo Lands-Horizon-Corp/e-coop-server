@@ -7,6 +7,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/horizon"
+	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
 
@@ -14,7 +15,7 @@ import (
 func (c *Controller) GeneralLedgerController() {
 	req := c.provider.Service.Request
 
-	// GET /general-ledger-accounts-grouping: List all general ledger account groupings for the current branch.
+	// GET /general-ledger-accounts-grouping (NO footstep)
 	req.RegisterRoute(horizon.Route{
 		Route:    "/general-ledger-accounts-grouping",
 		Method:   "GET",
@@ -47,7 +48,6 @@ func (c *Controller) GeneralLedgerController() {
 				if err != nil {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger definitions: " + err.Error()})
 				}
-
 				var filteredEntries []*model.GeneralLedgerDefinition
 				for _, entry := range entries {
 					if entry.GeneralLedgerDefinitionEntryID == nil {
@@ -60,7 +60,7 @@ func (c *Controller) GeneralLedgerController() {
 		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerAccountsGroupingManager.ToModels(gl))
 	})
 
-	// PUT /general-ledger-accounts-grouping/:general_ledger_accounts_grouping_id: Update a general ledger account grouping.
+	// PUT /general-ledger-accounts-grouping/:general_ledger_accounts_grouping_id (WITH footstep)
 	req.RegisterRoute(horizon.Route{
 		Route:    "/general-ledger-accounts-grouping/:general_ledger_accounts_grouping_id",
 		Method:   "PUT",
@@ -71,21 +71,46 @@ func (c *Controller) GeneralLedgerController() {
 		context := ctx.Request().Context()
 		groupingID, err := horizon.EngineUUIDParam(ctx, "general_ledger_accounts_grouping_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "General ledger account grouping update failed (/general-ledger-accounts-grouping/:general_ledger_accounts_grouping_id), invalid grouping ID.",
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid general ledger account grouping ID"})
 		}
 		reqBody, err := c.model.GeneralLedgerAccountsGroupingManager.Validate(ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "General ledger account grouping update failed (/general-ledger-accounts-grouping/:general_ledger_accounts_grouping_id), validation error: " + err.Error(),
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid grouping data: " + err.Error()})
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "General ledger account grouping update failed (/general-ledger-accounts-grouping/:general_ledger_accounts_grouping_id), user org error: " + err.Error(),
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Unauthorized update attempt for general ledger account grouping (/general-ledger-accounts-grouping/:general_ledger_accounts_grouping_id)",
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to update general ledger account groupings"})
 		}
 		grouping, err := c.model.GeneralLedgerAccountsGroupingManager.GetByID(context, *groupingID)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "General ledger account grouping update failed (/general-ledger-accounts-grouping/:general_ledger_accounts_grouping_id), not found.",
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "General ledger account grouping not found"})
 		}
 		grouping.Name = reqBody.Name
@@ -103,12 +128,22 @@ func (c *Controller) GeneralLedgerController() {
 		}
 
 		if err := c.model.GeneralLedgerAccountsGroupingManager.UpdateFields(context, grouping.ID, grouping); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "General ledger account grouping update failed (/general-ledger-accounts-grouping/:general_ledger_accounts_grouping_id), db error: " + err.Error(),
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update general ledger account grouping: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "update-success",
+			Description: "Updated general ledger account grouping (/general-ledger-accounts-grouping/:general_ledger_accounts_grouping_id): " + grouping.Name,
+			Module:      "GeneralLedger",
+		})
 		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerAccountsGroupingManager.ToModel(grouping))
 	})
 
-	// GET /general-ledger-definition: List all general ledger definitions for the current branch.
+	// GET /general-ledger-definition (NO footstep)
 	req.RegisterRoute(horizon.Route{
 		Route:    "/general-ledger-definition",
 		Method:   "GET",
@@ -133,7 +168,7 @@ func (c *Controller) GeneralLedgerController() {
 		return ctx.JSON(http.StatusOK, gl)
 	})
 
-	// POST /general-ledger-definition: Create a new general ledger definition.
+	// POST /general-ledger-definition (WITH footstep)
 	req.RegisterRoute(horizon.Route{
 		Route:    "/general-ledger-definition",
 		Method:   "POST",
@@ -144,13 +179,28 @@ func (c *Controller) GeneralLedgerController() {
 		context := ctx.Request().Context()
 		req, err := c.model.GeneralLedgerDefinitionManager.Validate(ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "General ledger definition creation failed (/general-ledger-definition), validation error: " + err.Error(),
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid general ledger definition data: " + err.Error()})
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "General ledger definition creation failed (/general-ledger-definition), user org error: " + err.Error(),
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Unauthorized create attempt for general ledger definition (/general-ledger-definition)",
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to create general ledger definitions"})
 		}
 		glDefinition := &model.GeneralLedgerDefinition{
@@ -172,12 +222,22 @@ func (c *Controller) GeneralLedgerController() {
 			UpdatedAt:                       time.Now().UTC(),
 		}
 		if err := c.model.GeneralLedgerDefinitionManager.Create(context, glDefinition); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "General ledger definition creation failed (/general-ledger-definition), db error: " + err.Error(),
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create general ledger definition: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "create-success",
+			Description: "Created general ledger definition (/general-ledger-definition): " + glDefinition.Name,
+			Module:      "GeneralLedger",
+		})
 		return ctx.JSON(http.StatusCreated, c.model.GeneralLedgerDefinitionManager.ToModel(glDefinition))
 	})
 
-	// PUT /general-ledger-definition/:general_ledger_definition_id: Update a general ledger definition.
+	// PUT /general-ledger-definition/:general_ledger_definition_id (WITH footstep)
 	req.RegisterRoute(horizon.Route{
 		Route:    "/general-ledger-definition/:general_ledger_definition_id",
 		Method:   "PUT",
@@ -188,21 +248,46 @@ func (c *Controller) GeneralLedgerController() {
 		context := ctx.Request().Context()
 		glDefinitionID, err := horizon.EngineUUIDParam(ctx, "general_ledger_definition_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "General ledger definition update failed (/general-ledger-definition/:general_ledger_definition_id), invalid ID.",
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid general ledger definition ID"})
 		}
 		req, err := c.model.GeneralLedgerDefinitionManager.Validate(ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "General ledger definition update failed (/general-ledger-definition/:general_ledger_definition_id), validation error: " + err.Error(),
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid general ledger definition data: " + err.Error()})
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "General ledger definition update failed (/general-ledger-definition/:general_ledger_definition_id), user org error: " + err.Error(),
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Unauthorized update attempt for general ledger definition (/general-ledger-definition/:general_ledger_definition_id)",
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to update general ledger definitions"})
 		}
 		glDefinition, err := c.model.GeneralLedgerDefinitionManager.GetByID(context, *glDefinitionID)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "General ledger definition update failed (/general-ledger-definition/:general_ledger_definition_id), not found.",
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "General ledger definition not found"})
 		}
 		glDefinition.GeneralLedgerDefinitionEntryID = req.GeneralLedgerDefinitionEntryID
@@ -218,12 +303,22 @@ func (c *Controller) GeneralLedgerController() {
 		glDefinition.UpdatedByID = userOrg.UserID
 
 		if err := c.model.GeneralLedgerDefinitionManager.UpdateFields(context, glDefinition.ID, glDefinition); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "General ledger definition update failed (/general-ledger-definition/:general_ledger_definition_id), db error: " + err.Error(),
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update general ledger definition: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "update-success",
+			Description: "Updated general ledger definition (/general-ledger-definition/:general_ledger_definition_id): " + glDefinition.Name,
+			Module:      "GeneralLedger",
+		})
 		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerDefinitionManager.ToModel(glDefinition))
 	})
 
-	// POST /general-ledger-definition/:general_ledger_definition_id/account/:account_id/connect: Connect an account to a general ledger definition.
+	// POST /general-ledger-definition/:general_ledger_definition_id/account/:account_id/connect (WITH footstep)
 	req.RegisterRoute(horizon.Route{
 		Route:    "/general-ledger-definition/:general_ledger_definition_id/account/:account_id/connect",
 		Method:   "POST",
@@ -233,48 +328,103 @@ func (c *Controller) GeneralLedgerController() {
 		context := ctx.Request().Context()
 		glDefinitionID, err := horizon.EngineUUIDParam(ctx, "general_ledger_definition_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Account connect to general ledger definition failed (/general-ledger-definition/:general_ledger_definition_id/account/:account_id/connect), invalid GL definition ID.",
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid general ledger definition ID"})
 		}
 		accountID, err := horizon.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Account connect to general ledger definition failed (/general-ledger-definition/:general_ledger_definition_id/account/:account_id/connect), invalid account ID.",
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID"})
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Account connect to general ledger definition failed (/general-ledger-definition/:general_ledger_definition_id/account/:account_id/connect), user org error: " + err.Error(),
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Unauthorized connect attempt for account to general ledger definition (/general-ledger-definition/:general_ledger_definition_id/account/:account_id/connect)",
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to connect accounts"})
 		}
 		glDefinition, err := c.model.GeneralLedgerDefinitionManager.GetByID(context, *glDefinitionID)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Account connect to general ledger definition failed (/general-ledger-definition/:general_ledger_definition_id/account/:account_id/connect), not found.",
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "General ledger definition not found"})
 		}
 		if glDefinition.OrganizationID != userOrg.OrganizationID || glDefinition.BranchID != *userOrg.BranchID {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Account connect to general ledger definition failed (/general-ledger-definition/:general_ledger_definition_id/account/:account_id/connect), wrong org/branch.",
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "General ledger definition does not belong to your organization/branch"})
 		}
 		account, err := c.model.AccountManager.GetByID(context, *accountID)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Account connect to general ledger definition failed (/general-ledger-definition/:general_ledger_definition_id/account/:account_id/connect), account not found.",
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found"})
 		}
 		if account.OrganizationID != userOrg.OrganizationID || account.BranchID != *userOrg.BranchID {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Account connect to general ledger definition failed (/general-ledger-definition/:general_ledger_definition_id/account/:account_id/connect), account wrong org/branch.",
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Account does not belong to your organization/branch"})
 		}
 		account.GeneralLedgerDefinitionID = glDefinitionID
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
 		if err := c.model.AccountManager.UpdateFields(context, account.ID, account); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Account connect to general ledger definition failed (/general-ledger-definition/:general_ledger_definition_id/account/:account_id/connect), account db error: " + err.Error(),
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to connect account: " + err.Error()})
 		}
 		glDefinition.UpdatedAt = time.Now().UTC()
 		glDefinition.UpdatedByID = userOrg.UserID
 		if err := c.model.GeneralLedgerDefinitionManager.UpdateFields(context, glDefinition.ID, glDefinition); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Account connect to general ledger definition failed (/general-ledger-definition/:general_ledger_definition_id/account/:account_id/connect), GL def db error: " + err.Error(),
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update general ledger definition: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "update-success",
+			Description: "Connected account to GL definition (/general-ledger-definition/:general_ledger_definition_id/account/:account_id/connect): " + account.Name,
+			Module:      "GeneralLedger",
+		})
 		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerDefinitionManager.ToModel(glDefinition))
 	})
 
-	// PUT /general-ledger-definition/:general_ledger_definition_id/index/:index: Update the index of a general ledger definition.
+	// PUT /general-ledger-definition/:general_ledger_definition_id/index/:index (WITH footstep)
 	req.RegisterRoute(horizon.Route{
 		Route:    "/general-ledger-definition/:general_ledger_definition_id/index/:index",
 		Method:   "PUT",
@@ -284,33 +434,68 @@ func (c *Controller) GeneralLedgerController() {
 		context := ctx.Request().Context()
 		glDefinitionID, err := horizon.EngineUUIDParam(ctx, "general_ledger_definition_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "GL definition index update failed (/general-ledger-definition/:general_ledger_definition_id/index/:index), invalid ID.",
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid general ledger definition ID"})
 		}
 		index, err := strconv.Atoi(ctx.Param("index"))
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "GL definition index update failed (/general-ledger-definition/:general_ledger_definition_id/index/:index), invalid index.",
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid index value"})
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "GL definition index update failed (/general-ledger-definition/:general_ledger_definition_id/index/:index), user org error: " + err.Error(),
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Unauthorized index update attempt for GL definition (/general-ledger-definition/:general_ledger_definition_id/index/:index)",
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to update general ledger definition index"})
 		}
 		glDefinition, err := c.model.GeneralLedgerDefinitionManager.GetByID(context, *glDefinitionID)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "GL definition index update failed (/general-ledger-definition/:general_ledger_definition_id/index/:index), not found.",
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "General ledger definition not found"})
 		}
 		glDefinition.Index = index
 		glDefinition.UpdatedAt = time.Now().UTC()
 		glDefinition.UpdatedByID = userOrg.UserID
 		if err := c.model.GeneralLedgerDefinitionManager.UpdateFields(context, glDefinition.ID, glDefinition); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "GL definition index update failed (/general-ledger-definition/:general_ledger_definition_id/index/:index), db error: " + err.Error(),
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update index: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "update-success",
+			Description: "Updated GL definition index (/general-ledger-definition/:general_ledger_definition_id/index/:index): " + glDefinition.Name,
+			Module:      "GeneralLedger",
+		})
 		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerDefinitionManager.ToModel(glDefinition))
 	})
 
-	// PUT /general-ledger-grouping/general-ledger-definition/:general_ledger_definition_id/account/:account_id/index: Update the index of an account within a general ledger definition.
+	// PUT /general-ledger-grouping/general-ledger-definition/:general_ledger_definition_id/account/:account_id/index (WITH footstep)
 	req.RegisterRoute(horizon.Route{
 		Route:    "/general-ledger-grouping/general-ledger-definition/:general_ledger_definition_id/account/:account_id/index",
 		Method:   "PUT",
@@ -321,10 +506,20 @@ func (c *Controller) GeneralLedgerController() {
 		context := ctx.Request().Context()
 		glDefinitionID, err := horizon.EngineUUIDParam(ctx, "general_ledger_definition_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "GL grouping/account index update failed (/general-ledger-grouping/general-ledger-definition/:general_ledger_definition_id/account/:account_id/index), invalid GL definition ID.",
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid general ledger definition ID"})
 		}
 		accountID, err := horizon.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "GL grouping/account index update failed (/general-ledger-grouping/general-ledger-definition/:general_ledger_definition_id/account/:account_id/index), invalid account ID.",
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID"})
 		}
 		type UpdateAccountIndexRequest struct {
@@ -333,21 +528,46 @@ func (c *Controller) GeneralLedgerController() {
 		}
 		var reqBody UpdateAccountIndexRequest
 		if err := ctx.Bind(&reqBody); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "GL grouping/account index update failed (/general-ledger-grouping/general-ledger-definition/:general_ledger_definition_id/account/:account_id/index), invalid payload.",
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request payload"})
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "GL grouping/account index update failed (/general-ledger-grouping/general-ledger-definition/:general_ledger_definition_id/account/:account_id/index), user org error: " + err.Error(),
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Unauthorized GL grouping/account index update attempt (/general-ledger-grouping/general-ledger-definition/:general_ledger_definition_id/account/:account_id/index)",
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to update account index"})
 		}
 		glDefinition, err := c.model.GeneralLedgerDefinitionManager.GetByID(context, *glDefinitionID)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "GL grouping/account index update failed (/general-ledger-grouping/general-ledger-definition/:general_ledger_definition_id/account/:account_id/index), GL definition not found.",
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "General ledger definition not found"})
 		}
 		account, err := c.model.AccountManager.GetByID(context, *accountID)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "GL grouping/account index update failed (/general-ledger-grouping/general-ledger-definition/:general_ledger_definition_id/account/:account_id/index), account not found.",
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found"})
 		}
 		if account.GeneralLedgerDefinitionID == nil || *account.GeneralLedgerDefinitionID != *glDefinitionID {
@@ -359,6 +579,11 @@ func (c *Controller) GeneralLedgerController() {
 			BranchID:                  *userOrg.BranchID,
 		})
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "GL grouping/account index update failed (/general-ledger-grouping/general-ledger-definition/:general_ledger_definition_id/account/:account_id/index), account find error: " + err.Error(),
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve accounts: " + err.Error()})
 		}
 		var updatedAccounts []*model.Account
@@ -379,6 +604,11 @@ func (c *Controller) GeneralLedgerController() {
 			acc.UpdatedAt = time.Now().UTC()
 			acc.UpdatedByID = userOrg.UserID
 			if err := c.model.AccountManager.UpdateFields(context, acc.ID, acc); err != nil {
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "update-error",
+					Description: "GL grouping/account index update failed (/general-ledger-grouping/general-ledger-definition/:general_ledger_definition_id/account/:account_id/index), update account error: " + err.Error(),
+					Module:      "GeneralLedger",
+				})
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update account: " + err.Error()})
 			}
 		}
@@ -387,13 +617,24 @@ func (c *Controller) GeneralLedgerController() {
 			glDefinition.UpdatedAt = time.Now().UTC()
 			glDefinition.UpdatedByID = userOrg.UserID
 			if err := c.model.GeneralLedgerDefinitionManager.UpdateFields(context, glDefinition.ID, glDefinition); err != nil {
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "update-error",
+					Description: "GL grouping/account index update failed (/general-ledger-grouping/general-ledger-definition/:general_ledger_definition_id/account/:account_id/index), update GL definition error: " + err.Error(),
+					Module:      "GeneralLedger",
+				})
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update general ledger definition index: " + err.Error()})
 			}
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "update-success",
+			Description: "Updated account index within GL definition (/general-ledger-grouping/general-ledger-definition/:general_ledger_definition_id/account/:account_id/index): " + account.Name,
+			Module:      "GeneralLedger",
+		})
 		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerDefinitionManager.ToModel(glDefinition))
 	})
 
-	// GET /member-accounting-ledger/member-profile/:member_profile_id/total: Get total amount for a specific member profile's general ledger entries.
+	// The rest GET endpoints (member-accounting-ledger/member-profile/:member_profile_id/total, search, total, account/:account_id/search) and DELETE (general-ledger-definition/:general_definition_id)
+	// (NO footstep for GET endpoints, WITH footstep for DELETE)
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-accounting-ledger/member-profile/:member_profile_id/total",
 		Method:   "GET",
@@ -431,7 +672,6 @@ func (c *Controller) GeneralLedgerController() {
 		})
 	})
 
-	// GET /member-accounting-ledger/member-profile/:member_profile_id/search: Paginated ledger entries for a member profile.
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-accounting-ledger/member-profile/:member_profile_id/search",
 		Method:   "GET",
@@ -464,7 +704,6 @@ func (c *Controller) GeneralLedgerController() {
 		return ctx.JSON(http.StatusOK, c.model.MemberAccountingLedgerManager.Pagination(context, ctx, entries))
 	})
 
-	// GET /general-ledger/member-profile/:member_profile_id/account/:account_id/search: Paginated ledger entries for a member profile and account.
 	req.RegisterRoute(horizon.Route{
 		Route:    "/general-ledger/member-profile/:member_profile_id/account/:account_id/search",
 		Method:   "GET",
@@ -499,7 +738,6 @@ func (c *Controller) GeneralLedgerController() {
 		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.Pagination(context, ctx, entries))
 	})
 
-	// GET /general-ledger/member-profile/:member_profile_id/account/:account_id/total: Get total amount for a member profile and account.
 	req.RegisterRoute(horizon.Route{
 		Route:    "/general-ledger/member-profile/:member_profile_id/account/:account_id/total",
 		Method:   "GET",
@@ -546,7 +784,6 @@ func (c *Controller) GeneralLedgerController() {
 		})
 	})
 
-	// GET /general-ledger/account/:account_id/search: Paginated general ledger entries for an account.
 	req.RegisterRoute(horizon.Route{
 		Route:    "/general-ledger/account/:account_id/search",
 		Method:   "GET",
@@ -576,7 +813,7 @@ func (c *Controller) GeneralLedgerController() {
 		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.Pagination(context, ctx, entries))
 	})
 
-	// DELETE /general-ledger-definition/:general_definition_id: Delete a general ledger definition by ID, only if no accounts are linked.
+	// DELETE /general-ledger-definition/:general_definition_id (WITH footstep)
 	req.RegisterRoute(horizon.Route{
 		Route:    "/general-ledger-definition/:general_definition_id",
 		Method:   "DELETE",
@@ -586,20 +823,45 @@ func (c *Controller) GeneralLedgerController() {
 		context := ctx.Request().Context()
 		glDefinitionID, err := horizon.EngineUUIDParam(ctx, "general_definition_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "GL definition delete failed (/general-ledger-definition/:general_definition_id), invalid ID.",
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid general ledger definition ID"})
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "GL definition delete failed (/general-ledger-definition/:general_definition_id), user org error: " + err.Error(),
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Unauthorized delete attempt for GL definition (/general-ledger-definition/:general_definition_id)",
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to delete general ledger definitions"})
 		}
 		glDefinition, err := c.model.GeneralLedgerDefinitionManager.GetByID(context, *glDefinitionID)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "GL definition delete failed (/general-ledger-definition/:general_definition_id), not found.",
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "General ledger definition not found"})
 		}
 		if len(glDefinition.GeneralLedgerDefinitionEntries) > 0 {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "GL definition delete failed (/general-ledger-definition/:general_definition_id), has sub-entries.",
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cannot delete: general ledger definition has sub-entries"})
 		}
 		accounts, err := c.model.AccountManager.Find(context, &model.Account{
@@ -608,14 +870,34 @@ func (c *Controller) GeneralLedgerController() {
 			BranchID:                  *userOrg.BranchID,
 		})
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "GL definition delete failed (/general-ledger-definition/:general_definition_id), account find error: " + err.Error(),
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to check linked accounts: " + err.Error()})
 		}
 		if len(accounts) > 0 {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "GL definition delete failed (/general-ledger-definition/:general_definition_id), has linked accounts.",
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cannot delete: accounts are linked to this general ledger definition"})
 		}
 		if err := c.model.GeneralLedgerDefinitionManager.DeleteByID(context, glDefinition.ID); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "GL definition delete failed (/general-ledger-definition/:general_definition_id), db error: " + err.Error(),
+				Module:      "GeneralLedger",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete general ledger definition: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "delete-success",
+			Description: "Deleted GL definition (/general-ledger-definition/:general_definition_id): " + glDefinition.Name,
+			Module:      "GeneralLedger",
+		})
 		return ctx.NoContent(http.StatusNoContent)
 	})
 }

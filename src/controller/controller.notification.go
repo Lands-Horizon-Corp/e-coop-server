@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/horizon"
+	"github.com/lands-horizon/horizon-server/src/event"
 )
 
 func (c *Controller) NotificationController() {
@@ -44,17 +45,32 @@ func (c *Controller) NotificationController() {
 			IDs []string `json:"ids"`
 		}
 		if err := ctx.Bind(&reqBody); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "View notifications failed: invalid request body: " + err.Error(),
+				Module:      "Notification",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 
 		user, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "View notifications failed: user error: " + err.Error(),
+				Module:      "Notification",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get current user: " + err.Error()})
 		}
 
 		tx := c.provider.Service.Database.Client().Begin()
 		if tx.Error != nil {
 			tx.Rollback()
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "View notifications failed: begin tx error: " + tx.Error.Error(),
+				Module:      "Notification",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
 		}
 
@@ -62,12 +78,22 @@ func (c *Controller) NotificationController() {
 			notificationID, err := uuid.Parse(rawID)
 			if err != nil {
 				tx.Rollback()
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "update-error",
+					Description: "View notifications failed: invalid UUID: " + rawID,
+					Module:      "Notification",
+				})
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s - %v", rawID, err)})
 			}
 
 			notification, err := c.model.NotificationManager.GetByID(context, notificationID)
 			if err != nil {
 				tx.Rollback()
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "update-error",
+					Description: fmt.Sprintf("View notifications failed: notification not found: %s", rawID),
+					Module:      "Notification",
+				})
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Notification with ID %s not found: %v", rawID, err)})
 			}
 
@@ -78,6 +104,11 @@ func (c *Controller) NotificationController() {
 			notification.IsViewed = true
 			if err := c.model.NotificationManager.UpdateFields(context, notification.ID, notification); err != nil {
 				tx.Rollback()
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "update-error",
+					Description: "View notifications failed: update error: " + err.Error(),
+					Module:      "Notification",
+				})
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update notification: " + err.Error()})
 			}
 		}
@@ -85,13 +116,29 @@ func (c *Controller) NotificationController() {
 		notifications, err := c.model.GetNotificationByUser(context, user.ID)
 		if err != nil {
 			tx.Rollback()
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "View notifications failed: get notifications error: " + err.Error(),
+				Module:      "Notification",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get notifications: " + err.Error()})
 		}
 
 		if err := tx.Commit().Error; err != nil {
 			tx.Rollback()
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "View notifications failed: commit tx error: " + err.Error(),
+				Module:      "Notification",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
+
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "update-success",
+			Description: fmt.Sprintf("Marked notifications as viewed for user ID: %s", user.ID),
+			Module:      "Notification",
+		})
 
 		return ctx.JSON(http.StatusOK, c.model.NotificationManager.ToModels(notifications))
 	})
@@ -105,11 +152,35 @@ func (c *Controller) NotificationController() {
 		context := ctx.Request().Context()
 		notificationId, err := horizon.EngineUUIDParam(ctx, "notification_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete notification failed: invalid notification_id: " + err.Error(),
+				Module:      "Notification",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid notification_id: " + err.Error()})
 		}
-		if err := c.model.NotificationManager.DeleteByID(context, *notificationId); err != nil {
+		notification, err := c.model.NotificationManager.GetByID(context, *notificationId)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: fmt.Sprintf("Delete notification failed: not found (ID: %s): %v", notification.ID, err),
+				Module:      "Notification",
+			})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Notification with ID %s not found: %v", notification.ID, err)})
+		}
+		if err := c.model.NotificationManager.DeleteByID(context, notification.ID); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete notification failed: " + err.Error(),
+				Module:      "Notification",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete notification: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "delete-success",
+			Description: fmt.Sprintf("Deleted notification ID: %s", notificationId),
+			Module:      "Notification",
+		})
 		return ctx.NoContent(http.StatusNoContent)
 	})
 }

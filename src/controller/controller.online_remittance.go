@@ -6,6 +6,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/horizon"
+	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
 
@@ -64,14 +65,29 @@ func (c *Controller) OnlineRemittanceController() {
 
 		req, err := c.model.OnlineRemittanceManager.Validate(ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create online remittance failed: validation error: " + err.Error(),
+				Module:      "OnlineRemittance",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create online remittance failed: user org error: " + err.Error(),
+				Module:      "OnlineRemittance",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create online remittance failed: unauthorized user type",
+				Module:      "OnlineRemittance",
+			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
 
@@ -81,9 +97,19 @@ func (c *Controller) OnlineRemittanceController() {
 			"is_closed":       false,
 		})
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create online remittance failed: find batch error: " + err.Error(),
+				Module:      "OnlineRemittance",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find active transaction batch: " + err.Error()})
 		}
 		if transactionBatch == nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create online remittance failed: no active batch",
+				Module:      "OnlineRemittance",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No active transaction batch found"})
 		}
 
@@ -112,6 +138,11 @@ func (c *Controller) OnlineRemittanceController() {
 		}
 
 		if err := c.model.OnlineRemittanceManager.Create(context, onlineRemittance); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create online remittance failed: create error: " + err.Error(),
+				Module:      "OnlineRemittance",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create online remittance: " + err.Error()})
 		}
 
@@ -121,6 +152,11 @@ func (c *Controller) OnlineRemittanceController() {
 			BranchID:           *userOrg.BranchID,
 		})
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create online remittance failed: find all error: " + err.Error(),
+				Module:      "OnlineRemittance",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve online remittances: " + err.Error()})
 		}
 
@@ -135,8 +171,19 @@ func (c *Controller) OnlineRemittanceController() {
 		transactionBatch.UpdatedByID = userOrg.UserID
 
 		if err := c.model.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create online remittance failed: update batch error: " + err.Error(),
+				Module:      "OnlineRemittance",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update transaction batch: " + err.Error()})
 		}
+
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "create-success",
+			Description: "Created online remittance for batch ID: " + transactionBatch.ID.String(),
+			Module:      "OnlineRemittance",
+		})
 
 		return ctx.JSON(http.StatusOK, c.model.OnlineRemittanceManager.ToModel(onlineRemittance))
 	})
@@ -152,29 +199,59 @@ func (c *Controller) OnlineRemittanceController() {
 		context := ctx.Request().Context()
 		onlineRemittanceId, err := horizon.EngineUUIDParam(ctx, "online_remittance_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update online remittance failed: invalid online_remittance_id: " + err.Error(),
+				Module:      "OnlineRemittance",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid online_remittance_id: " + err.Error()})
 		}
 
 		req, err := c.model.OnlineRemittanceManager.Validate(ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update online remittance failed: validation error: " + err.Error(),
+				Module:      "OnlineRemittance",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update online remittance failed: user org error: " + err.Error(),
+				Module:      "OnlineRemittance",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update online remittance failed: unauthorized user type",
+				Module:      "OnlineRemittance",
+			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
 
 		existingOnlineRemittance, err := c.model.OnlineRemittanceManager.GetByID(context, *onlineRemittanceId)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update online remittance failed: not found: " + err.Error(),
+				Module:      "OnlineRemittance",
+			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Online remittance not found: " + err.Error()})
 		}
 
 		if existingOnlineRemittance.OrganizationID != userOrg.OrganizationID ||
 			existingOnlineRemittance.BranchID != *userOrg.BranchID {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update online remittance failed: not in org/branch",
+				Module:      "OnlineRemittance",
+			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Online remittance not found in your organization/branch"})
 		}
 
@@ -184,9 +261,19 @@ func (c *Controller) OnlineRemittanceController() {
 			"is_closed":       false,
 		})
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update online remittance failed: find batch error: " + err.Error(),
+				Module:      "OnlineRemittance",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find active transaction batch: " + err.Error()})
 		}
 		if transactionBatch == nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update online remittance failed: no active batch",
+				Module:      "OnlineRemittance",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No active transaction batch found"})
 		}
 
@@ -211,6 +298,11 @@ func (c *Controller) OnlineRemittanceController() {
 		}
 
 		if err := c.model.OnlineRemittanceManager.UpdateFields(context, *onlineRemittanceId, existingOnlineRemittance); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update online remittance failed: update error: " + err.Error(),
+				Module:      "OnlineRemittance",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update online remittance: " + err.Error()})
 		}
 
@@ -220,6 +312,11 @@ func (c *Controller) OnlineRemittanceController() {
 			BranchID:           *userOrg.BranchID,
 		})
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update online remittance failed: find all error: " + err.Error(),
+				Module:      "OnlineRemittance",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve online remittances: " + err.Error()})
 		}
 
@@ -234,13 +331,29 @@ func (c *Controller) OnlineRemittanceController() {
 		transactionBatch.UpdatedByID = userOrg.UserID
 
 		if err := c.model.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update online remittance failed: update batch error: " + err.Error(),
+				Module:      "OnlineRemittance",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update transaction batch: " + err.Error()})
 		}
 
 		updatedRemittance, err := c.model.OnlineRemittanceManager.GetByID(context, *onlineRemittanceId)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update online remittance failed: get updated error: " + err.Error(),
+				Module:      "OnlineRemittance",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated online remittance: " + err.Error()})
 		}
+
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "update-success",
+			Description: "Updated online remittance for batch ID: " + transactionBatch.ID.String(),
+			Module:      "OnlineRemittance",
+		})
 
 		return ctx.JSON(http.StatusOK, c.model.OnlineRemittanceManager.ToModel(updatedRemittance))
 	})
@@ -255,24 +368,49 @@ func (c *Controller) OnlineRemittanceController() {
 		context := ctx.Request().Context()
 		onlineRemittanceId, err := horizon.EngineUUIDParam(ctx, "online_remittance_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete online remittance failed: invalid online_remittance_id: " + err.Error(),
+				Module:      "OnlineRemittance",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid online_remittance_id: " + err.Error()})
 		}
 
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete online remittance failed: user org error: " + err.Error(),
+				Module:      "OnlineRemittance",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete online remittance failed: unauthorized user type",
+				Module:      "OnlineRemittance",
+			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
 
 		existingOnlineRemittance, err := c.model.OnlineRemittanceManager.GetByID(context, *onlineRemittanceId)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete online remittance failed: not found: " + err.Error(),
+				Module:      "OnlineRemittance",
+			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Online remittance not found: " + err.Error()})
 		}
 
 		if existingOnlineRemittance.OrganizationID != userOrg.OrganizationID ||
 			existingOnlineRemittance.BranchID != *userOrg.BranchID {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete online remittance failed: not in org/branch",
+				Module:      "OnlineRemittance",
+			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Online remittance not found in your organization/branch"})
 		}
 
@@ -282,18 +420,38 @@ func (c *Controller) OnlineRemittanceController() {
 			"is_closed":       false,
 		})
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete online remittance failed: find batch error: " + err.Error(),
+				Module:      "OnlineRemittance",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find active transaction batch: " + err.Error()})
 		}
 		if transactionBatch == nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete online remittance failed: no active batch",
+				Module:      "OnlineRemittance",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No active transaction batch found"})
 		}
 
 		if existingOnlineRemittance.TransactionBatchID == nil ||
 			*existingOnlineRemittance.TransactionBatchID != transactionBatch.ID {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete online remittance failed: not in current batch",
+				Module:      "OnlineRemittance",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Online remittance does not belong to current transaction batch"})
 		}
 
 		if err := c.model.OnlineRemittanceManager.DeleteByID(context, *onlineRemittanceId); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete online remittance failed: delete error: " + err.Error(),
+				Module:      "OnlineRemittance",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete online remittance: " + err.Error()})
 		}
 
@@ -303,6 +461,11 @@ func (c *Controller) OnlineRemittanceController() {
 			BranchID:           *userOrg.BranchID,
 		})
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete online remittance failed: find all error: " + err.Error(),
+				Module:      "OnlineRemittance",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve online remittances: " + err.Error()})
 		}
 
@@ -317,8 +480,19 @@ func (c *Controller) OnlineRemittanceController() {
 		transactionBatch.UpdatedByID = userOrg.UserID
 
 		if err := c.model.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete online remittance failed: update batch error: " + err.Error(),
+				Module:      "OnlineRemittance",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update transaction batch: " + err.Error()})
 		}
+
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "delete-success",
+			Description: "Deleted online remittance for batch ID: " + transactionBatch.ID.String(),
+			Module:      "OnlineRemittance",
+		})
 
 		return ctx.JSON(http.StatusOK, c.model.OnlineRemittanceManager.ToModel(existingOnlineRemittance))
 	})

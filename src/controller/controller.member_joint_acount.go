@@ -6,6 +6,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/horizon"
+	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
 
@@ -23,14 +24,29 @@ func (c *Controller) MemberJointAccountController() {
 		context := ctx.Request().Context()
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create joint account failed (/member-joint-account/member-profile/:member_profile_id), invalid member_profile_id: " + err.Error(),
+				Module:      "MemberJointAccount",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
 		req, err := c.model.MemberJointAccountManager.Validate(ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create joint account failed (/member-joint-account/member-profile/:member_profile_id), validation error: " + err.Error(),
+				Module:      "MemberJointAccount",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create joint account failed (/member-joint-account/member-profile/:member_profile_id), user org error: " + err.Error(),
+				Module:      "MemberJointAccount",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
@@ -55,8 +71,19 @@ func (c *Controller) MemberJointAccountController() {
 		}
 
 		if err := c.model.MemberJointAccountManager.Create(context, value); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create joint account failed (/member-joint-account/member-profile/:member_profile_id), db error: " + err.Error(),
+				Module:      "MemberJointAccount",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create joint account record: " + err.Error()})
 		}
+
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "create-success",
+			Description: "Created joint account (/member-joint-account/member-profile/:member_profile_id): " + value.FullName,
+			Module:      "MemberJointAccount",
+		})
 
 		return ctx.JSON(http.StatusOK, c.model.MemberJointAccountManager.ToModel(value))
 	})
@@ -72,19 +99,39 @@ func (c *Controller) MemberJointAccountController() {
 		context := ctx.Request().Context()
 		memberJointAccountID, err := horizon.EngineUUIDParam(ctx, "member_joint_account_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update joint account failed (/member-joint-account/:member_joint_account_id), invalid member_joint_account_id: " + err.Error(),
+				Module:      "MemberJointAccount",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_joint_account_id: " + err.Error()})
 		}
 		req, err := c.model.MemberJointAccountManager.Validate(ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update joint account failed (/member-joint-account/:member_joint_account_id), validation error: " + err.Error(),
+				Module:      "MemberJointAccount",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update joint account failed (/member-joint-account/:member_joint_account_id), user org error: " + err.Error(),
+				Module:      "MemberJointAccount",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
 		value, err := c.model.MemberJointAccountManager.GetByID(context, *memberJointAccountID)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update joint account failed (/member-joint-account/:member_joint_account_id), record not found: " + err.Error(),
+				Module:      "MemberJointAccount",
+			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Joint account record not found: " + err.Error()})
 		}
 
@@ -104,8 +151,20 @@ func (c *Controller) MemberJointAccountController() {
 		value.FamilyRelationship = req.FamilyRelationship
 
 		if err := c.model.MemberJointAccountManager.UpdateFields(context, value.ID, value); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update joint account failed (/member-joint-account/:member_joint_account_id), db error: " + err.Error(),
+				Module:      "MemberJointAccount",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update joint account record: " + err.Error()})
 		}
+
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "update-success",
+			Description: "Updated joint account (/member-joint-account/:member_joint_account_id): " + value.FullName,
+			Module:      "MemberJointAccount",
+		})
+
 		return ctx.JSON(http.StatusOK, c.model.MemberJointAccountManager.ToModel(value))
 	})
 
@@ -118,11 +177,35 @@ func (c *Controller) MemberJointAccountController() {
 		context := ctx.Request().Context()
 		memberJointAccountID, err := horizon.EngineUUIDParam(ctx, "member_joint_account_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete joint account failed (/member-joint-account/:member_joint_account_id), invalid member_joint_account_id: " + err.Error(),
+				Module:      "MemberJointAccount",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_joint_account_id: " + err.Error()})
 		}
+		value, err := c.model.MemberJointAccountManager.GetByID(context, *memberJointAccountID)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete joint account failed (/member-joint-account/:member_joint_account_id), record not found: " + err.Error(),
+				Module:      "MemberJointAccount",
+			})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Joint account record not found: " + err.Error()})
+		}
 		if err := c.model.MemberJointAccountManager.DeleteByID(context, *memberJointAccountID); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete joint account failed (/member-joint-account/:member_joint_account_id), db error: " + err.Error(),
+				Module:      "MemberJointAccount",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete joint account record: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "delete-success",
+			Description: "Deleted joint account (/member-joint-account/:member_joint_account_id): " + value.FullName,
+			Module:      "MemberJointAccount",
+		})
 		return ctx.NoContent(http.StatusNoContent)
 	})
 }

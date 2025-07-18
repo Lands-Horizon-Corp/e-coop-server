@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/horizon"
+	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
 
@@ -106,10 +107,20 @@ func (c *Controller) MemberGroupController() {
 		context := ctx.Request().Context()
 		req, err := c.model.MemberGroupManager.Validate(ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create member group failed (/member-group), validation error: " + err.Error(),
+				Module:      "MemberGroup",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create member group failed (/member-group), user org error: " + err.Error(),
+				Module:      "MemberGroup",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
@@ -125,8 +136,19 @@ func (c *Controller) MemberGroupController() {
 		}
 
 		if err := c.model.MemberGroupManager.Create(context, memberGroup); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create member group failed (/member-group), db error: " + err.Error(),
+				Module:      "MemberGroup",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create member group: " + err.Error()})
 		}
+
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "create-success",
+			Description: "Created member group (/member-group): " + memberGroup.Name,
+			Module:      "MemberGroup",
+		})
 
 		return ctx.JSON(http.StatusOK, c.model.MemberGroupManager.ToModel(memberGroup))
 	})
@@ -142,18 +164,38 @@ func (c *Controller) MemberGroupController() {
 		context := ctx.Request().Context()
 		memberGroupID, err := horizon.EngineUUIDParam(ctx, "member_group_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member group failed (/member-group/:member_group_id), invalid member_group_id: " + err.Error(),
+				Module:      "MemberGroup",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_group_id: " + err.Error()})
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member group failed (/member-group/:member_group_id), user org error: " + err.Error(),
+				Module:      "MemberGroup",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		req, err := c.model.MemberGroupManager.Validate(ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member group failed (/member-group/:member_group_id), validation error: " + err.Error(),
+				Module:      "MemberGroup",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		memberGroup, err := c.model.MemberGroupManager.GetByID(context, *memberGroupID)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member group failed (/member-group/:member_group_id), not found: " + err.Error(),
+				Module:      "MemberGroup",
+			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member group not found: " + err.Error()})
 		}
 		memberGroup.UpdatedAt = time.Now().UTC()
@@ -163,8 +205,18 @@ func (c *Controller) MemberGroupController() {
 		memberGroup.Name = req.Name
 		memberGroup.Description = req.Description
 		if err := c.model.MemberGroupManager.UpdateFields(context, memberGroup.ID, memberGroup); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member group failed (/member-group/:member_group_id), db error: " + err.Error(),
+				Module:      "MemberGroup",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update member group: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "update-success",
+			Description: "Updated member group (/member-group/:member_group_id): " + memberGroup.Name,
+			Module:      "MemberGroup",
+		})
 		return ctx.JSON(http.StatusOK, c.model.MemberGroupManager.ToModel(memberGroup))
 	})
 
@@ -177,11 +229,35 @@ func (c *Controller) MemberGroupController() {
 		context := ctx.Request().Context()
 		memberGroupID, err := horizon.EngineUUIDParam(ctx, "member_group_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete member group failed (/member-group/:member_group_id), invalid member_group_id: " + err.Error(),
+				Module:      "MemberGroup",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_group_id: " + err.Error()})
 		}
+		value, err := c.model.MemberGroupManager.GetByID(context, *memberGroupID)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete member group failed (/member-group/:member_group_id), record not found: " + err.Error(),
+				Module:      "MemberGroup",
+			})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member group not found: " + err.Error()})
+		}
 		if err := c.model.MemberGroupManager.DeleteByID(context, *memberGroupID); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete member group failed (/member-group/:member_group_id), db error: " + err.Error(),
+				Module:      "MemberGroup",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete member group: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "delete-success",
+			Description: "Deleted member group (/member-group/:member_group_id): " + value.Name,
+			Module:      "MemberGroup",
+		})
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
@@ -198,40 +274,84 @@ func (c *Controller) MemberGroupController() {
 		}
 
 		if err := ctx.Bind(&reqBody); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "bulk-delete-error",
+				Description: "Bulk delete member groups failed (/member-group/bulk-delete), invalid request body.",
+				Module:      "MemberGroup",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 
 		if len(reqBody.IDs) == 0 {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "bulk-delete-error",
+				Description: "Bulk delete member groups failed (/member-group/bulk-delete), no IDs provided.",
+				Module:      "MemberGroup",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for deletion."})
 		}
 
 		tx := c.provider.Service.Database.Client().Begin()
 		if tx.Error != nil {
 			tx.Rollback()
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "bulk-delete-error",
+				Description: "Bulk delete member groups failed (/member-group/bulk-delete), begin tx error: " + tx.Error.Error(),
+				Module:      "MemberGroup",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
 		}
 
+		names := ""
 		for _, rawID := range reqBody.IDs {
 			memberGroupID, err := uuid.Parse(rawID)
 			if err != nil {
 				tx.Rollback()
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "bulk-delete-error",
+					Description: "Bulk delete member groups failed (/member-group/bulk-delete), invalid UUID: " + rawID,
+					Module:      "MemberGroup",
+				})
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID '%s': %s", rawID, err.Error())})
 			}
 
-			if _, err := c.model.MemberGroupManager.GetByID(context, memberGroupID); err != nil {
+			value, err := c.model.MemberGroupManager.GetByID(context, memberGroupID)
+			if err != nil {
 				tx.Rollback()
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "bulk-delete-error",
+					Description: "Bulk delete member groups failed (/member-group/bulk-delete), not found: " + rawID,
+					Module:      "MemberGroup",
+				})
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Member group with ID '%s' not found: %s", rawID, err.Error())})
 			}
 
+			names += value.Name + ","
 			if err := c.model.MemberGroupManager.DeleteByIDWithTx(context, tx, memberGroupID); err != nil {
 				tx.Rollback()
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "bulk-delete-error",
+					Description: "Bulk delete member groups failed (/member-group/bulk-delete), db error: " + err.Error(),
+					Module:      "MemberGroup",
+				})
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to delete member group with ID '%s': %s", rawID, err.Error())})
 			}
 		}
 
 		if err := tx.Commit().Error; err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "bulk-delete-error",
+				Description: "Bulk delete member groups failed (/member-group/bulk-delete), commit error: " + err.Error(),
+				Module:      "MemberGroup",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
+
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "bulk-delete-success",
+			Description: "Bulk deleted member groups (/member-group/bulk-delete): " + names,
+			Module:      "MemberGroup",
+		})
 
 		return ctx.NoContent(http.StatusNoContent)
 	})

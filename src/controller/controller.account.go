@@ -8,27 +8,27 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/horizon"
+	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
 
-// AccountController registers routes for managing accounts, categories, and classifications.
 func (c *Controller) AccountController() {
 	req := c.provider.Service.Request
 
-	// GET /account/search: List all accounts for the current branch.
+	// GET: Search (NO footstep)
 	req.RegisterRoute(horizon.Route{
 		Route:    "/account/search",
 		Method:   "GET",
 		Response: "IAccount[]",
-		Note:     "Returns a paginated list of all accounts for the current user's branch. Only 'owner' or 'employee' can access.",
+		Note:     "Retrieve all accounts for the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view accounts"})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
 		accounts, err := c.model.AccountManager.Find(context, &model.Account{
 			OrganizationID: userOrg.OrganizationID,
@@ -40,34 +40,48 @@ func (c *Controller) AccountController() {
 		return ctx.JSON(http.StatusOK, c.model.AccountManager.Pagination(context, ctx, accounts))
 	})
 
-	// POST /account: Create a new account.
+	// POST: Create (WITH footstep)
 	req.RegisterRoute(horizon.Route{
 		Route:    "/account",
 		Method:   "POST",
 		Response: "IAccount",
-		Note:     "Creates a new account for the current user's branch. Only 'owner' or 'employee' can create.",
+		Note:     "Create a new account for the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.AccountManager.Validate(ctx)
 		if err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account data: " + err.Error()})
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Account creation failed (/account), validation error: " + err.Error(),
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Account validation failed: " + err.Error()})
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Account creation failed (/account), user org error: " + err.Error(),
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to create accounts"})
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Unauthorized create attempt for account (/account)",
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
 
 		account := &model.Account{
-			CreatedAt:      time.Now().UTC(),
-			CreatedByID:    userOrg.UserID,
-			UpdatedAt:      time.Now().UTC(),
-			UpdatedByID:    userOrg.UserID,
-			BranchID:       *userOrg.BranchID,
-			OrganizationID: userOrg.OrganizationID,
-
+			CreatedAt:                             time.Now().UTC(),
+			CreatedByID:                           userOrg.UserID,
+			UpdatedAt:                             time.Now().UTC(),
+			UpdatedByID:                           userOrg.UserID,
+			BranchID:                              *userOrg.BranchID,
+			OrganizationID:                        userOrg.OrganizationID,
 			GeneralLedgerDefinitionID:             req.GeneralLedgerDefinitionID,
 			FinancialStatementDefinitionID:        req.FinancialStatementDefinitionID,
 			AccountClassificationID:               req.AccountClassificationID,
@@ -129,6 +143,11 @@ func (c *Controller) AccountController() {
 		}
 
 		if err := c.model.AccountManager.Create(context, account); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Account creation failed (/account), db error: " + err.Error(),
+				Module:      "Account",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create account: " + err.Error()})
 		}
 		if len(req.AccountTags) > 0 {
@@ -151,60 +170,94 @@ func (c *Controller) AccountController() {
 			}
 			db := c.provider.Service.Database.Client()
 			if err := db.Create(&tags).Error; err != nil {
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "create-error",
+					Description: "Account tag creation failed (/account), db error: " + err.Error(),
+					Module:      "Account",
+				})
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create account tags: " + err.Error()})
 			}
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "create-success",
+			Description: "Created account (/account): " + account.Name,
+			Module:      "Account",
+		})
 		return ctx.JSON(http.StatusCreated, account)
 	})
 
-	// GET /account/:account_id: Get an account by ID.
+	// GET: Get by ID (NO footstep)
 	req.RegisterRoute(horizon.Route{
 		Route:    "/account/:account_id",
 		Method:   "GET",
 		Response: "IAccount",
-		Note:     "Returns a specific account by its ID.",
+		Note:     "Retrieve a specific account by ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		accountID, err := horizon.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID: " + err.Error()})
 		}
 		account, err := c.model.AccountManager.GetByID(context, *accountID)
 		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found"})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.AccountManager.ToModel(account))
 	})
 
-	// PUT /account/:account_id: Update an account by ID.
+	// PUT: Update (WITH footstep)
 	req.RegisterRoute(horizon.Route{
 		Route:    "/account/:account_id",
 		Method:   "PUT",
 		Response: "IAccount",
-		Note:     "Updates an existing account by its ID. Only 'owner' or 'employee' can update.",
+		Note:     "Update an account by ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.AccountManager.Validate(ctx)
 		if err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account data: " + err.Error()})
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Account update failed (/account/:account_id), validation error: " + err.Error(),
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Account validation failed: " + err.Error()})
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Account update failed (/account/:account_id), user org error: " + err.Error(),
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to update accounts"})
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Unauthorized update attempt for account (/account/:account_id)",
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
 		accountID, err := horizon.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID"})
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Account update failed (/account/:account_id), invalid UUID: " + err.Error(),
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID: " + err.Error()})
 		}
 		account, err := c.model.AccountManager.GetByID(context, *accountID)
 		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found"})
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Account update failed (/account/:account_id), not found: " + err.Error(),
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found: " + err.Error()})
 		}
 
-		// Update account fields
 		account.UpdatedByID = userOrg.UserID
 		account.UpdatedAt = time.Now().UTC()
 		account.BranchID = *userOrg.BranchID
@@ -270,6 +323,11 @@ func (c *Controller) AccountController() {
 		account.GeneralLedgerGroupingExcludeAccount = req.GeneralLedgerGroupingExcludeAccount
 
 		if err := c.model.AccountManager.UpdateFields(context, account.ID, account); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Account update failed (/account/:account_id), db error: " + err.Error(),
+				Module:      "Account",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update account: " + err.Error()})
 		}
 		if len(req.AccountTags) > 0 {
@@ -289,99 +347,320 @@ func (c *Controller) AccountController() {
 					UpdatedByID:    userOrg.UserID,
 				}
 				if err := c.model.AccountTagManager.Create(context, tag); err != nil {
+					c.event.Footstep(context, ctx, event.FootstepEvent{
+						Activity:    "update-error",
+						Description: "Account tag update failed (/account/:account_id), db error: " + err.Error(),
+						Module:      "Account",
+					})
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update account tags: " + err.Error()})
 				}
 			}
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "update-success",
+			Description: "Updated account (/account/:account_id): " + account.Name,
+			Module:      "Account",
+		})
 		return ctx.JSON(http.StatusOK, c.model.AccountManager.ToModel(account))
 	})
 
-	// DELETE /account/:account_id: Delete an account by ID.
+	// DELETE: Single (WITH footstep)
 	req.RegisterRoute(horizon.Route{
 		Route:    "/account/:account_id",
 		Method:   "DELETE",
 		Response: "IAccount",
-		Note:     "Deletes a specific account by its ID. Only 'owner' or 'employee' can delete.",
+		Note:     "Delete an account by ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Account delete failed (/account/:account_id), user org error: " + err.Error(),
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to delete accounts"})
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Unauthorized delete attempt for account (/account/:account_id)",
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
 		accountID, err := horizon.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID"})
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Account delete failed (/account/:account_id), invalid UUID: " + err.Error(),
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID: " + err.Error()})
 		}
 		account, err := c.model.AccountManager.GetByID(context, *accountID)
 		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found"})
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Account delete failed (/account/:account_id), not found: " + err.Error(),
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found: " + err.Error()})
 		}
 		if err := c.model.AccountManager.DeleteByID(context, account.ID); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Account delete failed (/account/:account_id), db error: " + err.Error(),
+				Module:      "Account",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete account: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "delete-success",
+			Description: "Deleted account (/account/:account_id): " + account.Name,
+			Module:      "Account",
+		})
 		return ctx.JSON(http.StatusOK, c.model.AccountManager.ToModel(account))
 	})
 
-	// DELETE /account/bulk-delete: Bulk delete accounts by IDs.
+	// DELETE: Bulk (WITH footstep)
 	req.RegisterRoute(horizon.Route{
 		Route:   "/account/bulk-delete",
 		Method:  "DELETE",
 		Request: "string[]",
-		Note:    "Deletes multiple accounts by their IDs. Only 'owner' or 'employee' can delete.",
+		Note:    "Bulk delete multiple accounts by their IDs.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody struct {
 			IDs []string `json:"ids"`
 		}
 		if err := ctx.Bind(&reqBody); err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "bulk-delete-error",
+				Description: "Bulk delete failed (/account/bulk-delete), invalid request body: " + err.Error(),
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if len(reqBody.IDs) == 0 {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "bulk-delete-error",
+				Description: "Bulk delete failed (/account/bulk-delete), no IDs provided",
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided."})
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "bulk-delete-error",
+				Description: "Bulk delete failed (/account/bulk-delete), user org error: " + err.Error(),
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to bulk delete accounts"})
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "bulk-delete-error",
+				Description: "Unauthorized bulk delete attempt for account (/account/bulk-delete)",
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
 		tx := c.provider.Service.Database.Client().Begin()
 		if tx.Error != nil {
 			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "bulk-delete-error",
+				Description: "Bulk delete failed (/account/bulk-delete), begin tx error: " + tx.Error.Error(),
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
 		}
 		for _, rawID := range reqBody.IDs {
 			id, err := uuid.Parse(rawID)
 			if err != nil {
 				tx.Rollback()
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "bulk-delete-error",
+					Description: "Bulk delete failed (/account/bulk-delete), invalid UUID: " + rawID + " - " + err.Error(),
+					Module:      "Account",
+				})
+				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid UUID: " + rawID + " - " + err.Error()})
 			}
 			if _, err := c.model.AccountManager.GetByID(context, id); err != nil {
 				tx.Rollback()
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Account not found with ID: %s", rawID)})
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "bulk-delete-error",
+					Description: "Bulk delete failed (/account/bulk-delete), account not found: " + rawID + " - " + err.Error(),
+					Module:      "Account",
+				})
+				return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account with ID " + rawID + " not found: " + err.Error()})
 			}
 			if err := c.model.AccountManager.DeleteByIDWithTx(context, tx, id); err != nil {
 				tx.Rollback()
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete an account: " + err.Error()})
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "bulk-delete-error",
+					Description: "Bulk delete failed (/account/bulk-delete), db error: " + rawID + " - " + err.Error(),
+					Module:      "Account",
+				})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete account with ID " + rawID + ": " + err.Error()})
 			}
 		}
 		if err := tx.Commit().Error; err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit bulk delete: " + err.Error()})
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "bulk-delete-error",
+				Description: "Bulk delete failed (/account/bulk-delete), commit error: " + err.Error(),
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity: "bulk-delete-success",
+			Description: "Bulk deleted accounts (/account/bulk-delete): IDs=" + func() string {
+				b := ""
+				for _, id := range reqBody.IDs {
+					b += id + ","
+				}
+				return b
+			}(),
+			Module: "Account",
+		})
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// ... (repeat similar improvements for the rest of the routes)
-	// For brevity, similar changes should be made to all other routes:
-	// - Remove c.BadRequest, c.NotFound, etc.
-	// - Use ctx.JSON(status, map[string]string{"error": message}) for all errors.
-	// - Improve all 'Note' fields to be clear and user-facing.
-	// - Add additional checks and context to error messages as appropriate.
+	// PUT: Update index (WITH footstep)
+	req.RegisterRoute(horizon.Route{
+		Route:    "/account/:account_id/index/:index",
+		Method:   "PUT",
+		Response: "IAccount",
+		Note:     "Update only the index field of an account using URL param.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Account index update failed (/account/:account_id/index/:index), user org error: " + err.Error(),
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Unauthorized index update attempt for account (/account/:account_id/index/:index)",
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
+		}
+		accountID, err := horizon.EngineUUIDParam(ctx, "account_id")
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Account index update failed (/account/:account_id/index/:index), invalid UUID: " + err.Error(),
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID: " + err.Error()})
+		}
+		indexParam := ctx.Param("index")
+		var newIndex int
+		_, err = fmt.Sscanf(indexParam, "%d", &newIndex)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Account index update failed (/account/:account_id/index/:index), invalid index: " + err.Error(),
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid index value: " + err.Error()})
+		}
+		account, err := c.model.AccountManager.GetByID(context, *accountID)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Account index update failed (/account/:account_id/index/:index), not found: " + err.Error(),
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found: " + err.Error()})
+		}
+		account.Index = newIndex
+		account.UpdatedAt = time.Now().UTC()
+		account.UpdatedByID = userOrg.UserID
+		if err := c.model.AccountManager.UpdateFields(context, account.ID, account); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Account index update failed (/account/:account_id/index/:index), db error: " + err.Error(),
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update account index: " + err.Error()})
+		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "update-success",
+			Description: fmt.Sprintf("Updated account index (/account/:account_id/index/:index): %s to %d", account.Name, newIndex),
+			Module:      "Account",
+		})
+		return ctx.JSON(http.StatusOK, c.model.AccountManager.ToModel(account))
+	})
 
-	// You should repeat this error and note style for all other routes (account-category, account-classification, etc.)
-	// as shown in the above examples.
+	// PUT: Remove GeneralLedgerDefinitionID (WITH footstep)
+	req.RegisterRoute(horizon.Route{
+		Route:    "/account/:account_id/general-ledger-definition/remove",
+		Method:   "PUT",
+		Response: "IAccount",
+		Note:     "Remove the GeneralLedgerDefinitionID from an account.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Account remove GL def failed (/account/:account_id/general-ledger-definition/remove), user org error: " + err.Error(),
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Unauthorized remove GL def attempt for account (/account/:account_id/general-ledger-definition/remove)",
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
+		}
+		accountID, err := horizon.EngineUUIDParam(ctx, "account_id")
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Account remove GL def failed (/account/:account_id/general-ledger-definition/remove), invalid UUID: " + err.Error(),
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID: " + err.Error()})
+		}
+		account, err := c.model.AccountManager.GetByID(context, *accountID)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Account remove GL def failed (/account/:account_id/general-ledger-definition/remove), not found: " + err.Error(),
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found: " + err.Error()})
+		}
+		account.GeneralLedgerDefinitionID = nil
+		account.UpdatedAt = time.Now().UTC()
+		account.UpdatedByID = userOrg.UserID
+		if err := c.model.AccountManager.UpdateFields(context, account.ID, account); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Account remove GL def failed (/account/:account_id/general-ledger-definition/remove), db error: " + err.Error(),
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to remove GeneralLedgerDefinitionID: " + err.Error()})
+		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "update-success",
+			Description: fmt.Sprintf("Removed GL def from account (/account/:account_id/general-ledger-definition/remove): %s", account.Name),
+			Module:      "Account",
+		})
+		return ctx.JSON(http.StatusOK, c.model.AccountManager.ToModel(account))
+	})
 }

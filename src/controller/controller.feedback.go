@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/horizon"
+	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
 
@@ -15,7 +16,7 @@ import (
 func (c *Controller) FeedbackController() {
 	req := c.provider.Service.Request
 
-	// GET /feedback: List all feedback records.
+	// GET /feedback: List all feedback records. (NO footstep)
 	req.RegisterRoute(horizon.Route{
 		Route:    "/feedback",
 		Method:   "GET",
@@ -30,7 +31,7 @@ func (c *Controller) FeedbackController() {
 		return ctx.JSON(http.StatusOK, feedback)
 	})
 
-	// GET /feedback/:feedback_id: Get a specific feedback by ID.
+	// GET /feedback/:feedback_id: Get a specific feedback by ID. (NO footstep)
 	req.RegisterRoute(horizon.Route{
 		Route:    "/feedback/:feedback_id",
 		Method:   "GET",
@@ -51,7 +52,7 @@ func (c *Controller) FeedbackController() {
 		return ctx.JSON(http.StatusOK, feedback)
 	})
 
-	// POST /feedback: Create a new feedback record.
+	// POST /feedback: Create a new feedback record. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
 		Route:    "/feedback",
 		Method:   "POST",
@@ -62,6 +63,11 @@ func (c *Controller) FeedbackController() {
 		context := ctx.Request().Context()
 		req, err := c.model.FeedbackManager.Validate(ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Feedback creation failed (/feedback), validation error: " + err.Error(),
+				Module:      "Feedback",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid feedback data: " + err.Error()})
 		}
 
@@ -75,13 +81,24 @@ func (c *Controller) FeedbackController() {
 		}
 
 		if err := c.model.FeedbackManager.Create(context, feedback); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Feedback creation failed (/feedback), db error: " + err.Error(),
+				Module:      "Feedback",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create feedback record: " + err.Error()})
 		}
+
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "create-success",
+			Description: "Created feedback (/feedback): " + feedback.Email,
+			Module:      "Feedback",
+		})
 
 		return ctx.JSON(http.StatusCreated, c.model.FeedbackManager.ToModel(feedback))
 	})
 
-	// DELETE /feedback/:feedback_id: Delete a feedback record by ID.
+	// DELETE /feedback/:feedback_id: Delete a feedback record by ID. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
 		Route:  "/feedback/:feedback_id",
 		Method: "DELETE",
@@ -90,17 +107,43 @@ func (c *Controller) FeedbackController() {
 		context := ctx.Request().Context()
 		feedbackID, err := horizon.EngineUUIDParam(ctx, "feedback_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Feedback delete failed (/feedback/:feedback_id), invalid feedback ID.",
+				Module:      "Feedback",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid feedback ID"})
 		}
 
+		feedback, err := c.model.FeedbackManager.GetByID(context, *feedbackID)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Feedback delete failed (/feedback/:feedback_id), record not found.",
+				Module:      "Feedback",
+			})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Feedback record not found"})
+		}
+
 		if err := c.model.FeedbackManager.DeleteByID(context, *feedbackID); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Feedback delete failed (/feedback/:feedback_id), db error: " + err.Error(),
+				Module:      "Feedback",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete feedback record: " + err.Error()})
 		}
+
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "delete-success",
+			Description: "Deleted feedback (/feedback/:feedback_id): " + feedback.Email,
+			Module:      "Feedback",
+		})
 
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// DELETE /feedback/bulk-delete: Bulk delete feedback records by IDs.
+	// DELETE /feedback/bulk-delete: Bulk delete feedback records by IDs. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
 		Route:   "/feedback/bulk-delete",
 		Method:  "DELETE",
@@ -113,40 +156,85 @@ func (c *Controller) FeedbackController() {
 		}
 
 		if err := ctx.Bind(&reqBody); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "bulk-delete-error",
+				Description: "Feedback bulk delete failed (/feedback/bulk-delete), invalid request body.",
+				Module:      "Feedback",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
 		}
 
 		if len(reqBody.IDs) == 0 {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "bulk-delete-error",
+				Description: "Feedback bulk delete failed (/feedback/bulk-delete), no IDs provided.",
+				Module:      "Feedback",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
 
 		tx := c.provider.Service.Database.Client().Begin()
 		if tx.Error != nil {
 			tx.Rollback()
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "bulk-delete-error",
+				Description: "Feedback bulk delete failed (/feedback/bulk-delete), begin tx error: " + tx.Error.Error(),
+				Module:      "Feedback",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
 
+		emails := ""
 		for _, rawID := range reqBody.IDs {
 			feedbackID, err := uuid.Parse(rawID)
 			if err != nil {
 				tx.Rollback()
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "bulk-delete-error",
+					Description: "Feedback bulk delete failed (/feedback/bulk-delete), invalid UUID: " + rawID,
+					Module:      "Feedback",
+				})
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
 			}
 
-			if _, err := c.model.FeedbackManager.GetByID(context, feedbackID); err != nil {
+			feedback, err := c.model.FeedbackManager.GetByID(context, feedbackID)
+			if err != nil {
 				tx.Rollback()
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "bulk-delete-error",
+					Description: "Feedback bulk delete failed (/feedback/bulk-delete), not found: " + rawID,
+					Module:      "Feedback",
+				})
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Feedback record not found with ID: %s", rawID)})
 			}
 
+			emails += feedback.Email + ","
+
 			if err := c.model.FeedbackManager.DeleteByIDWithTx(context, tx, feedbackID); err != nil {
 				tx.Rollback()
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "bulk-delete-error",
+					Description: "Feedback bulk delete failed (/feedback/bulk-delete), db error: " + err.Error(),
+					Module:      "Feedback",
+				})
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete feedback record: " + err.Error()})
 			}
 		}
 
 		if err := tx.Commit().Error; err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "bulk-delete-error",
+				Description: "Feedback bulk delete failed (/feedback/bulk-delete), commit error: " + err.Error(),
+				Module:      "Feedback",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
+
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "bulk-delete-success",
+			Description: "Bulk deleted feedbacks (/feedback/bulk-delete): " + emails,
+			Module:      "Feedback",
+		})
 
 		return ctx.NoContent(http.StatusNoContent)
 	})

@@ -6,6 +6,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/horizon"
+	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
 
@@ -99,10 +100,20 @@ func (c *Controller) UserRatingController() {
 		context := ctx.Request().Context()
 		req, err := c.model.UserRatingManager.Validate(ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create user rating failed: validation error: " + err.Error(),
+				Module:      "UserRating",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create user rating failed: get user org error: " + err.Error(),
+				Module:      "UserRating",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
@@ -120,8 +131,19 @@ func (c *Controller) UserRatingController() {
 		}
 
 		if err := c.model.UserRatingManager.Create(context, userRating); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create user rating failed: create error: " + err.Error(),
+				Module:      "UserRating",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create user rating: " + err.Error()})
 		}
+
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "create-success",
+			Description: "Created user rating for ratee " + req.RateeUserID.String() + " by rater " + req.RaterUserID.String(),
+			Module:      "UserRating",
+		})
 
 		return ctx.JSON(http.StatusOK, c.model.UserRatingManager.ToModel(userRating))
 	})
@@ -135,11 +157,26 @@ func (c *Controller) UserRatingController() {
 		context := ctx.Request().Context()
 		userRatingId, err := horizon.EngineUUIDParam(ctx, "user_rating_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete user rating failed: invalid user_rating_id: " + err.Error(),
+				Module:      "UserRating",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_rating_id: " + err.Error()})
 		}
 		if err := c.model.UserRatingManager.DeleteByID(context, *userRatingId); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete user rating failed: delete error: " + err.Error(),
+				Module:      "UserRating",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete user rating: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "delete-success",
+			Description: "Deleted user rating with ID " + userRatingId.String(),
+			Module:      "UserRating",
+		})
 		return ctx.NoContent(http.StatusNoContent)
 	})
 }

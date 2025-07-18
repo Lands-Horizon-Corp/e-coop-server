@@ -6,6 +6,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/horizon"
+	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
 
@@ -24,13 +25,28 @@ func (c *Controller) BatchFundingController() {
 		context := ctx.Request().Context()
 		batchFundingReq, err := c.model.BatchFundingManager.Validate(ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Batch funding creation failed (/batch-funding), validation error: " + err.Error(),
+				Module:      "BatchFunding",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid batch funding data: " + err.Error()})
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Batch funding creation failed (/batch-funding), user org error: " + err.Error(),
+				Module:      "BatchFunding",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unable to determine user organization. Please login again."})
 		}
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Unauthorized create attempt for batch funding (/batch-funding)",
+				Module:      "BatchFunding",
+			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "You do not have permission to create batch funding."})
 		}
 		transactionBatch, err := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
@@ -39,9 +55,19 @@ func (c *Controller) BatchFundingController() {
 			"is_closed":       false,
 		})
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Batch funding creation failed (/batch-funding), transaction batch lookup error: " + err.Error(),
+				Module:      "BatchFunding",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not find an active transaction batch: " + err.Error()})
 		}
 		if transactionBatch == nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Batch funding creation failed (/batch-funding), no open transaction batch.",
+				Module:      "BatchFunding",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No active transaction batch is open for this branch."})
 		}
 
@@ -51,6 +77,11 @@ func (c *Controller) BatchFundingController() {
 			BranchID:           *userOrg.BranchID,
 		})
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Batch funding creation failed (/batch-funding), cash count lookup error: " + err.Error(),
+				Module:      "BatchFunding",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Unable to retrieve cash counts: " + err.Error()})
 		}
 
@@ -65,6 +96,11 @@ func (c *Controller) BatchFundingController() {
 		transactionBatch.GrandTotal = totalCashCount + transactionBatch.DepositInBank
 
 		if err := c.model.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Batch funding creation failed (/batch-funding), transaction batch update error: " + err.Error(),
+				Module:      "BatchFunding",
+			})
 			return ctx.JSON(http.StatusConflict, map[string]string{"error": "Could not update transaction batch balances: " + err.Error()})
 		}
 		batchFunding := &model.BatchFunding{
@@ -83,13 +119,22 @@ func (c *Controller) BatchFundingController() {
 		}
 
 		if err := c.model.BatchFundingManager.Create(context, batchFunding); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Batch funding creation failed (/batch-funding), db error: " + err.Error(),
+				Module:      "BatchFunding",
+			})
 			return ctx.JSON(http.StatusConflict, map[string]string{"error": "Unable to create batch funding record: " + err.Error()})
 		}
-
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "create-success",
+			Description: "Created batch funding (/batch-funding): " + batchFunding.Name,
+			Module:      "BatchFunding",
+		})
 		return ctx.JSON(http.StatusOK, c.model.BatchFundingManager.ToModel(batchFunding))
 	})
 
-	// GET /batch-funding/transaction-batch/:transaction_batch_id/search: Paginated batch funding for a transaction batch.
+	// GET /batch-funding/transaction-batch/:transaction_batch_id/search: Paginated batch funding for a transaction batch. (NO footstep)
 	req.RegisterRoute(horizon.Route{
 		Route:    "/batch-funding/transaction-batch/:transaction_batch_id/search",
 		Method:   "GET",

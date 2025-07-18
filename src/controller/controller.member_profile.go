@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/horizon"
+	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
 
@@ -52,17 +53,37 @@ func (c *Controller) MemberProfileController() {
 
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create user account for member profile failed: invalid member_profile_id: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
 		var req model.MemberProfileUserAccountRequest
 		if err := ctx.Bind(&req); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create user account for member profile failed: invalid request body: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create user account for member profile failed: validation error: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create user account for member profile failed: user org error: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
@@ -70,6 +91,11 @@ func (c *Controller) MemberProfileController() {
 		hashedPwd, err := c.provider.Service.Security.HashPassword(context, req.Password)
 		if err != nil {
 			tx.Rollback()
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create user account for member profile failed: hash password error: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to hash password: " + err.Error()})
 		}
 		userProfile := &model.User{
@@ -89,15 +115,30 @@ func (c *Controller) MemberProfileController() {
 		}
 		if err := c.model.UserManager.CreateWithTx(context, tx, userProfile); err != nil {
 			tx.Rollback()
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create user account for member profile failed: create user error: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not create user profile: " + err.Error()})
 		}
 		if tx.Error != nil {
 			tx.Rollback()
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create user account for member profile failed: database error: " + tx.Error.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Database error: " + tx.Error.Error()})
 		}
 		memberProfile, err := c.model.MemberProfileManager.GetByID(context, *memberProfileID)
 		if err != nil {
 			tx.Rollback()
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create user account for member profile failed: member profile not found: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found: %v", memberProfileID, err)})
 		}
 		memberProfile.UserID = &userProfile.ID
@@ -106,12 +147,22 @@ func (c *Controller) MemberProfileController() {
 
 		if err := c.model.MemberProfileManager.UpdateFieldsWithTx(context, tx, memberProfile.ID, memberProfile); err != nil {
 			tx.Rollback()
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create user account for member profile failed: update member profile error: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not update member profile: " + err.Error()})
 		}
 
 		developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, userProfile.ID.String())
 		if err != nil {
 			tx.Rollback()
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create user account for member profile failed: generate developer key error: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate developer key: " + err.Error()})
 		}
 		developerKey = developerKey + uuid.NewString() + "-horizon"
@@ -141,12 +192,29 @@ func (c *Controller) MemberProfileController() {
 		}
 		if err := c.model.UserOrganizationManager.CreateWithTx(context, tx, newUserOrg); err != nil {
 			tx.Rollback()
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create user account for member profile failed: create user org error: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Failed to create UserOrganization: " + err.Error()})
 		}
 
 		if err := tx.Commit().Error; err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create user account for member profile failed: commit tx error: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
+
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "create-success",
+			Description: "Created user account for member profile: " + userProfile.UserName,
+			Module:      "MemberProfile",
+		})
+
 		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(memberProfile))
 	})
 
@@ -160,24 +228,54 @@ func (c *Controller) MemberProfileController() {
 		context := ctx.Request().Context()
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "approve-error",
+				Description: "Approve member profile failed: invalid member_profile_id: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "approve-error",
+				Description: "Approve member profile failed: user org error: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "approve-error",
+				Description: "Approve member profile failed: user not authorized",
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
 		memberProfile, err := c.model.MemberProfileManager.GetByID(context, *memberProfileID)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "approve-error",
+				Description: "Approve member profile failed: member profile not found: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found: %v", memberProfileID, err)})
 		}
 		memberProfile.Status = "verified"
 		memberProfile.MemberVerifiedByEmployeeUserID = &userOrg.UserID
 		if err := c.model.MemberProfileManager.UpdateFields(context, memberProfile.ID, memberProfile); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "approve-error",
+				Description: "Approve member profile failed: update error: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update member profile: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "approve-success",
+			Description: "Approved member profile: " + memberProfile.FullName,
+			Module:      "MemberProfile",
+		})
 		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(memberProfile))
 	})
 
@@ -191,23 +289,53 @@ func (c *Controller) MemberProfileController() {
 		context := ctx.Request().Context()
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "reject-error",
+				Description: "Reject member profile failed: invalid member_profile_id: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "reject-error",
+				Description: "Reject member profile failed: user org error: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "reject-error",
+				Description: "Reject member profile failed: user not authorized",
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
 		memberProfile, err := c.model.MemberProfileManager.GetByID(context, *memberProfileID)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "reject-error",
+				Description: "Reject member profile failed: member profile not found: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found: %v", memberProfileID, err)})
 		}
 		memberProfile.Status = "not allowed"
 		if err := c.model.MemberProfileManager.UpdateFields(context, memberProfile.ID, memberProfile); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "reject-error",
+				Description: "Reject member profile failed: update error: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update member profile: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "reject-success",
+			Description: "Rejected member profile: " + memberProfile.FullName,
+			Module:      "MemberProfile",
+		})
 		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(memberProfile))
 	})
 
@@ -278,26 +406,56 @@ func (c *Controller) MemberProfileController() {
 		context := ctx.Request().Context()
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete member profile failed: invalid member_profile_id: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
 		tx := c.provider.Service.Database.Client().Begin()
 		if tx.Error != nil {
 			tx.Rollback()
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete member profile failed: begin tx error: " + tx.Error.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
 		}
 
 		memberProfile, err := c.model.MemberProfileManager.GetByID(context, *memberProfileID)
 		if err != nil {
 			tx.Rollback()
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete member profile failed: member profile not found: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found: %v", memberProfileID.String(), err)})
 		}
 		if err := c.model.MemberProfileDestroy(context, tx, memberProfile.ID); err != nil {
 			tx.Rollback()
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete member profile failed: destroy error: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete member profile: " + err.Error()})
 		}
 		if err := tx.Commit().Error; err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete member profile failed: commit tx error: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "delete-success",
+			Description: "Deleted member profile: " + memberProfile.FullName,
+			Module:      "MemberProfile",
+		})
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
@@ -313,17 +471,33 @@ func (c *Controller) MemberProfileController() {
 			IDs []string `json:"ids"`
 		}
 		if err := ctx.Bind(&reqBody); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "bulk-delete-error",
+				Description: "Bulk delete member profiles failed: invalid request body.",
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if len(reqBody.IDs) == 0 {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "bulk-delete-error",
+				Description: "Bulk delete member profiles failed: no IDs provided.",
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for deletion."})
 		}
 		tx := c.provider.Service.Database.Client().Begin()
 		if tx.Error != nil {
 			tx.Rollback()
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "bulk-delete-error",
+				Description: "Bulk delete member profiles failed: begin tx error: " + tx.Error.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
 		}
 
+		names := ""
 		for _, rawID := range reqBody.IDs {
 			if rawID == "" {
 				continue
@@ -331,21 +505,48 @@ func (c *Controller) MemberProfileController() {
 			id, err := uuid.Parse(rawID)
 			if err != nil {
 				tx.Rollback()
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "bulk-delete-error",
+					Description: "Bulk delete member profiles failed: invalid UUID: " + rawID,
+					Module:      "MemberProfile",
+				})
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s - %v", rawID, err)})
 			}
 			memberProfile, err := c.model.MemberProfileManager.GetByID(context, id)
 			if err != nil {
 				tx.Rollback()
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "bulk-delete-error",
+					Description: "Bulk delete member profiles failed: member profile not found: " + rawID,
+					Module:      "MemberProfile",
+				})
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found: %v", rawID, err)})
 			}
+			names += memberProfile.FullName + ","
 			if err := c.model.MemberProfileDestroy(context, tx, memberProfile.ID); err != nil {
 				tx.Rollback()
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "bulk-delete-error",
+					Description: "Bulk delete member profiles failed: destroy error: " + err.Error(),
+					Module:      "MemberProfile",
+				})
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to delete member profile with ID %s: %v", rawID, err)})
 			}
 		}
 		if err := tx.Commit().Error; err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "bulk-delete-error",
+				Description: "Bulk delete member profiles failed: commit tx error: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "bulk-delete-success",
+			Description: "Bulk deleted member profiles: " + names,
+			Module:      "MemberProfile",
+		})
+
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
@@ -360,26 +561,55 @@ func (c *Controller) MemberProfileController() {
 		context := ctx.Request().Context()
 		var req model.MemberProfileAccountRequest
 		if err := ctx.Bind(&req); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Connect member profile to user account failed: invalid request body: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Connect member profile to user account failed: validation error: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		memberProfileId, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Connect member profile to user account failed: invalid member_profile_id: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
 		memberProfile, err := c.model.MemberProfileManager.GetByID(context, *memberProfileId)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Connect member profile to user account failed: member profile not found: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found: %v", memberProfileId, err)})
 		}
 		memberProfile.UserID = req.UserID
 		if err := c.model.MemberProfileManager.UpdateFields(context, memberProfile.ID, memberProfile); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Connect member profile to user account failed: update error: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update member profile: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "update-success",
+			Description: fmt.Sprintf("Connected member profile (%s) to user account.", memberProfile.FullName),
+			Module:      "MemberProfile",
+		})
 		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(memberProfile))
 	})
-
 	// Quickly create a new member profile with minimal required fields
 	req.RegisterRoute(horizon.Route{
 		Route:    "/member-profile/quick-create",
@@ -391,13 +621,28 @@ func (c *Controller) MemberProfileController() {
 		context := ctx.Request().Context()
 		var req model.MemberProfileQuickCreateRequest
 		if err := ctx.Bind(&req); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Quick create member profile failed: invalid request body: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Quick create member profile failed: validation error: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Quick create member profile failed: user org error: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
@@ -410,6 +655,11 @@ func (c *Controller) MemberProfileController() {
 			hashedPwd, err := c.provider.Service.Security.HashPassword(context, req.AccountInfo.Password)
 			if err != nil {
 				tx.Rollback()
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "create-error",
+					Description: "Quick create member profile failed: hash password error: " + err.Error(),
+					Module:      "MemberProfile",
+				})
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to hash password: " + err.Error()})
 			}
 			userProfile = &model.User{
@@ -429,10 +679,20 @@ func (c *Controller) MemberProfileController() {
 			}
 			if err := c.model.UserManager.CreateWithTx(context, tx, userProfile); err != nil {
 				tx.Rollback()
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "create-error",
+					Description: "Quick create member profile failed: create user error: " + err.Error(),
+					Module:      "MemberProfile",
+				})
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not create user profile: " + err.Error()})
 			}
 			if tx.Error != nil {
 				tx.Rollback()
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "create-error",
+					Description: "Quick create member profile failed: database error: " + tx.Error.Error(),
+					Module:      "MemberProfile",
+				})
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Database error: " + tx.Error.Error()})
 			}
 			userProfileID = &userProfile.ID
@@ -465,6 +725,11 @@ func (c *Controller) MemberProfileController() {
 		}
 		if err := c.model.MemberProfileManager.CreateWithTx(context, tx, profile); err != nil {
 			tx.Rollback()
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Quick create member profile failed: create profile error: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not create member profile: " + err.Error()})
 		}
 
@@ -472,6 +737,11 @@ func (c *Controller) MemberProfileController() {
 			developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, user.ID.String())
 			if err != nil {
 				tx.Rollback()
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "create-error",
+					Description: "Quick create member profile failed: generate developer key error: " + err.Error(),
+					Module:      "MemberProfile",
+				})
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate developer key: " + err.Error()})
 			}
 			developerKey = developerKey + uuid.NewString() + "-horizon"
@@ -501,13 +771,30 @@ func (c *Controller) MemberProfileController() {
 			}
 			if err := c.model.UserOrganizationManager.CreateWithTx(context, tx, userOrg); err != nil {
 				tx.Rollback()
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "create-error",
+					Description: "Quick create member profile failed: create user org error: " + err.Error(),
+					Module:      "MemberProfile",
+				})
 				return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Failed to create UserOrganization: " + err.Error()})
 			}
 		}
 
 		if err := tx.Commit().Error; err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Quick create member profile failed: commit tx error: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
+
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "create-success",
+			Description: "Quick created member profile: " + profile.FullName,
+			Module:      "MemberProfile",
+		})
+
 		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(profile))
 	})
 
@@ -522,21 +809,46 @@ func (c *Controller) MemberProfileController() {
 		context := ctx.Request().Context()
 		var req model.MemberProfilePersonalInfoRequest
 		if err := ctx.Bind(&req); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member profile personal info failed: invalid request body: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member profile personal info failed: validation error: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		memberProfileId, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member profile personal info failed: invalid member_profile_id: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
 		profile, err := c.model.MemberProfileManager.GetByID(context, *memberProfileId)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member profile personal info failed: member profile not found: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found: %v", memberProfileId, err)})
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member profile personal info failed: user org error: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		profile.UpdatedAt = time.Now().UTC()
@@ -562,6 +874,11 @@ func (c *Controller) MemberProfileController() {
 				MemberGenderID:  *req.MemberGenderID,
 			}
 			if err := c.model.MemberGenderHistoryManager.Create(context, data); err != nil {
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "update-error",
+					Description: "Update member profile personal info failed: update gender history error: " + err.Error(),
+					Module:      "MemberProfile",
+				})
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not update member gender history: " + err.Error()})
 			}
 			profile.MemberGenderID = req.MemberGenderID
@@ -578,6 +895,11 @@ func (c *Controller) MemberProfileController() {
 				MemberOccupationID: *req.MemberOccupationID,
 			}
 			if err := c.model.MemberOccupationHistoryManager.Create(context, data); err != nil {
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "update-error",
+					Description: "Update member profile personal info failed: update occupation history error: " + err.Error(),
+					Module:      "MemberProfile",
+				})
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not update member occupation history: " + err.Error()})
 			}
 			profile.MemberOccupationID = req.MemberOccupationID
@@ -590,8 +912,18 @@ func (c *Controller) MemberProfileController() {
 		profile.MediaID = req.MediaID
 		profile.SignatureMediaID = req.SignatureMediaID
 		if err := c.model.MemberProfileManager.UpdateFields(context, profile.ID, profile); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member profile personal info failed: update error: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not update member profile: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "update-success",
+			Description: fmt.Sprintf("Updated member profile personal info: %s", profile.FullName),
+			Module:      "MemberProfile",
+		})
 		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(profile))
 	})
 
@@ -606,21 +938,46 @@ func (c *Controller) MemberProfileController() {
 		context := ctx.Request().Context()
 		var req model.MemberProfileMembershipInfoRequest
 		if err := ctx.Bind(&req); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member profile membership info failed: invalid request body: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member profile membership info failed: validation error: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		memberProfileId, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member profile membership info failed: invalid member_profile_id: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
 		profile, err := c.model.MemberProfileManager.GetByID(context, *memberProfileId)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member profile membership info failed: member profile not found: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found: %v", memberProfileId, err)})
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member profile membership info failed: user org error: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		profile.UpdatedAt = time.Now().UTC()
@@ -642,6 +999,11 @@ func (c *Controller) MemberProfileController() {
 				MemberTypeID:    *req.MemberTypeID,
 			}
 			if err := c.model.MemberTypeHistoryManager.Create(context, data); err != nil {
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "update-error",
+					Description: "Update member profile membership info failed: update member type history error: " + err.Error(),
+					Module:      "MemberProfile",
+				})
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not update member type history: " + err.Error()})
 			}
 			profile.MemberTypeID = req.MemberTypeID
@@ -658,6 +1020,11 @@ func (c *Controller) MemberProfileController() {
 				MemberGroupID:   *req.MemberGroupID,
 			}
 			if err := c.model.MemberGroupHistoryManager.Create(context, data); err != nil {
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "update-error",
+					Description: "Update member profile membership info failed: update member group history error: " + err.Error(),
+					Module:      "MemberProfile",
+				})
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not update member group history: " + err.Error()})
 			}
 			profile.MemberGroupID = req.MemberGroupID
@@ -674,6 +1041,11 @@ func (c *Controller) MemberProfileController() {
 				MemberClassificationID: *req.MemberClassificationID,
 			}
 			if err := c.model.MemberClassificationHistoryManager.Create(context, data); err != nil {
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "update-error",
+					Description: "Update member profile membership info failed: update member classification history error: " + err.Error(),
+					Module:      "MemberProfile",
+				})
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not update member classification history: " + err.Error()})
 			}
 			profile.MemberClassificationID = req.MemberClassificationID
@@ -690,6 +1062,11 @@ func (c *Controller) MemberProfileController() {
 				MemberCenterID:  *req.MemberCenterID,
 			}
 			if err := c.model.MemberCenterHistoryManager.Create(context, data); err != nil {
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "update-error",
+					Description: "Update member profile membership info failed: update member center history error: " + err.Error(),
+					Module:      "MemberProfile",
+				})
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not update member center history: " + err.Error()})
 			}
 			profile.MemberCenterID = req.MemberCenterID
@@ -699,8 +1076,18 @@ func (c *Controller) MemberProfileController() {
 		profile.IsMicroFinanceMember = req.IsMicroFinanceMember
 
 		if err := c.model.MemberProfileManager.UpdateFields(context, profile.ID, profile); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member profile membership info failed: update error: " + err.Error(),
+				Module:      "MemberProfile",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not update member profile: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "update-success",
+			Description: fmt.Sprintf("Updated member profile membership info: %s", profile.FullName),
+			Module:      "MemberProfile",
+		})
 		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(profile))
 	})
 }

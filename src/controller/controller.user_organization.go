@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/horizon"
+	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
 
@@ -25,6 +26,11 @@ func (c *Controller) UserOrganinzationController() {
 		context := ctx.Request().Context()
 		userOrgId, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update permission failed: invalid user_organization_id: " + err.Error(),
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_organization_id: " + err.Error()})
 		}
 
@@ -34,21 +40,41 @@ func (c *Controller) UserOrganinzationController() {
 			Permissions           []string `json:"permissions" validate:"required,min=1,dive,required"`
 		}
 		if err := ctx.Bind(&payload); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update permission failed: invalid payload: " + err.Error(),
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid payload: " + err.Error()})
 		}
 
 		validate := validator.New()
 		if err := validate.Struct(payload); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update permission failed: validation error: " + err.Error(),
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
 		userOrg, err := c.model.UserOrganizationManager.GetByID(context, *userOrgId)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update permission failed: not found: " + err.Error(),
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}
 
 		currentUserOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update permission failed: unauthorized: " + err.Error(),
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
 
@@ -59,8 +85,19 @@ func (c *Controller) UserOrganinzationController() {
 		userOrg.UpdatedByID = currentUserOrg.UserID
 
 		if err := c.model.UserOrganizationManager.UpdateFields(context, userOrg.ID, userOrg); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update permission failed: update error: " + err.Error(),
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update permissions: " + err.Error()})
 		}
+
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "update-success",
+			Description: "Updated permission for user organization " + userOrg.ID.String(),
+			Module:      "UserOrganization",
+		})
 
 		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModel(userOrg))
 	})
@@ -74,52 +111,111 @@ func (c *Controller) UserOrganinzationController() {
 		context := ctx.Request().Context()
 		orgId, err := horizon.EngineUUIDParam(ctx, "organization_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Seed organization failed: invalid organization ID: " + err.Error(),
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization ID: " + err.Error()})
 		}
 		user, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Seed organization failed: unauthorized: " + err.Error(),
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
 		userOrganizations, err := c.model.GetUserOrganizationByOrganization(context, *orgId, nil)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Seed organization failed: get user org error: " + err.Error(),
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user organizations: " + err.Error()})
 		}
 		if len(userOrganizations) == 0 || userOrganizations == nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Seed organization failed: user org not found",
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
 		tx := c.provider.Service.Database.Client().Begin()
 		if tx.Error != nil {
 			tx.Rollback()
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Seed organization failed: begin tx error: " + tx.Error.Error(),
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start transaction: " + tx.Error.Error()})
 		}
+		seededAny := false
 		for _, userOrganization := range userOrganizations {
 			if userOrganization.UserID != user.ID {
 				continue
 			}
 			if userOrganization.UserType != "owner" {
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "create-error",
+					Description: "Seed organization failed: not owner",
+					Module:      "UserOrganization",
+				})
 				return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Only owners can seed the organization"})
 			}
 			if userOrganization.BranchID == nil {
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "create-error",
+					Description: "Seed organization failed: branch missing",
+					Module:      "UserOrganization",
+				})
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Branch is missing"})
 			}
 			if userOrganization.IsSeeded {
 				continue
 			}
 			if err := c.model.OrganizationSeeder(context, tx, user.ID, userOrganization.OrganizationID, *userOrganization.BranchID); err != nil {
+				tx.Rollback()
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "create-error",
+					Description: "Seed organization failed: seeder error: " + err.Error(),
+					Module:      "UserOrganization",
+				})
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to seed organization: " + err.Error()})
 			}
 			userOrganization.IsSeeded = true
 			if err := c.model.UserOrganizationManager.UpdateFieldsWithTx(context, tx, userOrganization.ID, userOrganization); err != nil {
+				tx.Rollback()
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "create-error",
+					Description: "Seed organization failed: update seed status error: " + err.Error(),
+					Module:      "UserOrganization",
+				})
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user organization seed status: " + err.Error()})
 			}
+			seededAny = true
 		}
 		if err := tx.Commit().Error; err != nil {
-			tx.Rollback()
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Seed organization failed: commit tx error: " + err.Error(),
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
+		}
+		if seededAny {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-success",
+				Description: "Seeded all branches for organization " + orgId.String(),
+				Module:      "UserOrganization",
+			})
 		}
 		return ctx.NoContent(http.StatusOK)
 	})
-
 	// Get paginated user organizations for employees on current branch
 	req.RegisterRoute(horizon.Route{
 		Route:    "/user-organization/employee/search",
@@ -383,7 +479,17 @@ func (c *Controller) UserOrganinzationController() {
 		Note:   "Removes organization and branch from JWT for the current user. No database impact.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
+
+		// Remove the token
 		c.userOrganizationToken.Token.CleanToken(context, ctx)
+
+		// Log the footstep event
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "update-success",
+			Description: "User organization and branch removed from JWT (unswitch)",
+			Module:      "UserOrganization",
+		})
+
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
@@ -396,16 +502,36 @@ func (c *Controller) UserOrganinzationController() {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Refresh developer key failed: unauthorized: " + err.Error(),
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
 		developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, userOrg.UserID.String())
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Refresh developer key failed: generate key error: " + err.Error(),
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate developer key: " + err.Error()})
 		}
 		userOrg.DeveloperSecretKey = developerKey + uuid.NewString() + "-horizon"
 		if err := c.model.UserOrganizationManager.UpdateFields(context, userOrg.ID, userOrg); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Refresh developer key failed: update error: " + err.Error(),
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update developer key: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "update-success",
+			Description: "Refreshed developer key for user organization " + userOrg.ID.String(),
+			Module:      "UserOrganization",
+		})
 		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModel(userOrg))
 	})
 
@@ -419,30 +545,65 @@ func (c *Controller) UserOrganinzationController() {
 		code := ctx.Param("code")
 		user, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Join organization failed: unauthorized: " + err.Error(),
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
 		invitationCode, err := c.model.VerifyInvitationCodeByCode(context, code)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Join organization failed: verify invitation code error: " + err.Error(),
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Failed to verify invitation code: " + err.Error()})
 		}
 		if invitationCode == nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Join organization failed: invitation code not found",
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Invitation code not found"})
 		}
 		switch invitationCode.UserType {
 		case "member":
 			if !c.model.UserOrganizationMemberCanJoin(context, user.ID, invitationCode.OrganizationID, invitationCode.BranchID) {
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "create-error",
+					Description: "Join organization failed: cannot join as member",
+					Module:      "UserOrganization",
+				})
 				return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot join as member"})
 			}
 		case "employee":
 			if !c.model.UserOrganizationEmployeeCanJoin(context, user.ID, invitationCode.OrganizationID, invitationCode.BranchID) {
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "create-error",
+					Description: "Join organization failed: cannot join as employee",
+					Module:      "UserOrganization",
+				})
 				return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot join as employee"})
 			}
 		default:
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Join organization failed: cannot join as employee (default)",
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot join as employee"})
 		}
 
 		developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, user.ID.String())
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Join organization failed: generate developer key error: " + err.Error(),
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate developer key: " + err.Error()})
 		}
 		developerKey = developerKey + uuid.NewString() + "-horizon"
@@ -473,20 +634,45 @@ func (c *Controller) UserOrganinzationController() {
 		tx := c.provider.Service.Database.Client().Begin()
 		if tx.Error != nil {
 			tx.Rollback()
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Join organization failed: begin tx error: " + tx.Error.Error(),
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start transaction: " + tx.Error.Error()})
 		}
 		if err := c.model.RedeemInvitationCode(context, tx, invitationCode.ID); err != nil {
 			tx.Rollback()
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Join organization failed: redeem invitation code error: " + err.Error(),
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Failed to redeem invitation code: " + err.Error()})
 		}
 		if err := c.model.UserOrganizationManager.CreateWithTx(context, tx, userOrg); err != nil {
 			tx.Rollback()
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Join organization failed: create user org error: " + err.Error(),
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Failed to create user organization: " + err.Error()})
 		}
 		if err := tx.Commit().Error; err != nil {
 			tx.Rollback()
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Join organization failed: commit tx error: " + err.Error(),
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "create-success",
+			Description: "Joined organization and branch using invitation code " + code,
+			Module:      "UserOrganization",
+		})
 		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModel(userOrg))
 	})
 
@@ -499,32 +685,67 @@ func (c *Controller) UserOrganinzationController() {
 		context := ctx.Request().Context()
 		orgId, err := horizon.EngineUUIDParam(ctx, "organization_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Join organization failed: invalid organization_id: " + err.Error(),
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization_id: " + err.Error()})
 		}
 		branchId, err := horizon.EngineUUIDParam(ctx, "branch_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Join organization failed: invalid branch_id: " + err.Error(),
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid branch_id: " + err.Error()})
 		}
 		req, err := c.model.UserOrganizationManager.Validate(ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Join organization failed: validation error: " + err.Error(),
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		user, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Join organization failed: unauthorized: " + err.Error(),
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
 		if req.ApplicationStatus == "member" {
 			if !c.model.UserOrganizationMemberCanJoin(context, user.ID, *orgId, *branchId) {
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "create-error",
+					Description: "Join organization failed: cannot join as member",
+					Module:      "UserOrganization",
+				})
 				return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot join as member"})
 			}
 		}
 		if req.ApplicationStatus == "employee" {
 			if !c.model.UserOrganizationEmployeeCanJoin(context, user.ID, *orgId, *branchId) {
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "create-error",
+					Description: "Join organization failed: cannot join as employee",
+					Module:      "UserOrganization",
+				})
 				return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot join as employee"})
 			}
 		}
 		developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, user.ID.String())
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Join organization failed: generate developer key error: " + err.Error(),
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate developer key: " + err.Error()})
 		}
 		developerKey = developerKey + uuid.NewString() + "-horizon"
@@ -554,8 +775,19 @@ func (c *Controller) UserOrganinzationController() {
 		}
 
 		if err := c.model.UserOrganizationManager.Create(context, userOrg); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Join organization failed: create user org error: " + err.Error(),
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": "Failed to create user organization: " + err.Error()})
 		}
+
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "create-success",
+			Description: "Joined organization and branch " + orgId.String() + " - " + branchId.String() + " as member",
+			Module:      "UserOrganization",
+		})
 
 		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModel(userOrg))
 	})
@@ -569,16 +801,38 @@ func (c *Controller) UserOrganinzationController() {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Leave organization failed: unauthorized: " + err.Error(),
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
 		switch userOrg.UserType {
 		case "owner", "employee":
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Leave organization failed: forbidden for owner or employee",
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Owners and employees cannot leave an organization"})
 		}
 
 		if err := c.model.UserOrganizationManager.DeleteByID(context, userOrg.ID); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Leave organization failed: delete error: " + err.Error(),
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": "Failed to leave organization: " + err.Error()})
 		}
+
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "delete-success",
+			Description: "User left organization and branch: " + userOrg.OrganizationID.String(),
+			Module:      "UserOrganization",
+		})
+
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
@@ -660,31 +914,67 @@ func (c *Controller) UserOrganinzationController() {
 		context := ctx.Request().Context()
 		userOrgId, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "approve-error",
+				Description: "Accept application failed: invalid user_organization_id: " + err.Error(),
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_organization_id: " + err.Error()})
 		}
 
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "approve-error",
+				Description: "Accept application failed: unauthorized: " + err.Error(),
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
 
 		userOrg, err := c.model.UserOrganizationManager.GetByID(context, *userOrgId)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "approve-error",
+				Description: "Accept application failed: user organization not found: " + err.Error(),
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}
 
 		if user.UserType != "owner" && user.UserType != "admin" {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "approve-error",
+				Description: "Accept application failed: not owner or admin",
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Only organization owners or admins can accept applications"})
 		}
 
 		if user.UserID == userOrg.UserID {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "approve-error",
+				Description: "Accept application failed: cannot accept own application",
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "You cannot accept your own application"})
 		}
 
 		userOrg.ApplicationStatus = "accepted"
 		if err := c.model.UserOrganizationManager.UpdateFields(context, userOrg.ID, userOrg); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "approve-error",
+				Description: "Accept application failed: update error: " + err.Error(),
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to accept user organization application: " + err.Error()})
 		}
+
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "approve-success",
+			Description: "Accepted user organization application for user " + userOrg.UserID.String(),
+			Module:      "UserOrganization",
+		})
 
 		return ctx.NoContent(http.StatusNoContent)
 	})
@@ -698,30 +988,66 @@ func (c *Controller) UserOrganinzationController() {
 		context := ctx.Request().Context()
 		userOrgId, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Reject application failed: invalid user_organization_id: " + err.Error(),
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_organization_id: " + err.Error()})
 		}
 
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Reject application failed: unauthorized: " + err.Error(),
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
 
 		userOrg, err := c.model.UserOrganizationManager.GetByID(context, *userOrgId)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Reject application failed: user organization not found: " + err.Error(),
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}
 
 		if user.UserType != "owner" && user.UserType != "admin" && user.UserType != "employee" {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Reject application failed: not allowed for user type " + user.UserType,
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Only organization owners, admins, or employees can reject applications"})
 		}
 
 		if user.UserID == userOrg.UserID {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Reject application failed: cannot reject own application",
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "You cannot reject your own application"})
 		}
 
 		if err := c.model.UserOrganizationManager.DeleteByID(context, userOrg.ID); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Reject application failed: delete error: " + err.Error(),
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to reject user organization application: " + err.Error()})
 		}
+
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "delete-success",
+			Description: "Rejected user organization application for user " + userOrg.UserID.String(),
+			Module:      "UserOrganization",
+		})
 
 		return ctx.NoContent(http.StatusNoContent)
 	})
@@ -735,15 +1061,35 @@ func (c *Controller) UserOrganinzationController() {
 		context := ctx.Request().Context()
 		userOrgId, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete user organization failed: invalid user_organization_id: " + err.Error(),
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_organization_id: " + err.Error()})
 		}
 		userOrg, err := c.model.UserOrganizationManager.GetByID(context, *userOrgId)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete user organization failed: not found: " + err.Error(),
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}
 		if err := c.model.UserOrganizationManager.DeleteByID(context, userOrg.ID); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete user organization failed: delete error: " + err.Error(),
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete user organization: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "delete-success",
+			Description: "Deleted user organization: " + userOrg.ID.String(),
+			Module:      "UserOrganization",
+		})
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
@@ -759,16 +1105,31 @@ func (c *Controller) UserOrganinzationController() {
 		}
 
 		if err := ctx.Bind(&reqBody); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Bulk delete failed: invalid request body: " + err.Error(),
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 
 		if len(reqBody.IDs) == 0 {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Bulk delete failed: no IDs provided",
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for deletion"})
 		}
 
 		tx := c.provider.Service.Database.Client().Begin()
 		if tx.Error != nil {
 			tx.Rollback()
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Bulk delete failed: begin tx error: " + tx.Error.Error(),
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start transaction: " + tx.Error.Error()})
 		}
 
@@ -776,23 +1137,49 @@ func (c *Controller) UserOrganinzationController() {
 			userOrgId, err := uuid.Parse(rawID)
 			if err != nil {
 				tx.Rollback()
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "delete-error",
+					Description: fmt.Sprintf("Bulk delete failed: invalid UUID: %s - %v", rawID, err),
+					Module:      "UserOrganization",
+				})
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s - %v", rawID, err)})
 			}
 
 			if _, err := c.model.UserOrganizationManager.GetByID(context, userOrgId); err != nil {
 				tx.Rollback()
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "delete-error",
+					Description: fmt.Sprintf("Bulk delete failed: user org with ID %s not found: %v", rawID, err),
+					Module:      "UserOrganization",
+				})
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("User organization with ID %s not found: %v", rawID, err)})
 			}
 
 			if err := c.model.UserOrganizationManager.DeleteByIDWithTx(context, tx, userOrgId); err != nil {
 				tx.Rollback()
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "delete-error",
+					Description: fmt.Sprintf("Bulk delete failed: delete error for ID %s: %v", rawID, err),
+					Module:      "UserOrganization",
+				})
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to delete user organization with ID %s: %v", rawID, err)})
 			}
 		}
 
 		if err := tx.Commit().Error; err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Bulk delete failed: commit tx error: " + err.Error(),
+				Module:      "UserOrganization",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
+
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "delete-success",
+			Description: fmt.Sprintf("Bulk deleted user organizations: %v", reqBody.IDs),
+			Module:      "UserOrganization",
+		})
 
 		return ctx.NoContent(http.StatusNoContent)
 	})

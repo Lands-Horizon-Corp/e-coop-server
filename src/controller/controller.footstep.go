@@ -13,7 +13,7 @@ func (c *Controller) FootstepController() {
 
 	// GET /footstep/me: Get all footsteps for the currently logged-in user.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/footstep/me",
+		Route:    "/footstep/me/search",
 		Method:   "GET",
 		Response: "TFootstep[]",
 		Note:     "Returns all footsteps for the currently authenticated user.",
@@ -27,12 +27,12 @@ func (c *Controller) FootstepController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user's footsteps: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.FootstepManager.ToModels(footstep))
+		return ctx.JSON(http.StatusOK, c.model.FootstepManager.Pagination(context, ctx, footstep))
 	})
 
 	// GET /footstep/branch: Get all footsteps for the current user's branch.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/footstep/branch",
+		Route:    "/footstep/branch/search",
 		Method:   "GET",
 		Response: "TFootstep[]",
 		Note:     "Returns all footsteps for the current user's organization and branch.",
@@ -46,12 +46,12 @@ func (c *Controller) FootstepController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve footsteps for branch: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.FootstepManager.ToModels(footstep))
+		return ctx.JSON(http.StatusOK, c.model.FootstepManager.Pagination(context, ctx, footstep))
 	})
 
 	// GET /footstep/user-organization/:user_organization_id: Get footsteps for a user organization on the current branch.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/footstep/user-organization/:user_organization_id",
+		Route:    "/footstep/user-organization/:user_organization_id/search",
 		Method:   "GET",
 		Response: "TFootstep[]",
 		Note:     "Returns footsteps for the specified user-organization on the current branch if the user is a member, employee, or owner.",
@@ -65,7 +65,7 @@ func (c *Controller) FootstepController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve footsteps for user organization: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.FootstepManager.ToModels(footstep))
+		return ctx.JSON(http.StatusOK, c.model.FootstepManager.Pagination(context, ctx, footstep))
 	})
 
 	// GET /footstep/:footstep_id: Get a specific footstep by ID.

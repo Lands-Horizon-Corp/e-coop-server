@@ -6,6 +6,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/horizon"
+	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
 
@@ -23,14 +24,29 @@ func (c *Controller) MemberIncomeController() {
 		context := ctx.Request().Context()
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create member income failed (/member-income/member-profile/:member_profile_id), invalid member_profile_id: " + err.Error(),
+				Module:      "MemberIncome",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
 		req, err := c.model.MemberIncomeManager.Validate(ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create member income failed (/member-income/member-profile/:member_profile_id), validation error: " + err.Error(),
+				Module:      "MemberIncome",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create member income failed (/member-income/member-profile/:member_profile_id), user org error: " + err.Error(),
+				Module:      "MemberIncome",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
@@ -49,8 +65,19 @@ func (c *Controller) MemberIncomeController() {
 		}
 
 		if err := c.model.MemberIncomeManager.Create(context, value); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create member income failed (/member-income/member-profile/:member_profile_id), db error: " + err.Error(),
+				Module:      "MemberIncome",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create member income: " + err.Error()})
 		}
+
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "create-success",
+			Description: "Created member income (/member-income/member-profile/:member_profile_id): " + value.Name,
+			Module:      "MemberIncome",
+		})
 
 		return ctx.JSON(http.StatusOK, c.model.MemberIncomeManager.ToModel(value))
 	})
@@ -66,19 +93,39 @@ func (c *Controller) MemberIncomeController() {
 		context := ctx.Request().Context()
 		memberIncomeID, err := horizon.EngineUUIDParam(ctx, "member_income_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member income failed (/member-income/:member_income_id), invalid member_income_id: " + err.Error(),
+				Module:      "MemberIncome",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_income_id: " + err.Error()})
 		}
 		req, err := c.model.MemberIncomeManager.Validate(ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member income failed (/member-income/:member_income_id), validation error: " + err.Error(),
+				Module:      "MemberIncome",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member income failed (/member-income/:member_income_id), user org error: " + err.Error(),
+				Module:      "MemberIncome",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
 		value, err := c.model.MemberIncomeManager.GetByID(context, *memberIncomeID)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member income failed (/member-income/:member_income_id), record not found: " + err.Error(),
+				Module:      "MemberIncome",
+			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member income not found: " + err.Error()})
 		}
 
@@ -92,8 +139,18 @@ func (c *Controller) MemberIncomeController() {
 		value.ReleaseDate = req.ReleaseDate
 
 		if err := c.model.MemberIncomeManager.UpdateFields(context, value.ID, value); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member income failed (/member-income/:member_income_id), db error: " + err.Error(),
+				Module:      "MemberIncome",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update member income: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "update-success",
+			Description: "Updated member income (/member-income/:member_income_id): " + value.Name,
+			Module:      "MemberIncome",
+		})
 		return ctx.JSON(http.StatusOK, c.model.MemberIncomeManager.ToModel(value))
 	})
 
@@ -106,11 +163,35 @@ func (c *Controller) MemberIncomeController() {
 		context := ctx.Request().Context()
 		memberIncomeID, err := horizon.EngineUUIDParam(ctx, "member_income_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete member income failed (/member-income/:member_income_id), invalid member_income_id: " + err.Error(),
+				Module:      "MemberIncome",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_income_id: " + err.Error()})
 		}
+		value, err := c.model.MemberIncomeManager.GetByID(context, *memberIncomeID)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete member income failed (/member-income/:member_income_id), record not found: " + err.Error(),
+				Module:      "MemberIncome",
+			})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member income not found: " + err.Error()})
+		}
 		if err := c.model.MemberIncomeManager.DeleteByID(context, *memberIncomeID); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete member income failed (/member-income/:member_income_id), db error: " + err.Error(),
+				Module:      "MemberIncome",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete member income: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "delete-success",
+			Description: "Deleted member income (/member-income/:member_income_id): " + value.Name,
+			Module:      "MemberIncome",
+		})
 		return ctx.NoContent(http.StatusNoContent)
 	})
 }

@@ -7,12 +7,18 @@ import (
 	"html/template"
 	"net/smtp"
 	"os"
+	"strings"
 	"sync"
 
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/rotisserie/eris"
 	"golang.org/x/time/rate"
 )
+
+// sanitizeHeader removes CR and LF to prevent header injection
+func sanitizeHeader(s string) string {
+	return strings.ReplaceAll(strings.ReplaceAll(s, "\r", ""), "\n", "")
+}
 
 // SMTPRequest represents a templated SMTP request with dynamic variables as map[string]string
 type SMTPRequest struct {
@@ -112,7 +118,7 @@ func (h *HorizonSMTP) Send(ctx context.Context, req SMTPRequest) error {
 		return eris.Wrap(err, "rate limit wait failed")
 	}
 
-	// Sanitize and format body
+	// Sanitize and format body using bluemonday
 	req.Body = bluemonday.UGCPolicy().Sanitize(req.Body)
 	finalBody, err := h.Format(ctx, req)
 	if err != nil {
@@ -120,11 +126,18 @@ func (h *HorizonSMTP) Send(ctx context.Context, req SMTPRequest) error {
 	}
 	req.Body = finalBody.Body
 
+	// Sanitize headers to prevent injection
+	safeFrom := sanitizeHeader(h.from)
+	safeTo := sanitizeHeader(req.To)
+	safeSubject := sanitizeHeader(req.Subject)
+
 	auth := smtp.PlainAuth("", h.username, h.password, h.host)
 	addr := fmt.Sprintf("%s:%d", h.host, h.port)
-	msg := fmt.Sprintf("From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n%s", h.from, req.To, req.Subject, req.Body)
+	msg := fmt.Sprintf("From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n%s", safeFrom, safeTo, safeSubject, req.Body)
 
-	if err := smtp.SendMail(addr, auth, h.from, []string{req.To}, []byte(msg)); err != nil {
+	if err := smtp.SendMail(addr, auth, safeFrom, []string{safeTo}, []byte(
+		bluemonday.UGCPolicy().Sanitize(msg),
+	)); err != nil {
 		return eris.Wrap(err, "smtp send failed")
 	}
 	return nil

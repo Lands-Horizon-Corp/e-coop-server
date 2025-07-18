@@ -9,6 +9,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/cooperative_tokens"
+	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
 
@@ -112,22 +113,52 @@ func (c *Controller) UserController() {
 		context := ctx.Request().Context()
 		var req model.UserLoginRequest
 		if err := ctx.Bind(&req); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Login failed: invalid login payload: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid login payload: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Login failed: validation error: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		user, err := c.model.GetUserByIdentifier(context, req.Key)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Login failed: invalid credentials: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid credentials: " + err.Error()})
 		}
 		valid, err := c.provider.Service.Security.VerifyPassword(context, user.Password, req.Password)
 		if err != nil || !valid {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Login failed: invalid credentials",
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid credentials"})
 		}
 		if err := c.userToken.SetUser(context, ctx, user); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Login failed: failed to set user token: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to set user token: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "create-success",
+			Description: "User logged in successfully: " + user.ID.String(),
+			Module:      "User",
+		})
 		return ctx.JSON(http.StatusOK, model.CurrentUserResponse{
 			UserID: user.ID,
 			User:   c.model.UserManager.ToModel(user),
@@ -142,6 +173,11 @@ func (c *Controller) UserController() {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		c.userToken.CSRF.ClearCSRF(context, ctx)
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "delete-success",
+			Description: "User logged out successfully",
+			Module:      "User",
+		})
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
@@ -156,10 +192,20 @@ func (c *Controller) UserController() {
 		context := ctx.Request().Context()
 		req, err := c.model.UserManager.Validate(ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Register failed: validation error: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		hashedPwd, err := c.provider.Service.Security.HashPassword(context, req.Password)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Register failed: hash password error: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to hash password: " + err.Error()})
 		}
 		user := &model.User{
@@ -180,11 +226,26 @@ func (c *Controller) UserController() {
 			UpdatedAt:         time.Now().UTC(),
 		}
 		if err := c.model.UserManager.Create(context, user); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Register failed: create user error: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not register user: " + err.Error()})
 		}
 		if err := c.userToken.SetUser(context, ctx, user); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Register failed: failed to set user token: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to set user token: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "create-success",
+			Description: "User registered successfully: " + user.ID.String(),
+			Module:      "User",
+		})
 		return ctx.JSON(http.StatusOK, model.CurrentUserResponse{
 			UserID: user.ID,
 			User:   c.model.UserManager.ToModel(user),
@@ -202,17 +263,37 @@ func (c *Controller) UserController() {
 		context := ctx.Request().Context()
 		var req model.UserForgotPasswordRequest
 		if err := ctx.Bind(&req); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Forgot password failed: invalid payload: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid forgot password payload: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Forgot password failed: validation error: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		user, err := c.model.GetUserByIdentifier(context, req.Key)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Forgot password failed: user not found: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No account found with those details: " + err.Error()})
 		}
 		token, err := c.provider.Service.Security.GenerateUUIDv5(context, user.Password)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Forgot password failed: generate token error: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Error generating reset token: " + err.Error()})
 		}
 		fallback := c.provider.Service.Environment.Get("APP_CLIENT_URL", "")
@@ -226,11 +307,26 @@ func (c *Controller) UserController() {
 				"eventLink": fallbackStr + "/auth/password-reset/" + token,
 			},
 		}); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Forgot password failed: send email error: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed sending email: " + err.Error()})
 		}
 		if err := c.provider.Service.Cache.Set(context, token, user.ID, 10*time.Minute); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Forgot password failed: cache set error: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed storing token: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "update-success",
+			Description: "Forgot password initiated for user: " + user.ID.String(),
+			Module:      "User",
+		})
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
@@ -270,9 +366,19 @@ func (c *Controller) UserController() {
 		context := ctx.Request().Context()
 		var req model.UserChangePasswordRequest
 		if err := ctx.Bind(&req); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Change password failed: invalid payload: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid change password payload: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Change password failed: validation error: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		resetID := ctx.Param("reset_id")
@@ -293,15 +399,35 @@ func (c *Controller) UserController() {
 		}
 		hashedPwd, err := c.provider.Service.Security.HashPassword(context, req.NewPassword)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Change password failed: hash password error: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to hash password: " + err.Error()})
 		}
 		user.Password = hashedPwd
 		if err := c.model.UserManager.UpdateFields(context, user.ID, user); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Change password failed: update user error: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user password: " + err.Error()})
 		}
 		if err := c.provider.Service.Cache.Delete(context, resetID); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Change password failed: delete cache error: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete token from cache: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "update-success",
+			Description: "Password changed successfully for user: " + user.ID.String(),
+			Module:      "User",
+		})
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
@@ -319,6 +445,11 @@ func (c *Controller) UserController() {
 		key := fmt.Sprintf("%s-%s", user.Password, user.ContactNumber)
 		otp, err := c.provider.Service.OTP.Generate(context, key)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Apply contact number failed: generate OTP error: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate OTP: " + err.Error()})
 		}
 		if err := c.provider.Service.SMS.Send(context, horizon.SMSRequest{
@@ -329,8 +460,18 @@ func (c *Controller) UserController() {
 				"name": *user.FirstName,
 			},
 		}); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Apply contact number failed: send SMS error: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to send OTP SMS: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "update-success",
+			Description: "OTP sent for contact number verification: " + user.ContactNumber,
+			Module:      "User",
+		})
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
@@ -344,9 +485,19 @@ func (c *Controller) UserController() {
 		context := ctx.Request().Context()
 		var req model.UserVerifyContactNumberRequest
 		if err := ctx.Bind(&req); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Verify contact number failed: invalid payload: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid verify contact number payload: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Verify contact number failed: validation error: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		user, err := c.userToken.CurrentUser(context, ctx)
@@ -356,25 +507,60 @@ func (c *Controller) UserController() {
 		key := fmt.Sprintf("%s-%s", user.Password, user.ContactNumber)
 		ok, err := c.provider.Service.OTP.Verify(context, key, req.OTP)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Verify contact number failed: verify OTP error: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to verify OTP: " + err.Error()})
 		}
 		if !ok {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Verify contact number failed: invalid OTP",
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid OTP"})
 		}
 		if err := c.provider.Service.OTP.Revoke(context, key); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Verify contact number failed: revoke OTP error: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to revoke OTP: " + err.Error()})
 		}
 		user.IsContactVerified = true
 		if err := c.model.UserManager.UpdateFields(context, user.ID, user); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Verify contact number failed: update user error: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user: " + err.Error()})
 		}
 		updatedUser, err := c.model.UserManager.GetByID(context, user.ID)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Verify contact number failed: get updated user error: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch updated user: " + err.Error()})
 		}
 		if err := c.userToken.SetUser(context, ctx, updatedUser); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Verify contact number failed: set user token error: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to set user token: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "update-success",
+			Description: "Contact number verified for user: " + user.ID.String(),
+			Module:      "User",
+		})
 		return ctx.JSON(http.StatusOK, c.model.UserManager.ToModel(updatedUser))
 	})
 
@@ -392,6 +578,11 @@ func (c *Controller) UserController() {
 		key := fmt.Sprintf("%s-%s", user.Password, user.Email)
 		otp, err := c.provider.Service.OTP.Generate(context, key)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Apply email failed: generate OTP error: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate OTP: " + err.Error()})
 		}
 		if err := c.provider.Service.SMTP.Send(context, horizon.SMTPRequest{
@@ -402,8 +593,18 @@ func (c *Controller) UserController() {
 				"otp": otp,
 			},
 		}); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Apply email failed: send email error: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to send OTP email: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "update-success",
+			Description: "OTP sent for email verification: " + user.Email,
+			Module:      "User",
+		})
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
@@ -417,9 +618,19 @@ func (c *Controller) UserController() {
 		context := ctx.Request().Context()
 		var req model.UserVerifyEmailRequest
 		if err := ctx.Bind(&req); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Verify email failed: invalid payload: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid verify email payload: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Verify email failed: validation error: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		user, err := c.userToken.CurrentUser(context, ctx)
@@ -429,25 +640,60 @@ func (c *Controller) UserController() {
 		key := fmt.Sprintf("%s-%s", user.Password, user.Email)
 		ok, err := c.provider.Service.OTP.Verify(context, key, req.OTP)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Verify email failed: verify OTP error: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to verify OTP: " + err.Error()})
 		}
 		if !ok {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Verify email failed: invalid OTP",
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid OTP"})
 		}
 		if err := c.provider.Service.OTP.Revoke(context, key); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Verify email failed: revoke OTP error: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to revoke OTP: " + err.Error()})
 		}
 		user.IsEmailVerified = true
 		if err := c.model.UserManager.UpdateFields(context, user.ID, user); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Verify email failed: update user error: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user: " + err.Error()})
 		}
 		updatedUser, err := c.model.UserManager.GetByID(context, user.ID)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Verify email failed: get updated user error: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch updated user: " + err.Error()})
 		}
 		if err := c.userToken.SetUser(context, ctx, updatedUser); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Verify email failed: set user token error: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to set user token: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "update-success",
+			Description: "Email verified for user: " + user.ID.String(),
+			Module:      "User",
+		})
 		return ctx.JSON(http.StatusOK, c.model.UserManager.ToModel(updatedUser))
 	})
 
@@ -487,9 +733,19 @@ func (c *Controller) UserController() {
 		context := ctx.Request().Context()
 		var req model.UserSettingsChangePasswordRequest
 		if err := ctx.Bind(&req); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Change password from profile failed: invalid payload: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid change password payload: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Change password from profile failed: validation error: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		user, err := c.userToken.CurrentUser(context, ctx)
@@ -502,19 +758,44 @@ func (c *Controller) UserController() {
 		}
 		hashedPwd, err := c.provider.Service.Security.HashPassword(context, req.NewPassword)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Change password from profile failed: hash password error: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to hash password: " + err.Error()})
 		}
 		user.Password = hashedPwd
 		if err := c.model.UserManager.UpdateFields(context, user.ID, user); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Change password from profile failed: update user error: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user: " + err.Error()})
 		}
 		updatedUser, err := c.model.UserManager.GetByID(context, user.ID)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Change password from profile failed: get updated user error: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch updated user: " + err.Error()})
 		}
 		if err := c.userToken.SetUser(context, ctx, updatedUser); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Change password from profile failed: set user token error: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to set user token: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "update-success",
+			Description: "Password changed from profile for user: " + user.ID.String(),
+			Module:      "User",
+		})
 		return ctx.JSON(http.StatusOK, c.model.UserManager.ToModel(updatedUser))
 	})
 
@@ -529,9 +810,19 @@ func (c *Controller) UserController() {
 		context := ctx.Request().Context()
 		var req model.UserSettingsChangeProfilePictureRequest
 		if err := ctx.Bind(&req); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Change profile picture failed: invalid payload: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid profile picture update payload: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Change profile picture failed: validation error: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		user, err := c.userToken.CurrentUser(context, ctx)
@@ -543,15 +834,35 @@ func (c *Controller) UserController() {
 		}
 		user.MediaID = req.MediaID
 		if err := c.model.UserManager.UpdateFields(context, user.ID, user); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Change profile picture failed: update user error: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user: " + err.Error()})
 		}
 		updatedUser, err := c.model.UserManager.GetByID(context, user.ID)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Change profile picture failed: get updated user error: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch updated user: " + err.Error()})
 		}
 		if err := c.userToken.SetUser(context, ctx, updatedUser); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Change profile picture failed: set user token error: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to set user token: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "update-success",
+			Description: "Profile picture changed for user: " + user.ID.String(),
+			Module:      "User",
+		})
 		return ctx.JSON(http.StatusOK, c.model.UserManager.ToModel(updatedUser))
 	})
 
@@ -566,9 +877,19 @@ func (c *Controller) UserController() {
 		context := ctx.Request().Context()
 		var req model.UserSettingsChangeGeneralRequest
 		if err := ctx.Bind(&req); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Change general profile failed: invalid payload: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid general settings update payload: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Change general profile failed: validation error: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		user, err := c.userToken.CurrentUser(context, ctx)
@@ -586,15 +907,35 @@ func (c *Controller) UserController() {
 			user.IsContactVerified = false
 		}
 		if err := c.model.UserManager.UpdateFields(context, user.ID, user); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Change general profile failed: update user error: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user: " + err.Error()})
 		}
 		updatedUser, err := c.model.UserManager.GetByID(context, user.ID)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Change general profile failed: get updated user error: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch updated user: " + err.Error()})
 		}
 		if err := c.userToken.SetUser(context, ctx, updatedUser); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Change general profile failed: set user token error: " + err.Error(),
+				Module:      "User",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to set user token: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "update-success",
+			Description: "General profile changed for user: " + user.ID.String(),
+			Module:      "User",
+		})
 		return ctx.JSON(http.StatusOK, c.model.UserManager.ToModel(updatedUser))
 	})
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/horizon"
+	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
 
@@ -47,11 +48,21 @@ func (c *Controller) TimesheetController() {
 
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Time-in/out failed: user org error: " + err.Error(),
+				Module:      "Timesheet",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
 		req, err := c.model.TimesheetManager.Validate(ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Time-in/out failed: validation error: " + err.Error(),
+				Module:      "Timesheet",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
@@ -77,8 +88,18 @@ func (c *Controller) TimesheetController() {
 			}
 
 			if err := c.model.TimesheetManager.Create(context, newTimesheet); err != nil {
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "create-error",
+					Description: "Time-in failed: create error: " + err.Error(),
+					Module:      "Timesheet",
+				})
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create timesheet: " + err.Error()})
 			}
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-success",
+				Description: "Time-in: new timesheet created for user " + user.UserID.String(),
+				Module:      "Timesheet",
+			})
 			return ctx.JSON(http.StatusOK, c.model.TimesheetManager.ToModel(newTimesheet))
 		}
 
@@ -87,9 +108,18 @@ func (c *Controller) TimesheetController() {
 		timesheet.UpdatedAt = now
 
 		if err := c.model.TimesheetManager.UpdateFields(context, timesheet.ID, timesheet); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Time-out failed: update error: " + err.Error(),
+				Module:      "Timesheet",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update timesheet: " + err.Error()})
 		}
-
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "update-success",
+			Description: "Time-out: timesheet updated for user " + user.UserID.String(),
+			Module:      "Timesheet",
+		})
 		return ctx.JSON(http.StatusOK, c.model.TimesheetManager.ToModel(timesheet))
 	})
 

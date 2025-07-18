@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/horizon"
+	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
 
@@ -106,10 +107,20 @@ func (c *Controller) MemberCenterController() {
 		context := ctx.Request().Context()
 		req, err := c.model.MemberCenterManager.Validate(ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create member center failed (/member-center), validation error: " + err.Error(),
+				Module:      "MemberCenter",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create member center failed (/member-center), user org error: " + err.Error(),
+				Module:      "MemberCenter",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
@@ -125,8 +136,19 @@ func (c *Controller) MemberCenterController() {
 		}
 
 		if err := c.model.MemberCenterManager.Create(context, memberCenter); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create member center failed (/member-center), db error: " + err.Error(),
+				Module:      "MemberCenter",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create member center: " + err.Error()})
 		}
+
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "create-success",
+			Description: "Created member center (/member-center): " + memberCenter.Name,
+			Module:      "MemberCenter",
+		})
 
 		return ctx.JSON(http.StatusOK, c.model.MemberCenterManager.ToModel(memberCenter))
 	})
@@ -142,18 +164,38 @@ func (c *Controller) MemberCenterController() {
 		context := ctx.Request().Context()
 		memberCenterID, err := horizon.EngineUUIDParam(ctx, "member_center_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member center failed (/member-center/:member_center_id), invalid member_center_id: " + err.Error(),
+				Module:      "MemberCenter",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_center_id: " + err.Error()})
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member center failed (/member-center/:member_center_id), user org error: " + err.Error(),
+				Module:      "MemberCenter",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		req, err := c.model.MemberCenterManager.Validate(ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member center failed (/member-center/:member_center_id), validation error: " + err.Error(),
+				Module:      "MemberCenter",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		memberCenter, err := c.model.MemberCenterManager.GetByID(context, *memberCenterID)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member center failed (/member-center/:member_center_id), not found: " + err.Error(),
+				Module:      "MemberCenter",
+			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member center not found: " + err.Error()})
 		}
 		memberCenter.UpdatedAt = time.Now().UTC()
@@ -163,8 +205,18 @@ func (c *Controller) MemberCenterController() {
 		memberCenter.Name = req.Name
 		memberCenter.Description = req.Description
 		if err := c.model.MemberCenterManager.UpdateFields(context, memberCenter.ID, memberCenter); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member center failed (/member-center/:member_center_id), db error: " + err.Error(),
+				Module:      "MemberCenter",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update member center: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "update-success",
+			Description: "Updated member center (/member-center/:member_center_id): " + memberCenter.Name,
+			Module:      "MemberCenter",
+		})
 		return ctx.JSON(http.StatusOK, c.model.MemberCenterManager.ToModel(memberCenter))
 	})
 
@@ -177,11 +229,35 @@ func (c *Controller) MemberCenterController() {
 		context := ctx.Request().Context()
 		memberCenterID, err := horizon.EngineUUIDParam(ctx, "member_center_id")
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete member center failed (/member-center/:member_center_id), invalid member_center_id: " + err.Error(),
+				Module:      "MemberCenter",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_center_id: " + err.Error()})
 		}
+		value, err := c.model.MemberCenterManager.GetByID(context, *memberCenterID)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete member center failed (/member-center/:member_center_id), not found: " + err.Error(),
+				Module:      "MemberCenter",
+			})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member center not found: " + err.Error()})
+		}
 		if err := c.model.MemberCenterManager.DeleteByID(context, *memberCenterID); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete member center failed (/member-center/:member_center_id), db error: " + err.Error(),
+				Module:      "MemberCenter",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete member center: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "delete-success",
+			Description: "Deleted member center (/member-center/:member_center_id): " + value.Name,
+			Module:      "MemberCenter",
+		})
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
@@ -198,37 +274,80 @@ func (c *Controller) MemberCenterController() {
 		}
 
 		if err := ctx.Bind(&reqBody); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "bulk-delete-error",
+				Description: "Bulk delete member centers failed (/member-center/bulk-delete), invalid request body.",
+				Module:      "MemberCenter",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if len(reqBody.IDs) == 0 {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "bulk-delete-error",
+				Description: "Bulk delete member centers failed (/member-center/bulk-delete), no IDs provided.",
+				Module:      "MemberCenter",
+			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for deletion."})
 		}
 
 		tx := c.provider.Service.Database.Client().Begin()
 		if tx.Error != nil {
 			tx.Rollback()
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "bulk-delete-error",
+				Description: "Bulk delete member centers failed (/member-center/bulk-delete), begin tx error: " + tx.Error.Error(),
+				Module:      "MemberCenter",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
 		}
 
+		names := ""
 		for _, rawID := range reqBody.IDs {
 			memberCenterID, err := uuid.Parse(rawID)
 			if err != nil {
 				tx.Rollback()
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "bulk-delete-error",
+					Description: "Bulk delete member centers failed (/member-center/bulk-delete), invalid UUID: " + rawID,
+					Module:      "MemberCenter",
+				})
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID '%s': %s", rawID, err.Error())})
 			}
-			if _, err := c.model.MemberCenterManager.GetByID(context, memberCenterID); err != nil {
+			value, err := c.model.MemberCenterManager.GetByID(context, memberCenterID)
+			if err != nil {
 				tx.Rollback()
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "bulk-delete-error",
+					Description: "Bulk delete member centers failed (/member-center/bulk-delete), not found: " + rawID,
+					Module:      "MemberCenter",
+				})
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Member center with ID '%s' not found: %s", rawID, err.Error())})
 			}
+			names += value.Name + ","
 			if err := c.model.MemberCenterManager.DeleteByIDWithTx(context, tx, memberCenterID); err != nil {
 				tx.Rollback()
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "bulk-delete-error",
+					Description: "Bulk delete member centers failed (/member-center/bulk-delete), db error: " + err.Error(),
+					Module:      "MemberCenter",
+				})
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to delete member center with ID '%s': %s", rawID, err.Error())})
 			}
 		}
 
 		if err := tx.Commit().Error; err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "bulk-delete-error",
+				Description: "Bulk delete member centers failed (/member-center/bulk-delete), commit error: " + err.Error(),
+				Module:      "MemberCenter",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "bulk-delete-success",
+			Description: "Bulk deleted member centers (/member-center/bulk-delete): " + names,
+			Module:      "MemberCenter",
+		})
 		return ctx.NoContent(http.StatusNoContent)
 	})
 }
