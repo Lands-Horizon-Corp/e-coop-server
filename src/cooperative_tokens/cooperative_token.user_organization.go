@@ -51,22 +51,36 @@ func NewUserOrganizatonToken(provider *src.Provider, model *model.Model) (*UserO
 }
 
 func (h *UserOrganizatonToken) CurrentUserOrganization(ctx context.Context, echoCtx echo.Context) (*model.UserOrganization, error) {
+	// Try JWT token first
 	claim, err := h.Token.GetToken(ctx, echoCtx)
-	if err != nil {
-		h.Token.CleanToken(ctx, echoCtx)
-		return nil, echo.NewHTTPError(http.StatusUnauthorized, "authentication required")
+	if err == nil {
+		id, err := uuid.Parse(claim.UserOrganizatonID)
+		if err != nil {
+			h.Token.CleanToken(ctx, echoCtx)
+			return nil, echo.NewHTTPError(http.StatusBadRequest, "invalid user ID in token")
+		}
+		userOrganization, err := h.model.UserOrganizationManager.GetByID(ctx, id)
+		if err != nil {
+			h.Token.CleanToken(ctx, echoCtx)
+			return nil, echo.NewHTTPError(http.StatusNotFound, "user not found")
+		}
+		return userOrganization, nil
 	}
-	id, err := uuid.Parse(claim.UserOrganizatonID)
-	if err != nil {
-		h.Token.CleanToken(ctx, echoCtx)
-		return nil, echo.NewHTTPError(http.StatusBadRequest, "invalid user ID in token")
+	authHeader := echoCtx.Request().Header.Get("Authorization")
+	if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
+		bearerToken := authHeader[7:]
+		userOrganization, err := h.model.UserOrganizationManager.FindOne(ctx, &model.UserOrganization{
+			DeveloperSecretKey: bearerToken,
+		})
+
+		if err != nil {
+			return nil, echo.NewHTTPError(http.StatusNotFound, "user not found")
+		}
+		return userOrganization, nil
 	}
-	userOrganization, err := h.model.UserOrganizationManager.GetByID(ctx, id)
-	if err != nil {
-		h.Token.CleanToken(ctx, echoCtx)
-		return nil, echo.NewHTTPError(http.StatusNotFound, "user not found")
-	}
-	return userOrganization, nil
+
+	h.Token.CleanToken(ctx, echoCtx)
+	return nil, echo.NewHTTPError(http.StatusUnauthorized, "authentication required")
 }
 
 func (h *UserOrganizatonToken) SetUserOrganization(ctx context.Context, echoCtx echo.Context, userOrganization *model.UserOrganization) error {

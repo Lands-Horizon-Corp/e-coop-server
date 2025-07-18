@@ -158,7 +158,12 @@
                       <tr>
                         <th>Method</th>
                         <th>Route</th>
-                        <th>Request</th>
+      <div class="mb-8">
+        <details class="bg-base-200 rounded-xl p-4 shadow-md">
+          <summary class="font-semibold text-primary cursor-pointer text-lg mb-2">Sample: Fetch API with Bearer Token</summary>
+          <div class="mt-3">
+            <p class="mb-2 text-base-content/70">You can call protected endpoints using a Bearer token in the <code>Authorization</code> header. Example using <code>fetch</code>:</p>
+            <pre class="bg-base-300 rounded-lg p-3 overflow-x-auto text-sm"><code>// Replace with your actual API endpoint and token
                         <th>Response</th>
                         <th>Note</th>
                       </tr>
@@ -179,6 +184,10 @@
                           <span class="badge badge-error badge-method">DELETE</span>
                           {{ else }}
                           <span class="badge badge-outline badge-method">{{ $route.Method }}</span>
+          </div>
+        </details>
+      </div>
+      <div class="mb-6 sticky-search shadow-xl">
                           {{ end }}
                         </td>
                         <td>
