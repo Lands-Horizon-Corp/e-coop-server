@@ -114,6 +114,10 @@ func (c *Controller) Start() error {
 	c.LoanStatusController()
 	c.LoanPurposeController()
 	c.CollateralController()
+	c.ComputationSheetController()
+	c.AutomaticLoanDeductionController()
+	c.BrowseExcludeIncludeAccountsController()
+	c.IncludeNegativeAccountController()
 	return nil
 }
 
