@@ -41,11 +41,11 @@ func (t *TemplateRenderer) Render(w io.Writer, name string, data any, c echo.Con
 
 // Route describes an API route.
 type Route struct {
-	Route    string
-	Request  string
-	Response string
-	Method   string
-	Note     string
+	Route    string `json:"route"`
+	Request  string `json:"request"`
+	Response string `json:"response"`
+	Method   string `json:"method"`
+	Note     string `json:"note"`
 }
 
 // GroupedRoute holds a group of routes under a common key.
@@ -233,6 +233,11 @@ func (h *HorizonAPIService) Run(ctx context.Context) error {
 			"routes": h.GroupedRoutes(),
 		})
 	}).Name = "horizon-routes"
+
+	// New: GET /api/routes returns grouped routes as JSON
+	h.service.GET("/api/routes", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, h.GroupedRoutes())
+	}).Name = "horizon-routes-json"
 
 	h.service.Any("/*", func(c echo.Context) error {
 		return c.String(http.StatusNotFound, "404 - Route not found")
