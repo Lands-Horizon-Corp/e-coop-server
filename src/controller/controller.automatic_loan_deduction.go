@@ -47,6 +47,37 @@ func (c *Controller) AutomaticLoanDeductionController() {
 		return ctx.JSON(http.StatusOK, c.model.AutomaticLoanDeductionManager.ToModels(alds))
 	})
 
+	// GET /automatic-loan-deduction/computation-sheet/:computation_sheet_id/search
+	req.RegisterRoute(horizon.Route{
+		Route:    "/automatic-loan-deduction/computation-sheet/:computation_sheet_id/search",
+		Method:   "GET",
+		Response: "AutomaticLoanDeduction[]",
+		Note:     "Returns all automatic loan deductions for a computation sheet in the current user's org/branch.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if user.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		sheetID, err := horizon.EngineUUIDParam(ctx, "computation_sheet_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
+		}
+		// Find all for this computation sheet, org, and branch
+		alds, err := c.model.AutomaticLoanDeductionManager.Find(context, &model.AutomaticLoanDeduction{
+			OrganizationID:     user.OrganizationID,
+			BranchID:           *user.BranchID,
+			ComputationSheetID: sheetID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No automatic loan deductions found for this computation sheet"})
+		}
+		return ctx.JSON(http.StatusOK, c.model.AutomaticLoanDeductionManager.Pagination(context, ctx, alds))
+	})
+
 	// POST /automatic-loan-deduction
 	req.RegisterRoute(horizon.Route{
 		Route:    "/automatic-loan-deduction",
