@@ -495,9 +495,10 @@ func (c *Controller) UserOrganinzationController() {
 
 	// Refresh developer key associated with the user organization
 	req.RegisterRoute(horizon.Route{
-		Route:  "/user-organization/developer-key-refresh",
-		Method: "POST",
-		Note:   "Refreshes the developer key associated with the current user organization.",
+		Route:    "/user-organization/developer-key-refresh",
+		Method:   "POST",
+		Note:     "Refreshes the developer key associated with the current user organization.",
+		Response: "{developer_secret_key: string}",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
