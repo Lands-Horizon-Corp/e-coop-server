@@ -171,7 +171,7 @@ For privacy-related questions or requests, please contact:
 
 **Zalven Lemuel Dayao**  
 CEO, Lands Horizon Corp  
-Email: zalvendayao888@gmail.com  
+Email: lands.horizon.corp@gmail.com  
 Phone: +63 991 617 1081  
 Address:  
 BLK 5 LOT 49, MAKADIYOS STREET  

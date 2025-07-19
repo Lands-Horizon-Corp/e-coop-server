@@ -20,7 +20,7 @@ Members can submit complaints through any of the following channels:
 - **Online Feedback Form:**  
   Available on the homepage or footer of the e-coop-suite platform.
 - **Email:**  
-  Send your complaint to zalvendayao888@gmail.com with a clear description of the issue and any supporting documentation.
+  Send your complaint to lands.horizon.corp@gmail.com with a clear description of the issue and any supporting documentation.
 - **Phone:**  
   Contact our support hotline at +63 991 617 1081.
 - **Mail:**  
@@ -73,7 +73,7 @@ For questions about this policy or to lodge a complaint, please contact:
 
 **Zalven Lemuel Dayao**  
 CEO, Lands Horizon Corp  
-Email: zalvendayao888@gmail.com  
+Email: lands.horizon.corp@gmail.com  
 Phone: +63 991 617 1081  
 Address:  
 BLK 5 LOT 49, MAKADIYOS STREET  

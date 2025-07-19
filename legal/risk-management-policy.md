@@ -91,7 +91,7 @@ For questions or concerns about this Risk Management Policy, please contact:
 
 **Zalven Lemuel Dayao**  
 Risk Management Officer / CEO, Lands Horizon Corp  
-Email: zalvendayao888@gmail.com  
+Email: lands.horizon.corp@gmail.com  
 Phone: +63 991 617 1081  
 Address:  
 BLK 5 LOT 49, MAKADIYOS STREET  
