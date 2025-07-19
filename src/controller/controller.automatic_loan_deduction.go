@@ -18,7 +18,7 @@ func (c *Controller) AutomaticLoanDeductionController() {
 
 	// GET /automatic-loan-deduction/computation-sheet/:computation_sheet_id/search
 	req.RegisterRoute(horizon.Route{
-		Route:    "/automatic-loan-deduction/computation-sheet/:computation_sheet_id/search",
+		Route:    "/automatic-loan-deduction/computation-sheet/:computation_sheet_id",
 		Method:   "GET",
 		Response: "AutomaticLoanDeduction[]",
 		Note:     "Returns all automatic loan deductions for a computation sheet in the current user's org/branch.",
