@@ -11,6 +11,7 @@ FROM alpine:latest
 WORKDIR /app
 COPY --from=builder /app/app .
 COPY --from=builder /app/.env .env
+COPY --from=builder /app/public ./public
 COPY ./config/nats.conf ./config/nats.conf
 EXPOSE 8000 8001 4222 8222 8080
 

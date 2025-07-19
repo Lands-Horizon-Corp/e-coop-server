@@ -241,9 +241,9 @@ func PrintASCIIArt() {
                   @@@@@@@@
 	`
 
-	lines := strings.Split(asciiArt, "\n")
+	lines := strings.SplitSeq(asciiArt, "\n")
 
-	for _, line := range lines {
+	for line := range lines {
 		coloredLine := ""
 		for _, char := range line {
 			switch char {
