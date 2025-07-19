@@ -475,6 +475,23 @@ func (m *Model) TransactionBatch() {
 	})
 }
 
+func (m *Model) TransactionBatchCurrent(context context.Context, orgId uuid.UUID, branchId uuid.UUID) (*TransactionBatch, error) {
+	return m.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
+		"organization_id": orgId,
+		"branch_id":       branchId,
+		"is_closed":       false,
+	})
+}
+
+func (m *Model) TransactionBatchViewRequests(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*TransactionBatch, error) {
+	return m.TransactionBatchManager.FindWithConditions(context, map[string]any{
+		"organization_id": orgId,
+		"branch_id":       branchId,
+		"can_view":        false,
+		"is_closed":       false,
+	})
+}
+
 func (m *Model) TransactionBatchMinimal(context context.Context, id uuid.UUID) (*TransactionBatchResponse, error) {
 	data, err := m.TransactionBatchManager.GetByID(context, id)
 	if err != nil {

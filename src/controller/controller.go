@@ -14,7 +14,6 @@ type Controller struct {
 	model    *model.Model
 	event    *event.Event
 	// Tokens
-	transactionBatchToken *cooperative_tokens.TransactionBatchToken
 	userOrganizationToken *cooperative_tokens.UserOrganizatonToken
 	userToken             *cooperative_tokens.UserToken
 }
@@ -26,7 +25,6 @@ func NewController(
 	event *event.Event,
 
 	// Tokens
-	transactionBatchToken *cooperative_tokens.TransactionBatchToken,
 	userOrganizationToken *cooperative_tokens.UserOrganizatonToken,
 	userToken *cooperative_tokens.UserToken,
 
@@ -37,8 +35,6 @@ func NewController(
 		model:    model,
 		event:    event,
 
-		// Tokens
-		transactionBatchToken: transactionBatchToken,
 		userOrganizationToken: userOrganizationToken,
 		userToken:             userToken,
 	}, nil

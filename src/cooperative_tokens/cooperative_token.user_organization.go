@@ -91,7 +91,7 @@ func (h *UserOrganizatonToken) SetUserOrganization(ctx context.Context, echoCtx 
 		BranchID:          userOrganization.BranchID.String(),
 		OrganizationID:    userOrganization.OrganizationID.String(),
 		AccountType:       userOrganization.UserType,
-	}, 10*time.Hour); err != nil {
+	}, 144*time.Hour); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to set authentication token")
 	}
 	return nil

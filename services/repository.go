@@ -2,6 +2,7 @@ package horizon_services
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"reflect"
 
@@ -42,8 +43,29 @@ func ToModels[T any, G any](data []*T, mapFunc func(*T) *G) []*G {
 	return out
 }
 
+type FilterOp string
+
+const (
+	OpEq  FilterOp = "="
+	OpGt  FilterOp = ">"
+	OpGte FilterOp = ">="
+	OpLt  FilterOp = "<"
+	OpLte FilterOp = "<="
+	OpNe  FilterOp = "<>"
+	OpIn  FilterOp = "IN"
+)
+
+type Filter struct {
+	Field string
+	Op    FilterOp
+	Value any
+}
+
 type Repository[TData any, TResponse any, TRequest any] interface {
 	Pagination(ctx context.Context, param echo.Context, data []*TData) horizon.PaginationResult[TResponse]
+	FindWithFilters(ctx context.Context, filters []Filter, preloads ...string) ([]*TData, error)
+
+	Client() *gorm.DB
 	// Validate
 	Validate(ctx echo.Context) (*TRequest, error)
 
@@ -201,6 +223,41 @@ func (c *CollectionManager[TData, TResponse, TRequest]) Pagination(ctx context.C
 		Sort:      filtered.Sort,
 		TotalPage: filtered.TotalPage,
 	}
+}
+
+func (c *CollectionManager[TData, TResponse, TRequest]) Client() *gorm.DB {
+	if c.service == nil || c.service.Database == nil {
+		return nil
+	}
+	return c.service.Database.Client().Model(new(TData))
+}
+
+func (c *CollectionManager[TData, TResponse, TRequest]) FindWithFilters(
+	ctx context.Context,
+	filters []Filter,
+	preloads ...string,
+) ([]*TData, error) {
+	var entities []*TData
+	db := c.service.Database.Client().Model(new(TData))
+
+	for _, f := range filters {
+		switch f.Op {
+		case OpIn:
+			db = db.Where(fmt.Sprintf("%s IN (?)", f.Field), f.Value)
+		default:
+			db = db.Where(fmt.Sprintf("%s %s ?", f.Field, f.Op), f.Value)
+		}
+	}
+
+	preloads = horizon.MergeString(c.preloads, preloads)
+	for _, preload := range preloads {
+		db = db.Preload(preload)
+	}
+
+	if err := db.Order("updated_at DESC").Find(&entities).Error; err != nil {
+		return nil, eris.Wrap(err, "failed to find entities with filters")
+	}
+	return entities, nil
 }
 
 // ToModel implements Repository.

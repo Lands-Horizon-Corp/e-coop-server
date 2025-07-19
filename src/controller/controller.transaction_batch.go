@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	horizon_services "github.com/lands-horizon/horizon-server/services"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -187,11 +188,7 @@ func (c *Controller) TransactionBatchController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
 
-		transactionBatch, err := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
-			"organization_id": userOrg.OrganizationID,
-			"branch_id":       *userOrg.BranchID,
-			"is_closed":       false,
-		})
+		transactionBatch, err := c.model.TransactionBatchCurrent(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Failed to retrieve transaction batch: " + err.Error()})
 		}
@@ -380,11 +377,7 @@ func (c *Controller) TransactionBatchController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
-		transactionBatch, _ := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
-			"organization_id": userOrg.OrganizationID,
-			"branch_id":       *userOrg.BranchID,
-			"is_closed":       false,
-		})
+		transactionBatch, err := c.model.TransactionBatchCurrent(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if transactionBatch != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -522,11 +515,7 @@ func (c *Controller) TransactionBatchController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
-		transactionBatch, err := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
-			"organization_id": userOrg.OrganizationID,
-			"branch_id":       *userOrg.BranchID,
-			"is_closed":       false,
-		})
+		transactionBatch, err := c.model.TransactionBatchCurrent(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -698,12 +687,7 @@ func (c *Controller) TransactionBatchController() {
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
-		transactionBatch, err := c.model.TransactionBatchManager.FindWithConditions(context, map[string]any{
-			"organization_id": userOrg.OrganizationID,
-			"branch_id":       *userOrg.BranchID,
-			"can_view":        false,
-			"is_closed":       false,
-		})
+		transactionBatch, err := c.model.TransactionBatchViewRequests(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve pending view requests: " + err.Error()})
 		}
@@ -729,41 +713,18 @@ func (c *Controller) TransactionBatchController() {
 		startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 		endOfDay := startOfDay.Add(24 * time.Hour)
 
-		conditions := map[string]any{
-			"organization_id": userOrg.OrganizationID,
-			"branch_id":       *userOrg.BranchID,
-			"is_closed":       true,
+		filters := []horizon_services.Filter{
+			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
+			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
+			{Field: "is_closed", Op: horizon_services.OpEq, Value: true},
+			{Field: "created_at", Op: horizon_services.OpGte, Value: startOfDay},
+			{Field: "created_at", Op: horizon_services.OpLt, Value: endOfDay},
 		}
-
-		db := c.provider.Service.Database.Client().Model(new(model.TransactionBatch))
-		preloads := []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization",
-			"EmployeeUser",
-			"EmployeeUser.Media",
-			"ApprovedBySignatureMedia",
-			"PreparedBySignatureMedia",
-			"CertifiedBySignatureMedia",
-			"VerifiedBySignatureMedia",
-			"CheckBySignatureMedia",
-			"AcknowledgeBySignatureMedia",
-			"NotedBySignatureMedia",
-			"PostedBySignatureMedia",
-			"PaidBySignatureMedia",
-		}
-		for _, preload := range preloads {
-			db = db.Preload(preload)
-		}
-		for field, value := range conditions {
-			db = db.Where(field+" = ?", value)
-		}
-		db = db.Where("created_at >= ? AND created_at < ?", startOfDay, endOfDay)
-
-		var transactionBatch []*model.TransactionBatch
-		if err := db.Order("updated_at DESC").Find(&transactionBatch).Error; err != nil {
+		batches, err := c.model.TransactionBatchManager.FindWithFilters(context, filters)
+		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ended transaction batches: " + err.Error()})
 		}
-
-		return ctx.JSON(http.StatusOK, c.model.TransactionBatchManager.ToModels(transactionBatch))
+		return ctx.JSON(http.StatusOK, c.model.TransactionBatchManager.ToModels(batches))
 	})
 
 	// Accept a view (blotter) request for a transaction batch by ID

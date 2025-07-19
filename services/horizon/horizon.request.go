@@ -87,7 +87,9 @@ func NewHorizonAPIService(
 	defer logger.Sync() // flushes buffer, if any
 
 	LoadTemplatesIfExists(e, "public/views/*.html")
-
+	e.Renderer = &TemplateRenderer{
+		templates: template.Must(template.ParseGlob("public/views/*.html")),
+	}
 	e.Use(middleware.Recover())
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.BodyLimit("10mb"))

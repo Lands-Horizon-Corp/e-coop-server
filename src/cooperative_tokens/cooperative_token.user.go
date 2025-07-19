@@ -207,7 +207,7 @@ func (h *UserToken) SetUser(ctx context.Context, echoCtx echo.Context, user *mod
 		Referer:        echoCtx.Request().Referer(),
 		AcceptLanguage: echoCtx.Request().Header.Get("Accept-Language"),
 	}
-	if err := h.CSRF.SetCSRF(ctx, echoCtx, claim, 8*time.Hour); err != nil {
+	if err := h.CSRF.SetCSRF(ctx, echoCtx, claim, 144*time.Hour); err != nil {
 		h.CSRF.ClearCSRF(ctx, echoCtx)
 		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to set authentication token")
 	}
