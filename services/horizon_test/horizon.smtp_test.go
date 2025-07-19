@@ -65,9 +65,9 @@ func TestHorizonSMTP_Format_WithTemplateFile(t *testing.T) {
 
 	file := "test_template.txt"
 	content := "Hello {{.Name}}, this is from file."
-	os.WriteFile(file, []byte(content), 0644)
+	err := os.WriteFile(file, []byte(content), 0644)
+	require.NoError(t, err)
 	defer os.Remove(file)
-
 	smtp := horizon.NewHorizonSMTP(host, port, username, password, from)
 	ctx := context.Background()
 

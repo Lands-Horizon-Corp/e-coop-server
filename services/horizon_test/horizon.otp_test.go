@@ -32,7 +32,9 @@ func setupHorizonOTP() horizon.OTPService {
 		env.GetString("REDIS_USERNAME", ""),
 		env.GetInt("REDIS_PORT", 6379),
 	)
-	cache.Run(context.Background())
+	if err := cache.Run(context.Background()); err != nil {
+		panic(err)
+	}
 	if err := cache.Ping(context.Background()); err != nil {
 		panic(err)
 	}
@@ -98,7 +100,8 @@ func TestVerifyOTP(t *testing.T) {
 	})
 
 	t.Run("invalid code", func(t *testing.T) {
-		otp.Generate(ctx, key) // Reset state
+		_, err := otp.Generate(ctx, key) // Reset state
+		require.NoError(t, err)
 
 		// First invalid attempt
 		valid, err := otp.Verify(ctx, key, "000000")
@@ -120,7 +123,6 @@ func TestVerifyOTP(t *testing.T) {
 		assert.False(t, valid)
 		assert.Error(t, err)
 	})
-
 }
 
 func TestRevokeOTP(t *testing.T) {

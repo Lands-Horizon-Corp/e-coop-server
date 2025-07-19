@@ -32,7 +32,12 @@ func TestHorizonMessageBroker(t *testing.T) {
 		broker := horizon.NewHorizonMessageBroker(host, port, "test-client")
 		err := broker.Run(ctx)
 		require.NoError(t, err)
-		defer broker.Stop(ctx)
+		defer func() {
+			err := broker.Stop(ctx)
+			if err != nil {
+				t.Errorf("failed to stop broker: %v", err)
+			}
+		}()
 
 		topic := fmt.Sprintf("test.topic.%d", time.Now().UnixNano())
 		received := make(chan struct{})
@@ -73,7 +78,12 @@ func TestHorizonMessageBroker(t *testing.T) {
 		broker := horizon.NewHorizonMessageBroker(host, port, "test-client")
 		err := broker.Run(ctx)
 		require.NoError(t, err)
-		defer broker.Stop(ctx)
+		defer func() {
+			err := broker.Stop(ctx)
+			if err != nil {
+				t.Errorf("failed to stop broker: %v", err)
+			}
+		}()
 
 		topic1 := fmt.Sprintf("test.topic1.%d", time.Now().UnixNano())
 		topic2 := fmt.Sprintf("test.topic2.%d", time.Now().UnixNano())

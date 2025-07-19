@@ -35,8 +35,7 @@ func NewHorizonMessageBroker(host string, port int, clientId string) MessageBrok
 }
 
 func (h *HorizonMessageBroker) Run(ctx context.Context) error {
-	var natsURL string
-	natsURL = fmt.Sprintf("nats://%s:%d", h.host, h.port)
+	natsURL := fmt.Sprintf("nats://%s:%d", h.host, h.port)
 	options := []nats.Option{
 		nats.ErrorHandler(func(_ *nats.Conn, sub *nats.Subscription, err error) {
 			fmt.Printf("Error in subscription to %s: %v\n", sub.Subject, err)

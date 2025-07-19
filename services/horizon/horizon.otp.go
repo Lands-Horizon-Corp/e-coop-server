@@ -58,7 +58,12 @@ func (h *HorizonOTP) Generate(ctx context.Context, key string) (string, error) {
 
 	// Initialize attempt count to 0
 	if err := h.cache.Set(ctx, countKey, "0", 5*time.Minute); err != nil {
-		h.cache.Delete(ctx, otpKey) // Cleanup OTP on count set failure
+		if err := h.cache.Set(ctx, countKey, "0", 5*time.Minute); err != nil {
+			if delErr := h.cache.Delete(ctx, otpKey); delErr != nil {
+				return "", eris.Wrapf(err, "failed to initialize attempt count; also failed to cleanup OTP: %v", delErr)
+			}
+			return "", eris.Wrap(err, "failed to initialize attempt count")
+		}
 		return "", eris.Wrap(err, "failed to initialize attempt count")
 	}
 

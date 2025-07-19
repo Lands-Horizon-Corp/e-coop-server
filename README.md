@@ -103,6 +103,10 @@ chmod +x kill_ports.sh
 
 ```bash
 # Deploy changes
+export PATH="$PATH:$HOME/go/bin"
+
+golangci-lint run
+
 fly deploy
 
 # Reset the machines and log the output

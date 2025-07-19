@@ -2,10 +2,12 @@ package horizon
 
 import (
 	"context"
+	"crypto/rand"
 	"errors"
+	"math/big"
+
 	"fmt"
 	"html/template"
-	"math/rand"
 	"net"
 	"net/http"
 	"net/mail"
@@ -112,10 +114,13 @@ func GenerateRandomDigits(size int) (int, error) {
 
 	min := intPow(10, size-1)
 	max := intPow(10, size) - 1
+	rangeSize := max - min + 1
 
-	// Use a local source (deterministic if seeded)
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	return r.Intn(max-min+1) + min, nil
+	nBig, err := rand.Int(rand.Reader, big.NewInt(int64(rangeSize)))
+	if err != nil {
+		return 0, err
+	}
+	return int(nBig.Int64()) + min, nil
 }
 
 func intPow(a, b int) int {

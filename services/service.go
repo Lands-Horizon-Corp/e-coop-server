@@ -9,6 +9,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/rotisserie/eris"
+	"go.uber.org/zap"
 )
 
 type HorizonService struct {
@@ -25,6 +26,7 @@ type HorizonService struct {
 	Request     horizon.APIService
 	QR          horizon.QRService
 	Validator   *validator.Validate
+	Logger      *zap.Logger
 }
 
 type HorizonServiceConfig struct {
@@ -43,6 +45,14 @@ type HorizonServiceConfig struct {
 func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 	service := &HorizonService{}
 	service.Validator = validator.New()
+
+	logger, err := zap.NewProduction()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "failed to initialize zap logger: %v\n", err)
+		service.Logger = zap.NewNop()
+	} else {
+		service.Logger = logger
+	}
 	env := ".env"
 	if cfg.EnvironmentConfig != nil {
 		env = cfg.EnvironmentConfig.Path

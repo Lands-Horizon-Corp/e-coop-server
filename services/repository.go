@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/rotisserie/eris"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 
 	"github.com/lands-horizon/horizon-server/services/horizon"
@@ -982,7 +983,11 @@ func (c *CollectionManager[TData, TResponse, TRequest]) CreatedBroadcast(
 	go func() {
 		topics := c.created(entity)
 		payload := c.ToModel(entity)
-		c.service.Broker.Dispatch(ctx, topics, payload)
+		if err := c.service.Broker.Dispatch(ctx, topics, payload); err != nil {
+			if c.service.Logger != nil {
+				c.service.Logger.Error("CreatedBroadcast dispatch error", zap.Error(err))
+			}
+		}
 	}()
 }
 
@@ -993,7 +998,11 @@ func (c *CollectionManager[TData, TResponse, TRequest]) UpdatedBroadcast(
 	go func() {
 		topics := c.updated(entity)
 		payload := c.ToModel(entity)
-		c.service.Broker.Dispatch(ctx, topics, payload)
+		if err := c.service.Broker.Dispatch(ctx, topics, payload); err != nil {
+			if c.service.Logger != nil {
+				c.service.Logger.Error("UpdatedBroadcast dispatch error", zap.Error(err))
+			}
+		}
 	}()
 }
 
@@ -1004,7 +1013,11 @@ func (c *CollectionManager[TData, TResponse, TRequest]) DeletedBroadcast(
 	go func() {
 		topics := c.deleted(entity)
 		payload := c.ToModel(entity)
-		c.service.Broker.Dispatch(ctx, topics, payload)
+		if err := c.service.Broker.Dispatch(ctx, topics, payload); err != nil {
+			if c.service.Logger != nil {
+				c.service.Logger.Error("DeletedBroadcast dispatch error", zap.Error(err))
+			}
+		}
 	}()
 }
 

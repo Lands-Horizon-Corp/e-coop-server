@@ -378,6 +378,14 @@ func (c *Controller) TransactionBatchController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
 		transactionBatch, err := c.model.TransactionBatchCurrent(context, userOrg.OrganizationID, *userOrg.BranchID)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create transaction batch failed: check current batch error: " + err.Error(),
+				Module:      "TransactionBatch",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to check current transaction batch: " + err.Error()})
+		}
 		if transactionBatch != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",

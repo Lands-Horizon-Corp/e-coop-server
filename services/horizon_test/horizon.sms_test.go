@@ -10,7 +10,10 @@ import (
 
 // go test ./services/horizon_test/horizon.sms_test.go
 func injectMockTwilio(h *horizon.HorizonSMS) {
-	h.Run(context.Background())
+	err := h.Run(context.Background())
+	if err != nil {
+		panic(err)
+	}
 }
 
 func TestSendSMS(t *testing.T) {

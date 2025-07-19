@@ -194,8 +194,9 @@ func (h *HorizonStorage) UploadFromPath(ctx context.Context, path string, cb Pro
 		return nil, eris.Wrap(err, "content type detection failed")
 	}
 	contentType := http.DetectContentType(buf)
-	file.Seek(0, 0)
-
+	if _, err := file.Seek(0, 0); err != nil {
+		return nil, eris.Wrap(err, "failed to seek file to beginning")
+	}
 	fileName, err := h.GenerateUniqueName(ctx, filepath.Base(path))
 	if err != nil {
 		return nil, err

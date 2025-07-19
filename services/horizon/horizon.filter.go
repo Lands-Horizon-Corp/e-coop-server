@@ -103,11 +103,8 @@ type cachedFieldInfo struct {
 var (
 	fieldCache = make(map[string]map[string]cachedFieldInfo)
 	cacheMutex = &sync.RWMutex{}
-	bufferPool = sync.Pool{
-		New: func() any { return new(strings.Builder) },
-	}
 	workerPool = sync.Pool{
-		New: func() any { return make([]int, 0, 1024) },
+		New: func() any { s := make([]int, 0, 1024); return &s },
 	}
 )
 
@@ -274,9 +271,10 @@ func FilterSlice[T any](
 
 			go func(batchIdx, startIdx, endIdx int) {
 				defer wg.Done()
-				indices := workerPool.Get().([]int)[:0]
+				indicesPtr := workerPool.Get().(*[]int)
+				indices := (*indicesPtr)[:0]
 				defer func() {
-					workerPool.Put(indices[:0])
+					workerPool.Put(indicesPtr)
 				}()
 
 				for idx := startIdx; idx < endIdx; idx++ {

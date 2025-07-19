@@ -62,8 +62,6 @@ type HorizonAPIService struct {
 	clientURL   string
 	clientName  string
 	routesList  []Route
-	certPath    string
-	keyPath     string
 }
 
 var (
@@ -84,7 +82,11 @@ func NewHorizonAPIService(
 ) APIService {
 	e := echo.New()
 	logger, _ := zap.NewProduction()
-	defer logger.Sync() // flushes buffer, if any
+	defer func() {
+		if err := logger.Sync(); err != nil {
+			fmt.Printf("logger.Sync() error: %v\n", err)
+		}
+	}()
 
 	LoadTemplatesIfExists(e, "public/views/*.html")
 	e.Renderer = &TemplateRenderer{
