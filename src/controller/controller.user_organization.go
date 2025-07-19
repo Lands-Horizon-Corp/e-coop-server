@@ -532,7 +532,7 @@ func (c *Controller) UserOrganinzationController() {
 			Description: "Refreshed developer key for user organization " + userOrg.ID.String(),
 			Module:      "UserOrganization",
 		})
-		return ctx.JSON(http.StatusOK, map[string]string{"developer_key": userOrg.DeveloperSecretKey})
+		return ctx.JSON(http.StatusOK, map[string]string{"developer_secret_key": userOrg.DeveloperSecretKey})
 	})
 
 	// Join organization and branch using an invitation code

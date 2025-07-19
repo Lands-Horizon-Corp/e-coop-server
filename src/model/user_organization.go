@@ -155,7 +155,7 @@ func (m *Model) UserOrganization() {
 				Description:            data.Description,
 				ApplicationDescription: data.ApplicationDescription,
 				ApplicationStatus:      data.ApplicationStatus,
-				DeveloperSecretKey:     data.DeveloperSecretKey,
+				DeveloperSecretKey:     "",
 				PermissionName:         data.PermissionName,
 				PermissionDescription:  data.PermissionDescription,
 				Permissions:            data.Permissions,
