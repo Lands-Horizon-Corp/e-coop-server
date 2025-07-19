@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Effective Date: January 1, 2025**
+**Effective Date: January 1, 2026**
 
 This Privacy Policy describes how **Lands Horizon Corp** (“we”, “us”, or “our”) collects, uses, stores, and protects your personal information through the **e-coop-suite** platform ([http://ecoop-suite.com/](http://ecoop-suite.com/)). By using our services, you agree to the practices described in this policy.
 

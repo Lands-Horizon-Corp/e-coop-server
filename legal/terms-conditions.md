@@ -1,6 +1,6 @@
 # Terms and Conditions
 
-**Effective Date: January 1, 2025**
+**Effective Date: January 1, 2026**
 
 Welcome to **e-coop-suite** ([http://ecoop-suite.com/](http://ecoop-suite.com/)), operated by **Lands Horizon Corp** (“we”, “our”, “us”).  
 By using our platform and services, you (“you”, “your”, “user”, “member”, or “organization”) agree to comply with these Terms and Conditions. Please read carefully.
