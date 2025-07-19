@@ -5,31 +5,37 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
+	"runtime"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
+
+	"github.com/lands-horizon/horizon-server/services/horizon"
 )
 
+// Generic validation helper
 func Validate[T any](ctx echo.Context, v *validator.Validate) (*T, error) {
 	var req T
 	if err := ctx.Bind(&req); err != nil {
-		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		return nil, echo.NewHTTPError(http.StatusBadRequest, "invalid request format")
 	}
 	if err := v.Struct(req); err != nil {
-		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		return nil, echo.NewHTTPError(http.StatusBadRequest, "validation failed: "+err.Error())
 	}
 	return &req, nil
 }
+
+// Model conversion helpers
 func ToModel[T any, G any](data *T, mapFunc func(*T) *G) *G {
 	if data == nil {
 		return nil
 	}
 	return mapFunc(data)
 }
+
 func ToModels[T any, G any](data []*T, mapFunc func(*T) *G) []*G {
 	if data == nil {
 		return []*G{}
@@ -43,6 +49,7 @@ func ToModels[T any, G any](data []*T, mapFunc func(*T) *G) []*G {
 	return out
 }
 
+// Filter operations
 type FilterOp string
 
 const (
@@ -61,127 +68,60 @@ type Filter struct {
 	Value any
 }
 
+// Repository interface
 type Repository[TData any, TResponse any, TRequest any] interface {
+	Client() *gorm.DB
+	Model() *TData
+	Validate(ctx echo.Context) (*TRequest, error)
+	ToModel(data *TData) *TResponse
+	ToModels(data []*TData) []*TResponse
 	Pagination(ctx context.Context, param echo.Context, data []*TData) horizon.PaginationResult[TResponse]
+
+	// Filter operations
 	FindWithFilters(ctx context.Context, filters []Filter, preloads ...string) ([]*TData, error)
 
-	Client() *gorm.DB
-	// Validate
-	Validate(ctx echo.Context) (*TRequest, error)
-
-	Model() *TData
-
-	// Models
-	ToModel(data *TData) *TResponse
-
-	// Convert data to anything
-	ToModels(data []*TData) []*TResponse
-
-	// --- Retrieval ---
-	// List retrieves all entities of type T, optionally with related entities specified in preloads.
+	// Retrieval methods
 	List(ctx context.Context, preloads ...string) ([]*TData, error)
 	ListRaw(ctx context.Context, preloads ...string) ([]*TResponse, error)
-
-	// GetByID retrieves a single entity by its UUID. Optionally preloads related entities.
 	GetByID(ctx context.Context, id uuid.UUID, preloads ...string) (*TData, error)
 	GetByIDRaw(ctx context.Context, id uuid.UUID, preloads ...string) (*TResponse, error)
-
-	// Find retrieves all entities that match the non-zero fields of the provided struct.
-	// Optionally preloads related entities.
 	Find(ctx context.Context, fields *TData, preloads ...string) ([]*TData, error)
 	FindRaw(ctx context.Context, fields *TData, preloads ...string) ([]*TResponse, error)
-	FindWithConditions(ctx context.Context, conditions map[string]any, preloads ...string) ([]*TData, error)
-	FindOneWithConditions(ctx context.Context, conditions map[string]any, preloads ...string) (*TData, error)
-	// FindOne retrieves a single entity that matches the non-zero fields of the provided struct.
-	// Optionally preloads related entities.
 	FindOne(ctx context.Context, fields *TData, preloads ...string) (*TData, error)
 	FindOneRaw(ctx context.Context, fields *TData, preloads ...string) (*TResponse, error)
+	FindWithConditions(ctx context.Context, conditions map[string]any, preloads ...string) ([]*TData, error)
+	FindOneWithConditions(ctx context.Context, conditions map[string]any, preloads ...string) (*TData, error)
 
-	// --- Aggregation ---
-
-	// Count returns the number of records matching the given fields.
+	// Aggregation
 	Count(ctx context.Context, fields *TData) (int64, error)
-
-	// CountWithTx performs Count using the provided GORM transaction.
 	CountWithTx(ctx context.Context, tx *gorm.DB, fields *TData) (int64, error)
 
-	// --- Creation ---
-
-	// Create inserts a new record into the database.
-	// Optionally preloads related entities after creation.
+	// CRUD operations
 	Create(ctx context.Context, entity *TData, preloads ...string) error
-
-	// CreateWithTx performs Create within the provided transaction.
 	CreateWithTx(ctx context.Context, tx *gorm.DB, entity *TData, preloads ...string) error
-
-	// CreateMany inserts multiple records in a batch.
 	CreateMany(ctx context.Context, entities []*TData, preloads ...string) error
-
-	// CreateManyWithTx performs CreateMany within the provided transaction.
 	CreateManyWithTx(ctx context.Context, tx *gorm.DB, entities []*TData, preloads ...string) error
-
-	// --- Update ---
-
-	// Update modifies an existing record in the database.
 	Update(ctx context.Context, entity *TData, preloads ...string) error
-
-	// UpdateWithTx performs Update within the provided transaction.
 	UpdateWithTx(ctx context.Context, tx *gorm.DB, entity *TData, preloads ...string) error
-
-	// UpdateByID updates a record by its UUID.
 	UpdateByID(ctx context.Context, id uuid.UUID, entity *TData, preloads ...string) error
-
-	// UpdateByIDWithTx performs UpdateByID within the provided transaction.
 	UpdateByIDWithTx(ctx context.Context, tx *gorm.DB, id uuid.UUID, entity *TData, preloads ...string) error
-
-	// UpdateFields updates only the non-zero fields of the entity for the given UUID.
 	UpdateFields(ctx context.Context, id uuid.UUID, fields *TData, preloads ...string) error
-
-	// UpdateFieldsWithTx performs UpdateFields within the provided transaction.
 	UpdateFieldsWithTx(ctx context.Context, tx *gorm.DB, id uuid.UUID, fields *TData, preloads ...string) error
-
-	// UpdateMany performs a batch update on multiple entities.
 	UpdateMany(ctx context.Context, entities []*TData, preloads ...string) error
-
-	// UpdateManyWithTx performs UpdateMany within the provided transaction.
 	UpdateManyWithTx(ctx context.Context, tx *gorm.DB, entities []*TData, preloads ...string) error
-
-	// --- Upsert ---
-
-	// Upsert inserts a new record or updates it if it already exists.
 	Upsert(ctx context.Context, entity *TData, preloads ...string) error
-
-	// UpsertWithTx performs Upsert within the provided transaction.
 	UpsertWithTx(ctx context.Context, tx *gorm.DB, entity *TData, preloads ...string) error
-
-	// UpsertMany performs batch upsert for multiple entities.
 	UpsertMany(ctx context.Context, entities []*TData, preloads ...string) error
-
-	// UpsertManyWithTx performs UpsertMany within the provided transaction.
 	UpsertManyWithTx(ctx context.Context, tx *gorm.DB, entities []*TData, preloads ...string) error
-
-	// --- Deletion ---
-
-	// Delete removes the specified entity from the database.
 	Delete(ctx context.Context, entity *TData) error
-
-	// DeleteWithTx performs Delete within the provided transaction.
 	DeleteWithTx(ctx context.Context, tx *gorm.DB, entity *TData) error
-
-	// DeleteByID deletes a record by its UUID.
 	DeleteByID(ctx context.Context, id uuid.UUID) error
-
-	// DeleteByIDWithTx performs DeleteByID within the provided transaction.
 	DeleteByIDWithTx(ctx context.Context, tx *gorm.DB, id uuid.UUID) error
-
-	// DeleteMany deletes multiple entities in a batch.
 	DeleteMany(ctx context.Context, entities []*TData) error
-
-	// DeleteManyWithTx performs DeleteMany within the provided transaction.
 	DeleteManyWithTx(ctx context.Context, tx *gorm.DB, entities []*TData) error
 }
 
-// RepositoryParams groups the constructor parameters for NewRepository
+// Repository configuration
 type RepositoryParams[TData any, TResponse any, TRequest any] struct {
 	Service  *HorizonService
 	Created  func(*TData) []string
@@ -191,7 +131,7 @@ type RepositoryParams[TData any, TResponse any, TRequest any] struct {
 	Preloads []string
 }
 
-// CollectionManager is a generic implementation of Repository
+// CollectionManager implementation
 type CollectionManager[TData any, TResponse any, TRequest any] struct {
 	service  *HorizonService
 	created  func(*TData) []string
@@ -201,8 +141,10 @@ type CollectionManager[TData any, TResponse any, TRequest any] struct {
 	preloads []string
 }
 
-// NewRepository creates a new CollectionManager instance with the given parameters
-func NewRepository[TData any, TResponse any, TRequest any](params RepositoryParams[TData, TResponse, TRequest]) Repository[TData, TResponse, TRequest] {
+// NewRepository creates a new repository instance
+func NewRepository[TData any, TResponse any, TRequest any](
+	params RepositoryParams[TData, TResponse, TRequest],
+) Repository[TData, TResponse, TRequest] {
 	return &CollectionManager[TData, TResponse, TRequest]{
 		service:  params.Service,
 		created:  params.Created,
@@ -213,8 +155,61 @@ func NewRepository[TData any, TResponse any, TRequest any](params RepositoryPara
 	}
 }
 
-func (c *CollectionManager[TData, TResponse, TRequest]) Pagination(ctx context.Context, param echo.Context, data []*TData) horizon.PaginationResult[TResponse] {
-	filtered := horizon.Pagination(ctx, param, data)
+// --- Core Methods ---
+func (c *CollectionManager[TData, TResponse, TRequest]) Client() *gorm.DB {
+	if c.service == nil || c.service.Database == nil {
+		return nil
+	}
+	return c.service.Database.Client().Model(new(TData))
+}
+
+func (c *CollectionManager[TData, TResponse, TRequest]) Model() *TData {
+	return new(TData)
+}
+
+func (c *CollectionManager[TData, TResponse, TRequest]) ToModel(data *TData) *TResponse {
+	if data == nil {
+		return nil
+	}
+	return c.resource(data)
+}
+
+func (c *CollectionManager[TData, TResponse, TRequest]) ToModels(data []*TData) []*TResponse {
+	if data == nil {
+		return []*TResponse{}
+	}
+	out := make([]*TResponse, 0, len(data))
+	for _, item := range data {
+		if m := c.ToModel(item); m != nil {
+			out = append(out, m)
+		}
+	}
+	return out
+}
+
+func (c *CollectionManager[TData, TResponse, TRequest]) Validate(ctx echo.Context) (*TRequest, error) {
+	var req TRequest
+	if err := ctx.Bind(&req); err != nil {
+		return nil, echo.NewHTTPError(http.StatusBadRequest, "invalid request format")
+	}
+	if err := c.service.Validator.Struct(req); err != nil {
+		return nil, echo.NewHTTPError(http.StatusBadRequest, "validation failed: "+err.Error())
+	}
+	return &req, nil
+}
+
+// --- Pagination and Filtering ---
+func (c *CollectionManager[TData, TResponse, TRequest]) Pagination(
+	ctx context.Context,
+	param echo.Context,
+	data []*TData,
+) horizon.PaginationResult[TResponse] {
+	batchSize := 10_0000
+	maxWorkers := runtime.NumCPU()
+	filtered, err := horizon.Pagination(ctx, param, data, batchSize, maxWorkers)
+	if err != nil {
+		return horizon.PaginationResult[TResponse]{}
+	}
 	return horizon.PaginationResult[TResponse]{
 		Data:      c.ToModels(filtered.Data),
 		PageIndex: filtered.PageIndex,
@@ -223,13 +218,6 @@ func (c *CollectionManager[TData, TResponse, TRequest]) Pagination(ctx context.C
 		Sort:      filtered.Sort,
 		TotalPage: filtered.TotalPage,
 	}
-}
-
-func (c *CollectionManager[TData, TResponse, TRequest]) Client() *gorm.DB {
-	if c.service == nil || c.service.Database == nil {
-		return nil
-	}
-	return c.service.Database.Client().Model(new(TData))
 }
 
 func (c *CollectionManager[TData, TResponse, TRequest]) FindWithFilters(
@@ -255,270 +243,18 @@ func (c *CollectionManager[TData, TResponse, TRequest]) FindWithFilters(
 	}
 
 	if err := db.Order("updated_at DESC").Find(&entities).Error; err != nil {
-		return nil, eris.Wrap(err, "failed to find entities with filters")
+		return nil, eris.Wrapf(err, "failed to find entities with %d filters", len(filters))
 	}
 	return entities, nil
 }
 
-// ToModel implements Repository.
-func (c *CollectionManager[TData, TResponse, TRequest]) Model() *TData {
-	return new(TData)
-}
-
-// ToModel implements Repository.
-func (c *CollectionManager[TData, TResponse, TRequest]) ToModel(data *TData) *TResponse {
-	if data == nil {
-		return nil
-	}
-	return c.resource(data)
-}
-
-// ToModels implements Repository.
-func (c *CollectionManager[TData, TResponse, TRequest]) ToModels(data []*TData) []*TResponse {
-	if data == nil {
-		return []*TResponse{}
-	}
-	out := make([]*TResponse, 0, len(data))
-	for _, item := range data {
-		if m := c.ToModel(item); m != nil {
-			out = append(out, m)
-		}
-	}
-	return out
-}
-
-// Validate implements Repository.
-func (c *CollectionManager[TData, TResponse, TRequest]) Validate(ctx echo.Context) (*TRequest, error) {
-	var req TRequest
-	if err := ctx.Bind(&req); err != nil {
-		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	}
-	if err := c.service.Validator.Struct(req); err != nil {
-		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	}
-	return &req, nil
-}
-
-// Count implements Repository.
-func (c *CollectionManager[TData, TResponse, TRequest]) Count(ctx context.Context, fields *TData) (int64, error) {
-	var count int64
-	if err := c.service.Database.Client().Model(fields).Where(fields).Count(&count).Error; err != nil {
-		return 0, eris.Wrap(err, "failed to count entities")
-	}
-	return count, nil
-}
-
-// CountWithTx implements Repository.
-func (c *CollectionManager[TData, TResponse, TRequest]) CountWithTx(ctx context.Context, tx *gorm.DB, fields *TData) (int64, error) {
-	var count int64
-	if err := tx.Model(fields).Where(fields).Count(&count).Error; err != nil {
-		return 0, eris.Wrap(err, "failed to count entities in transaction")
-	}
-	return count, nil
-}
-
-// Create implements Repository.
-func (c *CollectionManager[TData, TResponse, TRequest]) Create(ctx context.Context, entity *TData, preloads ...string) error {
-	if err := c.service.Database.Client().Create(entity).Error; err != nil {
-		return eris.Wrap(err, "failed to create entity")
-	}
-	preloads = horizon.MergeString(c.preloads, preloads)
-	if len(preloads) > 0 {
-		id, err := getID(entity)
-		if err != nil {
-			return eris.Wrap(err, "failed to get entity ID for preload")
-		}
-		db := c.service.Database.Client().Model(entity)
-		for _, preload := range preloads {
-			db = db.Preload(preload)
-		}
-		if err := db.First(entity, "id = ?", id).Error; err != nil {
-			return eris.Wrap(err, "failed to reload entity with preloads")
-		}
-	}
-	c.CreatedBroadcast(ctx, entity)
-	return nil
-}
-
-// CreateMany implements Repository.
-func (c *CollectionManager[TData, TResponse, TRequest]) CreateMany(ctx context.Context, entities []*TData, preloads ...string) error {
-	if err := c.service.Database.Client().Create(entities).Error; err != nil {
-		return eris.Wrap(err, "failed to create entities")
-	}
-	preloads = horizon.MergeString(c.preloads, preloads)
-	if len(preloads) > 0 {
-		ids := make([]uuid.UUID, len(entities))
-		for i, entity := range entities {
-			id, err := getID(entity)
-			if err != nil {
-				return eris.Wrap(err, "failed to get ID for entity")
-			}
-			ids[i] = id
-		}
-		var reloaded []*TData
-		db := c.service.Database.Client().Model(new(TData))
-		for _, preload := range preloads {
-			db = db.Preload(preload)
-		}
-		if err := db.Where("id IN (?)", ids).Find(&reloaded).Error; err != nil {
-			return eris.Wrap(err, "failed to reload entities with preloads")
-		}
-		reloadedMap := make(map[uuid.UUID]*TData)
-		for _, e := range reloaded {
-			id, _ := getID(e)
-			reloadedMap[id] = e
-		}
-		for _, entity := range entities {
-			id, _ := getID(entity)
-			if reloadedEntity, ok := reloadedMap[id]; ok {
-				*entity = *reloadedEntity
-			} else {
-				return eris.Errorf("failed to find reloaded entity with ID %s", id)
-			}
-		}
-	}
-	return nil
-}
-
-// CreateManyWithTx implements Repository.
-func (c *CollectionManager[TData, TResponse, TRequest]) CreateManyWithTx(ctx context.Context, tx *gorm.DB, entities []*TData, preloads ...string) error {
-	if err := tx.Create(entities).Error; err != nil {
-		return eris.Wrap(err, "failed to create entities in transaction")
-	}
-	preloads = horizon.MergeString(c.preloads, preloads)
-	if len(preloads) > 0 {
-		ids := make([]uuid.UUID, len(entities))
-		for i, entity := range entities {
-			id, err := getID(entity)
-			if err != nil {
-				return eris.Wrap(err, "failed to get ID for entity in transaction")
-			}
-			ids[i] = id
-		}
-		var reloaded []*TData
-		db := tx.Model(new(TData))
-		for _, preload := range preloads {
-			db = db.Preload(preload)
-		}
-		if err := db.Where("id IN (?)", ids).Find(&reloaded).Error; err != nil {
-			return eris.Wrap(err, "failed to reload entities with preloads in transaction")
-		}
-		reloadedMap := make(map[uuid.UUID]*TData)
-		for _, e := range reloaded {
-			id, _ := getID(e)
-			reloadedMap[id] = e
-		}
-		for _, entity := range entities {
-			id, _ := getID(entity)
-			if reloadedEntity, ok := reloadedMap[id]; ok {
-				*entity = *reloadedEntity
-			} else {
-				return eris.Errorf("failed to find reloaded entity with ID %s in transaction", id)
-			}
-		}
-	}
-	return nil
-}
-
-// CreateWithTx implements Repository.
-func (c *CollectionManager[TData, TResponse, TRequest]) CreateWithTx(ctx context.Context, tx *gorm.DB, entity *TData, preloads ...string) error {
-	if err := tx.Create(entity).Error; err != nil {
-		return eris.Wrap(err, "failed to create entity in transaction")
-	}
-	preloads = horizon.MergeString(c.preloads, preloads)
-	if len(preloads) > 0 {
-		id, err := getID(entity)
-		if err != nil {
-			return eris.Wrap(err, "failed to get entity ID for preload in transaction")
-		}
-		db := tx.Model(entity)
-		for _, preload := range preloads {
-			db = db.Preload(preload)
-		}
-		if err := db.First(entity, "id = ?", id).Error; err != nil {
-			return eris.Wrap(err, "failed to reload entity with preloads in transaction")
-		}
-	}
-	c.CreatedBroadcast(ctx, entity)
-	return nil
-}
-
-// Delete implements Repository.
-func (c *CollectionManager[TData, TResponse, TRequest]) Delete(ctx context.Context, entity *TData) error {
-	if err := c.service.Database.Client().Delete(entity).Error; err != nil {
-		return eris.Wrap(err, "failed to delete entity")
-	}
-	c.DeletedBroadcast(ctx, entity)
-	return nil
-}
-
-// DeleteByID implements Repository.
-func (c *CollectionManager[TData, TResponse, TRequest]) DeleteByID(ctx context.Context, id uuid.UUID) error {
-	entity := new(TData)
-
-	if err := c.service.Database.Client().First(entity, "id = ?", id).Error; err != nil {
-		return eris.Wrapf(err, "failed to load entity with id %s before deletion", id)
-	}
-
-	if err := c.service.Database.Client().Delete(entity).Error; err != nil {
-		return eris.Wrapf(err, "failed to delete entity with id %s", id)
-	}
-
-	c.DeletedBroadcast(ctx, entity)
-	return nil
-
-}
-
-// DeleteByIDWithTx implements Repository.
-func (c *CollectionManager[TData, TResponse, TRequest]) DeleteByIDWithTx(ctx context.Context, tx *gorm.DB, id uuid.UUID) error {
-	entity := new(TData)
-	if err := tx.First(entity, "id = ?", id).Error; err != nil {
-		return eris.Wrapf(err, "failed to load entity with id %s before deletion in transaction", id)
-	}
-	if err := tx.Delete(entity).Error; err != nil {
-		return eris.Wrapf(err, "failed to delete entity with id %s in transaction", id)
-	}
-	c.DeletedBroadcast(ctx, entity)
-	return nil
-}
-
-// DeleteMany implements Repository.
-func (c *CollectionManager[TData, TResponse, TRequest]) DeleteMany(ctx context.Context, entities []*TData) error {
-	for _, entity := range entities {
-		if err := c.Delete(ctx, entity); err != nil {
-			return eris.Wrapf(err, "failed to delete entity: %+v", entity)
-		}
-	}
-	return nil
-}
-
-// DeleteManyWithTx implements Repository.
-func (c *CollectionManager[TData, TResponse, TRequest]) DeleteManyWithTx(ctx context.Context, tx *gorm.DB, entities []*TData) error {
-	for _, entity := range entities {
-		if err := c.DeleteWithTx(ctx, tx, entity); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// DeleteWithTx implements Repository.
-func (c *CollectionManager[TData, TResponse, TRequest]) DeleteWithTx(ctx context.Context, tx *gorm.DB, entity *TData) error {
-	if err := tx.Delete(entity).Error; err != nil {
-		return eris.Wrap(err, "failed to delete entity in transaction")
-	}
-	c.DeletedBroadcast(ctx, entity)
-	return nil
-}
-
-func (c *CollectionManager[TData, TResponse, TRequest]) FindWithConditions(ctx context.Context, conditions map[string]any, preloads ...string) ([]*TData, error) {
+// --- Data Retrieval Methods ---
+func (c *CollectionManager[TData, TResponse, TRequest]) List(
+	ctx context.Context,
+	preloads ...string,
+) ([]*TData, error) {
 	var entities []*TData
 	db := c.service.Database.Client().Model(new(TData))
-
-	// Apply conditions that include zero values
-	for field, value := range conditions {
-		db = db.Where(field+" = ?", value)
-	}
 
 	preloads = horizon.MergeString(c.preloads, preloads)
 	for _, preload := range preloads {
@@ -526,93 +262,49 @@ func (c *CollectionManager[TData, TResponse, TRequest]) FindWithConditions(ctx c
 	}
 
 	if err := db.Order("updated_at DESC").Find(&entities).Error; err != nil {
-		return nil, eris.Wrap(err, "failed to find entities with conditions")
+		return nil, eris.Wrap(err, "failed to list entities")
 	}
 	return entities, nil
 }
 
-func (c *CollectionManager[TData, TResponse, TRequest]) FindOneWithConditions(ctx context.Context, conditions map[string]any, preloads ...string) (*TData, error) {
-	var entity TData
-	db := c.service.Database.Client().Model(new(TData))
-
-	// Apply conditions that include zero values
-	for field, value := range conditions {
-		db = db.Where(field+" = ?", value)
-	}
-
-	preloads = horizon.MergeString(c.preloads, preloads)
-	for _, preload := range preloads {
-		db = db.Preload(preload)
-	}
-
-	if err := db.Order("updated_at DESC").First(&entity).Error; err != nil {
-		return nil, eris.Wrap(err, "failed to find entity with conditions")
-	}
-	return &entity, nil
-}
-
-// Find implements Repository.
-func (c *CollectionManager[TData, TResponse, TRequest]) Find(ctx context.Context, fields *TData, preloads ...string) ([]*TData, error) {
-	var entities []*TData
-	db := c.service.Database.Client().Model(fields).Where(fields)
-	preloads = horizon.MergeString(c.preloads, preloads)
-	for _, preload := range preloads {
-		db = db.Preload(preload)
-	}
-	if err := db.Order("updated_at DESC").Find(&entities).Error; err != nil {
-		return nil, eris.Wrap(err, "failed to find entities")
-	}
-	return entities, nil
-}
-
-// FindOne implements Repository.
-func (c *CollectionManager[TData, TResponse, TRequest]) FindOne(ctx context.Context, fields *TData, preloads ...string) (*TData, error) {
-	var entity TData
-	db := c.service.Database.Client().Model(fields).Where(fields)
-	preloads = horizon.MergeString(c.preloads, preloads)
-	for _, preload := range preloads {
-		db = db.Preload(preload)
-	}
-	if err := db.Order("updated_at DESC").First(&entity).Error; err != nil {
-		return nil, eris.Wrap(err, "failed to find entity")
-	}
-	return &entity, nil
-}
-
-// FindOneRaw implements Repository.
-func (c *CollectionManager[TData, TResponse, TRequest]) FindOneRaw(ctx context.Context, fields *TData, preloads ...string) (*TResponse, error) {
-	entity, err := c.FindOne(ctx, fields, preloads...)
+func (c *CollectionManager[TData, TResponse, TRequest]) ListRaw(
+	ctx context.Context,
+	preloads ...string,
+) ([]*TResponse, error) {
+	entities, err := c.List(ctx, preloads...)
 	if err != nil {
 		return nil, err
 	}
-	return c.ToModel(entity), nil
+	return c.ToModels(entities), nil
 }
 
-// FindRaw implements Repository.
-func (c *CollectionManager[TData, TResponse, TRequest]) FindRaw(ctx context.Context, fields *TData, preloads ...string) ([]*TResponse, error) {
-	entity, err := c.Find(ctx, fields, preloads...)
-	if err != nil {
-		return nil, err
-	}
-	return c.ToModels(entity), nil
-}
-
-// GetByID implements Repository.
-func (c *CollectionManager[TData, TResponse, TRequest]) GetByID(ctx context.Context, id uuid.UUID, preloads ...string) (*TData, error) {
+func (c *CollectionManager[TData, TResponse, TRequest]) GetByID(
+	ctx context.Context,
+	id uuid.UUID,
+	preloads ...string,
+) (*TData, error) {
 	var entity TData
 	db := c.service.Database.Client().Model(new(TData))
+
 	preloads = horizon.MergeString(c.preloads, preloads)
 	for _, preload := range preloads {
 		db = db.Preload(preload)
 	}
+
 	if err := db.Where("id = ?", id).First(&entity).Error; err != nil {
-		return nil, eris.Wrapf(err, "failed to find entity with id: %s", id)
+		if eris.Is(err, gorm.ErrRecordNotFound) {
+			return nil, eris.Wrapf(err, "entity with ID %s not found", id)
+		}
+		return nil, eris.Wrapf(err, "failed to get entity by ID: %s", id)
 	}
 	return &entity, nil
 }
 
-// GetByIDRaw implements Repository.
-func (c *CollectionManager[TData, TResponse, TRequest]) GetByIDRaw(ctx context.Context, id uuid.UUID, preloads ...string) (*TResponse, error) {
+func (c *CollectionManager[TData, TResponse, TRequest]) GetByIDRaw(
+	ctx context.Context,
+	id uuid.UUID,
+	preloads ...string,
+) (*TResponse, error) {
 	entity, err := c.GetByID(ctx, id, preloads...)
 	if err != nil {
 		return nil, err
@@ -620,104 +312,280 @@ func (c *CollectionManager[TData, TResponse, TRequest]) GetByIDRaw(ctx context.C
 	return c.ToModel(entity), nil
 }
 
-// List implements Repository.
-func (c *CollectionManager[TData, TResponse, TRequest]) List(ctx context.Context, preloads ...string) ([]*TData, error) {
+func (c *CollectionManager[TData, TResponse, TRequest]) Find(
+	ctx context.Context,
+	fields *TData,
+	preloads ...string,
+) ([]*TData, error) {
 	var entities []*TData
-	db := c.service.Database.Client().Model(new(TData))
+	db := c.service.Database.Client().Model(fields).Where(fields)
+
 	preloads = horizon.MergeString(c.preloads, preloads)
 	for _, preload := range preloads {
 		db = db.Preload(preload)
 	}
+
 	if err := db.Order("updated_at DESC").Find(&entities).Error; err != nil {
-		return nil, eris.Wrap(err, "failed to list entities")
+		return nil, eris.Wrap(err, "failed to find entities by fields")
 	}
 	return entities, nil
 }
 
-// ListRaw implements Repository.
-func (c *CollectionManager[TData, TResponse, TRequest]) ListRaw(ctx context.Context, preloads ...string) ([]*TResponse, error) {
-	entity, err := c.List(ctx, preloads...)
+func (c *CollectionManager[TData, TResponse, TRequest]) FindRaw(
+	ctx context.Context,
+	fields *TData,
+	preloads ...string,
+) ([]*TResponse, error) {
+	entities, err := c.Find(ctx, fields, preloads...)
 	if err != nil {
 		return nil, err
 	}
-	return c.ToModels(entity), nil
+	return c.ToModels(entities), nil
 }
 
-// Update implements Repository.
-func (c *CollectionManager[TData, TResponse, TRequest]) Update(ctx context.Context, entity *TData, preloads ...string) error {
-	if err := c.service.Database.Client().Save(entity).Error; err != nil {
-		return eris.Wrap(err, "failed to update entity")
-	}
+func (c *CollectionManager[TData, TResponse, TRequest]) FindOne(
+	ctx context.Context,
+	fields *TData,
+	preloads ...string,
+) (*TData, error) {
+	var entity TData
+	db := c.service.Database.Client().Model(fields).Where(fields)
+
 	preloads = horizon.MergeString(c.preloads, preloads)
-	if len(preloads) > 0 {
-		id, err := getID(entity)
-		if err != nil {
-			return eris.Wrap(err, "failed to get entity ID for preload after update")
-		}
-		db := c.service.Database.Client().Model(entity)
-		for _, preload := range preloads {
-			db = db.Preload(preload)
-		}
-		if err := db.First(entity, "id = ?", id).Error; err != nil {
-			return eris.Wrap(err, "failed to reload entity with preloads after update")
-		}
+	for _, preload := range preloads {
+		db = db.Preload(preload)
 	}
+
+	if err := db.Order("updated_at DESC").First(&entity).Error; err != nil {
+		if eris.Is(err, gorm.ErrRecordNotFound) {
+			return nil, eris.Wrap(err, "entity not found")
+		}
+		return nil, eris.Wrap(err, "failed to find entity by fields")
+	}
+	return &entity, nil
+}
+
+func (c *CollectionManager[TData, TResponse, TRequest]) FindOneRaw(
+	ctx context.Context,
+	fields *TData,
+	preloads ...string,
+) (*TResponse, error) {
+	entity, err := c.FindOne(ctx, fields, preloads...)
+	if err != nil {
+		return nil, err
+	}
+	return c.ToModel(entity), nil
+}
+
+func (c *CollectionManager[TData, TResponse, TRequest]) FindWithConditions(
+	ctx context.Context,
+	conditions map[string]any,
+	preloads ...string,
+) ([]*TData, error) {
+	var entities []*TData
+	db := c.service.Database.Client().Model(new(TData))
+
+	for field, value := range conditions {
+		db = db.Where(fmt.Sprintf("%s = ?", field), value)
+	}
+
+	preloads = horizon.MergeString(c.preloads, preloads)
+	for _, preload := range preloads {
+		db = db.Preload(preload)
+	}
+
+	if err := db.Order("updated_at DESC").Find(&entities).Error; err != nil {
+		return nil, eris.Wrapf(err, "failed to find entities with %d conditions", len(conditions))
+	}
+	return entities, nil
+}
+
+func (c *CollectionManager[TData, TResponse, TRequest]) FindOneWithConditions(
+	ctx context.Context,
+	conditions map[string]any,
+	preloads ...string,
+) (*TData, error) {
+	var entity TData
+	db := c.service.Database.Client().Model(new(TData))
+
+	for field, value := range conditions {
+		db = db.Where(fmt.Sprintf("%s = ?", field), value)
+	}
+
+	preloads = horizon.MergeString(c.preloads, preloads)
+	for _, preload := range preloads {
+		db = db.Preload(preload)
+	}
+
+	if err := db.Order("updated_at DESC").First(&entity).Error; err != nil {
+		if eris.Is(err, gorm.ErrRecordNotFound) {
+			return nil, eris.Wrap(err, "entity not found with conditions")
+		}
+		return nil, eris.Wrapf(err, "failed to find entity with %d conditions", len(conditions))
+	}
+	return &entity, nil
+}
+
+// --- Aggregation Methods ---
+func (c *CollectionManager[TData, TResponse, TRequest]) Count(
+	ctx context.Context,
+	fields *TData,
+) (int64, error) {
+	var count int64
+	if err := c.service.Database.Client().Model(fields).Where(fields).Count(&count).Error; err != nil {
+		return 0, eris.Wrap(err, "failed to count entities")
+	}
+	return count, nil
+}
+
+func (c *CollectionManager[TData, TResponse, TRequest]) CountWithTx(
+	ctx context.Context,
+	tx *gorm.DB,
+	fields *TData,
+) (int64, error) {
+	var count int64
+	if err := tx.Model(fields).Where(fields).Count(&count).Error; err != nil {
+		return 0, eris.Wrap(err, "failed to count entities in transaction")
+	}
+	return count, nil
+}
+
+// --- CRUD Operations ---
+func (c *CollectionManager[TData, TResponse, TRequest]) Create(
+	ctx context.Context,
+	entity *TData,
+	preloads ...string,
+) error {
+	if err := c.service.Database.Client().Create(entity).Error; err != nil {
+		return eris.Wrap(err, "create operation failed")
+	}
+
+	if err := c.reloadWithPreloads(entity, preloads); err != nil {
+		return eris.Wrap(err, "failed to reload after create")
+	}
+
+	c.CreatedBroadcast(ctx, entity)
+	return nil
+}
+
+func (c *CollectionManager[TData, TResponse, TRequest]) CreateWithTx(
+	ctx context.Context,
+	tx *gorm.DB,
+	entity *TData,
+	preloads ...string,
+) error {
+	if err := tx.Create(entity).Error; err != nil {
+		return eris.Wrap(err, "create operation failed in transaction")
+	}
+
+	if err := c.reloadWithPreloadsTx(tx, entity, preloads); err != nil {
+		return eris.Wrap(err, "failed to reload after create in transaction")
+	}
+
+	c.CreatedBroadcast(ctx, entity)
+	return nil
+}
+
+func (c *CollectionManager[TData, TResponse, TRequest]) CreateMany(
+	ctx context.Context,
+	entities []*TData,
+	preloads ...string,
+) error {
+	if err := c.service.Database.Client().Create(entities).Error; err != nil {
+		return eris.Wrap(err, "batch create operation failed")
+	}
+
+	// Reload all entities with preloads
+	return c.reloadManyWithPreloads(entities, preloads)
+}
+
+func (c *CollectionManager[TData, TResponse, TRequest]) CreateManyWithTx(
+	ctx context.Context,
+	tx *gorm.DB,
+	entities []*TData,
+	preloads ...string,
+) error {
+	if err := tx.Create(entities).Error; err != nil {
+		return eris.Wrap(err, "batch create operation failed in transaction")
+	}
+
+	// Reload all entities with preloads using transaction
+	return c.reloadManyWithPreloadsTx(tx, entities, preloads)
+}
+
+func (c *CollectionManager[TData, TResponse, TRequest]) Update(
+	ctx context.Context,
+	entity *TData,
+	preloads ...string,
+) error {
+	if err := c.service.Database.Client().Save(entity).Error; err != nil {
+		return eris.Wrap(err, "update operation failed")
+	}
+
+	if err := c.reloadWithPreloads(entity, preloads); err != nil {
+		return eris.Wrap(err, "failed to reload after update")
+	}
+
 	c.UpdatedBroadcast(ctx, entity)
 	return nil
 }
 
-// UpdateByID implements Repository.
-func (c *CollectionManager[TData, TResponse, TRequest]) UpdateByID(ctx context.Context, id uuid.UUID, entity *TData, preloads ...string) error {
-	if err := setID(entity, id); err != nil {
-		return eris.Wrap(err, "failed to set entity ID")
-	}
-	if err := c.service.Database.Client().Save(entity).Error; err != nil {
-		return eris.Wrap(err, "failed to update entity by ID")
-	}
-	preloads = horizon.MergeString(c.preloads, preloads)
-	if len(preloads) > 0 {
-		db := c.service.Database.Client().Model(entity)
-		for _, preload := range preloads {
-			db = db.Preload(preload)
-		}
-		if err := db.First(entity, "id = ?", id).Error; err != nil {
-			return eris.Wrap(err, "failed to reload entity after update by ID")
-		}
-	}
-	c.UpdatedBroadcast(ctx, entity)
-	return nil
-}
-
-// UpdateByIDWithTx implements Repository.
-func (c *CollectionManager[TData, TResponse, TRequest]) UpdateByIDWithTx(ctx context.Context, tx *gorm.DB, id uuid.UUID, entity *TData, preloads ...string) error {
-	if err := setID(entity, id); err != nil {
-		return eris.Wrap(err, "failed to set entity ID in transaction")
-	}
+func (c *CollectionManager[TData, TResponse, TRequest]) UpdateWithTx(
+	ctx context.Context,
+	tx *gorm.DB,
+	entity *TData,
+	preloads ...string,
+) error {
 	if err := tx.Save(entity).Error; err != nil {
-		return eris.Wrap(err, "failed to update entity by ID in transaction")
+		return eris.Wrap(err, "update operation failed in transaction")
 	}
-	preloads = horizon.MergeString(c.preloads, preloads)
-	if len(preloads) > 0 {
-		db := tx.Model(entity)
-		for _, preload := range preloads {
-			db = db.Preload(preload)
-		}
-		if err := db.First(entity, "id = ?", id).Error; err != nil {
-			return eris.Wrap(err, "failed to reload entity after update by ID in transaction")
-		}
+
+	if err := c.reloadWithPreloadsTx(tx, entity, preloads); err != nil {
+		return eris.Wrap(err, "failed to reload after update in transaction")
 	}
+
 	c.UpdatedBroadcast(ctx, entity)
 	return nil
 }
 
-func (c *CollectionManager[TData, TResponse, TRequest]) UpdateFields(ctx context.Context, id uuid.UUID, fields *TData, preloads ...string) error {
+func (c *CollectionManager[TData, TResponse, TRequest]) UpdateByID(
+	ctx context.Context,
+	id uuid.UUID,
+	entity *TData,
+	preloads ...string,
+) error {
+	if err := setID(entity, id); err != nil {
+		return eris.Wrap(err, "invalid entity ID")
+	}
+	return c.Update(ctx, entity, preloads...)
+}
+
+func (c *CollectionManager[TData, TResponse, TRequest]) UpdateByIDWithTx(
+	ctx context.Context,
+	tx *gorm.DB,
+	id uuid.UUID,
+	entity *TData,
+	preloads ...string,
+) error {
+	if err := setID(entity, id); err != nil {
+		return eris.Wrap(err, "invalid entity ID in transaction")
+	}
+	return c.UpdateWithTx(ctx, tx, entity, preloads...)
+}
+
+func (c *CollectionManager[TData, TResponse, TRequest]) UpdateFields(
+	ctx context.Context,
+	id uuid.UUID,
+	fields *TData,
+	preloads ...string,
+) error {
 	// Get field names using reflection
 	t := reflect.TypeOf(new(TData)).Elem()
-	var fieldNames []string
-	for i := range t.NumField() {
+	fieldNames := make([]string, 0)
+	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
 		if field.Name == "ID" {
-			continue // Skip ID field
+			continue
 		}
 		fieldNames = append(fieldNames, field.Name)
 	}
@@ -725,32 +593,37 @@ func (c *CollectionManager[TData, TResponse, TRequest]) UpdateFields(ctx context
 	// Perform update with explicit field selection
 	db := c.service.Database.Client().Model(new(TData)).Where("id = ?", id).Select(fieldNames).Updates(fields)
 	if err := db.Error; err != nil {
-		return eris.Wrap(err, "failed to update fields")
+		return eris.Wrapf(err, "failed to update fields for entity %s", id)
 	}
 
-	// Reload with preloads if needed
+	// Reload with preloads
 	preloads = horizon.MergeString(c.preloads, preloads)
 	reloadDb := c.service.Database.Client().Model(new(TData)).Where("id = ?", id)
 	for _, preload := range preloads {
 		reloadDb = reloadDb.Preload(preload)
 	}
 	if err := reloadDb.First(fields).Error; err != nil {
-		return eris.Wrap(err, "failed to reload entity after updating fields")
+		return eris.Wrapf(err, "failed to reload entity %s after field update", id)
 	}
 
 	c.UpdatedBroadcast(ctx, fields)
 	return nil
 }
 
-// UpdateFieldsWithTx performs UpdateFields within the provided transaction.
-func (c *CollectionManager[TData, TResponse, TRequest]) UpdateFieldsWithTx(ctx context.Context, tx *gorm.DB, id uuid.UUID, fields *TData, preloads ...string) error {
+func (c *CollectionManager[TData, TResponse, TRequest]) UpdateFieldsWithTx(
+	ctx context.Context,
+	tx *gorm.DB,
+	id uuid.UUID,
+	fields *TData,
+	preloads ...string,
+) error {
 	// Get field names using reflection
 	t := reflect.TypeOf(new(TData)).Elem()
-	var fieldNames []string
+	fieldNames := make([]string, 0)
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
 		if field.Name == "ID" {
-			continue // Skip ID field
+			continue
 		}
 		fieldNames = append(fieldNames, field.Name)
 	}
@@ -758,35 +631,42 @@ func (c *CollectionManager[TData, TResponse, TRequest]) UpdateFieldsWithTx(ctx c
 	// Perform update with explicit field selection
 	db := tx.Model(new(TData)).Where("id = ?", id).Select(fieldNames).Updates(fields)
 	if err := db.Error; err != nil {
-		return eris.Wrap(err, "failed to update fields in transaction")
+		return eris.Wrapf(err, "failed to update fields for entity %s in transaction", id)
 	}
 
-	// Reload with preloads if needed
+	// Reload with preloads
 	preloads = horizon.MergeString(c.preloads, preloads)
 	reloadDb := tx.Model(new(TData)).Where("id = ?", id)
 	for _, preload := range preloads {
 		reloadDb = reloadDb.Preload(preload)
 	}
 	if err := reloadDb.First(fields).Error; err != nil {
-		return eris.Wrap(err, "failed to reload entity after updating fields in transaction")
+		return eris.Wrapf(err, "failed to reload entity %s after field update in transaction", id)
 	}
 
 	c.UpdatedBroadcast(ctx, fields)
 	return nil
 }
 
-// UpdateMany implements Repository.
-func (c *CollectionManager[TData, TResponse, TRequest]) UpdateMany(ctx context.Context, entities []*TData, preloads ...string) error {
+func (c *CollectionManager[TData, TResponse, TRequest]) UpdateMany(
+	ctx context.Context,
+	entities []*TData,
+	preloads ...string,
+) error {
 	for _, entity := range entities {
 		if err := c.Update(ctx, entity, preloads...); err != nil {
-			return err
+			return eris.Wrapf(err, "failed to update entity in batch")
 		}
 	}
 	return nil
 }
 
-// UpdateManyWithTx implements Repository.
-func (c *CollectionManager[TData, TResponse, TRequest]) UpdateManyWithTx(ctx context.Context, tx *gorm.DB, entities []*TData, preloads ...string) error {
+func (c *CollectionManager[TData, TResponse, TRequest]) UpdateManyWithTx(
+	ctx context.Context,
+	tx *gorm.DB,
+	entities []*TData,
+	preloads ...string,
+) error {
 	for _, entity := range entities {
 		if err := c.UpdateWithTx(ctx, tx, entity, preloads...); err != nil {
 			return err
@@ -795,61 +675,149 @@ func (c *CollectionManager[TData, TResponse, TRequest]) UpdateManyWithTx(ctx con
 	return nil
 }
 
-// UpdateWithTx implements Repository.
-func (c *CollectionManager[TData, TResponse, TRequest]) UpdateWithTx(ctx context.Context, tx *gorm.DB, entity *TData, preloads ...string) error {
-	if err := tx.Save(entity).Error; err != nil {
-		return eris.Wrap(err, "failed to update entity in transaction")
+func (c *CollectionManager[TData, TResponse, TRequest]) Delete(
+	ctx context.Context,
+	entity *TData,
+) error {
+	if err := c.service.Database.Client().Delete(entity).Error; err != nil {
+		return eris.Wrap(err, "delete operation failed")
 	}
-	preloads = horizon.MergeString(c.preloads, preloads)
-	if len(preloads) > 0 {
-		id, err := getID(entity)
-		if err != nil {
-			return eris.Wrap(err, "failed to get entity ID for preload after update in transaction")
-		}
-		db := tx.Model(entity)
-		for _, preload := range preloads {
-			db = db.Preload(preload)
-		}
-		if err := db.First(entity, "id = ?", id).Error; err != nil {
-			return eris.Wrap(err, "failed to reload entity with preloads after update in transaction")
-		}
-	}
-	c.UpdatedBroadcast(ctx, entity)
+	c.DeletedBroadcast(ctx, entity)
 	return nil
 }
 
-// Upsert implements Repository.
-func (c *CollectionManager[TData, TResponse, TRequest]) Upsert(ctx context.Context, entity *TData, preloads ...string) error {
-	preloads = horizon.MergeString(c.preloads, preloads)
-	id, err := getID(entity)
-	if err != nil {
-		return eris.Wrap(err, "failed to get ID for upsert")
+func (c *CollectionManager[TData, TResponse, TRequest]) DeleteWithTx(
+	ctx context.Context,
+	tx *gorm.DB,
+	entity *TData,
+) error {
+	if err := tx.Delete(entity).Error; err != nil {
+		return eris.Wrap(err, "delete operation failed in transaction")
 	}
-	if id == uuid.Nil {
-		return c.Create(ctx, entity, preloads...)
-	}
-	var existing TData
-	if err := c.service.Database.Client().Where("id = ?", id).First(&existing).Error; err != nil {
-		if eris.Is(err, gorm.ErrRecordNotFound) {
-			return c.Create(ctx, entity, preloads...)
-		}
-		return eris.Wrap(err, "failed to check existing entity for upsert")
-	}
-	return c.Update(ctx, entity, preloads...)
+	c.DeletedBroadcast(ctx, entity)
+	return nil
 }
 
-// UpsertMany implements Repository.
-func (c *CollectionManager[TData, TResponse, TRequest]) UpsertMany(ctx context.Context, entities []*TData, preloads ...string) error {
+func (c *CollectionManager[TData, TResponse, TRequest]) DeleteByID(
+	ctx context.Context,
+	id uuid.UUID,
+) error {
+	entity, err := c.GetByID(ctx, id)
+	if err != nil {
+		return eris.Wrapf(err, "failed to find entity %s for deletion", id)
+	}
+	return c.Delete(ctx, entity)
+}
+
+func (c *CollectionManager[TData, TResponse, TRequest]) DeleteByIDWithTx(
+	ctx context.Context,
+	tx *gorm.DB,
+	id uuid.UUID,
+) error {
+	entity, err := c.GetByID(ctx, id)
+	if err != nil {
+		return eris.Wrapf(err, "failed to find entity %s for deletion in transaction", id)
+	}
+	return c.DeleteWithTx(ctx, tx, entity)
+}
+
+func (c *CollectionManager[TData, TResponse, TRequest]) DeleteMany(
+	ctx context.Context,
+	entities []*TData,
+) error {
 	for _, entity := range entities {
-		if err := c.Upsert(ctx, entity, preloads...); err != nil {
+		if err := c.Delete(ctx, entity); err != nil {
+			return eris.Wrapf(err, "failed to delete entity in batch")
+		}
+	}
+	return nil
+}
+
+func (c *CollectionManager[TData, TResponse, TRequest]) DeleteManyWithTx(
+	ctx context.Context,
+	tx *gorm.DB,
+	entities []*TData,
+) error {
+	for _, entity := range entities {
+		if err := c.DeleteWithTx(ctx, tx, entity); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-// UpsertManyWithTx implements Repository.
-func (c *CollectionManager[TData, TResponse, TRequest]) UpsertManyWithTx(ctx context.Context, tx *gorm.DB, entities []*TData, preloads ...string) error {
+func (c *CollectionManager[TData, TResponse, TRequest]) Upsert(
+	ctx context.Context,
+	entity *TData,
+	preloads ...string,
+) error {
+	id, err := getID(entity)
+	if err != nil {
+		return eris.Wrap(err, "invalid entity ID for upsert")
+	}
+
+	if id == uuid.Nil {
+		return c.Create(ctx, entity, preloads...)
+	}
+
+	// Check if entity exists
+	var existing TData
+	if err := c.service.Database.Client().Where("id = ?", id).First(&existing).Error; err != nil {
+		if eris.Is(err, gorm.ErrRecordNotFound) {
+			return c.Create(ctx, entity, preloads...)
+		}
+		return eris.Wrapf(err, "failed to check existence for entity %s", id)
+	}
+
+	return c.Update(ctx, entity, preloads...)
+}
+
+func (c *CollectionManager[TData, TResponse, TRequest]) UpsertWithTx(
+	ctx context.Context,
+	tx *gorm.DB,
+	entity *TData,
+	preloads ...string,
+) error {
+	id, err := getID(entity)
+	if err != nil {
+		return eris.Wrap(err, "invalid entity ID for upsert in transaction")
+	}
+
+	if id == uuid.Nil {
+		return c.CreateWithTx(ctx, tx, entity, preloads...)
+	}
+
+	// Check if entity exists
+	var existing TData
+	if err := tx.Where("id = ?", id).First(&existing).Error; err != nil {
+		if eris.Is(err, gorm.ErrRecordNotFound) {
+			return c.CreateWithTx(ctx, tx, entity, preloads...)
+		}
+		return eris.Wrapf(err, "failed to check existence for entity %s in transaction", id)
+	}
+
+	return c.UpdateWithTx(ctx, tx, entity, preloads...)
+}
+
+func (c *CollectionManager[TData, TResponse, TRequest]) UpsertMany(
+	ctx context.Context,
+	entities []*TData,
+	preloads ...string,
+) error {
+	for _, entity := range entities {
+		if err := c.Upsert(ctx, entity, preloads...); err != nil {
+			return eris.Wrapf(err, "failed to upsert entity in batch")
+		}
+	}
+	return nil
+}
+
+func (c *CollectionManager[TData, TResponse, TRequest]) UpsertManyWithTx(
+	ctx context.Context,
+	tx *gorm.DB,
+	entities []*TData,
+	preloads ...string,
+) error {
 	for _, entity := range entities {
 		if err := c.UpsertWithTx(ctx, tx, entity, preloads...); err != nil {
 			return err
@@ -858,27 +826,159 @@ func (c *CollectionManager[TData, TResponse, TRequest]) UpsertManyWithTx(ctx con
 	return nil
 }
 
-// UpsertWithTx implements Repository.
-func (c *CollectionManager[TData, TResponse, TRequest]) UpsertWithTx(ctx context.Context, tx *gorm.DB, entity *TData, preloads ...string) error {
+// --- Helper Methods ---
+func (c *CollectionManager[TData, TResponse, TRequest]) reloadWithPreloads(
+	entity *TData,
+	preloads []string,
+) error {
+	preloads = horizon.MergeString(c.preloads, preloads)
+	if len(preloads) == 0 {
+		return nil
+	}
+
 	id, err := getID(entity)
 	if err != nil {
-		return eris.Wrap(err, "failed to get ID for upsert in transaction")
+		return eris.Wrap(err, "cannot reload without ID")
 	}
-	preloads = horizon.MergeString(c.preloads, preloads)
-	if id == uuid.Nil {
-		return c.CreateWithTx(ctx, tx, entity, preloads...)
+
+	db := c.service.Database.Client().Model(new(TData))
+	for _, preload := range preloads {
+		db = db.Preload(preload)
 	}
-	var existing TData
-	if err := tx.Where("id = ?", id).First(&existing).Error; err != nil {
-		if eris.Is(err, gorm.ErrRecordNotFound) {
-			return c.CreateWithTx(ctx, tx, entity, preloads...)
-		}
-		return eris.Wrap(err, "failed to check existing entity for upsert in transaction")
+
+	if err := db.Where("id = ?", id).First(entity).Error; err != nil {
+		return eris.Wrapf(err, "failed to reload entity %s", id)
 	}
-	return c.UpdateWithTx(ctx, tx, entity, preloads...)
+	return nil
 }
 
-func (c *CollectionManager[TData, TResponse, TRequest]) CreatedBroadcast(ctx context.Context, entity *TData) {
+func (c *CollectionManager[TData, TResponse, TRequest]) reloadWithPreloadsTx(
+	tx *gorm.DB,
+	entity *TData,
+	preloads []string,
+) error {
+	preloads = horizon.MergeString(c.preloads, preloads)
+	if len(preloads) == 0 {
+		return nil
+	}
+
+	id, err := getID(entity)
+	if err != nil {
+		return eris.Wrap(err, "cannot reload without ID in transaction")
+	}
+
+	db := tx.Model(new(TData))
+	for _, preload := range preloads {
+		db = db.Preload(preload)
+	}
+
+	if err := db.Where("id = ?", id).First(entity).Error; err != nil {
+		return eris.Wrapf(err, "failed to reload entity %s in transaction", id)
+	}
+	return nil
+}
+
+func (c *CollectionManager[TData, TResponse, TRequest]) reloadManyWithPreloads(
+	entities []*TData,
+	preloads []string,
+) error {
+	preloads = horizon.MergeString(c.preloads, preloads)
+	if len(preloads) == 0 {
+		return nil
+	}
+
+	ids := make([]uuid.UUID, len(entities))
+	for i, entity := range entities {
+		id, err := getID(entity)
+		if err != nil {
+			return eris.Wrapf(err, "cannot reload entity at index %d", i)
+		}
+		ids[i] = id
+	}
+
+	var reloaded []*TData
+	db := c.service.Database.Client().Model(new(TData))
+	for _, preload := range preloads {
+		db = db.Preload(preload)
+	}
+
+	if err := db.Where("id IN (?)", ids).Find(&reloaded).Error; err != nil {
+		return eris.Wrapf(err, "failed to reload %d entities", len(entities))
+	}
+
+	// Map reloaded entities by ID
+	reloadedMap := make(map[uuid.UUID]*TData, len(reloaded))
+	for _, e := range reloaded {
+		id, _ := getID(e)
+		reloadedMap[id] = e
+	}
+
+	// Replace original entities with reloaded ones
+	for i, entity := range entities {
+		id, _ := getID(entity)
+		if reloaded, ok := reloadedMap[id]; ok {
+			entities[i] = reloaded
+		} else {
+			return eris.Errorf("reloaded entity %s not found", id)
+		}
+	}
+
+	return nil
+}
+
+func (c *CollectionManager[TData, TResponse, TRequest]) reloadManyWithPreloadsTx(
+	tx *gorm.DB,
+	entities []*TData,
+	preloads []string,
+) error {
+	preloads = horizon.MergeString(c.preloads, preloads)
+	if len(preloads) == 0 {
+		return nil
+	}
+
+	ids := make([]uuid.UUID, len(entities))
+	for i, entity := range entities {
+		id, err := getID(entity)
+		if err != nil {
+			return eris.Wrapf(err, "cannot reload entity at index %d in transaction", i)
+		}
+		ids[i] = id
+	}
+
+	var reloaded []*TData
+	db := tx.Model(new(TData))
+	for _, preload := range preloads {
+		db = db.Preload(preload)
+	}
+
+	if err := db.Where("id IN (?)", ids).Find(&reloaded).Error; err != nil {
+		return eris.Wrapf(err, "failed to reload %d entities in transaction", len(entities))
+	}
+
+	// Map reloaded entities by ID
+	reloadedMap := make(map[uuid.UUID]*TData, len(reloaded))
+	for _, e := range reloaded {
+		id, _ := getID(e)
+		reloadedMap[id] = e
+	}
+
+	// Replace original entities with reloaded ones
+	for i, entity := range entities {
+		id, _ := getID(entity)
+		if reloaded, ok := reloadedMap[id]; ok {
+			entities[i] = reloaded
+		} else {
+			return eris.Errorf("reloaded entity %s not found in transaction", id)
+		}
+	}
+
+	return nil
+}
+
+func (c *CollectionManager[TData, TResponse, TRequest]) CreatedBroadcast(
+	ctx context.Context,
+	entity *TData,
+) {
 	go func() {
 		topics := c.created(entity)
 		payload := c.ToModel(entity)
@@ -886,15 +986,10 @@ func (c *CollectionManager[TData, TResponse, TRequest]) CreatedBroadcast(ctx con
 	}()
 }
 
-func (c *CollectionManager[TData, TResponse, TRequest]) DeletedBroadcast(ctx context.Context, entity *TData) {
-	go func() {
-		topics := c.deleted(entity)
-		payload := c.ToModel(entity)
-		c.service.Broker.Dispatch(ctx, topics, payload)
-	}()
-}
-
-func (c *CollectionManager[TData, TResponse, TRequest]) UpdatedBroadcast(ctx context.Context, entity *TData) {
+func (c *CollectionManager[TData, TResponse, TRequest]) UpdatedBroadcast(
+	ctx context.Context,
+	entity *TData,
+) {
 	go func() {
 		topics := c.updated(entity)
 		payload := c.ToModel(entity)
@@ -902,15 +997,28 @@ func (c *CollectionManager[TData, TResponse, TRequest]) UpdatedBroadcast(ctx con
 	}()
 }
 
+func (c *CollectionManager[TData, TResponse, TRequest]) DeletedBroadcast(
+	ctx context.Context,
+	entity *TData,
+) {
+	go func() {
+		topics := c.deleted(entity)
+		payload := c.ToModel(entity)
+		c.service.Broker.Dispatch(ctx, topics, payload)
+	}()
+}
+
+// --- ID Helpers ---
 func getID[T any](entity *T) (uuid.UUID, error) {
 	v := reflect.ValueOf(entity).Elem()
 	idField := v.FieldByName("ID")
 	if !idField.IsValid() {
-		return uuid.Nil, eris.New("ID field not found in entity")
+		return uuid.Nil, eris.New("entity missing ID field")
 	}
+
 	id, ok := idField.Interface().(uuid.UUID)
 	if !ok {
-		return uuid.Nil, eris.New("ID field is not a uuid.UUID")
+		return uuid.Nil, eris.New("ID field is not UUID type")
 	}
 	return id, nil
 }
@@ -919,11 +1027,12 @@ func setID[T any](entity *T, id uuid.UUID) error {
 	v := reflect.ValueOf(entity).Elem()
 	idField := v.FieldByName("ID")
 	if !idField.IsValid() {
-		return eris.New("ID field not found in entity")
+		return eris.New("entity missing ID field")
 	}
 	if !idField.CanSet() {
 		return eris.New("ID field cannot be set")
 	}
+
 	idField.Set(reflect.ValueOf(id))
 	return nil
 }

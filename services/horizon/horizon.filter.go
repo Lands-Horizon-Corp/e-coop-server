@@ -10,18 +10,30 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/rotisserie/eris"
 )
 
-// --- Filter and Sort Constants and Types ---
+// --- Constants and Type Definitions ---
 
 type FilterLogic string
 
 const (
 	FilterLogicAnd FilterLogic = "AND"
 	FilterLogicOr  FilterLogic = "OR"
+)
+
+type DataType string
+
+const (
+	DataTypeText    DataType = "text"
+	DataTypeDate    DataType = "date"
+	DataTypeNumber  DataType = "number"
+	DataTypeBoolean DataType = "boolean"
+	DataTypeTime    DataType = "time"
 )
 
 const (
@@ -43,10 +55,10 @@ const (
 )
 
 type Filter struct {
-	DataType string `json:"dataType"`
-	Field    string `json:"field"`
-	Mode     string `json:"mode"`
-	Value    any    `json:"value"`
+	DataType DataType `json:"dataType"`
+	Field    string   `json:"field"`
+	Mode     string   `json:"mode"`
+	Value    any      `json:"value"`
 }
 
 type FilterRoot struct {
@@ -68,571 +80,707 @@ type PaginationResult[T any] struct {
 	Sort      []SortField `json:"sort"`
 }
 
-func findFieldByTagOrName(val reflect.Value, fieldName string) reflect.Value {
-	if val.Kind() == reflect.Ptr {
-		if val.IsNil() {
-			fmt.Printf("findFieldByTagOrName: field=%s, value=<nil pointer>\n", fieldName)
-			return reflect.Value{}
-		}
-		val = val.Elem()
+// --- Error Definitions ---
+
+var (
+	ErrInvalidFilterParam   = eris.New("invalid filter parameter")
+	ErrInvalidSortParam     = eris.New("invalid sort parameter")
+	ErrInvalidField         = eris.New("field not found in struct")
+	ErrUnsupportedOperation = eris.New("unsupported operation for data type")
+	ErrTypeConversion       = eris.New("type conversion error")
+	ErrContextCancelled     = eris.New("operation cancelled by context")
+	ErrInvalidValue         = eris.New("invalid value for operation")
+)
+
+// --- Global Cache and Pools ---
+
+type cachedFieldInfo struct {
+	Index    []int
+	DataType reflect.Type
+	IsPtr    bool
+}
+
+var (
+	fieldCache = make(map[string]map[string]cachedFieldInfo)
+	cacheMutex = &sync.RWMutex{}
+	bufferPool = sync.Pool{
+		New: func() any { return new(strings.Builder) },
 	}
+	workerPool = sync.Pool{
+		New: func() any { return make([]int, 0, 1024) },
+	}
+)
+
+// --- Field Cache Functions ---
+
+func getCachedField(t reflect.Type, fieldName string) (cachedFieldInfo, error) {
+	typeName := t.String()
+
+	cacheMutex.RLock()
+	typeCache, typeExists := fieldCache[typeName]
+	if typeExists {
+		info, fieldExists := typeCache[fieldName]
+		cacheMutex.RUnlock()
+		if fieldExists {
+			return info, nil
+		}
+	} else {
+		cacheMutex.RUnlock()
+	}
+
+	cacheMutex.Lock()
+	defer cacheMutex.Unlock()
+
+	if typeCache, typeExists = fieldCache[typeName]; typeExists {
+		if info, fieldExists := typeCache[fieldName]; fieldExists {
+			return info, nil
+		}
+	} else {
+		typeCache = make(map[string]cachedFieldInfo)
+		fieldCache[typeName] = typeCache
+	}
+
+	info, found := findFieldRecursive(t, fieldName, nil)
+	if found {
+		typeCache[fieldName] = info
+		return info, nil
+	}
+
+	return cachedFieldInfo{}, eris.Wrapf(ErrInvalidField, "field '%s' not found", fieldName)
+}
+
+func findFieldRecursive(t reflect.Type, fieldName string, basePath []int) (cachedFieldInfo, bool) {
 	parts := strings.SplitN(fieldName, ".", 2)
 	currentField := parts[0]
 
-	t := val.Type()
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i)
-		tag := f.Tag.Get("json")
-		tagName := strings.Split(tag, ",")[0]
-		if (tagName != "" && strings.EqualFold(tagName, currentField)) || strings.EqualFold(f.Name, currentField) {
-			fieldVal := val.Field(i)
+		tagValue := strings.Split(f.Tag.Get("json"), ",")[0]
 
-			if len(parts) == 1 {
-				return fieldVal
+		if tagValue != "" && strings.EqualFold(tagValue, currentField) {
+			return handleFoundField(f, parts, basePath, i)
+		}
+
+		if strings.EqualFold(f.Name, currentField) {
+			return handleFoundField(f, parts, basePath, i)
+		}
+
+		if f.Anonymous && f.Type.Kind() == reflect.Struct {
+			if info, found := findFieldRecursive(
+				f.Type,
+				fieldName,
+				append(basePath, i),
+			); found {
+				return info, true
 			}
-			// If pointer, check for nil before recursing
-			if fieldVal.Kind() == reflect.Ptr && fieldVal.IsNil() {
+		}
+	}
 
+	return cachedFieldInfo{}, false
+}
+
+func handleFoundField(f reflect.StructField, parts []string, basePath []int, fieldIndex int) (cachedFieldInfo, bool) {
+	path := append(basePath, fieldIndex)
+	fieldType := f.Type
+	isPtr := false
+
+	if fieldType.Kind() == reflect.Ptr {
+		fieldType = fieldType.Elem()
+		isPtr = true
+	}
+
+	if len(parts) > 1 {
+		if fieldType.Kind() == reflect.Struct {
+			return findFieldRecursive(fieldType, parts[1], path)
+		}
+		return cachedFieldInfo{}, false
+	}
+
+	return cachedFieldInfo{
+		Index:    path,
+		DataType: fieldType,
+		IsPtr:    isPtr,
+	}, true
+}
+
+func getFieldValue(val reflect.Value, info cachedFieldInfo) reflect.Value {
+	fieldVal := val
+	for _, idx := range info.Index {
+		if fieldVal.Kind() == reflect.Ptr {
+			if fieldVal.IsNil() {
 				return reflect.Value{}
 			}
-			return findFieldByTagOrName(fieldVal, parts[1])
+			fieldVal = fieldVal.Elem()
 		}
-		if f.Anonymous && val.Field(i).Kind() == reflect.Struct {
-			found := findFieldByTagOrName(val.Field(i), fieldName)
-			if found.IsValid() {
-				return found
-			}
-		}
+		fieldVal = fieldVal.Field(idx)
 	}
-	fmt.Printf("findFieldByTagOrName: field=%s not found in type=%s\n", fieldName, val.Type().Name())
-	return reflect.Value{}
+
+	if info.IsPtr && fieldVal.Kind() == reflect.Ptr {
+		if fieldVal.IsNil() {
+			return reflect.Value{}
+		}
+		return fieldVal.Elem()
+	}
+	return fieldVal
 }
-func FilterSlice[T any](ctx context.Context, data []*T, filters []Filter, logic FilterLogic) []*T {
-	if len(filters) == 0 {
-		return data
+
+// --- Filtering Functions ---
+
+func FilterSlice[T any](
+	ctx context.Context,
+	data []*T,
+	filters []Filter,
+	logic FilterLogic,
+	batchSize int,
+	maxWorkers int,
+) ([]*T, error) {
+	if len(filters) == 0 || len(data) == 0 {
+		return data, nil
 	}
-	var result []*T
-	for _, item := range data {
-		select {
-		case <-ctx.Done():
-			return result
-		default:
+
+	var t T
+	itemType := reflect.TypeOf(t)
+	if itemType.Kind() == reflect.Ptr {
+		itemType = itemType.Elem()
+	}
+
+	for _, f := range filters {
+		if _, err := getCachedField(itemType, f.Field); err != nil {
+			return nil, eris.Wrapf(err, "field '%s'", f.Field)
 		}
-		val := reflect.ValueOf(item)
-		if val.Kind() == reflect.Ptr {
-			val = val.Elem()
+	}
+
+	batchCount := (len(data) + batchSize - 1) / batchSize
+	results := make([][]*T, batchCount)
+	var wg sync.WaitGroup
+	errChan := make(chan error, 1)
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	for batch := 0; batch < batchCount; batch++ {
+		start := batch * batchSize
+		end := min(start+batchSize, len(data))
+		if start >= end {
+			continue
 		}
-		matches := logic == FilterLogicAnd
+
+		numWorkers := min(maxWorkers, (end-start+batchSize-1)/batchSize)
+		chunkSize := (end - start + numWorkers - 1) / numWorkers
+
+		for w := 0; w < numWorkers; w++ {
+			wg.Add(1)
+			workerStart := start + w*chunkSize
+			workerEnd := min(workerStart+chunkSize, end)
+
+			go func(batchIdx, startIdx, endIdx int) {
+				defer wg.Done()
+				indices := workerPool.Get().([]int)[:0]
+				defer func() {
+					workerPool.Put(indices[:0])
+				}()
+
+				for idx := startIdx; idx < endIdx; idx++ {
+					if ctx.Err() != nil {
+						return
+					}
+
+					val := reflect.ValueOf(data[idx]).Elem()
+					match, err := checkItemMatch(val, filters, logic, itemType)
+					if err != nil {
+						select {
+						case errChan <- eris.Wrapf(err, "item at index %d", idx):
+							cancel()
+						default:
+						}
+						return
+					}
+
+					if match {
+						indices = append(indices, idx)
+					}
+				}
+
+				batchResults := make([]*T, len(indices))
+				for i, idx := range indices {
+					batchResults[i] = data[idx]
+				}
+				results[batchIdx] = batchResults
+			}(batch, workerStart, workerEnd)
+		}
+	}
+
+	wg.Wait()
+	close(errChan)
+
+	if err := <-errChan; err != nil {
+		return nil, eris.Wrap(err, "filtering failed")
+	}
+
+	var finalResult []*T
+	for _, batch := range results {
+		finalResult = append(finalResult, batch...)
+	}
+	return finalResult, nil
+}
+
+func checkItemMatch(
+	val reflect.Value,
+	filters []Filter,
+	logic FilterLogic,
+	itemType reflect.Type,
+) (bool, error) {
+	switch logic {
+	case FilterLogicAnd:
 		for _, filter := range filters {
-			fieldVal := findFieldByTagOrName(val, filter.Field)
-
-			if !fieldVal.IsValid() {
-				// Treat missing field as non-match for this filter
-				if logic == FilterLogicAnd {
-					matches = false
-					break
-				}
-				// For OR, just skip to next filter
-				continue
+			match, err := evaluateFilter(val, filter, itemType)
+			if err != nil {
+				return false, eris.Wrapf(err, "filter on field '%s'", filter.Field)
 			}
-			itemValue := fieldVal.Interface()
-			match := false
-
-			// --- TEXT DATA TYPE HANDLER ---
-			if filter.DataType == "text" {
-				itemStr := fmt.Sprintf("%v", itemValue)
-				filterStr := fmt.Sprintf("%v", filter.Value)
-				switch filter.Mode {
-				case FilterModeEqual:
-					match = strings.EqualFold(itemStr, filterStr)
-				case FilterModeNotEqual:
-					match = !strings.EqualFold(itemStr, filterStr)
-				case FilterModeContains:
-					match = strings.Contains(strings.ToLower(itemStr), strings.ToLower(filterStr))
-				case FilterModeNotContains:
-					match = !strings.Contains(strings.ToLower(itemStr), strings.ToLower(filterStr))
-				case FilterModeStartsWith:
-					match = strings.HasPrefix(strings.ToLower(itemStr), strings.ToLower(filterStr))
-				case FilterModeEndsWith:
-					match = strings.HasSuffix(strings.ToLower(itemStr), strings.ToLower(filterStr))
-				default:
-					match = false
-				}
-				if logic == FilterLogicAnd && !match {
-					matches = false
-					break
-				}
-				if logic == FilterLogicOr && match {
-					matches = true
-					break
-				}
-				continue
-			}
-
-			// --- DATE DATA TYPE HANDLER ---
-			if filter.DataType == "date" && isWholeDaySupportedMode(filter.Mode) {
-				valStr := fmt.Sprintf("%v", filter.Value)
-				filterTime, filterErr := tryParseTime(valStr)
-				var itemTime time.Time
-				var itemErr error
-				switch v := itemValue.(type) {
-				case string:
-					itemTime, itemErr = tryParseTime(v)
-				case time.Time:
-					itemTime = v
-				case *time.Time:
-					if v != nil {
-						itemTime = *v
-					} else {
-						itemErr = fmt.Errorf("nil *time.Time")
-					}
-				default:
-					itemErr = fmt.Errorf("not a date type")
-				}
-				if filterErr == nil && itemErr == nil {
-					isWholeDay := filterTime.Hour() == 0 && filterTime.Minute() == 0 && filterTime.Second() == 0 && filterTime.Nanosecond() == 0
-					dayStart := filterTime
-					dayEnd := filterTime.Add(24 * time.Hour)
-					switch filter.Mode {
-					case FilterModeEqual:
-						if isWholeDay {
-							match = !itemTime.Before(dayStart) && itemTime.Before(dayEnd)
-						} else {
-							match = itemTime.Equal(filterTime)
-						}
-					case FilterModeNotEqual:
-						if isWholeDay {
-							match = itemTime.Before(dayStart) || !itemTime.Before(dayEnd)
-						} else {
-							match = !itemTime.Equal(filterTime)
-						}
-					case FilterModeGT, FilterModeAfter:
-						if isWholeDay {
-							match = itemTime.After(dayEnd.Add(-time.Nanosecond))
-						} else {
-							match = itemTime.After(filterTime)
-						}
-					case FilterModeGTE:
-						if isWholeDay {
-							match = !itemTime.Before(dayStart)
-						} else {
-							match = itemTime.Equal(filterTime) || itemTime.After(filterTime)
-						}
-					case FilterModeLT, FilterModeBefore:
-						if isWholeDay {
-							match = itemTime.Before(dayStart)
-						} else {
-							match = itemTime.Before(filterTime)
-						}
-					case FilterModeLTE:
-						if isWholeDay {
-							match = itemTime.Before(dayEnd)
-						} else {
-							match = itemTime.Equal(filterTime) || itemTime.Before(filterTime)
-						}
-					}
-				} else {
-					match = false
-				}
-				if logic == FilterLogicAnd && !match {
-					matches = false
-					break
-				}
-				if logic == FilterLogicOr && match {
-					matches = true
-					break
-				}
-				continue
-			}
-
-			// --- DEFAULT STRING/NUMBER/BOOL HANDLER ---
-			switch filter.Mode {
-			case FilterModeEqual, FilterModeNotEqual,
-				FilterModeContains, FilterModeNotContains,
-				FilterModeStartsWith, FilterModeEndsWith:
-				match = compareStringModes(itemValue, filter.Value, filter.Mode)
-			case FilterModeIsEmpty:
-				match = isEmpty(fieldVal)
-			case FilterModeIsNotEmpty:
-				match = !isEmpty(fieldVal)
-			case FilterModeGT, FilterModeGTE, FilterModeLT, FilterModeLTE, FilterModeRange,
-				FilterModeBefore, FilterModeAfter:
-				match = compareAdvanced(itemValue, filter.Mode, filter.Value)
-			default:
-				match = false
-			}
-
-			// --- BOOLEAN DATA TYPE HANDLER ---
-			if filter.DataType == "boolean" {
-				bv := toBool(itemValue)
-				fv := toBool(filter.Value)
-				switch filter.Mode {
-				case FilterModeEqual:
-					match = bv == fv
-				case FilterModeNotEqual:
-					match = bv != fv
-				}
-			}
-
-			if logic == FilterLogicAnd && !match {
-				matches = false
-				break
-			}
-			if logic == FilterLogicOr && match {
-				matches = true
-				break
+			if !match {
+				return false, nil
 			}
 		}
-		if matches {
-			result = append(result, item)
+		return true, nil
+
+	case FilterLogicOr:
+		for _, filter := range filters {
+			match, err := evaluateFilter(val, filter, itemType)
+			if err != nil {
+				return false, eris.Wrapf(err, "filter on field '%s'", filter.Field)
+			}
+			if match {
+				return true, nil
+			}
 		}
+		return false, nil
+
+	default:
+		return false, eris.Wrapf(ErrUnsupportedOperation, "logic '%s'", logic)
 	}
-	return result
-}
-func isWholeDaySupportedMode(mode string) bool {
-	switch mode {
-	case FilterModeEqual, FilterModeNotEqual,
-		FilterModeGT, FilterModeGTE, FilterModeLT, FilterModeLTE,
-		FilterModeBefore, FilterModeAfter:
-		return true
-	}
-	return false
 }
 
-// --- String Comparison Helper ---
-
-func compareStringModes(itemValue, filterValue any, mode string) bool {
-	// Try to compare by type first
-	switch v := itemValue.(type) {
-	case string:
-		fs, _ := filterValue.(string)
-		itemStr := v
-		filterStr := fs
-		switch mode {
-		case FilterModeEqual:
-			return strings.EqualFold(itemStr, filterStr)
-		case FilterModeNotEqual:
-			return !strings.EqualFold(itemStr, filterStr)
-		case FilterModeContains:
-			return strings.Contains(strings.ToLower(itemStr), strings.ToLower(filterStr))
-		case FilterModeNotContains:
-			return !strings.Contains(strings.ToLower(itemStr), strings.ToLower(filterStr))
-		case FilterModeStartsWith:
-			return strings.HasPrefix(strings.ToLower(itemStr), strings.ToLower(filterStr))
-		case FilterModeEndsWith:
-			return strings.HasSuffix(strings.ToLower(itemStr), strings.ToLower(filterStr))
-		}
-	case int, int8, int16, int32, int64:
-		fi, ok := toInt64(filterValue)
-		vi, _ := toInt64(v)
-		switch mode {
-		case FilterModeEqual:
-			return ok && vi == fi
-		case FilterModeNotEqual:
-			return ok && vi != fi
-		}
-	case float32, float64:
-		ff, ok := toFloat64Safe(filterValue)
-		vf, _ := toFloat64Safe(v)
-		switch mode {
-		case FilterModeEqual:
-			return ok && vf == ff
-		case FilterModeNotEqual:
-			return ok && vf != ff
-		}
-	case bool:
-		// For booleans, handled in FilterSlice directly
+func evaluateFilter(val reflect.Value, filter Filter, itemType reflect.Type) (bool, error) {
+	info, err := getCachedField(itemType, filter.Field)
+	if eris.Is(err, ErrInvalidField) && filter.Mode == FilterModeIsEmpty {
+		return true, nil
+	} else if err != nil {
+		return false, err
 	}
-	// fallback: string compare
-	itemStr := fmt.Sprintf("%v", itemValue)
-	filterStr := fmt.Sprintf("%v", filterValue)
+
+	fieldVal := getFieldValue(val, info)
+	if !fieldVal.IsValid() {
+		return filter.Mode == FilterModeIsEmpty, nil
+	}
+
+	switch filter.DataType {
+	case DataTypeText:
+		return compareString(fieldVal, filter.Value, filter.Mode)
+	case DataTypeNumber:
+		return compareNumber(fieldVal, filter.Mode, filter.Value)
+	case DataTypeBoolean:
+		return compareBool(fieldVal, filter.Value, filter.Mode)
+	case DataTypeDate, DataTypeTime:
+		return compareTime(fieldVal, filter.Value, filter.Mode, filter.DataType == DataTypeDate)
+	default:
+		return compareGeneric(fieldVal, filter.Mode, filter.Value)
+	}
+}
+
+// --- Comparison Functions ---
+
+func compareString(val reflect.Value, filterValue any, mode string) (bool, error) {
+	itemStr := strings.ToLower(fmt.Sprintf("%v", val.Interface()))
+	filterStr := strings.ToLower(fmt.Sprintf("%v", filterValue))
+
 	switch mode {
 	case FilterModeEqual:
-		return strings.EqualFold(itemStr, filterStr)
+		return itemStr == filterStr, nil
 	case FilterModeNotEqual:
-		return !strings.EqualFold(itemStr, filterStr)
+		return itemStr != filterStr, nil
 	case FilterModeContains:
-		return strings.Contains(strings.ToLower(itemStr), strings.ToLower(filterStr))
+		return strings.Contains(itemStr, filterStr), nil
 	case FilterModeNotContains:
-		return !strings.Contains(strings.ToLower(itemStr), strings.ToLower(filterStr))
+		return !strings.Contains(itemStr, filterStr), nil
 	case FilterModeStartsWith:
-		return strings.HasPrefix(strings.ToLower(itemStr), strings.ToLower(filterStr))
+		return strings.HasPrefix(itemStr, filterStr), nil
 	case FilterModeEndsWith:
-		return strings.HasSuffix(strings.ToLower(itemStr), strings.ToLower(filterStr))
+		return strings.HasSuffix(itemStr, filterStr), nil
+	case FilterModeIsEmpty:
+		return itemStr == "", nil
+	case FilterModeIsNotEmpty:
+		return itemStr != "", nil
+	default:
+		return false, eris.Wrapf(ErrUnsupportedOperation, "mode '%s' for text", mode)
 	}
-	return false
 }
 
-// --- Sorting Function ---
+func compareBool(val reflect.Value, filterValue any, mode string) (bool, error) {
+	itemBool := toBool(val.Interface())
+	filterBool := toBool(filterValue)
 
-func SortSlice[T any](ctx context.Context, data []*T, sortFields []SortField) []*T {
-	sort.SliceStable(data, func(i, j int) bool {
-		select {
-		case <-ctx.Done():
-			return false
-		default:
+	switch mode {
+	case FilterModeEqual:
+		return itemBool == filterBool, nil
+	case FilterModeNotEqual:
+		return itemBool != filterBool, nil
+	default:
+		return false, eris.Wrapf(ErrUnsupportedOperation, "mode '%s' for boolean", mode)
+	}
+}
+
+func compareTime(val reflect.Value, filterValue any, mode string, dateOnly bool) (bool, error) {
+	itemTime, err := toTime(val.Interface())
+	if err != nil {
+		return false, eris.Wrap(err, "item time conversion")
+	}
+
+	filterTime, err := toTime(filterValue)
+	if err != nil {
+		if mode == FilterModeIsEmpty {
+			return itemTime.IsZero(), nil
 		}
-		aVal := reflect.ValueOf(data[i])
-		bVal := reflect.ValueOf(data[j])
-		if aVal.Kind() == reflect.Ptr {
-			aVal = aVal.Elem()
-		}
-		if bVal.Kind() == reflect.Ptr {
-			bVal = bVal.Elem()
+		return false, eris.Wrap(err, "filter time conversion")
+	}
+
+	if dateOnly {
+		itemTime = truncateToDate(itemTime)
+		filterTime = truncateToDate(filterTime)
+	}
+
+	switch mode {
+	case FilterModeEqual:
+		return itemTime.Equal(filterTime), nil
+	case FilterModeNotEqual:
+		return !itemTime.Equal(filterTime), nil
+	case FilterModeAfter, FilterModeGT:
+		return itemTime.After(filterTime), nil
+	case FilterModeBefore, FilterModeLT:
+		return itemTime.Before(filterTime), nil
+	case FilterModeGTE:
+		return itemTime.After(filterTime) || itemTime.Equal(filterTime), nil
+	case FilterModeLTE:
+		return itemTime.Before(filterTime) || itemTime.Equal(filterTime), nil
+	case FilterModeRange:
+		times, ok := filterValue.([]any)
+		if !ok || len(times) != 2 {
+			return false, eris.Wrap(ErrInvalidValue, "range requires two values")
 		}
 
-		for _, sortField := range sortFields {
-			fieldA := aVal.FieldByNameFunc(func(name string) bool {
-				return strings.EqualFold(name, sortField.Field)
-			})
-			fieldB := bVal.FieldByNameFunc(func(name string) bool {
-				return strings.EqualFold(name, sortField.Field)
-			})
-			if !fieldA.IsValid() || !fieldB.IsValid() {
-				continue
+		start, err1 := toTime(times[0])
+		end, err2 := toTime(times[1])
+		if err1 != nil || err2 != nil {
+			return false, eris.Wrap(ErrTypeConversion, "range values must be times")
+		}
+
+		return (itemTime.Equal(start) || itemTime.After(start)) &&
+			(itemTime.Equal(end) || itemTime.Before(end)), nil
+	default:
+		return false, eris.Wrapf(ErrUnsupportedOperation, "mode '%s' for time", mode)
+	}
+}
+
+func compareNumber(val reflect.Value, mode string, filterValue any) (bool, error) {
+	itemNum, err := toFloat64(val.Interface())
+	if err != nil {
+		return false, eris.Wrap(err, "item number conversion")
+	}
+
+	switch mode {
+	case FilterModeEqual:
+		filterNum, err := toFloat64(filterValue)
+		return itemNum == filterNum, eris.Wrap(err, "filter number conversion")
+	case FilterModeNotEqual:
+		filterNum, err := toFloat64(filterValue)
+		return itemNum != filterNum, eris.Wrap(err, "filter number conversion")
+	case FilterModeGT:
+		filterNum, err := toFloat64(filterValue)
+		return itemNum > filterNum, eris.Wrap(err, "filter number conversion")
+	case FilterModeGTE:
+		filterNum, err := toFloat64(filterValue)
+		return itemNum >= filterNum, eris.Wrap(err, "filter number conversion")
+	case FilterModeLT:
+		filterNum, err := toFloat64(filterValue)
+		return itemNum < filterNum, eris.Wrap(err, "filter number conversion")
+	case FilterModeLTE:
+		filterNum, err := toFloat64(filterValue)
+		return itemNum <= filterNum, eris.Wrap(err, "filter number conversion")
+	case FilterModeRange:
+		nums, ok := filterValue.([]any)
+		if !ok || len(nums) != 2 {
+			return false, eris.Wrap(ErrInvalidValue, "range requires two values")
+		}
+
+		min, err1 := toFloat64(nums[0])
+		max, err2 := toFloat64(nums[1])
+		if err1 != nil || err2 != nil {
+			return false, eris.Wrap(ErrTypeConversion, "range values must be numbers")
+		}
+
+		return itemNum >= min && itemNum <= max, nil
+	default:
+		return false, eris.Wrapf(ErrUnsupportedOperation, "mode '%s' for number", mode)
+	}
+}
+
+func compareGeneric(val reflect.Value, mode string, filterValue any) (bool, error) {
+	switch mode {
+	case FilterModeIsEmpty:
+		return isEmpty(val), nil
+	case FilterModeIsNotEmpty:
+		return !isEmpty(val), nil
+	default:
+		return compareNumber(val, mode, filterValue)
+	}
+}
+
+// --- Sorting Functions ---
+
+func SortSlice[T any](
+	ctx context.Context,
+	data []*T,
+	sortFields []SortField,
+	batchSize int,
+	maxWorkers int,
+) ([]*T, error) {
+	if len(sortFields) == 0 || len(data) < 2 {
+		return data, nil
+	}
+
+	var t T
+	itemType := reflect.TypeOf(t)
+	if itemType.Kind() == reflect.Ptr {
+		itemType = itemType.Elem()
+	}
+
+	type sortableItem struct {
+		original *T
+		keys     []any
+	}
+
+	batchCount := (len(data) + batchSize - 1) / batchSize
+	sortableData := make([][]sortableItem, batchCount)
+	errChan := make(chan error, 1)
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	var wg sync.WaitGroup
+	for batch := 0; batch < batchCount; batch++ {
+		start := batch * batchSize
+		end := min(start+batchSize, len(data))
+		if start >= end {
+			continue
+		}
+
+		wg.Add(1)
+		go func(batchIdx, startIdx, endIdx int) {
+			defer wg.Done()
+			batchData := make([]sortableItem, endIdx-startIdx)
+
+			for i := startIdx; i < endIdx; i++ {
+				if ctx.Err() != nil {
+					return
+				}
+
+				val := reflect.ValueOf(data[i]).Elem()
+				keys := make([]any, len(sortFields))
+
+				for j, sf := range sortFields {
+					info, err := getCachedField(itemType, sf.Field)
+					if err != nil {
+						select {
+						case errChan <- eris.Wrapf(err, "sort field '%s'", sf.Field):
+							cancel()
+						default:
+						}
+						return
+					}
+
+					fieldVal := getFieldValue(val, info)
+					if fieldVal.IsValid() {
+						keys[j] = fieldVal.Interface()
+					} else {
+						keys[j] = nil
+					}
+				}
+
+				batchData[i-startIdx] = sortableItem{
+					original: data[i],
+					keys:     keys,
+				}
 			}
-			order := strings.ToLower(sortField.Order)
-			va := fieldA.Interface()
-			vb := fieldB.Interface()
-			cmp := compareForSortUniversal(va, vb)
-			if cmp == 0 {
-				continue
+
+			sortableData[batchIdx] = batchData
+		}(batch, start, end)
+	}
+
+	wg.Wait()
+	close(errChan)
+
+	if err := <-errChan; err != nil {
+		return nil, eris.Wrap(err, "preparing sort data failed")
+	}
+
+	var finalSortable []sortableItem
+	for _, batch := range sortableData {
+		finalSortable = append(finalSortable, batch...)
+	}
+
+	sort.SliceStable(finalSortable, func(i, j int) bool {
+		for k, sf := range sortFields {
+			cmp := compareValues(finalSortable[i].keys[k], finalSortable[j].keys[k])
+			if cmp != 0 {
+				if strings.ToUpper(sf.Order) == "DESC" {
+					return cmp > 0
+				}
+				return cmp < 0
 			}
-			if order == "desc" {
-				return cmp > 0
-			}
-			return cmp < 0
 		}
 		return false
 	})
-	return data
+
+	for i := range finalSortable {
+		data[i] = finalSortable[i].original
+	}
+
+	return data, nil
 }
 
-// --- Universal Sort Comparison for All Supported Types ---
+// --- Utility Functions ---
 
-func compareForSortUniversal(a, b any) int {
-	// Bool direct
-	if ab, ok := a.(bool); ok {
-		if bb, ok := b.(bool); ok {
-			if ab == bb {
-				return 0
-			}
-			if !ab && bb {
-				return -1
-			}
-			return 1
-		}
+func compareValues(a, b any) int {
+	if a == nil && b == nil {
+		return 0
+	}
+	if a == nil {
+		return -1
+	}
+	if b == nil {
+		return 1
 	}
 
-	// Try as time.Time
-	if at, ok := a.(time.Time); ok {
-		if bt, ok := b.(time.Time); ok {
-			if at.Before(bt) {
-				return -1
-			}
-			if at.After(bt) {
-				return 1
-			}
-			return 0
-		}
-	}
-
-	// Number compare only if both are numbers
-	af, aok := toFloat64Safe(a)
-	bf, bok := toFloat64Safe(b)
-	if aok && bok {
-		if af < bf {
+	switch aVal := a.(type) {
+	case string:
+		bVal, ok := b.(string)
+		if !ok {
 			return -1
-		} else if af > bf {
+		}
+		return strings.Compare(strings.ToLower(aVal), strings.ToLower(bVal))
+	case float64:
+		bVal, ok := b.(float64)
+		if !ok {
+			return -1
+		}
+		if aVal < bVal {
+			return -1
+		}
+		if aVal > bVal {
 			return 1
 		}
 		return 0
-	}
-
-	// String fallback (case-insensitive)
-	as := fmt.Sprintf("%v", a)
-	bs := fmt.Sprintf("%v", b)
-	return strings.Compare(strings.ToLower(as), strings.ToLower(bs))
-}
-
-func toInt64(val any) (int64, bool) {
-	rv := reflect.ValueOf(val)
-	switch rv.Kind() {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return rv.Int(), true
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		return int64(rv.Uint()), true
-	case reflect.Float32, reflect.Float64:
-		return int64(rv.Float()), true
-	case reflect.String:
-		var i int64
-		n, err := fmt.Sscanf(rv.String(), "%d", &i)
-		return i, err == nil && n == 1
-	default:
-		return 0, false
-	}
-}
-
-func toFloat64Safe(val any) (float64, bool) {
-	rv := reflect.ValueOf(val)
-	switch rv.Kind() {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return float64(rv.Int()), true
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		return float64(rv.Uint()), true
-	case reflect.Float32, reflect.Float64:
-		return rv.Float(), true
-	case reflect.String:
-		var f float64
-		n, err := fmt.Sscanf(rv.String(), "%f", &f)
-		return f, err == nil && n == 1
-	default:
-		return 0, false
-	}
-}
-
-// --- Advanced Comparison for Filters ---
-
-func compareAdvanced(itemValue any, mode string, filterValue any) bool {
-	switch v := itemValue.(type) {
-	case int, int8, int16, int32, int64, float32, float64:
-		itemFloat, _ := toFloat64Safe(v)
-		switch mode {
-		case FilterModeGT:
-			fv, ok := toFloat64Safe(filterValue)
-			return ok && itemFloat > fv
-		case FilterModeGTE:
-			fv, ok := toFloat64Safe(filterValue)
-			return ok && itemFloat >= fv
-		case FilterModeLT:
-			fv, ok := toFloat64Safe(filterValue)
-			return ok && itemFloat < fv
-		case FilterModeLTE:
-			fv, ok := toFloat64Safe(filterValue)
-			return ok && itemFloat <= fv
-		case FilterModeRange:
-			if arr, ok := filterValue.([]any); ok && len(arr) == 2 {
-				min, minok := toFloat64Safe(arr[0])
-				max, maxok := toFloat64Safe(arr[1])
-				return minok && maxok && itemFloat >= min && itemFloat <= max
-			} else if arr, ok := filterValue.([]interface{}); ok && len(arr) == 2 {
-				min, minok := toFloat64Safe(arr[0])
-				max, maxok := toFloat64Safe(arr[1])
-				return minok && maxok && itemFloat >= min && itemFloat <= max
-			}
-		}
-	case string:
-		t, err := tryParseTime(v)
-		if err == nil {
-			switch mode {
-			case FilterModeBefore:
-				ft, err := tryParseTime(fmt.Sprintf("%v", filterValue))
-				return err == nil && t.Before(ft)
-			case FilterModeAfter:
-				ft, err := tryParseTime(fmt.Sprintf("%v", filterValue))
-				return err == nil && t.After(ft)
-			case FilterModeRange:
-				if arr, ok := filterValue.([]any); ok && len(arr) == 2 {
-					start, err1 := tryParseTime(fmt.Sprintf("%v", arr[0]))
-					end, err2 := tryParseTime(fmt.Sprintf("%v", arr[1]))
-					return err1 == nil && err2 == nil && !t.Before(start) && !t.After(end)
-				} else if arr, ok := filterValue.([]interface{}); ok && len(arr) == 2 {
-					start, err1 := tryParseTime(fmt.Sprintf("%v", arr[0]))
-					end, err2 := tryParseTime(fmt.Sprintf("%v", arr[1]))
-					return err1 == nil && err2 == nil && !t.Before(start) && !t.After(end)
-				}
-			case FilterModeGTE:
-				ft, err := tryParseTime(fmt.Sprintf("%v", filterValue))
-				return err == nil && (t.Equal(ft) || t.After(ft))
-			case FilterModeLTE:
-				ft, err := tryParseTime(fmt.Sprintf("%v", filterValue))
-				return err == nil && (t.Equal(ft) || t.Before(ft))
-			}
-		}
-	case time.Time:
-		ft, err := tryParseTime(fmt.Sprintf("%v", filterValue))
-		switch mode {
-		case FilterModeBefore:
-			return err == nil && v.Before(ft)
-		case FilterModeAfter:
-			return err == nil && v.After(ft)
-		case FilterModeGTE:
-			return err == nil && (v.Equal(ft) || v.After(ft))
-		case FilterModeLTE:
-			return err == nil && (v.Equal(ft) || v.Before(ft))
-		case FilterModeRange:
-			if arr, ok := filterValue.([]any); ok && len(arr) == 2 {
-				start, err1 := tryParseTime(fmt.Sprintf("%v", arr[0]))
-				end, err2 := tryParseTime(fmt.Sprintf("%v", arr[1]))
-				return err1 == nil && err2 == nil && !v.Before(start) && !v.After(end)
-			} else if arr, ok := filterValue.([]interface{}); ok && len(arr) == 2 {
-				start, err1 := tryParseTime(fmt.Sprintf("%v", arr[0]))
-				end, err2 := tryParseTime(fmt.Sprintf("%v", arr[1]))
-				return err1 == nil && err2 == nil && !v.Before(start) && !v.After(end)
-			}
-		}
 	case bool:
-		fb := toBool(filterValue)
-		switch mode {
-		case FilterModeEqual:
-			return v == fb
-		case FilterModeNotEqual:
-			return v != fb
+		bVal, ok := b.(bool)
+		if !ok {
+			return -1
 		}
-	}
-	return false
-}
-
-// --- Try Parse Time Helper ---
-
-func tryParseTime(val string) (time.Time, error) {
-	layouts := []string{
-		time.RFC3339,
-		"2006-01-02T15:04:05Z07:00",     // ISO8601
-		"2006-01-02T15:04:05.000Z07:00", // ISO8601 with ms
-		"2006-01-02",
-		"2006-01-02 15:04:05",
-		"15:04:05",
-	}
-	// support unix timestamp as int (seconds)
-	if i, err := toInt64(val); err {
-		tm := time.Unix(i, 0)
-		return tm, nil
-	}
-	for _, layout := range layouts {
-		if t, err := time.Parse(layout, val); err == nil {
-			return t, nil
+		if aVal == bVal {
+			return 0
 		}
+		if !aVal && bVal {
+			return -1
+		}
+		return 1
+	case time.Time:
+		bVal, ok := b.(time.Time)
+		if !ok {
+			return -1
+		}
+		if aVal.Before(bVal) {
+			return -1
+		}
+		if aVal.After(bVal) {
+			return 1
+		}
+		return 0
+	default:
+		aStr := fmt.Sprintf("%v", a)
+		bStr := fmt.Sprintf("%v", b)
+		return strings.Compare(aStr, bStr)
 	}
-	return time.Time{}, fmt.Errorf("cannot parse time: %s", val)
 }
 
-// --- Helper for Empty Check ---
-
-func isEmpty(val reflect.Value) bool {
-	switch val.Kind() {
-	case reflect.String:
-		return val.Len() == 0
-	case reflect.Map, reflect.Slice, reflect.Array:
-		return val.IsNil() || val.Len() == 0
-	case reflect.Bool:
-		return !val.Bool()
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return val.Int() == 0
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		return val.Uint() == 0
-	case reflect.Float32, reflect.Float64:
-		return val.Float() == 0
-	case reflect.Ptr, reflect.Interface:
-		return val.IsNil()
-	case reflect.Struct:
-		zero := reflect.Zero(val.Type()).Interface()
-		return reflect.DeepEqual(val.Interface(), zero)
+func toFloat64(val any) (float64, error) {
+	switch v := val.(type) {
+	case int:
+		return float64(v), nil
+	case int8:
+		return float64(v), nil
+	case int16:
+		return float64(v), nil
+	case int32:
+		return float64(v), nil
+	case int64:
+		return float64(v), nil
+	case uint:
+		return float64(v), nil
+	case uint8:
+		return float64(v), nil
+	case uint16:
+		return float64(v), nil
+	case uint32:
+		return float64(v), nil
+	case uint64:
+		return float64(v), nil
+	case float32:
+		return float64(v), nil
+	case float64:
+		return v, nil
+	case string:
+		f, err := strconv.ParseFloat(v, 64)
+		return f, eris.Wrapf(err, "value '%s'", v)
+	default:
+		return 0, eris.Wrapf(ErrTypeConversion, "value '%v' type %T", val, val)
 	}
-	return false
 }
 
-// --- Helper for Boolean ---
+func toTime(val any) (time.Time, error) {
+	switch v := val.(type) {
+	case time.Time:
+		return v, nil
+	case *time.Time:
+		if v != nil {
+			return *v, nil
+		}
+		return time.Time{}, eris.Wrap(ErrInvalidValue, "nil time pointer")
+	case string:
+		formats := []string{
+			time.RFC3339,
+			time.RFC3339Nano,
+			"2006-01-02T15:04:05",
+			"2006-01-02",
+			"15:04:05",
+			time.ANSIC,
+			time.UnixDate,
+			time.RubyDate,
+			time.RFC822,
+			time.RFC822Z,
+			time.RFC850,
+			time.RFC1123,
+			time.RFC1123Z,
+		}
+		for _, format := range formats {
+			if t, err := time.Parse(format, v); err == nil {
+				return t, nil
+			}
+		}
+		return time.Time{}, eris.Wrapf(ErrTypeConversion, "value '%s'", v)
+	default:
+		return time.Time{}, eris.Wrapf(ErrTypeConversion, "value '%v' type %T", val, val)
+	}
+}
+
+func truncateToDate(t time.Time) time.Time {
+	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+}
 
 func toBool(val any) bool {
 	switch v := val.(type) {
@@ -641,85 +789,169 @@ func toBool(val any) bool {
 	case string:
 		return strings.EqualFold(v, "true") || v == "1"
 	case int, int8, int16, int32, int64:
-		f, _ := toFloat64Safe(v)
-		return f != 0
+		return reflect.ValueOf(v).Int() != 0
+	case uint, uint8, uint16, uint32, uint64:
+		return reflect.ValueOf(v).Uint() != 0
 	case float32, float64:
-		f, _ := toFloat64Safe(v)
-		return f != 0
+		return reflect.ValueOf(v).Float() != 0
+	default:
+		return false
 	}
-	return false
 }
 
-// --- Pagination ---
-
-func PaginateSlice[T any](ctx context.Context, data []*T, pageIndex, pageSize int) []*T {
-	if pageSize <= 0 {
-		return data
+func isEmpty(val reflect.Value) bool {
+	switch val.Kind() {
+	case reflect.String, reflect.Map, reflect.Slice, reflect.Array:
+		return val.Len() == 0
+	case reflect.Ptr, reflect.Interface:
+		return val.IsNil()
+	default:
+		return val.IsZero()
 	}
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+// PaginateSlice returns a paginated subset of the data
+func PaginateSlice[T any](data []*T, pageIndex, pageSize int) []*T {
+	if pageSize <= 0 || len(data) == 0 {
+		return []*T{}
+	}
+
 	start := pageIndex * pageSize
 	if start >= len(data) {
 		return []*T{}
 	}
-	end := start + pageSize
-	if end > len(data) {
-		end = len(data)
-	}
+
+	end := min(start+pageSize, len(data))
 	return data[start:end]
 }
 
+// Pagination handles filtering, sorting, and pagination
 func Pagination[T any](
-	context context.Context,
-	ctx echo.Context,
+	ctx context.Context,
+	echoCtx echo.Context,
 	data []*T,
-) PaginationResult[T] {
+	batchSize int,
+	maxWorkers int,
+) (PaginationResult[T], error) {
+	result := PaginationResult[T]{
+		PageIndex: 0,
+		PageSize:  10,
+	}
+
+	// Parse pagination parameters
+	if pageIndex, err := strconv.Atoi(echoCtx.QueryParam("pageIndex")); err == nil {
+		result.PageIndex = pageIndex
+	}
+	if pageSize, err := strconv.Atoi(echoCtx.QueryParam("pageSize")); err == nil && pageSize > 0 {
+		result.PageSize = pageSize
+	}
+
+	// Process filters
+	filterRoot, err := parseFilters(echoCtx)
+	if err != nil {
+		return result, eris.Wrap(err, "filter processing failed")
+	}
+
+	// Process sorting
+	sortFields, err := parseSort(echoCtx)
+	if err != nil {
+		return result, eris.Wrap(err, "sort processing failed")
+	}
+	result.Sort = sortFields
+
+	// Apply filtering
+	filtered, err := FilterSlice(ctx, data, filterRoot.Filters, filterRoot.Logic, batchSize, maxWorkers)
+	if err != nil {
+		return result, eris.Wrap(err, "filtering failed")
+	}
+	result.TotalSize = len(filtered)
+
+	// Apply sorting
+	sorted, err := SortSlice(ctx, filtered, sortFields, batchSize, maxWorkers)
+	if err != nil {
+		return result, eris.Wrap(err, "sorting failed")
+	}
+
+	// Apply pagination
+	result.Data = PaginateSlice(sorted, result.PageIndex, result.PageSize)
+
+	// Calculate total pages
+	if result.PageSize > 0 {
+		result.TotalPage = (result.TotalSize + result.PageSize - 1) / result.PageSize
+	} else {
+		result.TotalPage = 1
+	}
+
+	return result, nil
+}
+
+// parseFilters decodes and validates filter parameters
+func parseFilters(ctx echo.Context) (FilterRoot, error) {
 	filterParam := ctx.QueryParam("filter")
-	pageIndexParam := ctx.QueryParam("pageIndex")
-	pageSizeParam := ctx.QueryParam("pageSize")
-	sortParam := ctx.QueryParam("sort")
+	if filterParam == "" {
+		return FilterRoot{Logic: FilterLogicAnd}, nil
+	}
 
-	// --- FIXED: decode directly to FilterRoot
+	filterDecodedRaw, err := url.QueryUnescape(filterParam)
+	if err != nil {
+		return FilterRoot{}, eris.Wrap(ErrInvalidFilterParam, "unescaping failed")
+	}
+
+	filterBytes, err := base64.StdEncoding.DecodeString(filterDecodedRaw)
+	if err != nil {
+		return FilterRoot{}, eris.Wrap(ErrInvalidFilterParam, "base64 decoding failed")
+	}
+
 	var filterRoot FilterRoot
-	if filterParam != "" {
-		filterDecodedRaw, _ := url.QueryUnescape(filterParam)
-		filterBytes, _ := base64.StdEncoding.DecodeString(filterDecodedRaw)
-		_ = json.Unmarshal(filterBytes, &filterRoot)
+	if err := json.Unmarshal(filterBytes, &filterRoot); err != nil {
+		return FilterRoot{}, eris.Wrap(ErrInvalidFilterParam, "JSON unmarshalling failed")
 	}
 
-	pageIndex := 0
-	if pageIndexParam != "" {
-		if val, err := strconv.Atoi(pageIndexParam); err == nil {
-			pageIndex = val
+	if filterRoot.Logic == "" {
+		filterRoot.Logic = FilterLogicAnd
+	}
+
+	return filterRoot, nil
+}
+
+// parseSort decodes and validates sort parameters
+func parseSort(ctx echo.Context) ([]SortField, error) {
+	sortParam := ctx.QueryParam("sort")
+	if sortParam == "" {
+		return nil, nil
+	}
+
+	sortDecodedRaw, err := url.QueryUnescape(sortParam)
+	if err != nil {
+		return nil, eris.Wrap(ErrInvalidSortParam, "unescaping failed")
+	}
+
+	sortBytes, err := base64.StdEncoding.DecodeString(sortDecodedRaw)
+	if err != nil {
+		return nil, eris.Wrap(ErrInvalidSortParam, "base64 decoding failed")
+	}
+
+	var sortFields []SortField
+	if err := json.Unmarshal(sortBytes, &sortFields); err != nil {
+		return nil, eris.Wrap(ErrInvalidSortParam, "JSON unmarshalling failed")
+	}
+
+	// Normalize sort orders
+	for i, sf := range sortFields {
+		order := strings.ToUpper(sf.Order)
+		if order != "ASC" && order != "DESC" {
+			sortFields[i].Order = "ASC"
+		} else {
+			sortFields[i].Order = order
 		}
 	}
-	pageSize := 0
-	if pageSizeParam != "" {
-		if val, err := strconv.Atoi(pageSizeParam); err == nil {
-			pageSize = val
-		}
-	}
-	var sortDecoded []SortField
-	if sortParam != "" {
-		sortDecodedRaw, _ := url.QueryUnescape(sortParam)
-		sortBytes, _ := base64.StdEncoding.DecodeString(sortDecodedRaw)
-		_ = json.Unmarshal(sortBytes, &sortDecoded)
-	}
 
-	originalTotalSize := len(data)
-	sorted := SortSlice(context, data, sortDecoded)
-	filtered := FilterSlice(context, sorted, filterRoot.Filters, filterRoot.Logic)
-	paged := PaginateSlice(context, filtered, pageIndex, pageSize)
-
-	totalPage := 0
-	if pageSize > 0 {
-		totalPage = (originalTotalSize + pageSize - 1) / pageSize
-	}
-
-	return PaginationResult[T]{
-		Data:      paged,
-		PageIndex: pageIndex,
-		PageSize:  pageSize,
-		TotalSize: originalTotalSize,
-		Sort:      sortDecoded,
-		TotalPage: totalPage,
-	}
+	return sortFields, nil
 }
