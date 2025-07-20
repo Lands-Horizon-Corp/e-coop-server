@@ -208,6 +208,12 @@ func (h *HorizonAPIService) GetRoute() []Route { return h.routesList }
 // RegisterRoute registers a new route and its handler.
 func (h *HorizonAPIService) RegisterRoute(route Route, callback func(c echo.Context) error, m ...echo.MiddlewareFunc) {
 	method := strings.ToUpper(strings.TrimSpace(route.Method))
+
+	for _, r := range h.routesList {
+		if strings.EqualFold(r.Route, route.Route) && strings.EqualFold(r.Method, method) {
+			panic(fmt.Sprintf("Route already registered: %s %s", method, route.Route))
+		}
+	}
 	switch method {
 	case http.MethodGet:
 		h.service.GET(route.Route, callback, m...)
