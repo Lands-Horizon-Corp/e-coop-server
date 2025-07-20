@@ -24,11 +24,11 @@ func (c *Controller) ContactController() {
 		Note:     "Returns all contact records in the system.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		contacts, err := c.model.ContactUsManager.ListRaw(context)
+		contacts, err := c.model.ContactUsManager.List(context)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve contact records: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, contacts)
+		return ctx.JSON(http.StatusOK, c.model.ContactUsManager.Filtered(context, ctx, contacts))
 	})
 
 	// GET /contact/:contact_id: Get a specific contact by ID. (NO footstep)

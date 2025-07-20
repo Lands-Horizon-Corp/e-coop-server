@@ -35,7 +35,7 @@ func (c *Controller) CollateralController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No collateral records found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.model.CollateralManager.ToModels(collaterals))
+		return ctx.JSON(http.StatusOK, c.model.CollateralManager.Filtered(context, ctx, collaterals))
 	})
 
 	// GET /collateral/search: Paginated search of collaterals for current branch. (NO footstep)

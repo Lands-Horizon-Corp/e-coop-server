@@ -30,7 +30,7 @@ func (c *Controller) PermissionTemplateController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve permission templates: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.PermissionTemplateManager.ToModels(permissionTemplates))
+		return ctx.JSON(http.StatusOK, c.model.PermissionTemplateManager.Filtered(context, ctx, permissionTemplates))
 	})
 
 	// Fetch all permission templates (paginated) for the current user's branch.

@@ -31,7 +31,7 @@ func (c *Controller) MemberGroupController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member group history: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.MemberGroupHistoryManager.ToModels(memberGroupHistory))
+		return ctx.JSON(http.StatusOK, c.model.MemberGroupHistoryManager.Filtered(context, ctx, memberGroupHistory))
 	})
 
 	// Get member group history by member profile ID
@@ -73,7 +73,7 @@ func (c *Controller) MemberGroupController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member groups: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.MemberGroupManager.ToModels(memberGroup))
+		return ctx.JSON(http.StatusOK, c.model.MemberGroupManager.Filtered(context, ctx, memberGroup))
 	})
 
 	// Get paginated member groups

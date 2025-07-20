@@ -26,7 +26,7 @@ func (c *Controller) OrganizationDailyUsage() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve organization daily usage records: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.OrganizationDailyUsageManager.ToModels(dailyUsage))
+		return ctx.JSON(http.StatusOK, c.model.OrganizationDailyUsageManager.Filtered(context, ctx, dailyUsage))
 	})
 
 	// Get a specific organization daily usage record by its ID

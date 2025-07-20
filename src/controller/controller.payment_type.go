@@ -31,7 +31,7 @@ func (c *Controller) PaymentTypeController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve payment types: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.PaymentTypeManager.ToModels(paymentTypes))
+		return ctx.JSON(http.StatusOK, c.model.PaymentTypeManager.Filtered(context, ctx, paymentTypes))
 	})
 
 	// Paginate payment types for the current branch

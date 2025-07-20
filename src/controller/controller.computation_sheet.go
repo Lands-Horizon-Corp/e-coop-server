@@ -67,7 +67,7 @@ func (c *Controller) ComputationSheetController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No computation sheets found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.model.ComputationSheetManager.ToModels(sheets))
+		return ctx.JSON(http.StatusOK, c.model.ComputationSheetManager.Filtered(context, ctx, sheets))
 	})
 
 	// GET /computation-sheet/:id: Get specific computation sheet by ID.

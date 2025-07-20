@@ -25,11 +25,11 @@ func (c *Controller) MediaController() {
 		Note:     "Returns all media records in the system.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		media, err := c.model.MediaManager.ListRaw(context)
+		media, err := c.model.MediaManager.List(context)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve media records: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, media)
+		return ctx.JSON(http.StatusOK, c.model.MediaManager.Filtered(context, ctx, media))
 	})
 
 	// GET /media/:media_id: Get a specific media record by ID. (NO footstep)

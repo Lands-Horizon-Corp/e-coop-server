@@ -50,7 +50,7 @@ func (c *Controller) OnlineRemittanceController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve online remittance: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, c.model.OnlineRemittanceManager.ToModels(onlineRemittance))
+		return ctx.JSON(http.StatusOK, c.model.OnlineRemittanceManager.Filtered(context, ctx, onlineRemittance))
 	})
 
 	// Create a new online remittance for the current transaction batch before ending.

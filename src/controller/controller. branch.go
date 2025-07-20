@@ -26,7 +26,7 @@ func (c *Controller) BranchController() {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil || userOrg == nil {
-			branches, err := c.model.BranchManager.ListRaw(context)
+			branches, err := c.model.BranchManager.List(context)
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not retrieve branches: " + err.Error()})
 			}
@@ -37,7 +37,7 @@ func (c *Controller) BranchController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not retrieve organization branches: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, c.model.BranchManager.ToModels(branches))
+		return ctx.JSON(http.StatusOK, c.model.BranchManager.Filtered(context, ctx, branches))
 	})
 
 	// GET /branch/organization/:organization_id: List branches by organization ID.
@@ -56,7 +56,7 @@ func (c *Controller) BranchController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not retrieve organization branches: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.BranchManager.ToModels(branches))
+		return ctx.JSON(http.StatusOK, c.model.BranchManager.Filtered(context, ctx, branches))
 	})
 
 	// POST /branch/organization/:organization_id: Create a branch for an organization.

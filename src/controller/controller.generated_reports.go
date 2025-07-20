@@ -28,7 +28,7 @@ func (c *Controller) GeneratedReports() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve generated reports: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.GeneratedReportManager.ToModels(generatedReports))
+		return ctx.JSON(http.StatusOK, c.model.GeneratedReportManager.Filtered(context, ctx, generatedReports))
 	})
 
 	// GET /generated-report/:generated_report_id: Get a specific generated report by ID. (NO footstep)

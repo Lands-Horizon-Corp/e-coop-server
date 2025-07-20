@@ -53,14 +53,14 @@ func (c *Controller) AccountClassificationController() {
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		classifications, err := c.model.AccountClassificationManager.FindRaw(context, &model.AccountClassification{
+		classifications, err := c.model.AccountClassificationManager.Find(context, &model.AccountClassification{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve account classifications (raw): " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, classifications)
+		return ctx.JSON(http.StatusOK, c.model.AccountClassificationManager.Filtered(context, ctx, classifications))
 	})
 
 	req.RegisterRoute(horizon.Route{

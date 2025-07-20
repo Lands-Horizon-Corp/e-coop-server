@@ -830,66 +830,6 @@ func PaginateSlice[T any](data []*T, pageIndex, pageSize int) []*T {
 	return data[start:end]
 }
 
-// Pagination handles filtering, sorting, and pagination
-func Pagination[T any](
-	ctx context.Context,
-	echoCtx echo.Context,
-	data []*T,
-	batchSize int,
-	maxWorkers int,
-) (PaginationResult[T], error) {
-	result := PaginationResult[T]{
-		PageIndex: 0,
-		PageSize:  10,
-	}
-
-	// Parse pagination parameters
-	if pageIndex, err := strconv.Atoi(echoCtx.QueryParam("pageIndex")); err == nil {
-		result.PageIndex = pageIndex
-	}
-	if pageSize, err := strconv.Atoi(echoCtx.QueryParam("pageSize")); err == nil && pageSize > 0 {
-		result.PageSize = pageSize
-	}
-
-	// Process filters
-	filterRoot, err := parseFilters(echoCtx)
-	if err != nil {
-		return result, eris.Wrap(err, "filter processing failed")
-	}
-
-	// Process sorting
-	sortFields, err := parseSort(echoCtx)
-	if err != nil {
-		return result, eris.Wrap(err, "sort processing failed")
-	}
-	result.Sort = sortFields
-
-	// Apply filtering
-	filtered, err := FilterSlice(ctx, data, filterRoot.Filters, filterRoot.Logic, batchSize, maxWorkers)
-	if err != nil {
-		return result, eris.Wrap(err, "filtering failed")
-	}
-	result.TotalSize = len(filtered)
-
-	// Apply sorting
-	sorted, err := SortSlice(ctx, filtered, sortFields, batchSize, maxWorkers)
-	if err != nil {
-		return result, eris.Wrap(err, "sorting failed")
-	}
-
-	// Apply pagination
-	result.Data = PaginateSlice(sorted, result.PageIndex, result.PageSize)
-
-	// Calculate total pages
-	if result.PageSize > 0 {
-		result.TotalPage = (result.TotalSize + result.PageSize - 1) / result.PageSize
-	} else {
-		result.TotalPage = 1
-	}
-
-	return result, nil
-}
-
 // parseFilters decodes and validates filter parameters
 func parseFilters(ctx echo.Context) (FilterRoot, error) {
 	filterParam := ctx.QueryParam("filter")
@@ -952,4 +892,91 @@ func parseSort(ctx echo.Context) ([]SortField, error) {
 	}
 
 	return sortFields, nil
+}
+
+// Pagination handles filtering, sorting, and pagination
+func Pagination[T any](
+	ctx context.Context,
+	echoCtx echo.Context,
+	data []*T,
+	batchSize int,
+	maxWorkers int,
+) (PaginationResult[T], error) {
+	result := PaginationResult[T]{
+		PageIndex: 0,
+		PageSize:  10,
+	}
+
+	// Parse pagination parameters
+	if pageIndex, err := strconv.Atoi(echoCtx.QueryParam("pageIndex")); err == nil {
+		result.PageIndex = pageIndex
+	}
+	if pageSize, err := strconv.Atoi(echoCtx.QueryParam("pageSize")); err == nil && pageSize > 0 {
+		result.PageSize = pageSize
+	}
+
+	// Process filters
+	filterRoot, err := parseFilters(echoCtx)
+	if err != nil {
+		return result, eris.Wrap(err, "filter processing failed")
+	}
+
+	// Process sorting
+	sortFields, err := parseSort(echoCtx)
+	if err != nil {
+		return result, eris.Wrap(err, "sort processing failed")
+	}
+	result.Sort = sortFields
+
+	// Apply filtering
+	filtered, err := FilterSlice(ctx, data, filterRoot.Filters, filterRoot.Logic, batchSize, maxWorkers)
+	if err != nil {
+		return result, eris.Wrap(err, "filtering failed")
+	}
+	result.TotalSize = len(filtered)
+
+	// Apply sorting
+	sorted, err := SortSlice(ctx, filtered, sortFields, batchSize, maxWorkers)
+	if err != nil {
+		return result, eris.Wrap(err, "sorting failed")
+	}
+
+	// Apply pagination
+	result.Data = PaginateSlice(sorted, result.PageIndex, result.PageSize)
+
+	// Calculate total pages
+	if result.PageSize > 0 {
+		result.TotalPage = (result.TotalSize + result.PageSize - 1) / result.PageSize
+	} else {
+		result.TotalPage = 1
+	}
+
+	return result, nil
+}
+
+// FilterAndSortSlice filters and sorts data based on query parameters without pagination
+func FilterAndSortSlice[T any](
+	ctx context.Context,
+	echoCtx echo.Context,
+	data []*T,
+	batchSize int,
+	maxWorkers int,
+) ([]*T, error) {
+	filterRoot, err := parseFilters(echoCtx)
+	if err != nil {
+		return data, eris.Wrap(err, "filter processing failed")
+	}
+	filtered, err := FilterSlice(ctx, data, filterRoot.Filters, filterRoot.Logic, batchSize, maxWorkers)
+	if err != nil {
+		return data, eris.Wrap(err, "filtering failed")
+	}
+	sortFields, err := parseSort(echoCtx)
+	if err != nil {
+		return data, eris.Wrap(err, "sort processing failed")
+	}
+	sorted, err := SortSlice(ctx, filtered, sortFields, batchSize, maxWorkers)
+	if err != nil {
+		return data, eris.Wrap(err, "sorting failed")
+	}
+	return sorted, nil
 }

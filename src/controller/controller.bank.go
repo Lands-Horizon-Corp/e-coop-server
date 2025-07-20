@@ -35,7 +35,7 @@ func (c *Controller) BankController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No banks found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.model.BankManager.ToModels(banks))
+		return ctx.JSON(http.StatusOK, c.model.BankManager.Filtered(context, ctx, banks))
 	})
 
 	// GET /bank/search: Paginated search of banks for the current branch. (NO footstep)

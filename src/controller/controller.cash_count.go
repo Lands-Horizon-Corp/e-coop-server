@@ -52,7 +52,7 @@ func (c *Controller) CashCountController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve cash counts: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, c.model.CashCountManager.ToModels(cashCounts))
+		return ctx.JSON(http.StatusOK, c.model.CashCountManager.Filtered(context, ctx, cashCounts))
 	})
 
 	// POST /cash-count: Add a cash count bill to the current transaction batch before ending. (WITH footstep)

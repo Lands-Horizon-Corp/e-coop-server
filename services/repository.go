@@ -76,8 +76,9 @@ type Repository[TData any, TResponse any, TRequest any] interface {
 	Validate(ctx echo.Context) (*TRequest, error)
 	ToModel(data *TData) *TResponse
 	ToModels(data []*TData) []*TResponse
-	Pagination(ctx context.Context, param echo.Context, data []*TData) horizon.PaginationResult[TResponse]
 
+	Pagination(ctx context.Context, param echo.Context, data []*TData) horizon.PaginationResult[TResponse]
+	Filtered(ctx context.Context, param echo.Context, data []*TData) []*TResponse
 	// Filter operations
 	FindWithFilters(ctx context.Context, filters []Filter, preloads ...string) ([]*TData, error)
 
@@ -219,6 +220,16 @@ func (c *CollectionManager[TData, TResponse, TRequest]) Pagination(
 		Sort:      filtered.Sort,
 		TotalPage: filtered.TotalPage,
 	}
+}
+
+func (c *CollectionManager[TData, TResponse, TRequest]) Filtered(ctx context.Context, param echo.Context, data []*TData) []*TResponse {
+	batchSize := 10_0000
+	maxWorkers := runtime.NumCPU()
+	filtered, err := horizon.FilterAndSortSlice(ctx, param, data, batchSize, maxWorkers)
+	if err != nil {
+		return c.ToModels(filtered)
+	}
+	return c.ToModels(filtered)
 }
 
 func (c *CollectionManager[TData, TResponse, TRequest]) FindWithFilters(

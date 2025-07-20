@@ -29,7 +29,7 @@ func (c *Controller) UserRatingController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user ratings given by user: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.UserRatingManager.ToModels(userRating))
+		return ctx.JSON(http.StatusOK, c.model.UserRatingManager.Filtered(context, ctx, userRating))
 	})
 
 	// Returns all user ratings received by the specified user (ratee)
@@ -48,7 +48,7 @@ func (c *Controller) UserRatingController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user ratings received by user: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.UserRatingManager.ToModels(userRating))
+		return ctx.JSON(http.StatusOK, c.model.UserRatingManager.Filtered(context, ctx, userRating))
 	})
 
 	// Returns a specific user rating by its ID
@@ -86,7 +86,7 @@ func (c *Controller) UserRatingController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user ratings for branch: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.UserRatingManager.ToModels(userRating))
+		return ctx.JSON(http.StatusOK, c.model.UserRatingManager.Filtered(context, ctx, userRating))
 	})
 
 	// Creates a new user rating in the current user's branch

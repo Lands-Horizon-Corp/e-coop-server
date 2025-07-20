@@ -59,7 +59,7 @@ func (c *Controller) FinancialStatementController() {
 				grouping.FinancialStatementDefinitionEntries = filteredEntries
 			}
 		}
-		return ctx.JSON(http.StatusOK, c.model.FinancialStatementGroupingManager.ToModels(fsGroupings))
+		return ctx.JSON(http.StatusOK, c.model.FinancialStatementGroupingManager.Filtered(context, ctx, fsGroupings))
 	})
 
 	// PUT /financial-statement-grouping/:financial_statement_grouping_id: Update a financial statement grouping. (WITH footstep)

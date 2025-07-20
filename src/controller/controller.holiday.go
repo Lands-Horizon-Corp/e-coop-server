@@ -35,7 +35,7 @@ func (c *Controller) HolidayController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No holiday records found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.model.HolidayManager.ToModels(holiday))
+		return ctx.JSON(http.StatusOK, c.model.HolidayManager.Filtered(context, ctx, holiday))
 	})
 
 	// GET /holiday/search: Paginated search of holidays for current branch. (NO footstep)

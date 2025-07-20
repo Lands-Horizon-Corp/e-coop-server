@@ -43,7 +43,37 @@ func (c *Controller) BrowseExcludeIncludeAccountsController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No browse exclude include accounts found for this computation sheet"})
 		}
-		return ctx.JSON(http.StatusOK, c.model.BrowseExcludeIncludeAccountsManager.ToModels(records))
+		return ctx.JSON(http.StatusOK, c.model.BrowseExcludeIncludeAccountsManager.Filtered(context, ctx, records))
+	})
+
+	// GET /browse-exclude-include-accounts/computation-sheet/:computation_sheet_id/search
+	req.RegisterRoute(horizon.Route{
+		Route:    "/browse-exclude-include-accounts/computation-sheet/:computation_sheet_id",
+		Method:   "GET",
+		Response: "BrowseExcludeIncludeAccounts[]",
+		Note:     "Returns all browse exclude include accounts for a computation sheet in the current user's org/branch.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if user.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		sheetID, err := horizon.EngineUUIDParam(ctx, "computation_sheet_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
+		}
+		records, err := c.model.BrowseExcludeIncludeAccountsManager.Find(context, &model.BrowseExcludeIncludeAccounts{
+			OrganizationID:     user.OrganizationID,
+			BranchID:           *user.BranchID,
+			ComputationSheetID: sheetID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No browse exclude include accounts found for this computation sheet"})
+		}
+		return ctx.JSON(http.StatusOK, c.model.BrowseExcludeIncludeAccountsManager.Filtered(context, ctx, records))
 	})
 
 	// POST /browse-exclude-include-accounts

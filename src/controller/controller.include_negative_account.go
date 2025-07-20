@@ -43,7 +43,7 @@ func (c *Controller) IncludeNegativeAccountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No include negative accounts found for this computation sheet"})
 		}
-		return ctx.JSON(http.StatusOK, c.model.IncludeNegativeAccountManager.ToModels(records))
+		return ctx.JSON(http.StatusOK, c.model.IncludeNegativeAccountManager.Filtered(context, ctx, records))
 	})
 
 	// POST /include-negative-accounts

@@ -178,4 +178,5 @@ func (c *Controller) BatchFundingController() {
 
 		return ctx.JSON(http.StatusOK, c.model.BatchFundingManager.Pagination(context, ctx, batchFunding))
 	})
+
 }

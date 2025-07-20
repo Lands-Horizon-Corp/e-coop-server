@@ -35,7 +35,7 @@ func (c *Controller) AccountTagController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account tags not found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.model.AccountTagManager.ToModels(accountTags))
+		return ctx.JSON(http.StatusOK, c.model.AccountTagManager.Filtered(context, ctx, accountTags))
 	})
 
 	// GET /account-tag/search - Paginated search of account tags for current branch.

@@ -44,7 +44,7 @@ func (c *Controller) AutomaticLoanDeductionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No automatic loan deductions found for this computation sheet"})
 		}
-		return ctx.JSON(http.StatusOK, c.model.AutomaticLoanDeductionManager.ToModels(alds))
+		return ctx.JSON(http.StatusOK, c.model.AutomaticLoanDeductionManager.Filtered(context, ctx, alds))
 	})
 
 	// GET /automatic-loan-deduction/computation-sheet/:computation_sheet_id/search

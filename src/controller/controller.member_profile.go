@@ -38,7 +38,7 @@ func (c *Controller) MemberProfileController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get pending member profiles: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModels(memberProfile))
+		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.Filtered(context, ctx, memberProfile))
 	})
 
 	// Quickly create a new user account and link it to a member profile by ID
@@ -355,7 +355,7 @@ func (c *Controller) MemberProfileController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member profiles: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModels(memberProfile))
+		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.Filtered(context, ctx, memberProfile))
 	})
 
 	// Retrieve paginated member profiles for the current branch

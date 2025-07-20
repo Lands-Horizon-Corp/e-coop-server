@@ -29,7 +29,7 @@ func (c *Controller) NotificationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get notifications: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.NotificationManager.ToModels(notification))
+		return ctx.JSON(http.StatusOK, c.model.NotificationManager.Filtered(context, ctx, notification))
 	})
 
 	// Mark multiple notifications as viewed
@@ -140,7 +140,7 @@ func (c *Controller) NotificationController() {
 			Module:      "Notification",
 		})
 
-		return ctx.JSON(http.StatusOK, c.model.NotificationManager.ToModels(notifications))
+		return ctx.JSON(http.StatusOK, c.model.NotificationManager.Filtered(context, ctx, notifications))
 	})
 
 	// Delete a notification by its ID

@@ -31,7 +31,7 @@ func (c *Controller) MemberTypeController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member type history: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.MemberTypeHistoryManager.ToModels(memberTypeHistory))
+		return ctx.JSON(http.StatusOK, c.model.MemberTypeHistoryManager.Filtered(context, ctx, memberTypeHistory))
 	})
 
 	// Get member type history by member profile ID
@@ -73,7 +73,7 @@ func (c *Controller) MemberTypeController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member types: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.MemberTypeManager.ToModels(memberType))
+		return ctx.JSON(http.StatusOK, c.model.MemberTypeManager.Filtered(context, ctx, memberType))
 	})
 
 	// Get paginated member types for the current branch

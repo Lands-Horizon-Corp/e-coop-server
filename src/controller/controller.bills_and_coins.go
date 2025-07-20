@@ -35,7 +35,7 @@ func (c *Controller) BillAndCoinsController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No bills and coins found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.model.BillAndCoinsManager.ToModels(billAndCoins))
+		return ctx.JSON(http.StatusOK, c.model.BillAndCoinsManager.Filtered(context, ctx, billAndCoins))
 	})
 
 	// GET /bills-and-coins/search: Paginated search of bills and coins for current branch. (NO footstep)

@@ -319,7 +319,7 @@ func (c *Controller) UserOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user organizations: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModels(userOrganization))
+		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.Filtered(context, ctx, userOrganization))
 	})
 
 	// Retrieve all user organizations for the logged-in user (not pending)
@@ -339,7 +339,7 @@ func (c *Controller) UserOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user organizations: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModels(userOrganization))
+		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.Filtered(context, ctx, userOrganization))
 	})
 
 	// Get paginated join requests for user organizations in the current branch
@@ -387,7 +387,7 @@ func (c *Controller) UserOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve join requests: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModels(userOrganization))
+		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.Filtered(context, ctx, userOrganization))
 	})
 
 	// Retrieve all user organizations for a specific organization (optionally including pending)
@@ -414,7 +414,7 @@ func (c *Controller) UserOrganinzationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user organizations: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModels(userOrganization))
+		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.Filtered(context, ctx, userOrganization))
 	})
 
 	// Retrieve all user organizations for a specific branch (optionally including pending)
@@ -438,7 +438,7 @@ func (c *Controller) UserOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Failed to retrieve user organizations: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModels(userOrganization))
+		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.Filtered(context, ctx, userOrganization))
 	})
 
 	// Switch organization and branch stored in JWT (no database impact)
@@ -1201,7 +1201,7 @@ func (c *Controller) UserOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve employees: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModels(employees))
+		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.Filtered(context, ctx, employees))
 	})
 
 	// Retrieve all members of the current user's organization
@@ -1220,6 +1220,6 @@ func (c *Controller) UserOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve members: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModels(members))
+		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.Filtered(context, ctx, members))
 	})
 }

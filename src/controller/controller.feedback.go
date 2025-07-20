@@ -24,11 +24,11 @@ func (c *Controller) FeedbackController() {
 		Note:     "Returns all feedback records in the system.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		feedback, err := c.model.FeedbackManager.ListRaw(context)
+		feedback, err := c.model.FeedbackManager.List(context)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve feedback records: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, feedback)
+		return ctx.JSON(http.StatusOK, c.model.FeedbackManager.Filtered(context, ctx, feedback))
 	})
 
 	// GET /feedback/:feedback_id: Get a specific feedback by ID. (NO footstep)

@@ -24,11 +24,11 @@ func (c *Controller) CategoryController() {
 		Note:     "Returns all categories in the system.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		categories, err := c.model.CategoryManager.ListRaw(context)
+		categories, err := c.model.CategoryManager.List(context)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve categories: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, categories)
+		return ctx.JSON(http.StatusOK, c.model.CategoryManager.Filtered(context, ctx, categories))
 	})
 
 	// GET /category/:category_id: Get a specific category by ID. (NO footstep)

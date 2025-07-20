@@ -23,11 +23,11 @@ func (c *Controller) SubscriptionPlanController() {
 		Note:     "Returns all subscription plans.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		categories, err := c.model.SubscriptionPlanManager.ListRaw(context)
+		categories, err := c.model.SubscriptionPlanManager.List(context)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve subscription plans: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, categories)
+		return ctx.JSON(http.StatusOK, c.model.SubscriptionPlanManager.Filtered(context, ctx, categories))
 	})
 
 	// Get a subscription plan by its ID

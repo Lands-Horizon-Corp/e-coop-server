@@ -35,7 +35,7 @@ func (c *Controller) InvitationCode() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve invitation codes: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.InvitationCodeManager.ToModels(invitationCode))
+		return ctx.JSON(http.StatusOK, c.model.InvitationCodeManager.Filtered(context, ctx, invitationCode))
 	})
 
 	// GET /invitation-code/search: Paginated search of invitation codes for current branch. (NO footstep)

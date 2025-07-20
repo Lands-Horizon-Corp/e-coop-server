@@ -31,7 +31,7 @@ func (c *Controller) MemberClassificationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member classification history: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.MemberClassificationHistoryManager.ToModels(memberClassificationHistory))
+		return ctx.JSON(http.StatusOK, c.model.MemberClassificationHistoryManager.Filtered(context, ctx, memberClassificationHistory))
 	})
 
 	// Get member classification history by member profile ID
@@ -73,7 +73,7 @@ func (c *Controller) MemberClassificationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member classifications: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.MemberClassificationManager.ToModels(memberClassification))
+		return ctx.JSON(http.StatusOK, c.model.MemberClassificationManager.Filtered(context, ctx, memberClassification))
 	})
 
 	// Get paginated member classifications

@@ -57,7 +57,7 @@ func (c *Controller) GeneralLedgerController() {
 				grouping.GeneralLedgerDefinitionEntries = filteredEntries
 			}
 		}
-		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerAccountsGroupingManager.ToModels(gl))
+		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerAccountsGroupingManager.Filtered(context, ctx, gl))
 	})
 
 	// PUT /general-ledger-accounts-grouping/:general_ledger_accounts_grouping_id (WITH footstep)
