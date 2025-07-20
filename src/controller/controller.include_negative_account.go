@@ -43,6 +43,36 @@ func (c *Controller) IncludeNegativeAccountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No include negative accounts found for this computation sheet"})
 		}
+		return ctx.JSON(http.StatusOK, c.model.IncludeNegativeAccountManager.Pagination(context, ctx, records))
+	})
+
+	// GET /include-negative-accounts/computation-sheet/:computation_sheet_id/search
+	req.RegisterRoute(horizon.Route{
+		Route:    "/include-negative-accounts/computation-sheet/:computation_sheet_id",
+		Method:   "GET",
+		Response: "IncludeNegativeAccount[]",
+		Note:     "Returns all include negative accounts for a computation sheet in the current user's org/branch.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if user.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		sheetID, err := horizon.EngineUUIDParam(ctx, "computation_sheet_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
+		}
+		records, err := c.model.IncludeNegativeAccountManager.Find(context, &model.IncludeNegativeAccount{
+			OrganizationID:     user.OrganizationID,
+			BranchID:           *user.BranchID,
+			ComputationSheetID: sheetID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No include negative accounts found for this computation sheet"})
+		}
 		return ctx.JSON(http.StatusOK, c.model.IncludeNegativeAccountManager.Filtered(context, ctx, records))
 	})
 
