@@ -254,7 +254,7 @@ func FilterSlice[T any](
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	for batch := 0; batch < batchCount; batch++ {
+	for batch := range batchCount {
 		start := batch * batchSize
 		end := min(start+batchSize, len(data))
 		if start >= end {
@@ -562,7 +562,7 @@ func SortSlice[T any](
 	defer cancel()
 
 	var wg sync.WaitGroup
-	for batch := 0; batch < batchCount; batch++ {
+	for batch := range batchCount {
 		start := batch * batchSize
 		end := min(start+batchSize, len(data))
 		if start >= end {
