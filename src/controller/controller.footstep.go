@@ -50,6 +50,12 @@ func (c *Controller) FootstepController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member profile not found: " + err.Error()})
 		}
+		if memberProfile.UserID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Member profile UserID is missing"})
+		}
+		if userOrg.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User branch ID is missing"})
+		}
 		footstep, err := c.model.GetFootstepByUserOrganization(context, *memberProfile.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve footsteps for employee: " + err.Error()})

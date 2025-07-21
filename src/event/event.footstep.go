@@ -29,9 +29,9 @@ func (e *Event) Footstep(ctx context.Context, echoCtx echo.Context, data Footste
 		// Get userId from user struct
 		userId := user.ID
 
-		// Get orgId, branchId, accountType from userOrganization if present
+		// Get orgId, branchId, userType from userOrganization if present
 		var orgId, branchId *uuid.UUID
-		var accountType string
+		var userType string
 		if userOrganization != nil {
 			if parsedOrgId, err := uuid.Parse(userOrganization.OrganizationID); err == nil {
 				orgId = &parsedOrgId
@@ -39,7 +39,7 @@ func (e *Event) Footstep(ctx context.Context, echoCtx echo.Context, data Footste
 			if parsedBranchId, err := uuid.Parse(userOrganization.BranchID); err == nil {
 				branchId = &parsedBranchId
 			}
-			accountType = userOrganization.AccountType
+			userType = userOrganization.UserType
 		}
 
 		// Get geo and agent info from CSRF claim
@@ -62,7 +62,7 @@ func (e *Event) Footstep(ctx context.Context, echoCtx echo.Context, data Footste
 			UserID:         &userId,
 			Description:    data.Description,
 			Activity:       data.Activity,
-			AccountType:    accountType,
+			UserType:       userType,
 			Module:         data.Module,
 			Latitude:       &latitude,
 			Longitude:      &longitude,

@@ -34,7 +34,7 @@ type (
 
 		Description    string    `gorm:"type:text;not null"`
 		Activity       string    `gorm:"type:text;not null"`
-		AccountType    string    `gorm:"type:varchar(11);unsigned" json:"account_type"`
+		UserType       string    `gorm:"type:varchar(11);unsigned" json:"user_type"`
 		Module         string    `gorm:"type:varchar(255);unsigned" json:"module"`
 		Latitude       *float64  `gorm:"type:decimal(10,7)" json:"latitude,omitempty"`
 		Longitude      *float64  `gorm:"type:decimal(10,7)" json:"longitude,omitempty"`
@@ -67,7 +67,7 @@ type (
 
 		Description    string   `json:"description"`
 		Activity       string   `json:"activity"`
-		AccountType    string   `json:"account_type"`
+		UserType       string   `json:"user_type"`
 		Module         string   `json:"module"`
 		Latitude       *float64 `json:"latitude,omitempty"`
 		Longitude      *float64 `json:"longitude,omitempty"`
@@ -119,7 +119,7 @@ func (m *Model) Footstep() {
 
 				Description:    data.Description,
 				Activity:       data.Activity,
-				AccountType:    data.AccountType,
+				UserType:       data.UserType,
 				Module:         data.Module,
 				Latitude:       data.Latitude,
 				Longitude:      data.Longitude,
