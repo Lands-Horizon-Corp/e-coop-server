@@ -99,6 +99,7 @@ func (c *Controller) Start() error {
 
 	// Accounts
 	c.AccountController()
+	c.MemberAccountingLedgerController()
 	c.AccountCategoryController()
 	c.AccountClassificationController()
 	c.GeneralLedgerController()

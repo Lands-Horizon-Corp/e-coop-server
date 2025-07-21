@@ -12,7 +12,6 @@ func (c *Controller) TransactionBatchEntriesController() {
 
 	req := c.provider.Service.Request
 
-	// Returns paginated check entries for a given transaction batch.
 	req.RegisterRoute(horizon.Route{
 		Route:    "/check-entry/transaction-batch/:transaction_batch_id/search",
 		Method:   "GET",

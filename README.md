@@ -120,14 +120,8 @@ gofmt -w .
 golangci-lint run
 ```
 
-### Deploy to Fly.io
+### Deploy to Fly.io, Reset Machines & View Logs
 
 ```bash
-fly deploy
-```
-
-### Reset Machines & View Logs
-
-```bash
-fly machine restart 148e4d55f36278; fly machine restart 90802d3ea0ed38; fly logs
+fly deploy; fly machine restart 148e4d55f36278; fly machine restart 90802d3ea0ed38; fly logs
 ```

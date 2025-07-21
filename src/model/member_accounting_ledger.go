@@ -140,6 +140,7 @@ func (m *Model) MemberAccountingLedger() {
 				fmt.Sprintf("member_accounting_ledger.create.%s", data.ID),
 				fmt.Sprintf("member_accounting_ledger.create.branch.%s", data.BranchID),
 				fmt.Sprintf("member_accounting_ledger.create.organization.%s", data.OrganizationID),
+				fmt.Sprintf("member_accounting_ledger.create.member_profile.%s", data.MemberProfileID),
 			}
 		},
 		Updated: func(data *MemberAccountingLedger) []string {
@@ -148,6 +149,7 @@ func (m *Model) MemberAccountingLedger() {
 				fmt.Sprintf("member_accounting_ledger.update.%s", data.ID),
 				fmt.Sprintf("member_accounting_ledger.update.branch.%s", data.BranchID),
 				fmt.Sprintf("member_accounting_ledger.update.organization.%s", data.OrganizationID),
+				fmt.Sprintf("member_accounting_ledger.update.member_profile.%s", data.MemberProfileID),
 			}
 		},
 		Deleted: func(data *MemberAccountingLedger) []string {
@@ -156,6 +158,7 @@ func (m *Model) MemberAccountingLedger() {
 				fmt.Sprintf("member_accounting_ledger.delete.%s", data.ID),
 				fmt.Sprintf("member_accounting_ledger.delete.branch.%s", data.BranchID),
 				fmt.Sprintf("member_accounting_ledger.delete.organization.%s", data.OrganizationID),
+				fmt.Sprintf("member_accounting_ledger.delete.member_profile.%s", data.MemberProfileID),
 			}
 		},
 	})
