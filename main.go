@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	_ "net/http/pprof"
 	"os"
 	"strings"
 	"time"

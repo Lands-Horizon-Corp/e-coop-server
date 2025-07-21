@@ -978,5 +978,16 @@ func FilterAndSortSlice[T any](
 	if err != nil {
 		return data, eris.Wrap(err, "sorting failed")
 	}
+
+	// Apply limit based on pageSize query parameter
+	pageSizeStr := echoCtx.QueryParam("pageSize")
+	if pageSizeStr != "" {
+		if pageSize, err := strconv.Atoi(pageSizeStr); err == nil && pageSize > 0 {
+			if len(sorted) > pageSize {
+				sorted = sorted[:pageSize]
+			}
+		}
+	}
+
 	return sorted, nil
 }
