@@ -266,11 +266,6 @@ func (h *HorizonAPIService) RegisterRoute(route Route, callback func(c echo.Cont
 
 // Run starts the API and metrics servers.
 func (h *HorizonAPIService) Run(ctx context.Context) error {
-	h.service.GET("/routes", func(c echo.Context) error {
-		return c.Render(http.StatusOK, "routes.html", map[string]any{
-			"routes": h.GroupedRoutes(),
-		})
-	}).Name = "horizon-routes"
 
 	// New: GET /api/routes returns grouped routes as JSON
 	h.service.GET("/api/routes", func(c echo.Context) error {
