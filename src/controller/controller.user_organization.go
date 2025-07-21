@@ -470,11 +470,6 @@ func (c *Controller) UserOrganinzationController() {
 			if err := c.userOrganizationToken.SetUserOrganization(context, ctx, userOrganization); err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to set user organization: " + err.Error()})
 			}
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "user-organization",
-				Description: "Switched organization and branch for user organization org: " + userOrganization.Organization.Name + "branch: " + userOrganization.Branch.Name,
-				Module:      "UserOrganization",
-			})
 			return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModel(userOrganization))
 		}
 		return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Switching forbidden - user is " + userOrganization.UserType})
