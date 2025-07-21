@@ -95,6 +95,7 @@ func (c *Controller) Start() error {
 	c.BatchFundingController()
 	c.CheckRemittanceController()
 	c.TransactionBatchEntriesController()
+	c.TransactionEntryController()
 	c.OnlineRemittanceController()
 
 	// Accounts
