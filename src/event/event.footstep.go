@@ -2,6 +2,7 @@ package event
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -73,6 +74,7 @@ func (e *Event) Footstep(ctx context.Context, echoCtx echo.Context, data Footste
 			Location:       location,
 			AcceptLanguage: acceptLanguage,
 		}); err != nil {
+			fmt.Println("Failed to save footstep:", err)
 			return
 		}
 	}()
