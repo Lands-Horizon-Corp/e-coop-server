@@ -75,19 +75,10 @@ var (
 	}
 	forbiddenSubstrings = []string{
 		"dockerfile",
-		"secrets",
 		"credentials",
-		"password",
-		"private",
-		"config",
+		"secrets",
 		"backup",
-		"token",
-		"key",
-		"certificate",
-		"ssl",
-		"auth",
 		"hidden",
-		"admin",
 	}
 )
 
