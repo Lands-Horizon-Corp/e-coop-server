@@ -94,9 +94,6 @@ func (c *Controller) FootstepController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_organization_id"})
 		}
-		// You may want to add permission checks here to ensure the current user can access this user organization
-
-		// Retrieve the user organization record to get its UserID, OrganizationID, and BranchID
 		targetUserOrg, err := c.model.UserOrganizationManager.GetByID(context, *userOrgId)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
@@ -126,5 +123,28 @@ func (c *Controller) FootstepController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Footstep record not found"})
 		}
 		return ctx.JSON(http.StatusOK, footstep)
+	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:    "/footstep/current/me/branch/search",
+		Method:   "GET",
+		Response: "TFootstep[]",
+		Note:     "Returns footsteps for the currently authenticated user on their current branch.",
+		Private:  true,
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization/branch not found"})
+		}
+		if userOrg.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User branch ID is missing"})
+		}
+		footstep, err := c.model.GetFootstepByUserOrganization(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve footsteps for user on branch: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.FootstepManager.Pagination(context, ctx, footstep))
 	})
 }
