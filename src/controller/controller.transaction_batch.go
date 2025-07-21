@@ -48,11 +48,11 @@ func (c *Controller) TransactionBatchController() {
 		Note:     "Returns paginated transaction batches for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		transactionBatch, err := c.model.TransactionBatchCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		transactionBatch, err := c.model.TransactionBatchCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve paginated transaction batches: " + err.Error()})
 		}
@@ -188,7 +188,7 @@ func (c *Controller) TransactionBatchController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
 
-		transactionBatch, err := c.model.TransactionBatchCurrent(context, userOrg.OrganizationID, *userOrg.BranchID)
+		transactionBatch, err := c.model.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Failed to retrieve transaction batch: " + err.Error()})
 		}
@@ -377,7 +377,7 @@ func (c *Controller) TransactionBatchController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
-		transactionBatch, err := c.model.TransactionBatchCurrent(context, userOrg.OrganizationID, *userOrg.BranchID)
+		transactionBatch, err := c.model.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -523,7 +523,7 @@ func (c *Controller) TransactionBatchController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
-		transactionBatch, err := c.model.TransactionBatchCurrent(context, userOrg.OrganizationID, *userOrg.BranchID)
+		transactionBatch, err := c.model.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",

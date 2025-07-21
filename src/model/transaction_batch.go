@@ -37,7 +37,7 @@ type (
 		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_transaction_batch"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
-		EmployeeUserID *uuid.UUID `gorm:"type:uuid"`
+		EmployeeUserID *uuid.UUID `gorm:"type:uuid" json:"employee_user_id,omitempty"`
 		EmployeeUser   *User      `gorm:"foreignKey:EmployeeUserID" json:"employee_user,omitempty"`
 
 		BatchName                     string  `gorm:"type:varchar(50)"`
@@ -475,11 +475,12 @@ func (m *Model) TransactionBatch() {
 	})
 }
 
-func (m *Model) TransactionBatchCurrent(context context.Context, orgId uuid.UUID, branchId uuid.UUID) (*TransactionBatch, error) {
+func (m *Model) TransactionBatchCurrent(context context.Context, userId uuid.UUID, orgId uuid.UUID, branchId uuid.UUID) (*TransactionBatch, error) {
 	return m.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
-		"organization_id": orgId,
-		"branch_id":       branchId,
-		"is_closed":       false,
+		"organization_id":  orgId,
+		"branch_id":        branchId,
+		"employee_user_id": userId,
+		"is_closed":        false,
 	})
 }
 
