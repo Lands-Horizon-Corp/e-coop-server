@@ -309,20 +309,34 @@ func LoadTemplatesIfExists(e *echo.Echo, pattern string) {
 func IsSuspiciousPath(path string) bool {
 	lower := strings.ToLower(path)
 	decoded, _ := url.PathUnescape(lower)
-	if strings.Contains(lower, "../") || strings.Contains(decoded, "../") ||
-		strings.Contains(lower, "..\\") || strings.Contains(decoded, "..\\") ||
-		strings.Contains(lower, "%2e%2e%2f") || strings.Contains(lower, "%2e%2e%5c") {
+	if strings.ContainsAny(lower, "\\/") {
+		if strings.Contains(lower, "../") || strings.Contains(decoded, "../") ||
+			strings.Contains(lower, "..\\") || strings.Contains(decoded, "..\\") {
+			return true
+		}
+	}
+	if strings.Contains(lower, "%2e%2e%2f") || strings.Contains(lower, "%2e%2e%5c") ||
+		strings.Contains(decoded, "%2e%2e%2f") || strings.Contains(decoded, "%2e%2e%5c") {
 		return true
 	}
+	var extMap = map[string]struct{}{}
 	for _, ext := range forbiddenExtensions {
+		extMap[ext] = struct{}{}
+	}
+	for ext := range extMap {
 		if strings.HasSuffix(lower, ext) || strings.HasSuffix(decoded, ext) {
 			return true
 		}
 	}
+	var substrMap = map[string]struct{}{}
 	for _, substr := range forbiddenSubstrings {
+		substrMap[substr] = struct{}{}
+	}
+	for substr := range substrMap {
 		if strings.Contains(lower, substr) || strings.Contains(decoded, substr) {
 			return true
 		}
 	}
+
 	return false
 }
