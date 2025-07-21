@@ -46,6 +46,7 @@ type Route struct {
 	Response string `json:"response"`
 	Method   string `json:"method"`
 	Note     string `json:"note"`
+	Private  bool   `json:"private,omitempty"`
 }
 
 // GroupedRoute holds a group of routes under a common key.
@@ -252,13 +253,15 @@ func (h *HorizonAPIService) RegisterRoute(route Route, callback func(c echo.Cont
 	default:
 		panic(fmt.Sprintf("Unsupported HTTP method: %s", method))
 	}
-	h.routesList = append(h.routesList, Route{
-		Route:    route.Route,
-		Request:  route.Request,
-		Response: route.Response,
-		Method:   method,
-		Note:     route.Note,
-	})
+	if !route.Private {
+		h.routesList = append(h.routesList, Route{
+			Route:    route.Route,
+			Request:  route.Request,
+			Response: route.Response,
+			Method:   method,
+			Note:     route.Note,
+		})
+	}
 }
 
 // Run starts the API and metrics servers.

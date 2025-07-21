@@ -66,6 +66,7 @@ func (c *Controller) BranchController() {
 		Request:  "TBranch[]",
 		Response: "{branch: TBranch, user_organization: TUserOrganization}",
 		Note:     "Creates a new branch for the given organization. If the user already has a branch, a new user organization is created; otherwise, the user's current user organization is updated with the new branch.",
+		Private:  true,
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
@@ -282,6 +283,7 @@ func (c *Controller) BranchController() {
 		Request:  "TBranch",
 		Response: "{branch: TBranch, user_organization: TUserOrganization}",
 		Note:     "Updates branch information for the specified branch. Only allowed for the owner of the branch.",
+		Private:  true,
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
@@ -393,9 +395,10 @@ func (c *Controller) BranchController() {
 
 	// DELETE /branch/:branch_id: Delete a branch (owner only, if fewer than 3 members).
 	req.RegisterRoute(horizon.Route{
-		Route:  "/branch/:branch_id",
-		Method: "DELETE",
-		Note:   "Deletes the specified branch if the user is the owner and there are less than 3 members in the branch.",
+		Route:   "/branch/:branch_id",
+		Method:  "DELETE",
+		Note:    "Deletes the specified branch if the user is the owner and there are less than 3 members in the branch.",
+		Private: true,
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		branchId, err := horizon.EngineUUIDParam(ctx, "branch_id")

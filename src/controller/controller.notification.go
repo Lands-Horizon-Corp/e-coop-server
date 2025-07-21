@@ -19,6 +19,7 @@ func (c *Controller) NotificationController() {
 		Method:   "GET",
 		Response: "TNotification[]",
 		Note:     "Returns all notifications for the currently logged-in user.",
+		Private:  true,
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userToken.CurrentUser(context, ctx)
@@ -38,6 +39,7 @@ func (c *Controller) NotificationController() {
 		Method:  "PUT",
 		Request: "string[] ids",
 		Note:    "Marks multiple notifications as viewed for the current user.",
+		Private: true,
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 

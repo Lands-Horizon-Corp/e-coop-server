@@ -17,6 +17,7 @@ func (c *Controller) FootstepController() {
 		Method:   "GET",
 		Response: "TFootstep[]",
 		Note:     "Returns all footsteps for the currently authenticated user.",
+		Private:  true,
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userToken.CurrentUser(context, ctx)

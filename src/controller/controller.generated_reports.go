@@ -18,6 +18,7 @@ func (c *Controller) GeneratedReports() {
 		Method:   "GET",
 		Response: "TGeneratedReport[]",
 		Note:     "Returns all generated reports for the currently authenticated user.",
+		Private:  true,
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userToken.CurrentUser(context, ctx)

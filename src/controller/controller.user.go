@@ -22,6 +22,7 @@ func (c *Controller) UserController() {
 		Method:   "GET",
 		Response: "TUserRating[]",
 		Note:     "Returns a specific user by their ID.",
+		Private:  true,
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userId, err := horizon.EngineUUIDParam(ctx, "user_id")
@@ -41,6 +42,7 @@ func (c *Controller) UserController() {
 		Method:   "GET",
 		Response: "TUser",
 		Note:     "Returns the current authenticated user and their user organization, if any.",
+		Private:  true,
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userToken.CurrentUser(context, ctx)
@@ -66,6 +68,7 @@ func (c *Controller) UserController() {
 		Note:     "Returns all currently logged-in users for the session.",
 		Method:   "GET",
 		Response: "ILoggedInUser",
+		Private:  true,
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		_, err := c.userToken.CurrentUser(context, ctx)
@@ -87,9 +90,10 @@ func (c *Controller) UserController() {
 
 	// Logout all users including itself for the session
 	req.RegisterRoute(horizon.Route{
-		Route:  "/authentication/current-logged-in-accounts/logout",
-		Method: "POST",
-		Note:   "Logs out all users including itself for the session.",
+		Route:   "/authentication/current-logged-in-accounts/logout",
+		Method:  "POST",
+		Note:    "Logs out all users including itself for the session.",
+		Private: true,
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		_, err := c.userToken.CurrentUser(context, ctx)
@@ -109,6 +113,7 @@ func (c *Controller) UserController() {
 		Request:  "ISignInRequest",
 		Response: "TUser",
 		Note:     "Authenticates a user and returns user details.",
+		Private:  true,
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req model.UserLoginRequest
@@ -167,9 +172,10 @@ func (c *Controller) UserController() {
 
 	// Logout the current user
 	req.RegisterRoute(horizon.Route{
-		Route:  "/authentication/logout",
-		Method: "POST",
-		Note:   "Logs out the current user.",
+		Route:   "/authentication/logout",
+		Method:  "POST",
+		Note:    "Logs out the current user.",
+		Private: true,
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		c.userToken.CSRF.ClearCSRF(context, ctx)
@@ -188,6 +194,7 @@ func (c *Controller) UserController() {
 		Request:  "ISignUpRequest",
 		Response: "TUser",
 		Note:     "Registers a new user.",
+		Private:  true,
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.UserManager.Validate(ctx)
@@ -259,6 +266,7 @@ func (c *Controller) UserController() {
 		Request:  "IForgotPasswordRequest",
 		Response: "TUser",
 		Note:     "Initiates forgot password flow and sends a reset link.",
+		Private:  true,
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req model.UserForgotPasswordRequest
@@ -332,9 +340,10 @@ func (c *Controller) UserController() {
 
 	// Verify password reset link
 	req.RegisterRoute(horizon.Route{
-		Route:  "/authentication/verify-reset-link/:reset_id",
-		Method: "GET",
-		Note:   "Verifies if the reset password link is valid.",
+		Route:   "/authentication/verify-reset-link/:reset_id",
+		Method:  "GET",
+		Note:    "Verifies if the reset password link is valid.",
+		Private: true,
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		resetID := ctx.Param("reset_id")
@@ -362,6 +371,7 @@ func (c *Controller) UserController() {
 		Method:  "POST",
 		Request: "IChangePasswordRequest",
 		Note:    "Changes the user's password using the reset link.",
+		Private: true,
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req model.UserChangePasswordRequest
@@ -433,9 +443,10 @@ func (c *Controller) UserController() {
 
 	// Send OTP for contact number verification
 	req.RegisterRoute(horizon.Route{
-		Route:  "/authentication/apply-contact-number",
-		Method: "POST",
-		Note:   "Sends OTP for contact number verification.",
+		Route:   "/authentication/apply-contact-number",
+		Method:  "POST",
+		Note:    "Sends OTP for contact number verification.",
+		Private: true,
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userToken.CurrentUser(context, ctx)
@@ -481,6 +492,7 @@ func (c *Controller) UserController() {
 		Method:  "POST",
 		Request: "IVerifyContactNumberRequest",
 		Note:    "Verifies OTP for contact number verification.",
+		Private: true,
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req model.UserVerifyContactNumberRequest
@@ -566,9 +578,10 @@ func (c *Controller) UserController() {
 
 	// Send OTP for email verification
 	req.RegisterRoute(horizon.Route{
-		Route:  "/authentication/apply-email",
-		Method: "POST",
-		Note:   "Sends OTP for email verification.",
+		Route:   "/authentication/apply-email",
+		Method:  "POST",
+		Note:    "Sends OTP for email verification.",
+		Private: true,
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userToken.CurrentUser(context, ctx)
@@ -614,6 +627,7 @@ func (c *Controller) UserController() {
 		Method:  "POST",
 		Request: "IVerifyEmailRequest",
 		Note:    "Verifies OTP for email verification.",
+		Private: true,
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req model.UserVerifyEmailRequest
@@ -703,6 +717,7 @@ func (c *Controller) UserController() {
 		Method:  "POST",
 		Request: "password & password confirmation",
 		Note:    "Verifies the user's password for protected self actions.",
+		Private: true,
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req model.UserVerifyWithPasswordRequest
@@ -729,6 +744,7 @@ func (c *Controller) UserController() {
 		Method:  "PUT",
 		Request: "IChangePasswordRequest",
 		Note:    "Changes the user's password from profile settings.",
+		Private: true,
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req model.UserSettingsChangePasswordRequest
@@ -806,6 +822,7 @@ func (c *Controller) UserController() {
 		Request:  "IUserSettingsPhotoUpdateRequest",
 		Response: "TUser",
 		Note:     "Changes the user's profile picture.",
+		Private:  true,
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req model.UserSettingsChangeProfilePictureRequest
@@ -873,6 +890,7 @@ func (c *Controller) UserController() {
 		Request:  "IUserSettingsGeneralRequest",
 		Response: "TUser",
 		Note:     "Changes the user's general profile settings.",
+		Private:  true,
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req model.UserSettingsChangeGeneralRequest

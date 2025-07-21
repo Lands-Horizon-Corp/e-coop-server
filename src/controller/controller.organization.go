@@ -55,6 +55,7 @@ func (c *Controller) OrganizationController() {
 		Request:  "TOrganization",
 		Response: "{organization: TOrganization, user_organization: TUserOrganization}",
 		Note:     "Creates a new organization. User must be logged in.",
+		Private:  true,
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.OrganizationManager.Validate(ctx)
@@ -244,6 +245,7 @@ func (c *Controller) OrganizationController() {
 		Request:  "TOrganization",
 		Response: "{organization: TOrganization, user_organization: TUserOrganization}",
 		Note:     "Updates an organization. User must be logged in.",
+		Private:  true,
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		organizationId, err := horizon.EngineUUIDParam(ctx, "organization_id")
@@ -387,9 +389,10 @@ func (c *Controller) OrganizationController() {
 
 	// Delete an organization (user must be logged in)
 	req.RegisterRoute(horizon.Route{
-		Route:  "/organization/:organization_id",
-		Method: "DELETE",
-		Note:   "Deletes an organization. User must be logged in.",
+		Route:   "/organization/:organization_id",
+		Method:  "DELETE",
+		Note:    "Deletes an organization. User must be logged in.",
+		Private: true,
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		organizationId, err := horizon.EngineUUIDParam(ctx, "organization_id")

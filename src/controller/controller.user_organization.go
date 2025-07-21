@@ -104,9 +104,10 @@ func (c *Controller) UserOrganinzationController() {
 
 	// Seed all branches inside an organization when first created
 	req.RegisterRoute(horizon.Route{
-		Route:  "/user-organization/:organization_id/seed",
-		Method: "POST",
-		Note:   "Seeds all branches inside an organization when first created.",
+		Route:   "/user-organization/:organization_id/seed",
+		Method:  "POST",
+		Note:    "Seeds all branches inside an organization when first created.",
+		Private: true,
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		orgId, err := horizon.EngineUUIDParam(ctx, "organization_id")
@@ -328,6 +329,7 @@ func (c *Controller) UserOrganinzationController() {
 		Method:   "GET",
 		Response: "TUserOrganization[]",
 		Note:     "Returns all user organizations for the currently logged-in user.",
+		Private:  true,
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		isPending := false
@@ -443,9 +445,10 @@ func (c *Controller) UserOrganinzationController() {
 
 	// Switch organization and branch stored in JWT (no database impact)
 	req.RegisterRoute(horizon.Route{
-		Route:  "/user-organization/:user_organization_id/switch",
-		Method: "GET",
-		Note:   "Switches organization and branch in JWT for the current user. No database impact.",
+		Route:   "/user-organization/:user_organization_id/switch",
+		Method:  "GET",
+		Note:    "Switches organization and branch in JWT for the current user. No database impact.",
+		Private: true,
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrgId, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
@@ -538,9 +541,10 @@ func (c *Controller) UserOrganinzationController() {
 
 	// Join organization and branch using an invitation code
 	req.RegisterRoute(horizon.Route{
-		Route:  "/user-organization/invitation-code/:code/join",
-		Method: "POST",
-		Note:   "Joins an organization and branch using an invitation code.",
+		Route:   "/user-organization/invitation-code/:code/join",
+		Method:  "POST",
+		Note:    "Joins an organization and branch using an invitation code.",
+		Private: true,
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		code := ctx.Param("code")
@@ -679,9 +683,10 @@ func (c *Controller) UserOrganinzationController() {
 
 	// Join an organization and branch that is already created
 	req.RegisterRoute(horizon.Route{
-		Route:  "/user-organization/organization/:organization_id/branch/:branch_id/join",
-		Method: "POST",
-		Note:   "Joins an existing organization and branch.",
+		Route:   "/user-organization/organization/:organization_id/branch/:branch_id/join",
+		Method:  "POST",
+		Note:    "Joins an existing organization and branch.",
+		Private: true,
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		orgId, err := horizon.EngineUUIDParam(ctx, "organization_id")
@@ -839,9 +844,10 @@ func (c *Controller) UserOrganinzationController() {
 
 	// Check if the user can join as a member
 	req.RegisterRoute(horizon.Route{
-		Route:  "/user-organization/organization/:organization_id/branch/:branch_id/can-join-member",
-		Method: "GET",
-		Note:   "Checks if the user can join as a member.",
+		Route:   "/user-organization/organization/:organization_id/branch/:branch_id/can-join-member",
+		Method:  "GET",
+		Note:    "Checks if the user can join as a member.",
+		Private: true,
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userToken.CurrentUser(context, ctx)
@@ -864,9 +870,10 @@ func (c *Controller) UserOrganinzationController() {
 
 	// Check if the user can join as an employee
 	req.RegisterRoute(horizon.Route{
-		Route:  "/user-organization/organization/:organization_id/branch/:branch_id/can-join-employee",
-		Method: "GET",
-		Note:   "Checks if the user can join as an employee.",
+		Route:   "/user-organization/organization/:organization_id/branch/:branch_id/can-join-employee",
+		Method:  "GET",
+		Note:    "Checks if the user can join as an employee.",
+		Private: true,
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userToken.CurrentUser(context, ctx)
