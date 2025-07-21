@@ -155,6 +155,7 @@ func (m *Model) TransactionEntry() {
 				fmt.Sprintf("transaction_entry.create.%s", data.ID),
 				fmt.Sprintf("transaction_entry.create.branch.%s", data.BranchID),
 				fmt.Sprintf("transaction_entry.create.organization.%s", data.OrganizationID),
+				fmt.Sprintf("transaction_entry.create.transaction.%s", data.TransactionID),
 			}
 		},
 		Updated: func(data *TransactionEntry) []string {
@@ -163,6 +164,7 @@ func (m *Model) TransactionEntry() {
 				fmt.Sprintf("transaction_entry.update.%s", data.ID),
 				fmt.Sprintf("transaction_entry.update.branch.%s", data.BranchID),
 				fmt.Sprintf("transaction_entry.update.organization.%s", data.OrganizationID),
+				fmt.Sprintf("transaction_entry.update.transaction.%s", data.TransactionID),
 			}
 		},
 		Deleted: func(data *TransactionEntry) []string {
@@ -171,6 +173,7 @@ func (m *Model) TransactionEntry() {
 				fmt.Sprintf("transaction_entry.delete.%s", data.ID),
 				fmt.Sprintf("transaction_entry.delete.branch.%s", data.BranchID),
 				fmt.Sprintf("transaction_entry.delete.organization.%s", data.OrganizationID),
+				fmt.Sprintf("transaction_entry.delete.transaction.%s", data.TransactionID),
 			}
 		},
 	})
