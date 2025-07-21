@@ -69,9 +69,25 @@ var (
 		".env", ".yaml", ".yml", ".ini", ".config", ".conf", ".xml", ".git",
 		".htaccess", ".htpasswd", ".backup", ".secret", ".credential", ".password",
 		".private", ".key", ".token", ".dump", ".database", ".db", ".logs", ".debug",
+		".pem", ".crt", ".cert", ".pfx", ".p12", ".bak", ".swp", ".tmp", ".cache",
+		".session", ".sqlite", ".sqlite3", ".mdf", ".ldf", ".rdb", ".ldb", ".log",
+		".old", ".orig", ".example", ".sample", ".test", ".spec", ".out", ".core",
 	}
 	forbiddenSubstrings = []string{
 		"dockerfile",
+		"secrets",
+		"credentials",
+		"password",
+		"private",
+		"config",
+		"backup",
+		"token",
+		"key",
+		"certificate",
+		"ssl",
+		"auth",
+		"hidden",
+		"admin",
 	}
 )
 
