@@ -210,6 +210,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) Pagination(
 	maxWorkers := runtime.NumCPU()
 	filtered, err := horizon.Pagination(ctx, param, data, batchSize, maxWorkers)
 	if err != nil {
+		fmt.Println("Pagination error:", err)
 		return horizon.PaginationResult[TResponse]{}
 	}
 	return horizon.PaginationResult[TResponse]{
