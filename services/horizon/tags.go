@@ -176,6 +176,9 @@ func allTSInterfacesMarkdown(rootType reflect.Type) string {
 	return sb.String()
 }
 func TagFormat(model any) string {
+	if model == nil {
+		return "None"
+	}
 	return allTSInterfacesMarkdown(reflect.TypeOf(model))
 }
 
