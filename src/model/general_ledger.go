@@ -2,12 +2,14 @@ package model
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 	horizon_services "github.com/lands-horizon/horizon-server/services"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // Enum for general_ledger_source
@@ -89,6 +91,7 @@ type (
 		ProofOfPaymentMedia   *Media     `gorm:"foreignKey:ProofOfPaymentMediaID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"proof_of_payment_media,omitempty"`
 
 		BankReferenceNumber string `gorm:"type:varchar(50)"`
+		Description         string `gorm:"type:text"`
 	}
 
 	GeneralLedgerResponse struct {
@@ -145,6 +148,8 @@ type (
 		ProofOfPaymentMedia   *MediaResponse `json:"proof_of_payment_media,omitempty"`
 
 		BankReferenceNumber string `json:"bank_reference_number,omitempty"`
+
+		Description string `json:"description,omitempty"`
 	}
 
 	GeneralLedgerRequest struct {
@@ -171,6 +176,7 @@ type (
 		BankID                     *uuid.UUID          `json:"bank_id,omitempty"`
 		ProofOfPaymentMediaID      *uuid.UUID          `json:"proof_of_payment_media_id,omitempty"`
 		BankReferenceNumber        string              `json:"bank_reference_number,omitempty"`
+		Description                string              `json:"description,omitempty"`
 	}
 
 	PaymentRequest struct {
@@ -186,6 +192,22 @@ type (
 		MemberProfileID       *uuid.UUID `json:"member_profile_id,omitempty"`
 		MemberJointAccountID  *uuid.UUID `json:"member_joint_account_id,omitempty"`
 		PaymentTypeID         *uuid.UUID `json:"payment_type_id,omitempty"`
+		Description           string     `json:"description,omitempty" validate:"max=255"`
+	}
+
+	PaymentQuickRequest struct {
+		Amount                float64    `json:"amount" validate:"required"`
+		SignatureMediaID      *uuid.UUID `json:"signature_media_id,omitempty"`
+		ProofOfPaymentMediaID *uuid.UUID `json:"proof_of_payment_media_id,omitempty"`
+		BankID                *uuid.UUID `json:"bank_id,omitempty"`
+		BankReferenceNumber   string     `json:"bank_reference_number,omitempty"`
+		EntryDate             *time.Time `json:"entry_date,omitempty"`
+		ReferenceNumber       string     `json:"reference_number,omitempty"`
+		AccountID             *uuid.UUID `json:"account_id,omitempty"`
+		MemberProfileID       *uuid.UUID `json:"member_profile_id,omitempty"`
+		MemberJointAccountID  *uuid.UUID `json:"member_joint_account_id,omitempty"`
+		PaymentTypeID         *uuid.UUID `json:"payment_type_id,omitempty"`
+		Description           string     `json:"description,omitempty" validate:"max=255"`
 	}
 )
 
@@ -255,6 +277,7 @@ func (m *Model) GeneralLedger() {
 				ProofOfPaymentMediaID: data.ProofOfPaymentMediaID,
 				ProofOfPaymentMedia:   m.MediaManager.ToModel(data.ProofOfPaymentMedia),
 				BankReferenceNumber:   data.BankReferenceNumber,
+				Description:           data.Description,
 			}
 		},
 		Created: func(data *GeneralLedger) []string {
@@ -298,4 +321,22 @@ func (m *Model) GeneralLedgerCurrentMemberAccount(context context.Context, membe
 		AccountID:       &accountId,
 		MemberProfileID: &memberProfileId,
 	})
+}
+
+func (m *Model) GeneralLedgerCurrentMemberAccountForUpdate(
+	ctx context.Context, tx *gorm.DB, memberProfileId, accountId, orgId, branchId uuid.UUID,
+) (*GeneralLedger, error) {
+	var ledger GeneralLedger
+	err := tx.
+		WithContext(ctx).
+		Model(&GeneralLedger{}).
+		Where("organization_id = ? AND branch_id = ? AND account_id = ? AND member_profile_id = ?", orgId, branchId, accountId, memberProfileId).
+		Order("entry_date DESC NULLS LAST, created_at DESC").
+		Limit(1).
+		Clauses(clause.Locking{Strength: "UPDATE"}).
+		Take(&ledger).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	return &ledger, err
 }

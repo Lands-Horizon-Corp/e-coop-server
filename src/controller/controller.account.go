@@ -20,22 +20,22 @@ func (c *Controller) AccountController() {
 		Route:    "/account/search",
 		Method:   "GET",
 		Response: "IAccount[]",
-		Note:     "Retrieve all accounts for the current branch.",
+		Note:     "Retrieve all accounts for the current branch. Only 'owner' and 'employee' roles are authorized. Returns paginated results.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
 		}
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 		accounts, err := c.model.AccountManager.Find(context, &model.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve accounts: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.AccountManager.Pagination(context, ctx, accounts))
 	})
