@@ -102,6 +102,18 @@ func NewHorizonAPIService(
 	}
 	e.Use(middleware.Recover())
 	e.Pre(middleware.RemoveTrailingSlash())
+	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			path := c.Request().URL.Path
+			if IsSuspiciousPath(path) {
+				return c.String(http.StatusForbidden, "Access forbidden")
+			}
+			if strings.HasPrefix(strings.ToLower(path), "/.well-known/") {
+				return c.String(http.StatusNotFound, "Path not found")
+			}
+			return next(c)
+		}
+	})
 	e.Use(middleware.BodyLimit("10mb"))
 	e.Use(middleware.SecureWithConfig(middleware.SecureConfig{
 		XSSProtection:         "1; mode=block",
@@ -131,18 +143,6 @@ func NewHorizonAPIService(
 			return c.JSON(http.StatusTooManyRequests, map[string]string{"error": "rate limit exceeded"})
 		},
 	}))
-	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			path := c.Request().URL.Path
-			if IsSuspiciousPath(path) {
-				return c.String(http.StatusForbidden, "Access forbidden")
-			}
-			if strings.HasPrefix(strings.ToLower(path), "/.well-known/") {
-				return c.String(http.StatusNotFound, "Path not found")
-			}
-			return next(c)
-		}
-	})
 
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{

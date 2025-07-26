@@ -40,10 +40,11 @@ type (
 		GeneralLedger        *GeneralLedger      `gorm:"foreignKey:GeneralLedgerID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"general_ledger,omitempty"`
 		TransactionBatchID   *uuid.UUID          `gorm:"type:uuid"`
 		TransactionBatch     *TransactionBatch   `gorm:"foreignKey:TransactionBatchID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"transaction_batch,omitempty"`
-		SignatureMediaID     *uuid.UUID          `gorm:"type:uuid"`
-		SignatureMedia       *Media              `gorm:"foreignKey:SignatureMediaID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"signature_media,omitempty"`
 		AccountID            *uuid.UUID          `gorm:"type:uuid"`
 		Account              *Account            `gorm:"foreignKey:AccountID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"account,omitempty"`
+
+		SignatureMediaID *uuid.UUID `gorm:"type:uuid"`
+		SignatureMedia   *Media     `gorm:"foreignKey:SignatureMediaID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"signature_media,omitempty"`
 
 		ReferenceNumber string  `gorm:"type:varchar(50)"`
 		Debit           float64 `gorm:"type:decimal"`
