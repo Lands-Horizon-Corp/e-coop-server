@@ -15,6 +15,27 @@ import (
 func (c *Controller) CashCountController() {
 	req := c.provider.Service.Request
 
+	req.RegisterRoute(horizon.Route{
+		Route:    "/cash-count/search",
+		Method:   "GET",
+		Response: "TCashCount[]",
+		Note:     "Returns all cash counts of the current branch",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if user.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		cashCount, err := c.model.CashCountCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No cash counts found for the current branch"})
+		}
+		return ctx.JSON(http.StatusOK, c.model.CashCountManager.Pagination(context, ctx, cashCount))
+	})
+
 	// GET /cash-count: Retrieve all cash count bills for the current active transaction batch for the user's branch. (NO footstep)
 	req.RegisterRoute(horizon.Route{
 		Route:    "/cash-count",
