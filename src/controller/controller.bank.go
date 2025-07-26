@@ -46,7 +46,7 @@ func (c *Controller) BankController() {
 		Request:      "Filter<IBank>",
 		Response:     "Paginated<IBank>",
 		Note:         "Returns a paginated list of banks for the current user's organization and branch.",
-		ResponseType: horizon.PaginationResult[model.BankResponse]{},
+		ResponseType: model.BankResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
