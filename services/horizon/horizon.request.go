@@ -258,8 +258,8 @@ func (h *HorizonAPIService) RegisterRoute(route Route, callback func(c echo.Cont
 	if !route.Private {
 		h.routesList = append(h.routesList, Route{
 			Route:    route.Route,
-			Request:  StructToTypeScriptMarkdown(route.RequestType, route.Request),
-			Response: StructToTypeScriptMarkdown(route.ResponseType, route.Response),
+			Request:  TagFormat(route.RequestType),
+			Response: TagFormat(route.ResponseType),
 			Method:   method,
 			Note:     route.Note,
 		})

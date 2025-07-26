@@ -18,10 +18,11 @@ func (c *Controller) BankController() {
 
 	// GET /bank: List all banks for the current user's branch. (NO footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/bank",
-		Method:   "GET",
-		Response: "TBank[]",
-		Note:     "Returns all banks for the current user's organization and branch. Returns empty if not authenticated.",
+		Route:        "/bank",
+		Method:       "GET",
+		Response:     "TBank[]",
+		Note:         "Returns all banks for the current user's organization and branch. Returns empty if not authenticated.",
+		ResponseType: model.BankResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -40,11 +41,12 @@ func (c *Controller) BankController() {
 
 	// GET /bank/search: Paginated search of banks for the current branch. (NO footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/bank/search",
-		Method:   "GET",
-		Request:  "Filter<IBank>",
-		Response: "Paginated<IBank>",
-		Note:     "Returns a paginated list of banks for the current user's organization and branch.",
+		Route:        "/bank/search",
+		Method:       "GET",
+		Request:      "Filter<IBank>",
+		Response:     "Paginated<IBank>",
+		Note:         "Returns a paginated list of banks for the current user's organization and branch.",
+		ResponseType: horizon.PaginationResult[model.BankResponse]{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -63,10 +65,11 @@ func (c *Controller) BankController() {
 
 	// GET /bank/:bank_id: Get specific bank by ID. (NO footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/bank/:bank_id",
-		Method:   "GET",
-		Response: "TBank",
-		Note:     "Returns a single bank by its ID.",
+		Route:        "/bank/:bank_id",
+		Method:       "GET",
+		Response:     "TBank",
+		Note:         "Returns a single bank by its ID.",
+		ResponseType: model.BankResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		bankID, err := horizon.EngineUUIDParam(ctx, "bank_id")
@@ -82,11 +85,13 @@ func (c *Controller) BankController() {
 
 	// POST /bank: Create a new bank. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/bank",
-		Method:   "POST",
-		Request:  "TBank",
-		Response: "TBank",
-		Note:     "Creates a new bank for the current user's organization and branch.",
+		Route:        "/bank",
+		Method:       "POST",
+		Request:      "TBank",
+		Response:     "TBank",
+		Note:         "Creates a new bank for the current user's organization and branch.",
+		RequestType:  model.BankRequest{},
+		ResponseType: model.BankResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.BankManager.Validate(ctx)
@@ -146,11 +151,13 @@ func (c *Controller) BankController() {
 
 	// PUT /bank/:bank_id: Update bank by ID. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/bank/:bank_id",
-		Method:   "PUT",
-		Request:  "TBank",
-		Response: "TBank",
-		Note:     "Updates an existing bank by its ID.",
+		Route:        "/bank/:bank_id",
+		Method:       "PUT",
+		Request:      "TBank",
+		Response:     "TBank",
+		Note:         "Updates an existing bank by its ID.",
+		RequestType:  model.BankRequest{},
+		ResponseType: model.BankResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		bankID, err := horizon.EngineUUIDParam(ctx, "bank_id")
@@ -254,10 +261,11 @@ func (c *Controller) BankController() {
 
 	// DELETE /bank/bulk-delete: Bulk delete banks by IDs. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:   "/bank/bulk-delete",
-		Method:  "DELETE",
-		Request: "string[]",
-		Note:    "Deletes multiple banks by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
+		Route:       "/bank/bulk-delete",
+		Method:      "DELETE",
+		Request:     "string[]",
+		Note:        "Deletes multiple banks by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
+		RequestType: model.BulkDeleteRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody struct {
