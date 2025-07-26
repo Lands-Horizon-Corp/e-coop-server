@@ -1233,7 +1233,7 @@ func (c *Controller) UserOrganinzationController() {
 	req.RegisterRoute(horizon.Route{
 		Route:    "/user-organization/settings/:user_organization_id",
 		Method:   "PUT",
-		Request:  "IUserSettingsPhotoUpdateRequest",
+		Request:  "UserOrganizationSettingsRequest",
 		Response: "TUserOrganization",
 		Note:     "Updates the user organization settings.",
 		Private:  true,
@@ -1302,7 +1302,7 @@ func (c *Controller) UserOrganinzationController() {
 	req.RegisterRoute(horizon.Route{
 		Route:    "/user-organization/settings/current",
 		Method:   "PUT",
-		Request:  "IUserSettingsPhotoUpdateRequest",
+		Request:  "UserOrganizationSelfSettingsRequest",
 		Response: "TUserOrganization",
 		Note:     "Updates the user organization settings.",
 		Private:  true,
