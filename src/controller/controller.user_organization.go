@@ -1229,4 +1229,134 @@ func (c *Controller) UserOrganinzationController() {
 		}
 		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.Filtered(context, ctx, members))
 	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:    "/user-organization/settings/:user_organization_id",
+		Method:   "PUT",
+		Request:  "IUserSettingsPhotoUpdateRequest",
+		Response: "TUserOrganization",
+		Note:     "Updates the user organization settings.",
+		Private:  true,
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrgId, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_organization_id: " + err.Error()})
+		}
+
+		var req model.UserOrganizationSettingsRequest
+		if err := ctx.Bind(&req); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update settings failed: invalid payload: " + err.Error(),
+				Module:      "UserOrganization",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid settings payload: " + err.Error()})
+		}
+
+		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update settings failed: validation error: " + err.Error(),
+				Module:      "UserOrganization",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
+		}
+
+		userOrg, err := c.model.UserOrganizationManager.GetByID(context, *userOrgId)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
+		}
+
+		// Update fields
+		userOrg.UserType = req.UserType
+		userOrg.Description = req.Description
+		userOrg.ApplicationDescription = req.ApplicationDescription
+		userOrg.ApplicationStatus = req.ApplicationStatus
+		userOrg.UserSettingDescription = req.UserSettingDescription
+		userOrg.UserSettingStartOR = req.UserSettingStartOR
+		userOrg.UserSettingEndOR = req.UserSettingEndOR
+		userOrg.UserSettingUsedOR = req.UserSettingUsedOR
+		userOrg.UserSettingStartVoucher = req.UserSettingStartVoucher
+		userOrg.UserSettingEndVoucher = req.UserSettingEndVoucher
+		userOrg.UserSettingUsedVoucher = req.UserSettingUsedVoucher
+
+		if err := c.model.UserOrganizationManager.UpdateFields(context, userOrg.ID, userOrg); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update settings failed: update error: " + err.Error(),
+				Module:      "UserOrganization",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user organization settings: " + err.Error()})
+		}
+
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "update-success",
+			Description: "Updated settings for user organization: " + userOrg.ID.String(),
+			Module:      "UserOrganization",
+		})
+
+		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModel(userOrg))
+	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:    "/user-organization/settings/current",
+		Method:   "PUT",
+		Request:  "IUserSettingsPhotoUpdateRequest",
+		Response: "TUserOrganization",
+		Note:     "Updates the user organization settings.",
+		Private:  true,
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+
+		var req model.UserOrganizationSelfSettingsRequest
+		if err := ctx.Bind(&req); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update settings failed: invalid payload: " + err.Error(),
+				Module:      "UserOrganization",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid settings payload: " + err.Error()})
+		}
+
+		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update settings failed: validation error: " + err.Error(),
+				Module:      "UserOrganization",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
+		}
+
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+
+		userOrg.Description = req.Description
+		userOrg.UserSettingDescription = req.UserSettingDescription
+		userOrg.UserSettingStartOR = req.UserSettingStartOR
+		userOrg.UserSettingEndOR = req.UserSettingEndOR
+		userOrg.UserSettingUsedOR = req.UserSettingUsedOR
+		userOrg.UserSettingStartVoucher = req.UserSettingStartVoucher
+		userOrg.UserSettingEndVoucher = req.UserSettingEndVoucher
+		userOrg.UserSettingUsedVoucher = req.UserSettingUsedVoucher
+
+		if err := c.model.UserOrganizationManager.UpdateFields(context, userOrg.ID, userOrg); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update settings failed: update error: " + err.Error(),
+				Module:      "UserOrganization",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user organization settings: " + err.Error()})
+		}
+
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "update-success",
+			Description: "Updated settings for user organization: " + userOrg.ID.String(),
+			Module:      "UserOrganization",
+		})
+
+		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModel(userOrg))
+	})
 }

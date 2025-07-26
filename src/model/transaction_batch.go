@@ -454,6 +454,7 @@ func (m *Model) TransactionBatch() {
 				fmt.Sprintf("transaction_batch.create.%s", data.ID),
 				fmt.Sprintf("transaction_batch.create.branch.%s", data.BranchID),
 				fmt.Sprintf("transaction_batch.create.organization.%s", data.OrganizationID),
+				fmt.Sprintf("transaction_batch.create.user.%s", data.EmployeeUserID),
 			}
 		},
 		Updated: func(data *TransactionBatch) []string {
@@ -462,6 +463,7 @@ func (m *Model) TransactionBatch() {
 				fmt.Sprintf("transaction_batch.update.%s", data.ID),
 				fmt.Sprintf("transaction_batch.update.branch.%s", data.BranchID),
 				fmt.Sprintf("transaction_batch.update.organization.%s", data.OrganizationID),
+				fmt.Sprintf("transaction_batch.update.user.%s", data.EmployeeUserID),
 			}
 		},
 		Deleted: func(data *TransactionBatch) []string {
@@ -470,7 +472,9 @@ func (m *Model) TransactionBatch() {
 				fmt.Sprintf("transaction_batch.delete.%s", data.ID),
 				fmt.Sprintf("transaction_batch.delete.branch.%s", data.BranchID),
 				fmt.Sprintf("transaction_batch.delete.organization.%s", data.OrganizationID),
+				fmt.Sprintf("transaction_batch.delete.user.%s", data.EmployeeUserID),
 			}
+
 		},
 	})
 }

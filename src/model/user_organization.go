@@ -75,6 +75,36 @@ type (
 		UserSettingEndVoucher   int64 `json:"user_setting_end_voucher,omitempty" validate:"min=0"`
 		UserSettingUsedVoucher  int64 `json:"user_setting_used_voucher,omitempty" validate:"min=0"`
 	}
+	UserOrganizationSettingsRequest struct {
+		UserType    string `json:"user_type,omitempty" validate:"omitempty,oneof=employee member"`
+		Description string `json:"description,omitempty"`
+
+		ApplicationDescription string `json:"application_description,omitempty"`
+		ApplicationStatus      string `json:"application_status" validate:"omitempty,oneof=pending reported accepted ban not-allowed"`
+
+		UserSettingDescription string `json:"user_setting_description,omitempty"`
+
+		UserSettingStartOR int64 `json:"user_setting_start_or,omitempty" validate:"min=0"`
+		UserSettingEndOR   int64 `json:"user_setting_end_or,omitempty" validate:"min=0"`
+		UserSettingUsedOR  int64 `json:"user_setting_used_or,omitempty" validate:"min=0"`
+
+		UserSettingStartVoucher int64 `json:"user_setting_start_voucher,omitempty" validate:"min=0"`
+		UserSettingEndVoucher   int64 `json:"user_setting_end_voucher,omitempty" validate:"min=0"`
+		UserSettingUsedVoucher  int64 `json:"user_setting_used_voucher,omitempty" validate:"min=0"`
+	}
+
+	UserOrganizationSelfSettingsRequest struct {
+		Description            string `json:"description,omitempty"`
+		UserSettingDescription string `json:"user_setting_description,omitempty"`
+
+		UserSettingStartOR int64 `json:"user_setting_start_or,omitempty" validate:"min=0"`
+		UserSettingEndOR   int64 `json:"user_setting_end_or,omitempty" validate:"min=0"`
+		UserSettingUsedOR  int64 `json:"user_setting_used_or,omitempty" validate:"min=0"`
+
+		UserSettingStartVoucher int64 `json:"user_setting_start_voucher,omitempty" validate:"min=0"`
+		UserSettingEndVoucher   int64 `json:"user_setting_end_voucher,omitempty" validate:"min=0"`
+		UserSettingUsedVoucher  int64 `json:"user_setting_used_voucher,omitempty" validate:"min=0"`
+	}
 
 	UserOrganizationResponse struct {
 		ID             uuid.UUID             `json:"id"`
