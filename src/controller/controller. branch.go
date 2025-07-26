@@ -18,10 +18,11 @@ func (c *Controller) BranchController() {
 
 	// GET /branch: List all branches or filter by user's organization from JWT if available.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/branch",
-		Method:   "GET",
-		Response: "TBranch[]",
-		Note:     "Returns all branches if unauthenticated; otherwise, returns branches filtered by the user's organization from JWT.",
+		Route:        "/branch",
+		Method:       "GET",
+		Response:     "Branch[]",
+		Note:         "Returns all branches if unauthenticated; otherwise, returns branches filtered by the user's organization from JWT.",
+		ResponseType: model.BranchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -42,10 +43,11 @@ func (c *Controller) BranchController() {
 
 	// GET /branch/organization/:organization_id: List branches by organization ID.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/branch/organization/:organization_id",
-		Method:   "GET",
-		Response: "TBranch[]",
-		Note:     "Returns all branches belonging to the specified organization.",
+		Route:        "/branch/organization/:organization_id",
+		Method:       "GET",
+		Response:     "TBranch[]",
+		Note:         "Returns all branches belonging to the specified organization.",
+		ResponseType: model.BranchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		orgId, err := horizon.EngineUUIDParam(ctx, "organization_id")
@@ -61,12 +63,14 @@ func (c *Controller) BranchController() {
 
 	// POST /branch/organization/:organization_id: Create a branch for an organization.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/branch/organization/:organization_id",
-		Method:   "POST",
-		Request:  "TBranch[]",
-		Response: "{branch: TBranch, user_organization: TUserOrganization}",
-		Note:     "Creates a new branch for the given organization. If the user already has a branch, a new user organization is created; otherwise, the user's current user organization is updated with the new branch.",
-		Private:  true,
+		Route:        "/branch/organization/:organization_id",
+		Method:       "POST",
+		Request:      "TBranch[]",
+		Response:     "{branch: TBranch, user_organization: TUserOrganization}",
+		Note:         "Creates a new branch for the given organization. If the user already has a branch, a new user organization is created; otherwise, the user's current user organization is updated with the new branch.",
+		Private:      true,
+		RequestType:  model.BranchRequest{},
+		ResponseType: model.BranchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
@@ -278,12 +282,14 @@ func (c *Controller) BranchController() {
 
 	// PUT /branch/:branch_id: Update an existing branch (only by owner).
 	req.RegisterRoute(horizon.Route{
-		Route:    "/branch/:branch_id",
-		Method:   "PUT",
-		Request:  "TBranch",
-		Response: "{branch: TBranch, user_organization: TUserOrganization}",
-		Note:     "Updates branch information for the specified branch. Only allowed for the owner of the branch.",
-		Private:  true,
+		Route:        "/branch/:branch_id",
+		Method:       "PUT",
+		Request:      "TBranch",
+		Response:     "{branch: TBranch, user_organization: TUserOrganization}",
+		Note:         "Updates branch information for the specified branch. Only allowed for the owner of the branch.",
+		Private:      true,
+		RequestType:  model.BranchRequest{},
+		ResponseType: model.BranchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 

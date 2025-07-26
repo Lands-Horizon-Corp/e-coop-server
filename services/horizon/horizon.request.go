@@ -41,12 +41,14 @@ func (t *TemplateRenderer) Render(w io.Writer, name string, data any, c echo.Con
 
 // Route describes an API route.
 type Route struct {
-	Route    string `json:"route"`
-	Request  string `json:"request"`
-	Response string `json:"response"`
-	Method   string `json:"method"`
-	Note     string `json:"note"`
-	Private  bool   `json:"private,omitempty"`
+	Route        string `json:"route"`
+	Request      string `json:"request,omitempty"`
+	Response     string `json:"response,omitempty"`
+	RequestType  any
+	ResponseType any
+	Method       string `json:"method"`
+	Note         string `json:"note"`
+	Private      bool   `json:"private,omitempty"`
 }
 
 // GroupedRoute holds a group of routes under a common key.
@@ -256,8 +258,8 @@ func (h *HorizonAPIService) RegisterRoute(route Route, callback func(c echo.Cont
 	if !route.Private {
 		h.routesList = append(h.routesList, Route{
 			Route:    route.Route,
-			Request:  route.Request,
-			Response: route.Response,
+			Request:  StructToTypeScriptMarkdown(route.RequestType, route.Request),
+			Response: StructToTypeScriptMarkdown(route.ResponseType, route.Response),
 			Method:   method,
 			Note:     route.Note,
 		})

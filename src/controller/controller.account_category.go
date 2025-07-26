@@ -17,10 +17,11 @@ func (c *Controller) AccountCategoryController() {
 	// SEARCH (GET) - NO FOOTSTEP
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/account-category/search",
-		Method:   "GET",
-		Response: "IAccountCategory[]",
-		Note:     "Retrieve all account categories for the current branch.",
+		Route:        "/account-category/search",
+		Method:       "GET",
+		Response:     "IAccountCategory[]",
+		Note:         "Retrieve all account categories for the current branch.",
+		ResponseType: model.AccountCategoryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -41,10 +42,11 @@ func (c *Controller) AccountCategoryController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/account-category",
-		Method:   "GET",
-		Response: "IAccountCategory[]",
-		Note:     "Retrieve all account categories for the current branch (raw).",
+		Route:        "/account-category",
+		Method:       "GET",
+		Response:     "IAccountCategory[]",
+		Note:         "Retrieve all account categories for the current branch (raw).",
+		ResponseType: model.AccountCategoryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -65,10 +67,11 @@ func (c *Controller) AccountCategoryController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/account-category/:account_category_id",
-		Method:   "GET",
-		Response: "IAccountCategory",
-		Note:     "Get an account category by ID.",
+		Route:        "/account-category/:account_category_id",
+		Method:       "GET",
+		Response:     "IAccountCategory",
+		Note:         "Get an account category by ID.",
+		ResponseType: model.AccountCategoryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		id, err := horizon.EngineUUIDParam(ctx, "account_category_id")
@@ -85,10 +88,12 @@ func (c *Controller) AccountCategoryController() {
 	// CREATE (POST) - ADD FOOTSTEP
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/account-category",
-		Method:   "POST",
-		Response: "IAccountCategory",
-		Note:     "Create a new account category for the current branch.",
+		Route:        "/account-category",
+		Method:       "POST",
+		Response:     "IAccountCategory",
+		Note:         "Create a new account category for the current branch.",
+		ResponseType: model.AccountCategoryResponse{},
+		RequestType:  model.AccountCategoryRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.AccountCategoryManager.Validate(ctx)
@@ -149,10 +154,12 @@ func (c *Controller) AccountCategoryController() {
 	// UPDATE (PUT) - ADD FOOTSTEP
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/account-category/:account_category_id",
-		Method:   "PUT",
-		Response: "IAccountCategory",
-		Note:     "Update an account category by ID.",
+		Route:        "/account-category/:account_category_id",
+		Method:       "PUT",
+		Response:     "IAccountCategory",
+		Note:         "Update an account category by ID.",
+		ResponseType: model.AccountCategoryResponse{},
+		RequestType:  model.AccountCategoryRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.AccountCategoryManager.Validate(ctx)
@@ -284,15 +291,14 @@ func (c *Controller) AccountCategoryController() {
 	// BULK DELETE (DELETE) - ADD FOOTSTEP
 
 	req.RegisterRoute(horizon.Route{
-		Route:   "/account-category/bulk-delete",
-		Method:  "DELETE",
-		Request: "string[]",
-		Note:    "Bulk delete multiple account categories by IDs.",
+		Route:       "/account-category/bulk-delete",
+		Method:      "DELETE",
+		Request:     "string[]",
+		Note:        "Bulk delete multiple account categories by IDs.",
+		RequestType: model.BulkDeleteRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody struct {
-			IDs []string `json:"ids"`
-		}
+		var reqBody model.BulkDeleteRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
