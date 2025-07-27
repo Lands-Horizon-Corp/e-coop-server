@@ -439,6 +439,7 @@ func (c *Controller) UserOrganinzationController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/user-organization/:user_organization_id/switch",
 		ResponseType: model.UserOrganizationResponse{},
+		Method:       "GET",
 		Note:         "Switches organization and branch in JWT for the current user. No database impact.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

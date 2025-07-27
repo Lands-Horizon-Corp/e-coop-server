@@ -264,7 +264,7 @@ func (h *HorizonAPIService) RegisterRoute(route Route, callback func(c echo.Cont
 	case http.MethodDelete:
 		h.service.DELETE(route.Route, callback, m...)
 	default:
-		panic(fmt.Sprintf("Unsupported HTTP method: %s", method))
+		panic(fmt.Sprintf("Unsupported HTTP method: %s for route: %s", method, route.Route))
 	}
 	if !route.Private {
 		tsRequest := TagFormat(route.RequestType)
