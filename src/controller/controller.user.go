@@ -39,7 +39,6 @@ func (c *Controller) UserController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/authentication/current",
 		Method:       "GET",
-		Response:     "TUser",
 		ResponseType: model.CurrentUserResponse{},
 		Note:         "Returns the current authenticated user and their user organization, if any.",
 	}, func(ctx echo.Context) error {
@@ -732,7 +731,6 @@ func (c *Controller) UserController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/profile/password",
 		Method:       "PUT",
-		Request:      "IChangePasswordRequest",
 		Note:         "Changes the user's password from profile settings.",
 		ResponseType: model.UserResponse{},
 		RequestType:  model.UserSettingsChangePasswordRequest{},

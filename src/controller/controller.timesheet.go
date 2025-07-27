@@ -146,7 +146,6 @@ func (c *Controller) TimesheetController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/timesheet",
 		Method:       "GET",
-		Response:     "Timesheet",
 		ResponseType: model.TimesheetResponse{},
 		Note:         "Returns all timesheets of users/employees for the current branch.",
 	}, func(ctx echo.Context) error {
@@ -183,10 +182,10 @@ func (c *Controller) TimesheetController() {
 
 	// Get the user's own timesheets in the current branch
 	req.RegisterRoute(horizon.Route{
-		Route:    "/timesheet/me",
-		Method:   "GET",
-		Response: "Ttimesheet[]",
-		Note:     "Returns timesheets of the current user for the current branch.",
+		Route:       "/timesheet/me",
+		Method:      "GET",
+		Note:        "Returns timesheets of the current user for the current branch.",
+		RequestType: model.TimesheetRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -202,11 +201,10 @@ func (c *Controller) TimesheetController() {
 
 	// Get paginated list of the user's own timesheets in the current branch
 	req.RegisterRoute(horizon.Route{
-		Route:    "/timesheet/me/search",
-		Method:   "GET",
-		Request:  "Filter<ITimesheet>",
-		Response: "Paginated<ITimesheet>",
-		Note:     "Returns paginated timesheets of the current user for the current branch.",
+		Route:        "/timesheet/me/search",
+		Method:       "GET",
+		ResponseType: model.TimesheetResponse{},
+		Note:         "Returns paginated timesheets of the current user for the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -222,10 +220,10 @@ func (c *Controller) TimesheetController() {
 
 	// List all timesheets of a specific user in the current branch
 	req.RegisterRoute(horizon.Route{
-		Route:    "/timesheet/user/:user_id",
-		Method:   "GET",
-		Response: "Ttimesheet[]",
-		Note:     "Returns all timesheets of the specified user for the current branch.",
+		Route:        "/timesheet/user/:user_id",
+		Method:       "GET",
+		ResponseType: model.TimesheetResponse{},
+		Note:         "Returns all timesheets of the specified user for the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userID, err := horizon.EngineUUIDParam(ctx, "user_id")
@@ -245,11 +243,10 @@ func (c *Controller) TimesheetController() {
 
 	// Paginated timesheets of a specific user in the current branch
 	req.RegisterRoute(horizon.Route{
-		Route:    "/timesheet/user/:user_id/search",
-		Method:   "GET",
-		Request:  "Filter<ITimesheet>",
-		Response: "Paginated<ITimesheet>",
-		Note:     "Returns paginated timesheets of the specified user for the current branch.",
+		Route:        "/timesheet/user/:user_id/search",
+		Method:       "GET",
+		ResponseType: model.TimesheetResponse{},
+		Note:         "Returns paginated timesheets of the specified user for the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userID, err := horizon.EngineUUIDParam(ctx, "user_id")

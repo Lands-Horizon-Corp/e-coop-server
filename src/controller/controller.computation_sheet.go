@@ -18,10 +18,9 @@ func (c *Controller) ComputationSheetController() {
 
 	// POST /computation-sheet/:computation_sheet_id/calculator: Returns sample calculation data.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/computation-sheet/:computation_sheet_id/calculator",
-		Method:   "POST",
-		Response: "object",
-		Note:     "Returns sample payment calculation data for a computation sheet.",
+		Route:  "/computation-sheet/:computation_sheet_id/calculator",
+		Method: "POST",
+		Note:   "Returns sample payment calculation data for a computation sheet.",
 	}, func(ctx echo.Context) error {
 		// You can parse computation_sheet_id if needed, but for sample data, we ignore it.
 		// id, err := horizon.EngineUUIDParam(ctx, "computation_sheet_id")

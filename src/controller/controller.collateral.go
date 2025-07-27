@@ -256,7 +256,6 @@ func (c *Controller) CollateralController() {
 	req.RegisterRoute(horizon.Route{
 		Route:       "/collateral/bulk-delete",
 		Method:      "DELETE",
-		Request:     "string[]",
 		Note:        "Deletes multiple collateral records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
 		RequestType: model.IDSRequest{},
 	}, func(ctx echo.Context) error {

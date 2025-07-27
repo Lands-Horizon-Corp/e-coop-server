@@ -240,8 +240,6 @@ func (c *Controller) FinancialStatementController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/financial-statement-definition/:financial_statement_definition_id",
 		Method:       "PUT",
-		Request:      "FinancialStatementDefinitionRequest",
-		Response:     "FinancialStatementDefinitionResponse",
 		Note:         "Updates an existing financial statement definition by its ID.",
 		RequestType:  model.FinancialStatementDefinitionRequest{},
 		ResponseType: model.FinancialStatementDefinitionResponse{},

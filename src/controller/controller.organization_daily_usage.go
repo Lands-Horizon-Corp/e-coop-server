@@ -34,7 +34,6 @@ func (c *Controller) OrganizationDailyUsage() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/organization-daily-usage/:organization_daily_usage_id",
 		Method:       "GET",
-		Response:     "TOrganizationDailyUsage",
 		Note:         "Returns a specific organization daily usage record by its ID.",
 		ResponseType: model.OrganizationDailyUsageResponse{},
 	}, func(ctx echo.Context) error {

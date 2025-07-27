@@ -282,7 +282,6 @@ func (c *Controller) MemberProfileController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/member-profile/:member_profile_id/reject",
 		Method:       "PUT",
-		Response:     "MemberProfile",
 		ResponseType: model.MemberProfileResponse{},
 		Note:         "Reject a member profile by member_profile_id.",
 	}, func(ctx echo.Context) error {
@@ -462,7 +461,6 @@ func (c *Controller) MemberProfileController() {
 	req.RegisterRoute(horizon.Route{
 		Route:       "/member-profile/bulk-delete",
 		Method:      "DELETE",
-		Request:     "string[]",
 		Note:        "Deletes multiple member profiles and all their connections by their IDs.",
 		RequestType: model.IDSRequest{},
 	}, func(ctx echo.Context) error {

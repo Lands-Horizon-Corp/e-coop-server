@@ -1187,7 +1187,6 @@ func (c *Controller) UserOrganinzationController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/user-organization/employee",
 		Method:       "GET",
-		Response:     "TUserOrganization",
 		ResponseType: model.UserOrganizationResponse{},
 		Note:         "Returns all employees of the current user's organization.",
 	}, func(ctx echo.Context) error {
@@ -1207,7 +1206,6 @@ func (c *Controller) UserOrganinzationController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/user-organization/members",
 		Method:       "GET",
-		Response:     "TUserOrganization",
 		ResponseType: model.UserOrganizationResponse{},
 		Note:         "Returns all members of the current user's organization.",
 	}, func(ctx echo.Context) error {

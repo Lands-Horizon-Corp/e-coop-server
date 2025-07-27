@@ -20,7 +20,6 @@ func (c *Controller) AccountTagController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/account-tag",
 		Method:       "GET",
-		Response:     "TAccountTag[]",
 		Note:         "Returns all account tags for the current user's organization and branch. Returns empty if not authenticated.",
 		ResponseType: model.AccountTagResponse{},
 	}, func(ctx echo.Context) error {
@@ -43,7 +42,6 @@ func (c *Controller) AccountTagController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/account-tag/search",
 		Method:       "GET",
-		Response:     "Paginated<IAccountTag>",
 		Note:         "Returns a paginated list of account tags for the current user's organization and branch.",
 		ResponseType: model.AccountTagResponse{},
 	}, func(ctx echo.Context) error {
@@ -66,7 +64,6 @@ func (c *Controller) AccountTagController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/account-tag/:account_tag_id",
 		Method:       "GET",
-		Response:     "TAccountTag",
 		Note:         "Returns a single account tag by its ID.",
 		ResponseType: model.AccountTagResponse{},
 	}, func(ctx echo.Context) error {
@@ -86,8 +83,6 @@ func (c *Controller) AccountTagController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/account-tag",
 		Method:       "POST",
-		Request:      "TAccountTag",
-		Response:     "TAccountTag",
 		Note:         "Creates a new account tag for the user's organization and branch.",
 		ResponseType: model.AccountTagResponse{},
 		RequestType:  model.AccountTagRequest{},
@@ -157,8 +152,6 @@ func (c *Controller) AccountTagController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/account-tag/:account_tag_id",
 		Method:       "PUT",
-		Request:      "TAccountTag",
-		Response:     "TAccountTag",
 		Note:         "Updates an existing account tag by its ID.",
 		ResponseType: model.AccountTagResponse{},
 		RequestType:  model.AccountTagRequest{},

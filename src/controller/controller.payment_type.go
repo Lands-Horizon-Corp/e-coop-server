@@ -57,7 +57,6 @@ func (c *Controller) PaymentTypeController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/payment-type/:payment_type_id",
 		Method:       "GET",
-		Response:     "TPaymentType",
 		Note:         "Returns a specific payment type by its ID.",
 		ResponseType: model.PaymentTypeResponse{},
 	}, func(ctx echo.Context) error {

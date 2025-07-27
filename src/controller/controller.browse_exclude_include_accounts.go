@@ -147,8 +147,6 @@ func (c *Controller) BrowseExcludeIncludeAccountsController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/browse-exclude-include-accounts/:browse_exclude_include_accounts_id",
 		Method:       "PUT",
-		Request:      "BrowseExcludeIncludeAccounts",
-		Response:     "BrowseExcludeIncludeAccounts",
 		Note:         "Updates an existing browse exclude include account by its ID.",
 		ResponseType: model.BrowseExcludeIncludeAccountsResponse{},
 		RequestType:  model.BrowseExcludeIncludeAccountsRequest{},

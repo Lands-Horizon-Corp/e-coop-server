@@ -80,7 +80,6 @@ func (c *Controller) InvitationCode() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/invitation-code/:invitation_code_id",
 		Method:       "GET",
-		Response:     "IInvitationCode",
 		Note:         "Returns the details of a specific invitation code by its ID.",
 		ResponseType: model.InvitationCodeResponse{},
 	}, func(ctx echo.Context) error {

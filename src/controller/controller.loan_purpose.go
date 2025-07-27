@@ -64,7 +64,6 @@ func (c *Controller) LoanPurposeController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/loan-purpose/:loan_purpose_id",
 		Method:       "GET",
-		Response:     "TLoanPurpose",
 		Note:         "Returns a loan purpose record by its ID.",
 		ResponseType: model.LoanPurposeResponse{},
 	}, func(ctx echo.Context) error {

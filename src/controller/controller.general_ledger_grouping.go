@@ -322,7 +322,6 @@ func (c *Controller) GeneralLedgerGroupingController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/general-ledger-definition/:general_ledger_definition_id/account/:account_id/connect",
 		Method:       "POST",
-		Response:     "GeneralLedgerDefinitionResponse",
 		Note:         "Connects an account to a general ledger definition by their IDs.",
 		ResponseType: model.GeneralLedgerDefinitionResponse{},
 	}, func(ctx echo.Context) error {

@@ -36,7 +36,6 @@ func (c *Controller) MediaController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/media/:media_id",
 		Method:       "GET",
-		Response:     "TMedia",
 		Note:         "Returns a specific media record by its ID.",
 		ResponseType: model.MediaResponse{},
 	}, func(ctx echo.Context) error {

@@ -65,10 +65,9 @@ func (c *Controller) FootstepController() {
 
 	// GET /footstep/branch: Get all footsteps for the current user's branch.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/footstep/branch/search",
-		Method:   "GET",
-		Response: "TFootstep[]",
-		Note:     "Returns all footsteps for the current user's organization and branch.",
+		Route:  "/footstep/branch/search",
+		Method: "GET",
+		Note:   "Returns all footsteps for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)

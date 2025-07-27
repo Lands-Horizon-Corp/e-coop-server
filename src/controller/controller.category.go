@@ -56,8 +56,6 @@ func (c *Controller) CategoryController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/category",
 		Method:       "POST",
-		Request:      "TCategory",
-		Response:     "TCategory",
 		Note:         "Creates a new category.",
 		RequestType:  model.CategoryRequest{},
 		ResponseType: model.CategoryResponse{},
@@ -104,8 +102,6 @@ func (c *Controller) CategoryController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/category/:category_id",
 		Method:       "PUT",
-		Request:      "TCategory",
-		Response:     "TCategory",
 		Note:         "Updates an existing category by its ID.",
 		RequestType:  model.CategoryRequest{},
 		ResponseType: model.CategoryResponse{},

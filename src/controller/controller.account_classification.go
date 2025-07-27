@@ -18,7 +18,6 @@ func (c *Controller) AccountClassificationController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/account-classification/search",
 		Method:       "GET",
-		Response:     "IAccount[]",
 		Note:         "Retrieve all account classifications for the current branch.",
 		ResponseType: model.AccountClassificationResponse{},
 	}, func(ctx echo.Context) error {
@@ -43,7 +42,6 @@ func (c *Controller) AccountClassificationController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/account-classification",
 		Method:       "GET",
-		Response:     "IAccount[]",
 		Note:         "Retrieve all account classifications for the current branch (raw).",
 		ResponseType: model.AccountClassificationResponse{},
 	}, func(ctx echo.Context) error {
@@ -68,7 +66,6 @@ func (c *Controller) AccountClassificationController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/account-classification/:account_classification_id",
 		Method:       "GET",
-		Response:     "IAccountClassification",
 		Note:         "Get an account classification by ID.",
 		ResponseType: model.AccountClassificationResponse{},
 	}, func(ctx echo.Context) error {
@@ -88,7 +85,6 @@ func (c *Controller) AccountClassificationController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/account-classification",
 		Method:       "POST",
-		Response:     "IAccountClassification",
 		Note:         "Create a new account classification for the current branch.",
 		ResponseType: model.AccountClassificationResponse{},
 		RequestType:  model.AccountClassificationRequest{},
@@ -152,7 +148,6 @@ func (c *Controller) AccountClassificationController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/account-classification/:account_classification_id",
 		Method:       "PUT",
-		Response:     "IAccountClassification",
 		Note:         "Update an account classification by ID.",
 		ResponseType: model.AccountClassificationResponse{},
 		RequestType:  model.AccountClassificationRequest{},
@@ -226,10 +221,9 @@ func (c *Controller) AccountClassificationController() {
 
 	// DELETE (single) - with footstep
 	req.RegisterRoute(horizon.Route{
-		Route:    "/account-classification/:account_classification_id",
-		Method:   "DELETE",
-		Response: "IAccountClassification",
-		Note:     "Delete an account classification by ID.",
+		Route:  "/account-classification/:account_classification_id",
+		Method: "DELETE",
+		Note:   "Delete an account classification by ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)

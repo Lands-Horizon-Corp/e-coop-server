@@ -19,7 +19,6 @@ func (c *Controller) AccountController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/account/search",
 		Method:       "GET",
-		Response:     "IAccount[]",
 		Note:         "Retrieve all accounts for the current branch. Only 'owner' and 'employee' roles are authorized. Returns paginated results.",
 		ResponseType: model.AccountResponse{},
 	}, func(ctx echo.Context) error {
@@ -45,7 +44,6 @@ func (c *Controller) AccountController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/account",
 		Method:       "GET",
-		Response:     "IAccount[]",
 		Note:         "Retrieve all accounts for the current branch.",
 		ResponseType: model.AccountResponse{},
 	}, func(ctx echo.Context) error {
@@ -71,7 +69,6 @@ func (c *Controller) AccountController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/account",
 		Method:       "POST",
-		Response:     "IAccount",
 		Note:         "Create a new account for the current branch.",
 		ResponseType: model.AccountResponse{},
 		RequestType:  model.AccountRequest{},
@@ -219,7 +216,6 @@ func (c *Controller) AccountController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/account/:account_id",
 		Method:       "GET",
-		Response:     "IAccount",
 		Note:         "Retrieve a specific account by ID.",
 		ResponseType: model.AccountResponse{},
 	}, func(ctx echo.Context) error {
@@ -239,7 +235,6 @@ func (c *Controller) AccountController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/account/:account_id",
 		Method:       "PUT",
-		Response:     "IAccount",
 		Note:         "Update an account by ID.",
 		ResponseType: model.AccountResponse{},
 		RequestType:  model.AccountRequest{},
@@ -398,10 +393,9 @@ func (c *Controller) AccountController() {
 
 	// DELETE: Single (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/account/:account_id",
-		Method:   "DELETE",
-		Response: "IAccount",
-		Note:     "Delete an account by ID.",
+		Route:  "/account/:account_id",
+		Method: "DELETE",
+		Note:   "Delete an account by ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -459,7 +453,6 @@ func (c *Controller) AccountController() {
 	req.RegisterRoute(horizon.Route{
 		Route:       "/account/bulk-delete",
 		Method:      "DELETE",
-		Request:     "string[]",
 		Note:        "Bulk delete multiple accounts by their IDs.",
 		RequestType: model.IDSRequest{},
 	}, func(ctx echo.Context) error {
@@ -564,7 +557,6 @@ func (c *Controller) AccountController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/account/:account_id/index/:index",
 		Method:       "PUT",
-		Response:     "IAccount",
 		Note:         "Update only the index field of an account using URL param.",
 		ResponseType: model.AccountResponse{},
 	}, func(ctx echo.Context) error {
@@ -638,7 +630,6 @@ func (c *Controller) AccountController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/account/:account_id/general-ledger-definition/remove",
 		Method:       "PUT",
-		Response:     "IAccount",
 		Note:         "Remove the GeneralLedgerDefinitionID from an account.",
 		ResponseType: model.AccountResponse{},
 	}, func(ctx echo.Context) error {
