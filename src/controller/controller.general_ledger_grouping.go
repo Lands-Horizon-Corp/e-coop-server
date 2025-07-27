@@ -632,35 +632,6 @@ func (c *Controller) GeneralLedgerGroupingController() {
 		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerDefinitionManager.ToModel(glDefinition))
 	})
 
-	req.RegisterRoute(horizon.Route{
-		Route:        "/general-ledger/account/:account_id/search",
-		Method:       "GET",
-		ResponseType: model.GeneralLedgerResponse{},
-		Note:         "Returns paginated general ledger entries for a specific account.",
-	}, func(ctx echo.Context) error {
-		context := ctx.Request().Context()
-		accountID, err := horizon.EngineUUIDParam(ctx, "account_id")
-		if err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID"})
-		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
-		if err != nil {
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
-		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view general ledger entries"})
-		}
-		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
-			AccountID:      accountID,
-			OrganizationID: userOrg.OrganizationID,
-			BranchID:       *userOrg.BranchID,
-		})
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
-		}
-		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.Pagination(context, ctx, entries))
-	})
-
 	// DELETE /general-ledger-definition/:general_definition_id (WITH footstep)
 	req.RegisterRoute(horizon.Route{
 		Route:  "/general-ledger-definition/:general_definition_id",

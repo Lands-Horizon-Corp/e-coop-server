@@ -113,7 +113,7 @@ func NewHorizonAPIService(
 	e.Renderer = &TemplateRenderer{
 		templates: template.Must(template.ParseGlob("public/views/*.html")),
 	}
-	e.Use(middleware.Recover())
+	// e.Use(middleware.Recover())
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
