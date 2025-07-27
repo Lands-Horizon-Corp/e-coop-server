@@ -30,7 +30,7 @@ const (
 type (
 	GeneralLedger struct {
 		ID                         uuid.UUID           `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-		CreatedAt                  time.Time           `gorm:"not null;default:now()"`
+		CreatedAt                  time.Time           `gorm:"not null;default:now();index"`
 		CreatedByID                uuid.UUID           `gorm:"type:uuid"`
 		CreatedBy                  *User               `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
 		UpdatedAt                  time.Time           `gorm:"not null;default:now()"`
@@ -69,7 +69,7 @@ type (
 		Balance                    float64             `gorm:"type:decimal"`
 		SignatureMediaID           *uuid.UUID          `gorm:"type:uuid"`
 		SignatureMedia             *Media              `gorm:"foreignKey:SignatureMediaID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"signature_media,omitempty"`
-		EntryDate                  *time.Time          `gorm:"type:date;index:idx_transaction_batch_entry" json:"entry_date"`
+		EntryDate                  *time.Time          `gorm:"type:date" json:"entry_date"`
 		BankID                     *uuid.UUID          `gorm:"type:uuid"`
 		Bank                       *Bank               `gorm:"foreignKey:BankID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"bank,omitempty"`
 		ProofOfPaymentMediaID      *uuid.UUID          `gorm:"type:uuid"`
