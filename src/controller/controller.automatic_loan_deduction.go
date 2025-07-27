@@ -282,12 +282,10 @@ func (c *Controller) AutomaticLoanDeductionController() {
 		Route:       "/automatic-loan-deduction/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple automatic loan deductions by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: model.BulkDeleteRequest{},
+		RequestType: model.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody struct {
-			IDs []string `json:"ids"`
-		}
+		var reqBody model.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",

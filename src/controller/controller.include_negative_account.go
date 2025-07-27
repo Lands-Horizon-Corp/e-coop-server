@@ -18,10 +18,10 @@ func (c *Controller) IncludeNegativeAccountController() {
 
 	// GET /include-negative-accounts/computation-sheet/:computation_sheet_id/search
 	req.RegisterRoute(horizon.Route{
-		Route:    "/include-negative-accounts/computation-sheet/:computation_sheet_id/search",
-		Method:   "GET",
-		Response: "IncludeNegativeAccount[]",
-		Note:     "Returns all include negative accounts for a computation sheet in the current user's org/branch.",
+		Route:        "/include-negative-accounts/computation-sheet/:computation_sheet_id/search",
+		Method:       "GET",
+		ResponseType: model.IncludeNegativeAccountResponse{},
+		Note:         "Returns all include negative accounts for a computation sheet in the current user's org/branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -48,10 +48,10 @@ func (c *Controller) IncludeNegativeAccountController() {
 
 	// GET /include-negative-accounts/computation-sheet/:computation_sheet_id/search
 	req.RegisterRoute(horizon.Route{
-		Route:    "/include-negative-accounts/computation-sheet/:computation_sheet_id",
-		Method:   "GET",
-		Response: "IncludeNegativeAccount[]",
-		Note:     "Returns all include negative accounts for a computation sheet in the current user's org/branch.",
+		Route:        "/include-negative-accounts/computation-sheet/:computation_sheet_id",
+		Method:       "GET",
+		ResponseType: model.IncludeNegativeAccountResponse{},
+		Note:         "Returns all include negative accounts for a computation sheet in the current user's org/branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -78,11 +78,11 @@ func (c *Controller) IncludeNegativeAccountController() {
 
 	// POST /include-negative-accounts
 	req.RegisterRoute(horizon.Route{
-		Route:    "/include-negative-accounts",
-		Method:   "POST",
-		Request:  "IncludeNegativeAccount",
-		Response: "IncludeNegativeAccount",
-		Note:     "Creates a new include negative account for the current user's org/branch.",
+		Route:        "/include-negative-accounts",
+		Method:       "POST",
+		ResponseType: model.IncludeNegativeAccountResponse{},
+		RequestType:  model.IncludeNegativeAccountRequest{},
+		Note:         "Creates a new include negative account for the current user's org/branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.IncludeNegativeAccountManager.Validate(ctx)
@@ -142,11 +142,11 @@ func (c *Controller) IncludeNegativeAccountController() {
 
 	// PUT /include-negative-accounts/:include_negative_accounts_id
 	req.RegisterRoute(horizon.Route{
-		Route:    "/include-negative-accounts/:include_negative_accounts_id",
-		Method:   "PUT",
-		Request:  "IncludeNegativeAccount",
-		Response: "IncludeNegativeAccount",
-		Note:     "Updates an existing include negative account by its ID.",
+		Route:        "/include-negative-accounts/:include_negative_accounts_id",
+		Method:       "PUT",
+		ResponseType: model.IncludeNegativeAccountResponse{},
+		RequestType:  model.IncludeNegativeAccountRequest{},
+		Note:         "Updates an existing include negative account by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		id, err := horizon.EngineUUIDParam(ctx, "include_negative_accounts_id")
@@ -251,15 +251,13 @@ func (c *Controller) IncludeNegativeAccountController() {
 
 	// DELETE /include-negative-accounts/bulk-delete
 	req.RegisterRoute(horizon.Route{
-		Route:   "/include-negative-accounts/bulk-delete",
-		Method:  "DELETE",
-		Request: "string[]",
-		Note:    "Deletes multiple include negative accounts by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
+		Route:       "/include-negative-accounts/bulk-delete",
+		Method:      "DELETE",
+		RequestType: model.IDSRequest{},
+		Note:        "Deletes multiple include negative accounts by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody struct {
-			IDs []string `json:"ids"`
-		}
+		var reqBody model.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",

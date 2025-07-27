@@ -17,10 +17,10 @@ func (c *Controller) MemberTypeReferenceController() {
 
 	// Get all member type references by member_type_id for the current branch
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-type-reference/member-type/:member_type_id/search",
-		Method:   "GET",
-		Response: "TMemberTypeReference[]",
-		Note:     "Returns all member type references for the specified member_type_id in the current user's branch.",
+		Route:        "/member-type-reference/member-type/:member_type_id/search",
+		Method:       "GET",
+		ResponseType: model.MemberTypeReferenceResponse{},
+		Note:         "Returns all member type references for the specified member_type_id in the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberTypeID, err := horizon.EngineUUIDParam(ctx, "member_type_id")
@@ -47,10 +47,10 @@ func (c *Controller) MemberTypeReferenceController() {
 
 	// Get a single member type reference by its ID
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-type-reference/:member_type_reference_id",
-		Method:   "GET",
-		Response: "TMemberTypeReference",
-		Note:     "Returns a specific member type reference by member_type_reference_id.",
+		Route:        "/member-type-reference/:member_type_reference_id",
+		Method:       "GET",
+		ResponseType: model.MemberTypeReferenceResponse{},
+		Note:         "Returns a specific member type reference by member_type_reference_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		id, err := horizon.EngineUUIDParam(ctx, "member_type_reference_id")
@@ -66,11 +66,11 @@ func (c *Controller) MemberTypeReferenceController() {
 
 	// Create a new member type reference
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-type-reference",
-		Method:   "POST",
-		Request:  "TMemberTypeReference",
-		Response: "TMemberTypeReference",
-		Note:     "Creates a new member type reference record.",
+		Route:        "/member-type-reference",
+		Method:       "POST",
+		ResponseType: model.MemberTypeReferenceResponse{},
+		RequestType:  model.MemberTypeReferenceRequest{},
+		Note:         "Creates a new member type reference record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.MemberTypeReferenceManager.Validate(ctx)
@@ -132,11 +132,11 @@ func (c *Controller) MemberTypeReferenceController() {
 
 	// Update an existing member type reference by its ID
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-type-reference/:member_type_reference_id",
-		Method:   "PUT",
-		Request:  "TMemberTypeReference",
-		Response: "TMemberTypeReference",
-		Note:     "Updates an existing member type reference by its ID.",
+		Route:        "/member-type-reference/:member_type_reference_id",
+		Method:       "PUT",
+		ResponseType: model.MemberTypeReferenceResponse{},
+		RequestType:  model.MemberTypeReferenceRequest{},
+		Note:         "Updates an existing member type reference by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		id, err := horizon.EngineUUIDParam(ctx, "member_type_reference_id")
@@ -240,15 +240,13 @@ func (c *Controller) MemberTypeReferenceController() {
 
 	// Bulk delete member type references by IDs
 	req.RegisterRoute(horizon.Route{
-		Route:   "/member-type-reference/bulk-delete",
-		Method:  "DELETE",
-		Request: "string[]",
-		Note:    "Deletes multiple member type reference records by their IDs.",
+		Route:       "/member-type-reference/bulk-delete",
+		Method:      "DELETE",
+		RequestType: model.IDSRequest{},
+		Note:        "Deletes multiple member type reference records by their IDs.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody struct {
-			IDs []string `json:"ids"`
-		}
+		var reqBody model.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",

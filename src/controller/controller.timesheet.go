@@ -15,10 +15,10 @@ func (c *Controller) TimesheetController() {
 
 	// Returns the current timesheet entry for the user, if any (for time in/out determination)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/timesheet/current",
-		Method:   "GET",
-		Response: "Ttimesheet",
-		Note:     "Returns the current timesheet entry (not timed out yet) for the user, if any.",
+		Route:        "/timesheet/current",
+		Method:       "GET",
+		ResponseType: model.TimesheetResponse{},
+		Note:         "Returns the current timesheet entry (not timed out yet) for the user, if any.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -38,11 +38,11 @@ func (c *Controller) TimesheetController() {
 
 	// Records a time in or time out for the user.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/timesheet/time-in-and-out",
-		Method:   "POST",
-		Request:  "{media_id: string}",
-		Response: "Timesheet",
-		Note:     "Records a time-in or time-out for the current user depending on the last timesheet entry.",
+		Route:        "/timesheet/time-in-and-out",
+		Method:       "POST",
+		RequestType:  model.TimesheetRequest{},
+		ResponseType: model.TimesheetResponse{},
+		Note:         "Records a time-in or time-out for the current user depending on the last timesheet entry.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
@@ -125,10 +125,10 @@ func (c *Controller) TimesheetController() {
 
 	// Get a specific timesheet by its ID
 	req.RegisterRoute(horizon.Route{
-		Route:    "/timesheet/:timesheet_id",
-		Method:   "GET",
-		Response: "TTimesheet",
-		Note:     "Returns the specific timesheet entry by its ID.",
+		Route:        "/timesheet/:timesheet_id",
+		Method:       "GET",
+		ResponseType: model.TimesheetResponse{},
+		Note:         "Returns the specific timesheet entry by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		timesheetID, err := horizon.EngineUUIDParam(ctx, "timesheet_id")
@@ -144,10 +144,11 @@ func (c *Controller) TimesheetController() {
 
 	// Get all timesheets for users/employees on current branch
 	req.RegisterRoute(horizon.Route{
-		Route:    "/timesheet",
-		Method:   "GET",
-		Response: "Ttimesheet",
-		Note:     "Returns all timesheets of users/employees for the current branch.",
+		Route:        "/timesheet",
+		Method:       "GET",
+		Response:     "Timesheet",
+		ResponseType: model.TimesheetResponse{},
+		Note:         "Returns all timesheets of users/employees for the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -163,11 +164,10 @@ func (c *Controller) TimesheetController() {
 
 	// Get paginated timesheets for current branch
 	req.RegisterRoute(horizon.Route{
-		Route:    "/timesheet/search",
-		Method:   "GET",
-		Request:  "Filter<ITimesheet>",
-		Response: "Paginated<ITimesheet>",
-		Note:     "Returns paginated timesheets for the current branch.",
+		Route:        "/timesheet/search",
+		Method:       "GET",
+		ResponseType: model.TimesheetResponse{},
+		Note:         "Returns paginated timesheets for the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)

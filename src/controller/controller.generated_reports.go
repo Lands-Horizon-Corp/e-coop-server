@@ -6,6 +6,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
+	"github.com/lands-horizon/horizon-server/src/model"
 )
 
 // GeneratedReports manages endpoints for generated report resources.
@@ -14,11 +15,10 @@ func (c *Controller) GeneratedReports() {
 
 	// GET /generated-report: Get all generated reports for the current user. (NO footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/generated-report",
-		Method:   "GET",
-		Response: "TGeneratedReport[]",
-		Note:     "Returns all generated reports for the currently authenticated user.",
-		Private:  true,
+		Route:        "/generated-report",
+		Method:       "GET",
+		ResponseType: model.GeneratedReportResponse{},
+		Note:         "Returns all generated reports for the currently authenticated user.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userToken.CurrentUser(context, ctx)
@@ -34,10 +34,10 @@ func (c *Controller) GeneratedReports() {
 
 	// GET /generated-report/:generated_report_id: Get a specific generated report by ID. (NO footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/generated-report/:generated_report_id",
-		Method:   "GET",
-		Response: "TGeneratedReport",
-		Note:     "Returns a specific generated report by its ID.",
+		Route:        "/generated-report/:generated_report_id",
+		Method:       "GET",
+		ResponseType: model.GeneratedReportResponse{},
+		Note:         "Returns a specific generated report by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		generatedReportID, err := horizon.EngineUUIDParam(ctx, "generated_report_id")

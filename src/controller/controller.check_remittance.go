@@ -16,10 +16,10 @@ func (c *Controller) CheckRemittanceController() {
 
 	// GET /check-remittance: List all check remittances for the active transaction batch. (NO footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/check-remittance",
-		Method:   "GET",
-		Response: "ICheckRemittance[]",
-		Note:     "Returns all check remittances for the current active transaction batch of the authenticated user's branch. Only 'owner' or 'employee' roles are allowed.",
+		Route:        "/check-remittance",
+		Method:       "GET",
+		Note:         "Returns all check remittances for the current active transaction batch of the authenticated user's branch. Only 'owner' or 'employee' roles are allowed.",
+		ResponseType: model.CheckRemittanceResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -56,11 +56,11 @@ func (c *Controller) CheckRemittanceController() {
 
 	// POST /check-remittance: Create a new check remittance for the current transaction batch. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/check-remittance",
-		Method:   "POST",
-		Response: "ICheckRemittance",
-		Request:  "ICheckRemittance",
-		Note:     "Creates a new check remittance for the current active transaction batch. Only 'owner' or 'employee' roles are allowed.",
+		Route:        "/check-remittance",
+		Method:       "POST",
+		ResponseType: model.CheckRemittanceResponse{},
+		RequestType:  model.CheckRemittanceRequest{},
+		Note:         "Creates a new check remittance for the current active transaction batch. Only 'owner' or 'employee' roles are allowed.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.CheckRemittanceManager.Validate(ctx)
@@ -190,11 +190,11 @@ func (c *Controller) CheckRemittanceController() {
 
 	// PUT /check-remittance/:check_remittance_id: Update a check remittance by ID for the current transaction batch. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/check-remittance/:check_remittance_id",
-		Method:   "PUT",
-		Response: "ICheckRemittance",
-		Request:  "ICheckRemittance",
-		Note:     "Updates an existing check remittance by ID for the current transaction batch. Only 'owner' or 'employee' roles are allowed.",
+		Route:        "/check-remittance/:check_remittance_id",
+		Method:       "PUT",
+		Note:         "Updates an existing check remittance by ID for the current transaction batch. Only 'owner' or 'employee' roles are allowed.",
+		ResponseType: model.CheckRemittanceResponse{},
+		RequestType:  model.CheckRemittanceRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		checkRemittanceId, err := horizon.EngineUUIDParam(ctx, "check_remittance_id")
@@ -355,10 +355,9 @@ func (c *Controller) CheckRemittanceController() {
 
 	// DELETE /check-remittance/:check_remittance_id: Delete a check remittance by ID for the current transaction batch. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/check-remittance/:check_remittance_id",
-		Method:   "DELETE",
-		Response: "ICheckRemittance",
-		Note:     "Deletes a check remittance by ID for the current transaction batch. Only 'owner' or 'employee' roles are allowed.",
+		Route:  "/check-remittance/:check_remittance_id",
+		Method: "DELETE",
+		Note:   "Deletes a check remittance by ID for the current transaction batch. Only 'owner' or 'employee' roles are allowed.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		checkRemittanceId, err := horizon.EngineUUIDParam(ctx, "check_remittance_id")

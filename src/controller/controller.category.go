@@ -18,10 +18,10 @@ func (c *Controller) CategoryController() {
 
 	// GET /category: List all categories. (NO footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/category",
-		Method:   "GET",
-		Response: "TCategory[]",
-		Note:     "Returns all categories in the system.",
+		Route:        "/category",
+		Method:       "GET",
+		Note:         "Returns all categories in the system.",
+		ResponseType: model.CategoryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		categories, err := c.model.CategoryManager.List(context)
@@ -33,10 +33,10 @@ func (c *Controller) CategoryController() {
 
 	// GET /category/:category_id: Get a specific category by ID. (NO footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/category/:category_id",
-		Method:   "GET",
-		Response: "TCategory",
-		Note:     "Returns a single category by its ID.",
+		Route:        "/category/:category_id",
+		Method:       "GET",
+		Note:         "Returns a single category by its ID.",
+		ResponseType: model.CategoryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		categoryID, err := horizon.EngineUUIDParam(ctx, "category_id")
@@ -54,11 +54,13 @@ func (c *Controller) CategoryController() {
 
 	// POST /category: Create a new category. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/category",
-		Method:   "POST",
-		Request:  "TCategory",
-		Response: "TCategory",
-		Note:     "Creates a new category.",
+		Route:        "/category",
+		Method:       "POST",
+		Request:      "TCategory",
+		Response:     "TCategory",
+		Note:         "Creates a new category.",
+		RequestType:  model.CategoryRequest{},
+		ResponseType: model.CategoryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.CategoryManager.Validate(ctx)
@@ -100,11 +102,13 @@ func (c *Controller) CategoryController() {
 
 	// PUT /category/:category_id: Update a category by ID. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/category/:category_id",
-		Method:   "PUT",
-		Request:  "TCategory",
-		Response: "TCategory",
-		Note:     "Updates an existing category by its ID.",
+		Route:        "/category/:category_id",
+		Method:       "PUT",
+		Request:      "TCategory",
+		Response:     "TCategory",
+		Note:         "Updates an existing category by its ID.",
+		RequestType:  model.CategoryRequest{},
+		ResponseType: model.CategoryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		categoryID, err := horizon.EngineUUIDParam(ctx, "category_id")
@@ -208,15 +212,13 @@ func (c *Controller) CategoryController() {
 
 	// DELETE /category/bulk-delete: Bulk delete categories by IDs. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:   "/category/bulk-delete",
-		Method:  "DELETE",
-		Request: "string[]",
-		Note:    "Deletes multiple categories by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
+		Route:       "/category/bulk-delete",
+		Method:      "DELETE",
+		Note:        "Deletes multiple categories by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
+		RequestType: model.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody struct {
-			IDs []string `json:"ids"`
-		}
+		var reqBody model.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{

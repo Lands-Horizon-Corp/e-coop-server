@@ -50,10 +50,10 @@ func (c *Controller) ComputationSheetController() {
 
 	// GET /computation-sheet: List all computation sheets for the current user's branch.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/computation-sheet",
-		Method:   "GET",
-		Response: "TComputationSheet[]",
-		Note:     "Returns all computation sheets for the current user's organization and branch.",
+		Route:        "/computation-sheet",
+		Method:       "GET",
+		Note:         "Returns all computation sheets for the current user's organization and branch.",
+		ResponseType: model.ComputationSheetResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -72,10 +72,10 @@ func (c *Controller) ComputationSheetController() {
 
 	// GET /computation-sheet/:id: Get specific computation sheet by ID.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/computation-sheet/:id",
-		Method:   "GET",
-		Response: "TComputationSheet",
-		Note:     "Returns a single computation sheet by its ID.",
+		Route:        "/computation-sheet/:id",
+		Method:       "GET",
+		ResponseType: model.ComputationSheetResponse{},
+		Note:         "Returns a single computation sheet by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		id, err := horizon.EngineUUIDParam(ctx, "id")
@@ -91,11 +91,11 @@ func (c *Controller) ComputationSheetController() {
 
 	// POST /computation-sheet: Create a new computation sheet.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/computation-sheet",
-		Method:   "POST",
-		Request:  "TComputationSheet",
-		Response: "TComputationSheet",
-		Note:     "Creates a new computation sheet for the current user's organization and branch.",
+		Route:        "/computation-sheet",
+		Method:       "POST",
+		RequestType:  model.ComputationSheetRequest{},
+		ResponseType: model.ComputationSheetResponse{},
+		Note:         "Creates a new computation sheet for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.ComputationSheetManager.Validate(ctx)
@@ -159,11 +159,11 @@ func (c *Controller) ComputationSheetController() {
 
 	// PUT /computation-sheet/:id: Update computation sheet by ID.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/computation-sheet/:id",
-		Method:   "PUT",
-		Request:  "TComputationSheet",
-		Response: "TComputationSheet",
-		Note:     "Updates an existing computation sheet by its ID.",
+		Route:        "/computation-sheet/:id",
+		Method:       "PUT",
+		RequestType:  model.ComputationSheetRequest{},
+		ResponseType: model.ComputationSheetResponse{},
+		Note:         "Updates an existing computation sheet by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		id, err := horizon.EngineUUIDParam(ctx, "id")
@@ -272,15 +272,13 @@ func (c *Controller) ComputationSheetController() {
 
 	// DELETE /computation-sheet/bulk-delete: Bulk delete computation sheets by IDs.
 	req.RegisterRoute(horizon.Route{
-		Route:   "/computation-sheet/bulk-delete",
-		Method:  "DELETE",
-		Request: "string[]",
-		Note:    "Deletes multiple computation sheets by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
+		Route:       "/computation-sheet/bulk-delete",
+		Method:      "DELETE",
+		Note:        "Deletes multiple computation sheets by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
+		RequestType: model.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody struct {
-			IDs []string `json:"ids"`
-		}
+		var reqBody model.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",

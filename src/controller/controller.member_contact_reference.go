@@ -15,11 +15,11 @@ func (c *Controller) MemberContactReferenceController() {
 
 	// Create a new contact reference for a member profile
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-contact-reference/member-profile/:member_profile_id",
-		Method:   "POST",
-		Request:  "TMemberContactReference",
-		Response: "TMemberContactReference",
-		Note:     "Creates a new contact reference entry for the specified member profile.",
+		Route:        "/member-contact-reference/member-profile/:member_profile_id",
+		Method:       "POST",
+		ResponseType: model.MemberContactReferenceResponse{},
+		RequestType:  model.MemberContactReferenceRequest{},
+		Note:         "Creates a new contact reference entry for the specified member profile.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
@@ -83,11 +83,11 @@ func (c *Controller) MemberContactReferenceController() {
 
 	// Update an existing contact reference by its ID
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-contact-reference/:member_contact_reference_id",
-		Method:   "PUT",
-		Request:  "TMemberContactReference",
-		Response: "TMemberContactReference",
-		Note:     "Updates an existing contact reference by its ID.",
+		Route:        "/member-contact-reference/:member_contact_reference_id",
+		Method:       "PUT",
+		ResponseType: model.MemberContactReferenceResponse{},
+		RequestType:  model.MemberContactReferenceRequest{},
+		Note:         "Updates an existing contact reference by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberContactReferenceID, err := horizon.EngineUUIDParam(ctx, "member_contact_reference_id")

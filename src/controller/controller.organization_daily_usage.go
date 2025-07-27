@@ -5,6 +5,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/horizon"
+	"github.com/lands-horizon/horizon-server/src/model"
 )
 
 func (c *Controller) OrganizationDailyUsage() {
@@ -12,10 +13,10 @@ func (c *Controller) OrganizationDailyUsage() {
 
 	// Get daily usage records for the current user's organization
 	req.RegisterRoute(horizon.Route{
-		Route:    "/organization-daily-usage",
-		Method:   "GET",
-		Response: "TOrganizationDailyUsage[]",
-		Note:     "Returns all daily usage records for the current user's organization.",
+		Route:        "/organization-daily-usage",
+		Method:       "GET",
+		Note:         "Returns all daily usage records for the current user's organization.",
+		ResponseType: model.OrganizationDailyUsageResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -31,10 +32,11 @@ func (c *Controller) OrganizationDailyUsage() {
 
 	// Get a specific organization daily usage record by its ID
 	req.RegisterRoute(horizon.Route{
-		Route:    "/organization-daily-usage/:organization_daily_usage_id",
-		Method:   "GET",
-		Response: "TOrganizationDailyUsage",
-		Note:     "Returns a specific organization daily usage record by its ID.",
+		Route:        "/organization-daily-usage/:organization_daily_usage_id",
+		Method:       "GET",
+		Response:     "TOrganizationDailyUsage",
+		Note:         "Returns a specific organization daily usage record by its ID.",
+		ResponseType: model.OrganizationDailyUsageResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		dailyUsageId, err := horizon.EngineUUIDParam(ctx, "organization_daily_usage_id")

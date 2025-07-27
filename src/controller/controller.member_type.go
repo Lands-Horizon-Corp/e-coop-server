@@ -17,10 +17,10 @@ func (c *Controller) MemberTypeController() {
 
 	// Get all member type history for the current branch
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-type-history",
-		Method:   "GET",
-		Response: "TMemberTypeHistory[]",
-		Note:     "Returns all member type history entries for the current user's branch.",
+		Route:        "/member-type-history",
+		Method:       "GET",
+		ResponseType: model.MemberTypeHistoryResponse{},
+		Note:         "Returns all member type history entries for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -36,10 +36,10 @@ func (c *Controller) MemberTypeController() {
 
 	// Get member type history by member profile ID
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-type-history/member-profile/:member_profile_id/search",
-		Method:   "GET",
-		Response: "TMemberTypeHistory[]",
-		Note:     "Returns member type history for a specific member profile ID.",
+		Route:        "/member-type-history/member-profile/:member_profile_id/search",
+		Method:       "GET",
+		ResponseType: model.MemberTypeHistoryResponse{},
+		Note:         "Returns member type history for a specific member profile ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
@@ -59,10 +59,10 @@ func (c *Controller) MemberTypeController() {
 
 	// Get all member types for the current branch
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-type",
-		Method:   "GET",
-		Response: "TMemberType[]",
-		Note:     "Returns all member types for the current user's branch.",
+		Route:        "/member-type",
+		Method:       "GET",
+		ResponseType: model.MemberTypeResponse{},
+		Note:         "Returns all member types for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -78,11 +78,10 @@ func (c *Controller) MemberTypeController() {
 
 	// Get paginated member types for the current branch
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-type/search",
-		Method:   "GET",
-		Request:  "Filter<IMemberType>",
-		Response: "Paginated<IMemberType>",
-		Note:     "Returns paginated member types for the current user's branch.",
+		Route:        "/member-type/search",
+		Method:       "GET",
+		ResponseType: model.MemberTypeResponse{},
+		Note:         "Returns paginated member types for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -98,11 +97,11 @@ func (c *Controller) MemberTypeController() {
 
 	// Create a new member type
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-type",
-		Method:   "POST",
-		Request:  "TMemberType",
-		Response: "TMemberType",
-		Note:     "Creates a new member type record.",
+		Route:        "/member-type",
+		Method:       "POST",
+		RequestType:  model.MemberTypeRequest{},
+		ResponseType: model.MemberTypeResponse{},
+		Note:         "Creates a new member type record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.MemberTypeManager.Validate(ctx)
@@ -156,11 +155,11 @@ func (c *Controller) MemberTypeController() {
 
 	// Update an existing member type by ID
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-type/:member_type_id",
-		Method:   "PUT",
-		Request:  "TMemberType",
-		Response: "TMemberType",
-		Note:     "Updates an existing member type record by its ID.",
+		Route:        "/member-type/:member_type_id",
+		Method:       "PUT",
+		RequestType:  model.MemberTypeRequest{},
+		ResponseType: model.MemberTypeResponse{},
+		Note:         "Updates an existing member type record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberTypeID, err := horizon.EngineUUIDParam(ctx, "member_type_id")
@@ -268,16 +267,13 @@ func (c *Controller) MemberTypeController() {
 
 	// Bulk delete member types by IDs
 	req.RegisterRoute(horizon.Route{
-		Route:   "/member-type/bulk-delete",
-		Method:  "DELETE",
-		Request: "string[]",
-		Note:    "Deletes multiple member type records by their IDs.",
+		Route:       "/member-type/bulk-delete",
+		Method:      "DELETE",
+		RequestType: model.IDSRequest{},
+		Note:        "Deletes multiple member type records by their IDs.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody struct {
-			IDs []string `json:"ids"`
-		}
-
+		var reqBody model.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",

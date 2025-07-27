@@ -17,10 +17,10 @@ func (c *Controller) FinancialStatementController() {
 
 	// GET /financial-statement-grouping: List all financial statement groupings for the current branch. (NO footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/financial-statement-grouping",
-		Method:   "GET",
-		Response: "FinancialStatementGrouping[]",
-		Note:     "Returns all financial statement groupings for the current user's organization and branch.",
+		Route:        "/financial-statement-grouping",
+		Method:       "GET",
+		ResponseType: model.FinancialStatementGroupingResponse{},
+		Note:         "Returns all financial statement groupings for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -64,11 +64,11 @@ func (c *Controller) FinancialStatementController() {
 
 	// PUT /financial-statement-grouping/:financial_statement_grouping_id: Update a financial statement grouping. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/financial-statement-grouping/:financial_statement_grouping_id",
-		Method:   "PUT",
-		Request:  "FinancialStatementGroupingRequest",
-		Response: "FinancialStatementGroupingResponse",
-		Note:     "Updates an existing financial statement grouping by its ID.",
+		Route:        "/financial-statement-grouping/:financial_statement_grouping_id",
+		Method:       "PUT",
+		RequestType:  model.FinancialStatementGroupingRequest{},
+		ResponseType: model.FinancialStatementGroupingResponse{},
+		Note:         "Updates an existing financial statement grouping by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		groupingID, err := horizon.EngineUUIDParam(ctx, "financial_statement_grouping_id")
@@ -144,10 +144,10 @@ func (c *Controller) FinancialStatementController() {
 
 	// GET /financial-statement-definition: List all financial statement definitions for the current branch. (NO footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/financial-statement-definition",
-		Method:   "GET",
-		Response: "FinancialStatementDefinition[]",
-		Note:     "Returns all financial statement definitions for the current user's organization and branch.",
+		Route:        "/financial-statement-definition",
+		Method:       "GET",
+		ResponseType: model.FinancialStatementDefinitionResponse{},
+		Note:         "Returns all financial statement definitions for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -169,11 +169,11 @@ func (c *Controller) FinancialStatementController() {
 
 	// POST /financial-statement-definition: Create a new financial statement definition. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/financial-statement-definition",
-		Method:   "POST",
-		Request:  "FinancialStatementDefinitionRequest",
-		Response: "FinancialStatementDefinitionResponse",
-		Note:     "Creates a new financial statement definition for the current user's organization and branch.",
+		Route:        "/financial-statement-definition",
+		Method:       "POST",
+		RequestType:  model.FinancialStatementDefinitionRequest{},
+		ResponseType: model.FinancialStatementDefinitionResponse{},
+		Note:         "Creates a new financial statement definition for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.FinancialStatementDefinitionManager.Validate(ctx)
@@ -238,11 +238,13 @@ func (c *Controller) FinancialStatementController() {
 
 	// PUT /financial-statement-definition/:financial_statement_definition_id: Update a financial statement definition. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/financial-statement-definition/:financial_statement_definition_id",
-		Method:   "PUT",
-		Request:  "FinancialStatementDefinitionRequest",
-		Response: "FinancialStatementDefinitionResponse",
-		Note:     "Updates an existing financial statement definition by its ID.",
+		Route:        "/financial-statement-definition/:financial_statement_definition_id",
+		Method:       "PUT",
+		Request:      "FinancialStatementDefinitionRequest",
+		Response:     "FinancialStatementDefinitionResponse",
+		Note:         "Updates an existing financial statement definition by its ID.",
+		RequestType:  model.FinancialStatementDefinitionRequest{},
+		ResponseType: model.FinancialStatementDefinitionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		fsDefinitionID, err := horizon.EngineUUIDParam(ctx, "financial_statement_definition_id")
@@ -319,10 +321,10 @@ func (c *Controller) FinancialStatementController() {
 
 	// POST /financial-statement-definition/:financial_statement_definition_id/account/:account_id/connect: Connect an account to a financial statement definition. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/financial-statement-definition/:financial_statement_definition_id/account/:account_id/connect",
-		Method:   "POST",
-		Response: "FinancialStatementDefinitionResponse",
-		Note:     "Connects an account to a financial statement definition by their IDs.",
+		Route:        "/financial-statement-definition/:financial_statement_definition_id/account/:account_id/connect",
+		Method:       "POST",
+		ResponseType: model.FinancialStatementDefinitionResponse{},
+		Note:         "Connects an account to a financial statement definition by their IDs.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		fsDefinitionID, err := horizon.EngineUUIDParam(ctx, "financial_statement_definition_id")
@@ -425,10 +427,10 @@ func (c *Controller) FinancialStatementController() {
 
 	// PUT /financial-statement-definition/:financial_statement_definition_id/index/:index: Update the index of a financial statement definition. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/financial-statement-definition/:financial_statement_definition_id/index/:index",
-		Method:   "PUT",
-		Response: "FinancialStatementDefinitionResponse",
-		Note:     "Updates the index of a financial statement definition by its ID.",
+		Route:        "/financial-statement-definition/:financial_statement_definition_id/index/:index",
+		Method:       "PUT",
+		ResponseType: model.FinancialStatementDefinitionResponse{},
+		Note:         "Updates the index of a financial statement definition by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		fsDefinitionID, err := horizon.EngineUUIDParam(ctx, "financial_statement_definition_id")
@@ -496,11 +498,10 @@ func (c *Controller) FinancialStatementController() {
 
 	// PUT /financial-statement-grouping/financial-statement-definition/:financial_statement_definition_id/account/:account_id/index: Update the index of an account within a financial statement definition. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/financial-statement-grouping/financial-statement-definition/:financial_statement_definition_id/account/:account_id/index",
-		Method:   "PUT",
-		Request:  "UpdateAccountIndexRequest {financial_statement_definition_index: int, account_index: int}",
-		Response: "FinancialStatementDefinitionResponse",
-		Note:     "Updates the index of an account within a financial statement definition and reorders accordingly.",
+		Route:        "/financial-statement-grouping/financial-statement-definition/:financial_statement_definition_id/account/:account_id/index",
+		Method:       "PUT",
+		ResponseType: model.FinancialStatementDefinitionResponse{},
+		Note:         "Updates the index of an account within a financial statement definition and reorders accordingly.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		fsDefinitionID, err := horizon.EngineUUIDParam(ctx, "financial_statement_definition_id")
@@ -632,42 +633,11 @@ func (c *Controller) FinancialStatementController() {
 		return ctx.JSON(http.StatusOK, c.model.FinancialStatementDefinitionManager.ToModel(fsDefinition))
 	})
 
-	// GET /financial-statement/account/:account_id/search: Get all financial statement entries for an account with pagination. (NO footstep)
-	req.RegisterRoute(horizon.Route{
-		Route:    "/financial-statement/account/:account_id/search",
-		Method:   "GET",
-		Response: "FinancialStatement[]",
-		Note:     "Returns all financial statement entries for an account with pagination.",
-	}, func(ctx echo.Context) error {
-		context := ctx.Request().Context()
-		accountID, err := horizon.EngineUUIDParam(ctx, "account_id")
-		if err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID"})
-		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
-		if err != nil {
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
-		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view financial statement entries"})
-		}
-		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
-			AccountID:      accountID,
-			OrganizationID: userOrg.OrganizationID,
-			BranchID:       *userOrg.BranchID,
-		})
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
-		}
-		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.Pagination(context, ctx, entries))
-	})
-
 	// DELETE /financial-statement-definition/:financial_statement_definition_id: Delete a financial statement definition by ID, only if no accounts are linked. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/financial-statement-definition/:financial_statement_definition_id",
-		Method:   "DELETE",
-		Response: "FinancialStatementDefinitionResponse",
-		Note:     "Deletes a financial statement definition by its ID, only if no accounts are linked.",
+		Route:  "/financial-statement-definition/:financial_statement_definition_id",
+		Method: "DELETE",
+		Note:   "Deletes a financial statement definition by its ID, only if no accounts are linked.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		fsDefinitionID, err := horizon.EngineUUIDParam(ctx, "financial_statement_definition_id")

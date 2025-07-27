@@ -17,11 +17,11 @@ func (c *Controller) MemberEducationalAttainmentController() {
 
 	// Create a new educational attainment record for a member profile
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-educational-attainment/member-profile/:member_profile_id",
-		Method:   "POST",
-		Request:  "TMemberEducationalAttainment",
-		Response: "TMemberEducationalAttainment",
-		Note:     "Creates a new educational attainment record for the specified member profile.",
+		Route:        "/member-educational-attainment/member-profile/:member_profile_id",
+		Method:       "POST",
+		RequestType:  model.MemberEducationalAttainmentRequest{},
+		ResponseType: model.MemberEducationalAttainmentResponse{},
+		Note:         "Creates a new educational attainment record for the specified member profile.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
@@ -87,11 +87,11 @@ func (c *Controller) MemberEducationalAttainmentController() {
 
 	// Update an existing educational attainment record by its ID
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-educational-attainment/:member_educational_attainment_id",
-		Method:   "PUT",
-		Request:  "TMemberEducationalAttainment",
-		Response: "TMemberEducationalAttainment",
-		Note:     "Updates an existing educational attainment record by its ID.",
+		Route:        "/member-educational-attainment/:member_educational_attainment_id",
+		Method:       "PUT",
+		RequestType:  model.MemberEducationalAttainmentRequest{},
+		ResponseType: model.MemberEducationalAttainmentResponse{},
+		Note:         "Updates an existing educational attainment record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberEducationalAttainmentID, err := horizon.EngineUUIDParam(ctx, "member_educational_attainment_id")
@@ -202,15 +202,13 @@ func (c *Controller) MemberEducationalAttainmentController() {
 
 	// Bulk delete educational attainment records by IDs
 	req.RegisterRoute(horizon.Route{
-		Route:   "/member-educational-attainment/bulk-delete",
-		Method:  "DELETE",
-		Request: "string[]",
-		Note:    "Deletes multiple educational attainment records by their IDs.",
+		Route:       "/member-educational-attainment/bulk-delete",
+		Method:      "DELETE",
+		RequestType: model.IDSRequest{},
+		Note:        "Deletes multiple educational attainment records by their IDs.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody struct {
-			IDs []string `json:"ids"`
-		}
+		var reqBody model.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",

@@ -5,6 +5,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/horizon"
+	"github.com/lands-horizon/horizon-server/src/model"
 )
 
 // FootstepController manages endpoints related to footstep records.
@@ -13,11 +14,10 @@ func (c *Controller) FootstepController() {
 
 	// GET /footstep/me: Get all footsteps for the currently logged-in user.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/footstep/me/search",
-		Method:   "GET",
-		Response: "TFootstep[]",
-		Note:     "Returns all footsteps for the currently authenticated user.",
-		Private:  true,
+		Route:        "/footstep/me/search",
+		Method:       "GET",
+		ResponseType: model.FootstepResponse{},
+		Note:         "Returns all footsteps for the currently authenticated user.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userToken.CurrentUser(context, ctx)
@@ -32,10 +32,10 @@ func (c *Controller) FootstepController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/footstep/member-profile/:member_profile_id/search",
-		Method:   "GET",
-		Response: "TFootstep[]",
-		Note:     "Returns all footsteps for the specified employee (user) on the current branch.",
+		Route:        "/footstep/member-profile/:member_profile_id/search",
+		Method:       "GET",
+		ResponseType: model.FootstepResponse{},
+		Note:         "Returns all footsteps for the specified employee (user) on the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -84,11 +84,12 @@ func (c *Controller) FootstepController() {
 
 	// GET /footstep/user-organization/:user_organization_id/search: Get footsteps for a user organization on the current branch.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/footstep/user-organization/:user_organization_id/search",
-		Method:   "GET",
-		Response: "TFootstep[]",
-		Note:     "Returns footsteps for the specified user-organization on the current branch if the user is a member, employee, or owner.",
+		Route:        "/footstep/user-organization/:user_organization_id/search",
+		Method:       "GET",
+		ResponseType: model.FootstepResponse{},
+		Note:         "Returns footsteps for the specified user-organization on the current branch if the user is a member, employee, or owner.",
 	}, func(ctx echo.Context) error {
+
 		context := ctx.Request().Context()
 		userOrgId, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
 		if err != nil {
@@ -108,10 +109,10 @@ func (c *Controller) FootstepController() {
 
 	// GET /footstep/:footstep_id: Get a specific footstep by ID.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/footstep/:footstep_id",
-		Method:   "GET",
-		Response: "TFootstep",
-		Note:     "Returns a specific footstep record by its ID.",
+		Route:        "/footstep/:footstep_id",
+		Method:       "GET",
+		Note:         "Returns a specific footstep record by its ID.",
+		ResponseType: model.FootstepResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		footstepId, err := horizon.EngineUUIDParam(ctx, "footstep_id")
@@ -126,11 +127,10 @@ func (c *Controller) FootstepController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/footstep/current/me/branch/search",
-		Method:   "GET",
-		Response: "TFootstep[]",
-		Note:     "Returns footsteps for the currently authenticated user on their current branch.",
-		Private:  true,
+		Route:        "/footstep/current/me/branch/search",
+		Method:       "GET",
+		Note:         "Returns footsteps for the currently authenticated user on their current branch.",
+		ResponseType: model.FootstepResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 

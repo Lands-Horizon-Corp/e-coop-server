@@ -18,10 +18,10 @@ func (c *Controller) ContactController() {
 
 	// GET /contact: List all contact records. (NO footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/contact",
-		Method:   "GET",
-		Response: "TContact[]",
-		Note:     "Returns all contact records in the system.",
+		Route:        "/contact",
+		Method:       "GET",
+		Note:         "Returns all contact records in the system.",
+		ResponseType: model.ContactUsResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		contacts, err := c.model.ContactUsManager.List(context)
@@ -33,10 +33,10 @@ func (c *Controller) ContactController() {
 
 	// GET /contact/:contact_id: Get a specific contact by ID. (NO footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/contact/:contact_id",
-		Method:   "GET",
-		Response: "TContact",
-		Note:     "Returns a single contact record by its ID.",
+		Route:        "/contact/:contact_id",
+		Method:       "GET",
+		Note:         "Returns a single contact record by its ID.",
+		ResponseType: model.ContactUsResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		contactID, err := horizon.EngineUUIDParam(ctx, "contact_id")
@@ -52,11 +52,11 @@ func (c *Controller) ContactController() {
 
 	// POST /contact: Create a new contact record. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/contact",
-		Method:   "POST",
-		Request:  "TContact",
-		Response: "TContact",
-		Note:     "Creates a new contact record.",
+		Route:        "/contact",
+		Method:       "POST",
+		ResponseType: model.ContactUsResponse{},
+		RequestType:  model.ContactUsRequest{},
+		Note:         "Creates a new contact record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.ContactUsManager.Validate(ctx)
@@ -140,15 +140,13 @@ func (c *Controller) ContactController() {
 
 	// DELETE /contact/bulk-delete: Bulk delete contact records by IDs. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:   "/contact/bulk-delete",
-		Method:  "DELETE",
-		Request: "string[]",
-		Note:    "Deletes multiple contact records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
+		Route:       "/contact/bulk-delete",
+		Method:      "DELETE",
+		Note:        "Deletes multiple contact records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
+		RequestType: model.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody struct {
-			IDs []string `json:"ids"`
-		}
+		var reqBody model.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{

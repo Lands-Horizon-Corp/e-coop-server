@@ -18,10 +18,10 @@ func (c *Controller) InvitationCode() {
 
 	// GET /invitation-code: Retrieve all invitation codes for the current user's organization and branch. (NO footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/invitation-code",
-		Method:   "GET",
-		Response: "IInvitationCode[]",
-		Note:     "Returns all invitation codes for the current user's organization and branch.",
+		Route:        "/invitation-code",
+		Method:       "GET",
+		ResponseType: model.InvitationCodeResponse{},
+		Note:         "Returns all invitation codes for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -40,11 +40,10 @@ func (c *Controller) InvitationCode() {
 
 	// GET /invitation-code/search: Paginated search of invitation codes for current branch. (NO footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/invitation-code/search",
-		Method:   "GET",
-		Request:  "Filter<TInvitationCode>",
-		Response: "Paginated<TInvitationCode>",
-		Note:     "Returns a paginated list of invitation codes for the current user's organization and branch.",
+		Route:       "/invitation-code/search",
+		Method:      "GET",
+		RequestType: model.InvitationCodeRequest{},
+		Note:        "Returns a paginated list of invitation codes for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -63,10 +62,10 @@ func (c *Controller) InvitationCode() {
 
 	// GET /invitation-code/code/:code: Retrieve an invitation code by its code string (for current organization). (NO footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/invitation-code/code/:code",
-		Method:   "GET",
-		Response: "IInvitationCode",
-		Note:     "Returns the invitation code matching the specified code for the current user's organization.",
+		Route:        "/invitation-code/code/:code",
+		Method:       "GET",
+		Note:         "Returns the invitation code matching the specified code for the current user's organization.",
+		ResponseType: model.InvitationCodeResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		code := ctx.Param("code")
@@ -79,10 +78,11 @@ func (c *Controller) InvitationCode() {
 
 	// GET /invitation-code/:invitation_code_id: Retrieve a specific invitation code by its ID. (NO footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/invitation-code/:invitation_code_id",
-		Method:   "GET",
-		Response: "IInvitationCode",
-		Note:     "Returns the details of a specific invitation code by its ID.",
+		Route:        "/invitation-code/:invitation_code_id",
+		Method:       "GET",
+		Response:     "IInvitationCode",
+		Note:         "Returns the details of a specific invitation code by its ID.",
+		ResponseType: model.InvitationCodeResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		invitationCodeId, err := horizon.EngineUUIDParam(ctx, "invitation_code_id")
@@ -98,11 +98,11 @@ func (c *Controller) InvitationCode() {
 
 	// POST /invitation-code: Create a new invitation code for the current user's organization and branch. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/invitation-code",
-		Method:   "POST",
-		Response: "IInvitationCode",
-		Request:  "IInvitationCode",
-		Note:     "Creates a new invitation code under the current user's organization and branch.",
+		Route:        "/invitation-code",
+		Method:       "POST",
+		ResponseType: model.InvitationCodeResponse{},
+		RequestType:  model.InvitationCodeRequest{},
+		Note:         "Creates a new invitation code under the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.InvitationCodeManager.Validate(ctx)
@@ -179,11 +179,11 @@ func (c *Controller) InvitationCode() {
 
 	// PUT /invitation-code/:invitation_code_id: Update an existing invitation code by its ID. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/invitation-code/:invitation_code_id",
-		Method:   "PUT",
-		Response: "IInvitationCode",
-		Request:  "IInvitationCode",
-		Note:     "Updates an existing invitation code identified by its ID.",
+		Route:        "/invitation-code/:invitation_code_id",
+		Method:       "PUT",
+		ResponseType: model.InvitationCodeResponse{},
+		RequestType:  model.InvitationCodeRequest{},
+		Note:         "Updates an existing invitation code identified by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		invitationCodeId, err := horizon.EngineUUIDParam(ctx, "invitation_code_id")
@@ -302,15 +302,13 @@ func (c *Controller) InvitationCode() {
 
 	// DELETE /invitation-code/bulk-delete: Bulk delete invitation codes by IDs. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:   "/invitation-code/bulk-delete",
-		Method:  "DELETE",
-		Request: "string[]",
-		Note:    "Deletes multiple invitation codes by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
+		Route:       "/invitation-code/bulk-delete",
+		Method:      "DELETE",
+		RequestType: model.IDSRequest{},
+		Note:        "Deletes multiple invitation codes by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody struct {
-			IDs []string `json:"ids"`
-		}
+		var reqBody model.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",

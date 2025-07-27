@@ -15,11 +15,11 @@ func (c *Controller) MemberJointAccountController() {
 
 	// Create a new joint account record for a member profile
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-joint-account/member-profile/:member_profile_id",
-		Method:   "POST",
-		Request:  "TMemberJointAccount",
-		Response: "TMemberJointAccount",
-		Note:     "Creates a new joint account record for the specified member profile.",
+		Route:        "/member-joint-account/member-profile/:member_profile_id",
+		Method:       "POST",
+		ResponseType: model.MemberJointAccountResponse{},
+		RequestType:  model.MemberJointAccountRequest{},
+		Note:         "Creates a new joint account record for the specified member profile.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
@@ -90,11 +90,11 @@ func (c *Controller) MemberJointAccountController() {
 
 	// Update an existing joint account record by its ID
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-joint-account/:member_joint_account_id",
-		Method:   "PUT",
-		Request:  "TMemberJointAccount",
-		Response: "TMemberJointAccount",
-		Note:     "Updates an existing joint account record by its ID.",
+		Route:        "/member-joint-account/:member_joint_account_id",
+		Method:       "PUT",
+		ResponseType: model.MemberJointAccountResponse{},
+		RequestType:  model.MemberJointAccountRequest{},
+		Note:         "Updates an existing joint account record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberJointAccountID, err := horizon.EngineUUIDParam(ctx, "member_joint_account_id")

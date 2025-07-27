@@ -17,10 +17,10 @@ func (c *Controller) TagTemplateController() {
 
 	// Returns all tag templates for the current user's branch.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/tag-template",
-		Method:   "GET",
-		Response: "TTagTemplate[]",
-		Note:     "Returns all tag templates for the current user's branch.",
+		Route:        "/tag-template",
+		Method:       "GET",
+		ResponseType: model.TagTemplateResponse{},
+		Note:         "Returns all tag templates for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -39,11 +39,10 @@ func (c *Controller) TagTemplateController() {
 
 	// Returns paginated tag templates for the current user's branch.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/tag-template/search",
-		Method:   "GET",
-		Request:  "Filter<ITagTemplate>",
-		Response: "Paginated<ITagTemplate>",
-		Note:     "Returns paginated tag templates for the current user's branch.",
+		Route:        "/tag-template/search",
+		Method:       "GET",
+		ResponseType: model.TagTemplateResponse{},
+		Note:         "Returns paginated tag templates for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -62,10 +61,10 @@ func (c *Controller) TagTemplateController() {
 
 	// Returns a single tag template by its ID.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/tag-template/:tag_template_id",
-		Method:   "GET",
-		Response: "TTagTemplate",
-		Note:     "Returns a specific tag template by its ID.",
+		Route:        "/tag-template/:tag_template_id",
+		Method:       "GET",
+		ResponseType: model.TagTemplateResponse{},
+		Note:         "Returns a specific tag template by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		id, err := horizon.EngineUUIDParam(ctx, "tag_template_id")
@@ -81,11 +80,11 @@ func (c *Controller) TagTemplateController() {
 
 	// Creates a new tag template.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/tag-template",
-		Method:   "POST",
-		Request:  "TTagTemplate",
-		Response: "TTagTemplate",
-		Note:     "Creates a new tag template for the current user's branch.",
+		Route:        "/tag-template",
+		Method:       "POST",
+		ResponseType: model.TagTemplateResponse{},
+		RequestType:  model.TagTemplateRequest{},
+		Note:         "Creates a new tag template for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.TagTemplateManager.Validate(ctx)
@@ -141,11 +140,11 @@ func (c *Controller) TagTemplateController() {
 
 	// Updates an existing tag template by its ID.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/tag-template/:tag_template_id",
-		Method:   "PUT",
-		Request:  "TTagTemplate",
-		Response: "TTagTemplate",
-		Note:     "Updates an existing tag template by its ID.",
+		Route:        "/tag-template/:tag_template_id",
+		Method:       "PUT",
+		ResponseType: model.TagTemplateResponse{},
+		RequestType:  model.TagTemplateRequest{},
+		Note:         "Updates an existing tag template by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		id, err := horizon.EngineUUIDParam(ctx, "tag_template_id")
@@ -252,15 +251,13 @@ func (c *Controller) TagTemplateController() {
 
 	// Deletes multiple tag templates by their IDs.
 	req.RegisterRoute(horizon.Route{
-		Route:   "/tag-template/bulk-delete",
-		Method:  "DELETE",
-		Request: "string[]",
-		Note:    "Deletes multiple tag template records by their IDs.",
+		Route:       "/tag-template/bulk-delete",
+		Method:      "DELETE",
+		RequestType: model.IDSRequest{},
+		Note:        "Deletes multiple tag template records by their IDs.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody struct {
-			IDs []string `json:"ids"`
-		}
+		var reqBody model.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",

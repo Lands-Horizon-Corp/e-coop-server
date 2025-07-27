@@ -18,10 +18,10 @@ func (c *Controller) HolidayController() {
 
 	// GET /holiday: List all holidays for the current user's branch. (NO footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/holiday",
-		Method:   "GET",
-		Response: "THoliday[]",
-		Note:     "Returns all holiday records for the current user's organization and branch.",
+		Route:        "/holiday",
+		Method:       "GET",
+		ResponseType: model.HolidayResponse{},
+		Note:         "Returns all holiday records for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -40,11 +40,10 @@ func (c *Controller) HolidayController() {
 
 	// GET /holiday/search: Paginated search of holidays for current branch. (NO footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/holiday/search",
-		Method:   "GET",
-		Request:  "Filter<IHoliday>",
-		Response: "Paginated<IHoliday>",
-		Note:     "Returns a paginated list of holiday records for the current user's organization and branch.",
+		Route:        "/holiday/search",
+		Method:       "GET",
+		ResponseType: model.HolidayResponse{},
+		Note:         "Returns a paginated list of holiday records for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -63,10 +62,11 @@ func (c *Controller) HolidayController() {
 
 	// GET /holiday/:holiday_id: Get a specific holiday record by ID. (NO footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/holiday/:holiday_id",
-		Method:   "GET",
-		Response: "THoliday",
-		Note:     "Returns a holiday record by its ID.",
+		Route:        "/holiday/:holiday_id",
+		Method:       "GET",
+		ResponseType: model.HolidayResponse{},
+		RequestType:  model.HolidayRequest{},
+		Note:         "Returns a holiday record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		holidayID, err := horizon.EngineUUIDParam(ctx, "holiday_id")
@@ -82,11 +82,11 @@ func (c *Controller) HolidayController() {
 
 	// POST /holiday: Create a new holiday record. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/holiday",
-		Method:   "POST",
-		Request:  "THoliday",
-		Response: "THoliday",
-		Note:     "Creates a new holiday record for the current user's organization and branch.",
+		Route:        "/holiday",
+		Method:       "POST",
+		ResponseType: model.HolidayResponse{},
+		RequestType:  model.HolidayRequest{},
+		Note:         "Creates a new holiday record for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.HolidayManager.Validate(ctx)
@@ -144,11 +144,11 @@ func (c *Controller) HolidayController() {
 
 	// PUT /holiday/:holiday_id: Update a holiday record by ID. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/holiday/:holiday_id",
-		Method:   "PUT",
-		Request:  "THoliday",
-		Response: "THoliday",
-		Note:     "Updates an existing holiday record by its ID.",
+		Route:        "/holiday/:holiday_id",
+		Method:       "PUT",
+		ResponseType: model.HolidayResponse{},
+		RequestType:  model.HolidayRequest{},
+		Note:         "Updates an existing holiday record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		holidayID, err := horizon.EngineUUIDParam(ctx, "holiday_id")
@@ -259,15 +259,13 @@ func (c *Controller) HolidayController() {
 
 	// DELETE /holiday/bulk-delete: Bulk delete holiday records by IDs. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:   "/holiday/bulk-delete",
-		Method:  "DELETE",
-		Request: "string[]",
-		Note:    "Deletes multiple holiday records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
+		Route:       "/holiday/bulk-delete",
+		Method:      "DELETE",
+		Note:        "Deletes multiple holiday records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
+		RequestType: model.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody struct {
-			IDs []string `json:"ids"`
-		}
+		var reqBody model.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",

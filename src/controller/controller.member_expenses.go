@@ -15,11 +15,11 @@ func (c *Controller) MemberExpenseController() {
 
 	// Create a new expense record for a member profile
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-expense/member-profile/:member_profile_id",
-		Method:   "POST",
-		Request:  "TMemberExpense",
-		Response: "TMemberExpense",
-		Note:     "Creates a new expense record for the specified member profile.",
+		Route:        "/member-expense/member-profile/:member_profile_id",
+		Method:       "POST",
+		ResponseType: model.MemberExpenseResponse{},
+		RequestType:  model.MemberExpenseRequest{},
+		Note:         "Creates a new expense record for the specified member profile.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
@@ -83,11 +83,11 @@ func (c *Controller) MemberExpenseController() {
 
 	// Update an existing expense record by its ID
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-expense/:member_expense_id",
-		Method:   "PUT",
-		Request:  "TMemberExpense",
-		Response: "TMemberExpense",
-		Note:     "Updates an existing expense record by its ID.",
+		Route:        "/member-expense/:member_expense_id",
+		Method:       "PUT",
+		RequestType:  model.MemberExpenseRequest{},
+		ResponseType: model.MemberExpenseResponse{},
+		Note:         "Updates an existing expense record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberExpenseID, err := horizon.EngineUUIDParam(ctx, "member_expense_id")

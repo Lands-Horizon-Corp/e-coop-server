@@ -17,10 +17,10 @@ func (c *Controller) SubscriptionPlanController() {
 
 	// Get all subscription plans
 	req.RegisterRoute(horizon.Route{
-		Route:    "/subscription-plan",
-		Method:   "GET",
-		Response: "TSubscriptionPlan[]",
-		Note:     "Returns all subscription plans.",
+		Route:        "/subscription-plan",
+		Method:       "GET",
+		ResponseType: model.SubscriptionPlanResponse{},
+		Note:         "Returns all subscription plans.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		categories, err := c.model.SubscriptionPlanManager.List(context)
@@ -32,10 +32,10 @@ func (c *Controller) SubscriptionPlanController() {
 
 	// Get a subscription plan by its ID
 	req.RegisterRoute(horizon.Route{
-		Route:    "/subscription-plan/:subscription_plan_id",
-		Method:   "GET",
-		Response: "TSubscriptionPlan",
-		Note:     "Returns a specific subscription plan by its ID.",
+		Route:        "/subscription-plan/:subscription_plan_id",
+		Method:       "GET",
+		ResponseType: model.SubscriptionPlanResponse{},
+		Note:         "Returns a specific subscription plan by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		subscriptionPlanID, err := horizon.EngineUUIDParam(ctx, "subscription_plan_id")
@@ -53,11 +53,11 @@ func (c *Controller) SubscriptionPlanController() {
 
 	// Create a new subscription plan
 	req.RegisterRoute(horizon.Route{
-		Route:    "/subscription-plan",
-		Method:   "POST",
-		Request:  "TSubscriptionPlan",
-		Response: "TSubscriptionPlan",
-		Note:     "Creates a new subscription plan.",
+		Route:        "/subscription-plan",
+		Method:       "POST",
+		ResponseType: model.SubscriptionPlanResponse{},
+		RequestType:  model.SubscriptionPlanRequest{},
+		Note:         "Creates a new subscription plan.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.SubscriptionPlanManager.Validate(ctx)
@@ -104,11 +104,11 @@ func (c *Controller) SubscriptionPlanController() {
 
 	// Update a subscription plan by its ID
 	req.RegisterRoute(horizon.Route{
-		Route:    "/subscription-plan/:subscription_plan_id",
-		Method:   "PUT",
-		Request:  "TSubscriptionPlan",
-		Response: "TSubscriptionPlan",
-		Note:     "Updates an existing subscription plan by its ID.",
+		Route:        "/subscription-plan/:subscription_plan_id",
+		Method:       "PUT",
+		ResponseType: model.SubscriptionPlanResponse{},
+		RequestType:  model.SubscriptionPlanRequest{},
+		Note:         "Updates an existing subscription plan by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		subscriptionPlanID, err := horizon.EngineUUIDParam(ctx, "subscription_plan_id")
@@ -217,15 +217,13 @@ func (c *Controller) SubscriptionPlanController() {
 
 	// Bulk delete subscription plans by IDs
 	req.RegisterRoute(horizon.Route{
-		Route:   "/subscription-plan/bulk-delete",
-		Method:  "DELETE",
-		Request: "string[]",
-		Note:    "Deletes multiple subscription plan records.",
+		Route:       "/subscription-plan/bulk-delete",
+		Method:      "DELETE",
+		RequestType: model.IDSRequest{},
+		Note:        "Deletes multiple subscription plan records.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody struct {
-			IDs []string `json:"ids"`
-		}
+		var reqBody model.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{

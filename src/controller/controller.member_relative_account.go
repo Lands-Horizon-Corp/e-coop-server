@@ -15,11 +15,11 @@ func (c *Controller) MemberRelativeAccountController() {
 
 	// Create a new relative account record for a member profile
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-relative-account/member-profile/:member_profile_id",
-		Method:   "POST",
-		Request:  "TMemberRelativeAccount",
-		Response: "TMemberRelativeAccount",
-		Note:     "Creates a new relative account record for the specified member profile.",
+		Route:        "/member-relative-account/member-profile/:member_profile_id",
+		Method:       "POST",
+		RequestType:  model.MemberRelativeAccountRequest{},
+		ResponseType: model.MemberRelativeAccountResponse{},
+		Note:         "Creates a new relative account record for the specified member profile.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
@@ -83,11 +83,11 @@ func (c *Controller) MemberRelativeAccountController() {
 
 	// Update an existing relative account record by its ID
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-relative-account/:member_relative_account_id",
-		Method:   "PUT",
-		Request:  "TMemberRelativeAccount",
-		Response: "TMemberRelativeAccount",
-		Note:     "Updates an existing relative account record by its ID.",
+		Route:        "/member-relative-account/:member_relative_account_id",
+		Method:       "PUT",
+		RequestType:  model.MemberRelativeAccountRequest{},
+		ResponseType: model.MemberRelativeAccountResponse{},
+		Note:         "Updates an existing relative account record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberRelativeAccountID, err := horizon.EngineUUIDParam(ctx, "member_relative_account_id")

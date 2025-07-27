@@ -13,10 +13,10 @@ func (c *Controller) CashEntryController() {
 
 	// Returns paginated cash entries for a given transaction batch.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/cash-entry/transaction-batch/:transaction_batch_id/search",
-		Method:   "GET",
-		Response: "CashEntry[]",
-		Note:     "Returns paginated cash entries for the specified transaction batch.",
+		Route:        "/cash-entry/transaction-batch/:transaction_batch_id/search",
+		Method:       "GET",
+		ResponseType: model.CashEntryResponse{},
+		Note:         "Returns paginated cash entries for the specified transaction batch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -39,10 +39,10 @@ func (c *Controller) CashEntryController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/cash-entry/transaction-batch/:transaction_batch_id",
-		Method:   "GET",
-		Response: "CashEntry[]",
-		Note:     "Returns paginated cash entries for the specified transaction batch.",
+		Route:        "/cash-entry/transaction-batch/:transaction_batch_id",
+		Method:       "GET",
+		Note:         "Returns paginated cash entries for the specified transaction batch.",
+		ResponseType: model.CashEntryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)

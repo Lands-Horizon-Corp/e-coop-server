@@ -86,6 +86,12 @@ type (
 		PrincipalDue        float64    `json:"principal_due,omitempty"`
 		LastPay             *time.Time `json:"last_pay,omitempty"`
 	}
+
+	MemberAccountingLedgerSummary struct {
+		TotalAmount                  float64 `json:"total_amount"`
+		TotalShareCapitalPlusSavings float64 `json:"total_share_capital_plus_savings"`
+		TotalLoans                   float64 `json:"total_loans"`
+	}
 )
 
 func (m *Model) MemberAccountingLedger() {

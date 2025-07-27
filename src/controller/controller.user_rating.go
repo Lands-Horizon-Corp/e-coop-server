@@ -15,10 +15,10 @@ func (c *Controller) UserRatingController() {
 
 	// Returns all user ratings given by the specified user (rater)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/user-rating/user-rater/:user_id",
-		Method:   "GET",
-		Response: "TUserRating[]",
-		Note:     "Returns all user ratings given by the specified user (rater).",
+		Route:        "/user-rating/user-rater/:user_id",
+		Method:       "GET",
+		ResponseType: model.UserRatingResponse{},
+		Note:         "Returns all user ratings given by the specified user (rater).",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userId, err := horizon.EngineUUIDParam(ctx, "user_id")
@@ -34,10 +34,10 @@ func (c *Controller) UserRatingController() {
 
 	// Returns all user ratings received by the specified user (ratee)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/user-rating/user-ratee/:user_id",
-		Method:   "GET",
-		Response: "TUserRating[]",
-		Note:     "Returns all user ratings received by the specified user (ratee).",
+		Route:        "/user-rating/user-ratee/:user_id",
+		Method:       "GET",
+		ResponseType: model.UserRatingResponse{},
+		Note:         "Returns all user ratings received by the specified user (ratee).",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userId, err := horizon.EngineUUIDParam(ctx, "user_id")
@@ -53,10 +53,10 @@ func (c *Controller) UserRatingController() {
 
 	// Returns a specific user rating by its ID
 	req.RegisterRoute(horizon.Route{
-		Route:    "/user-rating/:user_rating_id",
-		Method:   "GET",
-		Response: "TUserRating",
-		Note:     "Returns a specific user rating by its ID.",
+		Route:        "/user-rating/:user_rating_id",
+		Method:       "GET",
+		ResponseType: model.UserRatingResponse{},
+		Note:         "Returns a specific user rating by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userRatingId, err := horizon.EngineUUIDParam(ctx, "user_rating_id")
@@ -72,10 +72,10 @@ func (c *Controller) UserRatingController() {
 
 	// Returns all user ratings in the current user's active branch
 	req.RegisterRoute(horizon.Route{
-		Route:    "/user-rating/branch",
-		Method:   "GET",
-		Response: "TUserRating[]",
-		Note:     "Returns all user ratings in the current user's active branch.",
+		Route:        "/user-rating/branch",
+		Method:       "GET",
+		ResponseType: model.UserRatingResponse{},
+		Note:         "Returns all user ratings in the current user's active branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -91,11 +91,11 @@ func (c *Controller) UserRatingController() {
 
 	// Creates a new user rating in the current user's branch
 	req.RegisterRoute(horizon.Route{
-		Route:    "/user-rating",
-		Method:   "POST",
-		Response: "TUserRating",
-		Request:  "TUserRating",
-		Note:     "Creates a new user rating in the current user's branch.",
+		Route:        "/user-rating",
+		Method:       "POST",
+		ResponseType: model.UserRatingResponse{},
+		RequestType:  model.UserRatingRequest{},
+		Note:         "Creates a new user rating in the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.UserRatingManager.Validate(ctx)

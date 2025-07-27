@@ -18,10 +18,10 @@ func (c *Controller) FeedbackController() {
 
 	// GET /feedback: List all feedback records. (NO footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/feedback",
-		Method:   "GET",
-		Response: "TFeedback[]",
-		Note:     "Returns all feedback records in the system.",
+		Route:        "/feedback",
+		Method:       "GET",
+		Note:         "Returns all feedback records in the system.",
+		ResponseType: model.FeedbackResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		feedback, err := c.model.FeedbackManager.List(context)
@@ -33,10 +33,10 @@ func (c *Controller) FeedbackController() {
 
 	// GET /feedback/:feedback_id: Get a specific feedback by ID. (NO footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/feedback/:feedback_id",
-		Method:   "GET",
-		Response: "TFeedback",
-		Note:     "Returns a single feedback record by its ID.",
+		Route:        "/feedback/:feedback_id",
+		Method:       "GET",
+		Note:         "Returns a single feedback record by its ID.",
+		ResponseType: model.FeedbackResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		feedbackID, err := horizon.EngineUUIDParam(ctx, "feedback_id")
@@ -54,11 +54,11 @@ func (c *Controller) FeedbackController() {
 
 	// POST /feedback: Create a new feedback record. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/feedback",
-		Method:   "POST",
-		Request:  "TFeedback",
-		Response: "TFeedback",
-		Note:     "Creates a new feedback record.",
+		Route:        "/feedback",
+		Method:       "POST",
+		Note:         "Creates a new feedback record.",
+		ResponseType: model.FeedbackResponse{},
+		RequestType:  model.FeedbackRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.FeedbackManager.Validate(ctx)
@@ -145,15 +145,13 @@ func (c *Controller) FeedbackController() {
 
 	// DELETE /feedback/bulk-delete: Bulk delete feedback records by IDs. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:   "/feedback/bulk-delete",
-		Method:  "DELETE",
-		Request: "string[]",
-		Note:    "Deletes multiple feedback records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
+		Route:       "/feedback/bulk-delete",
+		Method:      "DELETE",
+		Note:        "Deletes multiple feedback records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
+		RequestType: model.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody struct {
-			IDs []string `json:"ids"`
-		}
+		var reqBody model.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{

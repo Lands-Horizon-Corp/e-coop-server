@@ -13,11 +13,11 @@ import (
 func (c *Controller) TransactionController() {
 	req := c.provider.Service.Request
 	req.RegisterRoute(horizon.Route{
-		Route:    "/transaction/deposit/:transaction_id",
-		Method:   "POST",
-		Request:  "PaymentOnlineRequest",
-		Response: "GeneralLedgerResponse",
-		Note:     "Registers an online deposit against a specific transaction, updating both the general ledger and transaction record.",
+		Route:        "/transaction/deposit/:transaction_id",
+		Method:       "POST",
+		RequestType:  model.PaymentRequest{},
+		ResponseType: model.GeneralLedgerResponse{},
+		Note:         "Registers an online deposit against a specific transaction, updating both the general ledger and transaction record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -224,11 +224,11 @@ func (c *Controller) TransactionController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/transaction/withdraw/:transaction_id",
-		Method:   "POST",
-		Request:  "PaymentOnlineRequest",
-		Response: "GeneralLedgerResponse",
-		Note:     "Processes an online withdrawal for the given transaction, updating the general ledger and transaction amounts.",
+		Route:        "/transaction/withdraw/:transaction_id",
+		Method:       "POST",
+		RequestType:  model.PaymentRequest{},
+		ResponseType: model.GeneralLedgerResponse{},
+		Note:         "Processes an online withdrawal for the given transaction, updating the general ledger and transaction amounts.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -435,11 +435,11 @@ func (c *Controller) TransactionController() {
 
 	// Create transaction
 	req.RegisterRoute(horizon.Route{
-		Route:    "/transaction",
-		Method:   "POST",
-		Request:  "TransactionRequest",
-		Response: "TransactionResponse",
-		Note:     "Creates a new transaction record with provided details, allowing subsequent deposit or withdrawal actions.",
+		Route:        "/transaction",
+		Method:       "POST",
+		RequestType:  model.TransactionRequest{},
+		ResponseType: model.TransactionResponse{},
+		Note:         "Creates a new transaction record with provided details, allowing subsequent deposit or withdrawal actions.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -517,11 +517,11 @@ func (c *Controller) TransactionController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/transaction/deposit",
-		Method:   "POST",
-		Request:  "PaymentQuickRequest",
-		Response: "GeneralLedgerResponse",
-		Note:     "Performs a quick deposit operation using minimal information, creating both a transaction and related ledger entry.",
+		Route:        "/transaction/deposit",
+		Method:       "POST",
+		RequestType:  model.PaymentQuickRequest{},
+		ResponseType: model.GeneralLedgerResponse{},
+		Note:         "Performs a quick deposit operation using minimal information, creating both a transaction and related ledger entry.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -731,11 +731,11 @@ func (c *Controller) TransactionController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/transaction/withdraw",
-		Method:   "POST",
-		Request:  "PaymentQuickRequest",
-		Response: "GeneralLedgerResponse",
-		Note:     "Executes a quick withdrawal with minimal required info, generating both a transaction and related ledger entry.",
+		Route:        "/transaction/withdraw",
+		Method:       "POST",
+		RequestType:  model.PaymentQuickRequest{},
+		ResponseType: model.GeneralLedgerResponse{},
+		Note:         "Executes a quick withdrawal with minimal required info, generating both a transaction and related ledger entry.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -947,11 +947,11 @@ func (c *Controller) TransactionController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/transaction/:transaction_id",
-		Method:   "PUT",
-		Request:  "TransactionRequestEdit",
-		Response: "TransactionResponse",
-		Note:     "Modifies the description of an existing transaction, allowing updates to its memo or comment field.",
+		Route:        "/transaction/:transaction_id",
+		Method:       "PUT",
+		RequestType:  model.TransactionRequestEdit{},
+		ResponseType: model.TransactionResponse{},
+		Note:         "Modifies the description of an existing transaction, allowing updates to its memo or comment field.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -1039,10 +1039,10 @@ func (c *Controller) TransactionController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/transaction/:transaction_id",
-		Method:   "GET",
-		Response: "TransactionResponse",
-		Note:     "Retrieves detailed information for the specified transaction by its unique identifier.",
+		Route:        "/transaction/:transaction_id",
+		Method:       "GET",
+		ResponseType: model.TransactionResponse{},
+		Note:         "Retrieves detailed information for the specified transaction by its unique identifier.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -1064,10 +1064,10 @@ func (c *Controller) TransactionController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/transaction/current/search",
-		Method:   "GET",
-		Response: "TransactionResponse[]",
-		Note:     "Lists all transactions associated with the currently authenticated user within their organization and branch.",
+		Route:        "/transaction/current/search",
+		Method:       "GET",
+		ResponseType: model.TransactionResponse{},
+		Note:         "Lists all transactions associated with the currently authenticated user within their organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -1089,10 +1089,10 @@ func (c *Controller) TransactionController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/transaction/employee/:employee_id/search",
-		Method:   "GET",
-		Response: "TransactionResponse[]",
-		Note:     "Fetches all transactions handled by the specified employee, filtered by organization and branch.",
+		Route:        "/transaction/employee/:employee_id/search",
+		Method:       "GET",
+		ResponseType: model.TransactionResponse{},
+		Note:         "Fetches all transactions handled by the specified employee, filtered by organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -1122,10 +1122,10 @@ func (c *Controller) TransactionController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/transaction/member-profile/:member_profile_id/search",
-		Method:   "GET",
-		Response: "TransactionResponse[]",
-		Note:     "Retrieves all transactions related to the given member profile within the user's organization and branch.",
+		Route:        "/transaction/member-profile/:member_profile_id/search",
+		Method:       "GET",
+		ResponseType: model.TransactionResponse{},
+		Note:         "Retrieves all transactions related to the given member profile within the user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -1155,10 +1155,10 @@ func (c *Controller) TransactionController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/transaction/branch/search",
-		Method:   "GET",
-		Response: "TransactionResponse[]",
-		Note:     "Provides a paginated list of all transactions recorded for the current branch of the user's organization.",
+		Route:        "/transaction/branch/search",
+		Method:       "GET",
+		ResponseType: model.TransactionResponse{},
+		Note:         "Provides a paginated list of all transactions recorded for the current branch of the user's organization.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)

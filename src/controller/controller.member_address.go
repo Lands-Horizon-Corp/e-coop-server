@@ -16,11 +16,11 @@ func (c *Controller) MemberAddressController() {
 
 	// POST /member-address/member-profile/:member_profile_id: Create a new address record for a member.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-address/member-profile/:member_profile_id",
-		Method:   "POST",
-		Request:  "TMemberAddress",
-		Response: "TMemberAddress",
-		Note:     "Creates a new address record for a member profile.",
+		Route:        "/member-address/member-profile/:member_profile_id",
+		Method:       "POST",
+		RequestType:  model.MemberAddress{},
+		ResponseType: model.MemberAddress{},
+		Note:         "Creates a new address record for a member profile.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
@@ -93,11 +93,11 @@ func (c *Controller) MemberAddressController() {
 
 	// PUT /member-address/:member_address_id: Update an existing address record for a member.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-address/:member_address_id",
-		Method:   "PUT",
-		Request:  "TMemberAddress",
-		Response: "TMemberAddress",
-		Note:     "Updates an existing address record for a member in the current branch.",
+		Route:        "/member-address/:member_address_id",
+		Method:       "PUT",
+		RequestType:  model.MemberAddress{},
+		ResponseType: model.MemberAddress{},
+		Note:         "Updates an existing address record for a member in the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberAddressID, err := horizon.EngineUUIDParam(ctx, "member_address_id")

@@ -140,6 +140,16 @@ type (
 		UserSettingEndVoucher   int64 `json:"user_setting_end_voucher"`
 		UserSettingUsedVoucher  int64 `json:"user_setting_used_voucher"`
 	}
+
+	UserOrganizationPermissionPayload struct {
+		PermissionName        string   `json:"permission_name" validate:"required"`
+		PermissionDescription string   `json:"permission_description" validate:"required"`
+		Permissions           []string `json:"permissions" validate:"required,min=1,dive,required"`
+	}
+
+	DeveloperSecretKeyResponse struct {
+		DeveloperSecretKey string `json:"developer_secret_key"`
+	}
 )
 
 func (m *Model) UserOrganization() {

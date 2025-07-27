@@ -18,10 +18,10 @@ func (c *Controller) CollateralController() {
 
 	// GET /collateral: List all collaterals for the current user's branch. (NO footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/collateral",
-		Method:   "GET",
-		Response: "TCollateral[]",
-		Note:     "Returns all collateral records for the current user's organization and branch. Returns error if not authenticated.",
+		Route:        "/collateral",
+		Method:       "GET",
+		Note:         "Returns all collateral records for the current user's organization and branch. Returns error if not authenticated.",
+		ResponseType: model.CollateralResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -40,11 +40,10 @@ func (c *Controller) CollateralController() {
 
 	// GET /collateral/search: Paginated search of collaterals for current branch. (NO footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/collateral/search",
-		Method:   "GET",
-		Request:  "Filter<ICollateral>",
-		Response: "Paginated<ICollateral>",
-		Note:     "Returns a paginated list of collateral records for the current user's organization and branch.",
+		Route:        "/collateral/search",
+		Method:       "GET",
+		ResponseType: model.CollateralResponse{},
+		Note:         "Returns a paginated list of collateral records for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -63,10 +62,10 @@ func (c *Controller) CollateralController() {
 
 	// GET /collateral/:collateral_id: Get a specific collateral record by ID. (NO footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/collateral/:collateral_id",
-		Method:   "GET",
-		Response: "TCollateral",
-		Note:     "Returns a collateral record by its ID.",
+		Route:        "/collateral/:collateral_id",
+		Method:       "GET",
+		Note:         "Returns a collateral record by its ID.",
+		ResponseType: model.CollateralResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		collateralID, err := horizon.EngineUUIDParam(ctx, "collateral_id")
@@ -82,11 +81,11 @@ func (c *Controller) CollateralController() {
 
 	// POST /collateral: Create a new collateral record. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/collateral",
-		Method:   "POST",
-		Request:  "TCollateral",
-		Response: "TCollateral",
-		Note:     "Creates a new collateral record for the current user's organization and branch.",
+		Route:        "/collateral",
+		Method:       "POST",
+		RequestType:  model.CollateralRequest{},
+		ResponseType: model.CollateralResponse{},
+		Note:         "Creates a new collateral record for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.CollateralManager.Validate(ctx)
@@ -147,11 +146,11 @@ func (c *Controller) CollateralController() {
 
 	// PUT /collateral/:collateral_id: Update a collateral record by ID. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/collateral/:collateral_id",
-		Method:   "PUT",
-		Request:  "TCollateral",
-		Response: "TCollateral",
-		Note:     "Updates an existing collateral record by its ID.",
+		Route:        "/collateral/:collateral_id",
+		Method:       "PUT",
+		RequestType:  model.CollateralRequest{},
+		ResponseType: model.CollateralResponse{},
+		Note:         "Updates an existing collateral record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		collateralID, err := horizon.EngineUUIDParam(ctx, "collateral_id")
@@ -255,15 +254,14 @@ func (c *Controller) CollateralController() {
 
 	// DELETE /collateral/bulk-delete: Bulk delete collateral records by IDs. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:   "/collateral/bulk-delete",
-		Method:  "DELETE",
-		Request: "string[]",
-		Note:    "Deletes multiple collateral records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
+		Route:       "/collateral/bulk-delete",
+		Method:      "DELETE",
+		Request:     "string[]",
+		Note:        "Deletes multiple collateral records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
+		RequestType: model.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody struct {
-			IDs []string `json:"ids"`
-		}
+		var reqBody model.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",

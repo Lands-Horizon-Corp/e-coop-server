@@ -16,10 +16,10 @@ func (c *Controller) OrganizationController() {
 
 	// Get all public organizations
 	req.RegisterRoute(horizon.Route{
-		Route:    "/organization",
-		Method:   "GET",
-		Response: "TOrganization[]",
-		Note:     "Returns all public organizations.",
+		Route:        "/organization",
+		Method:       "GET",
+		ResponseType: model.OrganizationResponse{},
+		Note:         "Returns all public organizations.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		organization, err := c.model.GetPublicOrganization(context)
@@ -31,10 +31,11 @@ func (c *Controller) OrganizationController() {
 
 	// Get an organization by its ID
 	req.RegisterRoute(horizon.Route{
-		Route:    "/organization/:organization_id",
-		Method:   "GET",
-		Response: "TCategory",
-		Note:     "Returns a specific organization by its ID.",
+		Route:        "/organization/:organization_id",
+		Method:       "GET",
+		ResponseType: model.OrganizationResponse{},
+
+		Note: "Returns a specific organization by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		organizationID, err := horizon.EngineUUIDParam(ctx, "organization_id")
@@ -50,12 +51,11 @@ func (c *Controller) OrganizationController() {
 
 	// Create a new organization (user must be logged in)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/organization",
-		Method:   "POST",
-		Request:  "TOrganization",
-		Response: "{organization: TOrganization, user_organization: TUserOrganization}",
-		Note:     "Creates a new organization. User must be logged in.",
-		Private:  true,
+		Route:        "/organization",
+		Method:       "POST",
+		RequestType:  model.OrganizationRequest{},
+		ResponseType: model.CreateOrganizationResponse{},
+		Note:         "Creates a new organization. User must be logged in.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.OrganizationManager.Validate(ctx)
@@ -232,20 +232,19 @@ func (c *Controller) OrganizationController() {
 			Description: "Created organization: " + organization.Name,
 			Module:      "Organization",
 		})
-		return ctx.JSON(http.StatusOK, map[string]any{
-			"organization":      c.model.OrganizationManager.ToModel(organization),
-			"user_organization": c.model.UserOrganizationManager.ToModel(userOrganization),
+		return ctx.JSON(http.StatusOK, model.CreateOrganizationResponse{
+			Organization:     c.model.OrganizationManager.ToModel(organization),
+			UserOrganization: c.model.UserOrganizationManager.ToModel(userOrganization),
 		})
 	})
 
 	// Update an organization (user must be logged in)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/organization/:organization_id",
-		Method:   "PUT",
-		Request:  "TOrganization",
-		Response: "{organization: TOrganization, user_organization: TUserOrganization}",
-		Note:     "Updates an organization. User must be logged in.",
-		Private:  true,
+		Route:        "/organization/:organization_id",
+		Method:       "PUT",
+		RequestType:  model.OrganizationRequest{},
+		ResponseType: model.OrganizationResponse{},
+		Note:         "Updates an organization. User must be logged in.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		organizationId, err := horizon.EngineUUIDParam(ctx, "organization_id")
@@ -389,10 +388,9 @@ func (c *Controller) OrganizationController() {
 
 	// Delete an organization (user must be logged in)
 	req.RegisterRoute(horizon.Route{
-		Route:   "/organization/:organization_id",
-		Method:  "DELETE",
-		Note:    "Deletes an organization. User must be logged in.",
-		Private: true,
+		Route:  "/organization/:organization_id",
+		Method: "DELETE",
+		Note:   "Deletes an organization. User must be logged in.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		organizationId, err := horizon.EngineUUIDParam(ctx, "organization_id")

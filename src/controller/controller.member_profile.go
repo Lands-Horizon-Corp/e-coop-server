@@ -17,10 +17,10 @@ func (c *Controller) MemberProfileController() {
 
 	// Get all pending member profiles in the current branch
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-profile/pending",
-		Method:   "GET",
-		Response: "[]MemberProfile",
-		Note:     "Returns all pending member profiles for the current user's branch.",
+		Route:        "/member-profile/pending",
+		Method:       "GET",
+		ResponseType: model.MemberProfileResponse{},
+		Note:         "Returns all pending member profiles for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -43,14 +43,13 @@ func (c *Controller) MemberProfileController() {
 
 	// Quickly create a new user account and link it to a member profile by ID
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-profile/:member_profile_id/user-account",
-		Method:   "POST",
-		Request:  "MemberProfilePersonalInfoRequest",
-		Response: "MemberProfile",
-		Note:     "Links a minimal user account to a member profile by member_profile_id.",
+		Route:        "/member-profile/:member_profile_id/user-account",
+		Method:       "POST",
+		RequestType:  model.MemberProfileUserAccountRequest{},
+		ResponseType: model.MemberProfileResponse{},
+		Note:         "Links a minimal user account to a member profile by member_profile_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -220,10 +219,10 @@ func (c *Controller) MemberProfileController() {
 
 	// Approve a member profile by ID
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-profile/:member_profile_id/approve",
-		Method:   "PUT",
-		Response: "MemberProfile",
-		Note:     "Approve a member profile by member_profile_id.",
+		Route:        "/member-profile/:member_profile_id/approve",
+		Method:       "PUT",
+		ResponseType: model.MemberProfileResponse{},
+		Note:         "Approve a member profile by member_profile_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
@@ -281,10 +280,11 @@ func (c *Controller) MemberProfileController() {
 
 	// Reject a member profile by ID
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-profile/:member_profile_id/reject",
-		Method:   "PUT",
-		Response: "MemberProfile",
-		Note:     "Reject a member profile by member_profile_id.",
+		Route:        "/member-profile/:member_profile_id/reject",
+		Method:       "PUT",
+		Response:     "MemberProfile",
+		ResponseType: model.MemberProfileResponse{},
+		Note:         "Reject a member profile by member_profile_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
@@ -341,10 +341,10 @@ func (c *Controller) MemberProfileController() {
 
 	// Retrieve a list of all member profiles in the current branch
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-profile",
-		Method:   "GET",
-		Response: "[]IMemberProfile",
-		Note:     "Returns all member profiles for the current user's branch.",
+		Route:        "/member-profile",
+		Method:       "GET",
+		ResponseType: model.MemberProfileResponse{},
+		Note:         "Returns all member profiles for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -360,11 +360,10 @@ func (c *Controller) MemberProfileController() {
 
 	// Retrieve paginated member profiles for the current branch
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-profile/search",
-		Method:   "GET",
-		Request:  "Filter<IMemberProfile>",
-		Response: "Paginated<IMemberProfile>",
-		Note:     "Returns paginated member profiles for the current user's branch.",
+		Route:        "/member-profile/search",
+		Method:       "GET",
+		ResponseType: model.MemberProfileResponse{},
+		Note:         "Returns paginated member profiles for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -380,10 +379,10 @@ func (c *Controller) MemberProfileController() {
 
 	// Retrieve a specific member profile by member_profile_id
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-profile/:member_profile_id",
-		Method:   "GET",
-		Response: "MemberProfile",
-		Note:     "Returns a specific member profile by its member_profile_id.",
+		Route:        "/member-profile/:member_profile_id",
+		Method:       "GET",
+		ResponseType: model.MemberProfileResponse{},
+		Note:         "Returns a specific member profile by its member_profile_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
@@ -461,15 +460,14 @@ func (c *Controller) MemberProfileController() {
 
 	// Bulk delete member profiles by IDs
 	req.RegisterRoute(horizon.Route{
-		Route:   "/member-profile/bulk-delete",
-		Method:  "DELETE",
-		Request: "string[]",
-		Note:    "Deletes multiple member profiles and all their connections by their IDs.",
+		Route:       "/member-profile/bulk-delete",
+		Method:      "DELETE",
+		Request:     "string[]",
+		Note:        "Deletes multiple member profiles and all their connections by their IDs.",
+		RequestType: model.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody struct {
-			IDs []string `json:"ids"`
-		}
+		var reqBody model.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
@@ -552,11 +550,11 @@ func (c *Controller) MemberProfileController() {
 
 	// Connect the specified member profile to a user account
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-profile/:member_profile_id/connect-user",
-		Method:   "POST",
-		Request:  "MemberProfileAccountRequest",
-		Response: "MemberProfile",
-		Note:     "Connects the specified member profile to a user account by member_profile_id.",
+		Route:        "/member-profile/:member_profile_id/connect-user",
+		Method:       "POST",
+		RequestType:  model.MemberProfileAccountRequest{},
+		ResponseType: model.MemberProfileResponse{},
+		Note:         "Connects the specified member profile to a user account by member_profile_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req model.MemberProfileAccountRequest
@@ -612,11 +610,11 @@ func (c *Controller) MemberProfileController() {
 	})
 	// Quickly create a new member profile with minimal required fields
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-profile/quick-create",
-		Method:   "POST",
-		Request:  "MemberProfilePersonalInfoRequest",
-		Response: "MemberProfile",
-		Note:     "Quickly creates a new member profile with minimal required fields.",
+		Route:        "/member-profile/quick-create",
+		Method:       "POST",
+		RequestType:  model.MemberProfileQuickCreateRequest{},
+		ResponseType: model.MemberProfileResponse{},
+		Note:         "Quickly creates a new member profile with minimal required fields.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req model.MemberProfileQuickCreateRequest
@@ -800,11 +798,11 @@ func (c *Controller) MemberProfileController() {
 
 	// Update the personal information of a member profile by ID
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-profile/:member_profile_id/personal-info",
-		Method:   "PUT",
-		Request:  "MemberProfilePersonalInfoRequest",
-		Response: "MemberProfile",
-		Note:     "Updates the personal information of a member profile by member_profile_id.",
+		Route:        "/member-profile/:member_profile_id/personal-info",
+		Method:       "PUT",
+		RequestType:  model.MemberProfilePersonalInfoRequest{},
+		ResponseType: model.MemberProfileResponse{},
+		Note:         "Updates the personal information of a member profile by member_profile_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req model.MemberProfilePersonalInfoRequest
@@ -929,11 +927,11 @@ func (c *Controller) MemberProfileController() {
 
 	// Update the membership information of a member profile by ID
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-profile/:member_profile_id/membership-info",
-		Method:   "PUT",
-		Request:  "MemberProfileMembershipInfoRequest",
-		Response: "MemberProfile",
-		Note:     "Updates the membership information of a member profile by member_profile_id.",
+		Route:        "/member-profile/:member_profile_id/membership-info",
+		Method:       "PUT",
+		RequestType:  model.MemberProfileMembershipInfoRequest{},
+		ResponseType: model.MemberProfileResponse{},
+		Note:         "Updates the membership information of a member profile by member_profile_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req model.MemberProfileMembershipInfoRequest

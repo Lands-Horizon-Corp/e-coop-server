@@ -12,10 +12,10 @@ func (c *Controller) QRCodeController() {
 	req := c.provider.Service.Request
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/qr-code/:code",
-		Method:   "GET",
-		Response: "TUser",
-		Note:     "Decodes a QR code and returns the associated user information.",
+		Route:        "/qr-code/:code",
+		Method:       "GET",
+		ResponseType: horizon.QRResult{},
+		Note:         "Decodes a QR code and returns the associated user information.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		code := ctx.Param("code")

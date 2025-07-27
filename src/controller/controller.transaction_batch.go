@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
-	horizon_services "github.com/lands-horizon/horizon-server/services"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -16,10 +15,10 @@ func (c *Controller) TransactionBatchController() {
 
 	// List all transaction batches for the current branch
 	req.RegisterRoute(horizon.Route{
-		Route:    "/transaction-batch",
-		Method:   "GET",
-		Response: "ITransactionBatch[]",
-		Note:     "Returns all transaction batches for the current user's branch.",
+		Route:        "/transaction-batch",
+		Method:       "GET",
+		ResponseType: model.TransactionBatchResponse{},
+		Note:         "Returns all transaction batches for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -41,11 +40,10 @@ func (c *Controller) TransactionBatchController() {
 
 	// Paginate transaction batches for current branch
 	req.RegisterRoute(horizon.Route{
-		Route:    "/transaction-batch/search",
-		Method:   "GET",
-		Request:  "Filter<TTransactionBatch>",
-		Response: "Paginated<TTransactionBatch>",
-		Note:     "Returns paginated transaction batches for the current user's branch.",
+		Route:        "/transaction-batch/search",
+		Method:       "GET",
+		ResponseType: model.TransactionBatchResponse{},
+		Note:         "Returns paginated transaction batches for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -61,11 +59,11 @@ func (c *Controller) TransactionBatchController() {
 
 	// Update batch signatures for a transaction batch
 	req.RegisterRoute(horizon.Route{
-		Route:    "/transaction-batch/:transaction_batch_id/signature",
-		Method:   "PUT",
-		Request:  "Filter<TTransactionBatch>",
-		Response: "Paginated<TTransactionBatch>",
-		Note:     "Updates signature and position fields for a transaction batch.",
+		Route:        "/transaction-batch/:transaction_batch_id/signature",
+		Method:       "PUT",
+		ResponseType: model.TransactionBatchResponse{},
+		RequestType:  model.TransactionBatchSignatureRequest{},
+		Note:         "Updates signature and position fields for a transaction batch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req model.TransactionBatchSignatureRequest
@@ -174,10 +172,10 @@ func (c *Controller) TransactionBatchController() {
 
 	// Get the current active transaction batch for the user
 	req.RegisterRoute(horizon.Route{
-		Route:    "/transaction-batch/current",
-		Method:   "GET",
-		Response: "ITransactionBatch",
-		Note:     "Returns the current active transaction batch for the current user.",
+		Route:        "/transaction-batch/current",
+		Method:       "GET",
+		ResponseType: model.TransactionBatchResponse{},
+		Note:         "Returns the current active transaction batch for the current user.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -207,11 +205,11 @@ func (c *Controller) TransactionBatchController() {
 
 	// Update deposit in bank amount for a specific transaction batch
 	req.RegisterRoute(horizon.Route{
-		Route:    "/transaction-batch/:transaction_batch_id/deposit-in-bank",
-		Method:   "PUT",
-		Response: "ITransactionBatch",
-		Request:  "IDepositInBankRequest",
-		Note:     "Updates the deposit in bank amount for a specific transaction batch.",
+		Route:        "/transaction-batch/:transaction_batch_id/deposit-in-bank",
+		Method:       "PUT",
+		ResponseType: model.TransactionBatchResponse{},
+		RequestType:  model.BatchFundingRequest{},
+		Note:         "Updates the deposit in bank amount for a specific transaction batch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		transactionBatchId, err := horizon.EngineUUIDParam(ctx, "transaction_batch_id")
@@ -344,11 +342,11 @@ func (c *Controller) TransactionBatchController() {
 
 	// Create a new transaction batch and batch funding
 	req.RegisterRoute(horizon.Route{
-		Route:    "/transaction-batch",
-		Method:   "POST",
-		Response: "ITransactionBatch",
-		Request:  "ITransactionBatch",
-		Note:     "Creates and starts a new transaction batch for the current branch (will also populate cash count).",
+		Route:        "/transaction-batch",
+		Method:       "POST",
+		ResponseType: model.TransactionBatchResponse{},
+		RequestType:  model.TransactionBatchRequest{},
+		Note:         "Creates and starts a new transaction batch for the current branch (will also populate cash count).",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		batchFundingReq, err := c.model.BatchFundingManager.Validate(ctx)
@@ -482,11 +480,11 @@ func (c *Controller) TransactionBatchController() {
 
 	// End the current transaction batch for the authenticated user
 	req.RegisterRoute(horizon.Route{
-		Route:    "/transaction-batch/end",
-		Method:   "PUT",
-		Response: "ITransactionBatch",
-		Request:  "ITransactionBatch",
-		Note:     "Ends the current transaction batch for the authenticated user.",
+		Route:        "/transaction-batch/end",
+		Method:       "PUT",
+		RequestType:  model.TransactionBatchEndRequest{},
+		ResponseType: model.TransactionBatchResponse{},
+		Note:         "Ends the current transaction batch for the authenticated user.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req model.TransactionBatchEndRequest
@@ -565,9 +563,10 @@ func (c *Controller) TransactionBatchController() {
 
 	// Retrieve a transaction batch by its ID
 	req.RegisterRoute(horizon.Route{
-		Route:  "/transaction-batch/:transaction_batch_id",
-		Method: "GET",
-		Note:   "Returns a transaction batch by its ID.",
+		Route:        "/transaction-batch/:transaction_batch_id",
+		Method:       "GET",
+		Note:         "Returns a transaction batch by its ID.",
+		ResponseType: model.TransactionBatchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		transactionBatchId, err := horizon.EngineUUIDParam(ctx, "transaction_batch_id")
@@ -597,10 +596,11 @@ func (c *Controller) TransactionBatchController() {
 
 	// Submit a request to view (blotter) a specific transaction batch
 	req.RegisterRoute(horizon.Route{
-		Route:    "/transaction-batch/:transaction_batch_id/view-request",
-		Method:   "PUT",
-		Response: "ITransactionBatch",
-		Note:     "Submits a request to view (blotter) a specific transaction batch.",
+		Route:        "/transaction-batch/:transaction_batch_id/view-request",
+		Method:       "PUT",
+		RequestType:  model.TransactionBatchEndRequest{},
+		ResponseType: model.TransactionBatchResponse{},
+		Note:         "Submits a request to view (blotter) a specific transaction batch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req model.TransactionBatchEndRequest
@@ -675,9 +675,10 @@ func (c *Controller) TransactionBatchController() {
 
 	// List all pending view (blotter) requests for transaction batches
 	req.RegisterRoute(horizon.Route{
-		Route:  "/transaction-batch/view-request",
-		Method: "GET",
-		Note:   "Returns all pending view (blotter) requests for transaction batches on the current branch.",
+		Route:        "/transaction-batch/view-request",
+		Method:       "GET",
+		Note:         "Returns all pending view (blotter) requests for transaction batches on the current branch.",
+		ResponseType: model.TransactionBatchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -696,9 +697,10 @@ func (c *Controller) TransactionBatchController() {
 
 	// List all ended (closed) batches for the current day
 	req.RegisterRoute(horizon.Route{
-		Route:  "/transaction-batch/ended-batch",
-		Method: "GET",
-		Note:   "Returns all ended (closed) transaction batches for the current day.",
+		Route:        "/transaction-batch/ended-batch",
+		Method:       "GET",
+		Note:         "Returns all ended (closed) transaction batches for the current day.",
+		ResponseType: model.TransactionBatchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -708,19 +710,7 @@ func (c *Controller) TransactionBatchController() {
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
-
-		now := time.Now().UTC()
-		startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
-		endOfDay := startOfDay.Add(24 * time.Hour)
-
-		filters := []horizon_services.Filter{
-			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
-			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
-			{Field: "is_closed", Op: horizon_services.OpEq, Value: true},
-			{Field: "created_at", Op: horizon_services.OpGte, Value: startOfDay},
-			{Field: "created_at", Op: horizon_services.OpLt, Value: endOfDay},
-		}
-		batches, err := c.model.TransactionBatchManager.FindWithFilters(context, filters)
+		batches, err := c.model.TransactionBatchCurrentDay(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ended transaction batches: " + err.Error()})
 		}
@@ -729,9 +719,10 @@ func (c *Controller) TransactionBatchController() {
 
 	// Accept a view (blotter) request for a transaction batch by ID
 	req.RegisterRoute(horizon.Route{
-		Route:  "/transaction-batch/:transaction_batch_id/view-accept",
-		Method: "PUT",
-		Note:   "Accepts a view (blotter) request for a transaction batch by its ID.",
+		Route:        "/transaction-batch/:transaction_batch_id/view-accept",
+		Method:       "PUT",
+		Note:         "Accepts a view (blotter) request for a transaction batch by its ID.",
+		ResponseType: model.TransactionBatchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		transactionBatchId, err := horizon.EngineUUIDParam(ctx, "transaction_batch_id")

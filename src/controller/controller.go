@@ -106,6 +106,7 @@ func (c *Controller) Start() error {
 	c.AccountCategoryController()
 	c.AccountClassificationController()
 	c.GeneralLedgerController()
+	c.GeneralLedgerGroupingController()
 	c.FinancialStatementController()
 	c.AccountTagController()
 	c.PaymentTypeController()

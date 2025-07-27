@@ -16,11 +16,11 @@ func (c *Controller) MemberAssetController() {
 
 	// POST /member-asset/member-profile/:member_profile_id: Create a new asset record for a member.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-asset/member-profile/:member_profile_id",
-		Method:   "POST",
-		Request:  "TMemberAsset",
-		Response: "TMemberAsset",
-		Note:     "Creates a new asset record for a member profile.",
+		Route:        "/member-asset/member-profile/:member_profile_id",
+		Method:       "POST",
+		RequestType:  model.MemberAsset{},
+		ResponseType: model.MemberAsset{},
+		Note:         "Creates a new asset record for a member profile.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
@@ -90,11 +90,11 @@ func (c *Controller) MemberAssetController() {
 
 	// PUT /member-asset/:member_asset_id: Update an existing asset record for a member.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-asset/:member_asset_id",
-		Method:   "PUT",
-		Request:  "TMemberAsset",
-		Response: "TMemberAsset",
-		Note:     "Updates an existing asset record for a member profile.",
+		Route:        "/member-asset/:member_asset_id",
+		Method:       "PUT",
+		RequestType:  model.MemberAsset{},
+		ResponseType: model.MemberAsset{},
+		Note:         "Updates an existing asset record for a member profile.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberAssetID, err := horizon.EngineUUIDParam(ctx, "member_asset_id")

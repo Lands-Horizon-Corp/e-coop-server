@@ -17,10 +17,10 @@ func (c *Controller) PaymentTypeController() {
 
 	// Get all payment types for the current branch
 	req.RegisterRoute(horizon.Route{
-		Route:    "/payment-type",
-		Method:   "GET",
-		Response: "TPaymentType[]",
-		Note:     "Returns all payment types for the current user's branch.",
+		Route:        "/payment-type",
+		Method:       "GET",
+		ResponseType: model.PaymentTypeResponse{},
+		Note:         "Returns all payment types for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -36,11 +36,10 @@ func (c *Controller) PaymentTypeController() {
 
 	// Paginate payment types for the current branch
 	req.RegisterRoute(horizon.Route{
-		Route:    "/payment-type/search",
-		Method:   "GET",
-		Request:  "Filter<IPaymentType>",
-		Response: "Paginated<IPaymentType>",
-		Note:     "Returns paginated payment types for the current user's branch.",
+		Route:        "/payment-type/search",
+		Method:       "GET",
+		ResponseType: model.PaymentTypeResponse{},
+		Note:         "Returns paginated payment types for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -56,10 +55,11 @@ func (c *Controller) PaymentTypeController() {
 
 	// Get a payment type by its ID
 	req.RegisterRoute(horizon.Route{
-		Route:    "/payment-type/:payment_type_id",
-		Method:   "GET",
-		Response: "TPaymentType",
-		Note:     "Returns a specific payment type by its ID.",
+		Route:        "/payment-type/:payment_type_id",
+		Method:       "GET",
+		Response:     "TPaymentType",
+		Note:         "Returns a specific payment type by its ID.",
+		ResponseType: model.PaymentTypeResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		paymentTypeID, err := horizon.EngineUUIDParam(ctx, "payment_type_id")
@@ -75,11 +75,11 @@ func (c *Controller) PaymentTypeController() {
 
 	// Create a new payment type
 	req.RegisterRoute(horizon.Route{
-		Route:    "/payment-type",
-		Method:   "POST",
-		Request:  "TPaymentType",
-		Response: "TPaymentType",
-		Note:     "Creates a new payment type record for the current user's branch.",
+		Route:        "/payment-type",
+		Method:       "POST",
+		ResponseType: model.PaymentTypeResponse{},
+		RequestType:  model.PaymentTypeRequest{},
+		Note:         "Creates a new payment type record for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.PaymentTypeManager.Validate(ctx)
@@ -134,11 +134,11 @@ func (c *Controller) PaymentTypeController() {
 
 	// Update a payment type by its ID
 	req.RegisterRoute(horizon.Route{
-		Route:    "/payment-type/:payment_type_id",
-		Method:   "PUT",
-		Request:  "TPaymentType",
-		Response: "TPaymentType",
-		Note:     "Updates an existing payment type by its ID.",
+		Route:        "/payment-type/:payment_type_id",
+		Method:       "PUT",
+		ResponseType: model.PaymentTypeResponse{},
+		RequestType:  model.PaymentTypeRequest{},
+		Note:         "Updates an existing payment type by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		paymentTypeID, err := horizon.EngineUUIDParam(ctx, "payment_type_id")
@@ -244,15 +244,13 @@ func (c *Controller) PaymentTypeController() {
 
 	// Bulk delete payment types by IDs
 	req.RegisterRoute(horizon.Route{
-		Route:   "/payment-type/bulk-delete",
-		Method:  "DELETE",
-		Request: "string[]",
-		Note:    "Deletes multiple payment type records by their IDs.",
+		Route:       "/payment-type/bulk-delete",
+		Method:      "DELETE",
+		RequestType: model.IDSRequest{},
+		Note:        "Deletes multiple payment type records by their IDs.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody struct {
-			IDs []string `json:"ids"`
-		}
+		var reqBody model.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",

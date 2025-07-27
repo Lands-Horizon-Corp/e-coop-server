@@ -261,9 +261,8 @@ func (c *Controller) BrowseExcludeIncludeAccountsController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/browse-exclude-include-accounts/bulk-delete",
 		Method:       "DELETE",
-		Request:      "string[]",
 		Note:         "Deletes multiple browse exclude include accounts by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		ResponseType: model.BulkDeleteRequest{},
+		ResponseType: model.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody struct {

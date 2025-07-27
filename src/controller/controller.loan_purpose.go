@@ -18,10 +18,10 @@ func (c *Controller) LoanPurposeController() {
 
 	// GET /loan-purpose: List all loan purposes for the current user's branch. (NO footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/loan-purpose",
-		Method:   "GET",
-		Response: "TLoanPurpose[]",
-		Note:     "Returns all loan purposes for the current user's organization and branch.",
+		Route:        "/loan-purpose",
+		Method:       "GET",
+		ResponseType: model.LoanPurposeResponse{},
+		Note:         "Returns all loan purposes for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -40,11 +40,10 @@ func (c *Controller) LoanPurposeController() {
 
 	// GET /loan-purpose/search: Paginated search of loan purposes for the current branch. (NO footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/loan-purpose/search",
-		Method:   "GET",
-		Request:  "Filter<ILoanPurpose>",
-		Response: "Paginated<ILoanPurpose>",
-		Note:     "Returns a paginated list of loan purposes for the current user's organization and branch.",
+		Route:        "/loan-purpose/search",
+		Method:       "GET",
+		ResponseType: model.LoanPurposeResponse{},
+		Note:         "Returns a paginated list of loan purposes for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -63,10 +62,11 @@ func (c *Controller) LoanPurposeController() {
 
 	// GET /loan-purpose/:loan_purpose_id: Get a specific loan purpose record by ID. (NO footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/loan-purpose/:loan_purpose_id",
-		Method:   "GET",
-		Response: "TLoanPurpose",
-		Note:     "Returns a loan purpose record by its ID.",
+		Route:        "/loan-purpose/:loan_purpose_id",
+		Method:       "GET",
+		Response:     "TLoanPurpose",
+		Note:         "Returns a loan purpose record by its ID.",
+		ResponseType: model.LoanPurposeResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		id, err := horizon.EngineUUIDParam(ctx, "loan_purpose_id")
@@ -82,11 +82,11 @@ func (c *Controller) LoanPurposeController() {
 
 	// POST /loan-purpose: Create a new loan purpose record. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/loan-purpose",
-		Method:   "POST",
-		Request:  "TLoanPurpose",
-		Response: "TLoanPurpose",
-		Note:     "Creates a new loan purpose record for the current user's organization and branch.",
+		Route:        "/loan-purpose",
+		Method:       "POST",
+		RequestType:  model.LoanPurposeRequest{},
+		ResponseType: model.LoanPurposeResponse{},
+		Note:         "Creates a new loan purpose record for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.LoanPurposeManager.Validate(ctx)
@@ -143,11 +143,11 @@ func (c *Controller) LoanPurposeController() {
 
 	// PUT /loan-purpose/:loan_purpose_id: Update a loan purpose record by ID. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/loan-purpose/:loan_purpose_id",
-		Method:   "PUT",
-		Request:  "TLoanPurpose",
-		Response: "TLoanPurpose",
-		Note:     "Updates an existing loan purpose record by its ID.",
+		Route:        "/loan-purpose/:loan_purpose_id",
+		Method:       "PUT",
+		RequestType:  model.LoanPurposeRequest{},
+		ResponseType: model.LoanPurposeResponse{},
+		Note:         "Updates an existing loan purpose record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		id, err := horizon.EngineUUIDParam(ctx, "loan_purpose_id")
@@ -257,15 +257,13 @@ func (c *Controller) LoanPurposeController() {
 
 	// DELETE /loan-purpose/bulk-delete: Bulk delete loan purpose records by IDs. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:   "/loan-purpose/bulk-delete",
-		Method:  "DELETE",
-		Request: "string[]",
-		Note:    "Deletes multiple loan purpose records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
+		Route:       "/loan-purpose/bulk-delete",
+		Method:      "DELETE",
+		Note:        "Deletes multiple loan purpose records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
+		RequestType: model.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody struct {
-			IDs []string `json:"ids"`
-		}
+		var reqBody model.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",

@@ -17,10 +17,10 @@ func (c *Controller) MemberOccupationController() {
 
 	// Get all member occupation history for the current branch
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-occupation-history",
-		Method:   "GET",
-		Response: "TMemberOccupationHistory[]",
-		Note:     "Returns all member occupation history entries for the current user's branch.",
+		Route:        "/member-occupation-history",
+		Method:       "GET",
+		ResponseType: model.MemberOccupationHistoryResponse{},
+		Note:         "Returns all member occupation history entries for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -36,10 +36,10 @@ func (c *Controller) MemberOccupationController() {
 
 	// Get member occupation history by member profile ID
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-occupation-history/member-profile/:member_profile_id/search",
-		Method:   "GET",
-		Response: "TMemberOccupationHistory[]",
-		Note:     "Returns member occupation history for a specific member profile ID.",
+		Route:        "/member-occupation-history/member-profile/:member_profile_id/search",
+		Method:       "GET",
+		ResponseType: model.MemberOccupationHistoryResponse{},
+		Note:         "Returns member occupation history for a specific member profile ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
@@ -59,10 +59,10 @@ func (c *Controller) MemberOccupationController() {
 
 	// Get all member occupations for the current branch
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-occupation",
-		Method:   "GET",
-		Response: "TMemberOccupation[]",
-		Note:     "Returns all member occupations for the current user's branch.",
+		Route:        "/member-occupation",
+		Method:       "GET",
+		ResponseType: model.MemberOccupationResponse{},
+		Note:         "Returns all member occupations for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -78,11 +78,10 @@ func (c *Controller) MemberOccupationController() {
 
 	// Get paginated member occupations
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-occupation/search",
-		Method:   "GET",
-		Request:  "Filter<IMemberOccupation>",
-		Response: "Paginated<IMemberOccupation>",
-		Note:     "Returns paginated member occupations for the current user's branch.",
+		Route:        "/member-occupation/search",
+		Method:       "GET",
+		ResponseType: model.MemberOccupationResponse{},
+		Note:         "Returns paginated member occupations for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -98,11 +97,11 @@ func (c *Controller) MemberOccupationController() {
 
 	// Create a new member occupation
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-occupation",
-		Method:   "POST",
-		Request:  "TMemberOccupation",
-		Response: "TMemberOccupation",
-		Note:     "Creates a new member occupation record.",
+		Route:        "/member-occupation",
+		Method:       "POST",
+		ResponseType: model.MemberOccupationResponse{},
+		RequestType:  model.MemberOccupationRequest{},
+		Note:         "Creates a new member occupation record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.MemberOccupationManager.Validate(ctx)
@@ -155,11 +154,11 @@ func (c *Controller) MemberOccupationController() {
 
 	// Update an existing member occupation by ID
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-occupation/:member_occupation_id",
-		Method:   "PUT",
-		Request:  "TMemberOccupation",
-		Response: "TMemberOccupation",
-		Note:     "Updates an existing member occupation record by its ID.",
+		Route:        "/member-occupation/:member_occupation_id",
+		Method:       "PUT",
+		ResponseType: model.MemberOccupationResponse{},
+		RequestType:  model.MemberOccupationRequest{},
+		Note:         "Updates an existing member occupation record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberOccupationID, err := horizon.EngineUUIDParam(ctx, "member_occupation_id")
@@ -263,15 +262,13 @@ func (c *Controller) MemberOccupationController() {
 
 	// Bulk delete member occupations by IDs
 	req.RegisterRoute(horizon.Route{
-		Route:   "/member-occupation/bulk-delete",
-		Method:  "DELETE",
-		Request: "string[]",
-		Note:    "Deletes multiple member occupation records by their IDs.",
+		Route:       "/member-occupation/bulk-delete",
+		Method:      "DELETE",
+		RequestType: model.IDSRequest{},
+		Note:        "Deletes multiple member occupation records by their IDs.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody struct {
-			IDs []string `json:"ids"`
-		}
+		var reqBody model.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{

@@ -29,69 +29,53 @@ const (
 
 type (
 	GeneralLedger struct {
-		ID             uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-		CreatedAt      time.Time      `gorm:"not null;default:now()"`
-		CreatedByID    uuid.UUID      `gorm:"type:uuid"`
-		CreatedBy      *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt      time.Time      `gorm:"not null;default:now()"`
-		UpdatedByID    uuid.UUID      `gorm:"type:uuid"`
-		UpdatedBy      *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt      gorm.DeletedAt `gorm:"index"`
-		DeletedByID    *uuid.UUID     `gorm:"type:uuid"`
-		DeletedBy      *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
-		OrganizationID uuid.UUID      `gorm:"type:uuid;not null;index:idx_organization_branch_general_ledger"`
-		Organization   *Organization  `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID      `gorm:"type:uuid;not null;index:idx_organization_branch_general_ledger"`
-		Branch         *Branch        `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
-
-		AccountID *uuid.UUID `gorm:"type:uuid"`
-		Account   *Account   `gorm:"foreignKey:AccountID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"account,omitempty"`
-
-		TransactionID *uuid.UUID   `gorm:"type:uuid"`
-		Transaction   *Transaction `gorm:"foreignKey:TransactionID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"transaction,omitempty"`
-
-		TransactionBatchID *uuid.UUID        `gorm:"type:uuid"`
-		TransactionBatch   *TransactionBatch `gorm:"foreignKey:TransactionBatchID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"transaction_batch,omitempty"`
-
-		EmployeeUserID *uuid.UUID `gorm:"type:uuid"`
-		EmployeeUser   *User      `gorm:"foreignKey:EmployeeUserID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"employee_user,omitempty"`
-
-		MemberProfileID *uuid.UUID     `gorm:"type:uuid"`
-		MemberProfile   *MemberProfile `gorm:"foreignKey:MemberProfileID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_profile,omitempty"`
-
-		MemberJointAccountID *uuid.UUID          `gorm:"type:uuid"`
-		MemberJointAccount   *MemberJointAccount `gorm:"foreignKey:MemberJointAccountID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_joint_account,omitempty"`
-
-		TransactionReferenceNumber string `gorm:"type:varchar(50)"`
-		ReferenceNumber            string `gorm:"type:varchar(50)"`
-
-		PaymentTypeID *uuid.UUID   `gorm:"type:uuid"`
-		PaymentType   *PaymentType `gorm:"foreignKey:PaymentTypeID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"payment_type,omitempty"`
-
-		Source GeneralLedgerSource `gorm:"type:varchar(20)"`
-
-		JournalVoucherID  *uuid.UUID         `gorm:"type:uuid"`
-		AdjustmentEntryID *uuid.UUID         `gorm:"type:uuid"`
-		AdjustmentEntry   *AdjustmentEntry   `gorm:"foreignKey:AdjustmentEntryID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"adjustment_entry,omitempty"`
-		TypeOfPaymentType TypesOfPaymentType `gorm:"type:varchar(20)"`
-
-		Credit  float64 `gorm:"type:decimal"`
-		Debit   float64 `gorm:"type:decimal"`
-		Balance float64 `gorm:"type:decimal"`
-
-		SignatureMediaID *uuid.UUID `gorm:"type:uuid"`
-		SignatureMedia   *Media     `gorm:"foreignKey:SignatureMediaID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"signature_media,omitempty"`
-
-		EntryDate *time.Time `gorm:"type:date" json:"entry_date"`
-
-		BankID *uuid.UUID `gorm:"type:uuid"`
-		Bank   *Bank      `gorm:"foreignKey:BankID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"bank,omitempty"`
-
-		ProofOfPaymentMediaID *uuid.UUID `gorm:"type:uuid"`
-		ProofOfPaymentMedia   *Media     `gorm:"foreignKey:ProofOfPaymentMediaID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"proof_of_payment_media,omitempty"`
-
-		BankReferenceNumber string `gorm:"type:varchar(50)"`
-		Description         string `gorm:"type:text"`
+		ID                         uuid.UUID           `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
+		CreatedAt                  time.Time           `gorm:"not null;default:now()"`
+		CreatedByID                uuid.UUID           `gorm:"type:uuid"`
+		CreatedBy                  *User               `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
+		UpdatedAt                  time.Time           `gorm:"not null;default:now()"`
+		UpdatedByID                uuid.UUID           `gorm:"type:uuid"`
+		UpdatedBy                  *User               `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
+		DeletedAt                  gorm.DeletedAt      `gorm:"index"`
+		DeletedByID                *uuid.UUID          `gorm:"type:uuid"`
+		DeletedBy                  *User               `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
+		OrganizationID             uuid.UUID           `gorm:"type:uuid;not null;index:idx_organization_branch_general_ledger;index:idx_org_branch_account_member;index:idx_transaction_batch_entry"`
+		Organization               *Organization       `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
+		BranchID                   uuid.UUID           `gorm:"type:uuid;not null;index:idx_organization_branch_general_ledger;index:idx_org_branch_account_member;index:idx_transaction_batch_entry"`
+		Branch                     *Branch             `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
+		AccountID                  *uuid.UUID          `gorm:"type:uuid;index:idx_org_branch_account_member"`
+		Account                    *Account            `gorm:"foreignKey:AccountID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"account,omitempty"`
+		TransactionID              *uuid.UUID          `gorm:"type:uuid"`
+		Transaction                *Transaction        `gorm:"foreignKey:TransactionID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"transaction,omitempty"`
+		TransactionBatchID         *uuid.UUID          `gorm:"type:uuid;index:idx_transaction_batch_entry"`
+		TransactionBatch           *TransactionBatch   `gorm:"foreignKey:TransactionBatchID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"transaction_batch,omitempty"`
+		EmployeeUserID             *uuid.UUID          `gorm:"type:uuid"`
+		EmployeeUser               *User               `gorm:"foreignKey:EmployeeUserID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"employee_user,omitempty"`
+		MemberProfileID            *uuid.UUID          `gorm:"type:uuid;index:idx_org_branch_account_member"`
+		MemberProfile              *MemberProfile      `gorm:"foreignKey:MemberProfileID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_profile,omitempty"`
+		MemberJointAccountID       *uuid.UUID          `gorm:"type:uuid"`
+		MemberJointAccount         *MemberJointAccount `gorm:"foreignKey:MemberJointAccountID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_joint_account,omitempty"`
+		TransactionReferenceNumber string              `gorm:"type:varchar(50)"`
+		ReferenceNumber            string              `gorm:"type:varchar(50)"`
+		PaymentTypeID              *uuid.UUID          `gorm:"type:uuid"`
+		PaymentType                *PaymentType        `gorm:"foreignKey:PaymentTypeID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"payment_type,omitempty"`
+		Source                     GeneralLedgerSource `gorm:"type:varchar(20)"`
+		JournalVoucherID           *uuid.UUID          `gorm:"type:uuid"`
+		AdjustmentEntryID          *uuid.UUID          `gorm:"type:uuid"`
+		AdjustmentEntry            *AdjustmentEntry    `gorm:"foreignKey:AdjustmentEntryID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"adjustment_entry,omitempty"`
+		TypeOfPaymentType          TypesOfPaymentType  `gorm:"type:varchar(20)"`
+		Credit                     float64             `gorm:"type:decimal"`
+		Debit                      float64             `gorm:"type:decimal"`
+		Balance                    float64             `gorm:"type:decimal"`
+		SignatureMediaID           *uuid.UUID          `gorm:"type:uuid"`
+		SignatureMedia             *Media              `gorm:"foreignKey:SignatureMediaID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"signature_media,omitempty"`
+		EntryDate                  *time.Time          `gorm:"type:date;index:idx_transaction_batch_entry" json:"entry_date"`
+		BankID                     *uuid.UUID          `gorm:"type:uuid"`
+		Bank                       *Bank               `gorm:"foreignKey:BankID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"bank,omitempty"`
+		ProofOfPaymentMediaID      *uuid.UUID          `gorm:"type:uuid"`
+		ProofOfPaymentMedia        *Media              `gorm:"foreignKey:ProofOfPaymentMediaID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"proof_of_payment_media,omitempty"`
+		BankReferenceNumber        string              `gorm:"type:varchar(50)"`
+		Description                string              `gorm:"type:text"`
 	}
 
 	GeneralLedgerResponse struct {
@@ -208,6 +192,12 @@ type (
 		MemberJointAccountID  *uuid.UUID `json:"member_joint_account_id,omitempty"`
 		PaymentTypeID         *uuid.UUID `json:"payment_type_id,omitempty"`
 		Description           string     `json:"description,omitempty" validate:"max=255"`
+	}
+
+	MemberGeneralLedgerTotal struct {
+		Balance     float64 `json:"balance"`
+		TotalDebit  float64 `json:"total_debit"`
+		TotalCredit float64 `json:"total_credit"`
 	}
 )
 

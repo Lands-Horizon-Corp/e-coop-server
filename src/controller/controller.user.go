@@ -18,11 +18,10 @@ func (c *Controller) UserController() {
 
 	// Returns a specific user by their ID.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/user/:user_id",
-		Method:   "GET",
-		Response: "TUserRating[]",
-		Note:     "Returns a specific user by their ID.",
-		Private:  true,
+		Route:        "/user/:user_id",
+		Method:       "GET",
+		ResponseType: model.UserResponse{},
+		Note:         "Returns a specific user by their ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userId, err := horizon.EngineUUIDParam(ctx, "user_id")
@@ -38,11 +37,11 @@ func (c *Controller) UserController() {
 
 	// Returns the current authenticated user and their user organization, if any.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/authentication/current",
-		Method:   "GET",
-		Response: "TUser",
-		Note:     "Returns the current authenticated user and their user organization, if any.",
-		Private:  true,
+		Route:        "/authentication/current",
+		Method:       "GET",
+		Response:     "TUser",
+		ResponseType: model.CurrentUserResponse{},
+		Note:         "Returns the current authenticated user and their user organization, if any.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userToken.CurrentUser(context, ctx)
@@ -64,11 +63,10 @@ func (c *Controller) UserController() {
 
 	// Returns all currently logged-in users for the session
 	req.RegisterRoute(horizon.Route{
-		Route:    "/authentication/current-logged-in-accounts",
-		Note:     "Returns all currently logged-in users for the session.",
-		Method:   "GET",
-		Response: "ILoggedInUser",
-		Private:  true,
+		Route:        "/authentication/current-logged-in-accounts",
+		Note:         "Returns all currently logged-in users for the session.",
+		Method:       "GET",
+		ResponseType: cooperative_tokens.UserCSRFResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		_, err := c.userToken.CurrentUser(context, ctx)
@@ -90,10 +88,9 @@ func (c *Controller) UserController() {
 
 	// Logout all users including itself for the session
 	req.RegisterRoute(horizon.Route{
-		Route:   "/authentication/current-logged-in-accounts/logout",
-		Method:  "POST",
-		Note:    "Logs out all users including itself for the session.",
-		Private: true,
+		Route:  "/authentication/current-logged-in-accounts/logout",
+		Method: "POST",
+		Note:   "Logs out all users including itself for the session.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		_, err := c.userToken.CurrentUser(context, ctx)
@@ -108,12 +105,11 @@ func (c *Controller) UserController() {
 
 	// Authenticate user login
 	req.RegisterRoute(horizon.Route{
-		Route:    "/authentication/login",
-		Method:   "POST",
-		Request:  "ISignInRequest",
-		Response: "TUser",
-		Note:     "Authenticates a user and returns user details.",
-		Private:  true,
+		Route:        "/authentication/login",
+		Method:       "POST",
+		RequestType:  model.UserLoginRequest{},
+		ResponseType: model.CurrentUserResponse{},
+		Note:         "Authenticates a user and returns user details.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req model.UserLoginRequest
@@ -172,10 +168,9 @@ func (c *Controller) UserController() {
 
 	// Logout the current user
 	req.RegisterRoute(horizon.Route{
-		Route:   "/authentication/logout",
-		Method:  "POST",
-		Note:    "Logs out the current user.",
-		Private: true,
+		Route:  "/authentication/logout",
+		Method: "POST",
+		Note:   "Logs out the current user.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		c.userToken.CSRF.ClearCSRF(context, ctx)
@@ -189,12 +184,11 @@ func (c *Controller) UserController() {
 
 	// Register a new user
 	req.RegisterRoute(horizon.Route{
-		Route:    "/authentication/register",
-		Method:   "POST",
-		Request:  "ISignUpRequest",
-		Response: "TUser",
-		Note:     "Registers a new user.",
-		Private:  true,
+		Route:        "/authentication/register",
+		Method:       "POST",
+		ResponseType: model.CurrentUserResponse{},
+		RequestType:  model.UserRegisterRequest{},
+		Note:         "Registers a new user.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.UserManager.Validate(ctx)
@@ -261,12 +255,10 @@ func (c *Controller) UserController() {
 
 	// Forgot password flow
 	req.RegisterRoute(horizon.Route{
-		Route:    "/authentication/forgot-password",
-		Method:   "POST",
-		Request:  "IForgotPasswordRequest",
-		Response: "TUser",
-		Note:     "Initiates forgot password flow and sends a reset link.",
-		Private:  true,
+		Route:       "/authentication/forgot-password",
+		Method:      "POST",
+		RequestType: model.UserForgotPasswordRequest{},
+		Note:        "Initiates forgot password flow and sends a reset link.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req model.UserForgotPasswordRequest
@@ -340,10 +332,9 @@ func (c *Controller) UserController() {
 
 	// Verify password reset link
 	req.RegisterRoute(horizon.Route{
-		Route:   "/authentication/verify-reset-link/:reset_id",
-		Method:  "GET",
-		Note:    "Verifies if the reset password link is valid.",
-		Private: true,
+		Route:  "/authentication/verify-reset-link/:reset_id",
+		Method: "GET",
+		Note:   "Verifies if the reset password link is valid.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		resetID := ctx.Param("reset_id")
@@ -367,11 +358,10 @@ func (c *Controller) UserController() {
 
 	// Change password using the reset link
 	req.RegisterRoute(horizon.Route{
-		Route:   "/authentication/change-password/:reset_id",
-		Method:  "POST",
-		Request: "IChangePasswordRequest",
-		Note:    "Changes the user's password using the reset link.",
-		Private: true,
+		Route:       "/authentication/change-password/:reset_id",
+		Method:      "POST",
+		RequestType: model.UserChangePasswordRequest{},
+		Note:        "Changes the user's password using the reset link.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req model.UserChangePasswordRequest
@@ -443,10 +433,9 @@ func (c *Controller) UserController() {
 
 	// Send OTP for contact number verification
 	req.RegisterRoute(horizon.Route{
-		Route:   "/authentication/apply-contact-number",
-		Method:  "POST",
-		Note:    "Sends OTP for contact number verification.",
-		Private: true,
+		Route:  "/authentication/apply-contact-number",
+		Method: "POST",
+		Note:   "Sends OTP for contact number verification.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userToken.CurrentUser(context, ctx)
@@ -488,11 +477,11 @@ func (c *Controller) UserController() {
 
 	// Verify OTP for contact number
 	req.RegisterRoute(horizon.Route{
-		Route:   "/authentication/verify-contact-number",
-		Method:  "POST",
-		Request: "IVerifyContactNumberRequest",
-		Note:    "Verifies OTP for contact number verification.",
-		Private: true,
+		Route:        "/authentication/verify-contact-number",
+		Method:       "POST",
+		RequestType:  model.UserVerifyContactNumberRequest{},
+		ResponseType: model.UserResponse{},
+		Note:         "Verifies OTP for contact number verification.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req model.UserVerifyContactNumberRequest
@@ -578,10 +567,9 @@ func (c *Controller) UserController() {
 
 	// Send OTP for email verification
 	req.RegisterRoute(horizon.Route{
-		Route:   "/authentication/apply-email",
-		Method:  "POST",
-		Note:    "Sends OTP for email verification.",
-		Private: true,
+		Route:  "/authentication/apply-email",
+		Method: "POST",
+		Note:   "Sends OTP for email verification.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userToken.CurrentUser(context, ctx)
@@ -623,11 +611,12 @@ func (c *Controller) UserController() {
 
 	// Verify OTP for email
 	req.RegisterRoute(horizon.Route{
-		Route:   "/authentication/verify-email",
-		Method:  "POST",
-		Request: "IVerifyEmailRequest",
-		Note:    "Verifies OTP for email verification.",
-		Private: true,
+		Route:  "/authentication/verify-email",
+		Method: "POST",
+
+		Note:         "Verifies OTP for email verification.",
+		ResponseType: model.UserResponse{},
+		RequestType:  model.UserVerifyEmailRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req model.UserVerifyEmailRequest
@@ -713,11 +702,12 @@ func (c *Controller) UserController() {
 
 	// Verify user with password for self-protected actions
 	req.RegisterRoute(horizon.Route{
-		Route:   "/authentication/verify-with-password",
-		Method:  "POST",
-		Request: "password & password confirmation",
-		Note:    "Verifies the user's password for protected self actions.",
-		Private: true,
+		Route:  "/authentication/verify-with-password",
+		Method: "POST",
+
+		Note:         "Verifies the user's password for protected self actions.",
+		ResponseType: model.UserResponse{},
+		RequestType:  model.UserVerifyWithPasswordRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req model.UserVerifyWithPasswordRequest
@@ -740,11 +730,12 @@ func (c *Controller) UserController() {
 
 	// Change user's password from profile
 	req.RegisterRoute(horizon.Route{
-		Route:   "/profile/password",
-		Method:  "PUT",
-		Request: "IChangePasswordRequest",
-		Note:    "Changes the user's password from profile settings.",
-		Private: true,
+		Route:        "/profile/password",
+		Method:       "PUT",
+		Request:      "IChangePasswordRequest",
+		Note:         "Changes the user's password from profile settings.",
+		ResponseType: model.UserResponse{},
+		RequestType:  model.UserSettingsChangePasswordRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req model.UserSettingsChangePasswordRequest
@@ -817,12 +808,11 @@ func (c *Controller) UserController() {
 
 	// Change user's profile picture
 	req.RegisterRoute(horizon.Route{
-		Route:    "/profile/profile-picture",
-		Method:   "PUT",
-		Request:  "IUserSettingsPhotoUpdateRequest",
-		Response: "TUser",
-		Note:     "Changes the user's profile picture.",
-		Private:  true,
+		Route:        "/profile/profile-picture",
+		Method:       "PUT",
+		Note:         "Changes the user's profile picture.",
+		RequestType:  model.UserSettingsChangeProfilePictureRequest{},
+		ResponseType: model.UserResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req model.UserSettingsChangeProfilePictureRequest
@@ -885,12 +875,11 @@ func (c *Controller) UserController() {
 
 	// Change user's general profile settings
 	req.RegisterRoute(horizon.Route{
-		Route:    "/profile/general",
-		Method:   "PUT",
-		Request:  "IUserSettingsGeneralRequest",
-		Response: "TUser",
-		Note:     "Changes the user's general profile settings.",
-		Private:  true,
+		Route:        "/profile/general",
+		Method:       "PUT",
+		Note:         "Changes the user's general profile settings.",
+		RequestType:  model.UserSettingsChangeGeneralRequest{},
+		ResponseType: model.UserResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req model.UserSettingsChangeGeneralRequest

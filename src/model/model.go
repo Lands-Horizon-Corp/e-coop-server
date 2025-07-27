@@ -12,9 +12,10 @@ import (
 )
 
 type (
-	BulkDeleteRequest struct {
+	IDSRequest struct {
 		IDs []string `json:"ids"`
 	}
+
 	QRMemberProfile struct {
 		FirstName       string `json:"first_name"`
 		LastName        string `json:"last_name"`

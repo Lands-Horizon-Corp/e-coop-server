@@ -546,3 +546,22 @@ func (m *Model) TransactionBatchCurrentBranch(context context.Context, orgId uui
 		BranchID:       branchId,
 	})
 }
+
+func (m *Model) TransactionBatchCurrentDay(ctx context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*TransactionBatch, error) {
+	now := time.Now().UTC()
+	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+	endOfDay := startOfDay.Add(24 * time.Hour)
+
+	filters := []horizon_services.Filter{
+		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
+		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
+		{Field: "is_closed", Op: horizon_services.OpEq, Value: true},
+		{Field: "created_at", Op: horizon_services.OpGte, Value: startOfDay},
+		{Field: "created_at", Op: horizon_services.OpLt, Value: endOfDay},
+	}
+	batches, err := m.TransactionBatchManager.FindWithFilters(ctx, filters)
+	if err != nil {
+		return nil, err
+	}
+	return batches, nil
+}

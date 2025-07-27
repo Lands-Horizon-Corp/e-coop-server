@@ -13,10 +13,10 @@ func (c *Controller) TransactionBatchEntriesController() {
 	req := c.provider.Service.Request
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/check-entry/transaction-batch/:transaction_batch_id/search",
-		Method:   "GET",
-		Response: "CheckEntry[]",
-		Note:     "Returns paginated check entries for the specified transaction batch.",
+		Route:        "/check-entry/transaction-batch/:transaction_batch_id/search",
+		Method:       "GET",
+		ResponseType: model.CheckEntryResponse{},
+		Note:         "Returns paginated check entries for the specified transaction batch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -37,11 +37,12 @@ func (c *Controller) TransactionBatchEntriesController() {
 		}
 		return ctx.JSON(http.StatusOK, c.model.CheckEntryManager.Pagination(context, ctx, check))
 	})
+
 	req.RegisterRoute(horizon.Route{
-		Route:    "/check-entry/search",
-		Method:   "GET",
-		Response: "CheckEntry[]",
-		Note:     "Returns paginated check entries",
+		Route:        "/check-entry/search",
+		Method:       "GET",
+		ResponseType: model.CheckEntryResponse{},
+		Note:         "Returns paginated check entries",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -61,10 +62,10 @@ func (c *Controller) TransactionBatchEntriesController() {
 
 	// Returns paginated withdrawal entries for a given transaction batch.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/withdrawal-entry/transaction-batch/:transaction_batch_id/search",
-		Method:   "GET",
-		Response: "WithdrawalEntry[]",
-		Note:     "Returns paginated withdrawal entries for the specified transaction batch.",
+		Route:        "/withdrawal-entry/transaction-batch/:transaction_batch_id/search",
+		Method:       "GET",
+		ResponseType: model.WithdrawalEntryResponse{},
+		Note:         "Returns paginated withdrawal entries for the specified transaction batch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -88,10 +89,10 @@ func (c *Controller) TransactionBatchEntriesController() {
 
 	// Returns paginated deposit entries for a given transaction batch.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/deposit-entry/transaction-batch/:transaction_batch_id/search",
-		Method:   "GET",
-		Response: "DepositEntry[]",
-		Note:     "Returns paginated deposit entries for the specified transaction batch.",
+		Route:        "/deposit-entry/transaction-batch/:transaction_batch_id/search",
+		Method:       "GET",
+		ResponseType: model.DepositEntryResponse{},
+		Note:         "Returns paginated deposit entries for the specified transaction batch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)

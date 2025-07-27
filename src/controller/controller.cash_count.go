@@ -392,10 +392,9 @@ func (c *Controller) CashCountController() {
 
 	// DELETE /cash-count/:id: Delete a specific cash count by ID from the current transaction batch. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/cash-count/:id",
-		Method:   "DELETE",
-		Response: "ICashCount",
-		Note:     "Deletes a specific cash count bill with the given ID from the current active transaction batch. Only allowed for 'owner' or 'employee'.",
+		Route:  "/cash-count/:id",
+		Method: "DELETE",
+		Note:   "Deletes a specific cash count bill with the given ID from the current active transaction batch. Only allowed for 'owner' or 'employee'.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		cashCountID, err := horizon.EngineUUIDParam(ctx, "id")
@@ -453,10 +452,10 @@ func (c *Controller) CashCountController() {
 
 	// GET /cash-count/:id: Retrieve a specific cash count by ID from the current transaction batch. (NO footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/cash-count/:id",
-		Method:   "GET",
-		Response: "ICashCount",
-		Note:     "Retrieves a specific cash count bill by its ID from the current active transaction batch. Only allowed for 'owner' or 'employee'.",
+		Route:        "/cash-count/:id",
+		Method:       "GET",
+		Note:         "Retrieves a specific cash count bill by its ID from the current active transaction batch. Only allowed for 'owner' or 'employee'.",
+		ResponseType: model.CashCountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		cashCountID, err := horizon.EngineUUIDParam(ctx, "id")

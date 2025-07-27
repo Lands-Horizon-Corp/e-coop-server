@@ -287,12 +287,11 @@ func (c *Controller) AccountCategoryController() {
 	req.RegisterRoute(horizon.Route{
 		Route:       "/account-category/bulk-delete",
 		Method:      "DELETE",
-		Request:     "string[]",
 		Note:        "Bulk delete multiple account categories by IDs.",
-		RequestType: model.BulkDeleteRequest{},
+		RequestType: model.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody model.BulkDeleteRequest
+		var reqBody model.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",

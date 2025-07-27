@@ -17,10 +17,10 @@ func (c *Controller) MemberGenderController() {
 
 	// Get all member gender history for the current branch
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-gender-history",
-		Method:   "GET",
-		Response: "TMemberGenderHistory[]",
-		Note:     "Returns all member gender history entries for the current user's branch.",
+		Route:        "/member-gender-history",
+		Method:       "GET",
+		ResponseType: model.MemberGenderHistory{},
+		Note:         "Returns all member gender history entries for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -36,10 +36,10 @@ func (c *Controller) MemberGenderController() {
 
 	// Get member gender history by member profile ID
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-gender-history/member-profile/:member_profile_id/search",
-		Method:   "GET",
-		Response: "TMemberGenderHistory[]",
-		Note:     "Returns member gender history for a specific member profile ID.",
+		Route:        "/member-gender-history/member-profile/:member_profile_id/search",
+		Method:       "GET",
+		ResponseType: model.MemberGenderHistoryResponse{},
+		Note:         "Returns member gender history for a specific member profile ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
@@ -59,10 +59,10 @@ func (c *Controller) MemberGenderController() {
 
 	// Get all member genders for the current branch
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-gender",
-		Method:   "GET",
-		Response: "TMemberGender[]",
-		Note:     "Returns all member genders for the current user's branch.",
+		Route:        "/member-gender",
+		Method:       "GET",
+		ResponseType: model.MemberGenderResponse{},
+		Note:         "Returns all member genders for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -78,11 +78,10 @@ func (c *Controller) MemberGenderController() {
 
 	// Get paginated member genders
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-gender/search",
-		Method:   "GET",
-		Request:  "Filter<IMemberGender>",
-		Response: "Paginated<IMemberGender>",
-		Note:     "Returns paginated member genders for the current user's branch.",
+		Route:        "/member-gender/search",
+		Method:       "GET",
+		ResponseType: model.MemberGenderResponse{},
+		Note:         "Returns paginated member genders for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -98,11 +97,11 @@ func (c *Controller) MemberGenderController() {
 
 	// Create a new member gender
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-gender",
-		Method:   "POST",
-		Request:  "TMemberGender",
-		Response: "TMemberGender",
-		Note:     "Creates a new member gender record.",
+		Route:        "/member-gender",
+		Method:       "POST",
+		ResponseType: model.MemberGenderResponse{},
+		RequestType:  model.MemberGenderRequest{},
+		Note:         "Creates a new member gender record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.MemberGenderManager.Validate(ctx)
@@ -155,11 +154,11 @@ func (c *Controller) MemberGenderController() {
 
 	// Update an existing member gender by ID
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-gender/:member_gender_id",
-		Method:   "PUT",
-		Request:  "TMemberGender",
-		Response: "TMemberGender",
-		Note:     "Updates an existing member gender record by its ID.",
+		Route:        "/member-gender/:member_gender_id",
+		Method:       "PUT",
+		ResponseType: model.MemberGenderResponse{},
+		RequestType:  model.MemberGenderRequest{},
+		Note:         "Updates an existing member gender record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberGenderID, err := horizon.EngineUUIDParam(ctx, "member_gender_id")
@@ -263,15 +262,13 @@ func (c *Controller) MemberGenderController() {
 
 	// Bulk delete member genders by IDs
 	req.RegisterRoute(horizon.Route{
-		Route:   "/member-gender/bulk-delete",
-		Method:  "DELETE",
-		Request: "string[]",
-		Note:    "Deletes multiple member gender records by their IDs.",
+		Route:       "/member-gender/bulk-delete",
+		Method:      "DELETE",
+		Note:        "Deletes multiple member gender records by their IDs.",
+		RequestType: model.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody struct {
-			IDs []string `json:"ids"`
-		}
+		var reqBody model.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{

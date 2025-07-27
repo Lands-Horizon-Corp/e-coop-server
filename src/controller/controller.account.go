@@ -461,12 +461,10 @@ func (c *Controller) AccountController() {
 		Method:      "DELETE",
 		Request:     "string[]",
 		Note:        "Bulk delete multiple accounts by their IDs.",
-		RequestType: model.BulkDeleteRequest{},
+		RequestType: model.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody struct {
-			IDs []string `json:"ids"`
-		}
+		var reqBody model.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",

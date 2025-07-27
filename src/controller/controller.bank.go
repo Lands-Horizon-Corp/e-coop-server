@@ -147,8 +147,6 @@ func (c *Controller) BankController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/bank/:bank_id",
 		Method:       "PUT",
-		Request:      "TBank",
-		Response:     "TBank",
 		Note:         "Updates an existing bank by its ID.",
 		RequestType:  model.BankRequest{},
 		ResponseType: model.BankResponse{},
@@ -257,14 +255,11 @@ func (c *Controller) BankController() {
 	req.RegisterRoute(horizon.Route{
 		Route:       "/bank/bulk-delete",
 		Method:      "DELETE",
-		Request:     "string[]",
 		Note:        "Deletes multiple banks by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: model.BulkDeleteRequest{},
+		RequestType: model.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody struct {
-			IDs []string `json:"ids"`
-		}
+		var reqBody model.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",

@@ -16,10 +16,10 @@ func (c *Controller) PermissionTemplateController() {
 
 	// Fetch all permission templates associated with the current user's branch.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/permission-template",
-		Method:   "GET",
-		Response: "TPermissionTemplate[]",
-		Note:     "Returns all permission templates for the current user's branch.",
+		Route:        "/permission-template",
+		Method:       "GET",
+		ResponseType: model.PermissionTemplateResponse{},
+		Note:         "Returns all permission templates for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -35,10 +35,10 @@ func (c *Controller) PermissionTemplateController() {
 
 	// Fetch all permission templates (paginated) for the current user's branch.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/permission-template/search",
-		Method:   "GET",
-		Response: "TPermissionTemplate[]",
-		Note:     "Returns all permission templates (paginated) for the current user's branch.",
+		Route:        "/permission-template/search",
+		Method:       "GET",
+		ResponseType: model.PermissionTemplateResponse{},
+		Note:         "Returns all permission templates (paginated) for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -54,10 +54,10 @@ func (c *Controller) PermissionTemplateController() {
 
 	// Fetch a single permission template by its ID.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/permission-template/:permission_template_id",
-		Method:   "GET",
-		Response: "TPermissionTemplate",
-		Note:     "Returns a specific permission template by its ID.",
+		Route:        "/permission-template/:permission_template_id",
+		Method:       "GET",
+		ResponseType: model.PermissionTemplateResponse{},
+		Note:         "Returns a specific permission template by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		permissionTemplateID, err := horizon.EngineUUIDParam(ctx, "permission_template_id")
@@ -75,11 +75,11 @@ func (c *Controller) PermissionTemplateController() {
 
 	// Create a new permission template.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/permission-template",
-		Method:   "POST",
-		Response: "TPermissionTemplate",
-		Request:  "TPermissionTemplate",
-		Note:     "Creates a new permission template for the current user's branch.",
+		Route:        "/permission-template",
+		Method:       "POST",
+		RequestType:  model.PermissionTemplateRequest{},
+		ResponseType: model.PermissionTemplateResponse{},
+		Note:         "Creates a new permission template for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
@@ -135,11 +135,11 @@ func (c *Controller) PermissionTemplateController() {
 
 	// Update an existing permission template by its ID.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/permission-template/:permission_template_id",
-		Method:   "PUT",
-		Response: "TPermissionTemplate",
-		Request:  "TPermissionTemplate",
-		Note:     "Updates an existing permission template by its ID.",
+		Route:        "/permission-template/:permission_template_id",
+		Method:       "PUT",
+		RequestType:  model.PermissionTemplateRequest{},
+		ResponseType: model.PermissionTemplateResponse{},
+		Note:         "Updates an existing permission template by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 

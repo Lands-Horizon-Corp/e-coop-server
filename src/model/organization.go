@@ -136,6 +136,11 @@ type (
 		SubscriptionPlanID       uuid.UUID `json:"subscription_plan_id" validate:"required,uuid4"`
 		SubscriptionPlanIsYearly *bool     `json:"subscription_plan_is_yearly,omitempty"`
 	}
+
+	CreateOrganizationResponse struct {
+		Organization     *OrganizationResponse     `json:"organization"`
+		UserOrganization *UserOrganizationResponse `json:"user_organization"`
+	}
 )
 
 func (m *Model) Organization() {

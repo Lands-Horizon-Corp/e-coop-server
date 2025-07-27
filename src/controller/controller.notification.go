@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
+	"github.com/lands-horizon/horizon-server/src/model"
 )
 
 func (c *Controller) NotificationController() {
@@ -15,11 +16,10 @@ func (c *Controller) NotificationController() {
 
 	// Get the current (logged in) user's notifications
 	req.RegisterRoute(horizon.Route{
-		Route:    "/notification/me",
-		Method:   "GET",
-		Response: "TNotification[]",
-		Note:     "Returns all notifications for the currently logged-in user.",
-		Private:  true,
+		Route:        "/notification/me",
+		Method:       "GET",
+		ResponseType: model.NotificationResponse{},
+		Note:         "Returns all notifications for the currently logged-in user.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userToken.CurrentUser(context, ctx)
@@ -35,17 +35,15 @@ func (c *Controller) NotificationController() {
 
 	// Mark multiple notifications as viewed
 	req.RegisterRoute(horizon.Route{
-		Route:   "/notification/view",
-		Method:  "PUT",
-		Request: "string[] ids",
-		Note:    "Marks multiple notifications as viewed for the current user.",
-		Private: true,
+		Route:        "/notification/view",
+		Method:       "PUT",
+		RequestType:  model.IDSRequest{},
+		ResponseType: model.NotificationResponse{},
+		Note:         "Marks multiple notifications as viewed for the current user.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		var reqBody struct {
-			IDs []string `json:"ids"`
-		}
+		var reqBody model.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",

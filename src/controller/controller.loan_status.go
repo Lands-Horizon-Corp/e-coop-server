@@ -18,10 +18,10 @@ func (c *Controller) LoanStatusController() {
 
 	// GET /loan-status: List all loan statuses for the current user's branch. (NO footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/loan-status",
-		Method:   "GET",
-		Response: "TLoanStatus[]",
-		Note:     "Returns all loan statuses for the current user's organization and branch.",
+		Route:        "/loan-status",
+		Method:       "GET",
+		ResponseType: model.LoanStatusResponse{},
+		Note:         "Returns all loan statuses for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -40,11 +40,10 @@ func (c *Controller) LoanStatusController() {
 
 	// GET /loan-status/search: Paginated search of loan statuses for the current branch. (NO footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/loan-status/search",
-		Method:   "GET",
-		Request:  "Filter<ILoanStatus>",
-		Response: "Paginated<ILoanStatus>",
-		Note:     "Returns a paginated list of loan statuses for the current user's organization and branch.",
+		Route:        "/loan-status/search",
+		Method:       "GET",
+		ResponseType: model.LoanStatusResponse{},
+		Note:         "Returns a paginated list of loan statuses for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -63,10 +62,10 @@ func (c *Controller) LoanStatusController() {
 
 	// GET /loan-status/:loan_status_id: Get a specific loan status record by ID. (NO footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/loan-status/:loan_status_id",
-		Method:   "GET",
-		Response: "TLoanStatus",
-		Note:     "Returns a loan status record by its ID.",
+		Route:        "/loan-status/:loan_status_id",
+		Method:       "GET",
+		ResponseType: model.LoanStatusResponse{},
+		Note:         "Returns a loan status record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		id, err := horizon.EngineUUIDParam(ctx, "loan_status_id")
@@ -82,11 +81,11 @@ func (c *Controller) LoanStatusController() {
 
 	// POST /loan-status: Create a new loan status record. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/loan-status",
-		Method:   "POST",
-		Request:  "TLoanStatus",
-		Response: "TLoanStatus",
-		Note:     "Creates a new loan status record for the current user's organization and branch.",
+		Route:        "/loan-status",
+		Method:       "POST",
+		ResponseType: model.LoanStatusResponse{},
+		RequestType:  model.LoanStatusRequest{},
+		Note:         "Creates a new loan status record for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.LoanStatusManager.Validate(ctx)
@@ -145,11 +144,11 @@ func (c *Controller) LoanStatusController() {
 
 	// PUT /loan-status/:loan_status_id: Update a loan status record by ID. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/loan-status/:loan_status_id",
-		Method:   "PUT",
-		Request:  "TLoanStatus",
-		Response: "TLoanStatus",
-		Note:     "Updates an existing loan status record by its ID.",
+		Route:        "/loan-status/:loan_status_id",
+		Method:       "PUT",
+		ResponseType: model.LoanStatusResponse{},
+		RequestType:  model.LoanStatusRequest{},
+		Note:         "Updates an existing loan status record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		id, err := horizon.EngineUUIDParam(ctx, "loan_status_id")
@@ -261,15 +260,13 @@ func (c *Controller) LoanStatusController() {
 
 	// DELETE /loan-status/bulk-delete: Bulk delete loan status records by IDs. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:   "/loan-status/bulk-delete",
-		Method:  "DELETE",
-		Request: "string[]",
-		Note:    "Deletes multiple loan status records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
+		Route:       "/loan-status/bulk-delete",
+		Method:      "DELETE",
+		RequestType: model.IDSRequest{},
+		Note:        "Deletes multiple loan status records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody struct {
-			IDs []string `json:"ids"`
-		}
+		var reqBody model.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",

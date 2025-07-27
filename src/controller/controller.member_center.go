@@ -17,10 +17,10 @@ func (c *Controller) MemberCenterController() {
 
 	// Get all member center history for the current branch
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-center-history",
-		Method:   "GET",
-		Response: "TMemberCenterHistory[]",
-		Note:     "Returns all member center history entries for the current user's branch.",
+		Route:        "/member-center-history",
+		Method:       "GET",
+		ResponseType: model.MemberCenterResponse{},
+		Note:         "Returns all member center history entries for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -36,10 +36,10 @@ func (c *Controller) MemberCenterController() {
 
 	// Get member center history by member profile ID
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-center-history/member-profile/:member_profile_id/search",
-		Method:   "GET",
-		Response: "TMemberCenterHistory[]",
-		Note:     "Returns member center history for a specific member profile ID.",
+		Route:        "/member-center-history/member-profile/:member_profile_id/search",
+		Method:       "GET",
+		ResponseType: model.MemberCenterHistoryResponse{},
+		Note:         "Returns member center history for a specific member profile ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
@@ -59,10 +59,10 @@ func (c *Controller) MemberCenterController() {
 
 	// Get all member centers for the current branch
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-center",
-		Method:   "GET",
-		Response: "TMemberCenter[]",
-		Note:     "Returns all member centers for the current user's branch.",
+		Route:        "/member-center",
+		Method:       "GET",
+		ResponseType: model.MemberCenterResponse{},
+		Note:         "Returns all member centers for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -78,11 +78,10 @@ func (c *Controller) MemberCenterController() {
 
 	// Get paginated member centers
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-center/search",
-		Method:   "GET",
-		Request:  "Filter<IMemberCenter>",
-		Response: "Paginated<IMemberCenter>",
-		Note:     "Returns paginated member centers for the current user's branch.",
+		Route:        "/member-center/search",
+		Method:       "GET",
+		ResponseType: model.MemberCenterResponse{},
+		Note:         "Returns paginated member centers for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -98,11 +97,11 @@ func (c *Controller) MemberCenterController() {
 
 	// Create a new member center
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-center",
-		Method:   "POST",
-		Request:  "TMemberCenter",
-		Response: "TMemberCenter",
-		Note:     "Creates a new member center record.",
+		Route:        "/member-center",
+		Method:       "POST",
+		ResponseType: model.MemberCenterResponse{},
+		RequestType:  model.MemberCenterRequest{},
+		Note:         "Creates a new member center record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.MemberCenterManager.Validate(ctx)
@@ -155,11 +154,11 @@ func (c *Controller) MemberCenterController() {
 
 	// Update an existing member center by ID
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-center/:member_center_id",
-		Method:   "PUT",
-		Request:  "TMemberCenter",
-		Response: "TMemberCenter",
-		Note:     "Updates an existing member center record by its ID.",
+		Route:        "/member-center/:member_center_id",
+		Method:       "PUT",
+		ResponseType: model.MemberCenterResponse{},
+		RequestType:  model.MemberCenterRequest{},
+		Note:         "Updates an existing member center record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberCenterID, err := horizon.EngineUUIDParam(ctx, "member_center_id")
@@ -263,15 +262,13 @@ func (c *Controller) MemberCenterController() {
 
 	// Bulk delete member centers by IDs
 	req.RegisterRoute(horizon.Route{
-		Route:   "/member-center/bulk-delete",
-		Method:  "DELETE",
-		Request: "string[]",
-		Note:    "Deletes multiple member center records by their IDs.",
+		Route:       "/member-center/bulk-delete",
+		Method:      "DELETE",
+		Note:        "Deletes multiple member center records by their IDs.",
+		RequestType: model.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody struct {
-			IDs []string `json:"ids"`
-		}
+		var reqBody model.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{

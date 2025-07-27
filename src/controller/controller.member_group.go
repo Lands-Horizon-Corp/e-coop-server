@@ -17,10 +17,10 @@ func (c *Controller) MemberGroupController() {
 
 	// Get all member group history for the current branch
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-group-history",
-		Method:   "GET",
-		Response: "TMemberGroupHistory[]",
-		Note:     "Returns all member group history entries for the current user's branch.",
+		Route:        "/member-group-history",
+		Method:       "GET",
+		ResponseType: model.MemberGroupHistoryResponse{},
+		Note:         "Returns all member group history entries for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -36,10 +36,10 @@ func (c *Controller) MemberGroupController() {
 
 	// Get member group history by member profile ID
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-group-history/member-profile/:member_profile_id/search",
-		Method:   "GET",
-		Response: "TMemberGroupHistory[]",
-		Note:     "Returns member group history for a specific member profile ID.",
+		Route:        "/member-group-history/member-profile/:member_profile_id/search",
+		Method:       "GET",
+		ResponseType: model.MemberGroupHistoryResponse{},
+		Note:         "Returns member group history for a specific member profile ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
@@ -59,10 +59,10 @@ func (c *Controller) MemberGroupController() {
 
 	// Get all member groups for the current branch
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-group",
-		Method:   "GET",
-		Response: "TMemberGroup[]",
-		Note:     "Returns all member groups for the current user's branch.",
+		Route:        "/member-group",
+		Method:       "GET",
+		ResponseType: model.MemberGroupResponse{},
+		Note:         "Returns all member groups for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -78,11 +78,11 @@ func (c *Controller) MemberGroupController() {
 
 	// Get paginated member groups
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-group/search",
-		Method:   "GET",
-		Request:  "Filter<IMemberGroup>",
-		Response: "Paginated<IMemberGroup>",
-		Note:     "Returns paginated member groups for the current user's branch.",
+		Route:        "/member-group/search",
+		Method:       "GET",
+		RequestType:  model.MemberGroupRequest{},
+		ResponseType: model.MemberGroupResponse{},
+		Note:         "Returns paginated member groups for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -98,11 +98,11 @@ func (c *Controller) MemberGroupController() {
 
 	// Create a new member group
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-group",
-		Method:   "POST",
-		Request:  "TMemberGroup",
-		Response: "TMemberGroup",
-		Note:     "Creates a new member group record.",
+		Route:        "/member-group",
+		Method:       "POST",
+		ResponseType: model.MemberGroupResponse{},
+		RequestType:  model.MemberGroupRequest{},
+		Note:         "Creates a new member group record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.MemberGroupManager.Validate(ctx)
@@ -155,11 +155,11 @@ func (c *Controller) MemberGroupController() {
 
 	// Update an existing member group by ID
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-group/:member_group_id",
-		Method:   "PUT",
-		Request:  "TMemberGroup",
-		Response: "TMemberGroup",
-		Note:     "Updates an existing member group record by its ID.",
+		Route:        "/member-group/:member_group_id",
+		Method:       "PUT",
+		ResponseType: model.MemberGroupResponse{},
+		RequestType:  model.MemberGroupRequest{},
+		Note:         "Updates an existing member group record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberGroupID, err := horizon.EngineUUIDParam(ctx, "member_group_id")
@@ -263,15 +263,13 @@ func (c *Controller) MemberGroupController() {
 
 	// Bulk delete member groups by IDs
 	req.RegisterRoute(horizon.Route{
-		Route:   "/member-group/bulk-delete",
-		Method:  "DELETE",
-		Request: "string[]",
-		Note:    "Deletes multiple member group records by their IDs.",
+		Route:        "/member-group/bulk-delete",
+		Method:       "DELETE",
+		ResponseType: model.IDSRequest{},
+		Note:         "Deletes multiple member group records by their IDs.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody struct {
-			IDs []string `json:"ids"`
-		}
+		var reqBody model.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{

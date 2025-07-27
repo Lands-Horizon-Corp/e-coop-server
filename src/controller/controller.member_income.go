@@ -15,11 +15,11 @@ func (c *Controller) MemberIncomeController() {
 
 	// Create a new income record for a member profile
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-income/member-profile/:member_profile_id",
-		Method:   "POST",
-		Request:  "TMemberIncome",
-		Response: "TMemberIncome",
-		Note:     "Creates a new income record for the specified member profile.",
+		Route:        "/member-income/member-profile/:member_profile_id",
+		Method:       "POST",
+		ResponseType: model.MemberIncomeResponse{},
+		RequestType:  model.MemberIncomeRequest{},
+		Note:         "Creates a new income record for the specified member profile.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
@@ -84,11 +84,11 @@ func (c *Controller) MemberIncomeController() {
 
 	// Update an existing income record by its ID
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-income/:member_income_id",
-		Method:   "PUT",
-		Request:  "TMemberIncome",
-		Response: "TMemberIncome",
-		Note:     "Updates an existing income record by its ID.",
+		Route:        "/member-income/:member_income_id",
+		Method:       "PUT",
+		ResponseType: model.MemberIncomeResponse{},
+		RequestType:  model.MemberIncomeRequest{},
+		Note:         "Updates an existing income record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberIncomeID, err := horizon.EngineUUIDParam(ctx, "member_income_id")

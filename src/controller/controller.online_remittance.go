@@ -15,10 +15,10 @@ func (c *Controller) OnlineRemittanceController() {
 
 	// Retrieve batch online remittance (JWT) for the current transaction batch before ending.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/online-remittance",
-		Method:   "GET",
-		Response: "IOnlineRemittance[]",
-		Note:     "Returns online remittance records for the current active transaction batch.",
+		Route:        "/online-remittance",
+		Method:       "GET",
+		ResponseType: model.OnlineRemittanceResponse{},
+		Note:         "Returns online remittance records for the current active transaction batch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -55,11 +55,11 @@ func (c *Controller) OnlineRemittanceController() {
 
 	// Create a new online remittance for the current transaction batch before ending.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/online-remittance",
-		Method:   "POST",
-		Response: "IOnlineRemittance",
-		Request:  "IOnlineRemittance",
-		Note:     "Creates a new online remittance record for the current transaction batch.",
+		Route:        "/online-remittance",
+		Method:       "POST",
+		ResponseType: model.OnlineRemittanceResponse{},
+		RequestType:  model.OnlineRemittanceRequest{},
+		Note:         "Creates a new online remittance record for the current transaction batch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
@@ -190,11 +190,11 @@ func (c *Controller) OnlineRemittanceController() {
 
 	// Update an existing online remittance by ID for the current transaction batch.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/online-remittance/:online_remittance_id",
-		Method:   "PUT",
-		Response: "IOnlineRemittance",
-		Request:  "IOnlineRemittance",
-		Note:     "Updates an existing online remittance by its ID for the current active transaction batch.",
+		Route:        "/online-remittance/:online_remittance_id",
+		Method:       "PUT",
+		ResponseType: model.OnlineRemittanceResponse{},
+		RequestType:  model.OnlineRemittanceRequest{},
+		Note:         "Updates an existing online remittance by its ID for the current active transaction batch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		onlineRemittanceId, err := horizon.EngineUUIDParam(ctx, "online_remittance_id")
@@ -360,10 +360,9 @@ func (c *Controller) OnlineRemittanceController() {
 
 	// Delete an existing online remittance by ID for the current transaction batch.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/online-remittance/:online_remittance_id",
-		Method:   "DELETE",
-		Response: "IOnlineRemittance",
-		Note:     "Deletes an online remittance by its ID for the current active transaction batch.",
+		Route:  "/online-remittance/:online_remittance_id",
+		Method: "DELETE",
+		Note:   "Deletes an online remittance by its ID for the current active transaction batch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		onlineRemittanceId, err := horizon.EngineUUIDParam(ctx, "online_remittance_id")

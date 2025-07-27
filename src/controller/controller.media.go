@@ -19,10 +19,10 @@ func (c *Controller) MediaController() {
 
 	// GET /media: List all media records. (NO footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/media",
-		Method:   "GET",
-		Response: "TMedia[]",
-		Note:     "Returns all media records in the system.",
+		Route:        "/media",
+		Method:       "GET",
+		Note:         "Returns all media records in the system.",
+		ResponseType: model.MediaResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		media, err := c.model.MediaManager.List(context)
@@ -34,10 +34,11 @@ func (c *Controller) MediaController() {
 
 	// GET /media/:media_id: Get a specific media record by ID. (NO footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/media/:media_id",
-		Method:   "GET",
-		Response: "TMedia",
-		Note:     "Returns a specific media record by its ID.",
+		Route:        "/media/:media_id",
+		Method:       "GET",
+		Response:     "TMedia",
+		Note:         "Returns a specific media record by its ID.",
+		ResponseType: model.MediaResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		mediaId, err := horizon.EngineUUIDParam(ctx, "media_id")
@@ -54,11 +55,10 @@ func (c *Controller) MediaController() {
 
 	// POST /media: Upload a new media file. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/media",
-		Method:   "POST",
-		Request:  "File - multipart/form-data",
-		Response: "TMedia",
-		Note:     "Uploads a file and creates a new media record.",
+		Route:        "/media",
+		Method:       "POST",
+		ResponseType: model.MediaResponse{},
+		Note:         "Uploads a file and creates a new media record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		file, err := ctx.FormFile("file")
@@ -142,11 +142,11 @@ func (c *Controller) MediaController() {
 
 	// PUT /media/:media_id: Update media file's name. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/media/:media_id",
-		Method:   "PUT",
-		Request:  "TMedia",
-		Response: "TMedia",
-		Note:     "Updates the file name of a media record.",
+		Route:        "/media/:media_id",
+		Method:       "PUT",
+		RequestType:  model.MediaRequest{},
+		ResponseType: model.MediaResponse{},
+		Note:         "Updates the file name of a media record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		mediaId, err := horizon.EngineUUIDParam(ctx, "media_id")
@@ -237,10 +237,10 @@ func (c *Controller) MediaController() {
 
 	// DELETE /media/bulk-delete: Bulk delete media records by IDs. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:   "/media/bulk-delete",
-		Method:  "DELETE",
-		Request: "string[]",
-		Note:    "Deletes multiple media records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
+		Route:       "/media/bulk-delete",
+		Method:      "DELETE",
+		RequestType: model.IDSRequest{},
+		Note:        "Deletes multiple media records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody struct {

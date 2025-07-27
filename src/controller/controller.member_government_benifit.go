@@ -15,11 +15,11 @@ func (c *Controller) MemberGovernmentBenefitController() {
 
 	// Create a new government benefit record for a member profile
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-government-benefit/member-profile/:member_profile_id",
-		Method:   "POST",
-		Request:  "TMemberGovernmentBenefit",
-		Response: "TMemberGovernmentBenefit",
-		Note:     "Creates a new government benefit record for the specified member profile.",
+		Route:        "/member-government-benefit/member-profile/:member_profile_id",
+		Method:       "POST",
+		ResponseType: model.MemberGovernmentBenefitResponse{},
+		RequestType:  model.MemberGovernmentBenefitRequest{},
+		Note:         "Creates a new government benefit record for the specified member profile.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
@@ -87,11 +87,11 @@ func (c *Controller) MemberGovernmentBenefitController() {
 
 	// Update an existing government benefit record by its ID
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-government-benefit/:member_government_benefit_id",
-		Method:   "PUT",
-		Request:  "TMemberGovernmentBenefit",
-		Response: "TMemberGovernmentBenefit",
-		Note:     "Updates an existing government benefit record by its ID.",
+		Route:        "/member-government-benefit/:member_government_benefit_id",
+		Method:       "PUT",
+		ResponseType: model.MemberGovernmentBenefitResponse{},
+		RequestType:  model.MemberGovernmentBenefitRequest{},
+		Note:         "Updates an existing government benefit record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberGovernmentBenefitID, err := horizon.EngineUUIDParam(ctx, "member_government_benefit_id")

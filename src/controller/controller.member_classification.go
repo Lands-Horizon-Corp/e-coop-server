@@ -17,10 +17,10 @@ func (c *Controller) MemberClassificationController() {
 
 	// Get all member classification history for the current branch
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-classification-history",
-		Method:   "GET",
-		Response: "TMemberClassificationHistory[]",
-		Note:     "Returns all member classification history entries for the current user's branch.",
+		Route:        "/member-classification-history",
+		Method:       "GET",
+		ResponseType: model.MemberClassificationHistoryResponse{},
+		Note:         "Returns all member classification history entries for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -36,10 +36,10 @@ func (c *Controller) MemberClassificationController() {
 
 	// Get member classification history by member profile ID
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-classification-history/member-profile/:member_profile_id/search",
-		Method:   "GET",
-		Response: "TMemberClassificationHistory[]",
-		Note:     "Returns member classification history for a specific member profile ID.",
+		Route:        "/member-classification-history/member-profile/:member_profile_id/search",
+		Method:       "GET",
+		ResponseType: model.MemberClassificationHistoryResponse{},
+		Note:         "Returns member classification history for a specific member profile ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
@@ -59,10 +59,10 @@ func (c *Controller) MemberClassificationController() {
 
 	// Get all member classifications for the current branch
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-classification",
-		Method:   "GET",
-		Response: "TMemberClassification[]",
-		Note:     "Returns all member classifications for the current user's branch.",
+		Route:        "/member-classification",
+		Method:       "GET",
+		ResponseType: model.MemberClassificationResponse{},
+		Note:         "Returns all member classifications for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -78,11 +78,10 @@ func (c *Controller) MemberClassificationController() {
 
 	// Get paginated member classifications
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-classification/search",
-		Method:   "GET",
-		Request:  "Filter<IMemberClassification>",
-		Response: "Paginated<IMemberClassification>",
-		Note:     "Returns paginated member classifications for the current user's branch.",
+		Route:        "/member-classification/search",
+		Method:       "GET",
+		ResponseType: model.MemberClassificationResponse{},
+		Note:         "Returns paginated member classifications for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -98,11 +97,11 @@ func (c *Controller) MemberClassificationController() {
 
 	// Create a new member classification
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-classification",
-		Method:   "POST",
-		Request:  "TMemberClassification",
-		Response: "TMemberClassification",
-		Note:     "Creates a new member classification record.",
+		Route:        "/member-classification",
+		Method:       "POST",
+		ResponseType: model.MemberClassificationResponse{},
+		RequestType:  model.MemberClassificationRequest{},
+		Note:         "Creates a new member classification record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.MemberClassificationManager.Validate(ctx)
@@ -156,11 +155,11 @@ func (c *Controller) MemberClassificationController() {
 
 	// Update an existing member classification by ID
 	req.RegisterRoute(horizon.Route{
-		Route:    "/member-classification/:member_classification_id",
-		Method:   "PUT",
-		Request:  "TMemberClassification",
-		Response: "TMemberClassification",
-		Note:     "Updates an existing member classification record by its ID.",
+		Route:        "/member-classification/:member_classification_id",
+		Method:       "PUT",
+		ResponseType: model.MemberClassificationResponse{},
+		RequestType:  model.MemberClassificationRequest{},
+		Note:         "Updates an existing member classification record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberClassificationID, err := horizon.EngineUUIDParam(ctx, "member_classification_id")
@@ -265,15 +264,13 @@ func (c *Controller) MemberClassificationController() {
 
 	// Bulk delete member classifications by IDs
 	req.RegisterRoute(horizon.Route{
-		Route:   "/member-classification/bulk-delete",
-		Method:  "DELETE",
-		Request: "string[]",
-		Note:    "Deletes multiple member classification records by their IDs.",
+		Route:       "/member-classification/bulk-delete",
+		Method:      "DELETE",
+		Note:        "Deletes multiple member classification records by their IDs.",
+		RequestType: model.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody struct {
-			IDs []string `json:"ids"`
-		}
+		var reqBody model.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{

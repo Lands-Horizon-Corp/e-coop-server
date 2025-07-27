@@ -13,10 +13,10 @@ func (c *Controller) OnlineEntryController() {
 
 	// Returns paginated online entries for a given transaction batch.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/online-entry/transaction-batch/:transaction_batch_id/search",
-		Method:   "GET",
-		Response: "OnlineEntry[]",
-		Note:     "Returns paginated online entries for the specified transaction batch.",
+		Route:        "/online-entry/transaction-batch/:transaction_batch_id/search",
+		Method:       "GET",
+		ResponseType: model.OnlineEntryResponse{},
+		Note:         "Returns paginated online entries for the specified transaction batch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -40,10 +40,10 @@ func (c *Controller) OnlineEntryController() {
 
 	// Returns paginated online entries for a given transaction batch.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/online-entry/search",
-		Method:   "GET",
-		Response: "OnlineEntry[]",
-		Note:     "Returns paginated online entries",
+		Route:        "/online-entry/search",
+		Method:       "GET",
+		ResponseType: model.OnlineEntryResponse{},
+		Note:         "Returns paginated online entries",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
