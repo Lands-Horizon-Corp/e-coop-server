@@ -167,32 +167,6 @@ func structTypeToTSMarkdown(t reflect.Type, visited map[reflect.Type]bool, typeQ
 	return fmt.Sprintf("export interface %s {\n%s\n}", t.Name(), strings.Join(fields, "\n"))
 }
 
-func printAllTSInterfacesMarkdown(rootType reflect.Type) {
-	visited := map[reflect.Type]bool{}
-	typeQueue := map[reflect.Type]bool{rootType: true}
-	handled := map[reflect.Type]bool{}
-	for len(typeQueue) > 0 {
-		var keys []reflect.Type
-		for k := range typeQueue {
-			keys = append(keys, k)
-		}
-		typeQueue = map[reflect.Type]bool{}
-		for _, t := range keys {
-			if handled[t] {
-				continue
-			}
-			if isNamedStruct(t) && t != rootType {
-				handled[t] = true
-				continue
-			}
-			fmt.Println("```typescript")
-			fmt.Println(structTypeToTSMarkdown(t, visited, typeQueue))
-			fmt.Println("```")
-			handled[t] = true
-		}
-	}
-}
-
 // Helper to generate all TypeScript interfaces as a single Markdown string
 func allTSInterfacesMarkdown(rootType reflect.Type) string {
 	visited := map[reflect.Type]bool{}
