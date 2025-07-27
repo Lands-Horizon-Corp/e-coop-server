@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 	"unicode"
+
+	"github.com/google/uuid"
 )
 
 // Helper: camelCase
@@ -70,6 +72,7 @@ func isNamedStruct(t reflect.Type) bool {
 	return t.Kind() == reflect.Struct && t.Name() != ""
 }
 
+// PATCH: Support uuid.UUID as "uuid" and *uuid.UUID as "uuid | null"
 func goTypeToTSType(field reflect.StructField, visited map[reflect.Type]bool, typeQueue map[reflect.Type]bool) string {
 	t := field.Type
 	switch t.Kind() {
@@ -105,6 +108,10 @@ func goTypeToTSType(field reflect.StructField, visited map[reflect.Type]bool, ty
 	case reflect.Interface:
 		return "any"
 	case reflect.Ptr:
+		// PATCH: Handle pointer to uuid.UUID
+		if t.Elem() == reflect.TypeOf(uuid.UUID{}) {
+			return "uuid | null"
+		}
 		return goTypeToTSType(reflect.StructField{Type: t.Elem(), Tag: field.Tag}, visited, typeQueue) + " | null"
 	case reflect.Slice, reflect.Array:
 		return goTypeToTSType(reflect.StructField{Type: t.Elem(), Tag: field.Tag}, visited, typeQueue) + "[]"
@@ -114,6 +121,10 @@ func goTypeToTSType(field reflect.StructField, visited map[reflect.Type]bool, ty
 		}
 		return "any"
 	case reflect.Struct:
+		// PATCH: Handle uuid.UUID
+		if t == reflect.TypeOf(uuid.UUID{}) {
+			return "uuid"
+		}
 		if t == reflect.TypeOf(time.Time{}) {
 			return "string"
 		}
