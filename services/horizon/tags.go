@@ -3,6 +3,7 @@ package horizon
 import (
 	"fmt"
 	"reflect"
+	"sort"
 	"strings"
 	"time"
 	"unicode"
@@ -320,4 +321,61 @@ func GetAllResponseInterfaces(routes []Route) []APIInterfaces {
 		})
 	}
 	return result
+}
+
+func (h *HorizonAPIService) GroupedRoutes() API {
+	grouped := make(map[string][]Route)
+	interfacesMap := make(map[string]map[string]struct{})
+	for _, rt := range h.routesList {
+		trimmed := strings.TrimPrefix(rt.Route, "/")
+		segments := strings.Split(trimmed, "/")
+		key := "/"
+		if len(segments) > 0 && segments[0] != "" {
+			key = segments[0]
+		}
+		grouped[key] = append(grouped[key], rt)
+		if interfacesMap[key] == nil {
+			interfacesMap[key] = make(map[string]struct{})
+		}
+		// Add request/response interface NAMES
+		if rt.Request != "" {
+			name := ExtractTSInterfaceName(rt.Request)
+			if name != "" {
+				interfacesMap[key][name] = struct{}{}
+			}
+		}
+		if rt.Response != "" {
+			name := ExtractTSInterfaceName(rt.Response)
+			if name != "" {
+				interfacesMap[key][name] = struct{}{}
+			}
+		}
+	}
+	routePaths := make([]string, 0, len(grouped))
+	for route := range grouped {
+		routePaths = append(routePaths, route)
+	}
+	sort.Strings(routePaths)
+	result := make([]GroupedRoute, 0, len(routePaths))
+	for _, route := range routePaths {
+		methodGroup := grouped[route]
+		sort.Slice(methodGroup, func(i, j int) bool {
+			return methodGroup[i].Method < methodGroup[j].Method
+		})
+		interfaces := make([]string, 0, len(interfacesMap[route]))
+		for iface := range interfacesMap[route] {
+			interfaces = append(interfaces, iface)
+		}
+		sort.Strings(interfaces)
+
+		result = append(result, GroupedRoute{
+			Key:    route,
+			Routes: methodGroup,
+		})
+	}
+	return API{
+		GroupedRoutes: result,
+		Requests:      GetAllRequestInterfaces(h.routesList),
+		Responses:     GetAllResponseInterfaces(h.routesList),
+	}
 }
