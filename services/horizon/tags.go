@@ -273,8 +273,15 @@ func ExtractTSInterfaceName(ts string) string {
 	lines := strings.Split(ts, "\n")
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
+		// Accept lines that start with "export interface" or just "interface"
 		if strings.HasPrefix(line, "export interface ") {
 			after := strings.TrimPrefix(line, "export interface ")
+			parts := strings.Fields(after)
+			if len(parts) > 0 {
+				return parts[0]
+			}
+		} else if strings.HasPrefix(line, "interface ") {
+			after := strings.TrimPrefix(line, "interface ")
 			parts := strings.Fields(after)
 			if len(parts) > 0 {
 				return parts[0]
@@ -283,21 +290,26 @@ func ExtractTSInterfaceName(ts string) string {
 	}
 	return ""
 }
+
 func GetAllRequestInterfaces(routes []Route) []APIInterfaces {
 	seen := make(map[string]struct{})
 	result := []APIInterfaces{}
 	for _, rt := range routes {
-		if rt.Request != "" {
-			name := ExtractTSInterfaceName(rt.Request)
-			if name != "" && seen[name] == struct{}{} {
-				continue
-			}
-			seen[name] = struct{}{}
-			result = append(result, APIInterfaces{
-				Key:   name,
-				Value: rt.Request,
-			})
+		if rt.Request == "" || rt.Request == "None" {
+			continue
 		}
+		name := ExtractTSInterfaceName(rt.Request)
+		if name == "" {
+			continue
+		}
+		if _, already := seen[name]; already {
+			continue
+		}
+		seen[name] = struct{}{}
+		result = append(result, APIInterfaces{
+			Key:   name,
+			Value: rt.Request,
+		})
 	}
 	return result
 }
@@ -306,17 +318,21 @@ func GetAllResponseInterfaces(routes []Route) []APIInterfaces {
 	seen := make(map[string]struct{})
 	result := []APIInterfaces{}
 	for _, rt := range routes {
-		if rt.Response != "" {
-			name := ExtractTSInterfaceName(rt.Response)
-			if name != "" && seen[name] == struct{}{} {
-				continue
-			}
-			seen[name] = struct{}{}
-			result = append(result, APIInterfaces{
-				Key:   name,
-				Value: rt.Response,
-			})
+		if rt.Response == "" || rt.Response == "None" {
+			continue
 		}
+		name := ExtractTSInterfaceName(rt.Response)
+		if name == "" {
+			continue
+		}
+		if _, already := seen[name]; already {
+			continue
+		}
+		seen[name] = struct{}{}
+		result = append(result, APIInterfaces{
+			Key:   name,
+			Value: rt.Response,
+		})
 	}
 	return result
 }
