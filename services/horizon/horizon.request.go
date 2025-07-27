@@ -54,9 +54,8 @@ type Route struct {
 // GroupedRoute holds a group of routes under a common key.
 
 type GroupedRoute struct {
-	Key        string   `json:"key"`
-	Routes     []Route  `json:"routes"`
-	Interfaces []string `json:"interfaces"`
+	Key    string  `json:"key"`
+	Routes []Route `json:"routes"`
 }
 type APIInterfaces struct {
 	Key   string `json:"key"`
@@ -363,9 +362,8 @@ func (h *HorizonAPIService) GroupedRoutes() API {
 		sort.Strings(interfaces)
 
 		result = append(result, GroupedRoute{
-			Key:        route,
-			Routes:     methodGroup,
-			Interfaces: interfaces, // Now only interface names!
+			Key:    route,
+			Routes: methodGroup,
 		})
 	}
 	return API{
