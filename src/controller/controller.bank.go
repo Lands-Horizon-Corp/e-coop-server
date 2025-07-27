@@ -20,7 +20,6 @@ func (c *Controller) BankController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/bank",
 		Method:       "GET",
-		Response:     "TBank[]",
 		Note:         "Returns all banks for the current user's organization and branch. Returns empty if not authenticated.",
 		ResponseType: model.BankResponse{},
 	}, func(ctx echo.Context) error {
@@ -43,8 +42,6 @@ func (c *Controller) BankController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/bank/search",
 		Method:       "GET",
-		Request:      "Filter<IBank>",
-		Response:     "Paginated<IBank>",
 		Note:         "Returns a paginated list of banks for the current user's organization and branch.",
 		ResponseType: model.BankResponse{},
 	}, func(ctx echo.Context) error {
@@ -67,7 +64,6 @@ func (c *Controller) BankController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/bank/:bank_id",
 		Method:       "GET",
-		Response:     "TBank",
 		Note:         "Returns a single bank by its ID.",
 		ResponseType: model.BankResponse{},
 	}, func(ctx echo.Context) error {
@@ -87,8 +83,6 @@ func (c *Controller) BankController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/bank",
 		Method:       "POST",
-		Request:      "TBank",
-		Response:     "TBank",
 		Note:         "Creates a new bank for the current user's organization and branch.",
 		RequestType:  model.BankRequest{},
 		ResponseType: model.BankResponse{},

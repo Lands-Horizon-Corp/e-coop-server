@@ -19,7 +19,6 @@ func (c *Controller) AccountCategoryController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/account-category/search",
 		Method:       "GET",
-		Response:     "IAccountCategory[]",
 		Note:         "Retrieve all account categories for the current branch.",
 		ResponseType: model.AccountCategoryResponse{},
 	}, func(ctx echo.Context) error {
@@ -44,7 +43,6 @@ func (c *Controller) AccountCategoryController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/account-category",
 		Method:       "GET",
-		Response:     "IAccountCategory[]",
 		Note:         "Retrieve all account categories for the current branch (raw).",
 		ResponseType: model.AccountCategoryResponse{},
 	}, func(ctx echo.Context) error {
@@ -69,7 +67,6 @@ func (c *Controller) AccountCategoryController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/account-category/:account_category_id",
 		Method:       "GET",
-		Response:     "IAccountCategory",
 		Note:         "Get an account category by ID.",
 		ResponseType: model.AccountCategoryResponse{},
 	}, func(ctx echo.Context) error {
@@ -90,7 +87,6 @@ func (c *Controller) AccountCategoryController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/account-category",
 		Method:       "POST",
-		Response:     "IAccountCategory",
 		Note:         "Create a new account category for the current branch.",
 		ResponseType: model.AccountCategoryResponse{},
 		RequestType:  model.AccountCategoryRequest{},
@@ -156,7 +152,6 @@ func (c *Controller) AccountCategoryController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/account-category/:account_category_id",
 		Method:       "PUT",
-		Response:     "IAccountCategory",
 		Note:         "Update an account category by ID.",
 		ResponseType: model.AccountCategoryResponse{},
 		RequestType:  model.AccountCategoryRequest{},
@@ -231,10 +226,9 @@ func (c *Controller) AccountCategoryController() {
 	// DELETE (DELETE) - ADD FOOTSTEP
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/account-category/:account_category_id",
-		Method:   "DELETE",
-		Response: "IAccountCategory",
-		Note:     "Delete an account category by ID.",
+		Route:  "/account-category/:account_category_id",
+		Method: "DELETE",
+		Note:   "Delete an account category by ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)

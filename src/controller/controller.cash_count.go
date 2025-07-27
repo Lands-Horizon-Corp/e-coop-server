@@ -16,10 +16,10 @@ func (c *Controller) CashCountController() {
 	req := c.provider.Service.Request
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/cash-count/search",
-		Method:   "GET",
-		Response: "TCashCount[]",
-		Note:     "Returns all cash counts of the current branch",
+		Route:        "/cash-count/search",
+		Method:       "GET",
+		Note:         "Returns all cash counts of the current branch",
+		ResponseType: model.CashCountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -38,10 +38,10 @@ func (c *Controller) CashCountController() {
 
 	// GET /cash-count: Retrieve all cash count bills for the current active transaction batch for the user's branch. (NO footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/cash-count",
-		Method:   "GET",
-		Response: "ICashCount[]",
-		Note:     "Returns all cash count bills for the current active transaction batch of the authenticated user's branch. Only allowed for 'owner' or 'employee'.",
+		Route:        "/cash-count",
+		Method:       "GET",
+		Note:         "Returns all cash count bills for the current active transaction batch of the authenticated user's branch. Only allowed for 'owner' or 'employee'.",
+		ResponseType: model.CashCountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -78,11 +78,11 @@ func (c *Controller) CashCountController() {
 
 	// POST /cash-count: Add a cash count bill to the current transaction batch before ending. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/cash-count",
-		Method:   "POST",
-		Response: "ICashCount",
-		Request:  "ICashCount",
-		Note:     "Adds a cash count bill to the current active transaction batch for the user's branch. Only allowed for 'owner' or 'employee'.",
+		Route:        "/cash-count",
+		Method:       "POST",
+		ResponseType: model.CashCountResponse{},
+		RequestType:  model.CashCountRequest{},
+		Note:         "Adds a cash count bill to the current active transaction batch for the user's branch. Only allowed for 'owner' or 'employee'.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var cashCountReq model.CashCountRequest
@@ -181,11 +181,11 @@ func (c *Controller) CashCountController() {
 
 	// PUT /cash-count: Update a list of cash count bills for the current transaction batch before ending. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/cash-count",
-		Method:   "PUT",
-		Response: "ICashCount[]",
-		Request:  "ICashCount[]",
-		Note:     "Updates cash count bills in the current active transaction batch for the user's branch. Only allowed for 'owner' or 'employee'.",
+		Route:        "/cash-count",
+		Method:       "PUT",
+		ResponseType: model.CashCountResponse{},
+		RequestType:  model.CashCountRequest{},
+		Note:         "Updates cash count bills in the current active transaction batch for the user's branch. Only allowed for 'owner' or 'employee'.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)

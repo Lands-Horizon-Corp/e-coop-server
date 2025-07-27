@@ -18,10 +18,10 @@ func (c *Controller) AutomaticLoanDeductionController() {
 
 	// GET /automatic-loan-deduction/computation-sheet/:computation_sheet_id/search
 	req.RegisterRoute(horizon.Route{
-		Route:    "/automatic-loan-deduction/computation-sheet/:computation_sheet_id",
-		Method:   "GET",
-		Response: "AutomaticLoanDeduction[]",
-		Note:     "Returns all automatic loan deductions for a computation sheet in the current user's org/branch.",
+		Route:        "/automatic-loan-deduction/computation-sheet/:computation_sheet_id",
+		Method:       "GET",
+		Note:         "Returns all automatic loan deductions for a computation sheet in the current user's org/branch.",
+		ResponseType: model.AutomaticLoanDeductionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -49,10 +49,10 @@ func (c *Controller) AutomaticLoanDeductionController() {
 
 	// GET /automatic-loan-deduction/computation-sheet/:computation_sheet_id/search
 	req.RegisterRoute(horizon.Route{
-		Route:    "/automatic-loan-deduction/computation-sheet/:computation_sheet_id/search",
-		Method:   "GET",
-		Response: "AutomaticLoanDeduction[]",
-		Note:     "Returns all automatic loan deductions for a computation sheet in the current user's org/branch.",
+		Route:        "/automatic-loan-deduction/computation-sheet/:computation_sheet_id/search",
+		Method:       "GET",
+		Note:         "Returns all automatic loan deductions for a computation sheet in the current user's org/branch.",
+		ResponseType: model.AutomaticLoanDeductionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -80,11 +80,11 @@ func (c *Controller) AutomaticLoanDeductionController() {
 
 	// POST /automatic-loan-deduction
 	req.RegisterRoute(horizon.Route{
-		Route:    "/automatic-loan-deduction",
-		Method:   "POST",
-		Request:  "AutomaticLoanDeduction",
-		Response: "AutomaticLoanDeduction",
-		Note:     "Creates a new automatic loan deduction for the current user's org/branch.",
+		Route:        "/automatic-loan-deduction",
+		Method:       "POST",
+		Note:         "Creates a new automatic loan deduction for the current user's org/branch.",
+		RequestType:  model.AutomaticLoanDeductionRequest{},
+		ResponseType: model.AutomaticLoanDeductionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.AutomaticLoanDeductionManager.Validate(ctx)
@@ -157,11 +157,11 @@ func (c *Controller) AutomaticLoanDeductionController() {
 
 	// PUT /automatic-loan-deduction/:automatic_loan_deduction_id
 	req.RegisterRoute(horizon.Route{
-		Route:    "/automatic-loan-deduction/:automatic_loan_deduction_id",
-		Method:   "PUT",
-		Request:  "AutomaticLoanDeduction",
-		Response: "AutomaticLoanDeduction",
-		Note:     "Updates an existing automatic loan deduction by its ID.",
+		Route:        "/automatic-loan-deduction/:automatic_loan_deduction_id",
+		Method:       "PUT",
+		Note:         "Updates an existing automatic loan deduction by its ID.",
+		RequestType:  model.AutomaticLoanDeductionRequest{},
+		ResponseType: model.AutomaticLoanDeductionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		id, err := horizon.EngineUUIDParam(ctx, "automatic_loan_deduction_id")
@@ -279,10 +279,10 @@ func (c *Controller) AutomaticLoanDeductionController() {
 
 	// DELETE /automatic-loan-deduction/bulk-delete
 	req.RegisterRoute(horizon.Route{
-		Route:   "/automatic-loan-deduction/bulk-delete",
-		Method:  "DELETE",
-		Request: "string[]",
-		Note:    "Deletes multiple automatic loan deductions by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
+		Route:       "/automatic-loan-deduction/bulk-delete",
+		Method:      "DELETE",
+		Note:        "Deletes multiple automatic loan deductions by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
+		RequestType: model.BulkDeleteRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody struct {

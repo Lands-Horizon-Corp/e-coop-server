@@ -340,3 +340,18 @@ func IsSuspiciousPath(path string) bool {
 
 	return false
 }
+
+func UniqueStrings(input []string) []string {
+	if len(input) < 2 {
+		return input
+	}
+	seen := make(map[string]struct{}, len(input))
+	result := make([]string, 0, len(input))
+	for _, v := range input {
+		if _, exists := seen[v]; !exists {
+			seen[v] = struct{}{}
+			result = append(result, v)
+		}
+	}
+	return result
+}

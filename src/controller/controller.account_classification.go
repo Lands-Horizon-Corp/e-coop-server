@@ -16,10 +16,11 @@ func (c *Controller) AccountClassificationController() {
 
 	// GET endpoints (no footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/account-classification/search",
-		Method:   "GET",
-		Response: "IAccount[]",
-		Note:     "Retrieve all account classifications for the current branch.",
+		Route:        "/account-classification/search",
+		Method:       "GET",
+		Response:     "IAccount[]",
+		Note:         "Retrieve all account classifications for the current branch.",
+		ResponseType: model.AccountClassificationResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -40,10 +41,11 @@ func (c *Controller) AccountClassificationController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/account-classification",
-		Method:   "GET",
-		Response: "IAccount[]",
-		Note:     "Retrieve all account classifications for the current branch (raw).",
+		Route:        "/account-classification",
+		Method:       "GET",
+		Response:     "IAccount[]",
+		Note:         "Retrieve all account classifications for the current branch (raw).",
+		ResponseType: model.AccountClassificationResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -64,10 +66,11 @@ func (c *Controller) AccountClassificationController() {
 	})
 
 	req.RegisterRoute(horizon.Route{
-		Route:    "/account-classification/:account_classification_id",
-		Method:   "GET",
-		Response: "IAccountClassification",
-		Note:     "Get an account classification by ID.",
+		Route:        "/account-classification/:account_classification_id",
+		Method:       "GET",
+		Response:     "IAccountClassification",
+		Note:         "Get an account classification by ID.",
+		ResponseType: model.AccountClassificationResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		id, err := horizon.EngineUUIDParam(ctx, "account_classification_id")
@@ -83,10 +86,12 @@ func (c *Controller) AccountClassificationController() {
 
 	// POST - Create (with footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/account-classification",
-		Method:   "POST",
-		Response: "IAccountClassification",
-		Note:     "Create a new account classification for the current branch.",
+		Route:        "/account-classification",
+		Method:       "POST",
+		Response:     "IAccountClassification",
+		Note:         "Create a new account classification for the current branch.",
+		ResponseType: model.AccountClassificationResponse{},
+		RequestType:  model.AccountClassificationRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.AccountClassificationManager.Validate(ctx)
@@ -145,10 +150,12 @@ func (c *Controller) AccountClassificationController() {
 
 	// PUT - Update (with footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/account-classification/:account_classification_id",
-		Method:   "PUT",
-		Response: "IAccountClassification",
-		Note:     "Update an account classification by ID.",
+		Route:        "/account-classification/:account_classification_id",
+		Method:       "PUT",
+		Response:     "IAccountClassification",
+		Note:         "Update an account classification by ID.",
+		ResponseType: model.AccountClassificationResponse{},
+		RequestType:  model.AccountClassificationRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.AccountClassificationManager.Validate(ctx)
@@ -278,10 +285,11 @@ func (c *Controller) AccountClassificationController() {
 
 	// BULK DELETE (with footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:   "/account-classification/bulk-delete",
-		Method:  "DELETE",
-		Request: "string[]",
-		Note:    "Bulk delete multiple account classifications by IDs.",
+		Route:       "/account-classification/bulk-delete",
+		Method:      "DELETE",
+		Request:     "string[]",
+		Note:        "Bulk delete multiple account classifications by IDs.",
+		RequestType: model.BulkDeleteRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody struct {

@@ -52,19 +52,31 @@ type Route struct {
 }
 
 // GroupedRoute holds a group of routes under a common key.
+
 type GroupedRoute struct {
-	Key    string  `json:"key"`
-	Routes []Route `json:"routes"`
+	Key        string   `json:"key"`
+	Routes     []Route  `json:"routes"`
+	Interfaces []string `json:"interfaces"`
+}
+type APIInterfaces struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+type API struct {
+	GroupedRoutes []GroupedRoute  `json:"grouped_routes"`
+	Requests      []APIInterfaces `json:"requests"`
+	Responses     []APIInterfaces `json:"responses"`
 }
 
 // HorizonAPIService implements APIService.
 type HorizonAPIService struct {
-	service     *echo.Echo
-	serverPort  int
-	metricsPort int
-	clientURL   string
-	clientName  string
-	routesList  []Route
+	service        *echo.Echo
+	serverPort     int
+	metricsPort    int
+	clientURL      string
+	clientName     string
+	routesList     []Route
+	interfacesList []APIInterfaces
 }
 
 var (
@@ -256,10 +268,22 @@ func (h *HorizonAPIService) RegisterRoute(route Route, callback func(c echo.Cont
 		panic(fmt.Sprintf("Unsupported HTTP method: %s", method))
 	}
 	if !route.Private {
+		tsRequest := TagFormat(route.RequestType)
+		tsResponse := TagFormat(route.ResponseType)
+
+		h.interfacesList = append(h.interfacesList, APIInterfaces{
+			Key:   ExtractTSInterfaceName(tsRequest),
+			Value: tsRequest,
+		})
+		h.interfacesList = append(h.interfacesList, APIInterfaces{
+			Key:   ExtractTSInterfaceName(tsResponse),
+			Value: tsResponse,
+		})
+
 		h.routesList = append(h.routesList, Route{
 			Route:    route.Route,
-			Request:  TagFormat(route.RequestType),
-			Response: TagFormat(route.ResponseType),
+			Request:  tsRequest,
+			Response: tsResponse,
 			Method:   method,
 			Note:     route.Note,
 		})
@@ -270,8 +294,9 @@ func (h *HorizonAPIService) RegisterRoute(route Route, callback func(c echo.Cont
 func (h *HorizonAPIService) Run(ctx context.Context) error {
 
 	// New: GET /api/routes returns grouped routes as JSON
+	grouped := h.GroupedRoutes()
 	h.service.GET("/api/routes", func(c echo.Context) error {
-		return c.JSON(http.StatusOK, h.GroupedRoutes())
+		return c.JSON(http.StatusOK, grouped)
 	}).Name = "horizon-routes-json"
 
 	h.service.Any("/*", func(c echo.Context) error {
@@ -292,10 +317,9 @@ func (h *HorizonAPIService) Stop(ctx context.Context) error {
 	return nil
 }
 
-// GroupedRoutes groups routes by their first path segment.
-func (h *HorizonAPIService) GroupedRoutes() []GroupedRoute {
-	// time.Sleep(5 * time.Second) // Remove or comment out in production.
+func (h *HorizonAPIService) GroupedRoutes() API {
 	grouped := make(map[string][]Route)
+	interfacesMap := make(map[string]map[string]struct{})
 	for _, rt := range h.routesList {
 		trimmed := strings.TrimPrefix(rt.Route, "/")
 		segments := strings.Split(trimmed, "/")
@@ -304,24 +328,49 @@ func (h *HorizonAPIService) GroupedRoutes() []GroupedRoute {
 			key = segments[0]
 		}
 		grouped[key] = append(grouped[key], rt)
+		if interfacesMap[key] == nil {
+			interfacesMap[key] = make(map[string]struct{})
+		}
+		// Add request/response interface NAMES
+		if rt.Request != "" {
+			name := ExtractTSInterfaceName(rt.Request)
+			if name != "" {
+				interfacesMap[key][name] = struct{}{}
+			}
+		}
+		if rt.Response != "" {
+			name := ExtractTSInterfaceName(rt.Response)
+			if name != "" {
+				interfacesMap[key][name] = struct{}{}
+			}
+		}
 	}
-
 	routePaths := make([]string, 0, len(grouped))
 	for route := range grouped {
 		routePaths = append(routePaths, route)
 	}
 	sort.Strings(routePaths)
-
 	result := make([]GroupedRoute, 0, len(routePaths))
 	for _, route := range routePaths {
 		methodGroup := grouped[route]
 		sort.Slice(methodGroup, func(i, j int) bool {
 			return methodGroup[i].Method < methodGroup[j].Method
 		})
+		interfaces := make([]string, 0, len(interfacesMap[route]))
+		for iface := range interfacesMap[route] {
+			interfaces = append(interfaces, iface)
+		}
+		sort.Strings(interfaces)
+
 		result = append(result, GroupedRoute{
-			Key:    route,
-			Routes: methodGroup,
+			Key:        route,
+			Routes:     methodGroup,
+			Interfaces: interfaces, // Now only interface names!
 		})
 	}
-	return result
+	return API{
+		GroupedRoutes: result,
+		Requests:      GetAllRequestInterfaces(h.routesList),
+		Responses:     GetAllResponseInterfaces(h.routesList),
+	}
 }

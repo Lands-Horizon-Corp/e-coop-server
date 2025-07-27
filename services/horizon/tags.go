@@ -18,7 +18,6 @@ func toCamelCase(s string) string {
 	return string(runes)
 }
 
-// Format Go validation tags and description fields as TypeScript comments
 func formatGoTagComment(field reflect.StructField) string {
 	var comments []string
 	desc := field.Tag.Get("description")
@@ -39,12 +38,42 @@ func formatGoTagComment(field reflect.StructField) string {
 	return "/** " + strings.Join(comments, " | ") + " */"
 }
 
-// Converts Go type to TypeScript type string, managing circular/visited types, returns referenced types for top-level export.
+func structTypeToTSInline(t reflect.Type, visited map[reflect.Type]bool, typeQueue map[reflect.Type]bool) string {
+	if t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+	var fields []string
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+		if field.PkgPath != "" {
+			continue
+		}
+		comment := formatGoTagComment(field)
+		jsonTag := field.Tag.Get("json")
+		name := strings.Split(jsonTag, ",")[0]
+		if name == "" {
+			name = field.Name
+		}
+		name = toCamelCase(name)
+		tsType := goTypeToTSType(field, visited, typeQueue)
+		line := ""
+		if comment != "" {
+			line += comment + "\n"
+		}
+		line += fmt.Sprintf("%s: %s;", name, tsType)
+		fields = append(fields, line)
+	}
+	return fmt.Sprintf("{\n%s\n}", strings.Join(fields, "\n"))
+}
+
+func isNamedStruct(t reflect.Type) bool {
+	return t.Kind() == reflect.Struct && t.Name() != ""
+}
+
 func goTypeToTSType(field reflect.StructField, visited map[reflect.Type]bool, typeQueue map[reflect.Type]bool) string {
 	t := field.Type
 	switch t.Kind() {
 	case reflect.String:
-		// Prefer enum for union type, otherwise use oneof, otherwise string
 		enum := field.Tag.Get("enum")
 		val := field.Tag.Get("validate")
 		var union []string
@@ -88,24 +117,21 @@ func goTypeToTSType(field reflect.StructField, visited map[reflect.Type]bool, ty
 		if t == reflect.TypeOf(time.Time{}) {
 			return "string"
 		}
-		if visited[t] {
-			return t.Name()
+		if t.Name() == "" { // anonymous struct: inline fields
+			return structTypeToTSInline(t, visited, typeQueue)
 		}
-		typeQueue[t] = true
-		return t.Name()
+		return t.Name() // reference by name, do not add to typeQueue!
 	default:
 		return "any"
 	}
 }
 
-// Generates the TypeScript interface for a struct type, with Markdown comments
 func structTypeToTSMarkdown(t reflect.Type, visited map[reflect.Type]bool, typeQueue map[reflect.Type]bool) string {
 	if t.Kind() == reflect.Ptr {
 		t = t.Elem()
 	}
 	visited[t] = true
 	defer func() { visited[t] = false }()
-
 	var fields []string
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
@@ -130,7 +156,6 @@ func structTypeToTSMarkdown(t reflect.Type, visited map[reflect.Type]bool, typeQ
 	return fmt.Sprintf("export interface %s {\n%s\n}", t.Name(), strings.Join(fields, "\n"))
 }
 
-// Recursively print all referenced types as top-level TypeScript interfaces, in Markdown code blocks
 func printAllTSInterfacesMarkdown(rootType reflect.Type) {
 	visited := map[reflect.Type]bool{}
 	typeQueue := map[reflect.Type]bool{rootType: true}
@@ -145,6 +170,10 @@ func printAllTSInterfacesMarkdown(rootType reflect.Type) {
 			if handled[t] {
 				continue
 			}
+			if isNamedStruct(t) && t != rootType {
+				handled[t] = true
+				continue
+			}
 			fmt.Println("```typescript")
 			fmt.Println(structTypeToTSMarkdown(t, visited, typeQueue))
 			fmt.Println("```")
@@ -152,6 +181,8 @@ func printAllTSInterfacesMarkdown(rootType reflect.Type) {
 		}
 	}
 }
+
+// Helper to generate all TypeScript interfaces as a single Markdown string
 func allTSInterfacesMarkdown(rootType reflect.Type) string {
 	visited := map[reflect.Type]bool{}
 	typeQueue := map[reflect.Type]bool{rootType: true}
@@ -167,6 +198,10 @@ func allTSInterfacesMarkdown(rootType reflect.Type) string {
 			if handled[t] {
 				continue
 			}
+			if isNamedStruct(t) && t != rootType {
+				handled[t] = true
+				continue
+			}
 			sb.WriteString("```typescript\n")
 			sb.WriteString(structTypeToTSMarkdown(t, visited, typeQueue))
 			sb.WriteString("\n```\n")
@@ -175,6 +210,7 @@ func allTSInterfacesMarkdown(rootType reflect.Type) string {
 	}
 	return sb.String()
 }
+
 func TagFormat(model any) string {
 	if model == nil {
 		return "None"
@@ -184,54 +220,103 @@ func TagFormat(model any) string {
 
 // === EXAMPLES ===
 
-// type NestedChild struct {
-// 	ID    int      `json:"id" description:"Child ID" validate:"min=1,max=9999"`
-// 	Tags  []string `json:"tags" description:"Tag list"`
-// 	Flags []bool   `json:"flags" description:"Flags"`
-// }
+type NestedChild struct {
+	ID    int      `json:"id" description:"Child ID" validate:"min=1,max=9999"`
+	Tags  []string `json:"tags" description:"Tag list"`
+	Flags []bool   `json:"flags" description:"Flags"`
+}
 
-// type NestedParent struct {
-// 	Name        string        `json:"name" description:"Parent name" validate:"required,min=3,max=50"`
-// 	CreatedAt   time.Time     `json:"created_at" description:"Creation date"`
-// 	Description *string       `json:"description" description:"Optional description"`
-// 	Children    []NestedChild `json:"children" description:"Children list"`
-// 	Extras      []any         `json:"extras" description:"Extra stuff"`
-// }
+type NestedParent struct {
+	Name        string        `json:"name" description:"Parent name" validate:"required,min=3,max=50"`
+	CreatedAt   time.Time     `json:"created_at" description:"Creation date"`
+	Description *string       `json:"description" description:"Optional description"`
+	Children    []NestedChild `json:"children" description:"Children list"`
+	Extras      []any         `json:"extras" description:"Extra stuff"`
+}
 
-// type FullComplexObject struct {
-// 	Title       string           `json:"title" description:"Object title" validate:"required,min=5,max=100"`
-// 	Count       int              `json:"count" description:"Count" validate:"min=0,max=1000"`
-// 	Price       float64          `json:"price" description:"Price" validate:"min=0"`
-// 	Active      bool             `json:"active" description:"Is Active"`
-// 	Metadata    map[string]any   `json:"metadata" description:"Metadata map"`
-// 	Nested      NestedParent     `json:"nested" description:"Nested parent object"`
-// 	MixedArray  []any            `json:"mixed_array" description:"Mixed array"`
-// 	ObjectArray []map[string]any `json:"object_array" description:"Array of objects"`
-// 	ExtraNested [][]NestedChild  `json:"extra_nested" description:"2D array of NestedChild"`
-// }
+type FullComplexObject struct {
+	Title       string           `json:"title" description:"Object title" validate:"required,min=5,max=100"`
+	Count       int              `json:"count" description:"Count" validate:"min=0,max=1000"`
+	Price       float64          `json:"price" description:"Price" validate:"min=0"`
+	Active      bool             `json:"active" description:"Is Active"`
+	Metadata    map[string]any   `json:"metadata" description:"Metadata map"`
+	Nested      NestedParent     `json:"nested" description:"Nested parent object"`
+	MixedArray  []any            `json:"mixed_array" description:"Mixed array"`
+	ObjectArray []map[string]any `json:"object_array" description:"Array of objects"`
+	ExtraNested [][]NestedChild  `json:"extra_nested" description:"2D array of NestedChild"`
+}
 
-// // Circular example
-// type Friend struct {
-// 	Name string `json:"name" description:"Friend name" enum:"best,close,acquaintance" validate:"oneof=best close acquaintance"`
-// 	User *User  `json:"user" description:"User reference"`
-// }
-// type User struct {
-// 	Name    string   `json:"name" description:"User name"`
-// 	Friends []Friend `json:"friends" description:"List of friends"`
-// }
+// Circular example
+type Friend struct {
+	Name string `json:"name" description:"Friend name" enum:"best,close,acquaintance" validate:"oneof=best close acquaintance"`
+	User *User  `json:"user" description:"User reference"`
+}
+type User struct {
+	Name      string   `json:"name" description:"User name"`
+	Friends   []Friend `json:"friends" description:"List of friends"`
+	InlineObj struct {
+		Tags []string `json:"tags"`
+	} `json:"inline_obj"`
+}
 
-// // Enum/oneof example
-// type FruitBasket struct {
-// 	Fruit string `json:"fruit" description:"Type of fruit" enum:"apple,banana,orange" validate:"oneof=apple banana orange"`
-// 	Size  string `json:"size" description:"Basket size" validate:"oneof=small medium large"`
-// }
+// Enum/oneof example
+type FruitBasket struct {
+	Fruit string `json:"fruit" description:"Type of fruit" enum:"apple,banana,orange" validate:"oneof=apple banana orange"`
+	Size  string `json:"size" description:"Basket size" validate:"oneof=small medium large"`
+}
 
 // func main() {
-// 	fmt.Println("# TypeScript Interfaces Generated from Go Structs\n")
-// 	fmt.Println("## FullComplexObject Example")
-// 	printAllTSInterfacesMarkdown(reflect.TypeOf(FullComplexObject{}))
-// 	fmt.Println("\n## User and Friend (Circular Example)")
 // 	printAllTSInterfacesMarkdown(reflect.TypeOf(User{}))
-// 	fmt.Println("\n## FruitBasket (Enum/Oneof Example)")
-// 	printAllTSInterfacesMarkdown(reflect.TypeOf(FruitBasket{}))
 // }
+
+func ExtractTSInterfaceName(ts string) string {
+	lines := strings.Split(ts, "\n")
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "export interface ") {
+			after := strings.TrimPrefix(line, "export interface ")
+			parts := strings.Fields(after)
+			if len(parts) > 0 {
+				return parts[0]
+			}
+		}
+	}
+	return ""
+}
+func GetAllRequestInterfaces(routes []Route) []APIInterfaces {
+	seen := make(map[string]struct{})
+	result := []APIInterfaces{}
+	for _, rt := range routes {
+		if rt.Request != "" {
+			name := ExtractTSInterfaceName(rt.Request)
+			if name != "" && seen[name] == struct{}{} {
+				continue
+			}
+			seen[name] = struct{}{}
+			result = append(result, APIInterfaces{
+				Key:   name,
+				Value: rt.Request,
+			})
+		}
+	}
+	return result
+}
+
+func GetAllResponseInterfaces(routes []Route) []APIInterfaces {
+	seen := make(map[string]struct{})
+	result := []APIInterfaces{}
+	for _, rt := range routes {
+		if rt.Response != "" {
+			name := ExtractTSInterfaceName(rt.Response)
+			if name != "" && seen[name] == struct{}{} {
+				continue
+			}
+			seen[name] = struct{}{}
+			result = append(result, APIInterfaces{
+				Key:   name,
+				Value: rt.Response,
+			})
+		}
+	}
+	return result
+}

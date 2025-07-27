@@ -18,10 +18,11 @@ func (c *Controller) AccountTagController() {
 
 	// GET /account-tag - List current branch's account tags for the authenticated user.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/account-tag",
-		Method:   "GET",
-		Response: "TAccountTag[]",
-		Note:     "Returns all account tags for the current user's organization and branch. Returns empty if not authenticated.",
+		Route:        "/account-tag",
+		Method:       "GET",
+		Response:     "TAccountTag[]",
+		Note:         "Returns all account tags for the current user's organization and branch. Returns empty if not authenticated.",
+		ResponseType: model.AccountTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -40,11 +41,11 @@ func (c *Controller) AccountTagController() {
 
 	// GET /account-tag/search - Paginated search of account tags for current branch.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/account-tag/search",
-		Method:   "GET",
-		Request:  "Filter<IAccountTag>",
-		Response: "Paginated<IAccountTag>",
-		Note:     "Returns a paginated list of account tags for the current user's organization and branch.",
+		Route:        "/account-tag/search",
+		Method:       "GET",
+		Response:     "Paginated<IAccountTag>",
+		Note:         "Returns a paginated list of account tags for the current user's organization and branch.",
+		ResponseType: model.AccountTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -63,10 +64,11 @@ func (c *Controller) AccountTagController() {
 
 	// GET /account-tag/:account_tag_id - Get specific account tag by ID.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/account-tag/:account_tag_id",
-		Method:   "GET",
-		Response: "TAccountTag",
-		Note:     "Returns a single account tag by its ID.",
+		Route:        "/account-tag/:account_tag_id",
+		Method:       "GET",
+		Response:     "TAccountTag",
+		Note:         "Returns a single account tag by its ID.",
+		ResponseType: model.AccountTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		accountTagID, err := horizon.EngineUUIDParam(ctx, "account_tag_id")
@@ -82,11 +84,13 @@ func (c *Controller) AccountTagController() {
 
 	// POST /account-tag - Create new account tag.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/account-tag",
-		Method:   "POST",
-		Request:  "TAccountTag",
-		Response: "TAccountTag",
-		Note:     "Creates a new account tag for the user's organization and branch.",
+		Route:        "/account-tag",
+		Method:       "POST",
+		Request:      "TAccountTag",
+		Response:     "TAccountTag",
+		Note:         "Creates a new account tag for the user's organization and branch.",
+		ResponseType: model.AccountTagResponse{},
+		RequestType:  model.AccountTagRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.AccountTagManager.Validate(ctx)
@@ -151,11 +155,13 @@ func (c *Controller) AccountTagController() {
 
 	// PUT /account-tag/:account_tag_id - Update account tag by ID.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/account-tag/:account_tag_id",
-		Method:   "PUT",
-		Request:  "TAccountTag",
-		Response: "TAccountTag",
-		Note:     "Updates an existing account tag by its ID.",
+		Route:        "/account-tag/:account_tag_id",
+		Method:       "PUT",
+		Request:      "TAccountTag",
+		Response:     "TAccountTag",
+		Note:         "Updates an existing account tag by its ID.",
+		ResponseType: model.AccountTagResponse{},
+		RequestType:  model.AccountTagRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		accountTagID, err := horizon.EngineUUIDParam(ctx, "account_tag_id")
@@ -255,10 +261,11 @@ func (c *Controller) AccountTagController() {
 
 	// DELETE /account-tag/bulk-delete - Bulk delete account tags by IDs.
 	req.RegisterRoute(horizon.Route{
-		Route:   "/account-tag/bulk-delete",
-		Method:  "DELETE",
-		Request: "string[]",
-		Note:    "Deletes multiple account tags by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
+		Route:       "/account-tag/bulk-delete",
+		Method:      "DELETE",
+		Request:     "string[]",
+		Note:        "Deletes multiple account tags by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
+		RequestType: model.BulkDeleteRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody struct {

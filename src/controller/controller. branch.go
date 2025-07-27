@@ -20,7 +20,6 @@ func (c *Controller) BranchController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/branch",
 		Method:       "GET",
-		Response:     "Branch[]",
 		Note:         "Returns all branches if unauthenticated; otherwise, returns branches filtered by the user's organization from JWT.",
 		ResponseType: model.BranchResponse{},
 	}, func(ctx echo.Context) error {
@@ -45,7 +44,6 @@ func (c *Controller) BranchController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/branch/organization/:organization_id",
 		Method:       "GET",
-		Response:     "TBranch[]",
 		Note:         "Returns all branches belonging to the specified organization.",
 		ResponseType: model.BranchResponse{},
 	}, func(ctx echo.Context) error {
@@ -65,8 +63,6 @@ func (c *Controller) BranchController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/branch/organization/:organization_id",
 		Method:       "POST",
-		Request:      "TBranch[]",
-		Response:     "{branch: TBranch, user_organization: TUserOrganization}",
 		Note:         "Creates a new branch for the given organization. If the user already has a branch, a new user organization is created; otherwise, the user's current user organization is updated with the new branch.",
 		Private:      true,
 		RequestType:  model.BranchRequest{},
@@ -284,8 +280,6 @@ func (c *Controller) BranchController() {
 	req.RegisterRoute(horizon.Route{
 		Route:        "/branch/:branch_id",
 		Method:       "PUT",
-		Request:      "TBranch",
-		Response:     "{branch: TBranch, user_organization: TUserOrganization}",
 		Note:         "Updates branch information for the specified branch. Only allowed for the owner of the branch.",
 		Private:      true,
 		RequestType:  model.BranchRequest{},

@@ -18,10 +18,10 @@ func (c *Controller) BillAndCoinsController() {
 
 	// GET /bills-and-coins: List all bills and coins for the current user's branch. (NO footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/bills-and-coins",
-		Method:   "GET",
-		Response: "TBillAndCoins[]",
-		Note:     "Returns all bills and coins for the current user's organization and branch. Returns error if not authenticated.",
+		Route:        "/bills-and-coins",
+		Method:       "GET",
+		Note:         "Returns all bills and coins for the current user's organization and branch. Returns error if not authenticated.",
+		ResponseType: model.BillAndCoinsResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -40,11 +40,10 @@ func (c *Controller) BillAndCoinsController() {
 
 	// GET /bills-and-coins/search: Paginated search of bills and coins for current branch. (NO footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/bills-and-coins/search",
-		Method:   "GET",
-		Request:  "Filter<IBillAndCoins>",
-		Response: "Paginated<IBillAndCoins>",
-		Note:     "Returns a paginated list of bills and coins for the current user's organization and branch.",
+		Route:        "/bills-and-coins/search",
+		Method:       "GET",
+		Note:         "Returns a paginated list of bills and coins for the current user's organization and branch.",
+		ResponseType: model.BillAndCoinsResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -63,10 +62,10 @@ func (c *Controller) BillAndCoinsController() {
 
 	// GET /bills-and-coins/:bills_and_coins_id: Get a specific bills and coins record by ID. (NO footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/bills-and-coins/:bills_and_coins_id",
-		Method:   "GET",
-		Response: "TBillAndCoins",
-		Note:     "Returns a bills and coins record by its ID.",
+		Route:        "/bills-and-coins/:bills_and_coins_id",
+		Method:       "GET",
+		Note:         "Returns a bills and coins record by its ID.",
+		ResponseType: model.BillAndCoinsResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		billAndCoinsID, err := horizon.EngineUUIDParam(ctx, "bills_and_coins_id")
@@ -82,11 +81,11 @@ func (c *Controller) BillAndCoinsController() {
 
 	// POST /bills-and-coins: Create a new bills and coins record. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/bills-and-coins",
-		Method:   "POST",
-		Request:  "TBillAndCoins",
-		Response: "TBillAndCoins",
-		Note:     "Creates a new bills and coins record for the current user's organization and branch.",
+		Route:        "/bills-and-coins",
+		Method:       "POST",
+		RequestType:  model.BillAndCoinsRequest{},
+		ResponseType: model.BillAndCoinsResponse{},
+		Note:         "Creates a new bills and coins record for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.BillAndCoinsManager.Validate(ctx)
@@ -148,11 +147,11 @@ func (c *Controller) BillAndCoinsController() {
 
 	// PUT /bills-and-coins/:bills_and_coins_id: Update a bills and coins record by ID. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/bills-and-coins/:bills_and_coins_id",
-		Method:   "PUT",
-		Request:  "TBillAndCoins",
-		Response: "TBillAndCoins",
-		Note:     "Updates an existing bills and coins record by its ID.",
+		Route:        "/bills-and-coins/:bills_and_coins_id",
+		Method:       "PUT",
+		RequestType:  model.BillAndCoinsRequest{},
+		ResponseType: model.BillAndCoinsResponse{},
+		Note:         "Updates an existing bills and coins record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		billAndCoinsID, err := horizon.EngineUUIDParam(ctx, "bills_and_coins_id")
@@ -258,10 +257,11 @@ func (c *Controller) BillAndCoinsController() {
 
 	// DELETE /bills-and-coins/bulk-delete: Bulk delete bills and coins records by IDs. (WITH footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:   "/bills-and-coins/bulk-delete",
-		Method:  "DELETE",
-		Request: "string[]",
-		Note:    "Deletes multiple bills and coins records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
+		Route:       "/bills-and-coins/bulk-delete",
+		Method:      "DELETE",
+		Request:     "string[]",
+		Note:        "Deletes multiple bills and coins records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
+		RequestType: model.BulkDeleteRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody struct {

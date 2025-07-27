@@ -16,11 +16,11 @@ func (c *Controller) BatchFundingController() {
 
 	// POST /batch-funding: Create a new batch funding for the current open transaction batch.
 	req.RegisterRoute(horizon.Route{
-		Route:    "/batch-funding",
-		Method:   "POST",
-		Request:  "IBatchFunding",
-		Response: "IBatchFunding",
-		Note:     "Creates a new batch funding for the currently active transaction batch of the user's organization and branch. Also updates the related transaction batch balances.",
+		Route:        "/batch-funding",
+		Method:       "POST",
+		Note:         "Creates a new batch funding for the currently active transaction batch of the user's organization and branch. Also updates the related transaction batch balances.",
+		RequestType:  model.BatchFundingRequest{},
+		ResponseType: model.BatchFundingResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		batchFundingReq, err := c.model.BatchFundingManager.Validate(ctx)
@@ -136,11 +136,10 @@ func (c *Controller) BatchFundingController() {
 
 	// GET /batch-funding/transaction-batch/:transaction_batch_id/search: Paginated batch funding for a transaction batch. (NO footstep)
 	req.RegisterRoute(horizon.Route{
-		Route:    "/batch-funding/transaction-batch/:transaction_batch_id/search",
-		Method:   "GET",
-		Request:  "Filter<IBatchFunding>",
-		Response: "Paginated<IBatchFunding>",
-		Note:     "Retrieves a paginated list of batch funding records for the specified transaction batch, if the user is authorized for the branch.",
+		Route:        "/batch-funding/transaction-batch/:transaction_batch_id/search",
+		Method:       "GET",
+		Note:         "Retrieves a paginated list of batch funding records for the specified transaction batch, if the user is authorized for the branch.",
+		ResponseType: model.BatchFundingResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
@@ -178,5 +177,4 @@ func (c *Controller) BatchFundingController() {
 
 		return ctx.JSON(http.StatusOK, c.model.BatchFundingManager.Pagination(context, ctx, batchFunding))
 	})
-
 }

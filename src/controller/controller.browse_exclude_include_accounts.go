@@ -18,10 +18,10 @@ func (c *Controller) BrowseExcludeIncludeAccountsController() {
 
 	// GET /browse-exclude-include-accounts/computation-sheet/:computation_sheet_id/search
 	req.RegisterRoute(horizon.Route{
-		Route:    "/browse-exclude-include-accounts/computation-sheet/:computation_sheet_id/search",
-		Method:   "GET",
-		Response: "BrowseExcludeIncludeAccounts[]",
-		Note:     "Returns all browse exclude include accounts for a computation sheet in the current user's org/branch.",
+		Route:        "/browse-exclude-include-accounts/computation-sheet/:computation_sheet_id/search",
+		Method:       "GET",
+		Note:         "Returns all browse exclude include accounts for a computation sheet in the current user's org/branch.",
+		ResponseType: model.BrowseExcludeIncludeAccountsResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -48,10 +48,10 @@ func (c *Controller) BrowseExcludeIncludeAccountsController() {
 
 	// GET /browse-exclude-include-accounts/computation-sheet/:computation_sheet_id/search
 	req.RegisterRoute(horizon.Route{
-		Route:    "/browse-exclude-include-accounts/computation-sheet/:computation_sheet_id",
-		Method:   "GET",
-		Response: "BrowseExcludeIncludeAccounts[]",
-		Note:     "Returns all browse exclude include accounts for a computation sheet in the current user's org/branch.",
+		Route:        "/browse-exclude-include-accounts/computation-sheet/:computation_sheet_id",
+		Method:       "GET",
+		ResponseType: model.BrowseExcludeIncludeAccountsResponse{},
+		Note:         "Returns all browse exclude include accounts for a computation sheet in the current user's org/branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -78,11 +78,11 @@ func (c *Controller) BrowseExcludeIncludeAccountsController() {
 
 	// POST /browse-exclude-include-accounts
 	req.RegisterRoute(horizon.Route{
-		Route:    "/browse-exclude-include-accounts",
-		Method:   "POST",
-		Request:  "BrowseExcludeIncludeAccounts",
-		Response: "BrowseExcludeIncludeAccounts",
-		Note:     "Creates a new browse exclude include account for the current user's org/branch.",
+		Route:        "/browse-exclude-include-accounts",
+		Method:       "POST",
+		RequestType:  model.BrowseExcludeIncludeAccountsRequest{},
+		ResponseType: model.BrowseExcludeIncludeAccountsResponse{},
+		Note:         "Creates a new browse exclude include account for the current user's org/branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.BrowseExcludeIncludeAccountsManager.Validate(ctx)
@@ -145,11 +145,13 @@ func (c *Controller) BrowseExcludeIncludeAccountsController() {
 
 	// PUT /browse-exclude-include-accounts/:browse_exclude_include_accounts_id
 	req.RegisterRoute(horizon.Route{
-		Route:    "/browse-exclude-include-accounts/:browse_exclude_include_accounts_id",
-		Method:   "PUT",
-		Request:  "BrowseExcludeIncludeAccounts",
-		Response: "BrowseExcludeIncludeAccounts",
-		Note:     "Updates an existing browse exclude include account by its ID.",
+		Route:        "/browse-exclude-include-accounts/:browse_exclude_include_accounts_id",
+		Method:       "PUT",
+		Request:      "BrowseExcludeIncludeAccounts",
+		Response:     "BrowseExcludeIncludeAccounts",
+		Note:         "Updates an existing browse exclude include account by its ID.",
+		ResponseType: model.BrowseExcludeIncludeAccountsResponse{},
+		RequestType:  model.BrowseExcludeIncludeAccountsRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		id, err := horizon.EngineUUIDParam(ctx, "browse_exclude_include_accounts_id")
@@ -257,10 +259,11 @@ func (c *Controller) BrowseExcludeIncludeAccountsController() {
 
 	// DELETE /browse-exclude-include-accounts/bulk-delete
 	req.RegisterRoute(horizon.Route{
-		Route:   "/browse-exclude-include-accounts/bulk-delete",
-		Method:  "DELETE",
-		Request: "string[]",
-		Note:    "Deletes multiple browse exclude include accounts by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
+		Route:        "/browse-exclude-include-accounts/bulk-delete",
+		Method:       "DELETE",
+		Request:      "string[]",
+		Note:         "Deletes multiple browse exclude include accounts by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
+		ResponseType: model.BulkDeleteRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody struct {
