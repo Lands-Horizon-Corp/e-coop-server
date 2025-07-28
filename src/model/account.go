@@ -15,16 +15,17 @@ import (
 type AccountType string
 
 const (
-	AccountTypeDeposit   AccountType = "Deposit"
-	AccountTypeLoan      AccountType = "Loan"
-	AccountTypeARLedger  AccountType = "A/R-Ledger"
-	AccountTypeARAging   AccountType = "A/R-Aging"
-	AccountTypeFines     AccountType = "Fines"
-	AccountTypeInterest  AccountType = "Interest"
-	AccountTypeSVFLedger AccountType = "SVF-Ledger"
-	AccountTypeWOff      AccountType = "W-Off"
-	AccountTypeAPLedger  AccountType = "A/P-Ledger"
-	AccountTypeOther     AccountType = "Other"
+	AccountTypeDeposit     AccountType = "Deposit"
+	AccountTypeLoan        AccountType = "Loan"
+	AccountTypeARLedger    AccountType = "A/R-Ledger"
+	AccountTypeARAging     AccountType = "A/R-Aging"
+	AccountTypeFines       AccountType = "Fines"
+	AccountTypeInterest    AccountType = "Interest"
+	AccountTypeSVFLedger   AccountType = "SVF-Ledger"
+	AccountTypeWOff        AccountType = "W-Off"
+	AccountTypeAPLedger    AccountType = "A/P-Ledger"
+	AccountTypeOther       AccountType = "Other"
+	AccountTypeTimeDeposit AccountType = "Time Deposit"
 )
 
 type FinancialStatementType string
