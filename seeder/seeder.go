@@ -127,7 +127,7 @@ func (s *Seeder) SeedSubscription(ctx context.Context) error {
 		{
 			Name:                "Basic Plan",
 			Description:         "A basic plan with limited features.",
-			Cost:                99.99,
+			Cost:                0.00,
 			Timespan:            int64(14 * 24 * time.Hour), // 14 days
 			MaxBranches:         5,
 			MaxEmployees:        50,

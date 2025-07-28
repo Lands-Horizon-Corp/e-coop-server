@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/google/uuid"
@@ -79,13 +80,20 @@ func (m *Model) SubscriptionPlan() {
 			if sp == nil {
 				return nil
 			}
-			yearlyPrice := sp.Cost
+			months := float64(sp.Timespan) / (30 * 24)
 			monthlyPrice := float64(0)
-			if sp.Timespan > 0 {
-				monthlyPrice = sp.Cost / float64(sp.Timespan)
+			if months > 0 {
+				monthlyPrice = sp.Cost / months
 			}
+			yearlyPrice := sp.Cost
 			discountedMonthlyPrice := monthlyPrice * (1 - sp.Discount/100)
 			discountedYearlyPrice := yearlyPrice * (1 - sp.YearlyDiscount/100)
+
+			// Round to 2 decimal places
+			monthlyPrice = math.Round(monthlyPrice*100) / 100
+			yearlyPrice = math.Round(yearlyPrice*100) / 100
+			discountedMonthlyPrice = math.Round(discountedMonthlyPrice*100) / 100
+			discountedYearlyPrice = math.Round(discountedYearlyPrice*100) / 100
 
 			return &SubscriptionPlanResponse{
 				ID:                     sp.ID,
