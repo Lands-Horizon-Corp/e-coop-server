@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -398,7 +397,7 @@ func (c *Controller) CashCountController() {
 		Note:   "Deletes a specific cash count bill with the given ID from the current active transaction batch. Only allowed for 'owner' or 'employee'.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		cashCountID, err := horizon.EngineUUIDParam(ctx, "id")
+		cashCountID, err := handlers.EngineUUIDParam(ctx, "id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -459,7 +458,7 @@ func (c *Controller) CashCountController() {
 		ResponseType: model.CashCountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		cashCountID, err := horizon.EngineUUIDParam(ctx, "id")
+		cashCountID, err := handlers.EngineUUIDParam(ctx, "id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid cash count ID"})
 		}

@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	horizon_services "github.com/lands-horizon/horizon-server/services"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
@@ -195,9 +196,9 @@ func (m *Model) User() {
 				Email:         data.Email,
 				ContactNumber: data.ContactNumber,
 				Username:      data.UserName,
-				Lastname:      horizon.StringFormat(data.LastName),
-				Firstname:     horizon.StringFormat(data.FirstName),
-				Middlename:    horizon.StringFormat(data.MiddleName),
+				Lastname:      handlers.StringFormat(data.LastName),
+				Firstname:     handlers.StringFormat(data.FirstName),
+				Middlename:    handlers.StringFormat(data.MiddleName),
 			}, "user-qr")
 			if err != nil {
 				return nil

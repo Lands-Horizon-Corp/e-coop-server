@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/spf13/viper"
 )
 
@@ -36,7 +37,7 @@ type HorizonEnvironmentService struct{}
 
 func NewEnvironmentService(path string) EnvironmentService {
 	// Check if path is empty or file does not exist
-	if !FileExists(path) {
+	if !handlers.FileExists(path) {
 		log.Printf("Info: Provided .env path is empty or does not exist. Falling back to default: .env")
 		path = ".env"
 	}

@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -40,7 +39,7 @@ func (c *Controller) ContactController() {
 		ResponseType: model.ContactUsResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		contactID, err := horizon.EngineUUIDParam(ctx, "contact_id")
+		contactID, err := handlers.EngineUUIDParam(ctx, "contact_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid contact ID"})
 		}
@@ -105,7 +104,7 @@ func (c *Controller) ContactController() {
 		Note:   "Deletes the specified contact record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		contactID, err := horizon.EngineUUIDParam(ctx, "contact_id")
+		contactID, err := handlers.EngineUUIDParam(ctx, "contact_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",

@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -39,7 +38,7 @@ func (c *Controller) SubscriptionPlanController() {
 		Note:         "Returns a specific subscription plan by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		subscriptionPlanID, err := horizon.EngineUUIDParam(ctx, "subscription_plan_id")
+		subscriptionPlanID, err := handlers.EngineUUIDParam(ctx, "subscription_plan_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid subscription_plan_id: " + err.Error()})
 		}
@@ -113,7 +112,7 @@ func (c *Controller) SubscriptionPlanController() {
 		Note:         "Updates an existing subscription plan by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		subscriptionPlanID, err := horizon.EngineUUIDParam(ctx, "subscription_plan_id")
+		subscriptionPlanID, err := handlers.EngineUUIDParam(ctx, "subscription_plan_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -180,7 +179,7 @@ func (c *Controller) SubscriptionPlanController() {
 		Note:   "Deletes a subscription plan by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		subscriptionPlanID, err := horizon.EngineUUIDParam(ctx, "subscription_plan_id")
+		subscriptionPlanID, err := handlers.EngineUUIDParam(ctx, "subscription_plan_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",

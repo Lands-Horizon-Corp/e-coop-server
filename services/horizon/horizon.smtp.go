@@ -10,6 +10,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/rotisserie/eris"
 	"golang.org/x/time/rate"
@@ -82,7 +83,7 @@ func (h *HorizonSMTP) Stop(ctx context.Context) error {
 func (h *HorizonSMTP) Format(ctx context.Context, req SMTPRequest) (*SMTPRequest, error) {
 	var tmplBody string
 
-	if err := isValidFilePath(req.Body); err == nil {
+	if err := handlers.IsValidFilePath(req.Body); err == nil {
 		content, err := os.ReadFile(req.Body)
 		if err != nil {
 			return nil, eris.Wrap(err, "failed to read template file")
@@ -106,10 +107,10 @@ func (h *HorizonSMTP) Format(ctx context.Context, req SMTPRequest) (*SMTPRequest
 
 // Send implements SMTPService.
 func (h *HorizonSMTP) Send(ctx context.Context, req SMTPRequest) error {
-	if !IsValidEmail(req.To) {
+	if !handlers.IsValidEmail(req.To) {
 		return eris.New("Recipient email format is invalid")
 	}
-	if !IsValidEmail(h.from) {
+	if !handlers.IsValidEmail(h.from) {
 		return eris.New("Admin email format is invalid")
 	}
 

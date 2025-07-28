@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -43,7 +42,7 @@ func (c *Controller) MemberGroupController() {
 		Note:         "Returns member group history for a specific member profile ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
+		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
@@ -163,7 +162,7 @@ func (c *Controller) MemberGroupController() {
 		Note:         "Updates an existing member group record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		memberGroupID, err := horizon.EngineUUIDParam(ctx, "member_group_id")
+		memberGroupID, err := handlers.EngineUUIDParam(ctx, "member_group_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -228,7 +227,7 @@ func (c *Controller) MemberGroupController() {
 		Note:   "Deletes a member group record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		memberGroupID, err := horizon.EngineUUIDParam(ctx, "member_group_id")
+		memberGroupID, err := handlers.EngineUUIDParam(ctx, "member_group_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",

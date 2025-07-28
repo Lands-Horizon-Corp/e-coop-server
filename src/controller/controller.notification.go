@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -151,7 +150,7 @@ func (c *Controller) NotificationController() {
 		Note:   "Deletes a specific notification record by its notification_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		notificationId, err := horizon.EngineUUIDParam(ctx, "notification_id")
+		notificationId, err := handlers.EngineUUIDParam(ctx, "notification_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",

@@ -5,7 +5,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
 
@@ -39,7 +38,7 @@ func (c *Controller) OrganizationDailyUsage() {
 		ResponseType: model.OrganizationDailyUsageResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		dailyUsageId, err := horizon.EngineUUIDParam(ctx, "organization_daily_usage_id")
+		dailyUsageId, err := handlers.EngineUUIDParam(ctx, "organization_daily_usage_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization_daily_usage_id: " + err.Error()})
 		}

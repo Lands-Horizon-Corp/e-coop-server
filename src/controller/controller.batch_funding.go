@@ -6,7 +6,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -144,7 +143,7 @@ func (c *Controller) BatchFundingController() {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		transactionBatchId, err := horizon.EngineUUIDParam(ctx, "transaction_batch_id")
+		transactionBatchId, err := handlers.EngineUUIDParam(ctx, "transaction_batch_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "The transaction batch ID provided is invalid."})
 		}

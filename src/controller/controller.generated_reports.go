@@ -5,7 +5,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -41,7 +40,7 @@ func (c *Controller) GeneratedReports() {
 		Note:         "Returns a specific generated report by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		generatedReportID, err := horizon.EngineUUIDParam(ctx, "generated_report_id")
+		generatedReportID, err := handlers.EngineUUIDParam(ctx, "generated_report_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid generated report ID"})
 		}
@@ -59,7 +58,7 @@ func (c *Controller) GeneratedReports() {
 		Note:   "Deletes the specified generated report by its ID and the associated file.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		generatedReportID, err := horizon.EngineUUIDParam(ctx, "generated_report_id")
+		generatedReportID, err := handlers.EngineUUIDParam(ctx, "generated_report_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",

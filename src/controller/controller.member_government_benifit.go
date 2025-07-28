@@ -6,7 +6,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -23,7 +22,7 @@ func (c *Controller) MemberGovernmentBenefitController() {
 		Note:         "Creates a new government benefit record for the specified member profile.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
+		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -95,7 +94,7 @@ func (c *Controller) MemberGovernmentBenefitController() {
 		Note:         "Updates an existing government benefit record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		memberGovernmentBenefitID, err := horizon.EngineUUIDParam(ctx, "member_government_benefit_id")
+		memberGovernmentBenefitID, err := handlers.EngineUUIDParam(ctx, "member_government_benefit_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -168,7 +167,7 @@ func (c *Controller) MemberGovernmentBenefitController() {
 		Note:   "Deletes a member's government benefit record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		memberGovernmentBenefitID, err := horizon.EngineUUIDParam(ctx, "member_government_benefit_id")
+		memberGovernmentBenefitID, err := handlers.EngineUUIDParam(ctx, "member_government_benefit_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",

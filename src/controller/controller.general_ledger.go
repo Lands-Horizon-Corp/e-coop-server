@@ -5,7 +5,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
 
@@ -20,7 +19,7 @@ func (c *Controller) GeneralLedgerController() {
 		Note:         "Returns all general ledger entries for an account with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		accountID, err := horizon.EngineUUIDParam(ctx, "account_id")
+		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID"})
 		}
@@ -49,11 +48,11 @@ func (c *Controller) GeneralLedgerController() {
 		Note:         "Returns paginated general ledger entries for a specific member profile and account.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
+		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
 		}
-		accountID, err := horizon.EngineUUIDParam(ctx, "account_id")
+		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID"})
 		}
@@ -82,11 +81,11 @@ func (c *Controller) GeneralLedgerController() {
 		Note:         "Returns the total amount for a specific member profile's general ledger entries for an account.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
+		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
 		}
-		accountID, err := horizon.EngineUUIDParam(ctx, "account_id")
+		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID"})
 		}

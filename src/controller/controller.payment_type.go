@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -62,7 +61,7 @@ func (c *Controller) PaymentTypeController() {
 		ResponseType: model.PaymentTypeResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		paymentTypeID, err := horizon.EngineUUIDParam(ctx, "payment_type_id")
+		paymentTypeID, err := handlers.EngineUUIDParam(ctx, "payment_type_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid payment_type_id: " + err.Error()})
 		}
@@ -141,7 +140,7 @@ func (c *Controller) PaymentTypeController() {
 		Note:         "Updates an existing payment type by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		paymentTypeID, err := horizon.EngineUUIDParam(ctx, "payment_type_id")
+		paymentTypeID, err := handlers.EngineUUIDParam(ctx, "payment_type_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -208,7 +207,7 @@ func (c *Controller) PaymentTypeController() {
 		Note:   "Deletes a payment type record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		paymentTypeID, err := horizon.EngineUUIDParam(ctx, "payment_type_id")
+		paymentTypeID, err := handlers.EngineUUIDParam(ctx, "payment_type_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",

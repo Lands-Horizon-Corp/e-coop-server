@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/rotisserie/eris"
 )
 
@@ -41,7 +42,7 @@ func (h *HorizonOTP) Generate(ctx context.Context, key string) (string, error) {
 	}
 
 	// Generate new OTP
-	random, err := GenerateRandomDigits(6)
+	random, err := handlers.GenerateRandomDigits(6)
 	if err != nil {
 		return "", eris.Wrap(err, "failed to generate OTP")
 	}

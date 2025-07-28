@@ -8,10 +8,12 @@ import (
 	"os"
 	"sync"
 
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/rotisserie/eris"
 	"github.com/twilio/twilio-go"
 	openapi "github.com/twilio/twilio-go/rest/api/v2010"
+
 	"golang.org/x/time/rate"
 )
 
@@ -73,7 +75,7 @@ func (h *HorizonSMS) Stop(ctx context.Context) error {
 
 func (h *HorizonSMS) Format(ctx context.Context, req SMSRequest) (*SMSRequest, error) {
 	var tmplBody string
-	if err := isValidFilePath(req.Body); err == nil {
+	if err := handlers.IsValidFilePath(req.Body); err == nil {
 		content, err := os.ReadFile(req.Body)
 		if err != nil {
 			return nil, eris.Wrap(err, "failed to read template file")
@@ -98,10 +100,10 @@ func (h *HorizonSMS) Format(ctx context.Context, req SMSRequest) (*SMSRequest, e
 // Send formats, sanitizes, rate-limits, and dispatches the SMS
 func (h *HorizonSMS) Send(ctx context.Context, req SMSRequest) error {
 	// Validate phone numbers
-	if !IsValidPhoneNumber(req.To) {
+	if !handlers.IsValidPhoneNumber(req.To) {
 		return fmt.Errorf("invalid recipient phone number format: %s", req.To)
 	}
-	if !IsValidPhoneNumber(h.sender) {
+	if !handlers.IsValidPhoneNumber(h.sender) {
 		return fmt.Errorf("invalid sender phone number format: %s", h.sender)
 	}
 

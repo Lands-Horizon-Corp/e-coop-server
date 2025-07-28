@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -69,7 +68,7 @@ func (c *Controller) AccountTagController() {
 		ResponseType: model.AccountTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		accountTagID, err := horizon.EngineUUIDParam(ctx, "account_tag_id")
+		accountTagID, err := handlers.EngineUUIDParam(ctx, "account_tag_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account tag ID"})
 		}
@@ -158,7 +157,7 @@ func (c *Controller) AccountTagController() {
 		RequestType:  model.AccountTagRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		accountTagID, err := horizon.EngineUUIDParam(ctx, "account_tag_id")
+		accountTagID, err := handlers.EngineUUIDParam(ctx, "account_tag_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update error",
@@ -228,7 +227,7 @@ func (c *Controller) AccountTagController() {
 		Note:   "Deletes the specified account tag by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		accountTagID, err := horizon.EngineUUIDParam(ctx, "account_tag_id")
+		accountTagID, err := handlers.EngineUUIDParam(ctx, "account_tag_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete error",

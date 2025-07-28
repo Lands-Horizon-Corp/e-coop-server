@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -69,7 +68,7 @@ func (c *Controller) LoanPurposeController() {
 		ResponseType: model.LoanPurposeResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		id, err := horizon.EngineUUIDParam(ctx, "loan_purpose_id")
+		id, err := handlers.EngineUUIDParam(ctx, "loan_purpose_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan purpose ID"})
 		}
@@ -150,7 +149,7 @@ func (c *Controller) LoanPurposeController() {
 		Note:         "Updates an existing loan purpose record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		id, err := horizon.EngineUUIDParam(ctx, "loan_purpose_id")
+		id, err := handlers.EngineUUIDParam(ctx, "loan_purpose_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -221,7 +220,7 @@ func (c *Controller) LoanPurposeController() {
 		Note:   "Deletes the specified loan purpose record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		id, err := horizon.EngineUUIDParam(ctx, "loan_purpose_id")
+		id, err := handlers.EngineUUIDParam(ctx, "loan_purpose_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",

@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/rotisserie/eris"
 	"golang.org/x/crypto/argon2"
 )
@@ -72,7 +73,7 @@ func (h *HorizonSecurity) Decrypt(ctx context.Context, ciphertext string) (strin
 	if err != nil {
 		return "", err
 	}
-	block, err := aes.NewCipher([]byte(Create32ByteKey(h.secret)))
+	block, err := aes.NewCipher([]byte(handlers.Create32ByteKey(h.secret)))
 	if err != nil {
 		return "", err
 	}
@@ -95,7 +96,7 @@ func (h *HorizonSecurity) Decrypt(ctx context.Context, ciphertext string) (strin
 
 // Encrypt implements SecurityUtils.
 func (h *HorizonSecurity) Encrypt(ctx context.Context, plaintext string) (string, error) {
-	block, err := aes.NewCipher([]byte(Create32ByteKey(h.secret)))
+	block, err := aes.NewCipher([]byte(handlers.Create32ByteKey(h.secret)))
 	if err != nil {
 		return "", err
 	}
@@ -123,7 +124,7 @@ func (h *HorizonSecurity) GenerateUUID(ctx context.Context) (string, error) {
 
 // VerifyPassword implements SecurityUtils.
 func (h *HorizonSecurity) HashPassword(ctx context.Context, password string) (string, error) {
-	salt, err := GenerateRandomBytes(h.saltLength)
+	salt, err := handlers.GenerateRandomBytes(h.saltLength)
 	if err != nil {
 		return "", err
 	}

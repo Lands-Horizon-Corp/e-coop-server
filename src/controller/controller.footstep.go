@@ -5,7 +5,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
 
@@ -43,7 +42,7 @@ func (c *Controller) FootstepController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization/branch not found"})
 		}
-		memberProfileId, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
+		memberProfileId, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
 		}
@@ -91,7 +90,7 @@ func (c *Controller) FootstepController() {
 	}, func(ctx echo.Context) error {
 
 		context := ctx.Request().Context()
-		userOrgId, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
+		userOrgId, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_organization_id"})
 		}
@@ -115,7 +114,7 @@ func (c *Controller) FootstepController() {
 		ResponseType: model.FootstepResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		footstepId, err := horizon.EngineUUIDParam(ctx, "footstep_id")
+		footstepId, err := handlers.EngineUUIDParam(ctx, "footstep_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid footstep ID"})
 		}

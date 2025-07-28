@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -24,7 +23,7 @@ func (c *Controller) MemberTypeReferenceController() {
 		Note:         "Returns all member type references for the specified member_type_id in the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		memberTypeID, err := horizon.EngineUUIDParam(ctx, "member_type_id")
+		memberTypeID, err := handlers.EngineUUIDParam(ctx, "member_type_id")
 		if err != nil || memberTypeID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_type_id: " + err.Error()})
 		}
@@ -54,7 +53,7 @@ func (c *Controller) MemberTypeReferenceController() {
 		Note:         "Returns a specific member type reference by member_type_reference_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		id, err := horizon.EngineUUIDParam(ctx, "member_type_reference_id")
+		id, err := handlers.EngineUUIDParam(ctx, "member_type_reference_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_type_reference_id: " + err.Error()})
 		}
@@ -140,7 +139,7 @@ func (c *Controller) MemberTypeReferenceController() {
 		Note:         "Updates an existing member type reference by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		id, err := horizon.EngineUUIDParam(ctx, "member_type_reference_id")
+		id, err := handlers.EngineUUIDParam(ctx, "member_type_reference_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -214,7 +213,7 @@ func (c *Controller) MemberTypeReferenceController() {
 		Note:   "Deletes a member type reference by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		id, err := horizon.EngineUUIDParam(ctx, "member_type_reference_id")
+		id, err := handlers.EngineUUIDParam(ctx, "member_type_reference_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",

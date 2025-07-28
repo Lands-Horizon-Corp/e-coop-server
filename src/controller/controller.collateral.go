@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -69,7 +68,7 @@ func (c *Controller) CollateralController() {
 		ResponseType: model.CollateralResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		collateralID, err := horizon.EngineUUIDParam(ctx, "collateral_id")
+		collateralID, err := handlers.EngineUUIDParam(ctx, "collateral_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid collateral ID"})
 		}
@@ -154,7 +153,7 @@ func (c *Controller) CollateralController() {
 		Note:         "Updates an existing collateral record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		collateralID, err := horizon.EngineUUIDParam(ctx, "collateral_id")
+		collateralID, err := handlers.EngineUUIDParam(ctx, "collateral_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -219,7 +218,7 @@ func (c *Controller) CollateralController() {
 		Note:   "Deletes the specified collateral record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		collateralID, err := horizon.EngineUUIDParam(ctx, "collateral_id")
+		collateralID, err := handlers.EngineUUIDParam(ctx, "collateral_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",

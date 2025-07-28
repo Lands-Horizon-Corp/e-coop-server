@@ -7,7 +7,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -70,7 +69,7 @@ func (c *Controller) GeneralLedgerGroupingController() {
 		Note:         "Updates an existing general ledger account grouping by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		groupingID, err := horizon.EngineUUIDParam(ctx, "general_ledger_accounts_grouping_id")
+		groupingID, err := handlers.EngineUUIDParam(ctx, "general_ledger_accounts_grouping_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -247,7 +246,7 @@ func (c *Controller) GeneralLedgerGroupingController() {
 		Note:         "Updates an existing general ledger definition by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		glDefinitionID, err := horizon.EngineUUIDParam(ctx, "general_ledger_definition_id")
+		glDefinitionID, err := handlers.EngineUUIDParam(ctx, "general_ledger_definition_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -327,7 +326,7 @@ func (c *Controller) GeneralLedgerGroupingController() {
 		ResponseType: model.GeneralLedgerDefinitionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		glDefinitionID, err := horizon.EngineUUIDParam(ctx, "general_ledger_definition_id")
+		glDefinitionID, err := handlers.EngineUUIDParam(ctx, "general_ledger_definition_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -336,7 +335,7 @@ func (c *Controller) GeneralLedgerGroupingController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid general ledger definition ID"})
 		}
-		accountID, err := horizon.EngineUUIDParam(ctx, "account_id")
+		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -433,7 +432,7 @@ func (c *Controller) GeneralLedgerGroupingController() {
 		Note:         "Updates the index of a general ledger definition by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		glDefinitionID, err := horizon.EngineUUIDParam(ctx, "general_ledger_definition_id")
+		glDefinitionID, err := handlers.EngineUUIDParam(ctx, "general_ledger_definition_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -504,7 +503,7 @@ func (c *Controller) GeneralLedgerGroupingController() {
 		ResponseType: model.GeneralLedgerDefinitionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		glDefinitionID, err := horizon.EngineUUIDParam(ctx, "general_ledger_definition_id")
+		glDefinitionID, err := handlers.EngineUUIDParam(ctx, "general_ledger_definition_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -513,7 +512,7 @@ func (c *Controller) GeneralLedgerGroupingController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid general ledger definition ID"})
 		}
-		accountID, err := horizon.EngineUUIDParam(ctx, "account_id")
+		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -640,7 +639,7 @@ func (c *Controller) GeneralLedgerGroupingController() {
 		Note:   "Deletes a general ledger definition by its ID, only if no accounts are linked.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		glDefinitionID, err := horizon.EngineUUIDParam(ctx, "general_definition_id")
+		glDefinitionID, err := handlers.EngineUUIDParam(ctx, "general_definition_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",

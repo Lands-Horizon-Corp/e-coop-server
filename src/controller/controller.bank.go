@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -69,7 +68,7 @@ func (c *Controller) BankController() {
 		ResponseType: model.BankResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		bankID, err := horizon.EngineUUIDParam(ctx, "bank_id")
+		bankID, err := handlers.EngineUUIDParam(ctx, "bank_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid bank ID"})
 		}
@@ -153,7 +152,7 @@ func (c *Controller) BankController() {
 		ResponseType: model.BankResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		bankID, err := horizon.EngineUUIDParam(ctx, "bank_id")
+		bankID, err := handlers.EngineUUIDParam(ctx, "bank_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -218,7 +217,7 @@ func (c *Controller) BankController() {
 		Note:   "Deletes the specified bank by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		bankID, err := horizon.EngineUUIDParam(ctx, "bank_id")
+		bankID, err := handlers.EngineUUIDParam(ctx, "bank_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",

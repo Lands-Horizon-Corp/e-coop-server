@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -69,7 +68,7 @@ func (c *Controller) BillAndCoinsController() {
 		ResponseType: model.BillAndCoinsResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		billAndCoinsID, err := horizon.EngineUUIDParam(ctx, "bills_and_coins_id")
+		billAndCoinsID, err := handlers.EngineUUIDParam(ctx, "bills_and_coins_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid bills and coins ID"})
 		}
@@ -155,7 +154,7 @@ func (c *Controller) BillAndCoinsController() {
 		Note:         "Updates an existing bills and coins record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		billAndCoinsID, err := horizon.EngineUUIDParam(ctx, "bills_and_coins_id")
+		billAndCoinsID, err := handlers.EngineUUIDParam(ctx, "bills_and_coins_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -222,7 +221,7 @@ func (c *Controller) BillAndCoinsController() {
 		Note:   "Deletes the specified bills and coins record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		billAndCoinsID, err := horizon.EngineUUIDParam(ctx, "bills_and_coins_id")
+		billAndCoinsID, err := handlers.EngineUUIDParam(ctx, "bills_and_coins_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",

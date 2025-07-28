@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -70,7 +69,7 @@ func (c *Controller) HolidayController() {
 		Note:         "Returns a holiday record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		holidayID, err := horizon.EngineUUIDParam(ctx, "holiday_id")
+		holidayID, err := handlers.EngineUUIDParam(ctx, "holiday_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid holiday ID"})
 		}
@@ -152,7 +151,7 @@ func (c *Controller) HolidayController() {
 		Note:         "Updates an existing holiday record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		holidayID, err := horizon.EngineUUIDParam(ctx, "holiday_id")
+		holidayID, err := handlers.EngineUUIDParam(ctx, "holiday_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -224,7 +223,7 @@ func (c *Controller) HolidayController() {
 		Note:   "Deletes the specified holiday record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		holidayID, err := horizon.EngineUUIDParam(ctx, "holiday_id")
+		holidayID, err := handlers.EngineUUIDParam(ctx, "holiday_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",

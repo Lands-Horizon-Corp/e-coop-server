@@ -7,7 +7,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -72,7 +71,7 @@ func (c *Controller) FinancialStatementController() {
 		Note:         "Updates an existing financial statement grouping by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		groupingID, err := horizon.EngineUUIDParam(ctx, "financial_statement_grouping_id")
+		groupingID, err := handlers.EngineUUIDParam(ctx, "financial_statement_grouping_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -246,7 +245,7 @@ func (c *Controller) FinancialStatementController() {
 		ResponseType: model.FinancialStatementDefinitionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		fsDefinitionID, err := horizon.EngineUUIDParam(ctx, "financial_statement_definition_id")
+		fsDefinitionID, err := handlers.EngineUUIDParam(ctx, "financial_statement_definition_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -326,7 +325,7 @@ func (c *Controller) FinancialStatementController() {
 		Note:         "Connects an account to a financial statement definition by their IDs.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		fsDefinitionID, err := horizon.EngineUUIDParam(ctx, "financial_statement_definition_id")
+		fsDefinitionID, err := handlers.EngineUUIDParam(ctx, "financial_statement_definition_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -335,7 +334,7 @@ func (c *Controller) FinancialStatementController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid financial statement definition ID"})
 		}
-		accountID, err := horizon.EngineUUIDParam(ctx, "account_id")
+		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -432,7 +431,7 @@ func (c *Controller) FinancialStatementController() {
 		Note:         "Updates the index of a financial statement definition by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		fsDefinitionID, err := horizon.EngineUUIDParam(ctx, "financial_statement_definition_id")
+		fsDefinitionID, err := handlers.EngineUUIDParam(ctx, "financial_statement_definition_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -503,7 +502,7 @@ func (c *Controller) FinancialStatementController() {
 		Note:         "Updates the index of an account within a financial statement definition and reorders accordingly.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		fsDefinitionID, err := horizon.EngineUUIDParam(ctx, "financial_statement_definition_id")
+		fsDefinitionID, err := handlers.EngineUUIDParam(ctx, "financial_statement_definition_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -512,7 +511,7 @@ func (c *Controller) FinancialStatementController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid financial statement definition ID"})
 		}
-		accountID, err := horizon.EngineUUIDParam(ctx, "account_id")
+		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -639,7 +638,7 @@ func (c *Controller) FinancialStatementController() {
 		Note:   "Deletes a financial statement definition by its ID, only if no accounts are linked.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		fsDefinitionID, err := horizon.EngineUUIDParam(ctx, "financial_statement_definition_id")
+		fsDefinitionID, err := handlers.EngineUUIDParam(ctx, "financial_statement_definition_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",

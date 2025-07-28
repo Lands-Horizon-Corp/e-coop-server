@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -85,7 +84,7 @@ func (c *Controller) InvitationCode() {
 		ResponseType: model.InvitationCodeResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		invitationCodeId, err := horizon.EngineUUIDParam(ctx, "invitation_code_id")
+		invitationCodeId, err := handlers.EngineUUIDParam(ctx, "invitation_code_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid invitation code ID"})
 		}
@@ -186,7 +185,7 @@ func (c *Controller) InvitationCode() {
 		Note:         "Updates an existing invitation code identified by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		invitationCodeId, err := horizon.EngineUUIDParam(ctx, "invitation_code_id")
+		invitationCodeId, err := handlers.EngineUUIDParam(ctx, "invitation_code_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -266,7 +265,7 @@ func (c *Controller) InvitationCode() {
 		Note:   "Deletes a specific invitation code identified by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		invitationCodeId, err := horizon.EngineUUIDParam(ctx, "invitation_code_id")
+		invitationCodeId, err := handlers.EngineUUIDParam(ctx, "invitation_code_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",

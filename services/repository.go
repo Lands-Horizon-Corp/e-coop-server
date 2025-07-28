@@ -14,7 +14,7 @@ import (
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 
-	"github.com/lands-horizon/horizon-server/services/horizon"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 )
 
 // Generic validation helper
@@ -77,7 +77,7 @@ type Repository[TData any, TResponse any, TRequest any] interface {
 	ToModel(data *TData) *TResponse
 	ToModels(data []*TData) []*TResponse
 
-	Pagination(ctx context.Context, param echo.Context, data []*TData) horizon.PaginationResult[TResponse]
+	Pagination(ctx context.Context, param echo.Context, data []*TData) handlers.PaginationResult[TResponse]
 	Filtered(ctx context.Context, param echo.Context, data []*TData) []*TResponse
 	// Filter operations
 	FindWithFilters(ctx context.Context, filters []Filter, preloads ...string) ([]*TData, error)
@@ -205,15 +205,15 @@ func (c *CollectionManager[TData, TResponse, TRequest]) Pagination(
 	ctx context.Context,
 	param echo.Context,
 	data []*TData,
-) horizon.PaginationResult[TResponse] {
+) handlers.PaginationResult[TResponse] {
 	batchSize := 10_0000
 	maxWorkers := runtime.NumCPU()
-	filtered, err := horizon.Pagination(ctx, param, data, batchSize, maxWorkers)
+	filtered, err := handlers.Pagination(ctx, param, data, batchSize, maxWorkers)
 	if err != nil {
 		fmt.Println("Pagination error:", err)
-		return horizon.PaginationResult[TResponse]{}
+		return handlers.PaginationResult[TResponse]{}
 	}
-	return horizon.PaginationResult[TResponse]{
+	return handlers.PaginationResult[TResponse]{
 		Data:      c.ToModels(filtered.Data),
 		PageIndex: filtered.PageIndex,
 		PageSize:  filtered.PageSize,
@@ -226,7 +226,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) Pagination(
 func (c *CollectionManager[TData, TResponse, TRequest]) Filtered(ctx context.Context, param echo.Context, data []*TData) []*TResponse {
 	batchSize := 10_0000
 	maxWorkers := runtime.NumCPU()
-	filtered, err := horizon.FilterAndSortSlice(ctx, param, data, batchSize, maxWorkers)
+	filtered, err := handlers.FilterAndSortSlice(ctx, param, data, batchSize, maxWorkers)
 	if err != nil {
 		return c.ToModels(filtered)
 	}
@@ -250,7 +250,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) FindWithFilters(
 		}
 	}
 
-	preloads = horizon.MergeString(c.preloads, preloads)
+	preloads = handlers.MergeStrings(c.preloads, preloads)
 	for _, preload := range preloads {
 		db = db.Preload(preload)
 	}
@@ -269,7 +269,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) List(
 	var entities []*TData
 	db := c.service.Database.Client().Model(new(TData))
 
-	preloads = horizon.MergeString(c.preloads, preloads)
+	preloads = handlers.MergeStrings(c.preloads, preloads)
 	for _, preload := range preloads {
 		db = db.Preload(preload)
 	}
@@ -299,7 +299,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) GetByID(
 	var entity TData
 	db := c.service.Database.Client().Model(new(TData))
 
-	preloads = horizon.MergeString(c.preloads, preloads)
+	preloads = handlers.MergeStrings(c.preloads, preloads)
 	for _, preload := range preloads {
 		db = db.Preload(preload)
 	}
@@ -333,7 +333,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) Find(
 	var entities []*TData
 	db := c.service.Database.Client().Model(fields).Where(fields)
 
-	preloads = horizon.MergeString(c.preloads, preloads)
+	preloads = handlers.MergeStrings(c.preloads, preloads)
 	for _, preload := range preloads {
 		db = db.Preload(preload)
 	}
@@ -364,7 +364,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) FindOne(
 	var entity TData
 	db := c.service.Database.Client().Model(fields).Where(fields)
 
-	preloads = horizon.MergeString(c.preloads, preloads)
+	preloads = handlers.MergeStrings(c.preloads, preloads)
 	for _, preload := range preloads {
 		db = db.Preload(preload)
 	}
@@ -402,7 +402,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) FindWithConditions(
 		db = db.Where(fmt.Sprintf("%s = ?", field), value)
 	}
 
-	preloads = horizon.MergeString(c.preloads, preloads)
+	preloads = handlers.MergeStrings(c.preloads, preloads)
 	for _, preload := range preloads {
 		db = db.Preload(preload)
 	}
@@ -425,7 +425,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) FindOneWithConditions(
 		db = db.Where(fmt.Sprintf("%s = ?", field), value)
 	}
 
-	preloads = horizon.MergeString(c.preloads, preloads)
+	preloads = handlers.MergeStrings(c.preloads, preloads)
 	for _, preload := range preloads {
 		db = db.Preload(preload)
 	}
@@ -610,7 +610,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) UpdateFields(
 	}
 
 	// Reload with preloads
-	preloads = horizon.MergeString(c.preloads, preloads)
+	preloads = handlers.MergeStrings(c.preloads, preloads)
 	reloadDb := c.service.Database.Client().Model(new(TData)).Where("id = ?", id)
 	for _, preload := range preloads {
 		reloadDb = reloadDb.Preload(preload)
@@ -648,7 +648,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) UpdateFieldsWithTx(
 	}
 
 	// Reload with preloads
-	preloads = horizon.MergeString(c.preloads, preloads)
+	preloads = handlers.MergeStrings(c.preloads, preloads)
 	reloadDb := tx.Model(new(TData)).Where("id = ?", id)
 	for _, preload := range preloads {
 		reloadDb = reloadDb.Preload(preload)
@@ -844,7 +844,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) reloadWithPreloads(
 	entity *TData,
 	preloads []string,
 ) error {
-	preloads = horizon.MergeString(c.preloads, preloads)
+	preloads = handlers.MergeStrings(c.preloads, preloads)
 	if len(preloads) == 0 {
 		return nil
 	}
@@ -870,7 +870,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) reloadWithPreloadsTx(
 	entity *TData,
 	preloads []string,
 ) error {
-	preloads = horizon.MergeString(c.preloads, preloads)
+	preloads = handlers.MergeStrings(c.preloads, preloads)
 	if len(preloads) == 0 {
 		return nil
 	}
@@ -895,7 +895,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) reloadManyWithPreloads(
 	entities []*TData,
 	preloads []string,
 ) error {
-	preloads = horizon.MergeString(c.preloads, preloads)
+	preloads = handlers.MergeStrings(c.preloads, preloads)
 	if len(preloads) == 0 {
 		return nil
 	}
@@ -944,7 +944,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) reloadManyWithPreloadsTx
 	entities []*TData,
 	preloads []string,
 ) error {
-	preloads = horizon.MergeString(c.preloads, preloads)
+	preloads = handlers.MergeStrings(c.preloads, preloads)
 	if len(preloads) == 0 {
 		return nil
 	}

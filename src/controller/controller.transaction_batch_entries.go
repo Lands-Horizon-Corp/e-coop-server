@@ -5,7 +5,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
 
@@ -24,7 +23,7 @@ func (c *Controller) TransactionBatchEntriesController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		transactionBatchID, err := horizon.EngineUUIDParam(ctx, "transaction_batch_id")
+		transactionBatchID, err := handlers.EngineUUIDParam(ctx, "transaction_batch_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction batch ID: " + err.Error()})
 		}
@@ -73,7 +72,7 @@ func (c *Controller) TransactionBatchEntriesController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		transactionBatchID, err := horizon.EngineUUIDParam(ctx, "transaction_batch_id")
+		transactionBatchID, err := handlers.EngineUUIDParam(ctx, "transaction_batch_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction batch ID: " + err.Error()})
 		}
@@ -100,7 +99,7 @@ func (c *Controller) TransactionBatchEntriesController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		transactionBatchID, err := horizon.EngineUUIDParam(ctx, "transaction_batch_id")
+		transactionBatchID, err := handlers.EngineUUIDParam(ctx, "transaction_batch_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction batch ID: " + err.Error()})
 		}

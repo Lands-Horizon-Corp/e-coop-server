@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/rotisserie/eris"
 	"go.uber.org/zap"
@@ -236,14 +237,14 @@ func printStatus(service string, status string) {
 
 func (h *HorizonService) Run(ctx context.Context) error {
 	fmt.Println("≿━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━༺❀༻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━≾")
-	horizon.PrintASCIIArt()
+	handlers.PrintASCIIArt()
 	fmt.Println("🟢 Horizon App is starting...")
 	delay := 3 * time.Second
 	retry := 5
 
 	if h.Broker != nil {
 		printStatus("Broker", "init")
-		if err := horizon.Retry(ctx, retry, delay, func() error {
+		if err := handlers.Retry(ctx, retry, delay, func() error {
 			return h.Broker.Run(ctx)
 		}); err != nil {
 			printStatus("Broker", "fail")
@@ -254,7 +255,7 @@ func (h *HorizonService) Run(ctx context.Context) error {
 	}
 	if h.Cron != nil {
 		printStatus("Cron", "init")
-		if err := horizon.Retry(ctx, retry, delay, func() error {
+		if err := handlers.Retry(ctx, retry, delay, func() error {
 			return h.Cron.Run(ctx)
 		}); err != nil {
 			printStatus("Cron", "fail")
@@ -266,7 +267,7 @@ func (h *HorizonService) Run(ctx context.Context) error {
 
 	if h.Cache != nil {
 		printStatus("Cache", "init")
-		if err := horizon.Retry(ctx, retry, delay, func() error {
+		if err := handlers.Retry(ctx, retry, delay, func() error {
 			return h.Cache.Run(ctx)
 		}); err != nil {
 			printStatus("Cache", "fail")
@@ -278,7 +279,7 @@ func (h *HorizonService) Run(ctx context.Context) error {
 
 	if h.Storage != nil {
 		printStatus("Storage", "init")
-		if err := horizon.Retry(ctx, retry, delay, func() error {
+		if err := handlers.Retry(ctx, retry, delay, func() error {
 			return h.Storage.Run(ctx)
 		}); err != nil {
 			printStatus("Storage", "fail")
@@ -290,7 +291,7 @@ func (h *HorizonService) Run(ctx context.Context) error {
 
 	if h.Database != nil {
 		printStatus("Database", "init")
-		if err := horizon.Retry(ctx, retry, delay, func() error {
+		if err := handlers.Retry(ctx, retry, delay, func() error {
 			return h.Database.Run(ctx)
 		}); err != nil {
 			printStatus("Database", "fail")
@@ -313,7 +314,7 @@ func (h *HorizonService) Run(ctx context.Context) error {
 
 	if h.SMS != nil {
 		printStatus("SMS", "init")
-		if err := horizon.Retry(ctx, retry, delay, func() error {
+		if err := handlers.Retry(ctx, retry, delay, func() error {
 			return h.SMS.Run(ctx)
 		}); err != nil {
 			printStatus("SMS", "fail")
@@ -325,7 +326,7 @@ func (h *HorizonService) Run(ctx context.Context) error {
 
 	if h.SMTP != nil {
 		printStatus("SMTP", "init")
-		if err := horizon.Retry(ctx, retry, delay, func() error {
+		if err := handlers.Retry(ctx, retry, delay, func() error {
 			return h.SMTP.Run(ctx)
 		}); err != nil {
 			printStatus("SMTP", "fail")
@@ -337,7 +338,7 @@ func (h *HorizonService) Run(ctx context.Context) error {
 
 	if h.Request != nil {
 		printStatus("Request", "init")
-		if err := horizon.Retry(ctx, retry, delay, func() error {
+		if err := handlers.Retry(ctx, retry, delay, func() error {
 			return h.Request.Run(ctx)
 		}); err != nil {
 			printStatus("Request", "fail")
@@ -404,7 +405,7 @@ func (h *HorizonService) RunDatabase(ctx context.Context) error {
 	retry := 5
 
 	if h.Database != nil {
-		if err := horizon.Retry(ctx, retry, delay, func() error {
+		if err := handlers.Retry(ctx, retry, delay, func() error {
 			return h.Database.Run(ctx)
 		}); err != nil {
 			fmt.Println("🔴 Failed to start Database Service")
@@ -436,7 +437,7 @@ func (h *HorizonService) RunCache(ctx context.Context) error {
 	retry := 5
 
 	if h.Cache != nil {
-		if err := horizon.Retry(ctx, retry, delay, func() error {
+		if err := handlers.Retry(ctx, retry, delay, func() error {
 			return h.Cache.Run(ctx)
 		}); err != nil {
 			fmt.Println("🔴 Failed to start Cache Service")
@@ -470,7 +471,7 @@ func (h *HorizonService) RunStorage(ctx context.Context) error {
 	retry := 5
 
 	if h.Storage != nil {
-		if err := horizon.Retry(ctx, retry, delay, func() error {
+		if err := handlers.Retry(ctx, retry, delay, func() error {
 			return h.Storage.Run(ctx)
 		}); err != nil {
 			fmt.Println("🔴 Failed to start Storage Service")

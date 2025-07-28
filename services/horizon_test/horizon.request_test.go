@@ -10,17 +10,18 @@ import (
 
 	"fmt"
 
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/stretchr/testify/assert"
 )
 
 // go test -v services/horizon_test/horizon.request_test.go
-var apiPort = horizon.GetFreePort()
+var apiPort = handlers.GetFreePort()
 
 func TestMain(m *testing.M) {
 	env := horizon.NewEnvironmentService("../../.env")
 
-	metricsPort := horizon.GetFreePort()
+	metricsPort := handlers.GetFreePort()
 	clientUrl := env.GetString("APP_CLIENT_URL", "http://localhost:3000")
 	clientName := env.GetString("APP_CLIENT_NAME", "test-client")
 	baseURL := "http://localhost:" + fmt.Sprint(apiPort)

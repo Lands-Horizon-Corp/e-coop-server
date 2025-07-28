@@ -6,7 +6,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -132,7 +131,7 @@ func (c *Controller) TimesheetController() {
 		Note:         "Returns the specific timesheet entry by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		timesheetID, err := horizon.EngineUUIDParam(ctx, "timesheet_id")
+		timesheetID, err := handlers.EngineUUIDParam(ctx, "timesheet_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid timesheet_id: " + err.Error()})
 		}
@@ -227,7 +226,7 @@ func (c *Controller) TimesheetController() {
 		Note:         "Returns all timesheets of the specified user for the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userID, err := horizon.EngineUUIDParam(ctx, "user_id")
+		userID, err := handlers.EngineUUIDParam(ctx, "user_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_id: " + err.Error()})
 		}
@@ -250,7 +249,7 @@ func (c *Controller) TimesheetController() {
 		Note:         "Returns paginated timesheets of the specified user for the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userID, err := horizon.EngineUUIDParam(ctx, "user_id")
+		userID, err := handlers.EngineUUIDParam(ctx, "user_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_id: " + err.Error()})
 		}
@@ -272,7 +271,7 @@ func (c *Controller) TimesheetController() {
 		Note:         "Returns paginated timesheets of the specified employeee for the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrgId, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
+		userOrgId, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_id: " + err.Error()})
 		}

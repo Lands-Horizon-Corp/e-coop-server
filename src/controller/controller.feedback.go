@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -40,7 +39,7 @@ func (c *Controller) FeedbackController() {
 		ResponseType: model.FeedbackResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		feedbackID, err := horizon.EngineUUIDParam(ctx, "feedback_id")
+		feedbackID, err := handlers.EngineUUIDParam(ctx, "feedback_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid feedback ID"})
 		}
@@ -106,7 +105,7 @@ func (c *Controller) FeedbackController() {
 		Note:   "Deletes the specified feedback record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		feedbackID, err := horizon.EngineUUIDParam(ctx, "feedback_id")
+		feedbackID, err := handlers.EngineUUIDParam(ctx, "feedback_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",

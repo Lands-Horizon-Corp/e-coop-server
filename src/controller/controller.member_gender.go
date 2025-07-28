@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -43,7 +42,7 @@ func (c *Controller) MemberGenderController() {
 		Note:         "Returns member gender history for a specific member profile ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
+		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
@@ -162,7 +161,7 @@ func (c *Controller) MemberGenderController() {
 		Note:         "Updates an existing member gender record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		memberGenderID, err := horizon.EngineUUIDParam(ctx, "member_gender_id")
+		memberGenderID, err := handlers.EngineUUIDParam(ctx, "member_gender_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -227,7 +226,7 @@ func (c *Controller) MemberGenderController() {
 		Note:   "Deletes a member gender record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		memberGenderID, err := horizon.EngineUUIDParam(ctx, "member_gender_id")
+		memberGenderID, err := handlers.EngineUUIDParam(ctx, "member_gender_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",

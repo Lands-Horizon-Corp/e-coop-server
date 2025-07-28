@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -32,7 +31,7 @@ func (c *Controller) IncludeNegativeAccountController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		sheetID, err := horizon.EngineUUIDParam(ctx, "computation_sheet_id")
+		sheetID, err := handlers.EngineUUIDParam(ctx, "computation_sheet_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
 		}
@@ -62,7 +61,7 @@ func (c *Controller) IncludeNegativeAccountController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		sheetID, err := horizon.EngineUUIDParam(ctx, "computation_sheet_id")
+		sheetID, err := handlers.EngineUUIDParam(ctx, "computation_sheet_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
 		}
@@ -150,7 +149,7 @@ func (c *Controller) IncludeNegativeAccountController() {
 		Note:         "Updates an existing include negative account by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		id, err := horizon.EngineUUIDParam(ctx, "include_negative_accounts_id")
+		id, err := handlers.EngineUUIDParam(ctx, "include_negative_accounts_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -216,7 +215,7 @@ func (c *Controller) IncludeNegativeAccountController() {
 		Note:   "Deletes the specified include negative account by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		id, err := horizon.EngineUUIDParam(ctx, "include_negative_accounts_id")
+		id, err := handlers.EngineUUIDParam(ctx, "include_negative_accounts_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",

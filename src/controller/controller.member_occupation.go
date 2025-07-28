@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -43,7 +42,7 @@ func (c *Controller) MemberOccupationController() {
 		Note:         "Returns member occupation history for a specific member profile ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
+		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
@@ -162,7 +161,7 @@ func (c *Controller) MemberOccupationController() {
 		Note:         "Updates an existing member occupation record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		memberOccupationID, err := horizon.EngineUUIDParam(ctx, "member_occupation_id")
+		memberOccupationID, err := handlers.EngineUUIDParam(ctx, "member_occupation_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -227,7 +226,7 @@ func (c *Controller) MemberOccupationController() {
 		Note:   "Deletes a member occupation record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		memberOccupationID, err := horizon.EngineUUIDParam(ctx, "member_occupation_id")
+		memberOccupationID, err := handlers.EngineUUIDParam(ctx, "member_occupation_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",

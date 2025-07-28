@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -221,7 +220,7 @@ func (c *Controller) AccountController() {
 		ResponseType: model.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		accountID, err := horizon.EngineUUIDParam(ctx, "account_id")
+		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID: " + err.Error()})
 		}
@@ -267,7 +266,7 @@ func (c *Controller) AccountController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accountID, err := horizon.EngineUUIDParam(ctx, "account_id")
+		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -416,7 +415,7 @@ func (c *Controller) AccountController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accountID, err := horizon.EngineUUIDParam(ctx, "account_id")
+		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -579,7 +578,7 @@ func (c *Controller) AccountController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accountID, err := horizon.EngineUUIDParam(ctx, "account_id")
+		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -652,7 +651,7 @@ func (c *Controller) AccountController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accountID, err := horizon.EngineUUIDParam(ctx, "account_id")
+		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",

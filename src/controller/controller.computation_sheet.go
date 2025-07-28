@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -24,7 +23,7 @@ func (c *Controller) ComputationSheetController() {
 		Note:   "Returns sample payment calculation data for a computation sheet.",
 	}, func(ctx echo.Context) error {
 		// You can parse computation_sheet_id if needed, but for sample data, we ignore it.
-		// id, err := horizon.EngineUUIDParam(ctx, "computation_sheet_id")
+		// id, err := handlers.EngineUUIDParam(ctx, "computation_sheet_id")
 		// if err != nil {
 		//     return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
 		// }
@@ -78,7 +77,7 @@ func (c *Controller) ComputationSheetController() {
 		Note:         "Returns a single computation sheet by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		id, err := horizon.EngineUUIDParam(ctx, "id")
+		id, err := handlers.EngineUUIDParam(ctx, "id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
 		}
@@ -166,7 +165,7 @@ func (c *Controller) ComputationSheetController() {
 		Note:         "Updates an existing computation sheet by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		id, err := horizon.EngineUUIDParam(ctx, "id")
+		id, err := handlers.EngineUUIDParam(ctx, "id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -236,7 +235,7 @@ func (c *Controller) ComputationSheetController() {
 		Note:   "Deletes the specified computation sheet by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		id, err := horizon.EngineUUIDParam(ctx, "id")
+		id, err := handlers.EngineUUIDParam(ctx, "id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",

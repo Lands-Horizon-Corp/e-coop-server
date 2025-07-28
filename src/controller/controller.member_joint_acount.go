@@ -6,7 +6,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -23,7 +22,7 @@ func (c *Controller) MemberJointAccountController() {
 		Note:         "Creates a new joint account record for the specified member profile.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
+		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -98,7 +97,7 @@ func (c *Controller) MemberJointAccountController() {
 		Note:         "Updates an existing joint account record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		memberJointAccountID, err := horizon.EngineUUIDParam(ctx, "member_joint_account_id")
+		memberJointAccountID, err := handlers.EngineUUIDParam(ctx, "member_joint_account_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -176,7 +175,7 @@ func (c *Controller) MemberJointAccountController() {
 		Note:   "Deletes a joint account record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		memberJointAccountID, err := horizon.EngineUUIDParam(ctx, "member_joint_account_id")
+		memberJointAccountID, err := handlers.EngineUUIDParam(ctx, "member_joint_account_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",

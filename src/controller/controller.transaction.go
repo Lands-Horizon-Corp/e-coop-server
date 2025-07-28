@@ -6,7 +6,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -30,7 +29,7 @@ func (c *Controller) TransactionController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		transactionID, err := horizon.EngineUUIDParam(ctx, "transaction_id")
+		transactionID, err := handlers.EngineUUIDParam(ctx, "transaction_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "param-error",
@@ -241,7 +240,7 @@ func (c *Controller) TransactionController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		transactionID, err := horizon.EngineUUIDParam(ctx, "transaction_id")
+		transactionID, err := handlers.EngineUUIDParam(ctx, "transaction_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "param-error",
@@ -964,7 +963,7 @@ func (c *Controller) TransactionController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		transactionID, err := horizon.EngineUUIDParam(ctx, "transaction_id")
+		transactionID, err := handlers.EngineUUIDParam(ctx, "transaction_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "param-error",
@@ -1053,7 +1052,7 @@ func (c *Controller) TransactionController() {
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied"})
 		}
-		transactionID, err := horizon.EngineUUIDParam(ctx, "transaction_id")
+		transactionID, err := handlers.EngineUUIDParam(ctx, "transaction_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction ID: " + err.Error()})
 		}
@@ -1103,7 +1102,7 @@ func (c *Controller) TransactionController() {
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied"})
 		}
-		employeeID, err := horizon.EngineUUIDParam(ctx, "employee_id")
+		employeeID, err := handlers.EngineUUIDParam(ctx, "employee_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid employee ID: " + err.Error()})
 		}
@@ -1136,7 +1135,7 @@ func (c *Controller) TransactionController() {
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied"})
 		}
-		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
+		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID: " + err.Error()})
 		}

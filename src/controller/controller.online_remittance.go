@@ -6,7 +6,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -198,7 +197,7 @@ func (c *Controller) OnlineRemittanceController() {
 		Note:         "Updates an existing online remittance by its ID for the current active transaction batch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		onlineRemittanceId, err := horizon.EngineUUIDParam(ctx, "online_remittance_id")
+		onlineRemittanceId, err := handlers.EngineUUIDParam(ctx, "online_remittance_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -366,7 +365,7 @@ func (c *Controller) OnlineRemittanceController() {
 		Note:   "Deletes an online remittance by its ID for the current active transaction batch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		onlineRemittanceId, err := horizon.EngineUUIDParam(ctx, "online_remittance_id")
+		onlineRemittanceId, err := handlers.EngineUUIDParam(ctx, "online_remittance_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",

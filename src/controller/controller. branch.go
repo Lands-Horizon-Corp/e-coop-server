@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -49,7 +48,7 @@ func (c *Controller) BranchController() {
 		ResponseType: model.BranchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		orgId, err := horizon.EngineUUIDParam(ctx, "organization_id")
+		orgId, err := handlers.EngineUUIDParam(ctx, "organization_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization ID: " + err.Error()})
 		}
@@ -82,7 +81,7 @@ func (c *Controller) BranchController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid branch data: " + err.Error()})
 		}
 
-		organizationId, err := horizon.EngineUUIDParam(ctx, "organization_id")
+		organizationId, err := handlers.EngineUUIDParam(ctx, "organization_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create error",
@@ -309,7 +308,7 @@ func (c *Controller) BranchController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication required"})
 		}
 
-		branchId, err := horizon.EngineUUIDParam(ctx, "branch_id")
+		branchId, err := handlers.EngineUUIDParam(ctx, "branch_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update error",
@@ -402,7 +401,7 @@ func (c *Controller) BranchController() {
 		Private: true,
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		branchId, err := horizon.EngineUUIDParam(ctx, "branch_id")
+		branchId, err := handlers.EngineUUIDParam(ctx, "branch_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete error",

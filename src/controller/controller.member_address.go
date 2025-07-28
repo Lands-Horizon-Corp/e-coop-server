@@ -6,7 +6,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -24,7 +23,7 @@ func (c *Controller) MemberAddressController() {
 		Note:         "Creates a new address record for a member profile.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
+		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -101,7 +100,7 @@ func (c *Controller) MemberAddressController() {
 		Note:         "Updates an existing address record for a member in the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		memberAddressID, err := horizon.EngineUUIDParam(ctx, "member_address_id")
+		memberAddressID, err := handlers.EngineUUIDParam(ctx, "member_address_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -182,7 +181,7 @@ func (c *Controller) MemberAddressController() {
 		Note:   "Deletes a member's address record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		memberAddressID, err := horizon.EngineUUIDParam(ctx, "member_address_id")
+		memberAddressID, err := handlers.EngineUUIDParam(ctx, "member_address_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",

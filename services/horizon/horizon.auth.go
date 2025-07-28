@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/rotisserie/eris"
 )
 
@@ -108,7 +109,7 @@ func (h *HorizonAuthService[T]) GetCSRF(ctx context.Context, c echo.Context) (T,
 
 // SetCSRF creates a new CSRF token, stores the claim, sets headers and cookies.
 func (h *HorizonAuthService[T]) SetCSRF(ctx context.Context, c echo.Context, claim T, expiry time.Duration) error {
-	token, err := GenerateToken()
+	token, err := handlers.GenerateToken()
 	if err != nil {
 		return eris.Wrap(err, "failed to generate CSRF token")
 	}

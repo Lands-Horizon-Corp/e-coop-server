@@ -6,7 +6,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -198,7 +197,7 @@ func (c *Controller) CheckRemittanceController() {
 		RequestType:  model.CheckRemittanceRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		checkRemittanceId, err := horizon.EngineUUIDParam(ctx, "check_remittance_id")
+		checkRemittanceId, err := handlers.EngineUUIDParam(ctx, "check_remittance_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -361,7 +360,7 @@ func (c *Controller) CheckRemittanceController() {
 		Note:   "Deletes a check remittance by ID for the current transaction batch. Only 'owner' or 'employee' roles are allowed.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		checkRemittanceId, err := horizon.EngineUUIDParam(ctx, "check_remittance_id")
+		checkRemittanceId, err := handlers.EngineUUIDParam(ctx, "check_remittance_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",

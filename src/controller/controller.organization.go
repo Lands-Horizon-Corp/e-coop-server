@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -39,7 +38,7 @@ func (c *Controller) OrganizationController() {
 		Note: "Returns a specific organization by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		organizationID, err := horizon.EngineUUIDParam(ctx, "organization_id")
+		organizationID, err := handlers.EngineUUIDParam(ctx, "organization_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization_id: " + err.Error()})
 		}
@@ -248,7 +247,7 @@ func (c *Controller) OrganizationController() {
 		Note:         "Updates an organization. User must be logged in.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		organizationId, err := horizon.EngineUUIDParam(ctx, "organization_id")
+		organizationId, err := handlers.EngineUUIDParam(ctx, "organization_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -394,7 +393,7 @@ func (c *Controller) OrganizationController() {
 		Note:   "Deletes an organization. User must be logged in.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		organizationId, err := horizon.EngineUUIDParam(ctx, "organization_id")
+		organizationId, err := handlers.EngineUUIDParam(ctx, "organization_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",

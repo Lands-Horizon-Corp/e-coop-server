@@ -25,7 +25,7 @@ func (c *Controller) UserController() {
 		Note:         "Returns a specific user by their ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userId, err := horizon.EngineUUIDParam(ctx, "user_id")
+		userId, err := handlers.EngineUUIDParam(ctx, "user_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_id: " + err.Error()})
 		}

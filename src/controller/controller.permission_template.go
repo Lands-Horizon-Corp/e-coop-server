@@ -6,7 +6,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -61,7 +60,7 @@ func (c *Controller) PermissionTemplateController() {
 		Note:         "Returns a specific permission template by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		permissionTemplateID, err := horizon.EngineUUIDParam(ctx, "permission_template_id")
+		permissionTemplateID, err := handlers.EngineUUIDParam(ctx, "permission_template_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid permission_template_id: " + err.Error()})
 		}
@@ -144,7 +143,7 @@ func (c *Controller) PermissionTemplateController() {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		permissionTemplateID, err := horizon.EngineUUIDParam(ctx, "permission_template_id")
+		permissionTemplateID, err := handlers.EngineUUIDParam(ctx, "permission_template_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -218,7 +217,7 @@ func (c *Controller) PermissionTemplateController() {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		permissionTemplateID, err := horizon.EngineUUIDParam(ctx, "permission_template_id")
+		permissionTemplateID, err := handlers.EngineUUIDParam(ctx, "permission_template_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",

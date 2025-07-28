@@ -79,7 +79,7 @@ func NewHorizonAPIService(
 		}
 	}()
 
-	LoadTemplatesIfExists(e, "public/views/*.html")
+	handlers.LoadTemplatesIfExists(e, "public/views/*.html")
 	e.Renderer = &TemplateRenderer{
 		templates: template.Must(template.ParseGlob("public/views/*.html")),
 	}
@@ -88,7 +88,7 @@ func NewHorizonAPIService(
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			path := c.Request().URL.Path
-			if IsSuspiciousPath(path) {
+			if handlers.IsSuspiciousPath(path) {
 				return c.String(http.StatusForbidden, "Access forbidden")
 			}
 			if strings.HasPrefix(strings.ToLower(path), "/.well-known/") {

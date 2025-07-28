@@ -11,7 +11,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/lands-horizon/horizon-server/seeder"
-	"github.com/lands-horizon/horizon-server/services/horizon"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/src"
 	"github.com/lands-horizon/horizon-server/src/controller"
 	"github.com/lands-horizon/horizon-server/src/cooperative_tokens"
@@ -22,7 +22,7 @@ import (
 
 func main() {
 	if len(os.Args) < 2 {
-		horizon.PrintASCIIArt()
+		handlers.PrintASCIIArt()
 		printHelp()
 		return
 	}

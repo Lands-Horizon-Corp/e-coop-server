@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -40,7 +39,7 @@ func (c *Controller) CategoryController() {
 		ResponseType: model.CategoryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		categoryID, err := horizon.EngineUUIDParam(ctx, "category_id")
+		categoryID, err := handlers.EngineUUIDParam(ctx, "category_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid category ID"})
 		}
@@ -108,7 +107,7 @@ func (c *Controller) CategoryController() {
 		ResponseType: model.CategoryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		categoryID, err := horizon.EngineUUIDParam(ctx, "category_id")
+		categoryID, err := handlers.EngineUUIDParam(ctx, "category_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -169,7 +168,7 @@ func (c *Controller) CategoryController() {
 		Note:   "Deletes the specified category by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		categoryID, err := horizon.EngineUUIDParam(ctx, "category_id")
+		categoryID, err := handlers.EngineUUIDParam(ctx, "category_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",

@@ -6,7 +6,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -24,7 +23,7 @@ func (c *Controller) MemberAssetController() {
 		Note:         "Creates a new asset record for a member profile.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		memberProfileID, err := horizon.EngineUUIDParam(ctx, "member_profile_id")
+		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -98,7 +97,7 @@ func (c *Controller) MemberAssetController() {
 		Note:         "Updates an existing asset record for a member profile.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		memberAssetID, err := horizon.EngineUUIDParam(ctx, "member_asset_id")
+		memberAssetID, err := handlers.EngineUUIDParam(ctx, "member_asset_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -175,7 +174,7 @@ func (c *Controller) MemberAssetController() {
 		Note:   "Deletes a member's asset record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		memberAssetID, err := horizon.EngineUUIDParam(ctx, "member_asset_id")
+		memberAssetID, err := handlers.EngineUUIDParam(ctx, "member_asset_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",

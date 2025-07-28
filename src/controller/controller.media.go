@@ -41,7 +41,7 @@ func (c *Controller) MediaController() {
 		ResponseType: model.MediaResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		mediaId, err := horizon.EngineUUIDParam(ctx, "media_id")
+		mediaId, err := handlers.EngineUUIDParam(ctx, "media_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid media ID"})
 		}
@@ -149,7 +149,7 @@ func (c *Controller) MediaController() {
 		Note:         "Updates the file name of a media record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		mediaId, err := horizon.EngineUUIDParam(ctx, "media_id")
+		mediaId, err := handlers.EngineUUIDParam(ctx, "media_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -201,7 +201,7 @@ func (c *Controller) MediaController() {
 		Note:   "Deletes a specific media record by its ID and associated file.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		mediaId, err := horizon.EngineUUIDParam(ctx, "media_id")
+		mediaId, err := handlers.EngineUUIDParam(ctx, "media_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",

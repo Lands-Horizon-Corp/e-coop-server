@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -72,7 +71,7 @@ func (c *Controller) AccountCategoryController() {
 		ResponseType: model.AccountCategoryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		id, err := horizon.EngineUUIDParam(ctx, "account_category_id")
+		id, err := handlers.EngineUUIDParam(ctx, "account_category_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account category ID: " + err.Error()})
 		}
@@ -184,7 +183,7 @@ func (c *Controller) AccountCategoryController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accountCategoryID, err := horizon.EngineUUIDParam(ctx, "account_category_id")
+		accountCategoryID, err := handlers.EngineUUIDParam(ctx, "account_category_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -249,7 +248,7 @@ func (c *Controller) AccountCategoryController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accountCategoryID, err := horizon.EngineUUIDParam(ctx, "account_category_id")
+		accountCategoryID, err := handlers.EngineUUIDParam(ctx, "account_category_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",

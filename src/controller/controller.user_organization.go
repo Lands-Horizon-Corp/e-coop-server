@@ -9,7 +9,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -27,7 +26,7 @@ func (c *Controller) UserOrganinzationController() {
 		ResponseType: model.UserOrganizationResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrgId, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
+		userOrgId, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -108,7 +107,7 @@ func (c *Controller) UserOrganinzationController() {
 		Note:   "Seeds all branches inside an organization when first created.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		orgId, err := horizon.EngineUUIDParam(ctx, "organization_id")
+		orgId, err := handlers.EngineUUIDParam(ctx, "organization_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -302,7 +301,7 @@ func (c *Controller) UserOrganinzationController() {
 		Note:         "Returns all user organizations for a specific user. Use query param `pending=true` to include pending organizations.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userId, err := horizon.EngineUUIDParam(ctx, "user_id")
+		userId, err := handlers.EngineUUIDParam(ctx, "user_id")
 		isPending := ctx.QueryParam("pending") == "true"
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_id: " + err.Error()})
@@ -393,7 +392,7 @@ func (c *Controller) UserOrganinzationController() {
 		Note:         "Returns all user organizations for a specific organization. Use query param `pending=true` to include pending organizations.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		organizationId, err := horizon.EngineUUIDParam(ctx, "organization_id")
+		organizationId, err := handlers.EngineUUIDParam(ctx, "organization_id")
 		isPending := ctx.QueryParam("pending") == "true"
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization_id: " + err.Error()})
@@ -420,7 +419,7 @@ func (c *Controller) UserOrganinzationController() {
 		Note:         "Returns all user organizations for a specific branch. Use query param `pending=true` to include pending organizations.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		branchId, err := horizon.EngineUUIDParam(ctx, "branch_id")
+		branchId, err := handlers.EngineUUIDParam(ctx, "branch_id")
 		isPending := ctx.QueryParam("pending") == "true"
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid branch_id: " + err.Error()})
@@ -444,7 +443,7 @@ func (c *Controller) UserOrganinzationController() {
 		Note:         "Switches organization and branch in JWT for the current user. No database impact.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrgId, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
+		userOrgId, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_organization_id: " + err.Error()})
 		}
@@ -685,7 +684,7 @@ func (c *Controller) UserOrganinzationController() {
 		RequestType:  model.UserOrganizationRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		orgId, err := horizon.EngineUUIDParam(ctx, "organization_id")
+		orgId, err := handlers.EngineUUIDParam(ctx, "organization_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -694,7 +693,7 @@ func (c *Controller) UserOrganinzationController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization_id: " + err.Error()})
 		}
-		branchId, err := horizon.EngineUUIDParam(ctx, "branch_id")
+		branchId, err := handlers.EngineUUIDParam(ctx, "branch_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -849,11 +848,11 @@ func (c *Controller) UserOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
-		orgId, err := horizon.EngineUUIDParam(ctx, "organization_id")
+		orgId, err := handlers.EngineUUIDParam(ctx, "organization_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization_id: " + err.Error()})
 		}
-		branchId, err := horizon.EngineUUIDParam(ctx, "branch_id")
+		branchId, err := handlers.EngineUUIDParam(ctx, "branch_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid branch_id: " + err.Error()})
 		}
@@ -874,11 +873,11 @@ func (c *Controller) UserOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
-		orgId, err := horizon.EngineUUIDParam(ctx, "organization_id")
+		orgId, err := handlers.EngineUUIDParam(ctx, "organization_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization_id: " + err.Error()})
 		}
-		branchId, err := horizon.EngineUUIDParam(ctx, "branch_id")
+		branchId, err := handlers.EngineUUIDParam(ctx, "branch_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid branch_id: " + err.Error()})
 		}
@@ -896,7 +895,7 @@ func (c *Controller) UserOrganinzationController() {
 		ResponseType: model.UserOrganizationResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrgId, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
+		userOrgId, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_organization_id: " + err.Error()})
 		}
@@ -914,7 +913,7 @@ func (c *Controller) UserOrganinzationController() {
 		Note:   "Accepts an employee or member application by ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrgId, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
+		userOrgId, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "approve-error",
@@ -988,7 +987,7 @@ func (c *Controller) UserOrganinzationController() {
 		Note:   "Rejects an employee or member application by ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrgId, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
+		userOrgId, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -1061,7 +1060,7 @@ func (c *Controller) UserOrganinzationController() {
 		Note:   "Deletes a user organization by ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrgId, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
+		userOrgId, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -1231,7 +1230,7 @@ func (c *Controller) UserOrganinzationController() {
 		Note:         "Updates the user organization settings.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrgId, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
+		userOrgId, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_organization_id: " + err.Error()})
 		}

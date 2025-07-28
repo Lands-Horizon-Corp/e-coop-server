@@ -9,6 +9,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 	horizon_services "github.com/lands-horizon/horizon-server/services"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -165,7 +166,7 @@ func (h *UserToken) CurrentUser(ctx context.Context, echoCtx echo.Context) (*mod
 		h.CSRF.ClearCSRF(ctx, echoCtx)
 		return nil, echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized: missing essential user information")
 	}
-	user, err := h.model.UserManager.GetByID(ctx, horizon.ParseUUID(&claim.UserID))
+	user, err := h.model.UserManager.GetByID(ctx, handlers.ParseUUID(&claim.UserID))
 	if err != nil || user == nil {
 		h.CSRF.ClearCSRF(ctx, echoCtx)
 		return nil, echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized: user not found")
@@ -187,8 +188,8 @@ func (h *UserToken) SetUser(ctx context.Context, echoCtx echo.Context, user *mod
 		return echo.NewHTTPError(http.StatusBadRequest, "User must have ID, Email, ContactNumber, Password, and Username")
 	}
 
-	longitude := horizon.ParseCoordinate(echoCtx.Request().Header.Get("X-Longitude"))
-	latitude := horizon.ParseCoordinate(echoCtx.Request().Header.Get("X-Latitude"))
+	longitude := handlers.ParseCoordinate(echoCtx.Request().Header.Get("X-Longitude"))
+	latitude := handlers.ParseCoordinate(echoCtx.Request().Header.Get("X-Latitude"))
 	location := echoCtx.Request().Header.Get("Location")
 
 	claim := UserCSRF{

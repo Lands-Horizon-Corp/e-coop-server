@@ -6,7 +6,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -84,7 +83,7 @@ func (c *Controller) TransactionBatchController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		transactionBatchId, err := horizon.EngineUUIDParam(ctx, "transaction_batch_id")
+		transactionBatchId, err := handlers.EngineUUIDParam(ctx, "transaction_batch_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -213,7 +212,7 @@ func (c *Controller) TransactionBatchController() {
 		Note:         "Updates the deposit in bank amount for a specific transaction batch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		transactionBatchId, err := horizon.EngineUUIDParam(ctx, "transaction_batch_id")
+		transactionBatchId, err := handlers.EngineUUIDParam(ctx, "transaction_batch_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -570,7 +569,7 @@ func (c *Controller) TransactionBatchController() {
 		ResponseType: model.TransactionBatchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		transactionBatchId, err := horizon.EngineUUIDParam(ctx, "transaction_batch_id")
+		transactionBatchId, err := handlers.EngineUUIDParam(ctx, "transaction_batch_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction_batch_id: " + err.Error()})
 		}
@@ -630,7 +629,7 @@ func (c *Controller) TransactionBatchController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
-		transactionBatchId, err := horizon.EngineUUIDParam(ctx, "transaction_batch_id")
+		transactionBatchId, err := handlers.EngineUUIDParam(ctx, "transaction_batch_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -726,7 +725,7 @@ func (c *Controller) TransactionBatchController() {
 		ResponseType: model.TransactionBatchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		transactionBatchId, err := horizon.EngineUUIDParam(ctx, "transaction_batch_id")
+		transactionBatchId, err := handlers.EngineUUIDParam(ctx, "transaction_batch_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -806,7 +805,7 @@ func (c *Controller) TransactionBatchController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
 
-		userOrganizationID, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
+		userOrganizationID, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_organization_id: " + err.Error()})
 		}
