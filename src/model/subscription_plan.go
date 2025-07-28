@@ -19,7 +19,7 @@ type (
 		Name                string  `gorm:"type:varchar(255);not null"`
 		Description         string  `gorm:"type:text;not null"`
 		Cost                float64 `gorm:"type:numeric(10,2);not null"`
-		Timespan            int     `gorm:"not null"`
+		Timespan            int64   `gorm:"not null"`
 		MaxBranches         int     `gorm:"not null"`
 		MaxEmployees        int     `gorm:"not null"`
 		MaxMembersPerBranch int     `gorm:"not null"`
@@ -36,7 +36,7 @@ type (
 		Name                string  `json:"name" validate:"required,min=1,max=255"`
 		Description         string  `json:"description" validate:"required"`
 		Cost                float64 `json:"cost" validate:"required,gt=0"`
-		Timespan            int     `json:"timespan" validate:"required,gt=0"`
+		Timespan            int64   `json:"timespan" validate:"required,gt=0"`
 		MaxBranches         int     `json:"max_branches" validate:"required,gte=0"`
 		MaxEmployees        int     `json:"max_employees" validate:"required,gte=0"`
 		MaxMembersPerBranch int     `json:"max_members_per_branch" validate:"required,gte=0"`
@@ -52,7 +52,7 @@ type (
 		Name                string    `json:"name"`
 		Description         string    `json:"description"`
 		Cost                float64   `json:"cost"`
-		Timespan            int       `json:"timespan"`
+		Timespan            int64     `json:"timespan"`
 		MaxBranches         int       `json:"max_branches"`
 		MaxEmployees        int       `json:"max_employees"`
 		MaxMembersPerBranch int       `json:"max_members_per_branch"`

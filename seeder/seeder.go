@@ -128,7 +128,7 @@ func (s *Seeder) SeedSubscription(ctx context.Context) error {
 			Name:                "Basic Plan",
 			Description:         "A basic plan with limited features.",
 			Cost:                99.99,
-			Timespan:            12, // 12 months
+			Timespan:            int64(14 * 24 * time.Hour), // 14 days
 			MaxBranches:         5,
 			MaxEmployees:        50,
 			MaxMembersPerBranch: 5,
@@ -141,7 +141,7 @@ func (s *Seeder) SeedSubscription(ctx context.Context) error {
 			Name:                "Pro Plan",
 			Description:         "A professional plan with additional features.",
 			Cost:                199.99,
-			Timespan:            12, // 12 months
+			Timespan:            int64(30 * 24 * time.Hour),
 			MaxBranches:         10,
 			MaxEmployees:        100,
 			MaxMembersPerBranch: 10,
@@ -154,7 +154,7 @@ func (s *Seeder) SeedSubscription(ctx context.Context) error {
 			Name:                "Enterprise Plan",
 			Description:         "An enterprise-level plan with unlimited features.",
 			Cost:                499.99,
-			Timespan:            12, // 12 months
+			Timespan:            int64(30 * 24 * time.Hour),
 			MaxBranches:         20,
 			MaxEmployees:        500,
 			MaxMembersPerBranch: 50,
@@ -167,7 +167,7 @@ func (s *Seeder) SeedSubscription(ctx context.Context) error {
 			Name:                "Starter Plan",
 			Description:         "An affordable plan for small organizations just getting started.",
 			Cost:                49.99,
-			Timespan:            6, // 6 months
+			Timespan:            int64(30 * 24 * time.Hour),
 			MaxBranches:         2,
 			MaxEmployees:        10,
 			MaxMembersPerBranch: 2,
