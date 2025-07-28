@@ -125,17 +125,16 @@ func (s *Seeder) SeedSubscription(ctx context.Context) error {
 	}
 	subscriptionPlans := []model.SubscriptionPlan{
 		{
-			Name:                "Basic Plan",
-			Description:         "A basic plan with limited features.",
-			Cost:                0.00,
-			Timespan:            int64(14 * 24 * time.Hour), // 14 days
-			MaxBranches:         5,
-			MaxEmployees:        50,
-			MaxMembersPerBranch: 5,
-			Discount:            5.00,  // 5% discount
-			YearlyDiscount:      10.00, // 10% yearly discount
+			Name:                "Enterprise Plan",
+			Description:         "An enterprise-level plan with unlimited features.",
+			Cost:                499.99,
+			Timespan:            int64(30 * 24 * time.Hour),
+			MaxBranches:         20,
+			MaxEmployees:        500,
+			MaxMembersPerBranch: 50,
+			Discount:            15.00, // 15% discount
+			YearlyDiscount:      20.00, // 20% yearly discount
 			IsRecommended:       false, // set as needed
-
 		},
 		{
 			Name:                "Pro Plan",
@@ -148,20 +147,6 @@ func (s *Seeder) SeedSubscription(ctx context.Context) error {
 			Discount:            10.00, // 10% discount
 			YearlyDiscount:      15.00, // 15% yearly discount
 			IsRecommended:       false, // set as needed
-
-		},
-		{
-			Name:                "Enterprise Plan",
-			Description:         "An enterprise-level plan with unlimited features.",
-			Cost:                499.99,
-			Timespan:            int64(30 * 24 * time.Hour),
-			MaxBranches:         20,
-			MaxEmployees:        500,
-			MaxMembersPerBranch: 50,
-			Discount:            15.00, // 15% discount
-			YearlyDiscount:      20.00, // 20% yearly discount
-			IsRecommended:       false, // set as needed
-
 		},
 		{
 			Name:                "Starter Plan",
@@ -174,6 +159,17 @@ func (s *Seeder) SeedSubscription(ctx context.Context) error {
 			Discount:            2.50, // 2.5% discount
 			YearlyDiscount:      5.00, // 5% yearly discount
 			IsRecommended:       true, // set as needed
+		},
+		{
+			Name:                "Free Plan",
+			Description:         "A basic plan with limited features.",
+			Cost:                0.00,
+			Timespan:            int64(14 * 24 * time.Hour), // 14 days
+			MaxBranches:         1,
+			MaxEmployees:        2,
+			MaxMembersPerBranch: 5,
+			Discount:            0, YearlyDiscount: 0,
+			IsRecommended: false,
 		},
 	}
 	for _, subscriptionPlan := range subscriptionPlans {
