@@ -140,9 +140,9 @@ func (g *TypeScriptGenerator) GoTypeToTSType(field reflect.StructField) string {
 			return g.StructTypeToTSInline(t)
 		}
 		// Named struct: add to queue if not handled
-		if !g.handled[t] {
-			g.typeQueue[t] = true
-		}
+		// if !g.handled[t] {
+		// 	g.typeQueue[t] = true
+		// }
 		return t.Name()
 	default:
 		return "any"
