@@ -85,6 +85,14 @@ func (g *TypeScriptGenerator) StructTypeToTSInline(t reflect.Type) string {
 // GoTypeToTSType converts a Go field type to its TypeScript equivalent.
 func (g *TypeScriptGenerator) GoTypeToTSType(field reflect.StructField) string {
 	t := field.Type
+	// Always treat uuid.UUID as "uuid"
+	if t == reflect.TypeOf(uuid.UUID{}) {
+		return "uuid"
+	}
+	// Always treat *uuid.UUID as "uuid | null"
+	if t.Kind() == reflect.Ptr && t.Elem() == reflect.TypeOf(uuid.UUID{}) {
+		return "uuid | null"
+	}
 	switch t.Kind() {
 	case reflect.String:
 		enum := field.Tag.Get("enum")
