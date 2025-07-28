@@ -80,6 +80,7 @@ func (c *Controller) SubscriptionPlanController() {
 			MaxMembersPerBranch: req.MaxMembersPerBranch,
 			Discount:            req.Discount,
 			YearlyDiscount:      req.YearlyDiscount,
+			IsRecommended:       req.IsRecommended, // <-- Use the new field
 			CreatedAt:           time.Now().UTC(),
 			UpdatedAt:           time.Now().UTC(),
 		}
@@ -151,6 +152,7 @@ func (c *Controller) SubscriptionPlanController() {
 		subscriptionPlan.Discount = req.Discount
 		subscriptionPlan.YearlyDiscount = req.YearlyDiscount
 		subscriptionPlan.UpdatedAt = time.Now().UTC()
+		subscriptionPlan.IsRecommended = req.IsRecommended // <-- Update the new field
 
 		if err := c.model.SubscriptionPlanManager.UpdateFields(context, subscriptionPlan.ID, subscriptionPlan); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{

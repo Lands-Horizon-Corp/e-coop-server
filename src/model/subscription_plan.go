@@ -25,6 +25,7 @@ type (
 		MaxMembersPerBranch int     `gorm:"not null"`
 		Discount            float64 `gorm:"type:numeric(5,2);default:0"`
 		YearlyDiscount      float64 `gorm:"type:numeric(5,2);default:0"`
+		IsRecommended       bool    `gorm:"not null;default:false"` // <-- Added field
 
 		Organizations []*Organization `gorm:"foreignKey:SubscriptionPlanID" json:"organizations,omitempty"` // organization
 	}
@@ -32,16 +33,18 @@ type (
 	SubscriptionPlanRequest struct {
 		ID *uuid.UUID `json:"id,omitempty"`
 
-		Name                string          `json:"name" validate:"required,min=1,max=255"`
-		Description         string          `json:"description" validate:"required"`
-		Cost                float64         `json:"cost" validate:"required,gt=0"`
-		Timespan            int             `json:"timespan" validate:"required,gt=0"`
-		MaxBranches         int             `json:"max_branches" validate:"required,gte=0"`
-		MaxEmployees        int             `json:"max_employees" validate:"required,gte=0"`
-		MaxMembersPerBranch int             `json:"max_members_per_branch" validate:"required,gte=0"`
-		Discount            float64         `json:"discount" validate:"gte=0"`
-		YearlyDiscount      float64         `json:"yearly_discount" validate:"gte=0"`
-		Organizations       []*Organization `json:"organizations,omitempty"`
+		Name                string  `json:"name" validate:"required,min=1,max=255"`
+		Description         string  `json:"description" validate:"required"`
+		Cost                float64 `json:"cost" validate:"required,gt=0"`
+		Timespan            int     `json:"timespan" validate:"required,gt=0"`
+		MaxBranches         int     `json:"max_branches" validate:"required,gte=0"`
+		MaxEmployees        int     `json:"max_employees" validate:"required,gte=0"`
+		MaxMembersPerBranch int     `json:"max_members_per_branch" validate:"required,gte=0"`
+		Discount            float64 `json:"discount" validate:"gte=0"`
+		IsRecommended       bool    `json:"is_recommended"` // <-- Added field
+
+		YearlyDiscount float64         `json:"yearly_discount" validate:"gte=0"`
+		Organizations  []*Organization `json:"organizations,omitempty"`
 	}
 
 	SubscriptionPlanResponse struct {
@@ -55,8 +58,10 @@ type (
 		MaxMembersPerBranch int       `json:"max_members_per_branch"`
 		Discount            float64   `json:"discount"`
 		YearlyDiscount      float64   `json:"yearly_discount"`
-		CreatedAt           string    `json:"created_at"`
-		UpdatedAt           string    `json:"updated_at"`
+		IsRecommended       bool      `json:"is_recommended"` // <-- Added field
+
+		CreatedAt string `json:"created_at"`
+		UpdatedAt string `json:"updated_at"`
 	}
 )
 
@@ -82,6 +87,7 @@ func (m *Model) SubscriptionPlan() {
 				YearlyDiscount:      sp.YearlyDiscount,
 				CreatedAt:           sp.CreatedAt.Format(time.RFC3339),
 				UpdatedAt:           sp.UpdatedAt.Format(time.RFC3339),
+				IsRecommended:       sp.IsRecommended,
 			}
 		},
 

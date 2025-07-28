@@ -134,6 +134,8 @@ func (s *Seeder) SeedSubscription(ctx context.Context) error {
 			MaxMembersPerBranch: 5,
 			Discount:            5.00,  // 5% discount
 			YearlyDiscount:      10.00, // 10% yearly discount
+			IsRecommended:       false, // set as needed
+
 		},
 		{
 			Name:                "Pro Plan",
@@ -145,6 +147,8 @@ func (s *Seeder) SeedSubscription(ctx context.Context) error {
 			MaxMembersPerBranch: 10,
 			Discount:            10.00, // 10% discount
 			YearlyDiscount:      15.00, // 15% yearly discount
+			IsRecommended:       false, // set as needed
+
 		},
 		{
 			Name:                "Enterprise Plan",
@@ -156,6 +160,20 @@ func (s *Seeder) SeedSubscription(ctx context.Context) error {
 			MaxMembersPerBranch: 50,
 			Discount:            15.00, // 15% discount
 			YearlyDiscount:      20.00, // 20% yearly discount
+			IsRecommended:       false, // set as needed
+
+		},
+		{
+			Name:                "Starter Plan",
+			Description:         "An affordable plan for small organizations just getting started.",
+			Cost:                49.99,
+			Timespan:            6, // 6 months
+			MaxBranches:         2,
+			MaxEmployees:        10,
+			MaxMembersPerBranch: 2,
+			Discount:            2.50, // 2.5% discount
+			YearlyDiscount:      5.00, // 5% yearly discount
+			IsRecommended:       true, // set as needed
 		},
 	}
 	for _, subscriptionPlan := range subscriptionPlans {
