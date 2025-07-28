@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -17,7 +18,7 @@ func (c *Controller) AccountTagController() {
 	req := c.provider.Service.Request
 
 	// GET /account-tag - List current branch's account tags for the authenticated user.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/account-tag",
 		Method:       "GET",
 		Note:         "Returns all account tags for the current user's organization and branch. Returns empty if not authenticated.",
@@ -39,7 +40,7 @@ func (c *Controller) AccountTagController() {
 	})
 
 	// GET /account-tag/search - Paginated search of account tags for current branch.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/account-tag/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of account tags for the current user's organization and branch.",
@@ -61,7 +62,7 @@ func (c *Controller) AccountTagController() {
 	})
 
 	// GET /account-tag/:account_tag_id - Get specific account tag by ID.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/account-tag/:account_tag_id",
 		Method:       "GET",
 		Note:         "Returns a single account tag by its ID.",
@@ -80,7 +81,7 @@ func (c *Controller) AccountTagController() {
 	})
 
 	// POST /account-tag - Create new account tag.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/account-tag",
 		Method:       "POST",
 		Note:         "Creates a new account tag for the user's organization and branch.",
@@ -149,7 +150,7 @@ func (c *Controller) AccountTagController() {
 	})
 
 	// PUT /account-tag/:account_tag_id - Update account tag by ID.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/account-tag/:account_tag_id",
 		Method:       "PUT",
 		Note:         "Updates an existing account tag by its ID.",
@@ -221,7 +222,7 @@ func (c *Controller) AccountTagController() {
 	})
 
 	// DELETE /account-tag/:account_tag_id - Delete account tag by ID.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/account-tag/:account_tag_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified account tag by its ID.",
@@ -253,7 +254,7 @@ func (c *Controller) AccountTagController() {
 	})
 
 	// DELETE /account-tag/bulk-delete - Bulk delete account tags by IDs.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:       "/account-tag/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple account tags by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

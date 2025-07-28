@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -15,7 +16,7 @@ func (c *Controller) BatchFundingController() {
 	req := c.provider.Service.Request
 
 	// POST /batch-funding: Create a new batch funding for the current open transaction batch.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/batch-funding",
 		Method:       "POST",
 		Note:         "Creates a new batch funding for the currently active transaction batch of the user's organization and branch. Also updates the related transaction batch balances.",
@@ -135,7 +136,7 @@ func (c *Controller) BatchFundingController() {
 	})
 
 	// GET /batch-funding/transaction-batch/:transaction_batch_id/search: Paginated batch funding for a transaction batch. (NO footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/batch-funding/transaction-batch/:transaction_batch_id/search",
 		Method:       "GET",
 		Note:         "Retrieves a paginated list of batch funding records for the specified transaction batch, if the user is authorized for the branch.",

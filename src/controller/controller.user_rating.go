@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -14,7 +15,7 @@ func (c *Controller) UserRatingController() {
 	req := c.provider.Service.Request
 
 	// Returns all user ratings given by the specified user (rater)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/user-rating/user-rater/:user_id",
 		Method:       "GET",
 		ResponseType: model.UserRatingResponse{},
@@ -33,7 +34,7 @@ func (c *Controller) UserRatingController() {
 	})
 
 	// Returns all user ratings received by the specified user (ratee)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/user-rating/user-ratee/:user_id",
 		Method:       "GET",
 		ResponseType: model.UserRatingResponse{},
@@ -52,7 +53,7 @@ func (c *Controller) UserRatingController() {
 	})
 
 	// Returns a specific user rating by its ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/user-rating/:user_rating_id",
 		Method:       "GET",
 		ResponseType: model.UserRatingResponse{},
@@ -71,7 +72,7 @@ func (c *Controller) UserRatingController() {
 	})
 
 	// Returns all user ratings in the current user's active branch
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/user-rating/branch",
 		Method:       "GET",
 		ResponseType: model.UserRatingResponse{},
@@ -90,7 +91,7 @@ func (c *Controller) UserRatingController() {
 	})
 
 	// Creates a new user rating in the current user's branch
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/user-rating",
 		Method:       "POST",
 		ResponseType: model.UserRatingResponse{},
@@ -149,7 +150,7 @@ func (c *Controller) UserRatingController() {
 	})
 
 	// Deletes a user rating by its ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/user-rating/:user_rating_id",
 		Method: "DELETE",
 		Note:   "Deletes a user rating by its ID.",

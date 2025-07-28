@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -16,7 +17,7 @@ func (c *Controller) MemberGenderController() {
 	req := c.provider.Service.Request
 
 	// Get all member gender history for the current branch
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-gender-history",
 		Method:       "GET",
 		ResponseType: model.MemberGenderHistory{},
@@ -35,7 +36,7 @@ func (c *Controller) MemberGenderController() {
 	})
 
 	// Get member gender history by member profile ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-gender-history/member-profile/:member_profile_id/search",
 		Method:       "GET",
 		ResponseType: model.MemberGenderHistoryResponse{},
@@ -58,7 +59,7 @@ func (c *Controller) MemberGenderController() {
 	})
 
 	// Get all member genders for the current branch
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-gender",
 		Method:       "GET",
 		ResponseType: model.MemberGenderResponse{},
@@ -77,7 +78,7 @@ func (c *Controller) MemberGenderController() {
 	})
 
 	// Get paginated member genders
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-gender/search",
 		Method:       "GET",
 		ResponseType: model.MemberGenderResponse{},
@@ -96,7 +97,7 @@ func (c *Controller) MemberGenderController() {
 	})
 
 	// Create a new member gender
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-gender",
 		Method:       "POST",
 		ResponseType: model.MemberGenderResponse{},
@@ -153,7 +154,7 @@ func (c *Controller) MemberGenderController() {
 	})
 
 	// Update an existing member gender by ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-gender/:member_gender_id",
 		Method:       "PUT",
 		ResponseType: model.MemberGenderResponse{},
@@ -220,7 +221,7 @@ func (c *Controller) MemberGenderController() {
 	})
 
 	// Delete a member gender by ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/member-gender/:member_gender_id",
 		Method: "DELETE",
 		Note:   "Deletes a member gender record by its ID.",
@@ -261,7 +262,7 @@ func (c *Controller) MemberGenderController() {
 	})
 
 	// Bulk delete member genders by IDs
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:       "/member-gender/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple member gender records by their IDs.",

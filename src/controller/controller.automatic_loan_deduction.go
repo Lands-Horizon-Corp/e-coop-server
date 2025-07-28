@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -17,7 +18,7 @@ func (c *Controller) AutomaticLoanDeductionController() {
 	req := c.provider.Service.Request
 
 	// GET /automatic-loan-deduction/computation-sheet/:computation_sheet_id/search
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/automatic-loan-deduction/computation-sheet/:computation_sheet_id",
 		Method:       "GET",
 		Note:         "Returns all automatic loan deductions for a computation sheet in the current user's org/branch.",
@@ -48,7 +49,7 @@ func (c *Controller) AutomaticLoanDeductionController() {
 	})
 
 	// GET /automatic-loan-deduction/computation-sheet/:computation_sheet_id/search
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/automatic-loan-deduction/computation-sheet/:computation_sheet_id/search",
 		Method:       "GET",
 		Note:         "Returns all automatic loan deductions for a computation sheet in the current user's org/branch.",
@@ -79,7 +80,7 @@ func (c *Controller) AutomaticLoanDeductionController() {
 	})
 
 	// POST /automatic-loan-deduction
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/automatic-loan-deduction",
 		Method:       "POST",
 		Note:         "Creates a new automatic loan deduction for the current user's org/branch.",
@@ -156,7 +157,7 @@ func (c *Controller) AutomaticLoanDeductionController() {
 	})
 
 	// PUT /automatic-loan-deduction/:automatic_loan_deduction_id
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/automatic-loan-deduction/:automatic_loan_deduction_id",
 		Method:       "PUT",
 		Note:         "Updates an existing automatic loan deduction by its ID.",
@@ -237,7 +238,7 @@ func (c *Controller) AutomaticLoanDeductionController() {
 	})
 
 	// DELETE /automatic-loan-deduction/:automatic_loan_deduction_id
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/automatic-loan-deduction/:automatic_loan_deduction_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified automatic loan deduction by its ID.",
@@ -278,7 +279,7 @@ func (c *Controller) AutomaticLoanDeductionController() {
 	})
 
 	// DELETE /automatic-loan-deduction/bulk-delete
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:       "/automatic-loan-deduction/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple automatic loan deductions by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

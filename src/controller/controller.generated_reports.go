@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -14,7 +15,7 @@ func (c *Controller) GeneratedReports() {
 	req := c.provider.Service.Request
 
 	// GET /generated-report: Get all generated reports for the current user. (NO footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/generated-report",
 		Method:       "GET",
 		ResponseType: model.GeneratedReportResponse{},
@@ -33,7 +34,7 @@ func (c *Controller) GeneratedReports() {
 	})
 
 	// GET /generated-report/:generated_report_id: Get a specific generated report by ID. (NO footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/generated-report/:generated_report_id",
 		Method:       "GET",
 		ResponseType: model.GeneratedReportResponse{},
@@ -52,7 +53,7 @@ func (c *Controller) GeneratedReports() {
 	})
 
 	// DELETE /generated-report/:generated_report_id: Delete a specific generated report by ID and its associated file. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/generated-report/:generated_report_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified generated report by its ID and the associated file.",

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -14,7 +15,7 @@ func (c *Controller) TimesheetController() {
 	req := c.provider.Service.Request
 
 	// Returns the current timesheet entry for the user, if any (for time in/out determination)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/timesheet/current",
 		Method:       "GET",
 		ResponseType: model.TimesheetResponse{},
@@ -37,7 +38,7 @@ func (c *Controller) TimesheetController() {
 	})
 
 	// Records a time in or time out for the user.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/timesheet/time-in-and-out",
 		Method:       "POST",
 		RequestType:  model.TimesheetRequest{},
@@ -124,7 +125,7 @@ func (c *Controller) TimesheetController() {
 	})
 
 	// Get a specific timesheet by its ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/timesheet/:timesheet_id",
 		Method:       "GET",
 		ResponseType: model.TimesheetResponse{},
@@ -143,7 +144,7 @@ func (c *Controller) TimesheetController() {
 	})
 
 	// Get all timesheets for users/employees on current branch
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/timesheet",
 		Method:       "GET",
 		ResponseType: model.TimesheetResponse{},
@@ -162,7 +163,7 @@ func (c *Controller) TimesheetController() {
 	})
 
 	// Get paginated timesheets for current branch
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/timesheet/search",
 		Method:       "GET",
 		ResponseType: model.TimesheetResponse{},
@@ -181,7 +182,7 @@ func (c *Controller) TimesheetController() {
 	})
 
 	// Get the user's own timesheets in the current branch
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:       "/timesheet/me",
 		Method:      "GET",
 		Note:        "Returns timesheets of the current user for the current branch.",
@@ -200,7 +201,7 @@ func (c *Controller) TimesheetController() {
 	})
 
 	// Get paginated list of the user's own timesheets in the current branch
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/timesheet/me/search",
 		Method:       "GET",
 		ResponseType: model.TimesheetResponse{},
@@ -219,7 +220,7 @@ func (c *Controller) TimesheetController() {
 	})
 
 	// List all timesheets of a specific user in the current branch
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/timesheet/user/:user_id",
 		Method:       "GET",
 		ResponseType: model.TimesheetResponse{},
@@ -242,7 +243,7 @@ func (c *Controller) TimesheetController() {
 	})
 
 	// Paginated timesheets of a specific user in the current branch
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/timesheet/user/:user_id/search",
 		Method:       "GET",
 		ResponseType: model.TimesheetResponse{},
@@ -264,7 +265,7 @@ func (c *Controller) TimesheetController() {
 		return ctx.JSON(http.StatusOK, c.model.TimesheetManager.Pagination(context, ctx, value))
 	})
 
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/timesheet/employee/:user_organization_id/search",
 		Method:       "GET",
 		ResponseType: model.TimesheetResponse{},

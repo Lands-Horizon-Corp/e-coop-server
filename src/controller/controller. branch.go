@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -17,7 +18,7 @@ func (c *Controller) BranchController() {
 	req := c.provider.Service.Request
 
 	// GET /branch: List all branches or filter by user's organization from JWT if available.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/branch",
 		Method:       "GET",
 		Note:         "Returns all branches if unauthenticated; otherwise, returns branches filtered by the user's organization from JWT.",
@@ -41,7 +42,7 @@ func (c *Controller) BranchController() {
 	})
 
 	// GET /branch/organization/:organization_id: List branches by organization ID.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/branch/organization/:organization_id",
 		Method:       "GET",
 		Note:         "Returns all branches belonging to the specified organization.",
@@ -60,7 +61,7 @@ func (c *Controller) BranchController() {
 	})
 
 	// POST /branch/organization/:organization_id: Create a branch for an organization.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/branch/organization/:organization_id",
 		Method:       "POST",
 		Note:         "Creates a new branch for the given organization. If the user already has a branch, a new user organization is created; otherwise, the user's current user organization is updated with the new branch.",
@@ -277,7 +278,7 @@ func (c *Controller) BranchController() {
 	})
 
 	// PUT /branch/:branch_id: Update an existing branch (only by owner).
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/branch/:branch_id",
 		Method:       "PUT",
 		Note:         "Updates branch information for the specified branch. Only allowed for the owner of the branch.",
@@ -394,7 +395,7 @@ func (c *Controller) BranchController() {
 	})
 
 	// DELETE /branch/:branch_id: Delete a branch (owner only, if fewer than 3 members).
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:   "/branch/:branch_id",
 		Method:  "DELETE",
 		Note:    "Deletes the specified branch if the user is the owner and there are less than 3 members in the branch.",

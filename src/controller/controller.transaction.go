@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -12,7 +13,7 @@ import (
 
 func (c *Controller) TransactionController() {
 	req := c.provider.Service.Request
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/transaction/deposit/:transaction_id",
 		Method:       "POST",
 		RequestType:  model.PaymentRequest{},
@@ -223,7 +224,7 @@ func (c *Controller) TransactionController() {
 		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.ToModel(ledgerReq))
 	})
 
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/transaction/withdraw/:transaction_id",
 		Method:       "POST",
 		RequestType:  model.PaymentRequest{},
@@ -434,7 +435,7 @@ func (c *Controller) TransactionController() {
 	})
 
 	// Create transaction
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/transaction",
 		Method:       "POST",
 		RequestType:  model.TransactionRequest{},
@@ -516,7 +517,7 @@ func (c *Controller) TransactionController() {
 		return ctx.JSON(http.StatusCreated, c.model.TransactionManager.ToModel(transaction))
 	})
 
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/transaction/deposit",
 		Method:       "POST",
 		RequestType:  model.PaymentQuickRequest{},
@@ -730,7 +731,7 @@ func (c *Controller) TransactionController() {
 		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.ToModel(ledgerReq))
 	})
 
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/transaction/withdraw",
 		Method:       "POST",
 		RequestType:  model.PaymentQuickRequest{},
@@ -946,7 +947,7 @@ func (c *Controller) TransactionController() {
 		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.ToModel(ledgerReq))
 	})
 
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/transaction/:transaction_id",
 		Method:       "PUT",
 		RequestType:  model.TransactionRequestEdit{},
@@ -1038,7 +1039,7 @@ func (c *Controller) TransactionController() {
 		return ctx.JSON(http.StatusOK, c.model.TransactionManager.ToModel(transaction))
 	})
 
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/transaction/:transaction_id",
 		Method:       "GET",
 		ResponseType: model.TransactionResponse{},
@@ -1063,7 +1064,7 @@ func (c *Controller) TransactionController() {
 		return ctx.JSON(http.StatusOK, c.model.TransactionManager.ToModel(transaction))
 	})
 
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/transaction/current/search",
 		Method:       "GET",
 		ResponseType: model.TransactionResponse{},
@@ -1088,7 +1089,7 @@ func (c *Controller) TransactionController() {
 		return ctx.JSON(http.StatusOK, c.model.TransactionManager.Filtered(context, ctx, transactions))
 	})
 
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/transaction/employee/:employee_id/search",
 		Method:       "GET",
 		ResponseType: model.TransactionResponse{},
@@ -1121,7 +1122,7 @@ func (c *Controller) TransactionController() {
 		return ctx.JSON(http.StatusOK, c.model.TransactionManager.Filtered(context, ctx, transactions))
 	})
 
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/transaction/member-profile/:member_profile_id/search",
 		Method:       "GET",
 		ResponseType: model.TransactionResponse{},
@@ -1154,7 +1155,7 @@ func (c *Controller) TransactionController() {
 		return ctx.JSON(http.StatusOK, c.model.TransactionManager.Filtered(context, ctx, transactions))
 	})
 
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/transaction/branch/search",
 		Method:       "GET",
 		ResponseType: model.TransactionResponse{},

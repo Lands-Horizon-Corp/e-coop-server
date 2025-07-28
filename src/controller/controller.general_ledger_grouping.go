@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -16,7 +17,7 @@ func (c *Controller) GeneralLedgerGroupingController() {
 	req := c.provider.Service.Request
 
 	// GET /general-ledger-accounts-grouping
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/general-ledger-accounts-grouping",
 		Method:       "GET",
 		ResponseType: model.GeneralLedgerAccountsGroupingResponse{},
@@ -61,7 +62,7 @@ func (c *Controller) GeneralLedgerGroupingController() {
 	})
 
 	// PUT /general-ledger-accounts-grouping/:general_ledger_accounts_grouping_id (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/general-ledger-accounts-grouping/:general_ledger_accounts_grouping_id",
 		Method:       "PUT",
 		ResponseType: model.GeneralLedgerAccountsGroupingResponse{},
@@ -144,7 +145,7 @@ func (c *Controller) GeneralLedgerGroupingController() {
 	})
 
 	// GET /general-ledger-definition
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/general-ledger-definition",
 		Method:       "GET",
 		ResponseType: model.GeneralLedgerDefinitionResponse{},
@@ -169,7 +170,7 @@ func (c *Controller) GeneralLedgerGroupingController() {
 	})
 
 	// POST /general-ledger-definition (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/general-ledger-definition",
 		Method:       "POST",
 		RequestType:  model.GeneralLedgerDefinitionRequest{},
@@ -238,7 +239,7 @@ func (c *Controller) GeneralLedgerGroupingController() {
 	})
 
 	// PUT /general-ledger-definition/:general_ledger_definition_id (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/general-ledger-definition/:general_ledger_definition_id",
 		Method:       "PUT",
 		RequestType:  model.GeneralLedgerDefinitionRequest{},
@@ -319,7 +320,7 @@ func (c *Controller) GeneralLedgerGroupingController() {
 	})
 
 	// POST /general-ledger-definition/:general_ledger_definition_id/account/:account_id/connect (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/general-ledger-definition/:general_ledger_definition_id/account/:account_id/connect",
 		Method:       "POST",
 		Note:         "Connects an account to a general ledger definition by their IDs.",
@@ -425,7 +426,7 @@ func (c *Controller) GeneralLedgerGroupingController() {
 	})
 
 	// PUT /general-ledger-definition/:general_ledger_definition_id/index/:index (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/general-ledger-definition/:general_ledger_definition_id/index/:index",
 		Method:       "PUT",
 		ResponseType: model.GeneralLedgerDefinitionResponse{},
@@ -496,7 +497,7 @@ func (c *Controller) GeneralLedgerGroupingController() {
 	})
 
 	// PUT /general-ledger-grouping/general-ledger-definition/:general_ledger_definition_id/account/:account_id/index (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/general-ledger-grouping/general-ledger-definition/:general_ledger_definition_id/account/:account_id/index",
 		Method:       "PUT",
 		Note:         "Updates the index of an account within a general ledger definition and reorders accordingly.",
@@ -633,7 +634,7 @@ func (c *Controller) GeneralLedgerGroupingController() {
 	})
 
 	// DELETE /general-ledger-definition/:general_definition_id (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/general-ledger-definition/:general_definition_id",
 		Method: "DELETE",
 		Note:   "Deletes a general ledger definition by its ID, only if no accounts are linked.",

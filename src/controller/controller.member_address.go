@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -15,7 +16,7 @@ func (c *Controller) MemberAddressController() {
 	req := c.provider.Service.Request
 
 	// POST /member-address/member-profile/:member_profile_id: Create a new address record for a member.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-address/member-profile/:member_profile_id",
 		Method:       "POST",
 		RequestType:  model.MemberAddress{},
@@ -92,7 +93,7 @@ func (c *Controller) MemberAddressController() {
 	})
 
 	// PUT /member-address/:member_address_id: Update an existing address record for a member.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-address/:member_address_id",
 		Method:       "PUT",
 		RequestType:  model.MemberAddress{},
@@ -175,7 +176,7 @@ func (c *Controller) MemberAddressController() {
 	})
 
 	// DELETE /member-address/:member_address_id: Delete a member's address record by ID.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/member-address/:member_address_id",
 		Method: "DELETE",
 		Note:   "Deletes a member's address record by its ID.",

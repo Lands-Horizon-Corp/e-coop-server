@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -15,7 +16,7 @@ func (c *Controller) NotificationController() {
 	req := c.provider.Service.Request
 
 	// Get the current (logged in) user's notifications
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/notification/me",
 		Method:       "GET",
 		ResponseType: model.NotificationResponse{},
@@ -34,7 +35,7 @@ func (c *Controller) NotificationController() {
 	})
 
 	// Mark multiple notifications as viewed
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/notification/view",
 		Method:       "PUT",
 		RequestType:  model.IDSRequest{},
@@ -144,7 +145,7 @@ func (c *Controller) NotificationController() {
 	})
 
 	// Delete a notification by its ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/notification/:notification_id",
 		Method: "DELETE",
 		Note:   "Deletes a specific notification record by its notification_id.",

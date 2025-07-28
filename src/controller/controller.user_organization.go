@@ -8,6 +8,7 @@ import (
 	"github.com/go-playground/validator"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -18,7 +19,7 @@ func (c *Controller) UserOrganinzationController() {
 	req := c.provider.Service.Request
 
 	// Update the permission fields of a user organization
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/user-organization/:user_organization_id/permission",
 		Method:       "PUT",
 		Note:         "Updates the permission fields of a user organization.",
@@ -101,7 +102,7 @@ func (c *Controller) UserOrganinzationController() {
 	})
 
 	// Seed all branches inside an organization when first created
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/user-organization/:organization_id/seed",
 		Method: "POST",
 		Note:   "Seeds all branches inside an organization when first created.",
@@ -215,7 +216,7 @@ func (c *Controller) UserOrganinzationController() {
 		return ctx.NoContent(http.StatusOK)
 	})
 	// Get paginated user organizations for employees on current branch
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/user-organization/employee/search",
 		Method:       "GET",
 		ResponseType: model.UserOrganizationResponse{},
@@ -238,7 +239,7 @@ func (c *Controller) UserOrganinzationController() {
 	})
 
 	// Get paginated user organizations for members on current branch
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/user-organization/member/search",
 		Method:       "GET",
 		ResponseType: model.UserOrganizationResponse{},
@@ -261,7 +262,7 @@ func (c *Controller) UserOrganinzationController() {
 	})
 
 	// Get paginated user organizations for members without profiles on current branch
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/user-organization/none-member-profle/search",
 		Method:       "GET",
 		ResponseType: model.UserOrganizationResponse{},
@@ -294,7 +295,7 @@ func (c *Controller) UserOrganinzationController() {
 	})
 
 	// Retrieve all user organizations for a user (optionally including pending)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/user-organization/user/:user_id",
 		Method:       "GET",
 		ResponseType: model.UserOrganizationResponse{},
@@ -318,7 +319,7 @@ func (c *Controller) UserOrganinzationController() {
 	})
 
 	// Retrieve all user organizations for the logged-in user (not pending)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/user-organization/current",
 		Method:       "GET",
 		ResponseType: model.UserOrganizationResponse{},
@@ -339,7 +340,7 @@ func (c *Controller) UserOrganinzationController() {
 	})
 
 	// Get paginated join requests for user organizations in the current branch
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/user-organization/join-request/paginated",
 		Method:       "GET",
 		ResponseType: model.UserOrganizationResponse{},
@@ -362,7 +363,7 @@ func (c *Controller) UserOrganinzationController() {
 	})
 
 	// Get all join requests for user organizations in the current branch
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/user-organization/join-request",
 		Method:       "GET",
 		ResponseType: model.UserOrganizationResponse{},
@@ -385,7 +386,7 @@ func (c *Controller) UserOrganinzationController() {
 	})
 
 	// Retrieve all user organizations for a specific organization (optionally including pending)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/user-organization/organization/:organization_id",
 		Method:       "GET",
 		ResponseType: model.UserOrganizationResponse{},
@@ -412,7 +413,7 @@ func (c *Controller) UserOrganinzationController() {
 	})
 
 	// Retrieve all user organizations for a specific branch (optionally including pending)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/user-organization/branch/:branch_id",
 		Method:       "GET",
 		ResponseType: model.UserOrganizationResponse{},
@@ -436,7 +437,7 @@ func (c *Controller) UserOrganinzationController() {
 	})
 
 	// Switch organization and branch stored in JWT (no database impact)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/user-organization/:user_organization_id/switch",
 		ResponseType: model.UserOrganizationResponse{},
 		Method:       "GET",
@@ -468,7 +469,7 @@ func (c *Controller) UserOrganinzationController() {
 	})
 
 	// Remove organization and branch from JWT (no database impact)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/user-organization/unswitch",
 		Method: "POST",
 		Note:   "Removes organization and branch from JWT for the current user. No database impact.",
@@ -489,7 +490,7 @@ func (c *Controller) UserOrganinzationController() {
 	})
 
 	// Refresh developer key associated with the user organization
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/user-organization/developer-key-refresh",
 		Method:       "POST",
 		Note:         "Refreshes the developer key associated with the current user organization.",
@@ -534,7 +535,7 @@ func (c *Controller) UserOrganinzationController() {
 	})
 
 	// Join organization and branch using an invitation code
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/user-organization/invitation-code/:code/join",
 		Method:       "POST",
 		Note:         "Joins an organization and branch using an invitation code.",
@@ -676,7 +677,7 @@ func (c *Controller) UserOrganinzationController() {
 	})
 
 	// Join an organization and branch that is already created
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/user-organization/organization/:organization_id/branch/:branch_id/join",
 		Method:       "POST",
 		Note:         "Joins an existing organization and branch.",
@@ -794,7 +795,7 @@ func (c *Controller) UserOrganinzationController() {
 	})
 
 	// Leave a specific organization and branch (must have current organization)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/user-organization/leave",
 		Method: "POST",
 		Note:   "Leaves the current organization and branch (must have current organization token set).",
@@ -838,7 +839,7 @@ func (c *Controller) UserOrganinzationController() {
 	})
 
 	// Check if the user can join as a member
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/user-organization/organization/:organization_id/branch/:branch_id/can-join-member",
 		Method: "GET",
 		Note:   "Checks if the user can join as a member.",
@@ -863,7 +864,7 @@ func (c *Controller) UserOrganinzationController() {
 	})
 
 	// Check if the user can join as an employee
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/user-organization/organization/:organization_id/branch/:branch_id/can-join-employee",
 		Method: "GET",
 		Note:   "Checks if the user can join as an employee.",
@@ -888,7 +889,7 @@ func (c *Controller) UserOrganinzationController() {
 	})
 
 	// Retrieve a specific user organization by ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/user-organization/:user_organization_id",
 		Method:       "GET",
 		Note:         "Returns a specific user organization by ID.",
@@ -907,7 +908,7 @@ func (c *Controller) UserOrganinzationController() {
 	})
 
 	// Accept an employee or member application by ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/user-organization/:user_organization_id/accept",
 		Method: "POST",
 		Note:   "Accepts an employee or member application by ID.",
@@ -981,7 +982,7 @@ func (c *Controller) UserOrganinzationController() {
 	})
 
 	// Reject an employee or member application by ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/user-organization/:user_organization_id/reject",
 		Method: "DELETE",
 		Note:   "Rejects an employee or member application by ID.",
@@ -1054,7 +1055,7 @@ func (c *Controller) UserOrganinzationController() {
 	})
 
 	// Delete a user organization by ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/user-organization/:user_organization_id",
 		Method: "DELETE",
 		Note:   "Deletes a user organization by ID.",
@@ -1095,7 +1096,7 @@ func (c *Controller) UserOrganinzationController() {
 	})
 
 	// Bulk delete user organizations by IDs
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:       "/user-organization/bulk-delete",
 		Method:      "DELETE",
 		RequestType: model.IDSRequest{},
@@ -1185,7 +1186,7 @@ func (c *Controller) UserOrganinzationController() {
 	})
 
 	// Retrieve all employees of the current user's organization
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/user-organization/employee",
 		Method:       "GET",
 		ResponseType: model.UserOrganizationResponse{},
@@ -1204,7 +1205,7 @@ func (c *Controller) UserOrganinzationController() {
 	})
 
 	// Retrieve all members of the current user's organization
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/user-organization/members",
 		Method:       "GET",
 		ResponseType: model.UserOrganizationResponse{},
@@ -1222,7 +1223,7 @@ func (c *Controller) UserOrganinzationController() {
 		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.Filtered(context, ctx, members))
 	})
 
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/user-organization/settings/:user_organization_id",
 		Method:       "PUT",
 		RequestType:  model.UserOrganizationSettingsRequest{},
@@ -1290,7 +1291,7 @@ func (c *Controller) UserOrganinzationController() {
 		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModel(userOrg))
 	})
 
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/user-organization/settings/current",
 		Method:       "PUT",
 		RequestType:  model.UserOrganizationSelfSettingsRequest{},

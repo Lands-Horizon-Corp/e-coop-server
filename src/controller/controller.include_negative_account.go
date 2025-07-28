@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -17,7 +18,7 @@ func (c *Controller) IncludeNegativeAccountController() {
 	req := c.provider.Service.Request
 
 	// GET /include-negative-accounts/computation-sheet/:computation_sheet_id/search
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/include-negative-accounts/computation-sheet/:computation_sheet_id/search",
 		Method:       "GET",
 		ResponseType: model.IncludeNegativeAccountResponse{},
@@ -47,7 +48,7 @@ func (c *Controller) IncludeNegativeAccountController() {
 	})
 
 	// GET /include-negative-accounts/computation-sheet/:computation_sheet_id/search
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/include-negative-accounts/computation-sheet/:computation_sheet_id",
 		Method:       "GET",
 		ResponseType: model.IncludeNegativeAccountResponse{},
@@ -77,7 +78,7 @@ func (c *Controller) IncludeNegativeAccountController() {
 	})
 
 	// POST /include-negative-accounts
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/include-negative-accounts",
 		Method:       "POST",
 		ResponseType: model.IncludeNegativeAccountResponse{},
@@ -141,7 +142,7 @@ func (c *Controller) IncludeNegativeAccountController() {
 	})
 
 	// PUT /include-negative-accounts/:include_negative_accounts_id
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/include-negative-accounts/:include_negative_accounts_id",
 		Method:       "PUT",
 		ResponseType: model.IncludeNegativeAccountResponse{},
@@ -209,7 +210,7 @@ func (c *Controller) IncludeNegativeAccountController() {
 	})
 
 	// DELETE /include-negative-accounts/:include_negative_accounts_id
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/include-negative-accounts/:include_negative_accounts_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified include negative account by its ID.",
@@ -250,7 +251,7 @@ func (c *Controller) IncludeNegativeAccountController() {
 	})
 
 	// DELETE /include-negative-accounts/bulk-delete
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:       "/include-negative-accounts/bulk-delete",
 		Method:      "DELETE",
 		RequestType: model.IDSRequest{},

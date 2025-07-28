@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -17,7 +18,7 @@ func (c *Controller) BankController() {
 	req := c.provider.Service.Request
 
 	// GET /bank: List all banks for the current user's branch. (NO footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/bank",
 		Method:       "GET",
 		Note:         "Returns all banks for the current user's organization and branch. Returns empty if not authenticated.",
@@ -39,7 +40,7 @@ func (c *Controller) BankController() {
 	})
 
 	// GET /bank/search: Paginated search of banks for the current branch. (NO footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/bank/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of banks for the current user's organization and branch.",
@@ -61,7 +62,7 @@ func (c *Controller) BankController() {
 	})
 
 	// GET /bank/:bank_id: Get specific bank by ID. (NO footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/bank/:bank_id",
 		Method:       "GET",
 		Note:         "Returns a single bank by its ID.",
@@ -80,7 +81,7 @@ func (c *Controller) BankController() {
 	})
 
 	// POST /bank: Create a new bank. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/bank",
 		Method:       "POST",
 		Note:         "Creates a new bank for the current user's organization and branch.",
@@ -144,7 +145,7 @@ func (c *Controller) BankController() {
 	})
 
 	// PUT /bank/:bank_id: Update bank by ID. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/bank/:bank_id",
 		Method:       "PUT",
 		Note:         "Updates an existing bank by its ID.",
@@ -211,7 +212,7 @@ func (c *Controller) BankController() {
 	})
 
 	// DELETE /bank/:bank_id: Delete a bank by ID. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/bank/:bank_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified bank by its ID.",
@@ -252,7 +253,7 @@ func (c *Controller) BankController() {
 	})
 
 	// DELETE /bank/bulk-delete: Bulk delete banks by IDs. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:       "/bank/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple banks by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

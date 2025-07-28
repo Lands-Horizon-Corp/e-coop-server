@@ -4,13 +4,14 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
 
 func (c *Controller) MemberAccountingLedgerController() {
 	req := c.provider.Service.Request
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-accounting-ledger/member-profile/:member_profile_id/total",
 		Method:       "GET",
 		ResponseType: model.MemberAccountingLedgerSummary{},
@@ -48,7 +49,7 @@ func (c *Controller) MemberAccountingLedgerController() {
 		return ctx.JSON(http.StatusOK, summary)
 	})
 
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-accounting-ledger/member-profile/:member_profile_id/search",
 		Method:       "GET",
 		ResponseType: model.MemberAccountingLedger{},

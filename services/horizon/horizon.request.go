@@ -12,6 +12,7 @@ import (
 	"github.com/labstack/echo-contrib/echoprometheus"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/rotisserie/eris"
 	"go.uber.org/zap"
 	"golang.org/x/time/rate"
@@ -22,8 +23,7 @@ type APIService interface {
 	Run(ctx context.Context) error
 	Stop(ctx context.Context) error
 	Client() *echo.Echo
-	GetRoute() []Route
-	RegisterRoute(route Route, callback func(c echo.Context) error, m ...echo.MiddlewareFunc)
+	RegisterRoute(route handlers.Route, callback func(c echo.Context) error, m ...echo.MiddlewareFunc)
 }
 
 // TemplateRenderer implements echo.Renderer for HTML templates.
@@ -38,43 +38,14 @@ func (t *TemplateRenderer) Render(w io.Writer, name string, data any, c echo.Con
 	return t.templates.ExecuteTemplate(w, name, data)
 }
 
-// Route describes an API route.
-type Route struct {
-	Route        string `json:"route"`
-	Request      string `json:"request,omitempty"`
-	Response     string `json:"response,omitempty"`
-	RequestType  any
-	ResponseType any
-	Method       string `json:"method"`
-	Note         string `json:"note"`
-	Private      bool   `json:"private,omitempty"`
-}
-
-// GroupedRoute holds a group of routes under a common key.
-
-type GroupedRoute struct {
-	Key    string  `json:"key"`
-	Routes []Route `json:"routes"`
-}
-type APIInterfaces struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
-}
-type API struct {
-	GroupedRoutes []GroupedRoute  `json:"grouped_routes"`
-	Requests      []APIInterfaces `json:"requests"`
-	Responses     []APIInterfaces `json:"responses"`
-}
-
 // HorizonAPIService implements APIService.
 type HorizonAPIService struct {
-	service        *echo.Echo
-	serverPort     int
-	metricsPort    int
-	clientURL      string
-	clientName     string
-	routesList     []Route
-	interfacesList []APIInterfaces
+	service     *echo.Echo
+	serverPort  int
+	metricsPort int
+	clientURL   string
+	clientName  string
+	handler     *handlers.RouteHandler
 }
 
 var (
@@ -243,24 +214,18 @@ func NewHorizonAPIService(
 		metricsPort: metricsPort,
 		clientURL:   clientURL,
 		clientName:  clientName,
-		routesList:  []Route{},
+		handler:     handlers.NewRouteHandler(),
 	}
 }
 
 // Client returns the Echo instance.
 func (h *HorizonAPIService) Client() *echo.Echo { return h.service }
 
-// GetRoute returns all registered routes.
-func (h *HorizonAPIService) GetRoute() []Route { return h.routesList }
-
 // RegisterRoute registers a new route and its handler.
-func (h *HorizonAPIService) RegisterRoute(route Route, callback func(c echo.Context) error, m ...echo.MiddlewareFunc) {
+func (h *HorizonAPIService) RegisterRoute(route handlers.Route, callback func(c echo.Context) error, m ...echo.MiddlewareFunc) {
 	method := strings.ToUpper(strings.TrimSpace(route.Method))
-
-	for _, r := range h.routesList {
-		if strings.EqualFold(r.Route, route.Route) && strings.EqualFold(r.Method, method) {
-			panic(fmt.Sprintf("Route already registered: %s %s", method, route.Route))
-		}
+	if err := h.handler.AddRoute(route); err != nil {
+		panic(err)
 	}
 	switch method {
 	case http.MethodGet:
@@ -273,29 +238,6 @@ func (h *HorizonAPIService) RegisterRoute(route Route, callback func(c echo.Cont
 		h.service.PATCH(route.Route, callback, m...)
 	case http.MethodDelete:
 		h.service.DELETE(route.Route, callback, m...)
-	default:
-		panic(fmt.Sprintf("Unsupported HTTP method: %s for route: %s", method, route.Route))
-	}
-	if !route.Private {
-		tsRequest := TagFormat(route.RequestType)
-		tsResponse := TagFormat(route.ResponseType)
-
-		h.interfacesList = append(h.interfacesList, APIInterfaces{
-			Key:   ExtractTSInterfaceName(tsRequest),
-			Value: tsRequest,
-		})
-		h.interfacesList = append(h.interfacesList, APIInterfaces{
-			Key:   ExtractTSInterfaceName(tsResponse),
-			Value: tsResponse,
-		})
-
-		h.routesList = append(h.routesList, Route{
-			Route:    route.Route,
-			Request:  tsRequest,
-			Response: tsResponse,
-			Method:   method,
-			Note:     route.Note,
-		})
 	}
 }
 
@@ -303,7 +245,7 @@ func (h *HorizonAPIService) RegisterRoute(route Route, callback func(c echo.Cont
 func (h *HorizonAPIService) Run(ctx context.Context) error {
 
 	// New: GET /api/routes returns grouped routes as JSON
-	grouped := h.GroupedRoutes()
+	grouped := h.handler.GroupedRoutes()
 	h.service.GET("/api/routes", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, grouped)
 	}).Name = "horizon-routes-json"

@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -17,7 +18,7 @@ func (c *Controller) ContactController() {
 	req := c.provider.Service.Request
 
 	// GET /contact: List all contact records. (NO footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/contact",
 		Method:       "GET",
 		Note:         "Returns all contact records in the system.",
@@ -32,7 +33,7 @@ func (c *Controller) ContactController() {
 	})
 
 	// GET /contact/:contact_id: Get a specific contact by ID. (NO footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/contact/:contact_id",
 		Method:       "GET",
 		Note:         "Returns a single contact record by its ID.",
@@ -51,7 +52,7 @@ func (c *Controller) ContactController() {
 	})
 
 	// POST /contact: Create a new contact record. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/contact",
 		Method:       "POST",
 		ResponseType: model.ContactUsResponse{},
@@ -98,7 +99,7 @@ func (c *Controller) ContactController() {
 	})
 
 	// DELETE /contact/:contact_id: Delete a contact record by ID. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/contact/:contact_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified contact record by its ID.",
@@ -139,7 +140,7 @@ func (c *Controller) ContactController() {
 	})
 
 	// DELETE /contact/bulk-delete: Bulk delete contact records by IDs. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:       "/contact/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple contact records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

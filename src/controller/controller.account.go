@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -16,7 +17,7 @@ func (c *Controller) AccountController() {
 	req := c.provider.Service.Request
 
 	// GET: Search (NO footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/account/search",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch. Only 'owner' and 'employee' roles are authorized. Returns paginated results.",
@@ -41,7 +42,7 @@ func (c *Controller) AccountController() {
 	})
 
 	// GET: Search (NO footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/account",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch.",
@@ -66,7 +67,7 @@ func (c *Controller) AccountController() {
 	})
 
 	// POST: Create (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/account",
 		Method:       "POST",
 		Note:         "Create a new account for the current branch.",
@@ -213,7 +214,7 @@ func (c *Controller) AccountController() {
 	})
 
 	// GET: Get by ID (NO footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/account/:account_id",
 		Method:       "GET",
 		Note:         "Retrieve a specific account by ID.",
@@ -232,7 +233,7 @@ func (c *Controller) AccountController() {
 	})
 
 	// PUT: Update (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/account/:account_id",
 		Method:       "PUT",
 		Note:         "Update an account by ID.",
@@ -392,7 +393,7 @@ func (c *Controller) AccountController() {
 	})
 
 	// DELETE: Single (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/account/:account_id",
 		Method: "DELETE",
 		Note:   "Delete an account by ID.",
@@ -450,7 +451,7 @@ func (c *Controller) AccountController() {
 	})
 
 	// DELETE: Bulk (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:       "/account/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Bulk delete multiple accounts by their IDs.",
@@ -554,7 +555,7 @@ func (c *Controller) AccountController() {
 	})
 
 	// PUT: Update index (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/account/:account_id/index/:index",
 		Method:       "PUT",
 		Note:         "Update only the index field of an account using URL param.",
@@ -627,7 +628,7 @@ func (c *Controller) AccountController() {
 	})
 
 	// PUT: Remove GeneralLedgerDefinitionID (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/account/:account_id/general-ledger-definition/remove",
 		Method:       "PUT",
 		Note:         "Remove the GeneralLedgerDefinitionID from an account.",

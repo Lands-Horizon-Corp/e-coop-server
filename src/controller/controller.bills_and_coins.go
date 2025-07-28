@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -17,7 +18,7 @@ func (c *Controller) BillAndCoinsController() {
 	req := c.provider.Service.Request
 
 	// GET /bills-and-coins: List all bills and coins for the current user's branch. (NO footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/bills-and-coins",
 		Method:       "GET",
 		Note:         "Returns all bills and coins for the current user's organization and branch. Returns error if not authenticated.",
@@ -39,7 +40,7 @@ func (c *Controller) BillAndCoinsController() {
 	})
 
 	// GET /bills-and-coins/search: Paginated search of bills and coins for current branch. (NO footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/bills-and-coins/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of bills and coins for the current user's organization and branch.",
@@ -61,7 +62,7 @@ func (c *Controller) BillAndCoinsController() {
 	})
 
 	// GET /bills-and-coins/:bills_and_coins_id: Get a specific bills and coins record by ID. (NO footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/bills-and-coins/:bills_and_coins_id",
 		Method:       "GET",
 		Note:         "Returns a bills and coins record by its ID.",
@@ -80,7 +81,7 @@ func (c *Controller) BillAndCoinsController() {
 	})
 
 	// POST /bills-and-coins: Create a new bills and coins record. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/bills-and-coins",
 		Method:       "POST",
 		RequestType:  model.BillAndCoinsRequest{},
@@ -146,7 +147,7 @@ func (c *Controller) BillAndCoinsController() {
 	})
 
 	// PUT /bills-and-coins/:bills_and_coins_id: Update a bills and coins record by ID. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/bills-and-coins/:bills_and_coins_id",
 		Method:       "PUT",
 		RequestType:  model.BillAndCoinsRequest{},
@@ -215,7 +216,7 @@ func (c *Controller) BillAndCoinsController() {
 	})
 
 	// DELETE /bills-and-coins/:bills_and_coins_id: Delete a bills and coins record by ID. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/bills-and-coins/:bills_and_coins_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified bills and coins record by its ID.",
@@ -256,7 +257,7 @@ func (c *Controller) BillAndCoinsController() {
 	})
 
 	// DELETE /bills-and-coins/bulk-delete: Bulk delete bills and coins records by IDs. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:       "/bills-and-coins/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple bills and coins records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

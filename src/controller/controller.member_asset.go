@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -15,7 +16,7 @@ func (c *Controller) MemberAssetController() {
 	req := c.provider.Service.Request
 
 	// POST /member-asset/member-profile/:member_profile_id: Create a new asset record for a member.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-asset/member-profile/:member_profile_id",
 		Method:       "POST",
 		RequestType:  model.MemberAsset{},
@@ -89,7 +90,7 @@ func (c *Controller) MemberAssetController() {
 	})
 
 	// PUT /member-asset/:member_asset_id: Update an existing asset record for a member.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-asset/:member_asset_id",
 		Method:       "PUT",
 		RequestType:  model.MemberAsset{},
@@ -168,7 +169,7 @@ func (c *Controller) MemberAssetController() {
 	})
 
 	// DELETE /member-asset/:member_asset_id: Delete a member's asset record by ID.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/member-asset/:member_asset_id",
 		Method: "DELETE",
 		Note:   "Deletes a member's asset record by its ID.",

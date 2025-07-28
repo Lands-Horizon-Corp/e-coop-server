@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -16,7 +17,7 @@ func (c *Controller) MemberTypeController() {
 	req := c.provider.Service.Request
 
 	// Get all member type history for the current branch
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-type-history",
 		Method:       "GET",
 		ResponseType: model.MemberTypeHistoryResponse{},
@@ -35,7 +36,7 @@ func (c *Controller) MemberTypeController() {
 	})
 
 	// Get member type history by member profile ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-type-history/member-profile/:member_profile_id/search",
 		Method:       "GET",
 		ResponseType: model.MemberTypeHistoryResponse{},
@@ -58,7 +59,7 @@ func (c *Controller) MemberTypeController() {
 	})
 
 	// Get all member types for the current branch
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-type",
 		Method:       "GET",
 		ResponseType: model.MemberTypeResponse{},
@@ -77,7 +78,7 @@ func (c *Controller) MemberTypeController() {
 	})
 
 	// Get paginated member types for the current branch
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-type/search",
 		Method:       "GET",
 		ResponseType: model.MemberTypeResponse{},
@@ -96,7 +97,7 @@ func (c *Controller) MemberTypeController() {
 	})
 
 	// Create a new member type
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-type",
 		Method:       "POST",
 		RequestType:  model.MemberTypeRequest{},
@@ -154,7 +155,7 @@ func (c *Controller) MemberTypeController() {
 	})
 
 	// Update an existing member type by ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-type/:member_type_id",
 		Method:       "PUT",
 		RequestType:  model.MemberTypeRequest{},
@@ -225,7 +226,7 @@ func (c *Controller) MemberTypeController() {
 	})
 
 	// Delete a member type by ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/member-type/:member_type_id",
 		Method: "DELETE",
 		Note:   "Deletes a member type record by its ID.",
@@ -266,7 +267,7 @@ func (c *Controller) MemberTypeController() {
 	})
 
 	// Bulk delete member types by IDs
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:       "/member-type/bulk-delete",
 		Method:      "DELETE",
 		RequestType: model.IDSRequest{},

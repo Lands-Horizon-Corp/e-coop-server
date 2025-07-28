@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -14,7 +15,7 @@ func (c *Controller) MemberExpenseController() {
 	req := c.provider.Service.Request
 
 	// Create a new expense record for a member profile
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-expense/member-profile/:member_profile_id",
 		Method:       "POST",
 		ResponseType: model.MemberExpenseResponse{},
@@ -82,7 +83,7 @@ func (c *Controller) MemberExpenseController() {
 	})
 
 	// Update an existing expense record by its ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-expense/:member_expense_id",
 		Method:       "PUT",
 		RequestType:  model.MemberExpenseRequest{},
@@ -154,7 +155,7 @@ func (c *Controller) MemberExpenseController() {
 	})
 
 	// Delete a member's expense record by its ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/member-expense/:member_expense_id",
 		Method: "DELETE",
 		Note:   "Deletes a member's expense record by its ID.",

@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -17,7 +18,7 @@ func (c *Controller) InvitationCode() {
 	req := c.provider.Service.Request
 
 	// GET /invitation-code: Retrieve all invitation codes for the current user's organization and branch. (NO footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/invitation-code",
 		Method:       "GET",
 		ResponseType: model.InvitationCodeResponse{},
@@ -39,7 +40,7 @@ func (c *Controller) InvitationCode() {
 	})
 
 	// GET /invitation-code/search: Paginated search of invitation codes for current branch. (NO footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:       "/invitation-code/search",
 		Method:      "GET",
 		RequestType: model.InvitationCodeRequest{},
@@ -61,7 +62,7 @@ func (c *Controller) InvitationCode() {
 	})
 
 	// GET /invitation-code/code/:code: Retrieve an invitation code by its code string (for current organization). (NO footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/invitation-code/code/:code",
 		Method:       "GET",
 		Note:         "Returns the invitation code matching the specified code for the current user's organization.",
@@ -77,7 +78,7 @@ func (c *Controller) InvitationCode() {
 	})
 
 	// GET /invitation-code/:invitation_code_id: Retrieve a specific invitation code by its ID. (NO footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/invitation-code/:invitation_code_id",
 		Method:       "GET",
 		Note:         "Returns the details of a specific invitation code by its ID.",
@@ -96,7 +97,7 @@ func (c *Controller) InvitationCode() {
 	})
 
 	// POST /invitation-code: Create a new invitation code for the current user's organization and branch. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/invitation-code",
 		Method:       "POST",
 		ResponseType: model.InvitationCodeResponse{},
@@ -177,7 +178,7 @@ func (c *Controller) InvitationCode() {
 	})
 
 	// PUT /invitation-code/:invitation_code_id: Update an existing invitation code by its ID. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/invitation-code/:invitation_code_id",
 		Method:       "PUT",
 		ResponseType: model.InvitationCodeResponse{},
@@ -259,7 +260,7 @@ func (c *Controller) InvitationCode() {
 	})
 
 	// DELETE /invitation-code/:invitation_code_id: Delete a specific invitation code by its ID. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/invitation-code/:invitation_code_id",
 		Method: "DELETE",
 		Note:   "Deletes a specific invitation code identified by its ID.",
@@ -300,7 +301,7 @@ func (c *Controller) InvitationCode() {
 	})
 
 	// DELETE /invitation-code/bulk-delete: Bulk delete invitation codes by IDs. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:       "/invitation-code/bulk-delete",
 		Method:      "DELETE",
 		RequestType: model.IDSRequest{},

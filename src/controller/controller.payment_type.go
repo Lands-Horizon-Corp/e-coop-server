@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -16,7 +17,7 @@ func (c *Controller) PaymentTypeController() {
 	req := c.provider.Service.Request
 
 	// Get all payment types for the current branch
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/payment-type",
 		Method:       "GET",
 		ResponseType: model.PaymentTypeResponse{},
@@ -35,7 +36,7 @@ func (c *Controller) PaymentTypeController() {
 	})
 
 	// Paginate payment types for the current branch
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/payment-type/search",
 		Method:       "GET",
 		ResponseType: model.PaymentTypeResponse{},
@@ -54,7 +55,7 @@ func (c *Controller) PaymentTypeController() {
 	})
 
 	// Get a payment type by its ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/payment-type/:payment_type_id",
 		Method:       "GET",
 		Note:         "Returns a specific payment type by its ID.",
@@ -73,7 +74,7 @@ func (c *Controller) PaymentTypeController() {
 	})
 
 	// Create a new payment type
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/payment-type",
 		Method:       "POST",
 		ResponseType: model.PaymentTypeResponse{},
@@ -132,7 +133,7 @@ func (c *Controller) PaymentTypeController() {
 	})
 
 	// Update a payment type by its ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/payment-type/:payment_type_id",
 		Method:       "PUT",
 		ResponseType: model.PaymentTypeResponse{},
@@ -201,7 +202,7 @@ func (c *Controller) PaymentTypeController() {
 	})
 
 	// Delete a payment type by its ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/payment-type/:payment_type_id",
 		Method: "DELETE",
 		Note:   "Deletes a payment type record by its ID.",
@@ -242,7 +243,7 @@ func (c *Controller) PaymentTypeController() {
 	})
 
 	// Bulk delete payment types by IDs
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:       "/payment-type/bulk-delete",
 		Method:      "DELETE",
 		RequestType: model.IDSRequest{},

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -15,7 +16,7 @@ func (c *Controller) PermissionTemplateController() {
 	req := c.provider.Service.Request
 
 	// Fetch all permission templates associated with the current user's branch.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/permission-template",
 		Method:       "GET",
 		ResponseType: model.PermissionTemplateResponse{},
@@ -34,7 +35,7 @@ func (c *Controller) PermissionTemplateController() {
 	})
 
 	// Fetch all permission templates (paginated) for the current user's branch.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/permission-template/search",
 		Method:       "GET",
 		ResponseType: model.PermissionTemplateResponse{},
@@ -53,7 +54,7 @@ func (c *Controller) PermissionTemplateController() {
 	})
 
 	// Fetch a single permission template by its ID.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/permission-template/:permission_template_id",
 		Method:       "GET",
 		ResponseType: model.PermissionTemplateResponse{},
@@ -74,7 +75,7 @@ func (c *Controller) PermissionTemplateController() {
 	})
 
 	// Create a new permission template.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/permission-template",
 		Method:       "POST",
 		RequestType:  model.PermissionTemplateRequest{},
@@ -134,7 +135,7 @@ func (c *Controller) PermissionTemplateController() {
 	})
 
 	// Update an existing permission template by its ID.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/permission-template/:permission_template_id",
 		Method:       "PUT",
 		RequestType:  model.PermissionTemplateRequest{},
@@ -210,7 +211,7 @@ func (c *Controller) PermissionTemplateController() {
 	})
 
 	// Delete a permission template by its ID.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/permission-template/:permission_template_id",
 		Method: "DELETE",
 		Note:   "Deletes a permission template by its ID.",

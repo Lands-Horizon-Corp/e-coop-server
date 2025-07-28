@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -16,7 +17,7 @@ func (c *Controller) AccountCategoryController() {
 
 	// SEARCH (GET) - NO FOOTSTEP
 
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/account-category/search",
 		Method:       "GET",
 		Note:         "Retrieve all account categories for the current branch.",
@@ -40,7 +41,7 @@ func (c *Controller) AccountCategoryController() {
 		return ctx.JSON(http.StatusOK, c.model.AccountCategoryManager.Pagination(context, ctx, categories))
 	})
 
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/account-category",
 		Method:       "GET",
 		Note:         "Retrieve all account categories for the current branch (raw).",
@@ -64,7 +65,7 @@ func (c *Controller) AccountCategoryController() {
 		return ctx.JSON(http.StatusOK, c.model.AccountCategoryManager.Filtered(context, ctx, categories))
 	})
 
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/account-category/:account_category_id",
 		Method:       "GET",
 		Note:         "Get an account category by ID.",
@@ -84,7 +85,7 @@ func (c *Controller) AccountCategoryController() {
 
 	// CREATE (POST) - ADD FOOTSTEP
 
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/account-category",
 		Method:       "POST",
 		Note:         "Create a new account category for the current branch.",
@@ -149,7 +150,7 @@ func (c *Controller) AccountCategoryController() {
 
 	// UPDATE (PUT) - ADD FOOTSTEP
 
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/account-category/:account_category_id",
 		Method:       "PUT",
 		Note:         "Update an account category by ID.",
@@ -225,7 +226,7 @@ func (c *Controller) AccountCategoryController() {
 
 	// DELETE (DELETE) - ADD FOOTSTEP
 
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/account-category/:account_category_id",
 		Method: "DELETE",
 		Note:   "Delete an account category by ID.",
@@ -284,7 +285,7 @@ func (c *Controller) AccountCategoryController() {
 
 	// BULK DELETE (DELETE) - ADD FOOTSTEP
 
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:       "/account-category/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Bulk delete multiple account categories by IDs.",

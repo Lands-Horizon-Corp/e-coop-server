@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -16,7 +17,7 @@ func (c *Controller) MemberClassificationController() {
 	req := c.provider.Service.Request
 
 	// Get all member classification history for the current branch
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-classification-history",
 		Method:       "GET",
 		ResponseType: model.MemberClassificationHistoryResponse{},
@@ -35,7 +36,7 @@ func (c *Controller) MemberClassificationController() {
 	})
 
 	// Get member classification history by member profile ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-classification-history/member-profile/:member_profile_id/search",
 		Method:       "GET",
 		ResponseType: model.MemberClassificationHistoryResponse{},
@@ -58,7 +59,7 @@ func (c *Controller) MemberClassificationController() {
 	})
 
 	// Get all member classifications for the current branch
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-classification",
 		Method:       "GET",
 		ResponseType: model.MemberClassificationResponse{},
@@ -77,7 +78,7 @@ func (c *Controller) MemberClassificationController() {
 	})
 
 	// Get paginated member classifications
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-classification/search",
 		Method:       "GET",
 		ResponseType: model.MemberClassificationResponse{},
@@ -96,7 +97,7 @@ func (c *Controller) MemberClassificationController() {
 	})
 
 	// Create a new member classification
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-classification",
 		Method:       "POST",
 		ResponseType: model.MemberClassificationResponse{},
@@ -154,7 +155,7 @@ func (c *Controller) MemberClassificationController() {
 	})
 
 	// Update an existing member classification by ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-classification/:member_classification_id",
 		Method:       "PUT",
 		ResponseType: model.MemberClassificationResponse{},
@@ -222,7 +223,7 @@ func (c *Controller) MemberClassificationController() {
 	})
 
 	// Delete a member classification by ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/member-classification/:member_classification_id",
 		Method: "DELETE",
 		Note:   "Deletes a member classification record by its ID.",
@@ -263,7 +264,7 @@ func (c *Controller) MemberClassificationController() {
 	})
 
 	// Bulk delete member classifications by IDs
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:       "/member-classification/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple member classification records by their IDs.",

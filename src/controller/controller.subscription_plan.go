@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -16,7 +17,7 @@ func (c *Controller) SubscriptionPlanController() {
 	req := c.provider.Service.Request
 
 	// Get all subscription plans
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/subscription-plan",
 		Method:       "GET",
 		ResponseType: model.SubscriptionPlanResponse{},
@@ -31,7 +32,7 @@ func (c *Controller) SubscriptionPlanController() {
 	})
 
 	// Get a subscription plan by its ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/subscription-plan/:subscription_plan_id",
 		Method:       "GET",
 		ResponseType: model.SubscriptionPlanResponse{},
@@ -52,7 +53,7 @@ func (c *Controller) SubscriptionPlanController() {
 	})
 
 	// Create a new subscription plan
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/subscription-plan",
 		Method:       "POST",
 		ResponseType: model.SubscriptionPlanResponse{},
@@ -104,7 +105,7 @@ func (c *Controller) SubscriptionPlanController() {
 	})
 
 	// Update a subscription plan by its ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/subscription-plan/:subscription_plan_id",
 		Method:       "PUT",
 		ResponseType: model.SubscriptionPlanResponse{},
@@ -173,7 +174,7 @@ func (c *Controller) SubscriptionPlanController() {
 	})
 
 	// Delete a subscription plan by its ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/subscription-plan/:subscription_plan_id",
 		Method: "DELETE",
 		Note:   "Deletes a subscription plan by its ID.",
@@ -218,7 +219,7 @@ func (c *Controller) SubscriptionPlanController() {
 	})
 
 	// Bulk delete subscription plans by IDs
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:       "/subscription-plan/bulk-delete",
 		Method:      "DELETE",
 		RequestType: model.IDSRequest{},

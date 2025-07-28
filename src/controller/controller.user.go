@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/cooperative_tokens"
 	"github.com/lands-horizon/horizon-server/src/event"
@@ -17,7 +18,7 @@ func (c *Controller) UserController() {
 	req := c.provider.Service.Request
 
 	// Returns a specific user by their ID.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/user/:user_id",
 		Method:       "GET",
 		ResponseType: model.UserResponse{},
@@ -36,7 +37,7 @@ func (c *Controller) UserController() {
 	})
 
 	// Returns the current authenticated user and their user organization, if any.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/authentication/current",
 		Method:       "GET",
 		ResponseType: model.CurrentUserResponse{},
@@ -61,7 +62,7 @@ func (c *Controller) UserController() {
 	})
 
 	// Returns all currently logged-in users for the session
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/authentication/current-logged-in-accounts",
 		Note:         "Returns all currently logged-in users for the session.",
 		Method:       "GET",
@@ -86,7 +87,7 @@ func (c *Controller) UserController() {
 	})
 
 	// Logout all users including itself for the session
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/authentication/current-logged-in-accounts/logout",
 		Method: "POST",
 		Note:   "Logs out all users including itself for the session.",
@@ -103,7 +104,7 @@ func (c *Controller) UserController() {
 	})
 
 	// Authenticate user login
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/authentication/login",
 		Method:       "POST",
 		RequestType:  model.UserLoginRequest{},
@@ -166,7 +167,7 @@ func (c *Controller) UserController() {
 	})
 
 	// Logout the current user
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/authentication/logout",
 		Method: "POST",
 		Note:   "Logs out the current user.",
@@ -182,7 +183,7 @@ func (c *Controller) UserController() {
 	})
 
 	// Register a new user
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/authentication/register",
 		Method:       "POST",
 		ResponseType: model.CurrentUserResponse{},
@@ -253,7 +254,7 @@ func (c *Controller) UserController() {
 	})
 
 	// Forgot password flow
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:       "/authentication/forgot-password",
 		Method:      "POST",
 		RequestType: model.UserForgotPasswordRequest{},
@@ -330,7 +331,7 @@ func (c *Controller) UserController() {
 	})
 
 	// Verify password reset link
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/authentication/verify-reset-link/:reset_id",
 		Method: "GET",
 		Note:   "Verifies if the reset password link is valid.",
@@ -356,7 +357,7 @@ func (c *Controller) UserController() {
 	})
 
 	// Change password using the reset link
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:       "/authentication/change-password/:reset_id",
 		Method:      "POST",
 		RequestType: model.UserChangePasswordRequest{},
@@ -431,7 +432,7 @@ func (c *Controller) UserController() {
 	})
 
 	// Send OTP for contact number verification
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/authentication/apply-contact-number",
 		Method: "POST",
 		Note:   "Sends OTP for contact number verification.",
@@ -475,7 +476,7 @@ func (c *Controller) UserController() {
 	})
 
 	// Verify OTP for contact number
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/authentication/verify-contact-number",
 		Method:       "POST",
 		RequestType:  model.UserVerifyContactNumberRequest{},
@@ -565,7 +566,7 @@ func (c *Controller) UserController() {
 	})
 
 	// Send OTP for email verification
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/authentication/apply-email",
 		Method: "POST",
 		Note:   "Sends OTP for email verification.",
@@ -609,7 +610,7 @@ func (c *Controller) UserController() {
 	})
 
 	// Verify OTP for email
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/authentication/verify-email",
 		Method: "POST",
 
@@ -700,7 +701,7 @@ func (c *Controller) UserController() {
 	})
 
 	// Verify user with password for self-protected actions
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/authentication/verify-with-password",
 		Method: "POST",
 
@@ -728,7 +729,7 @@ func (c *Controller) UserController() {
 	})
 
 	// Change user's password from profile
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/profile/password",
 		Method:       "PUT",
 		Note:         "Changes the user's password from profile settings.",
@@ -805,7 +806,7 @@ func (c *Controller) UserController() {
 	})
 
 	// Change user's profile picture
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/profile/profile-picture",
 		Method:       "PUT",
 		Note:         "Changes the user's profile picture.",
@@ -872,7 +873,7 @@ func (c *Controller) UserController() {
 	})
 
 	// Change user's general profile settings
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/profile/general",
 		Method:       "PUT",
 		Note:         "Changes the user's general profile settings.",

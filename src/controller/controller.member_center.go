@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -16,7 +17,7 @@ func (c *Controller) MemberCenterController() {
 	req := c.provider.Service.Request
 
 	// Get all member center history for the current branch
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-center-history",
 		Method:       "GET",
 		ResponseType: model.MemberCenterResponse{},
@@ -35,7 +36,7 @@ func (c *Controller) MemberCenterController() {
 	})
 
 	// Get member center history by member profile ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-center-history/member-profile/:member_profile_id/search",
 		Method:       "GET",
 		ResponseType: model.MemberCenterHistoryResponse{},
@@ -58,7 +59,7 @@ func (c *Controller) MemberCenterController() {
 	})
 
 	// Get all member centers for the current branch
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-center",
 		Method:       "GET",
 		ResponseType: model.MemberCenterResponse{},
@@ -77,7 +78,7 @@ func (c *Controller) MemberCenterController() {
 	})
 
 	// Get paginated member centers
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-center/search",
 		Method:       "GET",
 		ResponseType: model.MemberCenterResponse{},
@@ -96,7 +97,7 @@ func (c *Controller) MemberCenterController() {
 	})
 
 	// Create a new member center
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-center",
 		Method:       "POST",
 		ResponseType: model.MemberCenterResponse{},
@@ -153,7 +154,7 @@ func (c *Controller) MemberCenterController() {
 	})
 
 	// Update an existing member center by ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-center/:member_center_id",
 		Method:       "PUT",
 		ResponseType: model.MemberCenterResponse{},
@@ -220,7 +221,7 @@ func (c *Controller) MemberCenterController() {
 	})
 
 	// Delete a member center by ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/member-center/:member_center_id",
 		Method: "DELETE",
 		Note:   "Deletes a member center record by its ID.",
@@ -261,7 +262,7 @@ func (c *Controller) MemberCenterController() {
 	})
 
 	// Bulk delete member centers by IDs
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:       "/member-center/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple member center records by their IDs.",

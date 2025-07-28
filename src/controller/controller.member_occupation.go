@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -16,7 +17,7 @@ func (c *Controller) MemberOccupationController() {
 	req := c.provider.Service.Request
 
 	// Get all member occupation history for the current branch
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-occupation-history",
 		Method:       "GET",
 		ResponseType: model.MemberOccupationHistoryResponse{},
@@ -35,7 +36,7 @@ func (c *Controller) MemberOccupationController() {
 	})
 
 	// Get member occupation history by member profile ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-occupation-history/member-profile/:member_profile_id/search",
 		Method:       "GET",
 		ResponseType: model.MemberOccupationHistoryResponse{},
@@ -58,7 +59,7 @@ func (c *Controller) MemberOccupationController() {
 	})
 
 	// Get all member occupations for the current branch
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-occupation",
 		Method:       "GET",
 		ResponseType: model.MemberOccupationResponse{},
@@ -77,7 +78,7 @@ func (c *Controller) MemberOccupationController() {
 	})
 
 	// Get paginated member occupations
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-occupation/search",
 		Method:       "GET",
 		ResponseType: model.MemberOccupationResponse{},
@@ -96,7 +97,7 @@ func (c *Controller) MemberOccupationController() {
 	})
 
 	// Create a new member occupation
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-occupation",
 		Method:       "POST",
 		ResponseType: model.MemberOccupationResponse{},
@@ -153,7 +154,7 @@ func (c *Controller) MemberOccupationController() {
 	})
 
 	// Update an existing member occupation by ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-occupation/:member_occupation_id",
 		Method:       "PUT",
 		ResponseType: model.MemberOccupationResponse{},
@@ -220,7 +221,7 @@ func (c *Controller) MemberOccupationController() {
 	})
 
 	// Delete a member occupation by ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/member-occupation/:member_occupation_id",
 		Method: "DELETE",
 		Note:   "Deletes a member occupation record by its ID.",
@@ -261,7 +262,7 @@ func (c *Controller) MemberOccupationController() {
 	})
 
 	// Bulk delete member occupations by IDs
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:       "/member-occupation/bulk-delete",
 		Method:      "DELETE",
 		RequestType: model.IDSRequest{},

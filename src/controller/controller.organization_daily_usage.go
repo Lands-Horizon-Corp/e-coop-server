@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -12,7 +13,7 @@ func (c *Controller) OrganizationDailyUsage() {
 	req := c.provider.Service.Request
 
 	// Get daily usage records for the current user's organization
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/organization-daily-usage",
 		Method:       "GET",
 		Note:         "Returns all daily usage records for the current user's organization.",
@@ -31,7 +32,7 @@ func (c *Controller) OrganizationDailyUsage() {
 	})
 
 	// Get a specific organization daily usage record by its ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/organization-daily-usage/:organization_daily_usage_id",
 		Method:       "GET",
 		Note:         "Returns a specific organization daily usage record by its ID.",

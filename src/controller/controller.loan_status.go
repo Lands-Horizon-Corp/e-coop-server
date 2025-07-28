@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -17,7 +18,7 @@ func (c *Controller) LoanStatusController() {
 	req := c.provider.Service.Request
 
 	// GET /loan-status: List all loan statuses for the current user's branch. (NO footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/loan-status",
 		Method:       "GET",
 		ResponseType: model.LoanStatusResponse{},
@@ -39,7 +40,7 @@ func (c *Controller) LoanStatusController() {
 	})
 
 	// GET /loan-status/search: Paginated search of loan statuses for the current branch. (NO footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/loan-status/search",
 		Method:       "GET",
 		ResponseType: model.LoanStatusResponse{},
@@ -61,7 +62,7 @@ func (c *Controller) LoanStatusController() {
 	})
 
 	// GET /loan-status/:loan_status_id: Get a specific loan status record by ID. (NO footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/loan-status/:loan_status_id",
 		Method:       "GET",
 		ResponseType: model.LoanStatusResponse{},
@@ -80,7 +81,7 @@ func (c *Controller) LoanStatusController() {
 	})
 
 	// POST /loan-status: Create a new loan status record. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/loan-status",
 		Method:       "POST",
 		ResponseType: model.LoanStatusResponse{},
@@ -143,7 +144,7 @@ func (c *Controller) LoanStatusController() {
 	})
 
 	// PUT /loan-status/:loan_status_id: Update a loan status record by ID. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/loan-status/:loan_status_id",
 		Method:       "PUT",
 		ResponseType: model.LoanStatusResponse{},
@@ -218,7 +219,7 @@ func (c *Controller) LoanStatusController() {
 	})
 
 	// DELETE /loan-status/:loan_status_id: Delete a loan status record by ID. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/loan-status/:loan_status_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified loan status record by its ID.",
@@ -259,7 +260,7 @@ func (c *Controller) LoanStatusController() {
 	})
 
 	// DELETE /loan-status/bulk-delete: Bulk delete loan status records by IDs. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:       "/loan-status/bulk-delete",
 		Method:      "DELETE",
 		RequestType: model.IDSRequest{},

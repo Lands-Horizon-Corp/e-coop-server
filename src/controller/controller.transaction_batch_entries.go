@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -12,7 +13,7 @@ func (c *Controller) TransactionBatchEntriesController() {
 
 	req := c.provider.Service.Request
 
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/check-entry/transaction-batch/:transaction_batch_id/search",
 		Method:       "GET",
 		ResponseType: model.CheckEntryResponse{},
@@ -38,7 +39,7 @@ func (c *Controller) TransactionBatchEntriesController() {
 		return ctx.JSON(http.StatusOK, c.model.CheckEntryManager.Pagination(context, ctx, check))
 	})
 
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/check-entry/search",
 		Method:       "GET",
 		ResponseType: model.CheckEntryResponse{},
@@ -61,7 +62,7 @@ func (c *Controller) TransactionBatchEntriesController() {
 	})
 
 	// Returns paginated withdrawal entries for a given transaction batch.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/withdrawal-entry/transaction-batch/:transaction_batch_id/search",
 		Method:       "GET",
 		ResponseType: model.WithdrawalEntryResponse{},
@@ -88,7 +89,7 @@ func (c *Controller) TransactionBatchEntriesController() {
 	})
 
 	// Returns paginated deposit entries for a given transaction batch.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/deposit-entry/transaction-batch/:transaction_batch_id/search",
 		Method:       "GET",
 		ResponseType: model.DepositEntryResponse{},

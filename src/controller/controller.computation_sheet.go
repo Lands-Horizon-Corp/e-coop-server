@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -17,7 +18,7 @@ func (c *Controller) ComputationSheetController() {
 	req := c.provider.Service.Request
 
 	// POST /computation-sheet/:computation_sheet_id/calculator: Returns sample calculation data.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/computation-sheet/:computation_sheet_id/calculator",
 		Method: "POST",
 		Note:   "Returns sample payment calculation data for a computation sheet.",
@@ -48,7 +49,7 @@ func (c *Controller) ComputationSheetController() {
 	})
 
 	// GET /computation-sheet: List all computation sheets for the current user's branch.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/computation-sheet",
 		Method:       "GET",
 		Note:         "Returns all computation sheets for the current user's organization and branch.",
@@ -70,7 +71,7 @@ func (c *Controller) ComputationSheetController() {
 	})
 
 	// GET /computation-sheet/:id: Get specific computation sheet by ID.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/computation-sheet/:id",
 		Method:       "GET",
 		ResponseType: model.ComputationSheetResponse{},
@@ -89,7 +90,7 @@ func (c *Controller) ComputationSheetController() {
 	})
 
 	// POST /computation-sheet: Create a new computation sheet.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/computation-sheet",
 		Method:       "POST",
 		RequestType:  model.ComputationSheetRequest{},
@@ -157,7 +158,7 @@ func (c *Controller) ComputationSheetController() {
 	})
 
 	// PUT /computation-sheet/:id: Update computation sheet by ID.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/computation-sheet/:id",
 		Method:       "PUT",
 		RequestType:  model.ComputationSheetRequest{},
@@ -229,7 +230,7 @@ func (c *Controller) ComputationSheetController() {
 	})
 
 	// DELETE /computation-sheet/:id: Delete a computation sheet by ID.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/computation-sheet/:id",
 		Method: "DELETE",
 		Note:   "Deletes the specified computation sheet by its ID.",
@@ -270,7 +271,7 @@ func (c *Controller) ComputationSheetController() {
 	})
 
 	// DELETE /computation-sheet/bulk-delete: Bulk delete computation sheets by IDs.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:       "/computation-sheet/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple computation sheets by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

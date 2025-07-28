@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 )
 
@@ -11,7 +12,7 @@ import (
 func (c *Controller) QRCodeController() {
 	req := c.provider.Service.Request
 
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/qr-code/:code",
 		Method:       "GET",
 		ResponseType: horizon.QRResult{},

@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -16,7 +17,7 @@ func (c *Controller) TagTemplateController() {
 	req := c.provider.Service.Request
 
 	// Returns all tag templates for the current user's branch.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/tag-template",
 		Method:       "GET",
 		ResponseType: model.TagTemplateResponse{},
@@ -38,7 +39,7 @@ func (c *Controller) TagTemplateController() {
 	})
 
 	// Returns paginated tag templates for the current user's branch.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/tag-template/search",
 		Method:       "GET",
 		ResponseType: model.TagTemplateResponse{},
@@ -60,7 +61,7 @@ func (c *Controller) TagTemplateController() {
 	})
 
 	// Returns a single tag template by its ID.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/tag-template/:tag_template_id",
 		Method:       "GET",
 		ResponseType: model.TagTemplateResponse{},
@@ -79,7 +80,7 @@ func (c *Controller) TagTemplateController() {
 	})
 
 	// Creates a new tag template.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/tag-template",
 		Method:       "POST",
 		ResponseType: model.TagTemplateResponse{},
@@ -139,7 +140,7 @@ func (c *Controller) TagTemplateController() {
 	})
 
 	// Updates an existing tag template by its ID.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/tag-template/:tag_template_id",
 		Method:       "PUT",
 		ResponseType: model.TagTemplateResponse{},
@@ -209,7 +210,7 @@ func (c *Controller) TagTemplateController() {
 	})
 
 	// Deletes a tag template by its ID.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/tag-template/:tag_template_id",
 		Method: "DELETE",
 		Note:   "Deletes a tag template by its ID.",
@@ -250,7 +251,7 @@ func (c *Controller) TagTemplateController() {
 	})
 
 	// Deletes multiple tag templates by their IDs.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:       "/tag-template/bulk-delete",
 		Method:      "DELETE",
 		RequestType: model.IDSRequest{},

@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -12,7 +13,7 @@ func (c *Controller) OnlineEntryController() {
 	req := c.provider.Service.Request
 
 	// Returns paginated online entries for a given transaction batch.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/online-entry/transaction-batch/:transaction_batch_id/search",
 		Method:       "GET",
 		ResponseType: model.OnlineEntryResponse{},
@@ -39,7 +40,7 @@ func (c *Controller) OnlineEntryController() {
 	})
 
 	// Returns paginated online entries for a given transaction batch.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/online-entry/search",
 		Method:       "GET",
 		ResponseType: model.OnlineEntryResponse{},

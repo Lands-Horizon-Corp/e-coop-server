@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -17,7 +18,7 @@ func (c *Controller) BrowseExcludeIncludeAccountsController() {
 	req := c.provider.Service.Request
 
 	// GET /browse-exclude-include-accounts/computation-sheet/:computation_sheet_id/search
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/browse-exclude-include-accounts/computation-sheet/:computation_sheet_id/search",
 		Method:       "GET",
 		Note:         "Returns all browse exclude include accounts for a computation sheet in the current user's org/branch.",
@@ -47,7 +48,7 @@ func (c *Controller) BrowseExcludeIncludeAccountsController() {
 	})
 
 	// GET /browse-exclude-include-accounts/computation-sheet/:computation_sheet_id/search
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/browse-exclude-include-accounts/computation-sheet/:computation_sheet_id",
 		Method:       "GET",
 		ResponseType: model.BrowseExcludeIncludeAccountsResponse{},
@@ -77,7 +78,7 @@ func (c *Controller) BrowseExcludeIncludeAccountsController() {
 	})
 
 	// POST /browse-exclude-include-accounts
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/browse-exclude-include-accounts",
 		Method:       "POST",
 		RequestType:  model.BrowseExcludeIncludeAccountsRequest{},
@@ -144,7 +145,7 @@ func (c *Controller) BrowseExcludeIncludeAccountsController() {
 	})
 
 	// PUT /browse-exclude-include-accounts/:browse_exclude_include_accounts_id
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/browse-exclude-include-accounts/:browse_exclude_include_accounts_id",
 		Method:       "PUT",
 		Note:         "Updates an existing browse exclude include account by its ID.",
@@ -215,7 +216,7 @@ func (c *Controller) BrowseExcludeIncludeAccountsController() {
 	})
 
 	// DELETE /browse-exclude-include-accounts/:browse_exclude_include_accounts_id
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/browse-exclude-include-accounts/:browse_exclude_include_accounts_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified browse exclude include account by its ID.",
@@ -256,7 +257,7 @@ func (c *Controller) BrowseExcludeIncludeAccountsController() {
 	})
 
 	// DELETE /browse-exclude-include-accounts/bulk-delete
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/browse-exclude-include-accounts/bulk-delete",
 		Method:       "DELETE",
 		Note:         "Deletes multiple browse exclude include accounts by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -17,7 +18,7 @@ func (c *Controller) CategoryController() {
 	req := c.provider.Service.Request
 
 	// GET /category: List all categories. (NO footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/category",
 		Method:       "GET",
 		Note:         "Returns all categories in the system.",
@@ -32,7 +33,7 @@ func (c *Controller) CategoryController() {
 	})
 
 	// GET /category/:category_id: Get a specific category by ID. (NO footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/category/:category_id",
 		Method:       "GET",
 		Note:         "Returns a single category by its ID.",
@@ -53,7 +54,7 @@ func (c *Controller) CategoryController() {
 	})
 
 	// POST /category: Create a new category. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/category",
 		Method:       "POST",
 		Note:         "Creates a new category.",
@@ -99,7 +100,7 @@ func (c *Controller) CategoryController() {
 	})
 
 	// PUT /category/:category_id: Update a category by ID. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/category/:category_id",
 		Method:       "PUT",
 		Note:         "Updates an existing category by its ID.",
@@ -162,7 +163,7 @@ func (c *Controller) CategoryController() {
 	})
 
 	// DELETE /category/:category_id: Delete a category by ID. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/category/:category_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified category by its ID.",
@@ -207,7 +208,7 @@ func (c *Controller) CategoryController() {
 	})
 
 	// DELETE /category/bulk-delete: Bulk delete categories by IDs. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:       "/category/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple categories by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

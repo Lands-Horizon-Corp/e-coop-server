@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -15,7 +16,7 @@ func (c *Controller) AccountClassificationController() {
 	req := c.provider.Service.Request
 
 	// GET endpoints (no footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/account-classification/search",
 		Method:       "GET",
 		Note:         "Retrieve all account classifications for the current branch.",
@@ -39,7 +40,7 @@ func (c *Controller) AccountClassificationController() {
 		return ctx.JSON(http.StatusOK, c.model.AccountClassificationManager.Pagination(context, ctx, classifications))
 	})
 
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/account-classification",
 		Method:       "GET",
 		Note:         "Retrieve all account classifications for the current branch (raw).",
@@ -63,7 +64,7 @@ func (c *Controller) AccountClassificationController() {
 		return ctx.JSON(http.StatusOK, c.model.AccountClassificationManager.Filtered(context, ctx, classifications))
 	})
 
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/account-classification/:account_classification_id",
 		Method:       "GET",
 		Note:         "Get an account classification by ID.",
@@ -82,7 +83,7 @@ func (c *Controller) AccountClassificationController() {
 	})
 
 	// POST - Create (with footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/account-classification",
 		Method:       "POST",
 		Note:         "Create a new account classification for the current branch.",
@@ -145,7 +146,7 @@ func (c *Controller) AccountClassificationController() {
 	})
 
 	// PUT - Update (with footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/account-classification/:account_classification_id",
 		Method:       "PUT",
 		Note:         "Update an account classification by ID.",
@@ -220,7 +221,7 @@ func (c *Controller) AccountClassificationController() {
 	})
 
 	// DELETE (single) - with footstep
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/account-classification/:account_classification_id",
 		Method: "DELETE",
 		Note:   "Delete an account classification by ID.",
@@ -278,7 +279,7 @@ func (c *Controller) AccountClassificationController() {
 	})
 
 	// BULK DELETE (with footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:       "/account-classification/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Bulk delete multiple account classifications by IDs.",

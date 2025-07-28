@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -14,7 +15,7 @@ func (c *Controller) OnlineRemittanceController() {
 	req := c.provider.Service.Request
 
 	// Retrieve batch online remittance (JWT) for the current transaction batch before ending.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/online-remittance",
 		Method:       "GET",
 		ResponseType: model.OnlineRemittanceResponse{},
@@ -54,7 +55,7 @@ func (c *Controller) OnlineRemittanceController() {
 	})
 
 	// Create a new online remittance for the current transaction batch before ending.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/online-remittance",
 		Method:       "POST",
 		ResponseType: model.OnlineRemittanceResponse{},
@@ -189,7 +190,7 @@ func (c *Controller) OnlineRemittanceController() {
 	})
 
 	// Update an existing online remittance by ID for the current transaction batch.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/online-remittance/:online_remittance_id",
 		Method:       "PUT",
 		ResponseType: model.OnlineRemittanceResponse{},
@@ -359,7 +360,7 @@ func (c *Controller) OnlineRemittanceController() {
 	})
 
 	// Delete an existing online remittance by ID for the current transaction batch.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/online-remittance/:online_remittance_id",
 		Method: "DELETE",
 		Note:   "Deletes an online remittance by its ID for the current active transaction batch.",

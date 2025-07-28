@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -12,7 +13,7 @@ func (c *Controller) CashEntryController() {
 	req := c.provider.Service.Request
 
 	// Returns paginated cash entries for a given transaction batch.
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/cash-entry/transaction-batch/:transaction_batch_id/search",
 		Method:       "GET",
 		ResponseType: model.CashEntryResponse{},
@@ -38,7 +39,7 @@ func (c *Controller) CashEntryController() {
 		return ctx.JSON(http.StatusOK, c.model.CashEntryManager.Pagination(context, ctx, cash))
 	})
 
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/cash-entry/transaction-batch/:transaction_batch_id",
 		Method:       "GET",
 		Note:         "Returns paginated cash entries for the specified transaction batch.",

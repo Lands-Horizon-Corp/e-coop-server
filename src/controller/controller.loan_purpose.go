@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -17,7 +18,7 @@ func (c *Controller) LoanPurposeController() {
 	req := c.provider.Service.Request
 
 	// GET /loan-purpose: List all loan purposes for the current user's branch. (NO footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/loan-purpose",
 		Method:       "GET",
 		ResponseType: model.LoanPurposeResponse{},
@@ -39,7 +40,7 @@ func (c *Controller) LoanPurposeController() {
 	})
 
 	// GET /loan-purpose/search: Paginated search of loan purposes for the current branch. (NO footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/loan-purpose/search",
 		Method:       "GET",
 		ResponseType: model.LoanPurposeResponse{},
@@ -61,7 +62,7 @@ func (c *Controller) LoanPurposeController() {
 	})
 
 	// GET /loan-purpose/:loan_purpose_id: Get a specific loan purpose record by ID. (NO footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/loan-purpose/:loan_purpose_id",
 		Method:       "GET",
 		Note:         "Returns a loan purpose record by its ID.",
@@ -80,7 +81,7 @@ func (c *Controller) LoanPurposeController() {
 	})
 
 	// POST /loan-purpose: Create a new loan purpose record. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/loan-purpose",
 		Method:       "POST",
 		RequestType:  model.LoanPurposeRequest{},
@@ -141,7 +142,7 @@ func (c *Controller) LoanPurposeController() {
 	})
 
 	// PUT /loan-purpose/:loan_purpose_id: Update a loan purpose record by ID. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/loan-purpose/:loan_purpose_id",
 		Method:       "PUT",
 		RequestType:  model.LoanPurposeRequest{},
@@ -214,7 +215,7 @@ func (c *Controller) LoanPurposeController() {
 	})
 
 	// DELETE /loan-purpose/:loan_purpose_id: Delete a loan purpose record by ID. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/loan-purpose/:loan_purpose_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified loan purpose record by its ID.",
@@ -255,7 +256,7 @@ func (c *Controller) LoanPurposeController() {
 	})
 
 	// DELETE /loan-purpose/bulk-delete: Bulk delete loan purpose records by IDs. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:       "/loan-purpose/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple loan purpose records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

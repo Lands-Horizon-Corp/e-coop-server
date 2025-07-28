@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -17,7 +18,7 @@ func (c *Controller) HolidayController() {
 	req := c.provider.Service.Request
 
 	// GET /holiday: List all holidays for the current user's branch. (NO footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/holiday",
 		Method:       "GET",
 		ResponseType: model.HolidayResponse{},
@@ -39,7 +40,7 @@ func (c *Controller) HolidayController() {
 	})
 
 	// GET /holiday/search: Paginated search of holidays for current branch. (NO footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/holiday/search",
 		Method:       "GET",
 		ResponseType: model.HolidayResponse{},
@@ -61,7 +62,7 @@ func (c *Controller) HolidayController() {
 	})
 
 	// GET /holiday/:holiday_id: Get a specific holiday record by ID. (NO footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/holiday/:holiday_id",
 		Method:       "GET",
 		ResponseType: model.HolidayResponse{},
@@ -81,7 +82,7 @@ func (c *Controller) HolidayController() {
 	})
 
 	// POST /holiday: Create a new holiday record. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/holiday",
 		Method:       "POST",
 		ResponseType: model.HolidayResponse{},
@@ -143,7 +144,7 @@ func (c *Controller) HolidayController() {
 	})
 
 	// PUT /holiday/:holiday_id: Update a holiday record by ID. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/holiday/:holiday_id",
 		Method:       "PUT",
 		ResponseType: model.HolidayResponse{},
@@ -217,7 +218,7 @@ func (c *Controller) HolidayController() {
 	})
 
 	// DELETE /holiday/:holiday_id: Delete a holiday record by ID. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/holiday/:holiday_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified holiday record by its ID.",
@@ -258,7 +259,7 @@ func (c *Controller) HolidayController() {
 	})
 
 	// DELETE /holiday/bulk-delete: Bulk delete holiday records by IDs. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:       "/holiday/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple holiday records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

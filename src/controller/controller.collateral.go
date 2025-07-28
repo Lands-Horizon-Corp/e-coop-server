@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -17,7 +18,7 @@ func (c *Controller) CollateralController() {
 	req := c.provider.Service.Request
 
 	// GET /collateral: List all collaterals for the current user's branch. (NO footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/collateral",
 		Method:       "GET",
 		Note:         "Returns all collateral records for the current user's organization and branch. Returns error if not authenticated.",
@@ -39,7 +40,7 @@ func (c *Controller) CollateralController() {
 	})
 
 	// GET /collateral/search: Paginated search of collaterals for current branch. (NO footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/collateral/search",
 		Method:       "GET",
 		ResponseType: model.CollateralResponse{},
@@ -61,7 +62,7 @@ func (c *Controller) CollateralController() {
 	})
 
 	// GET /collateral/:collateral_id: Get a specific collateral record by ID. (NO footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/collateral/:collateral_id",
 		Method:       "GET",
 		Note:         "Returns a collateral record by its ID.",
@@ -80,7 +81,7 @@ func (c *Controller) CollateralController() {
 	})
 
 	// POST /collateral: Create a new collateral record. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/collateral",
 		Method:       "POST",
 		RequestType:  model.CollateralRequest{},
@@ -145,7 +146,7 @@ func (c *Controller) CollateralController() {
 	})
 
 	// PUT /collateral/:collateral_id: Update a collateral record by ID. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/collateral/:collateral_id",
 		Method:       "PUT",
 		RequestType:  model.CollateralRequest{},
@@ -212,7 +213,7 @@ func (c *Controller) CollateralController() {
 	})
 
 	// DELETE /collateral/:collateral_id: Delete a collateral record by ID. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/collateral/:collateral_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified collateral record by its ID.",
@@ -253,7 +254,7 @@ func (c *Controller) CollateralController() {
 	})
 
 	// DELETE /collateral/bulk-delete: Bulk delete collateral records by IDs. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:       "/collateral/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple collateral records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

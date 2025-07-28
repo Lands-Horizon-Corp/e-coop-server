@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -18,7 +19,7 @@ func (c *Controller) MediaController() {
 	req := c.provider.Service.Request
 
 	// GET /media: List all media records. (NO footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/media",
 		Method:       "GET",
 		Note:         "Returns all media records in the system.",
@@ -33,7 +34,7 @@ func (c *Controller) MediaController() {
 	})
 
 	// GET /media/:media_id: Get a specific media record by ID. (NO footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/media/:media_id",
 		Method:       "GET",
 		Note:         "Returns a specific media record by its ID.",
@@ -53,7 +54,7 @@ func (c *Controller) MediaController() {
 	})
 
 	// POST /media: Upload a new media file. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/media",
 		Method:       "POST",
 		ResponseType: model.MediaResponse{},
@@ -140,7 +141,7 @@ func (c *Controller) MediaController() {
 	})
 
 	// PUT /media/:media_id: Update media file's name. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/media/:media_id",
 		Method:       "PUT",
 		RequestType:  model.MediaRequest{},
@@ -194,7 +195,7 @@ func (c *Controller) MediaController() {
 	})
 
 	// DELETE /media/:media_id: Delete a media record by ID. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/media/:media_id",
 		Method: "DELETE",
 		Note:   "Deletes a specific media record by its ID and associated file.",
@@ -235,7 +236,7 @@ func (c *Controller) MediaController() {
 	})
 
 	// DELETE /media/bulk-delete: Bulk delete media records by IDs. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:       "/media/bulk-delete",
 		Method:      "DELETE",
 		RequestType: model.IDSRequest{},

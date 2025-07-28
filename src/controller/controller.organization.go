@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -15,7 +16,7 @@ func (c *Controller) OrganizationController() {
 	req := c.provider.Service.Request
 
 	// Get all public organizations
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/organization",
 		Method:       "GET",
 		ResponseType: model.OrganizationResponse{},
@@ -30,7 +31,7 @@ func (c *Controller) OrganizationController() {
 	})
 
 	// Get an organization by its ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/organization/:organization_id",
 		Method:       "GET",
 		ResponseType: model.OrganizationResponse{},
@@ -50,7 +51,7 @@ func (c *Controller) OrganizationController() {
 	})
 
 	// Create a new organization (user must be logged in)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/organization",
 		Method:       "POST",
 		RequestType:  model.OrganizationRequest{},
@@ -239,7 +240,7 @@ func (c *Controller) OrganizationController() {
 	})
 
 	// Update an organization (user must be logged in)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/organization/:organization_id",
 		Method:       "PUT",
 		RequestType:  model.OrganizationRequest{},
@@ -387,7 +388,7 @@ func (c *Controller) OrganizationController() {
 	})
 
 	// Delete an organization (user must be logged in)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/organization/:organization_id",
 		Method: "DELETE",
 		Note:   "Deletes an organization. User must be logged in.",

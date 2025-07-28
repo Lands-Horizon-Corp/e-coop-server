@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -16,7 +17,7 @@ func (c *Controller) FinancialStatementController() {
 	req := c.provider.Service.Request
 
 	// GET /financial-statement-grouping: List all financial statement groupings for the current branch. (NO footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/financial-statement-grouping",
 		Method:       "GET",
 		ResponseType: model.FinancialStatementGroupingResponse{},
@@ -63,7 +64,7 @@ func (c *Controller) FinancialStatementController() {
 	})
 
 	// PUT /financial-statement-grouping/:financial_statement_grouping_id: Update a financial statement grouping. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/financial-statement-grouping/:financial_statement_grouping_id",
 		Method:       "PUT",
 		RequestType:  model.FinancialStatementGroupingRequest{},
@@ -143,7 +144,7 @@ func (c *Controller) FinancialStatementController() {
 	})
 
 	// GET /financial-statement-definition: List all financial statement definitions for the current branch. (NO footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/financial-statement-definition",
 		Method:       "GET",
 		ResponseType: model.FinancialStatementDefinitionResponse{},
@@ -168,7 +169,7 @@ func (c *Controller) FinancialStatementController() {
 	})
 
 	// POST /financial-statement-definition: Create a new financial statement definition. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/financial-statement-definition",
 		Method:       "POST",
 		RequestType:  model.FinancialStatementDefinitionRequest{},
@@ -237,7 +238,7 @@ func (c *Controller) FinancialStatementController() {
 	})
 
 	// PUT /financial-statement-definition/:financial_statement_definition_id: Update a financial statement definition. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/financial-statement-definition/:financial_statement_definition_id",
 		Method:       "PUT",
 		Note:         "Updates an existing financial statement definition by its ID.",
@@ -318,7 +319,7 @@ func (c *Controller) FinancialStatementController() {
 	})
 
 	// POST /financial-statement-definition/:financial_statement_definition_id/account/:account_id/connect: Connect an account to a financial statement definition. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/financial-statement-definition/:financial_statement_definition_id/account/:account_id/connect",
 		Method:       "POST",
 		ResponseType: model.FinancialStatementDefinitionResponse{},
@@ -424,7 +425,7 @@ func (c *Controller) FinancialStatementController() {
 	})
 
 	// PUT /financial-statement-definition/:financial_statement_definition_id/index/:index: Update the index of a financial statement definition. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/financial-statement-definition/:financial_statement_definition_id/index/:index",
 		Method:       "PUT",
 		ResponseType: model.FinancialStatementDefinitionResponse{},
@@ -495,7 +496,7 @@ func (c *Controller) FinancialStatementController() {
 	})
 
 	// PUT /financial-statement-grouping/financial-statement-definition/:financial_statement_definition_id/account/:account_id/index: Update the index of an account within a financial statement definition. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/financial-statement-grouping/financial-statement-definition/:financial_statement_definition_id/account/:account_id/index",
 		Method:       "PUT",
 		ResponseType: model.FinancialStatementDefinitionResponse{},
@@ -632,7 +633,7 @@ func (c *Controller) FinancialStatementController() {
 	})
 
 	// DELETE /financial-statement-definition/:financial_statement_definition_id: Delete a financial statement definition by ID, only if no accounts are linked. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/financial-statement-definition/:financial_statement_definition_id",
 		Method: "DELETE",
 		Note:   "Deletes a financial statement definition by its ID, only if no accounts are linked.",

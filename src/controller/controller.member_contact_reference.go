@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -14,7 +15,7 @@ func (c *Controller) MemberContactReferenceController() {
 	req := c.provider.Service.Request
 
 	// Create a new contact reference for a member profile
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-contact-reference/member-profile/:member_profile_id",
 		Method:       "POST",
 		ResponseType: model.MemberContactReferenceResponse{},
@@ -82,7 +83,7 @@ func (c *Controller) MemberContactReferenceController() {
 	})
 
 	// Update an existing contact reference by its ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-contact-reference/:member_contact_reference_id",
 		Method:       "PUT",
 		ResponseType: model.MemberContactReferenceResponse{},
@@ -153,7 +154,7 @@ func (c *Controller) MemberContactReferenceController() {
 	})
 
 	// Delete a contact reference by its ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/member-contact-reference/:member_contact_reference_id",
 		Method: "DELETE",
 		Note:   "Deletes a contact reference entry by its ID.",

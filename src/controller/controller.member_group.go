@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -16,7 +17,7 @@ func (c *Controller) MemberGroupController() {
 	req := c.provider.Service.Request
 
 	// Get all member group history for the current branch
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-group-history",
 		Method:       "GET",
 		ResponseType: model.MemberGroupHistoryResponse{},
@@ -35,7 +36,7 @@ func (c *Controller) MemberGroupController() {
 	})
 
 	// Get member group history by member profile ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-group-history/member-profile/:member_profile_id/search",
 		Method:       "GET",
 		ResponseType: model.MemberGroupHistoryResponse{},
@@ -58,7 +59,7 @@ func (c *Controller) MemberGroupController() {
 	})
 
 	// Get all member groups for the current branch
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-group",
 		Method:       "GET",
 		ResponseType: model.MemberGroupResponse{},
@@ -77,7 +78,7 @@ func (c *Controller) MemberGroupController() {
 	})
 
 	// Get paginated member groups
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-group/search",
 		Method:       "GET",
 		RequestType:  model.MemberGroupRequest{},
@@ -97,7 +98,7 @@ func (c *Controller) MemberGroupController() {
 	})
 
 	// Create a new member group
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-group",
 		Method:       "POST",
 		ResponseType: model.MemberGroupResponse{},
@@ -154,7 +155,7 @@ func (c *Controller) MemberGroupController() {
 	})
 
 	// Update an existing member group by ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-group/:member_group_id",
 		Method:       "PUT",
 		ResponseType: model.MemberGroupResponse{},
@@ -221,7 +222,7 @@ func (c *Controller) MemberGroupController() {
 	})
 
 	// Delete a member group by ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/member-group/:member_group_id",
 		Method: "DELETE",
 		Note:   "Deletes a member group record by its ID.",
@@ -262,7 +263,7 @@ func (c *Controller) MemberGroupController() {
 	})
 
 	// Bulk delete member groups by IDs
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-group/bulk-delete",
 		Method:       "DELETE",
 		ResponseType: model.IDSRequest{},

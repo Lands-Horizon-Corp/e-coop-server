@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -17,7 +18,7 @@ func (c *Controller) FeedbackController() {
 	req := c.provider.Service.Request
 
 	// GET /feedback: List all feedback records. (NO footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/feedback",
 		Method:       "GET",
 		Note:         "Returns all feedback records in the system.",
@@ -32,7 +33,7 @@ func (c *Controller) FeedbackController() {
 	})
 
 	// GET /feedback/:feedback_id: Get a specific feedback by ID. (NO footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/feedback/:feedback_id",
 		Method:       "GET",
 		Note:         "Returns a single feedback record by its ID.",
@@ -53,7 +54,7 @@ func (c *Controller) FeedbackController() {
 	})
 
 	// POST /feedback: Create a new feedback record. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/feedback",
 		Method:       "POST",
 		Note:         "Creates a new feedback record.",
@@ -99,7 +100,7 @@ func (c *Controller) FeedbackController() {
 	})
 
 	// DELETE /feedback/:feedback_id: Delete a feedback record by ID. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/feedback/:feedback_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified feedback record by its ID.",
@@ -144,7 +145,7 @@ func (c *Controller) FeedbackController() {
 	})
 
 	// DELETE /feedback/bulk-delete: Bulk delete feedback records by IDs. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:       "/feedback/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple feedback records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

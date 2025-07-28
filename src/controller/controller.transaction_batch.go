@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -14,7 +15,7 @@ func (c *Controller) TransactionBatchController() {
 	req := c.provider.Service.Request
 
 	// List all transaction batches for the current branch
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/transaction-batch",
 		Method:       "GET",
 		ResponseType: model.TransactionBatchResponse{},
@@ -39,7 +40,7 @@ func (c *Controller) TransactionBatchController() {
 	})
 
 	// Paginate transaction batches for current branch
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/transaction-batch/search",
 		Method:       "GET",
 		ResponseType: model.TransactionBatchResponse{},
@@ -58,7 +59,7 @@ func (c *Controller) TransactionBatchController() {
 	})
 
 	// Update batch signatures for a transaction batch
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/transaction-batch/:transaction_batch_id/signature",
 		Method:       "PUT",
 		ResponseType: model.TransactionBatchResponse{},
@@ -171,7 +172,7 @@ func (c *Controller) TransactionBatchController() {
 	})
 
 	// Get the current active transaction batch for the user
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/transaction-batch/current",
 		Method:       "GET",
 		ResponseType: model.TransactionBatchResponse{},
@@ -204,7 +205,7 @@ func (c *Controller) TransactionBatchController() {
 	})
 
 	// Update deposit in bank amount for a specific transaction batch
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/transaction-batch/:transaction_batch_id/deposit-in-bank",
 		Method:       "PUT",
 		ResponseType: model.TransactionBatchResponse{},
@@ -341,7 +342,7 @@ func (c *Controller) TransactionBatchController() {
 	})
 
 	// Create a new transaction batch and batch funding
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/transaction-batch",
 		Method:       "POST",
 		ResponseType: model.TransactionBatchResponse{},
@@ -479,7 +480,7 @@ func (c *Controller) TransactionBatchController() {
 	})
 
 	// End the current transaction batch for the authenticated user
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/transaction-batch/end",
 		Method:       "PUT",
 		RequestType:  model.TransactionBatchEndRequest{},
@@ -562,7 +563,7 @@ func (c *Controller) TransactionBatchController() {
 	})
 
 	// Retrieve a transaction batch by its ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/transaction-batch/:transaction_batch_id",
 		Method:       "GET",
 		Note:         "Returns a transaction batch by its ID.",
@@ -595,7 +596,7 @@ func (c *Controller) TransactionBatchController() {
 	})
 
 	// Submit a request to view (blotter) a specific transaction batch
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/transaction-batch/:transaction_batch_id/view-request",
 		Method:       "PUT",
 		RequestType:  model.TransactionBatchEndRequest{},
@@ -674,7 +675,7 @@ func (c *Controller) TransactionBatchController() {
 	})
 
 	// List all pending view (blotter) requests for transaction batches
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/transaction-batch/view-request",
 		Method:       "GET",
 		Note:         "Returns all pending view (blotter) requests for transaction batches on the current branch.",
@@ -696,7 +697,7 @@ func (c *Controller) TransactionBatchController() {
 	})
 
 	// List all ended (closed) batches for the current day
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/transaction-batch/ended-batch",
 		Method:       "GET",
 		Note:         "Returns all ended (closed) transaction batches for the current day.",
@@ -718,7 +719,7 @@ func (c *Controller) TransactionBatchController() {
 	})
 
 	// Accept a view (blotter) request for a transaction batch by ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/transaction-batch/:transaction_batch_id/view-accept",
 		Method:       "PUT",
 		Note:         "Accepts a view (blotter) request for a transaction batch by its ID.",
@@ -790,7 +791,7 @@ func (c *Controller) TransactionBatchController() {
 
 		return ctx.JSON(http.StatusOK, c.model.TransactionBatchManager.ToModel(transactionBatch))
 	})
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/transaction-batch/employee/:user_organization_id/search",
 		Method:       "GET",
 		ResponseType: model.TransactionBatchResponse{},

@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -16,7 +17,7 @@ func (c *Controller) MemberTypeReferenceController() {
 	req := c.provider.Service.Request
 
 	// Get all member type references by member_type_id for the current branch
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-type-reference/member-type/:member_type_id/search",
 		Method:       "GET",
 		ResponseType: model.MemberTypeReferenceResponse{},
@@ -46,7 +47,7 @@ func (c *Controller) MemberTypeReferenceController() {
 	})
 
 	// Get a single member type reference by its ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-type-reference/:member_type_reference_id",
 		Method:       "GET",
 		ResponseType: model.MemberTypeReferenceResponse{},
@@ -65,7 +66,7 @@ func (c *Controller) MemberTypeReferenceController() {
 	})
 
 	// Create a new member type reference
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-type-reference",
 		Method:       "POST",
 		ResponseType: model.MemberTypeReferenceResponse{},
@@ -131,7 +132,7 @@ func (c *Controller) MemberTypeReferenceController() {
 	})
 
 	// Update an existing member type reference by its ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-type-reference/:member_type_reference_id",
 		Method:       "PUT",
 		ResponseType: model.MemberTypeReferenceResponse{},
@@ -207,7 +208,7 @@ func (c *Controller) MemberTypeReferenceController() {
 	})
 
 	// Delete a member type reference by its ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/member-type-reference/:member_type_reference_id",
 		Method: "DELETE",
 		Note:   "Deletes a member type reference by its ID.",
@@ -239,7 +240,7 @@ func (c *Controller) MemberTypeReferenceController() {
 	})
 
 	// Bulk delete member type references by IDs
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:       "/member-type-reference/bulk-delete",
 		Method:      "DELETE",
 		RequestType: model.IDSRequest{},

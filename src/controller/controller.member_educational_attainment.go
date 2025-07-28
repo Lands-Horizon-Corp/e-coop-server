@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -16,7 +17,7 @@ func (c *Controller) MemberEducationalAttainmentController() {
 	req := c.provider.Service.Request
 
 	// Create a new educational attainment record for a member profile
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-educational-attainment/member-profile/:member_profile_id",
 		Method:       "POST",
 		RequestType:  model.MemberEducationalAttainmentRequest{},
@@ -86,7 +87,7 @@ func (c *Controller) MemberEducationalAttainmentController() {
 	})
 
 	// Update an existing educational attainment record by its ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-educational-attainment/:member_educational_attainment_id",
 		Method:       "PUT",
 		RequestType:  model.MemberEducationalAttainmentRequest{},
@@ -160,7 +161,7 @@ func (c *Controller) MemberEducationalAttainmentController() {
 	})
 
 	// Delete an educational attainment record by its ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/member-educational-attainment/:member_educational_attainment_id",
 		Method: "DELETE",
 		Note:   "Deletes a member's educational attainment record by its ID.",
@@ -201,7 +202,7 @@ func (c *Controller) MemberEducationalAttainmentController() {
 	})
 
 	// Bulk delete educational attainment records by IDs
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:       "/member-educational-attainment/bulk-delete",
 		Method:      "DELETE",
 		RequestType: model.IDSRequest{},

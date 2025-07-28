@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -16,7 +17,7 @@ func (c *Controller) MemberProfileController() {
 	req := c.provider.Service.Request
 
 	// Get all pending member profiles in the current branch
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-profile/pending",
 		Method:       "GET",
 		ResponseType: model.MemberProfileResponse{},
@@ -42,7 +43,7 @@ func (c *Controller) MemberProfileController() {
 	})
 
 	// Quickly create a new user account and link it to a member profile by ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-profile/:member_profile_id/user-account",
 		Method:       "POST",
 		RequestType:  model.MemberProfileUserAccountRequest{},
@@ -218,7 +219,7 @@ func (c *Controller) MemberProfileController() {
 	})
 
 	// Approve a member profile by ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-profile/:member_profile_id/approve",
 		Method:       "PUT",
 		ResponseType: model.MemberProfileResponse{},
@@ -279,7 +280,7 @@ func (c *Controller) MemberProfileController() {
 	})
 
 	// Reject a member profile by ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-profile/:member_profile_id/reject",
 		Method:       "PUT",
 		ResponseType: model.MemberProfileResponse{},
@@ -339,7 +340,7 @@ func (c *Controller) MemberProfileController() {
 	})
 
 	// Retrieve a list of all member profiles in the current branch
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-profile",
 		Method:       "GET",
 		ResponseType: model.MemberProfileResponse{},
@@ -358,7 +359,7 @@ func (c *Controller) MemberProfileController() {
 	})
 
 	// Retrieve paginated member profiles for the current branch
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-profile/search",
 		Method:       "GET",
 		ResponseType: model.MemberProfileResponse{},
@@ -377,7 +378,7 @@ func (c *Controller) MemberProfileController() {
 	})
 
 	// Retrieve a specific member profile by member_profile_id
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-profile/:member_profile_id",
 		Method:       "GET",
 		ResponseType: model.MemberProfileResponse{},
@@ -396,7 +397,7 @@ func (c *Controller) MemberProfileController() {
 	})
 
 	// Delete a specific member profile by its member_profile_id
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/member-profile/:member_profile_id",
 		Method: "DELETE",
 		Note:   "Deletes a specific member profile and all its connections by member_profile_id.",
@@ -458,7 +459,7 @@ func (c *Controller) MemberProfileController() {
 	})
 
 	// Bulk delete member profiles by IDs
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:       "/member-profile/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple member profiles and all their connections by their IDs.",
@@ -547,7 +548,7 @@ func (c *Controller) MemberProfileController() {
 	})
 
 	// Connect the specified member profile to a user account
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-profile/:member_profile_id/connect-user",
 		Method:       "POST",
 		RequestType:  model.MemberProfileAccountRequest{},
@@ -607,7 +608,7 @@ func (c *Controller) MemberProfileController() {
 		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(memberProfile))
 	})
 	// Quickly create a new member profile with minimal required fields
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-profile/quick-create",
 		Method:       "POST",
 		RequestType:  model.MemberProfileQuickCreateRequest{},
@@ -795,7 +796,7 @@ func (c *Controller) MemberProfileController() {
 	})
 
 	// Update the personal information of a member profile by ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-profile/:member_profile_id/personal-info",
 		Method:       "PUT",
 		RequestType:  model.MemberProfilePersonalInfoRequest{},
@@ -924,7 +925,7 @@ func (c *Controller) MemberProfileController() {
 	})
 
 	// Update the membership information of a member profile by ID
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-profile/:member_profile_id/membership-info",
 		Method:       "PUT",
 		RequestType:  model.MemberProfileMembershipInfoRequest{},

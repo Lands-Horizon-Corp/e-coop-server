@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -15,7 +16,7 @@ import (
 func (c *Controller) CashCountController() {
 	req := c.provider.Service.Request
 
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/cash-count/search",
 		Method:       "GET",
 		Note:         "Returns all cash counts of the current branch",
@@ -37,7 +38,7 @@ func (c *Controller) CashCountController() {
 	})
 
 	// GET /cash-count: Retrieve all cash count bills for the current active transaction batch for the user's branch. (NO footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/cash-count",
 		Method:       "GET",
 		Note:         "Returns all cash count bills for the current active transaction batch of the authenticated user's branch. Only allowed for 'owner' or 'employee'.",
@@ -77,7 +78,7 @@ func (c *Controller) CashCountController() {
 	})
 
 	// POST /cash-count: Add a cash count bill to the current transaction batch before ending. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/cash-count",
 		Method:       "POST",
 		ResponseType: model.CashCountResponse{},
@@ -180,7 +181,7 @@ func (c *Controller) CashCountController() {
 	})
 
 	// PUT /cash-count: Update a list of cash count bills for the current transaction batch before ending. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/cash-count",
 		Method:       "PUT",
 		ResponseType: model.CashCountResponse{},
@@ -391,7 +392,7 @@ func (c *Controller) CashCountController() {
 	})
 
 	// DELETE /cash-count/:id: Delete a specific cash count by ID from the current transaction batch. (WITH footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:  "/cash-count/:id",
 		Method: "DELETE",
 		Note:   "Deletes a specific cash count bill with the given ID from the current active transaction batch. Only allowed for 'owner' or 'employee'.",
@@ -451,7 +452,7 @@ func (c *Controller) CashCountController() {
 	})
 
 	// GET /cash-count/:id: Retrieve a specific cash count by ID from the current transaction batch. (NO footstep)
-	req.RegisterRoute(horizon.Route{
+	req.RegisterRoute(handlers.Route{
 		Route:        "/cash-count/:id",
 		Method:       "GET",
 		Note:         "Retrieves a specific cash count bill by its ID from the current active transaction batch. Only allowed for 'owner' or 'employee'.",
