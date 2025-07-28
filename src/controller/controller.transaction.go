@@ -400,23 +400,37 @@ func (c *Controller) TransactionController() {
 		Route:        "/transaction/current/search",
 		Method:       "GET",
 		ResponseType: model.TransactionResponse{},
-		Note:         "Lists all transactions associated with the currently authenticated user within their organization and branch.",
+		Note:         "Lists all transactions associated with the currently authenticated user (automatically adjusted for employee, admin, and member) within their organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{
+				"error": "Failed to get user organization: " + err.Error(),
+			})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied"})
+		var filter model.Transaction
+		if userOrg.UserType == "member" {
+			memberProfile, err := c.model.MemberProfileManager.FindOne(context, &model.MemberProfile{
+				UserID: &userOrg.UserID,
+			})
+			if err != nil {
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{
+					"error": "Failed to retrieve member profile: " + err.Error(),
+				})
+			}
+			filter.MemberProfileID = &memberProfile.ID
+		} else {
+			filter.EmployeeUserID = &userOrg.UserID
 		}
-		transactions, err := c.model.TransactionManager.Find(context, &model.Transaction{
-			EmployeeUserID: &userOrg.UserID,
-			OrganizationID: userOrg.OrganizationID,
-			BranchID:       *userOrg.BranchID,
-		})
+		filter.OrganizationID = userOrg.OrganizationID
+		filter.BranchID = *userOrg.BranchID
+
+		transactions, err := c.model.TransactionManager.Find(context, &filter)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transactions: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{
+				"error": "Failed to retrieve transactions: " + err.Error(),
+			})
 		}
 		return ctx.JSON(http.StatusOK, c.model.TransactionManager.Filtered(context, ctx, transactions))
 	})
@@ -536,5 +550,4 @@ func (c *Controller) TransactionController() {
 		}
 		return ctx.JSON(http.StatusOK, c.model.TransactionManager.Pagination(context, ctx, transactions))
 	})
-
 }
