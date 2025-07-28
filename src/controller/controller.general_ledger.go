@@ -122,7 +122,7 @@ func (c *Controller) GeneralLedgerController() {
 	})
 
 	req.RegisterRoute(handlers.Route{
-		Route:        "general-ledger/transaction/:transaction_id/search",
+		Route:        "/general-ledger/transaction/:transaction_id/search",
 		Method:       "GET",
 		ResponseType: model.GeneralLedgerResponse{},
 		Note:         "Returns all general ledger entries for a transaction with pagination.",
