@@ -120,4 +120,30 @@ func (c *Controller) GeneralLedgerController() {
 		}
 		return ctx.JSON(http.StatusOK, result)
 	})
+
+	req.RegisterRoute(handlers.Route{
+		Route:        "general-ledger/transaction/:transaction_id/search",
+		Method:       "GET",
+		ResponseType: model.GeneralLedgerResponse{},
+		Note:         "Returns all general ledger entries for a transaction with pagination.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		transactionID, err := handlers.EngineUUIDParam(ctx, "transaction_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction ID"})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
+			TransactionID:  transactionID,
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.Pagination(context, ctx, entries))
+	})
 }
