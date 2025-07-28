@@ -60,6 +60,11 @@ type (
 		YearlyDiscount      float64   `json:"yearly_discount"`
 		IsRecommended       bool      `json:"is_recommended"` // <-- Added field
 
+		MonthlyPrice           float64 `json:"monthly_price"`
+		YearlyPrice            float64 `json:"yearly_price"`
+		DiscountedMonthlyPrice float64 `json:"discounted_monthly_price"`
+		DiscountedYearlyPrice  float64 `json:"discounted_yearly_price"`
+
 		CreatedAt string `json:"created_at"`
 		UpdatedAt string `json:"updated_at"`
 	}
@@ -74,20 +79,32 @@ func (m *Model) SubscriptionPlan() {
 			if sp == nil {
 				return nil
 			}
+			yearlyPrice := sp.Cost
+			monthlyPrice := float64(0)
+			if sp.Timespan > 0 {
+				monthlyPrice = sp.Cost / float64(sp.Timespan)
+			}
+			discountedMonthlyPrice := monthlyPrice * (1 - sp.Discount/100)
+			discountedYearlyPrice := yearlyPrice * (1 - sp.YearlyDiscount/100)
+
 			return &SubscriptionPlanResponse{
-				ID:                  sp.ID,
-				Name:                sp.Name,
-				Description:         sp.Description,
-				Cost:                sp.Cost,
-				Timespan:            sp.Timespan,
-				MaxBranches:         sp.MaxBranches,
-				MaxEmployees:        sp.MaxEmployees,
-				MaxMembersPerBranch: sp.MaxMembersPerBranch,
-				Discount:            sp.Discount,
-				YearlyDiscount:      sp.YearlyDiscount,
-				CreatedAt:           sp.CreatedAt.Format(time.RFC3339),
-				UpdatedAt:           sp.UpdatedAt.Format(time.RFC3339),
-				IsRecommended:       sp.IsRecommended,
+				ID:                     sp.ID,
+				Name:                   sp.Name,
+				Description:            sp.Description,
+				Cost:                   sp.Cost,
+				Timespan:               sp.Timespan,
+				MaxBranches:            sp.MaxBranches,
+				MaxEmployees:           sp.MaxEmployees,
+				MaxMembersPerBranch:    sp.MaxMembersPerBranch,
+				Discount:               sp.Discount,
+				YearlyDiscount:         sp.YearlyDiscount,
+				IsRecommended:          sp.IsRecommended,
+				MonthlyPrice:           monthlyPrice,
+				YearlyPrice:            yearlyPrice,
+				DiscountedMonthlyPrice: discountedMonthlyPrice,
+				DiscountedYearlyPrice:  discountedYearlyPrice,
+				CreatedAt:              sp.CreatedAt.Format(time.RFC3339),
+				UpdatedAt:              sp.UpdatedAt.Format(time.RFC3339),
 			}
 		},
 
