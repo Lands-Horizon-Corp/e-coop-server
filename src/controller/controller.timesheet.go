@@ -263,4 +263,31 @@ func (c *Controller) TimesheetController() {
 		}
 		return ctx.JSON(http.StatusOK, c.model.TimesheetManager.Pagination(context, ctx, value))
 	})
+
+	req.RegisterRoute(horizon.Route{
+		Route:        "/timesheet/employee/:user_organization_id/search",
+		Method:       "GET",
+		ResponseType: model.TimesheetResponse{},
+		Note:         "Returns paginated timesheets of the specified employeee for the current branch.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrgId, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_id: " + err.Error()})
+		}
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
+		}
+		userOrganization, err := c.model.UserOrganizationManager.GetByID(context, *userOrgId)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
+		}
+
+		value, err := c.model.GetUserTimesheet(context, userOrganization.UserID, user.OrganizationID, *user.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user timesheets for pagination: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.TimesheetManager.Pagination(context, ctx, value))
+	})
 }
