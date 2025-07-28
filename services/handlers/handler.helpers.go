@@ -175,10 +175,24 @@ func GetFreePort() int {
 
 var (
 	forbiddenExtensions = []string{
-		".exe", ".bat", ".sh", ".php", ".asp", ".aspx", ".jsp", ".cgi",
+		".exe", ".bat", ".sh", ".php", ".asp", ".aspx", ".jsp", ".cgi", ".go",
+		".env", ".yaml", ".yml", ".ini", ".config", ".conf", ".xml", ".git",
+		".htaccess", ".htpasswd", ".backup", ".secret", ".credential", ".password",
+		".private", ".key", ".token", ".dump", ".database", ".db", ".logs", ".debug",
+		".pem", ".crt", ".cert", ".pfx", ".p12", ".bak", ".swp", ".tmp", ".cache",
+		".session", ".sqlite", ".sqlite3", ".mdf", ".ldf", ".rdb", ".ldb", ".log",
+		".old", ".orig", ".example", ".sample", ".test", ".spec", ".out", ".core",
 	}
 	forbiddenSubstrings = []string{
-		"etc/passwd", "boot.ini", "win.ini", "web.config",
+		"etc/passwd",
+		"boot.ini",
+		"win.ini",
+		"web.config",
+		"dockerfile",
+		"credentials",
+		"secrets",
+		"backup",
+		"hidden",
 	}
 )
 
@@ -319,7 +333,7 @@ func GenerateRandomDigits(size int) (int, error) {
 // Retry executes operation with backoff
 func Retry(ctx context.Context, maxAttempts int, delay time.Duration, op func() error) error {
 	var err error
-	for i := 0; i < maxAttempts; i++ {
+	for range maxAttempts {
 		if err = op(); err == nil {
 			return nil
 		}
