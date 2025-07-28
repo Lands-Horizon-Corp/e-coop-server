@@ -790,4 +790,38 @@ func (c *Controller) TransactionBatchController() {
 
 		return ctx.JSON(http.StatusOK, c.model.TransactionBatchManager.ToModel(transactionBatch))
 	})
+	req.RegisterRoute(horizon.Route{
+		Route:        "/transaction-batch/employee/:user_organization_id/search",
+		Method:       "GET",
+		ResponseType: model.TransactionBatchResponse{},
+		Note:         "Returns transaction batches for a specific employee (user_id) in the current user's branch.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
+		}
+
+		userOrganizationID, err := horizon.EngineUUIDParam(ctx, "user_organization_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_organization_id: " + err.Error()})
+		}
+		userOrganization, err := c.model.UserOrganizationManager.GetByID(context, *userOrganizationID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
+		}
+
+		batches, err := c.model.TransactionBatchManager.Find(context, &model.TransactionBatch{
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			EmployeeUserID: &userOrganization.UserID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batches: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.TransactionBatchManager.Filtered(context, ctx, batches))
+	})
 }
