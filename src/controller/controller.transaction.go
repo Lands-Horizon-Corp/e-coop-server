@@ -511,4 +511,30 @@ func (c *Controller) TransactionController() {
 		return ctx.JSON(http.StatusOK, c.model.TransactionManager.Pagination(context, ctx, transactions))
 	})
 
+	req.RegisterRoute(handlers.Route{
+		Route:        "/transaction/transaction-batch/:transaction_batch_id/search",
+		Method:       "GET",
+		ResponseType: model.TransactionResponse{},
+		Note:         "Retrieves all transactions associated with a specific transaction batch, allowing for batch-level analysis.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		transactionBatchID, err := handlers.EngineUUIDParam(ctx, "transaction_batch_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction batch ID: " + err.Error()})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
+		}
+		transactions, err := c.model.TransactionManager.Find(context, &model.Transaction{
+			TransactionBatchID: transactionBatchID,
+			OrganizationID:     userOrg.OrganizationID,
+			BranchID:           *userOrg.BranchID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transactions: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.TransactionManager.Pagination(context, ctx, transactions))
+	})
+
 }
