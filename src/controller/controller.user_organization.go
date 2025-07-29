@@ -323,7 +323,6 @@ func (c *Controller) UserOrganinzationController() {
 		Method:       "GET",
 		ResponseType: model.UserOrganizationResponse{},
 		Note:         "Returns all user organizations for the currently logged-in user.",
-		Private:      true,
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		isPending := false
