@@ -210,7 +210,6 @@ func (c *CollectionManager[TData, TResponse, TRequest]) Pagination(
 	maxWorkers := runtime.NumCPU()
 	filtered, err := handlers.Pagination(ctx, param, data, batchSize, maxWorkers)
 	if err != nil {
-		fmt.Println("Pagination error:", err)
 		return handlers.PaginationResult[TResponse]{}
 	}
 	return handlers.PaginationResult[TResponse]{

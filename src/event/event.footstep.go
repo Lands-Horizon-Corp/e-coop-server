@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -13,24 +14,30 @@ type FootstepEvent struct {
 	Description string
 	Activity    string
 	Module      string
+	UserID      *uuid.UUID
 }
 
 func (e *Event) Footstep(context context.Context, ctx echo.Context, data FootstepEvent) {
 	fmt.Println("[Footstep] Logging event:", data.Activity, data.Module, data.Description)
 
 	go func() {
-
 		fmt.Println("[Footstep] Logging event:", data.Activity, data.Module, data.Description)
 
 		user, err := e.userToken.CurrentUser(context, ctx)
-		if err != nil {
-			fmt.Println("Failed to get current user:", err)
-			return
+		var userId uuid.UUID
+		if err != nil || user == nil {
+			fmt.Println("Current user is nil, using data.UserID")
+			if data.UserID != nil {
+				userId = *data.UserID
+			} else {
+				fmt.Println("No user ID available, aborting footstep event")
+				return
+			}
+		} else {
+			userId = user.ID
 		}
 
 		userOrganization, _ := e.userOrganizationToken.CurrentUserOrganization(context, ctx)
-
-		userId := user.ID
 
 		var userType string
 		if userOrganization != nil {
