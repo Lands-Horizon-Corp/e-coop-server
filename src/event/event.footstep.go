@@ -17,6 +17,8 @@ type FootstepEvent struct {
 }
 
 func (e *Event) Footstep(ctx context.Context, echoCtx echo.Context, data FootstepEvent) {
+	fmt.Println("[Footstep] Logging event:", data.Activity, data.Module, data.Description)
+
 	go func() {
 		fmt.Println("[Footstep] Logging event:", data.Activity, data.Module, data.Description) // <-- Add this line
 
