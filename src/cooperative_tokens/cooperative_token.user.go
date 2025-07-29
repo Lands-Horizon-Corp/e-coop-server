@@ -126,11 +126,14 @@ type UserToken struct {
 // NewUserToken initializes a new UserToken.
 func NewUserToken(provider *src.Provider, model *model.Model) (*UserToken, error) {
 	appName := provider.Service.Environment.GetString("APP_NAME", "")
+
 	csrfService := horizon.NewHorizonAuthService[UserCSRF](
 		provider.Service.Cache,
 		"user-csrf",
 		fmt.Sprintf("%s-%s", "X-SECURE-CSRF-USER", appName),
+		true,
 	)
+
 	return &UserToken{
 		CSRF:  csrfService,
 		model: model,

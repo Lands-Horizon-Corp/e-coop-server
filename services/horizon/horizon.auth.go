@@ -50,11 +50,13 @@ func NewHorizonAuthService[T ClaimWithID](
 	cache CacheService,
 	name string,
 	csrfHeader string,
+	ssl bool,
 ) AuthService[T] {
 	return &HorizonAuthService[T]{
 		cache:      cache,
 		name:       name,
 		csrfHeader: csrfHeader,
+		ssl:        ssl,
 	}
 }
 

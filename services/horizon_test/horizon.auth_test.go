@@ -62,6 +62,7 @@ func setupTest(t *testing.T) (context.Context, *horizon.HorizonAuthService[TestC
 		cache,
 		"test",
 		"X-CSRF-Token",
+		false,
 	).(*horizon.HorizonAuthService[TestClaimUserCSRF])
 
 	return ctx, service, cache
