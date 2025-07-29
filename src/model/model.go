@@ -269,8 +269,8 @@ func (c *Model) Start(context context.Context) error {
 	c.GeneralLedgerTag()
 	c.GeneralLedgerAccountsGrouping()
 	c.GeneratedReport()
-	c.GeneralLedgerDefinition() // Create this first
-	c.Account()                 // Then create Account
+	c.GeneralLedgerDefinition()
+	c.Account()
 	c.AccountTag()
 	c.GroceryComputationSheet()
 	c.GroceryComputationSheetMonthly()
