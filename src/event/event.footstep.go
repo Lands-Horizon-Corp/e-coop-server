@@ -16,10 +16,10 @@ type FootstepEvent struct {
 	Module      string
 }
 
-// Records a footstep event for a user, scoped to their organization and branch.
-// This is only triggered if the user has valid CSRF and organization tokens.
 func (e *Event) Footstep(ctx context.Context, echoCtx echo.Context, data FootstepEvent) {
 	go func() {
+		fmt.Println("[Footstep] Logging event:", data.Activity, data.Module, data.Description) // <-- Add this line
+
 		userOrganization, _ := e.userOrganizationToken.Token.GetToken(ctx, echoCtx)
 
 		user, err := e.userToken.CurrentUser(ctx, echoCtx)
@@ -28,10 +28,8 @@ func (e *Event) Footstep(ctx context.Context, echoCtx echo.Context, data Footste
 			return
 		}
 
-		// Get userId from user struct
 		userId := user.ID
 
-		// Get orgId, branchId, userType from userOrganization if present
 		var orgId, branchId *uuid.UUID
 		var userType string
 		if userOrganization != nil {
@@ -44,7 +42,6 @@ func (e *Event) Footstep(ctx context.Context, echoCtx echo.Context, data Footste
 			userType = userOrganization.UserType
 		}
 
-		// Get geo and agent info from CSRF claim
 		claim, _ := e.userToken.CSRF.GetCSRF(ctx, echoCtx)
 		latitude := claim.Latitude
 		longitude := claim.Longitude
@@ -78,5 +75,6 @@ func (e *Event) Footstep(ctx context.Context, echoCtx echo.Context, data Footste
 			fmt.Println("Failed to save footstep:", err)
 			return
 		}
+		fmt.Println("[Footstep] Event saved successfully!") // <-- Add this line
 	}()
 }
