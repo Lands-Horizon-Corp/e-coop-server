@@ -120,36 +120,18 @@ func (c UserClaim) GetRegisteredClaims() *jwt.RegisteredClaims {
 type UserToken struct {
 	model *model.Model
 
-	Token horizon.TokenService[UserClaim]
-	CSRF  horizon.AuthService[UserCSRF]
+	CSRF horizon.AuthService[UserCSRF]
 }
 
 // NewUserToken initializes a new UserToken.
 func NewUserToken(provider *src.Provider, model *model.Model) (*UserToken, error) {
-	context := context.Background()
 	appName := provider.Service.Environment.GetString("APP_NAME", "")
-	appToken := provider.Service.Environment.GetString("APP_TOKEN", "")
-
-	token, err := provider.Service.Security.GenerateUUIDv5(context, appToken+"-user")
-	if err != nil {
-		return nil, err
-	}
-
-	tokenService := horizon.NewTokenService[UserClaim](
-		fmt.Sprintf("%s-%s", "X-SECURE-TOKEN-USER", appName),
-		[]byte(token),
-		true,
-	)
-
 	csrfService := horizon.NewHorizonAuthService[UserCSRF](
 		provider.Service.Cache,
 		"user-csrf",
 		fmt.Sprintf("%s-%s", "X-SECURE-CSRF-USER", appName),
-		true,
 	)
-
 	return &UserToken{
-		Token: tokenService,
 		CSRF:  csrfService,
 		model: model,
 	}, nil

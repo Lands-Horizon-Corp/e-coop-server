@@ -19,15 +19,15 @@ func (e *Event) Footstep(context context.Context, ctx echo.Context, data Footste
 	fmt.Println("[Footstep] Logging event:", data.Activity, data.Module, data.Description)
 
 	go func() {
-		fmt.Println("[Footstep] Logging event:", data.Activity, data.Module, data.Description) // <-- Add this line
-
-		userOrganization, _ := e.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		fmt.Println("[Footstep] Logging event:", data.Activity, data.Module, data.Description)
 
 		user, err := e.userToken.CurrentUser(context, ctx)
 		if err != nil {
 			fmt.Println("Failed to get current user:", err)
 			return
 		}
+
+		userOrganization, _ := e.userOrganizationToken.CurrentUserOrganization(context, ctx)
 
 		userId := user.ID
 
