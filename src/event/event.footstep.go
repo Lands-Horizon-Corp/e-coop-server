@@ -24,6 +24,7 @@ func (e *Event) Footstep(ctx context.Context, echoCtx echo.Context, data Footste
 
 		user, err := e.userToken.CurrentUser(ctx, echoCtx)
 		if err != nil {
+			fmt.Println("Failed to get current user:", err)
 			return
 		}
 
