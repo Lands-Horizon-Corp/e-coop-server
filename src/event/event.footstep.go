@@ -19,8 +19,6 @@ func (e *Event) Footstep(context context.Context, ctx echo.Context, data Footste
 	fmt.Println("[Footstep] Logging event:", data.Activity, data.Module, data.Description)
 
 	go func() {
-		// Add a delay to prevent frequent event logging (e.g., 1 second)
-		time.Sleep(5 * time.Second)
 
 		fmt.Println("[Footstep] Logging event:", data.Activity, data.Module, data.Description)
 
