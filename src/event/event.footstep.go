@@ -19,6 +19,9 @@ func (e *Event) Footstep(context context.Context, ctx echo.Context, data Footste
 	fmt.Println("[Footstep] Logging event:", data.Activity, data.Module, data.Description)
 
 	go func() {
+		// Add a delay to prevent frequent event logging (e.g., 1 second)
+		time.Sleep(5 * time.Second)
+
 		fmt.Println("[Footstep] Logging event:", data.Activity, data.Module, data.Description)
 
 		user, err := e.userToken.CurrentUser(context, ctx)
@@ -69,6 +72,6 @@ func (e *Event) Footstep(context context.Context, ctx echo.Context, data Footste
 			fmt.Println("Failed to save footstep:", err)
 			return
 		}
-		fmt.Println("[Footstep] Event saved successfully!") // <-- Add this line
+		fmt.Println("[Footstep] Event saved successfully!")
 	}()
 }

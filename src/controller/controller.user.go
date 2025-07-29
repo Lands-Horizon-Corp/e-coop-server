@@ -173,12 +173,12 @@ func (c *Controller) UserController() {
 		Note:   "Logs out the current user.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		c.userToken.CSRF.ClearCSRF(context, ctx)
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "User logged out successfully",
 			Module:      "User",
 		})
+		c.userToken.CSRF.ClearCSRF(context, ctx)
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
