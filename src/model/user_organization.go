@@ -52,6 +52,11 @@ type (
 		UserSettingStartVoucher int64 `gorm:"unsigned" json:"start_voucher"`
 		UserSettingEndVoucher   int64 `gorm:"unsigned" json:"end_voucher"`
 		UserSettingUsedVoucher  int64 `gorm:"unsigned" json:"used_voucher"`
+
+		// Override settings for branch
+		SettingsAllowWithdrawNegativeBalance bool `gorm:"not null;default:false" json:"allow_withdraw_negative_balance"`
+		SettingsAllowWithdrawExactBalance    bool `gorm:"not null;default:false" json:"allow_withdraw_exact_balance"`
+		SettingsMaintainingBalance           bool `gorm:"not null;default:false" json:"maintaining_balance"`
 	}
 
 	UserOrganizationRequest struct {
@@ -91,6 +96,10 @@ type (
 		UserSettingStartVoucher int64 `json:"user_setting_start_voucher,omitempty" validate:"min=0"`
 		UserSettingEndVoucher   int64 `json:"user_setting_end_voucher,omitempty" validate:"min=0"`
 		UserSettingUsedVoucher  int64 `json:"user_setting_used_voucher,omitempty" validate:"min=0"`
+
+		SettingsAllowWithdrawNegativeBalance bool `json:"allow_withdraw_negative_balance"`
+		SettingsAllowWithdrawExactBalance    bool `json:"allow_withdraw_exact_balance"`
+		SettingsMaintainingBalance           bool `json:"maintaining_balance"`
 	}
 
 	UserOrganizationSelfSettingsRequest struct {
@@ -104,6 +113,10 @@ type (
 		UserSettingStartVoucher int64 `json:"user_setting_start_voucher,omitempty" validate:"min=0"`
 		UserSettingEndVoucher   int64 `json:"user_setting_end_voucher,omitempty" validate:"min=0"`
 		UserSettingUsedVoucher  int64 `json:"user_setting_used_voucher,omitempty" validate:"min=0"`
+
+		SettingsAllowWithdrawNegativeBalance bool `json:"allow_withdraw_negative_balance"`
+		SettingsAllowWithdrawExactBalance    bool `json:"allow_withdraw_exact_balance"`
+		SettingsMaintainingBalance           bool `json:"maintaining_balance"`
 	}
 
 	UserOrganizationResponse struct {
@@ -139,6 +152,11 @@ type (
 		UserSettingStartVoucher int64 `json:"user_setting_start_voucher"`
 		UserSettingEndVoucher   int64 `json:"user_setting_end_voucher"`
 		UserSettingUsedVoucher  int64 `json:"user_setting_used_voucher"`
+
+		// Override settings for branch
+		SettingsAllowWithdrawNegativeBalance bool `json:"allow_withdraw_negative_balance"`
+		SettingsAllowWithdrawExactBalance    bool `json:"allow_withdraw_exact_balance"`
+		SettingsMaintainingBalance           bool `json:"maintaining_balance"`
 	}
 
 	UserOrganizationPermissionPayload struct {
@@ -202,12 +220,15 @@ func (m *Model) UserOrganization() {
 
 				UserSettingDescription: data.UserSettingDescription,
 
-				UserSettingStartOR:      data.UserSettingStartOR,
-				UserSettingEndOR:        data.UserSettingEndOR,
-				UserSettingUsedOR:       data.UserSettingUsedOR,
-				UserSettingStartVoucher: data.UserSettingStartVoucher,
-				UserSettingEndVoucher:   data.UserSettingEndVoucher,
-				UserSettingUsedVoucher:  data.UserSettingUsedVoucher,
+				UserSettingStartOR:                   data.UserSettingStartOR,
+				UserSettingEndOR:                     data.UserSettingEndOR,
+				UserSettingUsedOR:                    data.UserSettingUsedOR,
+				UserSettingStartVoucher:              data.UserSettingStartVoucher,
+				UserSettingEndVoucher:                data.UserSettingEndVoucher,
+				UserSettingUsedVoucher:               data.UserSettingUsedVoucher,
+				SettingsAllowWithdrawNegativeBalance: data.SettingsAllowWithdrawNegativeBalance,
+				SettingsAllowWithdrawExactBalance:    data.SettingsAllowWithdrawExactBalance,
+				SettingsMaintainingBalance:           data.SettingsMaintainingBalance,
 			}
 		},
 		Created: func(data *UserOrganization) []string {

@@ -48,11 +48,6 @@ type (
 		InvitationCodes     []*InvitationCode     `gorm:"foreignKey:BranchID" json:"invitation_codes,omitempty"`
 		PermissionTemplates []*PermissionTemplate `gorm:"foreignKey:BranchID" json:"permission_templates,omitempty"`
 		UserOrganizations   []*UserOrganization   `gorm:"foreignKey:BranchID" json:"user_organizations,omitempty"`
-
-		// Override settings for branch
-		SettingsAllowWithdrawNegativeBalance bool `gorm:"not null;default:false" json:"allow_withdraw_negative_balance"`
-		SettingsAllowWithdrawExactBalance    bool `gorm:"not null;default:false" json:"allow_withdraw_exact_balance"`
-		SettingsMaintainingBalance           bool `gorm:"not null;default:false" json:"maintaining_balance"`
 	}
 	BranchRequest struct {
 		ID *uuid.UUID `json:"id,omitempty"`
@@ -74,10 +69,6 @@ type (
 		Longitude     *float64   `json:"longitude,omitempty"`
 
 		IsMainBranch bool `json:"is_main_branch,omitempty"`
-
-		SettingsAllowWithdrawNegativeBalance bool `json:"allow_withdraw_negative_balance"`
-		SettingsAllowWithdrawExactBalance    bool `json:"allow_withdraw_exact_balance"`
-		SettingsMaintainingBalance           bool `json:"maintaining_balance"`
 	}
 
 	BranchResponse struct {
@@ -107,10 +98,7 @@ type (
 		Latitude      *float64       `json:"latitude,omitempty"`
 		Longitude     *float64       `json:"longitude,omitempty"`
 
-		IsMainBranch                         bool `json:"is_main_branch,omitempty"`
-		SettingsAllowWithdrawNegativeBalance bool `json:"allow_withdraw_negative_balance"`
-		SettingsAllowWithdrawExactBalance    bool `json:"allow_withdraw_exact_balance"`
-		SettingsMaintainingBalance           bool `json:"maintaining_balance"`
+		IsMainBranch bool `json:"is_main_branch,omitempty"`
 
 		Footsteps           []*FootstepResponse           `json:"footsteps,omitempty"`
 		GeneratedReports    []*GeneratedReportResponse    `json:"generated_reports,omitempty"`
@@ -170,10 +158,7 @@ func (m *Model) Branch() {
 				Latitude:      data.Latitude,
 				Longitude:     data.Longitude,
 
-				IsMainBranch:                         data.IsMainBranch,
-				SettingsAllowWithdrawNegativeBalance: data.SettingsAllowWithdrawNegativeBalance,
-				SettingsAllowWithdrawExactBalance:    data.SettingsAllowWithdrawExactBalance,
-				SettingsMaintainingBalance:           data.SettingsMaintainingBalance,
+				IsMainBranch: data.IsMainBranch,
 
 				Footsteps:           m.FootstepManager.ToModels(data.Footsteps),
 				GeneratedReports:    m.GeneratedReportManager.ToModels(data.GeneratedReports),
