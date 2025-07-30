@@ -114,51 +114,27 @@ func (c *Controller) UserController() {
 		context := ctx.Request().Context()
 		var req model.UserLoginRequest
 		if err := ctx.Bind(&req); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "create-error",
-				Description: "Login failed: invalid login payload: " + err.Error(),
-				Module:      "User",
-			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid login payload: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "create-error",
-				Description: "Login failed: validation error: " + err.Error(),
-				Module:      "User",
-			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		user, err := c.model.GetUserByIdentifier(context, req.Key)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "create-error",
-				Description: "Login failed: invalid credentials: " + err.Error(),
-				Module:      "User",
-			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid credentials: " + err.Error()})
 		}
 		valid, err := c.provider.Service.Security.VerifyPassword(context, user.Password, req.Password)
 		if err != nil || !valid {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "create-error",
-				Description: "Login failed: invalid credentials",
-				Module:      "User",
-			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid credentials"})
 		}
 		if err := c.userToken.SetUser(context, ctx, user); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "create-error",
-				Description: "Login failed: failed to set user token: " + err.Error(),
-				Module:      "User",
-			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to set user token: " + err.Error()})
 		}
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "User logged in successfully: " + user.ID.String(),
 			Module:      "User",
+			UserID:      &user.ID,
 		})
 		return ctx.JSON(http.StatusOK, model.CurrentUserResponse{
 			UserID: user.ID,
