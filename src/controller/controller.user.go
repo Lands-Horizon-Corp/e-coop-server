@@ -134,7 +134,6 @@ func (c *Controller) UserController() {
 			Activity:    "create-success",
 			Description: "User logged in successfully: " + user.ID.String(),
 			Module:      "User",
-			UserID:      &user.ID,
 		})
 		return ctx.JSON(http.StatusOK, model.CurrentUserResponse{
 			UserID: user.ID,
