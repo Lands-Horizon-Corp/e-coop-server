@@ -157,28 +157,64 @@ func (m *Model) Transaction() {
 		},
 
 		Created: func(data *Transaction) []string {
-			return []string{
+			events := []string{}
+			if data.MemberProfileID != nil {
+				events = append(events, fmt.Sprintf("transaction.create.user.%s", data.MemberProfileID))
+			}
+			if data.MemberJointAccountID != nil {
+				events = append(events, fmt.Sprintf("transaction.create.user.%s", data.MemberJointAccountID))
+			}
+			if data.EmployeeUserID != nil {
+				events = append(events, fmt.Sprintf("transaction.create.user.%s", data.EmployeeUserID))
+			}
+			events = append(events,
 				"transaction.create",
 				fmt.Sprintf("transaction.create.%s", data.ID),
 				fmt.Sprintf("transaction.create.branch.%s", data.BranchID),
 				fmt.Sprintf("transaction.create.organization.%s", data.OrganizationID),
-			}
+				fmt.Sprintf("transaction.create.transaction_batch.%s", data.TransactionBatchID),
+			)
+			return events
 		},
 		Updated: func(data *Transaction) []string {
-			return []string{
+			events := []string{}
+			if data.MemberProfileID != nil {
+				events = append(events, fmt.Sprintf("transaction.update.user.%s", data.MemberProfileID))
+			}
+			if data.MemberJointAccountID != nil {
+				events = append(events, fmt.Sprintf("transaction.update.user.%s", data.MemberJointAccountID))
+			}
+			if data.EmployeeUserID != nil {
+				events = append(events, fmt.Sprintf("transaction.update.user.%s", data.EmployeeUserID))
+			}
+			events = append(events,
 				"transaction.update",
 				fmt.Sprintf("transaction.update.%s", data.ID),
 				fmt.Sprintf("transaction.update.branch.%s", data.BranchID),
 				fmt.Sprintf("transaction.update.organization.%s", data.OrganizationID),
-			}
+				fmt.Sprintf("transaction.update.transaction_batch.%s", data.TransactionBatchID),
+			)
+			return events
 		},
 		Deleted: func(data *Transaction) []string {
-			return []string{
+			events := []string{}
+			if data.MemberProfileID != nil {
+				events = append(events, fmt.Sprintf("transaction.update.user.%s", data.MemberProfileID))
+			}
+			if data.MemberJointAccountID != nil {
+				events = append(events, fmt.Sprintf("transaction.update.user.%s", data.MemberJointAccountID))
+			}
+			if data.EmployeeUserID != nil {
+				events = append(events, fmt.Sprintf("transaction.update.user.%s", data.EmployeeUserID))
+			}
+			events = append(events,
 				"transaction.delete",
 				fmt.Sprintf("transaction.delete.%s", data.ID),
 				fmt.Sprintf("transaction.delete.branch.%s", data.BranchID),
 				fmt.Sprintf("transaction.delete.organization.%s", data.OrganizationID),
-			}
+				fmt.Sprintf("transaction.delete.transaction_batch.%s", data.TransactionBatchID),
+			)
+			return events
 		},
 	})
 }
