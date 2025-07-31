@@ -41,6 +41,8 @@ func NewController(
 }
 
 func (c *Controller) Start() error {
+	// Others
+	c.Heartbeat()
 
 	// Basic Onboardding & Utilities
 	c.BranchController()

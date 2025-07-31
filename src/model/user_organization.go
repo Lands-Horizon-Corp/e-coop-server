@@ -11,6 +11,13 @@ import (
 	"gorm.io/gorm"
 )
 
+type UserOrganizationStatus string
+
+const (
+	UserOrganizationStatusOnline  UserOrganizationStatus = "online"
+	UserOrganizationStatusOffline UserOrganizationStatus = "offline"
+)
+
 type (
 	UserOrganization struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
@@ -57,6 +64,9 @@ type (
 		SettingsAllowWithdrawNegativeBalance bool `gorm:"not null;default:false" json:"allow_withdraw_negative_balance"`
 		SettingsAllowWithdrawExactBalance    bool `gorm:"not null;default:false" json:"allow_withdraw_exact_balance"`
 		SettingsMaintainingBalance           bool `gorm:"not null;default:false" json:"maintaining_balance"`
+
+		Status       UserOrganizationStatus `gorm:"type:varchar(50);not null;default:'offline'" json:"status"`
+		LastOnlineAt time.Time              `gorm:"default:now()" json:"last_online_at"`
 	}
 
 	UserOrganizationRequest struct {
@@ -157,6 +167,9 @@ type (
 		SettingsAllowWithdrawNegativeBalance bool `json:"allow_withdraw_negative_balance"`
 		SettingsAllowWithdrawExactBalance    bool `json:"allow_withdraw_exact_balance"`
 		SettingsMaintainingBalance           bool `json:"maintaining_balance"`
+
+		Status       UserOrganizationStatus `json:"status"`
+		LastOnlineAt time.Time              `json:"last_online_at"`
 	}
 
 	UserOrganizationPermissionPayload struct {
@@ -167,6 +180,13 @@ type (
 
 	DeveloperSecretKeyResponse struct {
 		DeveloperSecretKey string `json:"developer_secret_key"`
+	}
+
+	UserOrganizationStatusResponse struct {
+		UserOrganization    []*UserOrganizationResponse `json:"user_organizations,omitempty"`
+		TotalOnline         int                         `json:"total_online"`
+		CountMemberOnline   int                         `json:"count_member_online"`
+		CountEmployeeOnline int                         `json:"count_employee_online"`
 	}
 )
 
@@ -229,6 +249,8 @@ func (m *Model) UserOrganization() {
 				SettingsAllowWithdrawNegativeBalance: data.SettingsAllowWithdrawNegativeBalance,
 				SettingsAllowWithdrawExactBalance:    data.SettingsAllowWithdrawExactBalance,
 				SettingsMaintainingBalance:           data.SettingsMaintainingBalance,
+				Status:                               data.Status,
+				LastOnlineAt:                         data.LastOnlineAt,
 			}
 		},
 		Created: func(data *UserOrganization) []string {
