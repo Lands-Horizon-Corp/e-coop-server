@@ -838,6 +838,6 @@ func (c *Controller) TransactionBatchController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batches: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.TransactionBatchManager.Filtered(context, ctx, batches))
+		return ctx.JSON(http.StatusOK, c.model.TransactionBatchManager.Pagination(context, ctx, batches))
 	})
 }
