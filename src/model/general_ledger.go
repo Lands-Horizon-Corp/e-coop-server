@@ -327,3 +327,21 @@ func (m *Model) GeneralLedgerCurrentMemberAccountForUpdate(
 	}
 	return &ledger, err
 }
+
+func (m *Model) GeneralLedgerCurrentSubsidiaryAccountForUpdate(
+	ctx context.Context, tx *gorm.DB, accountId, orgId, branchId uuid.UUID,
+) (*GeneralLedger, error) {
+	var ledger GeneralLedger
+	err := tx.
+		WithContext(ctx).
+		Model(&GeneralLedger{}).
+		Where("organization_id = ? AND branch_id = ? AND account_id = ? AND member_profile_id IS NULL", orgId, branchId, accountId).
+		Order("entry_date DESC NULLS LAST, created_at DESC").
+		Limit(1).
+		Clauses(clause.Locking{Strength: "UPDATE"}).
+		Take(&ledger).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	return &ledger, err
+}

@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lands-horizon/horizon-server/src/model"
+	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
@@ -31,11 +32,11 @@ func (e *Event) Payment(
 	block, blocked, err := e.HandleIPBlocker(context, ctx)
 	if err != nil {
 		tx.Rollback()
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Internal error: " + err.Error()})
+		return eris.Wrap(err, "internal error during IP block check")
 	}
 	if blocked {
 		tx.Rollback()
-		return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Your IP is temporarily blocked due to repeated errors."})
+		return eris.New("IP is temporarily blocked due to repeated errors")
 	}
 	// Validate Payment Amount
 	if data.Amount == 0 {
@@ -46,7 +47,7 @@ func (e *Event) Payment(
 			Module:      "Transaction",
 		})
 		block("Payment amount cannot be zero")
-		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Payment amount cannot be zero"})
+		return eris.New("payment amount cannot be zero")
 	}
 
 	// Get User Organization
@@ -59,7 +60,7 @@ func (e *Event) Payment(
 			Module:      "Transaction",
 		})
 		block("Failed to get user organization: " + err.Error())
-		return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
+		return eris.Wrap(err, "failed to get user organization")
 	}
 
 	// Member Profile Checks (Subsidiary Ledger)
@@ -73,7 +74,7 @@ func (e *Event) Payment(
 				Module:      "Transaction",
 			})
 			block("Failed to retrieve member profile: " + err.Error())
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Failed to retrieve member profile: " + err.Error()})
+			return eris.Wrap(err, "failed to retrieve member profile")
 		}
 
 		if memberProfile.BranchID != *userOrg.BranchID {
@@ -84,7 +85,7 @@ func (e *Event) Payment(
 				Module:      "Transaction",
 			})
 			block("Member does not belong to the current branch")
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Member does not belong to the current branch"})
+			return eris.New("member does not belong to the current branch")
 		}
 
 		if memberProfile.OrganizationID != userOrg.OrganizationID {
@@ -95,7 +96,7 @@ func (e *Event) Payment(
 				Module:      "Transaction",
 			})
 			block("Member does not belong to the current organization")
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Member does not belong to the current organization"})
+			return eris.New("member does not belong to the current organization")
 		}
 	}
 
@@ -109,7 +110,7 @@ func (e *Event) Payment(
 			Module:      "Transaction",
 		})
 		block("Failed to retrieve transaction batch: " + err.Error())
-		return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Failed to retrieve transaction batch: " + err.Error()})
+		return eris.Wrap(err, "failed to retrieve transaction batch")
 	}
 
 	// Add null validation for required fields (MemberProfileID is optional for cooperative-level transactions)
@@ -121,7 +122,7 @@ func (e *Event) Payment(
 			Module:      "Transaction",
 		})
 		block("Missing required fields")
-		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Missing required fields: AccountID and PaymentTypeID are required"})
+		return eris.New("missing required fields: AccountID and PaymentTypeID are required")
 	}
 
 	// Check account ownership and organization
@@ -134,7 +135,7 @@ func (e *Event) Payment(
 			Module:      "Transaction",
 		})
 		block("Failed to retrieve account: " + err.Error())
-		return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Failed to retrieve account: " + err.Error()})
+		return eris.Wrap(err, "failed to retrieve account")
 	}
 
 	if account.BranchID != *userOrg.BranchID {
@@ -145,7 +146,7 @@ func (e *Event) Payment(
 			Module:      "Transaction",
 		})
 		block("Account does not belong to the current branch")
-		return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Account does not belong to the current branch"})
+		return eris.New("account does not belong to the current branch")
 	}
 
 	if account.OrganizationID != userOrg.OrganizationID {
@@ -156,7 +157,7 @@ func (e *Event) Payment(
 			Module:      "Transaction",
 		})
 		block("Account does not belong to the current organization")
-		return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Account does not belong to the current organization"})
+		return eris.New("account does not belong to the current organization")
 	}
 
 	// Check if payment type is valid
@@ -169,7 +170,7 @@ func (e *Event) Payment(
 			Module:      "Transaction",
 		})
 		block("Failed to retrieve payment type: " + err.Error())
-		return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Failed to retrieve payment type: " + err.Error()})
+		return eris.Wrap(err, "failed to retrieve payment type")
 	}
 
 	if paymentType.OrganizationID != userOrg.OrganizationID {
@@ -180,12 +181,13 @@ func (e *Event) Payment(
 			Module:      "Transaction",
 		})
 		block("Payment type does not belong to the current organization")
-		return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Payment type does not belong to the current organization"})
+		return eris.New("payment type does not belong to the current organization")
 	}
 
-	// Lock the latest general ledger entry for update (only if member-specific transaction)
+	// Lock the latest general ledger entry for update
 	var generalLedger *model.GeneralLedger
 	if data.MemberProfileID != nil {
+		// Member-specific transaction
 		var err error
 		generalLedger, err = e.model.GeneralLedgerCurrentMemberAccountForUpdate(
 			context, tx, *data.MemberProfileID, *data.AccountID, userOrg.OrganizationID, *userOrg.BranchID)
@@ -207,19 +209,46 @@ func (e *Event) Payment(
 				tx.Rollback()
 				e.Footstep(context, ctx, FootstepEvent{
 					Activity:    "ledger-error",
-					Description: "Failed to retrieve general ledger (FOR UPDATE) (/transaction/payment/:transaction_id): " + err.Error(),
+					Description: "Failed to retrieve member general ledger (FOR UPDATE) (/transaction/payment/:transaction_id): " + err.Error(),
 					Module:      "Transaction",
 				})
-				block("Failed to retrieve general ledger: " + err.Error())
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger: " + err.Error()})
+				block("Failed to retrieve member general ledger: " + err.Error())
+				return eris.Wrap(err, "failed to retrieve member general ledger")
 			}
 		}
 	} else {
-		// Cooperative-level transaction - no member-specific ledger needed
-		generalLedger = nil
+		// Subsidiary ledger transaction (non-member/cooperative-level)
+		var err error
+		generalLedger, err = e.model.GeneralLedgerCurrentSubsidiaryAccountForUpdate(
+			context, tx, *data.AccountID, userOrg.OrganizationID, *userOrg.BranchID)
+		if err != nil {
+			// Check if the error is because no general ledger exists (new subsidiary account)
+			if err == gorm.ErrRecordNotFound {
+				// No general ledger exists yet - this is fine for new subsidiary accounts
+				// Set generalLedger to nil to indicate starting balance of 0
+				generalLedger = nil
+				e.Footstep(context, ctx, FootstepEvent{
+					Activity: "new-subsidiary-account",
+					Description: fmt.Sprintf("No existing subsidiary ledger found for account %s - starting with zero balance (/transaction/payment/:transaction_id)",
+						data.AccountID.String()),
+					Module: "Transaction",
+				})
+			} else {
+				// Actual database error occurred
+				tx.Rollback()
+				e.Footstep(context, ctx, FootstepEvent{
+					Activity:    "ledger-error",
+					Description: "Failed to retrieve subsidiary general ledger (FOR UPDATE) (/transaction/payment/:transaction_id): " + err.Error(),
+					Module:      "Transaction",
+				})
+				block("Failed to retrieve subsidiary general ledger: " + err.Error())
+				return eris.Wrap(err, "failed to retrieve subsidiary general ledger")
+			}
+		}
+
 		e.Footstep(context, ctx, FootstepEvent{
-			Activity: "cooperative-transaction",
-			Description: fmt.Sprintf("Cooperative-level transaction on account %s - no member profile (/transaction/payment/:transaction_id)",
+			Activity: "subsidiary-transaction",
+			Description: fmt.Sprintf("Subsidiary ledger transaction on account %s - no member profile (/transaction/payment/:transaction_id)",
 				data.AccountID.String()),
 			Module: "Transaction",
 		})
@@ -284,7 +313,7 @@ func (e *Event) Payment(
 					Description: reason + " (/transaction/payment/:transaction_id)",
 					Module:      "Transaction",
 				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Insufficient balance for withdrawal"})
+				return eris.New("insufficient balance for withdrawal")
 			}
 			credit = 0
 			debit = amount
@@ -308,7 +337,7 @@ func (e *Event) Payment(
 						Description: reason + " (/transaction/payment/:transaction_id)",
 						Module:      "Transaction",
 					})
-					return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Payment exceeds loan balance"})
+					return eris.New("payment exceeds loan balance")
 				}
 			} else {
 				newBalance = -amount
@@ -371,7 +400,7 @@ func (e *Event) Payment(
 					Description: reason + " (/transaction/payment/:transaction_id)",
 					Module:      "Transaction",
 				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Insufficient balance for withdrawal"})
+				return eris.New("insufficient balance for withdrawal from Other account")
 			}
 			credit = 0
 			debit = amount
@@ -388,7 +417,7 @@ func (e *Event) Payment(
 			Description: reason + " (/transaction/payment/:transaction_id)",
 			Module:      "Transaction",
 		})
-		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Unsupported account type"})
+		return eris.New("unsupported account type")
 	}
 
 	if (account.MinAmount != 0 || account.MaxAmount != 0) &&
@@ -406,14 +435,7 @@ func (e *Event) Payment(
 			Module: "Transaction",
 		})
 		block(fmt.Sprintf("Account balance limits exceeded: %.2f not in [%.2f-%.2f]", newBalance, account.MinAmount, account.MaxAmount))
-		return ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": fmt.Sprintf(
-				"Account balance must be between %.2f and %.2f. Result would be %.2f",
-				account.MinAmount,
-				account.MaxAmount,
-				newBalance,
-			),
-		})
+		return eris.New("account balance limits exceeded")
 	}
 
 	// FIX 3: Complete the transaction instead of returning nil
@@ -430,28 +452,65 @@ func (e *Event) Payment(
 		var err error
 		transaction, err = e.model.TransactionManager.GetByID(context, *transactionId)
 		if err != nil {
-			tx.Rollback()
-			e.Footstep(context, ctx, FootstepEvent{
-				Activity:    "transaction-error",
-				Description: "Failed to retrieve transaction (/transaction/payment/:transaction_id): " + err.Error(),
-				Module:      "Transaction",
-			})
-			block("Failed to retrieve transaction: " + err.Error())
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Failed to retrieve transaction: " + err.Error()})
-		}
-
-		// Validate transaction belongs to current batch
-		if transaction.TransactionBatchID == nil || *transaction.TransactionBatchID != transactionBatch.ID {
-			tx.Rollback()
-			e.Footstep(context, ctx, FootstepEvent{
-				Activity:    "transaction-batch-mismatch",
-				Description: "Transaction does not belong to the current transaction batch (/transaction/payment/:transaction_id)",
-				Module:      "Transaction",
-			})
-			block("Transaction batch mismatch")
-			return ctx.JSON(http.StatusForbidden, map[string]string{
-				"error": "Transaction does not belong to the current transaction batch",
-			})
+			// If transaction doesn't exist, create a new one
+			if err == gorm.ErrRecordNotFound {
+				// Create new transaction since it doesn't exist
+				transaction = &model.Transaction{
+					CreatedAt:            time.Now().UTC(),
+					CreatedByID:          userOrg.UserID,
+					UpdatedAt:            time.Now().UTC(),
+					UpdatedByID:          userOrg.UserID,
+					BranchID:             *userOrg.BranchID,
+					OrganizationID:       userOrg.OrganizationID,
+					SignatureMediaID:     data.SignatureMediaID,
+					TransactionBatchID:   &transactionBatch.ID,
+					EmployeeUserID:       &userOrg.UserID,
+					MemberProfileID:      data.MemberProfileID,
+					MemberJointAccountID: data.MemberJointAccountID,
+					Amount:               data.Amount,
+					ReferenceNumber:      data.ReferenceNumber,
+					Source:               model.GeneralLedgerSourceDeposit,
+					Description:          data.Description,
+					LoanBalance:          0,
+					LoanDue:              0,
+					TotalDue:             0,
+					FinesDue:             0,
+					TotalLoan:            0,
+					InterestDue:          0,
+				}
+				if err := e.model.TransactionManager.CreateWithTx(context, tx, transaction); err != nil {
+					tx.Rollback()
+					e.Footstep(context, ctx, FootstepEvent{
+						Activity:    "transaction-create-error",
+						Description: "Failed to create transaction (/transaction/payment/:transaction_id): " + err.Error(),
+						Module:      "Transaction",
+					})
+					block("Failed to create transaction: " + err.Error())
+					return eris.Wrap(err, "failed to create transaction")
+				}
+			} else {
+				// Actual database error occurred
+				tx.Rollback()
+				e.Footstep(context, ctx, FootstepEvent{
+					Activity:    "transaction-error",
+					Description: "Failed to retrieve transaction (/transaction/payment/:transaction_id): " + err.Error(),
+					Module:      "Transaction",
+				})
+				block("Failed to retrieve transaction: " + err.Error())
+				return eris.Wrap(err, "failed to retrieve transaction")
+			}
+		} else {
+			// Transaction exists, validate it belongs to current batch
+			if transaction.TransactionBatchID == nil || *transaction.TransactionBatchID != transactionBatch.ID {
+				tx.Rollback()
+				e.Footstep(context, ctx, FootstepEvent{
+					Activity:    "transaction-batch-mismatch",
+					Description: "Transaction does not belong to the current transaction batch (/transaction/payment/:transaction_id)",
+					Module:      "Transaction",
+				})
+				block("Transaction batch mismatch")
+				return eris.New("transaction does not belong to the current transaction batch")
+			}
 		}
 	} else {
 		// Create new transaction
@@ -467,9 +526,9 @@ func (e *Event) Payment(
 			EmployeeUserID:       &userOrg.UserID,
 			MemberProfileID:      data.MemberProfileID,
 			MemberJointAccountID: data.MemberJointAccountID,
-			Amount:               0, // Will be updated below
+			Amount:               data.Amount,
 			ReferenceNumber:      data.ReferenceNumber,
-			Source:               transactionSource, // Use correct source
+			Source:               model.GeneralLedgerSourceDeposit,
 			Description:          data.Description,
 			LoanBalance:          0,
 			LoanDue:              0,
@@ -487,7 +546,7 @@ func (e *Event) Payment(
 				Module:      "Transaction",
 			})
 			block("Failed to create transaction: " + err.Error())
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create transaction: " + err.Error()})
+			return eris.Wrap(err, "failed to create transaction")
 		}
 	}
 
@@ -527,7 +586,7 @@ func (e *Event) Payment(
 			Module:      "Transaction",
 		})
 		block("Failed to create general ledger entry: " + err.Error())
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create general ledger entry: " + err.Error()})
+		return eris.Wrap(err, "failed to create general ledger entry")
 	}
 
 	// Update transaction amount - handle all combinations of original intent and effective operations
@@ -548,7 +607,7 @@ func (e *Event) Payment(
 			Module:      "Transaction",
 		})
 		block("Failed to update transaction: " + err.Error())
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update transaction: " + err.Error()})
+		return eris.Wrap(err, "failed to update transaction")
 	}
 
 	// Commit the transaction
@@ -558,11 +617,27 @@ func (e *Event) Payment(
 			Description: "Failed to commit transaction (/transaction/payment/:transaction_id): " + err.Error(),
 			Module:      "Transaction",
 		})
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": "Failed to commit transaction: " + err.Error(),
-		})
+		return eris.Wrap(err, "failed to commit transaction")
 	}
 
 	// Return success with the created ledger entry
 	return ctx.JSON(http.StatusOK, e.model.GeneralLedgerManager.ToModel(newGeneralLedger))
+}
+
+func (e *Event) Withdraw(
+	context context.Context,
+	ctx echo.Context,
+	tx *gorm.DB,
+	data *model.PaymentQuickRequest,
+) error {
+	return e.Payment(context, ctx, tx, data, nil, TransactionTypeWithdraw)
+}
+
+func (e *Event) Deposit(
+	context context.Context,
+	ctx echo.Context,
+	tx *gorm.DB,
+	data *model.PaymentQuickRequest,
+) error {
+	return e.Payment(context, ctx, tx, data, nil, TransactionTypeDeposit)
 }
