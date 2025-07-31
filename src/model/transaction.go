@@ -159,13 +159,10 @@ func (m *Model) Transaction() {
 		Created: func(data *Transaction) []string {
 			events := []string{}
 			if data.MemberProfileID != nil {
-				events = append(events, fmt.Sprintf("transaction.create.user.%s", data.MemberProfileID))
-			}
-			if data.MemberJointAccountID != nil {
-				events = append(events, fmt.Sprintf("transaction.create.user.%s", data.MemberJointAccountID))
+				events = append(events, fmt.Sprintf("transaction.create.member_profile.%s", data.MemberProfileID))
 			}
 			if data.EmployeeUserID != nil {
-				events = append(events, fmt.Sprintf("transaction.create.user.%s", data.EmployeeUserID))
+				events = append(events, fmt.Sprintf("transaction.create.employee.%s", data.EmployeeUserID))
 			}
 			events = append(events,
 				"transaction.create",
@@ -179,13 +176,10 @@ func (m *Model) Transaction() {
 		Updated: func(data *Transaction) []string {
 			events := []string{}
 			if data.MemberProfileID != nil {
-				events = append(events, fmt.Sprintf("transaction.update.user.%s", data.MemberProfileID))
-			}
-			if data.MemberJointAccountID != nil {
-				events = append(events, fmt.Sprintf("transaction.update.user.%s", data.MemberJointAccountID))
+				events = append(events, fmt.Sprintf("transaction.update.member_profile.%s", data.MemberProfileID))
 			}
 			if data.EmployeeUserID != nil {
-				events = append(events, fmt.Sprintf("transaction.update.user.%s", data.EmployeeUserID))
+				events = append(events, fmt.Sprintf("transaction.update.employee.%s", data.EmployeeUserID))
 			}
 			events = append(events,
 				"transaction.update",
@@ -199,13 +193,10 @@ func (m *Model) Transaction() {
 		Deleted: func(data *Transaction) []string {
 			events := []string{}
 			if data.MemberProfileID != nil {
-				events = append(events, fmt.Sprintf("transaction.update.user.%s", data.MemberProfileID))
-			}
-			if data.MemberJointAccountID != nil {
-				events = append(events, fmt.Sprintf("transaction.update.user.%s", data.MemberJointAccountID))
+				events = append(events, fmt.Sprintf("transaction.update.member_profile.%s", data.MemberProfileID))
 			}
 			if data.EmployeeUserID != nil {
-				events = append(events, fmt.Sprintf("transaction.update.user.%s", data.EmployeeUserID))
+				events = append(events, fmt.Sprintf("transaction.update.employee.%s", data.EmployeeUserID))
 			}
 			events = append(events,
 				"transaction.delete",
