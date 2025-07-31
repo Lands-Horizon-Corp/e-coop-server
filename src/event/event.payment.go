@@ -53,6 +53,7 @@ func (e *Event) Payment(
 		tx.Rollback()
 		return eris.Wrap(err, "internal error during IP block check")
 	}
+
 	if blocked {
 		// Audit Trail: Log IP block before rollback
 		e.Footstep(context, ctx, FootstepEvent{
@@ -63,6 +64,7 @@ func (e *Event) Payment(
 		tx.Rollback()
 		return eris.New("IP is temporarily blocked due to repeated errors")
 	}
+
 	// Validate Payment Amount
 	if data.Amount == 0 {
 		tx.Rollback()
@@ -112,7 +114,6 @@ func (e *Event) Payment(
 			block("Member does not belong to the current branch")
 			return eris.New("member does not belong to the current branch")
 		}
-
 		if memberProfile.OrganizationID != userOrg.OrganizationID {
 			tx.Rollback()
 			e.Footstep(context, ctx, FootstepEvent{
