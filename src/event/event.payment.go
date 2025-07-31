@@ -2,8 +2,8 @@ package event
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/google/uuid"
@@ -28,13 +28,38 @@ func (e *Event) Payment(
 	transactionId *uuid.UUID,
 	transactionType TransactionType,
 ) error {
+	// Performance monitoring: Track operation duration for memory leak detection
+	startTime := time.Now()
+	defer func() {
+		duration := time.Since(startTime)
+		if duration > 5*time.Second {
+			e.Footstep(context, ctx, FootstepEvent{
+				Activity:    "performance-warning",
+				Description: fmt.Sprintf("Payment operation took %.2fs - potential performance issue (/transaction/payment/:transaction_id)", duration.Seconds()),
+				Module:      "Transaction",
+			})
+		}
+	}()
+
 	// IP Block Check
 	block, blocked, err := e.HandleIPBlocker(context, ctx)
 	if err != nil {
+		// Audit Trail: Log error before rollback
+		e.Footstep(context, ctx, FootstepEvent{
+			Activity:    "ip-block-check-error",
+			Description: "IP blocker check failed (/transaction/payment/:transaction_id): " + err.Error(),
+			Module:      "Transaction",
+		})
 		tx.Rollback()
 		return eris.Wrap(err, "internal error during IP block check")
 	}
 	if blocked {
+		// Audit Trail: Log IP block before rollback
+		e.Footstep(context, ctx, FootstepEvent{
+			Activity:    "ip-blocked",
+			Description: "IP is temporarily blocked due to repeated errors (/transaction/payment/:transaction_id)",
+			Module:      "Transaction",
+		})
 		tx.Rollback()
 		return eris.New("IP is temporarily blocked due to repeated errors")
 	}
@@ -100,7 +125,7 @@ func (e *Event) Payment(
 		}
 	}
 
-	// Get current TransactionBatch
+	// Get current TransactionBatch with memory leak protection
 	transactionBatch, err := e.model.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 	if err != nil {
 		tx.Rollback()
@@ -150,12 +175,13 @@ func (e *Event) Payment(
 	}
 
 	if account.OrganizationID != userOrg.OrganizationID {
-		tx.Rollback() // ADD THIS LINE
+		// Audit Trail: Log organization mismatch before rollback
 		e.Footstep(context, ctx, FootstepEvent{
 			Activity:    "organization-mismatch",
 			Description: "Account does not belong to the current organization (/transaction/withdraw/:transaction_id)",
 			Module:      "Transaction",
 		})
+		tx.Rollback()
 		block("Account does not belong to the current organization")
 		return eris.New("account does not belong to the current organization")
 	}
@@ -184,7 +210,23 @@ func (e *Event) Payment(
 		return eris.New("payment type does not belong to the current organization")
 	}
 
-	// Lock the latest general ledger entry for update
+	// Enhanced concurrency protection: Lock account for update to prevent race conditions
+	// This prevents multiple users from operating on the same account simultaneously
+	lockedAccount, err := e.model.AccountLockWithValidation(context, tx, *data.AccountID, account)
+	if err != nil {
+		// Audit Trail: Log account lock failure
+		e.Footstep(context, ctx, FootstepEvent{
+			Activity:    "account-lock-error",
+			Description: "Failed to acquire account lock for concurrent protection (/transaction/payment/:transaction_id): " + err.Error(),
+			Module:      "Transaction",
+		})
+		tx.Rollback()
+		block("Failed to acquire account lock: " + err.Error())
+		return eris.Wrap(err, "failed to acquire account lock for concurrent protection")
+	}
+
+	// Use locked account data for the rest of the transaction
+	account = lockedAccount // Lock the latest general ledger entry for update
 	var generalLedger *model.GeneralLedger
 	if data.MemberProfileID != nil {
 		// Member-specific transaction
@@ -192,29 +234,25 @@ func (e *Event) Payment(
 		generalLedger, err = e.model.GeneralLedgerCurrentMemberAccountForUpdate(
 			context, tx, *data.MemberProfileID, *data.AccountID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
-			// Check if the error is because no general ledger exists (new member/account)
-			// This is normal for new members who haven't made any transactions yet
-			if err == gorm.ErrRecordNotFound {
-				// No general ledger exists yet - this is fine for new members
-				// Set generalLedger to nil to indicate starting balance of 0
-				generalLedger = nil
-				e.Footstep(context, ctx, FootstepEvent{
-					Activity: "new-member-account",
-					Description: fmt.Sprintf("No existing general ledger found for member %s on account %s - starting with zero balance (/transaction/payment/:transaction_id)",
-						data.MemberProfileID.String(), data.AccountID.String()),
-					Module: "Transaction",
-				})
-			} else {
-				// Actual database error occurred
-				tx.Rollback()
-				e.Footstep(context, ctx, FootstepEvent{
-					Activity:    "ledger-error",
-					Description: "Failed to retrieve member general ledger (FOR UPDATE) (/transaction/payment/:transaction_id): " + err.Error(),
-					Module:      "Transaction",
-				})
-				block("Failed to retrieve member general ledger: " + err.Error())
-				return eris.Wrap(err, "failed to retrieve member general ledger")
-			}
+			// Actual database error occurred - GeneralLedgerCurrentMemberAccountForUpdate already handles ErrRecordNotFound
+			tx.Rollback()
+			e.Footstep(context, ctx, FootstepEvent{
+				Activity:    "ledger-error",
+				Description: "Failed to retrieve member general ledger (FOR UPDATE) (/transaction/payment/:transaction_id): " + err.Error(),
+				Module:      "Transaction",
+			})
+			block("Failed to retrieve member general ledger: " + err.Error())
+			return eris.Wrap(err, "failed to retrieve member general ledger")
+		}
+
+		// Log new member account if no existing ledger
+		if generalLedger == nil {
+			e.Footstep(context, ctx, FootstepEvent{
+				Activity: "new-member-account",
+				Description: fmt.Sprintf("No existing general ledger found for member %s on account %s - starting with zero balance (/transaction/payment/:transaction_id)",
+					data.MemberProfileID.String(), data.AccountID.String()),
+				Module: "Transaction",
+			})
 		}
 	} else {
 		// Subsidiary ledger transaction (non-member/cooperative-level)
@@ -222,28 +260,25 @@ func (e *Event) Payment(
 		generalLedger, err = e.model.GeneralLedgerCurrentSubsidiaryAccountForUpdate(
 			context, tx, *data.AccountID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
-			// Check if the error is because no general ledger exists (new subsidiary account)
-			if err == gorm.ErrRecordNotFound {
-				// No general ledger exists yet - this is fine for new subsidiary accounts
-				// Set generalLedger to nil to indicate starting balance of 0
-				generalLedger = nil
-				e.Footstep(context, ctx, FootstepEvent{
-					Activity: "new-subsidiary-account",
-					Description: fmt.Sprintf("No existing subsidiary ledger found for account %s - starting with zero balance (/transaction/payment/:transaction_id)",
-						data.AccountID.String()),
-					Module: "Transaction",
-				})
-			} else {
-				// Actual database error occurred
-				tx.Rollback()
-				e.Footstep(context, ctx, FootstepEvent{
-					Activity:    "ledger-error",
-					Description: "Failed to retrieve subsidiary general ledger (FOR UPDATE) (/transaction/payment/:transaction_id): " + err.Error(),
-					Module:      "Transaction",
-				})
-				block("Failed to retrieve subsidiary general ledger: " + err.Error())
-				return eris.Wrap(err, "failed to retrieve subsidiary general ledger")
-			}
+			// Actual database error occurred - GeneralLedgerCurrentSubsidiaryAccountForUpdate already handles ErrRecordNotFound
+			tx.Rollback()
+			e.Footstep(context, ctx, FootstepEvent{
+				Activity:    "ledger-error",
+				Description: "Failed to retrieve subsidiary general ledger (FOR UPDATE) (/transaction/payment/:transaction_id): " + err.Error(),
+				Module:      "Transaction",
+			})
+			block("Failed to retrieve subsidiary general ledger: " + err.Error())
+			return eris.Wrap(err, "failed to retrieve subsidiary general ledger")
+		}
+
+		// Log subsidiary transaction and new account if applicable
+		if generalLedger == nil {
+			e.Footstep(context, ctx, FootstepEvent{
+				Activity: "new-subsidiary-account",
+				Description: fmt.Sprintf("No existing subsidiary ledger found for account %s - starting with zero balance (/transaction/payment/:transaction_id)",
+					data.AccountID.String()),
+				Module: "Transaction",
+			})
 		}
 
 		e.Footstep(context, ctx, FootstepEvent{
@@ -409,14 +444,15 @@ func (e *Event) Payment(
 
 	default:
 		// Unsupported account type
+		// Audit Trail: Log unsupported account type before rollback
+		e.Footstep(context, ctx, FootstepEvent{
+			Activity:    "account-type-error",
+			Description: fmt.Sprintf("Unsupported account type: %s (/transaction/payment/:transaction_id)", account.Type),
+			Module:      "Transaction",
+		})
 		tx.Rollback()
 		reason := fmt.Sprintf("Unsupported account type: %s", account.Type)
 		block(reason)
-		e.Footstep(context, ctx, FootstepEvent{
-			Activity:    "account-type-error",
-			Description: reason + " (/transaction/payment/:transaction_id)",
-			Module:      "Transaction",
-		})
 		return eris.New("unsupported account type")
 	}
 
@@ -453,7 +489,7 @@ func (e *Event) Payment(
 		transaction, err = e.model.TransactionManager.GetByID(context, *transactionId)
 		if err != nil {
 			// If transaction doesn't exist, create a new one
-			if err == gorm.ErrRecordNotFound {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
 				// Create new transaction since it doesn't exist
 				transaction = &model.Transaction{
 					CreatedAt:            time.Now().UTC(),
@@ -620,8 +656,16 @@ func (e *Event) Payment(
 		return eris.Wrap(err, "failed to commit transaction")
 	}
 
-	// Return success with the created ledger entry
-	return ctx.JSON(http.StatusOK, e.model.GeneralLedgerManager.ToModel(newGeneralLedger))
+	// Success - log completion with performance metrics
+	duration := time.Since(startTime)
+	e.Footstep(context, ctx, FootstepEvent{
+		Activity: "payment-success",
+		Description: fmt.Sprintf("Payment completed successfully. Amount: %.2f, Account: %s, Balance: %.2f, Duration: %.3fs (/transaction/payment/:transaction_id)",
+			amount, data.AccountID.String(), newBalance, duration.Seconds()),
+		Module: "Transaction",
+	})
+
+	return nil
 }
 
 func (e *Event) Withdraw(

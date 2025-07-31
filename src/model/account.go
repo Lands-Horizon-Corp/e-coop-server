@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	horizon_services "github.com/lands-horizon/horizon-server/services"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // --- ENUMS ---
@@ -514,4 +515,61 @@ func (m *Model) AccountCurrentBranch(context context.Context, orgId uuid.UUID, b
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})
+}
+
+// AccountLockForUpdate acquires an exclusive lock on an account for concurrent protection
+// This prevents multiple users from operating on the same account simultaneously
+// Returns the locked account data and any error encountered
+func (m *Model) AccountLockForUpdate(ctx context.Context, tx *gorm.DB, accountID uuid.UUID) (*Account, error) {
+	var lockedAccount Account
+	err := tx.WithContext(ctx).
+		Model(&Account{}).
+		Where("id = ?", accountID).
+		Clauses(clause.Locking{Strength: "UPDATE"}).
+		First(&lockedAccount).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &lockedAccount, nil
+}
+
+// AccountLockWithValidation acquires an exclusive lock on an account and validates it hasn't changed
+// This is a comprehensive function that includes concurrent modification detection
+// originalAccount should be the account data retrieved before starting the transaction
+//
+// Example usage:
+//
+//	account, err := m.AccountManager.GetByID(ctx, accountID)
+//	if err != nil { return err }
+//
+//	// Start transaction
+//	tx := db.Begin()
+//
+//	// Lock account and detect concurrent modifications
+//	lockedAccount, err := m.AccountLockWithValidation(ctx, tx, accountID, account)
+//	if err != nil {
+//	    tx.Rollback()
+//	    return fmt.Errorf("account lock failed: %w", err)
+//	}
+//
+//	// Use lockedAccount for the rest of the transaction
+//	account = lockedAccount
+func (m *Model) AccountLockWithValidation(ctx context.Context, tx *gorm.DB, accountID uuid.UUID, originalAccount *Account) (*Account, error) {
+	lockedAccount, err := m.AccountLockForUpdate(ctx, tx, accountID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to acquire account lock: %w", err)
+	}
+
+	// Verify account data hasn't changed since initial check (concurrent modification detection)
+	if originalAccount != nil {
+		if lockedAccount.OrganizationID != originalAccount.OrganizationID ||
+			lockedAccount.BranchID != originalAccount.BranchID ||
+			lockedAccount.Type != originalAccount.Type {
+			return nil, fmt.Errorf("account was modified by another transaction")
+		}
+	}
+
+	return lockedAccount, nil
 }
