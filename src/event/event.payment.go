@@ -646,6 +646,44 @@ func (e *Event) Payment(
 		return eris.Wrap(err, "failed to update transaction")
 	}
 
+	// Update or create member accounting ledger (only for member-specific transactions)
+	if data.MemberProfileID != nil {
+		lastPayTime := time.Now().UTC()
+		if data.EntryDate != nil {
+			lastPayTime = *data.EntryDate
+		}
+
+		_, err := e.model.MemberAccountingLedgerUpdateOrCreate(
+			context, tx,
+			*data.MemberProfileID,
+			*data.AccountID,
+			userOrg.OrganizationID,
+			*userOrg.BranchID,
+			userOrg.UserID,
+			newBalance,
+			lastPayTime,
+		)
+		if err != nil {
+			// Audit Trail: Log member accounting ledger error
+			e.Footstep(context, ctx, FootstepEvent{
+				Activity:    "member-accounting-ledger-error",
+				Description: "Failed to update member accounting ledger (/transaction/payment/:transaction_id): " + err.Error(),
+				Module:      "Transaction",
+			})
+			tx.Rollback()
+			block("Failed to update member accounting ledger: " + err.Error())
+			return eris.Wrap(err, "failed to update member accounting ledger")
+		}
+
+		// Log successful member accounting ledger update
+		e.Footstep(context, ctx, FootstepEvent{
+			Activity: "member-accounting-ledger-updated",
+			Description: fmt.Sprintf("Member accounting ledger updated successfully for member %s, account %s, new balance: %.2f (/transaction/payment/:transaction_id)",
+				data.MemberProfileID.String(), data.AccountID.String(), newBalance),
+			Module: "Transaction",
+		})
+	}
+
 	// Commit the transaction
 	if err := tx.Commit().Error; err != nil {
 		e.Footstep(context, ctx, FootstepEvent{

@@ -2,12 +2,14 @@ package model
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 	horizon_services "github.com/lands-horizon/horizon-server/services"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type (
@@ -175,4 +177,99 @@ func (m *Model) MemberAccountingLedgerCurrentBranch(context context.Context, org
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})
+}
+
+// MemberAccountingLedgerFindForUpdate finds and locks a member accounting ledger for concurrent protection
+// Returns nil if not found (without error), allowing for create-or-update patterns
+func (m *Model) MemberAccountingLedgerFindForUpdate(ctx context.Context, tx *gorm.DB, memberProfileID, accountID, orgID, branchID uuid.UUID) (*MemberAccountingLedger, error) {
+	var ledger MemberAccountingLedger
+	err := tx.WithContext(ctx).
+		Model(&MemberAccountingLedger{}).
+		Where("member_profile_id = ? AND account_id = ? AND organization_id = ? AND branch_id = ?",
+			memberProfileID, accountID, orgID, branchID).
+		Clauses(clause.Locking{Strength: "UPDATE"}).
+		First(&ledger).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil // Not found, but not an error - allows create-or-update pattern
+		}
+		return nil, err
+	}
+
+	return &ledger, nil
+}
+
+// MemberAccountingLedgerUpdateOrCreate safely updates existing or creates new member accounting ledger
+// with race condition protection and proper transaction handling
+//
+// This function:
+// 1. Attempts to find and lock an existing ledger entry
+// 2. If found, updates the balance, last pay time, and increments transaction count
+// 3. If not found, creates a new ledger entry with initial values
+// 4. Uses SELECT FOR UPDATE to prevent concurrent modifications
+//
+// Example usage:
+//
+//	ledger, err := m.MemberAccountingLedgerUpdateOrCreate(
+//	    ctx, tx, memberID, accountID, orgID, branchID, userID,
+//	    newBalance, time.Now())
+//	if err != nil {
+//	    return fmt.Errorf("ledger update failed: %w", err)
+//	}
+func (m *Model) MemberAccountingLedgerUpdateOrCreate(
+	ctx context.Context,
+	tx *gorm.DB,
+	memberProfileID, accountID, orgID, branchID, userID uuid.UUID,
+	newBalance float64,
+	lastPayTime time.Time,
+) (*MemberAccountingLedger, error) {
+	// First, try to find and lock existing ledger
+	ledger, err := m.MemberAccountingLedgerFindForUpdate(ctx, tx, memberProfileID, accountID, orgID, branchID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find member accounting ledger for update: %w", err)
+	}
+
+	if ledger == nil {
+		// Create new member accounting ledger
+		ledger = &MemberAccountingLedger{
+			CreatedAt:       time.Now().UTC(),
+			CreatedByID:     userID,
+			UpdatedAt:       time.Now().UTC(),
+			UpdatedByID:     userID,
+			OrganizationID:  orgID,
+			BranchID:        branchID,
+			MemberProfileID: memberProfileID,
+			AccountID:       accountID,
+			Balance:         newBalance,
+			LastPay:         &lastPayTime,
+			// Initialize other fields to zero
+			Count:               1, // Start with 1 for first transaction
+			Interest:            0,
+			Fines:               0,
+			Due:                 0,
+			CarriedForwardDue:   0,
+			StoredValueFacility: 0,
+			PrincipalDue:        0,
+		}
+
+		err = tx.WithContext(ctx).Create(ledger).Error
+		if err != nil {
+			return nil, fmt.Errorf("failed to create member accounting ledger: %w", err)
+		}
+	} else {
+		// Update existing member accounting ledger
+		ledger.Balance = newBalance
+		ledger.LastPay = &lastPayTime
+		ledger.UpdatedAt = time.Now().UTC()
+		ledger.UpdatedByID = userID
+		ledger.Count += 1 // Increment transaction count
+
+		err = tx.WithContext(ctx).Save(ledger).Error
+		if err != nil {
+			return nil, fmt.Errorf("failed to update member accounting ledger: %w", err)
+		}
+	}
+
+	return ledger, nil
 }
