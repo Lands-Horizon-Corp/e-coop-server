@@ -14,10 +14,9 @@ func (c *Controller) Heartbeat() {
 	req := c.provider.Service.Request
 
 	req.RegisterRoute(handlers.Route{
-		Route:        "/heartbeat/online",
-		Method:       "GET",
-		ResponseType: map[string]string{},
-		Note:         "This endpoint checks user when online status and service health.",
+		Route:  "/heartbeat/online",
+		Method: "GET",
+		Note:   "This endpoint checks user when online status and service health.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
