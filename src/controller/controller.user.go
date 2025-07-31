@@ -46,7 +46,7 @@ func (c *Controller) UserController() {
 		context := ctx.Request().Context()
 		user, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
-			c.userOrganizationToken.Token.CleanToken(context, ctx)
+			c.userOrganizationToken.ClearCurrentToken(context, ctx)
 			return ctx.NoContent(http.StatusNoContent)
 		}
 		userOrganization, _ := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -100,6 +100,7 @@ func (c *Controller) UserController() {
 		if err := c.userToken.CSRF.LogoutOtherDevices(context, ctx); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to logout other devices: " + err.Error()})
 		}
+		c.userOrganizationToken.ClearCurrentToken(context, ctx)
 		return ctx.NoContent(http.StatusNoContent)
 	})
 

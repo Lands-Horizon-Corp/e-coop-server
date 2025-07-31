@@ -20,6 +20,7 @@ type UserOrganizatonClaim struct {
 	BranchID          string `json:"branch_id"`
 	OrganizationID    string `json:"organization_id"`
 	UserType          string `json:"user_type"`
+	provider          *src.Provider
 	jwt.RegisteredClaims
 }
 
@@ -28,15 +29,15 @@ func (c UserOrganizatonClaim) GetRegisteredClaims() *jwt.RegisteredClaims {
 }
 
 type UserOrganizatonToken struct {
-	model *model.Model
-	Token horizon.TokenService[UserOrganizatonClaim]
+	model    *model.Model
+	Token    horizon.TokenService[UserOrganizatonClaim]
+	provider *src.Provider
 }
 
 func NewUserOrganizatonToken(provider *src.Provider, model *model.Model) (*UserOrganizatonToken, error) {
 	context := context.Background()
 	appName := provider.Service.Environment.GetString("APP_NAME", "")
 	appToken := provider.Service.Environment.GetString("APP_TOKEN", "")
-
 	token, err := provider.Service.Security.GenerateUUIDv5(context, appToken+"-user-organization")
 	if err != nil {
 		return nil, err
@@ -47,7 +48,34 @@ func NewUserOrganizatonToken(provider *src.Provider, model *model.Model) (*UserO
 		[]byte(token),
 		true,
 	)
-	return &UserOrganizatonToken{Token: tokenService, model: model}, nil
+	return &UserOrganizatonToken{Token: tokenService, model: model, provider: provider}, nil
+}
+
+func (h *UserOrganizatonToken) ClearCurrentToken(context context.Context, ctx echo.Context) {
+	claim, err := h.Token.GetToken(context, ctx)
+	if err == nil {
+		id, err := uuid.Parse(claim.UserOrganizatonID)
+		if err != nil {
+			h.Token.CleanToken(context, ctx)
+			return
+		}
+		userOrg, err := h.model.UserOrganizationManager.GetByID(context, id)
+		if err != nil {
+			h.Token.CleanToken(context, ctx)
+			return
+		}
+		userOrg.Status = model.UserOrganizationStatusOffline
+		userOrg.LastOnlineAt = time.Now()
+		if err := h.model.UserOrganizationManager.Update(context, userOrg); err != nil {
+			h.Token.CleanToken(context, ctx)
+			return
+		}
+		h.provider.Service.Broker.Dispatch(context, []string{
+			fmt.Sprintf("user_organization.status.branch.%s", userOrg.BranchID),
+			fmt.Sprintf("user_organization.status.organization.%s", userOrg.OrganizationID),
+		}, nil)
+	}
+	h.Token.CleanToken(context, ctx)
 }
 
 func (h *UserOrganizatonToken) CurrentUserOrganization(ctx context.Context, echoCtx echo.Context) (*model.UserOrganization, error) {
@@ -56,12 +84,12 @@ func (h *UserOrganizatonToken) CurrentUserOrganization(ctx context.Context, echo
 	if err == nil {
 		id, err := uuid.Parse(claim.UserOrganizatonID)
 		if err != nil {
-			h.Token.CleanToken(ctx, echoCtx)
+			h.ClearCurrentToken(ctx, echoCtx)
 			return nil, echo.NewHTTPError(http.StatusBadRequest, "invalid user ID in token")
 		}
 		userOrganization, err := h.model.UserOrganizationManager.GetByID(ctx, id)
 		if err != nil {
-			h.Token.CleanToken(ctx, echoCtx)
+			h.ClearCurrentToken(ctx, echoCtx)
 			return nil, echo.NewHTTPError(http.StatusNotFound, "user not found")
 		}
 		return userOrganization, nil
@@ -79,12 +107,12 @@ func (h *UserOrganizatonToken) CurrentUserOrganization(ctx context.Context, echo
 		return userOrganization, nil
 	}
 
-	h.Token.CleanToken(ctx, echoCtx)
+	h.ClearCurrentToken(ctx, echoCtx)
 	return nil, echo.NewHTTPError(http.StatusUnauthorized, "authentication required")
 }
 
 func (h *UserOrganizatonToken) SetUserOrganization(ctx context.Context, echoCtx echo.Context, userOrganization *model.UserOrganization) error {
-	h.Token.CleanToken(ctx, echoCtx)
+	h.ClearCurrentToken(ctx, echoCtx)
 	if err := h.Token.SetToken(ctx, echoCtx, UserOrganizatonClaim{
 		UserOrganizatonID: userOrganization.ID.String(),
 		UserID:            userOrganization.UserID.String(),

@@ -475,7 +475,7 @@ func (c *Controller) UserOrganinzationController() {
 		context := ctx.Request().Context()
 
 		// Remove the token
-		c.userOrganizationToken.Token.CleanToken(context, ctx)
+		c.userOrganizationToken.ClearCurrentToken(context, ctx)
 
 		// Log the footstep event
 		c.event.Footstep(context, ctx, event.FootstepEvent{

@@ -14,8 +14,11 @@ import (
 type UserOrganizationStatus string
 
 const (
-	UserOrganizationStatusOnline  UserOrganizationStatus = "online"
-	UserOrganizationStatusOffline UserOrganizationStatus = "offline"
+	UserOrganizationStatusOnline    UserOrganizationStatus = "online"
+	UserOrganizationStatusOffline   UserOrganizationStatus = "offline"
+	UserOrganizationStatusBusy      UserOrganizationStatus = "busy"
+	UserOrganizationStatusVacation  UserOrganizationStatus = "vacation"
+	UserOrganizationStatusCommuting UserOrganizationStatus = "commuting"
 )
 
 type (
@@ -182,11 +185,15 @@ type (
 		DeveloperSecretKey string `json:"developer_secret_key"`
 	}
 
+	UserOrganizationStatusRequest struct {
+		UserOrganizationStatus UserOrganizationStatus `json:"user_organization_status" validate:"required,oneof=online offline busy vacation commuting"`
+	}
 	UserOrganizationStatusResponse struct {
-		UserOrganization    []*UserOrganizationResponse `json:"user_organizations,omitempty"`
-		TotalOnline         int                         `json:"total_online"`
-		CountMemberOnline   int                         `json:"count_member_online"`
-		CountEmployeeOnline int                         `json:"count_employee_online"`
+		OfflineUsers   []*UserOrganizationResponse `json:"user_organizations,omitempty"`
+		OnlineUsers    []*UserOrganizationResponse `json:"online_user_organizations,omitempty"`
+		CommutingUsers []*UserOrganizationResponse `json:"commuting_user_organizations,omitempty"`
+		BusyUsers      []*UserOrganizationResponse `json:"busy_user_organizations,omitempty"`
+		VacationUsers  []*UserOrganizationResponse `json:"vacation_user_organizations,omitempty"`
 	}
 )
 
