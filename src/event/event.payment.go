@@ -226,13 +226,33 @@ func (e *Event) Payment(
 	}
 
 	// Use locked account data for the rest of the transaction
-	account = lockedAccount // Lock the latest general ledger entry for update
-	var generalLedger *model.GeneralLedger
+	account = lockedAccount
+
+	// Determine effective member profile ID early for ledger retrieval
+	var earlyEffectiveMemberProfileID *uuid.UUID
 	if data.MemberProfileID != nil {
+		earlyEffectiveMemberProfileID = data.MemberProfileID
+	} else if transactionId != nil {
+		// If we have a transaction ID, check if that transaction has a member
+		existingTransaction, err := e.model.TransactionManager.GetByID(context, *transactionId)
+		if err == nil && existingTransaction.MemberProfileID != nil {
+			earlyEffectiveMemberProfileID = existingTransaction.MemberProfileID
+			e.Footstep(context, ctx, FootstepEvent{
+				Activity: "member-from-existing-transaction",
+				Description: fmt.Sprintf("Using member profile ID %s from existing transaction for ledger retrieval (/transaction/payment/:transaction_id)",
+					existingTransaction.MemberProfileID.String()),
+				Module: "Transaction",
+			})
+		}
+	}
+
+	// Lock the latest general ledger entry for update
+	var generalLedger *model.GeneralLedger
+	if earlyEffectiveMemberProfileID != nil {
 		// Member-specific transaction
 		var err error
 		generalLedger, err = e.model.GeneralLedgerCurrentMemberAccountForUpdate(
-			context, tx, *data.MemberProfileID, *data.AccountID, userOrg.OrganizationID, *userOrg.BranchID)
+			context, tx, *earlyEffectiveMemberProfileID, *data.AccountID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			// Actual database error occurred - GeneralLedgerCurrentMemberAccountForUpdate already handles ErrRecordNotFound
 			tx.Rollback()
@@ -250,7 +270,7 @@ func (e *Event) Payment(
 			e.Footstep(context, ctx, FootstepEvent{
 				Activity: "new-member-account",
 				Description: fmt.Sprintf("No existing general ledger found for member %s on account %s - starting with zero balance (/transaction/payment/:transaction_id)",
-					data.MemberProfileID.String(), data.AccountID.String()),
+					earlyEffectiveMemberProfileID.String(), data.AccountID.String()),
 				Module: "Transaction",
 			})
 		}
@@ -477,6 +497,7 @@ func (e *Event) Payment(
 	// FIX 3: Complete the transaction instead of returning nil
 	// Handle existing transaction or create new one
 	transaction := &model.Transaction{}
+	var effectiveMemberProfileID *uuid.UUID // Track the actual member ID to use
 
 	// Determine correct transaction source
 	transactionSource := model.GeneralLedgerSourceDeposit
@@ -491,6 +512,7 @@ func (e *Event) Payment(
 			// If transaction doesn't exist, create a new one
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				// Create new transaction since it doesn't exist
+				effectiveMemberProfileID = data.MemberProfileID
 				transaction = &model.Transaction{
 					CreatedAt:            time.Now().UTC(),
 					CreatedByID:          userOrg.UserID,
@@ -501,7 +523,7 @@ func (e *Event) Payment(
 					SignatureMediaID:     data.SignatureMediaID,
 					TransactionBatchID:   &transactionBatch.ID,
 					EmployeeUserID:       &userOrg.UserID,
-					MemberProfileID:      data.MemberProfileID,
+					MemberProfileID:      effectiveMemberProfileID,
 					MemberJointAccountID: data.MemberJointAccountID,
 					Amount:               data.Amount,
 					ReferenceNumber:      data.ReferenceNumber,
@@ -547,9 +569,27 @@ func (e *Event) Payment(
 				block("Transaction batch mismatch")
 				return eris.New("transaction does not belong to the current transaction batch")
 			}
+
+			// Determine effective member profile ID from data or existing transaction
+			if data.MemberProfileID != nil {
+				effectiveMemberProfileID = data.MemberProfileID
+			} else if transaction.MemberProfileID != nil {
+				// No member in data, but transaction has member - use transaction's member
+				effectiveMemberProfileID = transaction.MemberProfileID
+				e.Footstep(context, ctx, FootstepEvent{
+					Activity: "member-from-transaction",
+					Description: fmt.Sprintf("Using member profile ID %s from existing transaction (/transaction/payment/:transaction_id)",
+						transaction.MemberProfileID.String()),
+					Module: "Transaction",
+				})
+			} else {
+				// No member in data and no member in transaction - subsidiary ledger
+				effectiveMemberProfileID = nil
+			}
 		}
 	} else {
 		// Create new transaction
+		effectiveMemberProfileID = data.MemberProfileID
 		transaction = &model.Transaction{
 			CreatedAt:            time.Now().UTC(),
 			CreatedByID:          userOrg.UserID,
@@ -560,7 +600,7 @@ func (e *Event) Payment(
 			SignatureMediaID:     data.SignatureMediaID,
 			TransactionBatchID:   &transactionBatch.ID,
 			EmployeeUserID:       &userOrg.UserID,
-			MemberProfileID:      data.MemberProfileID,
+			MemberProfileID:      effectiveMemberProfileID,
 			MemberJointAccountID: data.MemberJointAccountID,
 			Amount:               data.Amount,
 			ReferenceNumber:      data.ReferenceNumber,
@@ -604,7 +644,7 @@ func (e *Event) Payment(
 		Credit:                     credit,
 		Debit:                      debit,
 		Balance:                    newBalance,
-		MemberProfileID:            data.MemberProfileID,
+		MemberProfileID:            effectiveMemberProfileID, // Use effective member profile ID
 		MemberJointAccountID:       data.MemberJointAccountID,
 		PaymentTypeID:              data.PaymentTypeID,
 		TransactionReferenceNumber: data.ReferenceNumber,
@@ -647,7 +687,7 @@ func (e *Event) Payment(
 	}
 
 	// Update or create member accounting ledger (only for member-specific transactions)
-	if data.MemberProfileID != nil {
+	if effectiveMemberProfileID != nil {
 		lastPayTime := time.Now().UTC()
 		if data.EntryDate != nil {
 			lastPayTime = *data.EntryDate
@@ -655,7 +695,7 @@ func (e *Event) Payment(
 
 		_, err := e.model.MemberAccountingLedgerUpdateOrCreate(
 			context, tx,
-			*data.MemberProfileID,
+			*effectiveMemberProfileID,
 			*data.AccountID,
 			userOrg.OrganizationID,
 			*userOrg.BranchID,
@@ -679,7 +719,7 @@ func (e *Event) Payment(
 		e.Footstep(context, ctx, FootstepEvent{
 			Activity: "member-accounting-ledger-updated",
 			Description: fmt.Sprintf("Member accounting ledger updated successfully for member %s, account %s, new balance: %.2f (/transaction/payment/:transaction_id)",
-				data.MemberProfileID.String(), data.AccountID.String(), newBalance),
+				effectiveMemberProfileID.String(), data.AccountID.String(), newBalance),
 			Module: "Transaction",
 		})
 	}
@@ -721,5 +761,6 @@ func (e *Event) Deposit(
 	tx *gorm.DB,
 	data *model.PaymentQuickRequest,
 ) error {
+
 	return e.Payment(context, ctx, tx, data, nil, TransactionTypeDeposit)
 }
