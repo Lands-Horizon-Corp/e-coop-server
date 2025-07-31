@@ -156,3 +156,11 @@ func (m *Model) GetUserTimesheet(context context.Context, userId, orgId, branchI
 		OrganizationID: orgId,
 	})
 }
+
+func (m *Model) TimeSheetActiveUsers(context context.Context, orgId, branchId uuid.UUID) ([]*Timesheet, error) {
+	return m.TimesheetManager.FindWithConditions(context, map[string]any{
+		"organization_id": orgId,
+		"branch_id":       branchId,
+		"time_out":        nil,
+	})
+}

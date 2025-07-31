@@ -195,12 +195,14 @@ type (
 		BusyUsers      []*UserOrganizationResponse `json:"busy_user_organizations,omitempty"`
 		VacationUsers  []*UserOrganizationResponse `json:"vacation_user_organizations,omitempty"`
 
-		OnlineMembers   int `json:"online_members"`
-		TotalMembers    int `json:"total_members"`
-		OnlineEmployees int `json:"online_employees"`
-		TotalEmployees  int `json:"total_employees"`
+		OnlineUsersCount int `json:"online_users_count"`
+		OnlineMembers    int `json:"online_members"`
+		TotalMembers     int `json:"total_members"`
+		OnlineEmployees  int `json:"online_employees"`
+		TotalEmployees   int `json:"total_employees"`
 
-		TotalActiveEmployees int `json:"total_active_employees"`
+		TotalActiveEmployees int                  `json:"total_active_employees"`
+		ActiveEmployees      []*TimesheetResponse `json:"active_employees,omitempty"`
 	}
 )
 

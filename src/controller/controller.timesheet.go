@@ -290,4 +290,24 @@ func (c *Controller) TimesheetController() {
 		}
 		return ctx.JSON(http.StatusOK, c.model.TimesheetManager.Pagination(context, ctx, value))
 	})
+
+	// Get currently timed-in users for the current branch
+	req.RegisterRoute(handlers.Route{
+		Route:        "/timesheet/current/users",
+		Method:       "GET",
+		ResponseType: model.TimesheetResponse{},
+		Note:         "Returns all currently timed-in users for the current branch.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
+		}
+		timesheets, err := c.model.TimeSheetActiveUsers(context, user.OrganizationID, *user.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve current timesheets: " + err.Error()})
+		}
+
+		return ctx.JSON(http.StatusOK, c.model.TimesheetManager.Filtered(context, ctx, timesheets))
+	})
 }

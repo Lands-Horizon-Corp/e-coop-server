@@ -904,7 +904,7 @@ func Pagination[T any](
 ) (PaginationResult[T], error) {
 	result := PaginationResult[T]{
 		PageIndex: 0,
-		PageSize:  10,
+		PageSize:  30,
 	}
 
 	// Parse pagination parameters

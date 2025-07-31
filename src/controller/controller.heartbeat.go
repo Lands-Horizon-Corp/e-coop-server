@@ -141,11 +141,20 @@ func (c *Controller) Heartbeat() {
 			busyUsers      []*model.UserOrganizationResponse
 			vacationUsers  []*model.UserOrganizationResponse
 		)
-
+		onlineMembers, onlineEmployees := 0, 0
+		totalMembers, totalEmployees := 0, 0
 		for _, org := range statuses {
 			switch org.Status {
 			case model.UserOrganizationStatusOnline:
 				onlineUsers = append(onlineUsers, org)
+				if org.UserType == "member" {
+					onlineMembers++
+					totalMembers++
+				}
+				if org.UserType == "employee" {
+					onlineEmployees++
+					totalEmployees++
+				}
 			case model.UserOrganizationStatusOffline:
 				offlineUsers = append(offlineUsers, org)
 			case model.UserOrganizationStatusCommuting:
@@ -156,13 +165,24 @@ func (c *Controller) Heartbeat() {
 				vacationUsers = append(vacationUsers, org)
 			}
 		}
-
+		timesheets, err := c.model.TimeSheetActiveUsers(context, userOrg.OrganizationID, *userOrg.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve active timesheets: " + err.Error()})
+		}
 		return ctx.JSON(http.StatusOK, model.UserOrganizationStatusResponse{
 			OfflineUsers:   offlineUsers,
 			OnlineUsers:    onlineUsers,
 			CommutingUsers: commutingUsers,
 			BusyUsers:      busyUsers,
 			VacationUsers:  vacationUsers,
+
+			OnlineUsersCount:     len(onlineUsers),
+			OnlineMembers:        onlineMembers,
+			TotalMembers:         totalMembers,
+			OnlineEmployees:      onlineEmployees,
+			TotalEmployees:       totalEmployees,
+			TotalActiveEmployees: len(timesheets),
+			ActiveEmployees:      c.model.TimesheetManager.Filtered(context, ctx, timesheets),
 		})
 	})
 
