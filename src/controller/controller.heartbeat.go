@@ -28,6 +28,9 @@ func (c *Controller) Heartbeat() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
+		if userOrg.Status == model.UserOrganizationStatusOnline {
+			return ctx.NoContent(http.StatusNoContent)
+		}
 		userOrg.Status = model.UserOrganizationStatusOnline
 		userOrg.LastOnlineAt = time.Now()
 		if err := c.model.UserOrganizationManager.Update(context, userOrg); err != nil {
@@ -64,6 +67,9 @@ func (c *Controller) Heartbeat() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
+		if userOrg.Status == model.UserOrganizationStatusOffline {
+			return ctx.NoContent(http.StatusNoContent)
+		}
 		userOrg.Status = model.UserOrganizationStatusOffline
 		userOrg.LastOnlineAt = time.Now()
 		if err := c.model.UserOrganizationManager.Update(context, userOrg); err != nil {
@@ -92,16 +98,20 @@ func (c *Controller) Heartbeat() {
 		RequestType: model.UserOrganizationStatusRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
-		if err != nil {
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
-		}
+
 		var req model.UserOrganizationStatusRequest
 		if err := ctx.Bind(&req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid payload: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		if userOrg.Status == req.UserOrganizationStatus {
+			return ctx.NoContent(http.StatusNoContent)
 		}
 		userOrg.Status = req.UserOrganizationStatus
 		userOrg.LastOnlineAt = time.Now()
