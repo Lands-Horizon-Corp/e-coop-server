@@ -170,7 +170,6 @@ type (
 		BankID                *uuid.UUID `json:"bank_id,omitempty"`
 		BankReferenceNumber   string     `json:"bank_reference_number,omitempty"`
 		EntryDate             *time.Time `json:"entry_date,omitempty"`
-		ReferenceNumber       string     `json:"reference_number,omitempty"`
 		AccountID             *uuid.UUID `json:"account_id,omitempty"`
 		PaymentTypeID         *uuid.UUID `json:"payment_type_id,omitempty"`
 		Description           string     `json:"description,omitempty" validate:"max=255"`
