@@ -92,18 +92,18 @@ type (
 	}
 
 	TransactionRequest struct {
-		SignatureMediaID     *uuid.UUID          `json:"signature_media_id,omitempty"`
-		TransactionBatchID   *uuid.UUID          `json:"transaction_batch_id,omitempty"`
-		EmployeeUserID       *uuid.UUID          `json:"employee_user_id,omitempty"`
-		MemberProfileID      *uuid.UUID          `json:"member_profile_id,omitempty"`
-		MemberJointAccountID *uuid.UUID          `json:"member_joint_account_id,omitempty"`
-		ReferenceNumber      string              `json:"reference_number,omitempty"`
-		Source               GeneralLedgerSource `json:"source,omitempty" validate:"oneof=withdraw deposit journal payment adjustment 'journal voucher' 'check voucher'"`
-		Description          string              `json:"description,omitempty"`
+		SignatureMediaID         *uuid.UUID          `json:"signature_media_id,omitempty"`
+		MemberProfileID          *uuid.UUID          `json:"member_profile_id,omitempty"`
+		MemberJointAccountID     *uuid.UUID          `json:"member_joint_account_id,omitempty"`
+		ReferenceNumber          string              `json:"reference_number,omitempty"`
+		IsReferenceNumberChecked bool                `json:"is_reference_number_checked,omitempty"`
+		Source                   GeneralLedgerSource `json:"source,omitempty" validate:"oneof=withdraw deposit journal payment adjustment 'journal voucher' 'check voucher'"`
+		Description              string              `json:"description,omitempty"`
 	}
 
 	TransactionRequestEdit struct {
-		Description string `json:"description,omitempty"`
+		Description     string `json:"description,omitempty"`
+		ReferenceNumber string `json:"reference_number,omitempty"`
 	}
 )
 

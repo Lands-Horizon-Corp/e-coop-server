@@ -112,6 +112,7 @@ func (c *Controller) Start() error {
 	c.FinancialStatementController()
 	c.AccountTagController()
 	c.PaymentTypeController()
+	c.PaymentController()
 
 	// Loans
 	c.LoanStatusController()
