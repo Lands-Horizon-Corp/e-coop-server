@@ -664,6 +664,10 @@ func (e *Event) Payment(
 	if transaction.ReferenceNumber != "" {
 		referenceNumber = transaction.ReferenceNumber
 	}
+	memberJointAccount := data.MemberJointAccountID
+	if memberJointAccount == nil {
+		memberJointAccount = transaction.MemberJointAccountID
+	}
 	newGeneralLedger := &model.GeneralLedger{
 		CreatedAt:                  time.Now().UTC(),
 		CreatedByID:                userOrg.UserID,
@@ -683,7 +687,7 @@ func (e *Event) Payment(
 		Debit:                      debit,
 		Balance:                    newBalance,
 		MemberProfileID:            effectiveMemberProfileID,
-		MemberJointAccountID:       data.MemberJointAccountID,
+		MemberJointAccountID:       memberJointAccount,
 		PaymentTypeID:              data.PaymentTypeID,
 		TransactionReferenceNumber: data.ReferenceNumber,
 		Source:                     transactionSource,
