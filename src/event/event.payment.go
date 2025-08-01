@@ -660,6 +660,10 @@ func (e *Event) Payment(
 	// ================================================================================
 	// STEP 10: GENERAL LEDGER CREATION
 	// ================================================================================
+	referenceNumber := data.ReferenceNumber
+	if transaction.ReferenceNumber != "" {
+		referenceNumber = transaction.ReferenceNumber
+	}
 	newGeneralLedger := &model.GeneralLedger{
 		CreatedAt:                  time.Now().UTC(),
 		CreatedByID:                userOrg.UserID,
@@ -668,7 +672,7 @@ func (e *Event) Payment(
 		BranchID:                   *userOrg.BranchID,
 		OrganizationID:             userOrg.OrganizationID,
 		TransactionBatchID:         &transactionBatch.ID,
-		ReferenceNumber:            data.ReferenceNumber,
+		ReferenceNumber:            referenceNumber,
 		TransactionID:              &transaction.ID,
 		EntryDate:                  data.EntryDate,
 		SignatureMediaID:           data.SignatureMediaID,
