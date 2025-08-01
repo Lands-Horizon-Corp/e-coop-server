@@ -113,8 +113,11 @@ func (m *Model) Transaction() {
 		Transaction, TransactionResponse, TransactionRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization", "SignatureMedia", "TransactionBatch", "EmployeeUser",
-			"MemberProfile", "MemberJointAccount",
+			"CreatedBy", "UpdatedBy", "Branch",
+			"Organization", "SignatureMedia", "TransactionBatch", "EmployeeUser",
+			"MemberProfile",
+			"MemberProfile.Media",
+			"MemberJointAccount.Media",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *Transaction) *TransactionResponse {
