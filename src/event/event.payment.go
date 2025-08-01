@@ -13,21 +13,14 @@ import (
 	"gorm.io/gorm"
 )
 
-type TransactionType string
-
-const (
-	TransactionTypeDeposit  TransactionType = "deposit"
-	TransactionTypeWithdraw TransactionType = "withdraw"
-)
-
 func (e *Event) Payment(
 	context context.Context,
 	ctx echo.Context,
 	tx *gorm.DB,
 	data *model.PaymentQuickRequest,
 	transactionId *uuid.UUID,
-	transactionType TransactionType,
-) error {
+	ledgerSource model.GeneralLedgerSource,
+) (*model.GeneralLedger, error) {
 	// Performance monitoring: Track operation duration for memory leak detection
 	startTime := time.Now()
 	defer func() {
@@ -51,7 +44,7 @@ func (e *Event) Payment(
 			Module:      "Transaction",
 		})
 		tx.Rollback()
-		return eris.Wrap(err, "internal error during IP block check")
+		return nil, eris.Wrap(err, "internal error during IP block check")
 	}
 
 	if blocked {
@@ -62,7 +55,7 @@ func (e *Event) Payment(
 			Module:      "Transaction",
 		})
 		tx.Rollback()
-		return eris.New("IP is temporarily blocked due to repeated errors")
+		return nil, eris.New("IP is temporarily blocked due to repeated errors")
 	}
 
 	// Validate Payment Amount
@@ -74,7 +67,7 @@ func (e *Event) Payment(
 			Module:      "Transaction",
 		})
 		block("Payment amount cannot be zero")
-		return eris.New("payment amount cannot be zero")
+		return nil, eris.New("payment amount cannot be zero")
 	}
 
 	// Get User Organization
@@ -87,7 +80,7 @@ func (e *Event) Payment(
 			Module:      "Transaction",
 		})
 		block("Failed to get user organization: " + err.Error())
-		return eris.Wrap(err, "failed to get user organization")
+		return nil, eris.Wrap(err, "failed to get user organization")
 	}
 
 	// Member Profile Checks (Subsidiary Ledger)
@@ -101,7 +94,7 @@ func (e *Event) Payment(
 				Module:      "Transaction",
 			})
 			block("Failed to retrieve member profile: " + err.Error())
-			return eris.Wrap(err, "failed to retrieve member profile")
+			return nil, eris.Wrap(err, "failed to retrieve member profile")
 		}
 
 		if memberProfile.BranchID != *userOrg.BranchID {
@@ -112,7 +105,7 @@ func (e *Event) Payment(
 				Module:      "Transaction",
 			})
 			block("Member does not belong to the current branch")
-			return eris.New("member does not belong to the current branch")
+			return nil, eris.New("member does not belong to the current branch")
 		}
 		if memberProfile.OrganizationID != userOrg.OrganizationID {
 			tx.Rollback()
@@ -122,7 +115,7 @@ func (e *Event) Payment(
 				Module:      "Transaction",
 			})
 			block("Member does not belong to the current organization")
-			return eris.New("member does not belong to the current organization")
+			return nil, eris.New("member does not belong to the current organization")
 		}
 	}
 
@@ -136,7 +129,7 @@ func (e *Event) Payment(
 			Module:      "Transaction",
 		})
 		block("Failed to retrieve transaction batch: " + err.Error())
-		return eris.Wrap(err, "failed to retrieve transaction batch")
+		return nil, eris.Wrap(err, "failed to retrieve transaction batch")
 	}
 
 	// Add null validation for required fields (MemberProfileID is optional for cooperative-level transactions)
@@ -148,7 +141,7 @@ func (e *Event) Payment(
 			Module:      "Transaction",
 		})
 		block("Missing required fields")
-		return eris.New("missing required fields: AccountID and PaymentTypeID are required")
+		return nil, eris.New("missing required fields: AccountID and PaymentTypeID are required")
 	}
 
 	// Check account ownership and organization
@@ -161,7 +154,7 @@ func (e *Event) Payment(
 			Module:      "Transaction",
 		})
 		block("Failed to retrieve account: " + err.Error())
-		return eris.Wrap(err, "failed to retrieve account")
+		return nil, eris.Wrap(err, "failed to retrieve account")
 	}
 
 	if account.BranchID != *userOrg.BranchID {
@@ -172,7 +165,7 @@ func (e *Event) Payment(
 			Module:      "Transaction",
 		})
 		block("Account does not belong to the current branch")
-		return eris.New("account does not belong to the current branch")
+		return nil, eris.New("account does not belong to the current branch")
 	}
 
 	if account.OrganizationID != userOrg.OrganizationID {
@@ -184,7 +177,7 @@ func (e *Event) Payment(
 		})
 		tx.Rollback()
 		block("Account does not belong to the current organization")
-		return eris.New("account does not belong to the current organization")
+		return nil, eris.New("account does not belong to the current organization")
 	}
 
 	// Check if payment type is valid
@@ -197,7 +190,7 @@ func (e *Event) Payment(
 			Module:      "Transaction",
 		})
 		block("Failed to retrieve payment type: " + err.Error())
-		return eris.Wrap(err, "failed to retrieve payment type")
+		return nil, eris.Wrap(err, "failed to retrieve payment type")
 	}
 
 	if paymentType.OrganizationID != userOrg.OrganizationID {
@@ -208,7 +201,7 @@ func (e *Event) Payment(
 			Module:      "Transaction",
 		})
 		block("Payment type does not belong to the current organization")
-		return eris.New("payment type does not belong to the current organization")
+		return nil, eris.New("payment type does not belong to the current organization")
 	}
 
 	// Enhanced concurrency protection: Lock account for update to prevent race conditions
@@ -223,7 +216,7 @@ func (e *Event) Payment(
 		})
 		tx.Rollback()
 		block("Failed to acquire account lock: " + err.Error())
-		return eris.Wrap(err, "failed to acquire account lock for concurrent protection")
+		return nil, eris.Wrap(err, "failed to acquire account lock for concurrent protection")
 	}
 
 	// Use locked account data for the rest of the transaction
@@ -263,7 +256,7 @@ func (e *Event) Payment(
 				Module:      "Transaction",
 			})
 			block("Failed to retrieve member general ledger: " + err.Error())
-			return eris.Wrap(err, "failed to retrieve member general ledger")
+			return nil, eris.Wrap(err, "failed to retrieve member general ledger")
 		}
 
 		// Log new member account if no existing ledger
@@ -289,7 +282,7 @@ func (e *Event) Payment(
 				Module:      "Transaction",
 			})
 			block("Failed to retrieve subsidiary general ledger: " + err.Error())
-			return eris.Wrap(err, "failed to retrieve subsidiary general ledger")
+			return nil, eris.Wrap(err, "failed to retrieve subsidiary general ledger")
 		}
 
 		// Log subsidiary transaction and new account if applicable
@@ -311,25 +304,66 @@ func (e *Event) Payment(
 	}
 	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-	// Computation - Handle debit/credit logic based on account type and transaction type
+	// Determine transaction source early - fetch existing transaction first if provided
+	var transactionSource model.GeneralLedgerSource
+	var existingTransaction *model.Transaction
+
+	if transactionId != nil {
+		// Check if transaction exists and get its source
+		var err error
+		existingTransaction, err = e.model.TransactionManager.GetByID(context, *transactionId)
+		if err == nil && existingTransaction.Source != "" {
+			// Use source from existing transaction
+			transactionSource = existingTransaction.Source
+			e.Footstep(context, ctx, FootstepEvent{
+				Activity: "transaction-source-from-existing",
+				Description: fmt.Sprintf("Using transaction source '%s' from existing transaction %s (/transaction/payment/:transaction_id)",
+					string(existingTransaction.Source), existingTransaction.ID.String()),
+				Module: "Transaction",
+			})
+		} else {
+			// Use the effective ledger source from parameters
+			transactionSource = ledgerSource
+			if err != nil {
+				e.Footstep(context, ctx, FootstepEvent{
+					Activity: "transaction-not-found",
+					Description: fmt.Sprintf("Transaction not found, will create new one with source '%s' (/transaction/payment/:transaction_id)",
+						string(ledgerSource)),
+					Module: "Transaction",
+				})
+			}
+		}
+	} else {
+		// New transaction - use the ledger source from parameters
+		transactionSource = ledgerSource
+		e.Footstep(context, ctx, FootstepEvent{
+			Activity: "new-transaction-source",
+			Description: fmt.Sprintf("Creating new transaction with source '%s' (/transaction/payment/:transaction_id)",
+				string(ledgerSource)),
+			Module: "Transaction",
+		})
+	}
+
+	// Computation - Handle debit/credit logic based on account type and determined transaction source
 	var credit, debit, newBalance float64
 
-	// Handle negative amounts by flipping transaction type and making amount positive
+	// Handle negative amounts by flipping transaction source and making amount positive
 	amount := data.Amount
-	effectiveTransactionType := transactionType
+	effectiveTransactionSource := transactionSource
 	var negativeAmountReason string
 
 	if amount < 0 {
 		amount = -amount // Make amount positive for calculations
 		negativeAmountReason = fmt.Sprintf("Negative amount %.2f converted to positive %.2f", data.Amount, amount)
 
-		// Flip the transaction type when amount is negative
-		if transactionType == TransactionTypeDeposit {
-			effectiveTransactionType = TransactionTypeWithdraw
-			negativeAmountReason += " and transaction type changed from deposit to withdraw"
-		} else {
-			effectiveTransactionType = TransactionTypeDeposit
-			negativeAmountReason += " and transaction type changed from withdraw to deposit"
+		// Flip the transaction source when amount is negative
+		switch transactionSource {
+		case model.GeneralLedgerSourceDeposit:
+			effectiveTransactionSource = model.GeneralLedgerSourceWithdraw
+			negativeAmountReason += " and transaction source changed from deposit to withdraw"
+		case model.GeneralLedgerSourceWithdraw:
+			effectiveTransactionSource = model.GeneralLedgerSourceDeposit
+			negativeAmountReason += " and transaction source changed from withdraw to deposit"
 		}
 
 		// Log the negative amount handling
@@ -343,7 +377,7 @@ func (e *Event) Payment(
 	switch account.Type {
 	case model.AccountTypeDeposit:
 		// Deposit accounts: Credits increase balance, Debits decrease balance
-		if effectiveTransactionType == TransactionTypeDeposit {
+		if effectiveTransactionSource == model.GeneralLedgerSourceDeposit {
 			credit = amount
 			debit = 0
 			if generalLedger != nil {
@@ -369,7 +403,7 @@ func (e *Event) Payment(
 					Description: reason + " (/transaction/payment/:transaction_id)",
 					Module:      "Transaction",
 				})
-				return eris.New("insufficient balance for withdrawal")
+				return nil, eris.New("insufficient balance for withdrawal")
 			}
 			credit = 0
 			debit = amount
@@ -378,7 +412,7 @@ func (e *Event) Payment(
 
 	case model.AccountTypeLoan:
 		// Loan accounts: Deposits reduce loan balance (debit), Withdrawals increase loan balance (credit)
-		if effectiveTransactionType == TransactionTypeDeposit {
+		if effectiveTransactionSource == model.GeneralLedgerSourceDeposit {
 			credit = 0
 			debit = amount // Payment reduces loan balance
 			if generalLedger != nil {
@@ -393,7 +427,7 @@ func (e *Event) Payment(
 						Description: reason + " (/transaction/payment/:transaction_id)",
 						Module:      "Transaction",
 					})
-					return eris.New("payment exceeds loan balance")
+					return nil, eris.New("payment exceeds loan balance")
 				}
 			} else {
 				newBalance = -amount
@@ -410,7 +444,7 @@ func (e *Event) Payment(
 
 	case model.AccountTypeARLedger, model.AccountTypeARAging, model.AccountTypeFines, model.AccountTypeInterest, model.AccountTypeSVFLedger, model.AccountTypeWOff, model.AccountTypeAPLedger:
 		// Receivable/Payable accounts: Deposits reduce balance (debit), Withdrawals increase balance (credit)
-		if effectiveTransactionType == TransactionTypeDeposit {
+		if effectiveTransactionSource == model.GeneralLedgerSourceDeposit {
 			credit = 0
 			debit = amount // Payment reduces receivable balance
 			if generalLedger != nil {
@@ -430,7 +464,7 @@ func (e *Event) Payment(
 
 	case model.AccountTypeOther:
 		// Other accounts: Similar to deposit accounts
-		if effectiveTransactionType == TransactionTypeDeposit {
+		if effectiveTransactionSource == model.GeneralLedgerSourceDeposit {
 			credit = amount
 			debit = 0
 			if generalLedger != nil {
@@ -456,7 +490,7 @@ func (e *Event) Payment(
 					Description: reason + " (/transaction/payment/:transaction_id)",
 					Module:      "Transaction",
 				})
-				return eris.New("insufficient balance for withdrawal from Other account")
+				return nil, eris.New("insufficient balance for withdrawal from Other account")
 			}
 			credit = 0
 			debit = amount
@@ -474,7 +508,7 @@ func (e *Event) Payment(
 		tx.Rollback()
 		reason := fmt.Sprintf("Unsupported account type: %s", account.Type)
 		block(reason)
-		return eris.New("unsupported account type")
+		return nil, eris.New("unsupported account type")
 	}
 
 	if (account.MinAmount != 0 || account.MaxAmount != 0) &&
@@ -492,23 +526,23 @@ func (e *Event) Payment(
 			Module: "Transaction",
 		})
 		block(fmt.Sprintf("Account balance limits exceeded: %.2f not in [%.2f-%.2f]", newBalance, account.MinAmount, account.MaxAmount))
-		return eris.New("account balance limits exceeded")
+		return nil, eris.New("account balance limits exceeded")
 	}
 
-	// FIX 3: Complete the transaction instead of returning nil
 	// Handle existing transaction or create new one
 	transaction := &model.Transaction{}
 	var effectiveMemberProfileID *uuid.UUID // Track the actual member ID to use
 
-	// Determine correct transaction source
-	transactionSource := model.GeneralLedgerSourceDeposit
-	if effectiveTransactionType == TransactionTypeWithdraw {
-		transactionSource = model.GeneralLedgerSourceWithdraw
-	}
-
 	if transactionId != nil {
 		var err error
-		transaction, err = e.model.TransactionManager.GetByID(context, *transactionId)
+		// Use the existingTransaction we already fetched
+		if existingTransaction != nil {
+			transaction = existingTransaction
+		} else {
+			// Try to fetch again if not already fetched
+			transaction, err = e.model.TransactionManager.GetByID(context, *transactionId)
+		}
+
 		if err != nil {
 			// If transaction doesn't exist, create a new one
 			if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -528,7 +562,7 @@ func (e *Event) Payment(
 					MemberJointAccountID: data.MemberJointAccountID,
 					Amount:               data.Amount,
 					ReferenceNumber:      data.ReferenceNumber,
-					Source:               model.GeneralLedgerSourceDeposit,
+					Source:               transactionSource, // Use the determined source
 					Description:          data.Description,
 					LoanBalance:          0,
 					LoanDue:              0,
@@ -545,7 +579,7 @@ func (e *Event) Payment(
 						Module:      "Transaction",
 					})
 					block("Failed to create transaction: " + err.Error())
-					return eris.Wrap(err, "failed to create transaction")
+					return nil, eris.Wrap(err, "failed to create transaction")
 				}
 			} else {
 				// Actual database error occurred
@@ -556,7 +590,7 @@ func (e *Event) Payment(
 					Module:      "Transaction",
 				})
 				block("Failed to retrieve transaction: " + err.Error())
-				return eris.Wrap(err, "failed to retrieve transaction")
+				return nil, eris.Wrap(err, "failed to retrieve transaction")
 			}
 		} else {
 			// Transaction exists, validate it belongs to current batch
@@ -568,7 +602,7 @@ func (e *Event) Payment(
 					Module:      "Transaction",
 				})
 				block("Transaction batch mismatch")
-				return eris.New("transaction does not belong to the current transaction batch")
+				return nil, eris.New("transaction does not belong to the current transaction batch")
 			}
 
 			// Determine effective member profile ID from data or existing transaction
@@ -605,7 +639,7 @@ func (e *Event) Payment(
 			MemberJointAccountID: data.MemberJointAccountID,
 			Amount:               data.Amount,
 			ReferenceNumber:      data.ReferenceNumber,
-			Source:               model.GeneralLedgerSourceDeposit,
+			Source:               transactionSource, // Use the determined source
 			Description:          data.Description,
 			LoanBalance:          0,
 			LoanDue:              0,
@@ -623,7 +657,7 @@ func (e *Event) Payment(
 				Module:      "Transaction",
 			})
 			block("Failed to create transaction: " + err.Error())
-			return eris.Wrap(err, "failed to create transaction")
+			return nil, eris.Wrap(err, "failed to create transaction")
 		}
 	}
 
@@ -663,15 +697,16 @@ func (e *Event) Payment(
 			Module:      "Transaction",
 		})
 		block("Failed to create general ledger entry: " + err.Error())
-		return eris.Wrap(err, "failed to create general ledger entry")
+		return nil, eris.Wrap(err, "failed to create general ledger entry")
 	}
 
 	// Update transaction amount - handle all combinations of original intent and effective operations
 	// We want to track the net effect on the transaction batch amount
-	if effectiveTransactionType == TransactionTypeDeposit {
+	switch effectiveTransactionSource {
+	case model.GeneralLedgerSourceDeposit:
 		// Effective operation is a deposit (increases account balance)
 		transaction.Amount += amount // Add the positive amount
-	} else {
+	case model.GeneralLedgerSourceWithdraw:
 		// Effective operation is a withdrawal (decreases account balance)
 		transaction.Amount -= amount // Subtract the positive amount
 	}
@@ -684,7 +719,7 @@ func (e *Event) Payment(
 			Module:      "Transaction",
 		})
 		block("Failed to update transaction: " + err.Error())
-		return eris.Wrap(err, "failed to update transaction")
+		return nil, eris.Wrap(err, "failed to update transaction")
 	}
 
 	// Update or create member accounting ledger (only for member-specific transactions)
@@ -713,7 +748,7 @@ func (e *Event) Payment(
 			})
 			tx.Rollback()
 			block("Failed to update member accounting ledger: " + err.Error())
-			return eris.Wrap(err, "failed to update member accounting ledger")
+			return nil, eris.Wrap(err, "failed to update member accounting ledger")
 		}
 
 		// Log successful member accounting ledger update
@@ -732,7 +767,7 @@ func (e *Event) Payment(
 			Description: "Failed to commit transaction (/transaction/payment/:transaction_id): " + err.Error(),
 			Module:      "Transaction",
 		})
-		return eris.Wrap(err, "failed to commit transaction")
+		return nil, eris.Wrap(err, "failed to commit transaction")
 	}
 
 	// Success - log completion with performance metrics
@@ -743,8 +778,7 @@ func (e *Event) Payment(
 			amount, data.AccountID.String(), newBalance, duration.Seconds()),
 		Module: "Transaction",
 	})
-
-	return nil
+	return generalLedger, nil
 }
 
 func (e *Event) Withdraw(
@@ -752,8 +786,8 @@ func (e *Event) Withdraw(
 	ctx echo.Context,
 	tx *gorm.DB,
 	data *model.PaymentQuickRequest,
-) error {
-	return e.Payment(context, ctx, tx, data, nil, TransactionTypeWithdraw)
+) (*model.GeneralLedger, error) {
+	return e.Payment(context, ctx, tx, data, nil, model.GeneralLedgerSourceWithdraw)
 }
 
 func (e *Event) Deposit(
@@ -761,7 +795,7 @@ func (e *Event) Deposit(
 	ctx echo.Context,
 	tx *gorm.DB,
 	data *model.PaymentQuickRequest,
-) error {
+) (*model.GeneralLedger, error) {
 
-	return e.Payment(context, ctx, tx, data, nil, TransactionTypeDeposit)
+	return e.Payment(context, ctx, tx, data, nil, model.GeneralLedgerSourceDeposit)
 }
