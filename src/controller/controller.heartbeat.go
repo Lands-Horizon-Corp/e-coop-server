@@ -46,10 +46,12 @@ func (c *Controller) Heartbeat() {
 			Description: "User set online status",
 			Module:      "User",
 		})
-		c.provider.Service.Broker.Dispatch(context, []string{
+		if err := c.provider.Service.Broker.Dispatch(context, []string{
 			fmt.Sprintf("user_organization.status.branch.%s", userOrg.BranchID),
 			fmt.Sprintf("user_organization.status.organization.%s", userOrg.OrganizationID),
-		}, nil)
+		}, nil); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to dispatch user organization status"})
+		}
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
@@ -85,10 +87,12 @@ func (c *Controller) Heartbeat() {
 			Description: "User set offline status",
 			Module:      "User",
 		})
-		c.provider.Service.Broker.Dispatch(context, []string{
+		if err := c.provider.Service.Broker.Dispatch(context, []string{
 			fmt.Sprintf("user_organization.status.branch.%s", userOrg.BranchID),
 			fmt.Sprintf("user_organization.status.organization.%s", userOrg.OrganizationID),
-		}, nil)
+		}, nil); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to dispatch user organization status"})
+		}
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
@@ -118,10 +122,12 @@ func (c *Controller) Heartbeat() {
 		if err := c.model.UserOrganizationManager.Update(context, userOrg); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user organization status"})
 		}
-		c.provider.Service.Broker.Dispatch(context, []string{
+		if err := c.provider.Service.Broker.Dispatch(context, []string{
 			fmt.Sprintf("user_organization.status.branch.%s", userOrg.BranchID),
 			fmt.Sprintf("user_organization.status.organization.%s", userOrg.OrganizationID),
-		}, nil)
+		}, nil); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to dispatch user organization status"})
+		}
 		return ctx.NoContent(http.StatusNoContent)
 	})
 

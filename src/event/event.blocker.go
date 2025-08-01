@@ -39,11 +39,15 @@ func (e *Event) HandleIPBlocker(context context.Context, ctx echo.Context) (bloc
 		count++
 
 		// Update count
-		cache.Set(context, errorKey, fmt.Appendf(nil, "%d", count), 5*time.Minute)
+		if err := cache.Set(context, errorKey, fmt.Appendf(nil, "%d", count), 5*time.Minute); err != nil {
+			return
+		}
 
 		// Block if threshold reached
 		if count >= 3 {
-			cache.Set(context, blockKey, []byte(reason), 5*time.Minute)
+			if err := cache.Set(context, blockKey, []byte(reason), 5*time.Minute); err != nil {
+				return
+			}
 		}
 	}
 

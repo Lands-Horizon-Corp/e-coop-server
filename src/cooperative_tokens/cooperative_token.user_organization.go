@@ -20,7 +20,6 @@ type UserOrganizatonClaim struct {
 	BranchID          string `json:"branch_id"`
 	OrganizationID    string `json:"organization_id"`
 	UserType          string `json:"user_type"`
-	provider          *src.Provider
 	jwt.RegisteredClaims
 }
 
@@ -70,10 +69,12 @@ func (h *UserOrganizatonToken) ClearCurrentToken(context context.Context, ctx ec
 			h.Token.CleanToken(context, ctx)
 			return
 		}
-		h.provider.Service.Broker.Dispatch(context, []string{
+		if err := h.provider.Service.Broker.Dispatch(context, []string{
 			fmt.Sprintf("user_organization.status.branch.%s", userOrg.BranchID),
 			fmt.Sprintf("user_organization.status.organization.%s", userOrg.OrganizationID),
-		}, nil)
+		}, nil); err != nil {
+			return
+		}
 	}
 	h.Token.CleanToken(context, ctx)
 }
