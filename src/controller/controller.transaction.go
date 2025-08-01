@@ -312,7 +312,7 @@ func (c *Controller) TransactionController() {
 	})
 
 	req.RegisterRoute(handlers.Route{
-		Route:        "/transaction/employee/:employee_id/search",
+		Route:        "/transaction/employee/:user_organization_id/search",
 		Method:       "GET",
 		ResponseType: model.TransactionResponse{},
 		Note:         "Fetches all transactions handled by the specified employee, filtered by organization and branch.",
@@ -325,16 +325,16 @@ func (c *Controller) TransactionController() {
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied"})
 		}
-		employeeID, err := handlers.EngineUUIDParam(ctx, "employee_id")
+		userOrganizationID, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
 		if err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid employee ID: " + err.Error()})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user organization ID: " + err.Error()})
 		}
-		employee, err := c.model.UserManager.GetByID(context, *employeeID)
+		userOrganization, err := c.model.UserOrganizationManager.GetByID(context, *userOrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Employee not found: " + err.Error()})
 		}
 		transactions, err := c.model.TransactionManager.Find(context, &model.Transaction{
-			EmployeeUserID: &employee.ID,
+			EmployeeUserID: &userOrganization.UserID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
