@@ -176,7 +176,7 @@ type (
 	}
 
 	PaymentQuickRequest struct {
-		Amount                float64    `json:"amount" validate:"required"`
+		Amount                float64    `json:"amount" validate:"required,ne=0"`
 		SignatureMediaID      *uuid.UUID `json:"signature_media_id,omitempty"`
 		ProofOfPaymentMediaID *uuid.UUID `json:"proof_of_payment_media_id,omitempty"`
 		BankID                *uuid.UUID `json:"bank_id,omitempty"`
