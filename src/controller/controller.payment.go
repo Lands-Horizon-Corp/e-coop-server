@@ -17,7 +17,7 @@ func (c *Controller) PaymentController() {
 		Route:        "/transaction/:transaction_id/payment",
 		Method:       "POST",
 		Note:         "Processes a payment for the specified transaction by transaction_id and records it in the general ledger.",
-		ResponseType: model.GeneralLedger{},
+		ResponseType: model.GeneralLedgerResponse{},
 		RequestType:  model.PaymentRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -87,7 +87,7 @@ func (c *Controller) PaymentController() {
 		Route:        "/transaction/:transaction_id/withdraw",
 		Method:       "POST",
 		Note:         "Processes a withdrawal for the specified transaction by transaction_id and updates the general ledger accordingly.",
-		ResponseType: model.GeneralLedger{},
+		ResponseType: model.GeneralLedgerResponse{},
 		RequestType:  model.PaymentRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -157,7 +157,7 @@ func (c *Controller) PaymentController() {
 		Route:        "/transaction/:transaction_id/deposit",
 		Method:       "POST",
 		Note:         "Processes a deposit for the specified transaction by transaction_id and updates the general ledger accordingly.",
-		ResponseType: model.GeneralLedger{},
+		ResponseType: model.GeneralLedgerResponse{},
 		RequestType:  model.PaymentRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -277,7 +277,7 @@ func (c *Controller) PaymentController() {
 		Route:        "/transaction/withdraw",
 		Method:       "POST",
 		Note:         "Processes a withdrawal for a transaction without specifying transaction_id in the route. Used for general withdrawals.",
-		ResponseType: model.GeneralLedger{},
+		ResponseType: model.GeneralLedgerResponse{},
 		RequestType:  model.PaymentQuickRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -327,7 +327,7 @@ func (c *Controller) PaymentController() {
 		Route:        "/transaction/deposit",
 		Method:       "POST",
 		Note:         "Processes a deposit for a transaction without specifying transaction_id in the route. Used for general deposits.",
-		ResponseType: model.GeneralLedger{},
+		ResponseType: model.GeneralLedgerResponse{},
 		RequestType:  model.PaymentQuickRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
