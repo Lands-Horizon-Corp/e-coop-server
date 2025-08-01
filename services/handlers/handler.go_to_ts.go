@@ -129,6 +129,9 @@ func (g *TypeScriptGenerator) GoTypeToTSType(field reflect.StructField) string {
 		if t.Elem() == reflect.TypeOf(uuid.UUID{}) {
 			return "uuid | null"
 		}
+		if t.Elem() == reflect.TypeOf(time.Time{}) {
+			return "Date | null"
+		}
 		return g.GoTypeToTSType(reflect.StructField{Type: t.Elem(), Tag: field.Tag}) + " | null"
 	case reflect.Slice, reflect.Array:
 		return g.GoTypeToTSType(reflect.StructField{Type: t.Elem(), Tag: field.Tag}) + "[]"
@@ -142,7 +145,7 @@ func (g *TypeScriptGenerator) GoTypeToTSType(field reflect.StructField) string {
 			return "uuid"
 		}
 		if t == reflect.TypeOf(time.Time{}) {
-			return "string"
+			return "Date"
 		}
 		if t.Name() == "" { // Anonymous struct
 			return g.StructTypeToTSInline(t)
