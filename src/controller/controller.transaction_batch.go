@@ -839,6 +839,18 @@ func (c *Controller) TransactionBatchController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batches: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.TransactionBatchManager.Pagination(context, ctx, batches))
+		paginated := c.model.TransactionBatchManager.Pagination(context, ctx, batches)
+
+		// ✅ Fix: Use index to properly update the slice
+		for i, batch := range paginated.Data {
+			if !batch.CanView {
+				minimalBatch, err := c.model.TransactionBatchMinimal(context, batch.ID)
+				if err != nil {
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve minimal transaction batch: " + err.Error()})
+				}
+				paginated.Data[i] = minimalBatch
+			}
+		}
+		return ctx.JSON(http.StatusOK, paginated)
 	})
 }
