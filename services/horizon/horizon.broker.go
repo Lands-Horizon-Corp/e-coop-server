@@ -13,9 +13,9 @@ import (
 type MessageBrokerService interface {
 	Run(ctx context.Context) error
 	Stop(ctx context.Context) error
-	Publish(ctx context.Context, topic string, payload interface{}) error
-	Dispatch(ctx context.Context, topics []string, payload interface{}) error
-	Subscribe(ctx context.Context, topic string, handler func(interface{}) error) error
+	Publish(ctx context.Context, topic string, payload any) error
+	Dispatch(ctx context.Context, topics []string, payload any) error
+	Subscribe(ctx context.Context, topic string, handler func(any) error) error
 }
 
 type HorizonMessageBroker struct {
@@ -58,7 +58,7 @@ func (h *HorizonMessageBroker) Stop(ctx context.Context) error {
 	return nil
 }
 
-func (h *HorizonMessageBroker) Dispatch(ctx context.Context, topics []string, payload interface{}) error {
+func (h *HorizonMessageBroker) Dispatch(ctx context.Context, topics []string, payload any) error {
 	if h.nc == nil {
 		return eris.New("NATS connection not initialized")
 	}
@@ -76,7 +76,7 @@ func (h *HorizonMessageBroker) Dispatch(ctx context.Context, topics []string, pa
 	return nil
 }
 
-func (h *HorizonMessageBroker) Publish(ctx context.Context, topic string, payload interface{}) error {
+func (h *HorizonMessageBroker) Publish(ctx context.Context, topic string, payload any) error {
 	if h.nc == nil {
 		return eris.New("NATS connection not initialized")
 	}
@@ -93,7 +93,7 @@ func (h *HorizonMessageBroker) Publish(ctx context.Context, topic string, payloa
 	return nil
 }
 
-func (h *HorizonMessageBroker) Subscribe(ctx context.Context, topic string, handler func(interface{}) error) error {
+func (h *HorizonMessageBroker) Subscribe(ctx context.Context, topic string, handler func(any) error) error {
 	if h.nc == nil {
 		return eris.New("NATS connection not initialized")
 	}

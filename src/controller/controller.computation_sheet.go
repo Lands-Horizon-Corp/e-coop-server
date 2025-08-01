@@ -30,8 +30,8 @@ func (c *Controller) ComputationSheetController() {
 
 		// Generate sample data
 		now := time.Now().UTC()
-		sample := map[string]interface{}{
-			"payments": []map[string]interface{}{
+		sample := map[string]any{
+			"payments": []map[string]any{
 				{
 					"date":   now.Format("2006-01-02"),
 					"amount": 100,
