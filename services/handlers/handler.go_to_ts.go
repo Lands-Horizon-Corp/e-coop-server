@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"database/sql/driver"
 	"fmt"
 	"reflect"
 	"strings"
@@ -85,19 +86,56 @@ func (g *TypeScriptGenerator) StructTypeToTSInline(t reflect.Type) string {
 // GoTypeToTSType converts a Go field type to its TypeScript equivalent.
 func (g *TypeScriptGenerator) GoTypeToTSType(field reflect.StructField) string {
 	t := field.Type
-	// Always treat uuid.UUID as "uuid"
+
+	// Handle special types first
 	if t == reflect.TypeOf(uuid.UUID{}) {
 		return "uuid"
 	}
-	// Always treat *uuid.UUID as "uuid | null"
 	if t.Kind() == reflect.Ptr && t.Elem() == reflect.TypeOf(uuid.UUID{}) {
 		return "uuid | null"
 	}
+	if t == reflect.TypeOf(time.Time{}) {
+		return "string" // ISO date string format
+	}
+	if t.Kind() == reflect.Ptr && t.Elem() == reflect.TypeOf(time.Time{}) {
+		return "string | null"
+	}
+
+	// Handle gorm.DeletedAt specifically
+	if t.String() == "gorm.DeletedAt" {
+		return "string | null"
+	}
+
+	// Handle json.RawMessage
+	if t.String() == "json.RawMessage" {
+		return "any"
+	}
+
+	// Handle sql null types
+	switch t.String() {
+	case "sql.NullString":
+		return "string | null"
+	case "sql.NullInt64", "sql.NullInt32", "sql.NullInt16":
+		return "number | null"
+	case "sql.NullFloat64":
+		return "number | null"
+	case "sql.NullBool":
+		return "boolean | null"
+	case "sql.NullTime":
+		return "string | null"
+	}
+
+	// Handle driver.Valuer interface (database types)
+	if t.Implements(reflect.TypeOf((*driver.Valuer)(nil)).Elem()) {
+		return "any"
+	}
+
 	switch t.Kind() {
 	case reflect.String:
 		enum := field.Tag.Get("enum")
 		val := field.Tag.Get("validate")
 		var union []string
+
 		if enum != "" {
 			parts := strings.Split(enum, ",")
 			for i := range parts {
@@ -105,6 +143,7 @@ func (g *TypeScriptGenerator) GoTypeToTSType(field reflect.StructField) string {
 			}
 			union = parts
 		}
+
 		if strings.Contains(val, "oneof=") && len(union) == 0 {
 			oneof := strings.Split(val, "oneof=")[1]
 			opts := strings.Fields(oneof)
@@ -113,48 +152,120 @@ func (g *TypeScriptGenerator) GoTypeToTSType(field reflect.StructField) string {
 			}
 			union = opts
 		}
+
 		if len(union) > 0 {
 			return strings.Join(union, " | ")
 		}
 		return "string"
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
-		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
-		reflect.Float32, reflect.Float64:
+
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return "number"
+
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return "number"
+
+	case reflect.Float32, reflect.Float64:
+		return "number"
+
+	case reflect.Complex64, reflect.Complex128:
+		return "{ real: number; imag: number }" // Complex numbers as objects
+
 	case reflect.Bool:
 		return "boolean"
+
 	case reflect.Interface:
+		// Check if it's error interface
+		if t.Implements(reflect.TypeOf((*error)(nil)).Elem()) {
+			return "string" // Errors are typically serialized as strings
+		}
 		return "any"
+
 	case reflect.Ptr:
+		// Handle specific pointer types
 		if t.Elem() == reflect.TypeOf(uuid.UUID{}) {
 			return "uuid | null"
 		}
 		if t.Elem() == reflect.TypeOf(time.Time{}) {
-			return "Date | null"
+			return "string | null"
 		}
 		return g.GoTypeToTSType(reflect.StructField{Type: t.Elem(), Tag: field.Tag}) + " | null"
+
 	case reflect.Slice, reflect.Array:
-		return g.GoTypeToTSType(reflect.StructField{Type: t.Elem(), Tag: field.Tag}) + "[]"
-	case reflect.Map:
-		if t.Key().Kind() == reflect.String {
-			return "{ [key: string]: " + g.GoTypeToTSType(reflect.StructField{Type: t.Elem(), Tag: field.Tag}) + " }"
+		// Handle byte slices specifically (common for binary data)
+		if t.Elem().Kind() == reflect.Uint8 {
+			return "string" // Base64 encoded string or similar
 		}
-		return "any"
+		return g.GoTypeToTSType(reflect.StructField{Type: t.Elem(), Tag: field.Tag}) + "[]"
+
+	case reflect.Map:
+		keyType := t.Key()
+		valueType := t.Elem()
+
+		switch keyType.Kind() {
+		case reflect.String:
+			return "{ [key: string]: " + g.GoTypeToTSType(reflect.StructField{Type: valueType, Tag: field.Tag}) + " }"
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+			reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+			return "{ [key: number]: " + g.GoTypeToTSType(reflect.StructField{Type: valueType, Tag: field.Tag}) + " }"
+		default:
+			return "Record<string, " + g.GoTypeToTSType(reflect.StructField{Type: valueType, Tag: field.Tag}) + ">"
+		}
+
 	case reflect.Struct:
 		if t == reflect.TypeOf(uuid.UUID{}) {
 			return "uuid"
 		}
 		if t == reflect.TypeOf(time.Time{}) {
-			return "Date"
+			return "string"
 		}
-		if t.Name() == "" { // Anonymous struct
+
+		// Handle embedded structs or anonymous structs
+		if t.Name() == "" {
 			return g.StructTypeToTSInline(t)
 		}
-		// Named struct: add to queue if not handled
+
+		// Check for common struct types
+		switch t.String() {
+		case "time.Duration":
+			return "number" // Duration as milliseconds or nanoseconds
+		case "big.Int":
+			return "string" // Big integers as strings
+		case "big.Float":
+			return "string" // Big floats as strings
+		case "decimal.Decimal": // shopspring/decimal
+			return "string"
+		case "url.URL":
+			return "string"
+		}
+
+		// Named struct: add to queue for processing
 		// if !g.handled[t] {
 		// 	g.typeQueue[t] = true
 		// }
 		return t.Name()
+
+	case reflect.Chan:
+		return "never" // Channels don't translate to TypeScript
+
+	case reflect.Func:
+		// Try to infer function signature if possible
+		numIn := t.NumIn()
+		numOut := t.NumOut()
+
+		if numIn == 0 && numOut == 0 {
+			return "() => void"
+		}
+		if numIn == 0 && numOut == 1 {
+			return "() => any"
+		}
+		return "Function" // Generic function type
+
+	case reflect.UnsafePointer:
+		return "any" // Unsafe pointers are opaque
+
+	case reflect.Uintptr:
+		return "number"
+
 	default:
 		return "any"
 	}
