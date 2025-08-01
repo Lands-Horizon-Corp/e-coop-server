@@ -63,9 +63,9 @@ type (
 
 		Description string `gorm:"type:text"`
 
-		CanView     bool       `gorm:"not null;default:false"`
-		IsClosed    bool       `gorm:"not null;default:false"`
-		RequestView *time.Time `gorm:"type:timestamp"`
+		CanView     bool `gorm:"not null;default:false"`
+		IsClosed    bool `gorm:"not null;default:false"`
+		RequestView bool `gorm:"not null;default:false" json:"request_view"`
 
 		EmployeeBySignatureMediaID *uuid.UUID `gorm:"type:uuid"`
 		EmployeeBySignatureMedia   *Media     `gorm:"foreignKey:EmployeeBySignatureMediaID" json:"employee_by_signature_media,omitempty"`
@@ -156,9 +156,9 @@ type (
 		TotalActualSupposedComparison float64 `json:"total_actual_supposed_comparison"`
 		Description                   string  `json:"description"`
 
-		CanView     bool    `json:"can_view"`
-		IsClosed    bool    `json:"is_closed"`
-		RequestView *string `json:"request_view,omitempty"`
+		CanView     bool `json:"can_view"`
+		IsClosed    bool `json:"is_closed"`
+		RequestView bool `json:"request_view"`
 
 		EmployeeBySignatureMediaID *uuid.UUID     `json:"employee_by_signature_media_id,omitempty"`
 		EmployeeBySignatureMedia   *MediaResponse `json:"employee_by_signature_media,omitempty"`
@@ -239,7 +239,7 @@ type (
 		Description                   string     `json:"description,omitempty"`
 		CanView                       bool       `json:"can_view,omitempty"`
 		IsClosed                      bool       `json:"is_closed,omitempty"`
-		RequestView                   *time.Time `json:"request_view,omitempty"`
+		RequestView                   bool       `json:"request_view,omitempty"`
 
 		EmployeeBySignatureMediaID    *uuid.UUID     `json:"employee_by_signature_media_id,omitempty"`
 		EmployeeBySignatureMedia      *MediaResponse `json:"employee_by_signature_media,omitempty"`
@@ -357,11 +357,6 @@ func (m *Model) TransactionBatch() {
 			if data == nil {
 				return nil
 			}
-			var requestView *string
-			if data.RequestView != nil {
-				s := data.RequestView.Format(time.RFC3339)
-				requestView = &s
-			}
 
 			var endedAt *string
 			if data.EndedAt != nil {
@@ -405,7 +400,7 @@ func (m *Model) TransactionBatch() {
 				Description:                   data.Description,
 				CanView:                       data.CanView,
 				IsClosed:                      data.IsClosed,
-				RequestView:                   requestView,
+				RequestView:                   data.RequestView,
 
 				EmployeeBySignatureMediaID:    data.EmployeeBySignatureMediaID,
 				EmployeeBySignatureMedia:      m.MediaManager.ToModel(data.EmployeeBySignatureMedia),
@@ -494,6 +489,7 @@ func (m *Model) TransactionBatchViewRequests(context context.Context, orgId uuid
 	return m.TransactionBatchManager.FindWithConditions(context, map[string]any{
 		"organization_id": orgId,
 		"branch_id":       branchId,
+		"request_view":    true,
 		"can_view":        false,
 		"is_closed":       false,
 	})
@@ -503,11 +499,6 @@ func (m *Model) TransactionBatchMinimal(context context.Context, id uuid.UUID) (
 	data, err := m.TransactionBatchManager.GetByID(context, id)
 	if err != nil {
 		return nil, err
-	}
-	var requestView *string
-	if data.RequestView != nil {
-		s := data.RequestView.Format(time.RFC3339)
-		requestView = &s
 	}
 
 	var endedAt *string
@@ -537,7 +528,7 @@ func (m *Model) TransactionBatchMinimal(context context.Context, id uuid.UUID) (
 		Description:      data.Description,
 		CanView:          data.CanView,
 		IsClosed:         data.IsClosed,
-		RequestView:      requestView,
+		RequestView:      data.RequestView,
 		EndedAt:          endedAt,
 	}, nil
 }

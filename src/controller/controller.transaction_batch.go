@@ -424,7 +424,7 @@ func (c *Controller) TransactionBatchController() {
 
 			IsClosed:    false,
 			CanView:     false,
-			RequestView: nil,
+			RequestView: false,
 		}
 		if err := c.model.TransactionBatchManager.CreateWithTx(context, tx, transBatch); err != nil {
 			tx.Rollback()
@@ -663,9 +663,10 @@ func (c *Controller) TransactionBatchController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Transaction batch not found: " + err.Error()})
 		}
-		now := time.Now().UTC()
-		transactionBatch.RequestView = &now
+		transactionBatch.RequestView = true
 		transactionBatch.CanView = false
+		transactionBatch.UpdatedAt = time.Now().UTC()
+		transactionBatch.UpdatedByID = userOrg.UserID
 		if err := c.model.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
