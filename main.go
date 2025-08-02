@@ -13,7 +13,7 @@ import (
 	"github.com/lands-horizon/horizon-server/seeder"
 	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/src"
-	"github.com/lands-horizon/horizon-server/src/controller"
+	controller_v1 "github.com/lands-horizon/horizon-server/src/controller/v1"
 	"github.com/lands-horizon/horizon-server/src/cooperative_tokens"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
@@ -176,13 +176,13 @@ func startServer() {
 			src.NewProvider,
 			src.NewValidator,
 			model.NewModel,
-			controller.NewController,
+			controller_v1.NewController,
 			event.NewEvent,
 			seeder.NewSeeder,
 			cooperative_tokens.NewUserToken,
 			cooperative_tokens.NewUserOrganizatonToken,
 		),
-		fx.Invoke(func(lc fx.Lifecycle, ctrl *controller.Controller, mod *model.Model, prov *src.Provider) error {
+		fx.Invoke(func(lc fx.Lifecycle, ctrl *controller_v1.Controller, mod *model.Model, prov *src.Provider) error {
 			lc.Append(fx.Hook{
 				OnStart: func(ctx context.Context) error {
 					if err := ctrl.Start(); err != nil {
