@@ -93,14 +93,13 @@ type (
 
 	TransactionRequest struct {
 		SignatureMediaID         *uuid.UUID          `json:"signature_media_id,omitempty"`
-		MemberProfileID          *uuid.UUID          `json:"member_profile_id,omitempty"`
+		MemberProfileID          *uuid.UUID          `json:"member_profile_id" validate:"required"`
 		MemberJointAccountID     *uuid.UUID          `json:"member_joint_account_id,omitempty"`
-		ReferenceNumber          string              `json:"reference_number,omitempty"`
+		ReferenceNumber          string              `json:"reference_number" validate:"required"`
 		IsReferenceNumberChecked bool                `json:"is_reference_number_checked,omitempty"`
-		Source                   GeneralLedgerSource `json:"source,omitempty" validate:"oneof=withdraw deposit journal payment adjustment 'journal voucher' 'check voucher'"`
+		Source                   GeneralLedgerSource `json:"source" validate:"required,oneof=withdraw deposit journal payment adjustment 'journal voucher' 'check voucher'"`
 		Description              string              `json:"description,omitempty"`
 	}
-
 	TransactionRequestEdit struct {
 		Description     string `json:"description,omitempty"`
 		ReferenceNumber string `json:"reference_number,omitempty"`

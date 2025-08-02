@@ -58,27 +58,31 @@ func (c *Controller) TransactionController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Failed to retrieve transaction batch: " + err.Error()})
 		}
 		transaction := &model.Transaction{
-			CreatedAt:            time.Now().UTC(),
-			CreatedByID:          userOrg.UserID,
-			UpdatedAt:            time.Now().UTC(),
-			UpdatedByID:          userOrg.UserID,
-			BranchID:             *userOrg.BranchID,
-			OrganizationID:       userOrg.OrganizationID,
-			SignatureMediaID:     req.SignatureMediaID,
-			TransactionBatchID:   &transactionBatch.ID,
-			EmployeeUserID:       &userOrg.UserID,
+			CreatedAt:   time.Now().UTC(),
+			CreatedByID: userOrg.UserID,
+			UpdatedAt:   time.Now().UTC(),
+			UpdatedByID: userOrg.UserID,
+			BranchID:    *userOrg.BranchID,
+
+			OrganizationID:   userOrg.OrganizationID,
+			SignatureMediaID: req.SignatureMediaID,
+
+			TransactionBatchID: &transactionBatch.ID,
+			EmployeeUserID:     &userOrg.UserID,
+
 			MemberProfileID:      req.MemberProfileID,
 			MemberJointAccountID: req.MemberJointAccountID,
-			LoanBalance:          0,
-			LoanDue:              0,
-			TotalDue:             0,
-			FinesDue:             0,
-			TotalLoan:            0,
-			InterestDue:          0,
-			Amount:               0,
-			ReferenceNumber:      req.ReferenceNumber,
-			Source:               req.Source,
-			Description:          req.Description,
+
+			LoanBalance:     0,
+			LoanDue:         0,
+			TotalDue:        0,
+			FinesDue:        0,
+			TotalLoan:       0,
+			InterestDue:     0,
+			Amount:          0,
+			ReferenceNumber: req.ReferenceNumber,
+			Source:          req.Source,
+			Description:     req.Description,
 		}
 		if req.IsReferenceNumberChecked {
 			userOrg.UserSettingUsedOR = userOrg.UserSettingUsedOR + 1
