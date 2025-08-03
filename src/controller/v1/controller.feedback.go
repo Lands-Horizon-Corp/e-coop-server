@@ -100,7 +100,7 @@ func (c *Controller) FeedbackController() {
 
 	// DELETE /feedback/:feedback_id: Delete a feedback record by ID. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
-		Route:  "/feedback/:feedback_id",
+		Route:  "/api/v1/feedback/:feedback_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified feedback record by its ID.",
 	}, func(ctx echo.Context) error {
@@ -145,7 +145,7 @@ func (c *Controller) FeedbackController() {
 
 	// DELETE /feedback/bulk-delete: Bulk delete feedback records by IDs. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
-		Route:       "/feedback/bulk-delete",
+		Route:       "/api/v1/feedback/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple feedback records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
 		RequestType: model.IDSRequest{},

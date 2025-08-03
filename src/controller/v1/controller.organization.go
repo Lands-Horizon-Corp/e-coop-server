@@ -388,7 +388,7 @@ func (c *Controller) OrganizationController() {
 
 	// Delete an organization (user must be logged in)
 	req.RegisterRoute(handlers.Route{
-		Route:  "/organization/:organization_id",
+		Route:  "/api/v1/organization/:organization_id",
 		Method: "DELETE",
 		Note:   "Deletes an organization. User must be logged in.",
 	}, func(ctx echo.Context) error {

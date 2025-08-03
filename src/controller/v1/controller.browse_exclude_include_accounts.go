@@ -216,7 +216,7 @@ func (c *Controller) BrowseExcludeIncludeAccountsController() {
 
 	// DELETE /browse-exclude-include-accounts/:browse_exclude_include_accounts_id
 	req.RegisterRoute(handlers.Route{
-		Route:  "/browse-exclude-include-accounts/:browse_exclude_include_accounts_id",
+		Route:  "/api/v1/browse-exclude-include-accounts/:browse_exclude_include_accounts_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified browse exclude include account by its ID.",
 	}, func(ctx echo.Context) error {

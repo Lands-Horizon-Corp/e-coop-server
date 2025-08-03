@@ -171,17 +171,25 @@ func (h *RouteHandler) AddRoute(route Route) error {
 	return nil
 }
 
-// GroupedRoutes organizes routes for documentation
+// ...existing code...
 func (h *RouteHandler) GroupedRoutes() API {
+	const skipSegments = 2  // e.g., skip "api" and "v1" or "v2"
+	const groupSegments = 1 // e.g., group by the next segment ("subject")
+
 	groups := make(map[string][]Route)
 
-	// Group by base path segment
 	for _, route := range h.RoutesList {
 		trimmedPath := strings.TrimPrefix(route.Route, "/")
-		segments := strings.SplitN(trimmedPath, "/", 2)
+		segments := strings.Split(trimmedPath, "/")
 
 		groupKey := "/"
-		if len(segments) > 0 && segments[0] != "" {
+		if len(segments) > skipSegments {
+			end := skipSegments + groupSegments
+			if end > len(segments) {
+				end = len(segments)
+			}
+			groupKey = strings.Join(segments[skipSegments:end], "/")
+		} else if len(segments) > 0 && segments[0] != "" {
 			groupKey = segments[0]
 		}
 
@@ -199,12 +207,9 @@ func (h *RouteHandler) GroupedRoutes() API {
 	var groupedRoutes []GroupedRoute
 	for _, key := range keys {
 		routes := groups[key]
-
-		// Sort routes by HTTP method
 		sort.Slice(routes, func(i, j int) bool {
 			return routes[i].Method < routes[j].Method
 		})
-
 		groupedRoutes = append(groupedRoutes, GroupedRoute{
 			Key:    key,
 			Routes: routes,

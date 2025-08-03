@@ -221,7 +221,7 @@ func (c *Controller) MemberCenterController() {
 
 	// Delete a member center by ID
 	req.RegisterRoute(handlers.Route{
-		Route:  "/member-center/:member_center_id",
+		Route:  "/api/v1/member-center/:member_center_id",
 		Method: "DELETE",
 		Note:   "Deletes a member center record by its ID.",
 	}, func(ctx echo.Context) error {
@@ -262,7 +262,7 @@ func (c *Controller) MemberCenterController() {
 
 	// Bulk delete member centers by IDs
 	req.RegisterRoute(handlers.Route{
-		Route:       "/member-center/bulk-delete",
+		Route:       "/api/v1/member-center/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple member center records by their IDs.",
 		RequestType: model.IDSRequest{},

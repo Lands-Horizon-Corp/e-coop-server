@@ -221,7 +221,7 @@ func (c *Controller) MemberOccupationController() {
 
 	// Delete a member occupation by ID
 	req.RegisterRoute(handlers.Route{
-		Route:  "/member-occupation/:member_occupation_id",
+		Route:  "/api/v1/member-occupation/:member_occupation_id",
 		Method: "DELETE",
 		Note:   "Deletes a member occupation record by its ID.",
 	}, func(ctx echo.Context) error {
@@ -262,7 +262,7 @@ func (c *Controller) MemberOccupationController() {
 
 	// Bulk delete member occupations by IDs
 	req.RegisterRoute(handlers.Route{
-		Route:       "/member-occupation/bulk-delete",
+		Route:       "/api/v1/member-occupation/bulk-delete",
 		Method:      "DELETE",
 		RequestType: model.IDSRequest{},
 		Note:        "Deletes multiple member occupation records by their IDs.",

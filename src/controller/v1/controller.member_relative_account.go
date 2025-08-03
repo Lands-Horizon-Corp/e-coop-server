@@ -155,7 +155,7 @@ func (c *Controller) MemberRelativeAccountController() {
 
 	// Delete a member's relative account record by its ID
 	req.RegisterRoute(handlers.Route{
-		Route:  "/member-relative-account/:member_relative_account_id",
+		Route:  "/api/v1/member-relative-account/:member_relative_account_id",
 		Method: "DELETE",
 		Note:   "Deletes a relative account record by its ID.",
 	}, func(ctx echo.Context) error {

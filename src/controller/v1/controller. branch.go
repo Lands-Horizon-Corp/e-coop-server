@@ -395,7 +395,7 @@ func (c *Controller) BranchController() {
 
 	// DELETE /branch/:branch_id: Delete a branch (owner only, if fewer than 3 members).
 	req.RegisterRoute(handlers.Route{
-		Route:   "/branch/:branch_id",
+		Route:   "/api/v1/branch/:branch_id",
 		Method:  "DELETE",
 		Note:    "Deletes the specified branch if the user is the owner and there are less than 3 members in the branch.",
 		Private: true,

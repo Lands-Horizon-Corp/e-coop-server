@@ -169,7 +169,7 @@ func (c *Controller) MemberAssetController() {
 
 	// DELETE /member-asset/:member_asset_id: Delete a member's asset record by ID.
 	req.RegisterRoute(handlers.Route{
-		Route:  "/member-asset/:member_asset_id",
+		Route:  "/api/v1/member-asset/:member_asset_id",
 		Method: "DELETE",
 		Note:   "Deletes a member's asset record by its ID.",
 	}, func(ctx echo.Context) error {

@@ -155,7 +155,7 @@ func (c *Controller) MemberExpenseController() {
 
 	// Delete a member's expense record by its ID
 	req.RegisterRoute(handlers.Route{
-		Route:  "/member-expense/:member_expense_id",
+		Route:  "/api/v1/member-expense/:member_expense_id",
 		Method: "DELETE",
 		Note:   "Deletes a member's expense record by its ID.",
 	}, func(ctx echo.Context) error {

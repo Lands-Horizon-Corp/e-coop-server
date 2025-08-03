@@ -226,7 +226,7 @@ func (c *Controller) MemberTypeController() {
 
 	// Delete a member type by ID
 	req.RegisterRoute(handlers.Route{
-		Route:  "/member-type/:member_type_id",
+		Route:  "/api/v1/member-type/:member_type_id",
 		Method: "DELETE",
 		Note:   "Deletes a member type record by its ID.",
 	}, func(ctx echo.Context) error {
@@ -267,7 +267,7 @@ func (c *Controller) MemberTypeController() {
 
 	// Bulk delete member types by IDs
 	req.RegisterRoute(handlers.Route{
-		Route:       "/member-type/bulk-delete",
+		Route:       "/api/v1/member-type/bulk-delete",
 		Method:      "DELETE",
 		RequestType: model.IDSRequest{},
 		Note:        "Deletes multiple member type records by their IDs.",

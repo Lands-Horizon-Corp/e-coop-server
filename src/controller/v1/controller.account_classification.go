@@ -221,7 +221,7 @@ func (c *Controller) AccountClassificationController() {
 
 	// DELETE (single) - with footstep
 	req.RegisterRoute(handlers.Route{
-		Route:  "/account-classification/:account_classification_id",
+		Route:  "/api/v1/account-classification/:account_classification_id",
 		Method: "DELETE",
 		Note:   "Delete an account classification by ID.",
 	}, func(ctx echo.Context) error {
@@ -279,7 +279,7 @@ func (c *Controller) AccountClassificationController() {
 
 	// BULK DELETE (with footstep)
 	req.RegisterRoute(handlers.Route{
-		Route:       "/account-classification/bulk-delete",
+		Route:       "/api/v1/account-classification/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Bulk delete multiple account classifications by IDs.",
 		RequestType: model.IDSRequest{},

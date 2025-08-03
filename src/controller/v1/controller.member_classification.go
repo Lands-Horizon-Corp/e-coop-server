@@ -223,7 +223,7 @@ func (c *Controller) MemberClassificationController() {
 
 	// Delete a member classification by ID
 	req.RegisterRoute(handlers.Route{
-		Route:  "/member-classification/:member_classification_id",
+		Route:  "/api/v1/member-classification/:member_classification_id",
 		Method: "DELETE",
 		Note:   "Deletes a member classification record by its ID.",
 	}, func(ctx echo.Context) error {
@@ -264,7 +264,7 @@ func (c *Controller) MemberClassificationController() {
 
 	// Bulk delete member classifications by IDs
 	req.RegisterRoute(handlers.Route{
-		Route:       "/member-classification/bulk-delete",
+		Route:       "/api/v1/member-classification/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple member classification records by their IDs.",
 		RequestType: model.IDSRequest{},

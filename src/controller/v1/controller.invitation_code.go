@@ -260,7 +260,7 @@ func (c *Controller) InvitationCode() {
 
 	// DELETE /invitation-code/:invitation_code_id: Delete a specific invitation code by its ID. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
-		Route:  "/invitation-code/:invitation_code_id",
+		Route:  "/api/v1/invitation-code/:invitation_code_id",
 		Method: "DELETE",
 		Note:   "Deletes a specific invitation code identified by its ID.",
 	}, func(ctx echo.Context) error {

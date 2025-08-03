@@ -145,7 +145,7 @@ func (c *Controller) NotificationController() {
 
 	// Delete a notification by its ID
 	req.RegisterRoute(handlers.Route{
-		Route:  "/notification/:notification_id",
+		Route:  "/api/v1/notification/:notification_id",
 		Method: "DELETE",
 		Note:   "Deletes a specific notification record by its notification_id.",
 	}, func(ctx echo.Context) error {

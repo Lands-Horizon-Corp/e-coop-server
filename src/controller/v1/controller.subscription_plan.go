@@ -174,7 +174,7 @@ func (c *Controller) SubscriptionPlanController() {
 
 	// Delete a subscription plan by its ID
 	req.RegisterRoute(handlers.Route{
-		Route:  "/subscription-plan/:subscription_plan_id",
+		Route:  "/api/v1/subscription-plan/:subscription_plan_id",
 		Method: "DELETE",
 		Note:   "Deletes a subscription plan by its ID.",
 	}, func(ctx echo.Context) error {
@@ -219,7 +219,7 @@ func (c *Controller) SubscriptionPlanController() {
 
 	// Bulk delete subscription plans by IDs
 	req.RegisterRoute(handlers.Route{
-		Route:       "/subscription-plan/bulk-delete",
+		Route:       "/api/v1/subscription-plan/bulk-delete",
 		Method:      "DELETE",
 		RequestType: model.IDSRequest{},
 		Note:        "Deletes multiple subscription plan records.",

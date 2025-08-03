@@ -170,7 +170,7 @@ func (c *Controller) MemberJointAccountController() {
 
 	// Delete a member's joint account record by its ID
 	req.RegisterRoute(handlers.Route{
-		Route:  "/member-joint-account/:member_joint_account_id",
+		Route:  "/api/v1/member-joint-account/:member_joint_account_id",
 		Method: "DELETE",
 		Note:   "Deletes a joint account record by its ID.",
 	}, func(ctx echo.Context) error {

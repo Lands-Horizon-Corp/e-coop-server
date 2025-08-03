@@ -238,7 +238,7 @@ func (c *Controller) AutomaticLoanDeductionController() {
 
 	// DELETE /automatic-loan-deduction/:automatic_loan_deduction_id
 	req.RegisterRoute(handlers.Route{
-		Route:  "/automatic-loan-deduction/:automatic_loan_deduction_id",
+		Route:  "/api/v1/automatic-loan-deduction/:automatic_loan_deduction_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified automatic loan deduction by its ID.",
 	}, func(ctx echo.Context) error {
@@ -279,7 +279,7 @@ func (c *Controller) AutomaticLoanDeductionController() {
 
 	// DELETE /automatic-loan-deduction/bulk-delete
 	req.RegisterRoute(handlers.Route{
-		Route:       "/automatic-loan-deduction/bulk-delete",
+		Route:       "/api/v1/automatic-loan-deduction/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple automatic loan deductions by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
 		RequestType: model.IDSRequest{},

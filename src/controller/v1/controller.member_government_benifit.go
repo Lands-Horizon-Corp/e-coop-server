@@ -162,7 +162,7 @@ func (c *Controller) MemberGovernmentBenefitController() {
 
 	// Delete a government benefit record by its ID
 	req.RegisterRoute(handlers.Route{
-		Route:  "/member-government-benefit/:member_government_benefit_id",
+		Route:  "/api/v1/member-government-benefit/:member_government_benefit_id",
 		Method: "DELETE",
 		Note:   "Deletes a member's government benefit record by its ID.",
 	}, func(ctx echo.Context) error {

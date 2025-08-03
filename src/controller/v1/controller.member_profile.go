@@ -397,7 +397,7 @@ func (c *Controller) MemberProfileController() {
 
 	// Delete a specific member profile by its member_profile_id
 	req.RegisterRoute(handlers.Route{
-		Route:  "/member-profile/:member_profile_id",
+		Route:  "/api/v1/member-profile/:member_profile_id",
 		Method: "DELETE",
 		Note:   "Deletes a specific member profile and all its connections by member_profile_id.",
 	}, func(ctx echo.Context) error {
@@ -459,7 +459,7 @@ func (c *Controller) MemberProfileController() {
 
 	// Bulk delete member profiles by IDs
 	req.RegisterRoute(handlers.Route{
-		Route:       "/member-profile/bulk-delete",
+		Route:       "/api/v1/member-profile/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple member profiles and all their connections by their IDs.",
 		RequestType: model.IDSRequest{},

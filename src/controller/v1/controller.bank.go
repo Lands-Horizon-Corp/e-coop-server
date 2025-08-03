@@ -212,7 +212,7 @@ func (c *Controller) BankController() {
 
 	// DELETE /bank/:bank_id: Delete a bank by ID. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
-		Route:  "/bank/:bank_id",
+		Route:  "/api/v1/bank/:bank_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified bank by its ID.",
 	}, func(ctx echo.Context) error {
@@ -253,7 +253,7 @@ func (c *Controller) BankController() {
 
 	// DELETE /bank/bulk-delete: Bulk delete banks by IDs. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
-		Route:       "/bank/bulk-delete",
+		Route:       "/api/v1/bank/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple banks by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
 		RequestType: model.IDSRequest{},

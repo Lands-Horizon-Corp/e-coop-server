@@ -154,7 +154,7 @@ func (c *Controller) MemberContactReferenceController() {
 
 	// Delete a contact reference by its ID
 	req.RegisterRoute(handlers.Route{
-		Route:  "/member-contact-reference/:member_contact_reference_id",
+		Route:  "/api/v1/member-contact-reference/:member_contact_reference_id",
 		Method: "DELETE",
 		Note:   "Deletes a contact reference entry by its ID.",
 	}, func(ctx echo.Context) error {

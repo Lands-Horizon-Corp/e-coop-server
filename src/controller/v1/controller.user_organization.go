@@ -468,7 +468,7 @@ func (c *Controller) UserOrganinzationController() {
 
 	// Remove organization and branch from JWT (no database impact)
 	req.RegisterRoute(handlers.Route{
-		Route:  "/user-organization/unswitch",
+		Route:  "/api/v1/user-organization/unswitch",
 		Method: "POST",
 		Note:   "Removes organization and branch from JWT for the current user. No database impact.",
 	}, func(ctx echo.Context) error {
@@ -794,7 +794,7 @@ func (c *Controller) UserOrganinzationController() {
 
 	// Leave a specific organization and branch (must have current organization)
 	req.RegisterRoute(handlers.Route{
-		Route:  "/user-organization/leave",
+		Route:  "/api/v1/user-organization/leave",
 		Method: "POST",
 		Note:   "Leaves the current organization and branch (must have current organization token set).",
 	}, func(ctx echo.Context) error {
@@ -838,7 +838,7 @@ func (c *Controller) UserOrganinzationController() {
 
 	// Check if the user can join as a member
 	req.RegisterRoute(handlers.Route{
-		Route:  "/user-organization/organization/:organization_id/branch/:branch_id/can-join-member",
+		Route:  "/api/v1/user-organization/organization/:organization_id/branch/:branch_id/can-join-member",
 		Method: "GET",
 		Note:   "Checks if the user can join as a member.",
 	}, func(ctx echo.Context) error {
@@ -863,7 +863,7 @@ func (c *Controller) UserOrganinzationController() {
 
 	// Check if the user can join as an employee
 	req.RegisterRoute(handlers.Route{
-		Route:  "/user-organization/organization/:organization_id/branch/:branch_id/can-join-employee",
+		Route:  "/api/v1/user-organization/organization/:organization_id/branch/:branch_id/can-join-employee",
 		Method: "GET",
 		Note:   "Checks if the user can join as an employee.",
 	}, func(ctx echo.Context) error {
@@ -907,7 +907,7 @@ func (c *Controller) UserOrganinzationController() {
 
 	// Accept an employee or member application by ID
 	req.RegisterRoute(handlers.Route{
-		Route:  "/user-organization/:user_organization_id/accept",
+		Route:  "/api/v1/user-organization/:user_organization_id/accept",
 		Method: "POST",
 		Note:   "Accepts an employee or member application by ID.",
 	}, func(ctx echo.Context) error {
@@ -981,7 +981,7 @@ func (c *Controller) UserOrganinzationController() {
 
 	// Reject an employee or member application by ID
 	req.RegisterRoute(handlers.Route{
-		Route:  "/user-organization/:user_organization_id/reject",
+		Route:  "/api/v1/user-organization/:user_organization_id/reject",
 		Method: "DELETE",
 		Note:   "Rejects an employee or member application by ID.",
 	}, func(ctx echo.Context) error {
@@ -1054,7 +1054,7 @@ func (c *Controller) UserOrganinzationController() {
 
 	// Delete a user organization by ID
 	req.RegisterRoute(handlers.Route{
-		Route:  "/user-organization/:user_organization_id",
+		Route:  "/api/v1/user-organization/:user_organization_id",
 		Method: "DELETE",
 		Note:   "Deletes a user organization by ID.",
 	}, func(ctx echo.Context) error {
@@ -1095,7 +1095,7 @@ func (c *Controller) UserOrganinzationController() {
 
 	// Bulk delete user organizations by IDs
 	req.RegisterRoute(handlers.Route{
-		Route:       "/user-organization/bulk-delete",
+		Route:       "/api/v1/user-organization/bulk-delete",
 		Method:      "DELETE",
 		RequestType: model.IDSRequest{},
 		Note:        "Deletes multiple user organizations by providing an array of IDs in the request body.",

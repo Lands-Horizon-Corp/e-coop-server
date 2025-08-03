@@ -156,7 +156,7 @@ func (c *Controller) MemberIncomeController() {
 
 	// Delete a member's income record by its ID
 	req.RegisterRoute(handlers.Route{
-		Route:  "/member-income/:member_income_id",
+		Route:  "/api/v1/member-income/:member_income_id",
 		Method: "DELETE",
 		Note:   "Deletes a member's income record by its ID.",
 	}, func(ctx echo.Context) error {

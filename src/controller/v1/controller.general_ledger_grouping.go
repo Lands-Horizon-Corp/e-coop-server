@@ -634,7 +634,7 @@ func (c *Controller) GeneralLedgerGroupingController() {
 
 	// DELETE /general-ledger-definition/:general_definition_id (WITH footstep)
 	req.RegisterRoute(handlers.Route{
-		Route:  "/general-ledger-definition/:general_definition_id",
+		Route:  "/api/v1/general-ledger-definition/:general_definition_id",
 		Method: "DELETE",
 		Note:   "Deletes a general ledger definition by its ID, only if no accounts are linked.",
 	}, func(ctx echo.Context) error {

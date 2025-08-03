@@ -161,7 +161,7 @@ func (c *Controller) MemberEducationalAttainmentController() {
 
 	// Delete an educational attainment record by its ID
 	req.RegisterRoute(handlers.Route{
-		Route:  "/member-educational-attainment/:member_educational_attainment_id",
+		Route:  "/api/v1/member-educational-attainment/:member_educational_attainment_id",
 		Method: "DELETE",
 		Note:   "Deletes a member's educational attainment record by its ID.",
 	}, func(ctx echo.Context) error {
@@ -202,7 +202,7 @@ func (c *Controller) MemberEducationalAttainmentController() {
 
 	// Bulk delete educational attainment records by IDs
 	req.RegisterRoute(handlers.Route{
-		Route:       "/member-educational-attainment/bulk-delete",
+		Route:       "/api/v1/member-educational-attainment/bulk-delete",
 		Method:      "DELETE",
 		RequestType: model.IDSRequest{},
 		Note:        "Deletes multiple educational attainment records by their IDs.",

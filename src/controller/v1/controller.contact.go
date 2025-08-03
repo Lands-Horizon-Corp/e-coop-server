@@ -99,7 +99,7 @@ func (c *Controller) ContactController() {
 
 	// DELETE /contact/:contact_id: Delete a contact record by ID. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
-		Route:  "/contact/:contact_id",
+		Route:  "/api/v1/contact/:contact_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified contact record by its ID.",
 	}, func(ctx echo.Context) error {
@@ -140,7 +140,7 @@ func (c *Controller) ContactController() {
 
 	// DELETE /contact/bulk-delete: Bulk delete contact records by IDs. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
-		Route:       "/contact/bulk-delete",
+		Route:       "/api/v1/contact/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple contact records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
 		RequestType: model.IDSRequest{},

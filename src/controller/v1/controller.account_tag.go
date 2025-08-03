@@ -222,7 +222,7 @@ func (c *Controller) AccountTagController() {
 
 	// DELETE /account-tag/:account_tag_id - Delete account tag by ID.
 	req.RegisterRoute(handlers.Route{
-		Route:  "/account-tag/:account_tag_id",
+		Route:  "/api/v1/account-tag/:account_tag_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified account tag by its ID.",
 	}, func(ctx echo.Context) error {
@@ -254,7 +254,7 @@ func (c *Controller) AccountTagController() {
 
 	// DELETE /account-tag/bulk-delete - Bulk delete account tags by IDs.
 	req.RegisterRoute(handlers.Route{
-		Route:       "/account-tag/bulk-delete",
+		Route:       "/api/v1/account-tag/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple account tags by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
 		RequestType: model.IDSRequest{},
