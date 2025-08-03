@@ -4,7 +4,8 @@ permissions:
 on:
   push:
     branches:
-      - master
+      - development
+
 jobs:
   deploy:
     name: Deploy app
