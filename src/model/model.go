@@ -135,13 +135,7 @@ type (
 		BatchFundingManager     horizon_services.Repository[BatchFunding, BatchFundingResponse, BatchFundingRequest]
 		TransactionManager      horizon_services.Repository[Transaction, TransactionResponse, TransactionRequest]
 		TransactionTagManager   horizon_services.Repository[TransactionTag, TransactionTagResponse, TransactionTagRequest]
-		// Entries
-		CheckEntryManager       horizon_services.Repository[CheckEntry, CheckEntryResponse, CheckEntryRequest]
-		OnlineEntryManager      horizon_services.Repository[OnlineEntry, OnlineEntryResponse, OnlineEntryRequest]
-		WithdrawalEntryManager  horizon_services.Repository[WithdrawalEntry, WithdrawalEntryResponse, WithdrawalEntryRequest]
-		DepositEntryManager     horizon_services.Repository[DepositEntry, DepositEntryResponse, DepositEntryRequest]
-		TransactionEntryManager horizon_services.Repository[TransactionEntry, TransactionEntryResponse, TransactionEntryRequest]
-		CashEntryManager        horizon_services.Repository[CashEntry, CashEntryResponse, CashEntryRequest]
+
 		// Disbursements
 		DisbursementTransactionManager horizon_services.Repository[DisbursementTransaction, DisbursementTransactionResponse, DisbursementTransactionRequest]
 		DisbursementManager            horizon_services.Repository[Disbursement, DisbursementResponse, DisbursementRequest]
@@ -198,16 +192,13 @@ type (
 		ChargesRateMemberTypeModeOfPaymentManager horizon_services.Repository[ChargesRateMemberTypeModeOfPayment, ChargesRateMemberTypeModeOfPaymentResponse, ChargesRateMemberTypeModeOfPaymentRequest]
 
 		// ACCOUNTING ENTRY
-		AdjustmentEntryManager                   horizon_services.Repository[AdjustmentEntry, AdjustmentEntryResponse, AdjustmentEntryRequest]
-		AdjustmentEntryTagManager                horizon_services.Repository[AdjustmentEntryTag, AdjustmentEntryTagResponse, AdjustmentEntryTagRequest]
-		VoucherPayToManager                      horizon_services.Repository[VoucherPayTo, VoucherPayToResponse, VoucherPayToRequest]
-		CashCheckVoucherManager                  horizon_services.Repository[CashCheckVoucher, CashCheckVoucherResponse, CashCheckVoucherRequest]
-		CashCheckVoucherTagManager               horizon_services.Repository[CashCheckVoucherTag, CashCheckVoucherTagResponse, CashCheckVoucherTagRequest]
-		CashCheckVoucherEntryManager             horizon_services.Repository[CashCheckVoucherEntry, CashCheckVoucherEntryResponse, CashCheckVoucherEntryRequest]
-		CashCheckVoucherDisbursementEntryManager horizon_services.Repository[CashCheckVoucherDisbursementEntry, CashCheckVoucherDisbursementEntryResponse, CashCheckVoucherDisbursementEntryRequest]
-		JournalVoucherManager                    horizon_services.Repository[JournalVoucher, JournalVoucherResponse, JournalVoucherRequest]
-		JournalVoucherTagManager                 horizon_services.Repository[JournalVoucherTag, JournalVoucherTagResponse, JournalVoucherTagRequest]
-		JournalVoucherEntryManager               horizon_services.Repository[JournalVoucherEntry, JournalVoucherEntryResponse, JournalVoucherEntryRequest]
+		AdjustmentEntryManager     horizon_services.Repository[AdjustmentEntry, AdjustmentEntryResponse, AdjustmentEntryRequest]
+		AdjustmentEntryTagManager  horizon_services.Repository[AdjustmentEntryTag, AdjustmentEntryTagResponse, AdjustmentEntryTagRequest]
+		VoucherPayToManager        horizon_services.Repository[VoucherPayTo, VoucherPayToResponse, VoucherPayToRequest]
+		CashCheckVoucherManager    horizon_services.Repository[CashCheckVoucher, CashCheckVoucherResponse, CashCheckVoucherRequest]
+		CashCheckVoucherTagManager horizon_services.Repository[CashCheckVoucherTag, CashCheckVoucherTagResponse, CashCheckVoucherTagRequest]
+		JournalVoucherManager      horizon_services.Repository[JournalVoucher, JournalVoucherResponse, JournalVoucherRequest]
+		JournalVoucherTagManager   horizon_services.Repository[JournalVoucherTag, JournalVoucherTagResponse, JournalVoucherTagRequest]
 	}
 )
 
@@ -237,8 +228,6 @@ func (c *Model) Start(context context.Context) error {
 	c.BillAndCoins()
 	c.Branch()
 	c.BrowseExcludeIncludeAccounts()
-	c.CashCheckVoucherDisbursementEntry()
-	c.CashCheckVoucherEntry()
 	c.CashCheckVoucher()
 	c.CashCheckVoucherTag()
 	c.CashCount()
@@ -249,13 +238,11 @@ func (c *Model) Start(context context.Context) error {
 	c.ChargesRateMemberTypeModeOfPayment()
 	c.ChargesRateSchemeAccount()
 	c.ChargesRateScheme()
-	c.CheckEntry()
 	c.CheckRemittance()
 	c.Collateral()
 	c.CollectorsMemberAccountEntry()
 	c.ComputationSheet()
 	c.ContactUs()
-	c.DepositEntry()
 	c.Disbursement()
 	c.DisbursementTransaction()
 	c.Feedback()
@@ -282,7 +269,6 @@ func (c *Model) Start(context context.Context) error {
 	c.InterestRatePercentage()
 	c.InterestRateScheme()
 	c.InvitationCode()
-	c.JournalVoucherEntry()
 	c.JournalVoucher()
 	c.JournalVoucherTag()
 	c.LoanClearanceAnalysis()
@@ -335,7 +321,6 @@ func (c *Model) Start(context context.Context) error {
 	c.MemberTypeReferenceInterestRateByUltimaMembershipDatePerYear()
 	c.MemberVerification()
 	c.Notification()
-	c.OnlineEntry()
 	c.OnlineRemittance()
 	c.OrganizationCategory()
 	c.OrganizationDailyUsage()
@@ -351,15 +336,12 @@ func (c *Model) Start(context context.Context) error {
 	c.TimeDepositType()
 	c.Timesheet()
 	c.TransactionBatch()
-	c.TransactionEntry()
 	c.Transaction()
 	c.TransactionTag()
 	c.User()
 	c.UserOrganization()
 	c.UserRating()
 	c.VoucherPayTo()
-	c.WithdrawalEntry()
-	c.CashEntry()
 
 	return nil
 }
