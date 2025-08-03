@@ -9,7 +9,6 @@ RUN go build -o app .
 FROM alpine:latest
 WORKDIR /app
 COPY --from=builder /app/app .
-COPY --from=builder /app/public ./public
 EXPOSE 8000 8001 4222 8222 8080
 
 COPY entry.sh /entry.sh
