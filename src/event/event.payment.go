@@ -694,6 +694,7 @@ func (e *Event) Payment(
 		BankReferenceNumber:        data.BankReferenceNumber,
 		EmployeeUserID:             &userOrg.UserID,
 		Description:                data.Description,
+		TypeOfPaymentType:          paymentType.Type,
 	}
 
 	if err := e.model.GeneralLedgerManager.CreateWithTx(context, tx, newGeneralLedger); err != nil {

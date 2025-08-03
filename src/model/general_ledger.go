@@ -25,7 +25,7 @@ const (
 	GeneralLedgerSourceCheckVoucher   GeneralLedgerSource = "check voucher"
 )
 
-// Assumes you have TypesOfPaymentType defined elsewhere, as in your payment_type model
+// Assumes you have TypeOfPaymentType defined elsewhere, as in your payment_type model
 
 type (
 	GeneralLedger struct {
@@ -63,7 +63,7 @@ type (
 		JournalVoucherID           *uuid.UUID          `gorm:"type:uuid"`
 		AdjustmentEntryID          *uuid.UUID          `gorm:"type:uuid"`
 		AdjustmentEntry            *AdjustmentEntry    `gorm:"foreignKey:AdjustmentEntryID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"adjustment_entry,omitempty"`
-		TypeOfPaymentType          TypesOfPaymentType  `gorm:"type:varchar(20)"`
+		TypeOfPaymentType          TypeOfPaymentType   `gorm:"type:varchar(20)"`
 		Credit                     float64             `gorm:"type:decimal"`
 		Debit                      float64             `gorm:"type:decimal"`
 		Balance                    float64             `gorm:"type:decimal"`
@@ -114,7 +114,7 @@ type (
 		JournalVoucherID  *uuid.UUID               `json:"journal_voucher_id,omitempty"`
 		AdjustmentEntryID *uuid.UUID               `json:"adjustment_entry_id,omitempty"`
 		AdjustmentEntry   *AdjustmentEntryResponse `json:"adjustment_entry,omitempty"`
-		TypeOfPaymentType TypesOfPaymentType       `json:"type_of_payment_type"`
+		TypeOfPaymentType TypeOfPaymentType        `json:"type_of_payment_type"`
 
 		Credit  float64 `json:"credit"`
 		Debit   float64 `json:"debit"`
@@ -151,7 +151,7 @@ type (
 		Source                     GeneralLedgerSource `json:"source,omitempty"`
 		JournalVoucherID           *uuid.UUID          `json:"journal_voucher_id,omitempty"`
 		AdjustmentEntryID          *uuid.UUID          `json:"adjustment_entry_id,omitempty"`
-		TypeOfPaymentType          TypesOfPaymentType  `json:"type_of_payment_type,omitempty"`
+		TypeOfPaymentType          TypeOfPaymentType   `json:"type_of_payment_type,omitempty"`
 		Credit                     float64             `json:"credit,omitempty"`
 		Debit                      float64             `json:"debit,omitempty"`
 		Balance                    float64             `json:"balance,omitempty"`
@@ -211,7 +211,9 @@ func (m *Model) GeneralLedger() {
 			"MemberJointAccount",
 			"PaymentType",
 			"AdjustmentEntry",
-			"SignatureMedia", "Bank", "ProofOfPaymentMedia",
+			"SignatureMedia",
+			"Bank",
+			"ProofOfPaymentMedia",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *GeneralLedger) *GeneralLedgerResponse {

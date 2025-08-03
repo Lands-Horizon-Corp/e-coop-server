@@ -43,6 +43,7 @@ func NewController(
 func (c *Controller) Start() error {
 	// Others
 	c.Heartbeat()
+	c.FormGeneratorController()
 
 	// Basic Onboardding & Utilities
 	c.BranchController()
