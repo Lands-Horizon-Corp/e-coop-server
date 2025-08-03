@@ -45,6 +45,9 @@ func (c *Controller) Start() error {
 	c.Heartbeat()
 	c.FormGeneratorController()
 
+	// General Ledger Entries
+	c.GeneralLedgerEntriesController()
+
 	// Basic Onboardding & Utilities
 	c.BranchController()
 	c.CategoryController()
