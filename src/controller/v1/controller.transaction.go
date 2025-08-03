@@ -345,7 +345,7 @@ func (c *Controller) TransactionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transactions: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.TransactionManager.Filtered(context, ctx, transactions))
+		return ctx.JSON(http.StatusOK, c.model.TransactionManager.Pagination(context, ctx, transactions))
 	})
 
 	req.RegisterRoute(handlers.Route{
