@@ -17,45 +17,12 @@ primary_region = 'sin'
   processes = ['app']
 
 [[services]]
-  internal_port = 4222
-  protocol = "tcp"
-  processes = ["app"]
-
-  [[services.ports]]
-    port = 4222
-
-  [[services.tcp_checks]]
-    interval = "10s"
-    timeout = "2s"
-
-[[services]]
-  internal_port = 8222
-  protocol = "tcp"
-  processes = ["app"]
-
-  [[services.ports]]
-    port = 8222
-
-  [[services.tcp_checks]]
-    interval = "10s"
-    timeout = "2s"
-
-[[services]]
   internal_port = 8000
   protocol = "tcp"
   processes = ["app"]
 
   [[services.ports]]
     port = 443
-    handlers = ["tls", "http"]
-
-[[services]]
-  internal_port = 8080
-  protocol = "tcp"
-  processes = ["app"]
-
-  [[services.ports]]
-    port = 8080
     handlers = ["tls", "http"]
 
 [[vm]]
