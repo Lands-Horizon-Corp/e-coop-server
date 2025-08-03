@@ -66,12 +66,16 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 			cfg.BrokerConfig.Host,
 			cfg.BrokerConfig.Port,
 			cfg.BrokerConfig.ClientID,
+			cfg.BrokerConfig.Username,
+			cfg.BrokerConfig.Password,
 		)
 	} else {
 		service.Broker = horizon.NewHorizonMessageBroker(
 			service.Environment.GetString("NATS_HOST", "localhost"),
 			service.Environment.GetInt("NATS_CLIENT_PORT", 4222),
 			service.Environment.GetString("NATS_CLIENT_ID", "test-client"),
+			service.Environment.GetString("NATS_USERNAME", ""),
+			service.Environment.GetString("NATS_PASSWORD", ""),
 		)
 	}
 	if cfg.RequestServiceConfig != nil {

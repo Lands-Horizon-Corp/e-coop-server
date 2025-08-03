@@ -23,20 +23,25 @@ type HorizonMessageBroker struct {
 	port     int
 	nc       *nats.Conn
 	clientId string
+	natsUser string
+	natsPass string
 }
 
 // NewHorizonMessageBroker initializes the broker with optional TLS cert paths
-func NewHorizonMessageBroker(host string, port int, clientId string) MessageBrokerService {
+func NewHorizonMessageBroker(host string, port int, clientId, natsUser, natsPass string) MessageBrokerService {
 	return &HorizonMessageBroker{
 		host:     host,
 		port:     port,
 		clientId: clientId,
+		natsUser: natsUser,
+		natsPass: natsPass,
 	}
 }
 
 func (h *HorizonMessageBroker) Run(ctx context.Context) error {
 	natsURL := fmt.Sprintf("nats://%s:%d", h.host, h.port)
 	options := []nats.Option{
+		nats.UserInfo(h.natsUser, h.natsPass),
 		nats.ErrorHandler(func(_ *nats.Conn, sub *nats.Subscription, err error) {
 			fmt.Printf("Error in subscription to %s: %v\n", sub.Subject, err)
 		}),
@@ -86,7 +91,7 @@ func (h *HorizonMessageBroker) Publish(ctx context.Context, topic string, payloa
 		return eris.Wrap(err, "failed to marshal payload")
 	}
 
-	if err := h.nc.Publish(topic+h.clientId, data); err != nil {
+	if err := h.nc.Publish(h.clientId+topic, data); err != nil {
 		return eris.Wrap(err, fmt.Sprintf("failed to publish to topic %s", topic))
 	}
 
@@ -98,7 +103,7 @@ func (h *HorizonMessageBroker) Subscribe(ctx context.Context, topic string, hand
 		return eris.New("NATS connection not initialized")
 	}
 
-	_, err := h.nc.Subscribe(topic+h.clientId, func(msg *nats.Msg) {
+	_, err := h.nc.Subscribe(h.clientId+topic, func(msg *nats.Msg) {
 		var payload map[string]any
 		if err := json.Unmarshal(msg.Data, &payload); err != nil {
 			fmt.Printf("Failed to unmarshal message from topic %s: %v\n", topic, err)
