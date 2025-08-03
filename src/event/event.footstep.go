@@ -2,7 +2,6 @@ package event
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -18,14 +17,10 @@ type FootstepEvent struct {
 }
 
 func (e *Event) Footstep(context context.Context, ctx echo.Context, data FootstepEvent) {
-	fmt.Println("[Footstep] Logging event:", data.Activity, data.Module, data.Description)
 
 	go func() {
-		fmt.Println("[Footstep] Starting to process event:", data.Activity, data.Module, data.Description)
-
 		user, err := e.userToken.CurrentUser(context, ctx)
 		if err != nil || user == nil {
-			fmt.Println("Current user is nil, aborting footstep event")
 			return
 		}
 
@@ -75,9 +70,7 @@ func (e *Event) Footstep(context context.Context, ctx echo.Context, data Footste
 			Location:       location,
 			AcceptLanguage: acceptLanguage,
 		}); err != nil {
-			fmt.Println("Failed to save footstep:", err)
 			return
 		}
-		fmt.Println("[Footstep] Event saved successfully!")
 	}()
 }
