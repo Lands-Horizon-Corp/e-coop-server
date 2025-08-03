@@ -3,8 +3,6 @@ package horizon
 import (
 	"context"
 	"fmt"
-	"html/template"
-	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -24,18 +22,6 @@ type APIService interface {
 	Stop(ctx context.Context) error
 	Client() *echo.Echo
 	RegisterRoute(route handlers.Route, callback func(c echo.Context) error, m ...echo.MiddlewareFunc)
-}
-
-// TemplateRenderer implements echo.Renderer for HTML templates.
-type TemplateRenderer struct {
-	templates *template.Template
-}
-
-func (t *TemplateRenderer) Render(w io.Writer, name string, data any, c echo.Context) error {
-	if viewContext, ok := data.(map[string]any); ok {
-		viewContext["reverse"] = c.Echo().Reverse
-	}
-	return t.templates.ExecuteTemplate(w, name, data)
 }
 
 // HorizonAPIService implements APIService.
@@ -61,10 +47,6 @@ func NewHorizonAPIService(
 		}
 	}()
 
-	handlers.LoadTemplatesIfExists(e, "public/views/*.html")
-	e.Renderer = &TemplateRenderer{
-		templates: template.Must(template.ParseGlob("public/views/*.html")),
-	}
 	e.Use(middleware.Recover())
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
