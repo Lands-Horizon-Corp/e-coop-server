@@ -11,12 +11,12 @@ import (
 )
 
 // Enum for types_of_payment_type
-type TypesOfPaymentType string
+type TypeOfPaymentType string
 
 const (
-	PaymentTypeCash   TypesOfPaymentType = "cash"
-	PaymentTypeCheck  TypesOfPaymentType = "check"
-	PaymentTypeOnline TypesOfPaymentType = "online"
+	PaymentTypeCash   TypeOfPaymentType = "cash"
+	PaymentTypeCheck  TypeOfPaymentType = "check"
+	PaymentTypeOnline TypeOfPaymentType = "online"
 )
 
 type (
@@ -37,10 +37,10 @@ type (
 		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_payment_type"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
-		Name         string             `gorm:"type:varchar(255);not null"`
-		Description  string             `gorm:"type:text"`
-		NumberOfDays int                `gorm:"type:int"`
-		Type         TypesOfPaymentType `gorm:"type:varchar(20)"`
+		Name         string            `gorm:"type:varchar(255);not null"`
+		Description  string            `gorm:"type:text"`
+		NumberOfDays int               `gorm:"type:int"`
+		Type         TypeOfPaymentType `gorm:"type:varchar(20)"`
 	}
 
 	PaymentTypeResponse struct {
@@ -58,14 +58,14 @@ type (
 		Name           string                `json:"name"`
 		Description    string                `json:"description"`
 		NumberOfDays   int                   `json:"number_of_days"`
-		Type           TypesOfPaymentType    `json:"type"`
+		Type           TypeOfPaymentType     `json:"type"`
 	}
 
 	PaymentTypeRequest struct {
-		Name         string             `json:"name" validate:"required,min=1,max=255"`
-		Description  string             `json:"description,omitempty"`
-		NumberOfDays int                `json:"number_of_days,omitempty"`
-		Type         TypesOfPaymentType `json:"type" validate:"required,oneof=cash check online"`
+		Name         string            `json:"name" validate:"required,min=1,max=255"`
+		Description  string            `json:"description,omitempty"`
+		NumberOfDays int               `json:"number_of_days,omitempty"`
+		Type         TypeOfPaymentType `json:"type" validate:"required,oneof=cash check online"`
 	}
 )
 

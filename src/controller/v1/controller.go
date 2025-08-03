@@ -43,6 +43,7 @@ func NewController(
 func (c *Controller) Start() error {
 	// Others
 	c.Heartbeat()
+	c.FormGeneratorController()
 
 	// Basic Onboardding & Utilities
 	c.BranchController()
@@ -96,10 +97,7 @@ func (c *Controller) Start() error {
 	c.CashCountController()
 	c.BatchFundingController()
 	c.CheckRemittanceController()
-	c.TransactionBatchEntriesController()
 	c.TransactionController()
-	c.CashEntryController()
-	c.OnlineEntryController()
 	c.OnlineRemittanceController()
 
 	// Accounts
