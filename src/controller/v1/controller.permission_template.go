@@ -211,7 +211,7 @@ func (c *Controller) PermissionTemplateController() {
 
 	// Delete a permission template by its ID.
 	req.RegisterRoute(handlers.Route{
-		Route:  "/permission-template/:permission_template_id",
+		Route:  "/api/v1/permission-template/:permission_template_id",
 		Method: "DELETE",
 		Note:   "Deletes a permission template by its ID.",
 	}, func(ctx echo.Context) error {

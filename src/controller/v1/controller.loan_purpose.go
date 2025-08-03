@@ -215,7 +215,7 @@ func (c *Controller) LoanPurposeController() {
 
 	// DELETE /loan-purpose/:loan_purpose_id: Delete a loan purpose record by ID. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
-		Route:  "/loan-purpose/:loan_purpose_id",
+		Route:  "/api/v1/loan-purpose/:loan_purpose_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified loan purpose record by its ID.",
 	}, func(ctx echo.Context) error {
@@ -256,7 +256,7 @@ func (c *Controller) LoanPurposeController() {
 
 	// DELETE /loan-purpose/bulk-delete: Bulk delete loan purpose records by IDs. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
-		Route:       "/loan-purpose/bulk-delete",
+		Route:       "/api/v1/loan-purpose/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple loan purpose records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
 		RequestType: model.IDSRequest{},

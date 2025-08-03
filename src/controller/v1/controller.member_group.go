@@ -222,7 +222,7 @@ func (c *Controller) MemberGroupController() {
 
 	// Delete a member group by ID
 	req.RegisterRoute(handlers.Route{
-		Route:  "/member-group/:member_group_id",
+		Route:  "/api/v1/member-group/:member_group_id",
 		Method: "DELETE",
 		Note:   "Deletes a member group record by its ID.",
 	}, func(ctx echo.Context) error {

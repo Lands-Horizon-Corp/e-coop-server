@@ -53,7 +53,7 @@ func (c *Controller) GeneratedReports() {
 
 	// DELETE /generated-report/:generated_report_id: Delete a specific generated report by ID and its associated file. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
-		Route:  "/generated-report/:generated_report_id",
+		Route:  "/api/v1/generated-report/:generated_report_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified generated report by its ID and the associated file.",
 	}, func(ctx echo.Context) error {

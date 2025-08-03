@@ -230,7 +230,7 @@ func (c *Controller) ComputationSheetController() {
 
 	// DELETE /computation-sheet/:id: Delete a computation sheet by ID.
 	req.RegisterRoute(handlers.Route{
-		Route:  "/computation-sheet/:id",
+		Route:  "/api/v1/computation-sheet/:id",
 		Method: "DELETE",
 		Note:   "Deletes the specified computation sheet by its ID.",
 	}, func(ctx echo.Context) error {
@@ -271,7 +271,7 @@ func (c *Controller) ComputationSheetController() {
 
 	// DELETE /computation-sheet/bulk-delete: Bulk delete computation sheets by IDs.
 	req.RegisterRoute(handlers.Route{
-		Route:       "/computation-sheet/bulk-delete",
+		Route:       "/api/v1/computation-sheet/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple computation sheets by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
 		RequestType: model.IDSRequest{},

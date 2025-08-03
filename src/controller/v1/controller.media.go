@@ -196,7 +196,7 @@ func (c *Controller) MediaController() {
 
 	// DELETE /media/:media_id: Delete a media record by ID. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
-		Route:  "/media/:media_id",
+		Route:  "/api/v1/media/:media_id",
 		Method: "DELETE",
 		Note:   "Deletes a specific media record by its ID and associated file.",
 	}, func(ctx echo.Context) error {
@@ -237,7 +237,7 @@ func (c *Controller) MediaController() {
 
 	// DELETE /media/bulk-delete: Bulk delete media records by IDs. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
-		Route:       "/media/bulk-delete",
+		Route:       "/api/v1/media/bulk-delete",
 		Method:      "DELETE",
 		RequestType: model.IDSRequest{},
 		Note:        "Deletes multiple media records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

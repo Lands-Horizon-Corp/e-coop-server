@@ -218,7 +218,7 @@ func (c *Controller) HolidayController() {
 
 	// DELETE /holiday/:holiday_id: Delete a holiday record by ID. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
-		Route:  "/holiday/:holiday_id",
+		Route:  "/api/v1/holiday/:holiday_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified holiday record by its ID.",
 	}, func(ctx echo.Context) error {
@@ -259,7 +259,7 @@ func (c *Controller) HolidayController() {
 
 	// DELETE /holiday/bulk-delete: Bulk delete holiday records by IDs. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
-		Route:       "/holiday/bulk-delete",
+		Route:       "/api/v1/holiday/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple holiday records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
 		RequestType: model.IDSRequest{},

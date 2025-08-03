@@ -202,7 +202,7 @@ func (c *Controller) PaymentTypeController() {
 
 	// Delete a payment type by its ID
 	req.RegisterRoute(handlers.Route{
-		Route:  "/payment-type/:payment_type_id",
+		Route:  "/api/v1/payment-type/:payment_type_id",
 		Method: "DELETE",
 		Note:   "Deletes a payment type record by its ID.",
 	}, func(ctx echo.Context) error {
@@ -243,7 +243,7 @@ func (c *Controller) PaymentTypeController() {
 
 	// Bulk delete payment types by IDs
 	req.RegisterRoute(handlers.Route{
-		Route:       "/payment-type/bulk-delete",
+		Route:       "/api/v1/payment-type/bulk-delete",
 		Method:      "DELETE",
 		RequestType: model.IDSRequest{},
 		Note:        "Deletes multiple payment type records by their IDs.",

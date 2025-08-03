@@ -163,7 +163,7 @@ func (c *Controller) CategoryController() {
 
 	// DELETE /category/:category_id: Delete a category by ID. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
-		Route:  "/category/:category_id",
+		Route:  "/api/v1/category/:category_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified category by its ID.",
 	}, func(ctx echo.Context) error {
@@ -208,7 +208,7 @@ func (c *Controller) CategoryController() {
 
 	// DELETE /category/bulk-delete: Bulk delete categories by IDs. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
-		Route:       "/category/bulk-delete",
+		Route:       "/api/v1/category/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple categories by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
 		RequestType: model.IDSRequest{},

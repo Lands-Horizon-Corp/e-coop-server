@@ -355,7 +355,7 @@ func (c *Controller) CheckRemittanceController() {
 
 	// DELETE /check-remittance/:check_remittance_id: Delete a check remittance by ID for the current transaction batch. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
-		Route:  "/check-remittance/:check_remittance_id",
+		Route:  "/api/v1/check-remittance/:check_remittance_id",
 		Method: "DELETE",
 		Note:   "Deletes a check remittance by ID for the current transaction batch. Only 'owner' or 'employee' roles are allowed.",
 	}, func(ctx echo.Context) error {

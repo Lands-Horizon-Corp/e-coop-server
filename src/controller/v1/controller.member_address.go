@@ -176,7 +176,7 @@ func (c *Controller) MemberAddressController() {
 
 	// DELETE /member-address/:member_address_id: Delete a member's address record by ID.
 	req.RegisterRoute(handlers.Route{
-		Route:  "/member-address/:member_address_id",
+		Route:  "/api/v1/member-address/:member_address_id",
 		Method: "DELETE",
 		Note:   "Deletes a member's address record by its ID.",
 	}, func(ctx echo.Context) error {

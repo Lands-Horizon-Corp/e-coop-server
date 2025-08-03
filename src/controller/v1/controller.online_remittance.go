@@ -360,7 +360,7 @@ func (c *Controller) OnlineRemittanceController() {
 
 	// Delete an existing online remittance by ID for the current transaction batch.
 	req.RegisterRoute(handlers.Route{
-		Route:  "/online-remittance/:online_remittance_id",
+		Route:  "/api/v1/online-remittance/:online_remittance_id",
 		Method: "DELETE",
 		Note:   "Deletes an online remittance by its ID for the current active transaction batch.",
 	}, func(ctx echo.Context) error {

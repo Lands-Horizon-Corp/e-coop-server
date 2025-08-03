@@ -633,7 +633,7 @@ func (c *Controller) FinancialStatementController() {
 
 	// DELETE /financial-statement-definition/:financial_statement_definition_id: Delete a financial statement definition by ID, only if no accounts are linked. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
-		Route:  "/financial-statement-definition/:financial_statement_definition_id",
+		Route:  "/api/v1/financial-statement-definition/:financial_statement_definition_id",
 		Method: "DELETE",
 		Note:   "Deletes a financial statement definition by its ID, only if no accounts are linked.",
 	}, func(ctx echo.Context) error {

@@ -226,7 +226,7 @@ func (c *Controller) AccountCategoryController() {
 	// DELETE (DELETE) - ADD FOOTSTEP
 
 	req.RegisterRoute(handlers.Route{
-		Route:  "/account-category/:account_category_id",
+		Route:  "/api/v1/account-category/:account_category_id",
 		Method: "DELETE",
 		Note:   "Delete an account category by ID.",
 	}, func(ctx echo.Context) error {
@@ -285,7 +285,7 @@ func (c *Controller) AccountCategoryController() {
 	// BULK DELETE (DELETE) - ADD FOOTSTEP
 
 	req.RegisterRoute(handlers.Route{
-		Route:       "/account-category/bulk-delete",
+		Route:       "/api/v1/account-category/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Bulk delete multiple account categories by IDs.",
 		RequestType: model.IDSRequest{},

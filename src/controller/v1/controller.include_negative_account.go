@@ -210,7 +210,7 @@ func (c *Controller) IncludeNegativeAccountController() {
 
 	// DELETE /include-negative-accounts/:include_negative_accounts_id
 	req.RegisterRoute(handlers.Route{
-		Route:  "/include-negative-accounts/:include_negative_accounts_id",
+		Route:  "/api/v1/include-negative-accounts/:include_negative_accounts_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified include negative account by its ID.",
 	}, func(ctx echo.Context) error {
@@ -251,7 +251,7 @@ func (c *Controller) IncludeNegativeAccountController() {
 
 	// DELETE /include-negative-accounts/bulk-delete
 	req.RegisterRoute(handlers.Route{
-		Route:       "/include-negative-accounts/bulk-delete",
+		Route:       "/api/v1/include-negative-accounts/bulk-delete",
 		Method:      "DELETE",
 		RequestType: model.IDSRequest{},
 		Note:        "Deletes multiple include negative accounts by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

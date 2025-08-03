@@ -208,7 +208,7 @@ func (c *Controller) MemberTypeReferenceController() {
 
 	// Delete a member type reference by its ID
 	req.RegisterRoute(handlers.Route{
-		Route:  "/member-type-reference/:member_type_reference_id",
+		Route:  "/api/v1/member-type-reference/:member_type_reference_id",
 		Method: "DELETE",
 		Note:   "Deletes a member type reference by its ID.",
 	}, func(ctx echo.Context) error {
@@ -240,7 +240,7 @@ func (c *Controller) MemberTypeReferenceController() {
 
 	// Bulk delete member type references by IDs
 	req.RegisterRoute(handlers.Route{
-		Route:       "/member-type-reference/bulk-delete",
+		Route:       "/api/v1/member-type-reference/bulk-delete",
 		Method:      "DELETE",
 		RequestType: model.IDSRequest{},
 		Note:        "Deletes multiple member type reference records by their IDs.",

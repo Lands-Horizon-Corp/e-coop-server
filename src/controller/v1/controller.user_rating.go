@@ -150,7 +150,7 @@ func (c *Controller) UserRatingController() {
 
 	// Deletes a user rating by its ID
 	req.RegisterRoute(handlers.Route{
-		Route:  "/user-rating/:user_rating_id",
+		Route:  "/api/v1/user-rating/:user_rating_id",
 		Method: "DELETE",
 		Note:   "Deletes a user rating by its ID.",
 	}, func(ctx echo.Context) error {

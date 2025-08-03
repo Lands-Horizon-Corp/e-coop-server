@@ -213,7 +213,7 @@ func (c *Controller) CollateralController() {
 
 	// DELETE /collateral/:collateral_id: Delete a collateral record by ID. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
-		Route:  "/collateral/:collateral_id",
+		Route:  "/api/v1/collateral/:collateral_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified collateral record by its ID.",
 	}, func(ctx echo.Context) error {
@@ -254,7 +254,7 @@ func (c *Controller) CollateralController() {
 
 	// DELETE /collateral/bulk-delete: Bulk delete collateral records by IDs. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
-		Route:       "/collateral/bulk-delete",
+		Route:       "/api/v1/collateral/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple collateral records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
 		RequestType: model.IDSRequest{},

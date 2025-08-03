@@ -392,7 +392,7 @@ func (c *Controller) CashCountController() {
 
 	// DELETE /cash-count/:id: Delete a specific cash count by ID from the current transaction batch. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
-		Route:  "/cash-count/:id",
+		Route:  "/api/v1/cash-count/:id",
 		Method: "DELETE",
 		Note:   "Deletes a specific cash count bill with the given ID from the current active transaction batch. Only allowed for 'owner' or 'employee'.",
 	}, func(ctx echo.Context) error {

@@ -216,7 +216,7 @@ func (c *Controller) BillAndCoinsController() {
 
 	// DELETE /bills-and-coins/:bills_and_coins_id: Delete a bills and coins record by ID. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
-		Route:  "/bills-and-coins/:bills_and_coins_id",
+		Route:  "/api/v1/bills-and-coins/:bills_and_coins_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified bills and coins record by its ID.",
 	}, func(ctx echo.Context) error {
@@ -257,7 +257,7 @@ func (c *Controller) BillAndCoinsController() {
 
 	// DELETE /bills-and-coins/bulk-delete: Bulk delete bills and coins records by IDs. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
-		Route:       "/bills-and-coins/bulk-delete",
+		Route:       "/api/v1/bills-and-coins/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple bills and coins records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
 		RequestType: model.IDSRequest{},

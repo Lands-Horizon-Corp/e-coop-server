@@ -221,7 +221,7 @@ func (c *Controller) MemberGenderController() {
 
 	// Delete a member gender by ID
 	req.RegisterRoute(handlers.Route{
-		Route:  "/member-gender/:member_gender_id",
+		Route:  "/api/v1/member-gender/:member_gender_id",
 		Method: "DELETE",
 		Note:   "Deletes a member gender record by its ID.",
 	}, func(ctx echo.Context) error {
@@ -262,7 +262,7 @@ func (c *Controller) MemberGenderController() {
 
 	// Bulk delete member genders by IDs
 	req.RegisterRoute(handlers.Route{
-		Route:       "/member-gender/bulk-delete",
+		Route:       "/api/v1/member-gender/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple member gender records by their IDs.",
 		RequestType: model.IDSRequest{},

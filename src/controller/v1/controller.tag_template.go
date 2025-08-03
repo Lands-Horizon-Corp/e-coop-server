@@ -210,7 +210,7 @@ func (c *Controller) TagTemplateController() {
 
 	// Deletes a tag template by its ID.
 	req.RegisterRoute(handlers.Route{
-		Route:  "/tag-template/:tag_template_id",
+		Route:  "/api/v1/tag-template/:tag_template_id",
 		Method: "DELETE",
 		Note:   "Deletes a tag template by its ID.",
 	}, func(ctx echo.Context) error {
@@ -251,7 +251,7 @@ func (c *Controller) TagTemplateController() {
 
 	// Deletes multiple tag templates by their IDs.
 	req.RegisterRoute(handlers.Route{
-		Route:       "/tag-template/bulk-delete",
+		Route:       "/api/v1/tag-template/bulk-delete",
 		Method:      "DELETE",
 		RequestType: model.IDSRequest{},
 		Note:        "Deletes multiple tag template records by their IDs.",
