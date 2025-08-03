@@ -199,9 +199,6 @@ func (c *Controller) GeneralLedgerController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 
-		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member profile not found"})
-		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
 			MemberProfileID: memberProfileID,
 			OrganizationID:  userOrg.OrganizationID,
