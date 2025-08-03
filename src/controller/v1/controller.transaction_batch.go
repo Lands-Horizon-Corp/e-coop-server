@@ -805,6 +805,7 @@ func (c *Controller) TransactionBatchController() {
 
 		return ctx.JSON(http.StatusOK, c.model.TransactionBatchManager.ToModel(transactionBatch))
 	})
+
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/transaction-batch/employee/:user_organization_id/search",
 		Method:       "GET",

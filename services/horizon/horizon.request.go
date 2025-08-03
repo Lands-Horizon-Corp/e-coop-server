@@ -172,6 +172,10 @@ func NewHorizonAPIService(
 		return c.String(http.StatusOK, "OK")
 	})
 
+	e.GET("/", func(c echo.Context) error {
+		return c.String(http.StatusOK, "Welcome to Horizon API")
+	})
+
 	return &HorizonAPIService{
 		service:     e,
 		serverPort:  serverPort,
