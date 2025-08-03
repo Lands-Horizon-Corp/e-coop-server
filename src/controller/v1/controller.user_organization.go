@@ -1330,6 +1330,9 @@ func (c *Controller) UserOrganinzationController() {
 		userOrg.UserSettingStartVoucher = req.UserSettingStartVoucher
 		userOrg.UserSettingEndVoucher = req.UserSettingEndVoucher
 		userOrg.UserSettingUsedVoucher = req.UserSettingUsedVoucher
+		userOrg.SettingsAllowWithdrawNegativeBalance = req.SettingsAllowWithdrawNegativeBalance
+		userOrg.SettingsAllowWithdrawExactBalance = req.SettingsAllowWithdrawExactBalance
+		userOrg.SettingsMaintainingBalance = req.SettingsMaintainingBalance
 
 		if err := c.model.UserOrganizationManager.UpdateFields(context, userOrg.ID, userOrg); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{

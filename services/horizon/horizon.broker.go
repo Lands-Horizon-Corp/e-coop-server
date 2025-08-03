@@ -41,7 +41,6 @@ func NewHorizonMessageBroker(host string, port int, clientId, natsUser, natsPass
 		natsPass: natsPass,
 	}
 }
-
 func (h *HorizonMessageBroker) Run(ctx context.Context) error {
 	natsURL := fmt.Sprintf("nats://%s:%d", h.host, h.port)
 	options := []nats.Option{
@@ -58,7 +57,6 @@ func (h *HorizonMessageBroker) Run(ctx context.Context) error {
 	h.nc = nc
 	return nil
 }
-
 func (h *HorizonMessageBroker) Stop(ctx context.Context) error {
 	if h.nc != nil {
 		h.nc.Close()
