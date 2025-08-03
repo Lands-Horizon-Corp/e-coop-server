@@ -29,10 +29,7 @@ type HorizonMessageBroker struct {
 
 // NewHorizonMessageBroker initializes the broker with optional TLS cert paths
 func NewHorizonMessageBroker(host string, port int, clientId, natsUser, natsPass string) MessageBrokerService {
-	fmt.Println("Initializing HorizonMessageBroker with host:", host, "and port:", port)
-	fmt.Println("Client ID:", clientId)
-	fmt.Println("NATS User:", natsUser)
-	fmt.Println("NATS Password:", natsPass)
+
 	return &HorizonMessageBroker{
 		host:     host,
 		port:     port,
