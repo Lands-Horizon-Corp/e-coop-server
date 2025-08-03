@@ -74,6 +74,7 @@ func (c *Controller) GeneralLedgerController() {
 		}
 		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.Pagination(context, ctx, entries))
 	})
+
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/total",
 		Method:       "GET",
@@ -140,36 +141,6 @@ func (c *Controller) GeneralLedgerController() {
 			TransactionID:  transactionID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
-		})
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
-		}
-		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.Pagination(context, ctx, entries))
-	})
-
-	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/search",
-		Method:       "GET",
-		ResponseType: model.GeneralLedgerResponse{},
-		Note:         "Returns all general ledger entries for a member profile with pagination.",
-	}, func(ctx echo.Context) error {
-		context := ctx.Request().Context()
-		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
-		if err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
-		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
-		if err != nil {
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
-		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
-		}
-
-		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
-			MemberProfileID: memberProfileID,
-			OrganizationID:  userOrg.OrganizationID,
-			BranchID:        *userOrg.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
