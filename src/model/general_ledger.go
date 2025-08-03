@@ -205,9 +205,7 @@ func (m *Model) GeneralLedger() {
 		GeneralLedger, GeneralLedgerResponse, GeneralLedgerRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization",
-			"Account", "Transaction",
-			"TransactionBatch",
+			"Account",
 			"EmployeeUser",
 			"MemberProfile",
 			"MemberJointAccount",
