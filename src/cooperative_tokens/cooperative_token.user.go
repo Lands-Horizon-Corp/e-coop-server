@@ -175,11 +175,9 @@ func (h *UserToken) CurrentUser(ctx context.Context, echoCtx echo.Context) (*mod
 func (h *UserToken) SetUser(ctx context.Context, echoCtx echo.Context, user *model.User) error {
 	h.ClearCurrentCSRF(ctx, echoCtx)
 	if user == nil {
-		h.ClearCurrentCSRF(ctx, echoCtx)
 		return echo.NewHTTPError(http.StatusBadRequest, "User cannot be nil")
 	}
 	if user.Email == "" || user.ContactNumber == "" || user.Password == "" || user.UserName == "" {
-		h.ClearCurrentCSRF(ctx, echoCtx)
 		return echo.NewHTTPError(http.StatusBadRequest, "User must have ID, Email, ContactNumber, Password, and Username")
 	}
 
