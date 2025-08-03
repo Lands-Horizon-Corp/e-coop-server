@@ -15,7 +15,7 @@ func (c *Controller) Heartbeat() {
 	req := c.provider.Service.Request
 
 	req.RegisterRoute(handlers.Route{
-		Route:  "/heartbeat/online",
+		Route:  "/api/v1/heartbeat/online",
 		Method: "POST",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -56,7 +56,7 @@ func (c *Controller) Heartbeat() {
 	})
 
 	req.RegisterRoute(handlers.Route{
-		Route:  "/heartbeat/offline",
+		Route:  "/api/v1/heartbeat/offline",
 		Method: "POST",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -97,7 +97,7 @@ func (c *Controller) Heartbeat() {
 	})
 
 	req.RegisterRoute(handlers.Route{
-		Route:       "/heartbeat/status",
+		Route:       "/api/v1/heartbeat/status",
 		Method:      "POST",
 		RequestType: model.UserOrganizationStatusRequest{},
 	}, func(ctx echo.Context) error {

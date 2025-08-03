@@ -182,7 +182,7 @@ func (c *Controller) TimesheetController() {
 
 	// Get the user's own timesheets in the current branch
 	req.RegisterRoute(handlers.Route{
-		Route:       "/timesheet/me",
+		Route:       "/api/v1/timesheet/me",
 		Method:      "GET",
 		Note:        "Returns timesheets of the current user for the current branch.",
 		RequestType: model.TimesheetRequest{},

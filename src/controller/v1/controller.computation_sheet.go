@@ -18,7 +18,7 @@ func (c *Controller) ComputationSheetController() {
 
 	// POST /computation-sheet/:computation_sheet_id/calculator: Returns sample calculation data.
 	req.RegisterRoute(handlers.Route{
-		Route:  "/computation-sheet/:computation_sheet_id/calculator",
+		Route:  "/api/v1/computation-sheet/:computation_sheet_id/calculator",
 		Method: "POST",
 		Note:   "Returns sample payment calculation data for a computation sheet.",
 	}, func(ctx echo.Context) error {

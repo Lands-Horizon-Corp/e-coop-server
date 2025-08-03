@@ -40,7 +40,7 @@ func (c *Controller) InvitationCode() {
 
 	// GET /invitation-code/search: Paginated search of invitation codes for current branch. (NO footstep)
 	req.RegisterRoute(handlers.Route{
-		Route:       "/invitation-code/search",
+		Route:       "/api/v1/invitation-code/search",
 		Method:      "GET",
 		RequestType: model.InvitationCodeRequest{},
 		Note:        "Returns a paginated list of invitation codes for the current user's organization and branch.",
@@ -301,7 +301,7 @@ func (c *Controller) InvitationCode() {
 
 	// DELETE /invitation-code/bulk-delete: Bulk delete invitation codes by IDs. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
-		Route:       "/invitation-code/bulk-delete",
+		Route:       "/api/v1/invitation-code/bulk-delete",
 		Method:      "DELETE",
 		RequestType: model.IDSRequest{},
 		Note:        "Deletes multiple invitation codes by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

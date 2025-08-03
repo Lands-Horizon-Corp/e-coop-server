@@ -180,7 +180,7 @@ func startServer() {
 			event.NewEvent,
 			seeder.NewSeeder,
 			cooperative_tokens.NewUserToken,
-			cooperative_tokens.NewUserOrganizatonToken,
+			cooperative_tokens.NewUserOrganizationToken,
 		),
 		fx.Invoke(func(lc fx.Lifecycle, ctrl *controller_v1.Controller, mod *model.Model, prov *src.Provider) error {
 			lc.Append(fx.Hook{

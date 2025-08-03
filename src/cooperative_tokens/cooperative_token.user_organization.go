@@ -27,13 +27,13 @@ func (c UserOrganizatonClaim) GetRegisteredClaims() *jwt.RegisteredClaims {
 	return &c.RegisteredClaims
 }
 
-type UserOrganizatonToken struct {
+type UserOrganizationToken struct {
 	model    *model.Model
 	Token    horizon.TokenService[UserOrganizatonClaim]
 	provider *src.Provider
 }
 
-func NewUserOrganizatonToken(provider *src.Provider, model *model.Model) (*UserOrganizatonToken, error) {
+func NewUserOrganizationToken(provider *src.Provider, model *model.Model) (*UserOrganizationToken, error) {
 	context := context.Background()
 	appName := provider.Service.Environment.GetString("APP_NAME", "")
 	appToken := provider.Service.Environment.GetString("APP_TOKEN", "")
@@ -47,10 +47,10 @@ func NewUserOrganizatonToken(provider *src.Provider, model *model.Model) (*UserO
 		[]byte(token),
 		true,
 	)
-	return &UserOrganizatonToken{Token: tokenService, model: model, provider: provider}, nil
+	return &UserOrganizationToken{Token: tokenService, model: model, provider: provider}, nil
 }
 
-func (h *UserOrganizatonToken) ClearCurrentToken(context context.Context, ctx echo.Context) {
+func (h *UserOrganizationToken) ClearCurrentToken(context context.Context, ctx echo.Context) {
 	claim, err := h.Token.GetToken(context, ctx)
 	if err == nil {
 		id, err := uuid.Parse(claim.UserOrganizatonID)
@@ -79,7 +79,7 @@ func (h *UserOrganizatonToken) ClearCurrentToken(context context.Context, ctx ec
 	h.Token.CleanToken(context, ctx)
 }
 
-func (h *UserOrganizatonToken) CurrentUserOrganization(ctx context.Context, echoCtx echo.Context) (*model.UserOrganization, error) {
+func (h *UserOrganizationToken) CurrentUserOrganization(ctx context.Context, echoCtx echo.Context) (*model.UserOrganization, error) {
 	// Try JWT token first
 	claim, err := h.Token.GetToken(ctx, echoCtx)
 	if err == nil {
@@ -112,7 +112,7 @@ func (h *UserOrganizatonToken) CurrentUserOrganization(ctx context.Context, echo
 	return nil, echo.NewHTTPError(http.StatusUnauthorized, "authentication required")
 }
 
-func (h *UserOrganizatonToken) SetUserOrganization(ctx context.Context, echoCtx echo.Context, userOrganization *model.UserOrganization) error {
+func (h *UserOrganizationToken) SetUserOrganization(ctx context.Context, echoCtx echo.Context, userOrganization *model.UserOrganization) error {
 	h.ClearCurrentToken(ctx, echoCtx)
 	if err := h.Token.SetToken(ctx, echoCtx, UserOrganizatonClaim{
 		UserOrganizatonID: userOrganization.ID.String(),

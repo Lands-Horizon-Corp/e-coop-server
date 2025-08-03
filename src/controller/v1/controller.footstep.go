@@ -65,7 +65,7 @@ func (c *Controller) FootstepController() {
 
 	// GET /footstep/branch: Get all footsteps for the current user's branch.
 	req.RegisterRoute(handlers.Route{
-		Route:  "/footstep/branch/search",
+		Route:  "/api/v1/footstep/branch/search",
 		Method: "GET",
 		Note:   "Returns all footsteps for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
