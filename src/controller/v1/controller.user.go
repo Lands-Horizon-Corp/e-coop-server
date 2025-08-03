@@ -88,7 +88,7 @@ func (c *Controller) UserController() {
 
 	// Logout all users including itself for the session
 	req.RegisterRoute(handlers.Route{
-		Route:  "/authentication/current-logged-in-accounts/logout",
+		Route:  "/api/v1/authentication/current-logged-in-accounts/logout",
 		Method: "POST",
 		Note:   "Logs out all users including itself for the session.",
 	}, func(ctx echo.Context) error {
@@ -144,7 +144,7 @@ func (c *Controller) UserController() {
 
 	// Logout the current user
 	req.RegisterRoute(handlers.Route{
-		Route:  "/authentication/logout",
+		Route:  "/api/v1/authentication/logout",
 		Method: "POST",
 		Note:   "Logs out the current user.",
 	}, func(ctx echo.Context) error {
