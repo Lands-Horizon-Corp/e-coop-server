@@ -8,14 +8,14 @@ import (
 
 type Event struct {
 	model                 *model.Model
-	userOrganizationToken *cooperative_tokens.UserOrganizatonToken
+	userOrganizationToken *cooperative_tokens.UserOrganizationToken
 	userToken             *cooperative_tokens.UserToken
 	provider              *src.Provider
 }
 
 func NewEvent(
 	model *model.Model,
-	userOrganizationToken *cooperative_tokens.UserOrganizatonToken,
+	userOrganizationToken *cooperative_tokens.UserOrganizationToken,
 	userToken *cooperative_tokens.UserToken,
 	provider *src.Provider,
 ) (*Event, error) {

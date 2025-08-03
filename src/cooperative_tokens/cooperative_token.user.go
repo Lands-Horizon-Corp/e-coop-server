@@ -119,13 +119,13 @@ func (c UserClaim) GetRegisteredClaims() *jwt.RegisteredClaims {
 // UserToken handles user token and CSRF logic.
 type UserToken struct {
 	model                 *model.Model
-	userOrganizationToken *UserOrganizatonToken
+	userOrganizationToken *UserOrganizationToken
 
 	CSRF horizon.AuthService[UserCSRF]
 }
 
 // NewUserToken initializes a new UserToken.
-func NewUserToken(provider *src.Provider, model *model.Model, userOrganizationToken *UserOrganizatonToken) (*UserToken, error) {
+func NewUserToken(provider *src.Provider, model *model.Model, userOrganizationToken *UserOrganizationToken) (*UserToken, error) {
 	appName := provider.Service.Environment.GetString("APP_NAME", "")
 
 	csrfService := horizon.NewHorizonAuthService[UserCSRF](
