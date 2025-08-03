@@ -2519,7 +2519,27 @@ func (c *Controller) GeneralLedgerEntriesController() {
 		ResponseType: model.GeneralLedgerResponse{},
 		Note:         "Returns all general ledger entries for the specified transaction with pagination.",
 	}, func(ctx echo.Context) error {
-		return nil
+		context := ctx.Request().Context()
+		transactionId, err := handlers.EngineUUIDParam(ctx, "transaction_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction ID"})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
+		}
+		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
+			TransactionID:  transactionId,
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.Pagination(context, ctx, entries))
 	})
 
 	// GET /api/v1/general-ledger/transaction/:transaction_id/check-entry/search
@@ -2529,7 +2549,28 @@ func (c *Controller) GeneralLedgerEntriesController() {
 		ResponseType: model.GeneralLedgerResponse{},
 		Note:         "Returns all check entry general ledger entries for the specified transaction with pagination.",
 	}, func(ctx echo.Context) error {
-		return nil
+		context := ctx.Request().Context()
+		transactionId, err := handlers.EngineUUIDParam(ctx, "transaction_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction ID"})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
+		}
+		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
+			TransactionID:     transactionId,
+			OrganizationID:    userOrg.OrganizationID,
+			BranchID:          *userOrg.BranchID,
+			TypeOfPaymentType: model.PaymentTypeCheck,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.Pagination(context, ctx, entries))
 	})
 
 	// GET /api/v1/general-ledger/transaction/:transaction_id/online-entry/search
@@ -2539,7 +2580,28 @@ func (c *Controller) GeneralLedgerEntriesController() {
 		ResponseType: model.GeneralLedgerResponse{},
 		Note:         "Returns all online entry general ledger entries for the specified transaction with pagination.",
 	}, func(ctx echo.Context) error {
-		return nil
+		context := ctx.Request().Context()
+		transactionId, err := handlers.EngineUUIDParam(ctx, "transaction_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction ID"})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
+		}
+		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
+			TransactionID:     transactionId,
+			OrganizationID:    userOrg.OrganizationID,
+			BranchID:          *userOrg.BranchID,
+			TypeOfPaymentType: model.PaymentTypeOnline,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.Pagination(context, ctx, entries))
 	})
 
 	// GET /api/v1/general-ledger/transaction/:transaction_id/cash-entry/search
@@ -2549,7 +2611,28 @@ func (c *Controller) GeneralLedgerEntriesController() {
 		ResponseType: model.GeneralLedgerResponse{},
 		Note:         "Returns all cash entry general ledger entries for the specified transaction with pagination.",
 	}, func(ctx echo.Context) error {
-		return nil
+		context := ctx.Request().Context()
+		transactionId, err := handlers.EngineUUIDParam(ctx, "transaction_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction ID"})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
+		}
+		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
+			TransactionID:     transactionId,
+			OrganizationID:    userOrg.OrganizationID,
+			BranchID:          *userOrg.BranchID,
+			TypeOfPaymentType: model.PaymentTypeCash,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.Pagination(context, ctx, entries))
 	})
 
 	// GET /api/v1/general-ledger/transaction/:transaction_id/payment-entry/search
@@ -2559,7 +2642,28 @@ func (c *Controller) GeneralLedgerEntriesController() {
 		ResponseType: model.GeneralLedgerResponse{},
 		Note:         "Returns all payment entry general ledger entries for the specified transaction with pagination.",
 	}, func(ctx echo.Context) error {
-		return nil
+		context := ctx.Request().Context()
+		transactionId, err := handlers.EngineUUIDParam(ctx, "transaction_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction ID"})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
+		}
+		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
+			TransactionID:  transactionId,
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			Source:         model.GeneralLedgerSourcePayment,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.Pagination(context, ctx, entries))
 	})
 
 	// GET /api/v1/general-ledger/transaction/:transaction_id/withdraw-entry/search
@@ -2569,7 +2673,28 @@ func (c *Controller) GeneralLedgerEntriesController() {
 		ResponseType: model.GeneralLedgerResponse{},
 		Note:         "Returns all withdraw entry general ledger entries for the specified transaction with pagination.",
 	}, func(ctx echo.Context) error {
-		return nil
+		context := ctx.Request().Context()
+		transactionId, err := handlers.EngineUUIDParam(ctx, "transaction_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction ID"})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
+		}
+		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
+			TransactionID:  transactionId,
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			Source:         model.GeneralLedgerSourceWithdraw,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.Pagination(context, ctx, entries))
 	})
 
 	// GET /api/v1/general-ledger/transaction/:transaction_id/deposit-entry/search
@@ -2579,7 +2704,28 @@ func (c *Controller) GeneralLedgerEntriesController() {
 		ResponseType: model.GeneralLedgerResponse{},
 		Note:         "Returns all deposit entry general ledger entries for the specified transaction with pagination.",
 	}, func(ctx echo.Context) error {
-		return nil
+		context := ctx.Request().Context()
+		transactionId, err := handlers.EngineUUIDParam(ctx, "transaction_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction ID"})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
+		}
+		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
+			TransactionID:  transactionId,
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			Source:         model.GeneralLedgerSourceDeposit,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.Pagination(context, ctx, entries))
 	})
 
 	// GET /api/v1/general-ledger/transaction/:transaction_id/journal-entry/search
@@ -2589,7 +2735,28 @@ func (c *Controller) GeneralLedgerEntriesController() {
 		ResponseType: model.GeneralLedgerResponse{},
 		Note:         "Returns all journal entry general ledger entries for the specified transaction with pagination.",
 	}, func(ctx echo.Context) error {
-		return nil
+		context := ctx.Request().Context()
+		transactionId, err := handlers.EngineUUIDParam(ctx, "transaction_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction ID"})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
+		}
+		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
+			TransactionID:  transactionId,
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			Source:         model.GeneralLedgerSourceJournal,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.Pagination(context, ctx, entries))
 	})
 
 	// GET /api/v1/general-ledger/transaction/:transaction_id/adjustment-entry/search
@@ -2599,7 +2766,28 @@ func (c *Controller) GeneralLedgerEntriesController() {
 		ResponseType: model.GeneralLedgerResponse{},
 		Note:         "Returns all adjustment entry general ledger entries for the specified transaction with pagination.",
 	}, func(ctx echo.Context) error {
-		return nil
+		context := ctx.Request().Context()
+		transactionId, err := handlers.EngineUUIDParam(ctx, "transaction_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction ID"})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
+		}
+		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
+			TransactionID:  transactionId,
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			Source:         model.GeneralLedgerSourceAdjustment,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.Pagination(context, ctx, entries))
 	})
 
 	// GET /api/v1/general-ledger/transaction/:transaction_id/journal-voucher/search
@@ -2609,7 +2797,28 @@ func (c *Controller) GeneralLedgerEntriesController() {
 		ResponseType: model.GeneralLedgerResponse{},
 		Note:         "Returns all journal voucher general ledger entries for the specified transaction with pagination.",
 	}, func(ctx echo.Context) error {
-		return nil
+		context := ctx.Request().Context()
+		transactionId, err := handlers.EngineUUIDParam(ctx, "transaction_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction ID"})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
+		}
+		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
+			TransactionID:  transactionId,
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			Source:         model.GeneralLedgerSourceJournalVoucher,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.Pagination(context, ctx, entries))
 	})
 
 	// GET /api/v1/general-ledger/transaction/:transaction_id/check-voucher/search
@@ -2619,7 +2828,28 @@ func (c *Controller) GeneralLedgerEntriesController() {
 		ResponseType: model.GeneralLedgerResponse{},
 		Note:         "Returns all check voucher general ledger entries for the specified transaction with pagination.",
 	}, func(ctx echo.Context) error {
-		return nil
+		context := ctx.Request().Context()
+		transactionId, err := handlers.EngineUUIDParam(ctx, "transaction_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction ID"})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
+		}
+		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
+			TransactionID:  transactionId,
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			Source:         model.GeneralLedgerSourceCheckVoucher,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.Pagination(context, ctx, entries))
 	})
 
 	// ACCOUNTS
