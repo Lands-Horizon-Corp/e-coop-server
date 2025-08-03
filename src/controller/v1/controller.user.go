@@ -154,7 +154,7 @@ func (c *Controller) UserController() {
 			Description: "User logged out successfully",
 			Module:      "User",
 		})
-		c.userToken.CSRF.ClearCSRF(context, ctx)
+		c.userToken.ClearCurrentCSRF(context, ctx)
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
