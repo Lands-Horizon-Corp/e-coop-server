@@ -231,7 +231,7 @@ func (c *Controller) UserController() {
 
 	// Forgot password flow
 	req.RegisterRoute(handlers.Route{
-		Route:       "/authentication/forgot-password",
+		Route:       "/api/v1/authentication/forgot-password",
 		Method:      "POST",
 		RequestType: model.UserForgotPasswordRequest{},
 		Note:        "Initiates forgot password flow and sends a reset link.",
@@ -308,7 +308,7 @@ func (c *Controller) UserController() {
 
 	// Verify password reset link
 	req.RegisterRoute(handlers.Route{
-		Route:  "/authentication/verify-reset-link/:reset_id",
+		Route:  "/api/v1/authentication/verify-reset-link/:reset_id",
 		Method: "GET",
 		Note:   "Verifies if the reset password link is valid.",
 	}, func(ctx echo.Context) error {
@@ -334,7 +334,7 @@ func (c *Controller) UserController() {
 
 	// Change password using the reset link
 	req.RegisterRoute(handlers.Route{
-		Route:       "/authentication/change-password/:reset_id",
+		Route:       "/api/v1/authentication/change-password/:reset_id",
 		Method:      "POST",
 		RequestType: model.UserChangePasswordRequest{},
 		Note:        "Changes the user's password using the reset link.",
@@ -409,7 +409,7 @@ func (c *Controller) UserController() {
 
 	// Send OTP for contact number verification
 	req.RegisterRoute(handlers.Route{
-		Route:  "/authentication/apply-contact-number",
+		Route:  "/api/v1/authentication/apply-contact-number",
 		Method: "POST",
 		Note:   "Sends OTP for contact number verification.",
 	}, func(ctx echo.Context) error {
@@ -543,7 +543,7 @@ func (c *Controller) UserController() {
 
 	// Send OTP for email verification
 	req.RegisterRoute(handlers.Route{
-		Route:  "/authentication/apply-email",
+		Route:  "/api/v1/authentication/apply-email",
 		Method: "POST",
 		Note:   "Sends OTP for email verification.",
 	}, func(ctx echo.Context) error {
@@ -587,9 +587,8 @@ func (c *Controller) UserController() {
 
 	// Verify OTP for email
 	req.RegisterRoute(handlers.Route{
-		Route:  "/authentication/verify-email",
-		Method: "POST",
-
+		Route:        "/api/v1/authentication/verify-email",
+		Method:       "POST",
 		Note:         "Verifies OTP for email verification.",
 		ResponseType: model.UserResponse{},
 		RequestType:  model.UserVerifyEmailRequest{},
@@ -678,9 +677,8 @@ func (c *Controller) UserController() {
 
 	// Verify user with password for self-protected actions
 	req.RegisterRoute(handlers.Route{
-		Route:  "/authentication/verify-with-password",
-		Method: "POST",
-
+		Route:        "/api/v1/authentication/verify-with-password",
+		Method:       "POST",
 		Note:         "Verifies the user's password for protected self actions.",
 		ResponseType: model.UserResponse{},
 		RequestType:  model.UserVerifyWithPasswordRequest{},
