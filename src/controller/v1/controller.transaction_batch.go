@@ -852,4 +852,5 @@ func (c *Controller) TransactionBatchController() {
 		}
 		return ctx.JSON(http.StatusOK, paginated)
 	})
+
 }
