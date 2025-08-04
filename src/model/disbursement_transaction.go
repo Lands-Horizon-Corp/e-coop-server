@@ -68,13 +68,12 @@ type (
 	}
 
 	DisbursementTransactionRequest struct {
-		Disbursement               *DisbursementRequest     `json:"disbursement" validate:"required"`
-		TransactionBatch           *TransactionBatchRequest `json:"transaction_batch" validate:"required"`
-		EmployeeName               string                   `json:"employee_name" validate:"required,min=1,max=100"`
-		Description                string                   `json:"description,omitempty"`
-		TransactionReferenceNumber string                   `json:"transaction_reference_number,omitempty"`
-		ReferenceNumber            string                   `json:"reference_number,omitempty"`
-		Amount                     float64                  `json:"amount,omitempty"`
+		DisbursementID             *uuid.UUID `json:"disbursement" validate:"required"`
+		EmployeeName               string     `json:"employee_name" validate:"required,min=1,max=100"`
+		Description                string     `json:"description,omitempty"`
+		TransactionReferenceNumber string     `json:"transaction_reference_number,omitempty"`
+		ReferenceNumber            string     `json:"reference_number,omitempty"`
+		Amount                     float64    `json:"amount,omitempty"`
 	}
 )
 
