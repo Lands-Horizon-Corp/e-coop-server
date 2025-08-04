@@ -187,12 +187,10 @@ func (c *Controller) TransactionBatchController() {
 		}
 
 		transactionBatch, err := c.model.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
-		if err != nil {
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Failed to retrieve transaction batch: " + err.Error()})
+		if err != nil || transactionBatch == nil {
+			return ctx.NoContent(http.StatusNoContent)
 		}
-		if transactionBatch == nil {
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "No current transaction batch"})
-		}
+
 		if !transactionBatch.CanView {
 			result, err := c.model.TransactionBatchMinimal(context, transactionBatch.ID)
 			if err != nil {
@@ -807,6 +805,7 @@ func (c *Controller) TransactionBatchController() {
 
 		return ctx.JSON(http.StatusOK, c.model.TransactionBatchManager.ToModel(transactionBatch))
 	})
+
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/transaction-batch/employee/:user_organization_id/search",
 		Method:       "GET",
@@ -853,4 +852,5 @@ func (c *Controller) TransactionBatchController() {
 		}
 		return ctx.JSON(http.StatusOK, paginated)
 	})
+
 }

@@ -28,16 +28,18 @@ type (
 		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_disbursement_transaction"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
-		DisbursementID     uuid.UUID         `gorm:"type:uuid;not null"`
 		Disbursement       *Disbursement     `gorm:"foreignKey:DisbursementID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"disbursement,omitempty"`
 		TransactionBatchID uuid.UUID         `gorm:"type:uuid;not null"`
 		TransactionBatch   *TransactionBatch `gorm:"foreignKey:TransactionBatchID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"transaction_batch,omitempty"`
 		EmployeeUserID     uuid.UUID         `gorm:"type:uuid;not null"`
 		EmployeeUser       *User             `gorm:"foreignKey:EmployeeUserID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"employee_user,omitempty"`
 
-		TransactionReferenceNumber string  `gorm:"type:varchar(50)"`
-		ReferenceNumber            string  `gorm:"type:varchar(50)"`
-		Amount                     float64 `gorm:"type:decimal"`
+		TransactionReferenceNumber string    `gorm:"type:varchar(50)"`
+		DisbursementID             uuid.UUID `gorm:"type:uuid;not null"`
+		ReferenceNumber            string    `gorm:"type:varchar(50)"`
+		Amount                     float64   `gorm:"type:decimal"`
+		Description                string    `gorm:"type:text"`
+		EmployeeName               string    `gorm:"type:varchar(100)"`
 	}
 
 	DisbursementTransactionResponse struct {
@@ -66,14 +68,12 @@ type (
 	}
 
 	DisbursementTransactionRequest struct {
-		OrganizationID             uuid.UUID `json:"organization_id" validate:"required"`
-		BranchID                   uuid.UUID `json:"branch_id" validate:"required"`
-		DisbursementID             uuid.UUID `json:"disbursement_id" validate:"required"`
-		TransactionBatchID         uuid.UUID `json:"transaction_batch_id" validate:"required"`
-		EmployeeUserID             uuid.UUID `json:"employee_user_id" validate:"required"`
-		TransactionReferenceNumber string    `json:"transaction_reference_number,omitempty"`
-		ReferenceNumber            string    `json:"reference_number,omitempty"`
-		Amount                     float64   `json:"amount,omitempty"`
+		DisbursementID             *uuid.UUID `json:"disbursement" validate:"required"`
+		EmployeeName               string     `json:"employee_name" validate:"required,min=1,max=100"`
+		Description                string     `json:"description,omitempty"`
+		TransactionReferenceNumber string     `json:"transaction_reference_number,omitempty"`
+		ReferenceNumber            string     `json:"reference_number,omitempty"`
+		Amount                     float64    `json:"amount,omitempty"`
 	}
 )
 

@@ -687,4 +687,5 @@ func (c *Controller) AccountController() {
 		})
 		return ctx.JSON(http.StatusOK, c.model.AccountManager.ToModel(account))
 	})
+
 }
