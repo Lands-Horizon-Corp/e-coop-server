@@ -99,6 +99,8 @@ func (c *Controller) Start() error {
 	c.CheckRemittanceController()
 	c.TransactionController()
 	c.OnlineRemittanceController()
+	c.DisbursementController()
+	c.DisbursementTransactionController()
 
 	// Accounts
 	c.AccountController()
@@ -120,6 +122,7 @@ func (c *Controller) Start() error {
 	c.AutomaticLoanDeductionController()
 	c.BrowseExcludeIncludeAccountsController()
 	c.IncludeNegativeAccountController()
+
 	return nil
 }
 
