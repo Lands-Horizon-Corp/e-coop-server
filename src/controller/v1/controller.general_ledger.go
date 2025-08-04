@@ -1419,7 +1419,7 @@ func (c *Controller) GeneralLedgerController() {
 
 	// MEMBER
 	// MEMBER GENERAL LEDGER ROUTES
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/search/search
+	// GET /api/v1/general-ledger/member-profile/:member_profile_id/search
 	// GET /api/v1/general-ledger/member-profile/:member_profile_id/check-entry/search
 	// GET /api/v1/general-ledger/member-profile/:member_profile_id/online-entry/search
 	// GET /api/v1/general-ledger/member-profile/:member_profile_id/cash-entry/search
@@ -1431,9 +1431,9 @@ func (c *Controller) GeneralLedgerController() {
 	// GET /api/v1/general-ledger/member-profile/:member_profile_id/journal-voucher/search
 	// GET /api/v1/general-ledger/member-profile/:member_profile_id/check-voucher/search
 
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/search/search
+	// GET /api/v1/general-ledger/member-profile/:member_profile_id/search
 	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/search/search",
+		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/search",
 		Method:       "GET",
 		ResponseType: model.GeneralLedgerResponse{},
 		Note:         "Returns all general ledger entries for the specified member profile with pagination.",
@@ -2192,7 +2192,7 @@ func (c *Controller) GeneralLedgerController() {
 	})
 
 	// TRANSACTION BATCH
-	// GET /api/v1/general-ledger/transaction-batch/:transaction_batch_id/search/search
+	// GET /api/v1/general-ledger/transaction-batch/:transaction_batch_id/search
 	// GET /api/v1/general-ledger/transaction-batch/:transaction_batch_id/check-entry/search
 	// GET /api/v1/general-ledger/transaction-batch/:transaction_batch_id/online-entry/search
 	// GET /api/v1/general-ledger/transaction-batch/:transaction_batch_id/cash-entry/search
@@ -2205,9 +2205,9 @@ func (c *Controller) GeneralLedgerController() {
 	// GET /api/v1/general-ledger/transaction-batch/:transaction_batch_id/check-voucher/search
 	// TRANSACTION BATCH GENERAL LEDGER ROUTES
 
-	// GET /api/v1/general-ledger/transaction-batch/:transaction_batch_id/search/search
+	// GET /api/v1/general-ledger/transaction-batch/:transaction_batch_id/search
 	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/general-ledger/transaction-batch/:transaction_batch_id/search/search",
+		Route:        "/api/v1/general-ledger/transaction-batch/:transaction_batch_id/search",
 		Method:       "GET",
 		ResponseType: model.GeneralLedgerResponse{},
 		Note:         "Returns all general ledger entries for the specified transaction batch with pagination.",
@@ -2546,7 +2546,7 @@ func (c *Controller) GeneralLedgerController() {
 	})
 
 	// TRANSACTION
-	// GET /api/v1/general-ledger/transaction/:transaction_id/search/search
+	// GET /api/v1/general-ledger/transaction/:transaction_id/search
 	// GET /api/v1/general-ledger/transaction/:transaction_id/check-entry/search
 	// GET /api/v1/general-ledger/transaction/:transaction_id/online-entry/search
 	// GET /api/v1/general-ledger/transaction/:transaction_id/cash-entry/search
@@ -2559,9 +2559,9 @@ func (c *Controller) GeneralLedgerController() {
 	// GET /api/v1/general-ledger/transaction/:transaction_id/check-voucher/search
 	// TRANSACTION GENERAL LEDGER ROUTES
 
-	// GET /api/v1/general-ledger/transaction/:transaction_id/search/search
+	// GET /api/v1/general-ledger/transaction/:transaction_id/search
 	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/general-ledger/transaction/:transaction_id/search/search",
+		Route:        "/api/v1/general-ledger/transaction/:transaction_id/search",
 		Method:       "GET",
 		ResponseType: model.GeneralLedgerResponse{},
 		Note:         "Returns all general ledger entries for the specified transaction with pagination.",
@@ -2900,7 +2900,7 @@ func (c *Controller) GeneralLedgerController() {
 	})
 
 	// ACCOUNTS
-	// GET /api/v1/general-ledger/account/:account_id/search/search
+	// GET /api/v1/general-ledger/account/:account_id/search
 	// GET /api/v1/general-ledger/account/:account_id/check-entry/search
 	// GET /api/v1/general-ledger/account/:account_id/online-entry/search
 	// GET /api/v1/general-ledger/account/:account_id/cash-entry/search
@@ -2913,9 +2913,9 @@ func (c *Controller) GeneralLedgerController() {
 	// GET /api/v1/general-ledger/account/:account_id/check-voucher/search
 	// ACCOUNTS GENERAL LEDGER ROUTES
 
-	// GET /api/v1/general-ledger/account/:account_id/search/search
+	// GET /api/v1/general-ledger/account/:account_id/search
 	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/general-ledger/account/:account_id/search/search",
+		Route:        "/api/v1/general-ledger/account/:account_id/search",
 		Method:       "GET",
 		ResponseType: model.GeneralLedgerResponse{},
 		Note:         "Returns all general ledger entries for the specified account with pagination.",
