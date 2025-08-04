@@ -116,7 +116,8 @@ func (m *Model) Transaction() {
 			"Organization", "SignatureMedia", "TransactionBatch", "EmployeeUser",
 			"MemberProfile",
 			"MemberProfile.Media",
-			"MemberJointAccount.Media",
+			"MemberJointAccount.PictureMedia",
+			"MemberJointAccount.SignatureMedia",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *Transaction) *TransactionResponse {
