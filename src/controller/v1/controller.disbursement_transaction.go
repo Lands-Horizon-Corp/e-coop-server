@@ -15,7 +15,7 @@ func (c *Controller) DisbursementTransactionController() {
 
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/disbursement-transaction",
-		Method:       "GET",
+		Method:       "POST",
 		Note:         "Returns all disbursement transactions for a specific transaction batch.",
 		ResponseType: model.DisbursementResponse{},
 	}, func(ctx echo.Context) error {
@@ -24,10 +24,10 @@ func (c *Controller) DisbursementTransactionController() {
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
-				Description: "Bank creation failed (/bank), validation error: " + err.Error(),
-				Module:      "Bank",
+				Description: "Disbursement transaction creation failed (/disbursement-transaction), validation error: " + err.Error(),
+				Module:      "DisbursementTransaction",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid bank data: " + err.Error()})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid disbursement transaction data: " + err.Error()})
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 
@@ -101,7 +101,7 @@ func (c *Controller) DisbursementTransactionController() {
 	})
 
 	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1//disbursement-transaction/employee/:user_organization_id/search",
+		Route:        "/api/v1/disbursement-transaction/employee/:user_organization_id/search",
 		Method:       "GET",
 		Note:         "Returns all disbursement transactions handled by a specific employee.",
 		ResponseType: model.DisbursementResponse{},
