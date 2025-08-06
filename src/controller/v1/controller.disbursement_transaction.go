@@ -68,7 +68,7 @@ func (c *Controller) DisbursementTransactionController() {
 		}
 		if req.IsReferenceNumberChecked {
 			userOrg.UserSettingUsedOR += 1
-			if err := c.model.UserOrganizationManager.UpdateFields(context, data.ID, userOrg); err != nil {
+			if err := c.model.UserOrganizationManager.UpdateFields(context, userOrg.ID, userOrg); err != nil {
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "create-error",
 					Description: "Disbursement transaction reference number update failed (/disbursement-transaction), db error: " + err.Error(),
