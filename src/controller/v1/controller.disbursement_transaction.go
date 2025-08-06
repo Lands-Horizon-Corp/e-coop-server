@@ -44,19 +44,18 @@ func (c *Controller) DisbursementTransactionController() {
 			return ctx.NoContent(http.StatusNoContent)
 		}
 		data := &model.DisbursementTransaction{
-			CreatedAt:                  time.Now().UTC(),
-			CreatedByID:                userOrg.UserID,
-			UpdatedAt:                  time.Now().UTC(),
-			UpdatedByID:                userOrg.UserID,
-			OrganizationID:             userOrg.OrganizationID,
-			BranchID:                   *userOrg.BranchID,
-			TransactionBatchID:         transactionBatch.ID,
-			DisbursementID:             *req.DisbursementID,
-			EmployeeName:               userOrg.User.FullName,
-			Description:                req.Description,
-			TransactionReferenceNumber: req.TransactionReferenceNumber,
-			ReferenceNumber:            req.ReferenceNumber,
-			Amount:                     req.Amount,
+			CreatedAt:          time.Now().UTC(),
+			CreatedByID:        userOrg.UserID,
+			UpdatedAt:          time.Now().UTC(),
+			UpdatedByID:        userOrg.UserID,
+			OrganizationID:     userOrg.OrganizationID,
+			BranchID:           *userOrg.BranchID,
+			TransactionBatchID: transactionBatch.ID,
+			DisbursementID:     *req.DisbursementID,
+			EmployeeName:       userOrg.User.FullName,
+			Description:        req.Description,
+			ReferenceNumber:    req.ReferenceNumber,
+			Amount:             req.Amount,
 		}
 		if err := c.model.DisbursementTransactionManager.Create(context, data); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
