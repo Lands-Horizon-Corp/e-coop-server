@@ -64,6 +64,7 @@ func (m *Model) Disbursement() {
 	]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Branch", "Organization",
+			"Organization.Media", "Branch.Media",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *Disbursement) *DisbursementResponse {
