@@ -34,12 +34,11 @@ type (
 		EmployeeUserID     uuid.UUID         `gorm:"type:uuid;not null"`
 		EmployeeUser       *User             `gorm:"foreignKey:EmployeeUserID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"employee_user,omitempty"`
 
-		TransactionReferenceNumber string    `gorm:"type:varchar(50)"`
-		DisbursementID             uuid.UUID `gorm:"type:uuid;not null"`
-		ReferenceNumber            string    `gorm:"type:varchar(50)"`
-		Amount                     float64   `gorm:"type:decimal"`
-		Description                string    `gorm:"type:text"`
-		EmployeeName               string    `gorm:"type:varchar(100)"`
+		DisbursementID  uuid.UUID `gorm:"type:uuid;not null"`
+		ReferenceNumber string    `gorm:"type:varchar(50)"`
+		Amount          float64   `gorm:"type:decimal"`
+		Description     string    `gorm:"type:text"`
+		EmployeeName    string    `gorm:"type:varchar(100)"`
 	}
 
 	DisbursementTransactionResponse struct {
@@ -62,9 +61,8 @@ type (
 		EmployeeUserID     uuid.UUID                 `json:"employee_user_id"`
 		EmployeeUser       *UserResponse             `json:"employee_user,omitempty"`
 
-		TransactionReferenceNumber string  `json:"transaction_reference_number"`
-		ReferenceNumber            string  `json:"reference_number"`
-		Amount                     float64 `json:"amount"`
+		ReferenceNumber string  `json:"reference_number"`
+		Amount          float64 `json:"amount"`
 	}
 
 	DisbursementTransactionRequest struct {
@@ -73,9 +71,8 @@ type (
 		Description              string `json:"description,omitempty"`
 		IsReferenceNumberChecked bool   `json:"is_reference_number_checked,omitempty"`
 
-		TransactionReferenceNumber string  `json:"transaction_reference_number,omitempty"`
-		ReferenceNumber            string  `json:"reference_number,omitempty"`
-		Amount                     float64 `json:"amount,omitempty"`
+		ReferenceNumber string  `json:"reference_number,omitempty"`
+		Amount          float64 `json:"amount,omitempty"`
 	}
 )
 
@@ -94,26 +91,25 @@ func (m *Model) DisbursementTransaction() {
 				return nil
 			}
 			return &DisbursementTransactionResponse{
-				ID:                         data.ID,
-				CreatedAt:                  data.CreatedAt.Format(time.RFC3339),
-				CreatedByID:                data.CreatedByID,
-				CreatedBy:                  m.UserManager.ToModel(data.CreatedBy),
-				UpdatedAt:                  data.UpdatedAt.Format(time.RFC3339),
-				UpdatedByID:                data.UpdatedByID,
-				UpdatedBy:                  m.UserManager.ToModel(data.UpdatedBy),
-				OrganizationID:             data.OrganizationID,
-				Organization:               m.OrganizationManager.ToModel(data.Organization),
-				BranchID:                   data.BranchID,
-				Branch:                     m.BranchManager.ToModel(data.Branch),
-				DisbursementID:             data.DisbursementID,
-				Disbursement:               m.DisbursementManager.ToModel(data.Disbursement),
-				TransactionBatchID:         data.TransactionBatchID,
-				TransactionBatch:           m.TransactionBatchManager.ToModel(data.TransactionBatch),
-				EmployeeUserID:             data.EmployeeUserID,
-				EmployeeUser:               m.UserManager.ToModel(data.EmployeeUser),
-				TransactionReferenceNumber: data.TransactionReferenceNumber,
-				ReferenceNumber:            data.ReferenceNumber,
-				Amount:                     data.Amount,
+				ID:                 data.ID,
+				CreatedAt:          data.CreatedAt.Format(time.RFC3339),
+				CreatedByID:        data.CreatedByID,
+				CreatedBy:          m.UserManager.ToModel(data.CreatedBy),
+				UpdatedAt:          data.UpdatedAt.Format(time.RFC3339),
+				UpdatedByID:        data.UpdatedByID,
+				UpdatedBy:          m.UserManager.ToModel(data.UpdatedBy),
+				OrganizationID:     data.OrganizationID,
+				Organization:       m.OrganizationManager.ToModel(data.Organization),
+				BranchID:           data.BranchID,
+				Branch:             m.BranchManager.ToModel(data.Branch),
+				DisbursementID:     data.DisbursementID,
+				Disbursement:       m.DisbursementManager.ToModel(data.Disbursement),
+				TransactionBatchID: data.TransactionBatchID,
+				TransactionBatch:   m.TransactionBatchManager.ToModel(data.TransactionBatch),
+				EmployeeUserID:     data.EmployeeUserID,
+				EmployeeUser:       m.UserManager.ToModel(data.EmployeeUser),
+				ReferenceNumber:    data.ReferenceNumber,
+				Amount:             data.Amount,
 			}
 		},
 		Created: func(data *DisbursementTransaction) []string {
