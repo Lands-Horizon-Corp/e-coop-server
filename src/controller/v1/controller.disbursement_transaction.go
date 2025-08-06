@@ -41,7 +41,7 @@ func (c *Controller) DisbursementTransactionController() {
 
 		transactionBatch, err := c.model.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil || transactionBatch == nil {
-			return ctx.NoContent(http.StatusNoContent)
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No active transaction batch found for the user"})
 		}
 		data := &model.DisbursementTransaction{
 			CreatedAt:          time.Now().UTC(),
