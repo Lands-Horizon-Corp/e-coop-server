@@ -66,7 +66,7 @@ type (
 	}
 
 	DisbursementTransactionRequest struct {
-		DisbursementID *uuid.UUID `json:"disbursement" validate:"required"`
+		DisbursementID *uuid.UUID `json:"disbursement_id" validate:"required"`
 
 		Description              string `json:"description,omitempty"`
 		IsReferenceNumberChecked bool   `json:"is_reference_number_checked,omitempty"`
