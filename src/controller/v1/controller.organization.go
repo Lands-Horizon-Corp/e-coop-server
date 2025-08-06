@@ -193,7 +193,7 @@ func (c *Controller) OrganizationController() {
 			PermissionDescription:    "",
 			Permissions:              []string{},
 			UserSettingStartOR:       0,
-			UserSettingEndOR:         0,
+			UserSettingEndOR:         1000,
 			UserSettingUsedOR:        0,
 			UserSettingStartVoucher:  0,
 			UserSettingEndVoucher:    0,

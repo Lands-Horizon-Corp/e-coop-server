@@ -313,7 +313,7 @@ func (ds *Seeder) SeedOrganization(ctx context.Context) error {
 					PermissionDescription:    "Auto-generated role assignment",
 					Permissions:              []string{"read", "write", "manage"},
 					UserSettingStartOR:       0,
-					UserSettingEndOR:         5,
+					UserSettingEndOR:         1000,
 					UserSettingUsedOR:        0,
 					UserSettingStartVoucher:  0,
 					UserSettingEndVoucher:    5,

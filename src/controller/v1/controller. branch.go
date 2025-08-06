@@ -238,7 +238,7 @@ func (c *Controller) BranchController() {
 				PermissionName:           "owner",
 				Permissions:              []string{},
 				UserSettingStartOR:       0,
-				UserSettingEndOR:         5,
+				UserSettingEndOR:         1000,
 				UserSettingUsedOR:        0,
 				UserSettingStartVoucher:  0,
 				UserSettingEndVoucher:    5,

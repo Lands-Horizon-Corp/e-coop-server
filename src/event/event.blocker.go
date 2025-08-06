@@ -44,7 +44,7 @@ func (e *Event) HandleIPBlocker(context context.Context, ctx echo.Context) (bloc
 		}
 
 		// Block if threshold reached
-		if count >= 3 {
+		if count >= 10 {
 			if err := cache.Set(context, blockKey, []byte(reason), 5*time.Minute); err != nil {
 				return
 			}
