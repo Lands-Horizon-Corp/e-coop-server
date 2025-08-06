@@ -52,7 +52,7 @@ func (c *Controller) DisbursementTransactionController() {
 			BranchID:                   *userOrg.BranchID,
 			TransactionBatchID:         transactionBatch.ID,
 			DisbursementID:             *req.DisbursementID,
-			EmployeeName:               req.EmployeeName,
+			EmployeeName:               userOrg.User.FullName,
 			Description:                req.Description,
 			TransactionReferenceNumber: req.TransactionReferenceNumber,
 			ReferenceNumber:            req.ReferenceNumber,
