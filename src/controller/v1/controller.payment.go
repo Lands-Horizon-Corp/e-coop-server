@@ -47,7 +47,7 @@ func (c *Controller) PaymentController() {
 				Description: "Payment failed (/transaction/:transaction_id/payment), begin tx error: " + tx.Error.Error(),
 				Module:      "Transaction",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
 
 		transactionId, err := handlers.EngineUUIDParam(ctx, "transaction_id")
@@ -78,7 +78,7 @@ func (c *Controller) PaymentController() {
 				Description: "Payment processing failed: " + err.Error(),
 				Module:      "Transaction",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Payment processing failed: " + err.Error()})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Payment processing failed: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.ToModel(generalLedger))
 	})
@@ -117,7 +117,7 @@ func (c *Controller) PaymentController() {
 				Description: "Withdrawal failed (/transaction/:transaction_id/withdraw), begin tx error: " + tx.Error.Error(),
 				Module:      "Transaction",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
 
 		transactionId, err := handlers.EngineUUIDParam(ctx, "transaction_id")
@@ -148,7 +148,7 @@ func (c *Controller) PaymentController() {
 				Description: "Withdrawal processing failed: " + err.Error(),
 				Module:      "Transaction",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Withdrawal processing failed: " + err.Error()})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Withdrawal processing failed: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.ToModel(generalLedger))
 	})
@@ -187,7 +187,7 @@ func (c *Controller) PaymentController() {
 				Description: "Deposit failed (/transaction/:transaction_id/deposit), begin tx error: " + tx.Error.Error(),
 				Module:      "Transaction",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
 
 		transactionId, err := handlers.EngineUUIDParam(ctx, "transaction_id")
@@ -218,7 +218,7 @@ func (c *Controller) PaymentController() {
 				Description: "Deposit processing failed: " + err.Error(),
 				Module:      "Transaction",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Deposit processing failed: " + err.Error()})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Deposit processing failed: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.ToModel(generalLedger))
 	})
@@ -257,7 +257,7 @@ func (c *Controller) PaymentController() {
 				Description: "General payment failed (/transaction/payment), begin tx error: " + tx.Error.Error(),
 				Module:      "Transaction",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
 
 		generalLedger, err := c.event.Payment(context, ctx, tx, &req, nil, model.GeneralLedgerSourcePayment)
@@ -268,7 +268,7 @@ func (c *Controller) PaymentController() {
 				Description: "General payment processing failed: " + err.Error(),
 				Module:      "Transaction",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Payment processing failed: " + err.Error()})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Payment processing failed: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.ToModel(generalLedger))
 	})
@@ -307,7 +307,7 @@ func (c *Controller) PaymentController() {
 				Description: "General withdrawal failed (/transaction/withdraw), begin tx error: " + tx.Error.Error(),
 				Module:      "Transaction",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
 
 		generalLedger, err := c.event.Payment(context, ctx, tx, &req, nil, model.GeneralLedgerSourceWithdraw)
@@ -318,7 +318,7 @@ func (c *Controller) PaymentController() {
 				Description: "General withdrawal processing failed: " + err.Error(),
 				Module:      "Transaction",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Withdrawal processing failed: " + err.Error()})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Withdrawal processing failed: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.ToModel(generalLedger))
 	})
@@ -357,7 +357,7 @@ func (c *Controller) PaymentController() {
 				Description: "General deposit failed (/transaction/deposit), begin tx error: " + tx.Error.Error(),
 				Module:      "Transaction",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
 
 		generalLedger, err := c.event.Payment(context, ctx, tx, &req, nil, model.GeneralLedgerSourceDeposit)
@@ -368,7 +368,7 @@ func (c *Controller) PaymentController() {
 				Description: "General deposit processing failed: " + err.Error(),
 				Module:      "Transaction",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Deposit processing failed: " + err.Error()})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Deposit processing failed: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.ToModel(generalLedger))
 	})
