@@ -18,6 +18,7 @@ func (c *Controller) DisbursementTransactionController() {
 		Method:       "POST",
 		Note:         "Returns all disbursement transactions for a specific transaction batch.",
 		ResponseType: model.DisbursementResponse{},
+		RequestType:  model.DisbursementRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.DisbursementTransactionManager.Validate(ctx)
