@@ -17,8 +17,8 @@ func (c *Controller) DisbursementTransactionController() {
 		Route:        "/api/v1/disbursement-transaction",
 		Method:       "POST",
 		Note:         "Returns all disbursement transactions for a specific transaction batch.",
-		ResponseType: model.DisbursementResponse{},
-		RequestType:  model.DisbursementRequest{},
+		ResponseType: model.DisbursementTransactionResponse{},
+		RequestType:  model.DisbursementTransactionRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.DisbursementTransactionManager.Validate(ctx)
