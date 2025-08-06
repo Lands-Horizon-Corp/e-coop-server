@@ -68,12 +68,14 @@ type (
 	}
 
 	DisbursementTransactionRequest struct {
-		DisbursementID             *uuid.UUID `json:"disbursement" validate:"required"`
-		EmployeeName               string     `json:"employee_name" validate:"required,min=1,max=100"`
-		Description                string     `json:"description,omitempty"`
-		TransactionReferenceNumber string     `json:"transaction_reference_number,omitempty"`
-		ReferenceNumber            string     `json:"reference_number,omitempty"`
-		Amount                     float64    `json:"amount,omitempty"`
+		DisbursementID           *uuid.UUID `json:"disbursement" validate:"required"`
+		EmployeeName             string     `json:"employee_name" validate:"required,min=1,max=100"`
+		Description              string     `json:"description,omitempty"`
+		IsReferenceNumberChecked bool       `json:"is_reference_number_checked,omitempty"`
+
+		TransactionReferenceNumber string  `json:"transaction_reference_number,omitempty"`
+		ReferenceNumber            string  `json:"reference_number,omitempty"`
+		Amount                     float64 `json:"amount,omitempty"`
 	}
 )
 
