@@ -66,6 +66,17 @@ func (c *Controller) DisbursementTransactionController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create disbursement transaction: " + err.Error()})
 		}
+		if req.IsReferenceNumberChecked {
+			userOrg.UserSettingUsedOR += 1
+			if err := c.model.UserOrganizationManager.UpdateByID(context, data.ID, userOrg); err != nil {
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "create-error",
+					Description: "Disbursement transaction reference number update failed (/disbursement-transaction), db error: " + err.Error(),
+					Module:      "DisbursementTransaction",
+				})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update reference number: " + err.Error()})
+			}
+		}
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created disbursement transaction (/disbursement-transaction): " + data.ID.String(),
