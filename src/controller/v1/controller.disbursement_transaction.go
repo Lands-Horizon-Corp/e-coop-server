@@ -50,6 +50,7 @@ func (c *Controller) DisbursementTransactionController() {
 			UpdatedByID:        userOrg.UserID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
+			EmployeeUserID:     userOrg.UserID,
 			TransactionBatchID: transactionBatch.ID,
 			DisbursementID:     *req.DisbursementID,
 			EmployeeName:       userOrg.User.FullName,
