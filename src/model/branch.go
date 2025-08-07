@@ -133,6 +133,34 @@ type (
 		InvitationCodes     []*InvitationCodeResponse     `json:"invitation_codes,omitempty"`
 		PermissionTemplates []*PermissionTemplateResponse `json:"permission_templates,omitempty"`
 		UserOrganizations   []*UserOrganizationResponse   `json:"user_organizations,omitempty"`
+
+		BranchSettingWithdrawORStart   int  `json:"branch_setting_withdraw_or_start"`
+		BranchSettingWithdrawORCurrent int  `json:"branch_setting_withdraw_or_current"`
+		BranchSettingWithdrawOREnd     int  `json:"branch_setting_withdraw_or_end"`
+		BranchSettingWithdrawIteration int  `json:"branch_setting_withdraw_or_iteration"`
+		BranchSettingWithdrawORUnique  bool `json:"branch_setting_withdraw_or_unique"`
+		BranchSettingWithdrawUseDateOR bool `json:"branch_setting_withdraw_use_date_or"`
+
+		BranchSettingDepositORStart     int  `json:"branch_setting_deposit_or_start"`
+		BranchSettingDepositORCurrent   int  `json:"branch_setting_deposit_or_current"`
+		BranchSettingDepositOREnd       int  `json:"branch_setting_deposit_or_end"`
+		BranchSettingDepositORIteration int  `json:"branch_setting_deposit_or_iteration"`
+		BranchSettingDepositORUnique    bool `json:"branch_setting_deposit_or_unique"`
+		BranchSettingDepositUseDateOR   bool `json:"branch_setting_deposit_use_date_or"`
+
+		BranchSettingLoanORStart     int  `json:"branch_setting_loan_or_start"`
+		BranchSettingLoanORCurrent   int  `json:"branch_setting_loan_or_current"`
+		BranchSettingLoanOREnd       int  `json:"branch_setting_loan_or_end"`
+		BranchSettingLoanORIteration int  `json:"branch_setting_loan_or_iteration"`
+		BranchSettingLoanORUnique    bool `json:"branch_setting_loan_or_unique"`
+		BranchSettingLoanUseDateOR   bool `json:"branch_setting_loan_use_date_or"`
+
+		BranchSettingCheckVoucherORStart     int  `json:"branch_setting_check_voucher_or_start"`
+		BranchSettingCheckVoucherORCurrent   int  `json:"branch_setting_check_voucher_or_current"`
+		BranchSettingCheckVoucherOREnd       int  `json:"branch_setting_check_voucher_or_end"`
+		BranchSettingCheckVoucherORIteration int  `json:"branch_setting_check_voucher_or_iteration"`
+		BranchSettingCheckVoucherORUnique    bool `json:"branch_setting_check_voucher_or_unique"`
+		BranchSettingCheckVoucherUseDateOR   bool `json:"branch_setting_check_voucher_use_date_or"`
 	}
 
 	BranchSettingRequest struct {
@@ -223,6 +251,31 @@ func (m *Model) Branch() {
 				InvitationCodes:     m.InvitationCodeManager.ToModels(data.InvitationCodes),
 				PermissionTemplates: m.PermissionTemplateManager.ToModels(data.PermissionTemplates),
 				UserOrganizations:   m.UserOrganizationManager.ToModels(data.UserOrganizations),
+
+				BranchSettingWithdrawORStart:         data.BranchSettingWithdrawORStart,
+				BranchSettingWithdrawORCurrent:       data.BranchSettingWithdrawORCurrent,
+				BranchSettingWithdrawOREnd:           data.BranchSettingWithdrawOREnd,
+				BranchSettingWithdrawIteration:       data.BranchSettingWithdrawIteration,
+				BranchSettingWithdrawORUnique:        data.BranchSettingWithdrawORUnique,
+				BranchSettingWithdrawUseDateOR:       data.BranchSettingWithdrawUseDateOR,
+				BranchSettingDepositORStart:          data.BranchSettingDepositORStart,
+				BranchSettingDepositORCurrent:        data.BranchSettingDepositORCurrent,
+				BranchSettingDepositOREnd:            data.BranchSettingDepositOREnd,
+				BranchSettingDepositORIteration:      data.BranchSettingDepositORIteration,
+				BranchSettingDepositORUnique:         data.BranchSettingDepositORUnique,
+				BranchSettingDepositUseDateOR:        data.BranchSettingDepositUseDateOR,
+				BranchSettingLoanORStart:             data.BranchSettingLoanORStart,
+				BranchSettingLoanORCurrent:           data.BranchSettingLoanORCurrent,
+				BranchSettingLoanOREnd:               data.BranchSettingLoanOREnd,
+				BranchSettingLoanORIteration:         data.BranchSettingLoanORIteration,
+				BranchSettingLoanORUnique:            data.BranchSettingLoanORUnique,
+				BranchSettingLoanUseDateOR:           data.BranchSettingLoanUseDateOR,
+				BranchSettingCheckVoucherORStart:     data.BranchSettingCheckVoucherORStart,
+				BranchSettingCheckVoucherORCurrent:   data.BranchSettingCheckVoucherORCurrent,
+				BranchSettingCheckVoucherOREnd:       data.BranchSettingCheckVoucherOREnd,
+				BranchSettingCheckVoucherORIteration: data.BranchSettingCheckVoucherORIteration,
+				BranchSettingCheckVoucherORUnique:    data.BranchSettingCheckVoucherORUnique,
+				BranchSettingCheckVoucherUseDateOR:   data.BranchSettingCheckVoucherUseDateOR,
 			}
 		},
 		Created: func(data *Branch) []string {
