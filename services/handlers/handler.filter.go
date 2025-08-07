@@ -903,6 +903,7 @@ func Pagination[T any](
 	maxWorkers int,
 ) (PaginationResult[T], error) {
 	result := PaginationResult[T]{
+		Data:      []*T{},
 		PageIndex: 0,
 		PageSize:  30,
 	}
