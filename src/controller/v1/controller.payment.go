@@ -48,6 +48,7 @@ func (c *Controller) PaymentController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get max print number: " + err.Error()})
 		}
+
 		generalLedger.PrintNumber = max + 1
 		if err := c.model.GeneralLedgerManager.UpdateFields(context, generalLedger.ID, generalLedger); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
