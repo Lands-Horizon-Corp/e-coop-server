@@ -22,7 +22,6 @@ database := NewGormDatabase(dsn, 10, 50, 30*time.Minute)
 
 // Start the database connection and pool
 if err := database.Start(ctx); err != nil {
-	panic(fmt.Errorf("DB start error: %w", err))
 }
 */
 

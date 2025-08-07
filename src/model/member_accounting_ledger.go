@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	horizon_services "github.com/lands-horizon/horizon-server/services"
+	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -215,7 +216,6 @@ func (m *Model) MemberAccountingLedgerFindForUpdate(ctx context.Context, tx *gor
 //	    ctx, tx, memberID, accountID, orgID, branchID, userID,
 //	    newBalance, time.Now())
 //	if err != nil {
-//	    return fmt.Errorf("ledger update failed: %w", err)
 //	}
 func (m *Model) MemberAccountingLedgerUpdateOrCreate(
 	ctx context.Context,
@@ -227,7 +227,7 @@ func (m *Model) MemberAccountingLedgerUpdateOrCreate(
 	// First, try to find and lock existing ledger
 	ledger, err := m.MemberAccountingLedgerFindForUpdate(ctx, tx, memberProfileID, accountID, orgID, branchID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to find member accounting ledger for update: %w", err)
+		return nil, eris.Wrap(err, "failed to find member accounting ledger for update")
 	}
 
 	if ledger == nil {
@@ -255,7 +255,7 @@ func (m *Model) MemberAccountingLedgerUpdateOrCreate(
 
 		err = tx.WithContext(ctx).Create(ledger).Error
 		if err != nil {
-			return nil, fmt.Errorf("failed to create member accounting ledger: %w", err)
+			return nil, eris.Wrap(err, "failed to create member accounting ledger")
 		}
 	} else {
 		// Update existing member accounting ledger
@@ -267,7 +267,7 @@ func (m *Model) MemberAccountingLedgerUpdateOrCreate(
 
 		err = tx.WithContext(ctx).Save(ledger).Error
 		if err != nil {
-			return nil, fmt.Errorf("failed to update member accounting ledger: %w", err)
+			return nil, eris.Wrap(err, "failed to update member accounting ledger")
 		}
 	}
 

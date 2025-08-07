@@ -47,7 +47,30 @@ func (c *Controller) GeneralLedgerController() {
 		var debit float64
 		var credit float64
 		for _, entry := range entries {
-			totalAmount += entry.Debit - entry.Credit
+			switch entry.Account.Type {
+			case model.AccountTypeDeposit:
+				totalAmount += entry.Debit - entry.Credit
+			case model.AccountTypeLoan:
+				totalAmount += entry.Credit - entry.Debit
+			case model.AccountTypeARLedger:
+				totalAmount += entry.Debit - entry.Credit
+			case model.AccountTypeARAging:
+				totalAmount += entry.Debit - entry.Credit
+			case model.AccountTypeFines:
+				totalAmount += entry.Credit - entry.Debit
+			case model.AccountTypeInterest:
+				totalAmount += entry.Credit - entry.Debit
+			case model.AccountTypeSVFLedger:
+				totalAmount += entry.Debit - entry.Credit
+			case model.AccountTypeWOff:
+				totalAmount += entry.Debit - entry.Credit
+			case model.AccountTypeAPLedger:
+				totalAmount += entry.Credit - entry.Debit
+			case model.AccountTypeOther:
+				totalAmount += 0
+			case model.AccountTypeTimeDeposit:
+				totalAmount += entry.Credit - entry.Debit
+			}
 			debit += entry.Debit
 			credit += entry.Credit
 		}

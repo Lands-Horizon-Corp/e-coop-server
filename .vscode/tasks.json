@@ -1,0 +1,14 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "shell",
+      "label": "go to add account fetch and logic",
+      "command": "echo",
+      "args": [
+        "Ready to add account fetch and logic for AccountType in controller.general_ledger.go"
+      ],
+      "problemMatcher": []
+    }
+  ]
+}

@@ -112,4 +112,32 @@ func (c *Controller) MemberAccountingLedgerController() {
 		return ctx.JSON(http.StatusOK, c.model.MemberAccountingLedgerManager.Filtered(context, ctx, entries))
 	})
 
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/member-accounting-ledger/branch/search",
+		Method:       "GET",
+		ResponseType: model.MemberAccountingLedger{},
+		Note:         "Returns paginated general ledger entries for a specific member profile.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
+		}
+		if userOrg.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Branch ID is missing for user organization"})
+		}
+		entries, err := c.model.MemberAccountingLedgerManager.Find(context, &model.MemberAccountingLedger{
+
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve member accounting ledger entries: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.MemberAccountingLedgerManager.Filtered(context, ctx, entries))
+	})
+
 }

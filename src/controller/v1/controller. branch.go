@@ -522,4 +522,113 @@ func (c *Controller) BranchController() {
 		})
 		return ctx.NoContent(http.StatusNoContent)
 	})
+
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/branch/settings",
+		Method:       "PUT",
+		Note:         "Updates branch settings for the current user's branch.",
+		RequestType:  model.BranchSettingRequest{},
+		ResponseType: model.BranchResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+
+		// Validate the branch settings request
+		var settingsReq model.BranchSettingRequest
+		if err := ctx.Bind(&settingsReq); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update error",
+				Description: fmt.Sprintf("Failed to bind branch settings for PUT /branch/settings: %v", err),
+				Module:      "branch",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
+		}
+
+		// Get current user
+		user, err := c.userToken.CurrentUser(context, ctx)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update error",
+				Description: "User authentication required for PUT /branch/settings",
+				Module:      "branch",
+			})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication required"})
+		}
+
+		// Get user's current branch
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil || userOrg.BranchID == nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update error",
+				Description: "User not assigned to a branch for PUT /branch/settings",
+				Module:      "branch",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User not assigned to a branch"})
+		}
+
+		// Get the branch
+		branch, err := c.model.BranchManager.GetByID(context, *userOrg.BranchID)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update error",
+				Description: fmt.Sprintf("Branch not found for PUT /branch/settings: %v", err),
+				Module:      "branch",
+			})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Branch not found: " + err.Error()})
+		}
+
+		// Update branch settings
+		branch.UpdatedAt = time.Now().UTC()
+		branch.UpdatedByID = user.ID
+		branch.BranchSettingWithdrawORStart = settingsReq.BranchSettingWithdrawORStart
+		branch.BranchSettingWithdrawORCurrent = settingsReq.BranchSettingWithdrawORCurrent
+		branch.BranchSettingWithdrawOREnd = settingsReq.BranchSettingWithdrawOREnd
+		branch.BranchSettingWithdrawIteration = settingsReq.BranchSettingWithdrawIteration
+		branch.BranchSettingWithdrawORUnique = settingsReq.BranchSettingWithdrawORUnique
+		branch.BranchSettingWithdrawUseDateOR = settingsReq.BranchSettingWithdrawUseDateOR
+
+		branch.BranchSettingDepositORStart = settingsReq.BranchSettingDepositORStart
+		branch.BranchSettingDepositORCurrent = settingsReq.BranchSettingDepositORCurrent
+		branch.BranchSettingDepositOREnd = settingsReq.BranchSettingDepositOREnd
+		branch.BranchSettingDepositORIteration = settingsReq.BranchSettingDepositORIteration
+		branch.BranchSettingDepositORUnique = settingsReq.BranchSettingDepositORUnique
+		branch.BranchSettingDepositUseDateOR = settingsReq.BranchSettingDepositUseDateOR
+
+		branch.BranchSettingLoanORStart = settingsReq.BranchSettingLoanORStart
+		branch.BranchSettingLoanORCurrent = settingsReq.BranchSettingLoanORCurrent
+		branch.BranchSettingLoanOREnd = settingsReq.BranchSettingLoanOREnd
+		branch.BranchSettingLoanORIteration = settingsReq.BranchSettingLoanORIteration
+		branch.BranchSettingLoanORUnique = settingsReq.BranchSettingLoanORUnique
+		branch.BranchSettingLoanUseDateOR = settingsReq.BranchSettingLoanUseDateOR
+
+		branch.BranchSettingCheckVoucherORStart = settingsReq.BranchSettingCheckVoucherORStart
+		branch.BranchSettingCheckVoucherORCurrent = settingsReq.BranchSettingCheckVoucherORCurrent
+		branch.BranchSettingCheckVoucherOREnd = settingsReq.BranchSettingCheckVoucherOREnd
+		branch.BranchSettingCheckVoucherORIteration = settingsReq.BranchSettingCheckVoucherORIteration
+		branch.BranchSettingCheckVoucherORUnique = settingsReq.BranchSettingCheckVoucherORUnique
+		branch.BranchSettingCheckVoucherUseDateOR = settingsReq.BranchSettingCheckVoucherUseDateOR
+
+		// Save the updated branch
+		if err := c.model.BranchManager.UpdateFields(context, branch.ID, branch); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update error",
+				Description: fmt.Sprintf("Failed to update branch settings for PUT /branch/settings: %v", err),
+				Module:      "branch",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update branch settings: " + err.Error()})
+		}
+
+		// Log success
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "update success",
+			Description: fmt.Sprintf("Updated branch settings for branch: %s, ID: %s", branch.Name, branch.ID),
+			Module:      "branch",
+		})
+
+		c.event.Notification(context, ctx, event.NotificationEvent{
+			Title:       fmt.Sprintf("Settings Updated: %s", branch.Name),
+			Description: fmt.Sprintf("Updated settings for branch: %s", branch.Name),
+		})
+
+		return ctx.JSON(http.StatusOK, c.model.BranchManager.ToModel(branch))
+	})
 }
