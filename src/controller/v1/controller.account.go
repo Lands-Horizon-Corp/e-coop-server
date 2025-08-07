@@ -362,6 +362,7 @@ func (c *Controller) AccountController() {
 		account.ShowInGeneralLedgerSourceAdjustment = req.ShowInGeneralLedgerSourceAdjustment
 		account.ShowInGeneralLedgerSourceJournalVoucher = req.ShowInGeneralLedgerSourceJournalVoucher
 		account.ShowInGeneralLedgerSourceCheckVoucher = req.ShowInGeneralLedgerSourceCheckVoucher
+		account.Icon = req.Icon
 
 		if err := c.model.AccountManager.UpdateFields(context, account.ID, account); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
