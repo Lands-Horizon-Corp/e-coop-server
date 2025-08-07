@@ -47,7 +47,42 @@ func (c *Controller) GeneralLedgerController() {
 		var debit float64
 		var credit float64
 		for _, entry := range entries {
-			totalAmount += entry.Debit - entry.Credit
+			switch entry.Account.Type {
+			case model.AccountTypeDeposit:
+				// Asset account: balance increases with debit
+				totalAmount += entry.Debit - entry.Credit
+			case model.AccountTypeLoan:
+				// Assuming liability (loan taken): balance increases with credit
+				totalAmount += entry.Credit - entry.Debit
+			case model.AccountTypeARLedger:
+				// Asset account: balance increases with debit
+				totalAmount += entry.Debit - entry.Credit
+			case model.AccountTypeARAging:
+				// Asset account: balance increases with debit
+				totalAmount += entry.Debit - entry.Credit
+			case model.AccountTypeFines:
+				// Revenue account: balance increases with credit
+				totalAmount += entry.Credit - entry.Debit
+			case model.AccountTypeInterest:
+				// Assuming revenue (interest income): balance increases with credit
+				totalAmount += entry.Credit - entry.Debit
+			case model.AccountTypeSVFLedger:
+				// Assuming asset (unclear type): balance increases with debit
+				totalAmount += entry.Debit - entry.Credit
+			case model.AccountTypeWOff:
+				// Expense account: balance increases with debit
+				totalAmount += entry.Debit - entry.Credit
+			case model.AccountTypeAPLedger:
+				// Liability account: balance increases with credit
+				totalAmount += entry.Credit - entry.Debit
+			case model.AccountTypeOther:
+				// Neutral or undefined: no adjustment
+				totalAmount += 0
+			case model.AccountTypeTimeDeposit:
+				// Liability account: balance increases with credit
+				totalAmount += entry.Credit - entry.Debit
+			}
+			// Accumulate total debits and credits across all entries
 			debit += entry.Debit
 			credit += entry.Credit
 		}
