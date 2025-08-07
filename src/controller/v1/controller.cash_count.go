@@ -36,6 +36,35 @@ func (c *Controller) CashCountController() {
 		return ctx.JSON(http.StatusOK, c.model.CashCountManager.Pagination(context, ctx, cashCount))
 	})
 
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/cash-count/transaction-batch/:transaction_batch_id/search",
+		Method:       "GET",
+		Note:         "Returns all cash counts for a specific transaction batch",
+		ResponseType: model.CashCountResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if user.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		transactionBatchID, err := handlers.EngineUUIDParam(ctx, "transaction_batch_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction batch ID"})
+		}
+		cashCount, err := c.model.CashCountManager.Find(context, &model.CashCount{
+			TransactionBatchID: *transactionBatchID,
+			OrganizationID:     user.OrganizationID,
+			BranchID:           *user.BranchID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No cash counts found for the current branch"})
+		}
+		return ctx.JSON(http.StatusOK, c.model.CashCountManager.Pagination(context, ctx, cashCount))
+	})
+
 	// GET /cash-count: Retrieve all cash count bills for the current active transaction batch for the user's branch. (NO footstep)
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/cash-count",
