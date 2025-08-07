@@ -102,7 +102,7 @@ func (c *Controller) UserOrganinzationController() {
 
 	// Seed all branches inside an organization when first created
 	req.RegisterRoute(handlers.Route{
-		Route:  "/api/v1/user-organization/:organization_id/seed",
+		Route:  "/api/v1 /user-organization/:organization_id/seed",
 		Method: "POST",
 		Note:   "Seeds all branches inside an organization when first created.",
 	}, func(ctx echo.Context) error {
@@ -606,28 +606,29 @@ func (c *Controller) UserOrganinzationController() {
 		}
 		developerKey = developerKey + uuid.NewString() + "-horizon"
 		userOrg := &model.UserOrganization{
-			CreatedAt:               time.Now().UTC(),
-			CreatedByID:             user.ID,
-			UpdatedAt:               time.Now().UTC(),
-			UpdatedByID:             user.ID,
-			OrganizationID:          invitationCode.OrganizationID,
-			BranchID:                &invitationCode.BranchID,
-			UserID:                  user.ID,
-			UserType:                invitationCode.UserType,
-			Description:             invitationCode.Description,
-			ApplicationDescription:  "anything",
-			ApplicationStatus:       "pending",
-			DeveloperSecretKey:      developerKey,
-			PermissionName:          invitationCode.PermissionName,
-			PermissionDescription:   invitationCode.PermissionDescription,
-			Permissions:             invitationCode.Permissions,
-			UserSettingDescription:  "user settings",
-			UserSettingStartOR:      0,
-			UserSettingEndOR:        0,
-			UserSettingUsedOR:       0,
-			UserSettingStartVoucher: 0,
-			UserSettingEndVoucher:   0,
-			UserSettingUsedVoucher:  0,
+			CreatedAt:                time.Now().UTC(),
+			CreatedByID:              user.ID,
+			UpdatedAt:                time.Now().UTC(),
+			UpdatedByID:              user.ID,
+			OrganizationID:           invitationCode.OrganizationID,
+			BranchID:                 &invitationCode.BranchID,
+			UserID:                   user.ID,
+			UserType:                 invitationCode.UserType,
+			Description:              invitationCode.Description,
+			ApplicationDescription:   "anything",
+			ApplicationStatus:        "pending",
+			DeveloperSecretKey:       developerKey,
+			PermissionName:           invitationCode.PermissionName,
+			PermissionDescription:    invitationCode.PermissionDescription,
+			Permissions:              invitationCode.Permissions,
+			UserSettingDescription:   "user settings",
+			UserSettingStartOR:       0,
+			UserSettingEndOR:         1000,
+			UserSettingUsedOR:        0,
+			UserSettingStartVoucher:  0,
+			UserSettingEndVoucher:    0,
+			UserSettingUsedVoucher:   0,
+			UserSettingNumberPadding: 7,
 		}
 		tx := c.provider.Service.Database.Client().Begin()
 		if tx.Error != nil {
@@ -750,28 +751,29 @@ func (c *Controller) UserOrganinzationController() {
 		}
 		developerKey = developerKey + uuid.NewString() + "-horizon"
 		userOrg := &model.UserOrganization{
-			CreatedAt:               time.Now().UTC(),
-			CreatedByID:             user.ID,
-			UpdatedAt:               time.Now().UTC(),
-			UpdatedByID:             user.ID,
-			OrganizationID:          *orgId,
-			BranchID:                branchId,
-			UserID:                  user.ID,
-			UserType:                "member",
-			Description:             req.Description,
-			ApplicationDescription:  "",
-			ApplicationStatus:       "pending",
-			DeveloperSecretKey:      developerKey,
-			PermissionName:          "member",
-			PermissionDescription:   "just a member",
-			Permissions:             []string{},
-			UserSettingDescription:  "",
-			UserSettingStartOR:      0,
-			UserSettingEndOR:        0,
-			UserSettingUsedOR:       0,
-			UserSettingStartVoucher: 0,
-			UserSettingEndVoucher:   0,
-			UserSettingUsedVoucher:  0,
+			CreatedAt:                time.Now().UTC(),
+			CreatedByID:              user.ID,
+			UpdatedAt:                time.Now().UTC(),
+			UpdatedByID:              user.ID,
+			OrganizationID:           *orgId,
+			BranchID:                 branchId,
+			UserID:                   user.ID,
+			UserType:                 "member",
+			Description:              req.Description,
+			ApplicationDescription:   "",
+			ApplicationStatus:        "pending",
+			DeveloperSecretKey:       developerKey,
+			PermissionName:           "member",
+			PermissionDescription:    "just a member",
+			Permissions:              []string{},
+			UserSettingDescription:   "",
+			UserSettingStartOR:       0,
+			UserSettingEndOR:         1000,
+			UserSettingUsedOR:        0,
+			UserSettingStartVoucher:  0,
+			UserSettingEndVoucher:    0,
+			UserSettingUsedVoucher:   0,
+			UserSettingNumberPadding: 7,
 		}
 
 		if err := c.model.UserOrganizationManager.Create(context, userOrg); err != nil {
@@ -1270,6 +1272,7 @@ func (c *Controller) UserOrganinzationController() {
 		userOrg.UserSettingStartVoucher = req.UserSettingStartVoucher
 		userOrg.UserSettingEndVoucher = req.UserSettingEndVoucher
 		userOrg.UserSettingUsedVoucher = req.UserSettingUsedVoucher
+		userOrg.UserSettingNumberPadding = req.UserSettingNumberPadding
 
 		if err := c.model.UserOrganizationManager.UpdateFields(context, userOrg.ID, userOrg); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -1333,6 +1336,7 @@ func (c *Controller) UserOrganinzationController() {
 		userOrg.SettingsAllowWithdrawNegativeBalance = req.SettingsAllowWithdrawNegativeBalance
 		userOrg.SettingsAllowWithdrawExactBalance = req.SettingsAllowWithdrawExactBalance
 		userOrg.SettingsMaintainingBalance = req.SettingsMaintainingBalance
+		userOrg.UserSettingNumberPadding = req.UserSettingNumberPadding
 
 		if err := c.model.UserOrganizationManager.UpdateFields(context, userOrg.ID, userOrg); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{

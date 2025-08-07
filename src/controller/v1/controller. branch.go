@@ -225,18 +225,25 @@ func (c *Controller) BranchController() {
 			}
 
 			newUserOrg := &model.UserOrganization{
-				CreatedAt:          time.Now().UTC(),
-				CreatedByID:        user.ID,
-				UpdatedAt:          time.Now().UTC(),
-				UpdatedByID:        user.ID,
-				OrganizationID:     userOrganization.OrganizationID,
-				BranchID:           &branch.ID,
-				UserID:             user.ID,
-				UserType:           "owner",
-				ApplicationStatus:  "accepted",
-				DeveloperSecretKey: developerKey + uuid.NewString() + "-horizon",
-				PermissionName:     "owner",
-				Permissions:        []string{},
+				CreatedAt:                time.Now().UTC(),
+				CreatedByID:              user.ID,
+				UpdatedAt:                time.Now().UTC(),
+				UpdatedByID:              user.ID,
+				OrganizationID:           userOrganization.OrganizationID,
+				BranchID:                 &branch.ID,
+				UserID:                   user.ID,
+				UserType:                 "owner",
+				ApplicationStatus:        "accepted",
+				DeveloperSecretKey:       developerKey + uuid.NewString() + "-horizon",
+				PermissionName:           "owner",
+				Permissions:              []string{},
+				UserSettingStartOR:       0,
+				UserSettingEndOR:         1000,
+				UserSettingUsedOR:        0,
+				UserSettingStartVoucher:  0,
+				UserSettingEndVoucher:    5,
+				UserSettingUsedVoucher:   0,
+				UserSettingNumberPadding: 7,
 			}
 
 			if err := c.model.UserOrganizationManager.CreateWithTx(context, tx, newUserOrg); err != nil {

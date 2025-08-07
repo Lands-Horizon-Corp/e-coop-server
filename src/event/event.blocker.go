@@ -4,11 +4,14 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rotisserie/eris"
 )
+
+const MAX_BLOCKED_ATTEMPTS = 25
 
 // Helper to check and update error count/block for an IP
 // HandleIPBlocker returns a blocker function and checks if already blocked
@@ -30,21 +33,43 @@ func (e *Event) HandleIPBlocker(context context.Context, ctx echo.Context) (bloc
 
 	// Return the blocking function
 	blockFn = func(reason string) {
-		// Get current count
+		now := time.Now()
+
+		// Get current count and timestamp
 		count := 0
+		var firstErrorTime time.Time
 		countVal, _ := cache.Get(context, errorKey)
+
 		if countVal != nil {
-			count, _ = strconv.Atoi(string(countVal))
+			// Parse stored value: "count:timestamp"
+			parts := strings.Split(string(countVal), ":")
+			if len(parts) == 2 {
+				count, _ = strconv.Atoi(parts[0])
+				if timestamp, err := strconv.ParseInt(parts[1], 10, 64); err == nil {
+					firstErrorTime = time.Unix(timestamp, 0)
+				}
+			}
 		}
+
+		// Reset count if more than 5 minutes have passed since first error
+		if !firstErrorTime.IsZero() && now.Sub(firstErrorTime) > 5*time.Minute {
+			count = 0
+			firstErrorTime = now
+		} else if firstErrorTime.IsZero() {
+			// First error ever
+			firstErrorTime = now
+		}
+
 		count++
 
-		// Update count
-		if err := cache.Set(context, errorKey, fmt.Appendf(nil, "%d", count), 5*time.Minute); err != nil {
+		// Store count with timestamp: "count:firstErrorTimestamp"
+		value := fmt.Sprintf("%d:%d", count, firstErrorTime.Unix())
+		if err := cache.Set(context, errorKey, []byte(value), 10*time.Minute); err != nil {
 			return
 		}
 
 		// Block if threshold reached
-		if count >= 3 {
+		if count >= MAX_BLOCKED_ATTEMPTS {
 			if err := cache.Set(context, blockKey, []byte(reason), 5*time.Minute); err != nil {
 				return
 			}

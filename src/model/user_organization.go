@@ -53,7 +53,8 @@ type (
 		Permissions            pq.StringArray `gorm:"type:varchar(255)[]" json:"permissions"`
 		IsSeeded               bool           `gorm:"not null;default:false" json:"is_seeded"`
 
-		UserSettingDescription string `gorm:"type:text" json:"user_setting_description"`
+		UserSettingDescription   string `gorm:"type:text" json:"user_setting_description"`
+		UserSettingNumberPadding int    `gorm:"not null;default:0" json:"user_setting_number_padding"`
 
 		UserSettingStartOR int64 `gorm:"unsigned" json:"start_or"`
 		UserSettingEndOR   int64 `gorm:"unsigned" json:"end_or"`
@@ -85,9 +86,10 @@ type (
 
 		UserSettingDescription string `json:"user_setting_description,omitempty"`
 
-		UserSettingStartOR int64 `json:"user_setting_start_or,omitempty" validate:"min=0"`
-		UserSettingEndOR   int64 `json:"user_setting_end_or,omitempty" validate:"min=0"`
-		UserSettingUsedOR  int64 `json:"user_setting_used_or,omitempty" validate:"min=0"`
+		UserSettingStartOR       int64 `json:"user_setting_start_or,omitempty" validate:"min=0"`
+		UserSettingEndOR         int64 `json:"user_setting_end_or,omitempty" validate:"min=0"`
+		UserSettingUsedOR        int64 `json:"user_setting_used_or,omitempty" validate:"min=0"`
+		UserSettingNumberPadding int   `json:"user_setting_number_padding,omitempty" validate:"min=0"`
 
 		UserSettingStartVoucher int64 `json:"user_setting_start_voucher,omitempty" validate:"min=0"`
 		UserSettingEndVoucher   int64 `json:"user_setting_end_voucher,omitempty" validate:"min=0"`
@@ -102,9 +104,10 @@ type (
 
 		UserSettingDescription string `json:"user_setting_description,omitempty"`
 
-		UserSettingStartOR int64 `json:"user_setting_start_or,omitempty" validate:"min=0"`
-		UserSettingEndOR   int64 `json:"user_setting_end_or,omitempty" validate:"min=0"`
-		UserSettingUsedOR  int64 `json:"user_setting_used_or,omitempty" validate:"min=0"`
+		UserSettingStartOR       int64 `json:"user_setting_start_or,omitempty" validate:"min=0"`
+		UserSettingEndOR         int64 `json:"user_setting_end_or,omitempty" validate:"min=0"`
+		UserSettingUsedOR        int64 `json:"user_setting_used_or,omitempty" validate:"min=0"`
+		UserSettingNumberPadding int   `json:"user_setting_number_padding,omitempty" validate:"min=0"`
 
 		UserSettingStartVoucher int64 `json:"user_setting_start_voucher,omitempty" validate:"min=0"`
 		UserSettingEndVoucher   int64 `json:"user_setting_end_voucher,omitempty" validate:"min=0"`
@@ -119,9 +122,10 @@ type (
 		Description            string `json:"description,omitempty"`
 		UserSettingDescription string `json:"user_setting_description,omitempty"`
 
-		UserSettingStartOR int64 `json:"user_setting_start_or,omitempty" validate:"min=0"`
-		UserSettingEndOR   int64 `json:"user_setting_end_or,omitempty" validate:"min=0"`
-		UserSettingUsedOR  int64 `json:"user_setting_used_or,omitempty" validate:"min=0"`
+		UserSettingStartOR       int64 `json:"user_setting_start_or,omitempty" validate:"min=0"`
+		UserSettingEndOR         int64 `json:"user_setting_end_or,omitempty" validate:"min=0"`
+		UserSettingUsedOR        int64 `json:"user_setting_used_or,omitempty" validate:"min=0"`
+		UserSettingNumberPadding int   `json:"user_setting_number_padding,omitempty" validate:"min=0"`
 
 		UserSettingStartVoucher int64 `json:"user_setting_start_voucher,omitempty" validate:"min=0"`
 		UserSettingEndVoucher   int64 `json:"user_setting_end_voucher,omitempty" validate:"min=0"`
@@ -158,9 +162,10 @@ type (
 
 		UserSettingDescription string `json:"user_setting_description"`
 
-		UserSettingStartOR int64 `json:"user_setting_start_or"`
-		UserSettingEndOR   int64 `json:"user_setting_end_or"`
-		UserSettingUsedOR  int64 `json:"user_setting_used_or"`
+		UserSettingNumberPadding int   `json:"user_setting_number_padding"`
+		UserSettingStartOR       int64 `json:"user_setting_start_or"`
+		UserSettingEndOR         int64 `json:"user_setting_end_or"`
+		UserSettingUsedOR        int64 `json:"user_setting_used_or"`
 
 		UserSettingStartVoucher int64 `json:"user_setting_start_voucher"`
 		UserSettingEndVoucher   int64 `json:"user_setting_end_voucher"`
@@ -256,6 +261,7 @@ func (m *Model) UserOrganization() {
 
 				UserSettingDescription: data.UserSettingDescription,
 
+				UserSettingNumberPadding:             data.UserSettingNumberPadding,
 				UserSettingStartOR:                   data.UserSettingStartOR,
 				UserSettingEndOR:                     data.UserSettingEndOR,
 				UserSettingUsedOR:                    data.UserSettingUsedOR,

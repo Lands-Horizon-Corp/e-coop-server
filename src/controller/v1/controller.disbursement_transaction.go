@@ -17,7 +17,8 @@ func (c *Controller) DisbursementTransactionController() {
 		Route:        "/api/v1/disbursement-transaction",
 		Method:       "POST",
 		Note:         "Returns all disbursement transactions for a specific transaction batch.",
-		ResponseType: model.DisbursementResponse{},
+		ResponseType: model.DisbursementTransactionResponse{},
+		RequestType:  model.DisbursementTransactionRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := c.model.DisbursementTransactionManager.Validate(ctx)
@@ -40,22 +41,22 @@ func (c *Controller) DisbursementTransactionController() {
 
 		transactionBatch, err := c.model.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil || transactionBatch == nil {
-			return ctx.NoContent(http.StatusNoContent)
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No active transaction batch found for the user"})
 		}
 		data := &model.DisbursementTransaction{
-			CreatedAt:                  time.Now().UTC(),
-			CreatedByID:                userOrg.UserID,
-			UpdatedAt:                  time.Now().UTC(),
-			UpdatedByID:                userOrg.UserID,
-			OrganizationID:             userOrg.OrganizationID,
-			BranchID:                   *userOrg.BranchID,
-			TransactionBatchID:         transactionBatch.ID,
-			DisbursementID:             *req.DisbursementID,
-			EmployeeName:               req.EmployeeName,
-			Description:                req.Description,
-			TransactionReferenceNumber: req.TransactionReferenceNumber,
-			ReferenceNumber:            req.ReferenceNumber,
-			Amount:                     req.Amount,
+			CreatedAt:          time.Now().UTC(),
+			CreatedByID:        userOrg.UserID,
+			UpdatedAt:          time.Now().UTC(),
+			UpdatedByID:        userOrg.UserID,
+			OrganizationID:     userOrg.OrganizationID,
+			BranchID:           *userOrg.BranchID,
+			EmployeeUserID:     userOrg.UserID,
+			TransactionBatchID: transactionBatch.ID,
+			DisbursementID:     *req.DisbursementID,
+			EmployeeName:       userOrg.User.FullName,
+			Description:        req.Description,
+			ReferenceNumber:    req.ReferenceNumber,
+			Amount:             req.Amount,
 		}
 		if err := c.model.DisbursementTransactionManager.Create(context, data); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -64,6 +65,17 @@ func (c *Controller) DisbursementTransactionController() {
 				Module:      "DisbursementTransaction",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create disbursement transaction: " + err.Error()})
+		}
+		if req.IsReferenceNumberChecked {
+			userOrg.UserSettingUsedOR += 1
+			if err := c.model.UserOrganizationManager.UpdateFields(context, userOrg.ID, userOrg); err != nil {
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "create-error",
+					Description: "Disbursement transaction reference number update failed (/disbursement-transaction), db error: " + err.Error(),
+					Module:      "DisbursementTransaction",
+				})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update reference number: " + err.Error()})
+			}
 		}
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "create-success",
