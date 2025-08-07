@@ -35,7 +35,7 @@ func TestHorizonMessageBroker(t *testing.T) {
 		require.NoError(t, err)
 		defer func() {
 			err := broker.Stop(ctx)
-			if err != nil {
+			if err != nil { /*  */
 				t.Errorf("failed to stop broker: %v", err)
 			}
 		}()

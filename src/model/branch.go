@@ -48,6 +48,34 @@ type (
 		InvitationCodes     []*InvitationCode     `gorm:"foreignKey:BranchID" json:"invitation_codes,omitempty"`
 		PermissionTemplates []*PermissionTemplate `gorm:"foreignKey:BranchID" json:"permission_templates,omitempty"`
 		UserOrganizations   []*UserOrganization   `gorm:"foreignKey:BranchID" json:"user_organizations,omitempty"`
+
+		BranchSettingWithdrawORStart   int  `gorm:"not null;default:0" json:"branch_setting_withdraw_or_start"`
+		BranchSettingWithdrawORCurrent int  `gorm:"not null;default:0" json:"branch_setting_withdraw_or_current"`
+		BranchSettingWithdrawOREnd     int  `gorm:"not null;default:0" json:"branch_setting_withdraw_or_end"`
+		BranchSettingWithdrawIteration int  `gorm:"not null;default:0" json:"branch_setting_withdraw_or_iteration"`
+		BranchSettingWithdrawORUnique  bool `gorm:"not null;default:false" json:"branch_setting_withdraw_or_unique"`
+		BranchSettingWithdrawUseDateOR bool `gorm:"not null;default:false" json:"branch_setting_withdraw_use_date_or"`
+
+		BranchSettingDepositORStart     int  `gorm:"not null;default:0" json:"branch_setting_deposit_or_start"`
+		BranchSettingDepositORCurrent   int  `gorm:"not null;default:0" json:"branch_setting_deposit_or_current"`
+		BranchSettingDepositOREnd       int  `gorm:"not null;default:0" json:"branch_setting_deposit_or_end"`
+		BranchSettingDepositORIteration int  `gorm:"not null;default:0" json:"branch_setting_deposit_or_iteration"`
+		BranchSettingDepositORUnique    bool `gorm:"not null;default:false" json:"branch_setting_deposit_or_unique"`
+		BranchSettingDepositUseDateOR   bool `gorm:"not null;default:false" json:"branch_setting_deposit_use_date_or"`
+
+		BranchSettingLoanORStart     int  `gorm:"not null;default:0" json:"branch_setting_loan_or_start"`
+		BranchSettingLoanORCurrent   int  `gorm:"not null;default:0" json:"branch_setting_loan_or_current"`
+		BranchSettingLoanOREnd       int  `gorm:"not null;default:0" json:"branch_setting_loan_or_end"`
+		BranchSettingLoanORIteration int  `gorm:"not null;default:0" json:"branch_setting_loan_or_iteration"`
+		BranchSettingLoanORUnique    bool `gorm:"not null;default:false" json:"branch_setting_loan_or_unique"`
+		BranchSettingLoanUseDateOR   bool `gorm:"not null;default:false" json:"branch_setting_loan_use_date_or"`
+
+		BranchSettingCheckVoucherORStart     int  `gorm:"not null;default:0" json:"branch_setting_check_voucher_or_start"`
+		BranchSettingCheckVoucherORCurrent   int  `gorm:"not null;default:0" json:"branch_setting_check_voucher_or_current"`
+		BranchSettingCheckVoucherOREnd       int  `gorm:"not null;default:0" json:"branch_setting_check_voucher_or_end"`
+		BranchSettingCheckVoucherORIteration int  `gorm:"not null;default:0" json:"branch_setting_check_voucher_or_iteration"`
+		BranchSettingCheckVoucherORUnique    bool `gorm:"not null;default:false" json:"branch_setting_check_voucher_or_unique"`
+		BranchSettingCheckVoucherUseDateOR   bool `gorm:"not null;default:false" json:"branch_setting_check_voucher_use_date_or"`
 	}
 	BranchRequest struct {
 		ID *uuid.UUID `json:"id,omitempty"`
@@ -105,6 +133,36 @@ type (
 		InvitationCodes     []*InvitationCodeResponse     `json:"invitation_codes,omitempty"`
 		PermissionTemplates []*PermissionTemplateResponse `json:"permission_templates,omitempty"`
 		UserOrganizations   []*UserOrganizationResponse   `json:"user_organizations,omitempty"`
+	}
+
+	BranchSettingRequest struct {
+		BranchSettingWithdrawORStart   int  `json:"branch_setting_withdraw_or_start" validate:"min=0"`
+		BranchSettingWithdrawORCurrent int  `json:"branch_setting_withdraw_or_current" validate:"min=0"`
+		BranchSettingWithdrawOREnd     int  `json:"branch_setting_withdraw_or_end" validate:"min=0"`
+		BranchSettingWithdrawIteration int  `json:"branch_setting_withdraw_or_iteration" validate:"min=0"`
+		BranchSettingWithdrawORUnique  bool `json:"branch_setting_withdraw_or_unique"`
+		BranchSettingWithdrawUseDateOR bool `json:"branch_setting_withdraw_use_date_or"`
+
+		BranchSettingDepositORStart     int  `json:"branch_setting_deposit_or_start" validate:"min=0"`
+		BranchSettingDepositORCurrent   int  `json:"branch_setting_deposit_or_current" validate:"min=0"`
+		BranchSettingDepositOREnd       int  `json:"branch_setting_deposit_or_end" validate:"min=0"`
+		BranchSettingDepositORIteration int  `json:"branch_setting_deposit_or_iteration" validate:"min=0"`
+		BranchSettingDepositORUnique    bool `json:"branch_setting_deposit_or_unique"`
+		BranchSettingDepositUseDateOR   bool `json:"branch_setting_deposit_use_date_or"`
+
+		BranchSettingLoanORStart     int  `json:"branch_setting_loan_or_start" validate:"min=0"`
+		BranchSettingLoanORCurrent   int  `json:"branch_setting_loan_or_current" validate:"min=0"`
+		BranchSettingLoanOREnd       int  `json:"branch_setting_loan_or_end" validate:"min=0"`
+		BranchSettingLoanORIteration int  `json:"branch_setting_loan_or_iteration" validate:"min=0"`
+		BranchSettingLoanORUnique    bool `json:"branch_setting_loan_or_unique"`
+		BranchSettingLoanUseDateOR   bool `json:"branch_setting_loan_use_date_or"`
+
+		BranchSettingCheckVoucherORStart     int  `json:"branch_setting_check_voucher_or_start" validate:"min=0"`
+		BranchSettingCheckVoucherORCurrent   int  `json:"branch_setting_check_voucher_or_current" validate:"min=0"`
+		BranchSettingCheckVoucherOREnd       int  `json:"branch_setting_check_voucher_or_end" validate:"min=0"`
+		BranchSettingCheckVoucherORIteration int  `json:"branch_setting_check_voucher_or_iteration" validate:"min=0"`
+		BranchSettingCheckVoucherORUnique    bool `json:"branch_setting_check_voucher_or_unique"`
+		BranchSettingCheckVoucherUseDateOR   bool `json:"branch_setting_check_voucher_use_date_or"`
 	}
 )
 
