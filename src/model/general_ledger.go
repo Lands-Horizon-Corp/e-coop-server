@@ -349,3 +349,18 @@ func (m *Model) GeneralLedgerCurrentSubsidiaryAccountForUpdate(
 	}
 	return &ledger, err
 }
+
+func (m *Model) GeneralLedgerPrintMaxNumber(
+	ctx context.Context,
+	memberProfileID, accountID, branchID, orgID uuid.UUID,
+) (int, error) {
+	var maxPrintNumber int
+	err := m.GeneralLedgerManager.Client().
+		Where("member_profile_id = ? AND account_id = ? AND branch_id = ? AND organization_id = ?", memberProfileID, accountID, branchID, orgID).
+		Select("COALESCE(MAX(print_number), 0)").
+		Scan(&maxPrintNumber).Error
+	if err != nil {
+		return 0, err
+	}
+	return maxPrintNumber, nil
+}

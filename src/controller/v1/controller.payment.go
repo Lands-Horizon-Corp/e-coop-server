@@ -14,6 +14,53 @@ func (c *Controller) PaymentController() {
 	req := c.provider.Service.Request
 
 	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/transaction/general-ledger/:general_ledger_id/print",
+		Method:       "POST",
+		Note:         "Processes print number for the specified general ledger by general_ledger_id.",
+		ResponseType: model.GeneralLedgerResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		generalLedgerId, err := handlers.EngineUUIDParam(ctx, "general_ledger_id")
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "payment-general-ledger-param-error",
+				Description: fmt.Sprintf("Invalid general ledger id for POST /transaction/general-ledger/:general_ledger_id/payment: %v", err),
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid general ledger ID: " + err.Error()})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		generalLedger, err := c.model.GeneralLedgerManager.GetByID(context, *generalLedgerId)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "payment-general-ledger-not-found",
+				Description: fmt.Sprintf("General ledger not found for ID %v: %v", generalLedgerId, err),
+			})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "General ledger not found: " + err.Error()})
+		}
+		max, err := c.model.GeneralLedgerPrintMaxNumber(context, *generalLedger.MemberProfileID, *generalLedger.AccountID, *userOrg.BranchID, userOrg.OrganizationID)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "payment-general-ledger-max-number-error",
+				Description: fmt.Sprintf("Failed to get max print number for general ledger ID %v: %v", generalLedgerId, err),
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get max print number: " + err.Error()})
+		}
+		generalLedger.PrintNumber = max + 1
+		if err := c.model.GeneralLedgerManager.UpdateFields(context, generalLedger.ID, generalLedger); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Connect account to FS definition failed (/financial-statement-definition/:financial_statement_definition_id/account/:account_id/connect), account db error: " + err.Error(),
+				Module:      "FinancialStatement",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to connect account: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.ToModel(generalLedger))
+	})
+
+	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/transaction/:transaction_id/payment",
 		Method:       "POST",
 		Note:         "Processes a payment for the specified transaction by transaction_id and records it in the general ledger.",
