@@ -16,7 +16,7 @@ func (c *Controller) DisbursementTransactionController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/disbursement-transaction",
 		Method:       "POST",
-		Note:         "Returns all disbursement transactions for a specific transaction batch.",
+		Note:         "Returns all disbursement transactions for a specific/current transaction batch.",
 		ResponseType: model.DisbursementTransactionResponse{},
 		RequestType:  model.DisbursementTransactionRequest{},
 	}, func(ctx echo.Context) error {
