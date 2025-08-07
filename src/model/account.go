@@ -217,6 +217,14 @@ type (
 
 		AccountTags                         []*AccountTag `gorm:"foreignKey:AccountID;constraint:OnDelete:CASCADE;" json:"account_tags,omitempty"`
 		GeneralLedgerGroupingExcludeAccount bool          `gorm:"default:false" json:"general_ledger_grouping_exclude_account"`
+
+		ShowInGeneralLedgerSourceWithdraw       bool `gorm:"default:true" json:"show_in_general_ledger_source_withdraw"`
+		ShowInGeneralLedgerSourceDeposit        bool `gorm:"default:true" json:"show_in_general_ledger_source_deposit"`
+		ShowInGeneralLedgerSourceJournal        bool `gorm:"default:true" json:"show_in_general_ledger_source_journal"`
+		ShowInGeneralLedgerSourcePayment        bool `gorm:"default:true" json:"show_in_general_ledger_source_payment"`
+		ShowInGeneralLedgerSourceAdjustment     bool `gorm:"default:true" json:"show_in_general_ledger_source_adjustment"`
+		ShowInGeneralLedgerSourceJournalVoucher bool `gorm:"default:true" json:"show_in_general_ledger_source_journal_voucher"`
+		ShowInGeneralLedgerSourceCheckVoucher   bool `gorm:"default:true" json:"show_in_general_ledger_source_check_voucher"`
 	}
 )
 
@@ -311,6 +319,14 @@ type AccountResponse struct {
 
 	GeneralLedgerGroupingExcludeAccount bool                  `json:"general_ledger_grouping_exclude_account"`
 	AccountTags                         []*AccountTagResponse `json:"account_tags,omitempty"`
+
+	ShowInGeneralLedgerSourceWithdraw       bool `json:"show_in_general_ledger_source_withdraw"`
+	ShowInGeneralLedgerSourceDeposit        bool `json:"show_in_general_ledger_source_deposit"`
+	ShowInGeneralLedgerSourceJournal        bool `json:"show_in_general_ledger_source_journal"`
+	ShowInGeneralLedgerSourcePayment        bool `json:"show_in_general_ledger_source_payment"`
+	ShowInGeneralLedgerSourceAdjustment     bool `json:"show_in_general_ledger_source_adjustment"`
+	ShowInGeneralLedgerSourceJournalVoucher bool `json:"show_in_general_ledger_source_journal_voucher"`
+	ShowInGeneralLedgerSourceCheckVoucher   bool `json:"show_in_general_ledger_source_check_voucher"`
 }
 
 type AccountRequest struct {
@@ -385,6 +401,14 @@ type AccountRequest struct {
 
 	GeneralLedgerGroupingExcludeAccount bool                 `json:"general_ledger_grouping_exclude_account,omitempty"`
 	AccountTags                         []*AccountTagRequest `json:"account_tags,omitempty"`
+
+	ShowInGeneralLedgerSourceWithdraw       bool `json:"show_in_general_ledger_source_withdraw"`
+	ShowInGeneralLedgerSourceDeposit        bool `json:"show_in_general_ledger_source_deposit"`
+	ShowInGeneralLedgerSourceJournal        bool `json:"show_in_general_ledger_source_journal"`
+	ShowInGeneralLedgerSourcePayment        bool `json:"show_in_general_ledger_source_payment"`
+	ShowInGeneralLedgerSourceAdjustment     bool `json:"show_in_general_ledger_source_adjustment"`
+	ShowInGeneralLedgerSourceJournalVoucher bool `json:"show_in_general_ledger_source_journal_voucher"`
+	ShowInGeneralLedgerSourceCheckVoucher   bool `json:"show_in_general_ledger_source_check_voucher"`
 }
 
 // --- REGISTRATION ---
@@ -482,6 +506,14 @@ func (m *Model) Account() {
 				TotalRow:                                           data.TotalRow,
 				GeneralLedgerGroupingExcludeAccount:                data.GeneralLedgerGroupingExcludeAccount,
 				AccountTags:                                        m.AccountTagManager.ToModels(data.AccountTags),
+
+				ShowInGeneralLedgerSourceWithdraw:       data.ShowInGeneralLedgerSourceWithdraw,
+				ShowInGeneralLedgerSourceDeposit:        data.ShowInGeneralLedgerSourceDeposit,
+				ShowInGeneralLedgerSourceJournal:        data.ShowInGeneralLedgerSourceJournal,
+				ShowInGeneralLedgerSourcePayment:        data.ShowInGeneralLedgerSourcePayment,
+				ShowInGeneralLedgerSourceAdjustment:     data.ShowInGeneralLedgerSourceAdjustment,
+				ShowInGeneralLedgerSourceJournalVoucher: data.ShowInGeneralLedgerSourceJournalVoucher,
+				ShowInGeneralLedgerSourceCheckVoucher:   data.ShowInGeneralLedgerSourceCheckVoucher,
 			}
 		},
 		Created: func(data *Account) []string {
