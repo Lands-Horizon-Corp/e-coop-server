@@ -71,6 +71,18 @@ type (
 
 		Status       UserOrganizationStatus `gorm:"type:varchar(50);not null;default:'offline'" json:"status"`
 		LastOnlineAt time.Time              `gorm:"default:now()" json:"last_online_at"`
+
+		SettingsAccountingPaymentDefaultValueID *uuid.UUID `gorm:"type:uuid;index" json:"settings_accounting_payment_default_value_id,omitempty"`
+		SettingsAccountingPaymentDefaultValue   *Account   `gorm:"foreignKey:SettingsAccountingPaymentDefaultValueID;constraint:OnDelete:SET NULL;" json:"settings_accounting_payment_default_value,omitempty"`
+
+		SettingsAccountingDepositDefaultValueID *uuid.UUID `gorm:"type:uuid;index" json:"settings_accounting_deposit_default_value_id,omitempty"`
+		SettingsAccountingDepositDefaultValue   *Account   `gorm:"foreignKey:SettingsAccountingDepositDefaultValueID;constraint:OnDelete:SET NULL;" json:"settings_accounting_deposit_default_value,omitempty"`
+
+		SettingsAccountingWithdrawDefaultValueID *uuid.UUID `gorm:"type:uuid;index" json:"settings_accounting_withdraw_default_value_id,omitempty"`
+		SettingsAccountingWithdrawDefaultValue   *Account   `gorm:"foreignKey:SettingsAccountingWithdrawDefaultValueID;constraint:OnDelete:SET NULL;" json:"settings_accounting_withdraw_default_value,omitempty"`
+
+		SettingsPaymentTypeDefaultValueID *uuid.UUID   `gorm:"type:uuid;index" json:"settings_payment_type_default_value_id,omitempty"`
+		SettingsPaymentTypeDefaultValue   *PaymentType `gorm:"foreignKey:SettingsPaymentTypeDefaultValueID;constraint:OnDelete:SET NULL;" json:"settings_payment_type_default_value,omitempty"`
 	}
 
 	UserOrganizationRequest struct {
@@ -116,6 +128,11 @@ type (
 		SettingsAllowWithdrawNegativeBalance bool `json:"allow_withdraw_negative_balance"`
 		SettingsAllowWithdrawExactBalance    bool `json:"allow_withdraw_exact_balance"`
 		SettingsMaintainingBalance           bool `json:"maintaining_balance"`
+
+		SettingsAccountingPaymentDefaultValueID  *uuid.UUID `json:"settings_accounting_payment_default_value_id,omitempty"`
+		SettingsAccountingDepositDefaultValueID  *uuid.UUID `json:"settings_accounting_deposit_default_value_id,omitempty"`
+		SettingsAccountingWithdrawDefaultValueID *uuid.UUID `json:"settings_accounting_withdraw_default_value_id,omitempty"`
+		SettingsPaymentTypeDefaultValueID        *uuid.UUID `json:"settings_payment_type_default_value_id,omitempty"`
 	}
 
 	UserOrganizationSelfSettingsRequest struct {
@@ -134,6 +151,11 @@ type (
 		SettingsAllowWithdrawNegativeBalance bool `json:"allow_withdraw_negative_balance"`
 		SettingsAllowWithdrawExactBalance    bool `json:"allow_withdraw_exact_balance"`
 		SettingsMaintainingBalance           bool `json:"maintaining_balance"`
+
+		SettingsAccountingPaymentDefaultValueID  *uuid.UUID `json:"settings_accounting_payment_default_value_id,omitempty"`
+		SettingsAccountingDepositDefaultValueID  *uuid.UUID `json:"settings_accounting_deposit_default_value_id,omitempty"`
+		SettingsAccountingWithdrawDefaultValueID *uuid.UUID `json:"settings_accounting_withdraw_default_value_id,omitempty"`
+		SettingsPaymentTypeDefaultValueID        *uuid.UUID `json:"settings_payment_type_default_value_id,omitempty"`
 	}
 
 	UserOrganizationResponse struct {
@@ -178,6 +200,18 @@ type (
 
 		Status       UserOrganizationStatus `json:"status"`
 		LastOnlineAt time.Time              `json:"last_online_at"`
+
+		SettingsAccountingPaymentDefaultValueID *uuid.UUID       `json:"settings_accounting_payment_default_value_id"`
+		SettingsAccountingPaymentDefaultValue   *AccountResponse `json:"settings_accounting_payment_default_value,omitempty"`
+
+		SettingsAccountingDepositDefaultValueID *uuid.UUID       `json:"settings_accounting_deposit_default_value_id"`
+		SettingsAccountingDepositDefaultValue   *AccountResponse `json:"settings_accounting_deposit_default_value,omitempty"`
+
+		SettingsAccountingWithdrawDefaultValueID *uuid.UUID       `json:"settings_accounting_withdraw_default_value_id"`
+		SettingsAccountingWithdrawDefaultValue   *AccountResponse `json:"settings_accounting_withdraw_default_value,omitempty"`
+
+		SettingsPaymentTypeDefaultValueID *uuid.UUID           `json:"settings_payment_type_default_value_id"`
+		SettingsPaymentTypeDefaultValue   *PaymentTypeResponse `json:"settings_payment_type_default_value,omitempty"`
 	}
 
 	UserOrganizationPermissionPayload struct {
@@ -226,6 +260,9 @@ func (m *Model) UserOrganization() {
 			"Organization.CoverMedia",
 			"Organization.OrganizationCategories",
 			"Organization.OrganizationCategories.Category",
+			"SettingsAccountingPaymentDefaultValue",
+			"SettingsAccountingWithdrawDefaultValue",
+			"SettingsPaymentTypeDefaultValue",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *UserOrganization) *UserOrganizationResponse {
@@ -261,18 +298,26 @@ func (m *Model) UserOrganization() {
 
 				UserSettingDescription: data.UserSettingDescription,
 
-				UserSettingNumberPadding:             data.UserSettingNumberPadding,
-				UserSettingStartOR:                   data.UserSettingStartOR,
-				UserSettingEndOR:                     data.UserSettingEndOR,
-				UserSettingUsedOR:                    data.UserSettingUsedOR,
-				UserSettingStartVoucher:              data.UserSettingStartVoucher,
-				UserSettingEndVoucher:                data.UserSettingEndVoucher,
-				UserSettingUsedVoucher:               data.UserSettingUsedVoucher,
-				SettingsAllowWithdrawNegativeBalance: data.SettingsAllowWithdrawNegativeBalance,
-				SettingsAllowWithdrawExactBalance:    data.SettingsAllowWithdrawExactBalance,
-				SettingsMaintainingBalance:           data.SettingsMaintainingBalance,
-				Status:                               data.Status,
-				LastOnlineAt:                         data.LastOnlineAt,
+				UserSettingNumberPadding:                 data.UserSettingNumberPadding,
+				UserSettingStartOR:                       data.UserSettingStartOR,
+				UserSettingEndOR:                         data.UserSettingEndOR,
+				UserSettingUsedOR:                        data.UserSettingUsedOR,
+				UserSettingStartVoucher:                  data.UserSettingStartVoucher,
+				UserSettingEndVoucher:                    data.UserSettingEndVoucher,
+				UserSettingUsedVoucher:                   data.UserSettingUsedVoucher,
+				SettingsAllowWithdrawNegativeBalance:     data.SettingsAllowWithdrawNegativeBalance,
+				SettingsAllowWithdrawExactBalance:        data.SettingsAllowWithdrawExactBalance,
+				SettingsMaintainingBalance:               data.SettingsMaintainingBalance,
+				Status:                                   data.Status,
+				LastOnlineAt:                             data.LastOnlineAt,
+				SettingsAccountingPaymentDefaultValueID:  data.SettingsAccountingPaymentDefaultValueID,
+				SettingsAccountingPaymentDefaultValue:    m.AccountManager.ToModel(data.SettingsAccountingPaymentDefaultValue),
+				SettingsAccountingDepositDefaultValueID:  data.SettingsAccountingDepositDefaultValueID,
+				SettingsAccountingDepositDefaultValue:    m.AccountManager.ToModel(data.SettingsAccountingDepositDefaultValue),
+				SettingsAccountingWithdrawDefaultValueID: data.SettingsAccountingWithdrawDefaultValueID,
+				SettingsAccountingWithdrawDefaultValue:   m.AccountManager.ToModel(data.SettingsAccountingWithdrawDefaultValue),
+				SettingsPaymentTypeDefaultValueID:        data.SettingsPaymentTypeDefaultValueID,
+				SettingsPaymentTypeDefaultValue:          m.PaymentTypeManager.ToModel(data.SettingsPaymentTypeDefaultValue),
 			}
 		},
 		Created: func(data *UserOrganization) []string {

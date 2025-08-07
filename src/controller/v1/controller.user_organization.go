@@ -1273,6 +1273,10 @@ func (c *Controller) UserOrganinzationController() {
 		userOrg.UserSettingEndVoucher = req.UserSettingEndVoucher
 		userOrg.UserSettingUsedVoucher = req.UserSettingUsedVoucher
 		userOrg.UserSettingNumberPadding = req.UserSettingNumberPadding
+		userOrg.SettingsAccountingPaymentDefaultValueID = req.SettingsAccountingPaymentDefaultValueID
+		userOrg.SettingsAccountingDepositDefaultValueID = req.SettingsAccountingDepositDefaultValueID
+		userOrg.SettingsAccountingWithdrawDefaultValueID = req.SettingsAccountingWithdrawDefaultValueID
+		userOrg.SettingsPaymentTypeDefaultValueID = req.SettingsPaymentTypeDefaultValueID
 
 		if err := c.model.UserOrganizationManager.UpdateFields(context, userOrg.ID, userOrg); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -1337,6 +1341,10 @@ func (c *Controller) UserOrganinzationController() {
 		userOrg.SettingsAllowWithdrawExactBalance = req.SettingsAllowWithdrawExactBalance
 		userOrg.SettingsMaintainingBalance = req.SettingsMaintainingBalance
 		userOrg.UserSettingNumberPadding = req.UserSettingNumberPadding
+		userOrg.SettingsAccountingPaymentDefaultValueID = req.SettingsAccountingPaymentDefaultValueID
+		userOrg.SettingsAccountingDepositDefaultValueID = req.SettingsAccountingDepositDefaultValueID
+		userOrg.SettingsAccountingWithdrawDefaultValueID = req.SettingsAccountingWithdrawDefaultValueID
+		userOrg.SettingsPaymentTypeDefaultValueID = req.SettingsPaymentTypeDefaultValueID
 
 		if err := c.model.UserOrganizationManager.UpdateFields(context, userOrg.ID, userOrg); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
