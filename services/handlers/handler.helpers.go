@@ -24,6 +24,7 @@ import (
 	"github.com/go-playground/validator"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/rotisserie/eris"
 )
 
 // ANSI color escape codes
@@ -234,7 +235,7 @@ func IsSuspiciousPath(path string) bool {
 func GenerateToken() (string, error) {
 	id, err := uuid.NewRandom()
 	if err != nil {
-		return "", fmt.Errorf("token generation failed: %w", err)
+		return "", eris.Wrap(err, "token generation failed")
 	}
 	return id.String(), nil
 }
@@ -343,7 +344,7 @@ func Retry(ctx context.Context, maxAttempts int, delay time.Duration, op func() 
 		case <-time.After(delay):
 		}
 	}
-	return fmt.Errorf("after %d attempts: %w", maxAttempts, err)
+	return eris.Wrapf(err, "after %d attempts", maxAttempts)
 }
 
 // UI helpers -----------------------------------------------------------------

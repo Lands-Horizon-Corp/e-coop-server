@@ -3,7 +3,6 @@ package horizon
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"html/template"
 	"os"
 	"sync"
@@ -101,10 +100,10 @@ func (h *HorizonSMS) Format(ctx context.Context, req SMSRequest) (*SMSRequest, e
 func (h *HorizonSMS) Send(ctx context.Context, req SMSRequest) error {
 	// Validate phone numbers
 	if !handlers.IsValidPhoneNumber(req.To) {
-		return fmt.Errorf("invalid recipient phone number format: %s", req.To)
+		return eris.Errorf("invalid recipient phone number format: %s", req.To)
 	}
 	if !handlers.IsValidPhoneNumber(h.sender) {
-		return fmt.Errorf("invalid sender phone number format: %s", h.sender)
+		return eris.Errorf("invalid sender phone number format: %s", h.sender)
 	}
 
 	// Format template vars
@@ -116,12 +115,12 @@ func (h *HorizonSMS) Send(ctx context.Context, req SMSRequest) error {
 
 	// Check length
 	if len(req.Body) > int(h.maxCharacters) {
-		return fmt.Errorf("SMS body exceeds %d characters (actual: %d)", h.maxCharacters, len(req.Body))
+		return eris.Errorf("SMS body exceeds %d characters (actual: %d)", h.maxCharacters, len(req.Body))
 	}
 
 	// Rate limiting: allow up to limiter capacity
 	if !h.limiter.Allow() {
-		return fmt.Errorf("rate limit exceeded for sending SMS")
+		return eris.New("rate limit exceeded for sending SMS")
 	}
 
 	// Sanitize content

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/lands-horizon/horizon-server/services/horizon"
+	"github.com/rotisserie/eris"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -47,11 +48,11 @@ func TestHorizonMessageBroker(t *testing.T) {
 		err = broker.Subscribe(ctx, topic, func(payload any) error {
 			data, ok := payload.(map[string]any)
 			if !ok {
-				errChan <- fmt.Errorf("expected map payload, got %T", payload)
+				errChan <- eris.Errorf("expected map payload, got %T", payload)
 				return nil
 			}
 			if data["message"] != "hello" {
-				errChan <- fmt.Errorf("unexpected message: %v", data["message"])
+				errChan <- eris.Errorf("unexpected message: %v", data["message"])
 				return nil
 			}
 			close(received)
@@ -96,7 +97,7 @@ func TestHorizonMessageBroker(t *testing.T) {
 		err = broker.Subscribe(ctx, topic1, func(payload any) error {
 			defer wg.Done()
 			if _, ok := payload.(map[string]any); !ok {
-				errChan <- fmt.Errorf("topic1: expected map payload")
+				errChan <- eris.New("topic1: expected map payload")
 				return nil
 			}
 			return nil
@@ -107,7 +108,7 @@ func TestHorizonMessageBroker(t *testing.T) {
 		err = broker.Subscribe(ctx, topic2, func(payload any) error {
 			defer wg.Done()
 			if _, ok := payload.(map[string]any); !ok {
-				errChan <- fmt.Errorf("topic2: expected map payload")
+				errChan <- eris.New("topic2: expected map payload")
 				return nil
 			}
 			return nil

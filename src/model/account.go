@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	horizon_services "github.com/lands-horizon/horizon-server/services"
+	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -551,7 +552,6 @@ func (m *Model) AccountLockForUpdate(ctx context.Context, tx *gorm.DB, accountID
 //	lockedAccount, err := m.AccountLockWithValidation(ctx, tx, accountID, account)
 //	if err != nil {
 //	    tx.Rollback()
-//	    return fmt.Errorf("account lock failed: %w", err)
 //	}
 //
 //	// Use lockedAccount for the rest of the transaction
@@ -559,7 +559,7 @@ func (m *Model) AccountLockForUpdate(ctx context.Context, tx *gorm.DB, accountID
 func (m *Model) AccountLockWithValidation(ctx context.Context, tx *gorm.DB, accountID uuid.UUID, originalAccount *Account) (*Account, error) {
 	lockedAccount, err := m.AccountLockForUpdate(ctx, tx, accountID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to acquire account lock: %w", err)
+		return nil, eris.Wrap(err, "failed to acquire account lock")
 	}
 
 	// Verify account data hasn't changed since initial check (concurrent modification detection)
@@ -567,7 +567,7 @@ func (m *Model) AccountLockWithValidation(ctx context.Context, tx *gorm.DB, acco
 		if lockedAccount.OrganizationID != originalAccount.OrganizationID ||
 			lockedAccount.BranchID != originalAccount.BranchID ||
 			lockedAccount.Type != originalAccount.Type {
-			return nil, fmt.Errorf("account was modified by another transaction")
+			return nil, eris.New("account was modified by another transaction")
 		}
 	}
 

@@ -3,7 +3,8 @@ package horizon
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+
+	"github.com/rotisserie/eris"
 )
 
 type QRResult struct {
@@ -31,11 +32,11 @@ func NewHorizonQRService(
 func (h *HorizonQRService) DecodeQR(ctx context.Context, data *QRResult) (*any, error) {
 	decrypted, err := h.security.Decrypt(ctx, data.Data)
 	if err != nil {
-		return nil, fmt.Errorf("failed to decrypt data: %w", err)
+		return nil, eris.Wrap(err, "failed to decrypt data")
 	}
 	var decoded any
 	if err := json.Unmarshal([]byte(decrypted), &decoded); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal JSON: %w", err)
+		return nil, eris.Wrap(err, "failed to unmarshal JSON")
 	}
 	return &decoded, nil
 }
@@ -43,11 +44,11 @@ func (h *HorizonQRService) DecodeQR(ctx context.Context, data *QRResult) (*any, 
 func (h *HorizonQRService) EncodeQR(ctx context.Context, data any, qrTYpe string) (*QRResult, error) {
 	jsonBytes, err := json.Marshal(data)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal data: %w", err)
+		return nil, eris.Wrap(err, "failed to marshal data")
 	}
 	encrypted, err := h.security.Encrypt(ctx, string(jsonBytes))
 	if err != nil {
-		return nil, fmt.Errorf("failed to encrypt data: %w", err)
+		return nil, eris.Wrap(err, "failed to encrypt data")
 	}
 	return &QRResult{
 		Data: encrypted,
