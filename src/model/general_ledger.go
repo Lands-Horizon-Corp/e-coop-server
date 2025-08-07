@@ -76,6 +76,7 @@ type (
 		ProofOfPaymentMedia        *Media              `gorm:"foreignKey:ProofOfPaymentMediaID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"proof_of_payment_media,omitempty"`
 		BankReferenceNumber        string              `gorm:"type:varchar(50)"`
 		Description                string              `gorm:"type:text"`
+		PrintNumber                int                 `gorm:"default:0"`
 	}
 
 	GeneralLedgerResponse struct {
@@ -134,6 +135,7 @@ type (
 		BankReferenceNumber string `json:"bank_reference_number,omitempty"`
 
 		Description string `json:"description,omitempty"`
+		PrintNumber int    `json:"print_number"`
 	}
 
 	GeneralLedgerRequest struct {
@@ -266,6 +268,7 @@ func (m *Model) GeneralLedger() {
 				ProofOfPaymentMedia:   m.MediaManager.ToModel(data.ProofOfPaymentMedia),
 				BankReferenceNumber:   data.BankReferenceNumber,
 				Description:           data.Description,
+				PrintNumber:           data.PrintNumber,
 			}
 		},
 		Created: func(data *GeneralLedger) []string {
@@ -345,4 +348,19 @@ func (m *Model) GeneralLedgerCurrentSubsidiaryAccountForUpdate(
 		return nil, nil
 	}
 	return &ledger, err
+}
+
+func (m *Model) GeneralLedgerPrintMaxNumber(
+	ctx context.Context,
+	memberProfileID, accountID, branchID, orgID uuid.UUID,
+) (int, error) {
+	var maxPrintNumber int
+	err := m.GeneralLedgerManager.Client().
+		Where("member_profile_id = ? AND account_id = ? AND branch_id = ? AND organization_id = ?", memberProfileID, accountID, branchID, orgID).
+		Select("COALESCE(MAX(print_number), 0)").
+		Scan(&maxPrintNumber).Error
+	if err != nil {
+		return 0, err
+	}
+	return maxPrintNumber, nil
 }

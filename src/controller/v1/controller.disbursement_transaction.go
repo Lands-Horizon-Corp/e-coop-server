@@ -109,6 +109,9 @@ func (c *Controller) DisbursementTransactionController() {
 			BranchID:           *user.BranchID,
 			OrganizationID:     user.OrganizationID,
 		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve disbursement transactions: " + err.Error()})
+		}
 		return ctx.JSON(http.StatusOK, c.model.DisbursementTransactionManager.Pagination(context, ctx, disbursementTransactions))
 	})
 
@@ -135,6 +138,10 @@ func (c *Controller) DisbursementTransactionController() {
 			BranchID:       *useOrganization.BranchID,
 			OrganizationID: useOrganization.OrganizationID,
 		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve disbursement transactions: " + err.Error()})
+		}
+		// Return paginated response
 		return ctx.JSON(http.StatusOK, c.model.DisbursementTransactionManager.Pagination(context, ctx, disbursementTransactions))
 	})
 
@@ -157,6 +164,10 @@ func (c *Controller) DisbursementTransactionController() {
 			BranchID:       *user.BranchID,
 			OrganizationID: user.OrganizationID,
 		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve disbursement transactions: " + err.Error()})
+		}
+		// Return paginated response
 		return ctx.JSON(http.StatusOK, c.model.DisbursementTransactionManager.Pagination(context, ctx, disbursementTransactions))
 	})
 
