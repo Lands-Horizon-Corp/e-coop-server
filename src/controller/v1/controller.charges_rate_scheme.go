@@ -94,17 +94,18 @@ func (c *Controller) ChargesRateSchemeController() {
 		}
 
 		chargesRateScheme := &model.ChargesRateScheme{
-			ChargesRateByTermHeaderID:            req.ChargesRateByTermHeaderID,
-			ChargesRateMemberTypeModeOfPaymentID: req.ChargesRateMemberTypeModeOfPaymentID,
-			Name:                                 req.Name,
-			Description:                          req.Description,
-			Icon:                                 req.Icon,
-			CreatedAt:                            time.Now().UTC(),
-			CreatedByID:                          user.UserID,
-			UpdatedAt:                            time.Now().UTC(),
-			UpdatedByID:                          user.UserID,
-			BranchID:                             *user.BranchID,
-			OrganizationID:                       user.OrganizationID,
+			ChargesRateByTermHeaderID: req.ChargesRateByTermHeaderID,
+			MemberTypeID:              req.MemberTypeID,
+			ModeOfPayment:             req.ModeOfPayment,
+			Name:                      req.Name,
+			Description:               req.Description,
+			Icon:                      req.Icon,
+			CreatedAt:                 time.Now().UTC(),
+			CreatedByID:               user.UserID,
+			UpdatedAt:                 time.Now().UTC(),
+			UpdatedByID:               user.UserID,
+			BranchID:                  *user.BranchID,
+			OrganizationID:            user.OrganizationID,
 		}
 
 		if err := c.model.ChargesRateSchemeManager.Create(context, chargesRateScheme); err != nil {
@@ -196,7 +197,8 @@ func (c *Controller) ChargesRateSchemeController() {
 		}
 
 		chargesRateScheme.ChargesRateByTermHeaderID = req.ChargesRateByTermHeaderID
-		chargesRateScheme.ChargesRateMemberTypeModeOfPaymentID = req.ChargesRateMemberTypeModeOfPaymentID
+		chargesRateScheme.MemberTypeID = req.MemberTypeID
+		chargesRateScheme.ModeOfPayment = req.ModeOfPayment
 		chargesRateScheme.Name = req.Name
 		chargesRateScheme.Description = req.Description
 		chargesRateScheme.Icon = req.Icon

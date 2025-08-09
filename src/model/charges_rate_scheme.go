@@ -10,6 +10,19 @@ import (
 	"gorm.io/gorm"
 )
 
+type ChargesRateMemberTypeEnum string
+
+const (
+	ChargesMemberTypeAll         ChargesRateMemberTypeEnum = "all"
+	ChargesMemberTypeDaily       ChargesRateMemberTypeEnum = "daily"
+	ChargesMemberTypeWeekly      ChargesRateMemberTypeEnum = "weekly"
+	ChargesMemberTypeMonthly     ChargesRateMemberTypeEnum = "monthly"
+	ChargesMemberTypeSemiMonthly ChargesRateMemberTypeEnum = "semi-monthly"
+	ChargesMemberTypeQuarterly   ChargesRateMemberTypeEnum = "quarterly"
+	ChargesMemberTypeSemiAnnual  ChargesRateMemberTypeEnum = "semi-annual"
+	ChargesMemberTypeLumpsum     ChargesRateMemberTypeEnum = "lumpsum"
+)
+
 type (
 	ChargesRateScheme struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
@@ -31,9 +44,6 @@ type (
 		ChargesRateByTermHeaderID uuid.UUID                `gorm:"type:uuid"`
 		ChargesRateByTermHeader   *ChargesRateByTermHeader `gorm:"foreignKey:ChargesRateByTermHeaderID;constraint:OnDelete:SET NULL,OnUpdate:CASCADE;" json:"charges_rate_by_term_header,omitempty"`
 
-		ChargesRateMemberTypeModeOfPaymentID uuid.UUID                           `gorm:"type:uuid"`
-		ChargesRateMemberTypeModeOfPayment   *ChargesRateMemberTypeModeOfPayment `gorm:"foreignKey:ChargesRateMemberTypeModeOfPaymentID;constraint:OnDelete:SET NULL,OnUpdate:CASCADE;" json:"charges_rate_member_type_mode_of_payment,omitempty"`
-
 		Name        string `gorm:"type:varchar(255);not null;unique"`
 		Description string `gorm:"type:text;not null;unique"`
 		Icon        string `gorm:"type:varchar(255)"`
@@ -43,40 +53,49 @@ type (
 
 		// One-to-many relationship with ChargesRateByRangeOrMinimumAmount
 		ChargesRateByRangeOrMinimumAmounts []*ChargesRateByRangeOrMinimumAmount `gorm:"foreignKey:ChargesRateSchemeID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"charges_rate_by_range_or_minimum_amounts,omitempty"`
+
+		MemberTypeID  uuid.UUID                 `gorm:"type:uuid;not null"`
+		MemberType    *MemberType               `gorm:"foreignKey:MemberTypeID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_type,omitempty"`
+		ModeOfPayment ChargesRateMemberTypeEnum `gorm:"type:varchar(20);default:'all'"`
 	}
 
 	ChargesRateSchemeResponse struct {
-		ID                                   uuid.UUID                                   `json:"id"`
-		CreatedAt                            string                                      `json:"created_at"`
-		CreatedByID                          uuid.UUID                                   `json:"created_by_id"`
-		CreatedBy                            *UserResponse                               `json:"created_by,omitempty"`
-		UpdatedAt                            string                                      `json:"updated_at"`
-		UpdatedByID                          uuid.UUID                                   `json:"updated_by_id"`
-		UpdatedBy                            *UserResponse                               `json:"updated_by,omitempty"`
-		OrganizationID                       uuid.UUID                                   `json:"organization_id"`
-		Organization                         *OrganizationResponse                       `json:"organization,omitempty"`
-		BranchID                             uuid.UUID                                   `json:"branch_id"`
-		Branch                               *BranchResponse                             `json:"branch,omitempty"`
-		ChargesRateByTermHeaderID            uuid.UUID                                   `json:"charges_rate_by_term_header_id"`
-		ChargesRateByTermHeader              *ChargesRateByTermHeaderResponse            `json:"charges_rate_by_term_header,omitempty"`
-		ChargesRateMemberTypeModeOfPaymentID uuid.UUID                                   `json:"charges_rate_member_type_mode_of_payment_id"`
-		ChargesRateMemberTypeModeOfPayment   *ChargesRateMemberTypeModeOfPaymentResponse `json:"charges_rate_member_type_mode_of_payment,omitempty"`
-		Name                                 string                                      `json:"name"`
-		Description                          string                                      `json:"description"`
-		Icon                                 string                                      `json:"icon"`
+		ID                        uuid.UUID                        `json:"id"`
+		CreatedAt                 string                           `json:"created_at"`
+		CreatedByID               uuid.UUID                        `json:"created_by_id"`
+		CreatedBy                 *UserResponse                    `json:"created_by,omitempty"`
+		UpdatedAt                 string                           `json:"updated_at"`
+		UpdatedByID               uuid.UUID                        `json:"updated_by_id"`
+		UpdatedBy                 *UserResponse                    `json:"updated_by,omitempty"`
+		OrganizationID            uuid.UUID                        `json:"organization_id"`
+		Organization              *OrganizationResponse            `json:"organization,omitempty"`
+		BranchID                  uuid.UUID                        `json:"branch_id"`
+		Branch                    *BranchResponse                  `json:"branch,omitempty"`
+		ChargesRateByTermHeaderID uuid.UUID                        `json:"charges_rate_by_term_header_id"`
+		ChargesRateByTermHeader   *ChargesRateByTermHeaderResponse `json:"charges_rate_by_term_header,omitempty"`
+
+		Name        string `json:"name"`
+		Description string `json:"description"`
+		Icon        string `json:"icon"`
 
 		ChargesRateSchemeAccounts []*ChargesRateSchemeAccountResponse `json:"charges_rate_scheme_accounts,omitempty"`
 
 		ChargesRateByRangeOrMinimumAmounts []*ChargesRateByRangeOrMinimumAmountResponse `json:"charges_rate_by_range_or_minimum_amounts,omitempty"`
+
+		MemberTypeID  uuid.UUID                 `json:"member_type_id"`
+		MemberType    *MemberTypeResponse       `json:"member_type,omitempty"`
+		ModeOfPayment ChargesRateMemberTypeEnum `json:"mode_of_payment"`
 	}
 
 	ChargesRateSchemeRequest struct {
-		ChargesRateByTermHeaderID            uuid.UUID   `json:"charges_rate_by_term_header_id,omitempty"`
-		ChargesRateMemberTypeModeOfPaymentID uuid.UUID   `json:"charges_rate_member_type_mode_of_payment_id,omitempty"`
-		Name                                 string      `json:"name" validate:"required,min=1,max=255"`
-		Description                          string      `json:"description" validate:"required"`
-		Icon                                 string      `json:"icon,omitempty"`
-		AccountIDs                           []uuid.UUID `json:"account_ids,omitempty"`
+		ChargesRateByTermHeaderID uuid.UUID   `json:"charges_rate_by_term_header_id,omitempty"`
+		Name                      string      `json:"name" validate:"required,min=1,max=255"`
+		Description               string      `json:"description" validate:"required"`
+		Icon                      string      `json:"icon,omitempty"`
+		AccountIDs                []uuid.UUID `json:"account_ids,omitempty"`
+
+		MemberTypeID  uuid.UUID                 `json:"member_type_id" validate:"required"`
+		ModeOfPayment ChargesRateMemberTypeEnum `json:"mode_of_payment,omitempty" validate:"omitempty,oneof=all daily weekly monthly semi-monthly quarterly semi-annual lumpsum"`
 	}
 )
 
@@ -86,7 +105,11 @@ func (m *Model) ChargesRateScheme() {
 		ChargesRateScheme, ChargesRateSchemeResponse, ChargesRateSchemeRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization", "ChargesRateByTermHeader", "ChargesRateMemberTypeModeOfPayment", "ChargesRateSchemeAccounts", "ChargesRateByRangeOrMinimumAmounts",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization",
+			"ChargesRateByTermHeader",
+			"MemberType",
+			"ChargesRateSchemeAccounts",
+			"ChargesRateByRangeOrMinimumAmounts",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *ChargesRateScheme) *ChargesRateSchemeResponse {
@@ -94,28 +117,30 @@ func (m *Model) ChargesRateScheme() {
 				return nil
 			}
 			return &ChargesRateSchemeResponse{
-				ID:                                   data.ID,
-				CreatedAt:                            data.CreatedAt.Format(time.RFC3339),
-				CreatedByID:                          data.CreatedByID,
-				CreatedBy:                            m.UserManager.ToModel(data.CreatedBy),
-				UpdatedAt:                            data.UpdatedAt.Format(time.RFC3339),
-				UpdatedByID:                          data.UpdatedByID,
-				UpdatedBy:                            m.UserManager.ToModel(data.UpdatedBy),
-				OrganizationID:                       data.OrganizationID,
-				Organization:                         m.OrganizationManager.ToModel(data.Organization),
-				BranchID:                             data.BranchID,
-				Branch:                               m.BranchManager.ToModel(data.Branch),
-				ChargesRateByTermHeaderID:            data.ChargesRateByTermHeaderID,
-				ChargesRateByTermHeader:              m.ChargesRateByTermHeaderManager.ToModel(data.ChargesRateByTermHeader),
-				ChargesRateMemberTypeModeOfPaymentID: data.ChargesRateMemberTypeModeOfPaymentID,
-				ChargesRateMemberTypeModeOfPayment:   m.ChargesRateMemberTypeModeOfPaymentManager.ToModel(data.ChargesRateMemberTypeModeOfPayment),
-				Name:                                 data.Name,
-				Description:                          data.Description,
-				Icon:                                 data.Icon,
+				ID:                        data.ID,
+				CreatedAt:                 data.CreatedAt.Format(time.RFC3339),
+				CreatedByID:               data.CreatedByID,
+				CreatedBy:                 m.UserManager.ToModel(data.CreatedBy),
+				UpdatedAt:                 data.UpdatedAt.Format(time.RFC3339),
+				UpdatedByID:               data.UpdatedByID,
+				UpdatedBy:                 m.UserManager.ToModel(data.UpdatedBy),
+				OrganizationID:            data.OrganizationID,
+				Organization:              m.OrganizationManager.ToModel(data.Organization),
+				BranchID:                  data.BranchID,
+				Branch:                    m.BranchManager.ToModel(data.Branch),
+				ChargesRateByTermHeaderID: data.ChargesRateByTermHeaderID,
+				ChargesRateByTermHeader:   m.ChargesRateByTermHeaderManager.ToModel(data.ChargesRateByTermHeader),
+				Name:                      data.Name,
+				Description:               data.Description,
+				Icon:                      data.Icon,
 
 				ChargesRateSchemeAccounts: m.ChargesRateSchemeAccountManager.ToModels(data.ChargesRateSchemeAccounts),
 
 				ChargesRateByRangeOrMinimumAmounts: m.ChargesRateByRangeOrMinimumAmountManager.ToModels(data.ChargesRateByRangeOrMinimumAmounts),
+
+				MemberTypeID:  data.MemberTypeID,
+				MemberType:    m.MemberTypeManager.ToModel(data.MemberType),
+				ModeOfPayment: data.ModeOfPayment,
 			}
 		},
 		Created: func(data *ChargesRateScheme) []string {
