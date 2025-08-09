@@ -28,8 +28,17 @@ type (
 		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_time_deposit_type"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
-		TimeDepositComputationHeaderID uuid.UUID                     `gorm:"type:uuid"`
-		TimeDepositComputationHeader   *TimeDepositComputationHeader `gorm:"foreignKey:TimeDepositComputationHeaderID;constraint:OnDelete:SET NULL,OnUpdate:CASCADE;" json:"time_deposit_computation_header,omitempty"`
+		Header1  int `gorm:"default:30"`
+		Header2  int `gorm:"default:60"`
+		Header3  int `gorm:"default:90"`
+		Header4  int `gorm:"default:120"`
+		Header5  int `gorm:"default:150"`
+		Header6  int `gorm:"default:180"`
+		Header7  int `gorm:"default:210"`
+		Header8  int `gorm:"default:240"`
+		Header9  int `gorm:"default:300"`
+		Header10 int `gorm:"default:330"`
+		Header11 int `gorm:"default:360"`
 
 		Name        string `gorm:"type:varchar(255);not null;unique"`
 		Description string `gorm:"type:text"`
@@ -40,24 +49,35 @@ type (
 	}
 
 	TimeDepositTypeResponse struct {
-		ID                             uuid.UUID                             `json:"id"`
-		CreatedAt                      string                                `json:"created_at"`
-		CreatedByID                    uuid.UUID                             `json:"created_by_id"`
-		CreatedBy                      *UserResponse                         `json:"created_by,omitempty"`
-		UpdatedAt                      string                                `json:"updated_at"`
-		UpdatedByID                    uuid.UUID                             `json:"updated_by_id"`
-		UpdatedBy                      *UserResponse                         `json:"updated_by,omitempty"`
-		OrganizationID                 uuid.UUID                             `json:"organization_id"`
-		Organization                   *OrganizationResponse                 `json:"organization,omitempty"`
-		BranchID                       uuid.UUID                             `json:"branch_id"`
-		Branch                         *BranchResponse                       `json:"branch,omitempty"`
-		TimeDepositComputationHeaderID uuid.UUID                             `json:"time_deposit_computation_header_id"`
-		TimeDepositComputationHeader   *TimeDepositComputationHeaderResponse `json:"time_deposit_computation_header,omitempty"`
-		Name                           string                                `json:"name"`
-		Description                    string                                `json:"description"`
-		PreMature                      int                                   `json:"pre_mature"`
-		PreMatureRate                  float64                               `json:"pre_mature_rate"`
-		Excess                         float64                               `json:"excess"`
+		ID             uuid.UUID             `json:"id"`
+		CreatedAt      string                `json:"created_at"`
+		CreatedByID    uuid.UUID             `json:"created_by_id"`
+		CreatedBy      *UserResponse         `json:"created_by,omitempty"`
+		UpdatedAt      string                `json:"updated_at"`
+		UpdatedByID    uuid.UUID             `json:"updated_by_id"`
+		UpdatedBy      *UserResponse         `json:"updated_by,omitempty"`
+		OrganizationID uuid.UUID             `json:"organization_id"`
+		Organization   *OrganizationResponse `json:"organization,omitempty"`
+		BranchID       uuid.UUID             `json:"branch_id"`
+		Branch         *BranchResponse       `json:"branch,omitempty"`
+
+		Header1  int `json:"header_1"`
+		Header2  int `json:"header_2"`
+		Header3  int `json:"header_3"`
+		Header4  int `json:"header_4"`
+		Header5  int `json:"header_5"`
+		Header6  int `json:"header_6"`
+		Header7  int `json:"header_7"`
+		Header8  int `json:"header_8"`
+		Header9  int `json:"header_9"`
+		Header10 int `json:"header_10"`
+		Header11 int `json:"header_11"`
+
+		Name          string  `json:"name"`
+		Description   string  `json:"description"`
+		PreMature     int     `json:"pre_mature"`
+		PreMatureRate float64 `json:"pre_mature_rate"`
+		Excess        float64 `json:"excess"`
 	}
 
 	TimeDepositTypeRequest struct {
@@ -67,6 +87,18 @@ type (
 		PreMature                      int       `json:"pre_mature,omitempty"`
 		PreMatureRate                  float64   `json:"pre_mature_rate,omitempty"`
 		Excess                         float64   `json:"excess,omitempty"`
+
+		Header1  int `json:"header_1,omitempty"`
+		Header2  int `json:"header_2,omitempty"`
+		Header3  int `json:"header_3,omitempty"`
+		Header4  int `json:"header_4,omitempty"`
+		Header5  int `json:"header_5,omitempty"`
+		Header6  int `json:"header_6,omitempty"`
+		Header7  int `json:"header_7,omitempty"`
+		Header8  int `json:"header_8,omitempty"`
+		Header9  int `json:"header_9,omitempty"`
+		Header10 int `json:"header_10,omitempty"`
+		Header11 int `json:"header_11,omitempty"`
 	}
 )
 
@@ -76,7 +108,7 @@ func (m *Model) TimeDepositType() {
 		TimeDepositType, TimeDepositTypeResponse, TimeDepositTypeRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization", "TimeDepositComputationHeader",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *TimeDepositType) *TimeDepositTypeResponse {
@@ -84,24 +116,35 @@ func (m *Model) TimeDepositType() {
 				return nil
 			}
 			return &TimeDepositTypeResponse{
-				ID:                             data.ID,
-				CreatedAt:                      data.CreatedAt.Format(time.RFC3339),
-				CreatedByID:                    data.CreatedByID,
-				CreatedBy:                      m.UserManager.ToModel(data.CreatedBy),
-				UpdatedAt:                      data.UpdatedAt.Format(time.RFC3339),
-				UpdatedByID:                    data.UpdatedByID,
-				UpdatedBy:                      m.UserManager.ToModel(data.UpdatedBy),
-				OrganizationID:                 data.OrganizationID,
-				Organization:                   m.OrganizationManager.ToModel(data.Organization),
-				BranchID:                       data.BranchID,
-				Branch:                         m.BranchManager.ToModel(data.Branch),
-				TimeDepositComputationHeaderID: data.TimeDepositComputationHeaderID,
-				TimeDepositComputationHeader:   m.TimeDepositComputationHeaderManager.ToModel(data.TimeDepositComputationHeader),
-				Name:                           data.Name,
-				Description:                    data.Description,
-				PreMature:                      data.PreMature,
-				PreMatureRate:                  data.PreMatureRate,
-				Excess:                         data.Excess,
+				ID:             data.ID,
+				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
+				CreatedByID:    data.CreatedByID,
+				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
+				UpdatedByID:    data.UpdatedByID,
+				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				OrganizationID: data.OrganizationID,
+				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				BranchID:       data.BranchID,
+				Branch:         m.BranchManager.ToModel(data.Branch),
+
+				Header1:  data.Header1,
+				Header2:  data.Header2,
+				Header3:  data.Header3,
+				Header4:  data.Header4,
+				Header5:  data.Header5,
+				Header6:  data.Header6,
+				Header7:  data.Header7,
+				Header8:  data.Header8,
+				Header9:  data.Header9,
+				Header10: data.Header10,
+				Header11: data.Header11,
+
+				Name:          data.Name,
+				Description:   data.Description,
+				PreMature:     data.PreMature,
+				PreMatureRate: data.PreMatureRate,
+				Excess:        data.Excess,
 			}
 		},
 

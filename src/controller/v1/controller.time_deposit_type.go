@@ -16,31 +16,9 @@ import (
 func (c *Controller) TimeDepositTypeController() {
 	req := c.provider.Service.Request
 
-	// GET /time-deposit-type: List all time deposit types for the current user's branch. (NO footstep)
-	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/time-deposit-type",
-		Method:       "GET",
-		Note:         "Returns all time deposit types for the current user's organization and branch. Returns empty if not authenticated.",
-		ResponseType: model.TimeDepositTypeResponse{},
-	}, func(ctx echo.Context) error {
-		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
-		if err != nil {
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
-		}
-		if user.BranchID == nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
-		}
-		timeDepositTypes, err := c.model.TimeDepositTypeCurrentBranch(context, user.OrganizationID, *user.BranchID)
-		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No time deposit types found for the current branch"})
-		}
-		return ctx.JSON(http.StatusOK, c.model.TimeDepositTypeManager.Filtered(context, ctx, timeDepositTypes))
-	})
-
 	// GET /time-deposit-type/search: Paginated search of time deposit types for the current branch. (NO footstep)
 	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/time-deposit-type/search",
+		Route:        "/api/v1/time-deposit-type",
 		Method:       "GET",
 		Note:         "Returns a paginated list of time deposit types for the current user's organization and branch.",
 		ResponseType: model.TimeDepositTypeResponse{},
@@ -57,7 +35,7 @@ func (c *Controller) TimeDepositTypeController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch time deposit types for pagination: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.TimeDepositTypeManager.Pagination(context, ctx, timeDepositTypes))
+		return ctx.JSON(http.StatusOK, c.model.TimeDepositTypeManager.ToModels(timeDepositTypes))
 	})
 
 	// GET /time-deposit-type/:time_deposit_type_id: Get specific time deposit type by ID. (NO footstep)
@@ -116,18 +94,29 @@ func (c *Controller) TimeDepositTypeController() {
 		}
 
 		timeDepositType := &model.TimeDepositType{
-			TimeDepositComputationHeaderID: req.TimeDepositComputationHeaderID,
-			Name:                           req.Name,
-			Description:                    req.Description,
-			PreMature:                      req.PreMature,
-			PreMatureRate:                  req.PreMatureRate,
-			Excess:                         req.Excess,
-			CreatedAt:                      time.Now().UTC(),
-			CreatedByID:                    user.UserID,
-			UpdatedAt:                      time.Now().UTC(),
-			UpdatedByID:                    user.UserID,
-			BranchID:                       *user.BranchID,
-			OrganizationID:                 user.OrganizationID,
+			Header1:  req.Header1,
+			Header2:  req.Header2,
+			Header3:  req.Header3,
+			Header4:  req.Header4,
+			Header5:  req.Header5,
+			Header6:  req.Header6,
+			Header7:  req.Header7,
+			Header8:  req.Header8,
+			Header9:  req.Header9,
+			Header10: req.Header10,
+			Header11: req.Header11,
+
+			Name:           req.Name,
+			Description:    req.Description,
+			PreMature:      req.PreMature,
+			PreMatureRate:  req.PreMatureRate,
+			Excess:         req.Excess,
+			CreatedAt:      time.Now().UTC(),
+			CreatedByID:    user.UserID,
+			UpdatedAt:      time.Now().UTC(),
+			UpdatedByID:    user.UserID,
+			BranchID:       *user.BranchID,
+			OrganizationID: user.OrganizationID,
 		}
 
 		if err := c.model.TimeDepositTypeManager.Create(context, timeDepositType); err != nil {
@@ -192,7 +181,18 @@ func (c *Controller) TimeDepositTypeController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Time deposit type not found"})
 		}
-		timeDepositType.TimeDepositComputationHeaderID = req.TimeDepositComputationHeaderID
+
+		timeDepositType.Header1 = req.Header1
+		timeDepositType.Header2 = req.Header2
+		timeDepositType.Header3 = req.Header3
+		timeDepositType.Header4 = req.Header4
+		timeDepositType.Header5 = req.Header5
+		timeDepositType.Header6 = req.Header6
+		timeDepositType.Header7 = req.Header7
+		timeDepositType.Header8 = req.Header8
+		timeDepositType.Header9 = req.Header9
+		timeDepositType.Header10 = req.Header10
+		timeDepositType.Header11 = req.Header11
 		timeDepositType.Name = req.Name
 		timeDepositType.Description = req.Description
 		timeDepositType.PreMature = req.PreMature

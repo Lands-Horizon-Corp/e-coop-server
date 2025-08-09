@@ -183,7 +183,6 @@ type (
 
 		// TIME DEPOSIT
 		TimeDepositTypeManager                    horizon_services.Repository[TimeDepositType, TimeDepositTypeResponse, TimeDepositTypeRequest]
-		TimeDepositComputationHeaderManager       horizon_services.Repository[TimeDepositComputationHeader, TimeDepositComputationHeaderResponse, TimeDepositComputationHeaderRequest]
 		TimeDepositComputationManager             horizon_services.Repository[TimeDepositComputation, TimeDepositComputationResponse, TimeDepositComputationRequest]
 		TimeDepositComputationPreMatureManager    horizon_services.Repository[TimeDepositComputationPreMature, TimeDepositComputationPreMatureResponse, TimeDepositComputationPreMatureRequest]
 		ChargesRateSchemeManager                  horizon_services.Repository[ChargesRateScheme, ChargesRateSchemeResponse, ChargesRateSchemeRequest]
@@ -335,7 +334,6 @@ func (c *Model) Start(context context.Context) error {
 	c.SubscriptionPlan()
 	c.TagTemplate()
 	c.TimeDepositComputation()
-	c.TimeDepositComputationHeader()
 	c.TimeDepositComputationPreMature()
 	c.TimeDepositType()
 	c.Timesheet()
