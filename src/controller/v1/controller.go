@@ -128,7 +128,10 @@ func (c *Controller) Start() error {
 	c.TimeDepositTypeController()
 	c.TimeDepositComputationController()
 	c.TimeDepositComputationPreMatureController()
+
+	// Charges rate scheme
 	c.ChargesRateSchemeController()
+	c.ChargesRateByRangeOrMinimumAmountController()
 	return nil
 }
 

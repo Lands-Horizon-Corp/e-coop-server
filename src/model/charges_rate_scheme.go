@@ -40,6 +40,9 @@ type (
 
 		// One-to-many relationship with ChargesRateSchemeAccount
 		ChargesRateSchemeAccounts []*ChargesRateSchemeAccount `gorm:"foreignKey:ChargesRateSchemeID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"charges_rate_scheme_accounts,omitempty"`
+
+		// One-to-many relationship with ChargesRateByRangeOrMinimumAmount
+		ChargesRateByRangeOrMinimumAmounts []*ChargesRateByRangeOrMinimumAmount `gorm:"foreignKey:ChargesRateSchemeID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"charges_rate_by_range_or_minimum_amounts,omitempty"`
 	}
 
 	ChargesRateSchemeResponse struct {
@@ -63,6 +66,8 @@ type (
 		Icon                                 string                                      `json:"icon"`
 
 		ChargesRateSchemeAccounts []*ChargesRateSchemeAccountResponse `json:"charges_rate_scheme_accounts,omitempty"`
+
+		ChargesRateByRangeOrMinimumAmounts []*ChargesRateByRangeOrMinimumAmountResponse `json:"charges_rate_by_range_or_minimum_amounts,omitempty"`
 	}
 
 	ChargesRateSchemeRequest struct {
@@ -81,7 +86,7 @@ func (m *Model) ChargesRateScheme() {
 		ChargesRateScheme, ChargesRateSchemeResponse, ChargesRateSchemeRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization", "ChargesRateByTermHeader", "ChargesRateMemberTypeModeOfPayment", "ChargesRateSchemeAccounts",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization", "ChargesRateByTermHeader", "ChargesRateMemberTypeModeOfPayment", "ChargesRateSchemeAccounts", "ChargesRateByRangeOrMinimumAmounts",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *ChargesRateScheme) *ChargesRateSchemeResponse {
@@ -109,6 +114,8 @@ func (m *Model) ChargesRateScheme() {
 				Icon:                                 data.Icon,
 
 				ChargesRateSchemeAccounts: m.ChargesRateSchemeAccountManager.ToModels(data.ChargesRateSchemeAccounts),
+
+				ChargesRateByRangeOrMinimumAmounts: m.ChargesRateByRangeOrMinimumAmountManager.ToModels(data.ChargesRateByRangeOrMinimumAmounts),
 			}
 		},
 		Created: func(data *ChargesRateScheme) []string {
