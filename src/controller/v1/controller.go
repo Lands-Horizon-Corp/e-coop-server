@@ -123,6 +123,7 @@ func (c *Controller) Start() error {
 	c.BrowseExcludeIncludeAccountsController()
 	c.IncludeNegativeAccountController()
 	c.MemberDepartmentController()
+	c.TimeDepositTypeController()
 
 	return nil
 }
