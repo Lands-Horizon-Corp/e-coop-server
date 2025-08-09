@@ -54,9 +54,35 @@ type (
 		// One-to-many relationship with ChargesRateByRangeOrMinimumAmount
 		ChargesRateByRangeOrMinimumAmounts []*ChargesRateByRangeOrMinimumAmount `gorm:"foreignKey:ChargesRateSchemeID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"charges_rate_by_range_or_minimum_amounts,omitempty"`
 
+		// One-to-many relationship with ChargesRateSchemeModelOfPayment
+		ChargesRateSchemeModelOfPayments []*ChargesRateSchemeModelOfPayment `gorm:"foreignKey:ChargesRateSchemeID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"charges_rate_scheme_model_of_payments,omitempty"`
+
 		MemberTypeID  uuid.UUID                 `gorm:"type:uuid;not null"`
 		MemberType    *MemberType               `gorm:"foreignKey:MemberTypeID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_type,omitempty"`
 		ModeOfPayment ChargesRateMemberTypeEnum `gorm:"type:varchar(20);default:'all'"`
+
+		ModeOfPaymentHeader1  int `gorm:"default:0"`
+		ModeOfPaymentHeader2  int `gorm:"default:0"`
+		ModeOfPaymentHeader3  int `gorm:"default:0"`
+		ModeOfPaymentHeader4  int `gorm:"default:0"`
+		ModeOfPaymentHeader5  int `gorm:"default:0"`
+		ModeOfPaymentHeader6  int `gorm:"default:0"`
+		ModeOfPaymentHeader7  int `gorm:"default:0"`
+		ModeOfPaymentHeader8  int `gorm:"default:0"`
+		ModeOfPaymentHeader9  int `gorm:"default:0"`
+		ModeOfPaymentHeader10 int `gorm:"default:0"`
+		ModeOfPaymentHeader11 int `gorm:"default:0"`
+		ModeOfPaymentHeader12 int `gorm:"default:0"`
+		ModeOfPaymentHeader13 int `gorm:"default:0"`
+		ModeOfPaymentHeader14 int `gorm:"default:0"`
+		ModeOfPaymentHeader15 int `gorm:"default:0"`
+		ModeOfPaymentHeader16 int `gorm:"default:0"`
+		ModeOfPaymentHeader17 int `gorm:"default:0"`
+		ModeOfPaymentHeader18 int `gorm:"default:0"`
+		ModeOfPaymentHeader19 int `gorm:"default:0"`
+		ModeOfPaymentHeader20 int `gorm:"default:0"`
+		ModeOfPaymentHeader21 int `gorm:"default:0"`
+		ModeOfPaymentHeader22 int `gorm:"default:0"`
 	}
 
 	ChargesRateSchemeResponse struct {
@@ -82,9 +108,33 @@ type (
 
 		ChargesRateByRangeOrMinimumAmounts []*ChargesRateByRangeOrMinimumAmountResponse `json:"charges_rate_by_range_or_minimum_amounts,omitempty"`
 
-		MemberTypeID  uuid.UUID                 `json:"member_type_id"`
-		MemberType    *MemberTypeResponse       `json:"member_type,omitempty"`
-		ModeOfPayment ChargesRateMemberTypeEnum `json:"mode_of_payment"`
+		ChargesRateSchemeModelOfPayments []*ChargesRateSchemeModelOfPaymentResponse `json:"charges_rate_scheme_model_of_payments,omitempty"`
+
+		MemberTypeID          uuid.UUID                 `json:"member_type_id"`
+		MemberType            *MemberTypeResponse       `json:"member_type,omitempty"`
+		ModeOfPayment         ChargesRateMemberTypeEnum `json:"mode_of_payment"`
+		ModeOfPaymentHeader1  int                       `json:"mode_of_payment_header_1"`
+		ModeOfPaymentHeader2  int                       `json:"mode_of_payment_header_2"`
+		ModeOfPaymentHeader3  int                       `json:"mode_of_payment_header_3"`
+		ModeOfPaymentHeader4  int                       `json:"mode_of_payment_header_4"`
+		ModeOfPaymentHeader5  int                       `json:"mode_of_payment_header_5"`
+		ModeOfPaymentHeader6  int                       `json:"mode_of_payment_header_6"`
+		ModeOfPaymentHeader7  int                       `json:"mode_of_payment_header_7"`
+		ModeOfPaymentHeader8  int                       `json:"mode_of_payment_header_8"`
+		ModeOfPaymentHeader9  int                       `json:"mode_of_payment_header_9"`
+		ModeOfPaymentHeader10 int                       `json:"mode_of_payment_header_10"`
+		ModeOfPaymentHeader11 int                       `json:"mode_of_payment_header_11"`
+		ModeOfPaymentHeader12 int                       `json:"mode_of_payment_header_12"`
+		ModeOfPaymentHeader13 int                       `json:"mode_of_payment_header_13"`
+		ModeOfPaymentHeader14 int                       `json:"mode_of_payment_header_14"`
+		ModeOfPaymentHeader15 int                       `json:"mode_of_payment_header_15"`
+		ModeOfPaymentHeader16 int                       `json:"mode_of_payment_header_16"`
+		ModeOfPaymentHeader17 int                       `json:"mode_of_payment_header_17"`
+		ModeOfPaymentHeader18 int                       `json:"mode_of_payment_header_18"`
+		ModeOfPaymentHeader19 int                       `json:"mode_of_payment_header_19"`
+		ModeOfPaymentHeader20 int                       `json:"mode_of_payment_header_20"`
+		ModeOfPaymentHeader21 int                       `json:"mode_of_payment_header_21"`
+		ModeOfPaymentHeader22 int                       `json:"mode_of_payment_header_22"`
 	}
 
 	ChargesRateSchemeRequest struct {
@@ -110,6 +160,7 @@ func (m *Model) ChargesRateScheme() {
 			"MemberType",
 			"ChargesRateSchemeAccounts",
 			"ChargesRateByRangeOrMinimumAmounts",
+			"ChargesRateSchemeModelOfPayments",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *ChargesRateScheme) *ChargesRateSchemeResponse {
@@ -138,9 +189,34 @@ func (m *Model) ChargesRateScheme() {
 
 				ChargesRateByRangeOrMinimumAmounts: m.ChargesRateByRangeOrMinimumAmountManager.ToModels(data.ChargesRateByRangeOrMinimumAmounts),
 
+				ChargesRateSchemeModelOfPayments: m.ChargesRateSchemeModelOfPaymentManager.ToModels(data.ChargesRateSchemeModelOfPayments),
+
 				MemberTypeID:  data.MemberTypeID,
 				MemberType:    m.MemberTypeManager.ToModel(data.MemberType),
 				ModeOfPayment: data.ModeOfPayment,
+
+				ModeOfPaymentHeader1:  data.ModeOfPaymentHeader1,
+				ModeOfPaymentHeader2:  data.ModeOfPaymentHeader2,
+				ModeOfPaymentHeader3:  data.ModeOfPaymentHeader3,
+				ModeOfPaymentHeader4:  data.ModeOfPaymentHeader4,
+				ModeOfPaymentHeader5:  data.ModeOfPaymentHeader5,
+				ModeOfPaymentHeader6:  data.ModeOfPaymentHeader6,
+				ModeOfPaymentHeader7:  data.ModeOfPaymentHeader7,
+				ModeOfPaymentHeader8:  data.ModeOfPaymentHeader8,
+				ModeOfPaymentHeader9:  data.ModeOfPaymentHeader9,
+				ModeOfPaymentHeader10: data.ModeOfPaymentHeader10,
+				ModeOfPaymentHeader11: data.ModeOfPaymentHeader11,
+				ModeOfPaymentHeader12: data.ModeOfPaymentHeader12,
+				ModeOfPaymentHeader13: data.ModeOfPaymentHeader13,
+				ModeOfPaymentHeader14: data.ModeOfPaymentHeader14,
+				ModeOfPaymentHeader15: data.ModeOfPaymentHeader15,
+				ModeOfPaymentHeader16: data.ModeOfPaymentHeader16,
+				ModeOfPaymentHeader17: data.ModeOfPaymentHeader17,
+				ModeOfPaymentHeader18: data.ModeOfPaymentHeader18,
+				ModeOfPaymentHeader19: data.ModeOfPaymentHeader19,
+				ModeOfPaymentHeader20: data.ModeOfPaymentHeader20,
+				ModeOfPaymentHeader21: data.ModeOfPaymentHeader21,
+				ModeOfPaymentHeader22: data.ModeOfPaymentHeader22,
 			}
 		},
 		Created: func(data *ChargesRateScheme) []string {

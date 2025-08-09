@@ -200,7 +200,8 @@ type (
 		JournalVoucherManager      horizon_services.Repository[JournalVoucher, JournalVoucherResponse, JournalVoucherRequest]
 		JournalVoucherTagManager   horizon_services.Repository[JournalVoucherTag, JournalVoucherTagResponse, JournalVoucherTagRequest]
 
-		FundsManager horizon_services.Repository[Funds, FundsResponse, FundsRequest]
+		FundsManager                           horizon_services.Repository[Funds, FundsResponse, FundsRequest]
+		ChargesRateSchemeModelOfPaymentManager horizon_services.Repository[ChargesRateSchemeModelOfPayment, ChargesRateSchemeModelOfPaymentResponse, ChargesRateSchemeModelOfPaymentRequest]
 	}
 )
 
@@ -345,6 +346,7 @@ func (c *Model) Start(context context.Context) error {
 	c.MemberDepartment()
 	c.MemberDepartmentHistory()
 	c.Funds()
+	c.ChargesRateSchemeModelOfPayment()
 
 	return nil
 }
