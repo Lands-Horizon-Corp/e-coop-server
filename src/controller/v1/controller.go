@@ -132,6 +132,7 @@ func (c *Controller) Start() error {
 	// Charges rate scheme
 	c.ChargesRateSchemeController()
 	c.ChargesRateByRangeOrMinimumAmountController()
+	c.ChargesRateSchemeModelOfPaymentController()
 	return nil
 }
 
