@@ -122,6 +122,7 @@ func (c *Controller) Start() error {
 	c.AutomaticLoanDeductionController()
 	c.BrowseExcludeIncludeAccountsController()
 	c.IncludeNegativeAccountController()
+	c.MemberDepartmentController()
 
 	return nil
 }

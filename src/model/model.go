@@ -100,6 +100,8 @@ type (
 		MemberVerificationManager           horizon_services.Repository[MemberVerification, MemberVerificationResponse, MemberVerificationRequest]
 		MemberProfileManager                horizon_services.Repository[MemberProfile, MemberProfileResponse, MemberProfileRequest]
 		CollectorsMemberAccountEntryManager horizon_services.Repository[CollectorsMemberAccountEntry, CollectorsMemberAccountEntryResponse, CollectorsMemberAccountEntryRequest]
+		MemberDepartmentManager             horizon_services.Repository[MemberDepartment, MemberDepartmentResponse, MemberDepartmentRequest]
+		MemberDepartmentHistoryManager      horizon_services.Repository[MemberDepartmentHistory, MemberDepartmentHistoryResponse, MemberDepartmentHistoryRequest]
 
 		// Employee Feature
 		TimesheetManager horizon_services.Repository[Timesheet, TimesheetResponse, TimesheetRequest]
@@ -342,6 +344,8 @@ func (c *Model) Start(context context.Context) error {
 	c.UserOrganization()
 	c.UserRating()
 	c.VoucherPayTo()
+	c.MemberDepartment()
+	c.MemberDepartmentHistory()
 
 	return nil
 }
