@@ -36,6 +36,10 @@ type (
 
 		Name        string `gorm:"type:varchar(255);not null;unique"`
 		Description string `gorm:"type:text;not null;unique"`
+		Icon        string `gorm:"type:varchar(255)"`
+
+		// One-to-many relationship with ChargesRateSchemeAccount
+		ChargesRateSchemeAccounts []*ChargesRateSchemeAccount `gorm:"foreignKey:ChargesRateSchemeID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"charges_rate_scheme_accounts,omitempty"`
 	}
 
 	ChargesRateSchemeResponse struct {
@@ -56,13 +60,18 @@ type (
 		ChargesRateMemberTypeModeOfPayment   *ChargesRateMemberTypeModeOfPaymentResponse `json:"charges_rate_member_type_mode_of_payment,omitempty"`
 		Name                                 string                                      `json:"name"`
 		Description                          string                                      `json:"description"`
+		Icon                                 string                                      `json:"icon"`
+
+		ChargesRateSchemeAccounts []*ChargesRateSchemeAccountResponse `json:"charges_rate_scheme_accounts,omitempty"`
 	}
 
 	ChargesRateSchemeRequest struct {
-		ChargesRateByTermHeaderID            uuid.UUID `json:"charges_rate_by_term_header_id,omitempty"`
-		ChargesRateMemberTypeModeOfPaymentID uuid.UUID `json:"charges_rate_member_type_mode_of_payment_id,omitempty"`
-		Name                                 string    `json:"name" validate:"required,min=1,max=255"`
-		Description                          string    `json:"description" validate:"required"`
+		ChargesRateByTermHeaderID            uuid.UUID   `json:"charges_rate_by_term_header_id,omitempty"`
+		ChargesRateMemberTypeModeOfPaymentID uuid.UUID   `json:"charges_rate_member_type_mode_of_payment_id,omitempty"`
+		Name                                 string      `json:"name" validate:"required,min=1,max=255"`
+		Description                          string      `json:"description" validate:"required"`
+		Icon                                 string      `json:"icon,omitempty"`
+		AccountIDs                           []uuid.UUID `json:"account_ids,omitempty"`
 	}
 )
 
@@ -72,7 +81,7 @@ func (m *Model) ChargesRateScheme() {
 		ChargesRateScheme, ChargesRateSchemeResponse, ChargesRateSchemeRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization", "ChargesRateByTermHeader", "ChargesRateMemberTypeModeOfPayment",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization", "ChargesRateByTermHeader", "ChargesRateMemberTypeModeOfPayment", "ChargesRateSchemeAccounts",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *ChargesRateScheme) *ChargesRateSchemeResponse {
@@ -97,6 +106,9 @@ func (m *Model) ChargesRateScheme() {
 				ChargesRateMemberTypeModeOfPayment:   m.ChargesRateMemberTypeModeOfPaymentManager.ToModel(data.ChargesRateMemberTypeModeOfPayment),
 				Name:                                 data.Name,
 				Description:                          data.Description,
+				Icon:                                 data.Icon,
+
+				ChargesRateSchemeAccounts: m.ChargesRateSchemeAccountManager.ToModels(data.ChargesRateSchemeAccounts),
 			}
 		},
 		Created: func(data *ChargesRateScheme) []string {
