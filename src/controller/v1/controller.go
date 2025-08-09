@@ -124,7 +124,7 @@ func (c *Controller) Start() error {
 	c.IncludeNegativeAccountController()
 	c.MemberDepartmentController()
 	c.TimeDepositTypeController()
-	c.TimeDepositComputation()
+	c.TimeDepositComputationController()
 
 	return nil
 }
