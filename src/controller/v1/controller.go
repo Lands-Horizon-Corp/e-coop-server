@@ -123,9 +123,11 @@ func (c *Controller) Start() error {
 	c.BrowseExcludeIncludeAccountsController()
 	c.IncludeNegativeAccountController()
 	c.MemberDepartmentController()
+
+	// Time deposit
 	c.TimeDepositTypeController()
 	c.TimeDepositComputationController()
-
+	c.TimeDepositComputationPreMatureController()
 	return nil
 }
 

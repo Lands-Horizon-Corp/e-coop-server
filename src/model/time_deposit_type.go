@@ -49,6 +49,9 @@ type (
 
 		// One-to-many relationship with TimeDepositComputation
 		TimeDepositComputations []*TimeDepositComputation `gorm:"foreignKey:TimeDepositTypeID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"time_deposit_computations,omitempty"`
+
+		// One-to-many relationship with TimeDepositComputationPreMature
+		TimeDepositComputationPreMatures []*TimeDepositComputationPreMature `gorm:"foreignKey:TimeDepositTypeID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"time_deposit_computation_pre_matures,omitempty"`
 	}
 
 	TimeDepositTypeResponse struct {
@@ -83,6 +86,8 @@ type (
 		Excess        float64 `json:"excess"`
 
 		TimeDepositComputations []*TimeDepositComputationResponse `json:"time_deposit_computations,omitempty"`
+
+		TimeDepositComputationPreMatures []*TimeDepositComputationPreMatureResponse `json:"time_deposit_computation_pre_matures,omitempty"`
 	}
 
 	TimeDepositTypeRequest struct {
@@ -113,7 +118,7 @@ func (m *Model) TimeDepositType() {
 		TimeDepositType, TimeDepositTypeResponse, TimeDepositTypeRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization", "TimeDepositComputations",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization", "TimeDepositComputations", "TimeDepositComputationPreMatures",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *TimeDepositType) *TimeDepositTypeResponse {
@@ -151,7 +156,8 @@ func (m *Model) TimeDepositType() {
 				PreMatureRate: data.PreMatureRate,
 				Excess:        data.Excess,
 
-				TimeDepositComputations: m.TimeDepositComputationManager.ToModels(data.TimeDepositComputations),
+				TimeDepositComputations:          m.TimeDepositComputationManager.ToModels(data.TimeDepositComputations),
+				TimeDepositComputationPreMatures: m.TimeDepositComputationPreMatureManager.ToModels(data.TimeDepositComputationPreMatures),
 			}
 		},
 
