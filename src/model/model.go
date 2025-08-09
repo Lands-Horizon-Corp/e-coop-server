@@ -201,6 +201,8 @@ type (
 		CashCheckVoucherTagManager horizon_services.Repository[CashCheckVoucherTag, CashCheckVoucherTagResponse, CashCheckVoucherTagRequest]
 		JournalVoucherManager      horizon_services.Repository[JournalVoucher, JournalVoucherResponse, JournalVoucherRequest]
 		JournalVoucherTagManager   horizon_services.Repository[JournalVoucherTag, JournalVoucherTagResponse, JournalVoucherTagRequest]
+
+		FundsManager horizon_services.Repository[Funds, FundsResponse, FundsRequest]
 	}
 )
 
@@ -346,6 +348,7 @@ func (c *Model) Start(context context.Context) error {
 	c.VoucherPayTo()
 	c.MemberDepartment()
 	c.MemberDepartmentHistory()
+	c.Funds()
 
 	return nil
 }
