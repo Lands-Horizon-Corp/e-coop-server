@@ -54,8 +54,8 @@ type (
 		// One-to-many relationship with ChargesRateByRangeOrMinimumAmount
 		ChargesRateByRangeOrMinimumAmounts []*ChargesRateByRangeOrMinimumAmount `gorm:"foreignKey:ChargesRateSchemeID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"charges_rate_by_range_or_minimum_amounts,omitempty"`
 
-		// One-to-many relationship with ChargesRateSchemeModelOfPayment
-		ChargesRateSchemeModelOfPayments []*ChargesRateSchemeModelOfPayment `gorm:"foreignKey:ChargesRateSchemeID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"charges_rate_scheme_model_of_payments,omitempty"`
+		// One-to-many relationship with ChargesRateSchemeModeOfPayment
+		ChargesRateSchemeModeOfPayments []*ChargesRateSchemeModeOfPayment `gorm:"foreignKey:ChargesRateSchemeID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"charges_rate_scheme_model_of_payments,omitempty"`
 
 		// One-to-many relationship with ChargesRateByTerm
 		ChargesRateByTerms []*ChargesRateByTerm `gorm:"foreignKey:ChargesRateSchemeID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"charges_rate_by_terms,omitempty"`
@@ -136,7 +136,7 @@ type (
 
 		ChargesRateByRangeOrMinimumAmounts []*ChargesRateByRangeOrMinimumAmountResponse `json:"charges_rate_by_range_or_minimum_amounts,omitempty"`
 
-		ChargesRateSchemeModelOfPayments []*ChargesRateSchemeModelOfPaymentResponse `json:"charges_rate_scheme_model_of_payments,omitempty"`
+		ChargesRateSchemeModeOfPayments []*ChargesRateSchemeModeOfPaymentResponse `json:"charges_rate_scheme_model_of_payments,omitempty"`
 
 		ChargesRateByTerms []*ChargesRateByTermResponse `json:"charges_rate_by_terms,omitempty"`
 
@@ -259,7 +259,7 @@ func (m *Model) ChargesRateScheme() {
 			"MemberType",
 			"ChargesRateSchemeAccounts",
 			"ChargesRateByRangeOrMinimumAmounts",
-			"ChargesRateSchemeModelOfPayments",
+			"ChargesRateSchemeModeOfPayments",
 			"ChargesRateByTerms",
 		},
 		Service: m.provider.Service,
@@ -289,7 +289,7 @@ func (m *Model) ChargesRateScheme() {
 
 				ChargesRateByRangeOrMinimumAmounts: m.ChargesRateByRangeOrMinimumAmountManager.ToModels(data.ChargesRateByRangeOrMinimumAmounts),
 
-				ChargesRateSchemeModelOfPayments: m.ChargesRateSchemeModelOfPaymentManager.ToModels(data.ChargesRateSchemeModelOfPayments),
+				ChargesRateSchemeModeOfPayments: m.ChargesRateSchemeModeOfPaymentManager.ToModels(data.ChargesRateSchemeModeOfPayments),
 
 				ChargesRateByTerms: m.ChargesRateByTermManager.ToModels(data.ChargesRateByTerms),
 

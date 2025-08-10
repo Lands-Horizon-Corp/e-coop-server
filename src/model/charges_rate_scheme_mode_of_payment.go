@@ -11,7 +11,7 @@ import (
 )
 
 type (
-	ChargesRateSchemeModelOfPayment struct {
+	ChargesRateSchemeModeOfPayment struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
 		CreatedByID uuid.UUID      `gorm:"type:uuid"`
@@ -58,7 +58,7 @@ type (
 		Column22 float64 `gorm:"type:decimal;default:0"`
 	}
 
-	ChargesRateSchemeModelOfPaymentResponse struct {
+	ChargesRateSchemeModeOfPaymentResponse struct {
 		ID                  uuid.UUID                  `json:"id"`
 		CreatedAt           string                     `json:"created_at"`
 		CreatedByID         uuid.UUID                  `json:"created_by_id"`
@@ -99,7 +99,7 @@ type (
 		Column22 float64 `json:"column22"`
 	}
 
-	ChargesRateSchemeModelOfPaymentRequest struct {
+	ModeOfPayment struct {
 		ChargesRateSchemeID uuid.UUID `json:"charges_rate_scheme_id" validate:"required"`
 		From                int       `json:"from,omitempty"`
 		To                  int       `json:"to,omitempty"`
@@ -129,20 +129,20 @@ type (
 	}
 )
 
-func (m *Model) ChargesRateSchemeModelOfPayment() {
-	m.Migration = append(m.Migration, &ChargesRateSchemeModelOfPayment{})
-	m.ChargesRateSchemeModelOfPaymentManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
-		ChargesRateSchemeModelOfPayment, ChargesRateSchemeModelOfPaymentResponse, ChargesRateSchemeModelOfPaymentRequest,
+func (m *Model) ChargesRateSchemeModeOfPayment() {
+	m.Migration = append(m.Migration, &ChargesRateSchemeModeOfPayment{})
+	m.ChargesRateSchemeModeOfPaymentManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+		ChargesRateSchemeModeOfPayment, ChargesRateSchemeModeOfPaymentResponse, ModeOfPayment,
 	]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Branch", "Organization", "ChargesRateScheme",
 		},
 		Service: m.provider.Service,
-		Resource: func(data *ChargesRateSchemeModelOfPayment) *ChargesRateSchemeModelOfPaymentResponse {
+		Resource: func(data *ChargesRateSchemeModeOfPayment) *ChargesRateSchemeModeOfPaymentResponse {
 			if data == nil {
 				return nil
 			}
-			return &ChargesRateSchemeModelOfPaymentResponse{
+			return &ChargesRateSchemeModeOfPaymentResponse{
 				ID:                  data.ID,
 				CreatedAt:           data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:         data.CreatedByID,
@@ -182,7 +182,7 @@ func (m *Model) ChargesRateSchemeModelOfPayment() {
 				Column22:            data.Column22,
 			}
 		},
-		Created: func(data *ChargesRateSchemeModelOfPayment) []string {
+		Created: func(data *ChargesRateSchemeModeOfPayment) []string {
 			return []string{
 				"charges_rate_scheme_model_of_payment.create",
 				fmt.Sprintf("charges_rate_scheme_model_of_payment.create.%s", data.ID),
@@ -190,7 +190,7 @@ func (m *Model) ChargesRateSchemeModelOfPayment() {
 				fmt.Sprintf("charges_rate_scheme_model_of_payment.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *ChargesRateSchemeModelOfPayment) []string {
+		Updated: func(data *ChargesRateSchemeModeOfPayment) []string {
 			return []string{
 				"charges_rate_scheme_model_of_payment.update",
 				fmt.Sprintf("charges_rate_scheme_model_of_payment.update.%s", data.ID),
@@ -198,7 +198,7 @@ func (m *Model) ChargesRateSchemeModelOfPayment() {
 				fmt.Sprintf("charges_rate_scheme_model_of_payment.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *ChargesRateSchemeModelOfPayment) []string {
+		Deleted: func(data *ChargesRateSchemeModeOfPayment) []string {
 			return []string{
 				"charges_rate_scheme_model_of_payment.delete",
 				fmt.Sprintf("charges_rate_scheme_model_of_payment.delete.%s", data.ID),
@@ -209,8 +209,8 @@ func (m *Model) ChargesRateSchemeModelOfPayment() {
 	})
 }
 
-func (m *Model) ChargesRateSchemeModelOfPaymentCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ChargesRateSchemeModelOfPayment, error) {
-	return m.ChargesRateSchemeModelOfPaymentManager.Find(context, &ChargesRateSchemeModelOfPayment{
+func (m *Model) ChargesRateSchemeModeOfPaymentCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ChargesRateSchemeModeOfPayment, error) {
+	return m.ChargesRateSchemeModeOfPaymentManager.Find(context, &ChargesRateSchemeModeOfPayment{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})
