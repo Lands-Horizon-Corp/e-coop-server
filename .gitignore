@@ -32,3 +32,6 @@ main
 .env.development
 .env.local
 .env.staging
+
+vendor/
+app
