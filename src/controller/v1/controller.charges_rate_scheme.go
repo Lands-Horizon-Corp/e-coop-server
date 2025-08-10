@@ -100,12 +100,58 @@ func (c *Controller) ChargesRateSchemeController() {
 			Name:                      req.Name,
 			Description:               req.Description,
 			Icon:                      req.Icon,
-			CreatedAt:                 time.Now().UTC(),
-			CreatedByID:               user.UserID,
-			UpdatedAt:                 time.Now().UTC(),
-			UpdatedByID:               user.UserID,
-			BranchID:                  *user.BranchID,
-			OrganizationID:            user.OrganizationID,
+			// ModeOfPayment header fields
+			ModeOfPaymentHeader1:  req.ModeOfPaymentHeader1,
+			ModeOfPaymentHeader2:  req.ModeOfPaymentHeader2,
+			ModeOfPaymentHeader3:  req.ModeOfPaymentHeader3,
+			ModeOfPaymentHeader4:  req.ModeOfPaymentHeader4,
+			ModeOfPaymentHeader5:  req.ModeOfPaymentHeader5,
+			ModeOfPaymentHeader6:  req.ModeOfPaymentHeader6,
+			ModeOfPaymentHeader7:  req.ModeOfPaymentHeader7,
+			ModeOfPaymentHeader8:  req.ModeOfPaymentHeader8,
+			ModeOfPaymentHeader9:  req.ModeOfPaymentHeader9,
+			ModeOfPaymentHeader10: req.ModeOfPaymentHeader10,
+			ModeOfPaymentHeader11: req.ModeOfPaymentHeader11,
+			ModeOfPaymentHeader12: req.ModeOfPaymentHeader12,
+			ModeOfPaymentHeader13: req.ModeOfPaymentHeader13,
+			ModeOfPaymentHeader14: req.ModeOfPaymentHeader14,
+			ModeOfPaymentHeader15: req.ModeOfPaymentHeader15,
+			ModeOfPaymentHeader16: req.ModeOfPaymentHeader16,
+			ModeOfPaymentHeader17: req.ModeOfPaymentHeader17,
+			ModeOfPaymentHeader18: req.ModeOfPaymentHeader18,
+			ModeOfPaymentHeader19: req.ModeOfPaymentHeader19,
+			ModeOfPaymentHeader20: req.ModeOfPaymentHeader20,
+			ModeOfPaymentHeader21: req.ModeOfPaymentHeader21,
+			ModeOfPaymentHeader22: req.ModeOfPaymentHeader22,
+			// ByTerm header fields
+			ByTermHeader1:  req.ByTermHeader1,
+			ByTermHeader2:  req.ByTermHeader2,
+			ByTermHeader3:  req.ByTermHeader3,
+			ByTermHeader4:  req.ByTermHeader4,
+			ByTermHeader5:  req.ByTermHeader5,
+			ByTermHeader6:  req.ByTermHeader6,
+			ByTermHeader7:  req.ByTermHeader7,
+			ByTermHeader8:  req.ByTermHeader8,
+			ByTermHeader9:  req.ByTermHeader9,
+			ByTermHeader10: req.ByTermHeader10,
+			ByTermHeader11: req.ByTermHeader11,
+			ByTermHeader12: req.ByTermHeader12,
+			ByTermHeader13: req.ByTermHeader13,
+			ByTermHeader14: req.ByTermHeader14,
+			ByTermHeader15: req.ByTermHeader15,
+			ByTermHeader16: req.ByTermHeader16,
+			ByTermHeader17: req.ByTermHeader17,
+			ByTermHeader18: req.ByTermHeader18,
+			ByTermHeader19: req.ByTermHeader19,
+			ByTermHeader20: req.ByTermHeader20,
+			ByTermHeader21: req.ByTermHeader21,
+			ByTermHeader22: req.ByTermHeader22,
+			CreatedAt:      time.Now().UTC(),
+			CreatedByID:    user.UserID,
+			UpdatedAt:      time.Now().UTC(),
+			UpdatedByID:    user.UserID,
+			BranchID:       *user.BranchID,
+			OrganizationID: user.OrganizationID,
 		}
 
 		if err := c.model.ChargesRateSchemeManager.Create(context, chargesRateScheme); err != nil {
@@ -202,6 +248,52 @@ func (c *Controller) ChargesRateSchemeController() {
 		chargesRateScheme.Name = req.Name
 		chargesRateScheme.Description = req.Description
 		chargesRateScheme.Icon = req.Icon
+		// ModeOfPayment header fields
+		chargesRateScheme.ModeOfPaymentHeader1 = req.ModeOfPaymentHeader1
+		chargesRateScheme.ModeOfPaymentHeader2 = req.ModeOfPaymentHeader2
+		chargesRateScheme.ModeOfPaymentHeader3 = req.ModeOfPaymentHeader3
+		chargesRateScheme.ModeOfPaymentHeader4 = req.ModeOfPaymentHeader4
+		chargesRateScheme.ModeOfPaymentHeader5 = req.ModeOfPaymentHeader5
+		chargesRateScheme.ModeOfPaymentHeader6 = req.ModeOfPaymentHeader6
+		chargesRateScheme.ModeOfPaymentHeader7 = req.ModeOfPaymentHeader7
+		chargesRateScheme.ModeOfPaymentHeader8 = req.ModeOfPaymentHeader8
+		chargesRateScheme.ModeOfPaymentHeader9 = req.ModeOfPaymentHeader9
+		chargesRateScheme.ModeOfPaymentHeader10 = req.ModeOfPaymentHeader10
+		chargesRateScheme.ModeOfPaymentHeader11 = req.ModeOfPaymentHeader11
+		chargesRateScheme.ModeOfPaymentHeader12 = req.ModeOfPaymentHeader12
+		chargesRateScheme.ModeOfPaymentHeader13 = req.ModeOfPaymentHeader13
+		chargesRateScheme.ModeOfPaymentHeader14 = req.ModeOfPaymentHeader14
+		chargesRateScheme.ModeOfPaymentHeader15 = req.ModeOfPaymentHeader15
+		chargesRateScheme.ModeOfPaymentHeader16 = req.ModeOfPaymentHeader16
+		chargesRateScheme.ModeOfPaymentHeader17 = req.ModeOfPaymentHeader17
+		chargesRateScheme.ModeOfPaymentHeader18 = req.ModeOfPaymentHeader18
+		chargesRateScheme.ModeOfPaymentHeader19 = req.ModeOfPaymentHeader19
+		chargesRateScheme.ModeOfPaymentHeader20 = req.ModeOfPaymentHeader20
+		chargesRateScheme.ModeOfPaymentHeader21 = req.ModeOfPaymentHeader21
+		chargesRateScheme.ModeOfPaymentHeader22 = req.ModeOfPaymentHeader22
+		// ByTerm header fields
+		chargesRateScheme.ByTermHeader1 = req.ByTermHeader1
+		chargesRateScheme.ByTermHeader2 = req.ByTermHeader2
+		chargesRateScheme.ByTermHeader3 = req.ByTermHeader3
+		chargesRateScheme.ByTermHeader4 = req.ByTermHeader4
+		chargesRateScheme.ByTermHeader5 = req.ByTermHeader5
+		chargesRateScheme.ByTermHeader6 = req.ByTermHeader6
+		chargesRateScheme.ByTermHeader7 = req.ByTermHeader7
+		chargesRateScheme.ByTermHeader8 = req.ByTermHeader8
+		chargesRateScheme.ByTermHeader9 = req.ByTermHeader9
+		chargesRateScheme.ByTermHeader10 = req.ByTermHeader10
+		chargesRateScheme.ByTermHeader11 = req.ByTermHeader11
+		chargesRateScheme.ByTermHeader12 = req.ByTermHeader12
+		chargesRateScheme.ByTermHeader13 = req.ByTermHeader13
+		chargesRateScheme.ByTermHeader14 = req.ByTermHeader14
+		chargesRateScheme.ByTermHeader15 = req.ByTermHeader15
+		chargesRateScheme.ByTermHeader16 = req.ByTermHeader16
+		chargesRateScheme.ByTermHeader17 = req.ByTermHeader17
+		chargesRateScheme.ByTermHeader18 = req.ByTermHeader18
+		chargesRateScheme.ByTermHeader19 = req.ByTermHeader19
+		chargesRateScheme.ByTermHeader20 = req.ByTermHeader20
+		chargesRateScheme.ByTermHeader21 = req.ByTermHeader21
+		chargesRateScheme.ByTermHeader22 = req.ByTermHeader22
 		chargesRateScheme.UpdatedAt = time.Now().UTC()
 		chargesRateScheme.UpdatedByID = user.UserID
 		if err := c.model.ChargesRateSchemeManager.UpdateFields(context, chargesRateScheme.ID, chargesRateScheme); err != nil {

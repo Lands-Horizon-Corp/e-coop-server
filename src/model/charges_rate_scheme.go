@@ -57,6 +57,10 @@ type (
 		// One-to-many relationship with ChargesRateSchemeModelOfPayment
 		ChargesRateSchemeModelOfPayments []*ChargesRateSchemeModelOfPayment `gorm:"foreignKey:ChargesRateSchemeID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"charges_rate_scheme_model_of_payments,omitempty"`
 
+		// One-to-many relationship with ChargesRateByTerm
+		ChargesRateByTerms []*ChargesRateByTerm `gorm:"foreignKey:ChargesRateSchemeID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"charges_rate_by_terms,omitempty"`
+
+		// By type / MOP / Terms
 		MemberTypeID  uuid.UUID                 `gorm:"type:uuid;not null"`
 		MemberType    *MemberType               `gorm:"foreignKey:MemberTypeID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_type,omitempty"`
 		ModeOfPayment ChargesRateMemberTypeEnum `gorm:"type:varchar(20);default:'all'"`
@@ -83,6 +87,30 @@ type (
 		ModeOfPaymentHeader20 int `gorm:"default:0"`
 		ModeOfPaymentHeader21 int `gorm:"default:0"`
 		ModeOfPaymentHeader22 int `gorm:"default:0"`
+
+		// By Terms
+		ByTermHeader1  int `gorm:"default:0"`
+		ByTermHeader2  int `gorm:"default:0"`
+		ByTermHeader3  int `gorm:"default:0"`
+		ByTermHeader4  int `gorm:"default:0"`
+		ByTermHeader5  int `gorm:"default:0"`
+		ByTermHeader6  int `gorm:"default:0"`
+		ByTermHeader7  int `gorm:"default:0"`
+		ByTermHeader8  int `gorm:"default:0"`
+		ByTermHeader9  int `gorm:"default:0"`
+		ByTermHeader10 int `gorm:"default:0"`
+		ByTermHeader11 int `gorm:"default:0"`
+		ByTermHeader12 int `gorm:"default:0"`
+		ByTermHeader13 int `gorm:"default:0"`
+		ByTermHeader14 int `gorm:"default:0"`
+		ByTermHeader15 int `gorm:"default:0"`
+		ByTermHeader16 int `gorm:"default:0"`
+		ByTermHeader17 int `gorm:"default:0"`
+		ByTermHeader18 int `gorm:"default:0"`
+		ByTermHeader19 int `gorm:"default:0"`
+		ByTermHeader20 int `gorm:"default:0"`
+		ByTermHeader21 int `gorm:"default:0"`
+		ByTermHeader22 int `gorm:"default:0"`
 	}
 
 	ChargesRateSchemeResponse struct {
@@ -110,6 +138,8 @@ type (
 
 		ChargesRateSchemeModelOfPayments []*ChargesRateSchemeModelOfPaymentResponse `json:"charges_rate_scheme_model_of_payments,omitempty"`
 
+		ChargesRateByTerms []*ChargesRateByTermResponse `json:"charges_rate_by_terms,omitempty"`
+
 		MemberTypeID          uuid.UUID                 `json:"member_type_id"`
 		MemberType            *MemberTypeResponse       `json:"member_type,omitempty"`
 		ModeOfPayment         ChargesRateMemberTypeEnum `json:"mode_of_payment"`
@@ -135,6 +165,29 @@ type (
 		ModeOfPaymentHeader20 int                       `json:"mode_of_payment_header_20"`
 		ModeOfPaymentHeader21 int                       `json:"mode_of_payment_header_21"`
 		ModeOfPaymentHeader22 int                       `json:"mode_of_payment_header_22"`
+
+		ByTermHeader1  int `json:"by_term_header_1"`
+		ByTermHeader2  int `json:"by_term_header_2"`
+		ByTermHeader3  int `json:"by_term_header_3"`
+		ByTermHeader4  int `json:"by_term_header_4"`
+		ByTermHeader5  int `json:"by_term_header_5"`
+		ByTermHeader6  int `json:"by_term_header_6"`
+		ByTermHeader7  int `json:"by_term_header_7"`
+		ByTermHeader8  int `json:"by_term_header_8"`
+		ByTermHeader9  int `json:"by_term_header_9"`
+		ByTermHeader10 int `json:"by_term_header_10"`
+		ByTermHeader11 int `json:"by_term_header_11"`
+		ByTermHeader12 int `json:"by_term_header_12"`
+		ByTermHeader13 int `json:"by_term_header_13"`
+		ByTermHeader14 int `json:"by_term_header_14"`
+		ByTermHeader15 int `json:"by_term_header_15"`
+		ByTermHeader16 int `json:"by_term_header_16"`
+		ByTermHeader17 int `json:"by_term_header_17"`
+		ByTermHeader18 int `json:"by_term_header_18"`
+		ByTermHeader19 int `json:"by_term_header_19"`
+		ByTermHeader20 int `json:"by_term_header_20"`
+		ByTermHeader21 int `json:"by_term_header_21"`
+		ByTermHeader22 int `json:"by_term_header_22"`
 	}
 
 	ChargesRateSchemeRequest struct {
@@ -146,6 +199,52 @@ type (
 
 		MemberTypeID  uuid.UUID                 `json:"member_type_id" validate:"required"`
 		ModeOfPayment ChargesRateMemberTypeEnum `json:"mode_of_payment,omitempty" validate:"omitempty,oneof=all daily weekly monthly semi-monthly quarterly semi-annual lumpsum"`
+
+		ModeOfPaymentHeader1  int `json:"mode_of_payment_header_1,omitempty"`
+		ModeOfPaymentHeader2  int `json:"mode_of_payment_header_2,omitempty"`
+		ModeOfPaymentHeader3  int `json:"mode_of_payment_header_3,omitempty"`
+		ModeOfPaymentHeader4  int `json:"mode_of_payment_header_4,omitempty"`
+		ModeOfPaymentHeader5  int `json:"mode_of_payment_header_5,omitempty"`
+		ModeOfPaymentHeader6  int `json:"mode_of_payment_header_6,omitempty"`
+		ModeOfPaymentHeader7  int `json:"mode_of_payment_header_7,omitempty"`
+		ModeOfPaymentHeader8  int `json:"mode_of_payment_header_8,omitempty"`
+		ModeOfPaymentHeader9  int `json:"mode_of_payment_header_9,omitempty"`
+		ModeOfPaymentHeader10 int `json:"mode_of_payment_header_10,omitempty"`
+		ModeOfPaymentHeader11 int `json:"mode_of_payment_header_11,omitempty"`
+		ModeOfPaymentHeader12 int `json:"mode_of_payment_header_12,omitempty"`
+		ModeOfPaymentHeader13 int `json:"mode_of_payment_header_13,omitempty"`
+		ModeOfPaymentHeader14 int `json:"mode_of_payment_header_14,omitempty"`
+		ModeOfPaymentHeader15 int `json:"mode_of_payment_header_15,omitempty"`
+		ModeOfPaymentHeader16 int `json:"mode_of_payment_header_16,omitempty"`
+		ModeOfPaymentHeader17 int `json:"mode_of_payment_header_17,omitempty"`
+		ModeOfPaymentHeader18 int `json:"mode_of_payment_header_18,omitempty"`
+		ModeOfPaymentHeader19 int `json:"mode_of_payment_header_19,omitempty"`
+		ModeOfPaymentHeader20 int `json:"mode_of_payment_header_20,omitempty"`
+		ModeOfPaymentHeader21 int `json:"mode_of_payment_header_21,omitempty"`
+		ModeOfPaymentHeader22 int `json:"mode_of_payment_header_22,omitempty"`
+
+		ByTermHeader1  int `json:"by_term_header_1,omitempty"`
+		ByTermHeader2  int `json:"by_term_header_2,omitempty"`
+		ByTermHeader3  int `json:"by_term_header_3,omitempty"`
+		ByTermHeader4  int `json:"by_term_header_4,omitempty"`
+		ByTermHeader5  int `json:"by_term_header_5,omitempty"`
+		ByTermHeader6  int `json:"by_term_header_6,omitempty"`
+		ByTermHeader7  int `json:"by_term_header_7,omitempty"`
+		ByTermHeader8  int `json:"by_term_header_8,omitempty"`
+		ByTermHeader9  int `json:"by_term_header_9,omitempty"`
+		ByTermHeader10 int `json:"by_term_header_10,omitempty"`
+		ByTermHeader11 int `json:"by_term_header_11,omitempty"`
+		ByTermHeader12 int `json:"by_term_header_12,omitempty"`
+		ByTermHeader13 int `json:"by_term_header_13,omitempty"`
+		ByTermHeader14 int `json:"by_term_header_14,omitempty"`
+		ByTermHeader15 int `json:"by_term_header_15,omitempty"`
+		ByTermHeader16 int `json:"by_term_header_16,omitempty"`
+		ByTermHeader17 int `json:"by_term_header_17,omitempty"`
+		ByTermHeader18 int `json:"by_term_header_18,omitempty"`
+		ByTermHeader19 int `json:"by_term_header_19,omitempty"`
+		ByTermHeader20 int `json:"by_term_header_20,omitempty"`
+		ByTermHeader21 int `json:"by_term_header_21,omitempty"`
+		ByTermHeader22 int `json:"by_term_header_22,omitempty"`
 	}
 )
 
@@ -161,6 +260,7 @@ func (m *Model) ChargesRateScheme() {
 			"ChargesRateSchemeAccounts",
 			"ChargesRateByRangeOrMinimumAmounts",
 			"ChargesRateSchemeModelOfPayments",
+			"ChargesRateByTerms",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *ChargesRateScheme) *ChargesRateSchemeResponse {
@@ -191,6 +291,8 @@ func (m *Model) ChargesRateScheme() {
 
 				ChargesRateSchemeModelOfPayments: m.ChargesRateSchemeModelOfPaymentManager.ToModels(data.ChargesRateSchemeModelOfPayments),
 
+				ChargesRateByTerms: m.ChargesRateByTermManager.ToModels(data.ChargesRateByTerms),
+
 				MemberTypeID:  data.MemberTypeID,
 				MemberType:    m.MemberTypeManager.ToModel(data.MemberType),
 				ModeOfPayment: data.ModeOfPayment,
@@ -217,6 +319,28 @@ func (m *Model) ChargesRateScheme() {
 				ModeOfPaymentHeader20: data.ModeOfPaymentHeader20,
 				ModeOfPaymentHeader21: data.ModeOfPaymentHeader21,
 				ModeOfPaymentHeader22: data.ModeOfPaymentHeader22,
+				ByTermHeader1:         data.ByTermHeader1,
+				ByTermHeader2:         data.ByTermHeader2,
+				ByTermHeader3:         data.ByTermHeader3,
+				ByTermHeader4:         data.ByTermHeader4,
+				ByTermHeader5:         data.ByTermHeader5,
+				ByTermHeader6:         data.ByTermHeader6,
+				ByTermHeader7:         data.ByTermHeader7,
+				ByTermHeader8:         data.ByTermHeader8,
+				ByTermHeader9:         data.ByTermHeader9,
+				ByTermHeader10:        data.ByTermHeader10,
+				ByTermHeader11:        data.ByTermHeader11,
+				ByTermHeader12:        data.ByTermHeader12,
+				ByTermHeader13:        data.ByTermHeader13,
+				ByTermHeader14:        data.ByTermHeader14,
+				ByTermHeader15:        data.ByTermHeader15,
+				ByTermHeader16:        data.ByTermHeader16,
+				ByTermHeader17:        data.ByTermHeader17,
+				ByTermHeader18:        data.ByTermHeader18,
+				ByTermHeader19:        data.ByTermHeader19,
+				ByTermHeader20:        data.ByTermHeader20,
+				ByTermHeader21:        data.ByTermHeader21,
+				ByTermHeader22:        data.ByTermHeader22,
 			}
 		},
 		Created: func(data *ChargesRateScheme) []string {
