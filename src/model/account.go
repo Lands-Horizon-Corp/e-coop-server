@@ -228,6 +228,9 @@ type (
 		ShowInGeneralLedgerSourceAdjustment     bool `gorm:"default:true" json:"show_in_general_ledger_source_adjustment"`
 		ShowInGeneralLedgerSourceJournalVoucher bool `gorm:"default:true" json:"show_in_general_ledger_source_journal_voucher"`
 		ShowInGeneralLedgerSourceCheckVoucher   bool `gorm:"default:true" json:"show_in_general_ledger_source_check_voucher"`
+
+		CompassionFund       bool    `gorm:"default:false" json:"compassion_fund"`
+		CompassionFundAmount float64 `gorm:"type:decimal;default:0" json:"compassion_fund_amount"`
 	}
 )
 
@@ -331,6 +334,9 @@ type AccountResponse struct {
 	ShowInGeneralLedgerSourceAdjustment     bool   `json:"show_in_general_ledger_source_adjustment"`
 	ShowInGeneralLedgerSourceJournalVoucher bool   `json:"show_in_general_ledger_source_journal_voucher"`
 	ShowInGeneralLedgerSourceCheckVoucher   bool   `json:"show_in_general_ledger_source_check_voucher"`
+
+	CompassionFund       bool    `json:"compassion_fund"`
+	CompassionFundAmount float64 `json:"compassion_fund_amount"`
 }
 
 type AccountRequest struct {
@@ -414,6 +420,9 @@ type AccountRequest struct {
 	ShowInGeneralLedgerSourceAdjustment     bool   `json:"show_in_general_ledger_source_adjustment"`
 	ShowInGeneralLedgerSourceJournalVoucher bool   `json:"show_in_general_ledger_source_journal_voucher"`
 	ShowInGeneralLedgerSourceCheckVoucher   bool   `json:"show_in_general_ledger_source_check_voucher"`
+
+	CompassionFund       bool    `json:"compassion_fund,omitempty"`
+	CompassionFundAmount float64 `json:"compassion_fund_amount,omitempty"`
 }
 
 // --- REGISTRATION ---
@@ -520,6 +529,9 @@ func (m *Model) Account() {
 				ShowInGeneralLedgerSourceAdjustment:     data.ShowInGeneralLedgerSourceAdjustment,
 				ShowInGeneralLedgerSourceJournalVoucher: data.ShowInGeneralLedgerSourceJournalVoucher,
 				ShowInGeneralLedgerSourceCheckVoucher:   data.ShowInGeneralLedgerSourceCheckVoucher,
+
+				CompassionFund:       data.CompassionFund,
+				CompassionFundAmount: data.CompassionFundAmount,
 			}
 		},
 		Created: func(data *Account) []string {

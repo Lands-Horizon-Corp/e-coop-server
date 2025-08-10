@@ -40,6 +40,8 @@ type (
 		MemberGroup                    *MemberGroup          `gorm:"foreignKey:MemberGroupID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_group,omitempty"`
 		MemberGenderID                 *uuid.UUID            `gorm:"type:uuid" json:"member_gender_id,omitempty"`
 		MemberGender                   *MemberGender         `gorm:"foreignKey:MemberGenderID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_gender,omitempty"`
+		MemberDepartmentID             *uuid.UUID            `gorm:"type:uuid" json:"member_department_id,omitempty"`
+		MemberDepartment               *MemberDepartment     `gorm:"foreignKey:MemberDepartmentID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_department,omitempty"`
 		MemberCenterID                 *uuid.UUID            `gorm:"type:uuid" json:"member_center_id,omitempty"`
 		MemberCenter                   *MemberCenter         `gorm:"foreignKey:MemberCenterID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_center,omitempty"`
 		MemberOccupationID             *uuid.UUID            `gorm:"type:uuid" json:"member_occupation_id,omitempty"`
@@ -106,6 +108,8 @@ type (
 		MemberGroup                    *MemberGroupResponse          `json:"member_group,omitempty"`
 		MemberGenderID                 *uuid.UUID                    `json:"member_gender_id,omitempty"`
 		MemberGender                   *MemberGenderResponse         `json:"member_gender,omitempty"`
+		MemberDepartmentID             *uuid.UUID                    `json:"member_department_id,omitempty"`
+		MemberDepartment               *MemberDepartmentResponse     `json:"member_department,omitempty"`
 		MemberCenterID                 *uuid.UUID                    `json:"member_center_id,omitempty"`
 		MemberCenter                   *MemberCenterResponse         `json:"member_center,omitempty"`
 		MemberOccupationID             *uuid.UUID                    `json:"member_occupation_id,omitempty"`
@@ -124,7 +128,7 @@ type (
 		LastName                       string                        `json:"last_name"`
 		FullName                       string                        `json:"full_name"`
 		Suffix                         string                        `json:"suffix"`
-		BirthDate                      *string                       `json:"birthdate,omitempty"`
+		BirthDate                      string                        `json:"birthdate,omitempty"`
 		Status                         string                        `json:"status"`
 		Description                    string                        `json:"description"`
 		Notes                          string                        `json:"notes"`
@@ -159,6 +163,7 @@ type (
 		MemberTypeID                   *uuid.UUID `json:"member_type_id,omitempty"`
 		MemberGroupID                  *uuid.UUID `json:"member_group_id,omitempty"`
 		MemberGenderID                 *uuid.UUID `json:"member_gender_id,omitempty"`
+		MemberDepartmentID             *uuid.UUID `json:"member_department_id,omitempty"`
 		MemberCenterID                 *uuid.UUID `json:"member_center_id,omitempty"`
 		MemberOccupationID             *uuid.UUID `json:"member_occupation_id,omitempty"`
 		MemberClassificationID         *uuid.UUID `json:"member_classification_id,omitempty"`
@@ -214,6 +219,7 @@ type (
 		MemberClassificationID     *uuid.UUID `json:"member_classification_id,omitempty"`
 		MemberCenterID             *uuid.UUID `json:"member_center_id,omitempty"`
 		RecruitedByMemberProfileID *uuid.UUID `json:"recruited_by_member_profile_id,omitempty"`
+		MemberDepartmentID         *uuid.UUID `json:"member_department_id,omitempty"`
 		IsMutualFundMember         bool       `json:"is_mutual_fund_member"`
 		IsMicroFinanceMember       bool       `json:"is_micro_finance_member"`
 	}
@@ -296,6 +302,7 @@ func (m *Model) MemberProfile() {
 			"MemberEducationalAttainments",
 			"MemberContactReferences",
 			"MemberCloseRemarks",
+			"MemberDepartment",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *MemberProfile) *MemberProfileResponse {
@@ -303,11 +310,7 @@ func (m *Model) MemberProfile() {
 			if data == nil {
 				return nil
 			}
-			var birthdateStr *string
-			if data.BirthDate != nil {
-				s := data.BirthDate.Format("2006-01-02")
-				birthdateStr = &s
-			}
+
 			result, err := m.provider.Service.QR.EncodeQR(context, &QRMemberProfile{
 				FirstName:       data.FirstName,
 				LastName:        data.LastName,
@@ -362,7 +365,7 @@ func (m *Model) MemberProfile() {
 				LastName:                       data.LastName,
 				FullName:                       data.FullName,
 				Suffix:                         data.Suffix,
-				BirthDate:                      birthdateStr,
+				BirthDate:                      data.BirthDate.Format("2006-01-02"),
 				Status:                         data.Status,
 				Description:                    data.Description,
 				Notes:                          data.Notes,
@@ -384,6 +387,8 @@ func (m *Model) MemberProfile() {
 				MemberContactReferences:        m.MemberContactReferenceManager.ToModels(data.MemberContactReferences),
 				MemberCloseRemarks:             m.MemberCloseRemarkManager.ToModels(data.MemberCloseRemarks),
 				RecruitedMembers:               m.MemberProfileManager.ToModels(data.RecruitedMembers),
+				MemberDepartmentID:             data.MemberDepartmentID,
+				MemberDepartment:               m.MemberDepartmentManager.ToModel(data.MemberDepartment),
 			}
 		},
 

@@ -100,6 +100,8 @@ type (
 		MemberVerificationManager           horizon_services.Repository[MemberVerification, MemberVerificationResponse, MemberVerificationRequest]
 		MemberProfileManager                horizon_services.Repository[MemberProfile, MemberProfileResponse, MemberProfileRequest]
 		CollectorsMemberAccountEntryManager horizon_services.Repository[CollectorsMemberAccountEntry, CollectorsMemberAccountEntryResponse, CollectorsMemberAccountEntryRequest]
+		MemberDepartmentManager             horizon_services.Repository[MemberDepartment, MemberDepartmentResponse, MemberDepartmentRequest]
+		MemberDepartmentHistoryManager      horizon_services.Repository[MemberDepartmentHistory, MemberDepartmentHistoryResponse, MemberDepartmentHistoryRequest]
 
 		// Employee Feature
 		TimesheetManager horizon_services.Repository[Timesheet, TimesheetResponse, TimesheetRequest]
@@ -180,16 +182,14 @@ type (
 		PostDatedCheckManager                                               horizon_services.Repository[PostDatedCheck, PostDatedCheckResponse, PostDatedCheckRequest]
 
 		// TIME DEPOSIT
-		TimeDepositTypeManager                    horizon_services.Repository[TimeDepositType, TimeDepositTypeResponse, TimeDepositTypeRequest]
-		TimeDepositComputationHeaderManager       horizon_services.Repository[TimeDepositComputationHeader, TimeDepositComputationHeaderResponse, TimeDepositComputationHeaderRequest]
-		TimeDepositComputationManager             horizon_services.Repository[TimeDepositComputation, TimeDepositComputationResponse, TimeDepositComputationRequest]
-		TimeDepositComputationPreMatureManager    horizon_services.Repository[TimeDepositComputationPreMature, TimeDepositComputationPreMatureResponse, TimeDepositComputationPreMatureRequest]
-		ChargesRateSchemeManager                  horizon_services.Repository[ChargesRateScheme, ChargesRateSchemeResponse, ChargesRateSchemeRequest]
-		ChargesRateSchemeAccountManager           horizon_services.Repository[ChargesRateSchemeAccount, ChargesRateSchemeAccountResponse, ChargesRateSchemeAccountRequest]
-		ChargesRateByRangeOrMinimumAmountManager  horizon_services.Repository[ChargesRateByRangeOrMinimumAmount, ChargesRateByRangeOrMinimumAmountResponse, ChargesRateByRangeOrMinimumAmountRequest]
-		ChargesRateByTermHeaderManager            horizon_services.Repository[ChargesRateByTermHeader, ChargesRateByTermHeaderResponse, ChargesRateByTermHeaderRequest]
-		ChargesRateByTermManager                  horizon_services.Repository[ChargesRateByTerm, ChargesRateByTermResponse, ChargesRateByTermRequest]
-		ChargesRateMemberTypeModeOfPaymentManager horizon_services.Repository[ChargesRateMemberTypeModeOfPayment, ChargesRateMemberTypeModeOfPaymentResponse, ChargesRateMemberTypeModeOfPaymentRequest]
+		TimeDepositTypeManager                   horizon_services.Repository[TimeDepositType, TimeDepositTypeResponse, TimeDepositTypeRequest]
+		TimeDepositComputationManager            horizon_services.Repository[TimeDepositComputation, TimeDepositComputationResponse, TimeDepositComputationRequest]
+		TimeDepositComputationPreMatureManager   horizon_services.Repository[TimeDepositComputationPreMature, TimeDepositComputationPreMatureResponse, TimeDepositComputationPreMatureRequest]
+		ChargesRateSchemeManager                 horizon_services.Repository[ChargesRateScheme, ChargesRateSchemeResponse, ChargesRateSchemeRequest]
+		ChargesRateSchemeAccountManager          horizon_services.Repository[ChargesRateSchemeAccount, ChargesRateSchemeAccountResponse, ChargesRateSchemeAccountRequest]
+		ChargesRateByRangeOrMinimumAmountManager horizon_services.Repository[ChargesRateByRangeOrMinimumAmount, ChargesRateByRangeOrMinimumAmountResponse, ChargesRateByRangeOrMinimumAmountRequest]
+		ChargesRateByTermHeaderManager           horizon_services.Repository[ChargesRateByTermHeader, ChargesRateByTermHeaderResponse, ChargesRateByTermHeaderRequest]
+		ChargesRateByTermManager                 horizon_services.Repository[ChargesRateByTerm, ChargesRateByTermResponse, ChargesRateByTermRequest]
 
 		// ACCOUNTING ENTRY
 		AdjustmentEntryManager     horizon_services.Repository[AdjustmentEntry, AdjustmentEntryResponse, AdjustmentEntryRequest]
@@ -199,6 +199,9 @@ type (
 		CashCheckVoucherTagManager horizon_services.Repository[CashCheckVoucherTag, CashCheckVoucherTagResponse, CashCheckVoucherTagRequest]
 		JournalVoucherManager      horizon_services.Repository[JournalVoucher, JournalVoucherResponse, JournalVoucherRequest]
 		JournalVoucherTagManager   horizon_services.Repository[JournalVoucherTag, JournalVoucherTagResponse, JournalVoucherTagRequest]
+
+		FundsManager                          horizon_services.Repository[Funds, FundsResponse, FundsRequest]
+		ChargesRateSchemeModeOfPaymentManager horizon_services.Repository[ChargesRateSchemeModeOfPayment, ChargesRateSchemeModeOfPaymentResponse, ModeOfPayment]
 	}
 )
 
@@ -235,7 +238,6 @@ func (c *Model) Start(context context.Context) error {
 	c.ChargesRateByRangeOrMinimumAmount()
 	c.ChargesRateByTerm()
 	c.ChargesRateByTermHeader()
-	c.ChargesRateMemberTypeModeOfPayment()
 	c.ChargesRateSchemeAccount()
 	c.ChargesRateScheme()
 	c.CheckRemittance()
@@ -331,7 +333,6 @@ func (c *Model) Start(context context.Context) error {
 	c.SubscriptionPlan()
 	c.TagTemplate()
 	c.TimeDepositComputation()
-	c.TimeDepositComputationHeader()
 	c.TimeDepositComputationPreMature()
 	c.TimeDepositType()
 	c.Timesheet()
@@ -342,6 +343,10 @@ func (c *Model) Start(context context.Context) error {
 	c.UserOrganization()
 	c.UserRating()
 	c.VoucherPayTo()
+	c.MemberDepartment()
+	c.MemberDepartmentHistory()
+	c.Funds()
+	c.ChargesRateSchemeModeOfPayment()
 
 	return nil
 }

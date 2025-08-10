@@ -122,7 +122,17 @@ func (c *Controller) Start() error {
 	c.AutomaticLoanDeductionController()
 	c.BrowseExcludeIncludeAccountsController()
 	c.IncludeNegativeAccountController()
+	c.MemberDepartmentController()
 
+	// Time deposit
+	c.TimeDepositTypeController()
+	c.TimeDepositComputationController()
+	c.TimeDepositComputationPreMatureController()
+
+	// Charges rate scheme
+	c.ChargesRateSchemeController()
+	c.ChargesRateByRangeOrMinimumAmountController()
+	c.ChargesRateSchemeModeOfPaymentController()
 	return nil
 }
 

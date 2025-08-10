@@ -173,6 +173,8 @@ func (c *Controller) AccountController() {
 			ShowInGeneralLedgerSourceAdjustment:                req.ShowInGeneralLedgerSourceAdjustment,
 			ShowInGeneralLedgerSourceJournalVoucher:            req.ShowInGeneralLedgerSourceJournalVoucher,
 			ShowInGeneralLedgerSourceCheckVoucher:              req.ShowInGeneralLedgerSourceCheckVoucher,
+			CompassionFund:                                     req.CompassionFund,
+			CompassionFundAmount:                               req.CompassionFundAmount,
 		}
 
 		if err := c.model.AccountManager.Create(context, account); err != nil {
@@ -362,6 +364,8 @@ func (c *Controller) AccountController() {
 		account.ShowInGeneralLedgerSourceAdjustment = req.ShowInGeneralLedgerSourceAdjustment
 		account.ShowInGeneralLedgerSourceJournalVoucher = req.ShowInGeneralLedgerSourceJournalVoucher
 		account.ShowInGeneralLedgerSourceCheckVoucher = req.ShowInGeneralLedgerSourceCheckVoucher
+		account.CompassionFund = req.CompassionFund
+		account.CompassionFundAmount = req.CompassionFundAmount
 		account.Icon = req.Icon
 
 		if err := c.model.AccountManager.UpdateFields(context, account.ID, account); err != nil {

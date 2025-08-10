@@ -984,6 +984,29 @@ func (c *Controller) MemberProfileController() {
 		profile.OldReferenceID = req.OldReferenceID
 		profile.RecruitedByMemberProfileID = req.RecruitedByMemberProfileID
 		profile.Status = req.Status
+		profile.MemberDepartmentID = req.MemberDepartmentID
+
+		if req.MemberDepartmentID != nil && !uuidPtrEqual(profile.MemberDepartmentID, req.MemberDepartmentID) {
+			data := &model.MemberDepartmentHistory{
+				OrganizationID:     userOrg.OrganizationID,
+				BranchID:           *userOrg.BranchID,
+				CreatedAt:          time.Now().UTC(),
+				UpdatedAt:          time.Now().UTC(),
+				CreatedByID:        userOrg.UserID,
+				UpdatedByID:        userOrg.UserID,
+				MemberProfileID:    *memberProfileId,
+				MemberDepartmentID: *req.MemberDepartmentID,
+			}
+			if err := c.model.MemberDepartmentHistoryManager.Create(context, data); err != nil {
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "update-error",
+					Description: "Update member profile membership info failed: update member department history error: " + err.Error(),
+					Module:      "MemberProfile",
+				})
+				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not update member department history: " + err.Error()})
+			}
+			profile.MemberDepartmentID = req.MemberDepartmentID
+		}
 
 		if req.MemberTypeID != nil && !uuidPtrEqual(profile.MemberTypeID, req.MemberTypeID) {
 			data := &model.MemberTypeHistory{
