@@ -125,5 +125,3 @@ golangci-lint run
 ```bash
 fly deploy; fly machine restart 148e4d55f36278; fly machine restart 90802d3ea0ed38; fly logs
 ```
-
-https://cooperatives-development.fly.dev/api/v1/transaction/search/branch/search?filter=eyJmaWx0ZXJzIjpbXSwibG9naWMiOiJBTkQifQ%3D%3D&pageIndex=0&pageSize=10&sort=W10%3D
