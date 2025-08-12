@@ -65,8 +65,8 @@ func (c *Controller) PaymentController() {
 		Route:        "/api/v1/transaction/:transaction_id/payment",
 		Method:       "POST",
 		Note:         "Processes a payment for the specified transaction by transaction_id and records it in the general ledger.",
-		ResponseType: model.PaymentRequest{},
-		RequestType:  event.TransactionEvent{},
+		ResponseType: model.GeneralLedgerResponse{},
+		RequestType:  model.PaymentRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req model.PaymentRequest
