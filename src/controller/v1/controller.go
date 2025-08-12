@@ -6,6 +6,7 @@ import (
 	"github.com/lands-horizon/horizon-server/src/cooperative_tokens"
 	"github.com/lands-horizon/horizon-server/src/event"
 	"github.com/lands-horizon/horizon-server/src/model"
+	"github.com/lands-horizon/horizon-server/src/service"
 )
 
 type Controller struct {
@@ -16,6 +17,7 @@ type Controller struct {
 	// Tokens
 	userOrganizationToken *cooperative_tokens.UserOrganizationToken
 	userToken             *cooperative_tokens.UserToken
+	service               *service.TransactionService
 }
 
 func NewController(
@@ -27,6 +29,7 @@ func NewController(
 	// Tokens
 	userOrganizationToken *cooperative_tokens.UserOrganizationToken,
 	userToken *cooperative_tokens.UserToken,
+	service *service.TransactionService,
 
 ) (*Controller, error) {
 	return &Controller{
@@ -37,6 +40,7 @@ func NewController(
 
 		userOrganizationToken: userOrganizationToken,
 		userToken:             userToken,
+		service:               service,
 	}, nil
 }
 

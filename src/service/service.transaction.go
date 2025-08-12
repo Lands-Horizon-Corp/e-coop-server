@@ -103,7 +103,7 @@ func (t *TransactionService) Withdraw(ctx context.Context, account TransactionDa
 	}
 }
 
-func (t *TransactionService) ComputeTotalBalance(generalLedgers []*model.GeneralLedger) (credit, debit, balance float64, err error) {
+func (t *TransactionService) ComputeTotalBalance(context context.Context, generalLedgers []*model.GeneralLedger) (credit, debit, balance float64, err error) {
 	for _, gl := range generalLedgers {
 		if gl == nil {
 			return 0, 0, 0, eris.New("nil general ledger")

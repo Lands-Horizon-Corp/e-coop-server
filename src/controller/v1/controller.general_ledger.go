@@ -43,43 +43,15 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
 		}
-		var totalAmount float64
-		var debit float64
-		var credit float64
-		for _, entry := range entries {
-			switch entry.Account.Type {
-			case model.AccountTypeDeposit:
-				totalAmount += entry.Debit - entry.Credit
-			case model.AccountTypeLoan:
-				totalAmount += entry.Credit - entry.Debit
-			case model.AccountTypeARLedger:
-				totalAmount += entry.Debit - entry.Credit
-			case model.AccountTypeARAging:
-				totalAmount += entry.Debit - entry.Credit
-			case model.AccountTypeFines:
-				totalAmount += entry.Credit - entry.Debit
-			case model.AccountTypeInterest:
-				totalAmount += entry.Credit - entry.Debit
-			case model.AccountTypeSVFLedger:
-				totalAmount += entry.Debit - entry.Credit
-			case model.AccountTypeWOff:
-				totalAmount += entry.Debit - entry.Credit
-			case model.AccountTypeAPLedger:
-				totalAmount += entry.Credit - entry.Debit
-			case model.AccountTypeOther:
-				totalAmount += 0
-			case model.AccountTypeTimeDeposit:
-				totalAmount += entry.Credit - entry.Debit
-			}
-			debit += entry.Debit
-			credit += entry.Credit
+		credit, debit, balance, err := c.service.ComputeTotalBalance(context, entries)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to compute total balance: " + err.Error()})
 		}
-		result := model.MemberGeneralLedgerTotal{
-			Balance:     totalAmount,
+		return ctx.JSON(http.StatusOK, model.MemberGeneralLedgerTotal{
+			Balance:     balance,
 			TotalDebit:  debit,
 			TotalCredit: credit,
-		}
-		return ctx.JSON(http.StatusOK, result)
+		})
 	})
 
 	req.RegisterRoute(handlers.Route{
