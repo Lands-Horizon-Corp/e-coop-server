@@ -70,6 +70,12 @@ func (e *Event) TransactionPayment(
 		return nil, eris.Wrap(err, "internal error during IP block check")
 	}
 
+	// Add nil check for block function
+	if block == nil {
+		tx.Rollback()
+		return nil, eris.New("IP blocker function is nil")
+	}
+
 	if blocked {
 		e.Footstep(ctx, echoCtx, FootstepEvent{
 			Activity:    "ip-blocked",
@@ -388,6 +394,19 @@ func (e *Event) TransactionPayment(
 	if memberJointAccountID == nil {
 		memberJointAccountID = transaction.MemberJointAccountID
 	}
+
+	// Add nil checks for service operations
+	if e.service == nil {
+		tx.Rollback()
+		e.Footstep(ctx, echoCtx, FootstepEvent{
+			Activity:    "service-error",
+			Description: "Service is nil (/transaction/payment/:transaction_id)",
+			Module:      "Transaction",
+		})
+		block("Service is nil")
+		return nil, eris.New("service is nil")
+	}
+
 	var credit, debit, balance float64
 	switch data.Source {
 	case model.GeneralLedgerSourcePayment, model.GeneralLedgerSourceDeposit:
@@ -458,9 +477,17 @@ func (e *Event) TransactionPayment(
 	// ================================================================================
 	switch data.Source {
 	case model.GeneralLedgerSourcePayment, model.GeneralLedgerSourceDeposit:
-		transaction.Amount += math.Abs(data.Amount)
+		if data.Amount < 0 {
+			transaction.Amount -= math.Abs(data.Amount)
+		} else {
+			transaction.Amount += math.Abs(data.Amount)
+		}
 	case model.GeneralLedgerSourceWithdraw:
-		transaction.Amount -= math.Abs(data.Amount)
+		if data.Amount < 0 {
+			transaction.Amount += math.Abs(data.Amount)
+		} else {
+			transaction.Amount -= math.Abs(data.Amount)
+		}
 	}
 
 	transaction.UpdatedAt = now
