@@ -94,6 +94,26 @@ func (e *Event) TransactionPayment(
 		block("Failed to get user organization: " + err.Error())
 		return nil, eris.Wrap(err, "failed to get user organization")
 	}
+	if userOrg == nil {
+		tx.Rollback()
+		e.Footstep(ctx, echoCtx, FootstepEvent{
+			Activity:    "auth-error",
+			Description: "User organization is nil (/transaction/payment/:transaction_id)",
+			Module:      "Transaction",
+		})
+		block("User organization is nil")
+		return nil, eris.New("user organization is nil")
+	}
+	if userOrg.BranchID == nil {
+		tx.Rollback()
+		e.Footstep(ctx, echoCtx, FootstepEvent{
+			Activity:    "branch-error",
+			Description: "User organization branch ID is nil (/transaction/payment/:transaction_id)",
+			Module:      "Transaction",
+		})
+		block("User organization branch ID is nil")
+		return nil, eris.New("user organization branch ID is nil")
+	}
 
 	// ================================================================================
 	// STEP 4: INPUT VALIDATION
@@ -141,9 +161,12 @@ func (e *Event) TransactionPayment(
 			return nil, eris.Wrap(err, "failed to retrieve transaction")
 		}
 	}
-	// GET member profile (if provided)
-	memberProfileId := transaction.MemberProfileID
+	var memberProfileId *uuid.UUID
+	if transaction != nil {
+		memberProfileId = transaction.MemberProfileID
+	}
 
+	// GET member profile (if provided)
 	if data.MemberProfileID != nil {
 		memberProfile, err := e.model.MemberProfileManager.GetByID(ctx, *data.MemberProfileID)
 		if err != nil {
@@ -155,6 +178,16 @@ func (e *Event) TransactionPayment(
 			})
 			block("Failed to retrieve member profile: " + err.Error())
 			return nil, eris.Wrap(err, "failed to retrieve member profile")
+		}
+		if memberProfile == nil {
+			tx.Rollback()
+			e.Footstep(ctx, echoCtx, FootstepEvent{
+				Activity:    "member-error",
+				Description: "Member profile is nil (/transaction/payment/:transaction_id)",
+				Module:      "Transaction",
+			})
+			block("Member profile is nil")
+			return nil, eris.New("member profile is nil")
 		}
 		if memberProfile.BranchID != *userOrg.BranchID {
 			tx.Rollback()
@@ -191,6 +224,16 @@ func (e *Event) TransactionPayment(
 		block("Failed to retrieve transaction batch: " + err.Error())
 		return nil, eris.Wrap(err, "failed to retrieve transaction batch")
 	}
+	if transactionBatch == nil {
+		tx.Rollback()
+		e.Footstep(ctx, echoCtx, FootstepEvent{
+			Activity:    "batch-error",
+			Description: "Transaction batch is nil (/transaction/payment/:transaction_id)",
+			Module:      "Transaction",
+		})
+		block("Transaction batch is nil")
+		return nil, eris.New("transaction batch is nil")
+	}
 
 	// GET account (with lock)
 	account, err := e.model.AccountLockForUpdate(ctx, tx, *data.AccountID)
@@ -203,6 +246,16 @@ func (e *Event) TransactionPayment(
 		tx.Rollback()
 		block("Failed to acquire account lock: " + err.Error())
 		return nil, eris.Wrap(err, "failed to acquire account lock for concurrent protection")
+	}
+	if account == nil {
+		tx.Rollback()
+		e.Footstep(ctx, echoCtx, FootstepEvent{
+			Activity:    "account-error",
+			Description: "Account is nil (/transaction/payment/:transaction_id)",
+			Module:      "Transaction",
+		})
+		block("Account is nil")
+		return nil, eris.New("account is nil")
 	}
 	if account.BranchID != *userOrg.BranchID {
 		tx.Rollback()
@@ -267,6 +320,16 @@ func (e *Event) TransactionPayment(
 		})
 		block("Failed to retrieve payment type: " + err.Error())
 		return nil, eris.Wrap(err, "failed to retrieve payment type")
+	}
+	if paymentType == nil {
+		tx.Rollback()
+		e.Footstep(ctx, echoCtx, FootstepEvent{
+			Activity:    "payment-type-error",
+			Description: "Payment type is nil (/transaction/payment/:transaction_id)",
+			Module:      "Transaction",
+		})
+		block("Payment type is nil")
+		return nil, eris.New("payment type is nil")
 	}
 	if paymentType.OrganizationID != userOrg.OrganizationID {
 		tx.Rollback()
