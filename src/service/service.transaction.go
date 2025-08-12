@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"math"
 
 	"github.com/lands-horizon/horizon-server/src/model"
 	"github.com/rotisserie/eris"
@@ -114,16 +115,6 @@ func (t *TransactionService) ComputeTotalBalance(context context.Context, genera
 		}
 		credit += gl.Credit
 		debit += gl.Debit
-		switch gl.Account.Type {
-		case model.AccountTypeDeposit, model.AccountTypeTimeDeposit, model.AccountTypeSVFLedger,
-			model.AccountTypeARLedger, model.AccountTypeARAging,
-			model.AccountTypeWOff, model.AccountTypeOther:
-			balance += gl.Balance
-		case model.AccountTypeLoan, model.AccountTypeFines, model.AccountTypeInterest, model.AccountTypeAPLedger:
-			balance -= gl.Balance
-		default:
-			return 0, 0, 0, eris.New("unknown account type")
-		}
 	}
-	return credit, debit, balance, nil
+	return credit, debit, math.Abs(credit - debit), nil
 }
