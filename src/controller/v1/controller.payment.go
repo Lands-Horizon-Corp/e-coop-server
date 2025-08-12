@@ -65,8 +65,8 @@ func (c *Controller) PaymentController() {
 		Route:        "/api/v1/transaction/:transaction_id/payment",
 		Method:       "POST",
 		Note:         "Processes a payment for the specified transaction by transaction_id and records it in the general ledger.",
-		ResponseType: model.GeneralLedgerResponse{},
-		RequestType:  model.PaymentRequest{},
+		ResponseType: model.PaymentRequest{},
+		RequestType:  event.TransactionEvent{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req model.PaymentRequest
@@ -108,17 +108,25 @@ func (c *Controller) PaymentController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction ID: " + err.Error()})
 		}
 
-		generalLedger, err := c.event.Payment(context, ctx, tx, &model.PaymentQuickRequest{
+		generalLedger, err := c.event.TransactionPayment(context, ctx, tx, event.TransactionEvent{
+			// Will be filled by transaction
+			TransactionID:        transactionId,
+			MemberProfileID:      nil,
+			MemberJointAccountID: nil,
+			ReferenceNumber:      "",
+
+			// On Request
+			Source:                model.GeneralLedgerSourcePayment,
 			Amount:                req.Amount,
-			SignatureMediaID:      req.SignatureMediaID,
-			ProofOfPaymentMediaID: req.ProofOfPaymentMediaID,
-			BankID:                req.BankID,
-			BankReferenceNumber:   req.BankReferenceNumber,
-			EntryDate:             req.EntryDate,
 			AccountID:             req.AccountID,
 			PaymentTypeID:         req.PaymentTypeID,
+			SignatureMediaID:      req.SignatureMediaID,
+			EntryDate:             req.EntryDate,
+			BankID:                req.BankID,
+			ProofOfPaymentMediaID: req.ProofOfPaymentMediaID,
 			Description:           req.Description,
-		}, transactionId, model.GeneralLedgerSourcePayment)
+			BankReferenceNumber:   req.BankReferenceNumber,
+		})
 		if err != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -178,17 +186,25 @@ func (c *Controller) PaymentController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction ID: " + err.Error()})
 		}
 
-		generalLedger, err := c.event.Payment(context, ctx, tx, &model.PaymentQuickRequest{
+		generalLedger, err := c.event.TransactionPayment(context, ctx, tx, event.TransactionEvent{
+			// Will be filled by transaction
+			TransactionID:        transactionId,
+			MemberProfileID:      nil,
+			MemberJointAccountID: nil,
+			ReferenceNumber:      "",
+
+			// On Request
+			Source:                model.GeneralLedgerSourceWithdraw,
 			Amount:                req.Amount,
-			SignatureMediaID:      req.SignatureMediaID,
-			ProofOfPaymentMediaID: req.ProofOfPaymentMediaID,
-			BankID:                req.BankID,
-			BankReferenceNumber:   req.BankReferenceNumber,
-			EntryDate:             req.EntryDate,
 			AccountID:             req.AccountID,
 			PaymentTypeID:         req.PaymentTypeID,
+			SignatureMediaID:      req.SignatureMediaID,
+			EntryDate:             req.EntryDate,
+			BankID:                req.BankID,
+			ProofOfPaymentMediaID: req.ProofOfPaymentMediaID,
 			Description:           req.Description,
-		}, transactionId, model.GeneralLedgerSourceWithdraw)
+			BankReferenceNumber:   req.BankReferenceNumber,
+		})
 		if err != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -248,17 +264,25 @@ func (c *Controller) PaymentController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction ID: " + err.Error()})
 		}
 
-		generalLedger, err := c.event.Payment(context, ctx, tx, &model.PaymentQuickRequest{
+		generalLedger, err := c.event.TransactionPayment(context, ctx, tx, event.TransactionEvent{
+			// Will be filled by transaction
+			TransactionID:        transactionId,
+			MemberProfileID:      nil,
+			MemberJointAccountID: nil,
+			ReferenceNumber:      "",
+
+			// On Request
+			Source:                model.GeneralLedgerSourceDeposit,
 			Amount:                req.Amount,
-			SignatureMediaID:      req.SignatureMediaID,
-			ProofOfPaymentMediaID: req.ProofOfPaymentMediaID,
-			BankID:                req.BankID,
-			BankReferenceNumber:   req.BankReferenceNumber,
-			EntryDate:             req.EntryDate,
 			AccountID:             req.AccountID,
 			PaymentTypeID:         req.PaymentTypeID,
+			SignatureMediaID:      req.SignatureMediaID,
+			EntryDate:             req.EntryDate,
+			BankID:                req.BankID,
+			ProofOfPaymentMediaID: req.ProofOfPaymentMediaID,
 			Description:           req.Description,
-		}, transactionId, model.GeneralLedgerSourceDeposit)
+			BankReferenceNumber:   req.BankReferenceNumber,
+		})
 		if err != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -308,7 +332,25 @@ func (c *Controller) PaymentController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
 
-		generalLedger, err := c.event.Payment(context, ctx, tx, &req, nil, model.GeneralLedgerSourcePayment)
+		generalLedger, err := c.event.TransactionPayment(context, ctx, tx, event.TransactionEvent{
+			// Will be filled by transaction
+			TransactionID:        nil,
+			MemberProfileID:      req.MemberProfileID,
+			MemberJointAccountID: req.MemberJointAccountID,
+			ReferenceNumber:      req.BankReferenceNumber,
+
+			// On Request
+			Source:                model.GeneralLedgerSourcePayment,
+			Amount:                req.Amount,
+			AccountID:             req.AccountID,
+			PaymentTypeID:         req.PaymentTypeID,
+			SignatureMediaID:      req.SignatureMediaID,
+			EntryDate:             req.EntryDate,
+			BankID:                req.BankID,
+			ProofOfPaymentMediaID: req.ProofOfPaymentMediaID,
+			Description:           req.Description,
+			BankReferenceNumber:   req.BankReferenceNumber,
+		})
 		if err != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -358,7 +400,25 @@ func (c *Controller) PaymentController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
 
-		generalLedger, err := c.event.Payment(context, ctx, tx, &req, nil, model.GeneralLedgerSourceWithdraw)
+		generalLedger, err := c.event.TransactionPayment(context, ctx, tx, event.TransactionEvent{
+			// Will be filled by transaction
+			TransactionID:        nil,
+			MemberProfileID:      req.MemberProfileID,
+			MemberJointAccountID: req.MemberJointAccountID,
+			ReferenceNumber:      req.BankReferenceNumber,
+
+			// On Request
+			Source:                model.GeneralLedgerSourceWithdraw,
+			Amount:                req.Amount,
+			AccountID:             req.AccountID,
+			PaymentTypeID:         req.PaymentTypeID,
+			SignatureMediaID:      req.SignatureMediaID,
+			EntryDate:             req.EntryDate,
+			BankID:                req.BankID,
+			ProofOfPaymentMediaID: req.ProofOfPaymentMediaID,
+			Description:           req.Description,
+			BankReferenceNumber:   req.BankReferenceNumber,
+		})
 		if err != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -408,7 +468,25 @@ func (c *Controller) PaymentController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
 
-		generalLedger, err := c.event.Payment(context, ctx, tx, &req, nil, model.GeneralLedgerSourceDeposit)
+		generalLedger, err := c.event.TransactionPayment(context, ctx, tx, event.TransactionEvent{
+			// Will be filled by transaction
+			TransactionID:        nil,
+			MemberProfileID:      req.MemberProfileID,
+			MemberJointAccountID: req.MemberJointAccountID,
+			ReferenceNumber:      req.BankReferenceNumber,
+
+			// On Request
+			Source:                model.GeneralLedgerSourceDeposit,
+			Amount:                req.Amount,
+			AccountID:             req.AccountID,
+			PaymentTypeID:         req.PaymentTypeID,
+			SignatureMediaID:      req.SignatureMediaID,
+			EntryDate:             req.EntryDate,
+			BankID:                req.BankID,
+			ProofOfPaymentMediaID: req.ProofOfPaymentMediaID,
+			Description:           req.Description,
+			BankReferenceNumber:   req.BankReferenceNumber,
+		})
 		if err != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{

@@ -16,29 +16,29 @@ import (
 )
 
 type TransactionEvent struct {
-	AccountID            *uuid.UUID
-	PaymentID            *uuid.UUID
-	TransactionID        *uuid.UUID
-	MemberProfileID      *uuid.UUID
-	SignatureMediaID     *uuid.UUID
-	MemberJointAccountID *uuid.UUID
+	Amount               float64    `json:"amount" validate:"required"`
+	AccountID            *uuid.UUID `json:"account_id" validate:"required"`
+	PaymentTypeID        *uuid.UUID `json:"payment_type_id" validate:"required"`
+	TransactionID        *uuid.UUID `json:"transaction_id"`
+	MemberProfileID      *uuid.UUID `json:"member_profile_id"`
+	SignatureMediaID     *uuid.UUID `json:"signature_media_id"`
+	MemberJointAccountID *uuid.UUID `json:"member_joint_account_id"`
 
-	Source *model.GeneralLedgerSource
+	Source model.GeneralLedgerSource `json:"source" validate:"required"`
 
-	EntryDate             *time.Time
-	BankID                *uuid.UUID
-	ProofOfPaymentMediaID *uuid.UUID
+	EntryDate             *time.Time `json:"entry_date"`
+	BankID                *uuid.UUID `json:"bank_id"`
+	ProofOfPaymentMediaID *uuid.UUID `json:"proof_of_payment_media_id"`
 
-	ReferenceNumber     string
-	Description         string
-	BankReferenceNumber string
+	ReferenceNumber     string `json:"reference_number" validate:"required"`
+	Description         string `json:"description" validate:"required"`
+	BankReferenceNumber string `json:"bank_reference_number"`
 }
 
 func (e *Event) TransactionPayment(
 	ctx context.Context,
 	echoCtx echo.Context,
 	tx *gorm.DB,
-	amount float64,
 	data TransactionEvent,
 ) (*model.GeneralLedger, error) {
 	// ================================================================================
@@ -99,7 +99,7 @@ func (e *Event) TransactionPayment(
 	// STEP 4: INPUT VALIDATION
 	// ================================================================================
 	// Validate Payment Amount
-	if amount == 0 {
+	if data.Amount == 0 {
 		tx.Rollback()
 		e.Footstep(ctx, echoCtx, FootstepEvent{
 			Activity:    "payment-error",
@@ -109,7 +109,7 @@ func (e *Event) TransactionPayment(
 		block("Payment amount cannot be zero")
 		return nil, eris.New("payment amount cannot be zero")
 	}
-	if data.AccountID == nil || data.PaymentID == nil {
+	if data.AccountID == nil || data.PaymentTypeID == nil {
 		tx.Rollback()
 		e.Footstep(ctx, echoCtx, FootstepEvent{
 			Activity:    "validation-error",
@@ -123,8 +123,27 @@ func (e *Event) TransactionPayment(
 	// ================================================================================
 	// STEP 5: ENTITY VALIDATION & RETRIEVAL
 	// ================================================================================
+	// GET or CREATE transaction
+	var transaction *model.Transaction
+	now := time.Now().UTC()
+	if data.TransactionID != nil {
+		transaction, err = e.model.TransactionManager.GetByID(ctx, *data.TransactionID)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			transaction = nil
+		} else if err != nil {
+			tx.Rollback()
+			e.Footstep(ctx, echoCtx, FootstepEvent{
+				Activity:    "transaction-error",
+				Description: "Failed to retrieve transaction (/transaction/payment/:transaction_id): " + err.Error(),
+				Module:      "Transaction",
+			})
+			block("Failed to retrieve transaction: " + err.Error())
+			return nil, eris.Wrap(err, "failed to retrieve transaction")
+		}
+	}
 	// GET member profile (if provided)
-	var memberProfileId *uuid.UUID
+	memberProfileId := transaction.MemberProfileID
+
 	if data.MemberProfileID != nil {
 		memberProfile, err := e.model.MemberProfileManager.GetByID(ctx, *data.MemberProfileID)
 		if err != nil {
@@ -238,7 +257,7 @@ func (e *Event) TransactionPayment(
 	}
 
 	// GET payment type
-	paymentType, err := e.model.PaymentTypeManager.GetByID(ctx, *data.PaymentID)
+	paymentType, err := e.model.PaymentTypeManager.GetByID(ctx, *data.PaymentTypeID)
 	if err != nil {
 		tx.Rollback()
 		e.Footstep(ctx, echoCtx, FootstepEvent{
@@ -260,25 +279,6 @@ func (e *Event) TransactionPayment(
 		return nil, eris.New("payment type does not belong to the current organization")
 	}
 
-	// GET or CREATE transaction
-	var transaction *model.Transaction
-	now := time.Now().UTC()
-	if data.TransactionID != nil {
-		transaction, err = e.model.TransactionManager.GetByID(ctx, *data.TransactionID)
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			transaction = nil // Will create below
-		} else if err != nil {
-			tx.Rollback()
-			e.Footstep(ctx, echoCtx, FootstepEvent{
-				Activity:    "transaction-error",
-				Description: "Failed to retrieve transaction (/transaction/payment/:transaction_id): " + err.Error(),
-				Module:      "Transaction",
-			})
-			block("Failed to retrieve transaction: " + err.Error())
-			return nil, eris.Wrap(err, "failed to retrieve transaction")
-		}
-	}
-
 	if transaction == nil {
 		transaction = &model.Transaction{
 			CreatedAt:            now,
@@ -293,7 +293,6 @@ func (e *Event) TransactionPayment(
 			MemberProfileID:      memberProfileId,
 			MemberJointAccountID: data.MemberJointAccountID,
 			ReferenceNumber:      data.ReferenceNumber,
-			Source:               *data.Source,
 			Description:          data.Description,
 			Amount:               0,
 			LoanBalance:          0,
@@ -313,8 +312,6 @@ func (e *Event) TransactionPayment(
 			block("Failed to create transaction: " + err.Error())
 			return nil, eris.Wrap(err, "failed to create transaction")
 		}
-	} else {
-		data.Source = &transaction.Source
 	}
 
 	// ================================================================================
@@ -329,17 +326,17 @@ func (e *Event) TransactionPayment(
 		memberJointAccountID = transaction.MemberJointAccountID
 	}
 	var credit, debit, balance float64
-	switch *data.Source {
+	switch data.Source {
 	case model.GeneralLedgerSourcePayment, model.GeneralLedgerSourceDeposit:
 		credit, debit, balance, err = e.service.Deposit(ctx, service.TransactionData{
 			GeneralLedger: generalLedger,
 			Account:       account,
-		}, amount)
+		}, data.Amount)
 	case model.GeneralLedgerSourceWithdraw:
 		credit, debit, balance, err = e.service.Withdraw(ctx, service.TransactionData{
 			GeneralLedger: generalLedger,
 			Account:       account,
-		}, amount)
+		}, data.Amount)
 	default:
 		err = eris.New("unsupported source type")
 	}
@@ -373,7 +370,7 @@ func (e *Event) TransactionPayment(
 		MemberJointAccountID:       memberJointAccountID,
 		PaymentTypeID:              &paymentType.ID,
 		TransactionReferenceNumber: data.ReferenceNumber,
-		Source:                     *data.Source,
+		Source:                     data.Source,
 		BankReferenceNumber:        data.BankReferenceNumber,
 		EmployeeUserID:             &userOrg.UserID,
 		Description:                data.Description,
@@ -396,11 +393,11 @@ func (e *Event) TransactionPayment(
 	// ================================================================================
 	// STEP 7: UPDATE TRANSACTION
 	// ================================================================================
-	switch *data.Source {
+	switch data.Source {
 	case model.GeneralLedgerSourcePayment, model.GeneralLedgerSourceDeposit:
-		transaction.Amount += math.Abs(amount)
+		transaction.Amount += math.Abs(data.Amount)
 	case model.GeneralLedgerSourceWithdraw:
-		transaction.Amount -= math.Abs(amount)
+		transaction.Amount -= math.Abs(data.Amount)
 	}
 
 	transaction.UpdatedAt = now
@@ -463,7 +460,7 @@ func (e *Event) TransactionPayment(
 	e.Footstep(ctx, echoCtx, FootstepEvent{
 		Activity: "payment-success",
 		Description: fmt.Sprintf("Payment completed successfully. Amount: %.2f, Account: %s, Balance: %.2f, Duration: %.3fs (/transaction/payment/:transaction_id)",
-			amount, data.AccountID.String(), balance, duration.Seconds()),
+			data.Amount, data.AccountID.String(), balance, duration.Seconds()),
 		Module: "Transaction",
 	})
 
