@@ -141,9 +141,12 @@ func (e *Event) TransactionPayment(
 			return nil, eris.Wrap(err, "failed to retrieve transaction")
 		}
 	}
-	// GET member profile (if provided)
-	memberProfileId := transaction.MemberProfileID
+	var memberProfileId *uuid.UUID
+	if transaction != nil {
+		memberProfileId = transaction.MemberProfileID
+	}
 
+	// GET member profile (if provided)
 	if data.MemberProfileID != nil {
 		memberProfile, err := e.model.MemberProfileManager.GetByID(ctx, *data.MemberProfileID)
 		if err != nil {
