@@ -1,4 +1,4 @@
-package whatever // replace with actual package name
+package service
 
 import (
 	"context"
