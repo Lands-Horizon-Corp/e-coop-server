@@ -579,6 +579,7 @@ func (c *Controller) BranchController() {
 		// Update branch settings
 		branch.UpdatedAt = time.Now().UTC()
 		branch.UpdatedByID = user.ID
+		branch.BranchSettingWithdrawPrefix = settingsReq.BranchSettingWithdrawPrefix
 		branch.BranchSettingWithdrawORStart = settingsReq.BranchSettingWithdrawORStart
 		branch.BranchSettingWithdrawORCurrent = settingsReq.BranchSettingWithdrawORCurrent
 		branch.BranchSettingWithdrawOREnd = settingsReq.BranchSettingWithdrawOREnd
@@ -586,6 +587,7 @@ func (c *Controller) BranchController() {
 		branch.BranchSettingWithdrawORUnique = settingsReq.BranchSettingWithdrawORUnique
 		branch.BranchSettingWithdrawUseDateOR = settingsReq.BranchSettingWithdrawUseDateOR
 
+		branch.BranchSettingDepositPrefix = settingsReq.BranchSettingDepositPrefix
 		branch.BranchSettingDepositORStart = settingsReq.BranchSettingDepositORStart
 		branch.BranchSettingDepositORCurrent = settingsReq.BranchSettingDepositORCurrent
 		branch.BranchSettingDepositOREnd = settingsReq.BranchSettingDepositOREnd
@@ -593,6 +595,7 @@ func (c *Controller) BranchController() {
 		branch.BranchSettingDepositORUnique = settingsReq.BranchSettingDepositORUnique
 		branch.BranchSettingDepositUseDateOR = settingsReq.BranchSettingDepositUseDateOR
 
+		branch.BranchSettingLoanPrefix = settingsReq.BranchSettingLoanPrefix
 		branch.BranchSettingLoanORStart = settingsReq.BranchSettingLoanORStart
 		branch.BranchSettingLoanORCurrent = settingsReq.BranchSettingLoanORCurrent
 		branch.BranchSettingLoanOREnd = settingsReq.BranchSettingLoanOREnd
@@ -600,6 +603,7 @@ func (c *Controller) BranchController() {
 		branch.BranchSettingLoanORUnique = settingsReq.BranchSettingLoanORUnique
 		branch.BranchSettingLoanUseDateOR = settingsReq.BranchSettingLoanUseDateOR
 
+		branch.BranchSettingCheckVoucherPrefix = settingsReq.BranchSettingCheckVoucherPrefix
 		branch.BranchSettingCheckVoucherORStart = settingsReq.BranchSettingCheckVoucherORStart
 		branch.BranchSettingCheckVoucherORCurrent = settingsReq.BranchSettingCheckVoucherORCurrent
 		branch.BranchSettingCheckVoucherOREnd = settingsReq.BranchSettingCheckVoucherOREnd
