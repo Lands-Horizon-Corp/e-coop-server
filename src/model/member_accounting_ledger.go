@@ -244,7 +244,7 @@ func (m *Model) MemberAccountingLedgerUpdateOrCreate(
 			Balance:         newBalance,
 			LastPay:         &lastPayTime,
 			// Initialize other fields to zero
-			Count:               1, // Start with 1 for first transaction
+			Count:               1,
 			Interest:            0,
 			Fines:               0,
 			Due:                 0,

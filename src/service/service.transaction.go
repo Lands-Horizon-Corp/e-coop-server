@@ -30,17 +30,16 @@ func (t *TransactionService) Deposit(ctx context.Context, account TransactionDat
 	if account.Account == nil {
 		return 0, 0, 0, eris.New("account is required")
 	}
-	if account.GeneralLedger == nil {
-		return 0, 0, 0, eris.New("general ledger is required")
-	}
-	balance = account.GeneralLedger.Balance
+
 	if amount == 0 {
 		return 0, 0, balance, eris.New("amount must be greater than zero")
 	}
 	if amount < 0 {
 		return t.Withdraw(ctx, account, -amount)
 	}
-
+	if account.GeneralLedger == nil {
+		balance = account.GeneralLedger.Balance
+	}
 	switch account.Account.Type {
 	case model.AccountTypeDeposit, model.AccountTypeTimeDeposit, model.AccountTypeSVFLedger:
 		// Money in = credit to balance
@@ -68,9 +67,7 @@ func (t *TransactionService) Withdraw(ctx context.Context, account TransactionDa
 	if account.Account == nil {
 		return 0, 0, 0, eris.New("account is required")
 	}
-	if account.GeneralLedger == nil {
-		return 0, 0, 0, eris.New("general ledger is required")
-	}
+
 	balance = account.GeneralLedger.Balance
 	if amount == 0 {
 		return 0, 0, balance, eris.New("amount must be greater than zero")
@@ -78,7 +75,12 @@ func (t *TransactionService) Withdraw(ctx context.Context, account TransactionDa
 	if amount < 0 {
 		return t.Deposit(ctx, account, -amount)
 	}
-
+	if account.GeneralLedger == nil {
+		balance = account.GeneralLedger.Balance
+	}
+	if balance < amount {
+		return 0, 0, balance, eris.New("insufficient balance")
+	}
 	switch account.Account.Type {
 	case model.AccountTypeDeposit, model.AccountTypeTimeDeposit, model.AccountTypeSVFLedger:
 		// Money out = debit from balance
