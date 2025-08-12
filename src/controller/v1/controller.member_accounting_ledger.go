@@ -137,7 +137,7 @@ func (c *Controller) MemberAccountingLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve member accounting ledger entries: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.MemberAccountingLedgerManager.Filtered(context, ctx, entries))
+		return ctx.JSON(http.StatusOK, c.model.MemberAccountingLedgerManager.Pagination(context, ctx, entries))
 	})
 
 }

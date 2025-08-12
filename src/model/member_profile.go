@@ -60,7 +60,7 @@ type (
 		LastName                       string                `gorm:"type:varchar(255);not null" json:"last_name"`
 		FullName                       string                `gorm:"type:varchar(255);not null;index:idx_full_name" json:"full_name"`
 		Suffix                         string                `gorm:"type:varchar(50)" json:"suffix,omitempty"`
-		BirthDate                      *time.Time            `gorm:"type:date" json:"birth_date,omitempty"`
+		BirthDate                      time.Time             `gorm:"type:date;not null" json:"birthdate"`
 		Status                         string                `gorm:"type:varchar(50);not null;default:'pending'" json:"status"`
 		Description                    string                `gorm:"type:text" json:"description,omitempty"`
 		Notes                          string                `gorm:"type:text" json:"notes,omitempty"`
@@ -128,7 +128,7 @@ type (
 		LastName                       string                        `json:"last_name"`
 		FullName                       string                        `json:"full_name"`
 		Suffix                         string                        `json:"suffix"`
-		BirthDate                      string                        `json:"birthdate,omitempty"`
+		BirthDate                      string                        `json:"birthdate"`
 		Status                         string                        `json:"status"`
 		Description                    string                        `json:"description"`
 		Notes                          string                        `json:"notes"`
@@ -177,7 +177,7 @@ type (
 		LastName                       string     `json:"last_name" validate:"required,min=1,max=255"`
 		FullName                       string     `json:"full_name" validate:"required,min=1,max=255"`
 		Suffix                         string     `json:"suffix,omitempty"`
-		BirthDate                      *time.Time `json:"birthdate,omitempty"`
+		BirthDate                      time.Time  `json:"birthdate" validate:"required"`
 		Status                         string     `json:"status,omitempty"`
 		Description                    string     `json:"description,omitempty"`
 		Notes                          string     `json:"notes,omitempty"`
@@ -196,7 +196,7 @@ type (
 		FullName       string     `json:"full_name,omitempty" validate:"max=255"`
 		Suffix         string     `json:"suffix,omitempty" validate:"max=50"`
 		MemberGenderID *uuid.UUID `json:"member_gender_id,omitempty"`
-		BirthDate      *time.Time `json:"birth_date,omitempty"`
+		BirthDate      time.Time  `json:"birthdate" validate:"required"`
 		ContactNumber  string     `json:"contact_number,omitempty" validate:"max=255"`
 
 		MediaID          *uuid.UUID `json:"media_id,omitempty"`
@@ -250,7 +250,7 @@ type (
 		FullName             string       `json:"full_name,omitempty" validate:"max=255"`
 		Suffix               string       `json:"suffix,omitempty" validate:"max=50"`
 		MemberGenderID       *uuid.UUID   `json:"member_gender_id,omitempty"`
-		BirthDate            *time.Time   `json:"birth_date,omitempty"`
+		BirthDate            time.Time    `json:"birthdate" validate:"required"`
 		ContactNumber        string       `json:"contact_number,omitempty" validate:"max=255"`
 		CivilStatus          string       `json:"civil_status" validate:"required,oneof=single married widowed separated divorced"` // adjust allowed values as needed
 		MemberOccupationID   *uuid.UUID   `json:"member_occupation_id,omitempty"`
@@ -262,16 +262,16 @@ type (
 	}
 
 	MemberProfileUserAccountRequest struct {
-		Password      string     `json:"password,omitempty" validate:"omitempty,min=6,max=100"`
-		UserName      string     `json:"user_name" validate:"required,min=1,max=50"`
-		FirstName     string     `json:"first_name" validate:"required,min=1,max=50"`
-		LastName      string     `json:"last_name" validate:"required,min=1,max=50"`
-		MiddleName    string     `json:"middle_name,omitempty" validate:"max=50"`
-		FullName      string     `json:"full_name" validate:"required,min=1,max=150"`
-		Suffix        string     `json:"suffix,omitempty" validate:"max=20"`
-		Email         string     `json:"email" validate:"required,email,max=100"`
-		ContactNumber string     `json:"contact_number" validate:"required,max=20"`
-		BirthDate     *time.Time `json:"birth_date,omitempty"`
+		Password      string    `json:"password,omitempty" validate:"omitempty,min=6,max=100"`
+		UserName      string    `json:"user_name" validate:"required,min=1,max=50"`
+		FirstName     string    `json:"first_name" validate:"required,min=1,max=50"`
+		LastName      string    `json:"last_name" validate:"required,min=1,max=50"`
+		MiddleName    string    `json:"middle_name,omitempty" validate:"max=50"`
+		FullName      string    `json:"full_name" validate:"required,min=1,max=150"`
+		Suffix        string    `json:"suffix,omitempty" validate:"max=20"`
+		Email         string    `json:"email" validate:"required,email,max=100"`
+		ContactNumber string    `json:"contact_number" validate:"required,max=20"`
+		BirthDate     time.Time `json:"birthdate" validate:"required"`
 	}
 )
 
@@ -365,7 +365,7 @@ func (m *Model) MemberProfile() {
 				LastName:                       data.LastName,
 				FullName:                       data.FullName,
 				Suffix:                         data.Suffix,
-				BirthDate:                      data.BirthDate.Format("2006-01-02"),
+				BirthDate:                      data.BirthDate.Format(time.RFC3339),
 				Status:                         data.Status,
 				Description:                    data.Description,
 				Notes:                          data.Notes,

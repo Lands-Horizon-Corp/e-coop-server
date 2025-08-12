@@ -81,7 +81,6 @@ func (c *Controller) TransactionController() {
 			InterestDue:     0,
 			Amount:          0,
 			ReferenceNumber: req.ReferenceNumber,
-			Source:          req.Source,
 			Description:     req.Description,
 		}
 		if req.IsReferenceNumberChecked {

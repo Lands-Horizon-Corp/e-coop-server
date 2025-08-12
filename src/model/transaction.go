@@ -48,8 +48,7 @@ type (
 		TotalLoan   float64 `gorm:"type:decimal;default:0"`
 		InterestDue float64 `gorm:"type:decimal;default:0"`
 
-		ReferenceNumber string              `gorm:"type:varchar(50)"`
-		Source          GeneralLedgerSource `gorm:"type:varchar(50)"`
+		ReferenceNumber string `gorm:"type:varchar(50)"`
 
 		Amount         float64         `gorm:"type:decimal"`
 		Description    string          `gorm:"type:text"`
@@ -86,19 +85,17 @@ type (
 		TotalLoan            float64                     `json:"total_loan"`
 		InterestDue          float64                     `json:"interest_due"`
 		ReferenceNumber      string                      `json:"reference_number"`
-		Source               GeneralLedgerSource         `json:"source"`
 		Amount               float64                     `json:"amount"`
 		Description          string                      `json:"description"`
 	}
 
 	TransactionRequest struct {
-		SignatureMediaID         *uuid.UUID          `json:"signature_media_id,omitempty"`
-		MemberProfileID          *uuid.UUID          `json:"member_profile_id" validate:"required"`
-		MemberJointAccountID     *uuid.UUID          `json:"member_joint_account_id,omitempty"`
-		ReferenceNumber          string              `json:"reference_number" validate:"required"`
-		IsReferenceNumberChecked bool                `json:"is_reference_number_checked,omitempty"`
-		Source                   GeneralLedgerSource `json:"source" validate:"required,oneof=withdraw deposit journal payment adjustment 'journal voucher' 'check voucher'"`
-		Description              string              `json:"description,omitempty"`
+		SignatureMediaID         *uuid.UUID `json:"signature_media_id,omitempty"`
+		MemberProfileID          *uuid.UUID `json:"member_profile_id" validate:"required"`
+		MemberJointAccountID     *uuid.UUID `json:"member_joint_account_id,omitempty"`
+		ReferenceNumber          string     `json:"reference_number" validate:"required"`
+		IsReferenceNumberChecked bool       `json:"is_reference_number_checked,omitempty"`
+		Description              string     `json:"description,omitempty"`
 	}
 	TransactionRequestEdit struct {
 		Description     string `json:"description,omitempty"`
@@ -153,7 +150,6 @@ func (m *Model) Transaction() {
 				TotalLoan:            data.TotalLoan,
 				InterestDue:          data.InterestDue,
 				ReferenceNumber:      data.ReferenceNumber,
-				Source:               data.Source,
 				Amount:               data.Amount,
 				Description:          data.Description,
 			}

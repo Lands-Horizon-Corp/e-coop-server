@@ -1,0 +1,468 @@
+package event
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"math"
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/labstack/echo/v4"
+	"github.com/lands-horizon/horizon-server/src/model"
+	"github.com/lands-horizon/horizon-server/src/service"
+	"github.com/rotisserie/eris"
+	"gorm.io/gorm"
+)
+
+type TransactionEvent struct {
+	Amount               float64    `json:"amount" validate:"required"`
+	AccountID            *uuid.UUID `json:"account_id" validate:"required"`
+	PaymentTypeID        *uuid.UUID `json:"payment_type_id" validate:"required"`
+	TransactionID        *uuid.UUID `json:"transaction_id"`
+	MemberProfileID      *uuid.UUID `json:"member_profile_id"`
+	SignatureMediaID     *uuid.UUID `json:"signature_media_id"`
+	MemberJointAccountID *uuid.UUID `json:"member_joint_account_id"`
+
+	Source model.GeneralLedgerSource `json:"source" validate:"required"`
+
+	EntryDate             *time.Time `json:"entry_date"`
+	BankID                *uuid.UUID `json:"bank_id"`
+	ProofOfPaymentMediaID *uuid.UUID `json:"proof_of_payment_media_id"`
+
+	ReferenceNumber     string `json:"reference_number" validate:"required"`
+	Description         string `json:"description" validate:"required"`
+	BankReferenceNumber string `json:"bank_reference_number"`
+}
+
+func (e *Event) TransactionPayment(
+	ctx context.Context,
+	echoCtx echo.Context,
+	tx *gorm.DB,
+	data TransactionEvent,
+) (*model.GeneralLedger, error) {
+	// ================================================================================
+	// STEP 1: INITIALIZATION & PERFORMANCE MONITORING
+	// ================================================================================
+	startTime := time.Now()
+	defer func() {
+		duration := time.Since(startTime)
+		if duration > 5*time.Second {
+			e.Footstep(ctx, echoCtx, FootstepEvent{
+				Activity:    "performance-warning",
+				Description: fmt.Sprintf("Payment operation took %.2fs - potential performance issue (/transaction/payment/:transaction_id)", duration.Seconds()),
+				Module:      "Transaction",
+			})
+		}
+	}()
+
+	// ================================================================================
+	// STEP 2: SECURITY & ACCESS CONTROL
+	// ================================================================================
+	block, blocked, err := e.HandleIPBlocker(ctx, echoCtx)
+	if err != nil {
+		e.Footstep(ctx, echoCtx, FootstepEvent{
+			Activity:    "ip-block-check-error",
+			Description: "IP blocker check failed (/transaction/payment/:transaction_id): " + err.Error(),
+			Module:      "Transaction",
+		})
+		tx.Rollback()
+		return nil, eris.Wrap(err, "internal error during IP block check")
+	}
+
+	if blocked {
+		e.Footstep(ctx, echoCtx, FootstepEvent{
+			Activity:    "ip-blocked",
+			Description: "IP is temporarily blocked due to repeated errors (/transaction/payment/:transaction_id)",
+			Module:      "Transaction",
+		})
+		tx.Rollback()
+		return nil, eris.New("IP is temporarily blocked due to repeated errors")
+	}
+
+	// ================================================================================
+	// STEP 3: GET CURRENT USER ORGANIZATION
+	// ================================================================================
+	userOrg, err := e.userOrganizationToken.CurrentUserOrganization(ctx, echoCtx)
+	if err != nil {
+		tx.Rollback()
+		e.Footstep(ctx, echoCtx, FootstepEvent{
+			Activity:    "auth-error",
+			Description: "Failed to get user organization (/transaction/payment/:transaction_id): " + err.Error(),
+			Module:      "Transaction",
+		})
+		block("Failed to get user organization: " + err.Error())
+		return nil, eris.Wrap(err, "failed to get user organization")
+	}
+
+	// ================================================================================
+	// STEP 4: INPUT VALIDATION
+	// ================================================================================
+	// Validate Payment Amount
+	if data.Amount == 0 {
+		tx.Rollback()
+		e.Footstep(ctx, echoCtx, FootstepEvent{
+			Activity:    "payment-error",
+			Description: "Payment amount cannot be zero (/transaction/payment/:transaction_id)",
+			Module:      "Transaction",
+		})
+		block("Payment amount cannot be zero")
+		return nil, eris.New("payment amount cannot be zero")
+	}
+	if data.AccountID == nil || data.PaymentTypeID == nil {
+		tx.Rollback()
+		e.Footstep(ctx, echoCtx, FootstepEvent{
+			Activity:    "validation-error",
+			Description: "Missing required fields (/transaction/payment/:transaction_id)",
+			Module:      "Transaction",
+		})
+		block("Missing required fields")
+		return nil, eris.New("missing required fields: AccountID and PaymentTypeID are required")
+	}
+
+	// ================================================================================
+	// STEP 5: ENTITY VALIDATION & RETRIEVAL
+	// ================================================================================
+	// GET or CREATE transaction
+	var transaction *model.Transaction
+	now := time.Now().UTC()
+	if data.TransactionID != nil {
+		transaction, err = e.model.TransactionManager.GetByID(ctx, *data.TransactionID)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			transaction = nil
+		} else if err != nil {
+			tx.Rollback()
+			e.Footstep(ctx, echoCtx, FootstepEvent{
+				Activity:    "transaction-error",
+				Description: "Failed to retrieve transaction (/transaction/payment/:transaction_id): " + err.Error(),
+				Module:      "Transaction",
+			})
+			block("Failed to retrieve transaction: " + err.Error())
+			return nil, eris.Wrap(err, "failed to retrieve transaction")
+		}
+	}
+	// GET member profile (if provided)
+	memberProfileId := transaction.MemberProfileID
+
+	if data.MemberProfileID != nil {
+		memberProfile, err := e.model.MemberProfileManager.GetByID(ctx, *data.MemberProfileID)
+		if err != nil {
+			tx.Rollback()
+			e.Footstep(ctx, echoCtx, FootstepEvent{
+				Activity:    "member-error",
+				Description: "Failed to retrieve member profile (/transaction/payment/:transaction_id): " + err.Error(),
+				Module:      "Transaction",
+			})
+			block("Failed to retrieve member profile: " + err.Error())
+			return nil, eris.Wrap(err, "failed to retrieve member profile")
+		}
+		if memberProfile.BranchID != *userOrg.BranchID {
+			tx.Rollback()
+			e.Footstep(ctx, echoCtx, FootstepEvent{
+				Activity:    "branch-mismatch",
+				Description: "Member does not belong to the current branch (/transaction/payment/:transaction_id)",
+				Module:      "Transaction",
+			})
+			block("Member does not belong to the current branch")
+			return nil, eris.New("member does not belong to the current branch")
+		}
+		if memberProfile.OrganizationID != userOrg.OrganizationID {
+			tx.Rollback()
+			e.Footstep(ctx, echoCtx, FootstepEvent{
+				Activity:    "organization-mismatch",
+				Description: "Member does not belong to the current organization (/transaction/payment/:transaction_id)",
+				Module:      "Transaction",
+			})
+			block("Member does not belong to the current organization")
+			return nil, eris.New("member does not belong to the current organization")
+		}
+		memberProfileId = &memberProfile.ID
+	}
+
+	// GET transaction batch
+	transactionBatch, err := e.model.TransactionBatchCurrent(ctx, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
+	if err != nil {
+		tx.Rollback()
+		e.Footstep(ctx, echoCtx, FootstepEvent{
+			Activity:    "batch-error",
+			Description: "Failed to retrieve transaction batch (/transaction/payment/:transaction_id): " + err.Error(),
+			Module:      "Transaction",
+		})
+		block("Failed to retrieve transaction batch: " + err.Error())
+		return nil, eris.Wrap(err, "failed to retrieve transaction batch")
+	}
+
+	// GET account (with lock)
+	account, err := e.model.AccountLockForUpdate(ctx, tx, *data.AccountID)
+	if err != nil {
+		e.Footstep(ctx, echoCtx, FootstepEvent{
+			Activity:    "account-lock-error",
+			Description: "Failed to acquire account lock for concurrent protection (/transaction/payment/:transaction_id): " + err.Error(),
+			Module:      "Transaction",
+		})
+		tx.Rollback()
+		block("Failed to acquire account lock: " + err.Error())
+		return nil, eris.Wrap(err, "failed to acquire account lock for concurrent protection")
+	}
+	if account.BranchID != *userOrg.BranchID {
+		tx.Rollback()
+		e.Footstep(ctx, echoCtx, FootstepEvent{
+			Activity:    "branch-mismatch",
+			Description: "Account does not belong to the current branch (/transaction/payment/:transaction_id)",
+			Module:      "Transaction",
+		})
+		block("Account does not belong to the current branch")
+		return nil, eris.New("account does not belong to the current branch")
+	}
+	if account.OrganizationID != userOrg.OrganizationID {
+		tx.Rollback()
+		e.Footstep(ctx, echoCtx, FootstepEvent{
+			Activity:    "organization-mismatch",
+			Description: "Account does not belong to the current organization (/transaction/payment/:transaction_id)",
+			Module:      "Transaction",
+		})
+		block("Account does not belong to the current organization")
+		return nil, eris.New("account does not belong to the current organization")
+	}
+
+	// GET general ledger (with lock)
+	var generalLedger *model.GeneralLedger
+	if memberProfileId != nil {
+		// Member-specific transaction
+		generalLedger, err = e.model.GeneralLedgerCurrentMemberAccountForUpdate(
+			ctx, tx, *memberProfileId, *data.AccountID, userOrg.OrganizationID, *userOrg.BranchID)
+		if err != nil {
+			tx.Rollback()
+			e.Footstep(ctx, echoCtx, FootstepEvent{
+				Activity:    "ledger-error",
+				Description: "Failed to retrieve member general ledger (FOR UPDATE) (/transaction/payment/:transaction_id): " + err.Error(),
+				Module:      "Transaction",
+			})
+			block("Failed to retrieve member general ledger: " + err.Error())
+			return nil, eris.Wrap(err, "failed to retrieve member general ledger")
+		}
+	} else {
+		generalLedger, err = e.model.GeneralLedgerCurrentSubsidiaryAccountForUpdate(
+			ctx, tx, *data.AccountID, userOrg.OrganizationID, *userOrg.BranchID)
+		if err != nil {
+			tx.Rollback()
+			e.Footstep(ctx, echoCtx, FootstepEvent{
+				Activity:    "ledger-error",
+				Description: "Failed to retrieve subsidiary general ledger (FOR UPDATE) (/transaction/payment/:transaction_id): " + err.Error(),
+				Module:      "Transaction",
+			})
+			block("Failed to retrieve subsidiary general ledger: " + err.Error())
+			return nil, eris.Wrap(err, "failed to retrieve subsidiary general ledger")
+		}
+	}
+
+	// GET payment type
+	paymentType, err := e.model.PaymentTypeManager.GetByID(ctx, *data.PaymentTypeID)
+	if err != nil {
+		tx.Rollback()
+		e.Footstep(ctx, echoCtx, FootstepEvent{
+			Activity:    "payment-type-error",
+			Description: "Failed to retrieve payment type (/transaction/payment/:transaction_id): " + err.Error(),
+			Module:      "Transaction",
+		})
+		block("Failed to retrieve payment type: " + err.Error())
+		return nil, eris.Wrap(err, "failed to retrieve payment type")
+	}
+	if paymentType.OrganizationID != userOrg.OrganizationID {
+		tx.Rollback()
+		e.Footstep(ctx, echoCtx, FootstepEvent{
+			Activity:    "organization-mismatch",
+			Description: "Payment type does not belong to the current organization (/transaction/payment/:transaction_id)",
+			Module:      "Transaction",
+		})
+		block("Payment type does not belong to the current organization")
+		return nil, eris.New("payment type does not belong to the current organization")
+	}
+
+	if transaction == nil {
+		transaction = &model.Transaction{
+			CreatedAt:            now,
+			CreatedByID:          userOrg.UserID,
+			UpdatedAt:            now,
+			UpdatedByID:          userOrg.UserID,
+			BranchID:             *userOrg.BranchID,
+			OrganizationID:       userOrg.OrganizationID,
+			SignatureMediaID:     data.SignatureMediaID,
+			TransactionBatchID:   &transactionBatch.ID,
+			EmployeeUserID:       &userOrg.UserID,
+			MemberProfileID:      memberProfileId,
+			MemberJointAccountID: data.MemberJointAccountID,
+			ReferenceNumber:      data.ReferenceNumber,
+			Description:          data.Description,
+			Amount:               0,
+			LoanBalance:          0,
+			LoanDue:              0,
+			TotalDue:             0,
+			FinesDue:             0,
+			TotalLoan:            0,
+			InterestDue:          0,
+		}
+		if err := e.model.TransactionManager.CreateWithTx(ctx, tx, transaction); err != nil {
+			tx.Rollback()
+			e.Footstep(ctx, echoCtx, FootstepEvent{
+				Activity:    "transaction-create-error",
+				Description: "Failed to create transaction (/transaction/payment/:transaction_id): " + err.Error(),
+				Module:      "Transaction",
+			})
+			block("Failed to create transaction: " + err.Error())
+			return nil, eris.Wrap(err, "failed to create transaction")
+		}
+	}
+
+	// ================================================================================
+	// STEP 6: CREATE GENERAL LEDGER ENTRY
+	// ================================================================================
+	referenceNumber := data.ReferenceNumber
+	if transaction.ReferenceNumber != "" {
+		referenceNumber = transaction.ReferenceNumber
+	}
+	memberJointAccountID := data.MemberJointAccountID
+	if memberJointAccountID == nil {
+		memberJointAccountID = transaction.MemberJointAccountID
+	}
+	var credit, debit, balance float64
+	switch data.Source {
+	case model.GeneralLedgerSourcePayment, model.GeneralLedgerSourceDeposit:
+		credit, debit, balance, err = e.service.Deposit(ctx, service.TransactionData{
+			GeneralLedger: generalLedger,
+			Account:       account,
+		}, data.Amount)
+	case model.GeneralLedgerSourceWithdraw:
+		credit, debit, balance, err = e.service.Withdraw(ctx, service.TransactionData{
+			GeneralLedger: generalLedger,
+			Account:       account,
+		}, data.Amount)
+	default:
+		err = eris.New("unsupported source type")
+	}
+	if err != nil {
+		tx.Rollback()
+		e.Footstep(ctx, echoCtx, FootstepEvent{
+			Activity:    "transaction-process-error",
+			Description: "Failed to process transaction (/transaction/payment/:transaction_id): " + err.Error(),
+			Module:      "Transaction",
+		})
+		block("Failed to process transaction: " + err.Error())
+		return nil, eris.Wrap(err, "failed to process transaction")
+	}
+
+	newGeneralLedger := &model.GeneralLedger{
+		CreatedAt:                  now,
+		CreatedByID:                userOrg.UserID,
+		UpdatedAt:                  now,
+		UpdatedByID:                userOrg.UserID,
+		BranchID:                   *userOrg.BranchID,
+		OrganizationID:             userOrg.OrganizationID,
+		TransactionBatchID:         &transactionBatch.ID,
+		ReferenceNumber:            referenceNumber,
+		TransactionID:              &transaction.ID,
+		EntryDate:                  data.EntryDate,
+		SignatureMediaID:           data.SignatureMediaID,
+		ProofOfPaymentMediaID:      data.ProofOfPaymentMediaID,
+		BankID:                     data.BankID,
+		AccountID:                  data.AccountID,
+		MemberProfileID:            memberProfileId,
+		MemberJointAccountID:       memberJointAccountID,
+		PaymentTypeID:              &paymentType.ID,
+		TransactionReferenceNumber: data.ReferenceNumber,
+		Source:                     data.Source,
+		BankReferenceNumber:        data.BankReferenceNumber,
+		EmployeeUserID:             &userOrg.UserID,
+		Description:                data.Description,
+		TypeOfPaymentType:          paymentType.Type,
+		Credit:                     credit,
+		Debit:                      debit,
+		Balance:                    balance,
+	}
+	if err := e.model.GeneralLedgerManager.CreateWithTx(ctx, tx, newGeneralLedger); err != nil {
+		tx.Rollback()
+		e.Footstep(ctx, echoCtx, FootstepEvent{
+			Activity:    "ledger-create-error",
+			Description: "Failed to create general ledger entry (/transaction/payment/:transaction_id): " + err.Error(),
+			Module:      "Transaction",
+		})
+		block("Failed to create general ledger entry: " + err.Error())
+		return nil, eris.Wrap(err, "failed to create general ledger entry")
+	}
+
+	// ================================================================================
+	// STEP 7: UPDATE TRANSACTION
+	// ================================================================================
+	switch data.Source {
+	case model.GeneralLedgerSourcePayment, model.GeneralLedgerSourceDeposit:
+		transaction.Amount += math.Abs(data.Amount)
+	case model.GeneralLedgerSourceWithdraw:
+		transaction.Amount -= math.Abs(data.Amount)
+	}
+
+	transaction.UpdatedAt = now
+	transaction.UpdatedByID = userOrg.UserID
+	if err := e.model.TransactionManager.UpdateFieldsWithTx(ctx, tx, transaction.ID, transaction); err != nil {
+		tx.Rollback()
+		e.Footstep(ctx, echoCtx, FootstepEvent{
+			Activity:    "transaction-update-error",
+			Description: "Failed to update transaction (/transaction/payment/:transaction_id): " + err.Error(),
+			Module:      "Transaction",
+		})
+		block("Failed to update transaction: " + err.Error())
+		return nil, eris.Wrap(err, "failed to update transaction")
+	}
+
+	// ================================================================================
+	// STEP 8: MEMBER ACCOUNTING PROFILE UPDATE
+	// ================================================================================
+	if memberProfileId != nil {
+		lastPayTime := now
+		if data.EntryDate != nil {
+			lastPayTime = *data.EntryDate
+		}
+		_, err := e.model.MemberAccountingLedgerUpdateOrCreate(
+			ctx, tx,
+			*memberProfileId,
+			*data.AccountID,
+			userOrg.OrganizationID,
+			*userOrg.BranchID,
+			userOrg.UserID,
+			balance,
+			lastPayTime,
+		)
+		if err != nil {
+			e.Footstep(ctx, echoCtx, FootstepEvent{
+				Activity:    "member-accounting-ledger-error",
+				Description: "Failed to update member accounting ledger (/transaction/payment/:transaction_id): " + err.Error(),
+				Module:      "Transaction",
+			})
+			tx.Rollback()
+			block("Failed to update member accounting ledger: " + err.Error())
+			return nil, eris.Wrap(err, "failed to update member accounting ledger")
+		}
+	}
+
+	// ================================================================================
+	// STEP 9: TRANSACTION COMMIT & SUCCESS LOGGING
+	// ================================================================================
+	if err := tx.Commit().Error; err != nil {
+		e.Footstep(ctx, echoCtx, FootstepEvent{
+			Activity:    "db-commit-error",
+			Description: "Failed to commit transaction (/transaction/payment/:transaction_id): " + err.Error(),
+			Module:      "Transaction",
+		})
+		return nil, eris.Wrap(err, "failed to commit transaction")
+	}
+
+	// Success - log completion with performance metrics
+	duration := time.Since(startTime)
+	e.Footstep(ctx, echoCtx, FootstepEvent{
+		Activity: "payment-success",
+		Description: fmt.Sprintf("Payment completed successfully. Amount: %.2f, Account: %s, Balance: %.2f, Duration: %.3fs (/transaction/payment/:transaction_id)",
+			data.Amount, data.AccountID.String(), balance, duration.Seconds()),
+		Module: "Transaction",
+	})
+
+	return newGeneralLedger, nil
+}

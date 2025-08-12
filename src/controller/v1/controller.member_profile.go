@@ -111,6 +111,7 @@ func (c *Controller) MemberProfileController() {
 			IsContactVerified: false,
 			CreatedAt:         time.Now().UTC(),
 			UpdatedAt:         time.Now().UTC(),
+			Birthdate:         req.BirthDate,
 		}
 		if err := c.model.UserManager.CreateWithTx(context, tx, userProfile); err != nil {
 			tx.Rollback()
@@ -673,6 +674,7 @@ func (c *Controller) MemberProfileController() {
 				IsContactVerified: false,
 				CreatedAt:         time.Now().UTC(),
 				UpdatedAt:         time.Now().UTC(),
+				Birthdate:         req.BirthDate,
 			}
 			if err := c.model.UserManager.CreateWithTx(context, tx, userProfile); err != nil {
 				tx.Rollback()
