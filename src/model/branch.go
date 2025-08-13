@@ -85,8 +85,8 @@ type (
 		BranchSettingCheckVoucherORUnique       bool   `gorm:"not null;default:false" json:"branch_setting_check_voucher_or_unique"`
 		BranchSettingCheckVoucherUseDateOR      bool   `gorm:"not null;default:false" json:"branch_setting_check_voucher_use_date_or"`
 
-		BranchSettingDefaultMemberTypeID *uuid.UUID  `gorm:"type:uuid;index" json:"branch_setting_default_member_type_id,omitempty"`
-		BranchSettingDefaultMemberType   *MemberType `gorm:"foreignKey:BranchSettingDefaultMemberTypeID;constraint:OnDelete:SET NULL;"`
+		// BranchSettingDefaultMemberTypeID *uuid.UUID  `gorm:"type:uuid;index" json:"branch_setting_default_member_type_id,omitempty"`
+		// BranchSettingDefaultMemberType   *MemberType `gorm:"foreignKey:BranchSettingDefaultMemberTypeID;constraint:OnDelete:SET NULL;"`
 	}
 	BranchRequest struct {
 		ID *uuid.UUID `json:"id,omitempty"`
@@ -321,8 +321,8 @@ func (m *Model) Branch() {
 				BranchSettingCheckVoucherORUnique:       data.BranchSettingCheckVoucherORUnique,
 				BranchSettingCheckVoucherUseDateOR:      data.BranchSettingCheckVoucherUseDateOR,
 
-				BranchSettingDefaultMemberTypeID: data.BranchSettingDefaultMemberTypeID,
-				BranchSettingDefaultMemberType:   m.MemberTypeManager.ToModel(data.BranchSettingDefaultMemberType),
+				// BranchSettingDefaultMemberTypeID: data.BranchSettingDefaultMemberTypeID,
+				// BranchSettingDefaultMemberType:   m.MemberTypeManager.ToModel(data.BranchSettingDefaultMemberType),
 			}
 		},
 		Created: func(data *Branch) []string {

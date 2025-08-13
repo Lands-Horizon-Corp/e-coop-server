@@ -615,7 +615,7 @@ func (c *Controller) BranchController() {
 		branch.BranchSettingCheckVoucherORUnique = settingsReq.BranchSettingCheckVoucherORUnique
 		branch.BranchSettingCheckVoucherUseDateOR = settingsReq.BranchSettingCheckVoucherUseDateOR
 
-		branch.BranchSettingDefaultMemberTypeID = settingsReq.BranchSettingDefaultMemberTypeID
+		// branch.BranchSettingDefaultMemberTypeID = settingsReq.BranchSettingDefaultMemberTypeID
 
 		// Save the updated branch
 		if err := c.model.BranchManager.UpdateFields(context, branch.ID, branch); err != nil {
