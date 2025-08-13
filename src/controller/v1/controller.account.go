@@ -712,7 +712,7 @@ func (c *Controller) AccountController() {
 	// Quick Search
 	// GET: Search (NO footstep)
 	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/account/withdraw",
+		Route:        "/api/v1/account/withdraw/search",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch.",
 		ResponseType: model.AccountResponse{},
@@ -733,11 +733,11 @@ func (c *Controller) AccountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve accounts: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.AccountManager.Filtered(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, c.model.AccountManager.Pagination(context, ctx, accounts))
 	})
 
 	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/account/deposit",
+		Route:        "/api/v1/account/deposit/search",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch.",
 		ResponseType: model.AccountResponse{},
@@ -758,7 +758,7 @@ func (c *Controller) AccountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve accounts: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.AccountManager.Filtered(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, c.model.AccountManager.Pagination(context, ctx, accounts))
 	})
 
 	req.RegisterRoute(handlers.Route{
