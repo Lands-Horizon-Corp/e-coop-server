@@ -256,6 +256,7 @@ func (m *Model) UserOrganization() {
 			"UpdatedBy",
 			"Branch",
 			"Branch.Media",
+			"Branch.BranchSetting",
 			"User",
 			"User.Media",
 			"Organization",
