@@ -243,7 +243,7 @@ func (m *Model) Branch() {
 			"Organization.CreatedBy",
 			"Organization.Media",
 			"Organization.CoverMedia",
-			"BranchSettingDefaultMemberType",
+			// "BranchSettingDefaultMemberType",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *Branch) *BranchResponse {
