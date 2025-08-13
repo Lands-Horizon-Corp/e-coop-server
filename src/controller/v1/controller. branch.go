@@ -196,6 +196,66 @@ func (c *Controller) BranchController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create branch: " + err.Error()})
 		}
 
+		// Create default branch settings for the new branch
+		branchSetting := &model.BranchSetting{
+			CreatedAt: time.Now().UTC(),
+			UpdatedAt: time.Now().UTC(),
+			BranchID:  branch.ID,
+
+			// Withdraw Settings
+			WithdrawAllowUserInput: true,
+			WithdrawPrefix:         "WD",
+			WithdrawORStart:        1,
+			WithdrawORCurrent:      1,
+			WithdrawOREnd:          999999,
+			WithdrawORIteration:    1,
+			WithdrawORUnique:       true,
+			WithdrawUseDateOR:      false,
+
+			// Deposit Settings
+			DepositAllowUserInput: true,
+			DepositPrefix:         "DP",
+			DepositORStart:        1,
+			DepositORCurrent:      1,
+			DepositOREnd:          999999,
+			DepositORIteration:    1,
+			DepositORUnique:       true,
+			DepositUseDateOR:      false,
+
+			// Loan Settings
+			LoanAllowUserInput: true,
+			LoanPrefix:         "LN",
+			LoanORStart:        1,
+			LoanORCurrent:      1,
+			LoanOREnd:          999999,
+			LoanORIteration:    1,
+			LoanORUnique:       true,
+			LoanUseDateOR:      false,
+
+			// Check Voucher Settings
+			CheckVoucherAllowUserInput: true,
+			CheckVoucherPrefix:         "CV",
+			CheckVoucherORStart:        1,
+			CheckVoucherORCurrent:      1,
+			CheckVoucherOREnd:          999999,
+			CheckVoucherORIteration:    1,
+			CheckVoucherORUnique:       true,
+			CheckVoucherUseDateOR:      false,
+
+			// Default Member Type - can be set later
+			DefaultMemberTypeID: nil,
+		}
+
+		if err := c.model.BranchSettingManager.CreateWithTx(context, tx, branchSetting); err != nil {
+			tx.Rollback()
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create error",
+				Description: fmt.Sprintf("Failed to create branch settings for POST /branch/organization/:organization_id: %v", err),
+				Module:      "branch",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create branch settings: " + err.Error()})
+		}
+
 		if userOrganization.BranchID == nil {
 			// Assign branch to existing user organization
 			userOrganization.BranchID = &branch.ID
@@ -524,11 +584,11 @@ func (c *Controller) BranchController() {
 	})
 
 	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/branch/settings",
+		Route:        "/api/v1/branch-settings",
 		Method:       "PUT",
 		Note:         "Updates branch settings for the current user's branch.",
 		RequestType:  model.BranchSettingRequest{},
-		ResponseType: model.BranchResponse{},
+		ResponseType: model.BranchSettingResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
@@ -537,21 +597,19 @@ func (c *Controller) BranchController() {
 		if err := ctx.Bind(&settingsReq); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update error",
-				Description: fmt.Sprintf("Failed to bind branch settings for PUT /branch/settings: %v", err),
+				Description: fmt.Sprintf("Failed to bind branch settings for PUT /branch-settings: %v", err),
 				Module:      "branch",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 
-		// Get current user
-		user, err := c.userToken.CurrentUser(context, ctx)
-		if err != nil {
+		if err := c.provider.Service.Validator.Struct(settingsReq); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update error",
-				Description: "User authentication required for PUT /branch/settings",
+				Description: fmt.Sprintf("Failed to validate branch settings for PUT /branch-settings: %v", err),
 				Module:      "branch",
 			})
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication required"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
 		// Get user's current branch
@@ -559,86 +617,178 @@ func (c *Controller) BranchController() {
 		if err != nil || userOrg.BranchID == nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update error",
-				Description: "User not assigned to a branch for PUT /branch/settings",
+				Description: "User not assigned to a branch for PUT /branch-settings",
 				Module:      "branch",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User not assigned to a branch"})
 		}
 
-		// Get the branch
-		branch, err := c.model.BranchManager.GetByID(context, *userOrg.BranchID)
-		if err != nil {
+		// Check if user has permission to update branch settings
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update error",
-				Description: fmt.Sprintf("Branch not found for PUT /branch/settings: %v", err),
+				Description: "Insufficient permissions to update branch settings for PUT /branch-settings",
 				Module:      "branch",
 			})
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Branch not found: " + err.Error()})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Insufficient permissions to update branch settings"})
 		}
 
-		// Update branch settings
-		branch.UpdatedAt = time.Now().UTC()
-		branch.UpdatedByID = user.ID
-		branch.BranchSettingWithdrawAllowUserInput = settingsReq.BranchSettingWithdrawAllowUserInput
-		branch.BranchSettingWithdrawPrefix = settingsReq.BranchSettingWithdrawPrefix
-		branch.BranchSettingWithdrawORStart = settingsReq.BranchSettingWithdrawORStart
-		branch.BranchSettingWithdrawORCurrent = settingsReq.BranchSettingWithdrawORCurrent
-		branch.BranchSettingWithdrawOREnd = settingsReq.BranchSettingWithdrawOREnd
-		branch.BranchSettingWithdrawIteration = settingsReq.BranchSettingWithdrawIteration
-		branch.BranchSettingWithdrawORUnique = settingsReq.BranchSettingWithdrawORUnique
-		branch.BranchSettingWithdrawUseDateOR = settingsReq.BranchSettingWithdrawUseDateOR
+		// Get existing branch settings or create new one
+		var branchSetting *model.BranchSetting
+		branchSetting, err = c.model.BranchSettingManager.FindOne(context, &model.BranchSetting{
+			BranchID: *userOrg.BranchID,
+		})
 
-		branch.BranchSettingDepositAllowUserInput = settingsReq.BranchSettingDepositAllowUserInput
-		branch.BranchSettingDepositPrefix = settingsReq.BranchSettingDepositPrefix
-		branch.BranchSettingDepositORStart = settingsReq.BranchSettingDepositORStart
-		branch.BranchSettingDepositORCurrent = settingsReq.BranchSettingDepositORCurrent
-		branch.BranchSettingDepositOREnd = settingsReq.BranchSettingDepositOREnd
-		branch.BranchSettingDepositORIteration = settingsReq.BranchSettingDepositORIteration
-		branch.BranchSettingDepositORUnique = settingsReq.BranchSettingDepositORUnique
-		branch.BranchSettingDepositUseDateOR = settingsReq.BranchSettingDepositUseDateOR
-
-		branch.BranchSettingLoanAllowUserInput = settingsReq.BranchSettingLoanAllowUserInput
-		branch.BranchSettingLoanPrefix = settingsReq.BranchSettingLoanPrefix
-		branch.BranchSettingLoanORStart = settingsReq.BranchSettingLoanORStart
-		branch.BranchSettingLoanORCurrent = settingsReq.BranchSettingLoanORCurrent
-		branch.BranchSettingLoanOREnd = settingsReq.BranchSettingLoanOREnd
-		branch.BranchSettingLoanORIteration = settingsReq.BranchSettingLoanORIteration
-		branch.BranchSettingLoanORUnique = settingsReq.BranchSettingLoanORUnique
-		branch.BranchSettingLoanUseDateOR = settingsReq.BranchSettingLoanUseDateOR
-
-		branch.BranchSettingCheckVoucherAllowUserInput = settingsReq.BranchSettingCheckVoucherAllowUserInput
-		branch.BranchSettingCheckVoucherPrefix = settingsReq.BranchSettingCheckVoucherPrefix
-		branch.BranchSettingCheckVoucherORStart = settingsReq.BranchSettingCheckVoucherORStart
-		branch.BranchSettingCheckVoucherORCurrent = settingsReq.BranchSettingCheckVoucherORCurrent
-		branch.BranchSettingCheckVoucherOREnd = settingsReq.BranchSettingCheckVoucherOREnd
-		branch.BranchSettingCheckVoucherORIteration = settingsReq.BranchSettingCheckVoucherORIteration
-		branch.BranchSettingCheckVoucherORUnique = settingsReq.BranchSettingCheckVoucherORUnique
-		branch.BranchSettingCheckVoucherUseDateOR = settingsReq.BranchSettingCheckVoucherUseDateOR
-
-		branch.BranchSettingDefaultMemberTypeID = settingsReq.BranchSettingDefaultMemberTypeID
-
-		// Save the updated branch
-		if err := c.model.BranchManager.UpdateFields(context, branch.ID, branch); err != nil {
+		tx := c.provider.Service.Database.Client().Begin()
+		if tx.Error != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update error",
-				Description: fmt.Sprintf("Failed to update branch settings for PUT /branch/settings: %v", err),
+				Description: fmt.Sprintf("Failed to start DB transaction for PUT /branch-settings: %v", tx.Error),
 				Module:      "branch",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update branch settings: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+		}
+
+		if err != nil {
+			// Create new branch settings if they don't exist
+			branchSetting = &model.BranchSetting{
+				CreatedAt: time.Now().UTC(),
+				UpdatedAt: time.Now().UTC(),
+				BranchID:  *userOrg.BranchID,
+
+				// Withdraw Settings
+				WithdrawAllowUserInput: settingsReq.WithdrawAllowUserInput,
+				WithdrawPrefix:         settingsReq.WithdrawPrefix,
+				WithdrawORStart:        settingsReq.WithdrawORStart,
+				WithdrawORCurrent:      settingsReq.WithdrawORCurrent,
+				WithdrawOREnd:          settingsReq.WithdrawOREnd,
+				WithdrawORIteration:    settingsReq.WithdrawORIteration,
+				WithdrawORUnique:       settingsReq.WithdrawORUnique,
+				WithdrawUseDateOR:      settingsReq.WithdrawUseDateOR,
+
+				// Deposit Settings
+				DepositAllowUserInput: settingsReq.DepositAllowUserInput,
+				DepositPrefix:         settingsReq.DepositPrefix,
+				DepositORStart:        settingsReq.DepositORStart,
+				DepositORCurrent:      settingsReq.DepositORCurrent,
+				DepositOREnd:          settingsReq.DepositOREnd,
+				DepositORIteration:    settingsReq.DepositORIteration,
+				DepositORUnique:       settingsReq.DepositORUnique,
+				DepositUseDateOR:      settingsReq.DepositUseDateOR,
+
+				// Loan Settings
+				LoanAllowUserInput: settingsReq.LoanAllowUserInput,
+				LoanPrefix:         settingsReq.LoanPrefix,
+				LoanORStart:        settingsReq.LoanORStart,
+				LoanORCurrent:      settingsReq.LoanORCurrent,
+				LoanOREnd:          settingsReq.LoanOREnd,
+				LoanORIteration:    settingsReq.LoanORIteration,
+				LoanORUnique:       settingsReq.LoanORUnique,
+				LoanUseDateOR:      settingsReq.LoanUseDateOR,
+
+				// Check Voucher Settings
+				CheckVoucherAllowUserInput: settingsReq.CheckVoucherAllowUserInput,
+				CheckVoucherPrefix:         settingsReq.CheckVoucherPrefix,
+				CheckVoucherORStart:        settingsReq.CheckVoucherORStart,
+				CheckVoucherORCurrent:      settingsReq.CheckVoucherORCurrent,
+				CheckVoucherOREnd:          settingsReq.CheckVoucherOREnd,
+				CheckVoucherORIteration:    settingsReq.CheckVoucherORIteration,
+				CheckVoucherORUnique:       settingsReq.CheckVoucherORUnique,
+				CheckVoucherUseDateOR:      settingsReq.CheckVoucherUseDateOR,
+
+				// Default Member Type
+				DefaultMemberTypeID: settingsReq.DefaultMemberTypeID,
+			}
+
+			if err := c.model.BranchSettingManager.CreateWithTx(context, tx, branchSetting); err != nil {
+				tx.Rollback()
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "update error",
+					Description: fmt.Sprintf("Failed to create branch settings for PUT /branch-settings: %v", err),
+					Module:      "branch",
+				})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create branch settings: " + err.Error()})
+			}
+		} else {
+			// Update existing branch settings
+			branchSetting.UpdatedAt = time.Now().UTC()
+
+			// Withdraw Settings
+			branchSetting.WithdrawAllowUserInput = settingsReq.WithdrawAllowUserInput
+			branchSetting.WithdrawPrefix = settingsReq.WithdrawPrefix
+			branchSetting.WithdrawORStart = settingsReq.WithdrawORStart
+			branchSetting.WithdrawORCurrent = settingsReq.WithdrawORCurrent
+			branchSetting.WithdrawOREnd = settingsReq.WithdrawOREnd
+			branchSetting.WithdrawORIteration = settingsReq.WithdrawORIteration
+			branchSetting.WithdrawORUnique = settingsReq.WithdrawORUnique
+			branchSetting.WithdrawUseDateOR = settingsReq.WithdrawUseDateOR
+
+			// Deposit Settings
+			branchSetting.DepositAllowUserInput = settingsReq.DepositAllowUserInput
+			branchSetting.DepositPrefix = settingsReq.DepositPrefix
+			branchSetting.DepositORStart = settingsReq.DepositORStart
+			branchSetting.DepositORCurrent = settingsReq.DepositORCurrent
+			branchSetting.DepositOREnd = settingsReq.DepositOREnd
+			branchSetting.DepositORIteration = settingsReq.DepositORIteration
+			branchSetting.DepositORUnique = settingsReq.DepositORUnique
+			branchSetting.DepositUseDateOR = settingsReq.DepositUseDateOR
+
+			// Loan Settings
+			branchSetting.LoanAllowUserInput = settingsReq.LoanAllowUserInput
+			branchSetting.LoanPrefix = settingsReq.LoanPrefix
+			branchSetting.LoanORStart = settingsReq.LoanORStart
+			branchSetting.LoanORCurrent = settingsReq.LoanORCurrent
+			branchSetting.LoanOREnd = settingsReq.LoanOREnd
+			branchSetting.LoanORIteration = settingsReq.LoanORIteration
+			branchSetting.LoanORUnique = settingsReq.LoanORUnique
+			branchSetting.LoanUseDateOR = settingsReq.LoanUseDateOR
+
+			// Check Voucher Settings
+			branchSetting.CheckVoucherAllowUserInput = settingsReq.CheckVoucherAllowUserInput
+			branchSetting.CheckVoucherPrefix = settingsReq.CheckVoucherPrefix
+			branchSetting.CheckVoucherORStart = settingsReq.CheckVoucherORStart
+			branchSetting.CheckVoucherORCurrent = settingsReq.CheckVoucherORCurrent
+			branchSetting.CheckVoucherOREnd = settingsReq.CheckVoucherOREnd
+			branchSetting.CheckVoucherORIteration = settingsReq.CheckVoucherORIteration
+			branchSetting.CheckVoucherORUnique = settingsReq.CheckVoucherORUnique
+			branchSetting.CheckVoucherUseDateOR = settingsReq.CheckVoucherUseDateOR
+
+			// Default Member Type
+			branchSetting.DefaultMemberTypeID = settingsReq.DefaultMemberTypeID
+
+			if err := c.model.BranchSettingManager.UpdateFieldsWithTx(context, tx, branchSetting.ID, branchSetting); err != nil {
+				tx.Rollback()
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "update error",
+					Description: fmt.Sprintf("Failed to update branch settings for PUT /branch-settings: %v", err),
+					Module:      "branch",
+				})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update branch settings: " + err.Error()})
+			}
+		}
+
+		if err := tx.Commit().Error; err != nil {
+			tx.Rollback()
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update error",
+				Description: fmt.Sprintf("Failed to commit transaction for PUT /branch-settings: %v", err),
+				Module:      "branch",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
 
 		// Log success
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "update success",
-			Description: fmt.Sprintf("Updated branch settings for branch: %s, ID: %s", branch.Name, branch.ID),
+			Description: fmt.Sprintf("Updated branch settings for branch ID: %s", userOrg.BranchID),
 			Module:      "branch",
 		})
 
 		c.event.Notification(context, ctx, event.NotificationEvent{
-			Title:       fmt.Sprintf("Settings Updated: %s", branch.Name),
-			Description: fmt.Sprintf("Updated settings for branch: %s", branch.Name),
+			Title:       "Branch Settings Updated",
+			Description: "Branch settings have been successfully updated",
 		})
 
-		return ctx.JSON(http.StatusOK, c.model.BranchManager.ToModel(branch))
+		return ctx.JSON(http.StatusOK, c.model.BranchSettingManager.ToModel(branchSetting))
 	})
 }

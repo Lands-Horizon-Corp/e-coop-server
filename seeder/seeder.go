@@ -292,6 +292,61 @@ func (ds *Seeder) SeedOrganization(ctx context.Context) error {
 				if err := ds.model.BranchManager.Create(ctx, branch); err != nil {
 					return err
 				}
+
+				// Create default branch settings for each branch
+				branchSetting := &model.BranchSetting{
+					CreatedAt: time.Now().UTC(),
+					UpdatedAt: time.Now().UTC(),
+					BranchID:  branch.ID,
+
+					// Withdraw Settings
+					WithdrawAllowUserInput: true,
+					WithdrawPrefix:         fmt.Sprintf("WD%d", k+1),
+					WithdrawORStart:        1,
+					WithdrawORCurrent:      1,
+					WithdrawOREnd:          999999,
+					WithdrawORIteration:    1,
+					WithdrawORUnique:       true,
+					WithdrawUseDateOR:      false,
+
+					// Deposit Settings
+					DepositAllowUserInput: true,
+					DepositPrefix:         fmt.Sprintf("DP%d", k+1),
+					DepositORStart:        1,
+					DepositORCurrent:      1,
+					DepositOREnd:          999999,
+					DepositORIteration:    1,
+					DepositORUnique:       true,
+					DepositUseDateOR:      false,
+
+					// Loan Settings
+					LoanAllowUserInput: true,
+					LoanPrefix:         fmt.Sprintf("LN%d", k+1),
+					LoanORStart:        1,
+					LoanORCurrent:      1,
+					LoanOREnd:          999999,
+					LoanORIteration:    1,
+					LoanORUnique:       true,
+					LoanUseDateOR:      false,
+
+					// Check Voucher Settings
+					CheckVoucherAllowUserInput: true,
+					CheckVoucherPrefix:         fmt.Sprintf("CV%d", k+1),
+					CheckVoucherORStart:        1,
+					CheckVoucherORCurrent:      1,
+					CheckVoucherOREnd:          999999,
+					CheckVoucherORIteration:    1,
+					CheckVoucherORUnique:       true,
+					CheckVoucherUseDateOR:      false,
+
+					// Default Member Type - can be set later when MemberType is available
+					DefaultMemberTypeID: nil,
+				}
+
+				if err := ds.model.BranchSettingManager.Create(ctx, branchSetting); err != nil {
+					return err
+				}
+
 				developerKey, err := ds.provider.Service.Security.GenerateUUIDv5(ctx, branch.ID.String())
 				if err != nil {
 					return err
