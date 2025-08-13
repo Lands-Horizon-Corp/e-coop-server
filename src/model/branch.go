@@ -84,6 +84,9 @@ type (
 		BranchSettingCheckVoucherORIteration    int    `gorm:"not null;default:0" json:"branch_setting_check_voucher_or_iteration"`
 		BranchSettingCheckVoucherORUnique       bool   `gorm:"not null;default:false" json:"branch_setting_check_voucher_or_unique"`
 		BranchSettingCheckVoucherUseDateOR      bool   `gorm:"not null;default:false" json:"branch_setting_check_voucher_use_date_or"`
+
+		BranchSettingDefaultMemberTypeID *uuid.UUID  `gorm:"type:uuid" json:"branch_setting_default_member_type_id,omitempty"`
+		BranchSettingDefaultMemberType   *MemberType `gorm:"foreignKey:BranchSettingDefaultMemberTypeID;constraint:OnDelete:SET NULL;" json:"branch_setting_default_member_type,omitempty"`
 	}
 	BranchRequest struct {
 		ID *uuid.UUID `json:"id,omitempty"`
@@ -177,6 +180,9 @@ type (
 		BranchSettingCheckVoucherORIteration    int    `json:"branch_setting_check_voucher_or_iteration"`
 		BranchSettingCheckVoucherORUnique       bool   `json:"branch_setting_check_voucher_or_unique"`
 		BranchSettingCheckVoucherUseDateOR      bool   `json:"branch_setting_check_voucher_use_date_or"`
+
+		BranchSettingDefaultMemberTypeID *uuid.UUID          `json:"branch_setting_default_member_type_id,omitempty"`
+		BranchSettingDefaultMemberType   *MemberTypeResponse `json:"branch_setting_default_member_type,omitempty"`
 	}
 
 	BranchSettingRequest struct {
@@ -215,6 +221,8 @@ type (
 		BranchSettingCheckVoucherORIteration    int    `json:"branch_setting_check_voucher_or_iteration" validate:"min=0"`
 		BranchSettingCheckVoucherORUnique       bool   `json:"branch_setting_check_voucher_or_unique"`
 		BranchSettingCheckVoucherUseDateOR      bool   `json:"branch_setting_check_voucher_use_date_or"`
+
+		BranchSettingDefaultMemberTypeID *uuid.UUID `json:"branch_setting_default_member_type_id,omitempty"`
 	}
 )
 
@@ -235,6 +243,7 @@ func (m *Model) Branch() {
 			"Organization.CreatedBy",
 			"Organization.Media",
 			"Organization.CoverMedia",
+			"MemberType",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *Branch) *BranchResponse {
@@ -311,6 +320,9 @@ func (m *Model) Branch() {
 				BranchSettingCheckVoucherORIteration:    data.BranchSettingCheckVoucherORIteration,
 				BranchSettingCheckVoucherORUnique:       data.BranchSettingCheckVoucherORUnique,
 				BranchSettingCheckVoucherUseDateOR:      data.BranchSettingCheckVoucherUseDateOR,
+
+				BranchSettingDefaultMemberTypeID: data.BranchSettingDefaultMemberTypeID,
+				BranchSettingDefaultMemberType:   m.MemberTypeManager.ToModel(data.BranchSettingDefaultMemberType),
 			}
 		},
 		Created: func(data *Branch) []string {
