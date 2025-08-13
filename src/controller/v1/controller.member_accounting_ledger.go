@@ -36,14 +36,14 @@ func (c *Controller) MemberAccountingLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve member accounting ledger entries: " + err.Error()})
 		}
-		var totalAmount float64
+		var totalDeposits float64
 		for _, entry := range entries {
-			totalAmount += entry.Balance
+			totalDeposits += entry.Balance
 		}
 		summary := model.MemberAccountingLedgerSummary{
-			TotalAmount:                  totalAmount,
+			TotalDeposits:                totalDeposits,
 			TotalShareCapitalPlusSavings: 0,
-			TotalLoans:                   totalAmount,
+			TotalLoans:                   0,
 		}
 		return ctx.JSON(http.StatusOK, summary)
 	})

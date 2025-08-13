@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"math"
 
 	"github.com/lands-horizon/horizon-server/src/model"
 	"github.com/rotisserie/eris"
@@ -37,7 +38,8 @@ func (t *TransactionService) Deposit(ctx context.Context, account TransactionDat
 	if amount < 0 {
 		return t.Withdraw(ctx, account, -amount)
 	}
-	if account.GeneralLedger == nil {
+	balance = 0
+	if account.GeneralLedger != nil {
 		balance = account.GeneralLedger.Balance
 	}
 	switch account.Account.Type {
@@ -68,14 +70,14 @@ func (t *TransactionService) Withdraw(ctx context.Context, account TransactionDa
 		return 0, 0, 0, eris.New("account is required")
 	}
 
-	balance = account.GeneralLedger.Balance
+	balance = 0
 	if amount == 0 {
 		return 0, 0, balance, eris.New("amount must be greater than zero")
 	}
 	if amount < 0 {
 		return t.Deposit(ctx, account, -amount)
 	}
-	if account.GeneralLedger == nil {
+	if account.GeneralLedger != nil {
 		balance = account.GeneralLedger.Balance
 	}
 	if balance < amount {
@@ -113,16 +115,6 @@ func (t *TransactionService) ComputeTotalBalance(context context.Context, genera
 		}
 		credit += gl.Credit
 		debit += gl.Debit
-		switch gl.Account.Type {
-		case model.AccountTypeDeposit, model.AccountTypeTimeDeposit, model.AccountTypeSVFLedger,
-			model.AccountTypeARLedger, model.AccountTypeARAging,
-			model.AccountTypeWOff, model.AccountTypeOther:
-			balance += gl.Balance
-		case model.AccountTypeLoan, model.AccountTypeFines, model.AccountTypeInterest, model.AccountTypeAPLedger:
-			balance -= gl.Balance
-		default:
-			return 0, 0, 0, eris.New("unknown account type")
-		}
 	}
-	return credit, debit, balance, nil
+	return credit, debit, math.Abs(credit - debit), nil
 }

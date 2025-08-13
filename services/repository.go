@@ -210,7 +210,24 @@ func (c *CollectionManager[TData, TResponse, TRequest]) Pagination(
 	maxWorkers := runtime.NumCPU()
 	filtered, err := handlers.Pagination(ctx, param, data, batchSize, maxWorkers)
 	if err != nil {
-		return handlers.PaginationResult[TResponse]{}
+		return handlers.PaginationResult[TResponse]{
+			Data:      []*TResponse{},
+			PageIndex: filtered.PageIndex,
+			PageSize:  filtered.PageSize,
+			TotalSize: filtered.TotalSize,
+			Sort:      filtered.Sort,
+			TotalPage: filtered.TotalPage,
+		}
+	}
+	if filtered.Data == nil {
+		return handlers.PaginationResult[TResponse]{
+			Data:      []*TResponse{},
+			PageIndex: filtered.PageIndex,
+			PageSize:  filtered.PageSize,
+			TotalSize: filtered.TotalSize,
+			Sort:      filtered.Sort,
+			TotalPage: filtered.TotalPage,
+		}
 	}
 	return handlers.PaginationResult[TResponse]{
 		Data:      c.ToModels(filtered.Data),

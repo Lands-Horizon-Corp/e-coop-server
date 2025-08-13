@@ -579,6 +579,8 @@ func (c *Controller) BranchController() {
 		// Update branch settings
 		branch.UpdatedAt = time.Now().UTC()
 		branch.UpdatedByID = user.ID
+		branch.BranchSettingWithdrawAllowUserInput = settingsReq.BranchSettingWithdrawAllowUserInput
+		branch.BranchSettingWithdrawPrefix = settingsReq.BranchSettingWithdrawPrefix
 		branch.BranchSettingWithdrawORStart = settingsReq.BranchSettingWithdrawORStart
 		branch.BranchSettingWithdrawORCurrent = settingsReq.BranchSettingWithdrawORCurrent
 		branch.BranchSettingWithdrawOREnd = settingsReq.BranchSettingWithdrawOREnd
@@ -586,6 +588,8 @@ func (c *Controller) BranchController() {
 		branch.BranchSettingWithdrawORUnique = settingsReq.BranchSettingWithdrawORUnique
 		branch.BranchSettingWithdrawUseDateOR = settingsReq.BranchSettingWithdrawUseDateOR
 
+		branch.BranchSettingDepositAllowUserInput = settingsReq.BranchSettingDepositAllowUserInput
+		branch.BranchSettingDepositPrefix = settingsReq.BranchSettingDepositPrefix
 		branch.BranchSettingDepositORStart = settingsReq.BranchSettingDepositORStart
 		branch.BranchSettingDepositORCurrent = settingsReq.BranchSettingDepositORCurrent
 		branch.BranchSettingDepositOREnd = settingsReq.BranchSettingDepositOREnd
@@ -593,6 +597,8 @@ func (c *Controller) BranchController() {
 		branch.BranchSettingDepositORUnique = settingsReq.BranchSettingDepositORUnique
 		branch.BranchSettingDepositUseDateOR = settingsReq.BranchSettingDepositUseDateOR
 
+		branch.BranchSettingLoanAllowUserInput = settingsReq.BranchSettingLoanAllowUserInput
+		branch.BranchSettingLoanPrefix = settingsReq.BranchSettingLoanPrefix
 		branch.BranchSettingLoanORStart = settingsReq.BranchSettingLoanORStart
 		branch.BranchSettingLoanORCurrent = settingsReq.BranchSettingLoanORCurrent
 		branch.BranchSettingLoanOREnd = settingsReq.BranchSettingLoanOREnd
@@ -600,12 +606,16 @@ func (c *Controller) BranchController() {
 		branch.BranchSettingLoanORUnique = settingsReq.BranchSettingLoanORUnique
 		branch.BranchSettingLoanUseDateOR = settingsReq.BranchSettingLoanUseDateOR
 
+		branch.BranchSettingCheckVoucherAllowUserInput = settingsReq.BranchSettingCheckVoucherAllowUserInput
+		branch.BranchSettingCheckVoucherPrefix = settingsReq.BranchSettingCheckVoucherPrefix
 		branch.BranchSettingCheckVoucherORStart = settingsReq.BranchSettingCheckVoucherORStart
 		branch.BranchSettingCheckVoucherORCurrent = settingsReq.BranchSettingCheckVoucherORCurrent
 		branch.BranchSettingCheckVoucherOREnd = settingsReq.BranchSettingCheckVoucherOREnd
 		branch.BranchSettingCheckVoucherORIteration = settingsReq.BranchSettingCheckVoucherORIteration
 		branch.BranchSettingCheckVoucherORUnique = settingsReq.BranchSettingCheckVoucherORUnique
 		branch.BranchSettingCheckVoucherUseDateOR = settingsReq.BranchSettingCheckVoucherUseDateOR
+
+		branch.BranchSettingDefaultMemberTypeID = settingsReq.BranchSettingDefaultMemberTypeID
 
 		// Save the updated branch
 		if err := c.model.BranchManager.UpdateFields(context, branch.ID, branch); err != nil {
