@@ -85,8 +85,8 @@ type (
 		BranchSettingCheckVoucherORUnique       bool   `gorm:"not null;default:false" json:"branch_setting_check_voucher_or_unique"`
 		BranchSettingCheckVoucherUseDateOR      bool   `gorm:"not null;default:false" json:"branch_setting_check_voucher_use_date_or"`
 
-		BranchSettingDefaultMemberTypeID *uuid.UUID  `gorm:"type:uuid" json:"branch_setting_default_member_type_id,omitempty"`
-		BranchSettingDefaultMemberType   *MemberType `gorm:"foreignKey:BranchSettingDefaultMemberTypeID;constraint:OnDelete:SET NULL;" json:"branch_setting_default_member_type,omitempty"`
+		BranchSettingDefaultMemberTypeID *uuid.UUID  `gorm:"type:uuid;index" json:"branch_setting_default_member_type_id,omitempty"`
+		BranchSettingDefaultMemberType   *MemberType `gorm:"foreignKey:BranchSettingDefaultMemberTypeID;constraint:OnDelete:SET NULL;"`
 	}
 	BranchRequest struct {
 		ID *uuid.UUID `json:"id,omitempty"`
