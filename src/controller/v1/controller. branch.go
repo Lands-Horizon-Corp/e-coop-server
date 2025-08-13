@@ -624,7 +624,7 @@ func (c *Controller) BranchController() {
 		}
 
 		// Check if user has permission to update branch settings
-		if userOrg.UserType != "owner" && userOrg.UserType != "admin" {
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update error",
 				Description: "Insufficient permissions to update branch settings for PUT /branch-settings",
