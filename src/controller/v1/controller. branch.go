@@ -587,7 +587,6 @@ func (c *Controller) BranchController() {
 		Route:        "/api/v1/branch-settings",
 		Method:       "PUT",
 		Note:         "Updates branch settings for the current user's branch.",
-		Private:      true,
 		RequestType:  model.BranchSettingRequest{},
 		ResponseType: model.BranchSettingResponse{},
 	}, func(ctx echo.Context) error {
