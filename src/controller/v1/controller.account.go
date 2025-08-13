@@ -175,6 +175,8 @@ func (c *Controller) AccountController() {
 			ShowInGeneralLedgerSourceCheckVoucher:              req.ShowInGeneralLedgerSourceCheckVoucher,
 			CompassionFund:                                     req.CompassionFund,
 			CompassionFundAmount:                               req.CompassionFundAmount,
+
+			Icon: req.Icon,
 		}
 
 		if err := c.model.AccountManager.Create(context, account); err != nil {
