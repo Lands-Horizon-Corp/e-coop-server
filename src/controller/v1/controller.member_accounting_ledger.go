@@ -43,7 +43,7 @@ func (c *Controller) MemberAccountingLedgerController() {
 		summary := model.MemberAccountingLedgerSummary{
 			TotalAmount:                  totalAmount,
 			TotalShareCapitalPlusSavings: 0,
-			TotalLoans:                   totalAmount,
+			TotalLoans:                   0,
 		}
 		return ctx.JSON(http.StatusOK, summary)
 	})
