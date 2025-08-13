@@ -218,7 +218,7 @@ for i in x.split("\n"):
     print(f'c.{i.replace("_", " ").title().replace(" ", "")}()')
 */
 func (c *Model) Start(context context.Context) error {
-	c.Category()
+
 	// Models
 	c.AccountCategory()
 	c.AccountClassification()
@@ -234,7 +234,7 @@ func (c *Model) Start(context context.Context) error {
 	c.CashCheckVoucher()
 	c.CashCheckVoucherTag()
 	c.CashCount()
-
+	c.Category()
 	c.ChargesRateByRangeOrMinimumAmount()
 	c.ChargesRateByTerm()
 	c.ChargesRateByTermHeader()
