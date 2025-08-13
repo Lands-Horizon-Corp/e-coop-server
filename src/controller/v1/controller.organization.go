@@ -166,6 +166,67 @@ func (c *Controller) OrganizationController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create branch: " + err.Error()})
 		}
+
+		// Create default branch settings for the new branch
+		branchSetting := &model.BranchSetting{
+			CreatedAt: time.Now().UTC(),
+			UpdatedAt: time.Now().UTC(),
+			BranchID:  branch.ID,
+
+			// Withdraw Settings
+			WithdrawAllowUserInput: true,
+			WithdrawPrefix:         "WD",
+			WithdrawORStart:        1,
+			WithdrawORCurrent:      1,
+			WithdrawOREnd:          999999,
+			WithdrawORIteration:    1,
+			WithdrawORUnique:       true,
+			WithdrawUseDateOR:      false,
+
+			// Deposit Settings
+			DepositAllowUserInput: true,
+			DepositPrefix:         "DP",
+			DepositORStart:        1,
+			DepositORCurrent:      1,
+			DepositOREnd:          999999,
+			DepositORIteration:    1,
+			DepositORUnique:       true,
+			DepositUseDateOR:      false,
+
+			// Loan Settings
+			LoanAllowUserInput: true,
+			LoanPrefix:         "LN",
+			LoanORStart:        1,
+			LoanORCurrent:      1,
+			LoanOREnd:          999999,
+			LoanORIteration:    1,
+			LoanORUnique:       true,
+			LoanUseDateOR:      false,
+
+			// Check Voucher Settings
+			CheckVoucherAllowUserInput: true,
+			CheckVoucherPrefix:         "CV",
+			CheckVoucherORStart:        1,
+			CheckVoucherORCurrent:      1,
+			CheckVoucherOREnd:          999999,
+			CheckVoucherORIteration:    1,
+			CheckVoucherORUnique:       true,
+			CheckVoucherUseDateOR:      false,
+
+			// Default Member Type - can be set later
+			DefaultMemberTypeID: nil,
+		}
+
+		if err := c.model.BranchSettingManager.CreateWithTx(context, tx, branchSetting); err != nil {
+			tx.Rollback()
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create organization failed: create branch settings error: " + err.Error(),
+				Module:      "Organization",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create branch settings: " + err.Error()})
+		}
+
 		developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, user.ID.String())
 		if err != nil {
 			tx.Rollback()

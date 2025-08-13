@@ -53,6 +53,7 @@ type (
 
 		BankManager                   horizon_services.Repository[Bank, BankResponse, BankRequest]
 		BranchManager                 horizon_services.Repository[Branch, BranchResponse, BranchRequest]
+		BranchSettingManager          horizon_services.Repository[BranchSetting, BranchSettingResponse, BranchSettingRequest]
 		CategoryManager               horizon_services.Repository[Category, CategoryResponse, CategoryRequest]
 		ContactUsManager              horizon_services.Repository[ContactUs, ContactUsResponse, ContactUsRequest]
 		FeedbackManager               horizon_services.Repository[Feedback, FeedbackResponse, FeedbackRequest]
@@ -347,6 +348,7 @@ func (c *Model) Start(context context.Context) error {
 	c.MemberDepartmentHistory()
 	c.Funds()
 	c.ChargesRateSchemeModeOfPayment()
+	c.BranchSetting()
 
 	return nil
 }

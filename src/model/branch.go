@@ -43,51 +43,16 @@ type (
 		Longitude     *float64 `gorm:"type:double precision" json:"longitude,omitempty"`
 		IsMainBranch  bool     `gorm:"not null;default:false" json:"is_main_branch"`
 
+		// 1-to-1 relationship with BranchSetting
+		BranchSetting *BranchSetting `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE;" json:"branch_setting,omitempty"`
+
 		Footsteps           []*Footstep           `gorm:"foreignKey:BranchID" json:"footsteps,omitempty"`
 		GeneratedReports    []*GeneratedReport    `gorm:"foreignKey:BranchID" json:"generated_reports,omitempty"`
 		InvitationCodes     []*InvitationCode     `gorm:"foreignKey:BranchID" json:"invitation_codes,omitempty"`
 		PermissionTemplates []*PermissionTemplate `gorm:"foreignKey:BranchID" json:"permission_templates,omitempty"`
 		UserOrganizations   []*UserOrganization   `gorm:"foreignKey:BranchID" json:"user_organizations,omitempty"`
-
-		BranchSettingWithdrawAllowUserInput bool   `gorm:"not null;default:true" json:"branch_setting_withdraw_allow_user_input"`
-		BranchSettingWithdrawPrefix         string `gorm:"type:varchar(50);not null;default:'branch_setting_withdraw_or'"`
-		BranchSettingWithdrawORStart        int    `gorm:"not null;default:0" json:"branch_setting_withdraw_or_start"`
-		BranchSettingWithdrawORCurrent      int    `gorm:"not null;default:0" json:"branch_setting_withdraw_or_current"`
-		BranchSettingWithdrawOREnd          int    `gorm:"not null;default:0" json:"branch_setting_withdraw_or_end"`
-		BranchSettingWithdrawIteration      int    `gorm:"not null;default:0" json:"branch_setting_withdraw_or_iteration"`
-		BranchSettingWithdrawORUnique       bool   `gorm:"not null;default:false" json:"branch_setting_withdraw_or_unique"`
-		BranchSettingWithdrawUseDateOR      bool   `gorm:"not null;default:false" json:"branch_setting_withdraw_use_date_or"`
-
-		BranchSettingDepositAllowUserInput bool   `gorm:"not null;default:true" json:"branch_setting_deposit_allow_user_input"`
-		BranchSettingDepositPrefix         string `gorm:"type:varchar(50);not null;default:'branch_setting_deposit_or'"`
-		BranchSettingDepositORStart        int    `gorm:"not null;default:0" json:"branch_setting_deposit_or_start"`
-		BranchSettingDepositORCurrent      int    `gorm:"not null;default:0" json:"branch_setting_deposit_or_current"`
-		BranchSettingDepositOREnd          int    `gorm:"not null;default:0" json:"branch_setting_deposit_or_end"`
-		BranchSettingDepositORIteration    int    `gorm:"not null;default:0" json:"branch_setting_deposit_or_iteration"`
-		BranchSettingDepositORUnique       bool   `gorm:"not null;default:false" json:"branch_setting_deposit_or_unique"`
-		BranchSettingDepositUseDateOR      bool   `gorm:"not null;default:false" json:"branch_setting_deposit_use_date_or"`
-
-		BranchSettingLoanAllowUserInput bool   `gorm:"not null;default:true" json:"branch_setting_loan_allow_user_input"`
-		BranchSettingLoanPrefix         string `gorm:"type:varchar(50);not null;default:'branch_setting_loan_or'"`
-		BranchSettingLoanORStart        int    `gorm:"not null;default:0" json:"branch_setting_loan_or_start"`
-		BranchSettingLoanORCurrent      int    `gorm:"not null;default:0" json:"branch_setting_loan_or_current"`
-		BranchSettingLoanOREnd          int    `gorm:"not null;default:0" json:"branch_setting_loan_or_end"`
-		BranchSettingLoanORIteration    int    `gorm:"not null;default:0" json:"branch_setting_loan_or_iteration"`
-		BranchSettingLoanORUnique       bool   `gorm:"not null;default:false" json:"branch_setting_loan_or_unique"`
-		BranchSettingLoanUseDateOR      bool   `gorm:"not null;default:false" json:"branch_setting_loan_use_date_or"`
-
-		BranchSettingCheckVoucherAllowUserInput bool   `gorm:"not null;default:true" json:"branch_setting_check_voucher_allow_user_input"`
-		BranchSettingCheckVoucherPrefix         string `gorm:"type:varchar(50);not null;default:'branch_setting_check_voucher_or'"`
-		BranchSettingCheckVoucherORStart        int    `gorm:"not null;default:0" json:"branch_setting_check_voucher_or_start"`
-		BranchSettingCheckVoucherORCurrent      int    `gorm:"not null;default:0" json:"branch_setting_check_voucher_or_current"`
-		BranchSettingCheckVoucherOREnd          int    `gorm:"not null;default:0" json:"branch_setting_check_voucher_or_end"`
-		BranchSettingCheckVoucherORIteration    int    `gorm:"not null;default:0" json:"branch_setting_check_voucher_or_iteration"`
-		BranchSettingCheckVoucherORUnique       bool   `gorm:"not null;default:false" json:"branch_setting_check_voucher_or_unique"`
-		BranchSettingCheckVoucherUseDateOR      bool   `gorm:"not null;default:false" json:"branch_setting_check_voucher_use_date_or"`
-
-		// BranchSettingDefaultMemberTypeID *uuid.UUID  `gorm:"type:uuid;index" json:"branch_setting_default_member_type_id,omitempty"`
-		// BranchSettingDefaultMemberType   *MemberType `gorm:"foreignKey:BranchSettingDefaultMemberTypeID;constraint:OnDelete:SET NULL;"`
 	}
+
 	BranchRequest struct {
 		ID *uuid.UUID `json:"id,omitempty"`
 
@@ -139,90 +104,13 @@ type (
 
 		IsMainBranch bool `json:"is_main_branch,omitempty"`
 
+		BranchSetting *BranchSettingResponse `json:"branch_setting,omitempty"`
+
 		Footsteps           []*FootstepResponse           `json:"footsteps,omitempty"`
 		GeneratedReports    []*GeneratedReportResponse    `json:"generated_reports,omitempty"`
 		InvitationCodes     []*InvitationCodeResponse     `json:"invitation_codes,omitempty"`
 		PermissionTemplates []*PermissionTemplateResponse `json:"permission_templates,omitempty"`
 		UserOrganizations   []*UserOrganizationResponse   `json:"user_organizations,omitempty"`
-
-		BranchSettingWithdrawAllowUserInput bool   `json:"branch_setting_withdraw_allow_user_input"`
-		BranchSettingWithdrawPrefix         string `json:"branch_setting_withdraw_prefix"`
-		BranchSettingWithdrawORStart        int    `json:"branch_setting_withdraw_or_start"`
-		BranchSettingWithdrawORCurrent      int    `json:"branch_setting_withdraw_or_current"`
-		BranchSettingWithdrawOREnd          int    `json:"branch_setting_withdraw_or_end"`
-		BranchSettingWithdrawIteration      int    `json:"branch_setting_withdraw_or_iteration"`
-		BranchSettingWithdrawORUnique       bool   `json:"branch_setting_withdraw_or_unique"`
-		BranchSettingWithdrawUseDateOR      bool   `json:"branch_setting_withdraw_use_date_or"`
-
-		BranchSettingDepositAllowUserInput bool   `json:"branch_setting_deposit_allow_user_input"`
-		BranchSettingDepositPrefix         string `json:"branch_setting_deposit_prefix"`
-		BranchSettingDepositORStart        int    `json:"branch_setting_deposit_or_start"`
-		BranchSettingDepositORCurrent      int    `json:"branch_setting_deposit_or_current"`
-		BranchSettingDepositOREnd          int    `json:"branch_setting_deposit_or_end"`
-		BranchSettingDepositORIteration    int    `json:"branch_setting_deposit_or_iteration"`
-		BranchSettingDepositORUnique       bool   `json:"branch_setting_deposit_or_unique"`
-		BranchSettingDepositUseDateOR      bool   `json:"branch_setting_deposit_use_date_or"`
-
-		BranchSettingLoanAllowUserInput bool   `json:"branch_setting_loan_allow_user_input"`
-		BranchSettingLoanPrefix         string `json:"branch_setting_loan_prefix"`
-		BranchSettingLoanORStart        int    `json:"branch_setting_loan_or_start"`
-		BranchSettingLoanORCurrent      int    `json:"branch_setting_loan_or_current"`
-		BranchSettingLoanOREnd          int    `json:"branch_setting_loan_or_end"`
-		BranchSettingLoanORIteration    int    `json:"branch_setting_loan_or_iteration"`
-		BranchSettingLoanORUnique       bool   `json:"branch_setting_loan_or_unique"`
-		BranchSettingLoanUseDateOR      bool   `json:"branch_setting_loan_use_date_or"`
-
-		BranchSettingCheckVoucherAllowUserInput bool   `json:"branch_setting_check_voucher_allow_user_input"`
-		BranchSettingCheckVoucherPrefix         string `json:"branch_setting_check_voucher_prefix"`
-		BranchSettingCheckVoucherORStart        int    `json:"branch_setting_check_voucher_or_start"`
-		BranchSettingCheckVoucherORCurrent      int    `json:"branch_setting_check_voucher_or_current"`
-		BranchSettingCheckVoucherOREnd          int    `json:"branch_setting_check_voucher_or_end"`
-		BranchSettingCheckVoucherORIteration    int    `json:"branch_setting_check_voucher_or_iteration"`
-		BranchSettingCheckVoucherORUnique       bool   `json:"branch_setting_check_voucher_or_unique"`
-		BranchSettingCheckVoucherUseDateOR      bool   `json:"branch_setting_check_voucher_use_date_or"`
-
-		BranchSettingDefaultMemberTypeID *uuid.UUID          `json:"branch_setting_default_member_type_id,omitempty"`
-		BranchSettingDefaultMemberType   *MemberTypeResponse `json:"branch_setting_default_member_type,omitempty"`
-	}
-
-	BranchSettingRequest struct {
-		BranchSettingWithdrawAllowUserInput bool   `json:"branch_setting_withdraw_allow_user_input"`
-		BranchSettingWithdrawPrefix         string `json:"branch_setting_withdraw_prefix" validate:"omitempty"`
-		BranchSettingWithdrawORStart        int    `json:"branch_setting_withdraw_or_start" validate:"min=0"`
-		BranchSettingWithdrawORCurrent      int    `json:"branch_setting_withdraw_or_current" validate:"min=0"`
-		BranchSettingWithdrawOREnd          int    `json:"branch_setting_withdraw_or_end" validate:"min=0"`
-		BranchSettingWithdrawIteration      int    `json:"branch_setting_withdraw_or_iteration" validate:"min=0"`
-		BranchSettingWithdrawORUnique       bool   `json:"branch_setting_withdraw_or_unique"`
-		BranchSettingWithdrawUseDateOR      bool   `json:"branch_setting_withdraw_use_date_or"`
-
-		BranchSettingDepositAllowUserInput bool   `json:"branch_setting_deposit_allow_user_input"`
-		BranchSettingDepositPrefix         string `json:"branch_setting_deposit_prefix" validate:"omitempty"`
-		BranchSettingDepositORStart        int    `json:"branch_setting_deposit_or_start" validate:"min=0"`
-		BranchSettingDepositORCurrent      int    `json:"branch_setting_deposit_or_current" validate:"min=0"`
-		BranchSettingDepositOREnd          int    `json:"branch_setting_deposit_or_end" validate:"min=0"`
-		BranchSettingDepositORIteration    int    `json:"branch_setting_deposit_or_iteration" validate:"min=0"`
-		BranchSettingDepositORUnique       bool   `json:"branch_setting_deposit_or_unique"`
-		BranchSettingDepositUseDateOR      bool   `json:"branch_setting_deposit_use_date_or"`
-
-		BranchSettingLoanAllowUserInput bool   `json:"branch_setting_loan_allow_user_input"`
-		BranchSettingLoanPrefix         string `json:"branch_setting_loan_prefix" validate:"omitempty"`
-		BranchSettingLoanORStart        int    `json:"branch_setting_loan_or_start" validate:"min=0"`
-		BranchSettingLoanORCurrent      int    `json:"branch_setting_loan_or_current" validate:"min=0"`
-		BranchSettingLoanOREnd          int    `json:"branch_setting_loan_or_end" validate:"min=0"`
-		BranchSettingLoanORIteration    int    `json:"branch_setting_loan_or_iteration" validate:"min=0"`
-		BranchSettingLoanORUnique       bool   `json:"branch_setting_loan_or_unique"`
-		BranchSettingLoanUseDateOR      bool   `json:"branch_setting_loan_use_date_or"`
-
-		BranchSettingCheckVoucherAllowUserInput bool   `json:"branch_setting_check_voucher_allow_user_input"`
-		BranchSettingCheckVoucherPrefix         string `json:"branch_setting_check_voucher_prefix" validate:"omitempty"`
-		BranchSettingCheckVoucherORStart        int    `json:"branch_setting_check_voucher_or_start" validate:"min=0"`
-		BranchSettingCheckVoucherORCurrent      int    `json:"branch_setting_check_voucher_or_current" validate:"min=0"`
-		BranchSettingCheckVoucherOREnd          int    `json:"branch_setting_check_voucher_or_end" validate:"min=0"`
-		BranchSettingCheckVoucherORIteration    int    `json:"branch_setting_check_voucher_or_iteration" validate:"min=0"`
-		BranchSettingCheckVoucherORUnique       bool   `json:"branch_setting_check_voucher_or_unique"`
-		BranchSettingCheckVoucherUseDateOR      bool   `json:"branch_setting_check_voucher_use_date_or"`
-
-		BranchSettingDefaultMemberTypeID *uuid.UUID `json:"branch_setting_default_member_type_id,omitempty"`
 	}
 )
 
@@ -233,6 +121,7 @@ func (m *Model) Branch() {
 			"Media",
 			"CreatedBy",
 			"UpdatedBy",
+			"BranchSetting",
 			"Footsteps",
 			"GeneratedReports",
 			"InvitationCodes",
@@ -241,9 +130,7 @@ func (m *Model) Branch() {
 			"Organization",
 			"Organization.Media",
 			"Organization.CreatedBy",
-			"Organization.Media",
 			"Organization.CoverMedia",
-			// "BranchSettingDefaultMemberType",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *Branch) *BranchResponse {
@@ -279,50 +166,13 @@ func (m *Model) Branch() {
 
 				IsMainBranch: data.IsMainBranch,
 
+				BranchSetting: m.BranchSettingManager.ToModel(data.BranchSetting),
+
 				Footsteps:           m.FootstepManager.ToModels(data.Footsteps),
 				GeneratedReports:    m.GeneratedReportManager.ToModels(data.GeneratedReports),
 				InvitationCodes:     m.InvitationCodeManager.ToModels(data.InvitationCodes),
 				PermissionTemplates: m.PermissionTemplateManager.ToModels(data.PermissionTemplates),
 				UserOrganizations:   m.UserOrganizationManager.ToModels(data.UserOrganizations),
-
-				BranchSettingWithdrawAllowUserInput: data.BranchSettingWithdrawAllowUserInput,
-				BranchSettingWithdrawPrefix:         data.BranchSettingWithdrawPrefix,
-				BranchSettingWithdrawORStart:        data.BranchSettingWithdrawORStart,
-				BranchSettingWithdrawORCurrent:      data.BranchSettingWithdrawORCurrent,
-				BranchSettingWithdrawOREnd:          data.BranchSettingWithdrawOREnd,
-				BranchSettingWithdrawIteration:      data.BranchSettingWithdrawIteration,
-				BranchSettingWithdrawORUnique:       data.BranchSettingWithdrawORUnique,
-				BranchSettingWithdrawUseDateOR:      data.BranchSettingWithdrawUseDateOR,
-
-				BranchSettingDepositAllowUserInput: data.BranchSettingDepositAllowUserInput,
-				BranchSettingDepositPrefix:         data.BranchSettingDepositPrefix,
-				BranchSettingDepositORStart:        data.BranchSettingDepositORStart,
-				BranchSettingDepositORCurrent:      data.BranchSettingDepositORCurrent,
-				BranchSettingDepositOREnd:          data.BranchSettingDepositOREnd,
-				BranchSettingDepositORIteration:    data.BranchSettingDepositORIteration,
-				BranchSettingDepositORUnique:       data.BranchSettingDepositORUnique,
-				BranchSettingDepositUseDateOR:      data.BranchSettingDepositUseDateOR,
-
-				BranchSettingLoanAllowUserInput: data.BranchSettingLoanAllowUserInput,
-				BranchSettingLoanPrefix:         data.BranchSettingLoanPrefix,
-				BranchSettingLoanORStart:        data.BranchSettingLoanORStart,
-				BranchSettingLoanORCurrent:      data.BranchSettingLoanORCurrent,
-				BranchSettingLoanOREnd:          data.BranchSettingLoanOREnd,
-				BranchSettingLoanORIteration:    data.BranchSettingLoanORIteration,
-				BranchSettingLoanORUnique:       data.BranchSettingLoanORUnique,
-				BranchSettingLoanUseDateOR:      data.BranchSettingLoanUseDateOR,
-
-				BranchSettingCheckVoucherAllowUserInput: data.BranchSettingCheckVoucherAllowUserInput,
-				BranchSettingCheckVoucherPrefix:         data.BranchSettingCheckVoucherPrefix,
-				BranchSettingCheckVoucherORStart:        data.BranchSettingCheckVoucherORStart,
-				BranchSettingCheckVoucherORCurrent:      data.BranchSettingCheckVoucherORCurrent,
-				BranchSettingCheckVoucherOREnd:          data.BranchSettingCheckVoucherOREnd,
-				BranchSettingCheckVoucherORIteration:    data.BranchSettingCheckVoucherORIteration,
-				BranchSettingCheckVoucherORUnique:       data.BranchSettingCheckVoucherORUnique,
-				BranchSettingCheckVoucherUseDateOR:      data.BranchSettingCheckVoucherUseDateOR,
-
-				// BranchSettingDefaultMemberTypeID: data.BranchSettingDefaultMemberTypeID,
-				// BranchSettingDefaultMemberType:   m.MemberTypeManager.ToModel(data.BranchSettingDefaultMemberType),
 			}
 		},
 		Created: func(data *Branch) []string {
