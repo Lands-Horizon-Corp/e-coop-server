@@ -69,19 +69,19 @@ func (m *Model) Category() {
 		},
 		Created: func(data *Category) []string {
 			return []string{
-				"cash_count.create",
+				"category.create",
 				fmt.Sprintf("category.create.%s", data.ID),
 			}
 		},
 		Updated: func(data *Category) []string {
 			return []string{
-				"cash_count.update",
+				"category.update",
 				fmt.Sprintf("category.update.%s", data.ID),
 			}
 		},
 		Deleted: func(data *Category) []string {
 			return []string{
-				"cash_count.delete",
+				"category.delete",
 				fmt.Sprintf("category.delete.%s", data.ID),
 			}
 		},
