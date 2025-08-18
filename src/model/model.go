@@ -379,183 +379,12 @@ func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID 
 	if err := m.MemberOccupationSeed(context, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
-
-	memberType := []*MemberType{
-		{
-
-			Name:           "New",
-			Prefix:         "NEW",
-			Description:    "Recently registered member, no activity yet.",
-			CreatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedAt:      now,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-		},
-		{
-
-			Name:           "Active",
-			Prefix:         "ACT",
-			Description:    "Regularly engaged member with no issues.",
-			CreatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedAt:      now,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-		},
-		{
-
-			Name:           "Loyal",
-			Prefix:         "LOY",
-			Description:    "Consistently active over a long period; high retention.",
-			CreatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedAt:      now,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-		},
-		{
-
-			Name:           "VIP",
-			Prefix:         "VIP",
-			Description:    "Very high-value member with premium privileges.",
-			CreatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedAt:      now,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-		},
-		{
-
-			Name:           "Reported",
-			Prefix:         "RPT",
-			Description:    "Flagged by community or system for review.",
-			CreatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedAt:      now,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-		},
-		{
-
-			Name:           "Suspended",
-			Prefix:         "SUS",
-			Description:    "Temporarily barred from activities pending resolution.",
-			CreatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedAt:      now,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-		},
-		{
-
-			Name:           "Banned",
-			Prefix:         "BAN",
-			Description:    "Permanently barred due to policy violations.",
-			CreatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedAt:      now,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-		},
-		{
-
-			Name:           "Closed",
-			Prefix:         "CLS",
-			Description:    "Account closed by user request or administrative action.",
-			CreatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedAt:      now,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-		},
-		{
-
-			Name:           "Alumni",
-			Prefix:         "ALM",
-			Description:    "Former member with notable contributions.",
-			CreatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedAt:      now,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-		},
-		{
-
-			Name:           "Pending",
-			Prefix:         "PND",
-			Description:    "Awaiting verification or approval.",
-			CreatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedAt:      now,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-		},
-		{
-
-			Name:           "Dormant",
-			Prefix:         "DRM",
-			Description:    "Inactive for a long period with no recent engagement.",
-			CreatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedAt:      now,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-		},
-		{
-
-			Name:           "Guest",
-			Prefix:         "GST",
-			Description:    "Limited access member without full privileges.",
-			CreatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedAt:      now,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-		},
-		{
-
-			Name:           "Moderator",
-			Prefix:         "MOD",
-			Description:    "Member with special privileges to manage content or users.",
-			CreatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedAt:      now,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-		},
-		{
-
-			Name:           "Admin",
-			Prefix:         "ADM",
-			Description:    "Administrator with full access and control.",
-			CreatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedAt:      now,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-		},
+	if err := m.MemberTypeSeed(context, tx, userID, organizationID, branchID); err != nil {
+		return err
 	}
-	for _, data := range memberType {
-		if err := m.MemberTypeManager.CreateWithTx(context, tx, data); err != nil {
-			return eris.Wrapf(err, "failed to seed member type %s", data.Name)
-		}
+	if err := m.MemberDepartmentSeed(context, tx, userID, organizationID, branchID); err != nil {
+		return err
 	}
-
 	generalLedgerAccountsGrouping := []*GeneralLedgerAccountsGrouping{
 		{
 			CreatedAt:      now,
@@ -614,8 +443,6 @@ func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID 
 			ToCode:         5999.99,
 		},
 	}
-
-	// ...existing code...
 
 	// Create groupings and their definitions
 	for i, groupingData := range generalLedgerAccountsGrouping {

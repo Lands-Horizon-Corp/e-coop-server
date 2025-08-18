@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	horizon_services "github.com/lands-horizon/horizon-server/services"
+	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
@@ -108,6 +109,169 @@ func (m *Model) MemberDepartment() {
 			}
 		},
 	})
+}
+
+func (m *Model) MemberDepartmentSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+	now := time.Now()
+	memberDepartments := []*MemberDepartment{
+		{
+			Name:        "General Services",
+			Description: "Handles general inquiries, member registration, and basic services.",
+
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+		},
+		{
+			Name:        "Loans and Credit",
+			Description: "Manages loan applications, approvals, and credit services.",
+
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+		},
+		{
+			Name:        "Savings and Deposits",
+			Description: "Handles savings accounts, deposits, and withdrawal transactions.",
+
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+		},
+		{
+			Name:        "Accounting and Finance",
+			Description: "Manages financial records, budgeting, and accounting operations.",
+
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+		},
+		{
+			Name:        "Member Relations",
+			Description: "Focuses on member engagement, complaints, and relationship management.",
+
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+		},
+		{
+			Name:        "Information Technology",
+			Description: "Manages IT systems, software, hardware, and technical support.",
+
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+		},
+		{
+			Name:        "Marketing and Communications",
+			Description: "Handles promotional activities, communications, and public relations.",
+
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+		},
+		{
+			Name:        "Human Resources",
+			Description: "Manages employee relations, recruitment, and organizational development.",
+
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+		},
+		{
+			Name:           "Audit and Compliance",
+			Description:    "Ensures regulatory compliance and conducts internal audits.",
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+		},
+		{
+			Name:        "Legal Affairs",
+			Description: "Handles legal matters, contracts, and regulatory compliance.",
+
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+		},
+		{
+			Name:        "Insurance Services",
+			Description: "Manages insurance products and services for members.",
+
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+		},
+		{
+			Name:           "Education and Training",
+			Description:    "Provides financial literacy and cooperative education programs.",
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+		},
+		{
+			Name:           "Security and Risk Management",
+			Description:    "Handles security protocols and risk assessment procedures.",
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+		},
+		{
+			Name:           "Operations Management",
+			Description:    "Oversees daily operations and process improvement initiatives.",
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+		},
+	}
+
+	for _, data := range memberDepartments {
+		if err := m.MemberDepartmentManager.CreateWithTx(context, tx, data); err != nil {
+			return eris.Wrapf(err, "failed to seed member department %s", data.Name)
+		}
+	}
+	return nil
 }
 
 func (m *Model) MemberDepartmentCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberDepartment, error) {
