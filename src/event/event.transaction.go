@@ -146,6 +146,17 @@ func (e *Event) TransactionPayment(
 		block("Missing required fields")
 		return nil, eris.New("missing required fields: AccountID and PaymentTypeID are required")
 	}
+	cashOnHandAccountID := userOrg.Branch.BranchSetting.CashOnHandAccountID
+	if cashOnHandAccountID == nil {
+		tx.Rollback()
+		e.Footstep(ctx, echoCtx, FootstepEvent{
+			Activity:    "cash-on-hand-error",
+			Description: "Cash on hand account ID is nil (/transaction/payment/:transaction_id)",
+			Module:      "Transaction",
+		})
+		block("Cash on hand account ID is nil")
+		return nil, eris.New("cash on hand account ID is nil")
+	}
 
 	// ================================================================================
 	// STEP 5: ENTITY VALIDATION & RETRIEVAL
@@ -254,6 +265,7 @@ func (e *Event) TransactionPayment(
 		block("Failed to acquire account lock: " + err.Error())
 		return nil, eris.Wrap(err, "failed to acquire account lock for concurrent protection")
 	}
+
 	if account == nil {
 		tx.Rollback()
 		e.Footstep(ctx, echoCtx, FootstepEvent{
@@ -285,6 +297,28 @@ func (e *Event) TransactionPayment(
 		return nil, eris.New("account does not belong to the current organization")
 	}
 
+	cashOnHandAccount, err := e.model.AccountLockForUpdate(ctx, tx, *cashOnHandAccountID)
+	if err != nil {
+		e.Footstep(ctx, echoCtx, FootstepEvent{
+			Activity:    "account-lock-error",
+			Description: "Failed to acquire account lock for concurrent protection (/transaction/payment/:transaction_id): " + err.Error(),
+			Module:      "Transaction",
+		})
+		tx.Rollback()
+		block("Failed to acquire account lock: " + err.Error())
+		return nil, eris.Wrap(err, "failed to acquire account lock for concurrent protection for cash on hand account")
+	}
+	if cashOnHandAccount == nil {
+		tx.Rollback()
+		e.Footstep(ctx, echoCtx, FootstepEvent{
+			Activity:    "account-error",
+			Description: "Cash on hand account is nil (/transaction/payment/:transaction_id)",
+			Module:      "Transaction",
+		})
+		block("Cash on hand account is nil")
+		return nil, eris.New("cash on hand account is nil")
+	}
+
 	// GET general ledger (with lock)
 	var generalLedger *model.GeneralLedger
 	if memberProfileId != nil {
@@ -314,6 +348,19 @@ func (e *Event) TransactionPayment(
 			block("Failed to retrieve subsidiary general ledger: " + err.Error())
 			return nil, eris.Wrap(err, "failed to retrieve subsidiary general ledger")
 		}
+	}
+
+	cohGeneralLedger, err := e.model.GeneralLedgerCurrentSubsidiaryAccountForUpdate(
+		ctx, tx, *cashOnHandAccountID, userOrg.OrganizationID, *userOrg.BranchID)
+	if err != nil {
+		tx.Rollback()
+		e.Footstep(ctx, echoCtx, FootstepEvent{
+			Activity:    "ledger-error",
+			Description: "Failed to retrieve subsidiary general ledger (FOR UPDATE) (/transaction/payment/:transaction_id): " + err.Error(),
+			Module:      "Transaction",
+		})
+		block("Failed to retrieve subsidiary general ledger: " + err.Error())
+		return nil, eris.Wrap(err, "failed to retrieve subsidiary general ledger")
 	}
 
 	// GET payment type
@@ -505,7 +552,7 @@ func (e *Event) TransactionPayment(
 	}
 
 	// ================================================================================
-	// STEP 8: MEMBER ACCOUNTING PROFILE UPDATE
+	// STEP 8: UPDATE/CREATE MEMBER ACCOUNTING PROFILE UPDATE
 	// ================================================================================
 	if memberProfileId != nil {
 		lastPayTime := now
@@ -538,6 +585,31 @@ func (e *Event) TransactionPayment(
 	// STEP 9: Adding Cash on Hand Account
 	// ================================================================================
 
+	var cohCredit, cohDebit, cohBalance float64
+	switch data.Source {
+	case model.GeneralLedgerSourcePayment, model.GeneralLedgerSourceDeposit:
+		cohCredit, cohDebit, cohBalance, err = e.service.Deposit(ctx, service.TransactionData{
+			GeneralLedger: cohGeneralLedger,
+			Account:       cashOnHandAccount,
+		}, data.Amount)
+	case model.GeneralLedgerSourceWithdraw:
+		cohCredit, cohDebit, cohBalance, err = e.service.Withdraw(ctx, service.TransactionData{
+			GeneralLedger: cohGeneralLedger,
+			Account:       cashOnHandAccount,
+		}, data.Amount)
+	default:
+		err = eris.New("unsupported source type")
+	}
+	if err != nil {
+		tx.Rollback()
+		e.Footstep(ctx, echoCtx, FootstepEvent{
+			Activity:    "transaction-process-error",
+			Description: "Failed to process transaction (/transaction/payment/:transaction_id): " + err.Error(),
+			Module:      "Transaction",
+		})
+		block("Failed to process transaction: " + err.Error())
+		return nil, eris.Wrap(err, "failed to process transaction")
+	}
 	cashOnHandGeneralLedger := &model.GeneralLedger{
 		CreatedAt:                  now,
 		CreatedByID:                userOrg.UserID,
@@ -552,7 +624,7 @@ func (e *Event) TransactionPayment(
 		SignatureMediaID:           data.SignatureMediaID,
 		ProofOfPaymentMediaID:      data.ProofOfPaymentMediaID,
 		BankID:                     data.BankID,
-		AccountID:                  userOrg.Branch.BranchSetting.CashOnHandAccountID,
+		AccountID:                  cashOnHandAccountID,
 		MemberProfileID:            memberProfileId,
 		MemberJointAccountID:       memberJointAccountID,
 		PaymentTypeID:              &paymentType.ID,
@@ -562,9 +634,9 @@ func (e *Event) TransactionPayment(
 		EmployeeUserID:             &userOrg.UserID,
 		Description:                data.Description,
 		TypeOfPaymentType:          paymentType.Type,
-		Credit:                     credit,
-		Debit:                      debit,
-		Balance:                    balance,
+		Credit:                     cohCredit,
+		Debit:                      cohDebit,
+		Balance:                    cohBalance,
 	}
 	if err := e.model.GeneralLedgerManager.CreateWithTx(ctx, tx, cashOnHandGeneralLedger); err != nil {
 		tx.Rollback()
