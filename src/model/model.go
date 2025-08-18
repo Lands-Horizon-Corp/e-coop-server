@@ -400,6 +400,9 @@ func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID 
 	if err := m.LoanPurposeSeed(context, tx, userID, organizationID, branchID); err != nil {
 		return nil
 	}
+	if err := m.AccountCategorySeed(context, tx, userID, organizationID, branchID); err != nil {
+		return err
+	}
 	return nil
 }
 
