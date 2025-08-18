@@ -355,43 +355,9 @@ func (c *Model) Start(context context.Context) error {
 
 func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now()
-	expiration := now.AddDate(0, 1, 0) // 1 month from now
 
-	invitationCodes := []*InvitationCode{
-		{
-			CreatedAt:      now,
-			UpdatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-			UserType:       "employee",
-			Code:           uuid.New().String(),
-			ExpirationDate: expiration,
-			MaxUse:         5,
-			CurrentUse:     0,
-			Description:    "Invitation code for employees (max 5 uses)",
-		},
-		{
-			CreatedAt:      now,
-			UpdatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-			UserType:       "member",
-			Code:           uuid.New().String(),
-			ExpirationDate: expiration,
-			MaxUse:         1000,
-			CurrentUse:     0,
-			Description:    "Invitation code for members (max 1000 uses)",
-		},
-	}
-
-	for _, data := range invitationCodes {
-		if err := m.InvitationCodeManager.CreateWithTx(context, tx, data); err != nil {
-			return eris.Wrapf(err, "failed to seed invitation code for %s", data.UserType)
-		}
+	if err := m.InvitationCodeSeed(context, tx, userID, organizationID, branchID); err != nil {
+		return err
 	}
 	banks := []*Bank{
 		{
