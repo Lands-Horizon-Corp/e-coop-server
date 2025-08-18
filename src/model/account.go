@@ -732,7 +732,6 @@ func (m *Model) AccountSeed(context context.Context, tx *gorm.DB, userID uuid.UU
 			return eris.Wrapf(err, "failed to seed account %s", data.Name)
 		}
 	}
-
 	paidUpShareCapital := &Account{
 		CreatedAt:                         now,
 		CreatedByID:                       userID,
@@ -746,7 +745,6 @@ func (m *Model) AccountSeed(context context.Context, tx *gorm.DB, userID uuid.UU
 		MinAmount:                         100.00,
 		MaxAmount:                         1000000.00,
 		InterestStandard:                  0.0,
-		Icon:                              "🏛️",
 		FinancialStatementType:            string(FSTypeEquity),
 		ComputationType:                   "Fixed Amount",
 		Index:                             10,
@@ -772,7 +770,6 @@ func (m *Model) AccountSeed(context context.Context, tx *gorm.DB, userID uuid.UU
 		MinAmount:                               0.00,
 		MaxAmount:                               10000000.00,
 		InterestStandard:                        0.0,
-		Icon:                                    "💵",
 		FinancialStatementType:                  string(FSTypeAssets),
 		ComputationType:                         "None",
 		Index:                                   11,
