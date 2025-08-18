@@ -2,7 +2,6 @@ package model
 
 import (
 	"context"
-	"time"
 
 	"github.com/google/uuid"
 	horizon_services "github.com/lands-horizon/horizon-server/services"
@@ -354,7 +353,7 @@ func (c *Model) Start(context context.Context) error {
 }
 
 func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
-	now := time.Now()
+
 	if err := m.InvitationCodeSeed(context, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
@@ -391,124 +390,8 @@ func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID 
 	if err := m.FinancialStatementGroupingSeed(context, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
-	paymentTypes := []*PaymentType{
-		// Cash types
-		{
-			CreatedAt:      now,
-			UpdatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-			Name:           "Forward Cash On Hand",
-			Description:    "Physical cash received and forwarded for transactions.",
-			NumberOfDays:   0,
-			Type:           PaymentTypeCash,
-		},
-		{
-			CreatedAt:      now,
-			UpdatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-			Name:           "Cash On Hand",
-			Description:    "Cash available at the branch for immediate use.",
-			NumberOfDays:   0,
-			Type:           PaymentTypeCash,
-		},
-		{
-			CreatedAt:      now,
-			UpdatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-			Name:           "Petty Cash",
-			Description:    "Small amount of cash for minor expenses.",
-			NumberOfDays:   0,
-			Type:           PaymentTypeCash,
-		},
-		// Online types
-		{
-			CreatedAt:      now,
-			UpdatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-			Name:           "E-Wallet",
-			Description:    "Digital wallet for online payments.",
-			NumberOfDays:   0,
-			Type:           PaymentTypeOnline,
-		},
-		{
-			CreatedAt:      now,
-			UpdatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-			Name:           "E-Bank",
-			Description:    "Online banking transfer.",
-			NumberOfDays:   0,
-			Type:           PaymentTypeOnline,
-		},
-		{
-			CreatedAt:      now,
-			UpdatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-			Name:           "GCash",
-			Description:    "GCash mobile wallet payment.",
-			NumberOfDays:   0,
-			Type:           PaymentTypeOnline,
-		},
-		// Check/Bank types
-		{
-			CreatedAt:      now,
-			UpdatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-			Name:           "Cheque",
-			Description:    "Payment via cheque/check.",
-			NumberOfDays:   3,
-			Type:           PaymentTypeCheck,
-		},
-		{
-			CreatedAt:      now,
-			UpdatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-			Name:           "Bank Transfer",
-			Description:    "Direct bank-to-bank transfer.",
-			NumberOfDays:   1,
-			Type:           PaymentTypeCheck,
-		},
-		{
-			CreatedAt:      now,
-			UpdatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-			Name:           "Manager's Check",
-			Description:    "Bank-issued check for secure payments.",
-			NumberOfDays:   2,
-			Type:           PaymentTypeCheck,
-		},
-	}
-
-	for _, data := range paymentTypes {
-		if err := m.PaymentTypeManager.CreateWithTx(context, tx, data); err != nil {
-			return eris.Wrapf(err, "failed to seed payment type %s", data.Name)
-		}
+	if err := m.PaymentTypeSeed(context, tx, userID, organizationID, branchID); err != nil {
+		return err
 	}
 	return nil
 }
