@@ -393,6 +393,10 @@ func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID 
 	if err := m.PaymentTypeSeed(context, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
+	if err := m.AccountSeed(context, tx, userID, organizationID, branchID); err != nil {
+		return err
+	}
+
 	return nil
 }
 

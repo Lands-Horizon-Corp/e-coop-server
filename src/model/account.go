@@ -561,6 +561,247 @@ func (m *Model) Account() {
 	})
 }
 
+func (m *Model) AccountSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+	now := time.Now()
+	accounts := []*Account{
+		// Regular Savings Accounts
+		{
+			CreatedAt:        now,
+			CreatedByID:      userID,
+			UpdatedAt:        now,
+			UpdatedByID:      userID,
+			OrganizationID:   organizationID,
+			BranchID:         branchID,
+			Name:             "Regular Savings",
+			Description:      "Basic savings account for general purpose savings with standard interest rates.",
+			Type:             AccountTypeDeposit,
+			MinAmount:        100.00,
+			MaxAmount:        1000000.00,
+			InterestStandard: 2.5,
+
+			FinancialStatementType: string(FSTypeAssets),
+			ComputationType:        "Simple Interest",
+			Index:                  1,
+		},
+		{
+			CreatedAt:              now,
+			CreatedByID:            userID,
+			UpdatedAt:              now,
+			UpdatedByID:            userID,
+			OrganizationID:         organizationID,
+			BranchID:               branchID,
+			Name:                   "Premium Savings",
+			Description:            "High-yield savings account with better interest rates for higher balances.",
+			Type:                   AccountTypeDeposit,
+			MinAmount:              5000.00,
+			MaxAmount:              5000000.00,
+			InterestStandard:       4.0,
+			FinancialStatementType: string(FSTypeAssets),
+			ComputationType:        "Compound Interest",
+			Index:                  2,
+		},
+		{
+			CreatedAt:              now,
+			CreatedByID:            userID,
+			UpdatedAt:              now,
+			UpdatedByID:            userID,
+			OrganizationID:         organizationID,
+			BranchID:               branchID,
+			Name:                   "Junior Savings",
+			Description:            "Special savings account designed for minors and young members.",
+			Type:                   AccountTypeDeposit,
+			MinAmount:              50.00,
+			MaxAmount:              100000.00,
+			InterestStandard:       3.0,
+			FinancialStatementType: string(FSTypeAssets),
+			ComputationType:        "Simple Interest",
+			Index:                  3,
+		},
+		{
+			CreatedAt:              now,
+			CreatedByID:            userID,
+			UpdatedAt:              now,
+			UpdatedByID:            userID,
+			OrganizationID:         organizationID,
+			BranchID:               branchID,
+			Name:                   "Senior Citizen Savings",
+			Description:            "Special savings account with higher interest rates for senior citizens.",
+			Type:                   AccountTypeDeposit,
+			MinAmount:              500.00,
+			MaxAmount:              2000000.00,
+			InterestStandard:       3.5,
+			FinancialStatementType: string(FSTypeAssets),
+			ComputationType:        "Compound Interest",
+			Index:                  4,
+		},
+		{
+			CreatedAt:              now,
+			CreatedByID:            userID,
+			UpdatedAt:              now,
+			UpdatedByID:            userID,
+			OrganizationID:         organizationID,
+			BranchID:               branchID,
+			Name:                   "Christmas Savings",
+			Description:            "Seasonal savings account for holiday preparations with withdrawal restrictions.",
+			Type:                   AccountTypeDeposit,
+			MinAmount:              200.00,
+			MaxAmount:              500000.00,
+			InterestStandard:       3.0,
+			FinancialStatementType: string(FSTypeAssets),
+			ComputationType:        "Simple Interest",
+			Index:                  5,
+		},
+		{
+			CreatedAt:              now,
+			CreatedByID:            userID,
+			UpdatedAt:              now,
+			UpdatedByID:            userID,
+			OrganizationID:         organizationID,
+			BranchID:               branchID,
+			Name:                   "Education Savings",
+			Description:            "Long-term savings account dedicated to educational expenses.",
+			Type:                   AccountTypeDeposit,
+			MinAmount:              1000.00,
+			MaxAmount:              3000000.00,
+			InterestStandard:       4.0,
+			FinancialStatementType: string(FSTypeAssets),
+			ComputationType:        "Compound Interest",
+			Index:                  6,
+		},
+		{
+			CreatedAt:              now,
+			CreatedByID:            userID,
+			UpdatedAt:              now,
+			UpdatedByID:            userID,
+			OrganizationID:         organizationID,
+			BranchID:               branchID,
+			Name:                   "Emergency Fund",
+			Description:            "High-liquidity savings account for emergency situations.",
+			Type:                   AccountTypeDeposit,
+			MinAmount:              500.00,
+			MaxAmount:              1000000.00,
+			InterestStandard:       2.0,
+			FinancialStatementType: string(FSTypeAssets),
+			ComputationType:        "Simple Interest",
+			Index:                  7,
+		},
+		{
+			CreatedAt:              now,
+			CreatedByID:            userID,
+			UpdatedAt:              now,
+			UpdatedByID:            userID,
+			OrganizationID:         organizationID,
+			BranchID:               branchID,
+			Name:                   "Business Savings",
+			Description:            "Savings account designed for small businesses and entrepreneurs.",
+			Type:                   AccountTypeDeposit,
+			MinAmount:              2000.00,
+			MaxAmount:              10000000.00,
+			InterestStandard:       3.5,
+			FinancialStatementType: string(FSTypeAssets),
+			ComputationType:        "Compound Interest",
+			Index:                  8,
+		},
+		{
+			CreatedAt:              now,
+			CreatedByID:            userID,
+			UpdatedAt:              now,
+			UpdatedByID:            userID,
+			OrganizationID:         organizationID,
+			BranchID:               branchID,
+			Name:                   "Retirement Savings",
+			Description:            "Long-term savings account for retirement planning with tax benefits.",
+			Type:                   AccountTypeDeposit,
+			MinAmount:              1000.00,
+			MaxAmount:              5000000.00,
+			InterestStandard:       4.5,
+			FinancialStatementType: string(FSTypeAssets),
+			ComputationType:        "Compound Interest",
+			Index:                  9,
+		},
+	}
+	for _, data := range accounts {
+		data.ShowInGeneralLedgerSourceWithdraw = true
+		data.ShowInGeneralLedgerSourceDeposit = true
+		data.ShowInGeneralLedgerSourceJournal = true
+		data.ShowInGeneralLedgerSourcePayment = true
+		data.ShowInGeneralLedgerSourceAdjustment = true
+		data.ShowInGeneralLedgerSourceJournalVoucher = true
+		data.ShowInGeneralLedgerSourceCheckVoucher = true
+		if err := m.AccountManager.CreateWithTx(context, tx, data); err != nil {
+			return eris.Wrapf(err, "failed to seed account %s", data.Name)
+		}
+	}
+
+	paidUpShareCapital := &Account{
+		CreatedAt:                         now,
+		CreatedByID:                       userID,
+		UpdatedAt:                         now,
+		UpdatedByID:                       userID,
+		OrganizationID:                    organizationID,
+		BranchID:                          branchID,
+		Name:                              "Paid Up Share Capital",
+		Description:                       "Member's share capital contribution representing ownership stake in the cooperative.",
+		Type:                              AccountTypeOther,
+		MinAmount:                         100.00,
+		MaxAmount:                         1000000.00,
+		InterestStandard:                  0.0,
+		Icon:                              "🏛️",
+		FinancialStatementType:            string(FSTypeEquity),
+		ComputationType:                   "Fixed Amount",
+		Index:                             10,
+		PaidUpShareCapital:                true,
+		ShowInGeneralLedgerSourceWithdraw: true,
+		ShowInGeneralLedgerSourceDeposit:  true,
+		ShowInGeneralLedgerSourceJournal:  true,
+		ShowInGeneralLedgerSourcePayment:  true,
+	}
+	if err := m.AccountManager.CreateWithTx(context, tx, paidUpShareCapital); err != nil {
+		return eris.Wrapf(err, "failed to seed account %s", paidUpShareCapital.Name)
+	}
+	cashOnHand := &Account{
+		CreatedAt:                               now,
+		CreatedByID:                             userID,
+		UpdatedAt:                               now,
+		UpdatedByID:                             userID,
+		OrganizationID:                          organizationID,
+		BranchID:                                branchID,
+		Name:                                    "Cash on Hand",
+		Description:                             "Physical cash available at the branch for daily operations and transactions.",
+		Type:                                    AccountTypeOther,
+		MinAmount:                               0.00,
+		MaxAmount:                               10000000.00,
+		InterestStandard:                        0.0,
+		Icon:                                    "💵",
+		FinancialStatementType:                  string(FSTypeAssets),
+		ComputationType:                         "None",
+		Index:                                   11,
+		CashOnHand:                              true,
+		ShowInGeneralLedgerSourceWithdraw:       true,
+		ShowInGeneralLedgerSourceDeposit:        true,
+		ShowInGeneralLedgerSourceJournal:        true,
+		ShowInGeneralLedgerSourcePayment:        true,
+		ShowInGeneralLedgerSourceAdjustment:     true,
+		ShowInGeneralLedgerSourceJournalVoucher: true,
+		ShowInGeneralLedgerSourceCheckVoucher:   true,
+		OtherInformationOfAnAccount:             string(OIOA_CashOnHand),
+	}
+
+	if err := m.AccountManager.CreateWithTx(context, tx, cashOnHand); err != nil {
+		return eris.Wrapf(err, "failed to seed account %s", cashOnHand.Name)
+	}
+	branch, err := m.BranchManager.GetByID(context, branchID)
+	if err != nil {
+		return eris.Wrapf(err, "failed to find branch with ID %s", branchID)
+	}
+	branch.BranchSetting.PaidUpSharedCapitalAccountID = &paidUpShareCapital.ID
+	branch.BranchSetting.CashOnHandAccountID = &cashOnHand.ID
+	if err := m.BranchSettingManager.UpdateWithTx(context, tx, branch.BranchSetting); err != nil {
+		return eris.Wrapf(err, "failed to update branch %s with paid up share capital account", branch.Name)
+	}
+	return nil
+}
+
 func (m *Model) AccountCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Account, error) {
 	return m.AccountManager.Find(context, &Account{
 		OrganizationID: orgId,
@@ -568,9 +809,6 @@ func (m *Model) AccountCurrentBranch(context context.Context, orgId uuid.UUID, b
 	})
 }
 
-// AccountLockForUpdate acquires an exclusive lock on an account for concurrent protection
-// This prevents multiple users from operating on the same account simultaneously
-// Returns the locked account data and any error encountered
 func (m *Model) AccountLockForUpdate(ctx context.Context, tx *gorm.DB, accountID uuid.UUID) (*Account, error) {
 	var lockedAccount Account
 	err := tx.WithContext(ctx).
@@ -586,26 +824,7 @@ func (m *Model) AccountLockForUpdate(ctx context.Context, tx *gorm.DB, accountID
 	return &lockedAccount, nil
 }
 
-// AccountLockWithValidation acquires an exclusive lock on an account and validates it hasn't changed
-// This is a comprehensive function that includes concurrent modification detection
-// originalAccount should be the account data retrieved before starting the transaction
-//
-// Example usage:
-//
-//	account, err := m.AccountManager.GetByID(ctx, accountID)
-//	if err != nil { return err }
-//
-//	// Start transaction
-//	tx := db.Begin()
-//
-//	// Lock account and detect concurrent modifications
-//	lockedAccount, err := m.AccountLockWithValidation(ctx, tx, accountID, account)
-//	if err != nil {
-//	    tx.Rollback()
-//	}
-//
-//	// Use lockedAccount for the rest of the transaction
-//	account = lockedAccount
+// account = lockedAccount
 func (m *Model) AccountLockWithValidation(ctx context.Context, tx *gorm.DB, accountID uuid.UUID, originalAccount *Account) (*Account, error) {
 	lockedAccount, err := m.AccountLockForUpdate(ctx, tx, accountID)
 	if err != nil {
