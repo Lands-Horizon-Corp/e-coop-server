@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	horizon_services "github.com/lands-horizon/horizon-server/services"
+	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
@@ -111,6 +112,65 @@ func (m *Model) MemberClassification() {
 	})
 }
 
+func (m *Model) MemberClassificationSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+	now := time.Now()
+	memberClassifications := []*MemberClassification{
+		{
+
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Gold",
+			Icon:           "sunrise",
+			Description:    "Gold membership is reserved for top-tier members with excellent credit scores and consistent loyalty.",
+		},
+		{
+
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Silver",
+			Icon:           "moon-star",
+			Description:    "Silver membership is designed for members with good credit history and regular engagement.",
+		},
+		{
+
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Bronze",
+			Icon:           "cloud",
+			Description:    "Bronze membership is for new or casual members who are starting their journey with us.",
+		},
+		{
+
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Platinum",
+			Icon:           "gem",
+			Description:    "Platinum membership offers exclusive benefits to elite members with outstanding history and contributions.",
+		},
+	}
+	for _, data := range memberClassifications {
+		if err := m.MemberClassificationManager.CreateWithTx(context, tx, data); err != nil {
+			return eris.Wrapf(err, "failed to seed member classification %s", data.Name)
+		}
+	}
+	return nil
+}
 func (m *Model) MemberClassificationCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberClassification, error) {
 	return m.MemberClassificationManager.Find(context, &MemberClassification{
 		OrganizationID: orgId,

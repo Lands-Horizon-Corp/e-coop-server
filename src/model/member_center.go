@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	horizon_services "github.com/lands-horizon/horizon-server/services"
+	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
@@ -105,6 +106,49 @@ func (m *Model) MemberCenter() {
 			}
 		},
 	})
+}
+
+func (m *Model) MemberCenterSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+	memberCenter := []*MemberCenter{
+		{
+			Name:           "Main Wellness Center",
+			Description:    "Provides health and wellness programs.",
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			CreatedAt:      time.Now(),
+			CreatedByID:    userID,
+			UpdatedAt:      time.Now(),
+			UpdatedByID:    userID,
+		},
+		{
+
+			Name:           "Training Hub",
+			Description:    "Offers skill-building and training for members.",
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			CreatedAt:      time.Now(),
+			CreatedByID:    userID,
+			UpdatedAt:      time.Now(),
+			UpdatedByID:    userID,
+		},
+		{
+
+			Name:           "Community Support Center",
+			Description:    "Focuses on community support services and events.",
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			CreatedAt:      time.Now(),
+			CreatedByID:    userID,
+			UpdatedAt:      time.Now(),
+			UpdatedByID:    userID,
+		},
+	}
+	for _, data := range memberCenter {
+		if err := m.MemberCenterManager.CreateWithTx(context, tx, data); err != nil {
+			return eris.Wrapf(err, "failed to seed member center %s", data.Name)
+		}
+	}
+	return nil
 }
 
 func (m *Model) MemberCenterCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberCenter, error) {

@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	horizon_services "github.com/lands-horizon/horizon-server/services"
+	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
@@ -112,6 +113,108 @@ func (m *Model) Bank() {
 			}
 		},
 	})
+}
+
+func (m *Model) BankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+	now := time.Now()
+	banks := []*Bank{
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "BDO Unibank, Inc.",
+			Description:    "The largest bank in the Philippines by assets, BDO offers a wide range of financial services.",
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Bank of the Philippine Islands (BPI)",
+			Description:    "One of the oldest banks in Southeast Asia, BPI provides banking and financial solutions.",
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Metropolitan Bank & Trust Company (Metrobank)",
+			Description:    "A major universal bank in the Philippines, known for its extensive branch network.",
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Land Bank of the Philippines (Landbank)",
+			Description:    "A government-owned bank focused on serving farmers and fishermen.",
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Philippine National Bank (PNB)",
+			Description:    "One of the country’s largest banks, offering a full range of banking services.",
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "China Banking Corporation (Chinabank)",
+			Description:    "A leading private universal bank in the Philippines.",
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Security Bank Corporation",
+			Description:    "A universal bank known for its innovative banking products.",
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Union Bank of the Philippines (UnionBank)",
+			Description:    "A universal bank recognized for its digital banking leadership.",
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Development Bank of the Philippines (DBP)",
+			Description:    "A government-owned development bank supporting infrastructure and social projects.",
+		},
+	}
+	for _, data := range banks {
+		if err := m.BankManager.CreateWithTx(context, tx, data); err != nil {
+			return eris.Wrapf(err, "failed to seed bank %s", data.Name)
+		}
+	}
+	return nil
 }
 
 func (m *Model) BankCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Bank, error) {

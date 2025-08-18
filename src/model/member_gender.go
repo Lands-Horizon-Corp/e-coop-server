@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	horizon_services "github.com/lands-horizon/horizon-server/services"
+	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
@@ -105,6 +106,52 @@ func (m *Model) MemberGender() {
 			}
 		},
 	})
+}
+
+func (m *Model) MemberGenderSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+	now := time.Now()
+	memberGenders := []*MemberGender{
+		{
+
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Male",
+			Description:    "Identifies as male.",
+		},
+		{
+
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Female",
+			Description:    "Identifies as female.",
+		},
+		{
+
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Other",
+			Description:    "Identifies outside the binary gender categories.",
+		},
+	}
+	for _, data := range memberGenders {
+		if err := m.MemberGenderManager.CreateWithTx(context, tx, data); err != nil {
+			return eris.Wrapf(err, "failed to seed member gender %s", data.Name)
+		}
+	}
+
+	return nil
 }
 
 func (m *Model) MemberGenderCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberGender, error) {
