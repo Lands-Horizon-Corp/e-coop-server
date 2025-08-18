@@ -36,13 +36,28 @@ func (c *Controller) MemberAccountingLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve member accounting ledger entries: " + err.Error()})
 		}
+		paidUpShareCapital, err := c.model.MemberAccountingLedgerManager.Find(context, &model.MemberAccountingLedger{
+			MemberProfileID: *memberProfileID,
+			OrganizationID:  userOrg.OrganizationID,
+			BranchID:        *userOrg.BranchID,
+			AccountID:       *userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve paid-up share capital entries: " + err.Error()})
+		}
+
+		var totalShareCapitalPlusSavings float64
+		for _, entry := range paidUpShareCapital {
+			totalShareCapitalPlusSavings += entry.Balance
+		}
 		var totalDeposits float64
 		for _, entry := range entries {
 			totalDeposits += entry.Balance
 		}
+
 		summary := model.MemberAccountingLedgerSummary{
 			TotalDeposits:                totalDeposits,
-			TotalShareCapitalPlusSavings: 0,
+			TotalShareCapitalPlusSavings: totalShareCapitalPlusSavings,
 			TotalLoans:                   0,
 		}
 		return ctx.JSON(http.StatusOK, summary)
