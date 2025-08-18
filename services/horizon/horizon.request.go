@@ -75,8 +75,8 @@ func NewHorizonAPIService(
 		Skipper: middleware.DefaultSkipper,
 		Store: middleware.NewRateLimiterMemoryStoreWithConfig(
 			middleware.RateLimiterMemoryStoreConfig{
-				Rate:      rate.Limit(10),
-				Burst:     30,
+				Rate:      rate.Limit(20),
+				Burst:     100_000,
 				ExpiresIn: 5 * time.Minute,
 			},
 		),
@@ -165,7 +165,7 @@ func NewHorizonAPIService(
 				zap.Error(err),
 			)
 		},
-		Timeout: 60 * time.Second,
+		Timeout: 5 * time.Minute,
 	}))
 
 	e.GET("/health", func(c echo.Context) error {
