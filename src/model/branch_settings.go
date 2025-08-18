@@ -19,6 +19,12 @@ type (
 		BranchID uuid.UUID `gorm:"type:uuid;not null;uniqueIndex" json:"branch_id"`
 		Branch   *Branch   `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE;" json:"branch,omitempty"`
 
+		CashOnHandAccountID *uuid.UUID `gorm:"type:uuid" json:"cash_on_hand_account_id,omitempty"`
+		CashOnHandAccount   *Account   `gorm:"foreignKey:CashOnHandAccountID;constraint:OnDelete:SET NULL;" json:"cash_on_hand_account,omitempty"`
+
+		PaidUpSharedCapitalAccountID *uuid.UUID `gorm:"type:uuid" json:"paid_up_shared_capital_account_id,omitempty"`
+		PaidUpSharedCapitalAccount   *Account   `gorm:"foreignKey:PaidUpSharedCapitalAccountID;constraint:OnDelete:SET NULL;" json:"paid_up_shared_capital_account,omitempty"`
+
 		// Withdraw Settings
 		WithdrawAllowUserInput bool   `gorm:"not null;default:true" json:"withdraw_allow_user_input"`
 		WithdrawPrefix         string `gorm:"type:varchar(50);not null;default:'WD'" json:"withdraw_prefix"`
@@ -158,6 +164,11 @@ type (
 		// Default Member Type
 		DefaultMemberTypeID *uuid.UUID          `json:"default_member_type_id,omitempty"`
 		DefaultMemberType   *MemberTypeResponse `json:"default_member_type,omitempty"`
+
+		CashOnHandAccountID          *uuid.UUID       `json:"cash_on_hand_account_id,omitempty"`
+		CashOnHandAccount            *AccountResponse `json:"cash_on_hand_account,omitempty"`
+		PaidUpSharedCapitalAccountID *uuid.UUID       `json:"paid_up_shared_capital_account_id,omitempty"`
+		PaidUpSharedCapitalAccount   *AccountResponse `json:"paid_up_shared_capital_account,omitempty"`
 	}
 )
 
@@ -167,6 +178,8 @@ func (m *Model) BranchSetting() {
 		Preloads: []string{
 			"Branch",
 			"DefaultMemberType",
+			"CashOnHandAccount",
+			"PaidUpSharedCapitalAccount",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *BranchSetting) *BranchSettingResponse {
@@ -217,6 +230,11 @@ func (m *Model) BranchSetting() {
 
 				DefaultMemberTypeID: data.DefaultMemberTypeID,
 				DefaultMemberType:   m.MemberTypeManager.ToModel(data.DefaultMemberType),
+
+				CashOnHandAccountID:          data.CashOnHandAccountID,
+				CashOnHandAccount:            m.AccountManager.ToModel(data.CashOnHandAccount),
+				PaidUpSharedCapitalAccountID: data.PaidUpSharedCapitalAccountID,
+				PaidUpSharedCapitalAccount:   m.AccountManager.ToModel(data.PaidUpSharedCapitalAccount),
 			}
 		},
 		Created: func(data *BranchSetting) []string {

@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	horizon_services "github.com/lands-horizon/horizon-server/services"
+	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
@@ -105,6 +106,73 @@ func (m *Model) MemberGroup() {
 			}
 		},
 	})
+}
+
+func (m *Model) MemberGroupSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+	now := time.Now()
+	memberGroup := []*MemberGroup{
+		{
+
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Single Moms",
+			Description:    "Support group for single mothers in the community.",
+		},
+		{
+
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Athletes",
+			Description:    "Members who actively participate in sports and fitness.",
+		},
+		{
+
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Tech",
+			Description:    "Members involved in information technology or development.",
+		},
+		{
+
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Graphics Artists",
+			Description:    "Creative members who specialize in digital and graphic design.",
+		},
+		{
+
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Accountants",
+			Description:    "Finance-focused members responsible for budgeting and auditing.",
+		},
+	}
+	for _, data := range memberGroup {
+		if err := m.MemberGroupManager.CreateWithTx(context, tx, data); err != nil {
+			return eris.Wrapf(err, "failed to seed member group %s", data.Name)
+		}
+	}
+	return nil
 }
 
 func (m *Model) MemberGroupCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberGroup, error) {

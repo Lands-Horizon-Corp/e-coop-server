@@ -168,6 +168,48 @@ func (m *Model) GetInvitationCodeByCode(context context.Context, code string) (*
 	})
 }
 
+func (m *Model) InvitationCodeSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+	now := time.Now()
+	expiration := now.AddDate(0, 1, 0)
+
+	invitationCodes := []*InvitationCode{
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			UserType:       "employee",
+			Code:           uuid.New().String(),
+			ExpirationDate: expiration,
+			MaxUse:         5,
+			CurrentUse:     0,
+			Description:    "Invitation code for employees (max 5 uses)",
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			UserType:       "member",
+			Code:           uuid.New().String(),
+			ExpirationDate: expiration,
+			MaxUse:         1000,
+			CurrentUse:     0,
+			Description:    "Invitation code for members (max 1000 uses)",
+		},
+	}
+	for _, data := range invitationCodes {
+		if err := m.InvitationCodeManager.CreateWithTx(context, tx, data); err != nil {
+			return eris.Wrapf(err, "failed to seed invitation code for %s", data.UserType)
+		}
+	}
+	return nil
+}
+
 func (m *Model) VerifyInvitationCodeByCode(context context.Context, code string) (*InvitationCode, error) {
 	data, err := m.GetInvitationCodeByCode(context, code)
 	if err != nil {
