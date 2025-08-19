@@ -12,7 +12,7 @@ E-Coop Server is the backend system for the E-Coop platform. It’s built with *
 
 Before you begin, ensure you have the following installed:
 
-- **Go**: `v1.24.3` or later
+- **Go**: `v1.25.0` or later
 - **Docker** and **Docker Compose**
 
 ## 🚀 Installation & Setup
