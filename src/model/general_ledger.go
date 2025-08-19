@@ -63,7 +63,7 @@ type (
 		JournalVoucherID           *uuid.UUID          `gorm:"type:uuid"`
 		AdjustmentEntryID          *uuid.UUID          `gorm:"type:uuid"`
 		AdjustmentEntry            *AdjustmentEntry    `gorm:"foreignKey:AdjustmentEntryID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"adjustment_entry,omitempty"`
-		TypeOfPaymentType          TypeOfPaymentType   `gorm:"type:varchar(20)"`
+		TypeOfPaymentType          TypeOfPaymentType   `gorm:"type:varchar(20)" json:"type_of_payment_type,omitempty"`
 		Credit                     float64             `gorm:"type:decimal"`
 		Debit                      float64             `gorm:"type:decimal"`
 		Balance                    float64             `gorm:"type:decimal"`
