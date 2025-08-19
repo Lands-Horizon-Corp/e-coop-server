@@ -225,16 +225,16 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 	return service
 }
 
-func printStatus(service string, status string) {
+func (h *HorizonService) printStatus(service string, status string) {
 	switch status {
 	case "init":
-		fmt.Printf("⏳ Initializing %s service...", service)
+		h.Logger.Info("Initializing service", zap.String("service", service))
 		os.Stdout.Sync()
 	case "ok":
-		fmt.Printf("\r✅ %s service initialized        \n", service)
+		h.Logger.Info("Service initialized successfully", zap.String("service", service))
 		os.Stdout.Sync()
 	case "fail":
-		fmt.Printf("\r🔴 Failed to initialize %s service\n", service)
+		h.Logger.Error("Failed to initialize service", zap.String("service", service))
 		os.Stdout.Sync()
 	}
 }
@@ -242,117 +242,117 @@ func printStatus(service string, status string) {
 func (h *HorizonService) Run(ctx context.Context) error {
 	fmt.Println("≿━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━༺❀༻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━≾")
 	handlers.PrintASCIIArt()
-	fmt.Println("🟢 Horizon App is starting...")
+	h.Logger.Info("Horizon App is starting...")
 	delay := 3 * time.Second
 	retry := 5
 
 	if h.Broker != nil {
-		printStatus("Broker", "init")
+		h.printStatus("Broker", "init")
 		if err := handlers.Retry(ctx, retry, delay, func() error {
 			return h.Broker.Run(ctx)
 		}); err != nil {
-			printStatus("Broker", "fail")
-			fmt.Fprintf(os.Stderr, "Broker error: %v\n", err)
+			h.printStatus("Broker", "fail")
+			h.Logger.Error("Broker error", zap.Error(err))
 			return err
 		}
-		printStatus("Broker", "ok")
+		h.printStatus("Broker", "ok")
 	}
 	if h.Cron != nil {
-		printStatus("Cron", "init")
+		h.printStatus("Cron", "init")
 		if err := handlers.Retry(ctx, retry, delay, func() error {
 			return h.Cron.Run(ctx)
 		}); err != nil {
-			printStatus("Cron", "fail")
-			fmt.Fprintf(os.Stderr, "Cron error: %v\n", err)
+			h.printStatus("Cron", "fail")
+			h.Logger.Error("Cron error", zap.Error(err))
 			return err
 		}
-		printStatus("Cron", "ok")
+		h.printStatus("Cron", "ok")
 	}
 
 	if h.Cache != nil {
-		printStatus("Cache", "init")
+		h.printStatus("Cache", "init")
 		if err := handlers.Retry(ctx, retry, delay, func() error {
 			return h.Cache.Run(ctx)
 		}); err != nil {
-			printStatus("Cache", "fail")
-			fmt.Fprintf(os.Stderr, "Cache error: %v\n", err)
+			h.printStatus("Cache", "fail")
+			h.Logger.Error("Cache error", zap.Error(err))
 			return err
 		}
-		printStatus("Cache", "ok")
+		h.printStatus("Cache", "ok")
 	}
 
 	if h.Storage != nil {
-		printStatus("Storage", "init")
+		h.printStatus("Storage", "init")
 		if err := handlers.Retry(ctx, retry, delay, func() error {
 			return h.Storage.Run(ctx)
 		}); err != nil {
-			printStatus("Storage", "fail")
-			fmt.Fprintf(os.Stderr, "Storage error: %v\n", err)
+			h.printStatus("Storage", "fail")
+			h.Logger.Error("Storage error", zap.Error(err))
 			return err
 		}
-		printStatus("Storage", "ok")
+		h.printStatus("Storage", "ok")
 	}
 
 	if h.Database != nil {
-		printStatus("Database", "init")
+		h.printStatus("Database", "init")
 		if err := handlers.Retry(ctx, retry, delay, func() error {
 			return h.Database.Run(ctx)
 		}); err != nil {
-			printStatus("Database", "fail")
-			fmt.Fprintf(os.Stderr, "Database error: %v\n", err)
+			h.printStatus("Database", "fail")
+			h.Logger.Error("Database error", zap.Error(err))
 			return err
 		}
-		printStatus("Database", "ok")
+		h.printStatus("Database", "ok")
 	}
 
 	if h.OTP != nil {
 		if h.Cache == nil {
-			fmt.Fprintln(os.Stderr, "OTP service requires a cache service")
+			h.Logger.Error("OTP service requires a cache service")
 			return eris.New("OTP service requires a cache service")
 		}
 		if h.Security == nil {
-			fmt.Fprintln(os.Stderr, "OTP service requires a security service")
+			h.Logger.Error("OTP service requires a security service")
 			return eris.New("OTP service requires a security service")
 		}
 	}
 
 	if h.SMS != nil {
-		printStatus("SMS", "init")
+		h.printStatus("SMS", "init")
 		if err := handlers.Retry(ctx, retry, delay, func() error {
 			return h.SMS.Run(ctx)
 		}); err != nil {
-			printStatus("SMS", "fail")
-			fmt.Fprintf(os.Stderr, "SMS error: %v\n", err)
+			h.printStatus("SMS", "fail")
+			h.Logger.Error("SMS error", zap.Error(err))
 			return err
 		}
-		printStatus("SMS", "ok")
+		h.printStatus("SMS", "ok")
 	}
 
 	if h.SMTP != nil {
-		printStatus("SMTP", "init")
+		h.printStatus("SMTP", "init")
 		if err := handlers.Retry(ctx, retry, delay, func() error {
 			return h.SMTP.Run(ctx)
 		}); err != nil {
-			printStatus("SMTP", "fail")
-			fmt.Fprintf(os.Stderr, "SMTP error: %v\n", err)
+			h.printStatus("SMTP", "fail")
+			h.Logger.Error("SMTP error", zap.Error(err))
 			return err
 		}
-		printStatus("SMTP", "ok")
+		h.printStatus("SMTP", "ok")
 	}
 
 	if h.Request != nil {
-		printStatus("Request", "init")
+		h.printStatus("Request", "init")
 		if err := handlers.Retry(ctx, retry, delay, func() error {
 			return h.Request.Run(ctx)
 		}); err != nil {
-			printStatus("Request", "fail")
-			fmt.Fprintf(os.Stderr, "Request error: %v\n", err)
+			h.printStatus("Request", "fail")
+			h.Logger.Error("Request error", zap.Error(err))
 			return err
 		}
-		printStatus("Request", "ok")
+		h.printStatus("Request", "ok")
 	}
 
-	fmt.Println("🟢 Horizon App Started")
+	h.Logger.Info("Horizon App Started")
 	fmt.Println("≿━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━༺❀༻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━≾")
 	return nil
 }
@@ -404,7 +404,7 @@ func (h *HorizonService) Stop(ctx context.Context) error {
 }
 
 func (h *HorizonService) RunDatabase(ctx context.Context) error {
-	fmt.Println("🟢 Starting Database Service...")
+	h.Logger.Info("Starting Database Service...")
 	delay := 3 * time.Second
 	retry := 5
 
@@ -412,31 +412,31 @@ func (h *HorizonService) RunDatabase(ctx context.Context) error {
 		if err := handlers.Retry(ctx, retry, delay, func() error {
 			return h.Database.Run(ctx)
 		}); err != nil {
-			fmt.Println("🔴 Failed to start Database Service")
+			h.Logger.Error("Failed to start Database Service", zap.Error(err))
 			return err
 		}
 	}
 
-	fmt.Println("🟢 Database Service Started Successfully")
+	h.Logger.Info("Database Service Started Successfully")
 	return nil
 }
 
 func (h *HorizonService) StopDatabase(ctx context.Context) error {
-	fmt.Println("🛑 Stopping Database Service...")
+	h.Logger.Info("Stopping Database Service...")
 
 	if h.Database != nil {
 		if err := h.Database.Stop(ctx); err != nil {
-			fmt.Println("🔴 Failed to stop Database Service")
+			h.Logger.Error("Failed to stop Database Service", zap.Error(err))
 			return err
 		}
 	}
 
-	fmt.Println("🛑 Database Service Stopped Successfully")
+	h.Logger.Info("Database Service Stopped Successfully")
 	return nil
 }
 
 func (h *HorizonService) RunCache(ctx context.Context) error {
-	fmt.Println("🟢 Starting Cache Service...")
+	h.Logger.Info("Starting Cache Service...")
 	delay := 3 * time.Second
 	retry := 5
 
@@ -444,33 +444,33 @@ func (h *HorizonService) RunCache(ctx context.Context) error {
 		if err := handlers.Retry(ctx, retry, delay, func() error {
 			return h.Cache.Run(ctx)
 		}); err != nil {
-			fmt.Println("🔴 Failed to start Cache Service")
+			h.Logger.Error("Failed to start Cache Service", zap.Error(err))
 			return err
 		}
 	}
 
-	fmt.Println("🟢 Cache Service Started Successfully")
+	h.Logger.Info("Cache Service Started Successfully")
 	return nil
 }
 
 func (h *HorizonService) StopCache(ctx context.Context) error {
-	fmt.Println("🛑 Stopping Cache Service...")
+	h.Logger.Info("Stopping Cache Service...")
 
 	if h.Cache != nil {
 		if err := h.Cache.Stop(ctx); err != nil {
-			fmt.Println("🔴 Failed to stop Cache Service")
+			h.Logger.Error("Failed to stop Cache Service", zap.Error(err))
 			return err
 		}
 	}
 
-	fmt.Println("🛑 Cache Service Stopped Successfully")
+	h.Logger.Info("Cache Service Stopped Successfully")
 	return nil
 }
 
 // Add these methods to your HorizonService struct in horizon_services.go
 
 func (h *HorizonService) RunStorage(ctx context.Context) error {
-	fmt.Println("🟢 Starting Storage Service...")
+	h.Logger.Info("Starting Storage Service...")
 	delay := 3 * time.Second
 	retry := 5
 
@@ -478,31 +478,31 @@ func (h *HorizonService) RunStorage(ctx context.Context) error {
 		if err := handlers.Retry(ctx, retry, delay, func() error {
 			return h.Storage.Run(ctx)
 		}); err != nil {
-			fmt.Println("🔴 Failed to start Storage Service")
+			h.Logger.Error("Failed to start Storage Service", zap.Error(err))
 			return err
 		}
 	}
 
-	fmt.Println("🟢 Storage Service Started Successfully")
+	h.Logger.Info("Storage Service Started Successfully")
 	return nil
 }
 
 func (h *HorizonService) StopStorage(ctx context.Context) error {
-	fmt.Println("🛑 Stopping Storage Service...")
+	h.Logger.Info("Stopping Storage Service...")
 
 	if h.Storage != nil {
 		if err := h.Storage.Stop(ctx); err != nil {
-			fmt.Println("🔴 Failed to stop Storage Service")
+			h.Logger.Error("Failed to stop Storage Service", zap.Error(err))
 			return err
 		}
 	}
 
-	fmt.Println("🛑 Storage Service Stopped Successfully")
+	h.Logger.Info("Storage Service Stopped Successfully")
 	return nil
 }
 
 func (h *HorizonService) RunBroker(ctx context.Context) error {
-	fmt.Println("🟢 Starting Broker Service...")
+	h.Logger.Info("Starting Broker Service...")
 	delay := 3 * time.Second
 	retry := 5
 
@@ -510,25 +510,25 @@ func (h *HorizonService) RunBroker(ctx context.Context) error {
 		if err := handlers.Retry(ctx, retry, delay, func() error {
 			return h.Broker.Run(ctx)
 		}); err != nil {
-			fmt.Println("🔴 Failed to start Broker Service")
+			h.Logger.Error("Failed to start Broker Service", zap.Error(err))
 			return err
 		}
 	}
 
-	fmt.Println("🟢 Broker Service Started Successfully")
+	h.Logger.Info("Broker Service Started Successfully")
 	return nil
 }
 
 func (h *HorizonService) StopBroker(ctx context.Context) error {
-	fmt.Println("🛑 Stopping Broker Service...")
+	h.Logger.Info("Stopping Broker Service...")
 
 	if h.Broker != nil {
 		if err := h.Broker.Stop(ctx); err != nil {
-			fmt.Println("🔴 Failed to stop Broker Service")
+			h.Logger.Error("Failed to stop Broker Service", zap.Error(err))
 			return err
 		}
 	}
 
-	fmt.Println("🛑 Broker Service Stopped Successfully")
+	h.Logger.Info("Broker Service Stopped Successfully")
 	return nil
 }
