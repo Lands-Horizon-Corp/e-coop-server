@@ -157,7 +157,16 @@ func (e *Event) TransactionPayment(
 		block("Cash on hand account ID is nil")
 		return nil, eris.New("cash on hand account ID is nil")
 	}
-
+	if cashOnHandAccountID == data.AccountID {
+		tx.Rollback()
+		e.Footstep(ctx, echoCtx, FootstepEvent{
+			Activity:    "cash-on-hand-mismatch",
+			Description: "Cash on hand account ID does not match (/transaction/payment/:transaction_id)",
+			Module:      "Transaction",
+		})
+		block("Cash on hand account ID does not match")
+		return nil, eris.New("cash on hand account ID does not match")
+	}
 	// ================================================================================
 	// STEP 5: ENTITY VALIDATION & RETRIEVAL
 	// ================================================================================
@@ -584,7 +593,6 @@ func (e *Event) TransactionPayment(
 	// ================================================================================
 	// STEP 9: Adding Cash on Hand Account
 	// ================================================================================
-
 	var cohCredit, cohDebit, cohBalance float64
 	switch data.Source {
 	case model.GeneralLedgerSourcePayment, model.GeneralLedgerSourceDeposit:
