@@ -54,13 +54,16 @@ func ToModels[T any, G any](data []*T, mapFunc func(*T) *G) []*G {
 type FilterOp string
 
 const (
-	OpEq  FilterOp = "="
-	OpGt  FilterOp = ">"
-	OpGte FilterOp = ">="
-	OpLt  FilterOp = "<"
-	OpLte FilterOp = "<="
-	OpNe  FilterOp = "<>"
-	OpIn  FilterOp = "IN"
+	OpEq    FilterOp = "="
+	OpGt    FilterOp = ">"
+	OpGte   FilterOp = ">="
+	OpLt    FilterOp = "<"
+	OpLte   FilterOp = "<="
+	OpNe    FilterOp = "<>"
+	OpIn    FilterOp = "IN"
+	OpNotIn FilterOp = "NOT IN"
+	OpLike  FilterOp = "LIKE"
+	OpILike FilterOp = "ILIKE"
 )
 
 type Filter struct {

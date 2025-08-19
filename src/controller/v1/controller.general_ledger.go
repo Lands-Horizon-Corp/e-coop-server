@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	horizon_services "github.com/lands-horizon/horizon-server/services"
 	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/lands-horizon/horizon-server/src/model"
 )
@@ -34,11 +35,20 @@ func (c *Controller) GeneralLedgerController() {
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger totals"})
 		}
-		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
-			MemberProfileID: memberProfileID,
-			OrganizationID:  userOrg.OrganizationID,
-			BranchID:        *userOrg.BranchID,
-			AccountID:       accountID,
+
+		if userOrg.Branch.BranchSetting.CashOnHandAccountID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cash on hand account not set for branch"})
+		}
+		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
+		}
+		entries, err := c.model.GeneralLedgerManager.FindWithFilters(context, []horizon_services.Filter{
+			{Field: "member_profile_id", Op: horizon_services.OpEq, Value: memberProfileID},
+			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
+			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
+			{Field: "account_id", Op: horizon_services.OpEq, Value: accountID},
+			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
+			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
@@ -1446,10 +1456,18 @@ func (c *Controller) GeneralLedgerController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 
-		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
-			MemberProfileID: memberProfileID,
-			OrganizationID:  userOrg.OrganizationID,
-			BranchID:        *userOrg.BranchID,
+		if userOrg.Branch.BranchSetting.CashOnHandAccountID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cash on hand account not set for branch"})
+		}
+		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
+		}
+		entries, err := c.model.GeneralLedgerManager.FindWithFilters(context, []horizon_services.Filter{
+			{Field: "member_profile_id", Op: horizon_services.OpEq, Value: memberProfileID},
+			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
+			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
+			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
+			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1477,11 +1495,19 @@ func (c *Controller) GeneralLedgerController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 
-		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
-			MemberProfileID:   memberProfileID,
-			OrganizationID:    userOrg.OrganizationID,
-			BranchID:          *userOrg.BranchID,
-			TypeOfPaymentType: model.PaymentTypeCheck,
+		if userOrg.Branch.BranchSetting.CashOnHandAccountID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cash on hand account not set for branch"})
+		}
+		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
+		}
+		entries, err := c.model.GeneralLedgerManager.FindWithFilters(context, []horizon_services.Filter{
+			{Field: "member_profile_id", Op: horizon_services.OpEq, Value: memberProfileID},
+			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
+			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
+			{Field: "type_of_payment_type", Op: horizon_services.OpEq, Value: model.PaymentTypeCheck},
+			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
+			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1509,11 +1535,19 @@ func (c *Controller) GeneralLedgerController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 
-		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
-			MemberProfileID:   memberProfileID,
-			OrganizationID:    userOrg.OrganizationID,
-			BranchID:          *userOrg.BranchID,
-			TypeOfPaymentType: model.PaymentTypeOnline,
+		if userOrg.Branch.BranchSetting.CashOnHandAccountID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cash on hand account not set for branch"})
+		}
+		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
+		}
+		entries, err := c.model.GeneralLedgerManager.FindWithFilters(context, []horizon_services.Filter{
+			{Field: "member_profile_id", Op: horizon_services.OpEq, Value: memberProfileID},
+			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
+			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
+			{Field: "type_of_payment_type", Op: horizon_services.OpEq, Value: model.PaymentTypeOnline},
+			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
+			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1541,11 +1575,19 @@ func (c *Controller) GeneralLedgerController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 
-		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
-			MemberProfileID:   memberProfileID,
-			OrganizationID:    userOrg.OrganizationID,
-			BranchID:          *userOrg.BranchID,
-			TypeOfPaymentType: model.PaymentTypeCash,
+		if userOrg.Branch.BranchSetting.CashOnHandAccountID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cash on hand account not set for branch"})
+		}
+		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
+		}
+		entries, err := c.model.GeneralLedgerManager.FindWithFilters(context, []horizon_services.Filter{
+			{Field: "member_profile_id", Op: horizon_services.OpEq, Value: memberProfileID},
+			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
+			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
+			{Field: "type_of_payment_type", Op: horizon_services.OpEq, Value: model.PaymentTypeCash},
+			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
+			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1573,11 +1615,19 @@ func (c *Controller) GeneralLedgerController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 
-		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
-			MemberProfileID: memberProfileID,
-			OrganizationID:  userOrg.OrganizationID,
-			BranchID:        *userOrg.BranchID,
-			Source:          model.GeneralLedgerSourcePayment,
+		if userOrg.Branch.BranchSetting.CashOnHandAccountID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cash on hand account not set for branch"})
+		}
+		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
+		}
+		entries, err := c.model.GeneralLedgerManager.FindWithFilters(context, []horizon_services.Filter{
+			{Field: "member_profile_id", Op: horizon_services.OpEq, Value: memberProfileID},
+			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
+			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
+			{Field: "source", Op: horizon_services.OpEq, Value: model.GeneralLedgerSourcePayment},
+			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
+			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1605,11 +1655,19 @@ func (c *Controller) GeneralLedgerController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 
-		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
-			MemberProfileID: memberProfileID,
-			OrganizationID:  userOrg.OrganizationID,
-			BranchID:        *userOrg.BranchID,
-			Source:          model.GeneralLedgerSourceWithdraw,
+		if userOrg.Branch.BranchSetting.CashOnHandAccountID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cash on hand account not set for branch"})
+		}
+		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
+		}
+		entries, err := c.model.GeneralLedgerManager.FindWithFilters(context, []horizon_services.Filter{
+			{Field: "member_profile_id", Op: horizon_services.OpEq, Value: memberProfileID},
+			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
+			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
+			{Field: "source", Op: horizon_services.OpEq, Value: model.GeneralLedgerSourceWithdraw},
+			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
+			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1637,11 +1695,19 @@ func (c *Controller) GeneralLedgerController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 
-		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
-			MemberProfileID: memberProfileID,
-			OrganizationID:  userOrg.OrganizationID,
-			BranchID:        *userOrg.BranchID,
-			Source:          model.GeneralLedgerSourceDeposit,
+		if userOrg.Branch.BranchSetting.CashOnHandAccountID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cash on hand account not set for branch"})
+		}
+		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
+		}
+		entries, err := c.model.GeneralLedgerManager.FindWithFilters(context, []horizon_services.Filter{
+			{Field: "member_profile_id", Op: horizon_services.OpEq, Value: memberProfileID},
+			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
+			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
+			{Field: "source", Op: horizon_services.OpEq, Value: model.GeneralLedgerSourceDeposit},
+			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
+			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1669,11 +1735,19 @@ func (c *Controller) GeneralLedgerController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 
-		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
-			MemberProfileID: memberProfileID,
-			OrganizationID:  userOrg.OrganizationID,
-			BranchID:        *userOrg.BranchID,
-			Source:          model.GeneralLedgerSourceJournal,
+		if userOrg.Branch.BranchSetting.CashOnHandAccountID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cash on hand account not set for branch"})
+		}
+		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
+		}
+		entries, err := c.model.GeneralLedgerManager.FindWithFilters(context, []horizon_services.Filter{
+			{Field: "member_profile_id", Op: horizon_services.OpEq, Value: memberProfileID},
+			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
+			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
+			{Field: "source", Op: horizon_services.OpEq, Value: model.GeneralLedgerSourceJournal},
+			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
+			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1701,11 +1775,19 @@ func (c *Controller) GeneralLedgerController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 
-		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
-			MemberProfileID: memberProfileID,
-			OrganizationID:  userOrg.OrganizationID,
-			BranchID:        *userOrg.BranchID,
-			Source:          model.GeneralLedgerSourceAdjustment,
+		if userOrg.Branch.BranchSetting.CashOnHandAccountID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cash on hand account not set for branch"})
+		}
+		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
+		}
+		entries, err := c.model.GeneralLedgerManager.FindWithFilters(context, []horizon_services.Filter{
+			{Field: "member_profile_id", Op: horizon_services.OpEq, Value: memberProfileID},
+			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
+			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
+			{Field: "source", Op: horizon_services.OpEq, Value: model.GeneralLedgerSourceAdjustment},
+			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
+			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1733,11 +1815,19 @@ func (c *Controller) GeneralLedgerController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 
-		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
-			MemberProfileID: memberProfileID,
-			OrganizationID:  userOrg.OrganizationID,
-			BranchID:        *userOrg.BranchID,
-			Source:          model.GeneralLedgerSourceJournalVoucher,
+		if userOrg.Branch.BranchSetting.CashOnHandAccountID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cash on hand account not set for branch"})
+		}
+		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
+		}
+		entries, err := c.model.GeneralLedgerManager.FindWithFilters(context, []horizon_services.Filter{
+			{Field: "member_profile_id", Op: horizon_services.OpEq, Value: memberProfileID},
+			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
+			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
+			{Field: "source", Op: horizon_services.OpEq, Value: model.GeneralLedgerSourceJournalVoucher},
+			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
+			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1765,11 +1855,19 @@ func (c *Controller) GeneralLedgerController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 
-		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
-			MemberProfileID: memberProfileID,
-			OrganizationID:  userOrg.OrganizationID,
-			BranchID:        *userOrg.BranchID,
-			Source:          model.GeneralLedgerSourceJournalVoucher,
+		if userOrg.Branch.BranchSetting.CashOnHandAccountID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cash on hand account not set for branch"})
+		}
+		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
+		}
+		entries, err := c.model.GeneralLedgerManager.FindWithFilters(context, []horizon_services.Filter{
+			{Field: "member_profile_id", Op: horizon_services.OpEq, Value: memberProfileID},
+			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
+			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
+			{Field: "source", Op: horizon_services.OpEq, Value: model.GeneralLedgerSourceCheckVoucher},
+			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
+			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
