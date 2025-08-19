@@ -6,12 +6,12 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"github.com/lands-horizon/horizon-server/services/horizon"
-	"github.com/lands-horizon/horizon-server/src"
-	"github.com/lands-horizon/horizon-server/src/model"
 )
 
 type UserOrganizatonClaim struct {

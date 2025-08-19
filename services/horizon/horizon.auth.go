@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/labstack/echo/v4"
-	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/rotisserie/eris"
 )
 

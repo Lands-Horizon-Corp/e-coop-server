@@ -14,7 +14,7 @@ import (
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 
-	"github.com/lands-horizon/horizon-server/services/handlers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 )
 
 // Generic validation helper

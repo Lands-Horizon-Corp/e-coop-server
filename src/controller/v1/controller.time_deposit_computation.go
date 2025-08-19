@@ -5,11 +5,11 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/src/event"
-	"github.com/lands-horizon/horizon-server/src/model"
 )
 
 // TimeDepositComputationController registers routes for managing time deposit computations.

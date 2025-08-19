@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/labstack/echo-contrib/echoprometheus"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/rotisserie/eris"
 	"go.uber.org/zap"
 	"golang.org/x/time/rate"

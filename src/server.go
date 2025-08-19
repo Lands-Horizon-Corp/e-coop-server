@@ -1,8 +1,8 @@
 package src
 
 import (
+	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/go-playground/validator"
-	horizon_services "github.com/lands-horizon/horizon-server/services"
 )
 
 type Provider struct {

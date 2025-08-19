@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
 	"github.com/labstack/echo/v4"
-	"github.com/lands-horizon/horizon-server/src/model"
 )
 
 type NotificationEvent struct {

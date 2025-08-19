@@ -9,15 +9,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/seeder"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src"
+	controller_v1 "github.com/Lands-Horizon-Corp/e-coop-server/src/controller/v1"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/cooperative_tokens"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/service"
 	"github.com/fatih/color"
-	"github.com/lands-horizon/horizon-server/seeder"
-	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/src"
-	controller_v1 "github.com/lands-horizon/horizon-server/src/controller/v1"
-	"github.com/lands-horizon/horizon-server/src/cooperative_tokens"
-	"github.com/lands-horizon/horizon-server/src/event"
-	"github.com/lands-horizon/horizon-server/src/model"
-	"github.com/lands-horizon/horizon-server/src/service"
 	"go.uber.org/fx"
 )
 
