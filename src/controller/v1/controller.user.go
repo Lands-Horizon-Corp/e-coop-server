@@ -47,7 +47,7 @@ func (c *Controller) UserController() {
 		user, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
 			c.userOrganizationToken.ClearCurrentToken(context, ctx)
-			return ctx.NoContent(http.StatusNoContent)
+			return ctx.NoContent(http.StatusUnauthorized)
 		}
 		userOrganization, _ := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		var userOrg *model.UserOrganizationResponse
