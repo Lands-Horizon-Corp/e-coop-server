@@ -500,3 +500,35 @@ func (h *HorizonService) StopStorage(ctx context.Context) error {
 	fmt.Println("🛑 Storage Service Stopped Successfully")
 	return nil
 }
+
+func (h *HorizonService) RunBroker(ctx context.Context) error {
+	fmt.Println("🟢 Starting Broker Service...")
+	delay := 3 * time.Second
+	retry := 5
+
+	if h.Broker != nil {
+		if err := handlers.Retry(ctx, retry, delay, func() error {
+			return h.Broker.Run(ctx)
+		}); err != nil {
+			fmt.Println("🔴 Failed to start Broker Service")
+			return err
+		}
+	}
+
+	fmt.Println("🟢 Broker Service Started Successfully")
+	return nil
+}
+
+func (h *HorizonService) StopBroker(ctx context.Context) error {
+	fmt.Println("🛑 Stopping Broker Service...")
+
+	if h.Broker != nil {
+		if err := h.Broker.Stop(ctx); err != nil {
+			fmt.Println("🔴 Failed to stop Broker Service")
+			return err
+		}
+	}
+
+	fmt.Println("🛑 Broker Service Stopped Successfully")
+	return nil
+}
