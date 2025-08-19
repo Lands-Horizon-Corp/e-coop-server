@@ -375,6 +375,9 @@ func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID 
 	if err := m.MemberGroupSeed(context, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
+	if err := m.MemberCenterSeed(context, tx, userID, organizationID, branchID); err != nil {
+		return err
+	}
 	if err := m.MemberOccupationSeed(context, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}

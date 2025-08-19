@@ -116,13 +116,24 @@ func seedDatabase() {
 	color.Blue("Seeding database...")
 	app := fx.New(
 		fx.Provide(src.NewProvider, model.NewModel, seeder.NewSeeder),
-		fx.Invoke(func(lc fx.Lifecycle, prov *src.Provider, mod *model.Model, seed *seeder.Seeder) {
+		fx.Invoke(func(
+			lc fx.Lifecycle,
+			prov *src.Provider,
+			mod *model.Model,
+			seed *seeder.Seeder,
+		) {
 			lc.Append(fx.Hook{
 				OnStart: func(ctx context.Context) error {
 					if err := prov.Service.RunDatabase(ctx); err != nil {
 						return err
 					}
 					if err := prov.Service.RunStorage(ctx); err != nil {
+						return err
+					}
+					if err := prov.Service.RunStorage(ctx); err != nil {
+						return err
+					}
+					if err := prov.Service.RunBroker(ctx); err != nil {
 						return err
 					}
 					if err := mod.Start(ctx); err != nil {
