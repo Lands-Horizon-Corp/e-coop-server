@@ -12,7 +12,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/lands-horizon/horizon-server/services/horizon"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
 )
 
 // go test -v ./services/horizon_test/horizon.token_test.go

@@ -6,9 +6,9 @@ import (
 	"os"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
 	"github.com/go-playground/validator/v10"
-	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/rotisserie/eris"
 	"go.uber.org/zap"
 )

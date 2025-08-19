@@ -5,8 +5,8 @@ import (
 	"encoding/base64"
 	"testing"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
 	"github.com/google/uuid"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/stretchr/testify/assert"
 )
 

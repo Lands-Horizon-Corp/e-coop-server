@@ -6,10 +6,10 @@ import (
 	"strings"
 	"time"
 
+	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
 	"github.com/google/uuid"
-	horizon_services "github.com/lands-horizon/horizon-server/services"
-	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )

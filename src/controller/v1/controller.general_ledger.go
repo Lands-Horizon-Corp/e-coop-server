@@ -3,10 +3,10 @@ package controller_v1
 import (
 	"net/http"
 
+	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
 	"github.com/labstack/echo/v4"
-	horizon_services "github.com/lands-horizon/horizon-server/services"
-	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/src/model"
 )
 
 // GeneralLedgerController manages endpoints for general ledger accounts, definitions, and member ledgers.

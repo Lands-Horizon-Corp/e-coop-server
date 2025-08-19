@@ -5,10 +5,10 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
 	"github.com/labstack/echo/v4"
-	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/src/event"
-	"github.com/lands-horizon/horizon-server/src/model"
 )
 
 // FinancialStatementController manages endpoints for financial statement groupings and definitions.

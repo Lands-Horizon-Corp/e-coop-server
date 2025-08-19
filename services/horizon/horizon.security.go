@@ -12,8 +12,8 @@ import (
 	"io"
 	"strings"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/google/uuid"
-	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/rotisserie/eris"
 	"golang.org/x/crypto/argon2"
 )

@@ -4,8 +4,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/joho/godotenv"
-	"github.com/lands-horizon/horizon-server/services/handlers"
 	"github.com/spf13/viper"
 )
 

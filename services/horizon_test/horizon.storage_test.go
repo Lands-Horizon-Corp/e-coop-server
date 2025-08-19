@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/lands-horizon/horizon-server/services/horizon"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
 	"github.com/stretchr/testify/require"
 )
 

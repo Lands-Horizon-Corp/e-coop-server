@@ -7,7 +7,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/lands-horizon/horizon-server/services/handlers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/rotisserie/eris"
 	"github.com/twilio/twilio-go"

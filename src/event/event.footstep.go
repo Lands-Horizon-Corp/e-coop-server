@@ -4,10 +4,10 @@ import (
 	"context"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/cooperative_tokens"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"github.com/lands-horizon/horizon-server/src/cooperative_tokens"
-	"github.com/lands-horizon/horizon-server/src/model"
 )
 
 type FootstepEvent struct {

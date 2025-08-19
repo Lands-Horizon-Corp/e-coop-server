@@ -6,8 +6,8 @@ import (
 	"sort"
 	"time"
 
+	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
-	horizon_services "github.com/lands-horizon/horizon-server/services"
 	"gorm.io/gorm"
 )
 

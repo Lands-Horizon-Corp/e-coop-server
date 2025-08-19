@@ -10,8 +10,8 @@ import (
 
 	"fmt"
 
-	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -4,7 +4,7 @@ import (
 	"context"
 	"math"
 
-	"github.com/lands-horizon/horizon-server/src/model"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
 	"github.com/rotisserie/eris"
 )
 

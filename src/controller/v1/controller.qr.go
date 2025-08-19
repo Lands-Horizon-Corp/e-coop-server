@@ -3,9 +3,9 @@ package controller_v1
 import (
 	"net/http"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
 	"github.com/labstack/echo/v4"
-	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/services/horizon"
 )
 
 // QRCodeController registers the route for decoding QR codes and fetching the associated user.

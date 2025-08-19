@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/lands-horizon/horizon-server/services/horizon"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
 	"github.com/rotisserie/eris"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

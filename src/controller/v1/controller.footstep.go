@@ -3,9 +3,9 @@ package controller_v1
 import (
 	"net/http"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
 	"github.com/labstack/echo/v4"
-	"github.com/lands-horizon/horizon-server/services/handlers"
-	"github.com/lands-horizon/horizon-server/src/model"
 )
 
 // FootstepController manages endpoints related to footstep records.

@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
 	"github.com/google/uuid"
-	"github.com/lands-horizon/horizon-server/services/horizon"
-	"github.com/lands-horizon/horizon-server/src"
-	"github.com/lands-horizon/horizon-server/src/model"
 )
 
 type Seeder struct {

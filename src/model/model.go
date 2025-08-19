@@ -3,9 +3,9 @@ package model
 import (
 	"context"
 
+	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src"
 	"github.com/google/uuid"
-	horizon_services "github.com/lands-horizon/horizon-server/services"
-	"github.com/lands-horizon/horizon-server/src"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )

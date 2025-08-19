@@ -1,12 +1,12 @@
 package controller_v1
 
 import (
+	"github.com/Lands-Horizon-Corp/e-coop-server/src"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/cooperative_tokens"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/service"
 	"github.com/google/uuid"
-	"github.com/lands-horizon/horizon-server/src"
-	"github.com/lands-horizon/horizon-server/src/cooperative_tokens"
-	"github.com/lands-horizon/horizon-server/src/event"
-	"github.com/lands-horizon/horizon-server/src/model"
-	"github.com/lands-horizon/horizon-server/src/service"
 )
 
 type Controller struct {
