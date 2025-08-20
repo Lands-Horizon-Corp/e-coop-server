@@ -71,9 +71,9 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 		)
 	} else {
 		service.Broker = horizon.NewHorizonMessageBroker(
-			service.Environment.GetString("NATS_HOST", "localhost"),
+			service.Environment.GetString("NATS_HOST", "127.0.0.1"),
 			service.Environment.GetInt("NATS_CLIENT_PORT", 4222),
-			service.Environment.GetString("NATS_CLIENT_ID", "test-client"),
+			service.Environment.GetString("NATS_CLIENT", ""),
 			service.Environment.GetString("NATS_USERNAME", ""),
 			service.Environment.GetString("NATS_PASSWORD", ""),
 		)
@@ -89,8 +89,8 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 		service.Request = horizon.NewHorizonAPIService(
 			service.Environment.GetInt("APP_PORT", 8000),
 			service.Environment.GetInt("APP_METRICS_PORT", 8001),
-			service.Environment.GetString("APP_CLIENT_URL", "http://localhost:3000"),
-			service.Environment.GetString("APP_CLIENT_NAME", "test-client"),
+			service.Environment.GetString("APP_CLIENT_URL", "http://127.0.0.1:3000"),
+			service.Environment.GetString("APP_CLIENT_NAME", "horizon"),
 		)
 	}
 	if cfg.SecurityConfig != nil {
@@ -105,11 +105,11 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 	} else {
 		service.Security = horizon.NewSecurityService(
 			service.Environment.GetUint32("PASSWORD_MEMORY", 65536),
-			service.Environment.GetUint32("PASSWORD_ITERATIONS", 4),
-			service.Environment.GetUint8("PASSWORD_PARALLELISM", 4),
-			service.Environment.GetUint32("PASSWORD_SALT_LENGTH", 32),
+			service.Environment.GetUint32("PASSWORD_ITERATIONS", 3),
+			service.Environment.GetUint8("PASSWORD_PARALLELISM", 2),
+			service.Environment.GetUint32("PASSWORD_SALT_LENGTH", 16),
 			service.Environment.GetUint32("PASSWORD_KEY_LENGTH", 32),
-			service.Environment.GetByteSlice("PASSWORD_SECRET", "secret"),
+			service.Environment.GetByteSlice("PASSWORD_SECRET", "Nh4Qq5niSFmK8Cjmp9zfbYQGWLvqRc"),
 		)
 	}
 
@@ -167,9 +167,9 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 		)
 	} else {
 		service.Cache = horizon.NewHorizonCache(
-			service.Environment.GetString("REDIS_HOST", ""),
-			service.Environment.GetString("REDIS_PASSWORD", ""),
-			service.Environment.GetString("REDIS_USERNAME", ""),
+			service.Environment.GetString("REDIS_HOST", "127.0.0.1"),
+			service.Environment.GetString("REDIS_PASSWORD", "password"),
+			service.Environment.GetString("REDIS_USERNAME", "default"),
 			service.Environment.GetInt("REDIS_PORT", 6379),
 		)
 	}
@@ -182,7 +182,7 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 		)
 	} else {
 		service.OTP = horizon.NewHorizonOTP(
-			service.Environment.GetByteSlice("OTP_SECRET", "secret-otp"),
+			service.Environment.GetByteSlice("OTP_SECRET", "6D90qhBCfeDhVPewzED22XCqhtUJKR"),
 			service.Cache,
 			service.Security,
 		)
@@ -212,11 +212,11 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 		)
 	} else {
 		service.SMTP = horizon.NewHorizonSMTP(
-			service.Environment.GetString("SMTP_HOST", ""),
-			service.Environment.GetInt("SMTP_PORT", 587),
+			service.Environment.GetString("SMTP_HOST", "127.0.0.1"),
+			service.Environment.GetInt("SMTP_PORT", 1025),
 			service.Environment.GetString("SMTP_USERNAME", ""),
 			service.Environment.GetString("SMTP_PASSWORD", ""),
-			service.Environment.GetString("SMTP_FROM", ""),
+			service.Environment.GetString("SMTP_FROM", "dev@local.test"),
 		)
 	}
 
