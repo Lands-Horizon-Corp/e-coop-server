@@ -77,8 +77,7 @@ var commandGroups = map[string]struct {
 				Use:   "refresh",
 				Short: "Reset the database and seed it with initial data",
 				RunFunc: func(cmd *cobra.Command, args []string) {
-					resetDatabase()
-					seedDatabase()
+					refreshDatabase()
 				},
 			},
 		},
