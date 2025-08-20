@@ -1,127 +1,151 @@
-Here's an improved and cleaner version of your `README.md`, with better structure, consistent formatting, and clearer explanations:
+<div align="center">
+  <img src="assets/logo.png" alt="E-Coop Server Logo" width="200"/>
+</div>
 
----
+E-Coop Server is a server for multipurpose cooperatives. A comprehensive financial cooperative management system built with Go. The backend API server provides robust account management, transaction processing, and organizational tools for cooperative financial institutions.
 
-# 🌀 E-Coop Server
+## Prerequisites
 
-E-Coop Server is the backend system for the E-Coop platform. It’s built with **Go** and optimized to run in a **Dockerized environment** for easy deployment and scalability.
-
----
-
-## 🛠️ Prerequisites
-
-Before you begin, ensure you have the following installed:
-
-- **Go**: `v1.25.0` or later
+- **Go** 1.25.0 or later
 - **Docker** and **Docker Compose**
+- **PostgreSQL** 13+
+- **Redis** 6+
 
-## 🚀 Installation & Setup
+## Quick Start
 
-### 1. Clone the Repository
+### Environment Setup
 
 ```bash
-git clone https://github.com/Lands-Horizon-Corp/e-coop-server.git e-coop-server
+git clone https://github.com/Lands-Horizon-Corp/e-coop-server.git
 cd e-coop-server
-```
-
-### 2. Configure Environment
-
-Copy the example `.env` file and update values as needed:
-
-```bash
 cp .env.example .env
 ```
 
----
-
-## 🧑‍💻 Running the Application
-
-### 3. Start Services
-
-Build and start all required services (DB, cache, broadcaster, etc.):
+### Start Infrastructure
 
 ```bash
 docker compose up --build -d
 ```
 
-### 4. Verify Setup
-
-Run tests to ensure the environment is working:
+### Database Operations
 
 ```bash
-go clean -cache && go test -v ./services/horizon_test
+# Migrate database schema
+go run . db migrate
+
+# Seed initial data
+go run . db seed
+
+# Reset and refresh database
+go run . db refresh
+
+# Reset database (drops all tables)
+go run . db reset
 ```
 
-### 5. (Optional) Clean Cache
+### Cache Management
 
 ```bash
-go run . cache:clean
+# Clean application cache
+go run . cache clean
 ```
 
----
-
-## 🗄️ Database Management
-
-### Automigrate all tables:
-
-```bash
-go run . db:migrate
-```
-
-### Seed the database:
-
-```bash
-go run . db:seed
-```
-
-### Reset the database (⚠️ Deletes all data, seeds, and re-migrates):
-
-```bash
-go run . db:reset
-```
-
----
-
-## 🧩 Run the Main Server
+### Start Server
 
 ```bash
 go run . server
 ```
 
-Then visit:
+The server will be available at `http://localhost:8000`
 
+## API Documentation
+
+Visit `http://localhost:8000/routes` for interactive API documentation.
+
+## Commands Reference
+
+### Database Commands
+
+| Command               | Description                             |
+| --------------------- | --------------------------------------- |
+| `go run . db migrate` | Auto-migrate all database tables        |
+| `go run . db seed`    | Populate database with initial data     |
+| `go run . db reset`   | Drop and recreate all tables            |
+| `go run . db refresh` | Reset database and seed with fresh data |
+
+### Cache Commands
+
+| Command                | Description           |
+| ---------------------- | --------------------- |
+| `go run . cache clean` | Flush all cached data |
+
+### Server Commands
+
+| Command           | Description                       |
+| ----------------- | --------------------------------- |
+| `go run . server` | Start the main application server |
+
+### Utility Commands
+
+| Command            | Description                 |
+| ------------------ | --------------------------- |
+| `go run . version` | Display version information |
+| `go run . --help`  | Show available commands     |
+
+## Development
+
+### Code Quality
+
+```bash
+# Format code
+goimports -w .
+gofmt -w .
+
+# Run linter
+golangci-lint run
+
+# Run tests
+go test -v ./services/horizon_test
 ```
-http://localhost:8000/routes
-```
 
----
+### Port Management
 
-## ❗ Troubleshooting: Port Issues
-
-If you encounter issues with ports already in use:
+If encountering port conflicts:
 
 ```bash
 chmod +x kill_ports.sh
 ./kill_ports.sh
 ```
 
----
+## Deployment
 
-## 🚢 Deployment
-
-### Prepare Code for Deployment
+### Pre-deployment Checks
 
 ```bash
-# Make sure formatting and linting is clean
 export PATH="$PATH:$HOME/go/bin"
-
 goimports -w .
 gofmt -w .
 golangci-lint run
 ```
 
-### Deploy to Fly.io, Reset Machines & View Logs
+### Deploy to Fly.io
 
 ```bash
-fly deploy; fly machine restart 148e4d55f36278; fly machine restart 90802d3ea0ed38; fly logs
+fly deploy
+fly machine restart 148e4d55f36278
+fly machine restart 90802d3ea0ed38
+fly logs
 ```
+
+## Architecture
+
+The server follows a clean architecture pattern with:
+
+- **Controllers** - HTTP request handling
+- **Services** - Business logic layer
+- **Models** - Data access layer
+- **Middleware** - Cross-cutting concerns
+
+## License
+
+This project is proprietary software owned by Lands Horizon Corp.
