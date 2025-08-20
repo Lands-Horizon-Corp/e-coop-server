@@ -143,6 +143,104 @@ The server follows a clean architecture pattern with:
 - **Models** - Data access layer
 - **Middleware** - Cross-cutting concerns
 
+## Makefile Commands
+
+For streamlined development, use the provided Makefile commands:
+
+### Quick Start Commands
+
+| Command      | Description                            |
+| ------------ | -------------------------------------- |
+| `make help`  | Show all available commands            |
+| `make setup` | Complete development environment setup |
+| `make start` | Quick start (Docker + DB + Server)     |
+| `make dev`   | Start development server               |
+| `make reset` | Complete reset and restart             |
+
+### Database Commands
+
+| Command           | Description                              |
+| ----------------- | ---------------------------------------- |
+| `make db-migrate` | Migrate database schema                  |
+| `make db-seed`    | Seed database with initial data          |
+| `make db-reset`   | Reset database (drops all tables)        |
+| `make db-refresh` | Reset database and seed with fresh data  |
+| `make db-setup`   | Complete database setup (migrate + seed) |
+
+### Docker Management
+
+| Command               | Description                            |
+| --------------------- | -------------------------------------- |
+| `make docker-up`      | Start all services with Docker Compose |
+| `make docker-down`    | Stop all Docker services               |
+| `make docker-restart` | Restart all Docker services            |
+| `make docker-logs`    | Show Docker container logs             |
+
+### Code Quality
+
+| Command           | Description                          |
+| ----------------- | ------------------------------------ |
+| `make format`     | Format code with goimports and gofmt |
+| `make lint`       | Run golangci-lint                    |
+| `make quality`    | Run all code quality checks          |
+| `make test`       | Run all tests                        |
+| `make test-clean` | Run tests with clean cache           |
+| `make coverage`   | Generate HTML test coverage report   |
+
+### Build Commands
+
+| Command           | Description                                       |
+| ----------------- | ------------------------------------------------- |
+| `make build`      | Build the application binary                      |
+| `make build-prod` | Build production binary                           |
+| `make clean`      | Clean build artifacts and caches                  |
+| `make clean-all`  | Clean everything (build artifacts, Docker, cache) |
+
+### Deployment Commands
+
+| Command             | Description                             |
+| ------------------- | --------------------------------------- |
+| `make deploy-check` | Pre-deployment checks (quality + tests) |
+| `make deploy-fly`   | Deploy to Fly.io                        |
+| `make deploy-logs`  | Show deployment logs                    |
+
+### Development Tools
+
+| Command            | Description                            |
+| ------------------ | -------------------------------------- |
+| `make cache-clean` | Clean application cache                |
+| `make kill-ports`  | Kill processes using conflicting ports |
+| `make deps`        | Download and tidy dependencies         |
+| `make deps-update` | Update all dependencies                |
+| `make version`     | Show version information               |
+| `make routes`      | Show API routes information            |
+
+### Advanced Commands
+
+| Command          | Description                  |
+| ---------------- | ---------------------------- |
+| `make benchmark` | Run performance benchmarks   |
+| `make mod-graph` | Show module dependency graph |
+| `make install`   | Install binary to system     |
+| `make uninstall` | Remove binary from system    |
+
+### Example Workflows
+
+```bash
+# New developer setup
+make setup
+
+# Daily development
+make dev
+
+# Before committing
+make quality
+make test
+
+# Production deployment
+make deploy-fly
+```
+
 ## License
 
 This project is proprietary software owned by Lands Horizon Corp.
