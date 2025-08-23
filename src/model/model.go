@@ -353,7 +353,6 @@ func (c *Model) Start(context context.Context) error {
 }
 
 func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
-
 	if err := m.InvitationCodeSeed(context, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
@@ -399,7 +398,6 @@ func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID 
 	if err := m.AccountSeed(context, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
-
 	if err := m.LoanPurposeSeed(context, tx, userID, organizationID, branchID); err != nil {
 		return nil
 	}

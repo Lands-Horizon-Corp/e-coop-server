@@ -171,3 +171,41 @@ func cleanCache() {
 	executeLifecycle(app)
 	color.Green("Cache cleaned successfully.")
 }
+
+func refreshDatabase() {
+	color.Blue("Refreshing database...")
+	app := fx.New(
+		fx.Provide(src.NewProvider, model.NewModel, seeder.NewSeeder),
+		fx.Invoke(func(lc fx.Lifecycle, prov *src.Provider, mod *model.Model, seed *seeder.Seeder) {
+			lc.Append(fx.Hook{
+				OnStart: func(ctx context.Context) error {
+					if err := prov.Service.RunDatabase(ctx); err != nil {
+						return err
+					}
+					if err := prov.Service.RunStorage(ctx); err != nil {
+						return err
+					}
+					if err := prov.Service.RunBroker(ctx); err != nil {
+						return err
+					}
+					if err := mod.Start(ctx); err != nil {
+						return err
+					}
+					if err := prov.Service.Database.Client().Migrator().DropTable(mod.Migration...); err != nil {
+						return err
+					}
+					if err := prov.Service.Database.Client().AutoMigrate(mod.Migration...); err != nil {
+						return err
+					}
+					if err := seed.Run(ctx); err != nil {
+						return err
+					}
+					return nil
+				},
+			})
+		}),
+	)
+
+	executeLifecycle(app)
+	color.Green("Database reset completed successfully.")
+}

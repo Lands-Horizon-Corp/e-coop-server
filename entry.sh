@@ -1,9 +1,15 @@
 #!/bin/sh
 
-# Reset and seed the database
+# Clean cache first
 ./app cache clean
-./app db migrate
+
+# Reset database (drops all tables)
 ./app db reset
+
+# Migrate database (recreate tables)
+./app db migrate
+
+# Seed database (insert initial data)
 ./app db seed
 
 # Start your Go app (it will load .env from current directory)
