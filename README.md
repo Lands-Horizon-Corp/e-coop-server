@@ -108,6 +108,14 @@ golangci-lint run
 go test -v ./services/horizon_test
 ```
 
+### Nil Pointer Checker
+
+```bash
+export PATH="$PATH:$HOME/go/bin"
+
+nilaway ./...
+```
+
 ### Port Management
 
 If encountering port conflicts:
