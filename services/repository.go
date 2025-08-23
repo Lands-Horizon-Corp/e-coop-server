@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"reflect"
 	"runtime"
+	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
@@ -259,6 +260,22 @@ func (c *CollectionManager[TData, TResponse, TRequest]) FindWithFilters(
 ) ([]*TData, error) {
 	var entities []*TData
 	db := c.service.Database.Client().Model(new(TData))
+
+	// Handle joins for related table filters
+	joinMap := make(map[string]bool)
+	for _, f := range filters {
+		// Check if field references a relationship (contains dot)
+		if strings.Contains(f.Field, ".") {
+			parts := strings.Split(f.Field, ".")
+			if len(parts) == 2 {
+				relationName := strings.ToUpper(string(parts[0][0])) + parts[0][1:]
+				if !joinMap[relationName] {
+					db = db.Joins(relationName)
+					joinMap[relationName] = true
+				}
+			}
+		}
+	}
 
 	for _, f := range filters {
 		switch f.Op {
