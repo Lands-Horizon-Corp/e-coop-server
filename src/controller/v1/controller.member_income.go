@@ -136,6 +136,7 @@ func (c *Controller) MemberIncomeController() {
 		value.BranchID = *user.BranchID
 		value.MediaID = req.MediaID
 		value.Name = req.Name
+		value.Source = req.Source
 		value.Amount = req.Amount
 		value.ReleaseDate = req.ReleaseDate
 
