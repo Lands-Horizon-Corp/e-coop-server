@@ -34,6 +34,7 @@ type (
 		MemberProfile   *MemberProfile `gorm:"foreignKey:MemberProfileID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_profile,omitempty"`
 
 		Name        string     `gorm:"type:varchar(255)"`
+		Source      string     `gorm:"type:varchar(255)"`
 		Amount      float64    `gorm:"type:decimal(20,6)"`
 		ReleaseDate *time.Time `gorm:"type:timestamp"`
 	}
@@ -55,6 +56,7 @@ type (
 		MemberProfileID uuid.UUID              `json:"member_profile_id"`
 		MemberProfile   *MemberProfileResponse `json:"member_profile,omitempty"`
 		Name            string                 `json:"name"`
+		Source          string                 `json:"source"`
 		Amount          float64                `json:"amount"`
 		ReleaseDate     *string                `json:"release_date,omitempty"`
 	}
@@ -62,6 +64,7 @@ type (
 	MemberIncomeRequest struct {
 		MediaID     *uuid.UUID `json:"media_id"`
 		Name        string     `json:"name" validate:"required,min=1,max=255"`
+		Source      string     `json:"source" validate:"required,min=1,max=255"`
 		Amount      float64    `json:"amount" validate:"required"`
 		ReleaseDate *time.Time `json:"release_date,omitempty"`
 	}
@@ -98,6 +101,7 @@ func (m *Model) MemberIncome() {
 				MemberProfileID: data.MemberProfileID,
 				MemberProfile:   m.MemberProfileManager.ToModel(data.MemberProfile),
 				Name:            data.Name,
+				Source:          data.Source,
 				Amount:          data.Amount,
 				ReleaseDate:     releaseDateStr,
 			}
