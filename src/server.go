@@ -23,4 +23,3 @@ func NewProvider() *Provider {
 func NewValidator() *validator.Validate {
 	return validator.New()
 }
-	
