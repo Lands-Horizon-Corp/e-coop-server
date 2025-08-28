@@ -745,6 +745,67 @@ func (c *Controller) AccountController() {
 		return ctx.JSON(http.StatusOK, c.model.AccountManager.ToModel(account))
 	})
 
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/account/:account_id/financial-statement-definition/remove",
+		Method:       "PUT",
+		Note:         "Remove the GeneralLedgerDefinitionID from an account.",
+		ResponseType: model.AccountResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Account remove FS def failed (/account/:account_id/financial-statement-definition/remove), user org error: " + err.Error(),
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Unauthorized remove FS def attempt for account (/account/:account_id/financial-statement-definition/remove)",
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
+		}
+		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Account remove FS def failed (/account/:account_id/financial-statement-definition/remove), invalid UUID: " + err.Error(),
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID: " + err.Error()})
+		}
+		account, err := c.model.AccountManager.GetByID(context, *accountID)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Account remove FS def failed (/account/:account_id/financial-statement-definition/remove), not found: " + err.Error(),
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found: " + err.Error()})
+		}
+		account.FinancialStatementDefinitionID = nil
+		account.UpdatedAt = time.Now().UTC()
+		account.UpdatedByID = userOrg.UserID
+		if err := c.model.AccountManager.UpdateFields(context, account.ID, account); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Account remove FS def failed (/account/:account_id/financial-statement-definition/remove), db error: " + err.Error(),
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to remove FinancialStatementDefinitionID: " + err.Error()})
+		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "update-success",
+			Description: fmt.Sprintf("Removed FS def from account (/account/:account_id/financial-statement-definition/remove): %s", account.Name),
+			Module:      "Account",
+		})
+		return ctx.JSON(http.StatusOK, c.model.AccountManager.ToModel(account))
+	})
+
 	// Quick Search
 	// GET: Search (NO footstep)
 	req.RegisterRoute(handlers.Route{

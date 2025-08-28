@@ -54,6 +54,7 @@ func (c *Controller) MemberIncomeController() {
 			MemberProfileID: *memberProfileID,
 			MediaID:         req.MediaID,
 			Name:            req.Name,
+			Source:          req.Source,
 			Amount:          req.Amount,
 			ReleaseDate:     req.ReleaseDate,
 			CreatedAt:       time.Now().UTC(),
@@ -135,6 +136,7 @@ func (c *Controller) MemberIncomeController() {
 		value.BranchID = *user.BranchID
 		value.MediaID = req.MediaID
 		value.Name = req.Name
+		value.Source = req.Source
 		value.Amount = req.Amount
 		value.ReleaseDate = req.ReleaseDate
 

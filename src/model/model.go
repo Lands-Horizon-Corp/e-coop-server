@@ -404,6 +404,9 @@ func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID 
 	if err := m.AccountCategorySeed(context, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
+	if err := m.DisbursementSeed(context, tx, userID, organizationID, branchID); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -591,6 +594,18 @@ func (m *Model) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, userID u
 	for _, data := range paymentTypes {
 		if err := m.PaymentTypeManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy payment type %s", data.Name)
+		}
+	}
+	disbursements, err := m.DisbursementManager.Find(ctx, &Disbursement{
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+	})
+	if err != nil {
+		return eris.Wrapf(err, "failed to get disbursements")
+	}
+	for _, data := range disbursements {
+		if err := m.DisbursementManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+			return eris.Wrapf(err, "failed to destroy disbursement %s", data.Name)
 		}
 	}
 	return nil

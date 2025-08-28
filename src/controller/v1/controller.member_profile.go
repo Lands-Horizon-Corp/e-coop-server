@@ -1113,4 +1113,64 @@ func (c *Controller) MemberProfileController() {
 		})
 		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(profile))
 	})
+
+	req.RegisterRoute(handlers.Route{
+		Route:        "/member-profile/:member_profile_id/disconnect",
+		Method:       "PUT",
+		ResponseType: model.MemberProfileResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
+		}
+
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
+		}
+
+		memberProfile, err := c.model.MemberProfileManager.GetByID(context, *memberProfileID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		memberProfile.UserID = nil
+		if err := c.model.MemberProfileManager.UpdateFields(context, memberProfile.ID, memberProfile); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(memberProfile))
+	})
+
+	req.RegisterRoute(handlers.Route{
+		Route:        "/member-profile/:member_profile_id/connect",
+		Method:       "POST",
+		RequestType:  model.MemberProfileAccountRequest{},
+		ResponseType: model.MemberProfileResponse{},
+		Note:         "Connect the specified member profile to a user account using member_profile_id.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		var req model.MemberProfileAccountRequest
+		if err := ctx.Bind(&req); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+		memberProfileId, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
+		}
+		memberProfile, err := c.model.MemberProfileManager.GetByID(context, *memberProfileId)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found", memberProfileId)})
+		}
+		memberProfile.UserID = req.UserID
+		if err := c.model.MemberProfileManager.UpdateFields(context, memberProfile.ID, memberProfile); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update member profile by specifying user connection: "+err.Error())
+		}
+		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(memberProfile))
+	})
 }
