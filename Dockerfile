@@ -16,6 +16,9 @@ RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o app .
 FROM alpine:latest
 WORKDIR /app
 
+# Install FFmpeg for image processing
+RUN apk add --no-cache ffmpeg
+
 # Copy only the built binary from the builder stage
 COPY --from=builder /app/app .
 

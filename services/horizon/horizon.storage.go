@@ -8,6 +8,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
@@ -188,23 +189,42 @@ func (h *HorizonStorage) UploadFromPath(ctx context.Context, path string, cb Pro
 		return nil, eris.Wrapf(err, "failed to stat %s", path)
 	}
 
-	buf := make([]byte, 512)
-	_, err = file.Read(buf)
-	if err != nil && err != io.EOF {
-		return nil, eris.Wrap(err, "content type detection failed")
+	// Check file size limit
+	if h.maxFileSize > 0 && info.Size() > h.maxFileSize {
+		return nil, eris.Errorf("file size %d bytes exceeds maximum allowed size %d bytes", info.Size(), h.maxFileSize)
 	}
-	contentType := http.DetectContentType(buf)
-	if _, err := file.Seek(0, 0); err != nil {
-		return nil, eris.Wrap(err, "failed to seek file to beginning")
+
+	// Read entire file for processing
+	fileData, err := io.ReadAll(file)
+	if err != nil {
+		return nil, eris.Wrap(err, "failed to read file data")
 	}
-	fileName, err := h.GenerateUniqueName(ctx, filepath.Base(path))
+
+	contentType := http.DetectContentType(fileData)
+	fileName := filepath.Base(path)
+	processedData := fileData
+
+	// Convert to WebP if it's an image
+	if h.isImageType(contentType) {
+		convertedData, convertedName, err := h.convertToWebP(fileData, fileName)
+		if err != nil {
+			// If conversion fails, continue with original data
+			fmt.Printf("Warning: Failed to convert image to WebP: %v\n", err)
+		} else {
+			processedData = convertedData
+			fileName = convertedName
+			contentType = "image/webp"
+		}
+	}
+
+	fileName, err = h.GenerateUniqueName(ctx, fileName)
 	if err != nil {
 		return nil, err
 	}
 
 	storage := &Storage{
 		FileName:   fileName,
-		FileSize:   info.Size(),
+		FileSize:   int64(len(processedData)),
 		FileType:   contentType,
 		StorageKey: fileName,
 		BucketName: h.storageBucket,
@@ -212,13 +232,13 @@ func (h *HorizonStorage) UploadFromPath(ctx context.Context, path string, cb Pro
 	}
 
 	pr := &progressReader{
-		reader:   file,
+		reader:   bytes.NewReader(processedData),
 		callback: cb,
-		total:    info.Size(),
+		total:    int64(len(processedData)),
 		storage:  storage,
 	}
 
-	result, err := h.client.PutObject(ctx, h.storageBucket, fileName, pr, info.Size(), minio.PutObjectOptions{ContentType: contentType})
+	result, err := h.client.PutObject(ctx, h.storageBucket, fileName, pr, storage.FileSize, minio.PutObjectOptions{ContentType: contentType})
 	if err != nil {
 		return nil, eris.Wrap(err, "upload local failed")
 	}
@@ -234,15 +254,36 @@ func (h *HorizonStorage) UploadFromPath(ctx context.Context, path string, cb Pro
 }
 
 func (h *HorizonStorage) UploadFromBinary(ctx context.Context, data []byte, cb ProgressCallback) (*Storage, error) {
+	// Check file size limit
+	if h.maxFileSize > 0 && int64(len(data)) > h.maxFileSize {
+		return nil, eris.Errorf("file size %d bytes exceeds maximum allowed size %d bytes", len(data), h.maxFileSize)
+	}
+
 	contentType := http.DetectContentType(data)
-	fileName, err := h.GenerateUniqueName(ctx, "file")
+	fileName := "file"
+
+	// Convert to WebP if it's an image
+	processedData := data
+	if h.isImageType(contentType) {
+		convertedData, convertedName, err := h.convertToWebP(data, fileName)
+		if err != nil {
+			// If conversion fails, continue with original data
+			fmt.Printf("Warning: Failed to convert image to WebP: %v\n", err)
+		} else {
+			processedData = convertedData
+			fileName = convertedName
+			contentType = "image/webp"
+		}
+	}
+
+	fileName, err := h.GenerateUniqueName(ctx, fileName)
 	if err != nil {
 		return nil, err
 	}
 
 	storage := &Storage{
 		FileName:   fileName,
-		FileSize:   int64(len(data)),
+		FileSize:   int64(len(processedData)),
 		FileType:   contentType,
 		StorageKey: fileName,
 		BucketName: h.storageBucket,
@@ -250,9 +291,9 @@ func (h *HorizonStorage) UploadFromBinary(ctx context.Context, data []byte, cb P
 	}
 
 	pr := &progressReader{
-		reader:   bytes.NewReader(data),
+		reader:   bytes.NewReader(processedData),
 		callback: cb,
-		total:    int64(len(data)),
+		total:    int64(len(processedData)),
 		storage:  storage,
 	}
 
@@ -310,6 +351,26 @@ func (h *HorizonStorage) UploadFromURL(ctx context.Context, url string, cb Progr
 		return nil, eris.Wrap(err, "failed to read file data from URL response")
 	}
 
+	// Check file size limit
+	if h.maxFileSize > 0 && int64(len(data)) > h.maxFileSize {
+		return nil, eris.Errorf("file size %d bytes exceeds maximum allowed size %d bytes", len(data), h.maxFileSize)
+	}
+
+	processedData := data
+
+	// Convert to WebP if it's an image
+	if h.isImageType(contentType) {
+		convertedData, convertedName, err := h.convertToWebP(data, fileName)
+		if err != nil {
+			// If conversion fails, continue with original data
+			fmt.Printf("Warning: Failed to convert image to WebP: %v\n", err)
+		} else {
+			processedData = convertedData
+			fileName = convertedName
+			contentType = "image/webp"
+		}
+	}
+
 	fileName, err = h.GenerateUniqueName(ctx, fileName)
 	if err != nil {
 		return nil, err
@@ -317,7 +378,7 @@ func (h *HorizonStorage) UploadFromURL(ctx context.Context, url string, cb Progr
 
 	storage := &Storage{
 		FileName:   fileName,
-		FileSize:   int64(len(data)),
+		FileSize:   int64(len(processedData)),
 		FileType:   contentType,
 		StorageKey: fileName,
 		BucketName: h.storageBucket,
@@ -325,13 +386,13 @@ func (h *HorizonStorage) UploadFromURL(ctx context.Context, url string, cb Progr
 	}
 
 	pr := &progressReader{
-		reader:   strings.NewReader(string(data)),
+		reader:   bytes.NewReader(processedData),
 		callback: cb,
-		total:    int64(len(data)),
+		total:    int64(len(processedData)),
 		storage:  storage,
 	}
 
-	result, err := h.client.PutObject(ctx, h.storageBucket, fileName, pr, int64(len(data)), minio.PutObjectOptions{ContentType: contentType})
+	result, err := h.client.PutObject(ctx, h.storageBucket, fileName, pr, int64(len(processedData)), minio.PutObjectOptions{ContentType: contentType})
 	if err != nil {
 		return nil, eris.Wrap(err, "upload from URL failed")
 	}
@@ -348,25 +409,52 @@ func (h *HorizonStorage) UploadFromURL(ctx context.Context, url string, cb Progr
 }
 
 func (h *HorizonStorage) UploadFromHeader(ctx context.Context, header *multipart.FileHeader, cb ProgressCallback) (*Storage, error) {
+	// Check file size limit
+	if h.maxFileSize > 0 && header.Size > h.maxFileSize {
+		return nil, eris.Errorf("file size %d bytes exceeds maximum allowed size %d bytes", header.Size, h.maxFileSize)
+	}
+
 	file, err := header.Open()
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to open multipart file")
 	}
 	defer file.Close()
 
-	contentType := header.Header.Get("Content-Type")
-	if contentType == "" {
-		contentType = "application/octet-stream"
+	// Read file data
+	fileData, err := io.ReadAll(file)
+	if err != nil {
+		return nil, eris.Wrap(err, "failed to read multipart file data")
 	}
 
-	fileName, err := h.GenerateUniqueName(ctx, header.Filename)
+	contentType := header.Header.Get("Content-Type")
+	if contentType == "" {
+		contentType = http.DetectContentType(fileData)
+	}
+
+	fileName := header.Filename
+	processedData := fileData
+
+	// Convert to WebP if it's an image
+	if h.isImageType(contentType) {
+		convertedData, convertedName, err := h.convertToWebP(fileData, fileName)
+		if err != nil {
+			// If conversion fails, continue with original data
+			fmt.Printf("Warning: Failed to convert image to WebP: %v\n", err)
+		} else {
+			processedData = convertedData
+			fileName = convertedName
+			contentType = "image/webp"
+		}
+	}
+
+	fileName, err = h.GenerateUniqueName(ctx, fileName)
 	if err != nil {
 		return nil, err
 	}
 
 	storage := &Storage{
 		FileName:   fileName,
-		FileSize:   header.Size,
+		FileSize:   int64(len(processedData)),
 		FileType:   contentType,
 		StorageKey: fileName,
 		BucketName: h.storageBucket,
@@ -374,9 +462,9 @@ func (h *HorizonStorage) UploadFromHeader(ctx context.Context, header *multipart
 	}
 
 	pr := &progressReader{
-		reader:   file,
+		reader:   bytes.NewReader(processedData),
 		callback: cb,
-		total:    header.Size,
+		total:    int64(len(processedData)),
 		storage:  storage,
 	}
 	result, err := h.client.PutObject(ctx, h.storageBucket, fileName, pr, storage.FileSize, minio.PutObjectOptions{ContentType: contentType})
@@ -424,4 +512,64 @@ func (h *HorizonStorage) GenerateUniqueName(ctx context.Context, original string
 	ext := filepath.Ext(original)
 	base := strings.TrimSuffix(original, ext)
 	return fmt.Sprintf("%s%d-%s%s", h.prefix, time.Now().UnixNano(), base, ext), nil
+}
+
+// isImageType checks if the content type is an image that can be converted to WebP
+func (h *HorizonStorage) isImageType(contentType string) bool {
+	imageTypes := []string{
+		"image/jpeg",
+		"image/jpg",
+		"image/png",
+		"image/gif",
+		"image/bmp",
+		"image/tiff",
+		"image/webp",
+	}
+	for _, imgType := range imageTypes {
+		if strings.Contains(contentType, imgType) {
+			return true
+		}
+	}
+	return false
+}
+
+// convertToWebP converts an image to WebP format using FFmpeg
+func (h *HorizonStorage) convertToWebP(inputData []byte, originalName string) ([]byte, string, error) {
+	// Create temporary input file
+	tempDir := os.TempDir()
+	inputPath := filepath.Join(tempDir, fmt.Sprintf("input_%d%s", time.Now().UnixNano(), filepath.Ext(originalName)))
+	outputPath := filepath.Join(tempDir, fmt.Sprintf("output_%d.webp", time.Now().UnixNano()))
+
+	// Write input data to temp file
+	if err := os.WriteFile(inputPath, inputData, 0644); err != nil {
+		return nil, "", eris.Wrap(err, "failed to write temp input file")
+	}
+	defer os.Remove(inputPath)
+	defer os.Remove(outputPath)
+
+	// Convert to WebP using FFmpeg with compression
+	cmd := exec.Command("ffmpeg",
+		"-i", inputPath,
+		"-c:v", "libwebp",
+		"-quality", "80", // 80% quality for good compression
+		"-preset", "default",
+		"-y", // Overwrite output file
+		outputPath,
+	)
+
+	if err := cmd.Run(); err != nil {
+		return nil, "", eris.Wrap(err, "failed to convert image to WebP using FFmpeg")
+	}
+
+	// Read the converted file
+	convertedData, err := os.ReadFile(outputPath)
+	if err != nil {
+		return nil, "", eris.Wrap(err, "failed to read converted WebP file")
+	}
+
+	// Generate new filename with .webp extension
+	baseName := strings.TrimSuffix(originalName, filepath.Ext(originalName))
+	newFileName := baseName + ".webp"
+
+	return convertedData, newFileName, nil
 }
