@@ -68,6 +68,7 @@ func (c *Controller) Start() error {
 	c.UserController()
 	c.UserOrganinzationController()
 	c.UserRatingController()
+	c.UserMediaController()
 	c.TagTemplateController()
 
 	// Member Profile
