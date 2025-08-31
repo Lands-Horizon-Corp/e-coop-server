@@ -5,7 +5,6 @@ import (
 	"strconv"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
@@ -86,10 +85,10 @@ func (c *Controller) UserMediaController() {
 		}
 
 		// Search for current user's media in their current branch
-		userMediaList, err := c.model.UserMediaManager.FindWithFilters(context, []horizon_services.Filter{
-			{Field: "user_medias.created_by_id", Op: horizon_services.OpEq, Value: user.UserID},
-			{Field: "user_medias.organization_id", Op: horizon_services.OpEq, Value: &user.OrganizationID},
-			{Field: "user_medias.branch_id", Op: horizon_services.OpEq, Value: user.BranchID},
+		userMediaList, err := c.model.UserMediaManager.Find(context, &model.UserMedia{
+			OrganizationID: &user.OrganizationID,
+			BranchID:       user.BranchID,
+			UserID:         &user.UserID,
 		})
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -111,7 +110,7 @@ func (c *Controller) UserMediaController() {
 
 	// GET /api/v1/user-media/branch/:branch_id/search: Get all media of all users from the branch
 	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/user-media/branch/:branch_id/search",
+		Route:        "/api/v1/user-media/branch/search",
 		Method:       "GET",
 		Note:         "Get all user media from a specific branch.",
 		ResponseType: []model.UserMediaResponse{},
@@ -128,40 +127,9 @@ func (c *Controller) UserMediaController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 
-		branchID, err := handlers.EngineUUIDParam(ctx, "branch_id")
-		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "branch-search-error",
-				Description: "User media branch search failed (/user-media/branch/:branch_id/search), invalid branch ID.",
-				Module:      "UserMedia",
-			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid branch ID"})
-		}
-
-		// Verify branch belongs to user's organization
-		branch, err := c.model.BranchManager.GetByID(context, *branchID)
-		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "branch-search-error",
-				Description: "User media branch search failed (/user-media/branch/:branch_id/search), branch not found.",
-				Module:      "UserMedia",
-			})
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Branch not found"})
-		}
-
-		if branch.OrganizationID != user.OrganizationID {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "branch-search-error",
-				Description: "User media branch search failed (/user-media/branch/:branch_id/search), branch access denied.",
-				Module:      "UserMedia",
-			})
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this branch"})
-		}
-
 		// Search for all user media in the specified branch
-		userMediaList, err := c.model.UserMediaManager.FindWithFilters(context, []horizon_services.Filter{
-			{Field: "user_medias.organization_id", Op: horizon_services.OpEq, Value: &user.OrganizationID},
-			{Field: "user_medias.branch_id", Op: horizon_services.OpEq, Value: branchID},
+		userMediaList, err := c.model.UserMediaManager.Find(context, &model.UserMedia{
+			BranchID: user.BranchID,
 		})
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -220,16 +188,6 @@ func (c *Controller) UserMediaController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member profile not found"})
 		}
-
-		if memberProfile.OrganizationID != user.OrganizationID {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "member-profile-search-error",
-				Description: "User media member profile search failed (/user-media/member-profile/:member_profile_id/search), member profile access denied.",
-				Module:      "UserMedia",
-			})
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this member profile"})
-		}
-
 		// Search for all user media for the specified member profile
 		userMediaList, err := c.model.UserMediaManager.Find(context, &model.UserMedia{
 			BranchID:       user.BranchID,
@@ -390,7 +348,7 @@ func (c *Controller) UserMediaController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 
-		_, err = c.model.UserMediaManager.GetByID(context, *userMediaID)
+		userMedia, err := c.model.UserMediaManager.GetByID(context, *userMediaID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -398,6 +356,16 @@ func (c *Controller) UserMediaController() {
 				Module:      "UserMedia",
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User media not found"})
+		}
+		if userMedia.MediaID != reqData.MediaID {
+			if err := c.model.MediaDelete(context, *userMedia.MediaID); err != nil {
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "delete-error",
+					Description: "Media delete failed (/media/:media_id), db error: " + err.Error(),
+					Module:      "Media",
+				})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete media record: " + err.Error()})
+			}
 		}
 
 		updateData := &model.UserMedia{
