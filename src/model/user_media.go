@@ -28,6 +28,9 @@ type (
 		BranchID       *uuid.UUID    `gorm:"type:uuid;index:idx_organization_branch_user_media" json:"branch_id,omitempty"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
+		UserID *uuid.UUID `gorm:"type:uuid" json:"user_id,omitempty"`
+		User   *User      `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"user,omitempty"`
+
 		MediaID *uuid.UUID `gorm:"type:uuid" json:"media_id"`
 		Media   *Media     `gorm:"foreignKey:MediaID;constraint:OnDelete:SET NULL;" json:"media,omitempty"`
 
@@ -47,6 +50,8 @@ type (
 		Organization   *OrganizationResponse `json:"organization,omitempty"`
 		BranchID       *uuid.UUID            `json:"branch_id,omitempty"`
 		Branch         *BranchResponse       `json:"branch,omitempty"`
+		UserID         *uuid.UUID            `json:"user_id,omitempty"`
+		User           *UserResponse         `json:"user,omitempty"`
 		MediaID        *uuid.UUID            `json:"media_id,omitempty"`
 		Media          *MediaResponse        `json:"media,omitempty"`
 		Name           string                `json:"name"`
@@ -56,6 +61,7 @@ type (
 	UserMediaRequest struct {
 		Name           string     `json:"name" validate:"required,min=1,max=255"`
 		Description    string     `json:"description,omitempty"`
+		UserID         *uuid.UUID `json:"user_id,omitempty"`
 		MediaID        *uuid.UUID `json:"media_id,omitempty"`
 		OrganizationID *uuid.UUID `json:"organization_id,omitempty"`
 		BranchID       *uuid.UUID `json:"branch_id,omitempty"`
@@ -65,7 +71,7 @@ type (
 func (m *Model) UserMedia() {
 	m.Migration = append(m.Migration, &UserMedia{})
 	m.UserMediaManager = horizon_services.NewRepository(horizon_services.RepositoryParams[UserMedia, UserMediaResponse, UserMediaRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization", "Media"},
+		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization", "Media", "User"},
 		Service:  m.provider.Service,
 		Resource: func(data *UserMedia) *UserMediaResponse {
 			if data == nil {
@@ -83,6 +89,8 @@ func (m *Model) UserMedia() {
 				Organization:   m.OrganizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
 				Branch:         m.BranchManager.ToModel(data.Branch),
+				UserID:         data.UserID,
+				User:           m.UserManager.ToModel(data.User),
 				MediaID:        data.MediaID,
 				Media:          m.MediaManager.ToModel(data.Media),
 				Name:           data.Name,

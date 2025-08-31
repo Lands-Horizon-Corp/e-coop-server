@@ -36,9 +36,8 @@ func (c *Controller) UserMediaController() {
 		}
 
 		// Search across all branches for the current user and organization
-		userMediaList, err := c.model.UserMediaManager.FindWithFilters(context, []horizon_services.Filter{
-			{Field: "user_medias.created_by_id", Op: horizon_services.OpEq, Value: user.UserID},
-			{Field: "user_medias.organization_id", Op: horizon_services.OpEq, Value: &user.OrganizationID},
+		userMediaList, err := c.model.UserMediaManager.Find(context, &model.UserMedia{
+			UserID: &user.UserID,
 		})
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -176,6 +175,79 @@ func (c *Controller) UserMediaController() {
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "branch-search-success",
 			Description: "User media branch search successful (/user-media/branch/:branch_id/search), found " + strconv.Itoa(len(userMediaList)) + " media items.",
+			Module:      "UserMedia",
+		})
+
+		return ctx.JSON(http.StatusOK, c.model.UserMediaManager.Pagination(context, ctx, userMediaList))
+	})
+
+	// GET /api/v1/user-media/member-profile/:member_profile_id/search: Get all media for a specific member profile
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/user-media/member-profile/:member_profile_id/search",
+		Method:       "GET",
+		Note:         "Get all user media for a specific member profile.",
+		ResponseType: []model.UserMediaResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "member-profile-search-error",
+				Description: "User media member profile search failed (/user-media/member-profile/:member_profile_id/search), user org error: " + err.Error(),
+				Module:      "UserMedia",
+			})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+
+		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "member-profile-search-error",
+				Description: "User media member profile search failed (/user-media/member-profile/:member_profile_id/search), invalid member profile ID.",
+				Module:      "UserMedia",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
+		}
+
+		// Verify member profile belongs to user's organization
+		memberProfile, err := c.model.MemberProfileManager.GetByID(context, *memberProfileID)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "member-profile-search-error",
+				Description: "User media member profile search failed (/user-media/member-profile/:member_profile_id/search), member profile not found.",
+				Module:      "UserMedia",
+			})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member profile not found"})
+		}
+
+		if memberProfile.OrganizationID != user.OrganizationID {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "member-profile-search-error",
+				Description: "User media member profile search failed (/user-media/member-profile/:member_profile_id/search), member profile access denied.",
+				Module:      "UserMedia",
+			})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this member profile"})
+		}
+
+		// Search for all user media for the specified member profile
+		userMediaList, err := c.model.UserMediaManager.Find(context, &model.UserMedia{
+			BranchID:       user.BranchID,
+			OrganizationID: &user.OrganizationID,
+			UserID:         memberProfile.UserID,
+		})
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "member-profile-search-error",
+				Description: "User media member profile search failed (/user-media/member-profile/:member_profile_id/search), db error: " + err.Error(),
+				Module:      "UserMedia",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to search user media: " + err.Error()})
+		}
+
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "member-profile-search-success",
+			Description: "User media member profile search successful (/user-media/member-profile/:member_profile_id/search), found " + strconv.Itoa(len(userMediaList)) + " media items.",
 			Module:      "UserMedia",
 		})
 
