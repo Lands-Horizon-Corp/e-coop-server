@@ -20,7 +20,7 @@ func (c *Controller) UserMediaController() {
 		Route:        "/api/v1/user-media/search",
 		Method:       "GET",
 		Note:         "Get all media of the current user across all branches.",
-		ResponseType: []model.UserMediaResponse{},
+		ResponseType: model.UserMediaResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
@@ -61,7 +61,7 @@ func (c *Controller) UserMediaController() {
 		Route:        "/api/v1/user-media/current/search",
 		Method:       "GET",
 		Note:         "Get all media of the current user for their current branch.",
-		ResponseType: []model.UserMediaResponse{},
+		ResponseType: model.UserMediaResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
@@ -113,7 +113,7 @@ func (c *Controller) UserMediaController() {
 		Route:        "/api/v1/user-media/branch/search",
 		Method:       "GET",
 		Note:         "Get all user media from a specific branch.",
-		ResponseType: []model.UserMediaResponse{},
+		ResponseType: model.UserMediaResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
@@ -154,7 +154,7 @@ func (c *Controller) UserMediaController() {
 		Route:        "/api/v1/user-media/member-profile/:member_profile_id/search",
 		Method:       "GET",
 		Note:         "Get all user media for a specific member profile.",
-		ResponseType: []model.UserMediaResponse{},
+		ResponseType: model.UserMediaResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
@@ -401,10 +401,9 @@ func (c *Controller) UserMediaController() {
 
 	// DELETE /api/v1/user-media/:user_media_id: Delete a user media
 	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/user-media/:user_media_id",
-		Method:       "DELETE",
-		Note:         "Delete a user media by ID.",
-		ResponseType: map[string]string{},
+		Route:  "/api/v1/user-media/:user_media_id",
+		Method: "DELETE",
+		Note:   "Delete a user media by ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
