@@ -69,6 +69,7 @@ type (
 		UserOrganizationManager       horizon_services.Repository[UserOrganization, UserOrganizationResponse, UserOrganizationRequest]
 		UserManager                   horizon_services.Repository[User, UserResponse, UserRegisterRequest]
 		UserRatingManager             horizon_services.Repository[UserRating, UserRatingResponse, UserRatingRequest]
+		UserMediaManager              horizon_services.Repository[UserMedia, UserMediaResponse, UserMediaRequest]
 
 		// Members
 		MemberAddressManager                horizon_services.Repository[MemberAddress, MemberAddressReponse, MemberAddressRequest]
@@ -342,6 +343,7 @@ func (c *Model) Start(context context.Context) error {
 	c.User()
 	c.UserOrganization()
 	c.UserRating()
+	c.UserMedia()
 	c.VoucherPayTo()
 	c.MemberDepartment()
 	c.MemberDepartmentHistory()
