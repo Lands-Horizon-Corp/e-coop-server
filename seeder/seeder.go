@@ -204,7 +204,7 @@ func (ds *Seeder) SeedOrganization(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	imageUrl := "https://static.vecteezy.com/system/resources/previews/059/792/308/non_2x/colorful-bird-with-colorful-feathers-vector.jpg"
+	imageUrl := "https://yavuzceliker.github.io/sample-images/image-1021.jpg"
 	image, err := ds.provider.Service.Storage.UploadFromURL(ctx, imageUrl, func(progress, total int64, storage *horizon.Storage) {})
 	if err != nil {
 		return err
@@ -431,7 +431,7 @@ func (ds *Seeder) SeedUsers(ctx context.Context) error {
 		return nil
 	}
 
-	imageUrl := "https://static.vecteezy.com/system/resources/previews/059/792/308/non_2x/colorful-bird-with-colorful-feathers-vector.jpg"
+	imageUrl := "https://yavuzceliker.github.io/sample-images/image-1021.jpg"
 	image, err := ds.provider.Service.Storage.UploadFromURL(ctx, imageUrl, func(progress, total int64, storage *horizon.Storage) {})
 	if err != nil {
 		return err
