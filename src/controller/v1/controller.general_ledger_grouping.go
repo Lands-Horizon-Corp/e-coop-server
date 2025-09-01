@@ -119,13 +119,8 @@ func (c *Controller) GeneralLedgerGroupingController() {
 		grouping.UpdatedByID = userOrg.UserID
 		grouping.FromCode = reqBody.FromCode
 		grouping.ToCode = reqBody.ToCode
-
-		if debit, err := strconv.ParseFloat(reqBody.Debit, 64); err == nil {
-			grouping.Debit = debit
-		}
-		if credit, err := strconv.ParseFloat(reqBody.Credit, 64); err == nil {
-			grouping.Credit = credit
-		}
+		grouping.Debit = reqBody.Debit
+		grouping.Credit = reqBody.Credit
 
 		if err := c.model.GeneralLedgerAccountsGroupingManager.UpdateFields(context, grouping.ID, grouping); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
