@@ -212,28 +212,6 @@ func (c *Controller) UserMediaController() {
 		return ctx.JSON(http.StatusOK, c.model.UserMediaManager.Pagination(context, ctx, userMediaList))
 	})
 
-	// GET /api/v1/user-media/:user_media_id: Get a specific user media by ID
-	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/user-media/:user_media_id",
-		Method:       "GET",
-		Note:         "Get a specific user media by ID.",
-		ResponseType: model.UserMediaResponse{},
-	}, func(ctx echo.Context) error {
-		context := ctx.Request().Context()
-
-		userMediaID, err := handlers.EngineUUIDParam(ctx, "user_media_id")
-		if err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user media ID"})
-		}
-
-		userMedia, err := c.model.UserMediaManager.GetByIDRaw(context, *userMediaID)
-		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User media not found"})
-		}
-
-		return ctx.JSON(http.StatusOK, userMedia)
-	})
-
 	// POST /api/v1/user-media: Create a new user media
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/user-media",
