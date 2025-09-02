@@ -70,8 +70,8 @@ type (
 	FinancialStatementGroupingRequest struct {
 		Name        string     `json:"name" validate:"required,min=1,max=50"`
 		Description string     `json:"description" validate:"required"`
-		Debit       float64    `json:"debit" validate:"required"`
-		Credit      float64    `json:"credit" validate:"required"`
+		Debit       float64    `json:"debit" validate:"omitempty,gt=0"`
+		Credit      float64    `json:"credit" validate:"omitempty,gt=0"`
 		Code        float64    `json:"code" validate:"required"`
 		IconMediaID *uuid.UUID `json:"icon_media_id,omitempty"`
 	}
