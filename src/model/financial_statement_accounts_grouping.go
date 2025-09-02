@@ -11,9 +11,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// Define AccountingPrinciple type as needed (e.g., string, int, or custom type)
-type AccountingPrinciple string
-
 type (
 	FinancialStatementGrouping struct {
 		ID             uuid.UUID     `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
@@ -32,11 +29,11 @@ type (
 		IconMediaID *uuid.UUID `gorm:"type:uuid"`
 		IconMedia   *Media     `gorm:"foreignKey:IconMediaID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"icon_media,omitempty"`
 
-		Name        string              `gorm:"type:varchar(50);not null"`
-		Description string              `gorm:"type:text;not null"`
-		Debit       AccountingPrinciple `gorm:"type:varchar(50);not null"`
-		Credit      AccountingPrinciple `gorm:"type:varchar(50);not null"`
-		Code        float64             `gorm:"type:decimal;not null"`
+		Name        string  `gorm:"type:varchar(50);not null"`
+		Description string  `gorm:"type:text;not null"`
+		Debit       float64 `gorm:"type:decimal;not null"`
+		Credit      float64 `gorm:"type:decimal;not null"`
+		Code        float64 `gorm:"type:decimal;not null"`
 
 		CreatedAt time.Time      `gorm:"not null;default:now()"`
 		UpdatedAt time.Time      `gorm:"not null;default:now()"`
@@ -61,8 +58,8 @@ type (
 		IconMedia                           *MediaResponse                          `json:"icon_media,omitempty"`
 		Name                                string                                  `json:"name"`
 		Description                         string                                  `json:"description"`
-		Debit                               AccountingPrinciple                     `json:"debit"`
-		Credit                              AccountingPrinciple                     `json:"credit"`
+		Debit                               float64                                 `json:"debit"`
+		Credit                              float64                                 `json:"credit"`
 		Code                                float64                                 `json:"code"`
 		CreatedAt                           string                                  `json:"created_at"`
 		UpdatedAt                           string                                  `json:"updated_at"`
@@ -71,14 +68,12 @@ type (
 	}
 
 	FinancialStatementGroupingRequest struct {
-		OrganizationID uuid.UUID           `json:"organization_id" validate:"required"`
-		BranchID       uuid.UUID           `json:"branch_id" validate:"required"`
-		Name           string              `json:"name" validate:"required,min=1,max=50"`
-		Description    string              `json:"description" validate:"required"`
-		Debit          AccountingPrinciple `json:"debit" validate:"required"`
-		Credit         AccountingPrinciple `json:"credit" validate:"required"`
-		Code           float64             `json:"code" validate:"required"`
-		IconMediaID    *uuid.UUID          `json:"icon_media_id,omitempty"`
+		Name        string     `json:"name" validate:"required,min=1,max=50"`
+		Description string     `json:"description" validate:"required"`
+		Debit       float64    `json:"debit" validate:"required"`
+		Credit      float64    `json:"credit" validate:"required"`
+		Code        float64    `json:"code" validate:"required"`
+		IconMediaID *uuid.UUID `json:"icon_media_id,omitempty"`
 	}
 )
 
@@ -164,8 +159,8 @@ func (m *Model) FinancialStatementGroupingSeed(context context.Context, tx *gorm
 			BranchID:       branchID,
 			Name:           "Assets",
 			Description:    "Resources owned by the cooperative that have economic value and can provide future benefits.",
-			Debit:          "normal",
-			Credit:         "contra",
+			Debit:          1.0,
+			Credit:         0.0,
 			Code:           1000.00,
 		},
 		{
@@ -177,8 +172,8 @@ func (m *Model) FinancialStatementGroupingSeed(context context.Context, tx *gorm
 			BranchID:       branchID,
 			Name:           "Liabilities",
 			Description:    "Debts and obligations owed by the cooperative to external parties.",
-			Debit:          "contra",
-			Credit:         "normal",
+			Debit:          0.0,
+			Credit:         1.0,
 			Code:           2000.00,
 		},
 		{
@@ -190,8 +185,8 @@ func (m *Model) FinancialStatementGroupingSeed(context context.Context, tx *gorm
 			BranchID:       branchID,
 			Name:           "Liabilities, Equity & Reserves",
 			Description:    "Ownership interest of members in the cooperative, including contributed capital and retained earnings.",
-			Debit:          "contra",
-			Credit:         "normal",
+			Debit:          0.0,
+			Credit:         1.0,
 			Code:           3000.00,
 		},
 		{
@@ -203,8 +198,8 @@ func (m *Model) FinancialStatementGroupingSeed(context context.Context, tx *gorm
 			BranchID:       branchID,
 			Name:           "Income",
 			Description:    "Income generated from the cooperative's operations and other income-generating activities.",
-			Debit:          "contra",
-			Credit:         "normal",
+			Debit:          0.0,
+			Credit:         1.0,
 			Code:           4000.00,
 		},
 		{
@@ -216,8 +211,8 @@ func (m *Model) FinancialStatementGroupingSeed(context context.Context, tx *gorm
 			BranchID:       branchID,
 			Name:           "Expenses",
 			Description:    "Costs incurred in the normal course of business operations and other business activities.",
-			Debit:          "normal",
-			Credit:         "contra",
+			Debit:          1.0,
+			Credit:         0.0,
 			Code:           5000.00,
 		},
 	}
