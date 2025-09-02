@@ -33,7 +33,6 @@ type (
 		Description string  `gorm:"type:text;not null"`
 		Debit       float64 `gorm:"type:decimal;not null"`
 		Credit      float64 `gorm:"type:decimal;not null"`
-		Code        float64 `gorm:"type:decimal;not null"`
 
 		CreatedAt time.Time      `gorm:"not null;default:now()"`
 		UpdatedAt time.Time      `gorm:"not null;default:now()"`
@@ -60,7 +59,6 @@ type (
 		Description                         string                                  `json:"description"`
 		Debit                               float64                                 `json:"debit"`
 		Credit                              float64                                 `json:"credit"`
-		Code                                float64                                 `json:"code"`
 		CreatedAt                           string                                  `json:"created_at"`
 		UpdatedAt                           string                                  `json:"updated_at"`
 		DeletedAt                           *string                                 `json:"deleted_at,omitempty"`
@@ -72,7 +70,6 @@ type (
 		Description string     `json:"description" validate:"required"`
 		Debit       float64    `json:"debit" validate:"omitempty,gt=0"`
 		Credit      float64    `json:"credit" validate:"omitempty,gt=0"`
-		Code        float64    `json:"code" validate:"required"`
 		IconMediaID *uuid.UUID `json:"icon_media_id,omitempty"`
 	}
 )
@@ -111,7 +108,6 @@ func (m *Model) FinancialStatementGrouping() {
 				Description:                         data.Description,
 				Debit:                               data.Debit,
 				Credit:                              data.Credit,
-				Code:                                data.Code,
 				CreatedAt:                           data.CreatedAt.Format(time.RFC3339),
 				UpdatedAt:                           data.UpdatedAt.Format(time.RFC3339),
 				DeletedAt:                           deletedAt,
@@ -161,7 +157,6 @@ func (m *Model) FinancialStatementGroupingSeed(context context.Context, tx *gorm
 			Description:    "Resources owned by the cooperative that have economic value and can provide future benefits.",
 			Debit:          1.0,
 			Credit:         0.0,
-			Code:           1000.00,
 		},
 		{
 			CreatedAt:      now,
@@ -174,7 +169,6 @@ func (m *Model) FinancialStatementGroupingSeed(context context.Context, tx *gorm
 			Description:    "Debts and obligations owed by the cooperative to external parties.",
 			Debit:          0.0,
 			Credit:         1.0,
-			Code:           2000.00,
 		},
 		{
 			CreatedAt:      now,
@@ -187,7 +181,6 @@ func (m *Model) FinancialStatementGroupingSeed(context context.Context, tx *gorm
 			Description:    "Ownership interest of members in the cooperative, including contributed capital and retained earnings.",
 			Debit:          0.0,
 			Credit:         1.0,
-			Code:           3000.00,
 		},
 		{
 			CreatedAt:      now,
@@ -200,7 +193,6 @@ func (m *Model) FinancialStatementGroupingSeed(context context.Context, tx *gorm
 			Description:    "Income generated from the cooperative's operations and other income-generating activities.",
 			Debit:          0.0,
 			Credit:         1.0,
-			Code:           4000.00,
 		},
 		{
 			CreatedAt:      now,
@@ -213,7 +205,6 @@ func (m *Model) FinancialStatementGroupingSeed(context context.Context, tx *gorm
 			Description:    "Costs incurred in the normal course of business operations and other business activities.",
 			Debit:          1.0,
 			Credit:         0.0,
-			Code:           5000.00,
 		},
 	}
 	for _, data := range financialStatementGrouping {
