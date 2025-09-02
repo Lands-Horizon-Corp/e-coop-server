@@ -102,7 +102,7 @@ func (c *Controller) UserOrganinzationController() {
 
 	// Seed all branches inside an organization when first created
 	req.RegisterRoute(handlers.Route{
-		Route:  "/api/v1 /user-organization/:organization_id/seed",
+		Route:  "/api/v1/user-organization/:organization_id/seed",
 		Method: "POST",
 		Note:   "Seeds all branches inside an organization when first created.",
 	}, func(ctx echo.Context) error {
