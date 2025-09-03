@@ -70,18 +70,6 @@ func (c *Controller) MediaController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Missing file in upload"})
 		}
-
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "create error",
-				Description: fmt.Sprintf("Failed to start DB transaction for POST /branch/organization/:organization_id: %v", tx.Error),
-				Module:      "branch",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
-		}
-
 		initial := &model.Media{
 			FileName:   file.Filename,
 			FileSize:   0,
@@ -94,8 +82,7 @@ func (c *Controller) MediaController() {
 			CreatedAt:  time.Now().UTC(),
 			UpdatedAt:  time.Now().UTC(),
 		}
-		if err := c.model.MediaManager.CreateWithTx(context, tx, initial); err != nil {
-			tx.Rollback()
+		if err := c.model.MediaManager.Create(context, initial); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Media upload failed (/media), db error: " + err.Error(),
@@ -112,7 +99,6 @@ func (c *Controller) MediaController() {
 			})
 		})
 		if err != nil {
-			tx.Rollback()
 			_ = c.model.MediaManager.Update(context, &model.Media{
 				ID:        initial.ID,
 				Status:    "error",
@@ -138,9 +124,7 @@ func (c *Controller) MediaController() {
 			UpdatedAt:  time.Now().UTC(),
 			ID:         initial.ID,
 		}
-
-		if err := c.model.MediaManager.UpdateWithTx(context, tx, completed); err != nil {
-			tx.Rollback()
+		if err := c.model.MediaManager.Update(context, completed); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Media upload failed (/media), update after upload error: " + err.Error(),
@@ -148,16 +132,6 @@ func (c *Controller) MediaController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update media record after upload: " + err.Error()})
 		}
-		if err := tx.Commit().Error; err != nil {
-			tx.Rollback()
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "create error",
-				Description: fmt.Sprintf("Failed to commit transaction for POST /branch/organization/:organization_id: %v", err),
-				Module:      "branch",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
-		}
-
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Uploaded and created media (/media): " + completed.FileName,

@@ -56,9 +56,9 @@ func (c *Controller) MemberAccountingLedgerController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve paid-up share capital entries: " + err.Error()})
 		}
 
-		var totalShareCapitalPlusSavings float64
+		var TotalShareCapitalPlusFixedSavings float64
 		for _, entry := range paidUpShareCapital {
-			totalShareCapitalPlusSavings += entry.Balance
+			TotalShareCapitalPlusFixedSavings += entry.Balance
 		}
 		var totalDeposits float64
 		for _, entry := range entries {
@@ -66,9 +66,9 @@ func (c *Controller) MemberAccountingLedgerController() {
 		}
 
 		summary := model.MemberAccountingLedgerSummary{
-			TotalDeposits:                totalDeposits,
-			TotalShareCapitalPlusSavings: totalShareCapitalPlusSavings,
-			TotalLoans:                   0,
+			TotalDeposits:                     totalDeposits,
+			TotalShareCapitalPlusFixedSavings: TotalShareCapitalPlusFixedSavings,
+			TotalLoans:                        0,
 		}
 		return ctx.JSON(http.StatusOK, summary)
 	})

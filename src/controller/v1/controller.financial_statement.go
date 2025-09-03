@@ -119,7 +119,6 @@ func (c *Controller) FinancialStatementController() {
 		grouping.Description = reqBody.Description
 		grouping.Debit = reqBody.Debit
 		grouping.Credit = reqBody.Credit
-		grouping.Code = reqBody.Code
 		grouping.IconMediaID = reqBody.IconMediaID
 		grouping.UpdatedAt = time.Now().UTC()
 		grouping.UpdatedByID = userOrg.UserID

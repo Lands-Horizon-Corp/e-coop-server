@@ -91,9 +91,9 @@ type (
 	}
 
 	MemberAccountingLedgerSummary struct {
-		TotalDeposits                float64 `json:"total_deposits"`
-		TotalShareCapitalPlusSavings float64 `json:"total_share_capital_plus_savings"`
-		TotalLoans                   float64 `json:"total_loans"`
+		TotalDeposits                     float64 `json:"total_deposits"`
+		TotalShareCapitalPlusFixedSavings float64 `json:"total_share_capital_plus_fixed_savings"`
+		TotalLoans                        float64 `json:"total_loans"`
 	}
 )
 

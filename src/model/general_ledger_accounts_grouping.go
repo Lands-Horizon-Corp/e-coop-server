@@ -63,8 +63,8 @@ type (
 	}
 
 	GeneralLedgerAccountsGroupingRequest struct {
-		Debit       string  `json:"debit" validate:"required"`
-		Credit      string  `json:"credit" validate:"required"`
+		Debit       float64 `json:"debit" validate:"omitempty,gt=0"`
+		Credit      float64 `json:"credit" validate:"omitempty,gt=0"`
 		Name        string  `json:"name" validate:"required,min=1,max=50"`
 		Description string  `json:"description" validate:"required"`
 		FromCode    float64 `json:"from_code,omitempty"`
