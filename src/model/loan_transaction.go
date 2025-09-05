@@ -411,6 +411,47 @@ type (
 		PaidByName             string     `json:"paid_by_name,omitempty"`
 		PaidByPosition         string     `json:"paid_by_position,omitempty"`
 	}
+
+	// Amortization Schedule Types
+	AmortizationPayment struct {
+		VoucherNo  string  `json:"voucher_no"`
+		Date       string  `json:"date"`
+		Principal  float64 `json:"principal"`
+		LR         float64 `json:"lr"` // Loan Receivable (remaining balance)
+		Interest   float64 `json:"interest"`
+		ServiceFee float64 `json:"service_fee"`
+		Total      float64 `json:"total"`
+	}
+
+	AmortizationSummary struct {
+		TotalTerms      int     `json:"total_terms"`
+		TotalPrincipal  float64 `json:"total_principal"`
+		TotalInterest   float64 `json:"total_interest"`
+		TotalServiceFee float64 `json:"total_service_fee"`
+		TotalAmount     float64 `json:"total_amount"`
+		LoanAmount      float64 `json:"loan_amount"`
+		MonthlyPayment  float64 `json:"monthly_payment"`
+		InterestRate    float64 `json:"interest_rate"`
+		ComputationType string  `json:"computation_type"`
+		ModeOfPayment   string  `json:"mode_of_payment"`
+	}
+
+	LoanDetails struct {
+		PassbookNo     string  `json:"passbook_no"`
+		MemberName     string  `json:"member_name"`
+		Classification string  `json:"classification"`
+		Investment     float64 `json:"investment"`
+		DueDate        string  `json:"due_date"`
+		AccountApplied float64 `json:"account_applied"`
+		Voucher        string  `json:"voucher"`
+	}
+
+	AmortizationScheduleResponse struct {
+		LoanDetails          LoanDetails           `json:"loan_details"`
+		AmortizationSchedule []AmortizationPayment `json:"amortization_schedule"`
+		Summary              AmortizationSummary   `json:"summary"`
+		GeneratedAt          string                `json:"generated_at"`
+	}
 )
 
 func (m *Model) LoanTransaction() {
@@ -585,4 +626,165 @@ func (m *Model) mapLoanTransactionEntries(entries []*LoanTransactionEntry) []*Lo
 		}
 	}
 	return result
+}
+
+// Helper function to generate amortization schedule
+func (m *Model) GenerateLoanAmortizationSchedule(ctx context.Context, loanTransaction *LoanTransaction) (*AmortizationScheduleResponse, error) {
+	// Extract loan details
+	principal := loanTransaction.Applied1
+	terms := loanTransaction.Terms
+	amortizationAmount := loanTransaction.AmortizationAmount
+
+	// Default values if account is not available
+	interestRate := 10.0 / 100 // Default 10% annual interest rate
+	computationType := "Simple Interest"
+
+	// Get account information if AccountID is provided
+	if loanTransaction.AccountID != nil {
+		account, err := m.AccountManager.GetByID(ctx, *loanTransaction.AccountID)
+		if err == nil && account != nil {
+			interestRate = account.InterestStandard / 100 // Convert percentage to decimal
+			computationType = account.ComputationType
+		}
+	}
+
+	// Calculate service fee (example: 1% of principal or fixed amount)
+	serviceFeeRate := 0.01 // 1% service fee
+	serviceFeePerPayment := (principal * serviceFeeRate) / float64(terms)
+
+	// If amortization amount is provided, use it; otherwise calculate
+	var monthlyPayment float64
+	if amortizationAmount > 0 {
+		monthlyPayment = amortizationAmount
+	} else {
+		// Calculate using simple interest formula for equal payments
+		totalInterest := principal * interestRate * float64(terms) / 12
+		monthlyPayment = (principal + totalInterest) / float64(terms)
+	}
+
+	// Generate payment schedule
+	var schedule []AmortizationPayment
+	remainingBalance := principal
+	currentDate := time.Now()
+
+	// Determine payment frequency based on mode of payment
+	var dayIncrement int
+	switch loanTransaction.ModeOfPayment {
+	case "daily":
+		dayIncrement = 1
+	case "weekly":
+		dayIncrement = 7
+	case "semi-monthly":
+		dayIncrement = 15
+	case "monthly":
+		dayIncrement = 30
+	case "quarterly":
+		dayIncrement = 90
+	case "semi-annual":
+		dayIncrement = 180
+	default:
+		dayIncrement = 30 // Default to monthly
+	}
+
+	totalInterestSum := 0.0
+	totalServiceFeeSum := 0.0
+	totalPaymentSum := 0.0
+
+	for i := 1; i <= terms; i++ {
+		// Calculate payment date
+		paymentDate := currentDate.AddDate(0, 0, dayIncrement*i)
+
+		// Calculate interest for this period
+		var periodInterest float64
+		if computationType == "Diminishing Balance" {
+			// Diminishing balance - interest on remaining balance
+			periodInterest = remainingBalance * (interestRate / 12)
+		} else {
+			// Simple interest - fixed interest per period
+			periodInterest = principal * interestRate / float64(terms)
+		}
+
+		// Calculate principal payment
+		principalPayment := monthlyPayment - periodInterest - serviceFeePerPayment
+
+		// Ensure we don't overpay
+		if principalPayment > remainingBalance {
+			principalPayment = remainingBalance
+		}
+
+		// Calculate total payment for this period
+		totalPayment := principalPayment + periodInterest + serviceFeePerPayment
+
+		// Update remaining balance
+		remainingBalance -= principalPayment
+
+		// Add to totals
+		totalInterestSum += periodInterest
+		totalServiceFeeSum += serviceFeePerPayment
+		totalPaymentSum += totalPayment
+
+		// Create payment entry
+		payment := AmortizationPayment{
+			VoucherNo:  fmt.Sprintf("%010d", i),
+			Date:       paymentDate.Format("01/02/2006"),
+			Principal:  principalPayment,
+			LR:         remainingBalance, // Loan Receivable (remaining balance)
+			Interest:   periodInterest,
+			ServiceFee: serviceFeePerPayment,
+			Total:      totalPayment,
+		}
+
+		schedule = append(schedule, payment)
+
+		// Break if loan is fully paid
+		if remainingBalance <= 0.01 { // Small threshold for floating point precision
+			break
+		}
+	}
+
+	// Calculate summary totals
+	summary := AmortizationSummary{
+		TotalTerms:      len(schedule),
+		TotalPrincipal:  principal,
+		TotalInterest:   totalInterestSum,
+		TotalServiceFee: totalServiceFeeSum,
+		TotalAmount:     totalPaymentSum,
+		LoanAmount:      principal,
+		MonthlyPayment:  monthlyPayment,
+		InterestRate:    interestRate * 100,
+		ComputationType: computationType,
+		ModeOfPayment:   loanTransaction.ModeOfPayment,
+	}
+
+	// Loan transaction details
+	loanDetails := LoanDetails{
+		PassbookNo:     loanTransaction.OfficialReceiptNumber,
+		MemberName:     "", // Will be populated if member profile is loaded
+		Classification: "", // Will be populated if member classification is available
+		Investment:     loanTransaction.Applied1,
+		DueDate:        "", // Calculate based on terms and start date
+		AccountApplied: loanTransaction.Applied1,
+		Voucher:        loanTransaction.Voucher,
+	}
+
+	// If member profile is available, add member details
+	if loanTransaction.MemberProfile != nil {
+		loanDetails.MemberName = fmt.Sprintf("%s, %s",
+			loanTransaction.MemberProfile.LastName,
+			loanTransaction.MemberProfile.FirstName)
+	}
+
+	// Calculate due date (last payment date)
+	if len(schedule) > 0 {
+		loanDetails.DueDate = schedule[len(schedule)-1].Date
+	}
+
+	response := &AmortizationScheduleResponse{
+		LoanDetails:          loanDetails,
+		AmortizationSchedule: schedule,
+		Summary:              summary,
+		GeneratedAt:          time.Now().Format(time.RFC3339),
+	}
+
+	return response, nil
 }
