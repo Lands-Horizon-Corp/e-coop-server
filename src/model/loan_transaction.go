@@ -51,6 +51,11 @@ const (
 	LoanAmortizationTypeSuggested LoanAmortizationType = "suggested"
 	LoanAmortizationTypeNone      LoanAmortizationType = "none"
 )
+type LoanTransactionTotalResponse struct {
+	TotalInterest float64 `json:"total_interest"`
+	TotalDebit    float64 `json:"total_debit"`
+	TotalCredit   float64 `json:"total_credit"`
+}
 
 // MODEL
 type (

@@ -10,6 +10,8 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// LoanTransactionTotalResponse represents the total calculations for a loan transaction
+
 func (c *Controller) LoanTransactionController() {
 	req := c.provider.Service.Request
 
@@ -108,7 +110,7 @@ func (c *Controller) LoanTransactionController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id/total",
 		Method:       "GET",
-		ResponseType: map[string]interface{}{},
+		ResponseType: model.LoanTransactionTotalResponse{},
 		Note:         "Returns total calculations for a specific loan transaction including total interest, debit, and credit.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -156,13 +158,11 @@ func (c *Controller) LoanTransactionController() {
 		// Calculate total interest (assuming interest is the difference between debit and credit)
 		totalInterest := totalDebit - totalCredit
 
-		response := map[string]float64{
-			"total_interest": totalInterest,
-			"total_debit":    totalDebit,
-			"total_credit":   totalCredit,
-		}
-
-		return ctx.JSON(http.StatusOK, response)
+		return ctx.JSON(http.StatusOK, model.LoanTransactionTotalResponse{
+			TotalInterest: totalInterest,
+			TotalDebit:    totalDebit,
+			TotalCredit:   totalCredit,
+		})
 	})
 
 	// GET /api/v1/loan-transaction/:loan_transaction_id/amortization-schedule
