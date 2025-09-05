@@ -237,6 +237,16 @@ func (c *Controller) LoanTransactionController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
 
+		transactionBatch, err := c.model.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "batch-error",
+				Description: "Failed to retrieve transaction batch (/transaction/payment/:transaction_id): " + err.Error(),
+				Module:      "Transaction",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batch: " + err.Error()})
+		}
+
 		loanTransaction := &model.LoanTransaction{
 			CreatedAt: time.Now().UTC(),
 			UpdatedAt: time.Now().UTC(),
@@ -245,7 +255,7 @@ func (c *Controller) LoanTransactionController() {
 			UpdatedByID:                            userOrg.UserID,
 			OrganizationID:                         userOrg.OrganizationID,
 			BranchID:                               *userOrg.BranchID,
-			TransactionBatchID:                     request.TransactionBatchID,
+			TransactionBatchID:                     &transactionBatch.ID,
 			OfficialReceiptNumber:                  request.OfficialReceiptNumber,
 			Voucher:                                request.Voucher,
 			EmployeeUserID:                         &userOrg.UserID,
@@ -397,9 +407,19 @@ func (c *Controller) LoanTransactionController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this loan transaction"})
 		}
 
+		transactionBatch, err := c.model.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "batch-error",
+				Description: "Failed to retrieve transaction batch (/transaction/payment/:transaction_id): " + err.Error(),
+				Module:      "Transaction",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batch: " + err.Error()})
+		}
+
 		// Update fields
 		loanTransaction.UpdatedByID = userOrg.UserID
-		loanTransaction.TransactionBatchID = request.TransactionBatchID
+		loanTransaction.TransactionBatchID = &transactionBatch.ID
 		loanTransaction.OfficialReceiptNumber = request.OfficialReceiptNumber
 		loanTransaction.Voucher = request.Voucher
 		loanTransaction.EmployeeUserID = &userOrg.UserID
