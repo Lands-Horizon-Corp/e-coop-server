@@ -241,10 +241,9 @@ func (c *Controller) LoanTransactionEntryController() {
 
 	// DELETE /api/v1/loan-transaction-entry/:loan_transaction_entry_id
 	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/loan-transaction-entry/:loan_transaction_entry_id",
-		Method:       "DELETE",
-		ResponseType: map[string]string{},
-		Note:         "Deletes a loan transaction entry by ID.",
+		Route:  "/api/v1/loan-transaction-entry/:loan_transaction_entry_id",
+		Method: "DELETE",
+		Note:   "Deletes a loan transaction entry by ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		loanTransactionEntryID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_entry_id")
