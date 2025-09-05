@@ -719,6 +719,95 @@ func (m *Model) AccountSeed(context context.Context, tx *gorm.DB, userID uuid.UU
 			ComputationType:        "Compound Interest",
 			Index:                  9,
 		},
+
+		// Loan Accounts
+		{
+			CreatedAt:                           now,
+			CreatedByID:                         userID,
+			UpdatedAt:                           now,
+			UpdatedByID:                         userID,
+			OrganizationID:                      organizationID,
+			BranchID:                            branchID,
+			Name:                                "Emergency Loan",
+			Description:                         "Quick access loan for urgent financial needs and unexpected expenses.",
+			Type:                                AccountTypeLoan,
+			MinAmount:                           1000.00,
+			MaxAmount:                           100000.00,
+			InterestStandard:                    8.5,
+			InterestSecured:                     7.5,
+			FinesAmort:                          1.0,
+			FinesMaturity:                       2.0,
+			FinancialStatementType:              string(FSTypeAssets),
+			ComputationType:                     "Diminishing Balance",
+			Index:                               10,
+			LoanCutOffDays:                      3,
+			FinesGracePeriodAmortization:        5,
+			FinesGracePeriodMaturity:            7,
+			AdditionalGracePeriod:               2,
+			LumpsumComputationType:              string(LumpsumComputationNone),
+			InterestFinesComputationDiminishing: string(IFCDByAmortization),
+			EarnedUnearnedInterest:              string(EUITypeByFormula),
+			LoanSavingType:                      string(LSTSeparate),
+			InterestDeduction:                   string(InterestDeductionAbove),
+		},
+		{
+			CreatedAt:                           now,
+			CreatedByID:                         userID,
+			UpdatedAt:                           now,
+			UpdatedByID:                         userID,
+			OrganizationID:                      organizationID,
+			BranchID:                            branchID,
+			Name:                                "Business Loan",
+			Description:                         "Capital loan for business expansion, equipment purchase, and working capital needs.",
+			Type:                                AccountTypeLoan,
+			MinAmount:                           50000.00,
+			MaxAmount:                           5000000.00,
+			InterestStandard:                    10.0,
+			InterestSecured:                     9.0,
+			FinesAmort:                          1.5,
+			FinesMaturity:                       2.5,
+			FinancialStatementType:              string(FSTypeAssets),
+			ComputationType:                     "Diminishing Balance",
+			Index:                               11,
+			LoanCutOffDays:                      7,
+			FinesGracePeriodAmortization:        10,
+			FinesGracePeriodMaturity:            15,
+			AdditionalGracePeriod:               5,
+			LumpsumComputationType:              string(LumpsumComputationNone),
+			InterestFinesComputationDiminishing: string(IFCDByAmortization),
+			EarnedUnearnedInterest:              string(EUITypeByFormula),
+			LoanSavingType:                      string(LSTSeparate),
+			InterestDeduction:                   string(InterestDeductionAbove),
+		},
+		{
+			CreatedAt:                           now,
+			CreatedByID:                         userID,
+			UpdatedAt:                           now,
+			UpdatedByID:                         userID,
+			OrganizationID:                      organizationID,
+			BranchID:                            branchID,
+			Name:                                "Educational Loan",
+			Description:                         "Student loan for tuition fees, educational expenses, and academic development.",
+			Type:                                AccountTypeLoan,
+			MinAmount:                           5000.00,
+			MaxAmount:                           500000.00,
+			InterestStandard:                    6.5,
+			InterestSecured:                     5.5,
+			FinesAmort:                          0.5,
+			FinesMaturity:                       1.0,
+			FinancialStatementType:              string(FSTypeAssets),
+			ComputationType:                     "Simple Interest",
+			Index:                               12,
+			LoanCutOffDays:                      14,
+			FinesGracePeriodAmortization:        15,
+			FinesGracePeriodMaturity:            30,
+			AdditionalGracePeriod:               10,
+			LumpsumComputationType:              string(LumpsumComputationNone),
+			InterestFinesComputationDiminishing: string(IFCDNone),
+			EarnedUnearnedInterest:              string(EUITypeByFormula),
+			LoanSavingType:                      string(LSTSeparate),
+			InterestDeduction:                   string(InterestDeductionBelow),
+		},
 	}
 	for _, data := range accounts {
 		data.ShowInGeneralLedgerSourceWithdraw = true
@@ -796,6 +885,37 @@ func (m *Model) AccountSeed(context context.Context, tx *gorm.DB, userID uuid.UU
 	if err := m.BranchSettingManager.UpdateWithTx(context, tx, branch.BranchSetting); err != nil {
 		return eris.Wrapf(err, "failed to update branch %s with paid up share capital account", branch.Name)
 	}
+
+	// Set default accounting accounts for user organization
+	userOrganization, err := m.UserOrganizationManager.FindOne(context, &UserOrganization{
+		UserID:         userID,
+		OrganizationID: organizationID,
+		BranchID:       &branchID,
+	})
+	if err != nil {
+		return eris.Wrap(err, "failed to find user organization for seeding accounting default accounts")
+	}
+
+	// Set default accounting accounts - using first suitable account for each type
+	var regularSavings *Account
+	for _, account := range accounts {
+		if account.Name == "Regular Savings" {
+			regularSavings = account
+			break
+		}
+	}
+
+	if regularSavings != nil {
+		// Use Regular Savings as default for all three accounting operations
+		userOrganization.SettingsAccountingPaymentDefaultValueID = &regularSavings.ID
+		userOrganization.SettingsAccountingDepositDefaultValueID = &regularSavings.ID
+		userOrganization.SettingsAccountingWithdrawDefaultValueID = &regularSavings.ID
+	}
+
+	if err := m.UserOrganizationManager.UpdateWithTx(context, tx, userOrganization); err != nil {
+		return eris.Wrap(err, "failed to update user organization with default accounting accounts")
+	}
+
 	return nil
 }
 

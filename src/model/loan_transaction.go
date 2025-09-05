@@ -52,6 +52,12 @@ const (
 	LoanAmortizationTypeNone      LoanAmortizationType = "none"
 )
 
+type LoanTransactionTotalResponse struct {
+	TotalInterest float64 `json:"total_interest"`
+	TotalDebit    float64 `json:"total_debit"`
+	TotalCredit   float64 `json:"total_credit"`
+}
+
 // MODEL
 type (
 	LoanTransaction struct {
@@ -71,9 +77,13 @@ type (
 		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_loan_transaction"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
+		EmployeeUserID *uuid.UUID `gorm:"type:uuid"`
+		EmployeeUser   *User      `gorm:"foreignKey:EmployeeUserID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"employee_user,omitempty"`
+
 		TransactionBatchID    *uuid.UUID        `gorm:"type:uuid"`
 		TransactionBatch      *TransactionBatch `gorm:"foreignKey:TransactionBatchID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"transaction_batch,omitempty"`
 		OfficialReceiptNumber string            `gorm:"type:varchar(255)"`
+		Voucher               string            `gorm:"type:varchar(255)"`
 
 		LoanPurposeID *uuid.UUID   `gorm:"type:uuid"`
 		LoanPurpose   *LoanPurpose `gorm:"foreignKey:LoanPurposeID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"loan_purpose,omitempty"`
@@ -180,6 +190,9 @@ type (
 		PaidBySignatureMedia   *Media     `gorm:"foreignKey:PaidBySignatureMediaID;constraint:OnDelete:SET NULL;" json:"paid_by_signature_media,omitempty"`
 		PaidByName             string     `gorm:"type:varchar(255)"`
 		PaidByPosition         string     `gorm:"type:varchar(255)"`
+
+		// Relationships
+		LoanTransactionEntries []*LoanTransactionEntry `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"loan_transaction_entries,omitempty"`
 	}
 
 	LoanTransactionResponse struct {
@@ -195,9 +208,13 @@ type (
 		BranchID       uuid.UUID             `json:"branch_id"`
 		Branch         *BranchResponse       `json:"branch,omitempty"`
 
+		EmployeeUserID *uuid.UUID    `json:"employee_user_id,omitempty"`
+		EmployeeUser   *UserResponse `json:"employee_user,omitempty"`
+
 		TransactionBatchID    *uuid.UUID                `json:"transaction_batch_id,omitempty"`
 		TransactionBatch      *TransactionBatchResponse `json:"transaction_batch,omitempty"`
 		OfficialReceiptNumber string                    `json:"official_receipt_number"`
+		Voucher               string                    `json:"voucher"`
 
 		LoanPurposeID *uuid.UUID           `json:"loan_purpose_id,omitempty"`
 		LoanPurpose   *LoanPurposeResponse `json:"loan_purpose,omitempty"`
@@ -304,11 +321,14 @@ type (
 		PaidBySignatureMedia   *MediaResponse `json:"paid_by_signature_media,omitempty"`
 		PaidByName             string         `json:"paid_by_name"`
 		PaidByPosition         string         `json:"paid_by_position"`
+
+		// Relationships
+		LoanTransactionEntries []*LoanTransactionEntryResponse `json:"loan_transaction_entries,omitempty"`
 	}
 
 	LoanTransactionRequest struct {
-		TransactionBatchID    *uuid.UUID `json:"transaction_batch_id,omitempty"`
 		OfficialReceiptNumber string     `json:"official_receipt_number,omitempty"`
+		Voucher               string     `json:"voucher,omitempty"`
 		LoanPurposeID         *uuid.UUID `json:"loan_purpose_id,omitempty"`
 		LoanStatusID          *uuid.UUID `json:"loan_status_id,omitempty"`
 
@@ -396,6 +416,47 @@ type (
 		PaidByName             string     `json:"paid_by_name,omitempty"`
 		PaidByPosition         string     `json:"paid_by_position,omitempty"`
 	}
+
+	// Amortization Schedule Types
+	AmortizationPayment struct {
+		VoucherNo  string  `json:"voucher_no"`
+		Date       string  `json:"date"`
+		Principal  float64 `json:"principal"`
+		LR         float64 `json:"lr"` // Loan Receivable (remaining balance)
+		Interest   float64 `json:"interest"`
+		ServiceFee float64 `json:"service_fee"`
+		Total      float64 `json:"total"`
+	}
+
+	AmortizationSummary struct {
+		TotalTerms      int     `json:"total_terms"`
+		TotalPrincipal  float64 `json:"total_principal"`
+		TotalInterest   float64 `json:"total_interest"`
+		TotalServiceFee float64 `json:"total_service_fee"`
+		TotalAmount     float64 `json:"total_amount"`
+		LoanAmount      float64 `json:"loan_amount"`
+		MonthlyPayment  float64 `json:"monthly_payment"`
+		InterestRate    float64 `json:"interest_rate"`
+		ComputationType string  `json:"computation_type"`
+		ModeOfPayment   string  `json:"mode_of_payment"`
+	}
+
+	LoanDetails struct {
+		PassbookNo     string  `json:"passbook_no"`
+		MemberName     string  `json:"member_name"`
+		Classification string  `json:"classification"`
+		Investment     float64 `json:"investment"`
+		DueDate        string  `json:"due_date"`
+		AccountApplied float64 `json:"account_applied"`
+		Voucher        string  `json:"voucher"`
+	}
+
+	AmortizationScheduleResponse struct {
+		LoanDetails          LoanDetails           `json:"loan_details"`
+		AmortizationSchedule []AmortizationPayment `json:"amortization_schedule"`
+		Summary              AmortizationSummary   `json:"summary"`
+		GeneratedAt          string                `json:"generated_at"`
+	}
 )
 
 func (m *Model) LoanTransaction() {
@@ -404,13 +465,14 @@ func (m *Model) LoanTransaction() {
 		LoanTransaction, LoanTransactionResponse, LoanTransactionRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization", "EmployeeUser",
 			"TransactionBatch", "LoanPurpose", "LoanStatus",
 			"ComakerDepositMemberAccountingLedger", "ComakerCollateral", "PreviousLoan",
 			"Account", "MemberProfile", "MemberJointAccount", "SignatureMedia",
 			"ApprovedBySignatureMedia", "PreparedBySignatureMedia", "CertifiedBySignatureMedia",
 			"VerifiedBySignatureMedia", "CheckBySignatureMedia", "AcknowledgeBySignatureMedia",
 			"NotedBySignatureMedia", "PostedBySignatureMedia", "PaidBySignatureMedia",
+			"LoanTransactionEntries",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *LoanTransaction) *LoanTransactionResponse {
@@ -429,9 +491,12 @@ func (m *Model) LoanTransaction() {
 				Organization:                           m.OrganizationManager.ToModel(data.Organization),
 				BranchID:                               data.BranchID,
 				Branch:                                 m.BranchManager.ToModel(data.Branch),
+				EmployeeUserID:                         data.EmployeeUserID,
+				EmployeeUser:                           m.UserManager.ToModel(data.EmployeeUser),
 				TransactionBatchID:                     data.TransactionBatchID,
 				TransactionBatch:                       m.TransactionBatchManager.ToModel(data.TransactionBatch),
 				OfficialReceiptNumber:                  data.OfficialReceiptNumber,
+				Voucher:                                data.Voucher,
 				LoanPurposeID:                          data.LoanPurposeID,
 				LoanPurpose:                            m.LoanPurposeManager.ToModel(data.LoanPurpose),
 				LoanStatusID:                           data.LoanStatusID,
@@ -515,6 +580,7 @@ func (m *Model) LoanTransaction() {
 				PaidBySignatureMedia:                   m.MediaManager.ToModel(data.PaidBySignatureMedia),
 				PaidByName:                             data.PaidByName,
 				PaidByPosition:                         data.PaidByPosition,
+				LoanTransactionEntries:                 m.mapLoanTransactionEntries(data.LoanTransactionEntries),
 			}
 		},
 
@@ -550,4 +616,180 @@ func (m *Model) LoanTransactionCurrentBranch(context context.Context, orgId uuid
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})
+}
+
+// Helper function to map loan transaction entries
+func (m *Model) mapLoanTransactionEntries(entries []*LoanTransactionEntry) []*LoanTransactionEntryResponse {
+	if entries == nil {
+		return nil
+	}
+
+	var result []*LoanTransactionEntryResponse
+	for _, entry := range entries {
+		if entry != nil {
+			result = append(result, m.LoanTransactionEntryManager.ToModel(entry))
+		}
+	}
+	return result
+}
+
+// Helper function to generate amortization schedule
+func (m *Model) GenerateLoanAmortizationSchedule(ctx context.Context, loanTransaction *LoanTransaction) (*AmortizationScheduleResponse, error) {
+	// Extract loan details
+	principal := loanTransaction.Applied1
+	terms := loanTransaction.Terms
+	amortizationAmount := loanTransaction.AmortizationAmount
+
+	// Default values if account is not available
+	interestRate := 10.0 / 100 // Default 10% annual interest rate
+	computationType := "Simple Interest"
+
+	// Get account information if AccountID is provided
+	if loanTransaction.AccountID != nil {
+		account, err := m.AccountManager.GetByID(ctx, *loanTransaction.AccountID)
+		if err == nil && account != nil {
+			interestRate = account.InterestStandard / 100 // Convert percentage to decimal
+			computationType = account.ComputationType
+		}
+	}
+
+	// Calculate service fee (example: 1% of principal or fixed amount)
+	serviceFeeRate := 0.01 // 1% service fee
+	serviceFeePerPayment := (principal * serviceFeeRate) / float64(terms)
+
+	// If amortization amount is provided, use it; otherwise calculate
+	var monthlyPayment float64
+	if amortizationAmount > 0 {
+		monthlyPayment = amortizationAmount
+	} else {
+		// Calculate using simple interest formula for equal payments
+		totalInterest := principal * interestRate * float64(terms) / 12
+		monthlyPayment = (principal + totalInterest) / float64(terms)
+	}
+
+	// Generate payment schedule
+	var schedule []AmortizationPayment
+	remainingBalance := principal
+	currentDate := time.Now()
+
+	// Determine payment frequency based on mode of payment
+	var dayIncrement int
+	switch loanTransaction.ModeOfPayment {
+	case "daily":
+		dayIncrement = 1
+	case "weekly":
+		dayIncrement = 7
+	case "semi-monthly":
+		dayIncrement = 15
+	case "monthly":
+		dayIncrement = 30
+	case "quarterly":
+		dayIncrement = 90
+	case "semi-annual":
+		dayIncrement = 180
+	default:
+		dayIncrement = 30 // Default to monthly
+	}
+
+	totalInterestSum := 0.0
+	totalServiceFeeSum := 0.0
+	totalPaymentSum := 0.0
+
+	for i := 1; i <= terms; i++ {
+		// Calculate payment date
+		paymentDate := currentDate.AddDate(0, 0, dayIncrement*i)
+
+		// Calculate interest for this period
+		var periodInterest float64
+		if computationType == "Diminishing Balance" {
+			// Diminishing balance - interest on remaining balance
+			periodInterest = remainingBalance * (interestRate / 12)
+		} else {
+			// Simple interest - fixed interest per period
+			periodInterest = principal * interestRate / float64(terms)
+		}
+
+		// Calculate principal payment
+		principalPayment := monthlyPayment - periodInterest - serviceFeePerPayment
+
+		// Ensure we don't overpay
+		if principalPayment > remainingBalance {
+			principalPayment = remainingBalance
+		}
+
+		// Calculate total payment for this period
+		totalPayment := principalPayment + periodInterest + serviceFeePerPayment
+
+		// Update remaining balance
+		remainingBalance -= principalPayment
+
+		// Add to totals
+		totalInterestSum += periodInterest
+		totalServiceFeeSum += serviceFeePerPayment
+		totalPaymentSum += totalPayment
+
+		// Create payment entry
+		payment := AmortizationPayment{
+			VoucherNo:  fmt.Sprintf("%010d", i),
+			Date:       paymentDate.Format("01/02/2006"),
+			Principal:  principalPayment,
+			LR:         remainingBalance, // Loan Receivable (remaining balance)
+			Interest:   periodInterest,
+			ServiceFee: serviceFeePerPayment,
+			Total:      totalPayment,
+		}
+
+		schedule = append(schedule, payment)
+
+		// Break if loan is fully paid
+		if remainingBalance <= 0.01 { // Small threshold for floating point precision
+			break
+		}
+	}
+
+	// Calculate summary totals
+	summary := AmortizationSummary{
+		TotalTerms:      len(schedule),
+		TotalPrincipal:  principal,
+		TotalInterest:   totalInterestSum,
+		TotalServiceFee: totalServiceFeeSum,
+		TotalAmount:     totalPaymentSum,
+		LoanAmount:      principal,
+		MonthlyPayment:  monthlyPayment,
+		InterestRate:    interestRate * 100,
+		ComputationType: computationType,
+		ModeOfPayment:   loanTransaction.ModeOfPayment,
+	}
+
+	// Loan transaction details
+	loanDetails := LoanDetails{
+		PassbookNo:     loanTransaction.OfficialReceiptNumber,
+		MemberName:     "", // Will be populated if member profile is loaded
+		Classification: "", // Will be populated if member classification is available
+		Investment:     loanTransaction.Applied1,
+		DueDate:        "", // Calculate based on terms and start date
+		AccountApplied: loanTransaction.Applied1,
+		Voucher:        loanTransaction.Voucher,
+	}
+
+	// If member profile is available, add member details
+	if loanTransaction.MemberProfile != nil {
+		loanDetails.MemberName = fmt.Sprintf("%s, %s",
+			loanTransaction.MemberProfile.LastName,
+			loanTransaction.MemberProfile.FirstName)
+	}
+
+	// Calculate due date (last payment date)
+	if len(schedule) > 0 {
+		loanDetails.DueDate = schedule[len(schedule)-1].Date
+	}
+
+	response := &AmortizationScheduleResponse{
+		LoanDetails:          loanDetails,
+		AmortizationSchedule: schedule,
+		Summary:              summary,
+		GeneratedAt:          time.Now().Format(time.RFC3339),
+	}
+
+	return response, nil
 }

@@ -2671,14 +2671,11 @@ func (c *Controller) GeneralLedgerController() {
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
-		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
-			TransactionID:  transactionId,
-			OrganizationID: userOrg.OrganizationID,
-			BranchID:       *userOrg.BranchID,
-		})
+		entries, err := c.model.GeneralLedgerExcludeCashonHand(context, *transactionId, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
 		}
+
 		return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.Pagination(context, ctx, entries))
 	})
 
@@ -2856,12 +2853,8 @@ func (c *Controller) GeneralLedgerController() {
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
-		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
-			TransactionID:  transactionId,
-			OrganizationID: userOrg.OrganizationID,
-			BranchID:       *userOrg.BranchID,
-			Source:         model.GeneralLedgerSourceDeposit,
-		})
+		source := model.GeneralLedgerSourceDeposit
+		entries, err := c.model.GeneralLedgerExcludeCashonHandWithSource(context, *transactionId, userOrg.OrganizationID, *userOrg.BranchID, &source)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
 		}
@@ -2887,12 +2880,8 @@ func (c *Controller) GeneralLedgerController() {
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
-		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
-			TransactionID:  transactionId,
-			OrganizationID: userOrg.OrganizationID,
-			BranchID:       *userOrg.BranchID,
-			Source:         model.GeneralLedgerSourceJournal,
-		})
+		source := model.GeneralLedgerSourceJournal
+		entries, err := c.model.GeneralLedgerExcludeCashonHandWithSource(context, *transactionId, userOrg.OrganizationID, *userOrg.BranchID, &source)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
 		}
@@ -2918,12 +2907,8 @@ func (c *Controller) GeneralLedgerController() {
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
-		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
-			TransactionID:  transactionId,
-			OrganizationID: userOrg.OrganizationID,
-			BranchID:       *userOrg.BranchID,
-			Source:         model.GeneralLedgerSourceAdjustment,
-		})
+		source := model.GeneralLedgerSourceAdjustment
+		entries, err := c.model.GeneralLedgerExcludeCashonHandWithSource(context, *transactionId, userOrg.OrganizationID, *userOrg.BranchID, &source)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
 		}
@@ -2949,12 +2934,8 @@ func (c *Controller) GeneralLedgerController() {
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
-		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
-			TransactionID:  transactionId,
-			OrganizationID: userOrg.OrganizationID,
-			BranchID:       *userOrg.BranchID,
-			Source:         model.GeneralLedgerSourceJournalVoucher,
-		})
+		source := model.GeneralLedgerSourceJournalVoucher
+		entries, err := c.model.GeneralLedgerExcludeCashonHandWithSource(context, *transactionId, userOrg.OrganizationID, *userOrg.BranchID, &source)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
 		}
@@ -2980,12 +2961,8 @@ func (c *Controller) GeneralLedgerController() {
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
-		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
-			TransactionID:  transactionId,
-			OrganizationID: userOrg.OrganizationID,
-			BranchID:       *userOrg.BranchID,
-			Source:         model.GeneralLedgerSourceCheckVoucher,
-		})
+		source := model.GeneralLedgerSourceCheckVoucher
+		entries, err := c.model.GeneralLedgerExcludeCashonHandWithSource(context, *transactionId, userOrg.OrganizationID, *userOrg.BranchID, &source)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
 		}

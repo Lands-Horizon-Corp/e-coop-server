@@ -364,3 +364,139 @@ func (m *Model) GeneralLedgerPrintMaxNumber(
 	}
 	return maxPrintNumber, nil
 }
+
+func (m *Model) GeneralLedgerExcludeCashonHand(
+	ctx context.Context,
+	transactionId, orgId,
+	branchId uuid.UUID,
+) ([]*GeneralLedger, error) {
+	filters := []horizon_services.Filter{
+		{Field: "transaction_id", Op: horizon_services.OpEq, Value: transactionId},
+		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
+		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
+	}
+	branchSetting, err := m.BranchSettingManager.FindOne(ctx, &BranchSetting{BranchID: branchId})
+	if err != nil {
+		return nil, err
+	}
+	if branchSetting.CashOnHandAccountID != nil {
+		filters = append(filters, horizon_services.Filter{
+			Field: "account_id",
+			Op:    horizon_services.OpNe,
+			Value: *branchSetting.CashOnHandAccountID,
+		})
+	}
+	return m.GeneralLedgerManager.FindWithFilters(ctx, filters)
+}
+
+func (m *Model) GeneralLedgerExcludeCashonHandWithType(
+	ctx context.Context,
+	transactionId, orgId, branchId uuid.UUID,
+	paymentType *TypeOfPaymentType,
+) ([]*GeneralLedger, error) {
+	filters := []horizon_services.Filter{
+		{Field: "transaction_id", Op: horizon_services.OpEq, Value: transactionId},
+		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
+		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
+	}
+
+	// Add payment type filter if provided
+	if paymentType != nil {
+		filters = append(filters, horizon_services.Filter{
+			Field: "type_of_payment_type",
+			Op:    horizon_services.OpEq,
+			Value: *paymentType,
+		})
+	}
+
+	branchSetting, err := m.BranchSettingManager.FindOne(ctx, &BranchSetting{BranchID: branchId})
+	if err != nil {
+		return nil, err
+	}
+	if branchSetting.CashOnHandAccountID != nil {
+		filters = append(filters, horizon_services.Filter{
+			Field: "account_id",
+			Op:    horizon_services.OpNe,
+			Value: *branchSetting.CashOnHandAccountID,
+		})
+	}
+	return m.GeneralLedgerManager.FindWithFilters(ctx, filters)
+}
+
+func (m *Model) GeneralLedgerExcludeCashonHandWithSource(
+	ctx context.Context,
+	transactionId, orgId, branchId uuid.UUID,
+	source *GeneralLedgerSource,
+) ([]*GeneralLedger, error) {
+	filters := []horizon_services.Filter{
+		{Field: "transaction_id", Op: horizon_services.OpEq, Value: transactionId},
+		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
+		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
+	}
+
+	// Add source filter if provided
+	if source != nil {
+		filters = append(filters, horizon_services.Filter{
+			Field: "source",
+			Op:    horizon_services.OpEq,
+			Value: *source,
+		})
+	}
+
+	branchSetting, err := m.BranchSettingManager.FindOne(ctx, &BranchSetting{BranchID: branchId})
+	if err != nil {
+		return nil, err
+	}
+	if branchSetting.CashOnHandAccountID != nil {
+		filters = append(filters, horizon_services.Filter{
+			Field: "account_id",
+			Op:    horizon_services.OpNe,
+			Value: *branchSetting.CashOnHandAccountID,
+		})
+	}
+	return m.GeneralLedgerManager.FindWithFilters(ctx, filters)
+}
+
+func (m *Model) GeneralLedgerExcludeCashonHandWithFilters(
+	ctx context.Context,
+	transactionId, orgId, branchId uuid.UUID,
+	paymentType *TypeOfPaymentType,
+	source *GeneralLedgerSource,
+) ([]*GeneralLedger, error) {
+	filters := []horizon_services.Filter{
+		{Field: "transaction_id", Op: horizon_services.OpEq, Value: transactionId},
+		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
+		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
+	}
+
+	// Add payment type filter if provided
+	if paymentType != nil {
+		filters = append(filters, horizon_services.Filter{
+			Field: "type_of_payment_type",
+			Op:    horizon_services.OpEq,
+			Value: *paymentType,
+		})
+	}
+
+	// Add source filter if provided
+	if source != nil {
+		filters = append(filters, horizon_services.Filter{
+			Field: "source",
+			Op:    horizon_services.OpEq,
+			Value: *source,
+		})
+	}
+
+	branchSetting, err := m.BranchSettingManager.FindOne(ctx, &BranchSetting{BranchID: branchId})
+	if err != nil {
+		return nil, err
+	}
+	if branchSetting.CashOnHandAccountID != nil {
+		filters = append(filters, horizon_services.Filter{
+			Field: "account_id",
+			Op:    horizon_services.OpNe,
+			Value: *branchSetting.CashOnHandAccountID,
+		})
+	}
+	return m.GeneralLedgerManager.FindWithFilters(ctx, filters)
+}

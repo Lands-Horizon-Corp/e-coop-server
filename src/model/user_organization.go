@@ -269,6 +269,9 @@ func (m *Model) UserOrganization() {
 			"SettingsAccountingDepositDefaultValue",
 			"SettingsAccountingWithdrawDefaultValue",
 			"SettingsPaymentTypeDefaultValue",
+
+			"Branch.BranchSetting.CashOnHandAccount",
+			"Branch.BranchSetting.PaidUpSharedCapitalAccount",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *UserOrganization) *UserOrganizationResponse {
