@@ -796,6 +796,37 @@ func (m *Model) AccountSeed(context context.Context, tx *gorm.DB, userID uuid.UU
 	if err := m.BranchSettingManager.UpdateWithTx(context, tx, branch.BranchSetting); err != nil {
 		return eris.Wrapf(err, "failed to update branch %s with paid up share capital account", branch.Name)
 	}
+
+	// Set default accounting accounts for user organization
+	userOrganization, err := m.UserOrganizationManager.FindOne(context, &UserOrganization{
+		UserID:         userID,
+		OrganizationID: organizationID,
+		BranchID:       &branchID,
+	})
+	if err != nil {
+		return eris.Wrap(err, "failed to find user organization for seeding accounting default accounts")
+	}
+
+	// Set default accounting accounts - using first suitable account for each type
+	var regularSavings *Account
+	for _, account := range accounts {
+		if account.Name == "Regular Savings" {
+			regularSavings = account
+			break
+		}
+	}
+
+	if regularSavings != nil {
+		// Use Regular Savings as default for all three accounting operations
+		userOrganization.SettingsAccountingPaymentDefaultValueID = &regularSavings.ID
+		userOrganization.SettingsAccountingDepositDefaultValueID = &regularSavings.ID
+		userOrganization.SettingsAccountingWithdrawDefaultValueID = &regularSavings.ID
+	}
+
+	if err := m.UserOrganizationManager.UpdateWithTx(context, tx, userOrganization); err != nil {
+		return eris.Wrap(err, "failed to update user organization with default accounting accounts")
+	}
+
 	return nil
 }
 

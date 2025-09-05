@@ -127,6 +127,33 @@ func (m *Model) PaymentType() {
 }
 func (m *Model) PaymentTypeSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now()
+	cashOnHandPayment := &PaymentType{
+		CreatedAt:      now,
+		UpdatedAt:      now,
+		CreatedByID:    userID,
+		UpdatedByID:    userID,
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+		Name:           "Cash On Hand",
+		Description:    "Cash available at the branch for immediate use.",
+		NumberOfDays:   0,
+		Type:           PaymentTypeCash,
+	}
+	if err := m.PaymentTypeManager.CreateWithTx(context, tx, cashOnHandPayment); err != nil {
+		return eris.Wrap(err, "failed to seed cash on hand payment type")
+	}
+	userOrganization, err := m.UserOrganizationManager.FindOne(context, &UserOrganization{
+		UserID:         userID,
+		OrganizationID: organizationID,
+		BranchID:       &branchID,
+	})
+	if err != nil {
+		return eris.Wrap(err, "failed to find user organization for seeding payment types")
+	}
+	userOrganization.SettingsPaymentTypeDefaultValueID = &cashOnHandPayment.ID
+	if err := m.UserOrganizationManager.UpdateWithTx(context, tx, userOrganization); err != nil {
+		return eris.Wrap(err, "failed to update user organization with default payment type")
+	}
 	paymentTypes := []*PaymentType{
 		// Cash types
 		{
@@ -141,18 +168,7 @@ func (m *Model) PaymentTypeSeed(context context.Context, tx *gorm.DB, userID uui
 			NumberOfDays:   0,
 			Type:           PaymentTypeCash,
 		},
-		{
-			CreatedAt:      now,
-			UpdatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-			Name:           "Cash On Hand",
-			Description:    "Cash available at the branch for immediate use.",
-			NumberOfDays:   0,
-			Type:           PaymentTypeCash,
-		},
+		cashOnHandPayment,
 		{
 			CreatedAt:      now,
 			UpdatedAt:      now,
