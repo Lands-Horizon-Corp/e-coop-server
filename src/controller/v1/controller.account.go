@@ -1154,31 +1154,6 @@ func (c *Controller) AccountController() {
 	})
 
 	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/account/deposit/search",
-		Method:       "GET",
-		Note:         "Retrieve all accounts for the current branch.",
-		ResponseType: model.AccountResponse{},
-	}, func(ctx echo.Context) error {
-		context := ctx.Request().Context()
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
-		if err != nil {
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
-		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
-		}
-		accounts, err := c.model.AccountManager.Find(context, &model.Account{
-			OrganizationID:                   userOrg.OrganizationID,
-			BranchID:                         *userOrg.BranchID,
-			ShowInGeneralLedgerSourceDeposit: true,
-		})
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve accounts: " + err.Error()})
-		}
-		return ctx.JSON(http.StatusOK, c.model.AccountManager.Pagination(context, ctx, accounts))
-	})
-
-	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/account/journal/search",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch.",
