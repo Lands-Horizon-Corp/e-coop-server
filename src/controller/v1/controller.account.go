@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
@@ -34,6 +35,325 @@ func (c *Controller) AccountController() {
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.AccountManager.Pagination(context, ctx, accounts))
+	})
+
+	// GET: /api/v1/account/deposit/search
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/account/deposit/search",
+		Method:       "GET",
+		Note:         "Retrieve all deposit accounts for the current branch.",
+		ResponseType: model.AccountResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
+		}
+
+		filters := []horizon_services.Filter{
+			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
+			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
+			{Field: "account_type", Op: horizon_services.OpEq, Value: "Deposit"},
+		}
+
+		accounts, err := c.model.AccountManager.FindWithFilters(context, filters)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.AccountManager.Pagination(context, ctx, accounts))
+	})
+
+	// GET: /api/v1/account/loan/search
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/account/loan/search",
+		Method:       "GET",
+		Note:         "Retrieve all loan accounts for the current branch.",
+		ResponseType: model.AccountResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
+		}
+
+		filters := []horizon_services.Filter{
+			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
+			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
+			{Field: "account_type", Op: horizon_services.OpEq, Value: "Loan"},
+		}
+
+		accounts, err := c.model.AccountManager.FindWithFilters(context, filters)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.AccountManager.Pagination(context, ctx, accounts))
+	})
+
+	// GET: /api/v1/account/ar-ledger/search
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/account/ar-ledger/search",
+		Method:       "GET",
+		Note:         "Retrieve all A/R-Ledger accounts for the current branch.",
+		ResponseType: model.AccountResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
+		}
+
+		filters := []horizon_services.Filter{
+			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
+			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
+			{Field: "account_type", Op: horizon_services.OpEq, Value: "A/R-Ledger"},
+		}
+
+		accounts, err := c.model.AccountManager.FindWithFilters(context, filters)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.AccountManager.Pagination(context, ctx, accounts))
+	})
+
+	// GET: /api/v1/account/ar-aging/search
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/account/ar-aging/search",
+		Method:       "GET",
+		Note:         "Retrieve all A/R-Aging accounts for the current branch.",
+		ResponseType: model.AccountResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
+		}
+
+		filters := []horizon_services.Filter{
+			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
+			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
+			{Field: "account_type", Op: horizon_services.OpEq, Value: "A/R-Aging"},
+		}
+
+		accounts, err := c.model.AccountManager.FindWithFilters(context, filters)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.AccountManager.Pagination(context, ctx, accounts))
+	})
+
+	// GET: /api/v1/account/fines/search
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/account/fines/search",
+		Method:       "GET",
+		Note:         "Retrieve all fines accounts for the current branch.",
+		ResponseType: model.AccountResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
+		}
+
+		filters := []horizon_services.Filter{
+			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
+			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
+			{Field: "account_type", Op: horizon_services.OpEq, Value: "Fines"},
+		}
+
+		accounts, err := c.model.AccountManager.FindWithFilters(context, filters)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.AccountManager.Pagination(context, ctx, accounts))
+	})
+
+	// GET: /api/v1/account/interest/search
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/account/interest/search",
+		Method:       "GET",
+		Note:         "Retrieve all interest accounts for the current branch.",
+		ResponseType: model.AccountResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
+		}
+
+		filters := []horizon_services.Filter{
+			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
+			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
+			{Field: "account_type", Op: horizon_services.OpEq, Value: "Interest"},
+		}
+
+		accounts, err := c.model.AccountManager.FindWithFilters(context, filters)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.AccountManager.Pagination(context, ctx, accounts))
+	})
+
+	// GET: /api/v1/account/svf-ledger/search
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/account/svf-ledger/search",
+		Method:       "GET",
+		Note:         "Retrieve all SVF-Ledger accounts for the current branch.",
+		ResponseType: model.AccountResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
+		}
+
+		filters := []horizon_services.Filter{
+			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
+			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
+			{Field: "account_type", Op: horizon_services.OpEq, Value: "SVF-Ledger"},
+		}
+
+		accounts, err := c.model.AccountManager.FindWithFilters(context, filters)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.AccountManager.Pagination(context, ctx, accounts))
+	})
+
+	// GET: /api/v1/account/w-off/search
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/account/w-off/search",
+		Method:       "GET",
+		Note:         "Retrieve all W-Off accounts for the current branch.",
+		ResponseType: model.AccountResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
+		}
+
+		filters := []horizon_services.Filter{
+			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
+			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
+			{Field: "account_type", Op: horizon_services.OpEq, Value: "W-Off"},
+		}
+
+		accounts, err := c.model.AccountManager.FindWithFilters(context, filters)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.AccountManager.Pagination(context, ctx, accounts))
+	})
+
+	// GET: /api/v1/account/ap-ledger/search
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/account/ap-ledger/search",
+		Method:       "GET",
+		Note:         "Retrieve all A/P-Ledger accounts for the current branch.",
+		ResponseType: model.AccountResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
+		}
+
+		filters := []horizon_services.Filter{
+			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
+			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
+			{Field: "account_type", Op: horizon_services.OpEq, Value: "A/P-Ledger"},
+		}
+
+		accounts, err := c.model.AccountManager.FindWithFilters(context, filters)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.AccountManager.Pagination(context, ctx, accounts))
+	})
+
+	// GET: /api/v1/account/other/search
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/account/other/search",
+		Method:       "GET",
+		Note:         "Retrieve all other accounts for the current branch.",
+		ResponseType: model.AccountResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
+		}
+
+		filters := []horizon_services.Filter{
+			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
+			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
+			{Field: "account_type", Op: horizon_services.OpEq, Value: "Other"},
+		}
+
+		accounts, err := c.model.AccountManager.FindWithFilters(context, filters)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.AccountManager.Pagination(context, ctx, accounts))
+	})
+
+	// GET: /api/v1/account/time-deposit/search
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/account/time-deposit/search",
+		Method:       "GET",
+		Note:         "Retrieve all time deposit accounts for the current branch.",
+		ResponseType: model.AccountResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
+		}
+
+		filters := []horizon_services.Filter{
+			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
+			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
+			{Field: "account_type", Op: horizon_services.OpEq, Value: "Time Deposit"},
+		}
+
+		accounts, err := c.model.AccountManager.FindWithFilters(context, filters)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}
