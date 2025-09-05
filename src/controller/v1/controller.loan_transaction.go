@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
 	"github.com/labstack/echo/v4"
 )
@@ -168,7 +169,7 @@ func (c *Controller) LoanTransactionController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id/amortization-schedule",
 		Method:       "GET",
-		ResponseType: map[string]interface{}{},
+		ResponseType: model.AmortizationScheduleResponse{},
 		Note:         "Returns the amortization schedule for a specific loan transaction with payment details.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -224,6 +225,16 @@ func (c *Controller) LoanTransactionController() {
 		request, err := c.model.LoanTransactionManager.Validate(ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
+		}
+		tx := c.provider.Service.Database.Client().Begin()
+		if tx.Error != nil {
+			tx.Rollback()
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "bulk-delete-error",
+				Description: "Bulk delete failed (/browse-exclude-include-accounts/bulk-delete), begin tx error: " + tx.Error.Error(),
+				Module:      "BrowseExcludeIncludeAccounts",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
 
 		loanTransaction := &model.LoanTransaction{
@@ -305,10 +316,48 @@ func (c *Controller) LoanTransactionController() {
 			PaidByPosition:                         request.PaidByPosition,
 		}
 
-		if err := c.model.LoanTransactionManager.Create(context, loanTransaction); err != nil {
+		if err := c.model.LoanTransactionManager.CreateWithTx(context, tx, loanTransaction); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan transaction: " + err.Error()})
 		}
 
+		loanTransactionEntry := &model.LoanTransactionEntry{
+			CreatedByID:       userOrg.UserID,
+			UpdatedByID:       userOrg.UserID,
+			CreatedAt:         time.Now().UTC(),
+			UpdatedAt:         time.Now().UTC(),
+			AccountID:         request.AccountID,
+			OrganizationID:    userOrg.OrganizationID,
+			BranchID:          *userOrg.BranchID,
+			LoanTransactionID: loanTransaction.ID,
+			Credit:            0,
+			Debit:             request.Applied1,
+		}
+		if err := c.model.LoanTransactionEntryManager.Create(context, loanTransactionEntry); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan transaction entry: " + err.Error()})
+		}
+		cashOnHandTransactionEntry := &model.LoanTransactionEntry{
+			CreatedByID:       userOrg.UserID,
+			UpdatedByID:       userOrg.UserID,
+			CreatedAt:         time.Now().UTC(),
+			UpdatedAt:         time.Now().UTC(),
+			AccountID:         userOrg.Branch.BranchSetting.CashOnHandAccountID,
+			OrganizationID:    userOrg.OrganizationID,
+			BranchID:          *userOrg.BranchID,
+			LoanTransactionID: loanTransaction.ID,
+			Credit:            request.Applied1,
+			Debit:             0,
+		}
+		if err := c.model.LoanTransactionEntryManager.Create(context, cashOnHandTransactionEntry); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan transaction entry: " + err.Error()})
+		}
+		if err := tx.Commit().Error; err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "bulk-delete-error",
+				Description: "Bulk delete failed (/browse-exclude-include-accounts/bulk-delete), commit error: " + err.Error(),
+				Module:      "BrowseExcludeIncludeAccounts",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit bulk delete: " + err.Error()})
+		}
 		return ctx.JSON(http.StatusCreated, c.model.LoanTransactionManager.ToModel(loanTransaction))
 	})
 

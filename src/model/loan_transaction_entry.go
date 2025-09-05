@@ -31,6 +31,9 @@ type (
 		LoanTransactionID uuid.UUID        `gorm:"type:uuid;not null"`
 		LoanTransaction   *LoanTransaction `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"loan_transaction,omitempty"`
 
+		AccountID *uuid.UUID `gorm:"type:uuid"`
+		Account   *Account   `gorm:"foreignKey:AccountID;constraint:OnDelete:SET NULL;" json:"account,omitempty"`
+
 		Description string  `gorm:"type:text"`
 		Credit      float64 `gorm:"type:decimal"`
 		Debit       float64 `gorm:"type:decimal"`
@@ -50,16 +53,19 @@ type (
 		Branch            *BranchResponse          `json:"branch,omitempty"`
 		LoanTransactionID uuid.UUID                `json:"loan_transaction_id"`
 		LoanTransaction   *LoanTransactionResponse `json:"loan_transaction,omitempty"`
+		AccountID         *uuid.UUID               `json:"account_id,omitempty"`
+		Account           *AccountResponse         `json:"account,omitempty"`
 		Description       string                   `json:"description"`
 		Credit            float64                  `json:"credit"`
 		Debit             float64                  `json:"debit"`
 	}
 
 	LoanTransactionEntryRequest struct {
-		LoanTransactionID uuid.UUID `json:"loan_transaction_id" validate:"required"`
-		Description       string    `json:"description,omitempty"`
-		Credit            float64   `json:"credit,omitempty"`
-		Debit             float64   `json:"debit,omitempty"`
+		LoanTransactionID uuid.UUID  `json:"loan_transaction_id" validate:"required"`
+		AccountID         *uuid.UUID `json:"account_id,omitempty"`
+		Description       string     `json:"description,omitempty"`
+		Credit            float64    `json:"credit,omitempty"`
+		Debit             float64    `json:"debit,omitempty"`
 	}
 )
 
@@ -69,7 +75,7 @@ func (m *Model) LoanTransactionEntry() {
 		LoanTransactionEntry, LoanTransactionEntryResponse, LoanTransactionEntryRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization", "LoanTransaction",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization", "LoanTransaction", "Account",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *LoanTransactionEntry) *LoanTransactionEntryResponse {
@@ -90,6 +96,8 @@ func (m *Model) LoanTransactionEntry() {
 				Branch:            m.BranchManager.ToModel(data.Branch),
 				LoanTransactionID: data.LoanTransactionID,
 				LoanTransaction:   m.LoanTransactionManager.ToModel(data.LoanTransaction),
+				AccountID:         data.AccountID,
+				Account:           m.AccountManager.ToModel(data.Account),
 				Description:       data.Description,
 				Credit:            data.Credit,
 				Debit:             data.Debit,

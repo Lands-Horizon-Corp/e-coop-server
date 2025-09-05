@@ -109,6 +109,7 @@ func (c *Controller) LoanTransactionEntryController() {
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
 			LoanTransactionID: request.LoanTransactionID,
+			AccountID:         request.AccountID,
 			Description:       request.Description,
 			Credit:            request.Credit,
 			Debit:             request.Debit,
@@ -162,6 +163,7 @@ func (c *Controller) LoanTransactionEntryController() {
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
 			LoanTransactionID: *loanTransactionID,
+			AccountID:         request.AccountID,
 			Description:       request.Description,
 			Credit:            request.Credit,
 			Debit:             request.Debit,
@@ -225,6 +227,7 @@ func (c *Controller) LoanTransactionEntryController() {
 		loanTransactionEntry.UpdatedAt = time.Now().UTC()
 		loanTransactionEntry.UpdatedByID = userOrg.UserID
 		loanTransactionEntry.LoanTransactionID = request.LoanTransactionID
+		loanTransactionEntry.AccountID = request.AccountID
 		loanTransactionEntry.Description = request.Description
 		loanTransactionEntry.Credit = request.Credit
 		loanTransactionEntry.Debit = request.Debit
