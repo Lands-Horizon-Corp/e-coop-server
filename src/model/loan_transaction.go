@@ -71,9 +71,13 @@ type (
 		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_loan_transaction"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
+		EmployeeUserID *uuid.UUID `gorm:"type:uuid"`
+		EmployeeUser   *User      `gorm:"foreignKey:EmployeeUserID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"employee_user,omitempty"`
+
 		TransactionBatchID    *uuid.UUID        `gorm:"type:uuid"`
 		TransactionBatch      *TransactionBatch `gorm:"foreignKey:TransactionBatchID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"transaction_batch,omitempty"`
 		OfficialReceiptNumber string            `gorm:"type:varchar(255)"`
+		Voucher               string            `gorm:"type:varchar(255)"`
 
 		LoanPurposeID *uuid.UUID   `gorm:"type:uuid"`
 		LoanPurpose   *LoanPurpose `gorm:"foreignKey:LoanPurposeID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"loan_purpose,omitempty"`
@@ -180,6 +184,9 @@ type (
 		PaidBySignatureMedia   *Media     `gorm:"foreignKey:PaidBySignatureMediaID;constraint:OnDelete:SET NULL;" json:"paid_by_signature_media,omitempty"`
 		PaidByName             string     `gorm:"type:varchar(255)"`
 		PaidByPosition         string     `gorm:"type:varchar(255)"`
+
+		// Relationships
+		LoanTransactionEntries []*LoanTransactionEntry `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"loan_transaction_entries,omitempty"`
 	}
 
 	LoanTransactionResponse struct {
@@ -195,9 +202,13 @@ type (
 		BranchID       uuid.UUID             `json:"branch_id"`
 		Branch         *BranchResponse       `json:"branch,omitempty"`
 
+		EmployeeUserID *uuid.UUID    `json:"employee_user_id,omitempty"`
+		EmployeeUser   *UserResponse `json:"employee_user,omitempty"`
+
 		TransactionBatchID    *uuid.UUID                `json:"transaction_batch_id,omitempty"`
 		TransactionBatch      *TransactionBatchResponse `json:"transaction_batch,omitempty"`
 		OfficialReceiptNumber string                    `json:"official_receipt_number"`
+		Voucher               string                    `json:"voucher"`
 
 		LoanPurposeID *uuid.UUID           `json:"loan_purpose_id,omitempty"`
 		LoanPurpose   *LoanPurposeResponse `json:"loan_purpose,omitempty"`
@@ -304,11 +315,15 @@ type (
 		PaidBySignatureMedia   *MediaResponse `json:"paid_by_signature_media,omitempty"`
 		PaidByName             string         `json:"paid_by_name"`
 		PaidByPosition         string         `json:"paid_by_position"`
+
+		// Relationships
+		LoanTransactionEntries []*LoanTransactionEntryResponse `json:"loan_transaction_entries,omitempty"`
 	}
 
 	LoanTransactionRequest struct {
 		TransactionBatchID    *uuid.UUID `json:"transaction_batch_id,omitempty"`
 		OfficialReceiptNumber string     `json:"official_receipt_number,omitempty"`
+		Voucher               string     `json:"voucher,omitempty"`
 		LoanPurposeID         *uuid.UUID `json:"loan_purpose_id,omitempty"`
 		LoanStatusID          *uuid.UUID `json:"loan_status_id,omitempty"`
 
@@ -404,13 +419,14 @@ func (m *Model) LoanTransaction() {
 		LoanTransaction, LoanTransactionResponse, LoanTransactionRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization", "EmployeeUser",
 			"TransactionBatch", "LoanPurpose", "LoanStatus",
 			"ComakerDepositMemberAccountingLedger", "ComakerCollateral", "PreviousLoan",
 			"Account", "MemberProfile", "MemberJointAccount", "SignatureMedia",
 			"ApprovedBySignatureMedia", "PreparedBySignatureMedia", "CertifiedBySignatureMedia",
 			"VerifiedBySignatureMedia", "CheckBySignatureMedia", "AcknowledgeBySignatureMedia",
 			"NotedBySignatureMedia", "PostedBySignatureMedia", "PaidBySignatureMedia",
+			"LoanTransactionEntries",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *LoanTransaction) *LoanTransactionResponse {
@@ -429,9 +445,12 @@ func (m *Model) LoanTransaction() {
 				Organization:                           m.OrganizationManager.ToModel(data.Organization),
 				BranchID:                               data.BranchID,
 				Branch:                                 m.BranchManager.ToModel(data.Branch),
+				EmployeeUserID:                         data.EmployeeUserID,
+				EmployeeUser:                           m.UserManager.ToModel(data.EmployeeUser),
 				TransactionBatchID:                     data.TransactionBatchID,
 				TransactionBatch:                       m.TransactionBatchManager.ToModel(data.TransactionBatch),
 				OfficialReceiptNumber:                  data.OfficialReceiptNumber,
+				Voucher:                                data.Voucher,
 				LoanPurposeID:                          data.LoanPurposeID,
 				LoanPurpose:                            m.LoanPurposeManager.ToModel(data.LoanPurpose),
 				LoanStatusID:                           data.LoanStatusID,
@@ -515,6 +534,7 @@ func (m *Model) LoanTransaction() {
 				PaidBySignatureMedia:                   m.MediaManager.ToModel(data.PaidBySignatureMedia),
 				PaidByName:                             data.PaidByName,
 				PaidByPosition:                         data.PaidByPosition,
+				LoanTransactionEntries:                 m.mapLoanTransactionEntries(data.LoanTransactionEntries),
 			}
 		},
 
@@ -550,4 +570,19 @@ func (m *Model) LoanTransactionCurrentBranch(context context.Context, orgId uuid
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})
+}
+
+// Helper function to map loan transaction entries
+func (m *Model) mapLoanTransactionEntries(entries []*LoanTransactionEntry) []*LoanTransactionEntryResponse {
+	if entries == nil {
+		return nil
+	}
+
+	var result []*LoanTransactionEntryResponse
+	for _, entry := range entries {
+		if entry != nil {
+			result = append(result, m.LoanTransactionEntryManager.ToModel(entry))
+		}
+	}
+	return result
 }

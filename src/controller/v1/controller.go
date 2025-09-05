@@ -122,6 +122,8 @@ func (c *Controller) Start() error {
 	// Loans
 	c.LoanStatusController()
 	c.LoanPurposeController()
+	c.LoanTransactionController()
+	c.LoanTransactionEntryController()
 	c.CollateralController()
 	c.ComputationSheetController()
 	c.AutomaticLoanDeductionController()
