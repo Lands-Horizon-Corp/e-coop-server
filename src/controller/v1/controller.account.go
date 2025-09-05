@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
@@ -57,13 +56,11 @@ func (c *Controller) AccountController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		filters := []horizon_services.Filter{
-			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
-			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
-			{Field: "account_type", Op: horizon_services.OpEq, Value: "Deposit"},
-		}
-
-		accounts, err := c.model.AccountManager.FindWithFilters(context, filters)
+		accounts, err := c.model.AccountManager.Find(context, &model.Account{
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			Type:           model.AccountTypeDeposit,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}
@@ -86,13 +83,11 @@ func (c *Controller) AccountController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		filters := []horizon_services.Filter{
-			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
-			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
-			{Field: "account_type", Op: horizon_services.OpEq, Value: "Loan"},
-		}
-
-		accounts, err := c.model.AccountManager.FindWithFilters(context, filters)
+		accounts, err := c.model.AccountManager.Find(context, &model.Account{
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			Type:           model.AccountTypeLoan,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}
@@ -114,14 +109,11 @@ func (c *Controller) AccountController() {
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
-
-		filters := []horizon_services.Filter{
-			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
-			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
-			{Field: "account_type", Op: horizon_services.OpEq, Value: "A/R-Ledger"},
-		}
-
-		accounts, err := c.model.AccountManager.FindWithFilters(context, filters)
+		accounts, err := c.model.AccountManager.Find(context, &model.Account{
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			Type:           model.AccountTypeARLedger,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}
@@ -144,13 +136,12 @@ func (c *Controller) AccountController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		filters := []horizon_services.Filter{
-			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
-			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
-			{Field: "account_type", Op: horizon_services.OpEq, Value: "A/R-Aging"},
-		}
+		accounts, err := c.model.AccountManager.Find(context, &model.Account{
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			Type:           model.AccountTypeARAging,
+		})
 
-		accounts, err := c.model.AccountManager.FindWithFilters(context, filters)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}
@@ -173,13 +164,12 @@ func (c *Controller) AccountController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		filters := []horizon_services.Filter{
-			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
-			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
-			{Field: "account_type", Op: horizon_services.OpEq, Value: "Fines"},
-		}
+		accounts, err := c.model.AccountManager.Find(context, &model.Account{
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			Type:           model.AccountTypeFines,
+		})
 
-		accounts, err := c.model.AccountManager.FindWithFilters(context, filters)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}
@@ -202,13 +192,11 @@ func (c *Controller) AccountController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		filters := []horizon_services.Filter{
-			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
-			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
-			{Field: "account_type", Op: horizon_services.OpEq, Value: "Interest"},
-		}
-
-		accounts, err := c.model.AccountManager.FindWithFilters(context, filters)
+		accounts, err := c.model.AccountManager.Find(context, &model.Account{
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			Type:           model.AccountTypeInterest,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}
@@ -230,14 +218,11 @@ func (c *Controller) AccountController() {
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
-
-		filters := []horizon_services.Filter{
-			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
-			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
-			{Field: "account_type", Op: horizon_services.OpEq, Value: "SVF-Ledger"},
-		}
-
-		accounts, err := c.model.AccountManager.FindWithFilters(context, filters)
+		accounts, err := c.model.AccountManager.Find(context, &model.Account{
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			Type:           model.AccountTypeSVFLedger,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}
@@ -259,14 +244,11 @@ func (c *Controller) AccountController() {
 		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
-
-		filters := []horizon_services.Filter{
-			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
-			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
-			{Field: "account_type", Op: horizon_services.OpEq, Value: "W-Off"},
-		}
-
-		accounts, err := c.model.AccountManager.FindWithFilters(context, filters)
+		accounts, err := c.model.AccountManager.Find(context, &model.Account{
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			Type:           model.AccountTypeWOff,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}
@@ -289,13 +271,11 @@ func (c *Controller) AccountController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		filters := []horizon_services.Filter{
-			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
-			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
-			{Field: "account_type", Op: horizon_services.OpEq, Value: "A/P-Ledger"},
-		}
-
-		accounts, err := c.model.AccountManager.FindWithFilters(context, filters)
+		accounts, err := c.model.AccountManager.Find(context, &model.Account{
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			Type:           model.AccountTypeAPLedger,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}
@@ -318,13 +298,11 @@ func (c *Controller) AccountController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		filters := []horizon_services.Filter{
-			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
-			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
-			{Field: "account_type", Op: horizon_services.OpEq, Value: "Other"},
-		}
-
-		accounts, err := c.model.AccountManager.FindWithFilters(context, filters)
+		accounts, err := c.model.AccountManager.Find(context, &model.Account{
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			Type:           model.AccountTypeOther,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}
@@ -347,13 +325,11 @@ func (c *Controller) AccountController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		filters := []horizon_services.Filter{
-			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
-			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
-			{Field: "account_type", Op: horizon_services.OpEq, Value: "Time Deposit"},
-		}
-
-		accounts, err := c.model.AccountManager.FindWithFilters(context, filters)
+		accounts, err := c.model.AccountManager.Find(context, &model.Account{
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			Type:           model.AccountTypeTimeDeposit,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}
