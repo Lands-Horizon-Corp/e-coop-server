@@ -168,7 +168,6 @@ func (m *Model) PaymentTypeSeed(context context.Context, tx *gorm.DB, userID uui
 			NumberOfDays:   0,
 			Type:           PaymentTypeCash,
 		},
-		cashOnHandPayment,
 		{
 			CreatedAt:      now,
 			UpdatedAt:      now,
