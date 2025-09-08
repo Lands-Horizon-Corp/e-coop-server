@@ -72,6 +72,39 @@ func (c *Controller) LoanTransactionController() {
 		return ctx.JSON(http.StatusOK, c.model.LoanTransactionManager.Pagination(context, ctx, loanTransactions))
 	})
 
+	// GET /api/v1/loan-transaction/member-profile/:id/search
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/loan-transaction/member-profile/:member_profile_id/search",
+		Method:       "GET",
+		ResponseType: model.LoanTransactionResponse{},
+		Note:         "Returns all loan transactions for a specific member profile with pagination and filtering (alternative endpoint).",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
+		}
+
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view loan transactions"})
+		}
+
+		loanTransactions, err := c.model.LoanTransactionManager.Find(context, &model.LoanTransaction{
+			MemberProfileID: memberProfileID,
+			OrganizationID:  userOrg.OrganizationID,
+			BranchID:        *userOrg.BranchID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve loan transactions: " + err.Error()})
+		}
+
+		return ctx.JSON(http.StatusOK, c.model.LoanTransactionManager.Pagination(context, ctx, loanTransactions))
+	})
+
 	// GET /api/v1/loan-transaction/:loan_transaction_id
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id",
