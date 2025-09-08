@@ -31,6 +31,8 @@ type (
 		LoanTransactionID uuid.UUID        `gorm:"type:uuid;not null"`
 		LoanTransaction   *LoanTransaction `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"loan_transaction,omitempty"`
 
+		Index int `gorm:"type:int;default:0" json:"index"`
+
 		AccountID *uuid.UUID `gorm:"type:uuid"`
 		Account   *Account   `gorm:"foreignKey:AccountID;constraint:OnDelete:SET NULL;" json:"account,omitempty"`
 
@@ -53,6 +55,7 @@ type (
 		Branch            *BranchResponse          `json:"branch,omitempty"`
 		LoanTransactionID uuid.UUID                `json:"loan_transaction_id"`
 		LoanTransaction   *LoanTransactionResponse `json:"loan_transaction,omitempty"`
+		Index             int                      `json:"index"`
 		AccountID         *uuid.UUID               `json:"account_id,omitempty"`
 		Account           *AccountResponse         `json:"account,omitempty"`
 		Description       string                   `json:"description"`
@@ -62,6 +65,7 @@ type (
 
 	LoanTransactionEntryRequest struct {
 		LoanTransactionID uuid.UUID  `json:"loan_transaction_id" validate:"required"`
+		Index             int        `json:"index,omitempty"`
 		AccountID         *uuid.UUID `json:"account_id,omitempty"`
 		Description       string     `json:"description,omitempty"`
 		Credit            float64    `json:"credit,omitempty"`
@@ -96,6 +100,7 @@ func (m *Model) LoanTransactionEntry() {
 				Branch:            m.BranchManager.ToModel(data.Branch),
 				LoanTransactionID: data.LoanTransactionID,
 				LoanTransaction:   m.LoanTransactionManager.ToModel(data.LoanTransaction),
+				Index:             data.Index,
 				AccountID:         data.AccountID,
 				Account:           m.AccountManager.ToModel(data.Account),
 				Description:       data.Description,

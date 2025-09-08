@@ -3,6 +3,7 @@ package model
 import (
 	"context"
 	"fmt"
+	"sort"
 	"time"
 
 	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
@@ -623,6 +624,11 @@ func (m *Model) mapLoanTransactionEntries(entries []*LoanTransactionEntry) []*Lo
 	if entries == nil {
 		return nil
 	}
+
+	// Sort entries by Index field
+	sort.Slice(entries, func(i, j int) bool {
+		return entries[i].Index < entries[j].Index
+	})
 
 	var result []*LoanTransactionEntryResponse
 	for _, entry := range entries {
