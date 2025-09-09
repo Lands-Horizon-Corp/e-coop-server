@@ -123,15 +123,13 @@ func (c *Controller) MemberAccountingLedgerController() {
 
 		for _, entry := range entries {
 			totalCredit += entry.Credit
-			totalDebit += -entry.Debit
+			totalDebit += entry.Debit
 		}
-
-		summary := model.MemberAccountingLedgerAccountSummary{
+		return ctx.JSON(http.StatusOK, model.MemberAccountingLedgerAccountSummary{
 			Balance:     memberAccountingLedger.Balance,
 			TotalDebit:  totalDebit,
 			TotalCredit: totalCredit,
-		}
-		return ctx.JSON(http.StatusOK, summary)
+		})
 	})
 
 	req.RegisterRoute(handlers.Route{
