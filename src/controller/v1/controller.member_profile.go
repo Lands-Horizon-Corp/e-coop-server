@@ -1149,7 +1149,7 @@ func (c *Controller) MemberProfileController() {
 
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/connect-user/:user_organization_id",
-		Method:       "GET",
+		Method:       "PUT",
 		ResponseType: model.MemberProfileResponse{},
 		Note:         "Connect the specified member profile to a user organization by their IDs.",
 	}, func(ctx echo.Context) error {
