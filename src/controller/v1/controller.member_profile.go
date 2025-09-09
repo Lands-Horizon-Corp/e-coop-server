@@ -1148,6 +1148,115 @@ func (c *Controller) MemberProfileController() {
 	})
 
 	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/member-profile/:member_profile_id/connect-user/:user_organization_id",
+		Method:       "GET",
+		ResponseType: model.MemberProfileResponse{},
+		Note:         "Connect the specified member profile to a user organization by their IDs.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "connect-error",
+				Description: "Connect member profile to user organization failed: invalid member_profile_id: " + err.Error(),
+				Module:      "MemberProfile",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
+		}
+		userOrganizationID, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "connect-error",
+				Description: "Connect member profile to user organization failed: invalid user_organization_id: " + err.Error(),
+				Module:      "MemberProfile",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_organization_id: " + err.Error()})
+		}
+
+		// Verify current user authorization
+		currentUserOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "connect-error",
+				Description: "Connect member profile to user organization failed: user org error: " + err.Error(),
+				Module:      "MemberProfile",
+			})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
+		}
+		if currentUserOrg.UserType != "owner" && currentUserOrg.UserType != "employee" {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "connect-error",
+				Description: "Connect member profile to user organization failed: user not authorized",
+				Module:      "MemberProfile",
+			})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
+		}
+
+		// Get the member profile
+		memberProfile, err := c.model.MemberProfileManager.GetByID(context, *memberProfileID)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "connect-error",
+				Description: "Connect member profile to user organization failed: member profile not found: " + err.Error(),
+				Module:      "MemberProfile",
+			})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found: %v", memberProfileID, err)})
+		}
+
+		// Get the user organization to verify it exists and get the user ID
+		userOrg, err := c.model.UserOrganizationManager.GetByID(context, *userOrganizationID)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "connect-error",
+				Description: "Connect member profile to user organization failed: user organization not found: " + err.Error(),
+				Module:      "MemberProfile",
+			})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("UserOrganization with ID %s not found: %v", userOrganizationID, err)})
+		}
+
+		// Verify the user organization belongs to the same organization/branch
+		if userOrg.OrganizationID != currentUserOrg.OrganizationID {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "connect-error",
+				Description: "Connect member profile to user organization failed: organization mismatch",
+				Module:      "MemberProfile",
+			})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User organization does not belong to the same organization"})
+		}
+
+		// Connect the member profile to the user
+		memberProfile.UserID = &userOrg.UserID
+		memberProfile.UpdatedAt = time.Now().UTC()
+		memberProfile.UpdatedByID = currentUserOrg.UserID
+
+		if err := c.model.MemberProfileManager.UpdateFields(context, memberProfile.ID, memberProfile); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "connect-error",
+				Description: "Connect member profile to user organization failed: update error: " + err.Error(),
+				Module:      "MemberProfile",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update member profile: " + err.Error()})
+		}
+
+		member, err := c.model.MemberProfileManager.GetByID(context, memberProfile.ID)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "connect-error",
+				Description: "Connect member profile to user organization failed: fetch updated member profile error: " + err.Error(),
+				Module:      "MemberProfile",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch updated member profile: " + err.Error()})
+		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "connect-success",
+			Description: fmt.Sprintf("Connected member profile (%s) to user organization (%s)", memberProfile.FullName, userOrganizationID.String()),
+			Module:      "MemberProfile",
+		})
+
+		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(member))
+	})
+
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-profile/:member_profile_id/connect",
 		Method:       "POST",
 		RequestType:  model.MemberProfileAccountRequest{},
