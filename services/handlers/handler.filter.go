@@ -595,7 +595,21 @@ func SortSlice[T any](
 
 					fieldVal := getFieldValue(val, info)
 					if fieldVal.IsValid() {
-						keys[j] = fieldVal.Interface()
+						fieldInterface := fieldVal.Interface()
+
+						// Handle special cases for better sorting
+						switch v := fieldInterface.(type) {
+						case *time.Time:
+							if v != nil {
+								keys[j] = *v
+							} else {
+								keys[j] = time.Time{} // Use zero time for nil pointers
+							}
+						case time.Time:
+							keys[j] = v
+						default:
+							keys[j] = fieldInterface
+						}
 					} else {
 						keys[j] = nil
 					}
@@ -656,54 +670,106 @@ func compareValues(a, b any) int {
 		return 1
 	}
 
-	switch aVal := a.(type) {
-	case string:
-		bVal, ok := b.(string)
-		if !ok {
-			return -1
-		}
-		return strings.Compare(strings.ToLower(aVal), strings.ToLower(bVal))
-	case float64:
-		bVal, ok := b.(float64)
-		if !ok {
-			return -1
-		}
-		if aVal < bVal {
-			return -1
-		}
-		if aVal > bVal {
-			return 1
-		}
-		return 0
-	case bool:
-		bVal, ok := b.(bool)
-		if !ok {
-			return -1
-		}
-		if aVal == bVal {
+	// Try to convert both values to time first since time comparison is critical
+	if aTime, aErr := toTime(a); aErr == nil {
+		if bTime, bErr := toTime(b); bErr == nil {
+			if aTime.Before(bTime) {
+				return -1
+			}
+			if aTime.After(bTime) {
+				return 1
+			}
 			return 0
 		}
-		if !aVal && bVal {
-			return -1
+	}
+
+	// Try to convert both values to numbers
+	if aNum, aErr := toFloat64(a); aErr == nil {
+		if bNum, bErr := toFloat64(b); bErr == nil {
+			if aNum < bNum {
+				return -1
+			}
+			if aNum > bNum {
+				return 1
+			}
+			return 0
 		}
-		return 1
-	case time.Time:
-		bVal, ok := b.(time.Time)
-		if !ok {
-			return -1
+	}
+
+	// Handle specific types
+	switch aVal := a.(type) {
+	case string:
+		if bVal, ok := b.(string); ok {
+			return strings.Compare(strings.ToLower(aVal), strings.ToLower(bVal))
 		}
-		if aVal.Before(bVal) {
-			return -1
-		}
-		if aVal.After(bVal) {
+		// Try to convert b to string for comparison
+		bStr := fmt.Sprintf("%v", b)
+		return strings.Compare(strings.ToLower(aVal), strings.ToLower(bStr))
+
+	case bool:
+		if bVal, ok := b.(bool); ok {
+			if aVal == bVal {
+				return 0
+			}
+			if !aVal && bVal {
+				return -1
+			}
 			return 1
 		}
-		return 0
-	default:
-		aStr := fmt.Sprintf("%v", a)
-		bStr := fmt.Sprintf("%v", b)
-		return strings.Compare(aStr, bStr)
+
+	case time.Time:
+		if bVal, ok := b.(time.Time); ok {
+			if aVal.Before(bVal) {
+				return -1
+			}
+			if aVal.After(bVal) {
+				return 1
+			}
+			return 0
+		}
+		// Try to convert b to time
+		if bTime, err := toTime(b); err == nil {
+			if aVal.Before(bTime) {
+				return -1
+			}
+			if aVal.After(bTime) {
+				return 1
+			}
+			return 0
+		}
+
+	case *time.Time:
+		if aVal == nil {
+			return -1
+		}
+		if bVal, ok := b.(*time.Time); ok {
+			if bVal == nil {
+				return 1
+			}
+			if aVal.Before(*bVal) {
+				return -1
+			}
+			if aVal.After(*bVal) {
+				return 1
+			}
+			return 0
+		}
+		// Try to convert b to time
+		if bTime, err := toTime(b); err == nil {
+			if aVal.Before(bTime) {
+				return -1
+			}
+			if aVal.After(bTime) {
+				return 1
+			}
+			return 0
+		}
 	}
+
+	// Fallback to string comparison
+	aStr := fmt.Sprintf("%v", a)
+	bStr := fmt.Sprintf("%v", b)
+	return strings.Compare(aStr, bStr)
 }
 
 func toFloat64(val any) (float64, error) {
@@ -750,12 +816,23 @@ func toTime(val any) (time.Time, error) {
 		}
 		return time.Time{}, eris.Wrap(ErrInvalidValue, "nil time pointer")
 	case string:
+		if v == "" {
+			return time.Time{}, eris.Wrap(ErrInvalidValue, "empty time string")
+		}
+
 		formats := []string{
 			time.RFC3339,
 			time.RFC3339Nano,
+			"2006-01-02T15:04:05.000Z",
+			"2006-01-02T15:04:05.000-07:00",
 			"2006-01-02T15:04:05",
+			"2006-01-02T15:04:05Z",
+			"2006-01-02 15:04:05.999999999 -0700 MST",
+			"2006-01-02 15:04:05.999999999",
+			"2006-01-02 15:04:05",
 			"2006-01-02",
 			"15:04:05",
+			"15:04:05.999999999",
 			time.ANSIC,
 			time.UnixDate,
 			time.RubyDate,
@@ -764,15 +841,38 @@ func toTime(val any) (time.Time, error) {
 			time.RFC850,
 			time.RFC1123,
 			time.RFC1123Z,
+			time.Kitchen,
+			time.Stamp,
+			time.StampMilli,
+			time.StampMicro,
+			time.StampNano,
 		}
+
 		for _, format := range formats {
 			if t, err := time.Parse(format, v); err == nil {
 				return t, nil
 			}
 		}
-		return time.Time{}, eris.Wrapf(ErrTypeConversion, "value '%s'", v)
+		return time.Time{}, eris.Wrapf(ErrTypeConversion, "time format not recognized: '%s'", v)
+
+	case int64:
+		// Unix timestamp (seconds)
+		return time.Unix(v, 0), nil
+	case int:
+		// Unix timestamp (seconds)
+		return time.Unix(int64(v), 0), nil
+	case float64:
+		// Unix timestamp (seconds, may have fractional part)
+		sec := int64(v)
+		nsec := int64((v - float64(sec)) * 1e9)
+		return time.Unix(sec, nsec), nil
+
 	default:
-		return time.Time{}, eris.Wrapf(ErrTypeConversion, "value '%v' type %T", val, val)
+		// Try to convert to string first and then parse
+		if str := fmt.Sprintf("%v", val); str != "" && str != "<nil>" {
+			return toTime(str)
+		}
+		return time.Time{}, eris.Wrapf(ErrTypeConversion, "unsupported type for time conversion: %T", val)
 	}
 }
 
