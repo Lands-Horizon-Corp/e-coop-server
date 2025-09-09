@@ -122,11 +122,8 @@ func (c *Controller) MemberAccountingLedgerController() {
 		var totalCredit float64
 
 		for _, entry := range entries {
-			if entry.Balance >= 0 {
-				totalCredit += entry.Balance
-			} else {
-				totalDebit += -entry.Balance
-			}
+			totalCredit += entry.Credit
+			totalDebit += -entry.Debit
 		}
 
 		summary := model.MemberAccountingLedgerAccountSummary{
