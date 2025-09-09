@@ -99,11 +99,11 @@ func (c *Controller) MemberAccountingLedgerController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Branch ID is missing for user organization"})
 		}
 
-		entries, err := c.model.GeneralLedgerManager.FindWithFilters(context, []horizon_services.Filter{
-			{Field: "member_accounting_ledgers.member_profile_id", Op: horizon_services.OpEq, Value: memberProfileID},
-			{Field: "member_accounting_ledgers.account_id", Op: horizon_services.OpEq, Value: accountID},
-			{Field: "member_accounting_ledgers.organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
-			{Field: "member_accounting_ledgers.branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
+		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
+			MemberProfileID: memberProfileID,
+			AccountID:       accountID,
+			OrganizationID:  userOrg.OrganizationID,
+			BranchID:        *userOrg.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve member accounting ledger entries: " + err.Error()})
