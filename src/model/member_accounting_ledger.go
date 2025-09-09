@@ -95,6 +95,12 @@ type (
 		TotalShareCapitalPlusFixedSavings float64 `json:"total_share_capital_plus_fixed_savings"`
 		TotalLoans                        float64 `json:"total_loans"`
 	}
+
+	MemberAccountingLedgerAccountSummary struct {
+		Balance     float64 `json:"balance"`
+		TotalDebit  float64 `json:"total_debit"`
+		TotalCredit float64 `json:"total_credit"`
+	}
 )
 
 func (m *Model) MemberAccountingLedger() {

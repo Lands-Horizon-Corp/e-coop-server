@@ -37,6 +37,9 @@ func (s *Seeder) Run(ctx context.Context) error {
 	if err := s.SeedOrganization(ctx); err != nil {
 		return err
 	}
+	if err := s.SeedMemberProfiles(ctx); err != nil {
+		return err
+	}
 	s.provider.Service.Logger.Info("Seeding completed successfully.")
 	return nil
 }
@@ -556,6 +559,158 @@ func (ds *Seeder) SeedUsers(ctx context.Context) error {
 		return err
 	}
 	return nil
+}
+
+func (s *Seeder) SeedMemberProfiles(ctx context.Context) error {
+	// Check if member profiles already exist
+	profiles, err := s.model.MemberProfileManager.List(ctx)
+	if err != nil {
+		return err
+	}
+	if len(profiles) > 0 {
+		return nil
+	}
+
+	s.provider.Service.Logger.Info("Seeding member profiles...")
+
+	// Get existing organizations and branches to seed member profiles for
+	organizations, err := s.model.OrganizationManager.List(ctx)
+	if err != nil {
+		return err
+	}
+
+	// Get existing users to associate with member profiles
+	users, err := s.model.UserManager.List(ctx)
+	if err != nil {
+		return err
+	}
+
+	if len(organizations) == 0 || len(users) == 0 {
+		s.provider.Service.Logger.Warn("No organizations or users found, skipping member profile seeding")
+		return nil
+	}
+
+	// Sample member profile data
+	sampleMembers := []struct {
+		FirstName     string
+		MiddleName    string
+		LastName      string
+		ContactNumber string
+		CivilStatus   string
+		BusinessAddr  string
+	}{
+		{"Juan", "Dela", "Cruz", "+639171234567", "married", "123 Rizal Street, Manila"},
+		{"Maria", "Santos", "Garcia", "+639182345678", "single", "456 Bonifacio Ave, Quezon City"},
+		{"Jose", "Mercado", "Rizal", "+639193456789", "married", "789 Mabini Street, Makati"},
+		{"Ana", "Reyes", "Santos", "+639204567890", "widowed", "321 Luna Street, Pasig"},
+		{"Pedro", "Villa", "Moreno", "+639215678901", "single", "654 Del Pilar Ave, Taguig"},
+		{"Carmen", "Torres", "Valdez", "+639226789012", "married", "987 Aguinaldo Street, Mandaluyong"},
+		{"Roberto", "Flores", "Mendoza", "+639237890123", "divorced", "147 Roxas Blvd, Pasay"},
+		{"Sofia", "Ramos", "Herrera", "+639248901234", "single", "258 EDSA, Caloocan"},
+		{"Miguel", "Castro", "Jimenez", "+639259012345", "married", "369 Commonwealth Ave, Quezon City"},
+		{"Isabella", "Vargas", "Romero", "+639260123456", "single", "741 Ortigas Ave, San Juan"},
+	}
+
+	for _, org := range organizations {
+		// Get branches for this organization
+		branches, err := s.model.BranchManager.Find(ctx, &model.Branch{
+			OrganizationID: org.ID,
+		})
+		if err != nil {
+			continue
+		}
+
+		for _, branch := range branches {
+			// Create 3-5 member profiles per branch
+			numMembers := 3 + (int(org.ID.ID()) % 3) // 3-5 members per branch
+			if numMembers > len(sampleMembers) {
+				numMembers = len(sampleMembers)
+			}
+
+			for i := 0; i < numMembers; i++ {
+				sample := sampleMembers[i]
+
+				// Create birthdate (ages 25-65)
+				age := 25 + (i % 40)
+				birthDate := time.Now().AddDate(-age, 0, 0)
+
+				// Generate full name
+				fullName := fmt.Sprintf("%s %s %s", sample.FirstName, sample.MiddleName, sample.LastName)
+
+				// Generate passbook number
+				passbook := fmt.Sprintf("PB-%s-%04d", branch.Name[:min(3, len(branch.Name))], i+1)
+
+				// Create member profile
+				memberProfile := &model.MemberProfile{
+					CreatedAt:             time.Now().UTC(),
+					CreatedByID:           org.CreatedByID,
+					UpdatedAt:             time.Now().UTC(),
+					UpdatedByID:           org.CreatedByID,
+					OrganizationID:        org.ID,
+					BranchID:              branch.ID,
+					UserID:                &users[i%len(users)].ID, // Rotate through available users
+					FirstName:             sample.FirstName,
+					MiddleName:            sample.MiddleName,
+					LastName:              sample.LastName,
+					FullName:              fullName,
+					BirthDate:             birthDate,
+					Status:                []string{"active", "pending", "inactive"}[i%3],
+					Description:           fmt.Sprintf("Seeded member profile for %s", fullName),
+					Notes:                 fmt.Sprintf("Generated member for testing purposes in %s branch", branch.Name),
+					ContactNumber:         sample.ContactNumber,
+					OldReferenceID:        fmt.Sprintf("REF-%04d", i+1),
+					Passbook:              passbook,
+					Occupation:            []string{"Farmer", "Teacher", "Driver", "Vendor", "Employee", "Business Owner"}[i%6],
+					BusinessAddress:       sample.BusinessAddr,
+					BusinessContactNumber: fmt.Sprintf("+639%03d%06d", 100+i, 100000+i),
+					CivilStatus:           sample.CivilStatus,
+					IsClosed:              false,
+					IsMutualFundMember:    i%2 == 0,
+					IsMicroFinanceMember:  i%3 == 0,
+				}
+
+				if err := s.model.MemberProfileManager.Create(ctx, memberProfile); err != nil {
+					s.provider.Service.Logger.Error(fmt.Sprintf("Failed to create member profile %s: %v", fullName, err))
+					continue
+				}
+
+				// Create sample member address
+				memberAddress := &model.MemberAddress{
+					CreatedAt:       time.Now().UTC(),
+					UpdatedAt:       time.Now().UTC(),
+					CreatedByID:     org.CreatedByID,
+					UpdatedByID:     org.CreatedByID,
+					OrganizationID:  org.ID,
+					BranchID:        branch.ID,
+					MemberProfileID: &memberProfile.ID,
+					Label:           "home",
+					Address:         sample.BusinessAddr,
+					ProvinceState:   "Metro Manila",
+					City:            []string{"Manila", "Quezon City", "Makati", "Pasig", "Taguig"}[i%5],
+					Barangay:        fmt.Sprintf("Barangay %d", i+1),
+					PostalCode:      fmt.Sprintf("1%03d", 100+i),
+					CountryCode:     "PH",
+					Landmark:        fmt.Sprintf("Near %s Mall", []string{"SM", "Ayala", "Robinson", "Gateway", "Trinoma"}[i%5]),
+				}
+
+				if err := s.model.MemberAddressManager.Create(ctx, memberAddress); err != nil {
+					s.provider.Service.Logger.Error(fmt.Sprintf("Failed to create member address for %s: %v", fullName, err))
+				}
+
+				s.provider.Service.Logger.Info(fmt.Sprintf("Created member profile: %s for branch: %s", fullName, branch.Name))
+			}
+		}
+	}
+
+	s.provider.Service.Logger.Info("Member profile seeding completed")
+	return nil
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }
 
 func ptr[T any](v T) *T {

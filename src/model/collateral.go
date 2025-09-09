@@ -7,6 +7,7 @@ import (
 
 	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
+	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
@@ -112,6 +113,118 @@ func (m *Model) Collateral() {
 			}
 		},
 	})
+}
+
+func (m *Model) CollateralSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+	now := time.Now()
+	collaterals := []*Collateral{
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Vehicle/Motor Vehicle",
+			Description:    "Cars, motorcycles, trucks, and other motor vehicles that can be used as collateral for loans.",
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Real Estate Property",
+			Description:    "Houses, lots, buildings, and other real estate properties including residential and commercial properties.",
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Jewelry & Precious Items",
+			Description:    "Gold, silver, diamonds, and other precious jewelry items that hold significant value.",
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Electronics & Gadgets",
+			Description:    "Laptops, smartphones, tablets, cameras, and other electronic devices of significant value.",
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Machinery & Equipment",
+			Description:    "Industrial machinery, construction equipment, and other business equipment used as collateral.",
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Savings Account/Time Deposit",
+			Description:    "Bank savings accounts, time deposits, and other financial instruments as collateral.",
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Securities & Bonds",
+			Description:    "Government bonds, corporate securities, stocks, and other investment instruments.",
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Agricultural Assets",
+			Description:    "Farm equipment, livestock, agricultural land, and other farming-related assets.",
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Furniture & Appliances",
+			Description:    "Valuable furniture sets, home appliances, and other household items of significant worth.",
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Co-maker/Guarantor",
+			Description:    "Personal guarantees from co-makers or guarantors who pledge to pay the loan if the borrower defaults.",
+		},
+	}
+	for _, data := range collaterals {
+		if err := m.CollateralManager.CreateWithTx(context, tx, data); err != nil {
+			return eris.Wrapf(err, "failed to seed collateral %s", data.Name)
+		}
+	}
+	return nil
 }
 
 func (m *Model) CollateralCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Collateral, error) {

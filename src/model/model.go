@@ -409,6 +409,9 @@ func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID 
 	if err := m.DisbursementSeed(context, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
+	if err := m.CollateralSeed(context, tx, userID, organizationID, branchID); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -608,6 +611,18 @@ func (m *Model) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, userID u
 	for _, data := range disbursements {
 		if err := m.DisbursementManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy disbursement %s", data.Name)
+		}
+	}
+	collaterals, err := m.CollateralManager.Find(ctx, &Collateral{
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+	})
+	if err != nil {
+		return eris.Wrapf(err, "failed to get collaterals")
+	}
+	for _, data := range collaterals {
+		if err := m.CollateralManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+			return eris.Wrapf(err, "failed to destroy collateral %s", data.Name)
 		}
 	}
 	return nil

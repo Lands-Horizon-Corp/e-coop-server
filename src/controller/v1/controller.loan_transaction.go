@@ -71,7 +71,6 @@ func (c *Controller) LoanTransactionController() {
 
 		return ctx.JSON(http.StatusOK, c.model.LoanTransactionManager.Pagination(context, ctx, loanTransactions))
 	})
-
 	// GET /api/v1/loan-transaction/:loan_transaction_id
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id",
@@ -327,6 +326,7 @@ func (c *Controller) LoanTransactionController() {
 		}
 
 		if err := c.model.LoanTransactionManager.CreateWithTx(context, tx, loanTransaction); err != nil {
+			tx.Rollback()
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan transaction: " + err.Error()})
 		}
 
@@ -342,7 +342,8 @@ func (c *Controller) LoanTransactionController() {
 			Credit:            0,
 			Debit:             request.Applied1,
 		}
-		if err := c.model.LoanTransactionEntryManager.Create(context, loanTransactionEntry); err != nil {
+		if err := c.model.LoanTransactionEntryManager.CreateWithTx(context, tx, loanTransactionEntry); err != nil {
+			tx.Rollback()
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan transaction entry: " + err.Error()})
 		}
 		cashOnHandTransactionEntry := &model.LoanTransactionEntry{
@@ -357,7 +358,8 @@ func (c *Controller) LoanTransactionController() {
 			Credit:            request.Applied1,
 			Debit:             0,
 		}
-		if err := c.model.LoanTransactionEntryManager.Create(context, cashOnHandTransactionEntry); err != nil {
+		if err := c.model.LoanTransactionEntryManager.CreateWithTx(context, tx, cashOnHandTransactionEntry); err != nil {
+			tx.Rollback()
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan transaction entry: " + err.Error()})
 		}
 		if err := tx.Commit().Error; err != nil {

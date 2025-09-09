@@ -359,7 +359,7 @@ func (e *Event) TransactionPayment(
 		}
 	}
 
-	cohGeneralLedger, err := e.model.GeneralLedgerCurrentSubsidiaryAccountForUpdate(
+	cohGeneralLedger, err := e.model.GeneralLedgerCashOnHandOnUpdate(
 		ctx, tx, *cashOnHandAccountID, userOrg.OrganizationID, *userOrg.BranchID)
 	if err != nil {
 		tx.Rollback()
@@ -471,13 +471,19 @@ func (e *Event) TransactionPayment(
 			GeneralLedger: generalLedger,
 			Account:       account,
 		}, data.Amount)
+		if err != nil {
+			err = eris.Wrap(err, "Account")
+		}
 	case model.GeneralLedgerSourceWithdraw:
 		credit, debit, balance, err = e.service.Withdraw(ctx, service.TransactionData{
 			GeneralLedger: generalLedger,
 			Account:       account,
 		}, data.Amount)
+		if err != nil {
+			err = eris.Wrap(err, "Account")
+		}
 	default:
-		err = eris.New("unsupported source type")
+		err = eris.New("unsupported source type - Account")
 	}
 	if err != nil {
 		tx.Rollback()
@@ -600,13 +606,19 @@ func (e *Event) TransactionPayment(
 			GeneralLedger: cohGeneralLedger,
 			Account:       cashOnHandAccount,
 		}, data.Amount)
+		if err != nil {
+			err = eris.Wrap(err, "Cash on Hand Account")
+		}
 	case model.GeneralLedgerSourceWithdraw:
 		cohCredit, cohDebit, cohBalance, err = e.service.Withdraw(ctx, service.TransactionData{
 			GeneralLedger: cohGeneralLedger,
 			Account:       cashOnHandAccount,
 		}, data.Amount)
+		if err != nil {
+			err = eris.Wrap(err, "Cash on Hand Account")
+		}
 	default:
-		err = eris.New("unsupported source type")
+		err = eris.New("unsupported source type - Cash on Hand Account")
 	}
 	if err != nil {
 		tx.Rollback()

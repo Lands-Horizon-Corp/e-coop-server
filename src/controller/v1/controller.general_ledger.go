@@ -48,7 +48,7 @@ func (c *Controller) GeneralLedgerController() {
 			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
 			{Field: "account_id", Op: horizon_services.OpEq, Value: accountID},
 			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
-			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
+			// {Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
@@ -1467,7 +1467,7 @@ func (c *Controller) GeneralLedgerController() {
 			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
 			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
 			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
-			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
+			// {Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1507,7 +1507,7 @@ func (c *Controller) GeneralLedgerController() {
 			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
 			{Field: "type_of_payment_type", Op: horizon_services.OpEq, Value: model.PaymentTypeCheck},
 			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
-			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
+			// {Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1547,7 +1547,7 @@ func (c *Controller) GeneralLedgerController() {
 			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
 			{Field: "type_of_payment_type", Op: horizon_services.OpEq, Value: model.PaymentTypeOnline},
 			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
-			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
+			// {Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1587,7 +1587,7 @@ func (c *Controller) GeneralLedgerController() {
 			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
 			{Field: "type_of_payment_type", Op: horizon_services.OpEq, Value: model.PaymentTypeCash},
 			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
-			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
+			// {Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1627,7 +1627,7 @@ func (c *Controller) GeneralLedgerController() {
 			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
 			{Field: "source", Op: horizon_services.OpEq, Value: model.GeneralLedgerSourcePayment},
 			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
-			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
+			// {Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1667,7 +1667,7 @@ func (c *Controller) GeneralLedgerController() {
 			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
 			{Field: "source", Op: horizon_services.OpEq, Value: model.GeneralLedgerSourceWithdraw},
 			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
-			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
+			// {Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1707,7 +1707,7 @@ func (c *Controller) GeneralLedgerController() {
 			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
 			{Field: "source", Op: horizon_services.OpEq, Value: model.GeneralLedgerSourceDeposit},
 			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
-			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
+			// {Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1747,7 +1747,7 @@ func (c *Controller) GeneralLedgerController() {
 			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
 			{Field: "source", Op: horizon_services.OpEq, Value: model.GeneralLedgerSourceJournal},
 			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
-			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
+			// {Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1787,7 +1787,7 @@ func (c *Controller) GeneralLedgerController() {
 			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
 			{Field: "source", Op: horizon_services.OpEq, Value: model.GeneralLedgerSourceAdjustment},
 			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
-			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
+			// {Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1827,7 +1827,7 @@ func (c *Controller) GeneralLedgerController() {
 			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
 			{Field: "source", Op: horizon_services.OpEq, Value: model.GeneralLedgerSourceJournalVoucher},
 			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
-			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
+			// {Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1867,7 +1867,7 @@ func (c *Controller) GeneralLedgerController() {
 			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
 			{Field: "source", Op: horizon_services.OpEq, Value: model.GeneralLedgerSourceCheckVoucher},
 			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
-			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
+			// {Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})

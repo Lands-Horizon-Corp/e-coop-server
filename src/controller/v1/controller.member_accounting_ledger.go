@@ -41,7 +41,7 @@ func (c *Controller) MemberAccountingLedgerController() {
 			{Field: "member_accounting_ledgers.organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
 			{Field: "member_accounting_ledgers.branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
 			{Field: "member_accounting_ledgers.account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
-			{Field: "member_accounting_ledgers.account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
+			// {Field: "member_accounting_ledgers.account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve member accounting ledger entries: " + err.Error()})
@@ -71,6 +71,65 @@ func (c *Controller) MemberAccountingLedgerController() {
 			TotalLoans:                        0,
 		}
 		return ctx.JSON(http.StatusOK, summary)
+	})
+
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/member-accounting-ledger/member-profile/:member_profile_id/account/:account_id/total",
+		Method:       "GET",
+		ResponseType: model.MemberAccountingLedgerAccountSummary{},
+		Note:         "Returns the total amount for a specific member profile and account ID.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
+		}
+		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID"})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger totals"})
+		}
+		if userOrg.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Branch ID is missing for user organization"})
+		}
+
+		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
+			MemberProfileID: memberProfileID,
+			AccountID:       accountID,
+			OrganizationID:  userOrg.OrganizationID,
+			BranchID:        *userOrg.BranchID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve member accounting ledger entries: " + err.Error()})
+		}
+		memberAccountingLedger, err := c.model.MemberAccountingLedgerManager.FindOne(context, &model.MemberAccountingLedger{
+			MemberProfileID: *memberProfileID,
+			OrganizationID:  userOrg.OrganizationID,
+			BranchID:        *userOrg.BranchID,
+			AccountID:       *accountID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve member accounting ledger entries: " + err.Error()})
+		}
+
+		var totalDebit float64
+		var totalCredit float64
+
+		for _, entry := range entries {
+			totalCredit += entry.Credit
+			totalDebit += entry.Debit
+		}
+		return ctx.JSON(http.StatusOK, model.MemberAccountingLedgerAccountSummary{
+			Balance:     memberAccountingLedger.Balance,
+			TotalDebit:  totalDebit,
+			TotalCredit: totalCredit,
+		})
 	})
 
 	req.RegisterRoute(handlers.Route{
@@ -106,7 +165,7 @@ func (c *Controller) MemberAccountingLedgerController() {
 			{Field: "member_accounting_ledgers.organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
 			{Field: "member_accounting_ledgers.branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
 			{Field: "member_accounting_ledgers.account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
-			{Field: "member_accounting_ledgers.account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
+			// {Field: "member_accounting_ledgers.account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve member accounting ledger entries: " + err.Error()})
@@ -147,7 +206,7 @@ func (c *Controller) MemberAccountingLedgerController() {
 			{Field: "member_accounting_ledgers.organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
 			{Field: "member_accounting_ledgers.branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
 			{Field: "member_accounting_ledgers.account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
-			{Field: "member_accounting_ledgers.account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
+			// {Field: "member_accounting_ledgers.account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve member accounting ledger entries: " + err.Error()})
@@ -183,7 +242,7 @@ func (c *Controller) MemberAccountingLedgerController() {
 			{Field: "member_accounting_ledgers.organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
 			{Field: "member_accounting_ledgers.branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
 			{Field: "member_accounting_ledgers.account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
-			{Field: "member_accounting_ledgers.account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
+			// {Field: "member_accounting_ledgers.account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve member accounting ledger entries: " + err.Error()})
