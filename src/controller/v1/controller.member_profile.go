@@ -1138,6 +1138,9 @@ func (c *Controller) MemberProfileController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
 		memberProfile.UserID = nil
+		memberProfile.User = nil
+		memberProfile.UpdatedAt = time.Now().UTC()
+		memberProfile.UpdatedByID = userOrg.UserID
 		if err := c.model.MemberProfileManager.UpdateFields(context, memberProfile.ID, memberProfile); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
