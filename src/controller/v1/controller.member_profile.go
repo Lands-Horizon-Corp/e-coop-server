@@ -1148,7 +1148,7 @@ func (c *Controller) MemberProfileController() {
 	})
 
 	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/member-profile/:member_profile_id/connect-user/:user_organization_id",
+		Route:        "/api/v1/member-profile/:member_profile_id/connect-user/:user_id",
 		Method:       "PUT",
 		ResponseType: model.MemberProfileResponse{},
 		Note:         "Connect the specified member profile to a user organization by their IDs.",
@@ -1163,14 +1163,14 @@ func (c *Controller) MemberProfileController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
-		userOrganizationID, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
+		userID, err := handlers.EngineUUIDParam(ctx, "user_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "connect-error",
-				Description: "Connect member profile to user organization failed: invalid user_organization_id: " + err.Error(),
+				Description: "Connect member profile to user organization failed: invalid user_id: " + err.Error(),
 				Module:      "MemberProfile",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_organization_id: " + err.Error()})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_id: " + err.Error()})
 		}
 
 		// Verify current user authorization
@@ -1203,29 +1203,8 @@ func (c *Controller) MemberProfileController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found: %v", memberProfileID, err)})
 		}
 
-		// Get the user organization to verify it exists and get the user ID
-		userOrg, err := c.model.UserOrganizationManager.GetByID(context, *userOrganizationID)
-		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "connect-error",
-				Description: "Connect member profile to user organization failed: user organization not found: " + err.Error(),
-				Module:      "MemberProfile",
-			})
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("UserOrganization with ID %s not found: %v", userOrganizationID, err)})
-		}
-
-		// Verify the user organization belongs to the same organization/branch
-		if userOrg.OrganizationID != currentUserOrg.OrganizationID {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "connect-error",
-				Description: "Connect member profile to user organization failed: organization mismatch",
-				Module:      "MemberProfile",
-			})
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User organization does not belong to the same organization"})
-		}
-
 		// Connect the member profile to the user
-		memberProfile.UserID = &userOrg.UserID
+		memberProfile.UserID = userID
 		memberProfile.UpdatedAt = time.Now().UTC()
 		memberProfile.UpdatedByID = currentUserOrg.UserID
 
@@ -1249,7 +1228,7 @@ func (c *Controller) MemberProfileController() {
 		}
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "connect-success",
-			Description: fmt.Sprintf("Connected member profile (%s) to user organization (%s)", memberProfile.FullName, userOrganizationID.String()),
+			Description: fmt.Sprintf("Connected member profile (%s) to user (%s)", memberProfile.FullName, userID.String()),
 			Module:      "MemberProfile",
 		})
 
