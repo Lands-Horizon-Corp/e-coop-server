@@ -237,6 +237,28 @@ func (c *Controller) UserOrganinzationController() {
 		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.Pagination(context, ctx, userOrganization))
 	})
 
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/user-organization/owner/search",
+		Method:       "GET",
+		ResponseType: model.UserOrganizationResponse{},
+		Note:         "Returns paginated employee user organizations for the current user's branch.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
+		}
+		userOrganization, err := c.model.UserOrganizationManager.Find(context, &model.UserOrganization{
+			OrganizationID: user.OrganizationID,
+			BranchID:       user.BranchID,
+			UserType:       "owner",
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve employee user organizations: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.Pagination(context, ctx, userOrganization))
+	})
+
 	// Get paginated user organizations for members on current branch
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/user-organization/member/search",
