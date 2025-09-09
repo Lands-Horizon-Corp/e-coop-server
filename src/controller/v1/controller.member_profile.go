@@ -1115,7 +1115,7 @@ func (c *Controller) MemberProfileController() {
 	})
 
 	req.RegisterRoute(handlers.Route{
-		Route:        "/member-profile/:member_profile_id/disconnect",
+		Route:        "/api/v1/member-profile/:member_profile_id/disconnect",
 		Method:       "PUT",
 		ResponseType: model.MemberProfileResponse{},
 	}, func(ctx echo.Context) error {

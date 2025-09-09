@@ -284,7 +284,7 @@ func (c *Controller) UserOrganinzationController() {
 
 	// Get paginated user organizations for members without profiles on current branch
 	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/user-organization/none-member-profle/search",
+		Route:        "/api/v1/user-organization/none-member-profile/search",
 		Method:       "GET",
 		ResponseType: model.UserOrganizationResponse{},
 		Note:         "Returns paginated member user organizations without a member profile for the current user's branch.",
