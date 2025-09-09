@@ -477,7 +477,7 @@ func (e *Event) TransactionPayment(
 			Account:       account,
 		}, data.Amount)
 	default:
-		err = eris.New("unsupported source type")
+		err = eris.New("unsupported source type - Account")
 	}
 	if err != nil {
 		tx.Rollback()
@@ -606,7 +606,7 @@ func (e *Event) TransactionPayment(
 			Account:       cashOnHandAccount,
 		}, data.Amount)
 	default:
-		err = eris.New("unsupported source type")
+		err = eris.New("unsupported source type - Cash on Hand Account")
 	}
 	if err != nil {
 		tx.Rollback()
