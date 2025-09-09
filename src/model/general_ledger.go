@@ -350,6 +350,24 @@ func (m *Model) GeneralLedgerCurrentSubsidiaryAccountForUpdate(
 	return &ledger, err
 }
 
+func (m *Model) GeneralLedgerCashOnHandOnUpdate(
+	ctx context.Context, tx *gorm.DB, accountId, orgId, branchId uuid.UUID,
+) (*GeneralLedger, error) {
+	var ledger GeneralLedger
+	err := tx.
+		WithContext(ctx).
+		Model(&GeneralLedger{}).
+		Where("organization_id = ? AND branch_id = ? AND account_id = ?", orgId, branchId, accountId).
+		Order("entry_date DESC NULLS LAST, created_at DESC").
+		Limit(1).
+		Clauses(clause.Locking{Strength: "UPDATE"}).
+		Take(&ledger).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	return &ledger, err
+}
+
 func (m *Model) GeneralLedgerPrintMaxNumber(
 	ctx context.Context,
 	memberProfileID, accountID, branchID, orgID uuid.UUID,

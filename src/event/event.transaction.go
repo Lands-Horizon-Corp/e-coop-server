@@ -359,7 +359,7 @@ func (e *Event) TransactionPayment(
 		}
 	}
 
-	cohGeneralLedger, err := e.model.GeneralLedgerCurrentSubsidiaryAccountForUpdate(
+	cohGeneralLedger, err := e.model.GeneralLedgerCashOnHandOnUpdate(
 		ctx, tx, *cashOnHandAccountID, userOrg.OrganizationID, *userOrg.BranchID)
 	if err != nil {
 		tx.Rollback()
