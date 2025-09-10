@@ -936,7 +936,7 @@ func (c *Controller) UserController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
-		userOrganization, err := c.model.UserOrganizationManager.GetByID(context, userOrg.ID)
+		userOrganization, err := c.model.UserOrganizationManager.GetByID(context, req.UserOrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
