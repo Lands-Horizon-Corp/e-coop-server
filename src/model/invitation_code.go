@@ -30,12 +30,12 @@ type (
 		BranchID       uuid.UUID      `gorm:"type:uuid;not null;index:idx_branch_org_invitation_code"`
 		Branch         *Branch        `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE;" json:"branch,omitempty"`
 
-		UserType       string    `gorm:"type:varchar(255);not null"`
-		Code           string    `gorm:"type:varchar(255);not null;unique"`
-		ExpirationDate time.Time `gorm:"not null"`
-		MaxUse         int       `gorm:"not null"`
-		CurrentUse     int       `gorm:"default:0"`
-		Description    string    `gorm:"type:text"`
+		UserType       UserOrganizationType `gorm:"type:varchar(255);not null"`
+		Code           string               `gorm:"type:varchar(255);not null;unique"`
+		ExpirationDate time.Time            `gorm:"not null"`
+		MaxUse         int                  `gorm:"not null"`
+		CurrentUse     int                  `gorm:"default:0"`
+		Description    string               `gorm:"type:text"`
 
 		PermissionName        string         `gorm:"type:varchar(255);not null" json:"permission_name"`
 		PermissionDescription string         `gorm:"type:varchar(255);not null" json:"permission_description"`
@@ -55,13 +55,13 @@ type (
 		BranchID       uuid.UUID             `json:"branch_id"`
 		Branch         *BranchResponse       `json:"branch,omitempty"`
 
-		UserType       string            `json:"user_type"`
-		Code           string            `json:"code"`
-		ExpirationDate string            `json:"expiration_date"`
-		MaxUse         int               `json:"max_use"`
-		CurrentUse     int               `json:"current_use"`
-		Description    string            `json:"description,omitempty"`
-		QRCode         *horizon.QRResult `json:"qr_code,omitempty"`
+		UserType       UserOrganizationType `json:"user_type"`
+		Code           string               `json:"code"`
+		ExpirationDate string               `json:"expiration_date"`
+		MaxUse         int                  `json:"max_use"`
+		CurrentUse     int                  `json:"current_use"`
+		Description    string               `json:"description,omitempty"`
+		QRCode         *horizon.QRResult    `json:"qr_code,omitempty"`
 
 		PermissionName        string   `json:"permission_name"`
 		PermissionDescription string   `json:"permission_description"`
@@ -180,7 +180,7 @@ func (m *Model) InvitationCodeSeed(context context.Context, tx *gorm.DB, userID 
 			UpdatedByID:    userID,
 			OrganizationID: organizationID,
 			BranchID:       branchID,
-			UserType:       "employee",
+			UserType:       UserOrganizationTypeEmployee,
 			Code:           uuid.New().String(),
 			ExpirationDate: expiration,
 			MaxUse:         5,
@@ -194,7 +194,7 @@ func (m *Model) InvitationCodeSeed(context context.Context, tx *gorm.DB, userID 
 			UpdatedByID:    userID,
 			OrganizationID: organizationID,
 			BranchID:       branchID,
-			UserType:       "member",
+			UserType:       UserOrganizationTypeMember,
 			Code:           uuid.New().String(),
 			ExpirationDate: expiration,
 			MaxUse:         1000,

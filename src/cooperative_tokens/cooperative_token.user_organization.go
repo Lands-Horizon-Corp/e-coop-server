@@ -15,11 +15,11 @@ import (
 )
 
 type UserOrganizatonClaim struct {
-	UserOrganizatonID string `json:"user_organization_id"`
-	UserID            string `json:"user_id"`
-	BranchID          string `json:"branch_id"`
-	OrganizationID    string `json:"organization_id"`
-	UserType          string `json:"user_type"`
+	UserOrganizatonID string                     `json:"user_organization_id"`
+	UserID            string                     `json:"user_id"`
+	BranchID          string                     `json:"branch_id"`
+	OrganizationID    string                     `json:"organization_id"`
+	UserType          model.UserOrganizationType `json:"user_type"`
 	jwt.RegisteredClaims
 }
 

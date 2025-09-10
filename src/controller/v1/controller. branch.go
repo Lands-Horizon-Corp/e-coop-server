@@ -113,7 +113,7 @@ func (c *Controller) BranchController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
-		if userOrganization.UserType != "owner" {
+		if userOrganization.UserType != model.UserOrganizationTypeOwner {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create error",
 				Description: "Only organization owners can create branches for POST /branch/organization/:organization_id",
@@ -292,10 +292,10 @@ func (c *Controller) BranchController() {
 				OrganizationID:           userOrganization.OrganizationID,
 				BranchID:                 &branch.ID,
 				UserID:                   user.ID,
-				UserType:                 "owner",
+				UserType:                 model.UserOrganizationTypeOwner,
 				ApplicationStatus:        "accepted",
 				DeveloperSecretKey:       developerKey + uuid.NewString() + "-horizon",
-				PermissionName:           "owner",
+				PermissionName:           string(model.UserOrganizationTypeOwner),
 				Permissions:              []string{},
 				UserSettingStartOR:       0,
 				UserSettingEndOR:         1000,
@@ -397,7 +397,7 @@ func (c *Controller) BranchController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization for this branch not found: " + err.Error()})
 		}
-		if userOrg.UserType != "owner" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update error",
 				Description: "Only the branch owner can update branch for PUT /branch/:branch_id",
@@ -509,7 +509,7 @@ func (c *Controller) BranchController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}
-		if userOrganization.UserType != "owner" {
+		if userOrganization.UserType != model.UserOrganizationTypeOwner {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete error",
 				Description: "Only the branch owner can delete this branch for DELETE /branch/:branch_id",
@@ -624,7 +624,7 @@ func (c *Controller) BranchController() {
 		}
 
 		// Check if user has permission to update branch settings
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update error",
 				Description: "Insufficient permissions to update branch settings for PUT /branch-settings",

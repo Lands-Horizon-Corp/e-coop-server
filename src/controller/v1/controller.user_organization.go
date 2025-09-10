@@ -157,7 +157,7 @@ func (c *Controller) UserOrganinzationController() {
 			if userOrganization.UserID != user.ID {
 				continue
 			}
-			if userOrganization.UserType != "owner" {
+			if userOrganization.UserType != model.UserOrganizationTypeOwner {
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "create-error",
 					Description: "Seed organization failed: not owner",
@@ -229,7 +229,7 @@ func (c *Controller) UserOrganinzationController() {
 		userOrganization, err := c.model.UserOrganizationManager.Find(context, &model.UserOrganization{
 			OrganizationID: user.OrganizationID,
 			BranchID:       user.BranchID,
-			UserType:       "employee",
+			UserType:       model.UserOrganizationTypeEmployee,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve employee user organizations: " + err.Error()})
@@ -251,7 +251,7 @@ func (c *Controller) UserOrganinzationController() {
 		userOrganization, err := c.model.UserOrganizationManager.Find(context, &model.UserOrganization{
 			OrganizationID: user.OrganizationID,
 			BranchID:       user.BranchID,
-			UserType:       "owner",
+			UserType:       model.UserOrganizationTypeOwner,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve employee user organizations: " + err.Error()})
@@ -274,7 +274,7 @@ func (c *Controller) UserOrganinzationController() {
 		userOrganization, err := c.model.UserOrganizationManager.Find(context, &model.UserOrganization{
 			OrganizationID: user.OrganizationID,
 			BranchID:       user.BranchID,
-			UserType:       "member",
+			UserType:       model.UserOrganizationTypeMember,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve member user organizations: " + err.Error()})
@@ -297,7 +297,7 @@ func (c *Controller) UserOrganinzationController() {
 		userOrganization, err := c.model.UserOrganizationManager.Find(context, &model.UserOrganization{
 			OrganizationID: user.OrganizationID,
 			BranchID:       user.BranchID,
-			UserType:       "member",
+			UserType:       model.UserOrganizationTypeMember,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve member user organizations: " + err.Error()})
@@ -485,7 +485,7 @@ func (c *Controller) UserOrganinzationController() {
 			}
 			return ctx.JSON(http.StatusOK, c.model.UserOrganizationManager.ToModel(userOrganization))
 		}
-		return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Switching forbidden - user is " + userOrganization.UserType})
+		return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Switching forbidden - user is " + string(userOrganization.UserType)})
 	})
 
 	// Remove organization and branch from JWT (no database impact)
@@ -590,7 +590,7 @@ func (c *Controller) UserOrganinzationController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Invitation code not found"})
 		}
 		switch invitationCode.UserType {
-		case "member":
+		case model.UserOrganizationTypeMember:
 			if !c.model.UserOrganizationMemberCanJoin(context, user.ID, invitationCode.OrganizationID, invitationCode.BranchID) {
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "create-error",
@@ -599,7 +599,7 @@ func (c *Controller) UserOrganinzationController() {
 				})
 				return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot join as member"})
 			}
-		case "employee":
+		case model.UserOrganizationTypeEmployee:
 			if !c.model.UserOrganizationEmployeeCanJoin(context, user.ID, invitationCode.OrganizationID, invitationCode.BranchID) {
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "create-error",
@@ -635,7 +635,7 @@ func (c *Controller) UserOrganinzationController() {
 			OrganizationID:           invitationCode.OrganizationID,
 			BranchID:                 &invitationCode.BranchID,
 			UserID:                   user.ID,
-			UserType:                 invitationCode.UserType,
+			UserType:                 model.UserOrganizationType(invitationCode.UserType),
 			Description:              invitationCode.Description,
 			ApplicationDescription:   "anything",
 			ApplicationStatus:        "pending",
@@ -742,7 +742,7 @@ func (c *Controller) UserOrganinzationController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
-		if req.ApplicationStatus == "member" {
+		if req.UserType == model.UserOrganizationTypeMember {
 			if !c.model.UserOrganizationMemberCanJoin(context, user.ID, *orgId, *branchId) {
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "create-error",
@@ -752,7 +752,7 @@ func (c *Controller) UserOrganinzationController() {
 				return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot join as member"})
 			}
 		}
-		if req.ApplicationStatus == "employee" {
+		if req.UserType == model.UserOrganizationTypeEmployee {
 			if !c.model.UserOrganizationEmployeeCanJoin(context, user.ID, *orgId, *branchId) {
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "create-error",
@@ -780,12 +780,12 @@ func (c *Controller) UserOrganinzationController() {
 			OrganizationID:           *orgId,
 			BranchID:                 branchId,
 			UserID:                   user.ID,
-			UserType:                 "member",
+			UserType:                 model.UserOrganizationTypeMember,
 			Description:              req.Description,
 			ApplicationDescription:   "",
 			ApplicationStatus:        "pending",
 			DeveloperSecretKey:       developerKey,
-			PermissionName:           "member",
+			PermissionName:           string(model.UserOrganizationTypeMember),
 			PermissionDescription:    "just a member",
 			Permissions:              []string{},
 			UserSettingDescription:   "",
@@ -833,7 +833,7 @@ func (c *Controller) UserOrganinzationController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
 		switch userOrg.UserType {
-		case "owner", "employee":
+		case model.UserOrganizationTypeOwner, model.UserOrganizationTypeEmployee:
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Leave organization failed: forbidden for owner or employee",
@@ -966,7 +966,7 @@ func (c *Controller) UserOrganinzationController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}
 
-		if user.UserType != "owner" && user.UserType != "admin" {
+		if user.UserType != model.UserOrganizationTypeOwner && user.UserType != "admin" {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "approve-error",
 				Description: "Accept application failed: not owner or admin",
@@ -1040,10 +1040,10 @@ func (c *Controller) UserOrganinzationController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}
 
-		if user.UserType != "owner" && user.UserType != "admin" && user.UserType != "employee" {
+		if user.UserType != model.UserOrganizationTypeOwner && user.UserType != "admin" && user.UserType != model.UserOrganizationTypeEmployee {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
-				Description: "Reject application failed: not allowed for user type " + user.UserType,
+				Description: "Reject application failed: not allowed for user type " + string(user.UserType),
 				Module:      "UserOrganization",
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Only organization owners, admins, or employees can reject applications"})

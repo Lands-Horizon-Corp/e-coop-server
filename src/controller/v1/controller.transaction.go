@@ -222,7 +222,7 @@ func (c *Controller) TransactionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied"})
 		}
 		transactionID, err := handlers.EngineUUIDParam(ctx, "transaction_id")
@@ -250,7 +250,7 @@ func (c *Controller) TransactionController() {
 			})
 		}
 		var filter model.Transaction
-		if userOrg.UserType == "member" {
+		if userOrg.UserType == model.UserOrganizationTypeMember {
 			memberProfile, err := c.model.MemberProfileManager.FindOne(context, &model.MemberProfile{
 				UserID: &userOrg.UserID,
 			})
@@ -289,7 +289,7 @@ func (c *Controller) TransactionController() {
 			})
 		}
 		var filter model.Transaction
-		if userOrg.UserType == "member" {
+		if userOrg.UserType == model.UserOrganizationTypeMember {
 			memberProfile, err := c.model.MemberProfileManager.FindOne(context, &model.MemberProfile{
 				UserID: &userOrg.UserID,
 			})
@@ -325,7 +325,7 @@ func (c *Controller) TransactionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied"})
 		}
 		userOrganizationID, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
@@ -358,7 +358,7 @@ func (c *Controller) TransactionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied"})
 		}
 		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
@@ -391,7 +391,7 @@ func (c *Controller) TransactionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied"})
 		}
 		transactions, err := c.model.TransactionManager.Find(context, &model.Transaction{
@@ -429,4 +429,5 @@ func (c *Controller) TransactionController() {
 		}
 		return ctx.JSON(http.StatusOK, c.model.TransactionManager.Pagination(context, ctx, transactions))
 	})
+
 }

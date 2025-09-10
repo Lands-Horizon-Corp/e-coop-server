@@ -229,7 +229,13 @@ func (ds *Seeder) SeedOrganization(ctx context.Context) error {
 	}
 	for _, user := range users {
 		// Define user types for each organization
-		orgUserTypes := []string{"member", "owner", "employee", "owner", "employee"}
+		orgUserTypes := []model.UserOrganizationType{
+			model.UserOrganizationTypeMember,
+			model.UserOrganizationTypeOwner,
+			model.UserOrganizationTypeEmployee,
+			model.UserOrganizationTypeOwner,
+			model.UserOrganizationTypeEmployee,
+		}
 		for j := 0; j < numOrgsPerUser; j++ {
 			sub := subscriptions[j%len(subscriptions)]
 			subscriptionEndDate := time.Now().Add(30 * 24 * time.Hour)
@@ -369,7 +375,7 @@ func (ds *Seeder) SeedOrganization(ctx context.Context) error {
 					ApplicationDescription:   "Seeded application for testing",
 					ApplicationStatus:        "accepted",
 					DeveloperSecretKey:       developerKey + uuid.NewString() + "-horizon",
-					PermissionName:           orgUserType,
+					PermissionName:           string(orgUserType),
 					PermissionDescription:    "Auto-generated role assignment",
 					Permissions:              []string{"read", "write", "manage"},
 					UserSettingStartOR:       0,
@@ -398,9 +404,9 @@ func (ds *Seeder) SeedOrganization(ctx context.Context) error {
 				}
 
 				for m := range 5 {
-					userType := "member"
+					userType := model.UserOrganizationTypeMember
 					if m%2 == 0 {
-						userType = "employee"
+						userType = model.UserOrganizationTypeEmployee
 					}
 					invitationCode := &model.InvitationCode{
 						CreatedAt:      time.Now().UTC(),

@@ -84,6 +84,10 @@ type (
 		Key      string `json:"key" validate:"required"`
 		Password string `json:"password" validate:"required,min=8"`
 	}
+	UserAdminPasswordVerificationRequest struct {
+		UserOrganizationID uuid.UUID `json:"user_organization_id" validate:"required"`
+		Password           string    `json:"password" validate:"required,min=8"`
+	}
 
 	UserRegisterRequest struct {
 		Email         string     `json:"email" validate:"required,email"`

@@ -32,7 +32,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger totals"})
 		}
 
@@ -106,7 +106,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view branch general ledger entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -135,7 +135,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view branch general ledger entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -165,7 +165,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view branch general ledger entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -195,7 +195,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view branch general ledger entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -225,7 +225,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view branch general ledger entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -255,7 +255,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view branch general ledger entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -285,7 +285,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view branch general ledger entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -315,7 +315,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view branch general ledger entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -345,7 +345,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view branch general ledger entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -375,7 +375,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view branch general ledger entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -405,7 +405,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view branch general ledger entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -449,7 +449,7 @@ func (c *Controller) GeneralLedgerController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
 		switch userOrg.UserType {
-		case "owner", "employee":
+		case model.UserOrganizationTypeOwner, model.UserOrganizationTypeEmployee:
 			entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
 				EmployeeUserID: &userOrganization.UserID,
 				OrganizationID: userOrg.OrganizationID,
@@ -460,7 +460,7 @@ func (c *Controller) GeneralLedgerController() {
 			}
 			return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.Pagination(context, ctx, entries))
 
-		case "member":
+		case model.UserOrganizationTypeMember:
 			member, err := c.model.MemberProfileManager.FindOne(context, &model.MemberProfile{
 				UserID:         &userOrganization.UserID,
 				BranchID:       *userOrg.BranchID,
@@ -501,7 +501,7 @@ func (c *Controller) GeneralLedgerController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
 		switch userOrg.UserType {
-		case "owner", "employee":
+		case model.UserOrganizationTypeOwner, model.UserOrganizationTypeEmployee:
 			entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
 				EmployeeUserID:    &userOrganization.UserID,
 				OrganizationID:    userOrg.OrganizationID,
@@ -513,7 +513,7 @@ func (c *Controller) GeneralLedgerController() {
 			}
 			return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.Pagination(context, ctx, entries))
 
-		case "member":
+		case model.UserOrganizationTypeMember:
 			member, err := c.model.MemberProfileManager.FindOne(context, &model.MemberProfile{
 				UserID:         &userOrganization.UserID,
 				BranchID:       *userOrg.BranchID,
@@ -555,7 +555,7 @@ func (c *Controller) GeneralLedgerController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
 		switch userOrg.UserType {
-		case "owner", "employee":
+		case model.UserOrganizationTypeOwner, model.UserOrganizationTypeEmployee:
 			entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
 				EmployeeUserID:    &userOrganization.UserID,
 				OrganizationID:    userOrg.OrganizationID,
@@ -567,7 +567,7 @@ func (c *Controller) GeneralLedgerController() {
 			}
 			return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.Pagination(context, ctx, entries))
 
-		case "member":
+		case model.UserOrganizationTypeMember:
 			member, err := c.model.MemberProfileManager.FindOne(context, &model.MemberProfile{
 				UserID:         &userOrganization.UserID,
 				BranchID:       *userOrg.BranchID,
@@ -609,7 +609,7 @@ func (c *Controller) GeneralLedgerController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
 		switch userOrg.UserType {
-		case "owner", "employee":
+		case model.UserOrganizationTypeOwner, model.UserOrganizationTypeEmployee:
 			entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
 				EmployeeUserID:    &userOrganization.UserID,
 				OrganizationID:    userOrg.OrganizationID,
@@ -621,7 +621,7 @@ func (c *Controller) GeneralLedgerController() {
 			}
 			return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.Pagination(context, ctx, entries))
 
-		case "member":
+		case model.UserOrganizationTypeMember:
 			member, err := c.model.MemberProfileManager.FindOne(context, &model.MemberProfile{
 				UserID:         &userOrganization.UserID,
 				BranchID:       *userOrg.BranchID,
@@ -663,7 +663,7 @@ func (c *Controller) GeneralLedgerController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
 		switch userOrg.UserType {
-		case "owner", "employee":
+		case model.UserOrganizationTypeOwner, model.UserOrganizationTypeEmployee:
 			entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
 				EmployeeUserID: &userOrganization.UserID,
 				OrganizationID: userOrg.OrganizationID,
@@ -675,7 +675,7 @@ func (c *Controller) GeneralLedgerController() {
 			}
 			return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.Pagination(context, ctx, entries))
 
-		case "member":
+		case model.UserOrganizationTypeMember:
 			member, err := c.model.MemberProfileManager.FindOne(context, &model.MemberProfile{
 				UserID:         &userOrganization.UserID,
 				BranchID:       *userOrg.BranchID,
@@ -717,7 +717,7 @@ func (c *Controller) GeneralLedgerController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
 		switch userOrg.UserType {
-		case "owner", "employee":
+		case model.UserOrganizationTypeOwner, model.UserOrganizationTypeEmployee:
 			entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
 				EmployeeUserID: &userOrganization.UserID,
 				OrganizationID: userOrg.OrganizationID,
@@ -729,7 +729,7 @@ func (c *Controller) GeneralLedgerController() {
 			}
 			return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.Pagination(context, ctx, entries))
 
-		case "member":
+		case model.UserOrganizationTypeMember:
 			member, err := c.model.MemberProfileManager.FindOne(context, &model.MemberProfile{
 				UserID:         &userOrganization.UserID,
 				BranchID:       *userOrg.BranchID,
@@ -771,7 +771,7 @@ func (c *Controller) GeneralLedgerController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
 		switch userOrg.UserType {
-		case "owner", "employee":
+		case model.UserOrganizationTypeOwner, model.UserOrganizationTypeEmployee:
 			entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
 				EmployeeUserID: &userOrganization.UserID,
 				OrganizationID: userOrg.OrganizationID,
@@ -783,7 +783,7 @@ func (c *Controller) GeneralLedgerController() {
 			}
 			return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.Pagination(context, ctx, entries))
 
-		case "member":
+		case model.UserOrganizationTypeMember:
 			member, err := c.model.MemberProfileManager.FindOne(context, &model.MemberProfile{
 				UserID:         &userOrganization.UserID,
 				BranchID:       *userOrg.BranchID,
@@ -825,7 +825,7 @@ func (c *Controller) GeneralLedgerController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
 		switch userOrg.UserType {
-		case "owner", "employee":
+		case model.UserOrganizationTypeOwner, model.UserOrganizationTypeEmployee:
 			entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
 				EmployeeUserID: &userOrganization.UserID,
 				OrganizationID: userOrg.OrganizationID,
@@ -837,7 +837,7 @@ func (c *Controller) GeneralLedgerController() {
 			}
 			return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.Pagination(context, ctx, entries))
 
-		case "member":
+		case model.UserOrganizationTypeMember:
 			member, err := c.model.MemberProfileManager.FindOne(context, &model.MemberProfile{
 				UserID:         &userOrganization.UserID,
 				BranchID:       *userOrg.BranchID,
@@ -879,7 +879,7 @@ func (c *Controller) GeneralLedgerController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
 		switch userOrg.UserType {
-		case "owner", "employee":
+		case model.UserOrganizationTypeOwner, model.UserOrganizationTypeEmployee:
 			entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
 				EmployeeUserID: &userOrganization.UserID,
 				OrganizationID: userOrg.OrganizationID,
@@ -891,7 +891,7 @@ func (c *Controller) GeneralLedgerController() {
 			}
 			return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.Pagination(context, ctx, entries))
 
-		case "member":
+		case model.UserOrganizationTypeMember:
 			member, err := c.model.MemberProfileManager.FindOne(context, &model.MemberProfile{
 				UserID:         &userOrganization.UserID,
 				BranchID:       *userOrg.BranchID,
@@ -933,7 +933,7 @@ func (c *Controller) GeneralLedgerController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
 		switch userOrg.UserType {
-		case "owner", "employee":
+		case model.UserOrganizationTypeOwner, model.UserOrganizationTypeEmployee:
 			entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
 				EmployeeUserID: &userOrganization.UserID,
 				OrganizationID: userOrg.OrganizationID,
@@ -945,7 +945,7 @@ func (c *Controller) GeneralLedgerController() {
 			}
 			return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.Pagination(context, ctx, entries))
 
-		case "member":
+		case model.UserOrganizationTypeMember:
 			member, err := c.model.MemberProfileManager.FindOne(context, &model.MemberProfile{
 				UserID:         &userOrganization.UserID,
 				BranchID:       *userOrg.BranchID,
@@ -987,7 +987,7 @@ func (c *Controller) GeneralLedgerController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
 		switch userOrg.UserType {
-		case "owner", "employee":
+		case model.UserOrganizationTypeOwner, model.UserOrganizationTypeEmployee:
 			entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
 				EmployeeUserID: &userOrganization.UserID,
 				OrganizationID: userOrg.OrganizationID,
@@ -999,7 +999,7 @@ func (c *Controller) GeneralLedgerController() {
 			}
 			return ctx.JSON(http.StatusOK, c.model.GeneralLedgerManager.Pagination(context, ctx, entries))
 
-		case "member":
+		case model.UserOrganizationTypeMember:
 			member, err := c.model.MemberProfileManager.FindOne(context, &model.MemberProfile{
 				UserID:         &userOrganization.UserID,
 				BranchID:       *userOrg.BranchID,
@@ -1054,7 +1054,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view employee general ledger entries"})
 		}
 		userOrganization, err := c.model.UserOrganizationManager.GetByID(context, *userOrganizationID)
@@ -1088,7 +1088,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view employee general ledger entries"})
 		}
 		userOrganization, err := c.model.UserOrganizationManager.GetByID(context, *userOrganizationID)
@@ -1123,7 +1123,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view employee general ledger entries"})
 		}
 		userOrganization, err := c.model.UserOrganizationManager.GetByID(context, *userOrganizationID)
@@ -1158,7 +1158,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view employee general ledger entries"})
 		}
 		userOrganization, err := c.model.UserOrganizationManager.GetByID(context, *userOrganizationID)
@@ -1193,7 +1193,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view employee general ledger entries"})
 		}
 		userOrganization, err := c.model.UserOrganizationManager.GetByID(context, *userOrganizationID)
@@ -1228,7 +1228,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view employee general ledger entries"})
 		}
 		userOrganization, err := c.model.UserOrganizationManager.GetByID(context, *userOrganizationID)
@@ -1263,7 +1263,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view employee general ledger entries"})
 		}
 		userOrganization, err := c.model.UserOrganizationManager.GetByID(context, *userOrganizationID)
@@ -1298,7 +1298,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view employee general ledger entries"})
 		}
 		userOrganization, err := c.model.UserOrganizationManager.GetByID(context, *userOrganizationID)
@@ -1333,7 +1333,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view employee general ledger entries"})
 		}
 		userOrganization, err := c.model.UserOrganizationManager.GetByID(context, *userOrganizationID)
@@ -1368,7 +1368,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view employee general ledger entries"})
 		}
 		userOrganization, err := c.model.UserOrganizationManager.GetByID(context, *userOrganizationID)
@@ -1403,7 +1403,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view employee general ledger entries"})
 		}
 		userOrganization, err := c.model.UserOrganizationManager.GetByID(context, *userOrganizationID)
@@ -1452,7 +1452,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 
@@ -1491,7 +1491,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 
@@ -1531,7 +1531,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 
@@ -1571,7 +1571,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 
@@ -1611,7 +1611,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 
@@ -1651,7 +1651,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 
@@ -1691,7 +1691,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 
@@ -1731,7 +1731,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 
@@ -1771,7 +1771,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 
@@ -1811,7 +1811,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 
@@ -1851,7 +1851,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 
@@ -1909,7 +1909,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -1944,7 +1944,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -1980,7 +1980,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -2016,7 +2016,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -2052,7 +2052,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -2088,7 +2088,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -2124,7 +2124,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -2160,7 +2160,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -2196,7 +2196,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -2232,7 +2232,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -2268,7 +2268,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -2314,7 +2314,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -2344,7 +2344,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -2375,7 +2375,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -2406,7 +2406,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -2437,7 +2437,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -2468,7 +2468,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -2499,7 +2499,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -2530,7 +2530,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -2561,7 +2561,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -2592,7 +2592,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -2623,7 +2623,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -2668,7 +2668,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		entries, err := c.model.GeneralLedgerExcludeCashonHand(context, *transactionId, userOrg.OrganizationID, *userOrg.BranchID)
@@ -2695,7 +2695,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -2726,7 +2726,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -2757,7 +2757,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -2788,7 +2788,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -2819,7 +2819,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -2850,7 +2850,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		source := model.GeneralLedgerSourceDeposit
@@ -2877,7 +2877,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		source := model.GeneralLedgerSourceJournal
@@ -2904,7 +2904,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		source := model.GeneralLedgerSourceAdjustment
@@ -2931,7 +2931,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		source := model.GeneralLedgerSourceJournalVoucher
@@ -2958,7 +2958,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		source := model.GeneralLedgerSourceCheckVoucher
@@ -2999,7 +2999,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view financial statement entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -3029,7 +3029,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view financial statement entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -3060,7 +3060,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view financial statement entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -3091,7 +3091,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view financial statement entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -3122,7 +3122,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view financial statement entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -3153,7 +3153,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view financial statement entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -3184,7 +3184,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view financial statement entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -3215,7 +3215,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view financial statement entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -3246,7 +3246,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view financial statement entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -3277,7 +3277,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view financial statement entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
@@ -3308,7 +3308,7 @@ func (c *Controller) GeneralLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view financial statement entries"})
 		}
 		entries, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{

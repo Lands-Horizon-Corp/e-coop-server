@@ -32,19 +32,19 @@ type (
 		MediaID *uuid.UUID `gorm:"type:uuid"`
 		Media   *Media     `gorm:"foreignKey:MediaID;constraint:OnDelete:SET NULL;" json:"media,omitempty"`
 
-		Description    string    `gorm:"type:text;not null"`
-		Activity       string    `gorm:"type:text;not null"`
-		UserType       string    `gorm:"type:varchar(11);unsigned" json:"user_type"`
-		Module         string    `gorm:"type:varchar(255);unsigned" json:"module"`
-		Latitude       *float64  `gorm:"type:decimal(10,7)" json:"latitude,omitempty"`
-		Longitude      *float64  `gorm:"type:decimal(10,7)" json:"longitude,omitempty"`
-		Timestamp      time.Time `gorm:"type:timestamp" json:"timestamp"`
-		IsDeleted      bool      `gorm:"default:false" json:"is_deleted"`
-		IPAddress      string    `gorm:"type:varchar(45)" json:"ip_address"`
-		UserAgent      string    `gorm:"type:varchar(1000)" json:"user_agent"`
-		Referer        string    `gorm:"type:varchar(1000)" json:"referer"`
-		Location       string    `gorm:"type:varchar(255)" json:"location"`
-		AcceptLanguage string    `gorm:"type:varchar(255)" json:"accept_language"`
+		Description    string               `gorm:"type:text;not null"`
+		Activity       string               `gorm:"type:text;not null"`
+		UserType       UserOrganizationType `gorm:"type:varchar(11);unsigned" json:"user_type"`
+		Module         string               `gorm:"type:varchar(255);unsigned" json:"module"`
+		Latitude       *float64             `gorm:"type:decimal(10,7)" json:"latitude,omitempty"`
+		Longitude      *float64             `gorm:"type:decimal(10,7)" json:"longitude,omitempty"`
+		Timestamp      time.Time            `gorm:"type:timestamp" json:"timestamp"`
+		IsDeleted      bool                 `gorm:"default:false" json:"is_deleted"`
+		IPAddress      string               `gorm:"type:varchar(45)" json:"ip_address"`
+		UserAgent      string               `gorm:"type:varchar(1000)" json:"user_agent"`
+		Referer        string               `gorm:"type:varchar(1000)" json:"referer"`
+		Location       string               `gorm:"type:varchar(255)" json:"location"`
+		AcceptLanguage string               `gorm:"type:varchar(255)" json:"accept_language"`
 	}
 
 	FootstepResponse struct {
@@ -65,19 +65,19 @@ type (
 		MediaID *uuid.UUID     `json:"media_id,omitempty"`
 		Media   *MediaResponse `json:"media,omitempty"`
 
-		Description    string   `json:"description"`
-		Activity       string   `json:"activity"`
-		UserType       string   `json:"user_type"`
-		Module         string   `json:"module"`
-		Latitude       *float64 `json:"latitude,omitempty"`
-		Longitude      *float64 `json:"longitude,omitempty"`
-		Timestamp      string   `json:"timestamp"`
-		IsDeleted      bool     `json:"is_deleted"`
-		IPAddress      string   `json:"ip_address"`
-		UserAgent      string   `json:"user_agent"`
-		Referer        string   `json:"referer"`
-		Location       string   `json:"location"`
-		AcceptLanguage string   `json:"accept_language"`
+		Description    string               `json:"description"`
+		Activity       string               `json:"activity"`
+		UserType       UserOrganizationType `json:"user_type"`
+		Module         string               `json:"module"`
+		Latitude       *float64             `json:"latitude,omitempty"`
+		Longitude      *float64             `json:"longitude,omitempty"`
+		Timestamp      string               `json:"timestamp"`
+		IsDeleted      bool                 `json:"is_deleted"`
+		IPAddress      string               `json:"ip_address"`
+		UserAgent      string               `json:"user_agent"`
+		Referer        string               `json:"referer"`
+		Location       string               `json:"location"`
+		AcceptLanguage string               `json:"accept_language"`
 	}
 )
 

@@ -122,7 +122,7 @@ func (c *Controller) InvitationCode() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization/branch not found"})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Unauthorized create attempt for invitation code (/invitation-code)",
@@ -130,7 +130,7 @@ func (c *Controller) InvitationCode() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Only owners and employees can create invitation codes"})
 		}
-		if req.UserType == "owner" {
+		if model.UserOrganizationType(req.UserType) == model.UserOrganizationTypeOwner {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Invitation code creation failed (/invitation-code), attempted to create user type 'owner'",
@@ -153,7 +153,7 @@ func (c *Controller) InvitationCode() {
 			UpdatedByID:    userOrg.UserID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
-			UserType:       req.UserType,
+			UserType:       model.UserOrganizationType(req.UserType),
 			Code:           req.Code,
 			ExpirationDate: req.ExpirationDate,
 			MaxUse:         req.MaxUse,
@@ -233,7 +233,7 @@ func (c *Controller) InvitationCode() {
 		invitationCode.UpdatedByID = userOrg.UserID
 		invitationCode.OrganizationID = userOrg.OrganizationID
 		invitationCode.BranchID = *userOrg.BranchID
-		invitationCode.UserType = req.UserType
+		invitationCode.UserType = model.UserOrganizationType(req.UserType)
 		invitationCode.Code = req.Code
 		invitationCode.ExpirationDate = req.ExpirationDate
 		invitationCode.MaxUse = req.MaxUse
