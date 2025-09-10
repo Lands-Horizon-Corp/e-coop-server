@@ -429,4 +429,5 @@ func (c *Controller) TransactionController() {
 		}
 		return ctx.JSON(http.StatusOK, c.model.TransactionManager.Pagination(context, ctx, transactions))
 	})
+
 }

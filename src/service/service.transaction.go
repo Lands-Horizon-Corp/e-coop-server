@@ -11,6 +11,7 @@ import (
 type TransactionData struct {
 	Account       *model.Account
 	GeneralLedger *model.GeneralLedger
+	Reverse       bool
 }
 
 type TransactionService struct{}
