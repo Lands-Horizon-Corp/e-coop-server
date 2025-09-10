@@ -45,6 +45,10 @@ func (e *Event) TransactionPayment(
 	data TransactionEvent,
 
 ) (*model.GeneralLedger, error) {
+	if data.EntryDate == nil {
+		now := time.Now().UTC()
+		data.EntryDate = &now
+	}
 	// ================================================================================
 	// STEP 1: INITIALIZATION & PERFORMANCE MONITORING
 	// ================================================================================
