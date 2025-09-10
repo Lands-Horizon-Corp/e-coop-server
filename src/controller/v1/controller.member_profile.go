@@ -27,7 +27,7 @@ func (c *Controller) MemberProfileController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
 		memberProfile, err := c.model.MemberProfileManager.Find(context, &model.MemberProfile{
@@ -174,12 +174,12 @@ func (c *Controller) MemberProfileController() {
 			OrganizationID:           userOrg.OrganizationID,
 			BranchID:                 userOrg.BranchID,
 			UserID:                   userProfile.ID,
-			UserType:                 "member",
+			UserType:                 model.UserOrganizationTypeMember,
 			Description:              "",
 			ApplicationDescription:   "anything",
 			ApplicationStatus:        "accepted",
 			DeveloperSecretKey:       developerKey,
-			PermissionName:           "member",
+			PermissionName:           string(model.UserOrganizationTypeMember),
 			PermissionDescription:    "",
 			Permissions:              []string{},
 			UserSettingDescription:   "user settings",
@@ -245,7 +245,7 @@ func (c *Controller) MemberProfileController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "approve-error",
 				Description: "Approve member profile failed: user not authorized",
@@ -306,7 +306,7 @@ func (c *Controller) MemberProfileController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "reject-error",
 				Description: "Reject member profile failed: user not authorized",
@@ -752,12 +752,12 @@ func (c *Controller) MemberProfileController() {
 				OrganizationID:           user.OrganizationID,
 				BranchID:                 user.BranchID,
 				UserID:                   *userProfileID,
-				UserType:                 "member",
+				UserType:                 model.UserOrganizationTypeMember,
 				Description:              "",
 				ApplicationDescription:   "anything",
 				ApplicationStatus:        "accepted",
 				DeveloperSecretKey:       developerKey,
-				PermissionName:           "member",
+				PermissionName:           string(model.UserOrganizationTypeMember),
 				PermissionDescription:    "",
 				Permissions:              []string{},
 				UserSettingDescription:   "user settings",
@@ -1129,7 +1129,7 @@ func (c *Controller) MemberProfileController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
-		if userOrg.UserType != "owner" && userOrg.UserType != "employee" {
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
 
@@ -1183,7 +1183,7 @@ func (c *Controller) MemberProfileController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		if currentUserOrg.UserType != "owner" && currentUserOrg.UserType != "employee" {
+		if currentUserOrg.UserType != model.UserOrganizationTypeOwner && currentUserOrg.UserType != model.UserOrganizationTypeEmployee {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "connect-error",
 				Description: "Connect member profile to user organization failed: user not authorized",

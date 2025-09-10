@@ -21,6 +21,14 @@ const (
 	UserOrganizationStatusCommuting UserOrganizationStatus = "commuting"
 )
 
+type UserOrganizationType string
+
+const (
+	UserOrganizationTypeOwner    UserOrganizationType = "owner"
+	UserOrganizationTypeEmployee UserOrganizationType = "employee"
+	UserOrganizationTypeMember   UserOrganizationType = "member"
+)
+
 type (
 	UserOrganization struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
@@ -43,15 +51,15 @@ type (
 		UserID uuid.UUID `gorm:"type:uuid;not null;index:idx_user_org_branch" json:"user_id"`
 		User   *User     `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE;" json:"user,omitempty"`
 
-		UserType               string         `gorm:"type:varchar(50);not null" json:"user_type"`
-		Description            string         `gorm:"type:text" json:"description,omitempty"`
-		ApplicationDescription string         `gorm:"type:text" json:"application_description,omitempty"`
-		ApplicationStatus      string         `gorm:"type:varchar(50);not null;default:'pending'" json:"application_status"`
-		DeveloperSecretKey     string         `gorm:"type:varchar(255);not null;unique" json:"developer_secret_key"`
-		PermissionName         string         `gorm:"type:varchar(255);not null" json:"permission_name"`
-		PermissionDescription  string         `gorm:"type:varchar(255);not null" json:"permission_description"`
-		Permissions            pq.StringArray `gorm:"type:varchar(255)[]" json:"permissions"`
-		IsSeeded               bool           `gorm:"not null;default:false" json:"is_seeded"`
+		UserType               UserOrganizationType `gorm:"type:varchar(50);not null" json:"user_type"`
+		Description            string               `gorm:"type:text" json:"description,omitempty"`
+		ApplicationDescription string               `gorm:"type:text" json:"application_description,omitempty"`
+		ApplicationStatus      string               `gorm:"type:varchar(50);not null;default:'pending'" json:"application_status"`
+		DeveloperSecretKey     string               `gorm:"type:varchar(255);not null;unique" json:"developer_secret_key"`
+		PermissionName         string               `gorm:"type:varchar(255);not null" json:"permission_name"`
+		PermissionDescription  string               `gorm:"type:varchar(255);not null" json:"permission_description"`
+		Permissions            pq.StringArray       `gorm:"type:varchar(255)[]" json:"permissions"`
+		IsSeeded               bool                 `gorm:"not null;default:false" json:"is_seeded"`
 
 		UserSettingDescription   string `gorm:"type:text" json:"user_setting_description"`
 		UserSettingNumberPadding int    `gorm:"not null;default:0" json:"user_setting_number_padding"`
@@ -89,8 +97,8 @@ type (
 	}
 
 	UserOrganizationRequest struct {
-		ID       *uuid.UUID `json:"id,omitempty"`
-		UserType string     `json:"user_type,omitempty" validate:"omitempty,oneof=employee member"`
+		ID       *uuid.UUID           `json:"id,omitempty"`
+		UserType UserOrganizationType `json:"user_type,omitempty" validate:"omitempty,oneof=employee member owner"`
 
 		Description            string   `json:"description,omitempty"`
 		ApplicationDescription string   `json:"application_description,omitempty"`
@@ -111,8 +119,8 @@ type (
 		UserSettingUsedVoucher  int64 `json:"user_setting_used_voucher,omitempty" validate:"min=0"`
 	}
 	UserOrganizationSettingsRequest struct {
-		UserType    string `json:"user_type,omitempty" validate:"omitempty,oneof=employee member"`
-		Description string `json:"description,omitempty"`
+		UserType    UserOrganizationType `json:"user_type,omitempty" validate:"omitempty,oneof=employee member"`
+		Description string               `json:"description,omitempty"`
 
 		ApplicationDescription string `json:"application_description,omitempty"`
 		ApplicationStatus      string `json:"application_status" validate:"omitempty,oneof=pending reported accepted ban not-allowed"`
@@ -174,16 +182,16 @@ type (
 		BranchID       *uuid.UUID            `json:"branch_id"`
 		Branch         *BranchResponse       `json:"branch,omitempty"`
 
-		UserID                 uuid.UUID     `json:"user_id"`
-		User                   *UserResponse `json:"user,omitempty"`
-		UserType               string        `json:"user_type"`
-		Description            string        `json:"description,omitempty"`
-		ApplicationDescription string        `json:"application_description,omitempty"`
-		ApplicationStatus      string        `json:"application_status"`
-		DeveloperSecretKey     string        `json:"developer_secret_key"`
-		PermissionName         string        `json:"permission_name"`
-		PermissionDescription  string        `json:"permission_description"`
-		Permissions            []string      `json:"permissions"`
+		UserID                 uuid.UUID            `json:"user_id"`
+		User                   *UserResponse        `json:"user,omitempty"`
+		UserType               UserOrganizationType `json:"user_type"`
+		Description            string               `json:"description,omitempty"`
+		ApplicationDescription string               `json:"application_description,omitempty"`
+		ApplicationStatus      string               `json:"application_status"`
+		DeveloperSecretKey     string               `json:"developer_secret_key"`
+		PermissionName         string               `json:"permission_name"`
+		PermissionDescription  string               `json:"permission_description"`
+		Permissions            []string             `json:"permissions"`
 
 		UserSettingDescription string `json:"user_setting_description"`
 
@@ -424,7 +432,7 @@ func (m *Model) Employees(context context.Context, organizationID uuid.UUID, bra
 	return m.UserOrganizationManager.Find(context, &UserOrganization{
 		OrganizationID: organizationID,
 		BranchID:       &branchID,
-		UserType:       "employee",
+		UserType:       UserOrganizationTypeEmployee,
 	})
 }
 
@@ -432,6 +440,6 @@ func (m *Model) Members(context context.Context, organizationID uuid.UUID, branc
 	return m.UserOrganizationManager.Find(context, &UserOrganization{
 		OrganizationID: organizationID,
 		BranchID:       &branchID,
-		UserType:       "members",
+		UserType:       UserOrganizationTypeMember,
 	})
 }

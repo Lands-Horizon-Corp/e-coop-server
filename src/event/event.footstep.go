@@ -27,7 +27,7 @@ func (e *Event) Footstep(context context.Context, ctx echo.Context, data Footste
 		userId := user.ID
 		userOrganization, _ := e.userOrganizationToken.CurrentUserOrganization(context, ctx)
 
-		var userType string
+		var userType model.UserOrganizationType
 		var orgId, branchId *uuid.UUID
 		if userOrganization != nil {
 			userType = userOrganization.UserType

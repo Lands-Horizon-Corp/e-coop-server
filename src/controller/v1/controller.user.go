@@ -918,4 +918,46 @@ func (c *Controller) UserController() {
 		})
 		return ctx.JSON(http.StatusOK, c.model.UserManager.ToModel(updatedUser))
 	})
+
+	req.RegisterRoute(handlers.Route{
+		Route:  "/api/v1/authentication/verify-with-password/owner",
+		Method: "POST",
+		Note:   "Verifies the user's password for protected owner actions. (must be owner and inside a branch)",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		var req model.UserAdminPasswordVerificationRequest
+		if err := ctx.Bind(&req); err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid login payload: " + err.Error()})
+		}
+		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
+		}
+		userOrganization, err := c.model.UserOrganizationManager.GetByID(context, userOrg.ID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get user organization: " + err.Error()})
+		}
+		if userOrg.BranchID != userOrganization.BranchID {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Forbidden: User is not in the correct branch"})
+		}
+		if userOrg.OrganizationID != userOrganization.OrganizationID {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Forbidden: User is not in the correct organization"})
+		}
+		if userOrganization.UserType != model.UserOrganizationTypeOwner {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Forbidden: User is not an owner"})
+		}
+		valid, err := c.provider.Service.Security.VerifyPassword(context, userOrganization.User.Password, req.Password)
+		if err != nil || !valid {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid credentials"})
+		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "update-success",
+			Description: "Owner password verification successful for user organization: " + userOrg.ID.String(),
+			Module:      "User",
+		})
+		return ctx.NoContent(http.StatusNoContent)
+	})
 }

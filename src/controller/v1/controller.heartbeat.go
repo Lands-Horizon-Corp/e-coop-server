@@ -163,11 +163,11 @@ func (c *Controller) Heartbeat() {
 			switch org.Status {
 			case model.UserOrganizationStatusOnline:
 				onlineUsers = append(onlineUsers, org)
-				if org.UserType == "member" {
+				if org.UserType == model.UserOrganizationTypeMember {
 					onlineMembers++
 					totalMembers++
 				}
-				if org.UserType == "employee" {
+				if org.UserType == model.UserOrganizationTypeEmployee {
 					onlineEmployees++
 					totalEmployees++
 				}
