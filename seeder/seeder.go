@@ -37,6 +37,9 @@ func (s *Seeder) Run(ctx context.Context) error {
 	if err := s.SeedOrganization(ctx); err != nil {
 		return err
 	}
+	if err := s.SeedEmployees(ctx); err != nil {
+		return err
+	}
 	if err := s.SeedMemberProfiles(ctx); err != nil {
 		return err
 	}
@@ -431,6 +434,127 @@ func (ds *Seeder) SeedOrganization(ctx context.Context) error {
 	}
 	return nil
 }
+
+func (s *Seeder) SeedEmployees(ctx context.Context) error {
+	s.provider.Service.Logger.Info("Seeding branch employees...")
+
+	// Get all organizations and their branches
+	organizations, err := s.model.OrganizationManager.List(ctx)
+	if err != nil {
+		return err
+	}
+
+	// Get all users to use as employees
+	users, err := s.model.UserManager.List(ctx)
+	if err != nil {
+		return err
+	}
+
+	if len(users) == 0 {
+		s.provider.Service.Logger.Warn("No users found for employee seeding")
+		return nil
+	}
+
+	userIndex := 0
+	for _, org := range organizations {
+		// Get branches for this organization
+		branches, err := s.model.BranchManager.Find(ctx, &model.Branch{
+			OrganizationID: org.ID,
+		})
+		if err != nil {
+			continue
+		}
+
+		for _, branch := range branches {
+			// Check how many employees already exist for this branch
+			existingEmployees, err := s.model.Employees(ctx, org.ID, branch.ID)
+			if err != nil {
+				continue
+			}
+
+			// Skip if this branch already has 3 or more employees
+			if len(existingEmployees) >= 3 {
+				continue
+			}
+
+			// Create 2-4 employees per branch using existing users
+			numEmployeesToCreate := 2 + (int(branch.ID.ID()) % 3) // 2-4 employees per branch
+
+			// Don't exceed the number of available users
+			if numEmployeesToCreate > len(users) {
+				numEmployeesToCreate = len(users)
+			}
+
+			for i := 0; i < numEmployeesToCreate; i++ {
+				// Skip if we've used all available users
+				if userIndex >= len(users) {
+					userIndex = 0 // Restart from first user if we run out
+				}
+
+				selectedUser := users[userIndex]
+				userIndex++
+
+				// Check if this user is already associated with this branch
+				existingAssociation, err := s.model.UserOrganizationManager.Count(ctx, &model.UserOrganization{
+					UserID:         selectedUser.ID,
+					OrganizationID: org.ID,
+					BranchID:       &branch.ID,
+				})
+				if err != nil || existingAssociation > 0 {
+					// Skip if user is already associated with this branch
+					continue
+				}
+
+				// Generate developer key
+				developerKey, err := s.provider.Service.Security.GenerateUUIDv5(ctx, fmt.Sprintf("%s-%s-%s", selectedUser.ID, org.ID, branch.ID))
+				if err != nil {
+					return err
+				}
+
+				// Create employee user organization record
+				employeeOrg := &model.UserOrganization{
+					CreatedAt:                time.Now().UTC(),
+					CreatedByID:              org.CreatedByID, // Created by the organization owner
+					UpdatedAt:                time.Now().UTC(),
+					UpdatedByID:              org.CreatedByID,
+					BranchID:                 &branch.ID,
+					OrganizationID:           org.ID,
+					UserID:                   selectedUser.ID,
+					UserType:                 model.UserOrganizationTypeEmployee,
+					Description:              fmt.Sprintf("Employee %s at %s branch", *selectedUser.FirstName, branch.Name),
+					ApplicationDescription:   "Seeded employee for testing and demonstration",
+					ApplicationStatus:        "accepted",
+					DeveloperSecretKey:       developerKey + uuid.NewString() + "-employee-horizon",
+					PermissionName:           "Employee",
+					PermissionDescription:    "Branch employee with standard permissions",
+					Permissions:              []string{"read", "create", "update"},
+					UserSettingStartOR:       int64((i + 1) * 1000),
+					UserSettingEndOR:         int64((i+1)*1000 + 999),
+					UserSettingUsedOR:        0,
+					UserSettingStartVoucher:  int64((i + 1) * 100),
+					UserSettingEndVoucher:    int64((i+1)*100 + 99),
+					UserSettingUsedVoucher:   0,
+					UserSettingNumberPadding: 7,
+					Status:                   model.UserOrganizationStatusOffline,
+					LastOnlineAt:             time.Now().UTC(),
+				}
+
+				if err := s.model.UserOrganizationManager.Create(ctx, employeeOrg); err != nil {
+					s.provider.Service.Logger.Error(fmt.Sprintf("Failed to create employee %s for branch %s: %v",
+						*selectedUser.FirstName, branch.Name, err))
+					continue
+				}
+
+				s.provider.Service.Logger.Info(fmt.Sprintf("Created employee: %s %s for organization: %s, branch: %s",
+					*selectedUser.FirstName, *selectedUser.LastName, org.Name, branch.Name))
+			}
+		}
+	}
+
+	s.provider.Service.Logger.Info("Employee seeding completed")
+	return nil
+}
+
 func (ds *Seeder) SeedUsers(ctx context.Context) error {
 	users, err := ds.model.UserManager.List(ctx)
 	if err != nil {
