@@ -197,7 +197,7 @@ func (ds *Seeder) SeedOrganization(ctx context.Context) error {
 		return nil
 	}
 
-	const numOrgsPerUser = 5
+	const numOrgsPerUser = 5 // Each user will own 2 organizations
 	users, err := ds.model.UserManager.List(ctx)
 	if err != nil {
 		return err
@@ -230,30 +230,24 @@ func (ds *Seeder) SeedOrganization(ctx context.Context) error {
 	if err := ds.model.MediaManager.Create(ctx, media); err != nil {
 		return err
 	}
-	for _, user := range users {
-		// Define user types for each organization
-		orgUserTypes := []model.UserOrganizationType{
-			model.UserOrganizationTypeMember,
-			model.UserOrganizationTypeOwner,
-			model.UserOrganizationTypeEmployee,
-			model.UserOrganizationTypeOwner,
-			model.UserOrganizationTypeEmployee,
-		}
+
+	// Create organizations for each user (each user owns their organizations)
+	for userIndex, user := range users {
 		for j := 0; j < numOrgsPerUser; j++ {
 			sub := subscriptions[j%len(subscriptions)]
 			subscriptionEndDate := time.Now().Add(30 * 24 * time.Hour)
-			i := j + 1
+
 			organization := &model.Organization{
 				CreatedAt:                           time.Now().UTC(),
 				CreatedByID:                         user.ID,
 				UpdatedAt:                           time.Now().UTC(),
 				UpdatedByID:                         user.ID,
-				Name:                                fmt.Sprintf("Org %d - %s", i, *user.FirstName),
-				Address:                             ptr(fmt.Sprintf("%d Main Street, Testville", i+101)),
-				Email:                               ptr(fmt.Sprintf("org%d@example.com", i)),
-				ContactNumber:                       ptr(fmt.Sprintf("+63917%05d%04d", i+100, i)),
-				Description:                         ptr("A seeded example organization for testing."),
-				Color:                               ptr("#" + fmt.Sprintf("%06x", 0xFF5733+i*50)),
+				Name:                                fmt.Sprintf("%s's Organization %d", *user.FirstName, j+1),
+				Address:                             ptr(fmt.Sprintf("%d %s Street, City %d", (userIndex*10)+j+101, *user.FirstName, userIndex+1)),
+				Email:                               ptr(fmt.Sprintf("org%d.%d@%s.com", userIndex+1, j+1, *user.FirstName)),
+				ContactNumber:                       ptr(fmt.Sprintf("+63917%02d%02d%04d", userIndex+1, j+1, (userIndex*100)+j)),
+				Description:                         ptr(fmt.Sprintf("Organization owned by %s %s for testing.", *user.FirstName, *user.LastName)),
+				Color:                               ptr("#" + fmt.Sprintf("%06x", 0xFF5733+(userIndex*100)+(j*50))),
 				TermsAndConditions:                  ptr("These are seeded terms and conditions..."),
 				PrivacyPolicy:                       ptr("Seeded privacy policy content..."),
 				CookiePolicy:                        ptr("Seeded cookie policy content..."),
@@ -272,6 +266,8 @@ func (ds *Seeder) SeedOrganization(ctx context.Context) error {
 			if err := ds.model.OrganizationManager.Create(ctx, organization); err != nil {
 				return err
 			}
+
+			// Add categories to organization
 			for _, category := range categories {
 				if err := ds.model.OrganizationCategoryManager.Create(ctx, &model.OrganizationCategory{
 					CreatedAt:      time.Now().UTC(),
@@ -282,25 +278,27 @@ func (ds *Seeder) SeedOrganization(ctx context.Context) error {
 					return err
 				}
 			}
-			orgUserType := orgUserTypes[j]
-			for k := range 3 {
+
+			// Create 2-3 branches for each organization
+			numBranches := 2 + (j % 2) // 2-3 branches per organization
+			for k := 0; k < numBranches; k++ {
 				branch := &model.Branch{
 					CreatedAt:      time.Now().UTC(),
 					CreatedByID:    user.ID,
 					UpdatedAt:      time.Now().UTC(),
 					UpdatedByID:    user.ID,
 					OrganizationID: organization.ID,
-					Type:           []string{"main", "satellite"}[k%2],
-					Name:           fmt.Sprintf("Branch %d - %s", k+1, organization.Name),
-					Email:          fmt.Sprintf("branch%d.%d@organization.com", i, k+1),
-					Address:        fmt.Sprintf("Branch %d Street, City", k+1),
+					Type:           []string{"main", "satellite", "branch"}[k%3],
+					Name:           fmt.Sprintf("%s Branch %d", organization.Name, k+1),
+					Email:          fmt.Sprintf("branch%d@%s-org%d.com", k+1, *user.FirstName, j+1),
+					Address:        fmt.Sprintf("Branch %d, %s Street, City %d", k+1, *user.FirstName, userIndex+1),
 					Province:       "Test Province",
-					City:           "Test City",
+					City:           fmt.Sprintf("Test City %d", userIndex+1),
 					Region:         "Test Region",
-					Barangay:       "Test Barangay",
-					PostalCode:     fmt.Sprintf("11%03d", k+1),
+					Barangay:       fmt.Sprintf("Barangay %d", k+1),
+					PostalCode:     fmt.Sprintf("1%d%02d%d", userIndex+1, j+1, k+1),
 					CountryCode:    "PH",
-					ContactNumber:  ptr(fmt.Sprintf("+63918%05d%04d", k+1, i)),
+					ContactNumber:  ptr(fmt.Sprintf("+63918%02d%02d%04d", userIndex+1, k+1, (userIndex*100)+k)),
 					MediaID:        &media.ID,
 				}
 				if err := ds.model.BranchManager.Create(ctx, branch); err != nil {
@@ -315,7 +313,7 @@ func (ds *Seeder) SeedOrganization(ctx context.Context) error {
 
 					// Withdraw Settings
 					WithdrawAllowUserInput: true,
-					WithdrawPrefix:         fmt.Sprintf("WD%d", k+1),
+					WithdrawPrefix:         fmt.Sprintf("WD%d%d", j+1, k+1),
 					WithdrawORStart:        1,
 					WithdrawORCurrent:      1,
 					WithdrawOREnd:          999999,
@@ -325,7 +323,7 @@ func (ds *Seeder) SeedOrganization(ctx context.Context) error {
 
 					// Deposit Settings
 					DepositAllowUserInput: true,
-					DepositPrefix:         fmt.Sprintf("DP%d", k+1),
+					DepositPrefix:         fmt.Sprintf("DP%d%d", j+1, k+1),
 					DepositORStart:        1,
 					DepositORCurrent:      1,
 					DepositOREnd:          999999,
@@ -335,7 +333,7 @@ func (ds *Seeder) SeedOrganization(ctx context.Context) error {
 
 					// Loan Settings
 					LoanAllowUserInput: true,
-					LoanPrefix:         fmt.Sprintf("LN%d", k+1),
+					LoanPrefix:         fmt.Sprintf("LN%d%d", j+1, k+1),
 					LoanORStart:        1,
 					LoanORCurrent:      1,
 					LoanOREnd:          999999,
@@ -345,7 +343,7 @@ func (ds *Seeder) SeedOrganization(ctx context.Context) error {
 
 					// Check Voucher Settings
 					CheckVoucherAllowUserInput: true,
-					CheckVoucherPrefix:         fmt.Sprintf("CV%d", k+1),
+					CheckVoucherPrefix:         fmt.Sprintf("CV%d%d", j+1, k+1),
 					CheckVoucherORStart:        1,
 					CheckVoucherORCurrent:      1,
 					CheckVoucherOREnd:          999999,
@@ -361,11 +359,13 @@ func (ds *Seeder) SeedOrganization(ctx context.Context) error {
 					return err
 				}
 
-				developerKey, err := ds.provider.Service.Security.GenerateUUIDv5(ctx, branch.ID.String())
+				// Create the owner relationship for the user who created the organization
+				developerKey, err := ds.provider.Service.Security.GenerateUUIDv5(ctx, fmt.Sprintf("%s-%s-%s", user.ID, organization.ID, branch.ID))
 				if err != nil {
 					return err
 				}
-				userOrganization := &model.UserOrganization{
+
+				ownerOrganization := &model.UserOrganization{
 					CreatedAt:                time.Now().UTC(),
 					CreatedByID:              user.ID,
 					UpdatedAt:                time.Now().UTC(),
@@ -373,26 +373,30 @@ func (ds *Seeder) SeedOrganization(ctx context.Context) error {
 					BranchID:                 &branch.ID,
 					OrganizationID:           organization.ID,
 					UserID:                   user.ID,
-					UserType:                 orgUserType,
-					Description:              fmt.Sprintf("User %s added as %s", *user.FirstName, orgUserType),
-					ApplicationDescription:   "Seeded application for testing",
+					UserType:                 model.UserOrganizationTypeOwner,
+					Description:              fmt.Sprintf("Owner %s of %s", *user.FirstName, organization.Name),
+					ApplicationDescription:   "Organization owner - automatically created",
 					ApplicationStatus:        "accepted",
-					DeveloperSecretKey:       developerKey + uuid.NewString() + "-horizon",
-					PermissionName:           string(orgUserType),
-					PermissionDescription:    "Auto-generated role assignment",
-					Permissions:              []string{"read", "write", "manage"},
+					DeveloperSecretKey:       developerKey + uuid.NewString() + "-owner-horizon",
+					PermissionName:           "Owner",
+					PermissionDescription:    "Organization owner with full permissions",
+					Permissions:              []string{"read", "write", "manage", "delete", "admin"},
 					UserSettingStartOR:       0,
-					UserSettingEndOR:         1000,
+					UserSettingEndOR:         10000,
 					UserSettingUsedOR:        0,
 					UserSettingStartVoucher:  0,
-					UserSettingEndVoucher:    5,
+					UserSettingEndVoucher:    100,
 					UserSettingUsedVoucher:   0,
 					UserSettingNumberPadding: 7,
+					Status:                   model.UserOrganizationStatusOffline,
+					LastOnlineAt:             time.Now().UTC(),
 				}
 
-				if err := ds.model.UserOrganizationManager.Create(ctx, userOrganization); err != nil {
+				if err := ds.model.UserOrganizationManager.Create(ctx, ownerOrganization); err != nil {
 					return err
 				}
+
+				// Run organization seeder for accounting setup
 				tx := ds.provider.Service.Database.Client().Begin()
 				if tx.Error != nil {
 					tx.Rollback()
@@ -406,7 +410,8 @@ func (ds *Seeder) SeedOrganization(ctx context.Context) error {
 					return err
 				}
 
-				for m := range 5 {
+				// Create invitation codes for this branch
+				for m := 0; m < 5; m++ {
 					userType := model.UserOrganizationTypeMember
 					if m%2 == 0 {
 						userType = model.UserOrganizationTypeEmployee
@@ -423,12 +428,15 @@ func (ds *Seeder) SeedOrganization(ctx context.Context) error {
 						ExpirationDate: time.Now().UTC().Add(60 * 24 * time.Hour),
 						MaxUse:         50,
 						CurrentUse:     m % 25,
-						Description:    fmt.Sprintf("Invite for Branch %d, user %d", k+1, i),
+						Description:    fmt.Sprintf("Invite for %s Branch %d", organization.Name, k+1),
 					}
 					if err := ds.model.InvitationCodeManager.Create(ctx, invitationCode); err != nil {
 						return err
 					}
 				}
+
+				ds.provider.Service.Logger.Info(fmt.Sprintf("Created organization: %s with branch: %s (Owner: %s %s)",
+					organization.Name, branch.Name, *user.FirstName, *user.LastName))
 			}
 		}
 	}
@@ -450,12 +458,12 @@ func (s *Seeder) SeedEmployees(ctx context.Context) error {
 		return err
 	}
 
-	if len(users) == 0 {
-		s.provider.Service.Logger.Warn("No users found for employee seeding")
+	if len(users) == 0 || len(organizations) == 0 {
+		s.provider.Service.Logger.Warn("No users or organizations found for employee seeding")
 		return nil
 	}
 
-	userIndex := 0
+	// Create cross-employment: users work as employees in other users' organizations
 	for _, org := range organizations {
 		// Get branches for this organization
 		branches, err := s.model.BranchManager.Find(ctx, &model.Branch{
@@ -465,36 +473,49 @@ func (s *Seeder) SeedEmployees(ctx context.Context) error {
 			continue
 		}
 
+		// Find potential employees (users who don't own this organization)
+		potentialEmployees := make([]*model.User, 0)
+		for _, user := range users {
+			if user.ID != org.CreatedByID { // Don't make the owner an employee of their own organization
+				potentialEmployees = append(potentialEmployees, user)
+			}
+		}
+
+		if len(potentialEmployees) == 0 {
+			continue
+		}
+
+		employeeIndex := 0
 		for _, branch := range branches {
-			// Check how many employees already exist for this branch
+			// Check how many employees already exist for this branch (excluding owner)
 			existingEmployees, err := s.model.Employees(ctx, org.ID, branch.ID)
 			if err != nil {
 				continue
 			}
 
-			// Skip if this branch already has 3 or more employees
-			if len(existingEmployees) >= 3 {
+			// Create 1-3 employees per branch
+			numEmployeesToCreate := 1 + (int(branch.ID.ID()) % 3)
+
+			// Don't create more employees than available users
+			if numEmployeesToCreate > len(potentialEmployees) {
+				numEmployeesToCreate = len(potentialEmployees)
+			}
+
+			// Don't create more than 3 employees per branch
+			if len(existingEmployees)+numEmployeesToCreate > 3 {
+				numEmployeesToCreate = 3 - len(existingEmployees)
+			}
+
+			if numEmployeesToCreate <= 0 {
 				continue
 			}
 
-			// Create 2-4 employees per branch using existing users
-			numEmployeesToCreate := 2 + (int(branch.ID.ID()) % 3) // 2-4 employees per branch
-
-			// Don't exceed the number of available users
-			if numEmployeesToCreate > len(users) {
-				numEmployeesToCreate = len(users)
-			}
-
 			for i := 0; i < numEmployeesToCreate; i++ {
-				// Skip if we've used all available users
-				if userIndex >= len(users) {
-					userIndex = 0 // Restart from first user if we run out
-				}
+				// Cycle through potential employees
+				selectedUser := potentialEmployees[employeeIndex%len(potentialEmployees)]
+				employeeIndex++
 
-				selectedUser := users[userIndex]
-				userIndex++
-
-				// Check if this user is already associated with this branch
+				// Check if this user is already associated with this specific branch
 				existingAssociation, err := s.model.UserOrganizationManager.Count(ctx, &model.UserOrganization{
 					UserID:         selectedUser.ID,
 					OrganizationID: org.ID,
@@ -505,8 +526,13 @@ func (s *Seeder) SeedEmployees(ctx context.Context) error {
 					continue
 				}
 
+				// Check if user can join as employee (ensure they're not already a member of this organization)
+				if !s.model.UserOrganizationEmployeeCanJoin(ctx, selectedUser.ID, org.ID, branch.ID) {
+					continue
+				}
+
 				// Generate developer key
-				developerKey, err := s.provider.Service.Security.GenerateUUIDv5(ctx, fmt.Sprintf("%s-%s-%s", selectedUser.ID, org.ID, branch.ID))
+				developerKey, err := s.provider.Service.Security.GenerateUUIDv5(ctx, fmt.Sprintf("emp-%s-%s-%s", selectedUser.ID, org.ID, branch.ID))
 				if err != nil {
 					return err
 				}
@@ -521,18 +547,18 @@ func (s *Seeder) SeedEmployees(ctx context.Context) error {
 					OrganizationID:           org.ID,
 					UserID:                   selectedUser.ID,
 					UserType:                 model.UserOrganizationTypeEmployee,
-					Description:              fmt.Sprintf("Employee %s at %s branch", *selectedUser.FirstName, branch.Name),
-					ApplicationDescription:   "Seeded employee for testing and demonstration",
+					Description:              fmt.Sprintf("Employee %s %s at %s", *selectedUser.FirstName, *selectedUser.LastName, branch.Name),
+					ApplicationDescription:   "Cross-organization employee for testing and demonstration",
 					ApplicationStatus:        "accepted",
 					DeveloperSecretKey:       developerKey + uuid.NewString() + "-employee-horizon",
 					PermissionName:           "Employee",
-					PermissionDescription:    "Branch employee with standard permissions",
+					PermissionDescription:    "Branch employee with standard operational permissions",
 					Permissions:              []string{"read", "create", "update"},
 					UserSettingStartOR:       int64((i + 1) * 1000),
 					UserSettingEndOR:         int64((i+1)*1000 + 999),
 					UserSettingUsedOR:        0,
-					UserSettingStartVoucher:  int64((i + 1) * 100),
-					UserSettingEndVoucher:    int64((i+1)*100 + 99),
+					UserSettingStartVoucher:  int64((i + 1) * 10),
+					UserSettingEndVoucher:    int64((i+1)*10 + 9),
 					UserSettingUsedVoucher:   0,
 					UserSettingNumberPadding: 7,
 					Status:                   model.UserOrganizationStatusOffline,
@@ -540,13 +566,21 @@ func (s *Seeder) SeedEmployees(ctx context.Context) error {
 				}
 
 				if err := s.model.UserOrganizationManager.Create(ctx, employeeOrg); err != nil {
-					s.provider.Service.Logger.Error(fmt.Sprintf("Failed to create employee %s for branch %s: %v",
-						*selectedUser.FirstName, branch.Name, err))
+					s.provider.Service.Logger.Error(fmt.Sprintf("Failed to create employee %s %s for branch %s: %v",
+						*selectedUser.FirstName, *selectedUser.LastName, branch.Name, err))
 					continue
 				}
 
-				s.provider.Service.Logger.Info(fmt.Sprintf("Created employee: %s %s for organization: %s, branch: %s",
-					*selectedUser.FirstName, *selectedUser.LastName, org.Name, branch.Name))
+				s.provider.Service.Logger.Info(fmt.Sprintf("Created employee: %s %s for organization: %s, branch: %s (Owner: %s)",
+					*selectedUser.FirstName, *selectedUser.LastName, org.Name, branch.Name,
+					func() string {
+						for _, u := range users {
+							if u.ID == org.CreatedByID {
+								return fmt.Sprintf("%s %s", *u.FirstName, *u.LastName)
+							}
+						}
+						return "Unknown"
+					}()))
 			}
 		}
 	}
