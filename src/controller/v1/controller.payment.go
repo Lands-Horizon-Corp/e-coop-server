@@ -503,7 +503,7 @@ func (c *Controller) PaymentController() {
 	})
 
 	req.RegisterRoute(handlers.Route{
-		Route:  "/api/v1/payment/general-ledger/:general_ledger_id/reverse",
+		Route:  "/api/v1/transaction/general-ledger/:general_ledger_id/reverse",
 		Method: "POST",
 		Note:   "Reverses a specific general ledger transaction.",
 	}, func(ctx echo.Context) error {
@@ -565,7 +565,7 @@ func (c *Controller) PaymentController() {
 	})
 
 	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/general-ledger/transaction/:transaction_id/reverse",
+		Route:        "/api/v1/transaction/:transaction_id/reverse",
 		Method:       "POST",
 		Note:         "Reverses all general ledger entries for a specific transaction by transaction_id.",
 		ResponseType: model.TransactionResponse{},
