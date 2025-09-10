@@ -568,7 +568,7 @@ func (c *Controller) PaymentController() {
 		Route:        "/api/v1/general-ledger/transaction/:transaction_id/reverse",
 		Method:       "POST",
 		Note:         "Reverses all general ledger entries for a specific transaction by transaction_id.",
-		ResponseType: []model.GeneralLedgerResponse{},
+		ResponseType: model.TransactionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		transactionId, err := handlers.EngineUUIDParam(ctx, "transaction_id")
@@ -663,22 +663,23 @@ func (c *Controller) PaymentController() {
 			}
 			reversedLedgers = append(reversedLedgers, newGeneralLedger)
 		}
-
+		transaction, err := c.model.TransactionManager.GetByIDRaw(context, *transactionId)
+		if err != nil {
+			tx.Rollback()
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "transaction-reverse-fetch-error",
+				Description: fmt.Sprintf("Failed to fetch transaction %v after reversal: %v", transactionId, err),
+				Module:      "Transaction",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch transaction after reversal: " + err.Error()})
+		}
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "transaction-reverse-success",
 			Description: fmt.Sprintf("Successfully reversed transaction %v with %d general ledger entries", transactionId, len(reversedLedgers)),
 			Module:      "Transaction",
 		})
 
-		// Convert to response models
-		var responseModels []model.GeneralLedgerResponse
-		for _, ledger := range reversedLedgers {
-			if response := c.model.GeneralLedgerManager.ToModel(ledger); response != nil {
-				responseModels = append(responseModels, *response)
-			}
-		}
-
-		return ctx.JSON(http.StatusOK, responseModels)
+		return ctx.JSON(http.StatusOK, transaction)
 	})
 
 }
