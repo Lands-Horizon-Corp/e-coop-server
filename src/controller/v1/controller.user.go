@@ -940,12 +940,7 @@ func (c *Controller) UserController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		if userOrg.BranchID != userOrganization.BranchID {
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Forbidden: User is not in the correct branch"})
-		}
-		if userOrg.OrganizationID != userOrganization.OrganizationID {
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Forbidden: User is not in the correct organization"})
-		}
+
 		if userOrganization.UserType != model.UserOrganizationTypeOwner {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Forbidden: User is not an owner"})
 		}
