@@ -329,6 +329,25 @@ func (c *Controller) LoanTransactionController() {
 			tx.Rollback()
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan transaction: " + err.Error()})
 		}
+		cashOnHandTransactionEntry := &model.LoanTransactionEntry{
+			CreatedByID:       userOrg.UserID,
+			UpdatedByID:       userOrg.UserID,
+			CreatedAt:         time.Now().UTC(),
+			UpdatedAt:         time.Now().UTC(),
+			AccountID:         userOrg.Branch.BranchSetting.CashOnHandAccountID,
+			OrganizationID:    userOrg.OrganizationID,
+			BranchID:          *userOrg.BranchID,
+			LoanTransactionID: loanTransaction.ID,
+			Credit:            request.Applied1,
+			Debit:             0,
+			Description:       "Loan Disbursement",
+			Index:             0,
+		}
+
+		if err := c.model.LoanTransactionEntryManager.CreateWithTx(context, tx, cashOnHandTransactionEntry); err != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan transaction entry: " + err.Error()})
+		}
 
 		loanTransactionEntry := &model.LoanTransactionEntry{
 			CreatedByID:       userOrg.UserID,
@@ -341,27 +360,14 @@ func (c *Controller) LoanTransactionController() {
 			LoanTransactionID: loanTransaction.ID,
 			Credit:            0,
 			Debit:             request.Applied1,
+			Description:       "Loan Disbursement",
+			Index:             1,
 		}
 		if err := c.model.LoanTransactionEntryManager.CreateWithTx(context, tx, loanTransactionEntry); err != nil {
 			tx.Rollback()
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan transaction entry: " + err.Error()})
 		}
-		cashOnHandTransactionEntry := &model.LoanTransactionEntry{
-			CreatedByID:       userOrg.UserID,
-			UpdatedByID:       userOrg.UserID,
-			CreatedAt:         time.Now().UTC(),
-			UpdatedAt:         time.Now().UTC(),
-			AccountID:         userOrg.Branch.BranchSetting.CashOnHandAccountID,
-			OrganizationID:    userOrg.OrganizationID,
-			BranchID:          *userOrg.BranchID,
-			LoanTransactionID: loanTransaction.ID,
-			Credit:            request.Applied1,
-			Debit:             0,
-		}
-		if err := c.model.LoanTransactionEntryManager.CreateWithTx(context, tx, cashOnHandTransactionEntry); err != nil {
-			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan transaction entry: " + err.Error()})
-		}
+
 		if err := tx.Commit().Error; err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
