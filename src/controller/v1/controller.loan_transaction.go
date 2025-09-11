@@ -323,6 +323,7 @@ func (c *Controller) LoanTransactionController() {
 			PaidBySignatureMediaID:                 request.PaidBySignatureMediaID,
 			PaidByName:                             request.PaidByName,
 			PaidByPosition:                         request.PaidByPosition,
+			ModeOfPaymentFixedDays:                 request.ModeOfPaymentFixedDays,
 		}
 
 		if err := c.model.LoanTransactionManager.CreateWithTx(context, tx, loanTransaction); err != nil {
@@ -524,6 +525,7 @@ func (c *Controller) LoanTransactionController() {
 		loanTransaction.PaidBySignatureMediaID = request.PaidBySignatureMediaID
 		loanTransaction.PaidByName = request.PaidByName
 		loanTransaction.PaidByPosition = request.PaidByPosition
+		loanTransaction.ModeOfPaymentFixedDays = request.ModeOfPaymentFixedDays
 		loanTransaction.UpdatedAt = time.Now().UTC()
 
 		if err := c.model.LoanTransactionManager.Update(context, loanTransaction); err != nil {

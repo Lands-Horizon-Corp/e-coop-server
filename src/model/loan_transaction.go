@@ -27,6 +27,7 @@ const (
 	LoanModeOfPaymentQuarterly   LoanModeOfPayment = "quarterly"
 	LoanModeOfPaymentSemiAnnual  LoanModeOfPayment = "semi-annual"
 	LoanModeOfPaymentLumpsum     LoanModeOfPayment = "lumpsum"
+	LoanModeOfPaymentFixedDays   LoanModeOfPayment = "fixed-days"
 
 	WeekdayMonday    Weekdays = "monday"
 	WeekdayTuesday   Weekdays = "tuesday"
@@ -96,6 +97,7 @@ type (
 		ModeOfPaymentWeekly          string `gorm:"type:varchar(255)"`
 		ModeOfPaymentSemiMonthlyPay1 int    `gorm:"type:int"`
 		ModeOfPaymentSemiMonthlyPay2 int    `gorm:"type:int"`
+		ModeOfPaymentFixedDays       int    `gorm:"type:int;default:0" json:"mode_of_payment_fixed_days"`
 
 		ComakerType                            string                  `gorm:"type:varchar(255)"`
 		ComakerDepositMemberAccountingLedgerID *uuid.UUID              `gorm:"type:uuid"`
@@ -227,6 +229,7 @@ type (
 		ModeOfPaymentWeekly          Weekdays          `json:"mode_of_payment_weekly"`
 		ModeOfPaymentSemiMonthlyPay1 int               `json:"mode_of_payment_semi_monthly_pay_1"`
 		ModeOfPaymentSemiMonthlyPay2 int               `json:"mode_of_payment_semi_monthly_pay_2"`
+		ModeOfPaymentFixedDays       int               `json:"mode_of_payment_fixed_days"`
 
 		ComakerType                            LoanComakerType                 `json:"comaker_type"`
 		ComakerDepositMemberAccountingLedgerID *uuid.UUID                      `json:"comaker_deposit_member_accounting_ledger_id,omitempty"`
@@ -337,6 +340,7 @@ type (
 		ModeOfPaymentWeekly          Weekdays          `json:"mode_of_payment_weekly,omitempty"`
 		ModeOfPaymentSemiMonthlyPay1 int               `json:"mode_of_payment_semi_monthly_pay_1,omitempty"`
 		ModeOfPaymentSemiMonthlyPay2 int               `json:"mode_of_payment_semi_monthly_pay_2,omitempty"`
+		ModeOfPaymentFixedDays       int               `json:"mode_of_payment_fixed_days,omitempty"`
 
 		ComakerType                            LoanComakerType `json:"comaker_type"`
 		ComakerDepositMemberAccountingLedgerID *uuid.UUID      `json:"comaker_deposit_member_accounting_ledger_id,omitempty"`
@@ -507,6 +511,7 @@ func (m *Model) LoanTransaction() {
 				ModeOfPaymentWeekly:                    Weekdays(data.ModeOfPaymentWeekly),
 				ModeOfPaymentSemiMonthlyPay1:           data.ModeOfPaymentSemiMonthlyPay1,
 				ModeOfPaymentSemiMonthlyPay2:           data.ModeOfPaymentSemiMonthlyPay2,
+				ModeOfPaymentFixedDays:                 data.ModeOfPaymentFixedDays,
 				ComakerType:                            LoanComakerType(data.ComakerType),
 				ComakerDepositMemberAccountingLedgerID: data.ComakerDepositMemberAccountingLedgerID,
 				ComakerDepositMemberAccountingLedger:   m.MemberAccountingLedgerManager.ToModel(data.ComakerDepositMemberAccountingLedger),
