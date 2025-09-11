@@ -268,6 +268,7 @@ func (c *Controller) LoanTransactionController() {
 			ComakerDepositMemberAccountingLedgerID: request.ComakerDepositMemberAccountingLedgerID,
 			ComakerCollateralID:                    request.ComakerCollateralID,
 			ComakerCollateralDescription:           request.ComakerCollateralDescription,
+			ComakerMemberProfileID:                 request.ComakerMemberProfileID,
 			CollectorPlace:                         string(request.CollectorPlace),
 			LoanType:                               string(request.LoanType),
 			PreviousLoanID:                         request.PreviousLoanID,
@@ -469,6 +470,7 @@ func (c *Controller) LoanTransactionController() {
 		loanTransaction.ComakerType = string(request.ComakerType)
 		loanTransaction.ComakerDepositMemberAccountingLedgerID = request.ComakerDepositMemberAccountingLedgerID
 		loanTransaction.ComakerCollateralID = request.ComakerCollateralID
+		loanTransaction.ComakerMemberProfileID = request.ComakerMemberProfileID
 		loanTransaction.ComakerCollateralDescription = request.ComakerCollateralDescription
 		loanTransaction.CollectorPlace = string(request.CollectorPlace)
 		loanTransaction.LoanType = string(request.LoanType)

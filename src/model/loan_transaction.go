@@ -104,6 +104,8 @@ type (
 		ComakerDepositMemberAccountingLedger   *MemberAccountingLedger `gorm:"foreignKey:ComakerDepositMemberAccountingLedgerID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"comaker_deposit_member_accounting_ledger,omitempty"`
 		ComakerCollateralID                    *uuid.UUID              `gorm:"type:uuid"`
 		ComakerCollateral                      *Collateral             `gorm:"foreignKey:ComakerCollateralID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"comaker_collateral,omitempty"`
+		ComakerMemberProfileID                 *uuid.UUID              `gorm:"type:uuid"`
+		ComakerMemberProfile                   *MemberProfile          `gorm:"foreignKey:ComakerMemberProfileID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"comaker_member_profile,omitempty"`
 		ComakerCollateralDescription           string                  `gorm:"type:text"`
 
 		CollectorPlace string `gorm:"type:varchar(255);default:'office'"`
@@ -236,6 +238,8 @@ type (
 		ComakerDepositMemberAccountingLedger   *MemberAccountingLedgerResponse `json:"comaker_deposit_member_accounting_ledger,omitempty"`
 		ComakerCollateralID                    *uuid.UUID                      `json:"comaker_collateral_id,omitempty"`
 		ComakerCollateral                      *CollateralResponse             `json:"comaker_collateral,omitempty"`
+		ComakerMemberProfileID                 *uuid.UUID                      `json:"comaker_member_profile_id,omitempty"`
+		ComakerMemberProfile                   *MemberProfileResponse          `json:"comaker_member_profile,omitempty"`
 		ComakerCollateralDescription           string                          `json:"comaker_collateral_description"`
 
 		CollectorPlace LoanCollectorPlace `json:"collector_place"`
@@ -345,6 +349,7 @@ type (
 		ComakerType                            LoanComakerType `json:"comaker_type"`
 		ComakerDepositMemberAccountingLedgerID *uuid.UUID      `json:"comaker_deposit_member_accounting_ledger_id,omitempty"`
 		ComakerCollateralID                    *uuid.UUID      `json:"comaker_collateral_id,omitempty"`
+		ComakerMemberProfileID                 *uuid.UUID      `json:"comaker_member_profile_id,omitempty"`
 		ComakerCollateralDescription           string          `json:"comaker_collateral_description,omitempty"`
 
 		CollectorPlace LoanCollectorPlace `json:"collector_place"`
@@ -472,7 +477,7 @@ func (m *Model) LoanTransaction() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Branch", "Organization", "EmployeeUser",
 			"TransactionBatch", "LoanPurpose", "LoanStatus",
-			"ComakerDepositMemberAccountingLedger", "ComakerCollateral", "PreviousLoan",
+			"ComakerDepositMemberAccountingLedger", "ComakerCollateral", "ComakerMemberProfile", "PreviousLoan",
 			"Account", "MemberProfile", "MemberJointAccount", "SignatureMedia",
 			"ApprovedBySignatureMedia", "PreparedBySignatureMedia", "CertifiedBySignatureMedia",
 			"VerifiedBySignatureMedia", "CheckBySignatureMedia", "AcknowledgeBySignatureMedia",
@@ -517,6 +522,8 @@ func (m *Model) LoanTransaction() {
 				ComakerDepositMemberAccountingLedger:   m.MemberAccountingLedgerManager.ToModel(data.ComakerDepositMemberAccountingLedger),
 				ComakerCollateralID:                    data.ComakerCollateralID,
 				ComakerCollateral:                      m.CollateralManager.ToModel(data.ComakerCollateral),
+				ComakerMemberProfileID:                 data.ComakerMemberProfileID,
+				ComakerMemberProfile:                   m.MemberProfileManager.ToModel(data.ComakerMemberProfile),
 				ComakerCollateralDescription:           data.ComakerCollateralDescription,
 				CollectorPlace:                         LoanCollectorPlace(data.CollectorPlace),
 				LoanType:                               LoanType(data.LoanType),
