@@ -474,6 +474,7 @@ func (m *Model) LoanTransaction() {
 			"VerifiedBySignatureMedia", "CheckBySignatureMedia", "AcknowledgeBySignatureMedia",
 			"NotedBySignatureMedia", "PostedBySignatureMedia", "PaidBySignatureMedia",
 			"LoanTransactionEntries",
+			"LoanTransactionEntries.Account",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *LoanTransaction) *LoanTransactionResponse {
