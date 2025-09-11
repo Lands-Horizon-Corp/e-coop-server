@@ -342,6 +342,7 @@ func (c *Controller) LoanTransactionController() {
 			Debit:             0,
 			Description:       "Loan Disbursement",
 			Index:             0,
+			Type:              model.LoanTransactionStatic,
 		}
 
 		if err := c.model.LoanTransactionEntryManager.CreateWithTx(context, tx, cashOnHandTransactionEntry); err != nil {
@@ -362,6 +363,7 @@ func (c *Controller) LoanTransactionController() {
 			Debit:             request.Applied1,
 			Description:       "Loan Disbursement",
 			Index:             1,
+			Type:              model.LoanTransactionStatic,
 		}
 		if err := c.model.LoanTransactionEntryManager.CreateWithTx(context, tx, loanTransactionEntry); err != nil {
 			tx.Rollback()
