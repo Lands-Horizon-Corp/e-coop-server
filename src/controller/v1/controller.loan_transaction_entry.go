@@ -115,6 +115,7 @@ func (c *Controller) LoanTransactionEntryController() {
 			Debit:             request.Debit,
 			Type:              request.Type,
 			IsAddOn:           request.IsAddOn,
+			Name:              request.Name,
 		}
 
 		if err := c.model.LoanTransactionEntryManager.Create(context, loanTransactionEntry); err != nil {
@@ -171,6 +172,10 @@ func (c *Controller) LoanTransactionEntryController() {
 			Debit:             request.Debit,
 			Type:              request.Type,
 			IsAddOn:           request.IsAddOn,
+			CreatedAt:         time.Now().UTC(),
+			UpdatedAt:         time.Now().UTC(),
+
+			Name: request.Name,
 		}
 
 		if err := c.model.LoanTransactionEntryManager.Create(context, loanTransactionEntry); err != nil {
@@ -237,6 +242,7 @@ func (c *Controller) LoanTransactionEntryController() {
 		loanTransactionEntry.Debit = request.Debit
 		loanTransactionEntry.Type = request.Type
 		loanTransactionEntry.IsAddOn = request.IsAddOn
+		loanTransactionEntry.Name = request.Name
 
 		if err := c.model.LoanTransactionEntryManager.Update(context, loanTransactionEntry); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction entry: " + err.Error()})

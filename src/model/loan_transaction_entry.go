@@ -47,7 +47,8 @@ type (
 		AccountID *uuid.UUID `gorm:"type:uuid"`
 		Account   *Account   `gorm:"foreignKey:AccountID;constraint:OnDelete:SET NULL;" json:"account,omitempty"`
 
-		Description string  `gorm:"type:text"`
+		Name        string  `gorm:"type:varchar(255)" json:"name"`
+		Description string  `gorm:"type:varchar(500)" json:"description"`
 		Credit      float64 `gorm:"type:decimal"`
 		Debit       float64 `gorm:"type:decimal"`
 	}
@@ -71,6 +72,7 @@ type (
 		IsAddOn           bool                     `json:"is_add_on"`
 		AccountID         *uuid.UUID               `json:"account_id,omitempty"`
 		Account           *AccountResponse         `json:"account,omitempty"`
+		Name              string                   `json:"name"`
 		Description       string                   `json:"description"`
 		Credit            float64                  `json:"credit"`
 		Debit             float64                  `json:"debit"`
@@ -82,6 +84,7 @@ type (
 		Type              LoanTransactionEntryType `json:"type" validate:"required,oneof=static deduction add-on"`
 		IsAddOn           bool                     `json:"is_add_on,omitempty"`
 		AccountID         *uuid.UUID               `json:"account_id,omitempty"`
+		Name              string                   `json:"name,omitempty"`
 		Description       string                   `json:"description,omitempty"`
 		Credit            float64                  `json:"credit,omitempty"`
 		Debit             float64                  `json:"debit,omitempty"`
@@ -121,6 +124,7 @@ func (m *Model) LoanTransactionEntry() {
 				AccountID:         data.AccountID,
 				Account:           m.AccountManager.ToModel(data.Account),
 
+				Name:        data.Name,
 				Description: data.Description,
 				Credit:      data.Credit,
 				Debit:       data.Debit,
