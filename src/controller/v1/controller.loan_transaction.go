@@ -329,18 +329,30 @@ func (c *Controller) LoanTransactionController() {
 			tx.Rollback()
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan transaction: " + err.Error()})
 		}
+		cashOnHandAccountID := userOrg.Branch.BranchSetting.CashOnHandAccountID
+		if cashOnHandAccountID == nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Cash on hand account is not set for the branch"})
+		}
+		cashOnHand, err := c.model.AccountManager.GetByID(context, *cashOnHandAccountID)
+		if err != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve cash on hand account: " + err.Error()})
+		}
+
 		cashOnHandTransactionEntry := &model.LoanTransactionEntry{
 			CreatedByID:       userOrg.UserID,
 			UpdatedByID:       userOrg.UserID,
 			CreatedAt:         time.Now().UTC(),
 			UpdatedAt:         time.Now().UTC(),
-			AccountID:         userOrg.Branch.BranchSetting.CashOnHandAccountID,
+			AccountID:         &cashOnHand.ID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
 			LoanTransactionID: loanTransaction.ID,
 			Credit:            request.Applied1,
 			Debit:             0,
-			Description:       "Loan Disbursement",
+			Description:       cashOnHand.Description,
+			Name:              cashOnHand.Name,
 			Index:             0,
 			Type:              model.LoanTransactionStatic,
 		}
@@ -349,19 +361,29 @@ func (c *Controller) LoanTransactionController() {
 			tx.Rollback()
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan transaction entry: " + err.Error()})
 		}
+		if request.AccountID == nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Account ID is required for loan disbursement entry"})
+		}
+		account, err := c.model.AccountManager.GetByID(context, *request.AccountID)
+		if err != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve account: " + err.Error()})
+		}
 
 		loanTransactionEntry := &model.LoanTransactionEntry{
 			CreatedByID:       userOrg.UserID,
 			UpdatedByID:       userOrg.UserID,
 			CreatedAt:         time.Now().UTC(),
 			UpdatedAt:         time.Now().UTC(),
-			AccountID:         request.AccountID,
+			AccountID:         &account.ID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
 			LoanTransactionID: loanTransaction.ID,
 			Credit:            0,
 			Debit:             request.Applied1,
-			Description:       "Loan Disbursement",
+			Description:       account.Description,
+			Name:              account.Name,
 			Index:             1,
 			Type:              model.LoanTransactionStatic,
 		}
