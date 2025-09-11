@@ -10,6 +10,14 @@ import (
 	"gorm.io/gorm"
 )
 
+type LoanTransactionEntryType string
+
+const (
+	LoanTransactionStatic    LoanTransactionEntryType = "static"
+	LoanTransactionDeduction LoanTransactionEntryType = "deduction"
+	LoanTransactionAddOn     LoanTransactionEntryType = "add-on"
+)
+
 type (
 	LoanTransactionEntry struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
@@ -33,10 +41,14 @@ type (
 
 		Index int `gorm:"type:int;default:0" json:"index"`
 
+		Type    LoanTransactionEntryType `gorm:"type:varchar(20);not null;default:'static'" json:"type"`
+		IsAddOn bool                     `gorm:"type:boolean;not null;default:false" json:"is_add_on"`
+
 		AccountID *uuid.UUID `gorm:"type:uuid"`
 		Account   *Account   `gorm:"foreignKey:AccountID;constraint:OnDelete:SET NULL;" json:"account,omitempty"`
 
-		Description string  `gorm:"type:text"`
+		Name        string  `gorm:"type:varchar(255)" json:"name"`
+		Description string  `gorm:"type:varchar(500)" json:"description"`
 		Credit      float64 `gorm:"type:decimal"`
 		Debit       float64 `gorm:"type:decimal"`
 	}
@@ -56,20 +68,26 @@ type (
 		LoanTransactionID uuid.UUID                `json:"loan_transaction_id"`
 		LoanTransaction   *LoanTransactionResponse `json:"loan_transaction,omitempty"`
 		Index             int                      `json:"index"`
+		Type              LoanTransactionEntryType `json:"type"`
+		IsAddOn           bool                     `json:"is_add_on"`
 		AccountID         *uuid.UUID               `json:"account_id,omitempty"`
 		Account           *AccountResponse         `json:"account,omitempty"`
+		Name              string                   `json:"name"`
 		Description       string                   `json:"description"`
 		Credit            float64                  `json:"credit"`
 		Debit             float64                  `json:"debit"`
 	}
 
 	LoanTransactionEntryRequest struct {
-		LoanTransactionID uuid.UUID  `json:"loan_transaction_id" validate:"required"`
-		Index             int        `json:"index,omitempty"`
-		AccountID         *uuid.UUID `json:"account_id,omitempty"`
-		Description       string     `json:"description,omitempty"`
-		Credit            float64    `json:"credit,omitempty"`
-		Debit             float64    `json:"debit,omitempty"`
+		LoanTransactionID uuid.UUID                `json:"loan_transaction_id" validate:"required"`
+		Index             int                      `json:"index,omitempty"`
+		Type              LoanTransactionEntryType `json:"type" validate:"required,oneof=static deduction add-on"`
+		IsAddOn           bool                     `json:"is_add_on,omitempty"`
+		AccountID         *uuid.UUID               `json:"account_id,omitempty"`
+		Name              string                   `json:"name,omitempty"`
+		Description       string                   `json:"description,omitempty"`
+		Credit            float64                  `json:"credit,omitempty"`
+		Debit             float64                  `json:"debit,omitempty"`
 	}
 )
 
@@ -101,11 +119,15 @@ func (m *Model) LoanTransactionEntry() {
 				LoanTransactionID: data.LoanTransactionID,
 				LoanTransaction:   m.LoanTransactionManager.ToModel(data.LoanTransaction),
 				Index:             data.Index,
+				Type:              data.Type,
+				IsAddOn:           data.IsAddOn,
 				AccountID:         data.AccountID,
 				Account:           m.AccountManager.ToModel(data.Account),
-				Description:       data.Description,
-				Credit:            data.Credit,
-				Debit:             data.Debit,
+
+				Name:        data.Name,
+				Description: data.Description,
+				Credit:      data.Credit,
+				Debit:       data.Debit,
 			}
 		},
 

@@ -581,17 +581,6 @@ func (c *Controller) PaymentController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction ID: " + err.Error()})
 		}
 
-		// Check if transaction exists
-		_, err = c.model.TransactionManager.GetByID(context, *transactionId)
-		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "transaction-reverse-not-found",
-				Description: fmt.Sprintf("Transaction not found for ID %v: %v", transactionId, err),
-				Module:      "Transaction",
-			})
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Transaction not found: " + err.Error()})
-		}
-
 		// Get all general ledger entries for this transaction
 		generalLedgers, err := c.model.GeneralLedgerManager.Find(context, &model.GeneralLedger{
 			TransactionID: transactionId,
@@ -608,7 +597,6 @@ func (c *Controller) PaymentController() {
 		if len(generalLedgers) == 0 {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No general ledger entries found for this transaction"})
 		}
-
 		tx := c.provider.Service.Database.Client().Begin()
 		if tx.Error != nil {
 			tx.Rollback()
@@ -631,9 +619,8 @@ func (c *Controller) PaymentController() {
 			} else if generalLedger.Debit > 0 {
 				amount = generalLedger.Debit
 			} else {
-				continue // Skip entries with no amount
+				continue
 			}
-
 			newGeneralLedger, err := c.event.TransactionPayment(context, ctx, tx, event.TransactionEvent{
 				Amount:                amount,
 				AccountID:             generalLedger.AccountID,
@@ -653,7 +640,6 @@ func (c *Controller) PaymentController() {
 				Reverse:               true,
 			})
 			if err != nil {
-				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "transaction-reverse-error",
 					Description: fmt.Sprintf("Transaction reversal failed for ledger %v: %v", generalLedger.ID, err),
@@ -665,7 +651,6 @@ func (c *Controller) PaymentController() {
 		}
 		transaction, err := c.model.TransactionManager.GetByIDRaw(context, *transactionId)
 		if err != nil {
-			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "transaction-reverse-fetch-error",
 				Description: fmt.Sprintf("Failed to fetch transaction %v after reversal: %v", transactionId, err),

@@ -268,6 +268,7 @@ func (c *Controller) LoanTransactionController() {
 			ComakerDepositMemberAccountingLedgerID: request.ComakerDepositMemberAccountingLedgerID,
 			ComakerCollateralID:                    request.ComakerCollateralID,
 			ComakerCollateralDescription:           request.ComakerCollateralDescription,
+			ComakerMemberProfileID:                 request.ComakerMemberProfileID,
 			CollectorPlace:                         string(request.CollectorPlace),
 			LoanType:                               string(request.LoanType),
 			PreviousLoanID:                         request.PreviousLoanID,
@@ -323,11 +324,53 @@ func (c *Controller) LoanTransactionController() {
 			PaidBySignatureMediaID:                 request.PaidBySignatureMediaID,
 			PaidByName:                             request.PaidByName,
 			PaidByPosition:                         request.PaidByPosition,
+			ModeOfPaymentFixedDays:                 request.ModeOfPaymentFixedDays,
 		}
 
 		if err := c.model.LoanTransactionManager.CreateWithTx(context, tx, loanTransaction); err != nil {
 			tx.Rollback()
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan transaction: " + err.Error()})
+		}
+		cashOnHandAccountID := userOrg.Branch.BranchSetting.CashOnHandAccountID
+		if cashOnHandAccountID == nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Cash on hand account is not set for the branch"})
+		}
+		cashOnHand, err := c.model.AccountManager.GetByID(context, *cashOnHandAccountID)
+		if err != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve cash on hand account: " + err.Error()})
+		}
+
+		cashOnHandTransactionEntry := &model.LoanTransactionEntry{
+			CreatedByID:       userOrg.UserID,
+			UpdatedByID:       userOrg.UserID,
+			CreatedAt:         time.Now().UTC(),
+			UpdatedAt:         time.Now().UTC(),
+			AccountID:         &cashOnHand.ID,
+			OrganizationID:    userOrg.OrganizationID,
+			BranchID:          *userOrg.BranchID,
+			LoanTransactionID: loanTransaction.ID,
+			Credit:            request.Applied1,
+			Debit:             0,
+			Description:       cashOnHand.Description,
+			Name:              cashOnHand.Name,
+			Index:             0,
+			Type:              model.LoanTransactionStatic,
+		}
+
+		if err := c.model.LoanTransactionEntryManager.CreateWithTx(context, tx, cashOnHandTransactionEntry); err != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan transaction entry: " + err.Error()})
+		}
+		if request.AccountID == nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Account ID is required for loan disbursement entry"})
+		}
+		account, err := c.model.AccountManager.GetByID(context, *request.AccountID)
+		if err != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve account: " + err.Error()})
 		}
 
 		loanTransactionEntry := &model.LoanTransactionEntry{
@@ -335,33 +378,22 @@ func (c *Controller) LoanTransactionController() {
 			UpdatedByID:       userOrg.UserID,
 			CreatedAt:         time.Now().UTC(),
 			UpdatedAt:         time.Now().UTC(),
-			AccountID:         request.AccountID,
+			AccountID:         &account.ID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
 			LoanTransactionID: loanTransaction.ID,
 			Credit:            0,
 			Debit:             request.Applied1,
+			Description:       account.Description,
+			Name:              account.Name,
+			Index:             1,
+			Type:              model.LoanTransactionStatic,
 		}
 		if err := c.model.LoanTransactionEntryManager.CreateWithTx(context, tx, loanTransactionEntry); err != nil {
 			tx.Rollback()
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan transaction entry: " + err.Error()})
 		}
-		cashOnHandTransactionEntry := &model.LoanTransactionEntry{
-			CreatedByID:       userOrg.UserID,
-			UpdatedByID:       userOrg.UserID,
-			CreatedAt:         time.Now().UTC(),
-			UpdatedAt:         time.Now().UTC(),
-			AccountID:         userOrg.Branch.BranchSetting.CashOnHandAccountID,
-			OrganizationID:    userOrg.OrganizationID,
-			BranchID:          *userOrg.BranchID,
-			LoanTransactionID: loanTransaction.ID,
-			Credit:            request.Applied1,
-			Debit:             0,
-		}
-		if err := c.model.LoanTransactionEntryManager.CreateWithTx(context, tx, cashOnHandTransactionEntry); err != nil {
-			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan transaction entry: " + err.Error()})
-		}
+
 		if err := tx.Commit().Error; err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
@@ -370,7 +402,11 @@ func (c *Controller) LoanTransactionController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit bulk delete: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusCreated, c.model.LoanTransactionManager.ToModel(loanTransaction))
+		loanTransactionUpdated, err := c.model.LoanTransactionManager.GetByIDRaw(context, loanTransaction.ID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve created loan transaction: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusCreated, loanTransactionUpdated)
 	})
 
 	// PUT /api/v1/loan-transaction/:id
@@ -434,6 +470,7 @@ func (c *Controller) LoanTransactionController() {
 		loanTransaction.ComakerType = string(request.ComakerType)
 		loanTransaction.ComakerDepositMemberAccountingLedgerID = request.ComakerDepositMemberAccountingLedgerID
 		loanTransaction.ComakerCollateralID = request.ComakerCollateralID
+		loanTransaction.ComakerMemberProfileID = request.ComakerMemberProfileID
 		loanTransaction.ComakerCollateralDescription = request.ComakerCollateralDescription
 		loanTransaction.CollectorPlace = string(request.CollectorPlace)
 		loanTransaction.LoanType = string(request.LoanType)
@@ -490,6 +527,7 @@ func (c *Controller) LoanTransactionController() {
 		loanTransaction.PaidBySignatureMediaID = request.PaidBySignatureMediaID
 		loanTransaction.PaidByName = request.PaidByName
 		loanTransaction.PaidByPosition = request.PaidByPosition
+		loanTransaction.ModeOfPaymentFixedDays = request.ModeOfPaymentFixedDays
 		loanTransaction.UpdatedAt = time.Now().UTC()
 
 		if err := c.model.LoanTransactionManager.Update(context, loanTransaction); err != nil {

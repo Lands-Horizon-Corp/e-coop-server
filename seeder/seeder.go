@@ -197,7 +197,7 @@ func (ds *Seeder) SeedOrganization(ctx context.Context) error {
 		return nil
 	}
 
-	const numOrgsPerUser = 5 // Each user will own 2 organizations
+	const numOrgsPerUser = 2 // Each user will own 2 organizations
 	users, err := ds.model.UserManager.List(ctx)
 	if err != nil {
 		return err
@@ -619,15 +619,17 @@ func (ds *Seeder) SeedUsers(ctx context.Context) error {
 		return err
 	}
 
-	// User 1
-	hashedPwd1, err := ds.provider.Service.Security.HashPassword(ctx, "sample-hello-world-12345")
+	// Create a single hashed password for all users
+	hashedPassword, err := ds.provider.Service.Security.HashPassword(ctx, "sample-hello-world-12345")
 	if err != nil {
 		return err
 	}
+
+	// User 1
 	user1 := &model.User{
 		MediaID:           &media.ID,
 		Email:             "sample@example.com",
-		Password:          hashedPwd1,
+		Password:          hashedPassword,
 		Birthdate:         time.Date(1990, time.January, 1, 0, 0, 0, 0, time.UTC),
 		UserName:          "sampleuser",
 		FullName:          "Sample User",
@@ -646,14 +648,10 @@ func (ds *Seeder) SeedUsers(ctx context.Context) error {
 	}
 
 	// User 2
-	hashedPwd2, err := ds.provider.Service.Security.HashPassword(ctx, "second-password-67890")
-	if err != nil {
-		return err
-	}
 	user2 := &model.User{
 		MediaID:           &media.ID,
 		Email:             "seconduser@example.com",
-		Password:          hashedPwd2,
+		Password:          hashedPassword,
 		Birthdate:         time.Date(1992, time.March, 15, 0, 0, 0, 0, time.UTC),
 		UserName:          "seconduser",
 		FullName:          "Second User",
@@ -672,14 +670,10 @@ func (ds *Seeder) SeedUsers(ctx context.Context) error {
 	}
 
 	// User 3
-	hashedPwd3, err := ds.provider.Service.Security.HashPassword(ctx, "third-password-abcde")
-	if err != nil {
-		return err
-	}
 	user3 := &model.User{
 		MediaID:           &media.ID,
 		Email:             "thirduser@example.com",
-		Password:          hashedPwd3,
+		Password:          hashedPassword,
 		Birthdate:         time.Date(1988, time.June, 5, 0, 0, 0, 0, time.UTC),
 		UserName:          "thirduser",
 		FullName:          "Third User",
@@ -698,14 +692,10 @@ func (ds *Seeder) SeedUsers(ctx context.Context) error {
 	}
 
 	// User 4
-	hashedPwd4, err := ds.provider.Service.Security.HashPassword(ctx, "fourth-password-xyz")
-	if err != nil {
-		return err
-	}
 	user4 := &model.User{
 		MediaID:           &media.ID,
 		Email:             "fourthuser@example.com",
-		Password:          hashedPwd4,
+		Password:          hashedPassword,
 		Birthdate:         time.Date(1995, time.December, 20, 0, 0, 0, 0, time.UTC),
 		UserName:          "fourthuser",
 		FullName:          "Fourth User",
