@@ -378,7 +378,11 @@ func (c *Controller) LoanTransactionController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit bulk delete: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusCreated, c.model.LoanTransactionManager.ToModel(loanTransaction))
+		loanTransactionUpdated, err := c.model.LoanTransactionManager.GetByIDRaw(context, loanTransaction.ID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve created loan transaction: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusCreated, loanTransactionUpdated)
 	})
 
 	// PUT /api/v1/loan-transaction/:id
