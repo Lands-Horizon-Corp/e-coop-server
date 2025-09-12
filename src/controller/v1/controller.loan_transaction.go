@@ -1,6 +1,7 @@
 package controller_v1
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -947,13 +948,138 @@ func (c *Controller) LoanTransactionController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this loan transaction"})
 		}
 
-		// Set deleted by user
+		// Start transaction for cascading deletes
+		tx := c.provider.Service.Database.Client().Begin()
+		if tx.Error != nil {
+			tx.Rollback()
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Failed to start database transaction: " + tx.Error.Error(),
+				Module:      "LoanTransaction",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+		}
+
+		// Delete all LoanClearanceAnalysis records
+		clearanceAnalysisList, err := c.model.LoanClearanceAnalysisManager.Find(context, &model.LoanClearanceAnalysis{
+			LoanTransactionID: loanTransaction.ID,
+			OrganizationID:    userOrg.OrganizationID,
+			BranchID:          *userOrg.BranchID,
+		})
+		if err != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find loan clearance analysis records: " + err.Error()})
+		}
+
+		for _, clearanceAnalysis := range clearanceAnalysisList {
+			clearanceAnalysis.DeletedByID = &userOrg.UserID
+			if err := c.model.LoanClearanceAnalysisManager.DeleteWithTx(context, tx, clearanceAnalysis); err != nil {
+				tx.Rollback()
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan clearance analysis: " + err.Error()})
+			}
+		}
+
+		// Delete all LoanClearanceAnalysisInstitution records
+		institutionList, err := c.model.LoanClearanceAnalysisInstitutionManager.Find(context, &model.LoanClearanceAnalysisInstitution{
+			LoanTransactionID: loanTransaction.ID,
+			OrganizationID:    userOrg.OrganizationID,
+			BranchID:          *userOrg.BranchID,
+		})
+		if err != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find loan clearance analysis institution records: " + err.Error()})
+		}
+
+		for _, institution := range institutionList {
+			institution.DeletedByID = &userOrg.UserID
+			if err := c.model.LoanClearanceAnalysisInstitutionManager.DeleteWithTx(context, tx, institution); err != nil {
+				tx.Rollback()
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan clearance analysis institution: " + err.Error()})
+			}
+		}
+
+		// Delete all LoanTermsAndConditionSuggestedPayment records
+		suggestedPaymentList, err := c.model.LoanTermsAndConditionSuggestedPaymentManager.Find(context, &model.LoanTermsAndConditionSuggestedPayment{
+			LoanTransactionID: loanTransaction.ID,
+			OrganizationID:    userOrg.OrganizationID,
+			BranchID:          *userOrg.BranchID,
+		})
+		if err != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find loan terms suggested payment records: " + err.Error()})
+		}
+
+		for _, suggestedPayment := range suggestedPaymentList {
+			suggestedPayment.DeletedByID = &userOrg.UserID
+			if err := c.model.LoanTermsAndConditionSuggestedPaymentManager.DeleteWithTx(context, tx, suggestedPayment); err != nil {
+				tx.Rollback()
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan terms suggested payment: " + err.Error()})
+			}
+		}
+
+		// Delete all LoanTermsAndConditionAmountReceipt records
+		amountReceiptList, err := c.model.LoanTermsAndConditionAmountReceiptManager.Find(context, &model.LoanTermsAndConditionAmountReceipt{
+			LoanTransactionID: loanTransaction.ID,
+			OrganizationID:    userOrg.OrganizationID,
+			BranchID:          *userOrg.BranchID,
+		})
+		if err != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find loan terms amount receipt records: " + err.Error()})
+		}
+
+		for _, amountReceipt := range amountReceiptList {
+			amountReceipt.DeletedByID = &userOrg.UserID
+			if err := c.model.LoanTermsAndConditionAmountReceiptManager.DeleteWithTx(context, tx, amountReceipt); err != nil {
+				tx.Rollback()
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan terms amount receipt: " + err.Error()})
+			}
+		}
+
+		// Delete all LoanTransactionEntry records
+		transactionEntryList, err := c.model.LoanTransactionEntryManager.Find(context, &model.LoanTransactionEntry{
+			LoanTransactionID: loanTransaction.ID,
+			OrganizationID:    userOrg.OrganizationID,
+			BranchID:          *userOrg.BranchID,
+		})
+		if err != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find loan transaction entry records: " + err.Error()})
+		}
+
+		for _, transactionEntry := range transactionEntryList {
+			transactionEntry.DeletedByID = &userOrg.UserID
+			if err := c.model.LoanTransactionEntryManager.DeleteWithTx(context, tx, transactionEntry); err != nil {
+				tx.Rollback()
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan transaction entry: " + err.Error()})
+			}
+		}
+
+		// Set deleted by user for main loan transaction
 		loanTransaction.DeletedByID = &userOrg.UserID
 
-		if err := c.model.LoanTransactionManager.Delete(context, loanTransaction); err != nil {
+		// Delete the main loan transaction
+		if err := c.model.LoanTransactionManager.DeleteWithTx(context, tx, loanTransaction); err != nil {
+			tx.Rollback()
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan transaction: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, map[string]string{"message": "Loan transaction deleted successfully"})
+		// Commit the transaction
+		if err := tx.Commit().Error; err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "commit-error",
+				Description: "Failed to commit transaction: " + err.Error(),
+				Module:      "LoanTransaction",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
+		}
+
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "delete-success",
+			Description: fmt.Sprintf("Successfully deleted loan transaction %s and all related records", loanTransaction.ID),
+			Module:      "LoanTransaction",
+		})
+
+		return ctx.JSON(http.StatusOK, map[string]string{"message": "Loan transaction and all related records deleted successfully"})
 	})
 }
