@@ -1,6 +1,7 @@
 package controller_v1
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -229,9 +230,9 @@ func (c *Controller) LoanTransactionController() {
 		if tx.Error != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/browse-exclude-include-accounts/bulk-delete), begin tx error: " + tx.Error.Error(),
-				Module:      "BrowseExcludeIncludeAccounts",
+				Activity:    "update-error",
+				Description: "Failed to start database transaction: " + tx.Error.Error(),
+				Module:      "LoanTransaction",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
@@ -394,19 +395,107 @@ func (c *Controller) LoanTransactionController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan transaction entry: " + err.Error()})
 		}
 
+		if request.LoanClearanceAnalysis != nil {
+			for _, clearanceAnalysisReq := range request.LoanClearanceAnalysis {
+				clearanceAnalysis := &model.LoanClearanceAnalysis{
+					CreatedAt:      time.Now().UTC(),
+					UpdatedAt:      time.Now().UTC(),
+					CreatedByID:    userOrg.UserID,
+					UpdatedByID:    userOrg.UserID,
+					OrganizationID: userOrg.OrganizationID,
+					BranchID:       *userOrg.BranchID,
+
+					RegularDeductionDescription: clearanceAnalysisReq.RegularDeductionDescription,
+					RegularDeductionAmount:      clearanceAnalysisReq.RegularDeductionAmount,
+					BalancesDescription:         clearanceAnalysisReq.BalancesDescription,
+					BalancesAmount:              clearanceAnalysisReq.BalancesAmount,
+					BalancesCount:               clearanceAnalysisReq.BalancesCount,
+				}
+
+				if err := c.model.LoanClearanceAnalysisManager.CreateWithTx(context, tx, clearanceAnalysis); err != nil {
+					tx.Rollback()
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan clearance analysis: " + err.Error()})
+				}
+			}
+		}
+		if request.LoanClearanceAnalysisInstitution != nil {
+			for _, institutionReq := range request.LoanClearanceAnalysisInstitution {
+				institution := &model.LoanClearanceAnalysisInstitution{
+					CreatedAt:         time.Now().UTC(),
+					UpdatedAt:         time.Now().UTC(),
+					CreatedByID:       userOrg.UserID,
+					UpdatedByID:       userOrg.UserID,
+					OrganizationID:    userOrg.OrganizationID,
+					BranchID:          *userOrg.BranchID,
+					LoanTransactionID: loanTransaction.ID,
+					Name:              institutionReq.Name,
+					Description:       institutionReq.Description,
+				}
+
+				if err := c.model.LoanClearanceAnalysisInstitutionManager.CreateWithTx(context, tx, institution); err != nil {
+					tx.Rollback()
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan clearance analysis institution: " + err.Error()})
+				}
+			}
+		}
+		if request.LoanTermsAndConditionSuggestedPayment != nil {
+			for _, suggestedPaymentReq := range request.LoanTermsAndConditionSuggestedPayment {
+				suggestedPayment := &model.LoanTermsAndConditionSuggestedPayment{
+
+					CreatedAt:         time.Now().UTC(),
+					UpdatedAt:         time.Now().UTC(),
+					CreatedByID:       userOrg.UserID,
+					UpdatedByID:       userOrg.UserID,
+					OrganizationID:    userOrg.OrganizationID,
+					BranchID:          *userOrg.BranchID,
+					LoanTransactionID: loanTransaction.ID,
+					Name:              suggestedPaymentReq.Name,
+					Description:       suggestedPaymentReq.Description,
+				}
+
+				if err := c.model.LoanTermsAndConditionSuggestedPaymentManager.CreateWithTx(context, tx, suggestedPayment); err != nil {
+					tx.Rollback()
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan terms and condition suggested payment: " + err.Error()})
+				}
+			}
+		}
+
+		if request.LoanTermsAndConditionAmountReceipt != nil {
+			for _, amountReceiptReq := range request.LoanTermsAndConditionAmountReceipt {
+				amountReceipt := &model.LoanTermsAndConditionAmountReceipt{
+					CreatedAt:         time.Now().UTC(),
+					UpdatedAt:         time.Now().UTC(),
+					CreatedByID:       userOrg.UserID,
+					UpdatedByID:       userOrg.UserID,
+					OrganizationID:    userOrg.OrganizationID,
+					BranchID:          *userOrg.BranchID,
+					LoanTransactionID: loanTransaction.ID,
+					AccountID:         amountReceiptReq.AccountID,
+					Amount:            amountReceiptReq.Amount,
+				}
+
+				if err := c.model.LoanTermsAndConditionAmountReceiptManager.CreateWithTx(context, tx, amountReceipt); err != nil {
+					tx.Rollback()
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan terms and condition amount receipt: " + err.Error()})
+				}
+			}
+		}
 		if err := tx.Commit().Error; err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/browse-exclude-include-accounts/bulk-delete), commit error: " + err.Error(),
-				Module:      "BrowseExcludeIncludeAccounts",
+				Activity:    "commit-error",
+				Description: "Failed to commit transaction: " + err.Error(),
+				Module:      "LoanTransaction",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit bulk delete: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
+
+		// Get updated loan transaction with all relationships
 		loanTransactionUpdated, err := c.model.LoanTransactionManager.GetByIDRaw(context, loanTransaction.ID)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve created loan transaction: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated loan transaction: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusCreated, loanTransactionUpdated)
+
+		return ctx.JSON(http.StatusOK, loanTransactionUpdated)
 	})
 
 	// PUT /api/v1/loan-transaction/:id
@@ -453,6 +542,17 @@ func (c *Controller) LoanTransactionController() {
 				Module:      "Transaction",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batch: " + err.Error()})
+		}
+
+		tx := c.provider.Service.Database.Client().Begin()
+		if tx.Error != nil {
+			tx.Rollback()
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Failed to start database transaction: " + tx.Error.Error(),
+				Module:      "LoanTransaction",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
 
 		// Update fields
@@ -530,8 +630,289 @@ func (c *Controller) LoanTransactionController() {
 		loanTransaction.ModeOfPaymentFixedDays = request.ModeOfPaymentFixedDays
 		loanTransaction.UpdatedAt = time.Now().UTC()
 
-		if err := c.model.LoanTransactionManager.Update(context, loanTransaction); err != nil {
+		if err := c.model.LoanTransactionManager.UpdateWithTx(context, tx, loanTransaction); err != nil {
+			tx.Rollback()
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction: " + err.Error()})
+		}
+
+		// Handle deletions first (same as before)
+		if request.LoanClearanceAnalysisDeleted != nil {
+			for _, deletedID := range request.LoanClearanceAnalysisDeleted {
+				clearanceAnalysis, err := c.model.LoanClearanceAnalysisManager.GetByID(context, deletedID)
+				if err != nil {
+					tx.Rollback()
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find loan clearance analysis for deletion: " + err.Error()})
+				}
+				if clearanceAnalysis.LoanTransactionID != loanTransaction.ID {
+					tx.Rollback()
+					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete loan clearance analysis that doesn't belong to this loan transaction"})
+				}
+				clearanceAnalysis.DeletedByID = &userOrg.UserID
+				if err := c.model.LoanClearanceAnalysisManager.DeleteWithTx(context, tx, clearanceAnalysis); err != nil {
+					tx.Rollback()
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan clearance analysis: " + err.Error()})
+				}
+			}
+		}
+
+		if request.LoanClearanceAnalysisInstitutionDeleted != nil {
+			for _, deletedID := range request.LoanClearanceAnalysisInstitutionDeleted {
+				institution, err := c.model.LoanClearanceAnalysisInstitutionManager.GetByID(context, deletedID)
+				if err != nil {
+					tx.Rollback()
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find loan clearance analysis institution for deletion: " + err.Error()})
+				}
+				if institution.LoanTransactionID != loanTransaction.ID {
+					tx.Rollback()
+					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete loan clearance analysis institution that doesn't belong to this loan transaction"})
+				}
+				institution.DeletedByID = &userOrg.UserID
+				if err := c.model.LoanClearanceAnalysisInstitutionManager.DeleteWithTx(context, tx, institution); err != nil {
+					tx.Rollback()
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan clearance analysis institution: " + err.Error()})
+				}
+			}
+		}
+
+		if request.LoanTermsAndConditionSuggestedPaymentDeleted != nil {
+			for _, deletedID := range request.LoanTermsAndConditionSuggestedPaymentDeleted {
+				suggestedPayment, err := c.model.LoanTermsAndConditionSuggestedPaymentManager.GetByID(context, deletedID)
+				if err != nil {
+					tx.Rollback()
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find loan terms suggested payment for deletion: " + err.Error()})
+				}
+				if suggestedPayment.LoanTransactionID != loanTransaction.ID {
+					tx.Rollback()
+					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete loan terms suggested payment that doesn't belong to this loan transaction"})
+				}
+				suggestedPayment.DeletedByID = &userOrg.UserID
+				if err := c.model.LoanTermsAndConditionSuggestedPaymentManager.DeleteWithTx(context, tx, suggestedPayment); err != nil {
+					tx.Rollback()
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan terms suggested payment: " + err.Error()})
+				}
+			}
+		}
+
+		if request.LoanTermsAndConditionAmountReceiptDeleted != nil {
+			for _, deletedID := range request.LoanTermsAndConditionAmountReceiptDeleted {
+				amountReceipt, err := c.model.LoanTermsAndConditionAmountReceiptManager.GetByID(context, deletedID)
+				if err != nil {
+					tx.Rollback()
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find loan terms amount receipt for deletion: " + err.Error()})
+				}
+				if amountReceipt.LoanTransactionID != loanTransaction.ID {
+					tx.Rollback()
+					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete loan terms amount receipt that doesn't belong to this loan transaction"})
+				}
+				amountReceipt.DeletedByID = &userOrg.UserID
+				if err := c.model.LoanTermsAndConditionAmountReceiptManager.DeleteWithTx(context, tx, amountReceipt); err != nil {
+					tx.Rollback()
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan terms amount receipt: " + err.Error()})
+				}
+			}
+		}
+
+		// Create/Update LoanClearanceAnalysis records
+		if request.LoanClearanceAnalysis != nil {
+			for _, clearanceAnalysisReq := range request.LoanClearanceAnalysis {
+				if clearanceAnalysisReq.ID != nil {
+					// Update existing record
+					existingRecord, err := c.model.LoanClearanceAnalysisManager.GetByID(context, *clearanceAnalysisReq.ID)
+					if err != nil {
+						tx.Rollback()
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find existing loan clearance analysis: " + err.Error()})
+					}
+					// Verify ownership
+					if existingRecord.LoanTransactionID != loanTransaction.ID {
+						tx.Rollback()
+						return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot update loan clearance analysis that doesn't belong to this loan transaction"})
+					}
+					// Update fields
+					existingRecord.UpdatedAt = time.Now().UTC()
+					existingRecord.UpdatedByID = userOrg.UserID
+					existingRecord.RegularDeductionDescription = clearanceAnalysisReq.RegularDeductionDescription
+					existingRecord.RegularDeductionAmount = clearanceAnalysisReq.RegularDeductionAmount
+					existingRecord.BalancesDescription = clearanceAnalysisReq.BalancesDescription
+					existingRecord.BalancesAmount = clearanceAnalysisReq.BalancesAmount
+					existingRecord.BalancesCount = clearanceAnalysisReq.BalancesCount
+
+					if err := c.model.LoanClearanceAnalysisManager.UpdateWithTx(context, tx, existingRecord); err != nil {
+						tx.Rollback()
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan clearance analysis: " + err.Error()})
+					}
+				} else {
+					// Create new record
+					clearanceAnalysis := &model.LoanClearanceAnalysis{
+						CreatedAt:                   time.Now().UTC(),
+						UpdatedAt:                   time.Now().UTC(),
+						CreatedByID:                 userOrg.UserID,
+						UpdatedByID:                 userOrg.UserID,
+						OrganizationID:              userOrg.OrganizationID,
+						BranchID:                    *userOrg.BranchID,
+						LoanTransactionID:           loanTransaction.ID,
+						RegularDeductionDescription: clearanceAnalysisReq.RegularDeductionDescription,
+						RegularDeductionAmount:      clearanceAnalysisReq.RegularDeductionAmount,
+						BalancesDescription:         clearanceAnalysisReq.BalancesDescription,
+						BalancesAmount:              clearanceAnalysisReq.BalancesAmount,
+						BalancesCount:               clearanceAnalysisReq.BalancesCount,
+					}
+
+					if err := c.model.LoanClearanceAnalysisManager.CreateWithTx(context, tx, clearanceAnalysis); err != nil {
+						tx.Rollback()
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan clearance analysis: " + err.Error()})
+					}
+				}
+			}
+		}
+
+		// Create/Update LoanClearanceAnalysisInstitution records
+		if request.LoanClearanceAnalysisInstitution != nil {
+			for _, institutionReq := range request.LoanClearanceAnalysisInstitution {
+				if institutionReq.ID != nil {
+					// Update existing record
+					existingRecord, err := c.model.LoanClearanceAnalysisInstitutionManager.GetByID(context, *institutionReq.ID)
+					if err != nil {
+						tx.Rollback()
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find existing loan clearance analysis institution: " + err.Error()})
+					}
+					// Verify ownership
+					if existingRecord.LoanTransactionID != loanTransaction.ID {
+						tx.Rollback()
+						return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot update loan clearance analysis institution that doesn't belong to this loan transaction"})
+					}
+					// Update fields
+					existingRecord.UpdatedAt = time.Now().UTC()
+					existingRecord.UpdatedByID = userOrg.UserID
+					existingRecord.Name = institutionReq.Name
+					existingRecord.Description = institutionReq.Description
+
+					if err := c.model.LoanClearanceAnalysisInstitutionManager.UpdateWithTx(context, tx, existingRecord); err != nil {
+						tx.Rollback()
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan clearance analysis institution: " + err.Error()})
+					}
+				} else {
+					// Create new record
+					institution := &model.LoanClearanceAnalysisInstitution{
+						CreatedAt:         time.Now().UTC(),
+						UpdatedAt:         time.Now().UTC(),
+						CreatedByID:       userOrg.UserID,
+						UpdatedByID:       userOrg.UserID,
+						OrganizationID:    userOrg.OrganizationID,
+						BranchID:          *userOrg.BranchID,
+						LoanTransactionID: loanTransaction.ID,
+						Name:              institutionReq.Name,
+						Description:       institutionReq.Description,
+					}
+
+					if err := c.model.LoanClearanceAnalysisInstitutionManager.CreateWithTx(context, tx, institution); err != nil {
+						tx.Rollback()
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan clearance analysis institution: " + err.Error()})
+					}
+				}
+			}
+		}
+
+		// Create/Update LoanTermsAndConditionSuggestedPayment records
+		if request.LoanTermsAndConditionSuggestedPayment != nil {
+			for _, suggestedPaymentReq := range request.LoanTermsAndConditionSuggestedPayment {
+				if suggestedPaymentReq.ID != nil {
+					// Update existing record
+					existingRecord, err := c.model.LoanTermsAndConditionSuggestedPaymentManager.GetByID(context, *suggestedPaymentReq.ID)
+					if err != nil {
+						tx.Rollback()
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find existing loan terms suggested payment: " + err.Error()})
+					}
+					// Verify ownership
+					if existingRecord.LoanTransactionID != loanTransaction.ID {
+						tx.Rollback()
+						return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot update loan terms suggested payment that doesn't belong to this loan transaction"})
+					}
+					// Update fields
+					existingRecord.UpdatedAt = time.Now().UTC()
+					existingRecord.UpdatedByID = userOrg.UserID
+					existingRecord.Name = suggestedPaymentReq.Name
+					existingRecord.Description = suggestedPaymentReq.Description
+
+					if err := c.model.LoanTermsAndConditionSuggestedPaymentManager.UpdateWithTx(context, tx, existingRecord); err != nil {
+						tx.Rollback()
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan terms suggested payment: " + err.Error()})
+					}
+				} else {
+					// Create new record
+					suggestedPayment := &model.LoanTermsAndConditionSuggestedPayment{
+						CreatedAt:         time.Now().UTC(),
+						UpdatedAt:         time.Now().UTC(),
+						CreatedByID:       userOrg.UserID,
+						UpdatedByID:       userOrg.UserID,
+						OrganizationID:    userOrg.OrganizationID,
+						BranchID:          *userOrg.BranchID,
+						LoanTransactionID: loanTransaction.ID,
+						Name:              suggestedPaymentReq.Name,
+						Description:       suggestedPaymentReq.Description,
+					}
+
+					if err := c.model.LoanTermsAndConditionSuggestedPaymentManager.CreateWithTx(context, tx, suggestedPayment); err != nil {
+						tx.Rollback()
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan terms suggested payment: " + err.Error()})
+					}
+				}
+			}
+		}
+
+		// Create/Update LoanTermsAndConditionAmountReceipt records
+		if request.LoanTermsAndConditionAmountReceipt != nil {
+			for _, amountReceiptReq := range request.LoanTermsAndConditionAmountReceipt {
+				if amountReceiptReq.ID != nil {
+					// Update existing record
+					existingRecord, err := c.model.LoanTermsAndConditionAmountReceiptManager.GetByID(context, *amountReceiptReq.ID)
+					if err != nil {
+						tx.Rollback()
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find existing loan terms amount receipt: " + err.Error()})
+					}
+					// Verify ownership
+					if existingRecord.LoanTransactionID != loanTransaction.ID {
+						tx.Rollback()
+						return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot update loan terms amount receipt that doesn't belong to this loan transaction"})
+					}
+					// Update fields
+					existingRecord.UpdatedAt = time.Now().UTC()
+					existingRecord.UpdatedByID = userOrg.UserID
+					existingRecord.AccountID = amountReceiptReq.AccountID
+					existingRecord.Amount = amountReceiptReq.Amount
+
+					if err := c.model.LoanTermsAndConditionAmountReceiptManager.UpdateWithTx(context, tx, existingRecord); err != nil {
+						tx.Rollback()
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan terms amount receipt: " + err.Error()})
+					}
+				} else {
+					// Create new record
+					amountReceipt := &model.LoanTermsAndConditionAmountReceipt{
+						CreatedAt:         time.Now().UTC(),
+						UpdatedAt:         time.Now().UTC(),
+						CreatedByID:       userOrg.UserID,
+						UpdatedByID:       userOrg.UserID,
+						OrganizationID:    userOrg.OrganizationID,
+						BranchID:          *userOrg.BranchID,
+						LoanTransactionID: loanTransaction.ID,
+						AccountID:         amountReceiptReq.AccountID,
+						Amount:            amountReceiptReq.Amount,
+					}
+
+					if err := c.model.LoanTermsAndConditionAmountReceiptManager.CreateWithTx(context, tx, amountReceipt); err != nil {
+						tx.Rollback()
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan terms amount receipt: " + err.Error()})
+					}
+				}
+			}
+		}
+
+		if err := tx.Commit().Error; err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "commit-error",
+				Description: "Failed to commit transaction: " + err.Error(),
+				Module:      "LoanTransaction",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
 
 		return ctx.JSON(http.StatusOK, c.model.LoanTransactionManager.ToModel(loanTransaction))
@@ -567,13 +948,138 @@ func (c *Controller) LoanTransactionController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this loan transaction"})
 		}
 
-		// Set deleted by user
+		// Start transaction for cascading deletes
+		tx := c.provider.Service.Database.Client().Begin()
+		if tx.Error != nil {
+			tx.Rollback()
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Failed to start database transaction: " + tx.Error.Error(),
+				Module:      "LoanTransaction",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+		}
+
+		// Delete all LoanClearanceAnalysis records
+		clearanceAnalysisList, err := c.model.LoanClearanceAnalysisManager.Find(context, &model.LoanClearanceAnalysis{
+			LoanTransactionID: loanTransaction.ID,
+			OrganizationID:    userOrg.OrganizationID,
+			BranchID:          *userOrg.BranchID,
+		})
+		if err != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find loan clearance analysis records: " + err.Error()})
+		}
+
+		for _, clearanceAnalysis := range clearanceAnalysisList {
+			clearanceAnalysis.DeletedByID = &userOrg.UserID
+			if err := c.model.LoanClearanceAnalysisManager.DeleteWithTx(context, tx, clearanceAnalysis); err != nil {
+				tx.Rollback()
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan clearance analysis: " + err.Error()})
+			}
+		}
+
+		// Delete all LoanClearanceAnalysisInstitution records
+		institutionList, err := c.model.LoanClearanceAnalysisInstitutionManager.Find(context, &model.LoanClearanceAnalysisInstitution{
+			LoanTransactionID: loanTransaction.ID,
+			OrganizationID:    userOrg.OrganizationID,
+			BranchID:          *userOrg.BranchID,
+		})
+		if err != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find loan clearance analysis institution records: " + err.Error()})
+		}
+
+		for _, institution := range institutionList {
+			institution.DeletedByID = &userOrg.UserID
+			if err := c.model.LoanClearanceAnalysisInstitutionManager.DeleteWithTx(context, tx, institution); err != nil {
+				tx.Rollback()
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan clearance analysis institution: " + err.Error()})
+			}
+		}
+
+		// Delete all LoanTermsAndConditionSuggestedPayment records
+		suggestedPaymentList, err := c.model.LoanTermsAndConditionSuggestedPaymentManager.Find(context, &model.LoanTermsAndConditionSuggestedPayment{
+			LoanTransactionID: loanTransaction.ID,
+			OrganizationID:    userOrg.OrganizationID,
+			BranchID:          *userOrg.BranchID,
+		})
+		if err != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find loan terms suggested payment records: " + err.Error()})
+		}
+
+		for _, suggestedPayment := range suggestedPaymentList {
+			suggestedPayment.DeletedByID = &userOrg.UserID
+			if err := c.model.LoanTermsAndConditionSuggestedPaymentManager.DeleteWithTx(context, tx, suggestedPayment); err != nil {
+				tx.Rollback()
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan terms suggested payment: " + err.Error()})
+			}
+		}
+
+		// Delete all LoanTermsAndConditionAmountReceipt records
+		amountReceiptList, err := c.model.LoanTermsAndConditionAmountReceiptManager.Find(context, &model.LoanTermsAndConditionAmountReceipt{
+			LoanTransactionID: loanTransaction.ID,
+			OrganizationID:    userOrg.OrganizationID,
+			BranchID:          *userOrg.BranchID,
+		})
+		if err != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find loan terms amount receipt records: " + err.Error()})
+		}
+
+		for _, amountReceipt := range amountReceiptList {
+			amountReceipt.DeletedByID = &userOrg.UserID
+			if err := c.model.LoanTermsAndConditionAmountReceiptManager.DeleteWithTx(context, tx, amountReceipt); err != nil {
+				tx.Rollback()
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan terms amount receipt: " + err.Error()})
+			}
+		}
+
+		// Delete all LoanTransactionEntry records
+		transactionEntryList, err := c.model.LoanTransactionEntryManager.Find(context, &model.LoanTransactionEntry{
+			LoanTransactionID: loanTransaction.ID,
+			OrganizationID:    userOrg.OrganizationID,
+			BranchID:          *userOrg.BranchID,
+		})
+		if err != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find loan transaction entry records: " + err.Error()})
+		}
+
+		for _, transactionEntry := range transactionEntryList {
+			transactionEntry.DeletedByID = &userOrg.UserID
+			if err := c.model.LoanTransactionEntryManager.DeleteWithTx(context, tx, transactionEntry); err != nil {
+				tx.Rollback()
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan transaction entry: " + err.Error()})
+			}
+		}
+
+		// Set deleted by user for main loan transaction
 		loanTransaction.DeletedByID = &userOrg.UserID
 
-		if err := c.model.LoanTransactionManager.Delete(context, loanTransaction); err != nil {
+		// Delete the main loan transaction
+		if err := c.model.LoanTransactionManager.DeleteWithTx(context, tx, loanTransaction); err != nil {
+			tx.Rollback()
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan transaction: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, map[string]string{"message": "Loan transaction deleted successfully"})
+		// Commit the transaction
+		if err := tx.Commit().Error; err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "commit-error",
+				Description: "Failed to commit transaction: " + err.Error(),
+				Module:      "LoanTransaction",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
+		}
+
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "delete-success",
+			Description: fmt.Sprintf("Successfully deleted loan transaction %s and all related records", loanTransaction.ID),
+			Module:      "LoanTransaction",
+		})
+
+		return ctx.JSON(http.StatusOK, map[string]string{"message": "Loan transaction and all related records deleted successfully"})
 	})
 }

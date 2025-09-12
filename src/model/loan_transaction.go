@@ -197,7 +197,11 @@ type (
 		PaidByPosition         string     `gorm:"type:varchar(255)"`
 
 		// Relationships
-		LoanTransactionEntries []*LoanTransactionEntry `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"loan_transaction_entries,omitempty"`
+		LoanTransactionEntries                []*LoanTransactionEntry                  `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"loan_transaction_entries,omitempty"`
+		LoanClearanceAnalysis                 []*LoanClearanceAnalysis                 `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"loan_clearance_analysis,omitempty"`
+		LoanClearanceAnalysisInstitution      []*LoanClearanceAnalysisInstitution      `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"loan_clearance_analysis_institution,omitempty"`
+		LoanTermsAndConditionSuggestedPayment []*LoanTermsAndConditionSuggestedPayment `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"loan_terms_and_condition_suggested_payment,omitempty"`
+		LoanTermsAndConditionAmountReceipt    []*LoanTermsAndConditionAmountReceipt    `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"loan_terms_and_condition_amount_receipt,omitempty"`
 	}
 
 	LoanTransactionResponse struct {
@@ -331,7 +335,11 @@ type (
 		PaidByPosition         string         `json:"paid_by_position"`
 
 		// Relationships
-		LoanTransactionEntries []*LoanTransactionEntryResponse `json:"loan_transaction_entries,omitempty"`
+		LoanTransactionEntries                []*LoanTransactionEntryResponse                  `json:"loan_transaction_entries,omitempty"`
+		LoanClearanceAnalysis                 []*LoanClearanceAnalysisResponse                 `json:"loan_clearance_analysis,omitempty"`
+		LoanClearanceAnalysisInstitution      []*LoanClearanceAnalysisInstitutionResponse      `json:"loan_clearance_analysis_institution,omitempty"`
+		LoanTermsAndConditionSuggestedPayment []*LoanTermsAndConditionSuggestedPaymentResponse `json:"loan_terms_and_condition_suggested_payment,omitempty"`
+		LoanTermsAndConditionAmountReceipt    []*LoanTermsAndConditionAmountReceiptResponse    `json:"loan_terms_and_condition_amount_receipt,omitempty"`
 	}
 
 	LoanTransactionRequest struct {
@@ -425,6 +433,17 @@ type (
 		PaidBySignatureMediaID *uuid.UUID `json:"paid_by_signature_media_id,omitempty"`
 		PaidByName             string     `json:"paid_by_name,omitempty"`
 		PaidByPosition         string     `json:"paid_by_position,omitempty"`
+
+		// Nested relationships for creation/update
+		LoanClearanceAnalysis                 []*LoanClearanceAnalysisRequest                 `json:"loan_clearance_analysis,omitempty"`
+		LoanClearanceAnalysisInstitution      []*LoanClearanceAnalysisInstitutionRequest      `json:"loan_clearance_analysis_institution,omitempty"`
+		LoanTermsAndConditionSuggestedPayment []*LoanTermsAndConditionSuggestedPaymentRequest `json:"loan_terms_and_condition_suggested_payment,omitempty"`
+		LoanTermsAndConditionAmountReceipt    []*LoanTermsAndConditionAmountReceiptRequest    `json:"loan_terms_and_condition_amount_receipt,omitempty"`
+
+		LoanClearanceAnalysisDeleted                 []uuid.UUID `json:"loan_clearance_analysis_deleted,omitempty"`
+		LoanClearanceAnalysisInstitutionDeleted      []uuid.UUID `json:"loan_clearance_analysis_institution_deleted,omitempty"`
+		LoanTermsAndConditionSuggestedPaymentDeleted []uuid.UUID `json:"loan_terms_and_condition_suggested_payment_deleted,omitempty"`
+		LoanTermsAndConditionAmountReceiptDeleted    []uuid.UUID `json:"loan_terms_and_condition_amount_receipt_deleted,omitempty"`
 	}
 
 	// Amortization Schedule Types
@@ -484,6 +503,10 @@ func (m *Model) LoanTransaction() {
 			"NotedBySignatureMedia", "PostedBySignatureMedia", "PaidBySignatureMedia",
 			"LoanTransactionEntries",
 			"LoanTransactionEntries.Account",
+			"LoanClearanceAnalysis",
+			"LoanClearanceAnalysisInstitution",
+			"LoanTermsAndConditionSuggestedPayment",
+			"LoanTermsAndConditionAmountReceipt",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *LoanTransaction) *LoanTransactionResponse {
@@ -595,6 +618,10 @@ func (m *Model) LoanTransaction() {
 				PaidByName:                             data.PaidByName,
 				PaidByPosition:                         data.PaidByPosition,
 				LoanTransactionEntries:                 m.mapLoanTransactionEntries(data.LoanTransactionEntries),
+				LoanClearanceAnalysis:                  m.LoanClearanceAnalysisManager.ToModels(data.LoanClearanceAnalysis),
+				LoanClearanceAnalysisInstitution:       m.LoanClearanceAnalysisInstitutionManager.ToModels(data.LoanClearanceAnalysisInstitution),
+				LoanTermsAndConditionSuggestedPayment:  m.LoanTermsAndConditionSuggestedPaymentManager.ToModels(data.LoanTermsAndConditionSuggestedPayment),
+				LoanTermsAndConditionAmountReceipt:     m.LoanTermsAndConditionAmountReceiptManager.ToModels(data.LoanTermsAndConditionAmountReceipt),
 			}
 		},
 

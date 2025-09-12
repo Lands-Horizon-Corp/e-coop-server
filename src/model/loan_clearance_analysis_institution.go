@@ -54,9 +54,10 @@ type (
 	}
 
 	LoanClearanceAnalysisInstitutionRequest struct {
-		LoanTransactionID uuid.UUID `json:"loan_transaction_id"`
-		Name              string    `json:"name" validate:"required,min=1,max=50"`
-		Description       string    `json:"description,omitempty"`
+		ID                *uuid.UUID `json:"id"`
+		LoanTransactionID uuid.UUID  `json:"loan_transaction_id"`
+		Name              string     `json:"name" validate:"required,min=1,max=50"`
+		Description       string     `json:"description,omitempty"`
 	}
 )
 

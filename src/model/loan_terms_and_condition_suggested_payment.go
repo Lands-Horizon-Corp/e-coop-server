@@ -30,6 +30,9 @@ type (
 
 		LoanTransactionID uuid.UUID        `gorm:"type:uuid;not null"`
 		LoanTransaction   *LoanTransaction `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"loan_transaction,omitempty"`
+
+		Name        string `gorm:"type:varchar(255)"`
+		Description string `gorm:"type:varchar(255)"`
 	}
 
 	LoanTermsAndConditionSuggestedPaymentResponse struct {
@@ -46,10 +49,15 @@ type (
 		Branch            *BranchResponse          `json:"branch,omitempty"`
 		LoanTransactionID uuid.UUID                `json:"loan_transaction_id"`
 		LoanTransaction   *LoanTransactionResponse `json:"loan_transaction,omitempty"`
+		Name              string                   `json:"name"`
+		Description       string                   `json:"description"`
 	}
 
 	LoanTermsAndConditionSuggestedPaymentRequest struct {
-		LoanTransactionID uuid.UUID `json:"loan_transaction_id" validate:"required"`
+		ID                *uuid.UUID `json:"id"`
+		LoanTransactionID uuid.UUID  `json:"loan_transaction_id" validate:"required"`
+		Name              string     `json:"name"`
+		Description       string     `json:"description"`
 	}
 )
 
@@ -59,7 +67,7 @@ func (m *Model) LoanTermsAndConditionSuggestedPayment() {
 		LoanTermsAndConditionSuggestedPayment, LoanTermsAndConditionSuggestedPaymentResponse, LoanTermsAndConditionSuggestedPaymentRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization", "LoanTransaction",
+			"CreatedBy", "UpdatedBy", "LoanTransaction",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *LoanTermsAndConditionSuggestedPayment) *LoanTermsAndConditionSuggestedPaymentResponse {
@@ -80,6 +88,8 @@ func (m *Model) LoanTermsAndConditionSuggestedPayment() {
 				Branch:            m.BranchManager.ToModel(data.Branch),
 				LoanTransactionID: data.LoanTransactionID,
 				LoanTransaction:   m.LoanTransactionManager.ToModel(data.LoanTransaction),
+				Name:              data.Name,
+				Description:       data.Description,
 			}
 		},
 
