@@ -54,9 +54,10 @@ type (
 	}
 
 	LoanTermsAndConditionSuggestedPaymentRequest struct {
-		LoanTransactionID uuid.UUID `json:"loan_transaction_id" validate:"required"`
-		Name              string    `json:"name"`
-		Description       string    `json:"description"`
+		ID                *uuid.UUID `json:"id"`
+		LoanTransactionID uuid.UUID  `json:"loan_transaction_id" validate:"required"`
+		Name              string     `json:"name"`
+		Description       string     `json:"description"`
 	}
 )
 

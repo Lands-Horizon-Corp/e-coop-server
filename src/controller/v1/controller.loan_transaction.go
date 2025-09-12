@@ -440,6 +440,7 @@ func (c *Controller) LoanTransactionController() {
 		if request.LoanTermsAndConditionSuggestedPayment != nil {
 			for _, suggestedPaymentReq := range request.LoanTermsAndConditionSuggestedPayment {
 				suggestedPayment := &model.LoanTermsAndConditionSuggestedPayment{
+
 					CreatedAt:         time.Now().UTC(),
 					UpdatedAt:         time.Now().UTC(),
 					CreatedByID:       userOrg.UserID,

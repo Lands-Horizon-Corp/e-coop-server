@@ -57,9 +57,10 @@ type (
 	}
 
 	LoanTermsAndConditionAmountReceiptRequest struct {
-		LoanTransactionID uuid.UUID `json:"loan_transaction_id" validate:"required"`
-		AccountID         uuid.UUID `json:"account_id" validate:"required"`
-		Amount            float64   `json:"amount"`
+		ID                *uuid.UUID `json:"id"`
+		LoanTransactionID uuid.UUID  `json:"loan_transaction_id" validate:"required"`
+		AccountID         uuid.UUID  `json:"account_id" validate:"required"`
+		Amount            float64    `json:"amount"`
 	}
 )
 
