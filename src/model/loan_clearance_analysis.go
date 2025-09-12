@@ -61,12 +61,11 @@ type (
 	}
 
 	LoanClearanceAnalysisRequest struct {
-		LoanTransactionID           uuid.UUID `json:"loan_transaction_id"`
-		RegularDeductionDescription string    `json:"regular_deduction_description,omitempty"`
-		RegularDeductionAmount      float64   `json:"regular_deduction_amount,omitempty"`
-		BalancesDescription         string    `json:"balances_description,omitempty"`
-		BalancesAmount              float64   `json:"balances_amount,omitempty"`
-		BalancesCount               int       `json:"balances_count,omitempty"`
+		RegularDeductionDescription string  `json:"regular_deduction_description,omitempty"`
+		RegularDeductionAmount      float64 `json:"regular_deduction_amount,omitempty"`
+		BalancesDescription         string  `json:"balances_description,omitempty"`
+		BalancesAmount              float64 `json:"balances_amount,omitempty"`
+		BalancesCount               int     `json:"balances_count,omitempty"`
 	}
 )
 

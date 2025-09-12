@@ -394,6 +394,50 @@ func (c *Controller) LoanTransactionController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan transaction entry: " + err.Error()})
 		}
 
+		if request.LoanClearanceAnalysis != nil {
+			for _, clearanceAnalysisReq := range request.LoanClearanceAnalysis {
+				clearanceAnalysis := &model.LoanClearanceAnalysis{
+					CreatedAt:      time.Now().UTC(),
+					UpdatedAt:      time.Now().UTC(),
+					CreatedByID:    userOrg.UserID,
+					UpdatedByID:    userOrg.UserID,
+					OrganizationID: userOrg.OrganizationID,
+					BranchID:       *userOrg.BranchID,
+
+					RegularDeductionDescription: clearanceAnalysisReq.RegularDeductionDescription,
+					RegularDeductionAmount:      clearanceAnalysisReq.RegularDeductionAmount,
+					BalancesDescription:         clearanceAnalysisReq.BalancesDescription,
+					BalancesAmount:              clearanceAnalysisReq.BalancesAmount,
+					BalancesCount:               clearanceAnalysisReq.BalancesCount,
+				}
+
+				if err := c.model.LoanClearanceAnalysisManager.CreateWithTx(context, tx, clearanceAnalysis); err != nil {
+					tx.Rollback()
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan clearance analysis: " + err.Error()})
+				}
+			}
+		}
+		if request.LoanClearanceAnalysisInstitution != nil {
+			for _, institutionReq := range request.LoanClearanceAnalysisInstitution {
+				institution := &model.LoanClearanceAnalysisInstitution{
+					CreatedAt:         time.Now().UTC(),
+					UpdatedAt:         time.Now().UTC(),
+					CreatedByID:       userOrg.UserID,
+					UpdatedByID:       userOrg.UserID,
+					OrganizationID:    userOrg.OrganizationID,
+					BranchID:          *userOrg.BranchID,
+					LoanTransactionID: loanTransaction.ID,
+					Name:              institutionReq.Name,
+					Description:       institutionReq.Description,
+				}
+
+				if err := c.model.LoanClearanceAnalysisInstitutionManager.CreateWithTx(context, tx, institution); err != nil {
+					tx.Rollback()
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan clearance analysis institution: " + err.Error()})
+				}
+			}
+		}
+
 		if err := tx.Commit().Error; err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
