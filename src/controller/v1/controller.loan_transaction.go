@@ -437,7 +437,47 @@ func (c *Controller) LoanTransactionController() {
 				}
 			}
 		}
+		if request.LoanTermsAndConditionSuggestedPayment != nil {
+			for _, suggestedPaymentReq := range request.LoanTermsAndConditionSuggestedPayment {
+				suggestedPayment := &model.LoanTermsAndConditionSuggestedPayment{
+					CreatedAt:         time.Now().UTC(),
+					UpdatedAt:         time.Now().UTC(),
+					CreatedByID:       userOrg.UserID,
+					UpdatedByID:       userOrg.UserID,
+					OrganizationID:    userOrg.OrganizationID,
+					BranchID:          *userOrg.BranchID,
+					LoanTransactionID: loanTransaction.ID,
+					Name:              suggestedPaymentReq.Name,
+					Description:       suggestedPaymentReq.Description,
+				}
 
+				if err := c.model.LoanTermsAndConditionSuggestedPaymentManager.CreateWithTx(context, tx, suggestedPayment); err != nil {
+					tx.Rollback()
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan terms and condition suggested payment: " + err.Error()})
+				}
+			}
+		}
+
+		if request.LoanTermsAndConditionAmountReceipt != nil {
+			for _, amountReceiptReq := range request.LoanTermsAndConditionAmountReceipt {
+				amountReceipt := &model.LoanTermsAndConditionAmountReceipt{
+					CreatedAt:         time.Now().UTC(),
+					UpdatedAt:         time.Now().UTC(),
+					CreatedByID:       userOrg.UserID,
+					UpdatedByID:       userOrg.UserID,
+					OrganizationID:    userOrg.OrganizationID,
+					BranchID:          *userOrg.BranchID,
+					LoanTransactionID: loanTransaction.ID,
+					AccountID:         amountReceiptReq.AccountID,
+					Amount:            amountReceiptReq.Amount,
+				}
+
+				if err := c.model.LoanTermsAndConditionAmountReceiptManager.CreateWithTx(context, tx, amountReceipt); err != nil {
+					tx.Rollback()
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan terms and condition amount receipt: " + err.Error()})
+				}
+			}
+		}
 		if err := tx.Commit().Error; err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",

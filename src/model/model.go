@@ -144,25 +144,26 @@ type (
 		DisbursementManager            horizon_services.Repository[Disbursement, DisbursementResponse, DisbursementRequest]
 
 		// LOAN START
-		ComputationSheetManager                   horizon_services.Repository[ComputationSheet, ComputationSheetResponse, ComputationSheetRequest]
-		FinesMaturityManager                      horizon_services.Repository[FinesMaturity, FinesMaturityResponse, FinesMaturityRequest]
-		InterestMaturityManager                   horizon_services.Repository[InterestMaturity, InterestMaturityResponse, InterestMaturityRequest]
-		IncludeNegativeAccountManager             horizon_services.Repository[IncludeNegativeAccount, IncludeNegativeAccountResponse, IncludeNegativeAccountRequest]
-		AutomaticLoanDeductionManager             horizon_services.Repository[AutomaticLoanDeduction, AutomaticLoanDeductionResponse, AutomaticLoanDeductionRequest]
-		BrowseExcludeIncludeAccountsManager       horizon_services.Repository[BrowseExcludeIncludeAccounts, BrowseExcludeIncludeAccountsResponse, BrowseExcludeIncludeAccountsRequest]
-		MemberClassificationInterestRateManager   horizon_services.Repository[MemberClassificationInterestRate, MemberClassificationInterestRateResponse, MemberClassificationInterestRateRequest]
-		LoanGuaranteedFundPerMonthManager         horizon_services.Repository[LoanGuaranteedFundPerMonth, LoanGuaranteedFundPerMonthResponse, LoanGuaranteedFundPerMonthRequest]
-		LoanStatusManager                         horizon_services.Repository[LoanStatus, LoanStatusResponse, LoanStatusRequest]
-		LoanGuaranteedFundManager                 horizon_services.Repository[LoanGuaranteedFund, LoanGuaranteedFundResponse, LoanGuaranteedFundRequest]
-		LoanTransactionManager                    horizon_services.Repository[LoanTransaction, LoanTransactionResponse, LoanTransactionRequest]
-		LoanClearanceAnalysisManager              horizon_services.Repository[LoanClearanceAnalysis, LoanClearanceAnalysisResponse, LoanClearanceAnalysisRequest]
-		LoanClearanceAnalysisInstitutionManager   horizon_services.Repository[LoanClearanceAnalysisInstitution, LoanClearanceAnalysisInstitutionResponse, LoanClearanceAnalysisInstitutionRequest]
-		LoanComakerMemberManager                  horizon_services.Repository[LoanComakerMember, LoanComakerMemberResponse, LoanComakerMemberRequest]
-		LoanTransactionEntryManager               horizon_services.Repository[LoanTransactionEntry, LoanTransactionEntryResponse, LoanTransactionEntryRequest]
-		LoanTagManager                            horizon_services.Repository[LoanTag, LoanTagResponse, LoanTagRequest]
-		LoanTermsAndConditionAmountReceiptManager horizon_services.Repository[LoanTermsAndConditionAmountReceipt, LoanTermsAndConditionAmountReceiptResponse, LoanTermsAndConditionAmountReceiptRequest]
-		LoanPurposeManager                        horizon_services.Repository[LoanPurpose, LoanPurposeResponse, LoanPurposeRequest]
-		LoanLedgerManager                         horizon_services.Repository[LoanLedger, LoanLedgerResponse, LoanLedgerRequest]
+		ComputationSheetManager                      horizon_services.Repository[ComputationSheet, ComputationSheetResponse, ComputationSheetRequest]
+		FinesMaturityManager                         horizon_services.Repository[FinesMaturity, FinesMaturityResponse, FinesMaturityRequest]
+		InterestMaturityManager                      horizon_services.Repository[InterestMaturity, InterestMaturityResponse, InterestMaturityRequest]
+		IncludeNegativeAccountManager                horizon_services.Repository[IncludeNegativeAccount, IncludeNegativeAccountResponse, IncludeNegativeAccountRequest]
+		AutomaticLoanDeductionManager                horizon_services.Repository[AutomaticLoanDeduction, AutomaticLoanDeductionResponse, AutomaticLoanDeductionRequest]
+		BrowseExcludeIncludeAccountsManager          horizon_services.Repository[BrowseExcludeIncludeAccounts, BrowseExcludeIncludeAccountsResponse, BrowseExcludeIncludeAccountsRequest]
+		MemberClassificationInterestRateManager      horizon_services.Repository[MemberClassificationInterestRate, MemberClassificationInterestRateResponse, MemberClassificationInterestRateRequest]
+		LoanGuaranteedFundPerMonthManager            horizon_services.Repository[LoanGuaranteedFundPerMonth, LoanGuaranteedFundPerMonthResponse, LoanGuaranteedFundPerMonthRequest]
+		LoanStatusManager                            horizon_services.Repository[LoanStatus, LoanStatusResponse, LoanStatusRequest]
+		LoanGuaranteedFundManager                    horizon_services.Repository[LoanGuaranteedFund, LoanGuaranteedFundResponse, LoanGuaranteedFundRequest]
+		LoanTransactionManager                       horizon_services.Repository[LoanTransaction, LoanTransactionResponse, LoanTransactionRequest]
+		LoanClearanceAnalysisManager                 horizon_services.Repository[LoanClearanceAnalysis, LoanClearanceAnalysisResponse, LoanClearanceAnalysisRequest]
+		LoanClearanceAnalysisInstitutionManager      horizon_services.Repository[LoanClearanceAnalysisInstitution, LoanClearanceAnalysisInstitutionResponse, LoanClearanceAnalysisInstitutionRequest]
+		LoanComakerMemberManager                     horizon_services.Repository[LoanComakerMember, LoanComakerMemberResponse, LoanComakerMemberRequest]
+		LoanTransactionEntryManager                  horizon_services.Repository[LoanTransactionEntry, LoanTransactionEntryResponse, LoanTransactionEntryRequest]
+		LoanTagManager                               horizon_services.Repository[LoanTag, LoanTagResponse, LoanTagRequest]
+		LoanTermsAndConditionSuggestedPaymentManager horizon_services.Repository[LoanTermsAndConditionSuggestedPayment, LoanTermsAndConditionSuggestedPaymentResponse, LoanTermsAndConditionSuggestedPaymentRequest]
+		LoanTermsAndConditionAmountReceiptManager    horizon_services.Repository[LoanTermsAndConditionAmountReceipt, LoanTermsAndConditionAmountReceiptResponse, LoanTermsAndConditionAmountReceiptRequest]
+		LoanPurposeManager                           horizon_services.Repository[LoanPurpose, LoanPurposeResponse, LoanPurposeRequest]
+		LoanLedgerManager                            horizon_services.Repository[LoanLedger, LoanLedgerResponse, LoanLedgerRequest]
 
 		// Maintenance
 		CollateralManager                                                   horizon_services.Repository[Collateral, CollateralResponse, CollateralRequest]
@@ -283,6 +284,7 @@ func (c *Model) Start(context context.Context) error {
 	c.LoanStatus()
 	c.LoanTag()
 	c.LoanTermsAndConditionAmountReceipt()
+	c.LoanTermsAndConditionSuggestedPayment()
 	c.LoanTransactionEntry()
 	c.LoanTransaction()
 	c.Media()
