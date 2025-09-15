@@ -632,7 +632,7 @@ func (c *Controller) LoanTransactionController() {
 		loanTransaction.ModeOfPaymentFixedDays = request.ModeOfPaymentFixedDays
 		loanTransaction.UpdatedAt = time.Now().UTC()
 
-		if request.LoanTransactionEntries != nil {
+		if request.LoanTransactionEntriesDeleted != nil {
 			for _, deletedID := range request.LoanTransactionEntriesDeleted {
 				loanTransactionEntry, err := c.model.LoanTransactionEntryManager.GetByID(context, deletedID)
 				if err != nil {
