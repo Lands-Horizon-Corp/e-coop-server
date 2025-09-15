@@ -803,6 +803,7 @@ func (c *Controller) LoanTransactionController() {
 					existingRecord.AccountID = entryReq.AccountID
 					existingRecord.Credit = entryReq.Credit
 					existingRecord.Debit = entryReq.Debit
+					existingRecord.IsAddOn = entryReq.IsAddOn
 
 					// Use provided name and description, or get from account if available
 					if entryReq.AccountID != nil {
@@ -865,6 +866,7 @@ func (c *Controller) LoanTransactionController() {
 						Name:              accountName,
 						Index:             entryReq.Index,
 						Type:              entryReq.Type,
+						IsAddOn:           entryReq.IsAddOn,
 					}
 
 					if err := c.model.LoanTransactionEntryManager.CreateWithTx(context, tx, newEntry); err != nil {
