@@ -803,8 +803,24 @@ func (c *Controller) LoanTransactionController() {
 					existingRecord.AccountID = entryReq.AccountID
 					existingRecord.Credit = entryReq.Credit
 					existingRecord.Debit = entryReq.Debit
-					existingRecord.Description = entryReq.Description
-					existingRecord.Name = entryReq.Name
+
+					// Use provided name and description, or get from account if available
+					if entryReq.AccountID != nil {
+						account, err := c.model.AccountManager.GetByID(context, *entryReq.AccountID)
+						if err == nil {
+							existingRecord.Description = account.Description
+							existingRecord.Name = account.Name
+						} else {
+							// If account doesn't exist, use provided values as fallback
+							existingRecord.Description = entryReq.Description
+							existingRecord.Name = entryReq.Name
+						}
+					} else {
+						// No account ID provided, use the provided name and description
+						existingRecord.Description = entryReq.Description
+						existingRecord.Name = entryReq.Name
+					}
+
 					existingRecord.Index = entryReq.Index
 					existingRecord.Type = entryReq.Type
 
@@ -814,14 +830,24 @@ func (c *Controller) LoanTransactionController() {
 					}
 				} else {
 					// Create new record
-					if entryReq.AccountID == nil {
-						tx.Rollback()
-						return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Account ID is required for loan transaction entry"})
-					}
-					account, err := c.model.AccountManager.GetByID(context, *entryReq.AccountID)
-					if err != nil {
-						tx.Rollback()
-						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve account: " + err.Error()})
+					var accountName, accountDescription string
+
+					if entryReq.AccountID != nil {
+						// Try to get account details
+						account, err := c.model.AccountManager.GetByID(context, *entryReq.AccountID)
+						if err != nil {
+							// Account doesn't exist, use provided name and description as fallback
+							accountName = entryReq.Name
+							accountDescription = entryReq.Description
+						} else {
+							// Account exists, use account details
+							accountName = account.Name
+							accountDescription = account.Description
+						}
+					} else {
+						// No account ID provided, use provided name and description
+						accountName = entryReq.Name
+						accountDescription = entryReq.Description
 					}
 
 					newEntry := &model.LoanTransactionEntry{
@@ -829,14 +855,14 @@ func (c *Controller) LoanTransactionController() {
 						UpdatedByID:       userOrg.UserID,
 						CreatedAt:         time.Now().UTC(),
 						UpdatedAt:         time.Now().UTC(),
-						AccountID:         entryReq.AccountID,
+						AccountID:         entryReq.AccountID, // This can be nil
 						OrganizationID:    userOrg.OrganizationID,
 						BranchID:          *userOrg.BranchID,
 						LoanTransactionID: loanTransaction.ID,
 						Credit:            entryReq.Credit,
 						Debit:             entryReq.Debit,
-						Description:       account.Description,
-						Name:              account.Name,
+						Description:       accountDescription,
+						Name:              accountName,
 						Index:             entryReq.Index,
 						Type:              entryReq.Type,
 					}
