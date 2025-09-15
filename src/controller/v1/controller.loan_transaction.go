@@ -261,7 +261,7 @@ func (c *Controller) LoanTransactionController() {
 			EmployeeUserID:                         &userOrg.UserID,
 			LoanPurposeID:                          request.LoanPurposeID,
 			LoanStatusID:                           request.LoanStatusID,
-			ModeOfPayment:                          string(request.ModeOfPayment),
+			ModeOfPayment:                          request.ModeOfPayment,
 			ModeOfPaymentWeekly:                    string(request.ModeOfPaymentWeekly),
 			ModeOfPaymentSemiMonthlyPay1:           request.ModeOfPaymentSemiMonthlyPay1,
 			ModeOfPaymentSemiMonthlyPay2:           request.ModeOfPaymentSemiMonthlyPay2,
@@ -461,7 +461,6 @@ func (c *Controller) LoanTransactionController() {
 				}
 			}
 		}
-
 		if request.LoanTermsAndConditionAmountReceipt != nil {
 			for _, amountReceiptReq := range request.LoanTermsAndConditionAmountReceipt {
 				amountReceipt := &model.LoanTermsAndConditionAmountReceipt{
@@ -490,8 +489,6 @@ func (c *Controller) LoanTransactionController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
-
-		// Get updated loan transaction with all relationships
 		loanTransactionUpdated, err := c.model.LoanTransactionManager.GetByIDRaw(context, loanTransaction.ID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated loan transaction: " + err.Error()})
@@ -565,7 +562,7 @@ func (c *Controller) LoanTransactionController() {
 		loanTransaction.EmployeeUserID = &userOrg.UserID
 		loanTransaction.LoanPurposeID = request.LoanPurposeID
 		loanTransaction.LoanStatusID = request.LoanStatusID
-		loanTransaction.ModeOfPayment = string(request.ModeOfPayment)
+		loanTransaction.ModeOfPayment = request.ModeOfPayment
 		loanTransaction.ModeOfPaymentWeekly = string(request.ModeOfPaymentWeekly)
 		loanTransaction.ModeOfPaymentSemiMonthlyPay1 = request.ModeOfPaymentSemiMonthlyPay1
 		loanTransaction.ModeOfPaymentSemiMonthlyPay2 = request.ModeOfPaymentSemiMonthlyPay2

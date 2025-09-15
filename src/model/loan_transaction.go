@@ -93,11 +93,11 @@ type (
 		LoanStatusID *uuid.UUID  `gorm:"type:uuid"`
 		LoanStatus   *LoanStatus `gorm:"foreignKey:LoanStatusID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"loan_status,omitempty"`
 
-		ModeOfPayment                string `gorm:"type:varchar(255)"`
-		ModeOfPaymentWeekly          string `gorm:"type:varchar(255)"`
-		ModeOfPaymentSemiMonthlyPay1 int    `gorm:"type:int"`
-		ModeOfPaymentSemiMonthlyPay2 int    `gorm:"type:int"`
-		ModeOfPaymentFixedDays       int    `gorm:"type:int;default:0" json:"mode_of_payment_fixed_days"`
+		ModeOfPayment                LoanModeOfPayment `gorm:"type:varchar(255)"`
+		ModeOfPaymentWeekly          string            `gorm:"type:varchar(255)"`
+		ModeOfPaymentSemiMonthlyPay1 int               `gorm:"type:int"`
+		ModeOfPaymentSemiMonthlyPay2 int               `gorm:"type:int"`
+		ModeOfPaymentFixedDays       int               `gorm:"type:int;default:0" json:"mode_of_payment_fixed_days"`
 
 		ComakerType                            string                  `gorm:"type:varchar(255)"`
 		ComakerDepositMemberAccountingLedgerID *uuid.UUID              `gorm:"type:uuid"`
@@ -466,16 +466,16 @@ type (
 	}
 
 	AmortizationSummary struct {
-		TotalTerms      int     `json:"total_terms"`
-		TotalPrincipal  float64 `json:"total_principal"`
-		TotalInterest   float64 `json:"total_interest"`
-		TotalServiceFee float64 `json:"total_service_fee"`
-		TotalAmount     float64 `json:"total_amount"`
-		LoanAmount      float64 `json:"loan_amount"`
-		MonthlyPayment  float64 `json:"monthly_payment"`
-		InterestRate    float64 `json:"interest_rate"`
-		ComputationType string  `json:"computation_type"`
-		ModeOfPayment   string  `json:"mode_of_payment"`
+		TotalTerms      int               `json:"total_terms"`
+		TotalPrincipal  float64           `json:"total_principal"`
+		TotalInterest   float64           `json:"total_interest"`
+		TotalServiceFee float64           `json:"total_service_fee"`
+		TotalAmount     float64           `json:"total_amount"`
+		LoanAmount      float64           `json:"loan_amount"`
+		MonthlyPayment  float64           `json:"monthly_payment"`
+		InterestRate    float64           `json:"interest_rate"`
+		ComputationType string            `json:"computation_type"`
+		ModeOfPayment   LoanModeOfPayment `json:"mode_of_payment"`
 	}
 
 	LoanDetails struct {
@@ -733,6 +733,8 @@ func (m *Model) GenerateLoanAmortizationSchedule(ctx context.Context, loanTransa
 	switch loanTransaction.ModeOfPayment {
 	case "daily":
 		dayIncrement = 1
+	case "fixed-days":
+		dayIncrement = loanTransaction.ModeOfPaymentFixedDays
 	case "weekly":
 		dayIncrement = 7
 	case "semi-monthly":
