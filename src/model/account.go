@@ -882,7 +882,7 @@ func (m *Model) AccountSeed(context context.Context, tx *gorm.DB, userID uuid.UU
 	}
 	branch.BranchSetting.PaidUpSharedCapitalAccountID = &paidUpShareCapital.ID
 	branch.BranchSetting.CashOnHandAccountID = &cashOnHand.ID
-	if err := m.BranchSettingManager.UpdateWithTx(context, tx, branch.BranchSetting); err != nil {
+	if err := m.BranchSettingManager.UpdateFieldsWithTx(context, tx, branch.BranchSetting.ID, branch.BranchSetting); err != nil {
 		return eris.Wrapf(err, "failed to update branch %s with paid up share capital account", branch.Name)
 	}
 
@@ -912,7 +912,7 @@ func (m *Model) AccountSeed(context context.Context, tx *gorm.DB, userID uuid.UU
 		userOrganization.SettingsAccountingWithdrawDefaultValueID = &regularSavings.ID
 	}
 
-	if err := m.UserOrganizationManager.UpdateWithTx(context, tx, userOrganization); err != nil {
+	if err := m.UserOrganizationManager.UpdateFieldsWithTx(context, tx, userOrganization.ID, userOrganization); err != nil {
 		return eris.Wrap(err, "failed to update user organization with default accounting accounts")
 	}
 
