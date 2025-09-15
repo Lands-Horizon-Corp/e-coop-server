@@ -805,19 +805,16 @@ func (c *Controller) LoanTransactionController() {
 					existingRecord.Debit = entryReq.Debit
 					existingRecord.IsAddOn = entryReq.IsAddOn
 
-					// Use provided name and description, or get from account if available
 					if entryReq.AccountID != nil {
 						account, err := c.model.AccountManager.GetByID(context, *entryReq.AccountID)
 						if err == nil {
 							existingRecord.Description = account.Description
 							existingRecord.Name = account.Name
 						} else {
-							// If account doesn't exist, use provided values as fallback
 							existingRecord.Description = entryReq.Description
 							existingRecord.Name = entryReq.Name
 						}
 					} else {
-						// No account ID provided, use the provided name and description
 						existingRecord.Description = entryReq.Description
 						existingRecord.Name = entryReq.Name
 					}
@@ -830,18 +827,14 @@ func (c *Controller) LoanTransactionController() {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction entry: " + err.Error()})
 					}
 				} else {
-					// Create new record
 					var accountName, accountDescription string
 
 					if entryReq.AccountID != nil {
-						// Try to get account details
 						account, err := c.model.AccountManager.GetByID(context, *entryReq.AccountID)
 						if err != nil {
-							// Account doesn't exist, use provided name and description as fallback
 							accountName = entryReq.Name
 							accountDescription = entryReq.Description
 						} else {
-							// Account exists, use account details
 							accountName = account.Name
 							accountDescription = account.Description
 						}
