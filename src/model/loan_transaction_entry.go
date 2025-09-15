@@ -79,6 +79,7 @@ type (
 	}
 
 	LoanTransactionEntryRequest struct {
+		ID                *uuid.UUID               `json:"id"`
 		LoanTransactionID uuid.UUID                `json:"loan_transaction_id" validate:"required"`
 		Index             int                      `json:"index,omitempty"`
 		Type              LoanTransactionEntryType `json:"type" validate:"required,oneof=static deduction add-on"`
