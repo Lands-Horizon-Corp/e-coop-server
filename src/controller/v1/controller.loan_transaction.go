@@ -326,6 +326,8 @@ func (c *Controller) LoanTransactionController() {
 			PaidByName:                             request.PaidByName,
 			PaidByPosition:                         request.PaidByPosition,
 			ModeOfPaymentFixedDays:                 request.ModeOfPaymentFixedDays,
+			TotalCredit:                            request.Applied1,
+			TotalDebit:                             request.Applied1,
 		}
 
 		if err := c.model.LoanTransactionManager.CreateWithTx(context, tx, loanTransaction); err != nil {
@@ -629,11 +631,6 @@ func (c *Controller) LoanTransactionController() {
 		loanTransaction.PaidByPosition = request.PaidByPosition
 		loanTransaction.ModeOfPaymentFixedDays = request.ModeOfPaymentFixedDays
 		loanTransaction.UpdatedAt = time.Now().UTC()
-
-		if err := c.model.LoanTransactionManager.UpdateWithTx(context, tx, loanTransaction); err != nil {
-			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction: " + err.Error()})
-		}
 
 		if request.LoanTransactionEntries != nil {
 			for _, deletedID := range request.LoanTransactionEntriesDeleted {
@@ -1009,6 +1006,19 @@ func (c *Controller) LoanTransactionController() {
 					}
 				}
 			}
+		}
+
+		totalCredit, totalDebit := 0.0, 0.0
+		for _, entry := range request.LoanTransactionEntries {
+			totalCredit += entry.Credit
+			totalDebit += entry.Debit
+		}
+		loanTransaction.TotalCredit = totalCredit
+		loanTransaction.TotalDebit = totalDebit
+
+		if err := c.model.LoanTransactionManager.UpdateWithTx(context, tx, loanTransaction); err != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction: " + err.Error()})
 		}
 
 		if err := tx.Commit().Error; err != nil {

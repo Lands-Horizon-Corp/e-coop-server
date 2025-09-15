@@ -202,6 +202,9 @@ type (
 		LoanClearanceAnalysisInstitution      []*LoanClearanceAnalysisInstitution      `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"loan_clearance_analysis_institution,omitempty"`
 		LoanTermsAndConditionSuggestedPayment []*LoanTermsAndConditionSuggestedPayment `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"loan_terms_and_condition_suggested_payment,omitempty"`
 		LoanTermsAndConditionAmountReceipt    []*LoanTermsAndConditionAmountReceipt    `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"loan_terms_and_condition_amount_receipt,omitempty"`
+
+		TotalDebit  float64 `gorm:"total_debit;type:decimal;default:0" json:"total_debit"`
+		TotalCredit float64 `gorm:"total_credit;type:decimal;default:0" json:"total_credit"`
 	}
 
 	LoanTransactionResponse struct {
@@ -340,6 +343,9 @@ type (
 		LoanClearanceAnalysisInstitution      []*LoanClearanceAnalysisInstitutionResponse      `json:"loan_clearance_analysis_institution,omitempty"`
 		LoanTermsAndConditionSuggestedPayment []*LoanTermsAndConditionSuggestedPaymentResponse `json:"loan_terms_and_condition_suggested_payment,omitempty"`
 		LoanTermsAndConditionAmountReceipt    []*LoanTermsAndConditionAmountReceiptResponse    `json:"loan_terms_and_condition_amount_receipt,omitempty"`
+
+		TotalDebit  float64 `json:"total_debit"`
+		TotalCredit float64 `json:"total_credit"`
 	}
 
 	LoanTransactionRequest struct {
@@ -624,6 +630,8 @@ func (m *Model) LoanTransaction() {
 				LoanClearanceAnalysisInstitution:       m.LoanClearanceAnalysisInstitutionManager.ToModels(data.LoanClearanceAnalysisInstitution),
 				LoanTermsAndConditionSuggestedPayment:  m.LoanTermsAndConditionSuggestedPaymentManager.ToModels(data.LoanTermsAndConditionSuggestedPayment),
 				LoanTermsAndConditionAmountReceipt:     m.LoanTermsAndConditionAmountReceiptManager.ToModels(data.LoanTermsAndConditionAmountReceipt),
+				TotalDebit:                             data.TotalDebit,
+				TotalCredit:                            data.TotalCredit,
 			}
 		},
 
