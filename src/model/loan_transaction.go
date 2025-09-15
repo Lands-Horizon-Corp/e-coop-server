@@ -514,7 +514,7 @@ func (m *Model) LoanTransaction() {
 			"LoanClearanceAnalysis",
 			"LoanClearanceAnalysisInstitution",
 			"LoanTermsAndConditionSuggestedPayment",
-			"LoanTermsAndConditionAmountReceipt",
+			"LoanTermsAndConditionAmountReceipt", "LoanTermsAndConditionAmountReceipt.Account",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *LoanTransaction) *LoanTransactionResponse {
