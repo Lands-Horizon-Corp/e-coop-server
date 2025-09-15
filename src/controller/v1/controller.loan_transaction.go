@@ -802,23 +802,22 @@ func (c *Controller) LoanTransactionController() {
 					existingRecord.Debit = entryReq.Debit
 					existingRecord.IsAddOn = entryReq.IsAddOn
 
+					// Validate AccountID if provided
 					if entryReq.AccountID != nil {
 						account, err := c.model.AccountManager.GetByID(context, *entryReq.AccountID)
-						if err == nil {
-							existingRecord.Description = account.Description
-							existingRecord.Name = account.Name
-						} else {
-							existingRecord.Description = entryReq.Description
-							existingRecord.Name = entryReq.Name
+						if err != nil {
+							tx.Rollback()
+							return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID: account not found"})
 						}
+
+						existingRecord.Description = account.Description
+						existingRecord.Name = account.Name
 					} else {
 						existingRecord.Description = entryReq.Description
 						existingRecord.Name = entryReq.Name
 					}
-
 					existingRecord.Index = entryReq.Index
 					existingRecord.Type = entryReq.Type
-
 					if err := c.model.LoanTransactionEntryManager.UpdateFieldsWithTx(context, tx, existingRecord.ID, existingRecord); err != nil {
 						tx.Rollback()
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction entry: " + err.Error()})
