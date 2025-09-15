@@ -751,7 +751,7 @@ func (c *Controller) LoanTransactionController() {
 					existingRecord.BalancesAmount = clearanceAnalysisReq.BalancesAmount
 					existingRecord.BalancesCount = clearanceAnalysisReq.BalancesCount
 
-					if err := c.model.LoanClearanceAnalysisManager.UpdateWithTx(context, tx, existingRecord); err != nil {
+					if err := c.model.LoanClearanceAnalysisManager.UpdateFieldsWithTx(context, tx, existingRecord.ID, existingRecord); err != nil {
 						tx.Rollback()
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan clearance analysis: " + err.Error()})
 					}
@@ -819,7 +819,7 @@ func (c *Controller) LoanTransactionController() {
 					existingRecord.Index = entryReq.Index
 					existingRecord.Type = entryReq.Type
 
-					if err := c.model.LoanTransactionEntryManager.UpdateWithTx(context, tx, existingRecord); err != nil {
+					if err := c.model.LoanTransactionEntryManager.UpdateFieldsWithTx(context, tx, existingRecord.ID, existingRecord); err != nil {
 						tx.Rollback()
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction entry: " + err.Error()})
 					}
@@ -888,7 +888,7 @@ func (c *Controller) LoanTransactionController() {
 					existingRecord.Name = institutionReq.Name
 					existingRecord.Description = institutionReq.Description
 
-					if err := c.model.LoanClearanceAnalysisInstitutionManager.UpdateWithTx(context, tx, existingRecord); err != nil {
+					if err := c.model.LoanClearanceAnalysisInstitutionManager.UpdateFieldsWithTx(context, tx, existingRecord.ID, existingRecord); err != nil {
 						tx.Rollback()
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan clearance analysis institution: " + err.Error()})
 					}
@@ -935,7 +935,7 @@ func (c *Controller) LoanTransactionController() {
 					existingRecord.Name = suggestedPaymentReq.Name
 					existingRecord.Description = suggestedPaymentReq.Description
 
-					if err := c.model.LoanTermsAndConditionSuggestedPaymentManager.UpdateWithTx(context, tx, existingRecord); err != nil {
+					if err := c.model.LoanTermsAndConditionSuggestedPaymentManager.UpdateFieldsWithTx(context, tx, existingRecord.ID, existingRecord); err != nil {
 						tx.Rollback()
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan terms suggested payment: " + err.Error()})
 					}
@@ -982,7 +982,7 @@ func (c *Controller) LoanTransactionController() {
 					existingRecord.AccountID = amountReceiptReq.AccountID
 					existingRecord.Amount = amountReceiptReq.Amount
 
-					if err := c.model.LoanTermsAndConditionAmountReceiptManager.UpdateWithTx(context, tx, existingRecord); err != nil {
+					if err := c.model.LoanTermsAndConditionAmountReceiptManager.UpdateFieldsWithTx(context, tx, existingRecord.ID, existingRecord); err != nil {
 						tx.Rollback()
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan terms amount receipt: " + err.Error()})
 					}
@@ -1016,7 +1016,7 @@ func (c *Controller) LoanTransactionController() {
 		loanTransaction.TotalCredit = totalCredit
 		loanTransaction.TotalDebit = totalDebit
 
-		if err := c.model.LoanTransactionManager.UpdateWithTx(context, tx, loanTransaction); err != nil {
+		if err := c.model.LoanTransactionManager.UpdateFieldsWithTx(context, tx, loanTransaction.ID, loanTransaction); err != nil {
 			tx.Rollback()
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction: " + err.Error()})
 		}

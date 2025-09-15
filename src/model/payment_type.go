@@ -151,7 +151,7 @@ func (m *Model) PaymentTypeSeed(context context.Context, tx *gorm.DB, userID uui
 		return eris.Wrap(err, "failed to find user organization for seeding payment types")
 	}
 	userOrganization.SettingsPaymentTypeDefaultValueID = &cashOnHandPayment.ID
-	if err := m.UserOrganizationManager.UpdateWithTx(context, tx, userOrganization); err != nil {
+	if err := m.UserOrganizationManager.UpdateFieldsWithTx(context, tx, userOrganization.ID, userOrganization); err != nil {
 		return eris.Wrap(err, "failed to update user organization with default payment type")
 	}
 	paymentTypes := []*PaymentType{

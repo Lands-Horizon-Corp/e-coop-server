@@ -234,7 +234,7 @@ func (m *Model) RedeemInvitationCode(context context.Context, tx *gorm.DB, invit
 		return err
 	}
 	data.CurrentUse++
-	if err := m.InvitationCodeManager.UpdateWithTx(context, tx, data); err != nil {
+	if err := m.InvitationCodeManager.UpdateFieldsWithTx(context, tx, data.ID, data); err != nil {
 		return eris.Wrapf(
 			err,
 			"failed to redeem invitation code %q (increment CurrentUse)",
