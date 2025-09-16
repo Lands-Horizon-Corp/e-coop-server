@@ -146,7 +146,7 @@ fly deploy; fly machine restart 148e4d55f36278; fly machine restart 90802d3ea0ed
 
 The server follows a clean architecture pattern with:
 
-- **Controllers** - HTTP request handling
+- **Controllers** - HTTP request handlingsd
 - **Services** - Business logic layer
 - **Models** - Data access layer
 - **Middleware** - Cross-cutting concerns

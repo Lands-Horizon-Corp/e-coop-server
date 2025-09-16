@@ -93,11 +93,11 @@ type (
 		LoanStatusID *uuid.UUID  `gorm:"type:uuid"`
 		LoanStatus   *LoanStatus `gorm:"foreignKey:LoanStatusID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"loan_status,omitempty"`
 
-		ModeOfPayment                string `gorm:"type:varchar(255)"`
-		ModeOfPaymentWeekly          string `gorm:"type:varchar(255)"`
-		ModeOfPaymentSemiMonthlyPay1 int    `gorm:"type:int"`
-		ModeOfPaymentSemiMonthlyPay2 int    `gorm:"type:int"`
-		ModeOfPaymentFixedDays       int    `gorm:"type:int;default:0" json:"mode_of_payment_fixed_days"`
+		ModeOfPayment                LoanModeOfPayment `gorm:"type:varchar(255)"`
+		ModeOfPaymentWeekly          string            `gorm:"type:varchar(255)"`
+		ModeOfPaymentSemiMonthlyPay1 int               `gorm:"type:int"`
+		ModeOfPaymentSemiMonthlyPay2 int               `gorm:"type:int"`
+		ModeOfPaymentFixedDays       int               `gorm:"type:int;default:0" json:"mode_of_payment_fixed_days"`
 
 		ComakerType                            string                  `gorm:"type:varchar(255)"`
 		ComakerDepositMemberAccountingLedgerID *uuid.UUID              `gorm:"type:uuid"`
@@ -456,7 +456,6 @@ type (
 
 	// Amortization Schedule Types
 	AmortizationPayment struct {
-		VoucherNo  string  `json:"voucher_no"`
 		Date       string  `json:"date"`
 		Principal  float64 `json:"principal"`
 		LR         float64 `json:"lr"` // Loan Receivable (remaining balance)
@@ -466,23 +465,20 @@ type (
 	}
 
 	AmortizationSummary struct {
-		TotalTerms      int     `json:"total_terms"`
-		TotalPrincipal  float64 `json:"total_principal"`
-		TotalInterest   float64 `json:"total_interest"`
-		TotalServiceFee float64 `json:"total_service_fee"`
-		TotalAmount     float64 `json:"total_amount"`
-		LoanAmount      float64 `json:"loan_amount"`
-		MonthlyPayment  float64 `json:"monthly_payment"`
-		InterestRate    float64 `json:"interest_rate"`
-		ComputationType string  `json:"computation_type"`
-		ModeOfPayment   string  `json:"mode_of_payment"`
+		TotalTerms      int               `json:"total_terms"`
+		TotalPrincipal  float64           `json:"total_principal"`
+		TotalInterest   float64           `json:"total_interest"`
+		TotalServiceFee float64           `json:"total_service_fee"`
+		TotalAmount     float64           `json:"total_amount"`
+		LoanAmount      float64           `json:"loan_amount"`
+		MonthlyPayment  float64           `json:"monthly_payment"`
+		InterestRate    float64           `json:"interest_rate"`
+		ComputationType string            `json:"computation_type"`
+		ModeOfPayment   LoanModeOfPayment `json:"mode_of_payment"`
 	}
 
 	LoanDetails struct {
-		PassbookNo     string  `json:"passbook_no"`
-		MemberName     string  `json:"member_name"`
-		Classification string  `json:"classification"`
-		Investment     float64 `json:"investment"`
+		Amount         float64 `json:"amount"`
 		DueDate        string  `json:"due_date"`
 		AccountApplied float64 `json:"account_applied"`
 		Voucher        string  `json:"voucher"`
@@ -733,6 +729,8 @@ func (m *Model) GenerateLoanAmortizationSchedule(ctx context.Context, loanTransa
 	switch loanTransaction.ModeOfPayment {
 	case "daily":
 		dayIncrement = 1
+	case "fixed-days":
+		dayIncrement = loanTransaction.ModeOfPaymentFixedDays
 	case "weekly":
 		dayIncrement = 7
 	case "semi-monthly":
@@ -786,7 +784,6 @@ func (m *Model) GenerateLoanAmortizationSchedule(ctx context.Context, loanTransa
 
 		// Create payment entry
 		payment := AmortizationPayment{
-			VoucherNo:  fmt.Sprintf("%010d", i),
 			Date:       paymentDate.Format("01/02/2006"),
 			Principal:  principalPayment,
 			LR:         remainingBalance, // Loan Receivable (remaining balance)
@@ -819,20 +816,9 @@ func (m *Model) GenerateLoanAmortizationSchedule(ctx context.Context, loanTransa
 
 	// Loan transaction details
 	loanDetails := LoanDetails{
-		PassbookNo:     loanTransaction.OfficialReceiptNumber,
-		MemberName:     "", // Will be populated if member profile is loaded
-		Classification: "", // Will be populated if member classification is available
-		Investment:     loanTransaction.Applied1,
-		DueDate:        "", // Calculate based on terms and start date
+		Amount:         loanTransaction.Applied1,
 		AccountApplied: loanTransaction.Applied1,
 		Voucher:        loanTransaction.Voucher,
-	}
-
-	// If member profile is available, add member details
-	if loanTransaction.MemberProfile != nil {
-		loanDetails.MemberName = fmt.Sprintf("%s, %s",
-			loanTransaction.MemberProfile.LastName,
-			loanTransaction.MemberProfile.FirstName)
 	}
 
 	// Calculate due date (last payment date)
