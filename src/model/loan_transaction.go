@@ -456,7 +456,6 @@ type (
 
 	// Amortization Schedule Types
 	AmortizationPayment struct {
-		VoucherNo  string  `json:"voucher_no"`
 		Date       string  `json:"date"`
 		Principal  float64 `json:"principal"`
 		LR         float64 `json:"lr"` // Loan Receivable (remaining balance)
@@ -788,7 +787,6 @@ func (m *Model) GenerateLoanAmortizationSchedule(ctx context.Context, loanTransa
 
 		// Create payment entry
 		payment := AmortizationPayment{
-			VoucherNo:  fmt.Sprintf("%010d", i),
 			Date:       paymentDate.Format("01/02/2006"),
 			Principal:  principalPayment,
 			LR:         remainingBalance, // Loan Receivable (remaining balance)
