@@ -478,10 +478,7 @@ type (
 	}
 
 	LoanDetails struct {
-		PassbookNo     string  `json:"passbook_no"`
-		MemberName     string  `json:"member_name"`
-		Classification string  `json:"classification"`
-		Investment     float64 `json:"investment"`
+		Amount         float64 `json:"amount"`
 		DueDate        string  `json:"due_date"`
 		AccountApplied float64 `json:"account_applied"`
 		Voucher        string  `json:"voucher"`
@@ -819,20 +816,9 @@ func (m *Model) GenerateLoanAmortizationSchedule(ctx context.Context, loanTransa
 
 	// Loan transaction details
 	loanDetails := LoanDetails{
-		PassbookNo:     loanTransaction.OfficialReceiptNumber,
-		MemberName:     "", // Will be populated if member profile is loaded
-		Classification: "", // Will be populated if member classification is available
-		Investment:     loanTransaction.Applied1,
-		DueDate:        "", // Calculate based on terms and start date
+		Amount:         loanTransaction.Applied1,
 		AccountApplied: loanTransaction.Applied1,
 		Voucher:        loanTransaction.Voucher,
-	}
-
-	// If member profile is available, add member details
-	if loanTransaction.MemberProfile != nil {
-		loanDetails.MemberName = fmt.Sprintf("%s, %s",
-			loanTransaction.MemberProfile.LastName,
-			loanTransaction.MemberProfile.FirstName)
 	}
 
 	// Calculate due date (last payment date)
