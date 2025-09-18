@@ -68,6 +68,7 @@ type (
 	}
 
 	JournalVoucherEntryRequest struct {
+		ID               *uuid.UUID `json:"id,omitempty"`
 		AccountID        uuid.UUID  `json:"account_id" validate:"required"`
 		MemberProfileID  *uuid.UUID `json:"member_profile_id,omitempty"`
 		EmployeeUserID   *uuid.UUID `json:"employee_user_id,omitempty"`
