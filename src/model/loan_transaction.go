@@ -85,6 +85,8 @@ type (
 		TransactionBatchID    *uuid.UUID        `gorm:"type:uuid"`
 		TransactionBatch      *TransactionBatch `gorm:"foreignKey:TransactionBatchID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"transaction_batch,omitempty"`
 		OfficialReceiptNumber string            `gorm:"type:varchar(255)"`
+		CheckNumber           string            `gorm:"type:varchar(255)"`
+		CheckDate             *time.Time        `gorm:"type:timestamp"`
 		Voucher               string            `gorm:"type:varchar(255)"`
 
 		LoanPurposeID *uuid.UUID   `gorm:"type:uuid"`
@@ -150,6 +152,7 @@ type (
 		PrintedDate  *time.Time `gorm:"type:timestamp"`
 		ApprovedDate *time.Time `gorm:"type:timestamp"`
 		ReleasedDate *time.Time `gorm:"type:timestamp"`
+		PrintNumber  int        `gorm:"type:int;default:0"`
 
 		ApprovedBySignatureMediaID *uuid.UUID `gorm:"type:uuid"`
 		ApprovedBySignatureMedia   *Media     `gorm:"foreignKey:ApprovedBySignatureMediaID;constraint:OnDelete:SET NULL;" json:"approved_by_signature_media,omitempty"`
@@ -227,6 +230,8 @@ type (
 		TransactionBatch      *TransactionBatchResponse `json:"transaction_batch,omitempty"`
 		OfficialReceiptNumber string                    `json:"official_receipt_number"`
 		Voucher               string                    `json:"voucher"`
+		CheckDate             *time.Time                `json:"check_date,omitempty"`
+		CheckNumber           string                    `json:"check_number"`
 
 		LoanPurposeID *uuid.UUID           `json:"loan_purpose_id,omitempty"`
 		LoanPurpose   *LoanPurposeResponse `json:"loan_purpose,omitempty"`
@@ -289,6 +294,7 @@ type (
 		AppraisedValueDescription string  `json:"appraised_value_description"`
 
 		PrintedDate  *time.Time `json:"printed_date,omitempty"`
+		PrintNumber  int        `json:"print_number"`
 		ApprovedDate *time.Time `json:"approved_date,omitempty"`
 		ReleasedDate *time.Time `json:"released_date,omitempty"`
 
@@ -401,6 +407,7 @@ type (
 		AppraisedValueDescription string  `json:"appraised_value_description,omitempty"`
 
 		PrintedDate  *time.Time `json:"printed_date,omitempty"`
+		PrintNumber  int        `json:"print_number,omitempty"`
 		ApprovedDate *time.Time `json:"approved_date,omitempty"`
 		ReleasedDate *time.Time `json:"released_date,omitempty"`
 
@@ -490,6 +497,12 @@ type (
 		Summary              AmortizationSummary   `json:"summary"`
 		GeneratedAt          string                `json:"generated_at"`
 	}
+
+	LoanTransactionPrintRequest struct {
+		Voucher     string     `json:"voucher"`
+		CheckNumber string     `json:"check_number"`
+		CheckDate   *time.Time `json:"check_date"`
+	}
 )
 
 func (m *Model) LoanTransaction() {
@@ -535,6 +548,8 @@ func (m *Model) LoanTransaction() {
 				TransactionBatch:                       m.TransactionBatchManager.ToModel(data.TransactionBatch),
 				OfficialReceiptNumber:                  data.OfficialReceiptNumber,
 				Voucher:                                data.Voucher,
+				CheckDate:                              data.CheckDate,
+				CheckNumber:                            data.CheckNumber,
 				LoanPurposeID:                          data.LoanPurposeID,
 				LoanPurpose:                            m.LoanPurposeManager.ToModel(data.LoanPurpose),
 				LoanStatusID:                           data.LoanStatusID,
@@ -583,6 +598,7 @@ func (m *Model) LoanTransaction() {
 				AppraisedValue:                         data.AppraisedValue,
 				AppraisedValueDescription:              data.AppraisedValueDescription,
 				PrintedDate:                            data.PrintedDate,
+				PrintNumber:                            data.PrintNumber,
 				ApprovedDate:                           data.ApprovedDate,
 				ReleasedDate:                           data.ReleasedDate,
 				ApprovedBySignatureMediaID:             data.ApprovedBySignatureMediaID,
