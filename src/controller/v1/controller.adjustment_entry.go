@@ -350,4 +350,35 @@ func (c *Controller) AdjustmentEntryController() {
 		})
 		return ctx.NoContent(http.StatusNoContent)
 	})
+
+	// GET /api/v1/adjustment-entry/total
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/adjustment-entry/total",
+		Method:       "GET",
+		Note:         "Returns the total debit and credit of all adjustment entries for the current user's organization and branch.",
+		ResponseType: model.AdjustmentEntryTotalResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if user.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		adjustmentEntries, err := c.model.AdjustmentEntryCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No adjustment entries found for the current branch"})
+		}
+		totalDebit := 0.0
+		totalCredit := 0.0
+		for _, entry := range adjustmentEntries {
+			totalDebit += entry.Debit
+			totalCredit += entry.Credit
+		}
+		return ctx.JSON(http.StatusOK, model.AdjustmentEntryTotalResponse{
+			TotalDebit:  totalDebit,
+			TotalCredit: totalCredit,
+		})
+	})
 }
