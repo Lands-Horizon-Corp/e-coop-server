@@ -15,9 +15,10 @@ import (
 type TypeOfPaymentType string
 
 const (
-	PaymentTypeCash   TypeOfPaymentType = "cash"
-	PaymentTypeCheck  TypeOfPaymentType = "check"
-	PaymentTypeOnline TypeOfPaymentType = "online"
+	PaymentTypeCash       TypeOfPaymentType = "cash"
+	PaymentTypeCheck      TypeOfPaymentType = "check"
+	PaymentTypeOnline     TypeOfPaymentType = "online"
+	PaymentTypeAdjustment TypeOfPaymentType = "adjustment"
 )
 
 type (
@@ -66,7 +67,7 @@ type (
 		Name         string            `json:"name" validate:"required,min=1,max=255"`
 		Description  string            `json:"description,omitempty"`
 		NumberOfDays int               `json:"number_of_days,omitempty"`
-		Type         TypeOfPaymentType `json:"type" validate:"required,oneof=cash check online"`
+		Type         TypeOfPaymentType `json:"type" validate:"required,oneof=cash check online adjustment"`
 	}
 )
 
@@ -253,6 +254,31 @@ func (m *Model) PaymentTypeSeed(context context.Context, tx *gorm.DB, userID uui
 			Description:    "Bank-issued check for secure payments.",
 			NumberOfDays:   2,
 			Type:           PaymentTypeCheck,
+		},
+		// Adjustment types
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Manual Adjustment",
+			Description:    "Manual adjustments for corrections and reconciliation.",
+			NumberOfDays:   0,
+			Type:           PaymentTypeAdjustment,
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Adjustment Entry",
+			Description:    "Manual adjustments for corrections and reconciliation.",
+			NumberOfDays:   0,
+			Type:           PaymentTypeAdjustment,
 		},
 	}
 
