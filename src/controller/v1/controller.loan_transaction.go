@@ -1251,4 +1251,43 @@ func (c *Controller) LoanTransactionController() {
 		return ctx.JSON(http.StatusOK, newLoanTransaction)
 	})
 
+	// PUT - api/v1/loan-transaction/:id/print-undo
+	req.RegisterRoute(handlers.Route{
+		Route:  "/api/v1/loan-transaction/:loan_transaction_id/print-undo",
+		Method: "PUT",
+		Note:   "Reverts the print status of a loan transaction by ID.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to undo print on loan transactions"})
+		}
+		loanTransaction, err := c.model.LoanTransactionManager.GetByID(context, *loanTransactionID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction not found"})
+		}
+		if loanTransaction.OrganizationID != userOrg.OrganizationID || loanTransaction.BranchID != *userOrg.BranchID {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this loan transaction"})
+		}
+		loanTransaction.Voucher = ""
+		loanTransaction.CheckNumber = ""
+		loanTransaction.CheckDate = nil
+		loanTransaction.UpdatedAt = time.Now().UTC()
+		loanTransaction.UpdatedByID = userOrg.UserID
+		if err := c.model.LoanTransactionManager.UpdateFields(context, loanTransaction.ID, loanTransaction); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction: " + err.Error()})
+		}
+		newLoanTransaction, err := c.model.LoanTransactionManager.GetByIDRaw(context, loanTransaction.ID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated loan transaction: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, newLoanTransaction)
+	})
 }
