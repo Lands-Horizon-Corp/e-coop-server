@@ -142,6 +142,7 @@ func (c *Controller) Start() error {
 	c.ChargesRateByRangeOrMinimumAmountController()
 	c.ChargesRateSchemeModeOfPaymentController()
 	c.JournalVoucherController()
+	c.AdjustmentEntryTagController()
 	return nil
 }
 
