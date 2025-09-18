@@ -28,7 +28,7 @@ type (
 		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_loan_tag"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
-		LoanTransactionID uuid.UUID        `gorm:"type:uuid;not null"`
+		LoanTransactionID *uuid.UUID       `gorm:"type:uuid"`
 		LoanTransaction   *LoanTransaction `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"loan_transaction,omitempty"`
 
 		Name        string `gorm:"type:varchar(50);not null"`
@@ -50,7 +50,7 @@ type (
 		Organization      *OrganizationResponse    `json:"organization,omitempty"`
 		BranchID          uuid.UUID                `json:"branch_id"`
 		Branch            *BranchResponse          `json:"branch,omitempty"`
-		LoanTransactionID uuid.UUID                `json:"loan_transaction_id"`
+		LoanTransactionID *uuid.UUID               `json:"loan_transaction_id,omitempty"`
 		LoanTransaction   *LoanTransactionResponse `json:"loan_transaction,omitempty"`
 		Name              string                   `json:"name"`
 		Description       string                   `json:"description"`
@@ -60,7 +60,7 @@ type (
 	}
 
 	LoanTagRequest struct {
-		LoanTransactionID uuid.UUID   `json:"loan_transaction_id" validate:"required"`
+		LoanTransactionID *uuid.UUID  `json:"loan_transaction_id" validate:"required"`
 		Name              string      `json:"name" validate:"required,min=1,max=50"`
 		Description       string      `json:"description,omitempty"`
 		Category          TagCategory `json:"category,omitempty"`
