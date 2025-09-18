@@ -102,14 +102,14 @@ type (
 		ModeOfPaymentFixedDays       int               `gorm:"type:int;default:0" json:"mode_of_payment_fixed_days"`
 		ModeOfPaymentMonthlyExactDay bool              `gorm:"type:boolean;default:false" json:"mode_of_payment_monthly_exact_day"`
 
-		ComakerType                            string                  `gorm:"type:varchar(255)"`
+		ComakerType                            LoanComakerType         `gorm:"type:varchar(255)"`
 		ComakerDepositMemberAccountingLedgerID *uuid.UUID              `gorm:"type:uuid"`
 		ComakerDepositMemberAccountingLedger   *MemberAccountingLedger `gorm:"foreignKey:ComakerDepositMemberAccountingLedgerID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"comaker_deposit_member_accounting_ledger,omitempty"`
-		ComakerCollateralID                    *uuid.UUID              `gorm:"type:uuid"`
-		ComakerCollateral                      *Collateral             `gorm:"foreignKey:ComakerCollateralID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"comaker_collateral,omitempty"`
-		ComakerMemberProfileID                 *uuid.UUID              `gorm:"type:uuid"`
-		ComakerMemberProfile                   *MemberProfile          `gorm:"foreignKey:ComakerMemberProfileID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"comaker_member_profile,omitempty"`
-		ComakerCollateralDescription           string                  `gorm:"type:text"`
+
+		ComakerCollateralID *uuid.UUID  `gorm:"type:uuid"`
+		ComakerCollateral   *Collateral `gorm:"foreignKey:ComakerCollateralID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"comaker_collateral,omitempty"`
+
+		ComakerCollateralDescription string `gorm:"type:text"`
 
 		CollectorPlace string `gorm:"type:varchar(255);default:'office'"`
 
@@ -206,6 +206,7 @@ type (
 		LoanClearanceAnalysisInstitution      []*LoanClearanceAnalysisInstitution      `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"loan_clearance_analysis_institution,omitempty"`
 		LoanTermsAndConditionSuggestedPayment []*LoanTermsAndConditionSuggestedPayment `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"loan_terms_and_condition_suggested_payment,omitempty"`
 		LoanTermsAndConditionAmountReceipt    []*LoanTermsAndConditionAmountReceipt    `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"loan_terms_and_condition_amount_receipt,omitempty"`
+		ComakerMemberProfiles                 []*ComakerMemberProfile                  `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"comaker_member_profiles,omitempty"`
 
 		TotalDebit  float64 `gorm:"total_debit;type:decimal;default:0" json:"total_debit"`
 		TotalCredit float64 `gorm:"total_credit;type:decimal;default:0" json:"total_credit"`
@@ -252,8 +253,6 @@ type (
 		ComakerDepositMemberAccountingLedger   *MemberAccountingLedgerResponse `json:"comaker_deposit_member_accounting_ledger,omitempty"`
 		ComakerCollateralID                    *uuid.UUID                      `json:"comaker_collateral_id,omitempty"`
 		ComakerCollateral                      *CollateralResponse             `json:"comaker_collateral,omitempty"`
-		ComakerMemberProfileID                 *uuid.UUID                      `json:"comaker_member_profile_id,omitempty"`
-		ComakerMemberProfile                   *MemberProfileResponse          `json:"comaker_member_profile,omitempty"`
 		ComakerCollateralDescription           string                          `json:"comaker_collateral_description"`
 
 		CollectorPlace LoanCollectorPlace `json:"collector_place"`
@@ -351,6 +350,7 @@ type (
 		LoanClearanceAnalysisInstitution      []*LoanClearanceAnalysisInstitutionResponse      `json:"loan_clearance_analysis_institution,omitempty"`
 		LoanTermsAndConditionSuggestedPayment []*LoanTermsAndConditionSuggestedPaymentResponse `json:"loan_terms_and_condition_suggested_payment,omitempty"`
 		LoanTermsAndConditionAmountReceipt    []*LoanTermsAndConditionAmountReceiptResponse    `json:"loan_terms_and_condition_amount_receipt,omitempty"`
+		ComakerMemberProfiles                 []*ComakerMemberProfileResponse                  `json:"comaker_member_profiles,omitempty"`
 
 		TotalDebit  float64 `json:"total_debit"`
 		TotalCredit float64 `json:"total_credit"`
@@ -372,7 +372,6 @@ type (
 		ComakerType                            LoanComakerType `json:"comaker_type"`
 		ComakerDepositMemberAccountingLedgerID *uuid.UUID      `json:"comaker_deposit_member_accounting_ledger_id,omitempty"`
 		ComakerCollateralID                    *uuid.UUID      `json:"comaker_collateral_id,omitempty"`
-		ComakerMemberProfileID                 *uuid.UUID      `json:"comaker_member_profile_id,omitempty"`
 		ComakerCollateralDescription           string          `json:"comaker_collateral_description,omitempty"`
 
 		CollectorPlace LoanCollectorPlace `json:"collector_place"`
@@ -456,12 +455,14 @@ type (
 		LoanClearanceAnalysisInstitution      []*LoanClearanceAnalysisInstitutionRequest      `json:"loan_clearance_analysis_institution,omitempty"`
 		LoanTermsAndConditionSuggestedPayment []*LoanTermsAndConditionSuggestedPaymentRequest `json:"loan_terms_and_condition_suggested_payment,omitempty"`
 		LoanTermsAndConditionAmountReceipt    []*LoanTermsAndConditionAmountReceiptRequest    `json:"loan_terms_and_condition_amount_receipt,omitempty"`
+		ComakerMemberProfiles                 []*ComakerMemberProfileRequest                  `json:"comaker_member_profiles,omitempty"`
 
 		LoanTransactionEntriesDeleted                []uuid.UUID `json:"loan_transaction_entries_deleted,omitempty"`
 		LoanClearanceAnalysisDeleted                 []uuid.UUID `json:"loan_clearance_analysis_deleted,omitempty"`
 		LoanClearanceAnalysisInstitutionDeleted      []uuid.UUID `json:"loan_clearance_analysis_institution_deleted,omitempty"`
 		LoanTermsAndConditionSuggestedPaymentDeleted []uuid.UUID `json:"loan_terms_and_condition_suggested_payment_deleted,omitempty"`
 		LoanTermsAndConditionAmountReceiptDeleted    []uuid.UUID `json:"loan_terms_and_condition_amount_receipt_deleted,omitempty"`
+		ComakerMemberProfilesDeleted                 []uuid.UUID `json:"comaker_member_profiles_deleted,omitempty"`
 	}
 
 	// Amortization Schedule Types
@@ -563,7 +564,7 @@ func (m *Model) LoanTransaction() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Branch", "Organization", "EmployeeUser",
 			"TransactionBatch", "LoanPurpose", "LoanStatus",
-			"ComakerDepositMemberAccountingLedger", "ComakerCollateral", "ComakerMemberProfile", "PreviousLoan",
+			"ComakerDepositMemberAccountingLedger", "ComakerCollateral", "PreviousLoan",
 			"Account", "MemberProfile", "MemberJointAccount", "SignatureMedia",
 			"ApprovedBySignatureMedia", "PreparedBySignatureMedia", "CertifiedBySignatureMedia",
 			"VerifiedBySignatureMedia", "CheckBySignatureMedia", "AcknowledgeBySignatureMedia",
@@ -574,6 +575,7 @@ func (m *Model) LoanTransaction() {
 			"LoanClearanceAnalysisInstitution",
 			"LoanTermsAndConditionSuggestedPayment",
 			"LoanTermsAndConditionAmountReceipt", "LoanTermsAndConditionAmountReceipt.Account",
+			"ComakerMemberProfiles", "ComakerMemberProfiles.MemberProfile", "ComakerMemberProfiles.MemberProfile.Media",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *LoanTransaction) *LoanTransactionResponse {
@@ -615,8 +617,6 @@ func (m *Model) LoanTransaction() {
 				ComakerDepositMemberAccountingLedger:   m.MemberAccountingLedgerManager.ToModel(data.ComakerDepositMemberAccountingLedger),
 				ComakerCollateralID:                    data.ComakerCollateralID,
 				ComakerCollateral:                      m.CollateralManager.ToModel(data.ComakerCollateral),
-				ComakerMemberProfileID:                 data.ComakerMemberProfileID,
-				ComakerMemberProfile:                   m.MemberProfileManager.ToModel(data.ComakerMemberProfile),
 				ComakerCollateralDescription:           data.ComakerCollateralDescription,
 				CollectorPlace:                         LoanCollectorPlace(data.CollectorPlace),
 				LoanType:                               LoanType(data.LoanType),
@@ -693,6 +693,7 @@ func (m *Model) LoanTransaction() {
 				LoanClearanceAnalysisInstitution:       m.LoanClearanceAnalysisInstitutionManager.ToModels(data.LoanClearanceAnalysisInstitution),
 				LoanTermsAndConditionSuggestedPayment:  m.LoanTermsAndConditionSuggestedPaymentManager.ToModels(data.LoanTermsAndConditionSuggestedPayment),
 				LoanTermsAndConditionAmountReceipt:     m.LoanTermsAndConditionAmountReceiptManager.ToModels(data.LoanTermsAndConditionAmountReceipt),
+				ComakerMemberProfiles:                  m.ComakerMemberProfileManager.ToModels(data.ComakerMemberProfiles),
 				TotalDebit:                             data.TotalDebit,
 				TotalCredit:                            data.TotalCredit,
 			}

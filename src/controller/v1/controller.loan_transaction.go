@@ -265,11 +265,10 @@ func (c *Controller) LoanTransactionController() {
 			ModeOfPaymentWeekly:                    string(request.ModeOfPaymentWeekly),
 			ModeOfPaymentSemiMonthlyPay1:           request.ModeOfPaymentSemiMonthlyPay1,
 			ModeOfPaymentSemiMonthlyPay2:           request.ModeOfPaymentSemiMonthlyPay2,
-			ComakerType:                            string(request.ComakerType),
+			ComakerType:                            request.ComakerType,
 			ComakerDepositMemberAccountingLedgerID: request.ComakerDepositMemberAccountingLedgerID,
 			ComakerCollateralID:                    request.ComakerCollateralID,
 			ComakerCollateralDescription:           request.ComakerCollateralDescription,
-			ComakerMemberProfileID:                 request.ComakerMemberProfileID,
 			CollectorPlace:                         string(request.CollectorPlace),
 			LoanType:                               string(request.LoanType),
 			PreviousLoanID:                         request.PreviousLoanID,
@@ -481,6 +480,31 @@ func (c *Controller) LoanTransactionController() {
 				}
 			}
 		}
+
+		// Handle ComakerMemberProfiles
+		if request.ComakerMemberProfiles != nil {
+			for _, comakerReq := range request.ComakerMemberProfiles {
+				comakerMemberProfile := &model.ComakerMemberProfile{
+					CreatedAt:         time.Now().UTC(),
+					UpdatedAt:         time.Now().UTC(),
+					CreatedByID:       userOrg.UserID,
+					UpdatedByID:       userOrg.UserID,
+					OrganizationID:    userOrg.OrganizationID,
+					BranchID:          *userOrg.BranchID,
+					LoanTransactionID: loanTransaction.ID,
+					MemberProfileID:   comakerReq.MemberProfileID,
+					Amount:            comakerReq.Amount,
+					Description:       comakerReq.Description,
+					MonthsCount:       comakerReq.MonthsCount,
+					YearCount:         comakerReq.YearCount,
+				}
+
+				if err := c.model.ComakerMemberProfileManager.CreateWithTx(context, tx, comakerMemberProfile); err != nil {
+					tx.Rollback()
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create comaker member profile: " + err.Error()})
+				}
+			}
+		}
 		if err := tx.Commit().Error; err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "commit-error",
@@ -566,10 +590,9 @@ func (c *Controller) LoanTransactionController() {
 		loanTransaction.ModeOfPaymentWeekly = string(request.ModeOfPaymentWeekly)
 		loanTransaction.ModeOfPaymentSemiMonthlyPay1 = request.ModeOfPaymentSemiMonthlyPay1
 		loanTransaction.ModeOfPaymentSemiMonthlyPay2 = request.ModeOfPaymentSemiMonthlyPay2
-		loanTransaction.ComakerType = string(request.ComakerType)
+		loanTransaction.ComakerType = request.ComakerType
 		loanTransaction.ComakerDepositMemberAccountingLedgerID = request.ComakerDepositMemberAccountingLedgerID
 		loanTransaction.ComakerCollateralID = request.ComakerCollateralID
-		loanTransaction.ComakerMemberProfileID = request.ComakerMemberProfileID
 		loanTransaction.ComakerCollateralDescription = request.ComakerCollateralDescription
 		loanTransaction.CollectorPlace = string(request.CollectorPlace)
 		loanTransaction.LoanType = string(request.LoanType)
@@ -720,6 +743,26 @@ func (c *Controller) LoanTransactionController() {
 				if err := c.model.LoanTermsAndConditionAmountReceiptManager.DeleteWithTx(context, tx, amountReceipt); err != nil {
 					tx.Rollback()
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan terms amount receipt: " + err.Error()})
+				}
+			}
+		}
+
+		// Handle ComakerMemberProfiles deletions
+		if request.ComakerMemberProfilesDeleted != nil {
+			for _, deletedID := range request.ComakerMemberProfilesDeleted {
+				comakerMemberProfile, err := c.model.ComakerMemberProfileManager.GetByID(context, deletedID)
+				if err != nil {
+					tx.Rollback()
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find comaker member profile for deletion: " + err.Error()})
+				}
+				if comakerMemberProfile.LoanTransactionID != loanTransaction.ID {
+					tx.Rollback()
+					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete comaker member profile that doesn't belong to this loan transaction"})
+				}
+				comakerMemberProfile.DeletedByID = &userOrg.UserID
+				if err := c.model.ComakerMemberProfileManager.DeleteWithTx(context, tx, comakerMemberProfile); err != nil {
+					tx.Rollback()
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete comaker member profile: " + err.Error()})
 				}
 			}
 		}
@@ -1004,6 +1047,59 @@ func (c *Controller) LoanTransactionController() {
 			}
 		}
 
+		// Create/Update ComakerMemberProfile records
+		if request.ComakerMemberProfiles != nil {
+			for _, comakerReq := range request.ComakerMemberProfiles {
+				if comakerReq.ID != nil {
+					// Update existing record
+					existingRecord, err := c.model.ComakerMemberProfileManager.GetByID(context, *comakerReq.ID)
+					if err != nil {
+						tx.Rollback()
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find existing comaker member profile: " + err.Error()})
+					}
+					// Verify ownership
+					if existingRecord.LoanTransactionID != loanTransaction.ID {
+						tx.Rollback()
+						return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot update comaker member profile that doesn't belong to this loan transaction"})
+					}
+					// Update fields
+					existingRecord.UpdatedAt = time.Now().UTC()
+					existingRecord.UpdatedByID = userOrg.UserID
+					existingRecord.MemberProfileID = comakerReq.MemberProfileID
+					existingRecord.Amount = comakerReq.Amount
+					existingRecord.Description = comakerReq.Description
+					existingRecord.MonthsCount = comakerReq.MonthsCount
+					existingRecord.YearCount = comakerReq.YearCount
+
+					if err := c.model.ComakerMemberProfileManager.UpdateFieldsWithTx(context, tx, existingRecord.ID, existingRecord); err != nil {
+						tx.Rollback()
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update comaker member profile: " + err.Error()})
+					}
+				} else {
+					// Create new record
+					comakerMemberProfile := &model.ComakerMemberProfile{
+						CreatedAt:         time.Now().UTC(),
+						UpdatedAt:         time.Now().UTC(),
+						CreatedByID:       userOrg.UserID,
+						UpdatedByID:       userOrg.UserID,
+						OrganizationID:    userOrg.OrganizationID,
+						BranchID:          *userOrg.BranchID,
+						LoanTransactionID: loanTransaction.ID,
+						MemberProfileID:   comakerReq.MemberProfileID,
+						Amount:            comakerReq.Amount,
+						Description:       comakerReq.Description,
+						MonthsCount:       comakerReq.MonthsCount,
+						YearCount:         comakerReq.YearCount,
+					}
+
+					if err := c.model.ComakerMemberProfileManager.CreateWithTx(context, tx, comakerMemberProfile); err != nil {
+						tx.Rollback()
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create comaker member profile: " + err.Error()})
+					}
+				}
+			}
+		}
+
 		totalCredit, totalDebit := 0.0, 0.0
 		for _, entry := range request.LoanTransactionEntries {
 			totalCredit += entry.Credit
@@ -1166,6 +1262,25 @@ func (c *Controller) LoanTransactionController() {
 			if err := c.model.LoanTransactionEntryManager.DeleteWithTx(context, tx, transactionEntry); err != nil {
 				tx.Rollback()
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan transaction entry: " + err.Error()})
+			}
+		}
+
+		// Delete all ComakerMemberProfile records
+		comakerMemberProfileList, err := c.model.ComakerMemberProfileManager.Find(context, &model.ComakerMemberProfile{
+			LoanTransactionID: loanTransaction.ID,
+			OrganizationID:    userOrg.OrganizationID,
+			BranchID:          *userOrg.BranchID,
+		})
+		if err != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find comaker member profile records: " + err.Error()})
+		}
+
+		for _, comakerMemberProfile := range comakerMemberProfileList {
+			comakerMemberProfile.DeletedByID = &userOrg.UserID
+			if err := c.model.ComakerMemberProfileManager.DeleteWithTx(context, tx, comakerMemberProfile); err != nil {
+				tx.Rollback()
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete comaker member profile: " + err.Error()})
 			}
 		}
 
