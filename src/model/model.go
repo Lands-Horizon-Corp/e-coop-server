@@ -193,15 +193,16 @@ type (
 		ChargesRateByTermManager                 horizon_services.Repository[ChargesRateByTerm, ChargesRateByTermResponse, ChargesRateByTermRequest]
 
 		// ACCOUNTING ENTRY
-		AdjustmentEntryManager       horizon_services.Repository[AdjustmentEntry, AdjustmentEntryResponse, AdjustmentEntryRequest]
-		AdjustmentEntryTagManager    horizon_services.Repository[AdjustmentEntryTag, AdjustmentEntryTagResponse, AdjustmentEntryTagRequest]
-		VoucherPayToManager          horizon_services.Repository[VoucherPayTo, VoucherPayToResponse, VoucherPayToRequest]
-		CashCheckVoucherManager      horizon_services.Repository[CashCheckVoucher, CashCheckVoucherResponse, CashCheckVoucherRequest]
-		CashCheckVoucherEntryManager horizon_services.Repository[CashCheckVoucherEntry, CashCheckVoucherEntryResponse, CashCheckVoucherEntryRequest]
-		CashCheckVoucherTagManager   horizon_services.Repository[CashCheckVoucherTag, CashCheckVoucherTagResponse, CashCheckVoucherTagRequest]
-		JournalVoucherManager        horizon_services.Repository[JournalVoucher, JournalVoucherResponse, JournalVoucherRequest]
-		JournalVoucherEntryManager   horizon_services.Repository[JournalVoucherEntry, JournalVoucherEntryResponse, JournalVoucherEntryRequest]
-		JournalVoucherTagManager     horizon_services.Repository[JournalVoucherTag, JournalVoucherTagResponse, JournalVoucherTagRequest]
+		AdjustmentEntryManager           horizon_services.Repository[AdjustmentEntry, AdjustmentEntryResponse, AdjustmentEntryRequest]
+		AdjustmentEntryTagManager        horizon_services.Repository[AdjustmentEntryTag, AdjustmentEntryTagResponse, AdjustmentEntryTagRequest]
+		VoucherPayToManager              horizon_services.Repository[VoucherPayTo, VoucherPayToResponse, VoucherPayToRequest]
+		CashCheckVoucherManager          horizon_services.Repository[CashCheckVoucher, CashCheckVoucherResponse, CashCheckVoucherRequest]
+		CashCheckVoucherEntryManager     horizon_services.Repository[CashCheckVoucherEntry, CashCheckVoucherEntryResponse, CashCheckVoucherEntryRequest]
+		CashCheckVoucherTagManager       horizon_services.Repository[CashCheckVoucherTag, CashCheckVoucherTagResponse, CashCheckVoucherTagRequest]
+		CancelledCashCheckVoucherManager horizon_services.Repository[CancelledCashCheckVoucher, CancelledCashCheckVoucherResponse, CancelledCashCheckVoucherRequest]
+		JournalVoucherManager            horizon_services.Repository[JournalVoucher, JournalVoucherResponse, JournalVoucherRequest]
+		JournalVoucherEntryManager       horizon_services.Repository[JournalVoucherEntry, JournalVoucherEntryResponse, JournalVoucherEntryRequest]
+		JournalVoucherTagManager         horizon_services.Repository[JournalVoucherTag, JournalVoucherTagResponse, JournalVoucherTagRequest]
 
 		FundsManager                          horizon_services.Repository[Funds, FundsResponse, FundsRequest]
 		ChargesRateSchemeModeOfPaymentManager horizon_services.Repository[ChargesRateSchemeModeOfPayment, ChargesRateSchemeModeOfPaymentResponse, ModeOfPayment]
@@ -236,6 +237,7 @@ func (c *Model) Start(context context.Context) error {
 	c.BrowseExcludeIncludeAccounts()
 	c.CashCheckVoucher()
 	c.CashCheckVoucherTag()
+	c.CancelledCashCheckVoucher()
 	c.CashCount()
 	c.Category()
 	c.ChargesRateByRangeOrMinimumAmount()
