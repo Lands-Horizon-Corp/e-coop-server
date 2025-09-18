@@ -1231,9 +1231,8 @@ func (c *Controller) LoanTransactionController() {
 		if loanTransaction.OrganizationID != userOrg.OrganizationID || loanTransaction.BranchID != *userOrg.BranchID {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this loan transaction"})
 		}
-		var request model.LoanTransactionPrintRequest
-		if err := ctx.Bind(&request); err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request payload: " + err.Error()})
+		if loanTransaction.PrintedDate != nil {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Loan transaction has already been marked printed, you can undo it by clicking undo print"})
 		}
 		loanTransaction.PrintNumber = loanTransaction.PrintNumber + 1
 		loanTransaction.PrintedDate = handlers.Ptr(time.Now().UTC())
@@ -1242,6 +1241,7 @@ func (c *Controller) LoanTransactionController() {
 		loanTransaction.CheckDate = req.CheckDate
 		loanTransaction.UpdatedAt = time.Now().UTC()
 		loanTransaction.UpdatedByID = userOrg.UserID
+
 		if err := c.model.LoanTransactionManager.UpdateFields(context, loanTransaction.ID, loanTransaction); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction: " + err.Error()})
 		}
@@ -1286,7 +1286,6 @@ func (c *Controller) LoanTransactionController() {
 		loanTransaction.CheckDate = nil
 		loanTransaction.UpdatedAt = time.Now().UTC()
 		loanTransaction.UpdatedByID = userOrg.UserID
-
 		if err := c.model.LoanTransactionManager.UpdateFields(context, loanTransaction.ID, loanTransaction); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction: " + err.Error()})
 		}
@@ -1363,6 +1362,9 @@ func (c *Controller) LoanTransactionController() {
 		if loanTransaction.OrganizationID != userOrg.OrganizationID || loanTransaction.BranchID != *userOrg.BranchID {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this loan transaction"})
 		}
+		if loanTransaction.PrintedDate == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Loan transaction must be printed before approval"})
+		}
 		if loanTransaction.ApprovedDate != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Loan transaction is already approved"})
 		}
@@ -1379,4 +1381,6 @@ func (c *Controller) LoanTransactionController() {
 		}
 		return ctx.JSON(http.StatusOK, newLoanTransaction)
 	})
+
+	// PUT /api/v1/loan-transaction/:id/approve-undo
 }
