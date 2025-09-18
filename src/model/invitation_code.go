@@ -169,7 +169,7 @@ func (m *Model) GetInvitationCodeByCode(context context.Context, code string) (*
 }
 
 func (m *Model) InvitationCodeSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
-	now := time.Now()
+	now := time.Now().UTC()
 	expiration := now.AddDate(0, 1, 0)
 
 	invitationCodes := []*InvitationCode{
@@ -215,7 +215,7 @@ func (m *Model) VerifyInvitationCodeByCode(context context.Context, code string)
 	if err != nil {
 		return nil, err
 	}
-	now := time.Now()
+	now := time.Now().UTC()
 	if now.After(data.ExpirationDate) {
 		return nil, eris.Errorf("invitation code %q expired on %s", code, data.ExpirationDate.Format(time.RFC3339))
 	}

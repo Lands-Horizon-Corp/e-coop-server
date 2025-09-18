@@ -64,7 +64,7 @@ func (h *UserOrganizationToken) ClearCurrentToken(context context.Context, ctx e
 			return
 		}
 		userOrg.Status = model.UserOrganizationStatusOffline
-		userOrg.LastOnlineAt = time.Now()
+		userOrg.LastOnlineAt = time.Now().UTC()
 		if err := h.model.UserOrganizationManager.Update(context, userOrg); err != nil {
 			h.Token.CleanToken(context, ctx)
 			return

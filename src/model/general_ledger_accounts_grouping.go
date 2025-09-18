@@ -136,7 +136,7 @@ func (m *Model) GeneralLedgerAccountsGrouping() {
 }
 
 func (m *Model) GeneralLedgerAccountsGroupingSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
-	now := time.Now()
+	now := time.Now().UTC()
 	generalLedgerAccountsGrouping := []*GeneralLedgerAccountsGrouping{
 		{
 			CreatedAt:      now,

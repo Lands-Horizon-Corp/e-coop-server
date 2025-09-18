@@ -142,7 +142,7 @@ func (m *Model) FinancialStatementGrouping() {
 }
 
 func (m *Model) FinancialStatementGroupingSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
-	now := time.Now()
+	now := time.Now().UTC()
 
 	// Financial Statement Accounts Grouping seeder
 	financialStatementGrouping := []*FinancialStatementGrouping{

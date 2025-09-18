@@ -113,7 +113,7 @@ func (m *Model) MemberType() {
 }
 
 func (m *Model) MemberTypeSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
-	now := time.Now()
+	now := time.Now().UTC()
 	memberType := []*MemberType{
 		{
 

@@ -738,7 +738,7 @@ func (m *Model) GenerateLoanAmortizationSchedule(ctx context.Context, loanTransa
 	// Generate payment schedule
 	var schedule []AmortizationPayment
 	remainingBalance := principal
-	currentDate := time.Now()
+	currentDate := time.Now().UTC()
 
 	// Determine payment frequency based on mode of payment
 	var dayIncrement int
@@ -846,7 +846,7 @@ func (m *Model) GenerateLoanAmortizationSchedule(ctx context.Context, loanTransa
 		LoanDetails:          loanDetails,
 		AmortizationSchedule: schedule,
 		Summary:              summary,
-		GeneratedAt:          time.Now().Format(time.RFC3339),
+		GeneratedAt:          time.Now().UTC().Format(time.RFC3339),
 	}
 
 	return response, nil

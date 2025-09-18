@@ -112,7 +112,7 @@ func (m *Model) MemberDepartment() {
 }
 
 func (m *Model) MemberDepartmentSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
-	now := time.Now()
+	now := time.Now().UTC()
 	memberDepartments := []*MemberDepartment{
 		{
 			Name:        "General Services",

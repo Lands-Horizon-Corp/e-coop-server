@@ -110,7 +110,7 @@ func (m *Model) MemberOccupation() {
 
 func (m *Model) MemberOccupationSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 
-	now := time.Now()
+	now := time.Now().UTC()
 	memberOccupations := []*MemberOccupation{
 		{Name: "Farmer", Description: "Engaged in agriculture or crop cultivation.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
 		{Name: "Fisherfolk", Description: "Involved in fishing and aquaculture activities.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},

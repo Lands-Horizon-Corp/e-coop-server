@@ -122,7 +122,7 @@ func (m *Model) BillAndCoins() {
 }
 
 func (m *Model) BillAndCoinsSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
-	now := time.Now()
+	now := time.Now().UTC()
 
 	billAndCoins := []*BillAndCoins{
 		// Banknotes (New Generation Currency Series)

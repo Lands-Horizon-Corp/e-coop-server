@@ -562,7 +562,7 @@ func (m *Model) Account() {
 }
 
 func (m *Model) AccountSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
-	now := time.Now()
+	now := time.Now().UTC()
 	accounts := []*Account{
 		// Regular Savings Accounts
 		{
