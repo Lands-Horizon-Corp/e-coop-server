@@ -126,6 +126,23 @@ func (c *Controller) JournalVoucherController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start transaction: " + tx.Error.Error()})
 		}
 
+		totalDebit, totalCredit := 0.0, 0.0
+		if request.JournalVoucherEntries != nil {
+			for _, entryReq := range request.JournalVoucherEntries {
+				totalDebit += entryReq.Debit
+				totalCredit += entryReq.Credit
+			}
+		}
+		if totalDebit != totalCredit {
+			tx.Rollback()
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Journal voucher creation failed (/journal-voucher), debit and credit totals do not match.",
+				Module:      "JournalVoucher",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Debit and credit totals do not match."})
+		}
+
 		journalVoucher := &model.JournalVoucher{
 			VoucherNumber:  request.VoucherNumber,
 			Date:           request.Date,
@@ -138,6 +155,8 @@ func (c *Controller) JournalVoucherController() {
 			UpdatedByID:    user.UserID,
 			BranchID:       *user.BranchID,
 			OrganizationID: user.OrganizationID,
+			TotalDebit:     totalDebit,
+			TotalCredit:    totalCredit,
 		}
 
 		if err := c.model.JournalVoucherManager.CreateWithTx(context, tx, journalVoucher); err != nil {
@@ -150,7 +169,6 @@ func (c *Controller) JournalVoucherController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create journal voucher: " + err.Error()})
 		}
 
-		totalDebit, totalCredit := 0.0, 0.0
 		// Handle journal voucher entries
 		if request.JournalVoucherEntries != nil {
 			for _, entryReq := range request.JournalVoucherEntries {
@@ -179,20 +197,7 @@ func (c *Controller) JournalVoucherController() {
 					})
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create journal voucher entry: " + err.Error()})
 				}
-				totalDebit += entry.Debit
-				totalCredit += entry.Credit
 			}
-		}
-		journalVoucher.TotalCredit = totalCredit
-		journalVoucher.TotalDebit = totalDebit
-		if err := c.model.JournalVoucherManager.UpdateFieldsWithTx(context, tx, journalVoucher.ID, journalVoucher); err != nil {
-			tx.Rollback()
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "create-error",
-				Description: "Journal voucher update failed (/journal-voucher), db error: " + err.Error(),
-				Module:      "JournalVoucher",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update journal voucher: " + err.Error()})
 		}
 
 		if err := tx.Commit().Error; err != nil {
@@ -261,6 +266,22 @@ func (c *Controller) JournalVoucherController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Journal voucher not found"})
 		}
 
+		totalDebit, totalCredit := 0.0, 0.0
+		if request.JournalVoucherEntries != nil {
+			for _, entryReq := range request.JournalVoucherEntries {
+				totalDebit += entryReq.Debit
+				totalCredit += entryReq.Credit
+			}
+		}
+		if totalDebit != totalCredit {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Journal voucher update failed (/journal-voucher/:journal_voucher_id), debit and credit totals do not match.",
+				Module:      "JournalVoucher",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Debit and credit totals do not match."})
+		}
+
 		// Start transaction
 		tx := c.provider.Service.Database.Client().Begin()
 		if tx.Error != nil {
@@ -301,7 +322,6 @@ func (c *Controller) JournalVoucherController() {
 			}
 		}
 
-		totalDebit, totalCredit := 0.0, 0.0
 		if request.JournalVoucherEntries != nil {
 			for _, entryReq := range request.JournalVoucherEntries {
 				if entryReq.ID != nil {
@@ -326,8 +346,6 @@ func (c *Controller) JournalVoucherController() {
 						tx.Rollback()
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update journal voucher entry: " + err.Error()})
 					}
-					totalDebit += entry.Debit
-					totalCredit += entry.Credit
 				} else {
 					entry := &model.JournalVoucherEntry{
 						AccountID:        entryReq.AccountID,
@@ -348,8 +366,6 @@ func (c *Controller) JournalVoucherController() {
 						tx.Rollback()
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create journal voucher entry: " + err.Error()})
 					}
-					totalDebit += entry.Debit
-					totalCredit += entry.Credit
 				}
 
 			}
