@@ -37,6 +37,8 @@ type (
 		PostedByID    *uuid.UUID `gorm:"type:uuid"`
 		PostedBy      *User      `gorm:"foreignKey:PostedByID;constraint:OnDelete:SET NULL;" json:"posted_by,omitempty"`
 
+		JournalVoucherTags []*JournalVoucherTag `gorm:"foreignKey:JournalVoucherID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"journal_voucher_tags,omitempty"`
+
 		// Relationships
 		JournalVoucherEntries []*JournalVoucherEntry `gorm:"foreignKey:JournalVoucherID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"journal_voucher_entries,omitempty"`
 
@@ -66,6 +68,8 @@ type (
 		PostedByID     *uuid.UUID            `json:"posted_by_id,omitempty"`
 		PostedBy       *UserResponse         `json:"posted_by,omitempty"`
 
+		JournalVoucherTags []*JournalVoucherTagResponse `json:"journal_voucher_tags,omitempty"`
+
 		// Relationships
 		JournalVoucherEntries []*JournalVoucherEntryResponse `json:"journal_voucher_entries,omitempty"`
 
@@ -93,7 +97,7 @@ func (m *Model) JournalVoucher() {
 		JournalVoucher, JournalVoucherResponse, JournalVoucherRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization", "PostedBy",
+			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization", "PostedBy", "JournalVoucherTags",
 			"JournalVoucherEntries", "JournalVoucherEntries.Account",
 			"JournalVoucherEntries.MemberProfile", "JournalVoucherEntries.EmployeeUser",
 		},
@@ -137,6 +141,7 @@ func (m *Model) JournalVoucher() {
 				PostedAt:              postedAt,
 				PostedByID:            data.PostedByID,
 				PostedBy:              m.UserManager.ToModel(data.PostedBy),
+				JournalVoucherTags:    m.JournalVoucherTagManager.ToModels(data.JournalVoucherTags),
 				JournalVoucherEntries: m.mapJournalVoucherEntries(data.JournalVoucherEntries),
 				TotalDebit:            totalDebit,
 				TotalCredit:           totalCredit,

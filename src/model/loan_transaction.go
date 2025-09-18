@@ -196,6 +196,7 @@ type (
 		PaidByPosition         string     `gorm:"type:varchar(255)"`
 
 		// Relationships
+		LoanTags                              []*LoanTag                               `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"loan_tags,omitempty"`
 		LoanTransactionEntries                []*LoanTransactionEntry                  `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"loan_transaction_entries,omitempty"`
 		LoanClearanceAnalysis                 []*LoanClearanceAnalysis                 `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"loan_clearance_analysis,omitempty"`
 		LoanClearanceAnalysisInstitution      []*LoanClearanceAnalysisInstitution      `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"loan_clearance_analysis_institution,omitempty"`
@@ -338,6 +339,7 @@ type (
 		PaidByPosition         string         `json:"paid_by_position"`
 
 		// Relationships
+		LoanTags                              []*LoanTagResponse                               `json:"loan_tags,omitempty"`
 		LoanTransactionEntries                []*LoanTransactionEntryResponse                  `json:"loan_transaction_entries,omitempty"`
 		LoanClearanceAnalysis                 []*LoanClearanceAnalysisResponse                 `json:"loan_clearance_analysis,omitempty"`
 		LoanClearanceAnalysisInstitution      []*LoanClearanceAnalysisInstitutionResponse      `json:"loan_clearance_analysis_institution,omitempty"`
@@ -442,6 +444,7 @@ type (
 		PaidByPosition         string     `json:"paid_by_position,omitempty"`
 
 		// Nested relationships for creation/update
+		LoanTags                              []*LoanTagRequest                               `json:"loan_tags,omitempty"`
 		LoanTransactionEntries                []*LoanTransactionEntryRequest                  `json:"loan_transaction_entries,omitempty"`
 		LoanClearanceAnalysis                 []*LoanClearanceAnalysisRequest                 `json:"loan_clearance_analysis,omitempty"`
 		LoanClearanceAnalysisInstitution      []*LoanClearanceAnalysisInstitutionRequest      `json:"loan_clearance_analysis_institution,omitempty"`
@@ -450,6 +453,7 @@ type (
 		ComakerMemberProfiles                 []*ComakerMemberProfileRequest                  `json:"comaker_member_profiles,omitempty"`
 		ComakerCollaterals                    []*ComakerCollateralRequest                     `json:"comaker_collaterals,omitempty"`
 
+		LoanTagsDeleted                              []uuid.UUID `json:"loan_tags_deleted,omitempty"`
 		LoanTransactionEntriesDeleted                []uuid.UUID `json:"loan_transaction_entries_deleted,omitempty"`
 		LoanClearanceAnalysisDeleted                 []uuid.UUID `json:"loan_clearance_analysis_deleted,omitempty"`
 		LoanClearanceAnalysisInstitutionDeleted      []uuid.UUID `json:"loan_clearance_analysis_institution_deleted,omitempty"`
@@ -563,6 +567,7 @@ func (m *Model) LoanTransaction() {
 			"ApprovedBySignatureMedia", "PreparedBySignatureMedia", "CertifiedBySignatureMedia",
 			"VerifiedBySignatureMedia", "CheckBySignatureMedia", "AcknowledgeBySignatureMedia",
 			"NotedBySignatureMedia", "PostedBySignatureMedia", "PaidBySignatureMedia",
+			"LoanTags",
 			"LoanTransactionEntries",
 			"LoanTransactionEntries.Account",
 			"LoanClearanceAnalysis",
@@ -680,6 +685,7 @@ func (m *Model) LoanTransaction() {
 				PaidBySignatureMedia:                   m.MediaManager.ToModel(data.PaidBySignatureMedia),
 				PaidByName:                             data.PaidByName,
 				PaidByPosition:                         data.PaidByPosition,
+				LoanTags:                               m.LoanTagManager.ToModels(data.LoanTags),
 				LoanTransactionEntries:                 m.mapLoanTransactionEntries(data.LoanTransactionEntries),
 				LoanClearanceAnalysis:                  m.LoanClearanceAnalysisManager.ToModels(data.LoanClearanceAnalysis),
 				LoanClearanceAnalysisInstitution:       m.LoanClearanceAnalysisInstitutionManager.ToModels(data.LoanClearanceAnalysisInstitution),

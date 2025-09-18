@@ -28,44 +28,43 @@ type (
 		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_journal_voucher_tag"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
-		JournalVoucherID uuid.UUID       `gorm:"type:uuid;not null"`
+		JournalVoucherID *uuid.UUID      `gorm:"type:uuid"`
 		JournalVoucher   *JournalVoucher `gorm:"foreignKey:JournalVoucherID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"journal_voucher,omitempty"`
 
 		Name        string `gorm:"type:varchar(50)"`
 		Description string `gorm:"type:text"`
-		Category    string `gorm:"type:varchar(50)"` // tag_category: use custom type if available
+		Category    string `gorm:"type:varchar(50)"`
 		Color       string `gorm:"type:varchar(20)"`
 		Icon        string `gorm:"type:varchar(20)"`
 	}
 
 	JournalVoucherTagResponse struct {
-		ID               uuid.UUID               `json:"id"`
-		CreatedAt        string                  `json:"created_at"`
-		CreatedByID      uuid.UUID               `json:"created_by_id"`
-		CreatedBy        *UserResponse           `json:"created_by,omitempty"`
-		UpdatedAt        string                  `json:"updated_at"`
-		UpdatedByID      uuid.UUID               `json:"updated_by_id"`
-		UpdatedBy        *UserResponse           `json:"updated_by,omitempty"`
-		OrganizationID   uuid.UUID               `json:"organization_id"`
-		Organization     *OrganizationResponse   `json:"organization,omitempty"`
-		BranchID         uuid.UUID               `json:"branch_id"`
-		Branch           *BranchResponse         `json:"branch,omitempty"`
-		JournalVoucherID uuid.UUID               `json:"journal_voucher_id"`
-		JournalVoucher   *JournalVoucherResponse `json:"journal_voucher,omitempty"`
-		Name             string                  `json:"name"`
-		Description      string                  `json:"description"`
-		Category         string                  `json:"category"`
-		Color            string                  `json:"color"`
-		Icon             string                  `json:"icon"`
+		ID               uuid.UUID             `json:"id"`
+		CreatedAt        string                `json:"created_at"`
+		CreatedByID      uuid.UUID             `json:"created_by_id"`
+		CreatedBy        *UserResponse         `json:"created_by,omitempty"`
+		UpdatedAt        string                `json:"updated_at"`
+		UpdatedByID      uuid.UUID             `json:"updated_by_id"`
+		UpdatedBy        *UserResponse         `json:"updated_by,omitempty"`
+		OrganizationID   uuid.UUID             `json:"organization_id"`
+		Organization     *OrganizationResponse `json:"organization,omitempty"`
+		BranchID         uuid.UUID             `json:"branch_id"`
+		Branch           *BranchResponse       `json:"branch,omitempty"`
+		JournalVoucherID *uuid.UUID            `json:"journal_voucher_id,omitempty"`
+		Name             string                `json:"name"`
+		Description      string                `json:"description"`
+		Category         string                `json:"category"`
+		Color            string                `json:"color"`
+		Icon             string                `json:"icon"`
 	}
 
 	JournalVoucherTagRequest struct {
-		JournalVoucherID uuid.UUID `json:"journal_voucher_id" validate:"required"`
-		Name             string    `json:"name,omitempty"`
-		Description      string    `json:"description,omitempty"`
-		Category         string    `json:"category,omitempty"`
-		Color            string    `json:"color,omitempty"`
-		Icon             string    `json:"icon,omitempty"`
+		JournalVoucherID *uuid.UUID `json:"journal_voucher_id,omitempty"`
+		Name             string     `json:"name,omitempty"`
+		Description      string     `json:"description,omitempty"`
+		Category         string     `json:"category,omitempty"`
+		Color            string     `json:"color,omitempty"`
+		Icon             string     `json:"icon,omitempty"`
 	}
 )
 
@@ -75,7 +74,7 @@ func (m *Model) JournalVoucherTag() {
 		JournalVoucherTag, JournalVoucherTagResponse, JournalVoucherTagRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization", "JournalVoucher",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *JournalVoucherTag) *JournalVoucherTagResponse {
@@ -95,7 +94,6 @@ func (m *Model) JournalVoucherTag() {
 				BranchID:         data.BranchID,
 				Branch:           m.BranchManager.ToModel(data.Branch),
 				JournalVoucherID: data.JournalVoucherID,
-				JournalVoucher:   m.JournalVoucherManager.ToModel(data.JournalVoucher),
 				Name:             data.Name,
 				Description:      data.Description,
 				Category:         data.Category,
