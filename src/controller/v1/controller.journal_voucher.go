@@ -552,7 +552,9 @@ func (c *Controller) JournalVoucherController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
 		}
-
+		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
+		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{

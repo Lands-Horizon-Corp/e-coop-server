@@ -68,6 +68,7 @@ type (
 	}
 
 	CashCheckVoucherEntryRequest struct {
+		ID                 *uuid.UUID `json:"id,omitempty"`
 		AccountID          uuid.UUID  `json:"account_id" validate:"required"`
 		EmployeeUserID     *uuid.UUID `json:"employee_user_id,omitempty"`
 		TransactionBatchID *uuid.UUID `json:"transaction_batch_id,omitempty"`
