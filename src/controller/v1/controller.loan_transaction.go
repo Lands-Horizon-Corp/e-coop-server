@@ -1281,6 +1281,7 @@ func (c *Controller) LoanTransactionController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot undo print on an approved or released loan transaction"})
 		}
 		loanTransaction.PrintedDate = nil
+		loanTransaction.PrintNumber = 0
 		loanTransaction.Voucher = ""
 		loanTransaction.CheckNumber = ""
 		loanTransaction.CheckDate = nil
