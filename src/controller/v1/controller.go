@@ -94,6 +94,7 @@ func (c *Controller) Start() error {
 
 	// Account Maintenance
 	c.BankController()
+	c.CashCheckVoucherTagController()
 	c.HolidayController()
 	c.BillAndCoinsController()
 
@@ -142,7 +143,6 @@ func (c *Controller) Start() error {
 	c.ChargesRateByRangeOrMinimumAmountController()
 	c.ChargesRateSchemeModeOfPaymentController()
 	c.JournalVoucherController()
-	c.AdjustmentEntryTagController()
 	c.AdjustmentEntryController()
 	return nil
 }

@@ -107,8 +107,7 @@ type (
 		PaidByName             string     `gorm:"type:varchar(255)"`
 		PaidByPosition         string     `gorm:"type:varchar(255)"`
 
-		CashCheckVoucherTagID *uuid.UUID           `gorm:"type:uuid"`
-		CashCheckVoucherTag   *CashCheckVoucherTag `gorm:"foreignKey:CashCheckVoucherTagID;constraint:OnDelete:SET NULL,OnUpdate:CASCADE;" json:"cash_check_voucher_tag,omitempty"`
+		CashCheckVoucherTags []*CashCheckVoucherTag `gorm:"foreignKey:CashCheckVoucherID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"cash_check_voucher_tags,omitempty"`
 
 		// Check Entry Fields
 		CheckEntryAmount      float64 `gorm:"type:decimal;default:0"`
@@ -199,8 +198,7 @@ type (
 		PaidByName             string         `json:"paid_by_name"`
 		PaidByPosition         string         `json:"paid_by_position"`
 
-		CashCheckVoucherTagID *uuid.UUID                   `json:"cash_check_voucher_tag_id,omitempty"`
-		CashCheckVoucherTag   *CashCheckVoucherTagResponse `json:"cash_check_voucher_tag,omitempty"`
+		CashCheckVoucherTags []*CashCheckVoucherTagResponse `json:"cash_check_voucher_tags,omitempty"`
 
 		// Check Entry Fields
 		CheckEntryAmount      float64          `json:"check_entry_amount"`
@@ -263,8 +261,6 @@ type (
 		PaidByName             string     `json:"paid_by_name,omitempty"`
 		PaidByPosition         string     `json:"paid_by_position,omitempty"`
 
-		CashCheckVoucherTagID *uuid.UUID `json:"cash_check_voucher_tag_id,omitempty"`
-
 		// Check Entry Fields
 		CheckEntryAmount      float64    `json:"check_entry_amount,omitempty"`
 		CheckEntryCheckNumber string     `json:"check_entry_check_number,omitempty"`
@@ -281,7 +277,7 @@ func (m *Model) CashCheckVoucher() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Branch", "Organization",
 			"EmployeeUser", "TransactionBatch", "PrintedByUser", "ApprovedByUser", "ReleasedByUser",
-			"CashCheckVoucherTag", "CheckEntryAccount",
+			"CashCheckVoucherTags", "CheckEntryAccount",
 			"ApprovedBySignatureMedia", "PreparedBySignatureMedia", "CertifiedBySignatureMedia",
 			"VerifiedBySignatureMedia", "CheckBySignatureMedia", "AcknowledgeBySignatureMedia",
 			"NotedBySignatureMedia", "PostedBySignatureMedia", "PaidBySignatureMedia",
@@ -385,8 +381,7 @@ func (m *Model) CashCheckVoucher() {
 				PaidByName:             data.PaidByName,
 				PaidByPosition:         data.PaidByPosition,
 
-				CashCheckVoucherTagID: data.CashCheckVoucherTagID,
-				CashCheckVoucherTag:   m.CashCheckVoucherTagManager.ToModel(data.CashCheckVoucherTag),
+				CashCheckVoucherTags: m.CashCheckVoucherTagManager.ToModels(data.CashCheckVoucherTags),
 
 				// Check Entry Fields
 				CheckEntryAmount:      data.CheckEntryAmount,
