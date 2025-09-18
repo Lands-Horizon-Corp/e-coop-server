@@ -7,7 +7,6 @@ import (
 
 	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
-	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
@@ -111,51 +110,6 @@ func (m *Model) CancelledCashCheckVoucher() {
 			}
 		},
 	})
-}
-
-func (m *Model) CancelledCashCheckVoucherSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
-	now := time.Now().UTC()
-	cancelledVouchers := []*CancelledCashCheckVoucher{
-		{
-			CreatedAt:      now,
-			UpdatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-			CheckNumber:    "CHK001",
-			EntryDate:      time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC),
-			Description:    "Cancelled due to incorrect amount entry",
-		},
-		{
-			CreatedAt:      now,
-			UpdatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-			CheckNumber:    "CHK002",
-			EntryDate:      time.Date(2024, 1, 20, 0, 0, 0, 0, time.UTC),
-			Description:    "Cancelled due to beneficiary name error",
-		},
-		{
-			CreatedAt:      now,
-			UpdatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-			CheckNumber:    "CHK003",
-			EntryDate:      time.Date(2024, 2, 5, 0, 0, 0, 0, time.UTC),
-			Description:    "Cancelled upon member request",
-		},
-	}
-	for _, data := range cancelledVouchers {
-		if err := m.CancelledCashCheckVoucherManager.CreateWithTx(context, tx, data); err != nil {
-			return eris.Wrapf(err, "failed to seed cancelled cash check voucher %s", data.CheckNumber)
-		}
-	}
-	return nil
 }
 
 func (m *Model) CancelledCashCheckVoucherCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*CancelledCashCheckVoucher, error) {
