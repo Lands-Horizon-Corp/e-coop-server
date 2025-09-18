@@ -214,7 +214,8 @@ func (c *Controller) OrganizationController() {
 			CheckVoucherUseDateOR:      false,
 
 			// Default Member Type - can be set later
-			DefaultMemberTypeID: nil,
+			DefaultMemberTypeID:       nil,
+			LoanAppliedEqualToBalance: true,
 		}
 
 		if err := c.model.BranchSettingManager.CreateWithTx(context, tx, branchSetting); err != nil {

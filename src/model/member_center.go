@@ -109,15 +109,16 @@ func (m *Model) MemberCenter() {
 }
 
 func (m *Model) MemberCenterSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+	now := time.Now().UTC()
 	memberCenter := []*MemberCenter{
 		{
 			Name:           "Main Wellness Center",
 			Description:    "Provides health and wellness programs.",
 			OrganizationID: organizationID,
 			BranchID:       branchID,
-			CreatedAt:      time.Now(),
+			CreatedAt:      now,
 			CreatedByID:    userID,
-			UpdatedAt:      time.Now(),
+			UpdatedAt:      now,
 			UpdatedByID:    userID,
 		},
 		{
@@ -126,9 +127,9 @@ func (m *Model) MemberCenterSeed(context context.Context, tx *gorm.DB, userID uu
 			Description:    "Offers skill-building and training for members.",
 			OrganizationID: organizationID,
 			BranchID:       branchID,
-			CreatedAt:      time.Now(),
+			CreatedAt:      now,
 			CreatedByID:    userID,
-			UpdatedAt:      time.Now(),
+			UpdatedAt:      now,
 			UpdatedByID:    userID,
 		},
 		{
@@ -137,9 +138,9 @@ func (m *Model) MemberCenterSeed(context context.Context, tx *gorm.DB, userID uu
 			Description:    "Focuses on community support services and events.",
 			OrganizationID: organizationID,
 			BranchID:       branchID,
-			CreatedAt:      time.Now(),
+			CreatedAt:      now,
 			CreatedByID:    userID,
-			UpdatedAt:      time.Now(),
+			UpdatedAt:      now,
 			UpdatedByID:    userID,
 		},
 	}

@@ -85,6 +85,8 @@ type (
 		TransactionBatchID    *uuid.UUID        `gorm:"type:uuid"`
 		TransactionBatch      *TransactionBatch `gorm:"foreignKey:TransactionBatchID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"transaction_batch,omitempty"`
 		OfficialReceiptNumber string            `gorm:"type:varchar(255)"`
+		CheckNumber           string            `gorm:"type:varchar(255)"`
+		CheckDate             *time.Time        `gorm:"type:timestamp"`
 		Voucher               string            `gorm:"type:varchar(255)"`
 
 		LoanPurposeID *uuid.UUID   `gorm:"type:uuid"`
@@ -94,23 +96,19 @@ type (
 		LoanStatus   *LoanStatus `gorm:"foreignKey:LoanStatusID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"loan_status,omitempty"`
 
 		ModeOfPayment                LoanModeOfPayment `gorm:"type:varchar(255)"`
-		ModeOfPaymentWeekly          string            `gorm:"type:varchar(255)"`
+		ModeOfPaymentWeekly          Weekdays          `gorm:"type:varchar(255)"`
 		ModeOfPaymentSemiMonthlyPay1 int               `gorm:"type:int"`
 		ModeOfPaymentSemiMonthlyPay2 int               `gorm:"type:int"`
 		ModeOfPaymentFixedDays       int               `gorm:"type:int;default:0" json:"mode_of_payment_fixed_days"`
+		ModeOfPaymentMonthlyExactDay bool              `gorm:"type:boolean;default:false" json:"mode_of_payment_monthly_exact_day"`
 
-		ComakerType                            string                  `gorm:"type:varchar(255)"`
+		ComakerType                            LoanComakerType         `gorm:"type:varchar(255)"`
 		ComakerDepositMemberAccountingLedgerID *uuid.UUID              `gorm:"type:uuid"`
 		ComakerDepositMemberAccountingLedger   *MemberAccountingLedger `gorm:"foreignKey:ComakerDepositMemberAccountingLedgerID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"comaker_deposit_member_accounting_ledger,omitempty"`
-		ComakerCollateralID                    *uuid.UUID              `gorm:"type:uuid"`
-		ComakerCollateral                      *Collateral             `gorm:"foreignKey:ComakerCollateralID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"comaker_collateral,omitempty"`
-		ComakerMemberProfileID                 *uuid.UUID              `gorm:"type:uuid"`
-		ComakerMemberProfile                   *MemberProfile          `gorm:"foreignKey:ComakerMemberProfileID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"comaker_member_profile,omitempty"`
-		ComakerCollateralDescription           string                  `gorm:"type:text"`
 
-		CollectorPlace string `gorm:"type:varchar(255);default:'office'"`
+		CollectorPlace LoanCollectorPlace `gorm:"type:varchar(255);default:'office'"`
 
-		LoanType       string           `gorm:"type:varchar(255);default:'standard'"`
+		LoanType       LoanType         `gorm:"type:varchar(255);default:'standard'"`
 		PreviousLoanID *uuid.UUID       `gorm:"type:uuid"`
 		PreviousLoan   *LoanTransaction `gorm:"foreignKey:PreviousLoanID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"previous_loan,omitempty"`
 		Terms          int              `gorm:"not null"`
@@ -150,6 +148,7 @@ type (
 		PrintedDate  *time.Time `gorm:"type:timestamp"`
 		ApprovedDate *time.Time `gorm:"type:timestamp"`
 		ReleasedDate *time.Time `gorm:"type:timestamp"`
+		PrintNumber  int        `gorm:"type:int;default:0"`
 
 		ApprovedBySignatureMediaID *uuid.UUID `gorm:"type:uuid"`
 		ApprovedBySignatureMedia   *Media     `gorm:"foreignKey:ApprovedBySignatureMediaID;constraint:OnDelete:SET NULL;" json:"approved_by_signature_media,omitempty"`
@@ -202,6 +201,8 @@ type (
 		LoanClearanceAnalysisInstitution      []*LoanClearanceAnalysisInstitution      `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"loan_clearance_analysis_institution,omitempty"`
 		LoanTermsAndConditionSuggestedPayment []*LoanTermsAndConditionSuggestedPayment `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"loan_terms_and_condition_suggested_payment,omitempty"`
 		LoanTermsAndConditionAmountReceipt    []*LoanTermsAndConditionAmountReceipt    `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"loan_terms_and_condition_amount_receipt,omitempty"`
+		ComakerMemberProfiles                 []*ComakerMemberProfile                  `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"comaker_member_profiles,omitempty"`
+		ComakerCollaterals                    []*ComakerCollateral                     `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"comaker_collaterals,omitempty"`
 
 		TotalDebit  float64 `gorm:"total_debit;type:decimal;default:0" json:"total_debit"`
 		TotalCredit float64 `gorm:"total_credit;type:decimal;default:0" json:"total_credit"`
@@ -227,6 +228,8 @@ type (
 		TransactionBatch      *TransactionBatchResponse `json:"transaction_batch,omitempty"`
 		OfficialReceiptNumber string                    `json:"official_receipt_number"`
 		Voucher               string                    `json:"voucher"`
+		CheckDate             *time.Time                `json:"check_date,omitempty"`
+		CheckNumber           string                    `json:"check_number"`
 
 		LoanPurposeID *uuid.UUID           `json:"loan_purpose_id,omitempty"`
 		LoanPurpose   *LoanPurposeResponse `json:"loan_purpose,omitempty"`
@@ -239,15 +242,11 @@ type (
 		ModeOfPaymentSemiMonthlyPay1 int               `json:"mode_of_payment_semi_monthly_pay_1"`
 		ModeOfPaymentSemiMonthlyPay2 int               `json:"mode_of_payment_semi_monthly_pay_2"`
 		ModeOfPaymentFixedDays       int               `json:"mode_of_payment_fixed_days"`
+		ModeOfPaymentMonthlyExactDay bool              `json:"mode_of_payment_monthly_exact_day"`
 
 		ComakerType                            LoanComakerType                 `json:"comaker_type"`
 		ComakerDepositMemberAccountingLedgerID *uuid.UUID                      `json:"comaker_deposit_member_accounting_ledger_id,omitempty"`
 		ComakerDepositMemberAccountingLedger   *MemberAccountingLedgerResponse `json:"comaker_deposit_member_accounting_ledger,omitempty"`
-		ComakerCollateralID                    *uuid.UUID                      `json:"comaker_collateral_id,omitempty"`
-		ComakerCollateral                      *CollateralResponse             `json:"comaker_collateral,omitempty"`
-		ComakerMemberProfileID                 *uuid.UUID                      `json:"comaker_member_profile_id,omitempty"`
-		ComakerMemberProfile                   *MemberProfileResponse          `json:"comaker_member_profile,omitempty"`
-		ComakerCollateralDescription           string                          `json:"comaker_collateral_description"`
 
 		CollectorPlace LoanCollectorPlace `json:"collector_place"`
 
@@ -289,6 +288,7 @@ type (
 		AppraisedValueDescription string  `json:"appraised_value_description"`
 
 		PrintedDate  *time.Time `json:"printed_date,omitempty"`
+		PrintNumber  int        `json:"print_number"`
 		ApprovedDate *time.Time `json:"approved_date,omitempty"`
 		ReleasedDate *time.Time `json:"released_date,omitempty"`
 
@@ -343,6 +343,8 @@ type (
 		LoanClearanceAnalysisInstitution      []*LoanClearanceAnalysisInstitutionResponse      `json:"loan_clearance_analysis_institution,omitempty"`
 		LoanTermsAndConditionSuggestedPayment []*LoanTermsAndConditionSuggestedPaymentResponse `json:"loan_terms_and_condition_suggested_payment,omitempty"`
 		LoanTermsAndConditionAmountReceipt    []*LoanTermsAndConditionAmountReceiptResponse    `json:"loan_terms_and_condition_amount_receipt,omitempty"`
+		ComakerMemberProfiles                 []*ComakerMemberProfileResponse                  `json:"comaker_member_profiles,omitempty"`
+		ComakerCollaterals                    []*ComakerCollateralResponse                     `json:"comaker_collaterals,omitempty"`
 
 		TotalDebit  float64 `json:"total_debit"`
 		TotalCredit float64 `json:"total_credit"`
@@ -359,12 +361,10 @@ type (
 		ModeOfPaymentSemiMonthlyPay1 int               `json:"mode_of_payment_semi_monthly_pay_1,omitempty"`
 		ModeOfPaymentSemiMonthlyPay2 int               `json:"mode_of_payment_semi_monthly_pay_2,omitempty"`
 		ModeOfPaymentFixedDays       int               `json:"mode_of_payment_fixed_days,omitempty"`
+		ModeOfPaymentMonthlyExactDay bool              `json:"mode_of_payment_monthly_exact_day,omitempty"`
 
 		ComakerType                            LoanComakerType `json:"comaker_type"`
 		ComakerDepositMemberAccountingLedgerID *uuid.UUID      `json:"comaker_deposit_member_accounting_ledger_id,omitempty"`
-		ComakerCollateralID                    *uuid.UUID      `json:"comaker_collateral_id,omitempty"`
-		ComakerMemberProfileID                 *uuid.UUID      `json:"comaker_member_profile_id,omitempty"`
-		ComakerCollateralDescription           string          `json:"comaker_collateral_description,omitempty"`
 
 		CollectorPlace LoanCollectorPlace `json:"collector_place"`
 
@@ -401,6 +401,7 @@ type (
 		AppraisedValueDescription string  `json:"appraised_value_description,omitempty"`
 
 		PrintedDate  *time.Time `json:"printed_date,omitempty"`
+		PrintNumber  int        `json:"print_number,omitempty"`
 		ApprovedDate *time.Time `json:"approved_date,omitempty"`
 		ReleasedDate *time.Time `json:"released_date,omitempty"`
 
@@ -446,12 +447,16 @@ type (
 		LoanClearanceAnalysisInstitution      []*LoanClearanceAnalysisInstitutionRequest      `json:"loan_clearance_analysis_institution,omitempty"`
 		LoanTermsAndConditionSuggestedPayment []*LoanTermsAndConditionSuggestedPaymentRequest `json:"loan_terms_and_condition_suggested_payment,omitempty"`
 		LoanTermsAndConditionAmountReceipt    []*LoanTermsAndConditionAmountReceiptRequest    `json:"loan_terms_and_condition_amount_receipt,omitempty"`
+		ComakerMemberProfiles                 []*ComakerMemberProfileRequest                  `json:"comaker_member_profiles,omitempty"`
+		ComakerCollaterals                    []*ComakerCollateralRequest                     `json:"comaker_collaterals,omitempty"`
 
 		LoanTransactionEntriesDeleted                []uuid.UUID `json:"loan_transaction_entries_deleted,omitempty"`
 		LoanClearanceAnalysisDeleted                 []uuid.UUID `json:"loan_clearance_analysis_deleted,omitempty"`
 		LoanClearanceAnalysisInstitutionDeleted      []uuid.UUID `json:"loan_clearance_analysis_institution_deleted,omitempty"`
 		LoanTermsAndConditionSuggestedPaymentDeleted []uuid.UUID `json:"loan_terms_and_condition_suggested_payment_deleted,omitempty"`
 		LoanTermsAndConditionAmountReceiptDeleted    []uuid.UUID `json:"loan_terms_and_condition_amount_receipt_deleted,omitempty"`
+		ComakerMemberProfilesDeleted                 []uuid.UUID `json:"comaker_member_profiles_deleted,omitempty"`
+		ComakerCollateralsDeleted                    []uuid.UUID `json:"comaker_collaterals_deleted,omitempty"`
 	}
 
 	// Amortization Schedule Types
@@ -490,6 +495,59 @@ type (
 		Summary              AmortizationSummary   `json:"summary"`
 		GeneratedAt          string                `json:"generated_at"`
 	}
+
+	LoanTransactionPrintRequest struct {
+		Voucher     string     `json:"voucher"`
+		CheckNumber string     `json:"check_number"`
+		CheckDate   *time.Time `json:"check_date"`
+	}
+
+	LoanTransactionSignatureRequest struct {
+		ApprovedBySignatureMediaID *uuid.UUID `gorm:"type:uuid"`
+		ApprovedBySignatureMedia   *Media     `gorm:"foreignKey:ApprovedBySignatureMediaID;constraint:OnDelete:SET NULL;" json:"approved_by_signature_media,omitempty"`
+		ApprovedByName             string     `gorm:"type:varchar(255)"`
+		ApprovedByPosition         string     `gorm:"type:varchar(255)"`
+
+		PreparedBySignatureMediaID *uuid.UUID `gorm:"type:uuid"`
+		PreparedBySignatureMedia   *Media     `gorm:"foreignKey:PreparedBySignatureMediaID;constraint:OnDelete:SET NULL;" json:"prepared_by_signature_media,omitempty"`
+		PreparedByName             string     `gorm:"type:varchar(255)"`
+		PreparedByPosition         string     `gorm:"type:varchar(255)"`
+
+		CertifiedBySignatureMediaID *uuid.UUID `gorm:"type:uuid"`
+		CertifiedBySignatureMedia   *Media     `gorm:"foreignKey:CertifiedBySignatureMediaID;constraint:OnDelete:SET NULL;" json:"certified_by_signature_media,omitempty"`
+		CertifiedByName             string     `gorm:"type:varchar(255)"`
+		CertifiedByPosition         string     `gorm:"type:varchar(255)"`
+
+		VerifiedBySignatureMediaID *uuid.UUID `gorm:"type:uuid"`
+		VerifiedBySignatureMedia   *Media     `gorm:"foreignKey:VerifiedBySignatureMediaID;constraint:OnDelete:SET NULL;" json:"verified_by_signature_media,omitempty"`
+		VerifiedByName             string     `gorm:"type:varchar(255)"`
+		VerifiedByPosition         string     `gorm:"type:varchar(255)"`
+
+		CheckBySignatureMediaID *uuid.UUID `gorm:"type:uuid"`
+		CheckBySignatureMedia   *Media     `gorm:"foreignKey:CheckBySignatureMediaID;constraint:OnDelete:SET NULL;" json:"check_by_signature_media,omitempty"`
+		CheckByName             string     `gorm:"type:varchar(255)"`
+		CheckByPosition         string     `gorm:"type:varchar(255)"`
+
+		AcknowledgeBySignatureMediaID *uuid.UUID `gorm:"type:uuid"`
+		AcknowledgeBySignatureMedia   *Media     `gorm:"foreignKey:AcknowledgeBySignatureMediaID;constraint:OnDelete:SET NULL;" json:"acknowledge_by_signature_media,omitempty"`
+		AcknowledgeByName             string     `gorm:"type:varchar(255)"`
+		AcknowledgeByPosition         string     `gorm:"type:varchar(255)"`
+
+		NotedBySignatureMediaID *uuid.UUID `gorm:"type:uuid"`
+		NotedBySignatureMedia   *Media     `gorm:"foreignKey:NotedBySignatureMediaID;constraint:OnDelete:SET NULL;" json:"noted_by_signature_media,omitempty"`
+		NotedByName             string     `gorm:"type:varchar(255)"`
+		NotedByPosition         string     `gorm:"type:varchar(255)"`
+
+		PostedBySignatureMediaID *uuid.UUID `gorm:"type:uuid"`
+		PostedBySignatureMedia   *Media     `gorm:"foreignKey:PostedBySignatureMediaID;constraint:OnDelete:SET NULL;" json:"posted_by_signature_media,omitempty"`
+		PostedByName             string     `gorm:"type:varchar(255)"`
+		PostedByPosition         string     `gorm:"type:varchar(255)"`
+
+		PaidBySignatureMediaID *uuid.UUID `gorm:"type:uuid"`
+		PaidBySignatureMedia   *Media     `gorm:"foreignKey:PaidBySignatureMediaID;constraint:OnDelete:SET NULL;" json:"paid_by_signature_media,omitempty"`
+		PaidByName             string     `gorm:"type:varchar(255)"`
+		PaidByPosition         string     `gorm:"type:varchar(255)"`
+	}
 )
 
 func (m *Model) LoanTransaction() {
@@ -500,7 +558,7 @@ func (m *Model) LoanTransaction() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Branch", "Organization", "EmployeeUser",
 			"TransactionBatch", "LoanPurpose", "LoanStatus",
-			"ComakerDepositMemberAccountingLedger", "ComakerCollateral", "ComakerMemberProfile", "PreviousLoan",
+			"ComakerDepositMemberAccountingLedger", "ComakerCollateral", "PreviousLoan",
 			"Account", "MemberProfile", "MemberJointAccount", "SignatureMedia",
 			"ApprovedBySignatureMedia", "PreparedBySignatureMedia", "CertifiedBySignatureMedia",
 			"VerifiedBySignatureMedia", "CheckBySignatureMedia", "AcknowledgeBySignatureMedia",
@@ -511,6 +569,8 @@ func (m *Model) LoanTransaction() {
 			"LoanClearanceAnalysisInstitution",
 			"LoanTermsAndConditionSuggestedPayment",
 			"LoanTermsAndConditionAmountReceipt", "LoanTermsAndConditionAmountReceipt.Account",
+			"ComakerMemberProfiles", "ComakerMemberProfiles.MemberProfile", "ComakerMemberProfiles.MemberProfile.Media",
+			"ComakerCollaterals", "ComakerCollaterals.Collateral",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *LoanTransaction) *LoanTransactionResponse {
@@ -535,6 +595,8 @@ func (m *Model) LoanTransaction() {
 				TransactionBatch:                       m.TransactionBatchManager.ToModel(data.TransactionBatch),
 				OfficialReceiptNumber:                  data.OfficialReceiptNumber,
 				Voucher:                                data.Voucher,
+				CheckDate:                              data.CheckDate,
+				CheckNumber:                            data.CheckNumber,
 				LoanPurposeID:                          data.LoanPurposeID,
 				LoanPurpose:                            m.LoanPurposeManager.ToModel(data.LoanPurpose),
 				LoanStatusID:                           data.LoanStatusID,
@@ -544,14 +606,10 @@ func (m *Model) LoanTransaction() {
 				ModeOfPaymentSemiMonthlyPay1:           data.ModeOfPaymentSemiMonthlyPay1,
 				ModeOfPaymentSemiMonthlyPay2:           data.ModeOfPaymentSemiMonthlyPay2,
 				ModeOfPaymentFixedDays:                 data.ModeOfPaymentFixedDays,
+				ModeOfPaymentMonthlyExactDay:           data.ModeOfPaymentMonthlyExactDay,
 				ComakerType:                            LoanComakerType(data.ComakerType),
 				ComakerDepositMemberAccountingLedgerID: data.ComakerDepositMemberAccountingLedgerID,
 				ComakerDepositMemberAccountingLedger:   m.MemberAccountingLedgerManager.ToModel(data.ComakerDepositMemberAccountingLedger),
-				ComakerCollateralID:                    data.ComakerCollateralID,
-				ComakerCollateral:                      m.CollateralManager.ToModel(data.ComakerCollateral),
-				ComakerMemberProfileID:                 data.ComakerMemberProfileID,
-				ComakerMemberProfile:                   m.MemberProfileManager.ToModel(data.ComakerMemberProfile),
-				ComakerCollateralDescription:           data.ComakerCollateralDescription,
 				CollectorPlace:                         LoanCollectorPlace(data.CollectorPlace),
 				LoanType:                               LoanType(data.LoanType),
 				PreviousLoanID:                         data.PreviousLoanID,
@@ -583,6 +641,7 @@ func (m *Model) LoanTransaction() {
 				AppraisedValue:                         data.AppraisedValue,
 				AppraisedValueDescription:              data.AppraisedValueDescription,
 				PrintedDate:                            data.PrintedDate,
+				PrintNumber:                            data.PrintNumber,
 				ApprovedDate:                           data.ApprovedDate,
 				ReleasedDate:                           data.ReleasedDate,
 				ApprovedBySignatureMediaID:             data.ApprovedBySignatureMediaID,
@@ -626,6 +685,8 @@ func (m *Model) LoanTransaction() {
 				LoanClearanceAnalysisInstitution:       m.LoanClearanceAnalysisInstitutionManager.ToModels(data.LoanClearanceAnalysisInstitution),
 				LoanTermsAndConditionSuggestedPayment:  m.LoanTermsAndConditionSuggestedPaymentManager.ToModels(data.LoanTermsAndConditionSuggestedPayment),
 				LoanTermsAndConditionAmountReceipt:     m.LoanTermsAndConditionAmountReceiptManager.ToModels(data.LoanTermsAndConditionAmountReceipt),
+				ComakerMemberProfiles:                  m.ComakerMemberProfileManager.ToModels(data.ComakerMemberProfiles),
+				ComakerCollaterals:                     m.ComakerCollateralManager.ToModels(data.ComakerCollaterals),
 				TotalDebit:                             data.TotalDebit,
 				TotalCredit:                            data.TotalCredit,
 			}
@@ -722,27 +783,54 @@ func (m *Model) GenerateLoanAmortizationSchedule(ctx context.Context, loanTransa
 	// Generate payment schedule
 	var schedule []AmortizationPayment
 	remainingBalance := principal
-	currentDate := time.Now()
+	currentDate := time.Now().UTC()
 
 	// Determine payment frequency based on mode of payment
-	var dayIncrement int
+	var nextPaymentDate func(time.Time, int) time.Time
+
 	switch loanTransaction.ModeOfPayment {
 	case "daily":
-		dayIncrement = 1
+		nextPaymentDate = func(current time.Time, termNum int) time.Time {
+			return current.AddDate(0, 0, termNum)
+		}
 	case "fixed-days":
-		dayIncrement = loanTransaction.ModeOfPaymentFixedDays
+		dayIncrement := loanTransaction.ModeOfPaymentFixedDays
+		nextPaymentDate = func(current time.Time, termNum int) time.Time {
+			return current.AddDate(0, 0, dayIncrement*termNum)
+		}
 	case "weekly":
-		dayIncrement = 7
+		nextPaymentDate = func(current time.Time, termNum int) time.Time {
+			return current.AddDate(0, 0, 7*termNum)
+		}
 	case "semi-monthly":
-		dayIncrement = 15
+		nextPaymentDate = func(current time.Time, termNum int) time.Time {
+			return current.AddDate(0, 0, 15*termNum)
+		}
 	case "monthly":
-		dayIncrement = 30
+		if loanTransaction.ModeOfPaymentMonthlyExactDay {
+			// Use exact monthly dates (e.g., Jan 15 -> Feb 15 -> Mar 15)
+			nextPaymentDate = func(current time.Time, termNum int) time.Time {
+				return current.AddDate(0, termNum, 0)
+			}
+		} else {
+			// Use 30-day intervals
+			nextPaymentDate = func(current time.Time, termNum int) time.Time {
+				return current.AddDate(0, 0, 30*termNum)
+			}
+		}
 	case "quarterly":
-		dayIncrement = 90
+		nextPaymentDate = func(current time.Time, termNum int) time.Time {
+			return current.AddDate(0, 3*termNum, 0)
+		}
 	case "semi-annual":
-		dayIncrement = 180
+		nextPaymentDate = func(current time.Time, termNum int) time.Time {
+			return current.AddDate(0, 6*termNum, 0)
+		}
 	default:
-		dayIncrement = 30 // Default to monthly
+		// Default to monthly with 30-day intervals
+		nextPaymentDate = func(current time.Time, termNum int) time.Time {
+			return current.AddDate(0, 0, 30*termNum)
+		}
 	}
 
 	totalInterestSum := 0.0
@@ -750,8 +838,8 @@ func (m *Model) GenerateLoanAmortizationSchedule(ctx context.Context, loanTransa
 	totalPaymentSum := 0.0
 
 	for i := 1; i <= terms; i++ {
-		// Calculate payment date
-		paymentDate := currentDate.AddDate(0, 0, dayIncrement*i)
+		// Calculate payment date using the appropriate function
+		paymentDate := nextPaymentDate(currentDate, i)
 
 		// Calculate interest for this period
 		var periodInterest float64
@@ -830,7 +918,7 @@ func (m *Model) GenerateLoanAmortizationSchedule(ctx context.Context, loanTransa
 		LoanDetails:          loanDetails,
 		AmortizationSchedule: schedule,
 		Summary:              summary,
-		GeneratedAt:          time.Now().Format(time.RFC3339),
+		GeneratedAt:          time.Now().UTC().Format(time.RFC3339),
 	}
 
 	return response, nil

@@ -113,7 +113,7 @@ func (m *Model) LoanPurpose() {
 }
 
 func (m *Model) LoanPurposeSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
-	now := time.Now()
+	now := time.Now().UTC()
 	loanPurposes := []*LoanPurpose{
 		{
 			CreatedAt:      now,

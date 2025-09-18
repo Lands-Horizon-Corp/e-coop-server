@@ -116,7 +116,7 @@ func (m *Model) Collateral() {
 }
 
 func (m *Model) CollateralSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
-	now := time.Now()
+	now := time.Now().UTC()
 	collaterals := []*Collateral{
 		{
 			CreatedAt:      now,

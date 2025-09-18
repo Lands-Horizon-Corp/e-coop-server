@@ -50,7 +50,7 @@ func (h *HorizonTokenService[T]) CleanToken(ctx context.Context, c echo.Context)
 		Name:     h.Name,
 		Value:    "",
 		Path:     "/",
-		Expires:  time.Now().Add(-1 * time.Hour),
+		Expires:  time.Now().UTC().Add(-1 * time.Hour),
 		HttpOnly: true,
 		Secure:   h.ssl,
 		SameSite: http.SameSiteNoneMode,
@@ -91,7 +91,7 @@ func (h *HorizonTokenService[T]) SetToken(ctx context.Context, c echo.Context, c
 		Name:     h.Name,
 		Value:    tok,
 		Path:     "/",
-		Expires:  time.Now().Add(expiry),
+		Expires:  time.Now().UTC().Add(expiry),
 		HttpOnly: true,
 		Secure:   h.ssl,
 		SameSite: http.SameSiteNoneMode,
@@ -102,7 +102,7 @@ func (h *HorizonTokenService[T]) SetToken(ctx context.Context, c echo.Context, c
 
 // GenerateToken implements TokenService.
 func (h *HorizonTokenService[T]) GenerateToken(ctx context.Context, claims T, expiry time.Duration) (string, error) {
-	now := time.Now()
+	now := time.Now().UTC()
 
 	// Check if the claims implement GetRegisteredClaims via pointer receiver
 	if rcGetter, ok := any(&claims).(interface{ GetRegisteredClaims() *jwt.RegisteredClaims }); ok {

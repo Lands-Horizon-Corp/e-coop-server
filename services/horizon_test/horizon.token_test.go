@@ -41,7 +41,7 @@ func TestGenerateAndVerifyToken(t *testing.T) {
 	claims := TestClaim{
 		Username: "testuser",
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(1 * time.Hour)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().UTC().Add(1 * time.Hour)),
 		},
 	}
 
@@ -65,7 +65,7 @@ func TestSetAndGetToken(t *testing.T) {
 	claims := TestClaim{
 		Username: "testuser",
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(1 * time.Hour)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().UTC().Add(1 * time.Hour)),
 		},
 	}
 
@@ -111,7 +111,7 @@ func TestCleanToken(t *testing.T) {
 	cleared := false
 	for _, cookie := range rec.Result().Cookies() {
 		if cookie.Name == svc.(*horizon.HorizonTokenService[TestClaim]).Name {
-			if cookie.Value == "" && cookie.Expires.Before(time.Now()) {
+			if cookie.Value == "" && cookie.Expires.Before(time.Now().UTC()) {
 				cleared = true
 			}
 		}

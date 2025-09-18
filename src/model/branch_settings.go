@@ -46,14 +46,15 @@ type (
 		DepositUseDateOR      bool   `gorm:"not null;default:false" json:"deposit_use_date_or"`
 
 		// Loan Settings
-		LoanAllowUserInput bool   `gorm:"not null;default:true" json:"loan_allow_user_input"`
-		LoanPrefix         string `gorm:"type:varchar(50);not null;default:'LN'" json:"loan_prefix"`
-		LoanORStart        int    `gorm:"not null;default:1" json:"loan_or_start"`
-		LoanORCurrent      int    `gorm:"not null;default:1" json:"loan_or_current"`
-		LoanOREnd          int    `gorm:"not null;default:999999" json:"loan_or_end"`
-		LoanORIteration    int    `gorm:"not null;default:1" json:"loan_or_iteration"`
-		LoanORUnique       bool   `gorm:"not null;default:true" json:"loan_or_unique"`
-		LoanUseDateOR      bool   `gorm:"not null;default:false" json:"loan_use_date_or"`
+		LoanAllowUserInput        bool   `gorm:"not null;default:true" json:"loan_allow_user_input"`
+		LoanPrefix                string `gorm:"type:varchar(50);not null;default:'LN'" json:"loan_prefix"`
+		LoanORStart               int    `gorm:"not null;default:1" json:"loan_or_start"`
+		LoanORCurrent             int    `gorm:"not null;default:1" json:"loan_or_current"`
+		LoanOREnd                 int    `gorm:"not null;default:999999" json:"loan_or_end"`
+		LoanORIteration           int    `gorm:"not null;default:1" json:"loan_or_iteration"`
+		LoanORUnique              bool   `gorm:"not null;default:true" json:"loan_or_unique"`
+		LoanUseDateOR             bool   `gorm:"not null;default:false" json:"loan_use_date_or"`
+		LoanAppliedEqualToBalance bool   `gorm:"not null;default:false" json:"loan_applied_equal_to_balance"`
 
 		// Check Voucher Settings
 		CheckVoucherAllowUserInput bool   `gorm:"not null;default:true" json:"check_voucher_allow_user_input"`
@@ -92,14 +93,15 @@ type (
 		DepositUseDateOR      bool   `json:"deposit_use_date_or"`
 
 		// Loan Settings
-		LoanAllowUserInput bool   `json:"loan_allow_user_input"`
-		LoanPrefix         string `json:"loan_prefix" validate:"omitempty"`
-		LoanORStart        int    `json:"loan_or_start" validate:"min=0"`
-		LoanORCurrent      int    `json:"loan_or_current" validate:"min=0"`
-		LoanOREnd          int    `json:"loan_or_end" validate:"min=0"`
-		LoanORIteration    int    `json:"loan_or_iteration" validate:"min=0"`
-		LoanORUnique       bool   `json:"loan_or_unique"`
-		LoanUseDateOR      bool   `json:"loan_use_date_or"`
+		LoanAllowUserInput        bool   `json:"loan_allow_user_input"`
+		LoanPrefix                string `json:"loan_prefix" validate:"omitempty"`
+		LoanORStart               int    `json:"loan_or_start" validate:"min=0"`
+		LoanORCurrent             int    `json:"loan_or_current" validate:"min=0"`
+		LoanOREnd                 int    `json:"loan_or_end" validate:"min=0"`
+		LoanORIteration           int    `json:"loan_or_iteration" validate:"min=0"`
+		LoanORUnique              bool   `json:"loan_or_unique"`
+		LoanUseDateOR             bool   `json:"loan_use_date_or"`
+		LoanAppliedEqualToBalance bool   `json:"loan_applied_equal_to_balance"`
 
 		// Check Voucher Settings
 		CheckVoucherAllowUserInput bool   `json:"check_voucher_allow_user_input"`
@@ -142,14 +144,15 @@ type (
 		DepositUseDateOR      bool   `json:"deposit_use_date_or"`
 
 		// Loan Settings
-		LoanAllowUserInput bool   `json:"loan_allow_user_input"`
-		LoanPrefix         string `json:"loan_prefix"`
-		LoanORStart        int    `json:"loan_or_start"`
-		LoanORCurrent      int    `json:"loan_or_current"`
-		LoanOREnd          int    `json:"loan_or_end"`
-		LoanORIteration    int    `json:"loan_or_iteration"`
-		LoanORUnique       bool   `json:"loan_or_unique"`
-		LoanUseDateOR      bool   `json:"loan_use_date_or"`
+		LoanAllowUserInput        bool   `json:"loan_allow_user_input"`
+		LoanPrefix                string `json:"loan_prefix"`
+		LoanORStart               int    `json:"loan_or_start"`
+		LoanORCurrent             int    `json:"loan_or_current"`
+		LoanOREnd                 int    `json:"loan_or_end"`
+		LoanORIteration           int    `json:"loan_or_iteration"`
+		LoanORUnique              bool   `json:"loan_or_unique"`
+		LoanUseDateOR             bool   `json:"loan_use_date_or"`
+		LoanAppliedEqualToBalance bool   `json:"loan_applied_equal_to_balance"`
 
 		// Check Voucher Settings
 		CheckVoucherAllowUserInput bool   `json:"check_voucher_allow_user_input"`
@@ -210,14 +213,15 @@ func (m *Model) BranchSetting() {
 				DepositORUnique:       data.DepositORUnique,
 				DepositUseDateOR:      data.DepositUseDateOR,
 
-				LoanAllowUserInput: data.LoanAllowUserInput,
-				LoanPrefix:         data.LoanPrefix,
-				LoanORStart:        data.LoanORStart,
-				LoanORCurrent:      data.LoanORCurrent,
-				LoanOREnd:          data.LoanOREnd,
-				LoanORIteration:    data.LoanORIteration,
-				LoanORUnique:       data.LoanORUnique,
-				LoanUseDateOR:      data.LoanUseDateOR,
+				LoanAllowUserInput:        data.LoanAllowUserInput,
+				LoanPrefix:                data.LoanPrefix,
+				LoanORStart:               data.LoanORStart,
+				LoanORCurrent:             data.LoanORCurrent,
+				LoanOREnd:                 data.LoanOREnd,
+				LoanORIteration:           data.LoanORIteration,
+				LoanORUnique:              data.LoanORUnique,
+				LoanUseDateOR:             data.LoanUseDateOR,
+				LoanAppliedEqualToBalance: data.LoanAppliedEqualToBalance,
 
 				CheckVoucherAllowUserInput: data.CheckVoucherAllowUserInput,
 				CheckVoucherPrefix:         data.CheckVoucherPrefix,

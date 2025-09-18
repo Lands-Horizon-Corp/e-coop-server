@@ -33,7 +33,7 @@ func (e *Event) HandleIPBlocker(context context.Context, ctx echo.Context) (bloc
 
 	// Return the blocking function
 	blockFn = func(reason string) {
-		now := time.Now()
+		now := time.Now().UTC()
 
 		// Get current count and timestamp
 		count := 0

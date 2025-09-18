@@ -124,7 +124,7 @@ func (m *Model) DisbursementCurrentBranch(context context.Context, orgId uuid.UU
 }
 
 func (m *Model) DisbursementSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
-	now := time.Now()
+	now := time.Now().UTC()
 	disbursements := []*Disbursement{
 		{
 			CreatedAt:      now,

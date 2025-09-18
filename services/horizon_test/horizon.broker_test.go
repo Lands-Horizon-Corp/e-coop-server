@@ -40,7 +40,7 @@ func TestHorizonMessageBroker(t *testing.T) {
 			}
 		}()
 
-		topic := fmt.Sprintf("test.topic.%d", time.Now().UnixNano())
+		topic := fmt.Sprintf("test.topic.%d", time.Now().UTC().UnixNano())
 		received := make(chan struct{})
 		errChan := make(chan error, 1)
 
@@ -86,8 +86,8 @@ func TestHorizonMessageBroker(t *testing.T) {
 			}
 		}()
 
-		topic1 := fmt.Sprintf("test.topic1.%d", time.Now().UnixNano())
-		topic2 := fmt.Sprintf("test.topic2.%d", time.Now().UnixNano())
+		topic1 := fmt.Sprintf("test.topic1.%d", time.Now().UTC().UnixNano())
+		topic2 := fmt.Sprintf("test.topic2.%d", time.Now().UTC().UnixNano())
 
 		var wg sync.WaitGroup
 		wg.Add(2)

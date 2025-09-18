@@ -352,7 +352,8 @@ func (ds *Seeder) SeedOrganization(ctx context.Context) error {
 					CheckVoucherUseDateOR:      false,
 
 					// Default Member Type - can be set later when MemberType is available
-					DefaultMemberTypeID: nil,
+					DefaultMemberTypeID:       nil,
+					LoanAppliedEqualToBalance: true,
 				}
 
 				if err := ds.model.BranchSettingManager.Create(ctx, branchSetting); err != nil {
