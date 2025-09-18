@@ -1476,4 +1476,87 @@ func (c *Controller) LoanTransactionController() {
 		return ctx.JSON(http.StatusOK, newLoanTransaction)
 	})
 
+	// Put /api/v1/loan-transaction/:loan_transaction_id/signature
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/loan-transaction/:loan_transaction_id/signature",
+		Method:       "PUT",
+		Note:         "Updates the signature of a loan transaction by ID.",
+		RequestType:  model.LoanTransactionSignatureRequest{},
+		ResponseType: model.LoanTransaction{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
+		}
+		var req model.LoanTransactionSignatureRequest
+		if err := ctx.Bind(&req); err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction signature request: " + err.Error()})
+		}
+		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to update loan transaction signatures"})
+		}
+		loanTransaction, err := c.model.LoanTransactionManager.GetByID(context, *loanTransactionID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction not found"})
+		}
+		if loanTransaction.OrganizationID != userOrg.OrganizationID || loanTransaction.BranchID != *userOrg.BranchID {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this loan transaction"})
+		}
+		loanTransaction.ApprovedBySignatureMediaID = req.ApprovedBySignatureMediaID
+		loanTransaction.ApprovedBySignatureMedia = req.ApprovedBySignatureMedia
+		loanTransaction.ApprovedByName = req.ApprovedByName
+		loanTransaction.ApprovedByPosition = req.ApprovedByPosition
+		loanTransaction.PreparedBySignatureMediaID = req.PreparedBySignatureMediaID
+		loanTransaction.PreparedBySignatureMedia = req.PreparedBySignatureMedia
+		loanTransaction.PreparedByName = req.PreparedByName
+		loanTransaction.PreparedByPosition = req.PreparedByPosition
+		loanTransaction.CertifiedBySignatureMediaID = req.CertifiedBySignatureMediaID
+		loanTransaction.CertifiedBySignatureMedia = req.CertifiedBySignatureMedia
+		loanTransaction.CertifiedByName = req.CertifiedByName
+		loanTransaction.CertifiedByPosition = req.CertifiedByPosition
+		loanTransaction.VerifiedBySignatureMediaID = req.VerifiedBySignatureMediaID
+		loanTransaction.VerifiedBySignatureMedia = req.VerifiedBySignatureMedia
+		loanTransaction.VerifiedByName = req.VerifiedByName
+		loanTransaction.VerifiedByPosition = req.VerifiedByPosition
+		loanTransaction.CheckBySignatureMediaID = req.CheckBySignatureMediaID
+		loanTransaction.CheckBySignatureMedia = req.CheckBySignatureMedia
+		loanTransaction.CheckByName = req.CheckByName
+		loanTransaction.CheckByPosition = req.CheckByPosition
+		loanTransaction.AcknowledgeBySignatureMediaID = req.AcknowledgeBySignatureMediaID
+		loanTransaction.AcknowledgeBySignatureMedia = req.AcknowledgeBySignatureMedia
+		loanTransaction.AcknowledgeByName = req.AcknowledgeByName
+		loanTransaction.AcknowledgeByPosition = req.AcknowledgeByPosition
+		loanTransaction.NotedBySignatureMediaID = req.NotedBySignatureMediaID
+		loanTransaction.NotedBySignatureMedia = req.NotedBySignatureMedia
+		loanTransaction.NotedByName = req.NotedByName
+		loanTransaction.NotedByPosition = req.NotedByPosition
+		loanTransaction.PostedBySignatureMediaID = req.PostedBySignatureMediaID
+		loanTransaction.PostedBySignatureMedia = req.PostedBySignatureMedia
+		loanTransaction.PostedByName = req.PostedByName
+		loanTransaction.PostedByPosition = req.PostedByPosition
+		loanTransaction.PaidBySignatureMediaID = req.PaidBySignatureMediaID
+		loanTransaction.PaidBySignatureMedia = req.PaidBySignatureMedia
+		loanTransaction.PaidByName = req.PaidByName
+		loanTransaction.PaidByPosition = req.PaidByPosition
+		loanTransaction.UpdatedAt = time.Now().UTC()
+		loanTransaction.UpdatedByID = userOrg.UserID
+
+		if err := c.model.LoanTransactionManager.UpdateFields(context, loanTransaction.ID, loanTransaction); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction: " + err.Error()})
+		}
+		newLoanTransaction, err := c.model.LoanTransactionManager.GetByIDRaw(context, loanTransaction.ID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated loan transaction: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, newLoanTransaction)
+	})
+
 }
