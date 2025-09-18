@@ -1383,4 +1383,97 @@ func (c *Controller) LoanTransactionController() {
 	})
 
 	// PUT /api/v1/loan-transaction/:id/approve-undo
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/loan-transaction/:loan_transaction_id/approve-undo",
+		Method:       "PUT",
+		Note:         "Reverts the approval status of a loan transaction by ID.",
+		ResponseType: model.LoanTransaction{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to undo approval on loan transactions"})
+		}
+		loanTransaction, err := c.model.LoanTransactionManager.GetByID(context, *loanTransactionID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction not found"})
+		}
+		if loanTransaction.OrganizationID != userOrg.OrganizationID || loanTransaction.BranchID != *userOrg.BranchID {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this loan transaction"})
+		}
+		if loanTransaction.ReleasedDate != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cannot undo approval on a released loan transaction"})
+		}
+		if loanTransaction.ApprovedDate == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Loan transaction is not approved"})
+		}
+		loanTransaction.ApprovedDate = nil
+		loanTransaction.UpdatedAt = time.Now().UTC()
+		loanTransaction.UpdatedByID = userOrg.UserID
+		if err := c.model.LoanTransactionManager.UpdateFields(context, loanTransaction.ID, loanTransaction); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction: " + err.Error()})
+		}
+		newLoanTransaction, err := c.model.LoanTransactionManager.GetByIDRaw(context, loanTransaction.ID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated loan transaction: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, newLoanTransaction)
+	})
+
+	// PUT - api/v1/loan-transaction/:id/release
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/loan-transaction/:loan_transaction_id/release",
+		Method:       "PUT",
+		Note:         "Releases a loan transaction by ID. RELEASED SHOULD NOT BE UNAPPROVE",
+		ResponseType: model.LoanTransaction{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to release loan transactions"})
+		}
+		loanTransaction, err := c.model.LoanTransactionManager.GetByID(context, *loanTransactionID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction not found"})
+		}
+		if loanTransaction.OrganizationID != userOrg.OrganizationID || loanTransaction.BranchID != *userOrg.BranchID {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this loan transaction"})
+		}
+		if loanTransaction.PrintedDate == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Loan transaction must be printed before release"})
+		}
+		if loanTransaction.ApprovedDate == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Loan transaction must be approved before release"})
+		}
+		if loanTransaction.ReleasedDate != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Loan transaction is already released"})
+		}
+		now := time.Now().UTC()
+		loanTransaction.ReleasedDate = &now
+		loanTransaction.UpdatedAt = now
+		loanTransaction.UpdatedByID = userOrg.UserID
+		if err := c.model.LoanTransactionManager.UpdateFields(context, loanTransaction.ID, loanTransaction); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction: " + err.Error()})
+		}
+		newLoanTransaction, err := c.model.LoanTransactionManager.GetByIDRaw(context, loanTransaction.ID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated loan transaction: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, newLoanTransaction)
+	})
+
 }
