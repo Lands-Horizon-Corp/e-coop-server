@@ -43,7 +43,13 @@ func NewHorizonAPIService(
 	logger, _ := zap.NewProduction()
 	defer func() {
 		if err := logger.Sync(); err != nil {
-			fmt.Printf("logger.Sync() error: %v\n", err)
+			// Ignore sync errors for stderr/stdout as they're not critical
+			// This is a known issue with zap logger in certain environments
+			if !strings.Contains(err.Error(), "sync /dev/stderr") &&
+				!strings.Contains(err.Error(), "sync /dev/stdout") &&
+				!strings.Contains(err.Error(), "invalid argument") {
+				fmt.Printf("logger.Sync() error: %v\n", err)
+			}
 		}
 	}()
 
