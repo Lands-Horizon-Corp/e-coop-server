@@ -385,3 +385,7 @@ func PrintASCIIArt() {
 		fmt.Println(b.String())
 	}
 }
+
+func Ptr[T any](v T) *T {
+	return &v
+}

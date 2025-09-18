@@ -1197,7 +1197,7 @@ func (c *Controller) LoanTransactionController() {
 		return ctx.JSON(http.StatusOK, map[string]string{"message": "Loan transaction and all related records deleted successfully"})
 	})
 
-	// PUT /api/v1/loan-transaction/:id/print
+	// PUT /api/v1/loan-transaction/:loan_transaction_id/print
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id/print",
 		Method:       "PUT",
@@ -1236,6 +1236,7 @@ func (c *Controller) LoanTransactionController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request payload: " + err.Error()})
 		}
 		loanTransaction.PrintNumber = loanTransaction.PrintNumber + 1
+		loanTransaction.PrintedDate = handlers.Ptr(time.Now().UTC())
 		loanTransaction.Voucher = req.Voucher
 		loanTransaction.CheckNumber = req.CheckNumber
 		loanTransaction.CheckDate = req.CheckDate
@@ -1276,9 +1277,53 @@ func (c *Controller) LoanTransactionController() {
 		if loanTransaction.OrganizationID != userOrg.OrganizationID || loanTransaction.BranchID != *userOrg.BranchID {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this loan transaction"})
 		}
+		if loanTransaction.ApprovedDate != nil || loanTransaction.ReleasedDate != nil {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot undo print on an approved or released loan transaction"})
+		}
+		loanTransaction.PrintedDate = nil
 		loanTransaction.Voucher = ""
 		loanTransaction.CheckNumber = ""
 		loanTransaction.CheckDate = nil
+		loanTransaction.UpdatedAt = time.Now().UTC()
+		loanTransaction.UpdatedByID = userOrg.UserID
+
+		if err := c.model.LoanTransactionManager.UpdateFields(context, loanTransaction.ID, loanTransaction); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction: " + err.Error()})
+		}
+		newLoanTransaction, err := c.model.LoanTransactionManager.GetByIDRaw(context, loanTransaction.ID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated loan transaction: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, newLoanTransaction)
+	})
+
+	// PUT /api/v1/loan-transaction/:id/print-only
+	req.RegisterRoute(handlers.Route{
+		Route:  "/api/v1/loan-transaction/:loan_transaction_id/print-only",
+		Method: "PUT",
+		Note:   "Marks a loan transaction as printed without additional details by ID.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to mark loan transactions as printed"})
+		}
+		loanTransaction, err := c.model.LoanTransactionManager.GetByID(context, *loanTransactionID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction not found"})
+		}
+		if loanTransaction.OrganizationID != userOrg.OrganizationID || loanTransaction.BranchID != *userOrg.BranchID {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this loan transaction"})
+		}
+		loanTransaction.PrintNumber = loanTransaction.PrintNumber + 1
+		loanTransaction.PrintedDate = handlers.Ptr(time.Now().UTC())
 		loanTransaction.UpdatedAt = time.Now().UTC()
 		loanTransaction.UpdatedByID = userOrg.UserID
 		if err := c.model.LoanTransactionManager.UpdateFields(context, loanTransaction.ID, loanTransaction); err != nil {
