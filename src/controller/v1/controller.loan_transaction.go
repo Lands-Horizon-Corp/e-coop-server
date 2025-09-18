@@ -262,15 +262,13 @@ func (c *Controller) LoanTransactionController() {
 			LoanPurposeID:                          request.LoanPurposeID,
 			LoanStatusID:                           request.LoanStatusID,
 			ModeOfPayment:                          request.ModeOfPayment,
-			ModeOfPaymentWeekly:                    string(request.ModeOfPaymentWeekly),
+			ModeOfPaymentWeekly:                    request.ModeOfPaymentWeekly,
 			ModeOfPaymentSemiMonthlyPay1:           request.ModeOfPaymentSemiMonthlyPay1,
 			ModeOfPaymentSemiMonthlyPay2:           request.ModeOfPaymentSemiMonthlyPay2,
 			ComakerType:                            request.ComakerType,
 			ComakerDepositMemberAccountingLedgerID: request.ComakerDepositMemberAccountingLedgerID,
-			ComakerCollateralID:                    request.ComakerCollateralID,
-			ComakerCollateralDescription:           request.ComakerCollateralDescription,
-			CollectorPlace:                         string(request.CollectorPlace),
-			LoanType:                               string(request.LoanType),
+			CollectorPlace:                         request.CollectorPlace,
+			LoanType:                               request.LoanType,
 			PreviousLoanID:                         request.PreviousLoanID,
 			Terms:                                  request.Terms,
 			AmortizationAmount:                     request.AmortizationAmount,
@@ -505,6 +503,31 @@ func (c *Controller) LoanTransactionController() {
 				}
 			}
 		}
+
+		// Handle ComakerCollaterals
+		if request.ComakerCollaterals != nil {
+			for _, comakerReq := range request.ComakerCollaterals {
+				comakerCollateral := &model.ComakerCollateral{
+					CreatedAt:         time.Now().UTC(),
+					UpdatedAt:         time.Now().UTC(),
+					CreatedByID:       userOrg.UserID,
+					UpdatedByID:       userOrg.UserID,
+					OrganizationID:    userOrg.OrganizationID,
+					BranchID:          *userOrg.BranchID,
+					LoanTransactionID: loanTransaction.ID,
+					CollateralID:      comakerReq.CollateralID,
+					Amount:            comakerReq.Amount,
+					Description:       comakerReq.Description,
+					MonthsCount:       comakerReq.MonthsCount,
+					YearCount:         comakerReq.YearCount,
+				}
+
+				if err := c.model.ComakerCollateralManager.CreateWithTx(context, tx, comakerCollateral); err != nil {
+					tx.Rollback()
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create comaker collateral: " + err.Error()})
+				}
+			}
+		}
 		if err := tx.Commit().Error; err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "commit-error",
@@ -587,15 +610,13 @@ func (c *Controller) LoanTransactionController() {
 		loanTransaction.LoanPurposeID = request.LoanPurposeID
 		loanTransaction.LoanStatusID = request.LoanStatusID
 		loanTransaction.ModeOfPayment = request.ModeOfPayment
-		loanTransaction.ModeOfPaymentWeekly = string(request.ModeOfPaymentWeekly)
+		loanTransaction.ModeOfPaymentWeekly = request.ModeOfPaymentWeekly
 		loanTransaction.ModeOfPaymentSemiMonthlyPay1 = request.ModeOfPaymentSemiMonthlyPay1
 		loanTransaction.ModeOfPaymentSemiMonthlyPay2 = request.ModeOfPaymentSemiMonthlyPay2
 		loanTransaction.ComakerType = request.ComakerType
 		loanTransaction.ComakerDepositMemberAccountingLedgerID = request.ComakerDepositMemberAccountingLedgerID
-		loanTransaction.ComakerCollateralID = request.ComakerCollateralID
-		loanTransaction.ComakerCollateralDescription = request.ComakerCollateralDescription
-		loanTransaction.CollectorPlace = string(request.CollectorPlace)
-		loanTransaction.LoanType = string(request.LoanType)
+		loanTransaction.CollectorPlace = request.CollectorPlace
+		loanTransaction.LoanType = request.LoanType
 		loanTransaction.PreviousLoanID = request.PreviousLoanID
 		loanTransaction.Terms = request.Terms
 		loanTransaction.AmortizationAmount = request.AmortizationAmount
@@ -763,6 +784,26 @@ func (c *Controller) LoanTransactionController() {
 				if err := c.model.ComakerMemberProfileManager.DeleteWithTx(context, tx, comakerMemberProfile); err != nil {
 					tx.Rollback()
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete comaker member profile: " + err.Error()})
+				}
+			}
+		}
+
+		// Handle ComakerCollaterals deletions
+		if request.ComakerCollateralsDeleted != nil {
+			for _, deletedID := range request.ComakerCollateralsDeleted {
+				comakerCollateral, err := c.model.ComakerCollateralManager.GetByID(context, deletedID)
+				if err != nil {
+					tx.Rollback()
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find comaker collateral for deletion: " + err.Error()})
+				}
+				if comakerCollateral.LoanTransactionID != loanTransaction.ID {
+					tx.Rollback()
+					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete comaker collateral that doesn't belong to this loan transaction"})
+				}
+				comakerCollateral.DeletedByID = &userOrg.UserID
+				if err := c.model.ComakerCollateralManager.DeleteWithTx(context, tx, comakerCollateral); err != nil {
+					tx.Rollback()
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete comaker collateral: " + err.Error()})
 				}
 			}
 		}
@@ -1095,6 +1136,59 @@ func (c *Controller) LoanTransactionController() {
 					if err := c.model.ComakerMemberProfileManager.CreateWithTx(context, tx, comakerMemberProfile); err != nil {
 						tx.Rollback()
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create comaker member profile: " + err.Error()})
+					}
+				}
+			}
+		}
+
+		// Create/Update ComakerCollateral records
+		if request.ComakerCollaterals != nil {
+			for _, comakerReq := range request.ComakerCollaterals {
+				if comakerReq.ID != nil {
+					// Update existing record
+					existingRecord, err := c.model.ComakerCollateralManager.GetByID(context, *comakerReq.ID)
+					if err != nil {
+						tx.Rollback()
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find existing comaker collateral: " + err.Error()})
+					}
+					// Verify ownership
+					if existingRecord.LoanTransactionID != loanTransaction.ID {
+						tx.Rollback()
+						return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot update comaker collateral that doesn't belong to this loan transaction"})
+					}
+					// Update fields
+					existingRecord.UpdatedAt = time.Now().UTC()
+					existingRecord.UpdatedByID = userOrg.UserID
+					existingRecord.CollateralID = comakerReq.CollateralID
+					existingRecord.Amount = comakerReq.Amount
+					existingRecord.Description = comakerReq.Description
+					existingRecord.MonthsCount = comakerReq.MonthsCount
+					existingRecord.YearCount = comakerReq.YearCount
+
+					if err := c.model.ComakerCollateralManager.UpdateFieldsWithTx(context, tx, existingRecord.ID, existingRecord); err != nil {
+						tx.Rollback()
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update comaker collateral: " + err.Error()})
+					}
+				} else {
+					// Create new record
+					comakerCollateral := &model.ComakerCollateral{
+						CreatedAt:         time.Now().UTC(),
+						UpdatedAt:         time.Now().UTC(),
+						CreatedByID:       userOrg.UserID,
+						UpdatedByID:       userOrg.UserID,
+						OrganizationID:    userOrg.OrganizationID,
+						BranchID:          *userOrg.BranchID,
+						LoanTransactionID: loanTransaction.ID,
+						CollateralID:      comakerReq.CollateralID,
+						Amount:            comakerReq.Amount,
+						Description:       comakerReq.Description,
+						MonthsCount:       comakerReq.MonthsCount,
+						YearCount:         comakerReq.YearCount,
+					}
+
+					if err := c.model.ComakerCollateralManager.CreateWithTx(context, tx, comakerCollateral); err != nil {
+						tx.Rollback()
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create comaker collateral: " + err.Error()})
 					}
 				}
 			}

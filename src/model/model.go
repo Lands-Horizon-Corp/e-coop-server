@@ -159,6 +159,7 @@ type (
 		LoanClearanceAnalysisInstitutionManager      horizon_services.Repository[LoanClearanceAnalysisInstitution, LoanClearanceAnalysisInstitutionResponse, LoanClearanceAnalysisInstitutionRequest]
 		LoanComakerMemberManager                     horizon_services.Repository[LoanComakerMember, LoanComakerMemberResponse, LoanComakerMemberRequest]
 		ComakerMemberProfileManager                  horizon_services.Repository[ComakerMemberProfile, ComakerMemberProfileResponse, ComakerMemberProfileRequest]
+		ComakerCollateralManager                     horizon_services.Repository[ComakerCollateral, ComakerCollateralResponse, ComakerCollateralRequest]
 		LoanTransactionEntryManager                  horizon_services.Repository[LoanTransactionEntry, LoanTransactionEntryResponse, LoanTransactionEntryRequest]
 		LoanTagManager                               horizon_services.Repository[LoanTag, LoanTagResponse, LoanTagRequest]
 		LoanTermsAndConditionSuggestedPaymentManager horizon_services.Repository[LoanTermsAndConditionSuggestedPayment, LoanTermsAndConditionSuggestedPaymentResponse, LoanTermsAndConditionSuggestedPaymentRequest]
@@ -284,6 +285,7 @@ func (c *Model) Start(context context.Context) error {
 	c.LoanClearanceAnalysisInstitution()
 	c.LoanComakerMember()
 	c.ComakerMemberProfile()
+	c.ComakerCollateral()
 	c.LoanGuaranteedFund()
 	c.LoanGuaranteedFundPerMonth()
 	c.LoanLedger()
