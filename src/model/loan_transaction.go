@@ -100,6 +100,7 @@ type (
 		ModeOfPaymentSemiMonthlyPay1 int               `gorm:"type:int"`
 		ModeOfPaymentSemiMonthlyPay2 int               `gorm:"type:int"`
 		ModeOfPaymentFixedDays       int               `gorm:"type:int;default:0" json:"mode_of_payment_fixed_days"`
+		ModeOfPaymentMonthlyExactDay bool              `gorm:"type:boolean;default:false" json:"mode_of_payment_monthly_exact_day"`
 
 		ComakerType                            string                  `gorm:"type:varchar(255)"`
 		ComakerDepositMemberAccountingLedgerID *uuid.UUID              `gorm:"type:uuid"`
@@ -244,6 +245,7 @@ type (
 		ModeOfPaymentSemiMonthlyPay1 int               `json:"mode_of_payment_semi_monthly_pay_1"`
 		ModeOfPaymentSemiMonthlyPay2 int               `json:"mode_of_payment_semi_monthly_pay_2"`
 		ModeOfPaymentFixedDays       int               `json:"mode_of_payment_fixed_days"`
+		ModeOfPaymentMonthlyExactDay bool              `json:"mode_of_payment_monthly_exact_day"`
 
 		ComakerType                            LoanComakerType                 `json:"comaker_type"`
 		ComakerDepositMemberAccountingLedgerID *uuid.UUID                      `json:"comaker_deposit_member_accounting_ledger_id,omitempty"`
@@ -365,6 +367,7 @@ type (
 		ModeOfPaymentSemiMonthlyPay1 int               `json:"mode_of_payment_semi_monthly_pay_1,omitempty"`
 		ModeOfPaymentSemiMonthlyPay2 int               `json:"mode_of_payment_semi_monthly_pay_2,omitempty"`
 		ModeOfPaymentFixedDays       int               `json:"mode_of_payment_fixed_days,omitempty"`
+		ModeOfPaymentMonthlyExactDay bool              `json:"mode_of_payment_monthly_exact_day,omitempty"`
 
 		ComakerType                            LoanComakerType `json:"comaker_type"`
 		ComakerDepositMemberAccountingLedgerID *uuid.UUID      `json:"comaker_deposit_member_accounting_ledger_id,omitempty"`
@@ -606,6 +609,7 @@ func (m *Model) LoanTransaction() {
 				ModeOfPaymentSemiMonthlyPay1:           data.ModeOfPaymentSemiMonthlyPay1,
 				ModeOfPaymentSemiMonthlyPay2:           data.ModeOfPaymentSemiMonthlyPay2,
 				ModeOfPaymentFixedDays:                 data.ModeOfPaymentFixedDays,
+				ModeOfPaymentMonthlyExactDay:           data.ModeOfPaymentMonthlyExactDay,
 				ComakerType:                            LoanComakerType(data.ComakerType),
 				ComakerDepositMemberAccountingLedgerID: data.ComakerDepositMemberAccountingLedgerID,
 				ComakerDepositMemberAccountingLedger:   m.MemberAccountingLedgerManager.ToModel(data.ComakerDepositMemberAccountingLedger),
@@ -788,24 +792,51 @@ func (m *Model) GenerateLoanAmortizationSchedule(ctx context.Context, loanTransa
 	currentDate := time.Now().UTC()
 
 	// Determine payment frequency based on mode of payment
-	var dayIncrement int
+	var nextPaymentDate func(time.Time, int) time.Time
+
 	switch loanTransaction.ModeOfPayment {
 	case "daily":
-		dayIncrement = 1
+		nextPaymentDate = func(current time.Time, termNum int) time.Time {
+			return current.AddDate(0, 0, termNum)
+		}
 	case "fixed-days":
-		dayIncrement = loanTransaction.ModeOfPaymentFixedDays
+		dayIncrement := loanTransaction.ModeOfPaymentFixedDays
+		nextPaymentDate = func(current time.Time, termNum int) time.Time {
+			return current.AddDate(0, 0, dayIncrement*termNum)
+		}
 	case "weekly":
-		dayIncrement = 7
+		nextPaymentDate = func(current time.Time, termNum int) time.Time {
+			return current.AddDate(0, 0, 7*termNum)
+		}
 	case "semi-monthly":
-		dayIncrement = 15
+		nextPaymentDate = func(current time.Time, termNum int) time.Time {
+			return current.AddDate(0, 0, 15*termNum)
+		}
 	case "monthly":
-		dayIncrement = 30
+		if loanTransaction.ModeOfPaymentMonthlyExactDay {
+			// Use exact monthly dates (e.g., Jan 15 -> Feb 15 -> Mar 15)
+			nextPaymentDate = func(current time.Time, termNum int) time.Time {
+				return current.AddDate(0, termNum, 0)
+			}
+		} else {
+			// Use 30-day intervals
+			nextPaymentDate = func(current time.Time, termNum int) time.Time {
+				return current.AddDate(0, 0, 30*termNum)
+			}
+		}
 	case "quarterly":
-		dayIncrement = 90
+		nextPaymentDate = func(current time.Time, termNum int) time.Time {
+			return current.AddDate(0, 3*termNum, 0)
+		}
 	case "semi-annual":
-		dayIncrement = 180
+		nextPaymentDate = func(current time.Time, termNum int) time.Time {
+			return current.AddDate(0, 6*termNum, 0)
+		}
 	default:
-		dayIncrement = 30 // Default to monthly
+		// Default to monthly with 30-day intervals
+		nextPaymentDate = func(current time.Time, termNum int) time.Time {
+			return current.AddDate(0, 0, 30*termNum)
+		}
 	}
 
 	totalInterestSum := 0.0
@@ -813,8 +844,8 @@ func (m *Model) GenerateLoanAmortizationSchedule(ctx context.Context, loanTransa
 	totalPaymentSum := 0.0
 
 	for i := 1; i <= terms; i++ {
-		// Calculate payment date
-		paymentDate := currentDate.AddDate(0, 0, dayIncrement*i)
+		// Calculate payment date using the appropriate function
+		paymentDate := nextPaymentDate(currentDate, i)
 
 		// Calculate interest for this period
 		var periodInterest float64
