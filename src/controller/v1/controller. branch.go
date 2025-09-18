@@ -243,7 +243,8 @@ func (c *Controller) BranchController() {
 			CheckVoucherUseDateOR:      false,
 
 			// Default Member Type - can be set later
-			DefaultMemberTypeID: nil,
+			DefaultMemberTypeID:       nil,
+			LoanAppliedEqualToBalance: true,
 		}
 
 		if err := c.model.BranchSettingManager.CreateWithTx(context, tx, branchSetting); err != nil {
@@ -755,6 +756,7 @@ func (c *Controller) BranchController() {
 
 			// Default Member Type
 			branchSetting.DefaultMemberTypeID = settingsReq.DefaultMemberTypeID
+			branchSetting.LoanAppliedEqualToBalance = settingsReq.LoanAppliedEqualToBalance
 
 			if err := c.model.BranchSettingManager.UpdateFieldsWithTx(context, tx, branchSetting.ID, branchSetting); err != nil {
 				tx.Rollback()
