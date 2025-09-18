@@ -37,6 +37,12 @@ type (
 		PostedByID    *uuid.UUID `gorm:"type:uuid"`
 		PostedBy      *User      `gorm:"foreignKey:PostedByID;constraint:OnDelete:SET NULL;" json:"posted_by,omitempty"`
 
+		// Print and approval fields
+		PrintedDate  *time.Time `gorm:"type:timestamp"`
+		PrintNumber  int        `gorm:"type:int;default:0"`
+		ApprovedDate *time.Time `gorm:"type:timestamp"`
+		ReleasedDate *time.Time `gorm:"type:timestamp"`
+
 		JournalVoucherTags []*JournalVoucherTag `gorm:"foreignKey:JournalVoucherID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"journal_voucher_tags,omitempty"`
 
 		// Relationships
@@ -68,6 +74,12 @@ type (
 		PostedByID     *uuid.UUID            `json:"posted_by_id,omitempty"`
 		PostedBy       *UserResponse         `json:"posted_by,omitempty"`
 
+		// Print and approval fields
+		PrintedDate  *string `json:"printed_date,omitempty"`
+		PrintNumber  int     `json:"print_number"`
+		ApprovedDate *string `json:"approved_date,omitempty"`
+		ReleasedDate *string `json:"released_date,omitempty"`
+
 		JournalVoucherTags []*JournalVoucherTagResponse `json:"journal_voucher_tags,omitempty"`
 
 		// Relationships
@@ -88,6 +100,10 @@ type (
 		// Nested relationships for creation/update
 		JournalVoucherEntries        []*JournalVoucherEntryRequest `json:"journal_voucher_entries,omitempty"`
 		JournalVoucherEntriesDeleted []uuid.UUID                   `json:"journal_voucher_entries_deleted,omitempty"`
+	}
+
+	JournalVoucherPrintRequest struct {
+		VoucherNumber string `json:"voucher_number" validate:"required"`
 	}
 )
 
@@ -121,6 +137,20 @@ func (m *Model) JournalVoucher() {
 				postedAt = &postedAtStr
 			}
 
+			var printedDate, approvedDate, releasedDate *string
+			if data.PrintedDate != nil {
+				str := data.PrintedDate.Format(time.RFC3339)
+				printedDate = &str
+			}
+			if data.ApprovedDate != nil {
+				str := data.ApprovedDate.Format(time.RFC3339)
+				approvedDate = &str
+			}
+			if data.ReleasedDate != nil {
+				str := data.ReleasedDate.Format(time.RFC3339)
+				releasedDate = &str
+			}
+
 			return &JournalVoucherResponse{
 				ID:                    data.ID,
 				CreatedAt:             data.CreatedAt.Format(time.RFC3339),
@@ -141,6 +171,10 @@ func (m *Model) JournalVoucher() {
 				PostedAt:              postedAt,
 				PostedByID:            data.PostedByID,
 				PostedBy:              m.UserManager.ToModel(data.PostedBy),
+				PrintedDate:           printedDate,
+				PrintNumber:           data.PrintNumber,
+				ApprovedDate:          approvedDate,
+				ReleasedDate:          releasedDate,
 				JournalVoucherTags:    m.JournalVoucherTagManager.ToModels(data.JournalVoucherTags),
 				JournalVoucherEntries: m.mapJournalVoucherEntries(data.JournalVoucherEntries),
 				TotalDebit:            totalDebit,

@@ -99,6 +99,11 @@ type (
 		Debit             float64    `json:"debit,omitempty"`
 		Credit            float64    `json:"credit,omitempty"`
 	}
+
+	AdjustmentEntryTotalResponse struct {
+		TotalDebit  float64 `json:"total_debit"`
+		TotalCredit float64 `json:"total_credit"`
+	}
 )
 
 func (m *Model) AdjustmentEntry() {

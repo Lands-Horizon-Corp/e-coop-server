@@ -107,7 +107,8 @@ type (
 		PaidByName             string     `gorm:"type:varchar(255)"`
 		PaidByPosition         string     `gorm:"type:varchar(255)"`
 
-		CashCheckVoucherTags []*CashCheckVoucherTag `gorm:"foreignKey:CashCheckVoucherID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"cash_check_voucher_tags,omitempty"`
+		CashCheckVoucherTags    []*CashCheckVoucherTag   `gorm:"foreignKey:CashCheckVoucherID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"cash_check_voucher_tags,omitempty"`
+		CashCheckVoucherEntries []*CashCheckVoucherEntry `gorm:"foreignKey:CashCheckVoucherID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"cash_check_voucher_entries,omitempty"`
 
 		// Check Entry Fields
 		CheckEntryAmount      float64 `gorm:"type:decimal;default:0"`
@@ -198,7 +199,8 @@ type (
 		PaidByName             string         `json:"paid_by_name"`
 		PaidByPosition         string         `json:"paid_by_position"`
 
-		CashCheckVoucherTags []*CashCheckVoucherTagResponse `json:"cash_check_voucher_tags,omitempty"`
+		CashCheckVoucherTags    []*CashCheckVoucherTagResponse   `json:"cash_check_voucher_tags,omitempty"`
+		CashCheckVoucherEntries []*CashCheckVoucherEntryResponse `json:"cash_check_voucher_entries,omitempty"`
 
 		// Check Entry Fields
 		CheckEntryAmount      float64          `json:"check_entry_amount"`
@@ -218,12 +220,11 @@ type (
 		Status             CashCheckVoucherStatus `json:"status,omitempty"`
 		Description        string                 `json:"description,omitempty"`
 		CashVoucherNumber  string                 `json:"cash_voucher_number,omitempty"`
-		TotalDebit         float64                `json:"total_debit,omitempty"`
-		TotalCredit        float64                `json:"total_credit,omitempty"`
-		PrintCount         int                    `json:"print_count,omitempty"`
-		PrintedDate        *time.Time             `json:"printed_date,omitempty"`
-		ApprovedDate       *time.Time             `json:"approved_date,omitempty"`
-		ReleasedDate       *time.Time             `json:"released_date,omitempty"`
+
+		PrintCount   int        `json:"print_count,omitempty"`
+		PrintedDate  *time.Time `json:"printed_date,omitempty"`
+		ApprovedDate *time.Time `json:"approved_date,omitempty"`
+		ReleasedDate *time.Time `json:"released_date,omitempty"`
 
 		ApprovedBySignatureMediaID *uuid.UUID `json:"approved_by_signature_media_id,omitempty"`
 		ApprovedByName             string     `json:"approved_by_name,omitempty"`
@@ -266,6 +267,13 @@ type (
 		CheckEntryCheckNumber string     `json:"check_entry_check_number,omitempty"`
 		CheckEntryCheckDate   *time.Time `json:"check_entry_check_date,omitempty"`
 		CheckEntryAccountID   *uuid.UUID `json:"check_entry_account_id,omitempty"`
+
+		CashCheckVoucherEntries        []*CashCheckVoucherEntryRequest `json:"cash_check_voucher_entries,omitempty"`
+		CashCheckVoucherEntriesDeleted []uuid.UUID                     `json:"cash_check_voucher_entries_deleted,omitempty"`
+	}
+
+	CashCheckVoucherPrintRequest struct {
+		VoucherNumber string `json:"voucher_number" validate:"required"`
 	}
 )
 
@@ -277,7 +285,7 @@ func (m *Model) CashCheckVoucher() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Branch", "Organization",
 			"EmployeeUser", "TransactionBatch", "PrintedByUser", "ApprovedByUser", "ReleasedByUser",
-			"CashCheckVoucherTags", "CheckEntryAccount",
+			"CashCheckVoucherTags", "CashCheckVoucherEntries", "CheckEntryAccount",
 			"ApprovedBySignatureMedia", "PreparedBySignatureMedia", "CertifiedBySignatureMedia",
 			"VerifiedBySignatureMedia", "CheckBySignatureMedia", "AcknowledgeBySignatureMedia",
 			"NotedBySignatureMedia", "PostedBySignatureMedia", "PaidBySignatureMedia",
@@ -381,7 +389,8 @@ func (m *Model) CashCheckVoucher() {
 				PaidByName:             data.PaidByName,
 				PaidByPosition:         data.PaidByPosition,
 
-				CashCheckVoucherTags: m.CashCheckVoucherTagManager.ToModels(data.CashCheckVoucherTags),
+				CashCheckVoucherTags:    m.CashCheckVoucherTagManager.ToModels(data.CashCheckVoucherTags),
+				CashCheckVoucherEntries: m.CashCheckVoucherEntryManager.ToModels(data.CashCheckVoucherEntries),
 
 				// Check Entry Fields
 				CheckEntryAmount:      data.CheckEntryAmount,
