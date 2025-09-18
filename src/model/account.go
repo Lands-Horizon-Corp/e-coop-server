@@ -229,8 +229,9 @@ type (
 		ShowInGeneralLedgerSourceJournalVoucher bool `gorm:"default:true" json:"show_in_general_ledger_source_journal_voucher"`
 		ShowInGeneralLedgerSourceCheckVoucher   bool `gorm:"default:true" json:"show_in_general_ledger_source_check_voucher"`
 
-		CompassionFund       bool    `gorm:"default:false" json:"compassion_fund"`
-		CompassionFundAmount float64 `gorm:"type:decimal;default:0" json:"compassion_fund_amount"`
+		CompassionFund         bool    `gorm:"default:false" json:"compassion_fund"`
+		CompassionFundAmount   float64 `gorm:"type:decimal;default:0" json:"compassion_fund_amount"`
+		CashAndCashEquivalence bool    `gorm:"default:false" json:"cash_and_cash_equivalence"`
 	}
 )
 
@@ -335,8 +336,9 @@ type AccountResponse struct {
 	ShowInGeneralLedgerSourceJournalVoucher bool   `json:"show_in_general_ledger_source_journal_voucher"`
 	ShowInGeneralLedgerSourceCheckVoucher   bool   `json:"show_in_general_ledger_source_check_voucher"`
 
-	CompassionFund       bool    `json:"compassion_fund"`
-	CompassionFundAmount float64 `json:"compassion_fund_amount"`
+	CompassionFund         bool    `json:"compassion_fund"`
+	CompassionFundAmount   float64 `json:"compassion_fund_amount"`
+	CashAndCashEquivalence bool    `json:"cash_and_cash_equivalence"`
 }
 
 type AccountRequest struct {
@@ -421,8 +423,9 @@ type AccountRequest struct {
 	ShowInGeneralLedgerSourceJournalVoucher bool   `json:"show_in_general_ledger_source_journal_voucher"`
 	ShowInGeneralLedgerSourceCheckVoucher   bool   `json:"show_in_general_ledger_source_check_voucher"`
 
-	CompassionFund       bool    `json:"compassion_fund,omitempty"`
-	CompassionFundAmount float64 `json:"compassion_fund_amount,omitempty"`
+	CompassionFund         bool    `json:"compassion_fund,omitempty"`
+	CompassionFundAmount   float64 `json:"compassion_fund_amount,omitempty"`
+	CashAndCashEquivalence bool    `json:"cash_and_cash_equivalence,omitempty"`
 }
 
 // --- REGISTRATION ---
@@ -530,8 +533,9 @@ func (m *Model) Account() {
 				ShowInGeneralLedgerSourceJournalVoucher: data.ShowInGeneralLedgerSourceJournalVoucher,
 				ShowInGeneralLedgerSourceCheckVoucher:   data.ShowInGeneralLedgerSourceCheckVoucher,
 
-				CompassionFund:       data.CompassionFund,
-				CompassionFundAmount: data.CompassionFundAmount,
+				CompassionFund:         data.CompassionFund,
+				CompassionFundAmount:   data.CompassionFundAmount,
+				CashAndCashEquivalence: data.CashAndCashEquivalence,
 			}
 		},
 		Created: func(data *Account) []string {

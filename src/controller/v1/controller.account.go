@@ -471,6 +471,7 @@ func (c *Controller) AccountController() {
 			ShowInGeneralLedgerSourceCheckVoucher:              req.ShowInGeneralLedgerSourceCheckVoucher,
 			CompassionFund:                                     req.CompassionFund,
 			CompassionFundAmount:                               req.CompassionFundAmount,
+			CashAndCashEquivalence:                             req.CashAndCashEquivalence,
 
 			Icon: req.Icon,
 		}
@@ -665,6 +666,7 @@ func (c *Controller) AccountController() {
 		account.CompassionFund = req.CompassionFund
 		account.CompassionFundAmount = req.CompassionFundAmount
 		account.Icon = req.Icon
+		account.CashAndCashEquivalence = req.CashAndCashEquivalence
 
 		if err := c.model.AccountManager.UpdateFields(context, account.ID, account); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
