@@ -130,6 +130,7 @@ func (c *Controller) Start() error {
 	c.BrowseExcludeIncludeAccountsController()
 	c.IncludeNegativeAccountController()
 	c.MemberDepartmentController()
+	c.LoanTagController()
 
 	// Time deposit
 	c.TimeDepositTypeController()
