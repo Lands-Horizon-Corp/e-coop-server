@@ -127,18 +127,17 @@ func (c *Controller) JournalVoucherController() {
 		}
 
 		journalVoucher := &model.JournalVoucher{
-			VoucherNumber:       request.VoucherNumber,
-			Date:                request.Date,
-			Description:         request.Description,
-			Reference:           request.Reference,
-			Status:              request.Status,
-			JournalVoucherTagID: request.JournalVoucherTagID,
-			CreatedAt:           time.Now().UTC(),
-			CreatedByID:         user.UserID,
-			UpdatedAt:           time.Now().UTC(),
-			UpdatedByID:         user.UserID,
-			BranchID:            *user.BranchID,
-			OrganizationID:      user.OrganizationID,
+			VoucherNumber:  request.VoucherNumber,
+			Date:           request.Date,
+			Description:    request.Description,
+			Reference:      request.Reference,
+			Status:         request.Status,
+			CreatedAt:      time.Now().UTC(),
+			CreatedByID:    user.UserID,
+			UpdatedAt:      time.Now().UTC(),
+			UpdatedByID:    user.UserID,
+			BranchID:       *user.BranchID,
+			OrganizationID: user.OrganizationID,
 		}
 
 		if err := c.model.JournalVoucherManager.CreateWithTx(context, tx, journalVoucher); err != nil {
@@ -265,7 +264,6 @@ func (c *Controller) JournalVoucherController() {
 		journalVoucher.Description = request.Description
 		journalVoucher.Reference = request.Reference
 		journalVoucher.Status = request.Status
-		journalVoucher.JournalVoucherTagID = request.JournalVoucherTagID
 		journalVoucher.UpdatedAt = time.Now().UTC()
 		journalVoucher.UpdatedByID = user.UserID
 

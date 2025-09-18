@@ -95,6 +95,7 @@ func (c *Controller) Start() error {
 	// Account Maintenance
 	c.BankController()
 	c.CashCheckVoucherTagController()
+	c.JournalVoucherTagController()
 	c.HolidayController()
 	c.BillAndCoinsController()
 
