@@ -37,6 +37,9 @@ type (
 		PostedByID    *uuid.UUID `gorm:"type:uuid"`
 		PostedBy      *User      `gorm:"foreignKey:PostedByID;constraint:OnDelete:SET NULL;" json:"posted_by,omitempty"`
 
+		JournalVoucherTagID *uuid.UUID         `gorm:"type:uuid"`
+		JournalVoucherTag   *JournalVoucherTag `gorm:"foreignKey:JournalVoucherTagID;constraint:OnDelete:SET NULL;" json:"journal_voucher_tag,omitempty"`
+
 		// Relationships
 		JournalVoucherEntries []*JournalVoucherEntry `gorm:"foreignKey:JournalVoucherID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"journal_voucher_entries,omitempty"`
 
@@ -66,6 +69,9 @@ type (
 		PostedByID     *uuid.UUID            `json:"posted_by_id,omitempty"`
 		PostedBy       *UserResponse         `json:"posted_by,omitempty"`
 
+		JournalVoucherTagID *uuid.UUID                 `json:"journal_voucher_tag_id,omitempty"`
+		JournalVoucherTag   *JournalVoucherTagResponse `json:"journal_voucher_tag,omitempty"`
+
 		// Relationships
 		JournalVoucherEntries []*JournalVoucherEntryResponse `json:"journal_voucher_entries,omitempty"`
 
@@ -75,11 +81,12 @@ type (
 	}
 
 	JournalVoucherRequest struct {
-		VoucherNumber string    `json:"voucher_number" validate:"required"`
-		Date          time.Time `json:"date"`
-		Description   string    `json:"description,omitempty"`
-		Reference     string    `json:"reference,omitempty"`
-		Status        string    `json:"status,omitempty"`
+		VoucherNumber       string     `json:"voucher_number" validate:"required"`
+		Date                time.Time  `json:"date"`
+		Description         string     `json:"description,omitempty"`
+		Reference           string     `json:"reference,omitempty"`
+		Status              string     `json:"status,omitempty"`
+		JournalVoucherTagID *uuid.UUID `json:"journal_voucher_tag_id,omitempty"`
 
 		// Nested relationships for creation/update
 		JournalVoucherEntries        []*JournalVoucherEntryRequest `json:"journal_voucher_entries,omitempty"`
@@ -93,7 +100,7 @@ func (m *Model) JournalVoucher() {
 		JournalVoucher, JournalVoucherResponse, JournalVoucherRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization", "PostedBy",
+			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization", "PostedBy", "JournalVoucherTag",
 			"JournalVoucherEntries", "JournalVoucherEntries.Account",
 			"JournalVoucherEntries.MemberProfile", "JournalVoucherEntries.EmployeeUser",
 		},
@@ -137,6 +144,8 @@ func (m *Model) JournalVoucher() {
 				PostedAt:              postedAt,
 				PostedByID:            data.PostedByID,
 				PostedBy:              m.UserManager.ToModel(data.PostedBy),
+				JournalVoucherTagID:   data.JournalVoucherTagID,
+				JournalVoucherTag:     m.JournalVoucherTagManager.ToModel(data.JournalVoucherTag),
 				JournalVoucherEntries: m.mapJournalVoucherEntries(data.JournalVoucherEntries),
 				TotalDebit:            totalDebit,
 				TotalCredit:           totalCredit,
