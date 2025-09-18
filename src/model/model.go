@@ -199,6 +199,7 @@ type (
 		CashCheckVoucherManager    horizon_services.Repository[CashCheckVoucher, CashCheckVoucherResponse, CashCheckVoucherRequest]
 		CashCheckVoucherTagManager horizon_services.Repository[CashCheckVoucherTag, CashCheckVoucherTagResponse, CashCheckVoucherTagRequest]
 		JournalVoucherManager      horizon_services.Repository[JournalVoucher, JournalVoucherResponse, JournalVoucherRequest]
+		JournalVoucherEntryManager horizon_services.Repository[JournalVoucherEntry, JournalVoucherEntryResponse, JournalVoucherEntryRequest]
 		JournalVoucherTagManager   horizon_services.Repository[JournalVoucherTag, JournalVoucherTagResponse, JournalVoucherTagRequest]
 
 		FundsManager                          horizon_services.Repository[Funds, FundsResponse, FundsRequest]
@@ -273,6 +274,7 @@ func (c *Model) Start(context context.Context) error {
 	c.InterestRateScheme()
 	c.InvitationCode()
 	c.JournalVoucher()
+	c.JournalVoucherEntry()
 	c.JournalVoucherTag()
 	c.LoanClearanceAnalysis()
 	c.LoanClearanceAnalysisInstitution()
@@ -410,6 +412,18 @@ func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID 
 		return err
 	}
 	if err := m.CollateralSeed(context, tx, userID, organizationID, branchID); err != nil {
+		return err
+	}
+	userOrg, err := m.UserOrganizationManager.FindOne(context, &UserOrganization{
+		OrganizationID: organizationID,
+		BranchID:       &branchID,
+		UserID:         userID,
+	})
+	if err != nil {
+		return err
+	}
+	userOrg.IsSeeded = true
+	if err := m.UserOrganizationManager.UpdateByIDWithTx(context, tx, userOrg.ID, userOrg); err != nil {
 		return err
 	}
 	return nil
