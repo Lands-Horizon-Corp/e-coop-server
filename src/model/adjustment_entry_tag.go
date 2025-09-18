@@ -28,7 +28,7 @@ type (
 		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_adjustment_entry_tag" json:"branch_id"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
-		AdjustmentEntryID uuid.UUID        `gorm:"type:uuid;not null" json:"adjustment_entry_id"`
+		AdjustmentEntryID *uuid.UUID       `gorm:"type:uuid" json:"adjustment_entry_id,omitempty"`
 		AdjustmentEntry   *AdjustmentEntry `gorm:"foreignKey:AdjustmentEntryID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"adjustment_entry,omitempty"`
 
 		Name        string `gorm:"type:varchar(50)" json:"name"`
@@ -50,7 +50,7 @@ type (
 		Organization      *OrganizationResponse    `json:"organization,omitempty"`
 		BranchID          uuid.UUID                `json:"branch_id"`
 		Branch            *BranchResponse          `json:"branch,omitempty"`
-		AdjustmentEntryID uuid.UUID                `json:"adjustment_entry_id"`
+		AdjustmentEntryID *uuid.UUID               `json:"adjustment_entry_id,omitempty"`
 		AdjustmentEntry   *AdjustmentEntryResponse `json:"adjustment_entry,omitempty"`
 		Name              string                   `json:"name"`
 		Description       string                   `json:"description"`
@@ -60,12 +60,12 @@ type (
 	}
 
 	AdjustmentEntryTagRequest struct {
-		AdjustmentEntryID uuid.UUID `json:"adjustment_entry_id" validate:"required"`
-		Name              string    `json:"name,omitempty"`
-		Description       string    `json:"description,omitempty"`
-		Category          string    `json:"category,omitempty"`
-		Color             string    `json:"color,omitempty"`
-		Icon              string    `json:"icon,omitempty"`
+		AdjustmentEntryID *uuid.UUID `json:"adjustment_entry_id,omitempty"`
+		Name              string     `json:"name,omitempty"`
+		Description       string     `json:"description,omitempty"`
+		Category          string     `json:"category,omitempty"`
+		Color             string     `json:"color,omitempty"`
+		Icon              string     `json:"icon,omitempty"`
 	}
 )
 
