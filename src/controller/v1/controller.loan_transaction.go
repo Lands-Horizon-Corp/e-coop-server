@@ -325,6 +325,7 @@ func (c *Controller) LoanTransactionController() {
 			ModeOfPaymentFixedDays:                 request.ModeOfPaymentFixedDays,
 			TotalCredit:                            request.Applied1,
 			TotalDebit:                             request.Applied1,
+			ModeOfPaymentMonthlyExactDay:           request.ModeOfPaymentMonthlyExactDay,
 		}
 
 		if err := c.model.LoanTransactionManager.CreateWithTx(context, tx, loanTransaction); err != nil {
@@ -671,6 +672,8 @@ func (c *Controller) LoanTransactionController() {
 		loanTransaction.PaidByName = request.PaidByName
 		loanTransaction.PaidByPosition = request.PaidByPosition
 		loanTransaction.ModeOfPaymentFixedDays = request.ModeOfPaymentFixedDays
+		loanTransaction.ModeOfPaymentMonthlyExactDay = request.ModeOfPaymentMonthlyExactDay
+
 		loanTransaction.UpdatedAt = time.Now().UTC()
 
 		if request.LoanTransactionEntriesDeleted != nil {
@@ -1199,6 +1202,7 @@ func (c *Controller) LoanTransactionController() {
 			totalCredit += entry.Credit
 			totalDebit += entry.Debit
 		}
+
 		loanTransaction.TotalCredit = totalCredit
 		loanTransaction.TotalDebit = totalDebit
 
