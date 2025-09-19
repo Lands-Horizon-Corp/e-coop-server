@@ -28,14 +28,15 @@ type (
 		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_journal_voucher"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
-		VoucherNumber string     `gorm:"type:varchar(255);uniqueIndex:idx_voucher_number_branch"`
-		Date          time.Time  `gorm:"not null;default:now()"`
-		Description   string     `gorm:"type:text"`
-		Reference     string     `gorm:"type:varchar(255)"`
-		Status        string     `gorm:"type:varchar(50);default:'draft'"` // draft, posted, cancelled
-		PostedAt      *time.Time `gorm:"type:timestamp"`
-		PostedByID    *uuid.UUID `gorm:"type:uuid"`
-		PostedBy      *User      `gorm:"foreignKey:PostedByID;constraint:OnDelete:SET NULL;" json:"posted_by,omitempty"`
+		VoucherNumber     string     `gorm:"type:varchar(255);uniqueIndex:idx_voucher_number_branch"`
+		CashVoucherNumber string     `gorm:"type:varchar(255)"`
+		Date              time.Time  `gorm:"not null;default:now()"`
+		Description       string     `gorm:"type:text"`
+		Reference         string     `gorm:"type:varchar(255)"`
+		Status            string     `gorm:"type:varchar(50);default:'draft'"` // draft, posted, cancelled
+		PostedAt          *time.Time `gorm:"type:timestamp"`
+		PostedByID        *uuid.UUID `gorm:"type:uuid"`
+		PostedBy          *User      `gorm:"foreignKey:PostedByID;constraint:OnDelete:SET NULL;" json:"posted_by,omitempty"`
 
 		// Print and approval fields
 		PrintedDate  *time.Time `gorm:"type:timestamp"`
@@ -54,25 +55,26 @@ type (
 	}
 
 	JournalVoucherResponse struct {
-		ID             uuid.UUID             `json:"id"`
-		CreatedAt      string                `json:"created_at"`
-		CreatedByID    uuid.UUID             `json:"created_by_id"`
-		CreatedBy      *UserResponse         `json:"created_by,omitempty"`
-		UpdatedAt      string                `json:"updated_at"`
-		UpdatedByID    uuid.UUID             `json:"updated_by_id"`
-		UpdatedBy      *UserResponse         `json:"updated_by,omitempty"`
-		OrganizationID uuid.UUID             `json:"organization_id"`
-		Organization   *OrganizationResponse `json:"organization,omitempty"`
-		BranchID       uuid.UUID             `json:"branch_id"`
-		Branch         *BranchResponse       `json:"branch,omitempty"`
-		VoucherNumber  string                `json:"voucher_number"`
-		Date           string                `json:"date"`
-		Description    string                `json:"description"`
-		Reference      string                `json:"reference"`
-		Status         string                `json:"status"`
-		PostedAt       *string               `json:"posted_at,omitempty"`
-		PostedByID     *uuid.UUID            `json:"posted_by_id,omitempty"`
-		PostedBy       *UserResponse         `json:"posted_by,omitempty"`
+		ID                uuid.UUID             `json:"id"`
+		CreatedAt         string                `json:"created_at"`
+		CreatedByID       uuid.UUID             `json:"created_by_id"`
+		CreatedBy         *UserResponse         `json:"created_by,omitempty"`
+		UpdatedAt         string                `json:"updated_at"`
+		UpdatedByID       uuid.UUID             `json:"updated_by_id"`
+		UpdatedBy         *UserResponse         `json:"updated_by,omitempty"`
+		OrganizationID    uuid.UUID             `json:"organization_id"`
+		Organization      *OrganizationResponse `json:"organization,omitempty"`
+		BranchID          uuid.UUID             `json:"branch_id"`
+		Branch            *BranchResponse       `json:"branch,omitempty"`
+		VoucherNumber     string                `json:"voucher_number"`
+		CashVoucherNumber string                `json:"cash_voucher_number"`
+		Date              string                `json:"date"`
+		Description       string                `json:"description"`
+		Reference         string                `json:"reference"`
+		Status            string                `json:"status"`
+		PostedAt          *string               `json:"posted_at,omitempty"`
+		PostedByID        *uuid.UUID            `json:"posted_by_id,omitempty"`
+		PostedBy          *UserResponse         `json:"posted_by,omitempty"`
 
 		// Print and approval fields
 		PrintedDate  *string `json:"printed_date,omitempty"`
@@ -91,11 +93,12 @@ type (
 	}
 
 	JournalVoucherRequest struct {
-		VoucherNumber string    `json:"voucher_number" validate:"required"`
-		Date          time.Time `json:"date"`
-		Description   string    `json:"description,omitempty"`
-		Reference     string    `json:"reference,omitempty"`
-		Status        string    `json:"status,omitempty"`
+		VoucherNumber     string    `json:"voucher_number" validate:"required"`
+		CashVoucherNumber string    `json:"cash_voucher_number,omitempty"`
+		Date              time.Time `json:"date"`
+		Description       string    `json:"description,omitempty"`
+		Reference         string    `json:"reference,omitempty"`
+		Status            string    `json:"status,omitempty"`
 
 		// Nested relationships for creation/update
 		JournalVoucherEntries        []*JournalVoucherEntryRequest `json:"journal_voucher_entries,omitempty"`
@@ -103,7 +106,8 @@ type (
 	}
 
 	JournalVoucherPrintRequest struct {
-		VoucherNumber string `json:"voucher_number" validate:"required"`
+		VoucherNumber     string `json:"voucher_number" validate:"required"`
+		CashVoucherNumber string `json:"cash_voucher_number,omitempty"`
 	}
 )
 
@@ -164,6 +168,7 @@ func (m *Model) JournalVoucher() {
 				BranchID:              data.BranchID,
 				Branch:                m.BranchManager.ToModel(data.Branch),
 				VoucherNumber:         data.VoucherNumber,
+				CashVoucherNumber:     data.CashVoucherNumber,
 				Date:                  data.Date.Format("2006-01-02"),
 				Description:           data.Description,
 				Reference:             data.Reference,

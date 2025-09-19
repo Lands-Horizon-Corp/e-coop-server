@@ -144,19 +144,20 @@ func (c *Controller) JournalVoucherController() {
 		}
 
 		journalVoucher := &model.JournalVoucher{
-			VoucherNumber:  request.VoucherNumber,
-			Date:           request.Date,
-			Description:    request.Description,
-			Reference:      request.Reference,
-			Status:         request.Status,
-			CreatedAt:      time.Now().UTC(),
-			CreatedByID:    user.UserID,
-			UpdatedAt:      time.Now().UTC(),
-			UpdatedByID:    user.UserID,
-			BranchID:       *user.BranchID,
-			OrganizationID: user.OrganizationID,
-			TotalDebit:     totalDebit,
-			TotalCredit:    totalCredit,
+			VoucherNumber:     request.VoucherNumber,
+			Date:              request.Date,
+			Description:       request.Description,
+			Reference:         request.Reference,
+			Status:            request.Status,
+			CreatedAt:         time.Now().UTC(),
+			CreatedByID:       user.UserID,
+			UpdatedAt:         time.Now().UTC(),
+			UpdatedByID:       user.UserID,
+			BranchID:          *user.BranchID,
+			OrganizationID:    user.OrganizationID,
+			TotalDebit:        totalDebit,
+			TotalCredit:       totalCredit,
+			CashVoucherNumber: request.CashVoucherNumber,
 		}
 
 		if err := c.model.JournalVoucherManager.CreateWithTx(context, tx, journalVoucher); err != nil {
@@ -173,19 +174,20 @@ func (c *Controller) JournalVoucherController() {
 		if request.JournalVoucherEntries != nil {
 			for _, entryReq := range request.JournalVoucherEntries {
 				entry := &model.JournalVoucherEntry{
-					AccountID:        entryReq.AccountID,
-					MemberProfileID:  entryReq.MemberProfileID,
-					EmployeeUserID:   entryReq.EmployeeUserID,
-					JournalVoucherID: journalVoucher.ID,
-					Description:      entryReq.Description,
-					Debit:            entryReq.Debit,
-					Credit:           entryReq.Credit,
-					CreatedAt:        time.Now().UTC(),
-					CreatedByID:      user.UserID,
-					UpdatedAt:        time.Now().UTC(),
-					UpdatedByID:      user.UserID,
-					BranchID:         *user.BranchID,
-					OrganizationID:   user.OrganizationID,
+					AccountID:              entryReq.AccountID,
+					MemberProfileID:        entryReq.MemberProfileID,
+					EmployeeUserID:         entryReq.EmployeeUserID,
+					JournalVoucherID:       journalVoucher.ID,
+					Description:            entryReq.Description,
+					Debit:                  entryReq.Debit,
+					Credit:                 entryReq.Credit,
+					CreatedAt:              time.Now().UTC(),
+					CreatedByID:            user.UserID,
+					UpdatedAt:              time.Now().UTC(),
+					UpdatedByID:            user.UserID,
+					BranchID:               *user.BranchID,
+					OrganizationID:         user.OrganizationID,
+					CashCheckVoucherNumber: entryReq.CashCheckVoucherNumber,
 				}
 
 				if err := c.model.JournalVoucherEntryManager.CreateWithTx(context, tx, entry); err != nil {
@@ -301,7 +303,7 @@ func (c *Controller) JournalVoucherController() {
 		journalVoucher.Status = request.Status
 		journalVoucher.UpdatedAt = time.Now().UTC()
 		journalVoucher.UpdatedByID = user.UserID
-
+		journalVoucher.CashVoucherNumber = request.CashVoucherNumber
 		// Handle deleted entries
 		if request.JournalVoucherEntriesDeleted != nil {
 			for _, deletedID := range request.JournalVoucherEntriesDeleted {
@@ -342,25 +344,27 @@ func (c *Controller) JournalVoucherController() {
 					entry.Credit = entryReq.Credit
 					entry.UpdatedAt = time.Now().UTC()
 					entry.UpdatedByID = user.UserID
+					entry.CashCheckVoucherNumber = entryReq.CashCheckVoucherNumber
 					if err := c.model.JournalVoucherEntryManager.UpdateFieldsWithTx(context, tx, entry.ID, entry); err != nil {
 						tx.Rollback()
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update journal voucher entry: " + err.Error()})
 					}
 				} else {
 					entry := &model.JournalVoucherEntry{
-						AccountID:        entryReq.AccountID,
-						MemberProfileID:  entryReq.MemberProfileID,
-						EmployeeUserID:   entryReq.EmployeeUserID,
-						JournalVoucherID: journalVoucher.ID,
-						Description:      entryReq.Description,
-						Debit:            entryReq.Debit,
-						Credit:           entryReq.Credit,
-						CreatedAt:        time.Now().UTC(),
-						CreatedByID:      user.UserID,
-						UpdatedAt:        time.Now().UTC(),
-						UpdatedByID:      user.UserID,
-						BranchID:         *user.BranchID,
-						OrganizationID:   user.OrganizationID,
+						AccountID:              entryReq.AccountID,
+						MemberProfileID:        entryReq.MemberProfileID,
+						EmployeeUserID:         entryReq.EmployeeUserID,
+						JournalVoucherID:       journalVoucher.ID,
+						Description:            entryReq.Description,
+						Debit:                  entryReq.Debit,
+						Credit:                 entryReq.Credit,
+						CreatedAt:              time.Now().UTC(),
+						CreatedByID:            user.UserID,
+						UpdatedAt:              time.Now().UTC(),
+						UpdatedByID:            user.UserID,
+						BranchID:               *user.BranchID,
+						OrganizationID:         user.OrganizationID,
+						CashCheckVoucherNumber: entryReq.CashCheckVoucherNumber,
 					}
 					if err := c.model.JournalVoucherEntryManager.CreateWithTx(context, tx, entry); err != nil {
 						tx.Rollback()
