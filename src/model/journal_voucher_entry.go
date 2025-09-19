@@ -75,7 +75,6 @@ type (
 		AccountID              uuid.UUID  `json:"account_id" validate:"required"`
 		MemberProfileID        *uuid.UUID `json:"member_profile_id,omitempty"`
 		EmployeeUserID         *uuid.UUID `json:"employee_user_id,omitempty"`
-		JournalVoucherID       uuid.UUID  `json:"journal_voucher_id" validate:"required"`
 		CashCheckVoucherNumber string     `json:"cash_check_voucher_number,omitempty"`
 		Description            string     `json:"description,omitempty"`
 		Debit                  float64    `json:"debit,omitempty"`
