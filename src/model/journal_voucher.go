@@ -28,7 +28,6 @@ type (
 		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_journal_voucher"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
-		VoucherNumber     string     `gorm:"type:varchar(255);uniqueIndex:idx_voucher_number_branch"`
 		CashVoucherNumber string     `gorm:"type:varchar(255)"`
 		Date              time.Time  `gorm:"not null;default:now()"`
 		Description       string     `gorm:"type:text"`
@@ -93,7 +92,6 @@ type (
 	}
 
 	JournalVoucherRequest struct {
-		VoucherNumber     string    `json:"voucher_number" validate:"required"`
 		CashVoucherNumber string    `json:"cash_voucher_number,omitempty"`
 		Date              time.Time `json:"date"`
 		Description       string    `json:"description,omitempty"`
@@ -106,7 +104,6 @@ type (
 	}
 
 	JournalVoucherPrintRequest struct {
-		VoucherNumber     string `json:"voucher_number" validate:"required"`
 		CashVoucherNumber string `json:"cash_voucher_number,omitempty"`
 	}
 )
@@ -167,7 +164,6 @@ func (m *Model) JournalVoucher() {
 				Organization:          m.OrganizationManager.ToModel(data.Organization),
 				BranchID:              data.BranchID,
 				Branch:                m.BranchManager.ToModel(data.Branch),
-				VoucherNumber:         data.VoucherNumber,
 				CashVoucherNumber:     data.CashVoucherNumber,
 				Date:                  data.Date.Format("2006-01-02"),
 				Description:           data.Description,

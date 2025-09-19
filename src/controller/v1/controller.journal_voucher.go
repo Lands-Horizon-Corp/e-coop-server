@@ -144,7 +144,6 @@ func (c *Controller) JournalVoucherController() {
 		}
 
 		journalVoucher := &model.JournalVoucher{
-			VoucherNumber:     request.VoucherNumber,
 			Date:              request.Date,
 			Description:       request.Description,
 			Reference:         request.Reference,
@@ -213,7 +212,7 @@ func (c *Controller) JournalVoucherController() {
 
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "create-success",
-			Description: "Created journal voucher (/journal-voucher): " + journalVoucher.VoucherNumber,
+			Description: "Created journal voucher (/journal-voucher): " + journalVoucher.CashVoucherNumber,
 			Module:      "JournalVoucher",
 		})
 		return ctx.JSON(http.StatusCreated, c.model.JournalVoucherManager.ToModel(journalVoucher))
@@ -296,7 +295,6 @@ func (c *Controller) JournalVoucherController() {
 		}
 
 		// Update journal voucher fields
-		journalVoucher.VoucherNumber = request.VoucherNumber
 		journalVoucher.Date = request.Date
 		journalVoucher.Description = request.Description
 		journalVoucher.Reference = request.Reference
@@ -397,7 +395,7 @@ func (c *Controller) JournalVoucherController() {
 
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "update-success",
-			Description: "Updated journal voucher (/journal-voucher/:journal_voucher_id): " + journalVoucher.VoucherNumber,
+			Description: "Updated journal voucher (/journal-voucher/:journal_voucher_id): " + journalVoucher.CashVoucherNumber,
 			Module:      "JournalVoucher",
 		})
 		return ctx.JSON(http.StatusOK, c.model.JournalVoucherManager.ToModel(journalVoucher))
@@ -438,7 +436,7 @@ func (c *Controller) JournalVoucherController() {
 		}
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "delete-success",
-			Description: "Deleted journal voucher (/journal-voucher/:journal_voucher_id): " + journalVoucher.VoucherNumber,
+			Description: "Deleted journal voucher (/journal-voucher/:journal_voucher_id): " + journalVoucher.CashVoucherNumber,
 			Module:      "JournalVoucher",
 		})
 		return ctx.NoContent(http.StatusNoContent)
@@ -501,7 +499,7 @@ func (c *Controller) JournalVoucherController() {
 				})
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Journal voucher not found with ID: %s", rawID)})
 			}
-			voucherNumbers += journalVoucher.VoucherNumber + ","
+			voucherNumbers += journalVoucher.CashVoucherNumber + ","
 			if err := c.model.JournalVoucherManager.DeleteByIDWithTx(context, tx, journalVoucherID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -593,7 +591,7 @@ func (c *Controller) JournalVoucherController() {
 		// Update print details
 		journalVoucher.PrintNumber = journalVoucher.PrintNumber + 1
 		journalVoucher.PrintedDate = handlers.Ptr(time.Now().UTC())
-		journalVoucher.VoucherNumber = req.VoucherNumber
+		journalVoucher.CashVoucherNumber = req.CashVoucherNumber
 		journalVoucher.UpdatedAt = time.Now().UTC()
 		journalVoucher.UpdatedByID = userOrg.UserID
 
@@ -608,7 +606,7 @@ func (c *Controller) JournalVoucherController() {
 
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "print-success",
-			Description: "Successfully printed journal voucher: " + journalVoucher.VoucherNumber,
+			Description: "Successfully printed journal voucher: " + journalVoucher.CashVoucherNumber,
 			Module:      "JournalVoucher",
 		})
 
@@ -681,7 +679,7 @@ func (c *Controller) JournalVoucherController() {
 
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "print-undo-success",
-			Description: "Successfully undid print for journal voucher: " + journalVoucher.VoucherNumber,
+			Description: "Successfully undid print for journal voucher: " + journalVoucher.CashVoucherNumber,
 			Module:      "JournalVoucher",
 		})
 
@@ -753,7 +751,7 @@ func (c *Controller) JournalVoucherController() {
 
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "approve-success",
-			Description: "Successfully approved journal voucher: " + journalVoucher.VoucherNumber,
+			Description: "Successfully approved journal voucher: " + journalVoucher.CashVoucherNumber,
 			Module:      "JournalVoucher",
 		})
 
@@ -822,7 +820,7 @@ func (c *Controller) JournalVoucherController() {
 
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "print-only-success",
-			Description: "Successfully printed journal voucher (print-only): " + journalVoucher.VoucherNumber,
+			Description: "Successfully printed journal voucher (print-only): " + journalVoucher.CashVoucherNumber,
 			Module:      "JournalVoucher",
 		})
 
@@ -898,7 +896,7 @@ func (c *Controller) JournalVoucherController() {
 
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "approve-undo-success",
-			Description: "Successfully undid approval for journal voucher: " + journalVoucher.VoucherNumber,
+			Description: "Successfully undid approval for journal voucher: " + journalVoucher.CashVoucherNumber,
 			Module:      "JournalVoucher",
 		})
 
@@ -974,7 +972,7 @@ func (c *Controller) JournalVoucherController() {
 
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "release-success",
-			Description: "Successfully released journal voucher: " + journalVoucher.VoucherNumber,
+			Description: "Successfully released journal voucher: " + journalVoucher.CashVoucherNumber,
 			Module:      "JournalVoucher",
 		})
 
