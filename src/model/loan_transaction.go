@@ -562,7 +562,7 @@ func (m *Model) LoanTransaction() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Branch", "Organization", "EmployeeUser",
 			"TransactionBatch", "LoanPurpose", "LoanStatus",
-			"ComakerDepositMemberAccountingLedger", "ComakerCollateral", "PreviousLoan",
+			"ComakerDepositMemberAccountingLedger", "PreviousLoan",
 			"Account", "MemberProfile", "MemberJointAccount", "SignatureMedia",
 			"ApprovedBySignatureMedia", "PreparedBySignatureMedia", "CertifiedBySignatureMedia",
 			"VerifiedBySignatureMedia", "CheckBySignatureMedia", "AcknowledgeBySignatureMedia",
