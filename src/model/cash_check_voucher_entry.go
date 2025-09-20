@@ -72,10 +72,10 @@ type (
 		AccountID          uuid.UUID  `json:"account_id" validate:"required"`
 		EmployeeUserID     *uuid.UUID `json:"employee_user_id,omitempty"`
 		TransactionBatchID *uuid.UUID `json:"transaction_batch_id,omitempty"`
-		CashCheckVoucherID uuid.UUID  `json:"cash_check_voucher_id" validate:"required"`
-		Debit              float64    `json:"debit,omitempty"`
-		Credit             float64    `json:"credit,omitempty"`
-		Description        string     `json:"description,omitempty"`
+
+		Debit       float64 `json:"debit,omitempty"`
+		Credit      float64 `json:"credit,omitempty"`
+		Description string  `json:"description,omitempty"`
 	}
 )
 
