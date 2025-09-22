@@ -33,6 +33,9 @@ type (
 		DeletedByID *uuid.UUID     `gorm:"type:uuid"`
 		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
 
+		MemberProfileID *uuid.UUID     `gorm:"type:uuid"`
+		MemberProfile   *MemberProfile `gorm:"foreignKey:MemberProfileID;constraint:OnDelete:SET NULL,OnUpdate:CASCADE;" json:"member_profile,omitempty"`
+
 		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_cash_check_voucher"`
 		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
 		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_cash_check_voucher"`
@@ -144,6 +147,8 @@ type (
 
 		PayTo string `json:"pay_to"`
 
+		MemberProfileID   *uuid.UUID             `json:"member_profile_id,omitempty"`
+		MemberProfile     *MemberProfileResponse `json:"member_profile,omitempty"`
 		Status            CashCheckVoucherStatus `json:"status"`
 		Description       string                 `json:"description"`
 		CashVoucherNumber string                 `json:"cash_voucher_number"`
@@ -220,11 +225,11 @@ type (
 		Status             CashCheckVoucherStatus `json:"status,omitempty"`
 		Description        string                 `json:"description,omitempty"`
 		CashVoucherNumber  string                 `json:"cash_voucher_number,omitempty"`
-
-		PrintCount   int        `json:"print_count,omitempty"`
-		PrintedDate  *time.Time `json:"printed_date,omitempty"`
-		ApprovedDate *time.Time `json:"approved_date,omitempty"`
-		ReleasedDate *time.Time `json:"released_date,omitempty"`
+		MemberProfileID    *uuid.UUID             `json:"member_profile_id,omitempty"`
+		PrintCount         int                    `json:"print_count,omitempty"`
+		PrintedDate        *time.Time             `json:"printed_date,omitempty"`
+		ApprovedDate       *time.Time             `json:"approved_date,omitempty"`
+		ReleasedDate       *time.Time             `json:"released_date,omitempty"`
 
 		ApprovedBySignatureMediaID *uuid.UUID `json:"approved_by_signature_media_id,omitempty"`
 		ApprovedByName             string     `json:"approved_by_name,omitempty"`
@@ -289,6 +294,7 @@ func (m *Model) CashCheckVoucher() {
 			"ApprovedBySignatureMedia", "PreparedBySignatureMedia", "CertifiedBySignatureMedia",
 			"VerifiedBySignatureMedia", "CheckBySignatureMedia", "AcknowledgeBySignatureMedia",
 			"NotedBySignatureMedia", "PostedBySignatureMedia", "PaidBySignatureMedia",
+			"MemberProfile",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *CashCheckVoucher) *CashCheckVoucherResponse {
@@ -398,6 +404,9 @@ func (m *Model) CashCheckVoucher() {
 				CheckEntryCheckDate:   data.CheckEntryCheckDate,
 				CheckEntryAccountID:   data.CheckEntryAccountID,
 				CheckEntryAccount:     m.AccountManager.ToModel(data.CheckEntryAccount),
+
+				MemberProfileID: data.MemberProfileID,
+				MemberProfile:   m.MemberProfileManager.ToModel(data.MemberProfile),
 			}
 		},
 		Created: func(data *CashCheckVoucher) []string {

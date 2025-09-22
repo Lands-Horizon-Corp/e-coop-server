@@ -123,6 +123,7 @@ func (m *Model) JournalVoucher() {
 			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization", "PostedBy", "JournalVoucherTags", "MemberProfile",
 			"JournalVoucherEntries", "JournalVoucherEntries.Account",
 			"JournalVoucherEntries.MemberProfile", "JournalVoucherEntries.EmployeeUser",
+			"MemberProfile",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *JournalVoucher) *JournalVoucherResponse {
