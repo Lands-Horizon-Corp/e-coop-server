@@ -429,6 +429,9 @@ func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID 
 	if err != nil {
 		return err
 	}
+	if err := m.MemberProfileSeed(context, tx, userID, organizationID, branchID); err != nil {
+		return err
+	}
 	userOrg.IsSeeded = true
 	if err := m.UserOrganizationManager.UpdateByIDWithTx(context, tx, userOrg.ID, userOrg); err != nil {
 		return err
