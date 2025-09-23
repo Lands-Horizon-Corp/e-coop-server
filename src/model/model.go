@@ -196,7 +196,7 @@ type (
 
 		// ACCOUNTING ENTRY
 		AdjustmentEntryManager           horizon_services.Repository[AdjustmentEntry, AdjustmentEntryResponse, AdjustmentEntryRequest]
-		AdjustmentEntryTagManager        horizon_services.Repository[AdjustmentEntryTag, AdjustmentEntryTagResponse, AdjustmentEntryTagRequest]
+		AdjustmentTagManager             horizon_services.Repository[AdjustmentTag, AdjustmentTagResponse, AdjustmentTagRequest]
 		VoucherPayToManager              horizon_services.Repository[VoucherPayTo, VoucherPayToResponse, VoucherPayToRequest]
 		CashCheckVoucherManager          horizon_services.Repository[CashCheckVoucher, CashCheckVoucherResponse, CashCheckVoucherRequest]
 		CashCheckVoucherEntryManager     horizon_services.Repository[CashCheckVoucherEntry, CashCheckVoucherEntryResponse, CashCheckVoucherEntryRequest]
@@ -230,7 +230,7 @@ func (c *Model) Start(context context.Context) error {
 	c.AccountClassification()
 
 	c.AdjustmentEntry()
-	c.AdjustmentEntryTag()
+	c.AdjustmentTag()
 	c.AutomaticLoanDeduction()
 	c.Bank()
 	c.BatchFunding()

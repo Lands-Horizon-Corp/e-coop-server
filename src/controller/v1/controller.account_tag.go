@@ -79,6 +79,37 @@ func (c *Controller) AccountTagController() {
 		return ctx.JSON(http.StatusOK, accountTag)
 	})
 
+	// "/api/v1/account-tag/account/:account_id",
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/account-tag/account/:account_id",
+		Method:       "GET",
+		Note:         "Returns all account tags for a specific account ID within the user's organization and branch.",
+		ResponseType: model.AccountTagResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID"})
+		}
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if user.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+
+		accountTags, err := c.model.AccountTagManager.Find(context, &model.AccountTag{
+			AccountID:      *accountID,
+			OrganizationID: user.OrganizationID,
+			BranchID:       *user.BranchID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch account tags: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, accountTags)
+	})
+
 	// POST /account-tag - Create new account tag.
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/account-tag",

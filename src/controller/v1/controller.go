@@ -98,7 +98,7 @@ func (c *Controller) Start() error {
 	c.CashCheckVoucherController()
 	c.CashCheckVoucherTagController()
 	c.JournalVoucherTagController()
-	c.AdjustmentEntryTagController()
+	c.AdjustmentTagController()
 	c.HolidayController()
 	c.BillAndCoinsController()
 
