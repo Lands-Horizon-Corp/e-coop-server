@@ -371,4 +371,5 @@ func (c *Controller) JournalVoucherTagController() {
 		})
 		return ctx.NoContent(http.StatusNoContent)
 	})
+
 }
