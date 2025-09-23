@@ -874,12 +874,245 @@ func (m *Model) AccountSeed(context context.Context, tx *gorm.DB, userID uuid.UU
 		ShowInGeneralLedgerSourceAdjustment:     true,
 		ShowInGeneralLedgerSourceJournalVoucher: true,
 		ShowInGeneralLedgerSourceCheckVoucher:   true,
+		CashAndCashEquivalence:                  true,
 		OtherInformationOfAnAccount:             string(OIOA_CashOnHand),
 	}
 
 	if err := m.AccountManager.CreateWithTx(context, tx, cashOnHand); err != nil {
 		return eris.Wrapf(err, "failed to seed account %s", cashOnHand.Name)
 	}
+
+	// Cash in Bank Account
+	cashInBank := &Account{
+		CreatedAt:                               now,
+		CreatedByID:                             userID,
+		UpdatedAt:                               now,
+		UpdatedByID:                             userID,
+		OrganizationID:                          organizationID,
+		BranchID:                                branchID,
+		Name:                                    "Cash in Bank",
+		Description:                             "Funds deposited in bank accounts for secure storage and banking transactions.",
+		Type:                                    AccountTypeOther,
+		MinAmount:                               0.00,
+		MaxAmount:                               50000000.00,
+		InterestStandard:                        0.0,
+		FinancialStatementType:                  string(FSTypeAssets),
+		ComputationType:                         "None",
+		Index:                                   12,
+		CashOnHand:                              false,
+		ShowInGeneralLedgerSourceWithdraw:       true,
+		ShowInGeneralLedgerSourceDeposit:        true,
+		ShowInGeneralLedgerSourceJournal:        true,
+		ShowInGeneralLedgerSourcePayment:        true,
+		ShowInGeneralLedgerSourceAdjustment:     true,
+		ShowInGeneralLedgerSourceJournalVoucher: true,
+		ShowInGeneralLedgerSourceCheckVoucher:   true,
+		CashAndCashEquivalence:                  true,
+		OtherInformationOfAnAccount:             string(OIOA_CashInBank),
+	}
+
+	if err := m.AccountManager.CreateWithTx(context, tx, cashInBank); err != nil {
+		return eris.Wrapf(err, "failed to seed account %s", cashInBank.Name)
+	}
+
+	// Cash Online Account (Digital Wallets, Online Banking)
+	cashOnline := &Account{
+		CreatedAt:                               now,
+		CreatedByID:                             userID,
+		UpdatedAt:                               now,
+		UpdatedByID:                             userID,
+		OrganizationID:                          organizationID,
+		BranchID:                                branchID,
+		Name:                                    "Cash Online",
+		Description:                             "Digital funds available through online banking platforms and digital wallets.",
+		Type:                                    AccountTypeOther,
+		MinAmount:                               0.00,
+		MaxAmount:                               10000000.00,
+		InterestStandard:                        0.0,
+		FinancialStatementType:                  string(FSTypeAssets),
+		ComputationType:                         "None",
+		Index:                                   13,
+		CashOnHand:                              false,
+		ShowInGeneralLedgerSourceWithdraw:       true,
+		ShowInGeneralLedgerSourceDeposit:        true,
+		ShowInGeneralLedgerSourceJournal:        true,
+		ShowInGeneralLedgerSourcePayment:        true,
+		ShowInGeneralLedgerSourceAdjustment:     true,
+		ShowInGeneralLedgerSourceJournalVoucher: true,
+		ShowInGeneralLedgerSourceCheckVoucher:   true,
+		CashAndCashEquivalence:                  true,
+		OtherInformationOfAnAccount:             string(OIOA_None),
+	}
+
+	if err := m.AccountManager.CreateWithTx(context, tx, cashOnline); err != nil {
+		return eris.Wrapf(err, "failed to seed account %s", cashOnline.Name)
+	}
+
+	// Petty Cash Account
+	pettyCash := &Account{
+		CreatedAt:                               now,
+		CreatedByID:                             userID,
+		UpdatedAt:                               now,
+		UpdatedByID:                             userID,
+		OrganizationID:                          organizationID,
+		BranchID:                                branchID,
+		Name:                                    "Petty Cash",
+		Description:                             "Small amount of cash kept on hand for minor expenses and incidental purchases.",
+		Type:                                    AccountTypeOther,
+		MinAmount:                               0.00,
+		MaxAmount:                               100000.00,
+		InterestStandard:                        0.0,
+		FinancialStatementType:                  string(FSTypeAssets),
+		ComputationType:                         "None",
+		Index:                                   14,
+		CashOnHand:                              true,
+		ShowInGeneralLedgerSourceWithdraw:       true,
+		ShowInGeneralLedgerSourceDeposit:        true,
+		ShowInGeneralLedgerSourceJournal:        true,
+		ShowInGeneralLedgerSourcePayment:        true,
+		ShowInGeneralLedgerSourceAdjustment:     true,
+		ShowInGeneralLedgerSourceJournalVoucher: true,
+		ShowInGeneralLedgerSourceCheckVoucher:   true,
+		CashAndCashEquivalence:                  true,
+		OtherInformationOfAnAccount:             string(OIOA_None),
+	}
+
+	if err := m.AccountManager.CreateWithTx(context, tx, pettyCash); err != nil {
+		return eris.Wrapf(err, "failed to seed account %s", pettyCash.Name)
+	}
+
+	// Cash in Transit Account
+	cashInTransit := &Account{
+		CreatedAt:                               now,
+		CreatedByID:                             userID,
+		UpdatedAt:                               now,
+		UpdatedByID:                             userID,
+		OrganizationID:                          organizationID,
+		BranchID:                                branchID,
+		Name:                                    "Cash in Transit",
+		Description:                             "Cash deposits or transfers that are in process but not yet cleared or posted.",
+		Type:                                    AccountTypeOther,
+		MinAmount:                               0.00,
+		MaxAmount:                               5000000.00,
+		InterestStandard:                        0.0,
+		FinancialStatementType:                  string(FSTypeAssets),
+		ComputationType:                         "None",
+		Index:                                   15,
+		CashOnHand:                              false,
+		ShowInGeneralLedgerSourceWithdraw:       true,
+		ShowInGeneralLedgerSourceDeposit:        true,
+		ShowInGeneralLedgerSourceJournal:        true,
+		ShowInGeneralLedgerSourcePayment:        true,
+		ShowInGeneralLedgerSourceAdjustment:     true,
+		ShowInGeneralLedgerSourceJournalVoucher: true,
+		ShowInGeneralLedgerSourceCheckVoucher:   true,
+		CashAndCashEquivalence:                  true,
+		OtherInformationOfAnAccount:             string(OIOA_None),
+	}
+
+	if err := m.AccountManager.CreateWithTx(context, tx, cashInTransit); err != nil {
+		return eris.Wrapf(err, "failed to seed account %s", cashInTransit.Name)
+	}
+
+	// Foreign Currency Cash Account
+	foreignCurrencyCash := &Account{
+		CreatedAt:                               now,
+		CreatedByID:                             userID,
+		UpdatedAt:                               now,
+		UpdatedByID:                             userID,
+		OrganizationID:                          organizationID,
+		BranchID:                                branchID,
+		Name:                                    "Foreign Currency Cash",
+		Description:                             "Cash holdings in foreign currencies for international transactions and exchange.",
+		Type:                                    AccountTypeOther,
+		MinAmount:                               0.00,
+		MaxAmount:                               2000000.00,
+		InterestStandard:                        0.0,
+		FinancialStatementType:                  string(FSTypeAssets),
+		ComputationType:                         "None",
+		Index:                                   16,
+		CashOnHand:                              true,
+		ShowInGeneralLedgerSourceWithdraw:       true,
+		ShowInGeneralLedgerSourceDeposit:        true,
+		ShowInGeneralLedgerSourceJournal:        true,
+		ShowInGeneralLedgerSourcePayment:        true,
+		ShowInGeneralLedgerSourceAdjustment:     true,
+		ShowInGeneralLedgerSourceJournalVoucher: true,
+		ShowInGeneralLedgerSourceCheckVoucher:   true,
+		CashAndCashEquivalence:                  true,
+		OtherInformationOfAnAccount:             string(OIOA_None),
+	}
+
+	if err := m.AccountManager.CreateWithTx(context, tx, foreignCurrencyCash); err != nil {
+		return eris.Wrapf(err, "failed to seed account %s", foreignCurrencyCash.Name)
+	}
+
+	// Cash Equivalents - Money Market Account
+	moneyMarketFund := &Account{
+		CreatedAt:                               now,
+		CreatedByID:                             userID,
+		UpdatedAt:                               now,
+		UpdatedByID:                             userID,
+		OrganizationID:                          organizationID,
+		BranchID:                                branchID,
+		Name:                                    "Money Market Fund",
+		Description:                             "Short-term, highly liquid investments that can be quickly converted to cash.",
+		Type:                                    AccountTypeOther,
+		MinAmount:                               0.00,
+		MaxAmount:                               20000000.00,
+		InterestStandard:                        1.5,
+		FinancialStatementType:                  string(FSTypeAssets),
+		ComputationType:                         "Simple Interest",
+		Index:                                   17,
+		CashOnHand:                              false,
+		ShowInGeneralLedgerSourceWithdraw:       true,
+		ShowInGeneralLedgerSourceDeposit:        true,
+		ShowInGeneralLedgerSourceJournal:        true,
+		ShowInGeneralLedgerSourcePayment:        true,
+		ShowInGeneralLedgerSourceAdjustment:     true,
+		ShowInGeneralLedgerSourceJournalVoucher: true,
+		ShowInGeneralLedgerSourceCheckVoucher:   true,
+		CashAndCashEquivalence:                  true,
+		OtherInformationOfAnAccount:             string(OIOA_None),
+	}
+
+	if err := m.AccountManager.CreateWithTx(context, tx, moneyMarketFund); err != nil {
+		return eris.Wrapf(err, "failed to seed account %s", moneyMarketFund.Name)
+	}
+
+	// Treasury Bills (Short-term)
+	treasuryBills := &Account{
+		CreatedAt:                               now,
+		CreatedByID:                             userID,
+		UpdatedAt:                               now,
+		UpdatedByID:                             userID,
+		OrganizationID:                          organizationID,
+		BranchID:                                branchID,
+		Name:                                    "Treasury Bills",
+		Description:                             "Short-term government securities with maturity of less than one year.",
+		Type:                                    AccountTypeOther,
+		MinAmount:                               0.00,
+		MaxAmount:                               15000000.00,
+		InterestStandard:                        2.0,
+		FinancialStatementType:                  string(FSTypeAssets),
+		ComputationType:                         "Simple Interest",
+		Index:                                   18,
+		CashOnHand:                              false,
+		ShowInGeneralLedgerSourceWithdraw:       true,
+		ShowInGeneralLedgerSourceDeposit:        true,
+		ShowInGeneralLedgerSourceJournal:        true,
+		ShowInGeneralLedgerSourcePayment:        true,
+		ShowInGeneralLedgerSourceAdjustment:     true,
+		ShowInGeneralLedgerSourceJournalVoucher: true,
+		ShowInGeneralLedgerSourceCheckVoucher:   true,
+		CashAndCashEquivalence:                  true,
+		OtherInformationOfAnAccount:             string(OIOA_None),
+	}
+
+	if err := m.AccountManager.CreateWithTx(context, tx, treasuryBills); err != nil {
+		return eris.Wrapf(err, "failed to seed account %s", treasuryBills.Name)
+	}
+
 	branch, err := m.BranchManager.GetByID(context, branchID)
 	if err != nil {
 		return eris.Wrapf(err, "failed to find branch with ID %s", branchID)

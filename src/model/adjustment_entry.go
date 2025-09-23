@@ -52,38 +52,38 @@ type (
 		Debit  float64 `gorm:"type:decimal" json:"debit"`
 		Credit float64 `gorm:"type:decimal" json:"credit"`
 
-		AdjustmentEntryTags []*AdjustmentEntryTag `gorm:"foreignKey:AdjustmentEntryID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"adjustment_entry_tags,omitempty"`
+		AdjustmentTags []*AdjustmentTag `gorm:"foreignKey:AdjustmentEntryID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"adjustment_tags,omitempty"`
 	}
 
 	AdjustmentEntryResponse struct {
-		ID                  uuid.UUID                     `json:"id"`
-		CreatedAt           string                        `json:"created_at"`
-		CreatedByID         uuid.UUID                     `json:"created_by_id"`
-		CreatedBy           *UserResponse                 `json:"created_by,omitempty"`
-		UpdatedAt           string                        `json:"updated_at"`
-		UpdatedByID         uuid.UUID                     `json:"updated_by_id"`
-		UpdatedBy           *UserResponse                 `json:"updated_by,omitempty"`
-		OrganizationID      uuid.UUID                     `json:"organization_id"`
-		Organization        *OrganizationResponse         `json:"organization,omitempty"`
-		BranchID            uuid.UUID                     `json:"branch_id"`
-		Branch              *BranchResponse               `json:"branch,omitempty"`
-		SignatureMediaID    *uuid.UUID                    `json:"signature_media_id,omitempty"`
-		SignatureMedia      *MediaResponse                `json:"signature_media,omitempty"`
-		AccountID           uuid.UUID                     `json:"account_id"`
-		Account             *AccountResponse              `json:"account,omitempty"`
-		MemberProfileID     *uuid.UUID                    `json:"member_profile_id,omitempty"`
-		MemberProfile       *MemberProfileResponse        `json:"member_profile,omitempty"`
-		EmployeeUserID      *uuid.UUID                    `json:"employee_user_id,omitempty"`
-		EmployeeUser        *UserResponse                 `json:"employee_user,omitempty"`
-		PaymentTypeID       *uuid.UUID                    `json:"payment_type_id,omitempty"`
-		PaymentType         *PaymentTypeResponse          `json:"payment_type,omitempty"`
-		TypeOfPaymentType   string                        `json:"type_of_payment_type"`
-		Description         string                        `json:"description"`
-		ReferenceNumber     string                        `json:"reference_number"`
-		EntryDate           *string                       `json:"entry_date,omitempty"`
-		Debit               float64                       `json:"debit"`
-		Credit              float64                       `json:"credit"`
-		AdjustmentEntryTags []*AdjustmentEntryTagResponse `json:"adjustment_entry_tags,omitempty"`
+		ID                uuid.UUID                `json:"id"`
+		CreatedAt         string                   `json:"created_at"`
+		CreatedByID       uuid.UUID                `json:"created_by_id"`
+		CreatedBy         *UserResponse            `json:"created_by,omitempty"`
+		UpdatedAt         string                   `json:"updated_at"`
+		UpdatedByID       uuid.UUID                `json:"updated_by_id"`
+		UpdatedBy         *UserResponse            `json:"updated_by,omitempty"`
+		OrganizationID    uuid.UUID                `json:"organization_id"`
+		Organization      *OrganizationResponse    `json:"organization,omitempty"`
+		BranchID          uuid.UUID                `json:"branch_id"`
+		Branch            *BranchResponse          `json:"branch,omitempty"`
+		SignatureMediaID  *uuid.UUID               `json:"signature_media_id,omitempty"`
+		SignatureMedia    *MediaResponse           `json:"signature_media,omitempty"`
+		AccountID         uuid.UUID                `json:"account_id"`
+		Account           *AccountResponse         `json:"account,omitempty"`
+		MemberProfileID   *uuid.UUID               `json:"member_profile_id,omitempty"`
+		MemberProfile     *MemberProfileResponse   `json:"member_profile,omitempty"`
+		EmployeeUserID    *uuid.UUID               `json:"employee_user_id,omitempty"`
+		EmployeeUser      *UserResponse            `json:"employee_user,omitempty"`
+		PaymentTypeID     *uuid.UUID               `json:"payment_type_id,omitempty"`
+		PaymentType       *PaymentTypeResponse     `json:"payment_type,omitempty"`
+		TypeOfPaymentType string                   `json:"type_of_payment_type"`
+		Description       string                   `json:"description"`
+		ReferenceNumber   string                   `json:"reference_number"`
+		EntryDate         *string                  `json:"entry_date,omitempty"`
+		Debit             float64                  `json:"debit"`
+		Credit            float64                  `json:"credit"`
+		AdjustmentTags    []*AdjustmentTagResponse `json:"adjustment_tags,omitempty"`
 	}
 
 	AdjustmentEntryRequest struct {
@@ -113,7 +113,7 @@ func (m *Model) AdjustmentEntry() {
 	]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Branch", "Organization",
-			"SignatureMedia", "Account", "MemberProfile", "EmployeeUser", "PaymentType", "AdjustmentEntryTags",
+			"SignatureMedia", "Account", "MemberProfile", "EmployeeUser", "PaymentType", "AdjustmentTags",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *AdjustmentEntry) *AdjustmentEntryResponse {
@@ -126,34 +126,34 @@ func (m *Model) AdjustmentEntry() {
 				entryDateStr = &str
 			}
 			return &AdjustmentEntryResponse{
-				ID:                  data.ID,
-				CreatedAt:           data.CreatedAt.Format(time.RFC3339),
-				CreatedByID:         data.CreatedByID,
-				CreatedBy:           m.UserManager.ToModel(data.CreatedBy),
-				UpdatedAt:           data.UpdatedAt.Format(time.RFC3339),
-				UpdatedByID:         data.UpdatedByID,
-				UpdatedBy:           m.UserManager.ToModel(data.UpdatedBy),
-				OrganizationID:      data.OrganizationID,
-				Organization:        m.OrganizationManager.ToModel(data.Organization),
-				BranchID:            data.BranchID,
-				Branch:              m.BranchManager.ToModel(data.Branch),
-				SignatureMediaID:    data.SignatureMediaID,
-				SignatureMedia:      m.MediaManager.ToModel(data.SignatureMedia),
-				AccountID:           data.AccountID,
-				Account:             m.AccountManager.ToModel(data.Account),
-				MemberProfileID:     data.MemberProfileID,
-				MemberProfile:       m.MemberProfileManager.ToModel(data.MemberProfile),
-				EmployeeUserID:      data.EmployeeUserID,
-				EmployeeUser:        m.UserManager.ToModel(data.EmployeeUser),
-				PaymentTypeID:       data.PaymentTypeID,
-				PaymentType:         m.PaymentTypeManager.ToModel(data.PaymentType),
-				TypeOfPaymentType:   data.TypeOfPaymentType,
-				Description:         data.Description,
-				ReferenceNumber:     data.ReferenceNumber,
-				EntryDate:           entryDateStr,
-				Debit:               data.Debit,
-				Credit:              data.Credit,
-				AdjustmentEntryTags: m.AdjustmentEntryTagManager.ToModels(data.AdjustmentEntryTags),
+				ID:                data.ID,
+				CreatedAt:         data.CreatedAt.Format(time.RFC3339),
+				CreatedByID:       data.CreatedByID,
+				CreatedBy:         m.UserManager.ToModel(data.CreatedBy),
+				UpdatedAt:         data.UpdatedAt.Format(time.RFC3339),
+				UpdatedByID:       data.UpdatedByID,
+				UpdatedBy:         m.UserManager.ToModel(data.UpdatedBy),
+				OrganizationID:    data.OrganizationID,
+				Organization:      m.OrganizationManager.ToModel(data.Organization),
+				BranchID:          data.BranchID,
+				Branch:            m.BranchManager.ToModel(data.Branch),
+				SignatureMediaID:  data.SignatureMediaID,
+				SignatureMedia:    m.MediaManager.ToModel(data.SignatureMedia),
+				AccountID:         data.AccountID,
+				Account:           m.AccountManager.ToModel(data.Account),
+				MemberProfileID:   data.MemberProfileID,
+				MemberProfile:     m.MemberProfileManager.ToModel(data.MemberProfile),
+				EmployeeUserID:    data.EmployeeUserID,
+				EmployeeUser:      m.UserManager.ToModel(data.EmployeeUser),
+				PaymentTypeID:     data.PaymentTypeID,
+				PaymentType:       m.PaymentTypeManager.ToModel(data.PaymentType),
+				TypeOfPaymentType: data.TypeOfPaymentType,
+				Description:       data.Description,
+				ReferenceNumber:   data.ReferenceNumber,
+				EntryDate:         entryDateStr,
+				Debit:             data.Debit,
+				Credit:            data.Credit,
+				AdjustmentTags:    m.AdjustmentTagManager.ToModels(data.AdjustmentTags),
 			}
 		},
 		Created: func(data *AdjustmentEntry) []string {

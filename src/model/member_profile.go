@@ -628,7 +628,6 @@ func (m *Model) MemberProfileDelete(context context.Context, tx *gorm.DB, member
 
 	return m.MemberProfileManager.DeleteByIDWithTx(context, tx, memberProfileId)
 }
-
 func (m *Model) MemberProfileFindUserByID(ctx context.Context, userId uuid.UUID, orgId uuid.UUID, branchId uuid.UUID) (*MemberProfile, error) {
 	return m.MemberProfileManager.FindOne(ctx, &MemberProfile{
 		UserID:         &userId,
@@ -636,6 +635,72 @@ func (m *Model) MemberProfileFindUserByID(ctx context.Context, userId uuid.UUID,
 		BranchID:       branchId,
 	})
 }
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+func (m *Model) MemberProfileSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+	now := time.Now().UTC()
+
+	branch, err := m.BranchManager.GetByID(context, branchID)
+	if err != nil {
+		return eris.Wrapf(err, "failed to get branch by ID: %s", branchID)
+	}
+	organization, err := m.OrganizationManager.GetByID(context, organizationID)
+	if err != nil {
+		return eris.Wrapf(err, "failed to get organization by ID: %s", organizationID)
+	}
+
+	firstName := "Company: " + organization.Name
+
+	middleName := ""
+
+	lastName := branch.Name
+
+	// Create member profile for the organization/branch creator
+	fullName := fmt.Sprintf("%s %s %s", firstName, middleName, lastName)
+	passbook := fmt.Sprintf("PB-%s-0001", branch.Name[:min(3, len(branch.Name))])
+
+	memberProfile := &MemberProfile{
+		CreatedAt:             now,
+		CreatedByID:           userID,
+		UpdatedAt:             now,
+		UpdatedByID:           userID,
+		OrganizationID:        organizationID,
+		BranchID:              branchID,
+		MediaID:               branch.MediaID,
+		UserID:                &userID,
+		FirstName:             firstName,
+		MiddleName:            middleName,
+		LastName:              lastName,
+		FullName:              fullName,
+		BirthDate:             time.Now().UTC(),
+		Status:                "active",
+		Description:           fmt.Sprintf("Founding member of %s", organization.Name),
+		Notes:                 fmt.Sprintf("Organization founder and branch creator for %s", branch.Name),
+		ContactNumber:         *branch.ContactNumber,
+		OldReferenceID:        "FOUNDER-001",
+		Passbook:              passbook,
+		Occupation:            "Organization Founder",
+		BusinessAddress:       branch.Address,
+		BusinessContactNumber: *branch.ContactNumber,
+		CivilStatus:           "single",
+		IsClosed:              false,
+		IsMutualFundMember:    true,
+		IsMicroFinanceMember:  true,
+	}
+
+	// Create the founder member profile
+	if err := m.MemberProfileManager.CreateWithTx(context, tx, memberProfile); err != nil {
+		return eris.Wrapf(err, "failed to create founder member profile %s", memberProfile.FullName)
+	}
+
+	return nil
+}
+
 func (m *Model) MemberProfileDestroy(ctx context.Context, tx *gorm.DB, id uuid.UUID) error {
 	memberProfile, err := m.MemberProfileManager.GetByID(ctx, id)
 	if err != nil {

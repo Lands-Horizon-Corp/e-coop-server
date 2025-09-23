@@ -144,19 +144,20 @@ func (c *Controller) JournalVoucherController() {
 		}
 
 		journalVoucher := &model.JournalVoucher{
-			VoucherNumber:  request.VoucherNumber,
-			Date:           request.Date,
-			Description:    request.Description,
-			Reference:      request.Reference,
-			Status:         request.Status,
-			CreatedAt:      time.Now().UTC(),
-			CreatedByID:    user.UserID,
-			UpdatedAt:      time.Now().UTC(),
-			UpdatedByID:    user.UserID,
-			BranchID:       *user.BranchID,
-			OrganizationID: user.OrganizationID,
-			TotalDebit:     totalDebit,
-			TotalCredit:    totalCredit,
+			Date:              request.Date,
+			Description:       request.Description,
+			Reference:         request.Reference,
+			Status:            request.Status,
+			CreatedAt:         time.Now().UTC(),
+			CreatedByID:       user.UserID,
+			UpdatedAt:         time.Now().UTC(),
+			UpdatedByID:       user.UserID,
+			BranchID:          *user.BranchID,
+			OrganizationID:    user.OrganizationID,
+			TotalDebit:        totalDebit,
+			TotalCredit:       totalCredit,
+			CashVoucherNumber: request.CashVoucherNumber,
+			MemberProfileID:   request.MemberProfileID,
 		}
 
 		if err := c.model.JournalVoucherManager.CreateWithTx(context, tx, journalVoucher); err != nil {
@@ -173,19 +174,20 @@ func (c *Controller) JournalVoucherController() {
 		if request.JournalVoucherEntries != nil {
 			for _, entryReq := range request.JournalVoucherEntries {
 				entry := &model.JournalVoucherEntry{
-					AccountID:        entryReq.AccountID,
-					MemberProfileID:  entryReq.MemberProfileID,
-					EmployeeUserID:   entryReq.EmployeeUserID,
-					JournalVoucherID: journalVoucher.ID,
-					Description:      entryReq.Description,
-					Debit:            entryReq.Debit,
-					Credit:           entryReq.Credit,
-					CreatedAt:        time.Now().UTC(),
-					CreatedByID:      user.UserID,
-					UpdatedAt:        time.Now().UTC(),
-					UpdatedByID:      user.UserID,
-					BranchID:         *user.BranchID,
-					OrganizationID:   user.OrganizationID,
+					AccountID:              entryReq.AccountID,
+					MemberProfileID:        entryReq.MemberProfileID,
+					EmployeeUserID:         entryReq.EmployeeUserID,
+					JournalVoucherID:       journalVoucher.ID,
+					Description:            entryReq.Description,
+					Debit:                  entryReq.Debit,
+					Credit:                 entryReq.Credit,
+					CreatedAt:              time.Now().UTC(),
+					CreatedByID:            user.UserID,
+					UpdatedAt:              time.Now().UTC(),
+					UpdatedByID:            user.UserID,
+					BranchID:               *user.BranchID,
+					OrganizationID:         user.OrganizationID,
+					CashCheckVoucherNumber: entryReq.CashCheckVoucherNumber,
 				}
 
 				if err := c.model.JournalVoucherEntryManager.CreateWithTx(context, tx, entry); err != nil {
@@ -211,7 +213,7 @@ func (c *Controller) JournalVoucherController() {
 
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "create-success",
-			Description: "Created journal voucher (/journal-voucher): " + journalVoucher.VoucherNumber,
+			Description: "Created journal voucher (/journal-voucher): " + journalVoucher.CashVoucherNumber,
 			Module:      "JournalVoucher",
 		})
 		return ctx.JSON(http.StatusCreated, c.model.JournalVoucherManager.ToModel(journalVoucher))
@@ -294,14 +296,14 @@ func (c *Controller) JournalVoucherController() {
 		}
 
 		// Update journal voucher fields
-		journalVoucher.VoucherNumber = request.VoucherNumber
 		journalVoucher.Date = request.Date
 		journalVoucher.Description = request.Description
 		journalVoucher.Reference = request.Reference
 		journalVoucher.Status = request.Status
 		journalVoucher.UpdatedAt = time.Now().UTC()
 		journalVoucher.UpdatedByID = user.UserID
-
+		journalVoucher.CashVoucherNumber = request.CashVoucherNumber
+		journalVoucher.MemberProfileID = request.MemberProfileID
 		// Handle deleted entries
 		if request.JournalVoucherEntriesDeleted != nil {
 			for _, deletedID := range request.JournalVoucherEntriesDeleted {
@@ -342,25 +344,27 @@ func (c *Controller) JournalVoucherController() {
 					entry.Credit = entryReq.Credit
 					entry.UpdatedAt = time.Now().UTC()
 					entry.UpdatedByID = user.UserID
+					entry.CashCheckVoucherNumber = entryReq.CashCheckVoucherNumber
 					if err := c.model.JournalVoucherEntryManager.UpdateFieldsWithTx(context, tx, entry.ID, entry); err != nil {
 						tx.Rollback()
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update journal voucher entry: " + err.Error()})
 					}
 				} else {
 					entry := &model.JournalVoucherEntry{
-						AccountID:        entryReq.AccountID,
-						MemberProfileID:  entryReq.MemberProfileID,
-						EmployeeUserID:   entryReq.EmployeeUserID,
-						JournalVoucherID: journalVoucher.ID,
-						Description:      entryReq.Description,
-						Debit:            entryReq.Debit,
-						Credit:           entryReq.Credit,
-						CreatedAt:        time.Now().UTC(),
-						CreatedByID:      user.UserID,
-						UpdatedAt:        time.Now().UTC(),
-						UpdatedByID:      user.UserID,
-						BranchID:         *user.BranchID,
-						OrganizationID:   user.OrganizationID,
+						AccountID:              entryReq.AccountID,
+						MemberProfileID:        entryReq.MemberProfileID,
+						EmployeeUserID:         entryReq.EmployeeUserID,
+						JournalVoucherID:       journalVoucher.ID,
+						Description:            entryReq.Description,
+						Debit:                  entryReq.Debit,
+						Credit:                 entryReq.Credit,
+						CreatedAt:              time.Now().UTC(),
+						CreatedByID:            user.UserID,
+						UpdatedAt:              time.Now().UTC(),
+						UpdatedByID:            user.UserID,
+						BranchID:               *user.BranchID,
+						OrganizationID:         user.OrganizationID,
+						CashCheckVoucherNumber: entryReq.CashCheckVoucherNumber,
 					}
 					if err := c.model.JournalVoucherEntryManager.CreateWithTx(context, tx, entry); err != nil {
 						tx.Rollback()
@@ -393,7 +397,7 @@ func (c *Controller) JournalVoucherController() {
 
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "update-success",
-			Description: "Updated journal voucher (/journal-voucher/:journal_voucher_id): " + journalVoucher.VoucherNumber,
+			Description: "Updated journal voucher (/journal-voucher/:journal_voucher_id): " + journalVoucher.CashVoucherNumber,
 			Module:      "JournalVoucher",
 		})
 		return ctx.JSON(http.StatusOK, c.model.JournalVoucherManager.ToModel(journalVoucher))
@@ -434,7 +438,7 @@ func (c *Controller) JournalVoucherController() {
 		}
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "delete-success",
-			Description: "Deleted journal voucher (/journal-voucher/:journal_voucher_id): " + journalVoucher.VoucherNumber,
+			Description: "Deleted journal voucher (/journal-voucher/:journal_voucher_id): " + journalVoucher.CashVoucherNumber,
 			Module:      "JournalVoucher",
 		})
 		return ctx.NoContent(http.StatusNoContent)
@@ -497,7 +501,7 @@ func (c *Controller) JournalVoucherController() {
 				})
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Journal voucher not found with ID: %s", rawID)})
 			}
-			voucherNumbers += journalVoucher.VoucherNumber + ","
+			voucherNumbers += journalVoucher.CashVoucherNumber + ","
 			if err := c.model.JournalVoucherManager.DeleteByIDWithTx(context, tx, journalVoucherID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -589,7 +593,7 @@ func (c *Controller) JournalVoucherController() {
 		// Update print details
 		journalVoucher.PrintNumber = journalVoucher.PrintNumber + 1
 		journalVoucher.PrintedDate = handlers.Ptr(time.Now().UTC())
-		journalVoucher.VoucherNumber = req.VoucherNumber
+		journalVoucher.CashVoucherNumber = req.CashVoucherNumber
 		journalVoucher.UpdatedAt = time.Now().UTC()
 		journalVoucher.UpdatedByID = userOrg.UserID
 
@@ -604,7 +608,7 @@ func (c *Controller) JournalVoucherController() {
 
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "print-success",
-			Description: "Successfully printed journal voucher: " + journalVoucher.VoucherNumber,
+			Description: "Successfully printed journal voucher: " + journalVoucher.CashVoucherNumber,
 			Module:      "JournalVoucher",
 		})
 
@@ -677,7 +681,7 @@ func (c *Controller) JournalVoucherController() {
 
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "print-undo-success",
-			Description: "Successfully undid print for journal voucher: " + journalVoucher.VoucherNumber,
+			Description: "Successfully undid print for journal voucher: " + journalVoucher.CashVoucherNumber,
 			Module:      "JournalVoucher",
 		})
 
@@ -749,7 +753,7 @@ func (c *Controller) JournalVoucherController() {
 
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "approve-success",
-			Description: "Successfully approved journal voucher: " + journalVoucher.VoucherNumber,
+			Description: "Successfully approved journal voucher: " + journalVoucher.CashVoucherNumber,
 			Module:      "JournalVoucher",
 		})
 
@@ -818,7 +822,7 @@ func (c *Controller) JournalVoucherController() {
 
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "print-only-success",
-			Description: "Successfully printed journal voucher (print-only): " + journalVoucher.VoucherNumber,
+			Description: "Successfully printed journal voucher (print-only): " + journalVoucher.CashVoucherNumber,
 			Module:      "JournalVoucher",
 		})
 
@@ -894,7 +898,7 @@ func (c *Controller) JournalVoucherController() {
 
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "approve-undo-success",
-			Description: "Successfully undid approval for journal voucher: " + journalVoucher.VoucherNumber,
+			Description: "Successfully undid approval for journal voucher: " + journalVoucher.CashVoucherNumber,
 			Module:      "JournalVoucher",
 		})
 
@@ -970,7 +974,7 @@ func (c *Controller) JournalVoucherController() {
 
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "release-success",
-			Description: "Successfully released journal voucher: " + journalVoucher.VoucherNumber,
+			Description: "Successfully released journal voucher: " + journalVoucher.CashVoucherNumber,
 			Module:      "JournalVoucher",
 		})
 

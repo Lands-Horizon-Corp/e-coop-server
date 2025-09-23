@@ -196,7 +196,7 @@ type (
 
 		// ACCOUNTING ENTRY
 		AdjustmentEntryManager           horizon_services.Repository[AdjustmentEntry, AdjustmentEntryResponse, AdjustmentEntryRequest]
-		AdjustmentEntryTagManager        horizon_services.Repository[AdjustmentEntryTag, AdjustmentEntryTagResponse, AdjustmentEntryTagRequest]
+		AdjustmentTagManager             horizon_services.Repository[AdjustmentTag, AdjustmentTagResponse, AdjustmentTagRequest]
 		VoucherPayToManager              horizon_services.Repository[VoucherPayTo, VoucherPayToResponse, VoucherPayToRequest]
 		CashCheckVoucherManager          horizon_services.Repository[CashCheckVoucher, CashCheckVoucherResponse, CashCheckVoucherRequest]
 		CashCheckVoucherEntryManager     horizon_services.Repository[CashCheckVoucherEntry, CashCheckVoucherEntryResponse, CashCheckVoucherEntryRequest]
@@ -230,7 +230,7 @@ func (c *Model) Start(context context.Context) error {
 	c.AccountClassification()
 
 	c.AdjustmentEntry()
-	c.AdjustmentEntryTag()
+	c.AdjustmentTag()
 	c.AutomaticLoanDeduction()
 	c.Bank()
 	c.BatchFunding()
@@ -421,12 +421,21 @@ func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID 
 	if err := m.CollateralSeed(context, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
+	if err := m.TagTemplateSeed(context, tx, userID, organizationID, branchID); err != nil {
+		return err
+	}
+	if err := m.LoanStatusSeed(context, tx, userID, organizationID, branchID); err != nil {
+		return err
+	}
 	userOrg, err := m.UserOrganizationManager.FindOne(context, &UserOrganization{
 		OrganizationID: organizationID,
 		BranchID:       &branchID,
 		UserID:         userID,
 	})
 	if err != nil {
+		return err
+	}
+	if err := m.MemberProfileSeed(context, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
 	userOrg.IsSeeded = true

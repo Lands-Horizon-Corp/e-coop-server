@@ -325,6 +325,7 @@ func (c *Controller) LoanTransactionController() {
 			ModeOfPaymentFixedDays:                 request.ModeOfPaymentFixedDays,
 			TotalCredit:                            request.Applied1,
 			TotalDebit:                             request.Applied1,
+			ModeOfPaymentMonthlyExactDay:           request.ModeOfPaymentMonthlyExactDay,
 		}
 
 		if err := c.model.LoanTransactionManager.CreateWithTx(context, tx, loanTransaction); err != nil {
@@ -671,6 +672,8 @@ func (c *Controller) LoanTransactionController() {
 		loanTransaction.PaidByName = request.PaidByName
 		loanTransaction.PaidByPosition = request.PaidByPosition
 		loanTransaction.ModeOfPaymentFixedDays = request.ModeOfPaymentFixedDays
+		loanTransaction.ModeOfPaymentMonthlyExactDay = request.ModeOfPaymentMonthlyExactDay
+
 		loanTransaction.UpdatedAt = time.Now().UTC()
 
 		if request.LoanTransactionEntriesDeleted != nil {
@@ -1199,6 +1202,7 @@ func (c *Controller) LoanTransactionController() {
 			totalCredit += entry.Credit
 			totalDebit += entry.Debit
 		}
+
 		loanTransaction.TotalCredit = totalCredit
 		loanTransaction.TotalDebit = totalDebit
 
@@ -1721,39 +1725,30 @@ func (c *Controller) LoanTransactionController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this loan transaction"})
 		}
 		loanTransaction.ApprovedBySignatureMediaID = req.ApprovedBySignatureMediaID
-		loanTransaction.ApprovedBySignatureMedia = req.ApprovedBySignatureMedia
 		loanTransaction.ApprovedByName = req.ApprovedByName
 		loanTransaction.ApprovedByPosition = req.ApprovedByPosition
 		loanTransaction.PreparedBySignatureMediaID = req.PreparedBySignatureMediaID
-		loanTransaction.PreparedBySignatureMedia = req.PreparedBySignatureMedia
 		loanTransaction.PreparedByName = req.PreparedByName
 		loanTransaction.PreparedByPosition = req.PreparedByPosition
 		loanTransaction.CertifiedBySignatureMediaID = req.CertifiedBySignatureMediaID
-		loanTransaction.CertifiedBySignatureMedia = req.CertifiedBySignatureMedia
 		loanTransaction.CertifiedByName = req.CertifiedByName
 		loanTransaction.CertifiedByPosition = req.CertifiedByPosition
 		loanTransaction.VerifiedBySignatureMediaID = req.VerifiedBySignatureMediaID
-		loanTransaction.VerifiedBySignatureMedia = req.VerifiedBySignatureMedia
 		loanTransaction.VerifiedByName = req.VerifiedByName
 		loanTransaction.VerifiedByPosition = req.VerifiedByPosition
 		loanTransaction.CheckBySignatureMediaID = req.CheckBySignatureMediaID
-		loanTransaction.CheckBySignatureMedia = req.CheckBySignatureMedia
 		loanTransaction.CheckByName = req.CheckByName
 		loanTransaction.CheckByPosition = req.CheckByPosition
 		loanTransaction.AcknowledgeBySignatureMediaID = req.AcknowledgeBySignatureMediaID
-		loanTransaction.AcknowledgeBySignatureMedia = req.AcknowledgeBySignatureMedia
 		loanTransaction.AcknowledgeByName = req.AcknowledgeByName
 		loanTransaction.AcknowledgeByPosition = req.AcknowledgeByPosition
 		loanTransaction.NotedBySignatureMediaID = req.NotedBySignatureMediaID
-		loanTransaction.NotedBySignatureMedia = req.NotedBySignatureMedia
 		loanTransaction.NotedByName = req.NotedByName
 		loanTransaction.NotedByPosition = req.NotedByPosition
 		loanTransaction.PostedBySignatureMediaID = req.PostedBySignatureMediaID
-		loanTransaction.PostedBySignatureMedia = req.PostedBySignatureMedia
 		loanTransaction.PostedByName = req.PostedByName
 		loanTransaction.PostedByPosition = req.PostedByPosition
 		loanTransaction.PaidBySignatureMediaID = req.PaidBySignatureMediaID
-		loanTransaction.PaidBySignatureMedia = req.PaidBySignatureMedia
 		loanTransaction.PaidByName = req.PaidByName
 		loanTransaction.PaidByPosition = req.PaidByPosition
 		loanTransaction.UpdatedAt = time.Now().UTC()

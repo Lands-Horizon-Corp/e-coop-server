@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
-
+	
 type (
 	LoanTag struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
@@ -31,11 +31,11 @@ type (
 		LoanTransactionID *uuid.UUID       `gorm:"type:uuid"`
 		LoanTransaction   *LoanTransaction `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"loan_transaction,omitempty"`
 
-		Name        string `gorm:"type:varchar(50);not null"`
-		Description string `gorm:"type:text"`
-		Category    string `gorm:"type:varchar(50)"`
-		Color       string `gorm:"type:varchar(20)"`
-		Icon        string `gorm:"type:varchar(20)"`
+		Name        string      `gorm:"type:varchar(50);not null"`
+		Description string      `gorm:"type:text"`
+		Category    TagCategory `gorm:"type:varchar(50)"`
+		Color       string      `gorm:"type:varchar(20)"`
+		Icon        string      `gorm:"type:varchar(20)"`
 	}
 
 	LoanTagResponse struct {
@@ -98,7 +98,7 @@ func (m *Model) LoanTag() {
 				LoanTransaction:   m.LoanTransactionManager.ToModel(data.LoanTransaction),
 				Name:              data.Name,
 				Description:       data.Description,
-				Category:          TagCategory(data.Category),
+				Category:          data.Category,
 				Color:             data.Color,
 				Icon:              data.Icon,
 			}

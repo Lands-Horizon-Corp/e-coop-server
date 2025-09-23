@@ -38,6 +38,36 @@ func (c *Controller) LoanTagController() {
 		return ctx.JSON(http.StatusOK, c.model.LoanTagManager.Filtered(context, ctx, loanTags))
 	})
 
+	// GET /api/v1/loan-tag/loan-transaction/:loan_transaction_id: List loan tags by loan transaction ID for the current branch. (NO footstep)
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/loan-tag/loan-transaction/:loan_transaction_id",
+		Method:       "GET",
+		Note:         "Returns all loan tags for the specified loan transaction ID within the current user's organization and branch.",
+		ResponseType: model.LoanTagResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
+		}
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if user.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		loanTags, err := c.model.LoanTagManager.Find(context, &model.LoanTag{
+			LoanTransactionID: loanTransactionID,
+			OrganizationID:    user.OrganizationID,
+			BranchID:          *user.BranchID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No loan tags found for the specified loan transaction ID in the current branch"})
+		}
+		return ctx.JSON(http.StatusOK, c.model.LoanTagManager.Filtered(context, ctx, loanTags))
+	})
+
 	// GET /loan-tag/search: Paginated search of loan tags for the current branch. (NO footstep)
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/loan-tag/search",
@@ -119,7 +149,7 @@ func (c *Controller) LoanTagController() {
 			LoanTransactionID: req.LoanTransactionID,
 			Name:              req.Name,
 			Description:       req.Description,
-			Category:          string(req.Category),
+			Category:          req.Category,
 			Color:             req.Color,
 			Icon:              req.Icon,
 			CreatedAt:         time.Now().UTC(),
@@ -195,7 +225,7 @@ func (c *Controller) LoanTagController() {
 		loanTag.LoanTransactionID = req.LoanTransactionID
 		loanTag.Name = req.Name
 		loanTag.Description = req.Description
-		loanTag.Category = string(req.Category)
+		loanTag.Category = req.Category
 		loanTag.Color = req.Color
 		loanTag.Icon = req.Icon
 		loanTag.UpdatedAt = time.Now().UTC()

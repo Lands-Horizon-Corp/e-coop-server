@@ -340,4 +340,26 @@ func (c *Controller) CashCheckVoucherTagController() {
 		})
 		return ctx.NoContent(http.StatusNoContent)
 	})
+
+	// cash check voucher tag
+	// GET /api/v1/cash-check-voucher-tag/cash-check-voucher/:cash_check_voucher_id
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/cash-check-voucher-tag/cash-check-voucher/:cash_check_voucher_id",
+		Method:       "GET",
+		Note:         "Returns all cash check voucher tags for the specified cash check voucher ID.",
+		ResponseType: model.CashCheckVoucherTagResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		cashCheckVoucherID, err := handlers.EngineUUIDParam(ctx, "cash_check_voucher_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid cash check voucher ID"})
+		}
+		tags, err := c.model.CashCheckVoucherTagManager.Find(context, &model.CashCheckVoucherTag{
+			CashCheckVoucherID: cashCheckVoucherID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No cash check voucher tags found for the specified cash check voucher ID"})
+		}
+		return ctx.JSON(http.StatusOK, c.model.CashCheckVoucherTagManager.Filtered(context, ctx, tags))
+	})
 }

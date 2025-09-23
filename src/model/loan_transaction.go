@@ -507,50 +507,41 @@ type (
 	}
 
 	LoanTransactionSignatureRequest struct {
-		ApprovedBySignatureMediaID *uuid.UUID `gorm:"type:uuid"`
-		ApprovedBySignatureMedia   *Media     `gorm:"foreignKey:ApprovedBySignatureMediaID;constraint:OnDelete:SET NULL;" json:"approved_by_signature_media,omitempty"`
-		ApprovedByName             string     `gorm:"type:varchar(255)"`
-		ApprovedByPosition         string     `gorm:"type:varchar(255)"`
+		ApprovedBySignatureMediaID *uuid.UUID `json:"approved_by_signature_media_id,omitempty" validate:"omitempty,uuid"`
+		ApprovedByName             string     `json:"approved_by_name,omitempty" validate:"omitempty,max=255"`
+		ApprovedByPosition         string     `json:"approved_by_position,omitempty" validate:"omitempty,max=255"`
 
-		PreparedBySignatureMediaID *uuid.UUID `gorm:"type:uuid"`
-		PreparedBySignatureMedia   *Media     `gorm:"foreignKey:PreparedBySignatureMediaID;constraint:OnDelete:SET NULL;" json:"prepared_by_signature_media,omitempty"`
-		PreparedByName             string     `gorm:"type:varchar(255)"`
-		PreparedByPosition         string     `gorm:"type:varchar(255)"`
+		PreparedBySignatureMediaID *uuid.UUID `json:"prepared_by_signature_media_id,omitempty" validate:"omitempty,uuid"`
+		PreparedByName             string     `json:"prepared_by_name,omitempty" validate:"omitempty,max=255"`
+		PreparedByPosition         string     `json:"prepared_by_position,omitempty" validate:"omitempty,max=255"`
 
-		CertifiedBySignatureMediaID *uuid.UUID `gorm:"type:uuid"`
-		CertifiedBySignatureMedia   *Media     `gorm:"foreignKey:CertifiedBySignatureMediaID;constraint:OnDelete:SET NULL;" json:"certified_by_signature_media,omitempty"`
-		CertifiedByName             string     `gorm:"type:varchar(255)"`
-		CertifiedByPosition         string     `gorm:"type:varchar(255)"`
+		CertifiedBySignatureMediaID *uuid.UUID `json:"certified_by_signature_media_id,omitempty" validate:"omitempty,uuid"`
+		CertifiedByName             string     `json:"certified_by_name,omitempty" validate:"omitempty,max=255"`
+		CertifiedByPosition         string     `json:"certified_by_position,omitempty" validate:"omitempty,max=255"`
 
-		VerifiedBySignatureMediaID *uuid.UUID `gorm:"type:uuid"`
-		VerifiedBySignatureMedia   *Media     `gorm:"foreignKey:VerifiedBySignatureMediaID;constraint:OnDelete:SET NULL;" json:"verified_by_signature_media,omitempty"`
-		VerifiedByName             string     `gorm:"type:varchar(255)"`
-		VerifiedByPosition         string     `gorm:"type:varchar(255)"`
+		VerifiedBySignatureMediaID *uuid.UUID `json:"verified_by_signature_media_id,omitempty" validate:"omitempty,uuid"`
+		VerifiedByName             string     `json:"verified_by_name,omitempty" validate:"omitempty,max=255"`
+		VerifiedByPosition         string     `json:"verified_by_position,omitempty" validate:"omitempty,max=255"`
 
-		CheckBySignatureMediaID *uuid.UUID `gorm:"type:uuid"`
-		CheckBySignatureMedia   *Media     `gorm:"foreignKey:CheckBySignatureMediaID;constraint:OnDelete:SET NULL;" json:"check_by_signature_media,omitempty"`
-		CheckByName             string     `gorm:"type:varchar(255)"`
-		CheckByPosition         string     `gorm:"type:varchar(255)"`
+		CheckBySignatureMediaID *uuid.UUID `json:"check_by_signature_media_id,omitempty" validate:"omitempty,uuid"`
+		CheckByName             string     `json:"check_by_name,omitempty" validate:"omitempty,max=255"`
+		CheckByPosition         string     `json:"check_by_position,omitempty" validate:"omitempty,max=255"`
 
-		AcknowledgeBySignatureMediaID *uuid.UUID `gorm:"type:uuid"`
-		AcknowledgeBySignatureMedia   *Media     `gorm:"foreignKey:AcknowledgeBySignatureMediaID;constraint:OnDelete:SET NULL;" json:"acknowledge_by_signature_media,omitempty"`
-		AcknowledgeByName             string     `gorm:"type:varchar(255)"`
-		AcknowledgeByPosition         string     `gorm:"type:varchar(255)"`
+		AcknowledgeBySignatureMediaID *uuid.UUID `json:"acknowledge_by_signature_media_id,omitempty" validate:"omitempty,uuid"`
+		AcknowledgeByName             string     `json:"acknowledge_by_name,omitempty" validate:"omitempty,max=255"`
+		AcknowledgeByPosition         string     `json:"acknowledge_by_position,omitempty" validate:"omitempty,max=255"`
 
-		NotedBySignatureMediaID *uuid.UUID `gorm:"type:uuid"`
-		NotedBySignatureMedia   *Media     `gorm:"foreignKey:NotedBySignatureMediaID;constraint:OnDelete:SET NULL;" json:"noted_by_signature_media,omitempty"`
-		NotedByName             string     `gorm:"type:varchar(255)"`
-		NotedByPosition         string     `gorm:"type:varchar(255)"`
+		NotedBySignatureMediaID *uuid.UUID `json:"noted_by_signature_media_id,omitempty" validate:"omitempty,uuid"`
+		NotedByName             string     `json:"noted_by_name,omitempty" validate:"omitempty,max=255"`
+		NotedByPosition         string     `json:"noted_by_position,omitempty" validate:"omitempty,max=255"`
 
-		PostedBySignatureMediaID *uuid.UUID `gorm:"type:uuid"`
-		PostedBySignatureMedia   *Media     `gorm:"foreignKey:PostedBySignatureMediaID;constraint:OnDelete:SET NULL;" json:"posted_by_signature_media,omitempty"`
-		PostedByName             string     `gorm:"type:varchar(255)"`
-		PostedByPosition         string     `gorm:"type:varchar(255)"`
+		PostedBySignatureMediaID *uuid.UUID `json:"posted_by_signature_media_id,omitempty" validate:"omitempty,uuid"`
+		PostedByName             string     `json:"posted_by_name,omitempty" validate:"omitempty,max=255"`
+		PostedByPosition         string     `json:"posted_by_position,omitempty" validate:"omitempty,max=255"`
 
-		PaidBySignatureMediaID *uuid.UUID `gorm:"type:uuid"`
-		PaidBySignatureMedia   *Media     `gorm:"foreignKey:PaidBySignatureMediaID;constraint:OnDelete:SET NULL;" json:"paid_by_signature_media,omitempty"`
-		PaidByName             string     `gorm:"type:varchar(255)"`
-		PaidByPosition         string     `gorm:"type:varchar(255)"`
+		PaidBySignatureMediaID *uuid.UUID `json:"paid_by_signature_media_id,omitempty" validate:"omitempty,uuid"`
+		PaidByName             string     `json:"paid_by_name,omitempty" validate:"omitempty,max=255"`
+		PaidByPosition         string     `json:"paid_by_position,omitempty" validate:"omitempty,max=255"`
 	}
 )
 
@@ -562,7 +553,7 @@ func (m *Model) LoanTransaction() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Branch", "Organization", "EmployeeUser",
 			"TransactionBatch", "LoanPurpose", "LoanStatus",
-			"ComakerDepositMemberAccountingLedger", "ComakerCollateral", "PreviousLoan",
+			"ComakerDepositMemberAccountingLedger", "PreviousLoan", "ComakerDepositMemberAccountingLedger.Account",
 			"Account", "MemberProfile", "MemberJointAccount", "SignatureMedia",
 			"ApprovedBySignatureMedia", "PreparedBySignatureMedia", "CertifiedBySignatureMedia",
 			"VerifiedBySignatureMedia", "CheckBySignatureMedia", "AcknowledgeBySignatureMedia",

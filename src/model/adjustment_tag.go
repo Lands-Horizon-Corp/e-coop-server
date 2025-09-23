@@ -11,7 +11,7 @@ import (
 )
 
 type (
-	AdjustmentEntryTag struct {
+	AdjustmentTag struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
 		CreatedByID uuid.UUID      `gorm:"type:uuid" json:"created_by_id"`
@@ -38,7 +38,7 @@ type (
 		Icon        string `gorm:"type:varchar(20)" json:"icon"`
 	}
 
-	AdjustmentEntryTagResponse struct {
+	AdjustmentTagResponse struct {
 		ID                uuid.UUID                `json:"id"`
 		CreatedAt         string                   `json:"created_at"`
 		CreatedByID       uuid.UUID                `json:"created_by_id"`
@@ -59,7 +59,7 @@ type (
 		Icon              string                   `json:"icon"`
 	}
 
-	AdjustmentEntryTagRequest struct {
+	AdjustmentTagRequest struct {
 		AdjustmentEntryID *uuid.UUID `json:"adjustment_entry_id,omitempty"`
 		Name              string     `json:"name,omitempty"`
 		Description       string     `json:"description,omitempty"`
@@ -69,20 +69,20 @@ type (
 	}
 )
 
-func (m *Model) AdjustmentEntryTag() {
-	m.Migration = append(m.Migration, &AdjustmentEntryTag{})
-	m.AdjustmentEntryTagManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
-		AdjustmentEntryTag, AdjustmentEntryTagResponse, AdjustmentEntryTagRequest,
+func (m *Model) AdjustmentTag() {
+	m.Migration = append(m.Migration, &AdjustmentTag{})
+	m.AdjustmentTagManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+		AdjustmentTag, AdjustmentTagResponse, AdjustmentTagRequest,
 	]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Branch", "Organization", "AdjustmentEntry",
 		},
 		Service: m.provider.Service,
-		Resource: func(data *AdjustmentEntryTag) *AdjustmentEntryTagResponse {
+		Resource: func(data *AdjustmentTag) *AdjustmentTagResponse {
 			if data == nil {
 				return nil
 			}
-			return &AdjustmentEntryTagResponse{
+			return &AdjustmentTagResponse{
 				ID:                data.ID,
 				CreatedAt:         data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:       data.CreatedByID,
@@ -103,7 +103,7 @@ func (m *Model) AdjustmentEntryTag() {
 				Icon:              data.Icon,
 			}
 		},
-		Created: func(data *AdjustmentEntryTag) []string {
+		Created: func(data *AdjustmentTag) []string {
 			return []string{
 				"adjustment_entry_tag.create",
 				fmt.Sprintf("adjustment_entry_tag.create.%s", data.ID),
@@ -111,7 +111,7 @@ func (m *Model) AdjustmentEntryTag() {
 				fmt.Sprintf("adjustment_entry_tag.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *AdjustmentEntryTag) []string {
+		Updated: func(data *AdjustmentTag) []string {
 			return []string{
 				"adjustment_entry_tag.update",
 				fmt.Sprintf("adjustment_entry_tag.update.%s", data.ID),
@@ -119,7 +119,7 @@ func (m *Model) AdjustmentEntryTag() {
 				fmt.Sprintf("adjustment_entry_tag.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *AdjustmentEntryTag) []string {
+		Deleted: func(data *AdjustmentTag) []string {
 			return []string{
 				"adjustment_entry_tag.delete",
 				fmt.Sprintf("adjustment_entry_tag.delete.%s", data.ID),
@@ -130,8 +130,8 @@ func (m *Model) AdjustmentEntryTag() {
 	})
 }
 
-func (m *Model) AdjustmentEntryTagCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*AdjustmentEntryTag, error) {
-	return m.AdjustmentEntryTagManager.Find(context, &AdjustmentEntryTag{
+func (m *Model) AdjustmentTagCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*AdjustmentTag, error) {
+	return m.AdjustmentTagManager.Find(context, &AdjustmentTag{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})
