@@ -216,6 +216,37 @@ func (c *Controller) JournalVoucherTagController() {
 		return ctx.JSON(http.StatusOK, c.model.JournalVoucherTagManager.ToModel(tag))
 	})
 
+	// GET  "/api/v1/journal-voucher-tag/journal-voucher/:journal_voucher_id" - List journal voucher tags by journal voucher ID. (NO footstep)
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/journal-voucher-tag/journal-voucher/:journal_voucher_id",
+		Method:       "GET",
+		Note:         "Returns all journal voucher tags associated with the specified journal voucher ID.",
+		ResponseType: model.JournalVoucherTagResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		journalVoucherID, err := handlers.EngineUUIDParam(ctx, "journal_voucher_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid journal voucher ID"})
+		}
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if user.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+
+		tags, err := c.model.JournalVoucherTagManager.Find(context, &model.JournalVoucherTag{
+			JournalVoucherID: journalVoucherID,
+			OrganizationID:   user.OrganizationID,
+			BranchID:         *user.BranchID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No journal voucher tags found for the given journal voucher ID"})
+		}
+		return ctx.JSON(http.StatusOK, c.model.JournalVoucherTagManager.Filtered(context, ctx, tags))
+	})
+
 	// DELETE /journal-voucher-tag/:tag_id: Delete a journal voucher tag by ID. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
 		Route:  "/api/v1/journal-voucher-tag/:tag_id",
