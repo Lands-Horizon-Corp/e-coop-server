@@ -109,7 +109,7 @@ func (h *UserOrganizationToken) CurrentUserOrganization(ctx context.Context, ech
 	}
 
 	h.ClearCurrentToken(ctx, echoCtx)
-	return nil, echo.NewHTTPError(http.StatusUnauthorized, "authentication required")
+	return nil, echo.NewHTTPError(http.StatusUnauthorized, "authentication required - "+err.Error())
 }
 
 func (h *UserOrganizationToken) SetUserOrganization(ctx context.Context, echoCtx echo.Context, userOrganization *model.UserOrganization) error {
