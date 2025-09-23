@@ -12,6 +12,26 @@ import (
 )
 
 type TagCategory string
+
+const (
+	TagCategoryStatus          TagCategory = "status"
+	TagCategoryAlert           TagCategory = "alert"
+	TagCategoryPriority        TagCategory = "priority"
+	TagCategoryTransactionType TagCategory = "transaction_type"
+	TagCategoryAccountType     TagCategory = "account_ type"
+	TagCategorySpecial         TagCategory = "special"
+	TagCategoryCalculation     TagCategory = "calculation"
+	TagCategoryCooperative     TagCategory = "cooperative"
+	TagCategoryLoan            TagCategory = "loan"
+	TagCategoryCommunity       TagCategory = "community"
+	TagCategoryInsurance       TagCategory = "insurance"
+	TagCategoryGovernance      TagCategory = "governance"
+	TagCategoryReserves        TagCategory = "reserves"
+	TagCategoryDigital         TagCategory = "digital"
+	TagCategoryMembership      TagCategory = "membership"
+	TagCategorySecurity        TagCategory = "security"
+)
+
 type (
 	TagTemplate struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
@@ -30,11 +50,11 @@ type (
 		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_tag_template"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
-		Name        string `gorm:"type:varchar(50)"`
-		Description string `gorm:"type:text"`
-		Category    string `gorm:"type:varchar(50)"`
-		Color       string `gorm:"type:varchar(20)"`
-		Icon        string `gorm:"type:varchar(20)"`
+		Name        string      `gorm:"type:varchar(50)"`
+		Description string      `gorm:"type:text"`
+		Category    TagCategory `gorm:"type:varchar(50)"`
+		Color       string      `gorm:"type:varchar(20)"`
+		Icon        string      `gorm:"type:varchar(20)"`
 	}
 
 	TagTemplateResponse struct {
@@ -57,11 +77,11 @@ type (
 	}
 
 	TagTemplateRequest struct {
-		Name        string `json:"name" validate:"required,min=1,max=50"`
-		Description string `json:"description,omitempty"`
-		Category    string `json:"category,omitempty"`
-		Color       string `json:"color,omitempty"`
-		Icon        string `json:"icon,omitempty"`
+		Name        string      `json:"name" validate:"required,min=1,max=50"`
+		Description string      `json:"description,omitempty"`
+		Category    TagCategory `json:"category,omitempty"`
+		Color       string      `json:"color,omitempty"`
+		Icon        string      `json:"icon,omitempty"`
 	}
 )
 
@@ -92,7 +112,7 @@ func (m *Model) TagTemplate() {
 				Branch:         m.BranchManager.ToModel(data.Branch),
 				Name:           data.Name,
 				Description:    data.Description,
-				Category:       TagCategory(data.Category),
+				Category:       data.Category,
 				Color:          data.Color,
 				Icon:           data.Icon,
 			}
@@ -138,7 +158,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Pending",
 			Description:    "Transaction or record is pending approval or processing",
-			Category:       "status",
+			Category:       TagCategoryStatus,
 			Color:          "#F59E0B", // Yellow
 			Icon:           "Clock",
 		},
@@ -151,7 +171,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Approved",
 			Description:    "Transaction or record has been approved",
-			Category:       "status",
+			Category:       TagCategoryStatus,
 			Color:          "#10B981", // Green
 			Icon:           "Badge Check",
 		},
@@ -164,7 +184,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Rejected",
 			Description:    "Transaction or record has been rejected",
-			Category:       "status",
+			Category:       TagCategoryStatus,
 			Color:          "#EF4444", // Red
 			Icon:           "Badge Minus",
 		},
@@ -177,7 +197,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Aborted",
 			Description:    "Transaction or record was aborted during processing",
-			Category:       "status",
+			Category:       TagCategoryStatus,
 			Color:          "#DC2626", // Dark Red
 			Icon:           "Stop",
 		},
@@ -190,7 +210,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Completed",
 			Description:    "Transaction or record has been completed successfully",
-			Category:       "status",
+			Category:       TagCategoryStatus,
 			Color:          "#059669", // Dark Green
 			Icon:           "Check Fill",
 		},
@@ -203,7 +223,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "In Progress",
 			Description:    "Transaction or record is currently being processed",
-			Category:       "status",
+			Category:       TagCategoryStatus,
 			Color:          "#3B82F6", // Blue
 			Icon:           "Loading Spinner",
 		},
@@ -216,7 +236,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Warning",
 			Description:    "Transaction or record requires attention or has warnings",
-			Category:       "alert",
+			Category:       TagCategoryAlert,
 			Color:          "#F59E0B", // Yellow/Orange
 			Icon:           "Warning",
 		},
@@ -230,7 +250,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "High Priority",
 			Description:    "High priority transaction or record requiring urgent attention",
-			Category:       "priority",
+			Category:       TagCategoryPriority,
 			Color:          "#DC2626", // Red
 			Icon:           "Badge Exclamation",
 		},
@@ -243,7 +263,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Medium Priority",
 			Description:    "Medium priority transaction or record",
-			Category:       "priority",
+			Category:       TagCategoryPriority,
 			Color:          "#F59E0B", // Orange
 			Icon:           "Badge Question",
 		},
@@ -256,7 +276,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Low Priority",
 			Description:    "Low priority transaction or record",
-			Category:       "priority",
+			Category:       TagCategoryPriority,
 			Color:          "#6B7280", // Gray
 			Icon:           "Info",
 		},
@@ -270,7 +290,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Cash Transaction",
 			Description:    "Transaction involving cash payments or receipts",
-			Category:       "transaction_type",
+			Category:       TagCategoryTransactionType,
 			Color:          "#10B981", // Green
 			Icon:           "Money Stack",
 		},
@@ -283,7 +303,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Bank Transfer",
 			Description:    "Transaction processed through bank transfer",
-			Category:       "transaction_type",
+			Category:       TagCategoryTransactionType,
 			Color:          "#3B82F6", // Blue
 			Icon:           "Bank",
 		},
@@ -296,7 +316,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Credit Card",
 			Description:    "Transaction processed via credit card",
-			Category:       "transaction_type",
+			Category:       TagCategoryTransactionType,
 			Color:          "#8B5CF6", // Purple
 			Icon:           "Credit Card",
 		},
@@ -309,7 +329,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Online Payment",
 			Description:    "Transaction processed through online payment systems",
-			Category:       "transaction_type",
+			Category:       TagCategoryTransactionType,
 			Color:          "#06B6D4", // Cyan
 			Icon:           "Online Payment",
 		},
@@ -323,7 +343,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Asset",
 			Description:    "Account classified as an asset",
-			Category:       "account_type",
+			Category:       TagCategoryAccountType,
 			Color:          "#10B981", // Green
 			Icon:           "Money Bag",
 		},
@@ -336,7 +356,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Liability",
 			Description:    "Account classified as a liability",
-			Category:       "account_type",
+			Category:       TagCategoryAccountType,
 			Color:          "#EF4444", // Red
 			Icon:           "Credit Card",
 		},
@@ -349,7 +369,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Equity",
 			Description:    "Account classified as equity",
-			Category:       "account_type",
+			Category:       TagCategoryAccountType,
 			Color:          "#8B5CF6", // Purple
 			Icon:           "Pie Chart",
 		},
@@ -362,7 +382,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Revenue",
 			Description:    "Account classified as revenue or income",
-			Category:       "account_type",
+			Category:       TagCategoryAccountType,
 			Color:          "#059669", // Dark Green
 			Icon:           "Trend Up",
 		},
@@ -375,7 +395,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Expense",
 			Description:    "Account classified as an expense",
-			Category:       "account_type",
+			Category:       TagCategoryAccountType,
 			Color:          "#DC2626", // Dark Red
 			Icon:           "Trend Down",
 		},
@@ -389,7 +409,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Recurring",
 			Description:    "Recurring transaction or scheduled entry",
-			Category:       "special",
+			Category:       TagCategorySpecial,
 			Color:          "#06B6D4", // Cyan
 			Icon:           "Refresh",
 		},
@@ -402,7 +422,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Adjustment",
 			Description:    "Adjustment entry for corrections or modifications",
-			Category:       "special",
+			Category:       TagCategorySpecial,
 			Color:          "#F59E0B", // Orange
 			Icon:           "Adjust",
 		},
@@ -415,7 +435,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Year End",
 			Description:    "Year-end closing or adjustment entries",
-			Category:       "special",
+			Category:       TagCategorySpecial,
 			Color:          "#6366F1", // Indigo
 			Icon:           "Calendar",
 		},
@@ -428,7 +448,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Audit",
 			Description:    "Entry related to audit requirements or adjustments",
-			Category:       "special",
+			Category:       TagCategorySpecial,
 			Color:          "#7C2D12", // Brown
 			Icon:           "Shield Check",
 		},
@@ -441,7 +461,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Tax Related",
 			Description:    "Transaction or entry related to tax calculations or payments",
-			Category:       "special",
+			Category:       TagCategorySpecial,
 			Color:          "#991B1B", // Dark Red
 			Icon:           "Receipt",
 		},
@@ -454,7 +474,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Loan Related",
 			Description:    "Transaction or entry related to loan processing or payments",
-			Category:       "loan",
+			Category:       TagCategoryLoan,
 			Color:          "#7C2D12", // Brown
 			Icon:           "Hand Coins",
 		},
@@ -467,7 +487,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Interest",
 			Description:    "Transaction involving interest calculations or payments",
-			Category:       "calculation",
+			Category:       TagCategoryCalculation,
 			Color:          "#0891B2", // Dark Cyan
 			Icon:           "Percent",
 		},
@@ -480,7 +500,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Fee",
 			Description:    "Transaction involving service fees or charges",
-			Category:       "calculation",
+			Category:       TagCategoryCalculation,
 			Color:          "#BE185D", // Pink
 			Icon:           "Price Tag",
 		},
@@ -494,7 +514,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Member Savings",
 			Description:    "Savings account transactions for cooperative members",
-			Category:       "cooperative",
+			Category:       TagCategoryCooperative,
 			Color:          "#16A34A", // Green
 			Icon:           "Savings",
 		},
@@ -507,7 +527,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Share Capital",
 			Description:    "Share capital contributions and transactions",
-			Category:       "cooperative",
+			Category:       TagCategoryCooperative,
 			Color:          "#0F766E", // Teal
 			Icon:           "Pie Chart",
 		},
@@ -520,7 +540,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Dividend Distribution",
 			Description:    "Distribution of dividends to cooperative members",
-			Category:       "cooperative",
+			Category:       TagCategoryCooperative,
 			Color:          "#059669", // Emerald
 			Icon:           "Hand Coins",
 		},
@@ -533,7 +553,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Patronage Refund",
 			Description:    "Patronage refunds based on member usage",
-			Category:       "cooperative",
+			Category:       TagCategoryCooperative,
 			Color:          "#0D9488", // Teal
 			Icon:           "Money Trend",
 		},
@@ -546,7 +566,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Membership Fee",
 			Description:    "Membership fees and registration costs",
-			Category:       "cooperative",
+			Category:       TagCategoryCooperative,
 			Color:          "#7C2D12", // Brown
 			Icon:           "User Tag",
 		},
@@ -559,7 +579,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Member Loan",
 			Description:    "Loans provided to cooperative members",
-			Category:       "loan",
+			Category:       TagCategoryLoan,
 			Color:          "#B45309", // Amber
 			Icon:           "Hand Deposit",
 		},
@@ -572,7 +592,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Agricultural Loan",
 			Description:    "Specialized loans for agricultural purposes",
-			Category:       "loan",
+			Category:       TagCategoryLoan,
 			Color:          "#65A30D", // Lime
 			Icon:           "Plant Growth",
 		},
@@ -585,7 +605,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Microfinance",
 			Description:    "Small loans for micro-enterprises and small businesses",
-			Category:       "loan",
+			Category:       TagCategoryLoan,
 			Color:          "#CA8A04", // Yellow
 			Icon:           "Money Bag",
 		},
@@ -598,7 +618,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Emergency Loan",
 			Description:    "Emergency loans for urgent member needs",
-			Category:       "loan",
+			Category:       TagCategoryLoan,
 			Color:          "#DC2626", // Red
 			Icon:           "Shield",
 		},
@@ -611,7 +631,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Educational Loan",
 			Description:    "Loans for educational expenses and tuition",
-			Category:       "loan",
+			Category:       TagCategoryLoan,
 			Color:          "#2563EB", // Blue
 			Icon:           "School",
 		},
@@ -624,7 +644,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Housing Loan",
 			Description:    "Loans for housing and real estate purchases",
-			Category:       "loan",
+			Category:       TagCategoryLoan,
 			Color:          "#7C3AED", // Violet
 			Icon:           "House",
 		},
@@ -638,7 +658,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Community Fund",
 			Description:    "Contributions to community development funds",
-			Category:       "community",
+			Category:       TagCategoryCommunity,
 			Color:          "#0891B2", // Cyan
 			Icon:           "People Group",
 		},
@@ -651,7 +671,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Social Responsibility",
 			Description:    "Corporate social responsibility initiatives",
-			Category:       "community",
+			Category:       TagCategoryCommunity,
 			Color:          "#059669", // Emerald
 			Icon:           "Hand Shake Heart",
 		},
@@ -664,7 +684,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Charity Donation",
 			Description:    "Charitable donations and community support",
-			Category:       "community",
+			Category:       TagCategoryCommunity,
 			Color:          "#DB2777", // Pink
 			Icon:           "Hands Helping",
 		},
@@ -677,7 +697,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Educational Support",
 			Description:    "Educational assistance and scholarship programs",
-			Category:       "community",
+			Category:       TagCategoryCommunity,
 			Color:          "#2563EB", // Blue
 			Icon:           "Graduation Cap",
 		},
@@ -690,7 +710,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Health Insurance",
 			Description:    "Health insurance contributions and claims",
-			Category:       "insurance",
+			Category:       TagCategoryInsurance,
 			Color:          "#DC2626", // Red
 			Icon:           "Shield Check",
 		},
@@ -703,7 +723,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Life Insurance",
 			Description:    "Life insurance premiums and benefits",
-			Category:       "insurance",
+			Category:       TagCategoryInsurance,
 			Color:          "#7C2D12", // Brown
 			Icon:           "Shield",
 		},
@@ -716,7 +736,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Crop Insurance",
 			Description:    "Agricultural crop insurance for farmers",
-			Category:       "insurance",
+			Category:       TagCategoryInsurance,
 			Color:          "#65A30D", // Lime
 			Icon:           "Plant Growth",
 		},
@@ -730,7 +750,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Board Resolution",
 			Description:    "Transactions requiring board resolution approval",
-			Category:       "governance",
+			Category:       TagCategoryGovernance,
 			Color:          "#6366F1", // Indigo
 			Icon:           "Users 3",
 		},
@@ -743,7 +763,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "AGM Related",
 			Description:    "Annual General Meeting related transactions",
-			Category:       "governance",
+			Category:       TagCategoryGovernance,
 			Color:          "#7C3AED", // Violet
 			Icon:           "Calendar Check",
 		},
@@ -756,7 +776,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Regulatory Compliance",
 			Description:    "Compliance with regulatory requirements",
-			Category:       "governance",
+			Category:       TagCategoryGovernance,
 			Color:          "#991B1B", // Red
 			Icon:           "Shield Exclamation",
 		},
@@ -769,7 +789,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Reserve Fund",
 			Description:    "Transactions related to reserve fund allocations",
-			Category:       "reserves",
+			Category:       TagCategoryReserves,
 			Color:          "#0F766E", // Teal
 			Icon:           "Wallet",
 		},
@@ -782,7 +802,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Capital Reserve",
 			Description:    "Capital reserve fund transactions",
-			Category:       "reserves",
+			Category:       TagCategoryReserves,
 			Color:          "#059669", // Emerald
 			Icon:           "Money Stack",
 		},
@@ -795,7 +815,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Bad Debt Provision",
 			Description:    "Provision for bad debts and loan losses",
-			Category:       "reserves",
+			Category:       TagCategoryReserves,
 			Color:          "#DC2626", // Red
 			Icon:           "Warning Circle",
 		},
@@ -809,7 +829,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Mobile Banking",
 			Description:    "Transactions processed through mobile banking",
-			Category:       "digital",
+			Category:       TagCategoryDigital,
 			Color:          "#0891B2", // Cyan
 			Icon:           "Smartphone",
 		},
@@ -822,7 +842,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Online Banking",
 			Description:    "Internet banking transactions and services",
-			Category:       "digital",
+			Category:       TagCategoryDigital,
 			Color:          "#2563EB", // Blue
 			Icon:           "Globe",
 		},
@@ -835,7 +855,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "ATM Transaction",
 			Description:    "Automated Teller Machine transactions",
-			Category:       "digital",
+			Category:       TagCategoryDigital,
 			Color:          "#7C3AED", // Violet
 			Icon:           "Monitor",
 		},
@@ -848,7 +868,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "QR Payment",
 			Description:    "QR code based payment transactions",
-			Category:       "digital",
+			Category:       TagCategoryDigital,
 			Color:          "#059669", // Emerald
 			Icon:           "QR Code",
 		},
@@ -862,7 +882,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "New Member",
 			Description:    "New member registration and onboarding",
-			Category:       "membership",
+			Category:       TagCategoryMembership,
 			Color:          "#16A34A", // Green
 			Icon:           "User Plus",
 		},
@@ -875,7 +895,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Member Withdrawal",
 			Description:    "Member withdrawal from cooperative",
-			Category:       "membership",
+			Category:       TagCategoryMembership,
 			Color:          "#DC2626", // Red
 			Icon:           "Exit Door",
 		},
@@ -888,7 +908,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Death Benefit",
 			Description:    "Death benefits and insurance claims",
-			Category:       "insurance",
+			Category:       TagCategoryInsurance,
 			Color:          "#374151", // Gray
 			Icon:           "Shield Fill",
 		},
@@ -901,7 +921,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Loan Collateral",
 			Description:    "Collateral security for loan transactions",
-			Category:       "security",
+			Category:       TagCategorySecurity,
 			Color:          "#92400E", // Yellow
 			Icon:           "Shield Lock",
 		},
@@ -914,7 +934,7 @@ func (m *Model) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uui
 			BranchID:       branchID,
 			Name:           "Guarantee",
 			Description:    "Guarantee and surety related transactions",
-			Category:       "security",
+			Category:       TagCategorySecurity,
 			Color:          "#0F766E", // Teal
 			Icon:           "User Shield",
 		},

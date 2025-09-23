@@ -149,7 +149,7 @@ func (c *Controller) LoanTagController() {
 			LoanTransactionID: req.LoanTransactionID,
 			Name:              req.Name,
 			Description:       req.Description,
-			Category:          string(req.Category),
+			Category:          req.Category,
 			Color:             req.Color,
 			Icon:              req.Icon,
 			CreatedAt:         time.Now().UTC(),
@@ -225,7 +225,7 @@ func (c *Controller) LoanTagController() {
 		loanTag.LoanTransactionID = req.LoanTransactionID
 		loanTag.Name = req.Name
 		loanTag.Description = req.Description
-		loanTag.Category = string(req.Category)
+		loanTag.Category = req.Category
 		loanTag.Color = req.Color
 		loanTag.Icon = req.Icon
 		loanTag.UpdatedAt = time.Now().UTC()
