@@ -421,6 +421,9 @@ func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID 
 	if err := m.CollateralSeed(context, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
+	if err := m.TagTemplateSeed(context, tx, userID, organizationID, branchID); err != nil {
+		return err
+	}
 	userOrg, err := m.UserOrganizationManager.FindOne(context, &UserOrganization{
 		OrganizationID: organizationID,
 		BranchID:       &branchID,

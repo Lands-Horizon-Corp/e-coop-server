@@ -11,7 +11,6 @@ import (
 )
 
 // Enum for tag_category (customize as needed)
-type TagCategory string
 
 type (
 	GeneralLedgerTag struct {
