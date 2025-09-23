@@ -134,7 +134,7 @@ func (c *Controller) LoanTagController() {
 				Description: "Loan tag creation failed (/loan-tag), user org error: " + err.Error(),
 				Module:      "LoanTag",
 			})
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed " + err.Error()})
 		}
 		if user.BranchID == nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
