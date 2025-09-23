@@ -146,6 +146,37 @@ func (c *Controller) AdjustmentTagController() {
 		return ctx.JSON(http.StatusCreated, c.model.AdjustmentTagManager.ToModel(tag))
 	})
 
+	// "/api/v1/adjustment-tag/adjustment-entry/:adjustment_entry_id",
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/adjustment-tag/adjustment-entry/:adjustment_entry_id",
+		Method:       "GET",
+		Note:         "Returns all adjustment tags for the given adjustment entry ID.",
+		ResponseType: model.AdjustmentTagResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		adjustmentEntryID, err := handlers.EngineUUIDParam(ctx, "adjustment_entry_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid adjustment entry ID"})
+		}
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if user.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+
+		tags, err := c.model.AdjustmentTagManager.Find(context, &model.AdjustmentTag{
+			AdjustmentEntryID: adjustmentEntryID,
+			OrganizationID:    user.OrganizationID,
+			BranchID:          *user.BranchID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No adjustment tags found for the given adjustment entry ID"})
+		}
+		return ctx.JSON(http.StatusOK, c.model.AdjustmentTagManager.Filtered(context, ctx, tags))
+	})
+
 	// PUT /adjustment-tag/:tag_id: Update adjustment tag by ID. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/adjustment-tag/:tag_id",
