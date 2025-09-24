@@ -73,16 +73,13 @@ func (h *HorizonTokenService[T]) getTokenFromContext(c echo.Context) string {
 func (h *HorizonTokenService[T]) GetToken(ctx context.Context, c echo.Context) (*T, error) {
 	rawToken := h.getTokenFromContext(c)
 	if rawToken == "" {
-		h.CleanToken(ctx, c)
 		return nil, eris.New("authentication token is empty")
 	}
 
 	claim, err := h.VerifyToken(ctx, rawToken)
 	if err != nil {
-		h.CleanToken(ctx, c)
 		return nil, eris.Wrap(err, "invalid or expired authentication token")
 	}
-
 	return claim, nil
 }
 
