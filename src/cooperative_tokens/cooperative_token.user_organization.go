@@ -83,24 +83,18 @@ func (h *UserOrganizationToken) CurrentUserOrganization(ctx context.Context, ech
 	// Try JWT token first
 	claim, err := h.Token.GetToken(ctx, echoCtx)
 	if err == nil {
-		fmt.Printf("DEBUG: JWT token found, UserOrgID: %s\n", claim.UserOrganizationID)
 		id, err := uuid.Parse(claim.UserOrganizationID)
 		if err != nil {
-			fmt.Printf("DEBUG: Invalid UUID in token: %v\n", err)
 			h.ClearCurrentToken(ctx, echoCtx)
 			return nil, echo.NewHTTPError(http.StatusBadRequest, "invalid user ID in token")
 		}
 		userOrganization, err := h.model.UserOrganizationManager.GetByID(ctx, id)
 		if err != nil {
-			fmt.Printf("DEBUG: Database error getting user org: %v\n", err)
 			h.ClearCurrentToken(ctx, echoCtx)
 			return nil, echo.NewHTTPError(http.StatusNotFound, "user not found")
 		}
-		fmt.Printf("DEBUG: JWT authentication successful for user org: %s\n", userOrganization.ID)
 		return userOrganization, nil
 	}
-
-	fmt.Printf("DEBUG: JWT token error: %v\n", err)
 
 	// Try Bearer token as fallback
 	authHeader := echoCtx.Request().Header.Get("Authorization")
