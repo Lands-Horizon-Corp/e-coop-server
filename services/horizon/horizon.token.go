@@ -3,6 +3,7 @@ package horizon
 import (
 	"context"
 	"encoding/base64"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -60,12 +61,18 @@ func (h *HorizonTokenService[T]) CleanToken(ctx context.Context, c echo.Context)
 
 // getTokenFromContext extracts the CSRF token from the request header or cookie.
 func (h *HorizonTokenService[T]) getTokenFromContext(c echo.Context) string {
+	fmt.Printf("DEBUG: Looking for token with name: %s\n", h.Name)
+
 	if token := c.Request().Header.Get(h.Name); token != "" {
+		fmt.Printf("DEBUG: Token found in header\n")
 		return token
 	}
 	if cookie, err := c.Cookie(h.Name); err == nil {
+		fmt.Printf("DEBUG: Token found in cookie\n")
 		return cookie.Value
 	}
+
+	fmt.Printf("DEBUG: No token found in header or cookie\n")
 	return ""
 }
 
@@ -76,8 +83,16 @@ func (h *HorizonTokenService[T]) GetToken(ctx context.Context, c echo.Context) (
 		return nil, eris.New("authentication token is empty")
 	}
 
+	// Debug: Show token info without exposing the full token
+	if len(rawToken) > 20 {
+		fmt.Printf("DEBUG: Token found, length: %d, starts with: %s...\n", len(rawToken), rawToken[:20])
+	} else {
+		fmt.Printf("DEBUG: Token found but too short: %s\n", rawToken)
+	}
+
 	claim, err := h.VerifyToken(ctx, rawToken)
 	if err != nil {
+		fmt.Printf("DEBUG: Token verification failed: %v\n", err)
 		return nil, eris.Wrap(err, "invalid or expired authentication token")
 	}
 	return claim, nil
@@ -97,8 +112,9 @@ func (h *HorizonTokenService[T]) SetToken(ctx context.Context, c echo.Context, c
 		Expires:  time.Now().UTC().Add(expiry),
 		HttpOnly: true,
 		Secure:   h.ssl,
-		SameSite: http.SameSiteNoneMode,
+		SameSite: http.SameSiteLaxMode, // Changed from None to Lax for better compatibility
 	}
+	fmt.Printf("DEBUG: Setting cookie - Name: %s, Secure: %v, SameSite: Lax\n", h.Name, h.ssl)
 	c.SetCookie(cookie)
 	return nil
 }

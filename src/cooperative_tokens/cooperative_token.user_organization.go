@@ -14,22 +14,22 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type UserOrganizatonClaim struct {
-	UserOrganizatonID string                     `json:"user_organization_id"`
-	UserID            string                     `json:"user_id"`
-	BranchID          string                     `json:"branch_id"`
-	OrganizationID    string                     `json:"organization_id"`
-	UserType          model.UserOrganizationType `json:"user_type"`
+type UserOrganizationClaim struct {
+	UserOrganizationID string                     `json:"user_organization_id"`
+	UserID             string                     `json:"user_id"`
+	BranchID           string                     `json:"branch_id"`
+	OrganizationID     string                     `json:"organization_id"`
+	UserType           model.UserOrganizationType `json:"user_type"`
 	jwt.RegisteredClaims
 }
 
-func (c UserOrganizatonClaim) GetRegisteredClaims() *jwt.RegisteredClaims {
+func (c UserOrganizationClaim) GetRegisteredClaims() *jwt.RegisteredClaims {
 	return &c.RegisteredClaims
 }
 
 type UserOrganizationToken struct {
 	model    *model.Model
-	Token    horizon.TokenService[UserOrganizatonClaim]
+	Token    horizon.TokenService[UserOrganizationClaim]
 	provider *src.Provider
 }
 
@@ -42,7 +42,7 @@ func NewUserOrganizationToken(provider *src.Provider, model *model.Model) (*User
 		return nil, err
 	}
 
-	tokenService := horizon.NewTokenService[UserOrganizatonClaim](
+	tokenService := horizon.NewTokenService[UserOrganizationClaim](
 		fmt.Sprintf("%s-%s", "X-SECURE-TOKEN-ORGANIZATION", appName),
 		[]byte(token),
 		true,
@@ -53,7 +53,7 @@ func NewUserOrganizationToken(provider *src.Provider, model *model.Model) (*User
 func (h *UserOrganizationToken) ClearCurrentToken(context context.Context, ctx echo.Context) {
 	claim, err := h.Token.GetToken(context, ctx)
 	if err == nil {
-		id, err := uuid.Parse(claim.UserOrganizatonID)
+		id, err := uuid.Parse(claim.UserOrganizationID)
 		if err != nil {
 			h.Token.CleanToken(context, ctx)
 			return
@@ -83,18 +83,26 @@ func (h *UserOrganizationToken) CurrentUserOrganization(ctx context.Context, ech
 	// Try JWT token first
 	claim, err := h.Token.GetToken(ctx, echoCtx)
 	if err == nil {
-		id, err := uuid.Parse(claim.UserOrganizatonID)
+		fmt.Printf("DEBUG: JWT token found, UserOrgID: %s\n", claim.UserOrganizationID)
+		id, err := uuid.Parse(claim.UserOrganizationID)
 		if err != nil {
+			fmt.Printf("DEBUG: Invalid UUID in token: %v\n", err)
 			h.ClearCurrentToken(ctx, echoCtx)
 			return nil, echo.NewHTTPError(http.StatusBadRequest, "invalid user ID in token")
 		}
 		userOrganization, err := h.model.UserOrganizationManager.GetByID(ctx, id)
 		if err != nil {
+			fmt.Printf("DEBUG: Database error getting user org: %v\n", err)
 			h.ClearCurrentToken(ctx, echoCtx)
 			return nil, echo.NewHTTPError(http.StatusNotFound, "user not found")
 		}
+		fmt.Printf("DEBUG: JWT authentication successful for user org: %s\n", userOrganization.ID)
 		return userOrganization, nil
 	}
+
+	fmt.Printf("DEBUG: JWT token error: %v\n", err)
+
+	// Try Bearer token as fallback
 	authHeader := echoCtx.Request().Header.Get("Authorization")
 	if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
 		bearerToken := authHeader[7:]
@@ -103,23 +111,23 @@ func (h *UserOrganizationToken) CurrentUserOrganization(ctx context.Context, ech
 		})
 
 		if err != nil {
-			return nil, echo.NewHTTPError(http.StatusNotFound, "user not found")
+			return nil, echo.NewHTTPError(http.StatusUnauthorized, "invalid bearer token")
 		}
 		return userOrganization, nil
 	}
 
-	h.ClearCurrentToken(ctx, echoCtx)
-	return nil, echo.NewHTTPError(http.StatusUnauthorized, "authentication required - "+err.Error())
+	// No valid authentication found - don't clear tokens here!
+	return nil, echo.NewHTTPError(http.StatusUnauthorized, "authentication required")
 }
 
 func (h *UserOrganizationToken) SetUserOrganization(ctx context.Context, echoCtx echo.Context, userOrganization *model.UserOrganization) error {
 	h.ClearCurrentToken(ctx, echoCtx)
-	if err := h.Token.SetToken(ctx, echoCtx, UserOrganizatonClaim{
-		UserOrganizatonID: userOrganization.ID.String(),
-		UserID:            userOrganization.UserID.String(),
-		BranchID:          userOrganization.BranchID.String(),
-		OrganizationID:    userOrganization.OrganizationID.String(),
-		UserType:          userOrganization.UserType,
+	if err := h.Token.SetToken(ctx, echoCtx, UserOrganizationClaim{
+		UserOrganizationID: userOrganization.ID.String(),
+		UserID:             userOrganization.UserID.String(),
+		BranchID:           userOrganization.BranchID.String(),
+		OrganizationID:     userOrganization.OrganizationID.String(),
+		UserType:           userOrganization.UserType,
 	}, 144*time.Hour); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to set authentication token")
 	}
