@@ -112,9 +112,8 @@ func (h *HorizonTokenService[T]) SetToken(ctx context.Context, c echo.Context, c
 		Expires:  time.Now().UTC().Add(expiry),
 		HttpOnly: true,
 		Secure:   h.ssl,
-		SameSite: http.SameSiteLaxMode, // Changed from None to Lax for better compatibility
+		SameSite: http.SameSiteNoneMode,
 	}
-	fmt.Printf("DEBUG: Setting cookie - Name: %s, Secure: %v, SameSite: Lax\n", h.Name, h.ssl)
 	c.SetCookie(cookie)
 	return nil
 }
