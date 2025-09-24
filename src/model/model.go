@@ -238,6 +238,7 @@ func (c *Model) Start(context context.Context) error {
 	c.Branch()
 	c.BrowseExcludeIncludeAccounts()
 	c.CashCheckVoucher()
+	c.CashCheckVoucherEntry()
 	c.CashCheckVoucherTag()
 	c.CancelledCashCheckVoucher()
 	c.CashCount()
