@@ -192,7 +192,8 @@ type (
 		FinancialStatementType string `gorm:"type:varchar(50)" json:"financial_statement_type"`
 		GeneralLedgerType      string `gorm:"type:varchar(50)" json:"general_ledger_type"`
 
-		AlternativeCode string `gorm:"type:varchar(50)" json:"alternative_code"`
+		AlternativeAccountID *uuid.UUID `gorm:"type:uuid" json:"alternative_account_id"`
+		AlternativeAccount   *Account   `gorm:"foreignKey:AlternativeAccountID;constraint:OnDelete:SET NULL;" json:"alternative_account,omitempty"`
 
 		FinesGracePeriodAmortization int  `gorm:"type:int" json:"fines_grace_period_amortization"`
 		AdditionalGracePeriod        int  `gorm:"type:int" json:"additional_grace_period"`
@@ -301,7 +302,8 @@ type AccountResponse struct {
 	FinancialStatementType FinancialStatementType `json:"financial_statement_type"`
 	GeneralLedgerType      string                 `json:"general_ledger_type"`
 
-	AlternativeCode string `json:"alternative_code"`
+	AlternativeAccountID *uuid.UUID       `gorm:"type:uuid" json:"alternative_account_id,omitempty"`
+	AlternativeAccount   *AccountResponse `json:"alternative_account,omitempty"`
 
 	FinesGracePeriodAmortization int  `json:"fines_grace_period_amortization"`
 	AdditionalGracePeriod        int  `json:"additional_grace_period"`
@@ -388,7 +390,7 @@ type AccountRequest struct {
 	FinancialStatementType FinancialStatementType `json:"financial_statement_type,omitempty"`
 	GeneralLedgerType      string                 `json:"general_ledger_type,omitempty"`
 
-	AlternativeCode string `json:"alternative_code,omitempty"`
+	AlternativeID *uuid.UUID `json:"alternative_id,omitempty"`
 
 	FinesGracePeriodAmortization int  `json:"fines_grace_period_amortization,omitempty"`
 	AdditionalGracePeriod        int  `json:"additional_grace_period,omitempty"`
@@ -502,7 +504,8 @@ func (m *Model) Account() {
 				CohCibFinesGracePeriodEntryLumpsumMaturity:         data.CohCibFinesGracePeriodEntryLumpsumMaturity,
 				FinancialStatementType:                             FinancialStatementType(data.FinancialStatementType),
 				GeneralLedgerType:                                  data.GeneralLedgerType,
-				AlternativeCode:                                    data.AlternativeCode,
+				AlternativeAccountID:                               data.AlternativeAccountID,
+				AlternativeAccount:                                 m.AccountManager.ToModel(data.AlternativeAccount),
 				FinesGracePeriodAmortization:                       data.FinesGracePeriodAmortization,
 				AdditionalGracePeriod:                              data.AdditionalGracePeriod,
 				NumberGracePeriodDaily:                             data.NumberGracePeriodDaily,

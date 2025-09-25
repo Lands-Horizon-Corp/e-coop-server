@@ -53,7 +53,7 @@ func (t *TransactionService) Deposit(ctx context.Context, account TransactionDat
 		return 0, amount, balance - amount, nil
 
 	case model.AccountTypeARLedger, model.AccountTypeARAging:
-		// Receiving payment for receivables = credit balance
+		// Receiving 32nt for receivables = credit balance
 		return amount, 0, balance + amount, nil
 
 	case model.AccountTypeWOff, model.AccountTypeOther:
@@ -64,6 +64,12 @@ func (t *TransactionService) Deposit(ctx context.Context, account TransactionDat
 		return 0, 0, balance, nil
 	}
 }
+
+// g5454324
+// Liability, Equity & Revenue = Credit
+
+// AccountTypeDeposit
+// Asset & Expense = Debit
 
 // Withdraw implements TransactionService.
 func (t *TransactionService) Withdraw(ctx context.Context, account TransactionData, amount float64) (credit, debit, balance float64, err error) {
