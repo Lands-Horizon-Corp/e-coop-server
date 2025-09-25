@@ -473,7 +473,8 @@ func (c *Controller) AccountController() {
 			CompassionFundAmount:                               req.CompassionFundAmount,
 			CashAndCashEquivalence:                             req.CashAndCashEquivalence,
 
-			Icon: req.Icon,
+			Icon:                        req.Icon,
+			InterestStandardComputation: req.InterestStandardComputation,
 		}
 
 		if err := c.model.AccountManager.Create(context, account); err != nil {
@@ -667,6 +668,7 @@ func (c *Controller) AccountController() {
 		account.CompassionFundAmount = req.CompassionFundAmount
 		account.Icon = req.Icon
 		account.CashAndCashEquivalence = req.CashAndCashEquivalence
+		account.InterestStandardComputation = req.InterestStandardComputation
 
 		if err := c.model.AccountManager.UpdateFields(context, account.ID, account); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{

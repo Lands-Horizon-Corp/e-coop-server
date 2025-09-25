@@ -116,6 +116,14 @@ const (
 	OIOA_CashOnHand         OtherInformationOfAnAccount = "Cash on Hand"
 )
 
+type InterestStandardComputation string
+
+const (
+	ISC_None     InterestStandardComputation = "None"
+	ISC_Yearly   InterestStandardComputation = "Yearly"
+	ISC_Mmonthly InterestStandardComputation = "Monthly"
+)
+
 // --- MODEL ---
 
 type (
@@ -233,6 +241,8 @@ type (
 		CompassionFund         bool    `gorm:"default:false" json:"compassion_fund"`
 		CompassionFundAmount   float64 `gorm:"type:decimal;default:0" json:"compassion_fund_amount"`
 		CashAndCashEquivalence bool    `gorm:"default:false" json:"cash_and_cash_equivalence"`
+
+		InterestStandardComputation InterestStandardComputation `gorm:"type:varchar(20);default:'None'" json:"interest_standard_computation"`
 	}
 )
 
@@ -338,9 +348,10 @@ type AccountResponse struct {
 	ShowInGeneralLedgerSourceJournalVoucher bool   `json:"show_in_general_ledger_source_journal_voucher"`
 	ShowInGeneralLedgerSourceCheckVoucher   bool   `json:"show_in_general_ledger_source_check_voucher"`
 
-	CompassionFund         bool    `json:"compassion_fund"`
-	CompassionFundAmount   float64 `json:"compassion_fund_amount"`
-	CashAndCashEquivalence bool    `json:"cash_and_cash_equivalence"`
+	CompassionFund              bool                        `json:"compassion_fund"`
+	CompassionFundAmount        float64                     `json:"compassion_fund_amount"`
+	CashAndCashEquivalence      bool                        `json:"cash_and_cash_equivalence"`
+	InterestStandardComputation InterestStandardComputation `json:"interest_standard_computation"`
 }
 
 type AccountRequest struct {
@@ -425,9 +436,10 @@ type AccountRequest struct {
 	ShowInGeneralLedgerSourceJournalVoucher bool   `json:"show_in_general_ledger_source_journal_voucher"`
 	ShowInGeneralLedgerSourceCheckVoucher   bool   `json:"show_in_general_ledger_source_check_voucher"`
 
-	CompassionFund         bool    `json:"compassion_fund,omitempty"`
-	CompassionFundAmount   float64 `json:"compassion_fund_amount,omitempty"`
-	CashAndCashEquivalence bool    `json:"cash_and_cash_equivalence,omitempty"`
+	CompassionFund              bool                        `json:"compassion_fund,omitempty"`
+	CompassionFundAmount        float64                     `json:"compassion_fund_amount,omitempty"`
+	CashAndCashEquivalence      bool                        `json:"cash_and_cash_equivalence,omitempty"`
+	InterestStandardComputation InterestStandardComputation `json:"interest_standard_computation,omitempty"`
 }
 
 // --- REGISTRATION ---
@@ -536,9 +548,10 @@ func (m *Model) Account() {
 				ShowInGeneralLedgerSourceJournalVoucher: data.ShowInGeneralLedgerSourceJournalVoucher,
 				ShowInGeneralLedgerSourceCheckVoucher:   data.ShowInGeneralLedgerSourceCheckVoucher,
 
-				CompassionFund:         data.CompassionFund,
-				CompassionFundAmount:   data.CompassionFundAmount,
-				CashAndCashEquivalence: data.CashAndCashEquivalence,
+				CompassionFund:              data.CompassionFund,
+				CompassionFundAmount:        data.CompassionFundAmount,
+				CashAndCashEquivalence:      data.CashAndCashEquivalence,
+				InterestStandardComputation: data.InterestStandardComputation,
 			}
 		},
 		Created: func(data *Account) []string {
