@@ -106,6 +106,7 @@ type (
 
 		// Employee Feature
 		TimesheetManager horizon_services.Repository[Timesheet, TimesheetResponse, TimesheetRequest]
+		CompanyManager   horizon_services.Repository[Company, CompanyResponse, CompanyRequest]
 
 		// GL/FS
 		FinancialStatementDefinitionManager             horizon_services.Repository[FinancialStatementDefinition, FinancialStatementDefinitionResponse, FinancialStatementDefinitionRequest]
@@ -360,7 +361,7 @@ func (c *Model) Start(context context.Context) error {
 	c.Funds()
 	c.ChargesRateSchemeModeOfPayment()
 	c.BranchSetting()
-
+	c.Company()
 	return nil
 }
 

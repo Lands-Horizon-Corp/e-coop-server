@@ -148,6 +148,7 @@ func (c *Controller) Start() error {
 	c.ChargesRateSchemeModeOfPaymentController()
 	c.JournalVoucherController()
 	c.AdjustmentEntryController()
+	c.CompanyController()
 	return nil
 }
 
