@@ -205,8 +205,11 @@ type (
 		ComakerMemberProfiles                 []*ComakerMemberProfile                  `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"comaker_member_profiles,omitempty"`
 		ComakerCollaterals                    []*ComakerCollateral                     `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"comaker_collaterals,omitempty"`
 
-		TotalDebit  float64 `gorm:"total_debit;type:decimal;default:0" json:"total_debit"`
-		TotalCredit float64 `gorm:"total_credit;type:decimal;default:0" json:"total_credit"`
+		Count       int        `gorm:"type:int;default:0" json:"count"`
+		Balance     float64    `gorm:"type:decimal;default:0" json:"balance"`
+		LastPay     *time.Time `gorm:"type:timestamp" json:"last_pay,omitempty"`
+		TotalDebit  float64    `gorm:"total_debit;type:decimal;default:0" json:"total_debit"`
+		TotalCredit float64    `gorm:"total_credit;type:decimal;default:0" json:"total_credit"`
 	}
 
 	LoanTransactionResponse struct {
@@ -348,8 +351,11 @@ type (
 		ComakerMemberProfiles                 []*ComakerMemberProfileResponse                  `json:"comaker_member_profiles,omitempty"`
 		ComakerCollaterals                    []*ComakerCollateralResponse                     `json:"comaker_collaterals,omitempty"`
 
-		TotalDebit  float64 `json:"total_debit"`
-		TotalCredit float64 `json:"total_credit"`
+		Count       int        `json:"count"`
+		Balance     float64    `json:"balance"`
+		LastPay     *time.Time `json:"last_pay,omitempty"`
+		TotalDebit  float64    `json:"total_debit"`
+		TotalCredit float64    `json:"total_credit"`
 	}
 
 	LoanTransactionRequest struct {
@@ -685,6 +691,9 @@ func (m *Model) LoanTransaction() {
 				LoanTermsAndConditionAmountReceipt:     m.LoanTermsAndConditionAmountReceiptManager.ToModels(data.LoanTermsAndConditionAmountReceipt),
 				ComakerMemberProfiles:                  m.ComakerMemberProfileManager.ToModels(data.ComakerMemberProfiles),
 				ComakerCollaterals:                     m.ComakerCollateralManager.ToModels(data.ComakerCollaterals),
+				Count:                                  data.Count,
+				Balance:                                data.Balance,
+				LastPay:                                data.LastPay,
 				TotalDebit:                             data.TotalDebit,
 				TotalCredit:                            data.TotalCredit,
 			}
