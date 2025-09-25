@@ -390,7 +390,7 @@ type AccountRequest struct {
 	FinancialStatementType FinancialStatementType `json:"financial_statement_type,omitempty"`
 	GeneralLedgerType      string                 `json:"general_ledger_type,omitempty"`
 
-	AlternativeID *uuid.UUID `json:"alternative_id,omitempty"`
+	AlternativeAccountID *uuid.UUID `json:"alternative_account_id,omitempty"`
 
 	FinesGracePeriodAmortization int  `json:"fines_grace_period_amortization,omitempty"`
 	AdditionalGracePeriod        int  `json:"additional_grace_period,omitempty"`
@@ -726,96 +726,9 @@ func (m *Model) AccountSeed(context context.Context, tx *gorm.DB, userID uuid.UU
 			ComputationType:        "Compound Interest",
 			Index:                  9,
 		},
-
-		// Loan Accounts
-		{
-			CreatedAt:                           now,
-			CreatedByID:                         userID,
-			UpdatedAt:                           now,
-			UpdatedByID:                         userID,
-			OrganizationID:                      organizationID,
-			BranchID:                            branchID,
-			Name:                                "Emergency Loan",
-			Description:                         "Quick access loan for urgent financial needs and unexpected expenses.",
-			Type:                                AccountTypeLoan,
-			MinAmount:                           1000.00,
-			MaxAmount:                           100000.00,
-			InterestStandard:                    8.5,
-			InterestSecured:                     7.5,
-			FinesAmort:                          1.0,
-			FinesMaturity:                       2.0,
-			FinancialStatementType:              string(FSTypeAssets),
-			ComputationType:                     "Diminishing Balance",
-			Index:                               10,
-			LoanCutOffDays:                      3,
-			FinesGracePeriodAmortization:        5,
-			FinesGracePeriodMaturity:            7,
-			AdditionalGracePeriod:               2,
-			LumpsumComputationType:              string(LumpsumComputationNone),
-			InterestFinesComputationDiminishing: string(IFCDByAmortization),
-			EarnedUnearnedInterest:              string(EUITypeByFormula),
-			LoanSavingType:                      string(LSTSeparate),
-			InterestDeduction:                   string(InterestDeductionAbove),
-		},
-		{
-			CreatedAt:                           now,
-			CreatedByID:                         userID,
-			UpdatedAt:                           now,
-			UpdatedByID:                         userID,
-			OrganizationID:                      organizationID,
-			BranchID:                            branchID,
-			Name:                                "Business Loan",
-			Description:                         "Capital loan for business expansion, equipment purchase, and working capital needs.",
-			Type:                                AccountTypeLoan,
-			MinAmount:                           50000.00,
-			MaxAmount:                           5000000.00,
-			InterestStandard:                    10.0,
-			InterestSecured:                     9.0,
-			FinesAmort:                          1.5,
-			FinesMaturity:                       2.5,
-			FinancialStatementType:              string(FSTypeAssets),
-			ComputationType:                     "Diminishing Balance",
-			Index:                               11,
-			LoanCutOffDays:                      7,
-			FinesGracePeriodAmortization:        10,
-			FinesGracePeriodMaturity:            15,
-			AdditionalGracePeriod:               5,
-			LumpsumComputationType:              string(LumpsumComputationNone),
-			InterestFinesComputationDiminishing: string(IFCDByAmortization),
-			EarnedUnearnedInterest:              string(EUITypeByFormula),
-			LoanSavingType:                      string(LSTSeparate),
-			InterestDeduction:                   string(InterestDeductionAbove),
-		},
-		{
-			CreatedAt:                           now,
-			CreatedByID:                         userID,
-			UpdatedAt:                           now,
-			UpdatedByID:                         userID,
-			OrganizationID:                      organizationID,
-			BranchID:                            branchID,
-			Name:                                "Educational Loan",
-			Description:                         "Student loan for tuition fees, educational expenses, and academic development.",
-			Type:                                AccountTypeLoan,
-			MinAmount:                           5000.00,
-			MaxAmount:                           500000.00,
-			InterestStandard:                    6.5,
-			InterestSecured:                     5.5,
-			FinesAmort:                          0.5,
-			FinesMaturity:                       1.0,
-			FinancialStatementType:              string(FSTypeAssets),
-			ComputationType:                     "Simple Interest",
-			Index:                               12,
-			LoanCutOffDays:                      14,
-			FinesGracePeriodAmortization:        15,
-			FinesGracePeriodMaturity:            30,
-			AdditionalGracePeriod:               10,
-			LumpsumComputationType:              string(LumpsumComputationNone),
-			InterestFinesComputationDiminishing: string(IFCDNone),
-			EarnedUnearnedInterest:              string(EUITypeByFormula),
-			LoanSavingType:                      string(LSTSeparate),
-			InterestDeduction:                   string(InterestDeductionBelow),
-		},
 	}
+
+	// Create all deposit accounts first
 	for _, data := range accounts {
 		data.ShowInGeneralLedgerSourceWithdraw = true
 		data.ShowInGeneralLedgerSourceDeposit = true
@@ -826,6 +739,222 @@ func (m *Model) AccountSeed(context context.Context, tx *gorm.DB, userID uuid.UU
 		data.ShowInGeneralLedgerSourceCheckVoucher = true
 		if err := m.AccountManager.CreateWithTx(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to seed account %s", data.Name)
+		}
+	}
+
+	// Create loan accounts with their alternative accounts
+	loanAccounts := []*Account{
+		{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			Name:                                    "Emergency Loan",
+			Description:                             "Quick access loan for urgent financial needs and unexpected expenses.",
+			Type:                                    AccountTypeLoan,
+			MinAmount:                               1000.00,
+			MaxAmount:                               100000.00,
+			InterestStandard:                        8.5, // Already between 0-100
+			InterestSecured:                         7.5,
+			FinesAmort:                              1.0,
+			FinesMaturity:                           2.0,
+			FinancialStatementType:                  string(FSTypeAssets),
+			ComputationType:                         "Diminishing Balance",
+			Index:                                   10,
+			LoanCutOffDays:                          3,
+			FinesGracePeriodAmortization:            5,
+			FinesGracePeriodMaturity:                7,
+			AdditionalGracePeriod:                   2,
+			LumpsumComputationType:                  string(LumpsumComputationNone),
+			InterestFinesComputationDiminishing:     string(IFCDByAmortization),
+			EarnedUnearnedInterest:                  string(EUITypeByFormula),
+			LoanSavingType:                          string(LSTSeparate),
+			InterestDeduction:                       string(InterestDeductionAbove),
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+		},
+		{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			Name:                                    "Business Loan",
+			Description:                             "Capital loan for business expansion, equipment purchase, and working capital needs.",
+			Type:                                    AccountTypeLoan,
+			MinAmount:                               50000.00,
+			MaxAmount:                               5000000.00,
+			InterestStandard:                        10.0, // Already between 0-100
+			InterestSecured:                         9.0,
+			FinesAmort:                              1.5,
+			FinesMaturity:                           2.5,
+			FinancialStatementType:                  string(FSTypeAssets),
+			ComputationType:                         "Diminishing Balance",
+			Index:                                   11,
+			LoanCutOffDays:                          7,
+			FinesGracePeriodAmortization:            10,
+			FinesGracePeriodMaturity:                15,
+			AdditionalGracePeriod:                   5,
+			LumpsumComputationType:                  string(LumpsumComputationNone),
+			InterestFinesComputationDiminishing:     string(IFCDByAmortization),
+			EarnedUnearnedInterest:                  string(EUITypeByFormula),
+			LoanSavingType:                          string(LSTSeparate),
+			InterestDeduction:                       string(InterestDeductionAbove),
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+		},
+		{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			Name:                                    "Educational Loan",
+			Description:                             "Student loan for tuition fees, educational expenses, and academic development.",
+			Type:                                    AccountTypeLoan,
+			MinAmount:                               5000.00,
+			MaxAmount:                               500000.00,
+			InterestStandard:                        6.5, // Already between 0-100
+			InterestSecured:                         5.5,
+			FinesAmort:                              0.5,
+			FinesMaturity:                           1.0,
+			FinancialStatementType:                  string(FSTypeAssets),
+			ComputationType:                         "Simple Interest",
+			Index:                                   12,
+			LoanCutOffDays:                          14,
+			FinesGracePeriodAmortization:            15,
+			FinesGracePeriodMaturity:                30,
+			AdditionalGracePeriod:                   10,
+			LumpsumComputationType:                  string(LumpsumComputationNone),
+			InterestFinesComputationDiminishing:     string(IFCDNone),
+			EarnedUnearnedInterest:                  string(EUITypeByFormula),
+			LoanSavingType:                          string(LSTSeparate),
+			InterestDeduction:                       string(InterestDeductionBelow),
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+		},
+	}
+
+	// Create loan accounts and their alternative accounts
+	for _, loanAccount := range loanAccounts {
+		// Create the main loan account
+		if err := m.AccountManager.CreateWithTx(context, tx, loanAccount); err != nil {
+			return eris.Wrapf(err, "failed to seed loan account %s", loanAccount.Name)
+		}
+
+		// Create Interest Account
+		interestAccount := &Account{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			Name:                                    "Interest " + loanAccount.Name,
+			Description:                             "Interest account for " + loanAccount.Description,
+			Type:                                    AccountTypeInterest,
+			MinAmount:                               0.00,
+			MaxAmount:                               1000000.00,
+			InterestStandard:                        0.0,
+			FinancialStatementType:                  string(FSTypeRevenue),
+			ComputationType:                         "Fixed Amount",
+			Index:                                   loanAccount.Index + 100, // Offset to avoid conflicts
+			AlternativeAccountID:                    &loanAccount.ID,
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+			OtherInformationOfAnAccount:             string(OIOA_None),
+		}
+
+		if err := m.AccountManager.CreateWithTx(context, tx, interestAccount); err != nil {
+			return eris.Wrapf(err, "failed to seed interest account for %s", loanAccount.Name)
+		}
+
+		// Create Service Fee Account
+		serviceFeeAccount := &Account{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			Name:                                    "Service Fee " + loanAccount.Name,
+			Description:                             "Service fee account for " + loanAccount.Description,
+			Type:                                    AccountTypeSVFLedger,
+			MinAmount:                               0.00,
+			MaxAmount:                               50000.00,
+			InterestStandard:                        0.0,
+			FinancialStatementType:                  string(FSTypeRevenue),
+			ComputationType:                         "Fixed Amount",
+			Index:                                   loanAccount.Index + 200, // Offset to avoid conflicts
+			AlternativeAccountID:                    &loanAccount.ID,
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+			OtherInformationOfAnAccount:             string(OIOA_None),
+		}
+
+		if err := m.AccountManager.CreateWithTx(context, tx, serviceFeeAccount); err != nil {
+			return eris.Wrapf(err, "failed to seed service fee account for %s", loanAccount.Name)
+		}
+
+		// Create Fines Account
+		finesAccount := &Account{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			Name:                                    "Fines " + loanAccount.Name,
+			Description:                             "Fines account for " + loanAccount.Description,
+			Type:                                    AccountTypeFines,
+			MinAmount:                               0.00,
+			MaxAmount:                               100000.00,
+			InterestStandard:                        0.0,
+			FinancialStatementType:                  string(FSTypeRevenue),
+			ComputationType:                         "Fixed Amount",
+			Index:                                   loanAccount.Index + 300, // Offset to avoid conflicts
+			AlternativeAccountID:                    &loanAccount.ID,
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+			OtherInformationOfAnAccount:             string(OIOA_None),
+		}
+
+		if err := m.AccountManager.CreateWithTx(context, tx, finesAccount); err != nil {
+			return eris.Wrapf(err, "failed to seed fines account for %s", loanAccount.Name)
 		}
 	}
 	paidUpShareCapital := &Account{
