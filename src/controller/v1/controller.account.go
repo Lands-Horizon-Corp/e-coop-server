@@ -442,7 +442,7 @@ func (c *Controller) AccountController() {
 			CohCibFinesGracePeriodEntryLumpsumMaturity:         req.CohCibFinesGracePeriodEntryLumpsumMaturity,
 			FinancialStatementType:                             string(req.FinancialStatementType),
 			GeneralLedgerType:                                  req.GeneralLedgerType,
-			AlternativeCode:                                    req.AlternativeCode,
+			AlternativeAccountID:                               req.AlternativeAccountID,
 			FinesGracePeriodAmortization:                       req.FinesGracePeriodAmortization,
 			AdditionalGracePeriod:                              req.AdditionalGracePeriod,
 			NumberGracePeriodDaily:                             req.NumberGracePeriodDaily,
@@ -473,7 +473,8 @@ func (c *Controller) AccountController() {
 			CompassionFundAmount:                               req.CompassionFundAmount,
 			CashAndCashEquivalence:                             req.CashAndCashEquivalence,
 
-			Icon: req.Icon,
+			Icon:                        req.Icon,
+			InterestStandardComputation: req.InterestStandardComputation,
 		}
 
 		if err := c.model.AccountManager.Create(context, account); err != nil {
@@ -636,7 +637,7 @@ func (c *Controller) AccountController() {
 		account.CohCibFinesGracePeriodEntryLumpsumMaturity = req.CohCibFinesGracePeriodEntryLumpsumMaturity
 		account.FinancialStatementType = string(req.FinancialStatementType)
 		account.GeneralLedgerType = req.GeneralLedgerType
-		account.AlternativeCode = req.AlternativeCode
+		account.AlternativeAccountID = req.AlternativeAccountID
 		account.FinesGracePeriodAmortization = req.FinesGracePeriodAmortization
 		account.AdditionalGracePeriod = req.AdditionalGracePeriod
 		account.NumberGracePeriodDaily = req.NumberGracePeriodDaily
@@ -667,6 +668,7 @@ func (c *Controller) AccountController() {
 		account.CompassionFundAmount = req.CompassionFundAmount
 		account.Icon = req.Icon
 		account.CashAndCashEquivalence = req.CashAndCashEquivalence
+		account.InterestStandardComputation = req.InterestStandardComputation
 
 		if err := c.model.AccountManager.UpdateFields(context, account.ID, account); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{

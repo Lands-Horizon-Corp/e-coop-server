@@ -60,12 +60,14 @@ func (h *HorizonTokenService[T]) CleanToken(ctx context.Context, c echo.Context)
 
 // getTokenFromContext extracts the CSRF token from the request header or cookie.
 func (h *HorizonTokenService[T]) getTokenFromContext(c echo.Context) string {
+
 	if token := c.Request().Header.Get(h.Name); token != "" {
 		return token
 	}
 	if cookie, err := c.Cookie(h.Name); err == nil {
 		return cookie.Value
 	}
+
 	return ""
 }
 
@@ -73,16 +75,12 @@ func (h *HorizonTokenService[T]) getTokenFromContext(c echo.Context) string {
 func (h *HorizonTokenService[T]) GetToken(ctx context.Context, c echo.Context) (*T, error) {
 	rawToken := h.getTokenFromContext(c)
 	if rawToken == "" {
-		h.CleanToken(ctx, c)
 		return nil, eris.New("authentication token is empty")
 	}
-
 	claim, err := h.VerifyToken(ctx, rawToken)
 	if err != nil {
-		h.CleanToken(ctx, c)
 		return nil, eris.Wrap(err, "invalid or expired authentication token")
 	}
-
 	return claim, nil
 }
 

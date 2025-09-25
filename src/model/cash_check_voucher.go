@@ -56,7 +56,7 @@ type (
 
 		Status            CashCheckVoucherStatus `gorm:"type:varchar(20)"` // enum as string
 		Description       string                 `gorm:"type:text"`
-		CashVoucherNumber string                 `gorm:"type:varchar(255);unique"`
+		CashVoucherNumber string                 `gorm:"type:varchar(255)"`
 		TotalDebit        float64                `gorm:"type:decimal"`
 		TotalCredit       float64                `gorm:"type:decimal"`
 		PrintCount        int                    `gorm:"default:0"`

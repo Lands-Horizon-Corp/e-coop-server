@@ -106,6 +106,7 @@ type (
 
 		// Employee Feature
 		TimesheetManager horizon_services.Repository[Timesheet, TimesheetResponse, TimesheetRequest]
+		CompanyManager   horizon_services.Repository[Company, CompanyResponse, CompanyRequest]
 
 		// GL/FS
 		FinancialStatementDefinitionManager             horizon_services.Repository[FinancialStatementDefinition, FinancialStatementDefinitionResponse, FinancialStatementDefinitionRequest]
@@ -238,6 +239,7 @@ func (c *Model) Start(context context.Context) error {
 	c.Branch()
 	c.BrowseExcludeIncludeAccounts()
 	c.CashCheckVoucher()
+	c.CashCheckVoucherEntry()
 	c.CashCheckVoucherTag()
 	c.CancelledCashCheckVoucher()
 	c.CashCount()
@@ -359,7 +361,7 @@ func (c *Model) Start(context context.Context) error {
 	c.Funds()
 	c.ChargesRateSchemeModeOfPayment()
 	c.BranchSetting()
-
+	c.Company()
 	return nil
 }
 
@@ -440,6 +442,9 @@ func (m *Model) OrganizationSeeder(context context.Context, tx *gorm.DB, userID 
 	}
 	userOrg.IsSeeded = true
 	if err := m.UserOrganizationManager.UpdateByIDWithTx(context, tx, userOrg.ID, userOrg); err != nil {
+		return err
+	}
+	if err := m.CompanySeed(context, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
 	return nil

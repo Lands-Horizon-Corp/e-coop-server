@@ -157,7 +157,7 @@ func (c *Controller) JournalVoucherController() {
 			TotalDebit:        totalDebit,
 			TotalCredit:       totalCredit,
 			CashVoucherNumber: request.CashVoucherNumber,
-			MemberProfileID:   request.MemberProfileID,
+			Name:   request.Name,
 		}
 
 		if err := c.model.JournalVoucherManager.CreateWithTx(context, tx, journalVoucher); err != nil {
@@ -303,7 +303,7 @@ func (c *Controller) JournalVoucherController() {
 		journalVoucher.UpdatedAt = time.Now().UTC()
 		journalVoucher.UpdatedByID = user.UserID
 		journalVoucher.CashVoucherNumber = request.CashVoucherNumber
-		journalVoucher.MemberProfileID = request.MemberProfileID
+		journalVoucher.Name = request.Name
 		// Handle deleted entries
 		if request.JournalVoucherEntriesDeleted != nil {
 			for _, deletedID := range request.JournalVoucherEntriesDeleted {
