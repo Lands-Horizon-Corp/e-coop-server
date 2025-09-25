@@ -208,6 +208,8 @@ type (
 		Count       int        `gorm:"type:int;default:0" json:"count"`
 		Balance     float64    `gorm:"type:decimal;default:0" json:"balance"`
 		LastPay     *time.Time `gorm:"type:timestamp" json:"last_pay,omitempty"`
+		Fines       float64    `gorm:"type:decimal;default:0" json:"fines"`
+		Interest    float64    `gorm:"type:decimal;default:0" json:"interest"`
 		TotalDebit  float64    `gorm:"total_debit;type:decimal;default:0" json:"total_debit"`
 		TotalCredit float64    `gorm:"total_credit;type:decimal;default:0" json:"total_credit"`
 	}
@@ -354,6 +356,8 @@ type (
 		Count       int        `json:"count"`
 		Balance     float64    `json:"balance"`
 		LastPay     *time.Time `json:"last_pay,omitempty"`
+		Fines       float64    `json:"fines"`
+		Interest    float64    `json:"interest"`
 		TotalDebit  float64    `json:"total_debit"`
 		TotalCredit float64    `json:"total_credit"`
 	}
@@ -694,6 +698,8 @@ func (m *Model) LoanTransaction() {
 				Count:                                  data.Count,
 				Balance:                                data.Balance,
 				LastPay:                                data.LastPay,
+				Fines:                                  data.Fines,
+				Interest:                               data.Interest,
 				TotalDebit:                             data.TotalDebit,
 				TotalCredit:                            data.TotalCredit,
 			}
