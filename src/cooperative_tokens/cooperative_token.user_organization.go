@@ -69,6 +69,7 @@ func (h *UserOrganizationToken) ClearCurrentToken(context context.Context, ctx e
 			h.Token.CleanToken(context, ctx)
 			return
 		}
+		fmt.Println("wth is going on here -------------------")
 		if err := h.provider.Service.Broker.Dispatch(context, []string{
 			fmt.Sprintf("user_organization.status.branch.%s", userOrg.BranchID),
 			fmt.Sprintf("user_organization.status.organization.%s", userOrg.OrganizationID),
