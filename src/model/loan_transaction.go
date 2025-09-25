@@ -744,6 +744,23 @@ func (m *Model) mapLoanTransactionEntries(entries []*LoanTransactionEntry) []*Lo
 	return result
 }
 
+func (m *Model) LoanTransactionWithDatesNotNull(ctx context.Context, memberId uuid.UUID, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanTransaction, error) {
+	filters := []horizon_services.Filter{
+		{Field: "member_profile_id", Op: horizon_services.OpEq, Value: memberId},
+		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
+		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
+		{Field: "approved_date", Op: horizon_services.OpNe, Value: nil},
+		{Field: "printed_date", Op: horizon_services.OpNe, Value: nil},
+		{Field: "released_date", Op: horizon_services.OpNe, Value: nil},
+	}
+
+	loanTransactions, err := m.LoanTransactionManager.FindWithFilters(ctx, filters)
+	if err != nil {
+		return nil, err
+	}
+	return loanTransactions, nil
+}
+
 // Helper function to generate amortization schedule
 func (m *Model) GenerateLoanAmortizationSchedule(ctx context.Context, loanTransaction *LoanTransaction) (*AmortizationScheduleResponse, error) {
 	// Extract loan details

@@ -21,7 +21,7 @@ func (c *Controller) LoanTransactionController() {
 		Route:        "/api/v1/loan-transaction/search",
 		Method:       "GET",
 		ResponseType: model.LoanTransactionResponse{},
-		Note:         "Returns all loan transactions for the current user's branch with pagination and filtering.",
+		Note:         "Returns all loan transactions for the current user's branch with pagination and filtering. Query params: has_print_date, has_approved_date, has_release_date (true/false)",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -32,8 +32,38 @@ func (c *Controller) LoanTransactionController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view loan transactions"})
 		}
 
-		loanTransactions, err := c.model.LoanTransactionCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
-		if err != nil {
+		// Build query with filters
+		query := c.provider.Service.Database.Client().Where("organization_id = ? AND branch_id = ?", userOrg.OrganizationID, *userOrg.BranchID)
+
+		// Filter by print date if parameter is provided
+		if hasPrintDate := ctx.QueryParam("has_print_date"); hasPrintDate != "" {
+			if hasPrintDate == "true" {
+				query = query.Where("printed_date IS NOT NULL")
+			} else if hasPrintDate == "false" {
+				query = query.Where("printed_date IS NULL")
+			}
+		}
+
+		// Filter by approved date if parameter is provided
+		if hasApprovedDate := ctx.QueryParam("has_approved_date"); hasApprovedDate != "" {
+			if hasApprovedDate == "true" {
+				query = query.Where("approved_date IS NOT NULL")
+			} else if hasApprovedDate == "false" {
+				query = query.Where("approved_date IS NULL")
+			}
+		}
+
+		// Filter by release date if parameter is provided
+		if hasReleaseDate := ctx.QueryParam("has_release_date"); hasReleaseDate != "" {
+			if hasReleaseDate == "true" {
+				query = query.Where("released_date IS NOT NULL")
+			} else if hasReleaseDate == "false" {
+				query = query.Where("released_date IS NULL")
+			}
+		}
+
+		var loanTransactions []*model.LoanTransaction
+		if err := query.Find(&loanTransactions).Error; err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve loan transactions: " + err.Error()})
 		}
 
