@@ -94,7 +94,7 @@ type (
 	}
 
 	JournalVoucherRequest struct {
-		Name              string    `json:"name,omitempty"`
+		Name              string    `json:"name" validate:"required"`
 		CashVoucherNumber string    `json:"cash_voucher_number,omitempty"`
 		Date              time.Time `json:"date"`
 		Description       string    `json:"description,omitempty"`
