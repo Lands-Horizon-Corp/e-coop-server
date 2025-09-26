@@ -32,8 +32,9 @@ type (
 		Description       string  `gorm:"type:text"`
 		DeliquentAccount  bool    `gorm:"type:boolean;default:false"`
 		FinesAccount      bool    `gorm:"type:boolean;default:false"`
-		InterestAccountID bool    `gorm:"type:boolean;default:false"` // Note: Schema says boolean, but the name suggests a relation. Adjust if needed.
+		InterestAccountID bool    `gorm:"type:boolean;default:false"`
 		ComakerAccount    float64 `gorm:"type:decimal;default:-1"`
+		NumberOfMonths    int     `gorm:"type:int;default:0"`
 		ExistAccount      bool    `gorm:"type:boolean;default:false"`
 	}
 
@@ -55,6 +56,7 @@ type (
 		FinesAccount      bool                  `json:"fines_account"`
 		InterestAccountID bool                  `json:"interest_account_id"`
 		ComakerAccount    float64               `json:"comaker_account"`
+		NumberOfMonths    int                   `json:"number_of_months"`
 		ExistAccount      bool                  `json:"exist_account"`
 	}
 
@@ -65,6 +67,7 @@ type (
 		FinesAccount      bool    `json:"fines_account,omitempty"`
 		InterestAccountID bool    `json:"interest_account_id,omitempty"`
 		ComakerAccount    float64 `json:"comaker_account,omitempty"`
+		NumberOfMonths    int     `json:"number_of_months,omitempty"`
 		ExistAccount      bool    `json:"exist_account,omitempty"`
 	}
 )
@@ -100,6 +103,7 @@ func (m *Model) ComputationSheet() {
 				FinesAccount:      data.FinesAccount,
 				InterestAccountID: data.InterestAccountID,
 				ComakerAccount:    data.ComakerAccount,
+				NumberOfMonths:    data.NumberOfMonths,
 				ExistAccount:      data.ExistAccount,
 			}
 		},
