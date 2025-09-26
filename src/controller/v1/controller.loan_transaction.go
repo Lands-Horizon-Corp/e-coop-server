@@ -372,57 +372,117 @@ func (c *Controller) LoanTransactionController() {
 			tx.Rollback()
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve cash on hand account: " + err.Error()})
 		}
-
-		cashOnHandTransactionEntry := &model.LoanTransactionEntry{
-			CreatedByID:       userOrg.UserID,
-			UpdatedByID:       userOrg.UserID,
-			CreatedAt:         time.Now().UTC(),
-			UpdatedAt:         time.Now().UTC(),
-			AccountID:         &cashOnHand.ID,
-			OrganizationID:    userOrg.OrganizationID,
-			BranchID:          *userOrg.BranchID,
-			LoanTransactionID: loanTransaction.ID,
-			Credit:            request.Applied1,
-			Debit:             0,
-			Description:       cashOnHand.Description,
-			Name:              cashOnHand.Name,
-			Index:             0,
-			Type:              model.LoanTransactionStatic,
-		}
-
-		if err := c.model.LoanTransactionEntryManager.CreateWithTx(context, tx, cashOnHandTransactionEntry); err != nil {
-			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan transaction entry: " + err.Error()})
-		}
-		if request.AccountID == nil {
-			tx.Rollback()
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Account ID is required for loan disbursement entry"})
-		}
 		account, err := c.model.AccountManager.GetByID(context, *request.AccountID)
 		if err != nil {
 			tx.Rollback()
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve account: " + err.Error()})
 		}
+		automaticLoanDeduction, err := c.model.AutomaticLoanDeductionManager.Find(context, &model.AutomaticLoanDeduction{
+			OrganizationID:     userOrg.OrganizationID,
+			BranchID:           *userOrg.BranchID,
+			ComputationSheetID: account.ComputationSheetID,
+		})
+		if err != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve automatic loan deduction: " + err.Error()})
+		}
 
-		loanTransactionEntry := &model.LoanTransactionEntry{
+		loanTransactionEntries := []*model.LoanTransactionEntry{
+			{
+				CreatedByID:       userOrg.UserID,
+				UpdatedByID:       userOrg.UserID,
+				CreatedAt:         time.Now().UTC(),
+				UpdatedAt:         time.Now().UTC(),
+				AccountID:         &cashOnHand.ID,
+				OrganizationID:    userOrg.OrganizationID,
+				BranchID:          *userOrg.BranchID,
+				LoanTransactionID: loanTransaction.ID,
+				Credit:            request.Applied1,
+				Debit:             0,
+				Description:       cashOnHand.Description,
+				Name:              cashOnHand.Name,
+				Index:             0,
+				Type:              model.LoanTransactionStatic,
+			},
+			{
+				CreatedByID:       userOrg.UserID,
+				UpdatedByID:       userOrg.UserID,
+				CreatedAt:         time.Now().UTC(),
+				UpdatedAt:         time.Now().UTC(),
+				AccountID:         &cashOnHand.ID,
+				OrganizationID:    userOrg.OrganizationID,
+				BranchID:          *userOrg.BranchID,
+				LoanTransactionID: loanTransaction.ID,
+				Credit:            request.Applied1,
+				Debit:             0,
+				Description:       cashOnHand.Description,
+				Name:              cashOnHand.Name,
+				Index:             0,
+				Type:              model.LoanTransactionStatic,
+			},
+		}
+
+		addOnEntry := &model.LoanTransactionEntry{
 			CreatedByID:       userOrg.UserID,
 			UpdatedByID:       userOrg.UserID,
 			CreatedAt:         time.Now().UTC(),
 			UpdatedAt:         time.Now().UTC(),
-			AccountID:         &account.ID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
 			LoanTransactionID: loanTransaction.ID,
 			Credit:            0,
-			Debit:             request.Applied1,
-			Description:       account.Description,
-			Name:              account.Name,
+			Debit:             0,
+			Description:       "ADD ON Interest",
+			Name:              "add on interest loan",
 			Index:             1,
-			Type:              model.LoanTransactionStatic,
+			Type:              model.LoanTransactionAddOn,
+			IsAddOn:           true,
 		}
-		if err := c.model.LoanTransactionEntryManager.CreateWithTx(context, tx, loanTransactionEntry); err != nil {
-			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan transaction entry: " + err.Error()})
+		total_non_add_ons, total_add_ons := 0.0, 0.0
+		for i, ald := range automaticLoanDeduction {
+			entry := &model.LoanTransactionEntry{
+				CreatedByID:       userOrg.UserID,
+				UpdatedByID:       userOrg.UserID,
+				CreatedAt:         time.Now().UTC(),
+				UpdatedAt:         time.Now().UTC(),
+				AccountID:         ald.AccountID,
+				OrganizationID:    userOrg.OrganizationID,
+				BranchID:          *userOrg.BranchID,
+				LoanTransactionID: loanTransaction.ID,
+				Credit:            0,
+				Debit:             0,
+				Description:       ald.Description,
+				Name:              ald.Name,
+				Index:             i + 2,
+				Type:              model.LoanTransactionStatic,
+				IsAddOn:           ald.AddOn,
+			}
+			entry.Credit = c.service.LoanComputation(context, *ald, *loanTransaction)
+			if loanTransaction.IsAddOn && entry.IsAddOn {
+				entry.Debit += entry.Credit
+			}
+			if !entry.IsAddOn {
+				total_non_add_ons += entry.Credit
+			} else {
+				total_add_ons += entry.Credit
+			}
+			loanTransactionEntries = append(loanTransactionEntries, entry)
+		}
+		if loanTransaction.IsAddOn {
+			loanTransactionEntries[0].Credit = request.Applied1 - total_non_add_ons
+		} else {
+			loanTransactionEntries[0].Credit = request.Applied1 - (total_non_add_ons + total_add_ons)
+		}
+		if loanTransaction.IsAddOn {
+			loanTransactionEntries = append(loanTransactionEntries, addOnEntry)
+		}
+
+		for i, entry := range loanTransactionEntries {
+			entry.Index = i + 1
+			if err := c.model.LoanTransactionEntryManager.CreateWithTx(context, tx, entry); err != nil {
+				tx.Rollback()
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to create loan transaction entry for account ID %s: %s", entry.AccountID.String(), err.Error())})
+			}
 		}
 
 		if request.LoanClearanceAnalysis != nil {

@@ -119,7 +119,7 @@ func (t *TransactionService) ComputeTotalBalance(context context.Context, genera
 	return credit, debit, math.Abs(credit - debit), nil
 }
 
-func (t *TransactionService) LoanComputaton(ctx context.Context, ald model.AutomaticLoanDeduction, lt model.LoanTransaction) float64 {
+func (t *TransactionService) LoanComputation(ctx context.Context, ald model.AutomaticLoanDeduction, lt model.LoanTransaction) float64 {
 	result := lt.Applied1
 	// --- Min/Max check ---
 	if ald.MinAmount > 0 && result < ald.MinAmount {

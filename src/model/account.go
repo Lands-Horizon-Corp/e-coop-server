@@ -178,7 +178,8 @@ type (
 		InterestStandard float64 `gorm:"type:decimal" json:"interest_standard"`
 		InterestSecured  float64 `gorm:"type:decimal" json:"interest_secured"`
 
-		ComputationSheetID *uuid.UUID `gorm:"type:uuid" json:"computation_sheet_id"`
+		ComputationSheetID *uuid.UUID        `gorm:"type:uuid" json:"computation_sheet_id"`
+		ComputationSheet   *ComputationSheet `gorm:"foreignKey:ComputationSheetID;constraint:OnDelete:SET NULL;" json:"computation_sheet,omitempty"`
 
 		CohCibFinesGracePeriodEntryCashHand                float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_cash_hand"`
 		CohCibFinesGracePeriodEntryCashInBank              float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_cash_in_bank"`
@@ -290,7 +291,8 @@ type AccountResponse struct {
 	InterestStandard float64 `json:"interest_standard"`
 	InterestSecured  float64 `json:"interest_secured"`
 
-	ComputationSheetID *uuid.UUID `json:"computation_sheet_id,omitempty"`
+	ComputationSheetID *uuid.UUID                `json:"computation_sheet_id,omitempty"`
+	ComputationSheet   *ComputationSheetResponse `json:"computation_sheet,omitempty"`
 
 	CohCibFinesGracePeriodEntryCashHand                float64 `json:"coh_cib_fines_grace_period_entry_cash_hand"`
 	CohCibFinesGracePeriodEntryCashInBank              float64 `json:"coh_cib_fines_grace_period_entry_cash_in_bank"`
@@ -452,7 +454,7 @@ func (m *Model) Account() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
 			"AccountClassification", "AccountCategory",
-			"AccountTags",
+			"AccountTags", "ComputationSheet",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *Account) *AccountResponse {
@@ -538,6 +540,7 @@ func (m *Model) Account() {
 				TotalRow:                                           data.TotalRow,
 				GeneralLedgerGroupingExcludeAccount:                data.GeneralLedgerGroupingExcludeAccount,
 				AccountTags:                                        m.AccountTagManager.ToModels(data.AccountTags),
+				ComputationSheet:                                   m.ComputationSheetManager.ToModel(data.ComputationSheet),
 
 				Icon:                                    data.Icon,
 				ShowInGeneralLedgerSourceWithdraw:       data.ShowInGeneralLedgerSourceWithdraw,
