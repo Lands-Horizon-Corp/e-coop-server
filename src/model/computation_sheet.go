@@ -56,7 +56,6 @@ type (
 		FinesAccount      bool                  `json:"fines_account"`
 		InterestAccountID bool                  `json:"interest_account_id"`
 		ComakerAccount    float64               `json:"comaker_account"`
-		NumberOfMonths    int                   `json:"number_of_months"`
 		ExistAccount      bool                  `json:"exist_account"`
 	}
 
@@ -67,7 +66,6 @@ type (
 		FinesAccount      bool    `json:"fines_account,omitempty"`
 		InterestAccountID bool    `json:"interest_account_id,omitempty"`
 		ComakerAccount    float64 `json:"comaker_account,omitempty"`
-		NumberOfMonths    int     `json:"number_of_months,omitempty"`
 		ExistAccount      bool    `json:"exist_account,omitempty"`
 	}
 )
@@ -103,7 +101,6 @@ func (m *Model) ComputationSheet() {
 				FinesAccount:      data.FinesAccount,
 				InterestAccountID: data.InterestAccountID,
 				ComakerAccount:    data.ComakerAccount,
-				NumberOfMonths:    data.NumberOfMonths,
 				ExistAccount:      data.ExistAccount,
 			}
 		},

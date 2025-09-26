@@ -45,6 +45,8 @@ type (
 
 		Anum int `gorm:"type:int" json:"anum"`
 
+		NumberOfMonths int `gorm:"type:int" json:"number_of_months"`
+
 		AddOn          bool `gorm:"type:boolean;default:false" json:"add_on"`
 		AoRest         bool `gorm:"type:boolean;default:false" json:"ao_rest"`
 		ExcludeRenewal bool `gorm:"type:boolean;default:false" json:"exclude_renewal"`
@@ -84,6 +86,8 @@ type (
 
 		Anum int `json:"anum"`
 
+		NumberOfMonths int `json:"number_of_months"`
+
 		AddOn          bool `json:"add_on"`
 		AoRest         bool `json:"ao_rest"`
 		ExcludeRenewal bool `json:"exclude_renewal"`
@@ -104,6 +108,7 @@ type (
 		MinAmount          float64    `json:"min_amount,omitempty"`
 		MaxAmount          float64    `json:"max_amount,omitempty"`
 		Anum               int        `json:"anum,omitempty"`
+		NumberOfMonths     int        `json:"number_of_months,omitempty"`
 		AddOn              bool       `json:"add_on,omitempty"`
 		AoRest             bool       `json:"ao_rest,omitempty"`
 		ExcludeRenewal     bool       `json:"exclude_renewal,omitempty"`
@@ -152,6 +157,7 @@ func (m *Model) AutomaticLoanDeduction() {
 				MinAmount:          data.MinAmount,
 				MaxAmount:          data.MaxAmount,
 				Anum:               data.Anum,
+				NumberOfMonths:     data.NumberOfMonths,
 				AddOn:              data.AddOn,
 				AoRest:             data.AoRest,
 				ExcludeRenewal:     data.ExcludeRenewal,
