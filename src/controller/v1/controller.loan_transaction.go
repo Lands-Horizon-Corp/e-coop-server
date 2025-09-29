@@ -440,6 +440,14 @@ func (c *Controller) LoanTransactionController() {
 		}
 		total_non_add_ons, total_add_ons := 0.0, 0.0
 		for i, ald := range automaticLoanDeduction {
+			if ald.AccountID == nil {
+				continue
+			}
+			ald.Account, err = c.model.AccountManager.GetByID(context, *ald.AccountID)
+			if err != nil {
+				continue
+			}
+
 			entry := &model.LoanTransactionEntry{
 				CreatedByID:       userOrg.UserID,
 				UpdatedByID:       userOrg.UserID,
@@ -458,6 +466,12 @@ func (c *Controller) LoanTransactionController() {
 				IsAddOn:           ald.AddOn,
 			}
 			entry.Credit = c.service.LoanComputation(context, *ald, *loanTransaction)
+			if ald.ChargesPercentage1 == 0 && ald.ChargesPercentage2 == 0 {
+				if ald.Account.Type == model.AccountTypeInterest && ald.Account.InterestStandard > 0 {
+					entry.Credit = request.Applied1 * (ald.Account.InterestStandard / 100) * float64(request.Terms)
+				}
+			}
+
 			if loanTransaction.IsAddOn && entry.IsAddOn {
 				entry.Debit += entry.Credit
 			}
@@ -468,6 +482,7 @@ func (c *Controller) LoanTransactionController() {
 			}
 			loanTransactionEntries = append(loanTransactionEntries, entry)
 		}
+
 		if loanTransaction.IsAddOn {
 			loanTransactionEntries[0].Credit = request.Applied1 - total_non_add_ons
 		} else {
