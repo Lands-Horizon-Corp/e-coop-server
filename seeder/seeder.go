@@ -23,7 +23,7 @@ func NewSeeder(provider *src.Provider, model *model.Model) (*Seeder, error) {
 	}, nil
 }
 
-func (s *Seeder) Run(ctx context.Context) error {
+func (s *Seeder) Run(ctx context.Context, multiplier int32) error {
 	s.provider.Service.Logger.Info("Starting database seeding...")
 	if err := s.SeedSubscription(ctx); err != nil {
 		return err
