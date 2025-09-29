@@ -389,7 +389,7 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 					ApplicationDescription:   s.faker.Lorem().Sentence(3),
 					ApplicationStatus:        "accepted",
 					DeveloperSecretKey:       developerKey + uuid.NewString() + "-owner-horizon",
-					PermissionName:           "Owner",
+					PermissionName:           "Employee",
 					PermissionDescription:    "Organization owner with full permissions",
 					Permissions:              []string{"read", "write", "manage", "delete", "admin"},
 					UserSettingStartOR:       0,
