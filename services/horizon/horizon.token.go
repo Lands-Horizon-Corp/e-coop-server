@@ -87,7 +87,7 @@ func (h *HorizonTokenService[T]) GetToken(ctx context.Context, c echo.Context) (
 func (h *HorizonTokenService[T]) SetToken(ctx context.Context, c echo.Context, claim T, expiry time.Duration) error {
 	tok, err := h.GenerateToken(ctx, claim, expiry)
 	if err != nil {
-		return eris.Wrap(err, "GenerateToken failed")
+		return eris.Wrap(err, "GenerateToken failed :"+err.Error())
 	}
 
 	cookie := &http.Cookie{
