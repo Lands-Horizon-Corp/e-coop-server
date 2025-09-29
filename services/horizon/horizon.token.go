@@ -2,7 +2,6 @@ package horizon
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -130,14 +129,7 @@ func (h *HorizonTokenService[T]) GenerateToken(ctx context.Context, claims T, ex
 	if err != nil {
 		return nil, eris.Wrap(err, "signing token failed")
 	}
-	fmt.Println("-----")
 
-	fmt.Println(token)
-	fmt.Println(signed)
-	fmt.Println("-----")
-	if !token.Valid {
-		return nil, eris.New("invalid token")
-	}
 	return []byte(signed), nil
 }
 func (h *HorizonTokenService[T]) VerifyToken(ctx context.Context, value string) (*T, error) {
