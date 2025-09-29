@@ -67,7 +67,7 @@ func seedDatabase() {
 					if err := mod.Start(ctx); err != nil {
 						return err
 					}
-					if err := seed.Run(ctx, 0); err != nil {
+					if err := seed.Run(ctx, 5); err != nil {
 						return err
 					}
 					return nil
@@ -236,7 +236,7 @@ func refreshDatabase() {
 					if err := prov.Service.Database.Client().AutoMigrate(mod.Migration...); err != nil {
 						return err
 					}
-					if err := seed.Run(ctx, 0); err != nil {
+					if err := seed.Run(ctx, 5); err != nil {
 						return err
 					}
 					return nil

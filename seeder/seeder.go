@@ -9,38 +9,46 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/src"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
 	"github.com/google/uuid"
+	"github.com/jaswdr/faker"
 )
 
 type Seeder struct {
 	provider *src.Provider
 	model    *model.Model
+	faker    faker.Faker
 }
 
 func NewSeeder(provider *src.Provider, model *model.Model) (*Seeder, error) {
 	return &Seeder{
 		provider: provider,
 		model:    model,
+		faker:    faker.New(),
 	}, nil
 }
 
 func (s *Seeder) Run(ctx context.Context, multiplier int32) error {
-	s.provider.Service.Logger.Info("Starting database seeding...")
+	if multiplier <= 0 {
+		s.provider.Service.Logger.Info("Multiplier is 0 or less, skipping database seeding.")
+		return nil
+	}
+
+	s.provider.Service.Logger.Info("Starting database seeding with multiplier: " + fmt.Sprintf("%d", multiplier))
 	if err := s.SeedSubscription(ctx); err != nil {
 		return err
 	}
 	if err := s.SeedCategory(ctx); err != nil {
 		return err
 	}
-	if err := s.SeedUsers(ctx); err != nil {
+	if err := s.SeedUsers(ctx, multiplier); err != nil {
 		return err
 	}
-	if err := s.SeedOrganization(ctx); err != nil {
+	if err := s.SeedOrganization(ctx, multiplier); err != nil {
 		return err
 	}
-	if err := s.SeedEmployees(ctx); err != nil {
+	if err := s.SeedEmployees(ctx, multiplier); err != nil {
 		return err
 	}
-	if err := s.SeedMemberProfiles(ctx); err != nil {
+	if err := s.SeedMemberProfiles(ctx, multiplier); err != nil {
 		return err
 	}
 	s.provider.Service.Logger.Info("Seeding completed successfully.")
@@ -188,8 +196,8 @@ func (s *Seeder) SeedSubscription(ctx context.Context) error {
 	return nil
 }
 
-func (ds *Seeder) SeedOrganization(ctx context.Context) error {
-	orgs, err := ds.model.OrganizationManager.List(ctx)
+func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
+	orgs, err := s.model.OrganizationManager.List(ctx)
 	if err != nil {
 		return err
 	}
@@ -197,21 +205,22 @@ func (ds *Seeder) SeedOrganization(ctx context.Context) error {
 		return nil
 	}
 
-	const numOrgsPerUser = 2 // Each user will own 2 organizations
-	users, err := ds.model.UserManager.List(ctx)
+	baseNumOrgsPerUser := 2 // Base number, will multiply
+	numOrgsPerUser := int(multiplier) * baseNumOrgsPerUser
+	users, err := s.model.UserManager.List(ctx)
 	if err != nil {
 		return err
 	}
-	subscriptions, err := ds.model.SubscriptionPlanManager.List(ctx)
+	subscriptions, err := s.model.SubscriptionPlanManager.List(ctx)
 	if err != nil {
 		return err
 	}
-	categories, err := ds.model.CategoryManager.List(ctx)
+	categories, err := s.model.CategoryManager.List(ctx)
 	if err != nil {
 		return err
 	}
-	imageUrl := "https://yavuzceliker.github.io/sample-images/image-1021.jpg"
-	image, err := ds.provider.Service.Storage.UploadFromURL(ctx, imageUrl, func(progress, total int64, storage *horizon.Storage) {})
+	imageUrl := "https://picsum.photos/640/480" // Use a simple placeholder image URL
+	image, err := s.provider.Service.Storage.UploadFromURL(ctx, imageUrl, func(progress, total int64, storage *horizon.Storage) {})
 	if err != nil {
 		return err
 	}
@@ -227,12 +236,12 @@ func (ds *Seeder) SeedOrganization(ctx context.Context) error {
 		CreatedAt:  time.Now().UTC(),
 		UpdatedAt:  time.Now().UTC(),
 	}
-	if err := ds.model.MediaManager.Create(ctx, media); err != nil {
+	if err := s.model.MediaManager.Create(ctx, media); err != nil {
 		return err
 	}
 
 	// Create organizations for each user (each user owns their organizations)
-	for userIndex, user := range users {
+	for _, user := range users {
 		for j := 0; j < numOrgsPerUser; j++ {
 			sub := subscriptions[j%len(subscriptions)]
 			subscriptionEndDate := time.Now().Add(30 * 24 * time.Hour)
@@ -242,18 +251,18 @@ func (ds *Seeder) SeedOrganization(ctx context.Context) error {
 				CreatedByID:                         user.ID,
 				UpdatedAt:                           time.Now().UTC(),
 				UpdatedByID:                         user.ID,
-				Name:                                fmt.Sprintf("%s's Organization %d", *user.FirstName, j+1),
-				Address:                             ptr(fmt.Sprintf("%d %s Street, City %d", (userIndex*10)+j+101, *user.FirstName, userIndex+1)),
-				Email:                               ptr(fmt.Sprintf("org%d.%d@%s.com", userIndex+1, j+1, *user.FirstName)),
-				ContactNumber:                       ptr(fmt.Sprintf("+63917%02d%02d%04d", userIndex+1, j+1, (userIndex*100)+j)),
-				Description:                         ptr(fmt.Sprintf("Organization owned by %s %s for testing.", *user.FirstName, *user.LastName)),
-				Color:                               ptr("#" + fmt.Sprintf("%06x", 0xFF5733+(userIndex*100)+(j*50))),
-				TermsAndConditions:                  ptr("These are seeded terms and conditions..."),
-				PrivacyPolicy:                       ptr("Seeded privacy policy content..."),
-				CookiePolicy:                        ptr("Seeded cookie policy content..."),
-				RefundPolicy:                        ptr("Seeded refund policy content..."),
-				UserAgreement:                       ptr("Seeded user agreement content..."),
-				IsPrivate:                           false,
+				Name:                                s.faker.Company().Name(),
+				Address:                             ptr(s.faker.Address().Address()),
+				Email:                               ptr(s.faker.Internet().Email()),
+				ContactNumber:                       ptr(s.faker.Phone().Number()),
+				Description:                         ptr(s.faker.Lorem().Paragraph(3)),
+				Color:                               ptr(s.faker.Color().Hex()),
+				TermsAndConditions:                  ptr(s.faker.Lorem().Paragraph(5)),
+				PrivacyPolicy:                       ptr(s.faker.Lorem().Paragraph(5)),
+				CookiePolicy:                        ptr(s.faker.Lorem().Paragraph(5)),
+				RefundPolicy:                        ptr(s.faker.Lorem().Paragraph(5)),
+				UserAgreement:                       ptr(s.faker.Lorem().Paragraph(5)),
+				IsPrivate:                           s.faker.Bool(),
 				MediaID:                             &media.ID,
 				CoverMediaID:                        &media.ID,
 				SubscriptionPlanMaxBranches:         sub.MaxBranches,
@@ -263,13 +272,13 @@ func (ds *Seeder) SeedOrganization(ctx context.Context) error {
 				SubscriptionStartDate:               time.Now().UTC(),
 				SubscriptionEndDate:                 subscriptionEndDate,
 			}
-			if err := ds.model.OrganizationManager.Create(ctx, organization); err != nil {
+			if err := s.model.OrganizationManager.Create(ctx, organization); err != nil {
 				return err
 			}
 
 			// Add categories to organization
 			for _, category := range categories {
-				if err := ds.model.OrganizationCategoryManager.Create(ctx, &model.OrganizationCategory{
+				if err := s.model.OrganizationCategoryManager.Create(ctx, &model.OrganizationCategory{
 					CreatedAt:      time.Now().UTC(),
 					UpdatedAt:      time.Now().UTC(),
 					OrganizationID: &organization.ID,
@@ -279,8 +288,9 @@ func (ds *Seeder) SeedOrganization(ctx context.Context) error {
 				}
 			}
 
-			// Create 2-3 branches for each organization
-			numBranches := 2 + (j % 2) // 2-3 branches per organization
+			// Create 2-3 branches for each organization, scaled by multiplier
+			baseNumBranches := 2 + (j % 2) // 2-3 branches per organization
+			numBranches := int(multiplier) * baseNumBranches
 			for k := 0; k < numBranches; k++ {
 				branch := &model.Branch{
 					CreatedAt:      time.Now().UTC(),
@@ -289,19 +299,19 @@ func (ds *Seeder) SeedOrganization(ctx context.Context) error {
 					UpdatedByID:    user.ID,
 					OrganizationID: organization.ID,
 					Type:           []string{"main", "satellite", "branch"}[k%3],
-					Name:           fmt.Sprintf("%s Branch %d", organization.Name, k+1),
-					Email:          fmt.Sprintf("branch%d@%s-org%d.com", k+1, *user.FirstName, j+1),
-					Address:        fmt.Sprintf("Branch %d, %s Street, City %d", k+1, *user.FirstName, userIndex+1),
-					Province:       "Test Province",
-					City:           fmt.Sprintf("Test City %d", userIndex+1),
-					Region:         "Test Region",
-					Barangay:       fmt.Sprintf("Barangay %d", k+1),
-					PostalCode:     fmt.Sprintf("1%d%02d%d", userIndex+1, j+1, k+1),
+					Name:           s.faker.Company().Name(),
+					Email:          s.faker.Internet().Email(),
+					Address:        s.faker.Address().Address(),
+					Province:       s.faker.Address().State(),
+					City:           s.faker.Address().City(),
+					Region:         s.faker.Address().State(),
+					Barangay:       s.faker.Address().StreetName(),
+					PostalCode:     s.faker.Address().PostCode(),
 					CountryCode:    "PH",
-					ContactNumber:  ptr(fmt.Sprintf("+63918%02d%02d%04d", userIndex+1, k+1, (userIndex*100)+k)),
+					ContactNumber:  ptr(s.faker.Phone().Number()),
 					MediaID:        &media.ID,
 				}
-				if err := ds.model.BranchManager.Create(ctx, branch); err != nil {
+				if err := s.model.BranchManager.Create(ctx, branch); err != nil {
 					return err
 				}
 
@@ -313,7 +323,7 @@ func (ds *Seeder) SeedOrganization(ctx context.Context) error {
 
 					// Withdraw Settings
 					WithdrawAllowUserInput: true,
-					WithdrawPrefix:         fmt.Sprintf("WD%d%d", j+1, k+1),
+					WithdrawPrefix:         s.faker.Lorem().Word(),
 					WithdrawORStart:        1,
 					WithdrawORCurrent:      1,
 					WithdrawOREnd:          999999,
@@ -323,7 +333,7 @@ func (ds *Seeder) SeedOrganization(ctx context.Context) error {
 
 					// Deposit Settings
 					DepositAllowUserInput: true,
-					DepositPrefix:         fmt.Sprintf("DP%d%d", j+1, k+1),
+					DepositPrefix:         s.faker.Lorem().Word(),
 					DepositORStart:        1,
 					DepositORCurrent:      1,
 					DepositOREnd:          999999,
@@ -333,7 +343,7 @@ func (ds *Seeder) SeedOrganization(ctx context.Context) error {
 
 					// Loan Settings
 					LoanAllowUserInput: true,
-					LoanPrefix:         fmt.Sprintf("LN%d%d", j+1, k+1),
+					LoanPrefix:         s.faker.Lorem().Word(),
 					LoanORStart:        1,
 					LoanORCurrent:      1,
 					LoanOREnd:          999999,
@@ -343,7 +353,7 @@ func (ds *Seeder) SeedOrganization(ctx context.Context) error {
 
 					// Check Voucher Settings
 					CheckVoucherAllowUserInput: true,
-					CheckVoucherPrefix:         fmt.Sprintf("CV%d%d", j+1, k+1),
+					CheckVoucherPrefix:         s.faker.Lorem().Word(),
 					CheckVoucherORStart:        1,
 					CheckVoucherORCurrent:      1,
 					CheckVoucherOREnd:          999999,
@@ -356,12 +366,12 @@ func (ds *Seeder) SeedOrganization(ctx context.Context) error {
 					LoanAppliedEqualToBalance: true,
 				}
 
-				if err := ds.model.BranchSettingManager.Create(ctx, branchSetting); err != nil {
+				if err := s.model.BranchSettingManager.Create(ctx, branchSetting); err != nil {
 					return err
 				}
 
 				// Create the owner relationship for the user who created the organization
-				developerKey, err := ds.provider.Service.Security.GenerateUUIDv5(ctx, fmt.Sprintf("%s-%s-%s", user.ID, organization.ID, branch.ID))
+				developerKey, err := s.provider.Service.Security.GenerateUUIDv5(ctx, fmt.Sprintf("%s-%s-%s", user.ID, organization.ID, branch.ID))
 				if err != nil {
 					return err
 				}
@@ -375,8 +385,8 @@ func (ds *Seeder) SeedOrganization(ctx context.Context) error {
 					OrganizationID:           organization.ID,
 					UserID:                   user.ID,
 					UserType:                 model.UserOrganizationTypeOwner,
-					Description:              fmt.Sprintf("Owner %s of %s", *user.FirstName, organization.Name),
-					ApplicationDescription:   "Organization owner - automatically created",
+					Description:              s.faker.Lorem().Sentence(5),
+					ApplicationDescription:   s.faker.Lorem().Sentence(3),
 					ApplicationStatus:        "accepted",
 					DeveloperSecretKey:       developerKey + uuid.NewString() + "-owner-horizon",
 					PermissionName:           "Owner",
@@ -393,17 +403,17 @@ func (ds *Seeder) SeedOrganization(ctx context.Context) error {
 					LastOnlineAt:             time.Now().UTC(),
 				}
 
-				if err := ds.model.UserOrganizationManager.Create(ctx, ownerOrganization); err != nil {
+				if err := s.model.UserOrganizationManager.Create(ctx, ownerOrganization); err != nil {
 					return err
 				}
 
 				// Run organization seeder for accounting setup
-				tx := ds.provider.Service.Database.Client().Begin()
+				tx := s.provider.Service.Database.Client().Begin()
 				if tx.Error != nil {
 					tx.Rollback()
 					return err
 				}
-				if err := ds.model.OrganizationSeeder(ctx, tx, user.ID, organization.ID, branch.ID); err != nil {
+				if err := s.model.OrganizationSeeder(ctx, tx, user.ID, organization.ID, branch.ID); err != nil {
 					tx.Rollback()
 					return err
 				}
@@ -411,8 +421,10 @@ func (ds *Seeder) SeedOrganization(ctx context.Context) error {
 					return err
 				}
 
-				// Create invitation codes for this branch
-				for m := 0; m < 5; m++ {
+				// Create invitation codes for this branch, scaled by multiplier
+				baseNumInvites := 5
+				numInvites := int(multiplier) * baseNumInvites
+				for m := 0; m < numInvites; m++ {
 					userType := model.UserOrganizationTypeMember
 					if m%2 == 0 {
 						userType = model.UserOrganizationTypeEmployee
@@ -429,14 +441,14 @@ func (ds *Seeder) SeedOrganization(ctx context.Context) error {
 						ExpirationDate: time.Now().UTC().Add(60 * 24 * time.Hour),
 						MaxUse:         50,
 						CurrentUse:     m % 25,
-						Description:    fmt.Sprintf("Invite for %s Branch %d", organization.Name, k+1),
+						Description:    s.faker.Lorem().Sentence(3),
 					}
-					if err := ds.model.InvitationCodeManager.Create(ctx, invitationCode); err != nil {
+					if err := s.model.InvitationCodeManager.Create(ctx, invitationCode); err != nil {
 						return err
 					}
 				}
 
-				ds.provider.Service.Logger.Info(fmt.Sprintf("Created organization: %s with branch: %s (Owner: %s %s)",
+				s.provider.Service.Logger.Info(fmt.Sprintf("Created organization: %s with branch: %s (Owner: %s %s)",
 					organization.Name, branch.Name, *user.FirstName, *user.LastName))
 			}
 		}
@@ -444,7 +456,7 @@ func (ds *Seeder) SeedOrganization(ctx context.Context) error {
 	return nil
 }
 
-func (s *Seeder) SeedEmployees(ctx context.Context) error {
+func (s *Seeder) SeedEmployees(ctx context.Context, multiplier int32) error {
 	s.provider.Service.Logger.Info("Seeding branch employees...")
 
 	// Get all organizations and their branches
@@ -494,17 +506,19 @@ func (s *Seeder) SeedEmployees(ctx context.Context) error {
 				continue
 			}
 
-			// Create 1-3 employees per branch
-			numEmployeesToCreate := 1 + (int(branch.ID.ID()) % 3)
+			// Create 1-3 employees per branch, scaled by multiplier
+			baseNumEmployeesToCreate := 1 + (int(branch.ID.ID()) % 3)
+			numEmployeesToCreate := int(multiplier) * baseNumEmployeesToCreate
 
 			// Don't create more employees than available users
 			if numEmployeesToCreate > len(potentialEmployees) {
 				numEmployeesToCreate = len(potentialEmployees)
 			}
 
-			// Don't create more than 3 employees per branch
-			if len(existingEmployees)+numEmployeesToCreate > 3 {
-				numEmployeesToCreate = 3 - len(existingEmployees)
+			// Cap at a reasonable number per branch, e.g., 3 * multiplier, but adjust if needed
+			maxPerBranch := 3 * int(multiplier)
+			if len(existingEmployees)+numEmployeesToCreate > maxPerBranch {
+				numEmployeesToCreate = maxPerBranch - len(existingEmployees)
 			}
 
 			if numEmployeesToCreate <= 0 {
@@ -548,8 +562,8 @@ func (s *Seeder) SeedEmployees(ctx context.Context) error {
 					OrganizationID:           org.ID,
 					UserID:                   selectedUser.ID,
 					UserType:                 model.UserOrganizationTypeEmployee,
-					Description:              fmt.Sprintf("Employee %s %s at %s", *selectedUser.FirstName, *selectedUser.LastName, branch.Name),
-					ApplicationDescription:   "Cross-organization employee for testing and demonstration",
+					Description:              s.faker.Lorem().Sentence(5),
+					ApplicationDescription:   s.faker.Lorem().Sentence(3),
 					ApplicationStatus:        "accepted",
 					DeveloperSecretKey:       developerKey + uuid.NewString() + "-employee-horizon",
 					PermissionName:           "Employee",
@@ -590,8 +604,8 @@ func (s *Seeder) SeedEmployees(ctx context.Context) error {
 	return nil
 }
 
-func (ds *Seeder) SeedUsers(ctx context.Context) error {
-	users, err := ds.model.UserManager.List(ctx)
+func (s *Seeder) SeedUsers(ctx context.Context, multiplier int32) error {
+	users, err := s.model.UserManager.List(ctx)
 	if err != nil {
 		return err
 	}
@@ -599,124 +613,90 @@ func (ds *Seeder) SeedUsers(ctx context.Context) error {
 		return nil
 	}
 
-	imageUrl := "https://yavuzceliker.github.io/sample-images/image-1021.jpg"
-	image, err := ds.provider.Service.Storage.UploadFromURL(ctx, imageUrl, func(progress, total int64, storage *horizon.Storage) {})
-	if err != nil {
-		return err
-	}
-	media := &model.Media{
-		FileName:   image.FileName,
-		FileType:   image.FileType,
-		FileSize:   image.FileSize,
-		StorageKey: image.StorageKey,
-		URL:        image.URL,
-		BucketName: image.BucketName,
-		Status:     "comppleted",
-		Progress:   100,
-		CreatedAt:  time.Now().UTC(),
-		UpdatedAt:  time.Now().UTC(),
-	}
-	if err := ds.model.MediaManager.Create(ctx, media); err != nil {
-		return err
-	}
-
-	// Create a single hashed password for all users
-	hashedPassword, err := ds.provider.Service.Security.HashPassword(ctx, "sample-hello-world-12345")
+	// Generate a secure random password base and hash it
+	basePassword := "sample-hello-world-12345"
+	hashedPassword, err := s.provider.Service.Security.HashPassword(ctx, basePassword)
 	if err != nil {
 		return err
 	}
 
-	// User 1
-	user1 := &model.User{
-		MediaID:           &media.ID,
-		Email:             "sample@example.com",
-		Password:          hashedPassword,
-		Birthdate:         time.Date(1990, time.January, 1, 0, 0, 0, 0, time.UTC),
-		UserName:          "sampleuser",
-		FullName:          "Sample User",
-		FirstName:         ptr("Sample"),
-		MiddleName:        ptr("T."),
-		LastName:          ptr("User"),
-		Suffix:            ptr("J"),
-		ContactNumber:     "+639123456789",
-		IsEmailVerified:   true,
-		IsContactVerified: true,
-		CreatedAt:         time.Now().UTC(),
-		UpdatedAt:         time.Now().UTC(),
-	}
-	if err := ds.model.UserManager.Create(ctx, user1); err != nil {
-		return err
-	}
-
-	// User 2
-	user2 := &model.User{
-		MediaID:           &media.ID,
-		Email:             "seconduser@example.com",
-		Password:          hashedPassword,
-		Birthdate:         time.Date(1992, time.March, 15, 0, 0, 0, 0, time.UTC),
-		UserName:          "seconduser",
-		FullName:          "Second User",
-		FirstName:         ptr("Second"),
-		MiddleName:        ptr("M."),
-		LastName:          ptr("User"),
-		Suffix:            ptr("Sr"),
-		ContactNumber:     "+639234567890",
-		IsEmailVerified:   true,
-		IsContactVerified: true,
-		CreatedAt:         time.Now().UTC(),
-		UpdatedAt:         time.Now().UTC(),
-	}
-	if err := ds.model.UserManager.Create(ctx, user2); err != nil {
-		return err
-	}
-
-	// User 3
-	user3 := &model.User{
-		MediaID:           &media.ID,
-		Email:             "thirduser@example.com",
-		Password:          hashedPassword,
-		Birthdate:         time.Date(1988, time.June, 5, 0, 0, 0, 0, time.UTC),
-		UserName:          "thirduser",
-		FullName:          "Third User",
-		FirstName:         ptr("Third"),
-		MiddleName:        ptr("J."),
-		LastName:          ptr("User"),
-		Suffix:            ptr("II"),
-		ContactNumber:     "+639345678901",
-		IsEmailVerified:   true,
-		IsContactVerified: true,
-		CreatedAt:         time.Now().UTC(),
-		UpdatedAt:         time.Now().UTC(),
-	}
-	if err := ds.model.UserManager.Create(ctx, user3); err != nil {
-		return err
-	}
-
-	// User 4
-	user4 := &model.User{
-		MediaID:           &media.ID,
-		Email:             "fourthuser@example.com",
-		Password:          hashedPassword,
-		Birthdate:         time.Date(1995, time.December, 20, 0, 0, 0, 0, time.UTC),
-		UserName:          "fourthuser",
-		FullName:          "Fourth User",
-		FirstName:         ptr("Fourth"),
-		MiddleName:        ptr("K."),
-		LastName:          ptr("User"),
-		Suffix:            ptr("III"),
-		ContactNumber:     "+639456789012",
-		IsEmailVerified:   true,
-		IsContactVerified: true,
-		CreatedAt:         time.Now().UTC(),
-		UpdatedAt:         time.Now().UTC(),
-	}
-	if err := ds.model.UserManager.Create(ctx, user4); err != nil {
-		return err
+	// Base number of users is 4, scale with multiplier
+	baseNumUsers := 4
+	numUsers := int(multiplier) * baseNumUsers
+	for i := 0; i < numUsers; i++ {
+		firstName := s.faker.Person().FirstName()
+		middleName := s.faker.Person().LastName()[:1] // Simulate middle initial
+		lastName := s.faker.Person().LastName()
+		suffix := s.faker.Person().Suffix()
+		fullName := fmt.Sprintf("%s %s %s %s", firstName, middleName, lastName, suffix)
+		birthdate := time.Now().AddDate(-25-s.faker.IntBetween(0, 40), -s.faker.IntBetween(0, 11), -s.faker.IntBetween(0, 30))
+		imageUrl := "https://picsum.photos/640/480"
+		image, err := s.provider.Service.Storage.UploadFromURL(ctx, imageUrl, func(progress, total int64, storage *horizon.Storage) {})
+		if err != nil {
+			return err
+		}
+		media := &model.Media{
+			FileName:   image.FileName,
+			FileType:   image.FileType,
+			FileSize:   image.FileSize,
+			StorageKey: image.StorageKey,
+			URL:        image.URL,
+			BucketName: image.BucketName,
+			Status:     "comppleted",
+			Progress:   100,
+			CreatedAt:  time.Now().UTC(),
+			UpdatedAt:  time.Now().UTC(),
+		}
+		if err := s.model.MediaManager.Create(ctx, media); err != nil {
+			return err
+		}
+		if i == 0 {
+			user := &model.User{
+				MediaID:           &media.ID,
+				Email:             "sample@example.com",
+				Password:          hashedPassword,
+				Birthdate:         birthdate,
+				UserName:          s.faker.Internet().User(),
+				FullName:          fullName,
+				FirstName:         ptr(firstName),
+				MiddleName:        ptr(middleName),
+				LastName:          ptr(lastName),
+				Suffix:            ptr(suffix),
+				ContactNumber:     s.faker.Phone().Number(),
+				IsEmailVerified:   true,
+				IsContactVerified: true,
+				CreatedAt:         time.Now().UTC(),
+				UpdatedAt:         time.Now().UTC(),
+			}
+			if err := s.model.UserManager.Create(ctx, user); err != nil {
+				return err
+			}
+		}
+		user := &model.User{
+			MediaID:           &media.ID,
+			Email:             s.faker.Internet().Email(),
+			Password:          hashedPassword,
+			Birthdate:         birthdate,
+			UserName:          s.faker.Internet().User(),
+			FullName:          fullName,
+			FirstName:         ptr(firstName),
+			MiddleName:        ptr(middleName),
+			LastName:          ptr(lastName),
+			Suffix:            ptr(suffix),
+			ContactNumber:     s.faker.Phone().Number(),
+			IsEmailVerified:   true,
+			IsContactVerified: true,
+			CreatedAt:         time.Now().UTC(),
+			UpdatedAt:         time.Now().UTC(),
+		}
+		if err := s.model.UserManager.Create(ctx, user); err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
-func (s *Seeder) SeedMemberProfiles(ctx context.Context) error {
+func (s *Seeder) SeedMemberProfiles(ctx context.Context, multiplier int32) error {
 	// Check if member profiles already exist
 	profiles, err := s.model.MemberProfileManager.List(ctx)
 	if err != nil {
@@ -745,27 +725,6 @@ func (s *Seeder) SeedMemberProfiles(ctx context.Context) error {
 		return nil
 	}
 
-	// Sample member profile data
-	sampleMembers := []struct {
-		FirstName     string
-		MiddleName    string
-		LastName      string
-		ContactNumber string
-		CivilStatus   string
-		BusinessAddr  string
-	}{
-		{"Juan", "Dela", "Cruz", "+639171234567", "married", "123 Rizal Street, Manila"},
-		{"Maria", "Santos", "Garcia", "+639182345678", "single", "456 Bonifacio Ave, Quezon City"},
-		{"Jose", "Mercado", "Rizal", "+639193456789", "married", "789 Mabini Street, Makati"},
-		{"Ana", "Reyes", "Santos", "+639204567890", "widowed", "321 Luna Street, Pasig"},
-		{"Pedro", "Villa", "Moreno", "+639215678901", "single", "654 Del Pilar Ave, Taguig"},
-		{"Carmen", "Torres", "Valdez", "+639226789012", "married", "987 Aguinaldo Street, Mandaluyong"},
-		{"Roberto", "Flores", "Mendoza", "+639237890123", "divorced", "147 Roxas Blvd, Pasay"},
-		{"Sofia", "Ramos", "Herrera", "+639248901234", "single", "258 EDSA, Caloocan"},
-		{"Miguel", "Castro", "Jimenez", "+639259012345", "married", "369 Commonwealth Ave, Quezon City"},
-		{"Isabella", "Vargas", "Romero", "+639260123456", "single", "741 Ortigas Ave, San Juan"},
-	}
-
 	for _, org := range organizations {
 		// Get branches for this organization
 		branches, err := s.model.BranchManager.Find(ctx, &model.Branch{
@@ -776,21 +735,22 @@ func (s *Seeder) SeedMemberProfiles(ctx context.Context) error {
 		}
 
 		for _, branch := range branches {
-			// Create 3-5 member profiles per branch
-			numMembers := 3 + (int(org.ID.ID()) % 3) // 3-5 members per branch
-			if numMembers > len(sampleMembers) {
-				numMembers = len(sampleMembers)
+			// Create 3-5 member profiles per branch, scaled by multiplier
+			baseNumMembers := 3 + (int(org.ID.ID()) % 3) // 3-5 members per branch
+			numMembers := int(multiplier) * baseNumMembers
+			if numMembers > len(users) {
+				numMembers = len(users)
 			}
 
 			for i := 0; i < numMembers; i++ {
-				sample := sampleMembers[i]
+				firstName := s.faker.Person().FirstName()
+				middleName := s.faker.Person().LastName()[:1]
+				lastName := s.faker.Person().LastName()
+				fullName := fmt.Sprintf("%s %s %s", firstName, middleName, lastName)
 
 				// Create birthdate (ages 25-65)
 				age := 25 + (i % 40)
 				birthDate := time.Now().AddDate(-age, 0, 0)
-
-				// Generate full name
-				fullName := fmt.Sprintf("%s %s %s", sample.FirstName, sample.MiddleName, sample.LastName)
 
 				// Generate passbook number
 				passbook := fmt.Sprintf("PB-%s-%04d", branch.Name[:min(3, len(branch.Name))], i+1)
@@ -804,21 +764,21 @@ func (s *Seeder) SeedMemberProfiles(ctx context.Context) error {
 					OrganizationID:        org.ID,
 					BranchID:              branch.ID,
 					UserID:                &users[i%len(users)].ID, // Rotate through available users
-					FirstName:             sample.FirstName,
-					MiddleName:            sample.MiddleName,
-					LastName:              sample.LastName,
+					FirstName:             firstName,
+					MiddleName:            middleName,
+					LastName:              lastName,
 					FullName:              fullName,
 					BirthDate:             birthDate,
 					Status:                []string{"active", "pending", "inactive"}[i%3],
-					Description:           fmt.Sprintf("Seeded member profile for %s", fullName),
-					Notes:                 fmt.Sprintf("Generated member for testing purposes in %s branch", branch.Name),
-					ContactNumber:         sample.ContactNumber,
+					Description:           s.faker.Lorem().Paragraph(2),
+					Notes:                 s.faker.Lorem().Paragraph(1),
+					ContactNumber:         s.faker.Phone().Number(),
 					OldReferenceID:        fmt.Sprintf("REF-%04d", i+1),
 					Passbook:              passbook,
 					Occupation:            []string{"Farmer", "Teacher", "Driver", "Vendor", "Employee", "Business Owner"}[i%6],
-					BusinessAddress:       sample.BusinessAddr,
-					BusinessContactNumber: fmt.Sprintf("+639%03d%06d", 100+i, 100000+i),
-					CivilStatus:           sample.CivilStatus,
+					BusinessAddress:       s.faker.Address().Address(),
+					BusinessContactNumber: s.faker.Phone().Number(),
+					CivilStatus:           []string{"married", "single", "widowed", "divorced"}[i%4],
 					IsClosed:              false,
 					IsMutualFundMember:    i%2 == 0,
 					IsMicroFinanceMember:  i%3 == 0,
@@ -838,14 +798,14 @@ func (s *Seeder) SeedMemberProfiles(ctx context.Context) error {
 					OrganizationID:  org.ID,
 					BranchID:        branch.ID,
 					MemberProfileID: &memberProfile.ID,
-					Label:           "home",
-					Address:         sample.BusinessAddr,
-					ProvinceState:   "Metro Manila",
-					City:            []string{"Manila", "Quezon City", "Makati", "Pasig", "Taguig"}[i%5],
-					Barangay:        fmt.Sprintf("Barangay %d", i+1),
-					PostalCode:      fmt.Sprintf("1%03d", 100+i),
+					Label:           []string{"home", "work", "other"}[i%3],
+					Address:         s.faker.Address().Address(),
+					ProvinceState:   s.faker.Address().State(),
+					City:            s.faker.Address().City(),
+					Barangay:        s.faker.Address().StreetName(),
+					PostalCode:      s.faker.Address().PostCode(),
 					CountryCode:     "PH",
-					Landmark:        fmt.Sprintf("Near %s Mall", []string{"SM", "Ayala", "Robinson", "Gateway", "Trinoma"}[i%5]),
+					Landmark:        s.faker.Lorem().Sentence(2),
 				}
 
 				if err := s.model.MemberAddressManager.Create(ctx, memberAddress); err != nil {
