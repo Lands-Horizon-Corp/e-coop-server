@@ -110,7 +110,7 @@ func (h *HorizonSecurity) Encrypt(ctx context.Context, plaintext string) (string
 	}
 
 	ciphertext := aesGCM.Seal(nonce, nonce, []byte(plaintext), nil)
-	return base64.StdEncoding.EncodeToString(ciphertext), nil
+	return string(ciphertext), nil
 }
 
 // GenerateUUID implements SecurityUtils.

@@ -2,7 +2,6 @@ package horizon
 
 import (
 	"context"
-	"encoding/base64"
 	"net/http"
 	"time"
 
@@ -26,7 +25,7 @@ type TokenService[T jwt.Claims] interface {
 	SetToken(ctx context.Context, c echo.Context, claim T, expiry time.Duration) error
 
 	// GenerateToken creates a new signed token with claims
-	GenerateToken(ctx context.Context, claims T, expiry time.Duration) (string, error)
+	GenerateToken(ctx context.Context, claims T, expiry time.Duration) ([]byte, error)
 }
 
 type HorizonTokenService[T jwt.Claims] struct {
@@ -93,7 +92,7 @@ func (h *HorizonTokenService[T]) SetToken(ctx context.Context, c echo.Context, c
 
 	cookie := &http.Cookie{
 		Name:     h.Name,
-		Value:    tok,
+		Value:    string(tok),
 		Path:     "/",
 		Expires:  time.Now().UTC().Add(expiry),
 		HttpOnly: true,
@@ -105,7 +104,7 @@ func (h *HorizonTokenService[T]) SetToken(ctx context.Context, c echo.Context, c
 }
 
 // GenerateToken implements TokenService.
-func (h *HorizonTokenService[T]) GenerateToken(ctx context.Context, claims T, expiry time.Duration) (string, error) {
+func (h *HorizonTokenService[T]) GenerateToken(ctx context.Context, claims T, expiry time.Duration) ([]byte, error) {
 	now := time.Now().UTC()
 
 	// Check if the claims implement GetRegisteredClaims via pointer receiver
@@ -128,17 +127,17 @@ func (h *HorizonTokenService[T]) GenerateToken(ctx context.Context, claims T, ex
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	signed, err := token.SignedString(h.Secret)
 	if err != nil {
-		return "", eris.Wrap(err, "signing token failed")
+		return nil, eris.Wrap(err, "signing token failed")
 	}
-	return base64.StdEncoding.EncodeToString([]byte(signed)), nil
+	if !token.Valid {
+		return nil, eris.New("invalid token")
+	}
+	return []byte(signed), nil
 }
 func (h *HorizonTokenService[T]) VerifyToken(ctx context.Context, value string) (*T, error) {
-	raw, err := base64.StdEncoding.DecodeString(value)
-	if err != nil {
-		return nil, eris.Wrap(err, "invalid base64 token")
-	}
+
 	var claim T
-	token, err := jwt.ParseWithClaims(string(raw), any(&claim).(jwt.Claims), func(tkn *jwt.Token) (any, error) {
+	token, err := jwt.ParseWithClaims(value, any(&claim).(jwt.Claims), func(tkn *jwt.Token) (any, error) {
 		if _, ok := tkn.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, eris.Wrap(jwt.ErrSignatureInvalid, "unexpected signing method")
 		}
