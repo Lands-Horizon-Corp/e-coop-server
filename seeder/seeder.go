@@ -219,30 +219,30 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 	if err != nil {
 		return err
 	}
-	imageUrl := "https://picsum.photos/640/480" // Use a simple placeholder image URL
-	image, err := s.provider.Service.Storage.UploadFromURL(ctx, imageUrl, func(progress, total int64, storage *horizon.Storage) {})
-	if err != nil {
-		return err
-	}
-	media := &model.Media{
-		FileName:   image.FileName,
-		FileType:   image.FileType,
-		FileSize:   image.FileSize,
-		StorageKey: image.StorageKey,
-		URL:        image.URL,
-		BucketName: image.BucketName,
-		Status:     "comppleted",
-		Progress:   100,
-		CreatedAt:  time.Now().UTC(),
-		UpdatedAt:  time.Now().UTC(),
-	}
-	if err := s.model.MediaManager.Create(ctx, media); err != nil {
-		return err
-	}
 
 	// Create organizations for each user (each user owns their organizations)
 	for _, user := range users {
 		for j := 0; j < numOrgsPerUser; j++ {
+			imageUrl := "https://picsum.photos/640/480" // Use a simple placeholder image URL
+			image, err := s.provider.Service.Storage.UploadFromURL(ctx, imageUrl, func(progress, total int64, storage *horizon.Storage) {})
+			if err != nil {
+				return err
+			}
+			media := &model.Media{
+				FileName:   image.FileName,
+				FileType:   image.FileType,
+				FileSize:   image.FileSize,
+				StorageKey: image.StorageKey,
+				URL:        image.URL,
+				BucketName: image.BucketName,
+				Status:     "comppleted",
+				Progress:   100,
+				CreatedAt:  time.Now().UTC(),
+				UpdatedAt:  time.Now().UTC(),
+			}
+			if err := s.model.MediaManager.Create(ctx, media); err != nil {
+				return err
+			}
 			sub := subscriptions[j%len(subscriptions)]
 			subscriptionEndDate := time.Now().Add(30 * 24 * time.Hour)
 
@@ -291,7 +291,7 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 			// Create 2-3 branches for each organization, scaled by multiplier
 			baseNumBranches := 2 + (j % 2) // 2-3 branches per organization
 			numBranches := int(multiplier) * baseNumBranches
-			for k := 0; k < numBranches; k++ {
+			for k := range numBranches {
 				branch := &model.Branch{
 					CreatedAt:      time.Now().UTC(),
 					CreatedByID:    user.ID,
@@ -650,31 +650,16 @@ func (s *Seeder) SeedUsers(ctx context.Context, multiplier int32) error {
 		if err := s.model.MediaManager.Create(ctx, media); err != nil {
 			return err
 		}
+		var email string
 		if i == 0 {
-			user := &model.User{
-				MediaID:           &media.ID,
-				Email:             "sample@example.com",
-				Password:          hashedPassword,
-				Birthdate:         birthdate,
-				UserName:          s.faker.Internet().User(),
-				FullName:          fullName,
-				FirstName:         ptr(firstName),
-				MiddleName:        ptr(middleName),
-				LastName:          ptr(lastName),
-				Suffix:            ptr(suffix),
-				ContactNumber:     fmt.Sprintf("+6391%08d", s.faker.IntBetween(10000000, 99999999)),
-				IsEmailVerified:   true,
-				IsContactVerified: true,
-				CreatedAt:         time.Now().UTC(),
-				UpdatedAt:         time.Now().UTC(),
-			}
-			if err := s.model.UserManager.Create(ctx, user); err != nil {
-				return err
-			}
+			email = "sample@example.com"
+		} else {
+			email = s.faker.Internet().Email()
 		}
+
 		user := &model.User{
 			MediaID:           &media.ID,
-			Email:             s.faker.Internet().Email(),
+			Email:             email,
 			Password:          hashedPassword,
 			Birthdate:         birthdate,
 			UserName:          s.faker.Internet().User(),
