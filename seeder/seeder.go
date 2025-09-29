@@ -255,16 +255,14 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 		return err
 	}
 
-	// Create a single shared media object using local image generation
-	sharedMedia, err := s.createImageMedia(ctx, "Organization")
-	if err != nil {
-		return fmt.Errorf("failed to create organization media: %w", err)
-	} // Create organizations for each user (each user owns their organizations)
 	for _, user := range users {
 		for j := 0; j < numOrgsPerUser; j++ {
 			sub := subscriptions[j%len(subscriptions)]
 			subscriptionEndDate := time.Now().Add(30 * 24 * time.Hour)
-
+			orgMedia, err := s.createImageMedia(ctx, "Organization")
+			if err != nil {
+				return fmt.Errorf("failed to create organization media: %w", err)
+			}
 			organization := &model.Organization{
 				CreatedAt:                           time.Now().UTC(),
 				CreatedByID:                         user.ID,
@@ -282,8 +280,8 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 				RefundPolicy:                        ptr(s.faker.Lorem().Paragraph(5)),
 				UserAgreement:                       ptr(s.faker.Lorem().Paragraph(5)),
 				IsPrivate:                           s.faker.Bool(),
-				MediaID:                             &sharedMedia.ID,
-				CoverMediaID:                        &sharedMedia.ID,
+				MediaID:                             &orgMedia.ID,
+				CoverMediaID:                        &orgMedia.ID,
 				SubscriptionPlanMaxBranches:         sub.MaxBranches,
 				SubscriptionPlanMaxEmployees:        sub.MaxEmployees,
 				SubscriptionPlanMaxMembersPerBranch: sub.MaxMembersPerBranch,
@@ -309,6 +307,10 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 
 			numBranches := int(multiplier) * 1
 			for k := range numBranches {
+				branchMedia, err := s.createImageMedia(ctx, "Organization")
+				if err != nil {
+					return fmt.Errorf("failed to create organization media: %w", err)
+				}
 				branch := &model.Branch{
 					CreatedAt:      time.Now().UTC(),
 					CreatedByID:    user.ID,
@@ -326,7 +328,7 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 					PostalCode:     s.faker.Address().PostCode(),
 					CountryCode:    "PH",
 					ContactNumber:  ptr(fmt.Sprintf("+6391%08d", s.faker.IntBetween(10000000, 99999999))),
-					MediaID:        &sharedMedia.ID,
+					MediaID:        &branchMedia.ID,
 				}
 				if err := s.model.BranchManager.Create(ctx, branch); err != nil {
 					return err
