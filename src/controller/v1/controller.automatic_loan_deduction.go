@@ -137,6 +137,7 @@ func (c *Controller) AutomaticLoanDeductionController() {
 			UpdatedByID:        user.UserID,
 			BranchID:           *user.BranchID,
 			OrganizationID:     user.OrganizationID,
+			NumberOfMonths:     req.NumberOfMonths,
 		}
 
 		if err := c.model.AutomaticLoanDeductionManager.Create(context, ald); err != nil {
@@ -219,6 +220,7 @@ func (c *Controller) AutomaticLoanDeductionController() {
 		ald.Description = req.Description
 		ald.UpdatedAt = time.Now().UTC()
 		ald.UpdatedByID = user.UserID
+		ald.NumberOfMonths = req.NumberOfMonths
 
 		if err := c.model.AutomaticLoanDeductionManager.UpdateFields(context, ald.ID, ald); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{

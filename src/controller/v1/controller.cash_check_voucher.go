@@ -199,7 +199,7 @@ func (c *Controller) CashCheckVoucherController() {
 			UpdatedByID:                   user.UserID,
 			BranchID:                      *user.BranchID,
 			OrganizationID:                user.OrganizationID,
-			MemberProfileID:               request.MemberProfileID,
+			Name:                          request.Name,
 		}
 
 		// Save cash check voucher first
@@ -386,7 +386,7 @@ func (c *Controller) CashCheckVoucherController() {
 		cashCheckVoucher.CheckEntryAccountID = request.CheckEntryAccountID
 		cashCheckVoucher.UpdatedAt = time.Now().UTC()
 		cashCheckVoucher.UpdatedByID = user.UserID
-		cashCheckVoucher.MemberProfileID = request.MemberProfileID
+		cashCheckVoucher.Name = request.Name
 
 		// Handle deleted entries
 		if request.CashCheckVoucherEntriesDeleted != nil {

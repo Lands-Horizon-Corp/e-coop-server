@@ -32,8 +32,9 @@ type (
 		Description       string  `gorm:"type:text"`
 		DeliquentAccount  bool    `gorm:"type:boolean;default:false"`
 		FinesAccount      bool    `gorm:"type:boolean;default:false"`
-		InterestAccountID bool    `gorm:"type:boolean;default:false"` // Note: Schema says boolean, but the name suggests a relation. Adjust if needed.
+		InterestAccountID bool    `gorm:"type:boolean;default:false"`
 		ComakerAccount    float64 `gorm:"type:decimal;default:-1"`
+		NumberOfMonths    int     `gorm:"type:int;default:0"`
 		ExistAccount      bool    `gorm:"type:boolean;default:false"`
 	}
 

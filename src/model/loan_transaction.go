@@ -205,8 +205,13 @@ type (
 		ComakerMemberProfiles                 []*ComakerMemberProfile                  `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"comaker_member_profiles,omitempty"`
 		ComakerCollaterals                    []*ComakerCollateral                     `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"comaker_collaterals,omitempty"`
 
-		TotalDebit  float64 `gorm:"total_debit;type:decimal;default:0" json:"total_debit"`
-		TotalCredit float64 `gorm:"total_credit;type:decimal;default:0" json:"total_credit"`
+		Count       int        `gorm:"type:int;default:0" json:"count"`
+		Balance     float64    `gorm:"type:decimal;default:0" json:"balance"`
+		LastPay     *time.Time `gorm:"type:timestamp" json:"last_pay,omitempty"`
+		Fines       float64    `gorm:"type:decimal;default:0" json:"fines"`
+		Interest    float64    `gorm:"type:decimal;default:0" json:"interest"`
+		TotalDebit  float64    `gorm:"total_debit;type:decimal;default:0" json:"total_debit"`
+		TotalCredit float64    `gorm:"total_credit;type:decimal;default:0" json:"total_credit"`
 	}
 
 	LoanTransactionResponse struct {
@@ -348,8 +353,13 @@ type (
 		ComakerMemberProfiles                 []*ComakerMemberProfileResponse                  `json:"comaker_member_profiles,omitempty"`
 		ComakerCollaterals                    []*ComakerCollateralResponse                     `json:"comaker_collaterals,omitempty"`
 
-		TotalDebit  float64 `json:"total_debit"`
-		TotalCredit float64 `json:"total_credit"`
+		Count       int        `json:"count"`
+		Balance     float64    `json:"balance"`
+		LastPay     *time.Time `json:"last_pay,omitempty"`
+		Fines       float64    `json:"fines"`
+		Interest    float64    `json:"interest"`
+		TotalDebit  float64    `json:"total_debit"`
+		TotalCredit float64    `json:"total_credit"`
 	}
 
 	LoanTransactionRequest struct {
@@ -685,6 +695,11 @@ func (m *Model) LoanTransaction() {
 				LoanTermsAndConditionAmountReceipt:     m.LoanTermsAndConditionAmountReceiptManager.ToModels(data.LoanTermsAndConditionAmountReceipt),
 				ComakerMemberProfiles:                  m.ComakerMemberProfileManager.ToModels(data.ComakerMemberProfiles),
 				ComakerCollaterals:                     m.ComakerCollateralManager.ToModels(data.ComakerCollaterals),
+				Count:                                  data.Count,
+				Balance:                                data.Balance,
+				LastPay:                                data.LastPay,
+				Fines:                                  data.Fines,
+				Interest:                               data.Interest,
 				TotalDebit:                             data.TotalDebit,
 				TotalCredit:                            data.TotalCredit,
 			}
@@ -742,6 +757,23 @@ func (m *Model) mapLoanTransactionEntries(entries []*LoanTransactionEntry) []*Lo
 		}
 	}
 	return result
+}
+
+func (m *Model) LoanTransactionWithDatesNotNull(ctx context.Context, memberId uuid.UUID, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanTransaction, error) {
+	filters := []horizon_services.Filter{
+		{Field: "member_profile_id", Op: horizon_services.OpEq, Value: memberId},
+		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
+		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
+		{Field: "approved_date", Op: horizon_services.OpNe, Value: nil},
+		{Field: "printed_date", Op: horizon_services.OpNe, Value: nil},
+		{Field: "released_date", Op: horizon_services.OpNe, Value: nil},
+	}
+
+	loanTransactions, err := m.LoanTransactionManager.FindWithFilters(ctx, filters)
+	if err != nil {
+		return nil, err
+	}
+	return loanTransactions, nil
 }
 
 // Helper function to generate amortization schedule
