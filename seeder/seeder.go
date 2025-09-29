@@ -26,6 +26,45 @@ func NewSeeder(provider *src.Provider, model *model.Model) (*Seeder, error) {
 	}, nil
 }
 
+// createImageMedia generates a random image using faker and creates a media record for it
+func (s *Seeder) createImageMedia(ctx context.Context, imageType string) (*model.Media, error) {
+	// Get a *os.File pointing to a file that is a random image
+	var keywords []string
+	switch imageType {
+	case "Organization":
+		keywords = []string{"business", "office", "company"}
+	case "User":
+		keywords = []string{"people", "person", "portrait"}
+	}
+
+	image := s.faker.LoremFlickr().Image(640, 480, keywords, "", false)
+	defer image.Close() // Don't forget to close the file
+
+	// Upload the generated image file
+	storage, err := s.provider.Service.Storage.UploadFromPath(ctx, image.Name(), func(progress, total int64, storage *horizon.Storage) {})
+	if err != nil {
+		return nil, fmt.Errorf("failed to upload generated image: %w", err)
+	} // Create media record
+	media := &model.Media{
+		FileName:   storage.FileName,
+		FileType:   storage.FileType,
+		FileSize:   storage.FileSize,
+		StorageKey: storage.StorageKey,
+		URL:        storage.URL,
+		BucketName: storage.BucketName,
+		Status:     "completed",
+		Progress:   100,
+		CreatedAt:  time.Now().UTC(),
+		UpdatedAt:  time.Now().UTC(),
+	}
+
+	if err := s.model.MediaManager.Create(ctx, media); err != nil {
+		return nil, fmt.Errorf("failed to create media record: %w", err)
+	}
+
+	return media, nil
+}
+
 func (s *Seeder) Run(ctx context.Context, multiplier int32) error {
 	if multiplier <= 0 {
 		s.provider.Service.Logger.Info("Multiplier is 0 or less, skipping database seeding.")
@@ -220,29 +259,13 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 		return err
 	}
 
-	// Create organizations for each user (each user owns their organizations)
+	// Create a single shared media object using local image generation
+	sharedMedia, err := s.createImageMedia(ctx, "Organization")
+	if err != nil {
+		return fmt.Errorf("failed to create organization media: %w", err)
+	} // Create organizations for each user (each user owns their organizations)
 	for _, user := range users {
 		for j := 0; j < numOrgsPerUser; j++ {
-			imageUrl := "https://picsum.photos/640/480" // Use a simple placeholder image URL
-			image, err := s.provider.Service.Storage.UploadFromURL(ctx, imageUrl, func(progress, total int64, storage *horizon.Storage) {})
-			if err != nil {
-				return err
-			}
-			media := &model.Media{
-				FileName:   image.FileName,
-				FileType:   image.FileType,
-				FileSize:   image.FileSize,
-				StorageKey: image.StorageKey,
-				URL:        image.URL,
-				BucketName: image.BucketName,
-				Status:     "comppleted",
-				Progress:   100,
-				CreatedAt:  time.Now().UTC(),
-				UpdatedAt:  time.Now().UTC(),
-			}
-			if err := s.model.MediaManager.Create(ctx, media); err != nil {
-				return err
-			}
 			sub := subscriptions[j%len(subscriptions)]
 			subscriptionEndDate := time.Now().Add(30 * 24 * time.Hour)
 
@@ -263,8 +286,8 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 				RefundPolicy:                        ptr(s.faker.Lorem().Paragraph(5)),
 				UserAgreement:                       ptr(s.faker.Lorem().Paragraph(5)),
 				IsPrivate:                           s.faker.Bool(),
-				MediaID:                             &media.ID,
-				CoverMediaID:                        &media.ID,
+				MediaID:                             &sharedMedia.ID,
+				CoverMediaID:                        &sharedMedia.ID,
 				SubscriptionPlanMaxBranches:         sub.MaxBranches,
 				SubscriptionPlanMaxEmployees:        sub.MaxEmployees,
 				SubscriptionPlanMaxMembersPerBranch: sub.MaxMembersPerBranch,
@@ -309,7 +332,7 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 					PostalCode:     s.faker.Address().PostCode(),
 					CountryCode:    "PH",
 					ContactNumber:  ptr(fmt.Sprintf("+6391%08d", s.faker.IntBetween(10000000, 99999999))),
-					MediaID:        &media.ID,
+					MediaID:        &sharedMedia.ID,
 				}
 				if err := s.model.BranchManager.Create(ctx, branch); err != nil {
 					return err
@@ -623,32 +646,17 @@ func (s *Seeder) SeedUsers(ctx context.Context, multiplier int32) error {
 	// Base number of users is 4, scale with multiplier
 	baseNumUsers := 4
 	numUsers := int(multiplier) * baseNumUsers
-	for i := 0; i < numUsers; i++ {
+	for i := range numUsers {
 		firstName := s.faker.Person().FirstName()
 		middleName := s.faker.Person().LastName()[:1] // Simulate middle initial
 		lastName := s.faker.Person().LastName()
 		suffix := s.faker.Person().Suffix()
 		fullName := fmt.Sprintf("%s %s %s %s", firstName, middleName, lastName, suffix)
 		birthdate := time.Now().AddDate(-25-s.faker.IntBetween(0, 40), -s.faker.IntBetween(0, 11), -s.faker.IntBetween(0, 30))
-		imageUrl := "https://picsum.photos/640/480"
-		image, err := s.provider.Service.Storage.UploadFromURL(ctx, imageUrl, func(progress, total int64, storage *horizon.Storage) {})
+		// Create shared media for all users using local image generation
+		userSharedMedia, err := s.createImageMedia(ctx, "User")
 		if err != nil {
-			return err
-		}
-		media := &model.Media{
-			FileName:   image.FileName,
-			FileType:   image.FileType,
-			FileSize:   image.FileSize,
-			StorageKey: image.StorageKey,
-			URL:        image.URL,
-			BucketName: image.BucketName,
-			Status:     "comppleted",
-			Progress:   100,
-			CreatedAt:  time.Now().UTC(),
-			UpdatedAt:  time.Now().UTC(),
-		}
-		if err := s.model.MediaManager.Create(ctx, media); err != nil {
-			return err
+			return fmt.Errorf("failed to create user media: %w", err)
 		}
 		var email string
 		if i == 0 {
@@ -658,7 +666,7 @@ func (s *Seeder) SeedUsers(ctx context.Context, multiplier int32) error {
 		}
 
 		user := &model.User{
-			MediaID:           &media.ID,
+			MediaID:           &userSharedMedia.ID,
 			Email:             email,
 			Password:          hashedPassword,
 			Birthdate:         birthdate,
