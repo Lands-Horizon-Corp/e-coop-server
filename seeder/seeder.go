@@ -244,8 +244,7 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 		return nil
 	}
 
-	baseNumOrgsPerUser := 2 // Base number, will multiply
-	numOrgsPerUser := int(multiplier) * baseNumOrgsPerUser
+	numOrgsPerUser := int(multiplier) * 1
 	users, err := s.model.UserManager.List(ctx)
 	if err != nil {
 		return err
@@ -311,9 +310,7 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 				}
 			}
 
-			// Create 2-3 branches for each organization, scaled by multiplier
-			baseNumBranches := 2 + (j % 2) // 2-3 branches per organization
-			numBranches := int(multiplier) * baseNumBranches
+			numBranches := int(multiplier) * 1
 			for k := range numBranches {
 				branch := &model.Branch{
 					CreatedAt:      time.Now().UTC(),
@@ -444,9 +441,7 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 					return err
 				}
 
-				// Create invitation codes for this branch, scaled by multiplier
-				baseNumInvites := 5
-				numInvites := int(multiplier) * baseNumInvites
+				numInvites := int(multiplier) * 1
 				for m := 0; m < numInvites; m++ {
 					userType := model.UserOrganizationTypeMember
 					if m%2 == 0 {
@@ -529,9 +524,7 @@ func (s *Seeder) SeedEmployees(ctx context.Context, multiplier int32) error {
 				continue
 			}
 
-			// Create 1-3 employees per branch, scaled by multiplier
-			baseNumEmployeesToCreate := 1 + (int(branch.ID.ID()) % 3)
-			numEmployeesToCreate := int(multiplier) * baseNumEmployeesToCreate
+			numEmployeesToCreate := int(multiplier) * 1
 
 			// Don't create more employees than available users
 			if numEmployeesToCreate > len(potentialEmployees) {
@@ -644,7 +637,7 @@ func (s *Seeder) SeedUsers(ctx context.Context, multiplier int32) error {
 	}
 
 	// Base number of users is 4, scale with multiplier
-	baseNumUsers := 4
+	baseNumUsers := 1
 	numUsers := int(multiplier) * baseNumUsers
 	for i := range numUsers {
 		firstName := s.faker.Person().FirstName()
@@ -728,9 +721,7 @@ func (s *Seeder) SeedMemberProfiles(ctx context.Context, multiplier int32) error
 		}
 
 		for _, branch := range branches {
-			// Create 3-5 member profiles per branch, scaled by multiplier
-			baseNumMembers := 3 + (int(org.ID.ID()) % 3) // 3-5 members per branch
-			numMembers := int(multiplier) * baseNumMembers
+			numMembers := int(multiplier) * 1
 			if numMembers > len(users) {
 				numMembers = len(users)
 			}
