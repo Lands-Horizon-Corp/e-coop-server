@@ -26,24 +26,21 @@ func NewSeeder(provider *src.Provider, model *model.Model) (*Seeder, error) {
 	}, nil
 }
 
-// createImageMedia generates a random image using faker and creates a media record for it
+// createImageMedia generates a random image using Picsum URLs and creates a media record for it
 func (s *Seeder) createImageMedia(ctx context.Context, imageType string) (*model.Media, error) {
-	// Get a *os.File pointing to a file that is a random image
-	var keywords []string
-	switch imageType {
-	case "Organization":
-		keywords = []string{"business", "office", "company"}
-	case "User":
-		keywords = []string{"people", "person", "portrait"}
+	// Array of Picsum URLs with different image IDs
+	imageUrls := []string{
+		"https://picsum.photos/640/480",
 	}
 
-	image := s.faker.LoremFlickr().Image(640, 480, keywords, "", false)
-	defer image.Close() // Don't forget to close the file
+	// Randomly choose one URL from the array
+	randomIndex := s.faker.IntBetween(0, len(imageUrls)-1)
+	imageUrl := imageUrls[randomIndex]
 
-	// Upload the generated image file
-	storage, err := s.provider.Service.Storage.UploadFromPath(ctx, image.Name(), func(progress, total int64, storage *horizon.Storage) {})
+	// Upload the image from URL
+	storage, err := s.provider.Service.Storage.UploadFromURL(ctx, imageUrl, func(progress, total int64, storage *horizon.Storage) {})
 	if err != nil {
-		return nil, fmt.Errorf("failed to upload generated image: %w", err)
+		return nil, fmt.Errorf("failed to upload image from Picsum %s: %w", imageType, err)
 	} // Create media record
 	media := &model.Media{
 		FileName:   storage.FileName,
