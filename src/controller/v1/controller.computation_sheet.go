@@ -104,6 +104,7 @@ func (c *Controller) ComputationSheetController() {
 				Name:    ald.Name,
 				Type:    model.LoanTransactionStatic,
 				IsAddOn: ald.AddOn,
+				Account: c.model.AccountManager.ToModel(ald.Account),
 			}
 			entry.Credit = c.service.LoanComputation(context, *ald, model.LoanTransaction{
 				Terms:    request.Terms,
