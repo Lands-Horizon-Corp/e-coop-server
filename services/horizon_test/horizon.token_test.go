@@ -2,7 +2,6 @@ package horizon_test
 
 import (
 	"context"
-	"encoding/base64"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -29,7 +28,7 @@ func setupTokenService() horizon.TokenService[TestClaim] {
 	env := horizon.NewEnvironmentService("../../.env")
 	return horizon.NewTokenService[TestClaim](
 		env.GetString("APP_NAME", "horizon-test"),
-		[]byte(env.GetString("APP_TOKEN", base64.StdEncoding.EncodeToString([]byte("test-secret")))),
+		[]byte(env.GetString("APP_TOKEN", "test-secret")),
 		false,
 	)
 }
@@ -49,7 +48,7 @@ func TestGenerateAndVerifyToken(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, token)
 
-	verifiedClaims, err := service.VerifyToken(ctx, token)
+	verifiedClaims, err := service.VerifyToken(ctx, string(token))
 	assert.NoError(t, err)
 	assert.Equal(t, claims.Username, verifiedClaims.Username)
 }

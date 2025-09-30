@@ -69,7 +69,6 @@ func (h *UserOrganizationToken) ClearCurrentToken(context context.Context, ctx e
 			h.Token.CleanToken(context, ctx)
 			return
 		}
-		fmt.Println("wth is going on here -------------------")
 		if err := h.provider.Service.Broker.Dispatch(context, []string{
 			fmt.Sprintf("user_organization.status.branch.%s", userOrg.BranchID),
 			fmt.Sprintf("user_organization.status.organization.%s", userOrg.OrganizationID),
@@ -124,7 +123,7 @@ func (h *UserOrganizationToken) SetUserOrganization(ctx context.Context, echoCtx
 		OrganizationID:     userOrganization.OrganizationID.String(),
 		UserType:           userOrganization.UserType,
 	}, 144*time.Hour); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "failed to set authentication token")
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to set authentication token: "+err.Error())
 	}
 	return nil
 }

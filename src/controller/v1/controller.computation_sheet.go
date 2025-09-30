@@ -18,33 +18,120 @@ func (c *Controller) ComputationSheetController() {
 
 	// POST /computation-sheet/:computation_sheet_id/calculator: Returns sample calculation data.
 	req.RegisterRoute(handlers.Route{
-		Route:  "/api/v1/computation-sheet/:computation_sheet_id/calculator",
-		Method: "POST",
-		Note:   "Returns sample payment calculation data for a computation sheet.",
+		Route:        "/api/v1/computation-sheet/:computation_sheet_id/calculator",
+		Method:       "POST",
+		Note:         "Returns sample payment calculation data for a computation sheet.",
+		ResponseType: model.ComputationSheetAmortizationResponse{},
 	}, func(ctx echo.Context) error {
-		// You can parse computation_sheet_id if needed, but for sample data, we ignore it.
-		// id, err := handlers.EngineUUIDParam(ctx, "computation_sheet_id")
-		// if err != nil {
-		//     return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
-		// }
-
-		// Generate sample data
-		now := time.Now().UTC()
-		sample := map[string]any{
-			"payments": []map[string]any{
-				{
-					"date":   now.Format("2006-01-02"),
-					"amount": 100,
-				},
-				{
-					"date":   now.AddDate(0, 0, 30).Format("2006-01-02"),
-					"amount": 100,
-				},
-			},
-			"total_amount":   200,
-			"total_interest": 40,
+		context := ctx.Request().Context()
+		var request model.LoanTransactionRequest
+		computationSheetID, err := handlers.EngineUUIDParam(ctx, "computation_sheet_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
 		}
-		return ctx.JSON(http.StatusOK, sample)
+		if computationSheetID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Computation sheet ID is required"})
+		}
+		if err := ctx.Bind(&request); err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid login payload: " + err.Error()})
+		}
+		if err := c.provider.Service.Validator.Struct(request); err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		computationSheet, err := c.model.ComputationSheetManager.GetByID(context, *computationSheetID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Computation sheet not found"})
+		}
+		automaticLoanDeductionEntries, err := c.model.AutomaticLoanDeductionManager.Find(context, &model.AutomaticLoanDeduction{
+			ComputationSheetID: &computationSheet.ID,
+			BranchID:           computationSheet.BranchID,
+			OrganizationID:     computationSheet.OrganizationID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve automatic loan deduction entries: " + err.Error()})
+		}
+		account, err := c.model.AccountManager.GetByIDRaw(context, *request.AccountID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found"})
+		}
+		cashOnHandAccountID := userOrg.Branch.BranchSetting.CashOnHandAccountID
+		cashOnHand, err := c.model.AccountManager.GetByIDRaw(context, *cashOnHandAccountID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve cash on hand account: " + err.Error()})
+		}
+		loanTransactionEntries := []model.ComputationSheetAmortizationEntry{
+			{
+				Account: account,
+				IsAddOn: false,
+				Type:    model.LoanTransactionStatic,
+				Credit:  request.Applied1,
+				Debit:   0,
+				Name:    cashOnHand.Name,
+			},
+			{
+				Account: cashOnHand,
+				IsAddOn: false,
+				Type:    model.LoanTransactionStatic,
+				Credit:  0,
+				Debit:   request.Applied1,
+				Name:    account.Name,
+			},
+		}
+		addOnEntry := model.ComputationSheetAmortizationEntry{
+			Account: nil,
+			Credit:  0,
+			Debit:   0,
+			Name:    "ADD ON INTEREST",
+			Type:    model.LoanTransactionAddOn,
+			IsAddOn: true,
+		}
+		total_non_add_ons, total_add_ons := 0.0, 0.0
+		for _, ald := range automaticLoanDeductionEntries {
+			if ald.AccountID == nil {
+				continue
+			}
+			ald.Account, err = c.model.AccountManager.GetByID(context, *ald.AccountID)
+			if err != nil {
+				continue
+			}
+			entry := model.ComputationSheetAmortizationEntry{
+				Credit:  0,
+				Debit:   0,
+				Name:    ald.Name,
+				Type:    model.LoanTransactionStatic,
+				IsAddOn: ald.AddOn,
+			}
+			entry.Credit = c.service.LoanComputation(context, *ald, model.LoanTransaction{
+				Terms:    request.Terms,
+				Applied1: request.Applied1,
+			})
+			if request.IsAddOn && entry.IsAddOn {
+				entry.Debit += entry.Credit
+			}
+			if !entry.IsAddOn {
+				total_non_add_ons += entry.Credit
+			} else {
+				total_add_ons += entry.Credit
+			}
+			loanTransactionEntries = append(loanTransactionEntries, entry)
+
+		}
+		if request.IsAddOn {
+			loanTransactionEntries[0].Credit = request.Applied1 - total_non_add_ons
+		} else {
+			loanTransactionEntries[0].Credit = request.Applied1 - (total_non_add_ons + total_add_ons)
+		}
+		if request.IsAddOn {
+			loanTransactionEntries = append(loanTransactionEntries, addOnEntry)
+		}
+
+		return ctx.JSON(http.StatusOK, model.ComputationSheetAmortizationResponse{
+			Entries: loanTransactionEntries,
+		})
 	})
 
 	// GET /computation-sheet: List all computation sheets for the current user's branch.

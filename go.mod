@@ -9,7 +9,10 @@ require (
 	github.com/spf13/cobra v1.9.1
 )
 
-require github.com/inconshreveable/mousetrap v1.1.0 // indirect
+require (
+	github.com/inconshreveable/mousetrap v1.1.0 // indirect
+	github.com/jaswdr/faker/v2 v2.8.1 // indirect
+)
 
 require (
 	github.com/aymerick/douceur v0.2.0 // indirect
@@ -70,6 +73,7 @@ require (
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/google/uuid v1.6.0
+	github.com/jaswdr/faker v1.19.1
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/joho/godotenv v1.5.1

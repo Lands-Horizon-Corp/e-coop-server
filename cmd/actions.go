@@ -36,7 +36,6 @@ func migrateDatabase() {
 			})
 		}),
 	)
-
 	executeLifecycle(app)
 	color.Green("Database migration completed successfully.")
 }
@@ -68,7 +67,47 @@ func seedDatabase() {
 					if err := mod.Start(ctx); err != nil {
 						return err
 					}
-					if err := seed.Run(ctx); err != nil {
+					if err := seed.Run(ctx, 5); err != nil {
+						return err
+					}
+					return nil
+				},
+			})
+		}),
+	)
+
+	executeLifecycle(app)
+	color.Green("Database seeding completed successfully.")
+}
+
+func seedDatabasePerformance(multiplier int32) {
+	color.Blue("Seeding database...")
+	app := fx.New(
+		fx.Provide(src.NewProvider, model.NewModel, seeder.NewSeeder),
+		fx.Invoke(func(
+			lc fx.Lifecycle,
+			prov *src.Provider,
+			mod *model.Model,
+			seed *seeder.Seeder,
+		) {
+			lc.Append(fx.Hook{
+				OnStart: func(ctx context.Context) error {
+					if err := prov.Service.RunDatabase(ctx); err != nil {
+						return err
+					}
+					if err := prov.Service.RunStorage(ctx); err != nil {
+						return err
+					}
+					if err := prov.Service.RunStorage(ctx); err != nil {
+						return err
+					}
+					if err := prov.Service.RunBroker(ctx); err != nil {
+						return err
+					}
+					if err := mod.Start(ctx); err != nil {
+						return err
+					}
+					if err := seed.Run(ctx, multiplier); err != nil {
 						return err
 					}
 					return nil
@@ -197,7 +236,7 @@ func refreshDatabase() {
 					if err := prov.Service.Database.Client().AutoMigrate(mod.Migration...); err != nil {
 						return err
 					}
-					if err := seed.Run(ctx); err != nil {
+					if err := seed.Run(ctx, 5); err != nil {
 						return err
 					}
 					return nil

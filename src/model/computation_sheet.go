@@ -68,6 +68,24 @@ type (
 		ComakerAccount    float64 `json:"comaker_account,omitempty"`
 		ExistAccount      bool    `json:"exist_account,omitempty"`
 	}
+
+
+	ComputationSheetAmortizationEntry struct {
+		Account *AccountResponse         `json:"account,omitempty"`
+		IsAddOn bool                     `json:"is_add_on"`
+		Type    LoanTransactionEntryType `json:"type"`
+		Credit  float64                  `json:"credit"`
+		Debit   float64                  `json:"debit"`
+		Name    string                   `json:"name,omitempty"`
+	}
+
+	ComputationSheetAmortizationResponse struct {
+		Entries      []ComputationSheetAmortizationEntry `json:"entries"`
+		Amortization struct {
+			Amortizations       []AmortizationPayment `json:"amortizations"`
+			AmortizationSummary AmortizationSummary   `json:"amortization_summary"`
+		} `json:"amortization"`
+	}
 )
 
 func (m *Model) ComputationSheet() {
