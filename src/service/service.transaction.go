@@ -151,7 +151,7 @@ func (t *TransactionService) LoanComputation(ctx context.Context, ald model.Auto
 
 	// --- Annum adjustments (when months = 0) ---
 	if ald.NumberOfMonths == 0 {
-		if ald.Anum {
+		if ald.Anum == 1 {
 			result /= 12
 		}
 	}
