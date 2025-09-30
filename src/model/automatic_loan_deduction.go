@@ -43,7 +43,7 @@ type (
 		MinAmount float64 `gorm:"type:decimal" json:"min_amount"`
 		MaxAmount float64 `gorm:"type:decimal" json:"max_amount"`
 
-		Anum int16 `gorm:"type:boolean;default:false" json:"anum"`
+		Anum int16 `gorm:"type:int;default:0" json:"anum"`
 
 		NumberOfMonths int `gorm:"type:int" json:"number_of_months"`
 
