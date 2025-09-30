@@ -98,7 +98,7 @@ type (
 	}
 
 	AutomaticLoanDeductionRequest struct {
-		AccountID          *uuid.UUID `json:"account_id,omitempty"`
+		AccountID          *uuid.UUID `json:"account_id" validate:"required"`
 		ComputationSheetID *uuid.UUID `json:"computation_sheet_id,omitempty"`
 		LinkAccountID      *uuid.UUID `json:"link_account_id,omitempty"`
 		ChargesPercentage1 float64    `json:"charges_percentage_1,omitempty"`
@@ -113,7 +113,7 @@ type (
 		AoRest             bool       `json:"ao_rest,omitempty"`
 		ExcludeRenewal     bool       `json:"exclude_renewal,omitempty"`
 		Ct                 int        `json:"ct,omitempty"`
-		Name               string     `json:"name" validate:"required,min=1,max=255"`
+		Name               string     `json:"name,omitempty"`
 		Description        string     `json:"description,omitempty"`
 	}
 )

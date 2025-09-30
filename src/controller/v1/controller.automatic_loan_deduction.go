@@ -113,7 +113,19 @@ func (c *Controller) AutomaticLoanDeductionController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-
+		name := request.Name
+		if name == "" {
+			account, err := c.model.AccountManager.GetByID(context, *request.AccountID)
+			if err != nil {
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "create-error",
+					Description: "Automatic loan deduction creation failed (/automatic-loan-deduction), account fetch error: " + err.Error(),
+					Module:      "AutomaticLoanDeduction",
+				})
+				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID: " + err.Error()})
+			}
+			name = account.Name
+		}
 		ald := &model.AutomaticLoanDeduction{
 			AccountID:          request.AccountID,
 			ComputationSheetID: request.ComputationSheetID,
@@ -129,7 +141,7 @@ func (c *Controller) AutomaticLoanDeductionController() {
 			AoRest:             request.AoRest,
 			ExcludeRenewal:     request.ExcludeRenewal,
 			Ct:                 request.Ct,
-			Name:               request.Name,
+			Name:               name,
 			Description:        request.Description,
 			CreatedAt:          time.Now().UTC(),
 			CreatedByID:        user.UserID,
@@ -202,6 +214,19 @@ func (c *Controller) AutomaticLoanDeductionController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Automatic loan deduction not found"})
 		}
+		name := request.Name
+		if name == "" {
+			account, err := c.model.AccountManager.GetByID(context, *request.AccountID)
+			if err != nil {
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "create-error",
+					Description: "Automatic loan deduction creation failed (/automatic-loan-deduction), account fetch error: " + err.Error(),
+					Module:      "AutomaticLoanDeduction",
+				})
+				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID: " + err.Error()})
+			}
+			name = account.Name
+		}
 		ald.AccountID = request.AccountID
 		ald.ComputationSheetID = request.ComputationSheetID
 		ald.LinkAccountID = request.LinkAccountID
@@ -216,7 +241,7 @@ func (c *Controller) AutomaticLoanDeductionController() {
 		ald.AoRest = request.AoRest
 		ald.ExcludeRenewal = request.ExcludeRenewal
 		ald.Ct = request.Ct
-		ald.Name = request.Name
+		ald.Name = name
 		ald.Description = request.Description
 		ald.UpdatedAt = time.Now().UTC()
 		ald.UpdatedByID = user.UserID
