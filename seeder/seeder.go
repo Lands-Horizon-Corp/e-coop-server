@@ -31,7 +31,6 @@ func (s *Seeder) createImageMedia(ctx context.Context, imageType string) (*model
 	// Array of Picsum URLs with different image IDs
 	imageUrls := []string{
 		"https://picsum.photos/640/480",
-		"https://placebeard.it/400x400",
 		"https://placebear.com/400/300",
 		"https://www.placekittens.com/g/300/300",
 	}
