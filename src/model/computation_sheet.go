@@ -69,18 +69,8 @@ type (
 		ExistAccount      bool    `json:"exist_account,omitempty"`
 	}
 
-
-	ComputationSheetAmortizationEntry struct {
-		Account *AccountResponse         `json:"account,omitempty"`
-		IsAddOn bool                     `json:"is_add_on"`
-		Type    LoanTransactionEntryType `json:"type"`
-		Credit  float64                  `json:"credit"`
-		Debit   float64                  `json:"debit"`
-		Name    string                   `json:"name,omitempty"`
-	}
-
 	ComputationSheetAmortizationResponse struct {
-		Entries      []ComputationSheetAmortizationEntry `json:"entries"`
+		Entries      []*LoanTransactionEntryResponse `json:"entries"`
 		Amortization struct {
 			Amortizations       []AmortizationPayment `json:"amortizations"`
 			AmortizationSummary AmortizationSummary   `json:"amortization_summary"`
