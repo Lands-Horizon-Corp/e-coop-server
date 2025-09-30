@@ -22,10 +22,84 @@ func (c *Controller) ComputationSheetController() {
 		Method: "POST",
 		Note:   "Returns sample payment calculation data for a computation sheet.",
 	}, func(ctx echo.Context) error {
-		// You can parse computation_sheet_id if needed, but for sample data, we ignore it.
-		// id, err := handlers.EngineUUIDParam(ctx, "computation_sheet_id")
+		// context := ctx.Request().Context()
+		// var request model.ComputationSheetAmortizationRequest
+		// computationSheetID, err := handlers.EngineUUIDParam(ctx, "computation_sheet_id")
 		// if err != nil {
-		//     return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
+		// 	return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
+		// }
+
+		// if computationSheetID == nil {
+		// 	return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Computation sheet ID is required"})
+		// }
+		// if err := ctx.Bind(&request); err != nil {
+		// 	return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid login payload: " + err.Error()})
+		// }
+		// if err := c.provider.Service.Validator.Struct(request); err != nil {
+		// 	return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
+		// }
+		// userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		// if err != nil {
+		// 	return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		// }
+		// computationSheet, err := c.model.ComputationSheetManager.GetByID(context, *computationSheetID)
+		// if err != nil {
+		// 	return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Computation sheet not found"})
+		// }
+		// automaticLoanDeductionEntries, err := c.model.AutomaticLoanDeductionManager.Find(context, &model.AutomaticLoanDeduction{
+		// 	ComputationSheetID: &computationSheet.ID,
+		// 	BranchID:           computationSheet.BranchID,
+		// 	OrganizationID:     computationSheet.OrganizationID,
+		// })
+		// account, err := c.model.AccountManager.GetByIDRaw(context, request.AccountID)
+		// if err != nil {
+		// 	return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found"})
+		// }
+		// cashOnHandAccountID := userOrg.Branch.BranchSetting.CashOnHandAccountID
+		// cashOnHand, err := c.model.AccountManager.GetByIDRaw(context, *cashOnHandAccountID)
+		// if err != nil {
+		// 	return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve cash on hand account: " + err.Error()})
+		// }
+		// entries := []model.ComputationSheetAmortizationEntry{
+		// 	{
+		// 		Account: account,
+		// 		IsAddOn: false,
+		// 		Type:    model.LoanTransactionStatic,
+		// 		Credit:  request.Applied1,
+		// 		Debit:   0,
+		// 		Name:    cashOnHand.Name,
+		// 	},
+		// 	{
+		// 		Account: cashOnHand,
+		// 		IsAddOn: false,
+		// 		Type:    model.LoanTransactionStatic,
+		// 		Credit:  0,
+		// 		Debit:   request.Applied1,
+		// 		Name:    account.Name,
+		// 	},
+		// }
+		// addOnEntry := &model.ComputationSheetAmortizationEntry{
+		// 	Account:     nil,
+		// 	Credit:      0,
+		// 	Debit:       0,
+		// 	Name:        "ADD ON INTEREST",
+		// 	Type:        model.LoanTransactionAddOn,
+		// 	IsAddOn:     true,
+		// }
+		// for _, entry := range automaticLoanDeductionEntries {
+		// 	if entry.AccountID == nil {
+		// 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Account ID is missing for automatic loan deduction entry"})
+		// 	}
+		// 	account, err := c.model.AccountManager.GetByID(context, *entry.AccountID)
+		// 	if err != nil {
+		// 		return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found for automatic loan deduction entry"})
+		// 	}
+		// 	entries = append(entries, model.ComputationSheetAmortizationEntry{
+		// 		Account: c.model.AccountManager.ToModel(account),
+		// 		IsAddOn: entry.IsAddOn,
+		// 		Credit:  entry.Credit,
+		// 		Debit:   entry.Debit,
+		// 	})
 		// }
 
 		// Generate sample data

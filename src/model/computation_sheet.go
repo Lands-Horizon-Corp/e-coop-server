@@ -68,6 +68,39 @@ type (
 		ComakerAccount    float64 `json:"comaker_account,omitempty"`
 		ExistAccount      bool    `json:"exist_account,omitempty"`
 	}
+
+	ComputationSheetAmortizationRequest struct {
+		Terms              int               `json:"terms" validate:"required,min=1"`
+		AccountID          uuid.UUID         `json:"account_id" validate:"required"`
+		ModeOfPayment      LoanModeOfPayment `json:"mode_of_payment" validate:"required"`
+		FixedDays          *int              `json:"fixed_days,omitempty"`
+		Weekdays           *int              `json:"weekdays,omitempty"`
+		Pay1               *int              `json:"pay_1,omitempty"`
+		Pay2               *int              `json:"pay_2,omitempty"`
+		Applied1           float64           `json:"applied_1" validate:"required"`
+		IsAddOn            bool              `json:"is_add_on"`
+		ExcludeHolidays    *bool             `json:"exclude_holidays,omitempty"`
+		ExcludeSaturdays   *bool             `json:"exclude_saturdays,omitempty"`
+		ExcludeSundays     *bool             `json:"exclude_sundays,omitempty"`
+		ComputationSheetID uuid.UUID         `json:"computation_sheet_id" validate:"required"`
+	}
+
+	ComputationSheetAmortizationEntry struct {
+		Account *AccountResponse         `json:"account,omitempty"`
+		IsAddOn bool                     `json:"is_add_on"`
+		Type    LoanTransactionEntryType `json:"type"`
+		Credit  float64                  `json:"credit"`
+		Debit   float64                  `json:"debit"`
+		Name    string                   `json:"name,omitempty"`
+	}
+
+	ComputationSheetAmortizationResponse struct {
+		Entries      []ComputationSheetAmortizationEntry `json:"entries"`
+		Amortization struct {
+			Amortizations       []AmortizationPayment `json:"amortizations"`
+			AmortizationSummary AmortizationSummary   `json:"amortization_summary"`
+		} `json:"amortization"`
+	}
 )
 
 func (m *Model) ComputationSheet() {
