@@ -483,14 +483,14 @@ func (c *Controller) LoanTransactionController() {
 			loanTransactionEntries = append(loanTransactionEntries, entry)
 		}
 
-		if loanTransaction.IsAddOn {
-			loanTransactionEntries[0].Credit = request.Applied1 - total_non_add_ons
-		} else {
-			loanTransactionEntries[0].Credit = request.Applied1 - (total_non_add_ons + total_add_ons)
-		}
-		if loanTransaction.IsAddOn {
-			loanTransactionEntries = append(loanTransactionEntries, addOnEntry)
-		}
+																										if loanTransaction.IsAddOn {
+																											loanTransactionEntries[0].Credit = request.Applied1 - total_non_add_ons
+																										} else {
+																											loanTransactionEntries[0].Credit = request.Applied1 - (total_non_add_ons + total_add_ons)
+																										}
+																										if loanTransaction.IsAddOn {
+																											loanTransactionEntries = append(loanTransactionEntries, addOnEntry)
+																										}
 
 		for i, entry := range loanTransactionEntries {
 			entry.Index = i + 1
