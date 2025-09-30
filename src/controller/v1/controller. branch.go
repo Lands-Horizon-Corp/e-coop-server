@@ -98,7 +98,7 @@ func (c *Controller) BranchController() {
 				Description: "User authentication required for POST /branch/organization/:organization_id",
 				Module:      "branch",
 			})
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication required"})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication required " + err.Error()})
 		}
 
 		userOrganization, err := c.model.UserOrganizationManager.FindOne(context, &model.UserOrganization{
@@ -111,7 +111,7 @@ func (c *Controller) BranchController() {
 				Description: fmt.Sprintf("User organization not found for POST /branch/organization/:organization_id: %v", err),
 				Module:      "branch",
 			})
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found " + err.Error()})
 		}
 		if userOrganization.UserType != model.UserOrganizationTypeOwner {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -119,7 +119,7 @@ func (c *Controller) BranchController() {
 				Description: "Only organization owners can create branches for POST /branch/organization/:organization_id",
 				Module:      "branch",
 			})
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Only organization owners can create branches"})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Only organization owners can create branches "})
 		}
 
 		organization, err := c.model.OrganizationManager.GetByID(context, userOrganization.OrganizationID)
@@ -129,7 +129,7 @@ func (c *Controller) BranchController() {
 				Description: fmt.Sprintf("Organization not found for POST /branch/organization/:organization_id: %v", err),
 				Module:      "branch",
 			})
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Organization not found"})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Organization not found " + err.Error()})
 		}
 
 		branchCount, err := c.model.GetBranchesByOrganizationCount(context, organization.ID)
@@ -148,7 +148,7 @@ func (c *Controller) BranchController() {
 				Description: "Branch limit reached for POST /branch/organization/:organization_id",
 				Module:      "branch",
 			})
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Branch limit reached for the current subscription plan"})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Branch limit reached for the current subscription plan "})
 		}
 
 		branch := &model.Branch{
@@ -373,7 +373,7 @@ func (c *Controller) BranchController() {
 				Description: "User authentication required for PUT /branch/:branch_id",
 				Module:      "branch",
 			})
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication required"})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication required " + err.Error()})
 		}
 
 		branchId, err := handlers.EngineUUIDParam(ctx, "branch_id")
@@ -404,7 +404,7 @@ func (c *Controller) BranchController() {
 				Description: "Only the branch owner can update branch for PUT /branch/:branch_id",
 				Module:      "branch",
 			})
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Only the branch owner can update branch information"})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Only the branch owner can update branch information "})
 		}
 
 		branch, err := c.model.BranchManager.GetByID(context, *branchId)
@@ -485,7 +485,7 @@ func (c *Controller) BranchController() {
 				Description: "User authentication required for DELETE /branch/:branch_id",
 				Module:      "branch",
 			})
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication required"})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication required "})
 		}
 		branch, err := c.model.BranchManager.GetByID(context, *branchId)
 		if err != nil {
