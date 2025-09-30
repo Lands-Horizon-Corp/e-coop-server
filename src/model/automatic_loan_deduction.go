@@ -43,7 +43,7 @@ type (
 		MinAmount float64 `gorm:"type:decimal" json:"min_amount"`
 		MaxAmount float64 `gorm:"type:decimal" json:"max_amount"`
 
-		Anum bool `gorm:"type:boolean;default:false" json:"anum"`
+		Anum int16 `gorm:"type:boolean;default:false" json:"anum"`
 
 		NumberOfMonths int `gorm:"type:int" json:"number_of_months"`
 
@@ -84,7 +84,7 @@ type (
 		MinAmount float64 `json:"min_amount"`
 		MaxAmount float64 `json:"max_amount"`
 
-		Anum bool `json:"anum"`
+		Anum int16 `json:"anum"`
 
 		NumberOfMonths int `json:"number_of_months"`
 
@@ -107,7 +107,7 @@ type (
 		ChargesDivisor     float64    `json:"charges_divisor,omitempty"`
 		MinAmount          float64    `json:"min_amount,omitempty"`
 		MaxAmount          float64    `json:"max_amount,omitempty"`
-		Anum               bool       `json:"anum,omitempty"`
+		Anum               int16      `json:"anum,omitempty"`
 		NumberOfMonths     int        `json:"number_of_months,omitempty"`
 		AddOn              bool       `json:"add_on,omitempty"`
 		AoRest             bool       `json:"ao_rest,omitempty"`
