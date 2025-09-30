@@ -38,6 +38,7 @@ type (
 		CashCheckVoucher       *CashCheckVoucher `gorm:"foreignKey:CashCheckVoucherID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"cash_check_voucher,omitempty"`
 		CashCheckVoucherNumber string            `gorm:"type:varchar(255)" json:"cash_check_voucher_number"`
 		MemberProfileID        *uuid.UUID        `gorm:"type:uuid" json:"member_profile_id,omitempty"`
+		MemberProfile          *MemberProfile    `gorm:"foreignKey:MemberProfileID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_profile,omitempty"`
 
 		Debit       float64 `gorm:"type:decimal"`
 		Credit      float64 `gorm:"type:decimal"`
@@ -66,6 +67,7 @@ type (
 		CashCheckVoucher       *CashCheckVoucherResponse `json:"cash_check_voucher,omitempty"`
 		CashCheckVoucherNumber string                    `json:"cash_check_voucher_number"`
 		MemberProfileID        *uuid.UUID                `json:"member_profile_id,omitempty"`
+		MemberProfile          *MemberProfileResponse    `json:"member_profile,omitempty"`
 		Debit                  float64                   `json:"debit"`
 		Credit                 float64                   `json:"credit"`
 		Description            string                    `json:"description"`
@@ -93,6 +95,7 @@ func (m *Model) CashCheckVoucherEntry() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization",
 			"Account", "EmployeeUser", "TransactionBatch", "CashCheckVoucher",
+			"MemberProfile", "MemberProfile.Media",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *CashCheckVoucherEntry) *CashCheckVoucherEntryResponse {
@@ -121,6 +124,7 @@ func (m *Model) CashCheckVoucherEntry() {
 				CashCheckVoucher:       m.CashCheckVoucherManager.ToModel(data.CashCheckVoucher),
 				CashCheckVoucherNumber: data.CashCheckVoucherNumber,
 				MemberProfileID:        data.MemberProfileID,
+				MemberProfile:          m.MemberProfileManager.ToModel(data.MemberProfile),
 				Debit:                  data.Debit,
 				Credit:                 data.Credit,
 				Description:            data.Description,
