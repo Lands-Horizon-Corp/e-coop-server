@@ -32,6 +32,7 @@ func (s *Seeder) createImageMedia(ctx context.Context, imageType string) (*model
 	imageUrls := []string{
 		"https://picsum.photos/640/480",
 		"https://placebear.com/400/300",
+		"https://unsplash.it/300/300/?random",
 		"https://www.placekittens.com/g/300/300",
 	}
 
