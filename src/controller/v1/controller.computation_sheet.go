@@ -65,20 +65,20 @@ func (c *Controller) ComputationSheetController() {
 		}
 		loanTransactionEntries := []*model.LoanTransactionEntry{
 			{
-				Account: account,
-				IsAddOn: false,
-				Type:    model.LoanTransactionStatic,
-				Credit:  request.Applied1,
-				Debit:   0,
-				Name:    cashOnHand.Name,
-			},
-			{
 				Account: cashOnHand,
 				IsAddOn: false,
 				Type:    model.LoanTransactionStatic,
-				Credit:  0,
-				Debit:   request.Applied1,
+				Debit:   0,
+				Credit:  request.Applied1,
 				Name:    account.Name,
+			},
+			{
+				Account: account,
+				IsAddOn: false,
+				Type:    model.LoanTransactionStatic,
+				Debit:   request.Applied1,
+				Credit:  0,
+				Name:    cashOnHand.Name,
 			},
 		}
 		addOnEntry := &model.LoanTransactionEntry{
