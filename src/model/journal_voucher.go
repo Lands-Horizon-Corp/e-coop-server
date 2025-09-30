@@ -7,6 +7,7 @@ import (
 
 	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
+	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
@@ -246,7 +247,7 @@ func (m *Model) ValidateJournalVoucherBalance(entries []*JournalVoucherEntry) er
 	}
 
 	if totalDebit != totalCredit {
-		return fmt.Errorf("journal voucher is not balanced: debit %.2f != credit %.2f", totalDebit, totalCredit)
+		return eris.Errorf("journal voucher is not balanced: debit %.2f != credit %.2f", totalDebit, totalCredit)
 	}
 
 	return nil

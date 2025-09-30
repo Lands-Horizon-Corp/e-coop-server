@@ -10,6 +10,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
 	"github.com/google/uuid"
 	"github.com/jaswdr/faker"
+	"github.com/rotisserie/eris"
 )
 
 type Seeder struct {
@@ -40,10 +41,13 @@ func (s *Seeder) createImageMedia(ctx context.Context, imageType string) (*model
 	randomIndex := s.faker.IntBetween(0, len(imageUrls)-1)
 	imageUrl := imageUrls[randomIndex]
 
+	// Add 1 second delay to avoid rate limiting
+	time.Sleep(1 * time.Second)
+
 	// Upload the image from URL
 	storage, err := s.provider.Service.Storage.UploadFromURL(ctx, imageUrl, func(progress, total int64, storage *horizon.Storage) {})
 	if err != nil {
-		return nil, fmt.Errorf("failed to upload image from Picsum %s: %w", imageType, err)
+		return nil, eris.Wrapf(err, "failed to upload image from Picsum %s", imageType)
 	} // Create media record
 	media := &model.Media{
 		FileName:   storage.FileName,
@@ -59,7 +63,7 @@ func (s *Seeder) createImageMedia(ctx context.Context, imageType string) (*model
 	}
 
 	if err := s.model.MediaManager.Create(ctx, media); err != nil {
-		return nil, fmt.Errorf("failed to create media record: %w", err)
+		return nil, eris.Wrap(err, "failed to create media record")
 	}
 
 	return media, nil
@@ -265,7 +269,7 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 			subscriptionEndDate := time.Now().Add(30 * 24 * time.Hour)
 			orgMedia, err := s.createImageMedia(ctx, "Organization")
 			if err != nil {
-				return fmt.Errorf("failed to create organization media: %w", err)
+				return eris.Wrap(err, "failed to create organization media")
 			}
 			organization := &model.Organization{
 				CreatedAt:                           time.Now().UTC(),
@@ -313,7 +317,7 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 			for k := range numBranches {
 				branchMedia, err := s.createImageMedia(ctx, "Organization")
 				if err != nil {
-					return fmt.Errorf("failed to create organization media: %w", err)
+					return eris.Wrap(err, "failed to create organization media")
 				}
 				branch := &model.Branch{
 					CreatedAt:      time.Now().UTC(),
@@ -652,7 +656,7 @@ func (s *Seeder) SeedUsers(ctx context.Context, multiplier int32) error {
 		// Create shared media for all users using local image generation
 		userSharedMedia, err := s.createImageMedia(ctx, "User")
 		if err != nil {
-			return fmt.Errorf("failed to create user media: %w", err)
+			return eris.Wrap(err, "failed to create user media")
 		}
 		var email string
 		if i == 0 {
