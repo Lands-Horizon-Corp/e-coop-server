@@ -256,13 +256,16 @@ func (c *Controller) CashCheckVoucherController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
-
+		newCashCheckVoucher, err := c.model.CashCheckVoucherManager.GetByIDRaw(context, cashCheckVoucher.ID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch updated cash check voucher: " + err.Error()})
+		}
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created cash check voucher (/cash-check-voucher): " + cashCheckVoucher.CashVoucherNumber,
 			Module:      "CashCheckVoucher",
 		})
-		return ctx.JSON(http.StatusCreated, c.model.CashCheckVoucherManager.ToModel(cashCheckVoucher))
+		return ctx.JSON(http.StatusCreated, newCashCheckVoucher)
 	})
 
 	// PUT /cash-check-voucher/:cash_check_voucher_id: Update cash check voucher by ID. (WITH footstep)
@@ -502,13 +505,16 @@ func (c *Controller) CashCheckVoucherController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
-
+		newCashCheckVoucher, err := c.model.CashCheckVoucherManager.GetByIDRaw(context, cashCheckVoucher.ID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch updated cash check voucher: " + err.Error()})
+		}
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated cash check voucher (/cash-check-voucher/:cash_check_voucher_id): " + cashCheckVoucher.CashVoucherNumber,
 			Module:      "CashCheckVoucher",
 		})
-		return ctx.JSON(http.StatusOK, c.model.CashCheckVoucherManager.ToModel(cashCheckVoucher))
+		return ctx.JSON(http.StatusOK, newCashCheckVoucher)
 	})
 
 	// DELETE /cash-check-voucher/:cash_check_voucher_id: Delete a cash check voucher by ID. (WITH footstep)
