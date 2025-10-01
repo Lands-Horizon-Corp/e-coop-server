@@ -430,10 +430,6 @@ func (c *Controller) CashCheckVoucherController() {
 						})
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get cash check voucher entry: " + err.Error()})
 					}
-					if entry.CashCheckVoucherID != cashCheckVoucher.ID {
-						tx.Rollback()
-						return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot modify entry that doesn't belong to this cash check voucher"})
-					}
 					entry.AccountID = entryReq.AccountID
 					entry.EmployeeUserID = entryReq.EmployeeUserID
 					entry.TransactionBatchID = entryReq.TransactionBatchID
@@ -444,7 +440,7 @@ func (c *Controller) CashCheckVoucherController() {
 					entry.UpdatedByID = user.UserID
 					entry.MemberProfileID = entryReq.MemberProfileID
 					entry.CashCheckVoucherNumber = cashCheckVoucher.CashVoucherNumber
-					if err := c.model.CashCheckVoucherEntryManager.UpdateWithTx(context, tx, entry); err != nil {
+					if err := c.model.CashCheckVoucherEntryManager.UpdateFieldsWithTx(context, tx, entry.ID, entry); err != nil {
 						tx.Rollback()
 						c.event.Footstep(context, ctx, event.FootstepEvent{
 							Activity:    "update-error",
