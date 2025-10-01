@@ -90,10 +90,10 @@ func NewHorizonAPIService(
 			return ctx.RealIP(), nil
 		},
 		ErrorHandler: func(c echo.Context, err error) error {
-			return c.JSON(http.StatusForbidden, map[string]string{"error": "rate limit error"})
+			return c.JSON(http.StatusForbidden, map[string]string{"error": "rate limit error " + err.Error()})
 		},
-		DenyHandler: func(c echo.Context, _ string, _ error) error {
-			return c.JSON(http.StatusTooManyRequests, map[string]string{"error": "rate limit exceeded"})
+		DenyHandler: func(c echo.Context, _ string, err error) error {
+			return c.JSON(http.StatusTooManyRequests, map[string]string{"error": "rate limit exceeded " + err.Error()})
 		},
 	}))
 

@@ -87,7 +87,7 @@ func (c *Controller) AutomaticLoanDeductionController() {
 		ResponseType: model.AutomaticLoanDeductionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.model.AutomaticLoanDeductionManager.Validate(ctx)
+		request, err := c.model.AutomaticLoanDeductionManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -113,31 +113,43 @@ func (c *Controller) AutomaticLoanDeductionController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-
+		name := request.Name
+		if name == "" {
+			account, err := c.model.AccountManager.GetByID(context, *request.AccountID)
+			if err != nil {
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "create-error",
+					Description: "Automatic loan deduction creation failed (/automatic-loan-deduction), account fetch error: " + err.Error(),
+					Module:      "AutomaticLoanDeduction",
+				})
+				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID: " + err.Error()})
+			}
+			name = account.Name
+		}
 		ald := &model.AutomaticLoanDeduction{
-			AccountID:          req.AccountID,
-			ComputationSheetID: req.ComputationSheetID,
-			LinkAccountID:      req.LinkAccountID,
-			ChargesPercentage1: req.ChargesPercentage1,
-			ChargesPercentage2: req.ChargesPercentage2,
-			ChargesAmount:      req.ChargesAmount,
-			ChargesDivisor:     req.ChargesDivisor,
-			MinAmount:          req.MinAmount,
-			MaxAmount:          req.MaxAmount,
-			Anum:               req.Anum,
-			AddOn:              req.AddOn,
-			AoRest:             req.AoRest,
-			ExcludeRenewal:     req.ExcludeRenewal,
-			Ct:                 req.Ct,
-			Name:               req.Name,
-			Description:        req.Description,
+			AccountID:          request.AccountID,
+			ComputationSheetID: request.ComputationSheetID,
+			LinkAccountID:      request.LinkAccountID,
+			ChargesPercentage1: request.ChargesPercentage1,
+			ChargesPercentage2: request.ChargesPercentage2,
+			ChargesAmount:      request.ChargesAmount,
+			ChargesDivisor:     request.ChargesDivisor,
+			MinAmount:          request.MinAmount,
+			MaxAmount:          request.MaxAmount,
+			Anum:               request.Anum,
+			AddOn:              request.AddOn,
+			AoRest:             request.AoRest,
+			ExcludeRenewal:     request.ExcludeRenewal,
+			Ct:                 request.Ct,
+			Name:               name,
+			Description:        request.Description,
 			CreatedAt:          time.Now().UTC(),
 			CreatedByID:        user.UserID,
 			UpdatedAt:          time.Now().UTC(),
 			UpdatedByID:        user.UserID,
 			BranchID:           *user.BranchID,
 			OrganizationID:     user.OrganizationID,
-			NumberOfMonths:     req.NumberOfMonths,
+			NumberOfMonths:     request.NumberOfMonths,
 		}
 
 		if err := c.model.AutomaticLoanDeductionManager.Create(context, ald); err != nil {
@@ -175,7 +187,7 @@ func (c *Controller) AutomaticLoanDeductionController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid automatic loan deduction ID"})
 		}
 
-		req, err := c.model.AutomaticLoanDeductionManager.Validate(ctx)
+		request, err := c.model.AutomaticLoanDeductionManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -202,25 +214,38 @@ func (c *Controller) AutomaticLoanDeductionController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Automatic loan deduction not found"})
 		}
-		ald.AccountID = req.AccountID
-		ald.ComputationSheetID = req.ComputationSheetID
-		ald.LinkAccountID = req.LinkAccountID
-		ald.ChargesPercentage1 = req.ChargesPercentage1
-		ald.ChargesPercentage2 = req.ChargesPercentage2
-		ald.ChargesAmount = req.ChargesAmount
-		ald.ChargesDivisor = req.ChargesDivisor
-		ald.MinAmount = req.MinAmount
-		ald.MaxAmount = req.MaxAmount
-		ald.Anum = req.Anum
-		ald.AddOn = req.AddOn
-		ald.AoRest = req.AoRest
-		ald.ExcludeRenewal = req.ExcludeRenewal
-		ald.Ct = req.Ct
-		ald.Name = req.Name
-		ald.Description = req.Description
+		name := request.Name
+		if name == "" {
+			account, err := c.model.AccountManager.GetByID(context, *request.AccountID)
+			if err != nil {
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "create-error",
+					Description: "Automatic loan deduction creation failed (/automatic-loan-deduction), account fetch error: " + err.Error(),
+					Module:      "AutomaticLoanDeduction",
+				})
+				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID: " + err.Error()})
+			}
+			name = account.Name
+		}
+		ald.AccountID = request.AccountID
+		ald.ComputationSheetID = request.ComputationSheetID
+		ald.LinkAccountID = request.LinkAccountID
+		ald.ChargesPercentage1 = request.ChargesPercentage1
+		ald.ChargesPercentage2 = request.ChargesPercentage2
+		ald.ChargesAmount = request.ChargesAmount
+		ald.ChargesDivisor = request.ChargesDivisor
+		ald.MinAmount = request.MinAmount
+		ald.MaxAmount = request.MaxAmount
+		ald.Anum = request.Anum
+		ald.AddOn = request.AddOn
+		ald.AoRest = request.AoRest
+		ald.ExcludeRenewal = request.ExcludeRenewal
+		ald.Ct = request.Ct
+		ald.Name = name
+		ald.Description = request.Description
 		ald.UpdatedAt = time.Now().UTC()
 		ald.UpdatedByID = user.UserID
-		ald.NumberOfMonths = req.NumberOfMonths
+		ald.NumberOfMonths = request.NumberOfMonths
 
 		if err := c.model.AutomaticLoanDeductionManager.UpdateFields(context, ald.ID, ald); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{

@@ -10,6 +10,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
 	"github.com/google/uuid"
 	"github.com/jaswdr/faker"
+	"github.com/rotisserie/eris"
 )
 
 type Seeder struct {
@@ -31,8 +32,8 @@ func (s *Seeder) createImageMedia(ctx context.Context, imageType string) (*model
 	// Array of Picsum URLs with different image IDs
 	imageUrls := []string{
 		"https://picsum.photos/640/480",
-		"https://placebeard.it/400x400",
 		"https://placebear.com/400/300",
+		"https://unsplash.it/300/300/?random",
 		"https://www.placekittens.com/g/300/300",
 	}
 
@@ -40,10 +41,13 @@ func (s *Seeder) createImageMedia(ctx context.Context, imageType string) (*model
 	randomIndex := s.faker.IntBetween(0, len(imageUrls)-1)
 	imageUrl := imageUrls[randomIndex]
 
+	// Add 1 second delay to avoid rate limiting
+	time.Sleep(1 * time.Second)
+
 	// Upload the image from URL
 	storage, err := s.provider.Service.Storage.UploadFromURL(ctx, imageUrl, func(progress, total int64, storage *horizon.Storage) {})
 	if err != nil {
-		return nil, fmt.Errorf("failed to upload image from Picsum %s: %w", imageType, err)
+		return nil, eris.Wrapf(err, "failed to upload image from Picsum %s", imageType)
 	} // Create media record
 	media := &model.Media{
 		FileName:   storage.FileName,
@@ -59,7 +63,7 @@ func (s *Seeder) createImageMedia(ctx context.Context, imageType string) (*model
 	}
 
 	if err := s.model.MediaManager.Create(ctx, media); err != nil {
-		return nil, fmt.Errorf("failed to create media record: %w", err)
+		return nil, eris.Wrap(err, "failed to create media record")
 	}
 
 	return media, nil
@@ -181,50 +185,51 @@ func (s *Seeder) SeedSubscription(ctx context.Context) error {
 	subscriptionPlans := []model.SubscriptionPlan{
 		{
 			Name:                "Enterprise Plan",
-			Description:         "An enterprise-level plan with unlimited features.",
+			Description:         "An enterprise-level plan with unlimited features and priority support.",
 			Cost:                499.99,
 			Timespan:            int64(30 * 24 * time.Hour),
-			MaxBranches:         20,
-			MaxEmployees:        500,
-			MaxMembersPerBranch: 50,
+			MaxBranches:         50,
+			MaxEmployees:        1000,
+			MaxMembersPerBranch: 500,
 			Discount:            15.00, // 15% discount
-			YearlyDiscount:      20.00, // 20% yearly discount
-			IsRecommended:       false, // set as needed
+			YearlyDiscount:      25.00, // 25% yearly discount
+			IsRecommended:       false,
 		},
 		{
 			Name:                "Pro Plan",
-			Description:         "A professional plan with additional features.",
+			Description:         "A professional plan perfect for growing cooperatives.",
 			Cost:                199.99,
 			Timespan:            int64(30 * 24 * time.Hour),
-			MaxBranches:         10,
-			MaxEmployees:        100,
-			MaxMembersPerBranch: 10,
+			MaxBranches:         15,
+			MaxEmployees:        200,
+			MaxMembersPerBranch: 100,
 			Discount:            10.00, // 10% discount
-			YearlyDiscount:      15.00, // 15% yearly discount
-			IsRecommended:       false, // set as needed
+			YearlyDiscount:      20.00, // 20% yearly discount
+			IsRecommended:       true,
 		},
 		{
 			Name:                "Starter Plan",
 			Description:         "An affordable plan for small organizations just getting started.",
 			Cost:                49.99,
 			Timespan:            int64(30 * 24 * time.Hour),
-			MaxBranches:         2,
-			MaxEmployees:        10,
-			MaxMembersPerBranch: 2,
-			Discount:            2.50, // 2.5% discount
-			YearlyDiscount:      5.00, // 5% yearly discount
-			IsRecommended:       true, // set as needed
+			MaxBranches:         3,
+			MaxEmployees:        25,
+			MaxMembersPerBranch: 25,
+			Discount:            5.00,  // 5% discount
+			YearlyDiscount:      15.00, // 15% yearly discount
+			IsRecommended:       false,
 		},
 		{
 			Name:                "Free Plan",
-			Description:         "A basic plan with limited features.",
+			Description:         "A basic trial plan with essential features to get you started.",
 			Cost:                0.00,
-			Timespan:            int64(14 * 24 * time.Hour), // 14 days
+			Timespan:            int64(14 * 24 * time.Hour), // 14 days trial
 			MaxBranches:         1,
-			MaxEmployees:        2,
-			MaxMembersPerBranch: 5,
-			Discount:            0, YearlyDiscount: 0,
-			IsRecommended: false,
+			MaxEmployees:        3,
+			MaxMembersPerBranch: 10,
+			Discount:            0,
+			YearlyDiscount:      0,
+			IsRecommended:       false,
 		},
 	}
 	for _, subscriptionPlan := range subscriptionPlans {
@@ -264,7 +269,7 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 			subscriptionEndDate := time.Now().Add(30 * 24 * time.Hour)
 			orgMedia, err := s.createImageMedia(ctx, "Organization")
 			if err != nil {
-				return fmt.Errorf("failed to create organization media: %w", err)
+				return eris.Wrap(err, "failed to create organization media")
 			}
 			organization := &model.Organization{
 				CreatedAt:                           time.Now().UTC(),
@@ -312,7 +317,7 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 			for k := range numBranches {
 				branchMedia, err := s.createImageMedia(ctx, "Organization")
 				if err != nil {
-					return fmt.Errorf("failed to create organization media: %w", err)
+					return eris.Wrap(err, "failed to create organization media")
 				}
 				branch := &model.Branch{
 					CreatedAt:      time.Now().UTC(),
@@ -651,7 +656,7 @@ func (s *Seeder) SeedUsers(ctx context.Context, multiplier int32) error {
 		// Create shared media for all users using local image generation
 		userSharedMedia, err := s.createImageMedia(ctx, "User")
 		if err != nil {
-			return fmt.Errorf("failed to create user media: %w", err)
+			return eris.Wrap(err, "failed to create user media")
 		}
 		var email string
 		if i == 0 {

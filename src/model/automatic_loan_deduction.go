@@ -43,7 +43,7 @@ type (
 		MinAmount float64 `gorm:"type:decimal" json:"min_amount"`
 		MaxAmount float64 `gorm:"type:decimal" json:"max_amount"`
 
-		Anum bool `gorm:"type:boolean;default:false" json:"anum"`
+		Anum int16 `gorm:"type:int;default:0" json:"anum"`
 
 		NumberOfMonths int `gorm:"type:int" json:"number_of_months"`
 
@@ -84,7 +84,7 @@ type (
 		MinAmount float64 `json:"min_amount"`
 		MaxAmount float64 `json:"max_amount"`
 
-		Anum bool `json:"anum"`
+		Anum int16 `json:"anum"`
 
 		NumberOfMonths int `json:"number_of_months"`
 
@@ -98,7 +98,7 @@ type (
 	}
 
 	AutomaticLoanDeductionRequest struct {
-		AccountID          *uuid.UUID `json:"account_id,omitempty"`
+		AccountID          *uuid.UUID `json:"account_id" validate:"required"`
 		ComputationSheetID *uuid.UUID `json:"computation_sheet_id,omitempty"`
 		LinkAccountID      *uuid.UUID `json:"link_account_id,omitempty"`
 		ChargesPercentage1 float64    `json:"charges_percentage_1,omitempty"`
@@ -107,13 +107,13 @@ type (
 		ChargesDivisor     float64    `json:"charges_divisor,omitempty"`
 		MinAmount          float64    `json:"min_amount,omitempty"`
 		MaxAmount          float64    `json:"max_amount,omitempty"`
-		Anum               bool       `json:"anum,omitempty"`
+		Anum               int16      `json:"anum,omitempty"`
 		NumberOfMonths     int        `json:"number_of_months,omitempty"`
 		AddOn              bool       `json:"add_on,omitempty"`
 		AoRest             bool       `json:"ao_rest,omitempty"`
 		ExcludeRenewal     bool       `json:"exclude_renewal,omitempty"`
 		Ct                 int        `json:"ct,omitempty"`
-		Name               string     `json:"name" validate:"required,min=1,max=255"`
+		Name               string     `json:"name,omitempty"`
 		Description        string     `json:"description,omitempty"`
 	}
 )

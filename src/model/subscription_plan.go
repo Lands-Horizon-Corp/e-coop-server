@@ -42,7 +42,7 @@ type (
 		MaxEmployees        int     `json:"max_employees" validate:"required,gte=0"`
 		MaxMembersPerBranch int     `json:"max_members_per_branch" validate:"required,gte=0"`
 		Discount            float64 `json:"discount" validate:"gte=0"`
-		IsRecommended       bool    `json:"is_recommended"` // <-- Added field
+		IsRecommended       bool    `json:"is_recommended"`
 
 		YearlyDiscount float64         `json:"yearly_discount" validate:"gte=0"`
 		Organizations  []*Organization `json:"organizations,omitempty"`
@@ -59,7 +59,7 @@ type (
 		MaxMembersPerBranch int       `json:"max_members_per_branch"`
 		Discount            float64   `json:"discount"`
 		YearlyDiscount      float64   `json:"yearly_discount"`
-		IsRecommended       bool      `json:"is_recommended"` // <-- Added field
+		IsRecommended       bool      `json:"is_recommended"`
 
 		MonthlyPrice           float64 `json:"monthly_price"`
 		YearlyPrice            float64 `json:"yearly_price"`

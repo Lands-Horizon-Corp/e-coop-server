@@ -54,34 +54,34 @@ func (c *Controller) ComputationSheetController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve automatic loan deduction entries: " + err.Error()})
 		}
-		account, err := c.model.AccountManager.GetByIDRaw(context, *request.AccountID)
+		account, err := c.model.AccountManager.GetByID(context, *request.AccountID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found"})
 		}
 		cashOnHandAccountID := userOrg.Branch.BranchSetting.CashOnHandAccountID
-		cashOnHand, err := c.model.AccountManager.GetByIDRaw(context, *cashOnHandAccountID)
+		cashOnHand, err := c.model.AccountManager.GetByID(context, *cashOnHandAccountID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve cash on hand account: " + err.Error()})
 		}
-		loanTransactionEntries := []model.ComputationSheetAmortizationEntry{
-			{
-				Account: account,
-				IsAddOn: false,
-				Type:    model.LoanTransactionStatic,
-				Credit:  request.Applied1,
-				Debit:   0,
-				Name:    cashOnHand.Name,
-			},
+		loanTransactionEntries := []*model.LoanTransactionEntry{
 			{
 				Account: cashOnHand,
 				IsAddOn: false,
 				Type:    model.LoanTransactionStatic,
-				Credit:  0,
-				Debit:   request.Applied1,
+				Debit:   0,
+				Credit:  request.Applied1,
 				Name:    account.Name,
 			},
+			{
+				Account: account,
+				IsAddOn: false,
+				Type:    model.LoanTransactionStatic,
+				Debit:   request.Applied1,
+				Credit:  0,
+				Name:    cashOnHand.Name,
+			},
 		}
-		addOnEntry := model.ComputationSheetAmortizationEntry{
+		addOnEntry := &model.LoanTransactionEntry{
 			Account: nil,
 			Credit:  0,
 			Debit:   0,
@@ -98,12 +98,13 @@ func (c *Controller) ComputationSheetController() {
 			if err != nil {
 				continue
 			}
-			entry := model.ComputationSheetAmortizationEntry{
+			entry := &model.LoanTransactionEntry{
 				Credit:  0,
 				Debit:   0,
 				Name:    ald.Name,
 				Type:    model.LoanTransactionStatic,
 				IsAddOn: ald.AddOn,
+				Account: ald.Account,
 			}
 			entry.Credit = c.service.LoanComputation(context, *ald, model.LoanTransaction{
 				Terms:    request.Terms,
@@ -118,7 +119,6 @@ func (c *Controller) ComputationSheetController() {
 				total_add_ons += entry.Credit
 			}
 			loanTransactionEntries = append(loanTransactionEntries, entry)
-
 		}
 		if request.IsAddOn {
 			loanTransactionEntries[0].Credit = request.Applied1 - total_non_add_ons
@@ -130,7 +130,7 @@ func (c *Controller) ComputationSheetController() {
 		}
 
 		return ctx.JSON(http.StatusOK, model.ComputationSheetAmortizationResponse{
-			Entries: loanTransactionEntries,
+			Entries: c.model.LoanTransactionEntryManager.ToModels(loanTransactionEntries),
 		})
 	})
 
