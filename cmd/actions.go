@@ -133,6 +133,12 @@ func resetDatabase() {
 					if err := mod.Start(ctx); err != nil {
 						return err
 					}
+					if err := prov.Service.RunStorage(ctx); err != nil {
+						return err
+					}
+					if err := prov.Service.Storage.RemoveAllFiles(ctx); err != nil {
+						return err
+					}
 					if err := prov.Service.Database.Client().Migrator().DropTable(mod.Migration...); err != nil {
 						return err
 					}
@@ -222,6 +228,9 @@ func refreshDatabase() {
 						return err
 					}
 					if err := prov.Service.RunStorage(ctx); err != nil {
+						return err
+					}
+					if err := prov.Service.Storage.RemoveAllFiles(ctx); err != nil {
 						return err
 					}
 					if err := prov.Service.RunBroker(ctx); err != nil {

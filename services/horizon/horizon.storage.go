@@ -27,6 +27,7 @@ type StorageService interface {
 	UploadFromURL(ctx context.Context, url string, cb ProgressCallback) (*Storage, error)
 	GeneratePresignedURL(ctx context.Context, storage *Storage, expiry time.Duration) (string, error)
 	DeleteFile(ctx context.Context, storage *Storage) error
+	RemoveAllFiles(ctx context.Context) error
 	GenerateUniqueName(ctx context.Context, originalName string) (string, error)
 }
 
@@ -416,6 +417,45 @@ func (h *HorizonStorage) DeleteFile(ctx context.Context, storage *Storage) error
 	err := h.client.RemoveObject(ctx, storage.BucketName, storage.StorageKey, minio.RemoveObjectOptions{})
 	if err != nil {
 		return eris.Wrapf(err, "failed to delete key %s from bucket %s", storage.StorageKey, storage.BucketName)
+	}
+	return nil
+}
+
+func (h *HorizonStorage) RemoveAllFiles(ctx context.Context) error {
+	if h.client == nil {
+		return eris.New("not initialized")
+	}
+	if strings.TrimSpace(h.storageBucket) == "" {
+		return eris.New("empty bucket name")
+	}
+
+	objectsCh := make(chan minio.ObjectInfo)
+
+	go func() {
+		defer close(objectsCh)
+		opts := minio.ListObjectsOptions{
+			Recursive: true,
+		}
+		for object := range h.client.ListObjects(ctx, h.storageBucket, opts) {
+			if object.Err != nil {
+				continue
+			}
+			select {
+			case objectsCh <- object:
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
+	errorCh := h.client.RemoveObjects(ctx, h.storageBucket, objectsCh, minio.RemoveObjectsOptions{})
+	var errors []error
+	for err := range errorCh {
+		if err.Err != nil {
+			errors = append(errors, eris.Wrapf(err.Err, "failed to delete object %s", err.ObjectName))
+		}
+	}
+	if len(errors) > 0 {
+		return eris.Errorf("failed to delete %d objects from bucket %s", len(errors), h.storageBucket)
 	}
 	return nil
 }
