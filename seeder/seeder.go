@@ -3,6 +3,7 @@ package seeder
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
@@ -34,11 +35,10 @@ func (s *Seeder) createImageMedia(ctx context.Context, imageType string) (*model
 		"https://picsum.photos/640/480",
 		"https://placebear.com/400/300",
 		"https://unsplash.it/300/300/?random",
-		"https://www.placekittens.com/g/300/300",
 	}
 
 	// Randomly choose one URL from the array
-	randomIndex := s.faker.IntBetween(0, len(imageUrls)-1)
+	randomIndex := rand.Intn(len(imageUrls))
 	imageUrl := imageUrls[randomIndex]
 
 	// Add 1 second delay to avoid rate limiting

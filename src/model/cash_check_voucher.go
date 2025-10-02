@@ -289,6 +289,7 @@ func (m *Model) CashCheckVoucher() {
 			"CreatedBy", "UpdatedBy", "Branch", "Organization",
 			"EmployeeUser", "TransactionBatch", "PrintedByUser", "ApprovedByUser", "ReleasedByUser",
 			"CashCheckVoucherTags", "CashCheckVoucherEntries", "CheckEntryAccount",
+			"CashCheckVoucherEntries.MemberProfile", "CashCheckVoucherEntries.Account", "CashCheckVoucherEntries.MemberProfile.Media",
 			"ApprovedBySignatureMedia", "PreparedBySignatureMedia", "CertifiedBySignatureMedia",
 			"VerifiedBySignatureMedia", "CheckBySignatureMedia", "AcknowledgeBySignatureMedia",
 			"NotedBySignatureMedia", "PostedBySignatureMedia", "PaidBySignatureMedia",
