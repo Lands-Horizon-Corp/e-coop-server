@@ -375,13 +375,12 @@ func (c *Controller) LoanTransactionController() {
 				Debit:             request.Applied1,
 				Description:       cashOnHand.Description,
 				Name:              cashOnHand.Name,
-				Index:             0,
+				Index:             1,
 				Type:              model.LoanTransactionStatic,
 			},
 		}
 
-		for i, entry := range loanTransactionEntries {
-			entry.Index = i
+		for _, entry := range loanTransactionEntries {
 			if err := c.model.LoanTransactionEntryManager.CreateWithTx(context, tx, entry); err != nil {
 				tx.Rollback()
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to create loan transaction entry for account ID %s: %s", entry.AccountID.String(), err.Error())})
