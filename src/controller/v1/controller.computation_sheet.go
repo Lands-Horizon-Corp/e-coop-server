@@ -102,7 +102,7 @@ func (c *Controller) ComputationSheetController() {
 				Credit:  0,
 				Debit:   0,
 				Name:    ald.Name,
-				Type:    model.LoanTransactionStatic,
+				Type:    model.LoanTransactionDeduction,
 				IsAddOn: ald.AddOn,
 				Account: ald.Account,
 			}
@@ -132,7 +132,6 @@ func (c *Controller) ComputationSheetController() {
 			totalDebit += entry.Debit
 			totalCredit += entry.Credit
 		}
-
 		return ctx.JSON(http.StatusOK, model.ComputationSheetAmortizationResponse{
 			Entries:     c.model.LoanTransactionEntryManager.ToModels(loanTransactionEntries),
 			TotalDebit:  totalDebit,
