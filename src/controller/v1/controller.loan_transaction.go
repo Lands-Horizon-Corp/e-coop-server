@@ -1665,6 +1665,10 @@ func (c *Controller) LoanTransactionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID"})
 		}
+		account, err := c.model.AccountManager.GetByID(context, *accountID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found"})
+		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
@@ -1684,7 +1688,9 @@ func (c *Controller) LoanTransactionController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction entry not found: " + err.Error()})
 		}
-		loanTransactionEntry.AccountID = accountID
+		loanTransactionEntry.AccountID = &account.ID
+		loanTransactionEntry.Name = account.Name
+		loanTransactionEntry.Description = account.Description
 		if err := c.model.LoanTransactionEntryManager.UpdateFields(context, loanTransactionEntry.ID, loanTransactionEntry); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
