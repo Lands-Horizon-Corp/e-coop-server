@@ -1702,8 +1702,18 @@ func (c *Controller) LoanTransactionController() {
 	})
 
 	// POST /api/v1/loan-transaction/:loan_transaction_id/deduction
+	// req.RegisterRoute(handlers.Route{
+	// 	Route:        "/api/v1/loan-transaction/:loan_transaction_id/deduction",
+	// 	Method:       "POST",
+	// 	Note:         "Adds a deduction to a loan transaction by ID.",
+	// 	RequestType:  model.LoanTransactionDeductionRequest{},
+	// 	ResponseType: model.LoanTransaction{},
+	// }, func(ctx echo.Context) error {
+	// 	// Implementation goes here
+	// 	return ctx.JSON(http.StatusNotImplemented, map[string]string{"error": "Not implemented"})
+	// })
 
-	// PUT /api/v1/loan-transaction/:loan_transaction_id/deduction
+	// PUT /api/v1/loan-transaction/deduction/:loan_transaction_entry_id
 	// DELETE /api/v1/loan-transaction/:loan_transaction_id/deduction
 
 }

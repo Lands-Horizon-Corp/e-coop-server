@@ -584,6 +584,7 @@ func (m *Model) LoanTransaction() {
 			if data == nil {
 				return nil
 			}
+
 			return &LoanTransactionResponse{
 				ID:                                     data.ID,
 				CreatedAt:                              data.CreatedAt.Format(time.RFC3339),
