@@ -1682,11 +1682,11 @@ func (c *Controller) LoanTransactionController() {
 		// 	Debit:             0,
 		// })
 		entries, err := c.model.LoanTransactionEntryManager.FindWithFilters(context, []horizon_services.Filter{
-			{Field: "member_accounting_ledgers.organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
-			{Field: "member_accounting_ledgers.branch_id", Op: horizon_services.OpEq, Value: userOrg.BranchID},
-			{Field: "member_accounting_ledgers.index", Op: horizon_services.OpEq, Value: 0},
-			{Field: "member_accounting_ledgers.debit", Op: horizon_services.OpEq, Value: 0},
-			{Field: "member_accounting_ledgers.loan_transaction_id", Op: horizon_services.OpEq, Value: loanTransactionID},
+			{Field: "loan_transaction_entries.organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
+			{Field: "loan_transaction_entries.branch_id", Op: horizon_services.OpEq, Value: userOrg.BranchID},
+			{Field: "loan_transaction_entries.index", Op: horizon_services.OpEq, Value: 0},
+			{Field: "loan_transaction_entries.debit", Op: horizon_services.OpEq, Value: 0},
+			{Field: "loan_transaction_entries.loan_transaction_id", Op: horizon_services.OpEq, Value: loanTransactionID},
 		})
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
