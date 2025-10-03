@@ -1842,5 +1842,64 @@ func (c *Controller) LoanTransactionController() {
 		return ctx.JSON(http.StatusOK, newLoanTransaction)
 	})
 
-	// POST /api/v1/loan-transaction/
+	// POST /api/v1/loan-transaction/:loan_transaction_id/cash-and_cash-equivalence-account/:account_id/change
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change",
+		Method:       "POST",
+		Note:         "Changes the cash and cash equivalence account for a loan transaction by ID.",
+		ResponseType: model.LoanTransaction{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
+		}
+		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID"})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		loanTransactionEntry, err := c.model.LoanTransactionEntryManager.FindOne(context, &model.LoanTransactionEntry{
+			BranchID:          *userOrg.BranchID,
+			OrganizationID:    userOrg.OrganizationID,
+			LoanTransactionID: *loanTransactionID,
+			Index:             0,
+			Debit:             0,
+		})
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "not-found",
+				Description: "Loan transaction entry not found (/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change), db error: " + err.Error(),
+				Module:      "LoanTransaction",
+			})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction entry not found: " + err.Error()})
+		}
+		loanTransactionEntry.AccountID = accountID
+		if err := c.model.LoanTransactionEntryManager.UpdateFields(context, loanTransactionEntry.ID, loanTransactionEntry); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Loan transaction entry update failed (/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change), db error: " + err.Error(),
+				Module:      "LoanTransaction",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction entry: " + err.Error()})
+		}
+		loanTransaction, err := c.model.LoanTransactionManager.GetByIDRaw(context, loanTransactionEntry.LoanTransactionID)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "not-found",
+				Description: "Loan transaction not found after entry update (/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change), db error: " + err.Error(),
+				Module:      "LoanTransaction",
+			})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction not found after entry update: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, loanTransaction)
+	})
+
+	// POST /api/v1/loan-transaction/:loan_transaction_id/deduction
+	// PUT /api/v1/loan-transaction/:loan_transaction_id/deduction
+	// DELETE /api/v1/loan-transaction/:loan_transaction_id/deduction
+
 }
