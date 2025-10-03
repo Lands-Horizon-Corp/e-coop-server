@@ -543,6 +543,7 @@ func (c *Controller) LoanTransactionController() {
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id",
 		Method:       "PUT",
 		ResponseType: model.LoanTransactionResponse{},
+		RequestType:  model.LoanTransactionRequest{},
 		Note:         "Updates an existing loan transaction.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -669,24 +670,6 @@ func (c *Controller) LoanTransactionController() {
 
 		loanTransaction.UpdatedAt = time.Now().UTC()
 
-		if request.LoanTransactionEntriesDeleted != nil {
-			for _, deletedID := range request.LoanTransactionEntriesDeleted {
-				loanTransactionEntry, err := c.model.LoanTransactionEntryManager.GetByID(context, deletedID)
-				if err != nil {
-					tx.Rollback()
-					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find loan transaction entry for deletion: " + err.Error()})
-				}
-				if loanTransactionEntry.LoanTransactionID != loanTransaction.ID {
-					tx.Rollback()
-					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete loan clearance analysis that doesn't belong to this loan transaction"})
-				}
-				loanTransactionEntry.DeletedByID = &userOrg.UserID
-				if err := c.model.LoanTransactionEntryManager.DeleteWithTx(context, tx, loanTransactionEntry); err != nil {
-					tx.Rollback()
-					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan transaction entry: " + err.Error()})
-				}
-			}
-		}
 		// Handle deletions first (same as before)
 		if request.LoanClearanceAnalysisDeleted != nil {
 			for _, deletedID := range request.LoanClearanceAnalysisDeleted {
@@ -852,92 +835,6 @@ func (c *Controller) LoanTransactionController() {
 					if err := c.model.LoanClearanceAnalysisManager.CreateWithTx(context, tx, clearanceAnalysis); err != nil {
 						tx.Rollback()
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "(updated) Failed to create loan clearance analysis: " + err.Error()})
-					}
-				}
-			}
-		}
-
-		if request.LoanTransactionEntries != nil {
-			for _, entryReq := range request.LoanTransactionEntries {
-				if entryReq.ID != nil {
-					// Update existing record
-					existingRecord, err := c.model.LoanTransactionEntryManager.GetByID(context, *entryReq.ID)
-					if err != nil {
-						tx.Rollback()
-						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find existing loan transaction entry: " + err.Error()})
-					}
-					// Verify ownership
-					if existingRecord.LoanTransactionID != loanTransaction.ID {
-						tx.Rollback()
-						return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot update loan transaction entry that doesn't belong to this loan transaction"})
-					}
-					// Update fields
-					existingRecord.UpdatedAt = time.Now().UTC()
-					existingRecord.UpdatedByID = userOrg.UserID
-					existingRecord.AccountID = entryReq.AccountID
-					existingRecord.Credit = entryReq.Credit
-					existingRecord.Debit = entryReq.Debit
-					existingRecord.IsAddOn = entryReq.IsAddOn
-
-					// Validate AccountID if provided
-					if entryReq.AccountID != nil {
-						account, err := c.model.AccountManager.GetByID(context, *entryReq.AccountID)
-						if err != nil {
-							tx.Rollback()
-							return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID: account not found"})
-						}
-
-						existingRecord.Description = account.Description
-						existingRecord.Name = account.Name
-					} else {
-						existingRecord.Description = entryReq.Description
-						existingRecord.Name = entryReq.Name
-					}
-					existingRecord.Index = entryReq.Index
-					existingRecord.Type = entryReq.Type
-					if err := c.model.LoanTransactionEntryManager.UpdateFieldsWithTx(context, tx, existingRecord.ID, existingRecord); err != nil {
-						tx.Rollback()
-						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction entry: " + err.Error()})
-					}
-				} else {
-					var accountName, accountDescription string
-
-					if entryReq.AccountID != nil {
-						account, err := c.model.AccountManager.GetByID(context, *entryReq.AccountID)
-						if err != nil {
-							accountName = entryReq.Name
-							accountDescription = entryReq.Description
-						} else {
-							accountName = account.Name
-							accountDescription = account.Description
-						}
-					} else {
-						// No account ID provided, use provided name and description
-						accountName = entryReq.Name
-						accountDescription = entryReq.Description
-					}
-
-					newEntry := &model.LoanTransactionEntry{
-						CreatedByID:       userOrg.UserID,
-						UpdatedByID:       userOrg.UserID,
-						CreatedAt:         time.Now().UTC(),
-						UpdatedAt:         time.Now().UTC(),
-						AccountID:         entryReq.AccountID, // This can be nil
-						OrganizationID:    userOrg.OrganizationID,
-						BranchID:          *userOrg.BranchID,
-						LoanTransactionID: loanTransaction.ID,
-						Credit:            entryReq.Credit,
-						Debit:             entryReq.Debit,
-						Description:       accountDescription,
-						Name:              accountName,
-						Index:             entryReq.Index,
-						Type:              entryReq.Type,
-						IsAddOn:           entryReq.IsAddOn,
-					}
-
-					if err := c.model.LoanTransactionEntryManager.CreateWithTx(context, tx, newEntry); err != nil {
-						tx.Rollback()
-						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan transaction entry: " + err.Error()})
 					}
 				}
 			}
@@ -1189,15 +1086,6 @@ func (c *Controller) LoanTransactionController() {
 				}
 			}
 		}
-
-		totalCredit, totalDebit := 0.0, 0.0
-		for _, entry := range request.LoanTransactionEntries {
-			totalCredit += entry.Credit
-			totalDebit += entry.Debit
-		}
-
-		loanTransaction.TotalCredit = totalCredit
-		loanTransaction.TotalDebit = totalDebit
 
 		if err := c.model.LoanTransactionManager.UpdateFieldsWithTx(context, tx, loanTransaction.ID, loanTransaction); err != nil {
 			tx.Rollback()

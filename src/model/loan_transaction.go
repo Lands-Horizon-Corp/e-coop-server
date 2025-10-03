@@ -454,8 +454,8 @@ type (
 		PaidByPosition         string     `json:"paid_by_position,omitempty"`
 
 		// Nested relationships for creation/update
-		LoanTags                              []*LoanTagRequest                               `json:"loan_tags,omitempty"`
-		LoanTransactionEntries                []*LoanTransactionEntryRequest                  `json:"loan_transaction_entries,omitempty"`
+		LoanTags []*LoanTagRequest `json:"loan_tags,omitempty"`
+
 		LoanClearanceAnalysis                 []*LoanClearanceAnalysisRequest                 `json:"loan_clearance_analysis,omitempty"`
 		LoanClearanceAnalysisInstitution      []*LoanClearanceAnalysisInstitutionRequest      `json:"loan_clearance_analysis_institution,omitempty"`
 		LoanTermsAndConditionSuggestedPayment []*LoanTermsAndConditionSuggestedPaymentRequest `json:"loan_terms_and_condition_suggested_payment,omitempty"`
@@ -463,8 +463,8 @@ type (
 		ComakerMemberProfiles                 []*ComakerMemberProfileRequest                  `json:"comaker_member_profiles,omitempty"`
 		ComakerCollaterals                    []*ComakerCollateralRequest                     `json:"comaker_collaterals,omitempty"`
 
-		LoanTagsDeleted                              []uuid.UUID `json:"loan_tags_deleted,omitempty"`
-		LoanTransactionEntriesDeleted                []uuid.UUID `json:"loan_transaction_entries_deleted,omitempty"`
+		LoanTagsDeleted []uuid.UUID `json:"loan_tags_deleted,omitempty"`
+
 		LoanClearanceAnalysisDeleted                 []uuid.UUID `json:"loan_clearance_analysis_deleted,omitempty"`
 		LoanClearanceAnalysisInstitutionDeleted      []uuid.UUID `json:"loan_clearance_analysis_institution_deleted,omitempty"`
 		LoanTermsAndConditionSuggestedPaymentDeleted []uuid.UUID `json:"loan_terms_and_condition_suggested_payment_deleted,omitempty"`
