@@ -32,7 +32,7 @@ func (c *Controller) LoanTransactionController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view loan transactions"})
 		}
 
-		loanTransactions, err := c.model.LoanTransactionManager.FindRaw(context, &model.LoanTransaction{
+		loanTransactions, err := c.model.LoanTransactionManager.Find(context, &model.LoanTransaction{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -40,7 +40,7 @@ func (c *Controller) LoanTransactionController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve loan transactions: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, loanTransactions)
+		return ctx.JSON(http.StatusOK, c.model.LoanTransactionManager.Pagination(context, ctx, loanTransactions))
 	})
 
 	// GET /api/v1/loan-transaction/member-profile/:member_profile_id/search

@@ -57,6 +57,6 @@ func (t *TransactionService) LoanComputation(ctx context.Context, ald model.Auto
 	return result
 }
 
-// func (t *TransactionService) LoanBalancing(amount float64) float64 {
+// func (t *TransactionService) LoanBalancing(ctx context.Context, ltr model.LoanTransactionRequest) float64 {
 
 // }
