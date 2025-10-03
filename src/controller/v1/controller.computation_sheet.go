@@ -110,9 +110,7 @@ func (c *Controller) ComputationSheetController() {
 				Terms:    request.Terms,
 				Applied1: request.Applied1,
 			})
-			if request.IsAddOn && entry.IsAddOn {
-				entry.Debit += entry.Credit
-			}
+
 			if !entry.IsAddOn {
 				total_non_add_ons += entry.Credit
 			} else {
@@ -126,6 +124,7 @@ func (c *Controller) ComputationSheetController() {
 			loanTransactionEntries[0].Credit = request.Applied1 - (total_non_add_ons + total_add_ons)
 		}
 		if request.IsAddOn {
+			addOnEntry.Debit = total_add_ons
 			loanTransactionEntries = append(loanTransactionEntries, addOnEntry)
 		}
 		totalDebit, totalCredit := 0.0, 0.0
