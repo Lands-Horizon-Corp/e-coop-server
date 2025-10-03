@@ -1842,10 +1842,10 @@ func (c *Controller) LoanTransactionController() {
 		return ctx.JSON(http.StatusOK, newLoanTransaction)
 	})
 
-	// POST /api/v1/loan-transaction/:loan_transaction_id/cash-and_cash-equivalence-account/:account_id/change
+	// PUT /api/v1/loan-transaction/:loan_transaction_id/cash-and_cash-equivalence-account/:account_id/change
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change",
-		Method:       "POST",
+		Method:       "PUT",
 		Note:         "Changes the cash and cash equivalence account for a loan transaction by ID.",
 		ResponseType: model.LoanTransaction{},
 	}, func(ctx echo.Context) error {
