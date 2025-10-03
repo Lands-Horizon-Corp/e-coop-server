@@ -345,6 +345,11 @@ func (c *Controller) LoanTransactionController() {
 			tx.Rollback()
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve cash on hand account: " + err.Error()})
 		}
+		account, err := c.model.AccountManager.GetByID(context, *request.AccountID)
+		if err != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve account: " + err.Error()})
+		}
 		loanTransactionEntries := []*model.LoanTransactionEntry{
 			{
 				CreatedByID:       userOrg.UserID,
@@ -367,14 +372,14 @@ func (c *Controller) LoanTransactionController() {
 				UpdatedByID:       userOrg.UserID,
 				CreatedAt:         time.Now().UTC(),
 				UpdatedAt:         time.Now().UTC(),
-				AccountID:         &cashOnHand.ID,
+				AccountID:         &account.ID,
 				OrganizationID:    userOrg.OrganizationID,
 				BranchID:          *userOrg.BranchID,
 				LoanTransactionID: loanTransaction.ID,
 				Credit:            0,
 				Debit:             request.Applied1,
-				Description:       cashOnHand.Description,
-				Name:              cashOnHand.Name,
+				Description:       account.Description,
+				Name:              account.Name,
 				Index:             1,
 				Type:              model.LoanTransactionStatic,
 			},
