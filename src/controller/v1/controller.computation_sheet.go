@@ -128,9 +128,16 @@ func (c *Controller) ComputationSheetController() {
 		if request.IsAddOn {
 			loanTransactionEntries = append(loanTransactionEntries, addOnEntry)
 		}
+		totalDebit, totalCredit := 0.0, 0.0
+		for _, entry := range loanTransactionEntries {
+			totalDebit += entry.Debit
+			totalCredit += entry.Credit
+		}
 
 		return ctx.JSON(http.StatusOK, model.ComputationSheetAmortizationResponse{
-			Entries: c.model.LoanTransactionEntryManager.ToModels(loanTransactionEntries),
+			Entries:     c.model.LoanTransactionEntryManager.ToModels(loanTransactionEntries),
+			TotalDebit:  totalDebit,
+			TotalCredit: totalCredit,
 		})
 	})
 
