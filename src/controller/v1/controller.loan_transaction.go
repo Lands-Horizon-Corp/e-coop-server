@@ -32,42 +32,15 @@ func (c *Controller) LoanTransactionController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view loan transactions"})
 		}
 
-		// Build query with filters
-		query := c.provider.Service.Database.Client().Where("organization_id = ? AND branch_id = ?", userOrg.OrganizationID, *userOrg.BranchID)
-
-		// Filter by print date if parameter is provided
-		if hasPrintDate := ctx.QueryParam("has_print_date"); hasPrintDate != "" {
-			if hasPrintDate == "true" {
-				query = query.Where("printed_date IS NOT NULL")
-			} else if hasPrintDate == "false" {
-				query = query.Where("printed_date IS NULL")
-			}
-		}
-
-		// Filter by approved date if parameter is provided
-		if hasApprovedDate := ctx.QueryParam("has_approved_date"); hasApprovedDate != "" {
-			if hasApprovedDate == "true" {
-				query = query.Where("approved_date IS NOT NULL")
-			} else if hasApprovedDate == "false" {
-				query = query.Where("approved_date IS NULL")
-			}
-		}
-
-		// Filter by release date if parameter is provided
-		if hasReleaseDate := ctx.QueryParam("has_release_date"); hasReleaseDate != "" {
-			if hasReleaseDate == "true" {
-				query = query.Where("released_date IS NOT NULL")
-			} else if hasReleaseDate == "false" {
-				query = query.Where("released_date IS NULL")
-			}
-		}
-
-		var loanTransactions []*model.LoanTransaction
-		if err := query.Find(&loanTransactions).Error; err != nil {
+		loanTransactions, err := c.model.LoanTransactionManager.FindRaw(context, &model.LoanTransaction{
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+		})
+		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve loan transactions: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, c.model.LoanTransactionManager.Pagination(context, ctx, loanTransactions))
+		return ctx.JSON(http.StatusOK, loanTransactions)
 	})
 
 	// GET /api/v1/loan-transaction/member-profile/:member_profile_id/search
