@@ -13,9 +13,10 @@ import (
 type LoanTransactionEntryType string
 
 const (
-	LoanTransactionStatic    LoanTransactionEntryType = "static"
-	LoanTransactionDeduction LoanTransactionEntryType = "deduction"
-	LoanTransactionAddOn     LoanTransactionEntryType = "add-on"
+	LoanTransactionStatic             LoanTransactionEntryType = "static"
+	LoanTransactionDeduction          LoanTransactionEntryType = "deduction"
+	LoanTransactionAddOn              LoanTransactionEntryType = "add-on"
+	LoanTransactionAutomaticDeduction LoanTransactionEntryType = "automatic-deduction"
 )
 
 type (

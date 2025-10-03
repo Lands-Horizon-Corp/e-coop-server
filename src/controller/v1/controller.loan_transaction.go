@@ -345,21 +345,6 @@ func (c *Controller) LoanTransactionController() {
 			tx.Rollback()
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve cash on hand account: " + err.Error()})
 		}
-		account, err := c.model.AccountManager.GetByID(context, *request.AccountID)
-		if err != nil {
-			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve account: " + err.Error()})
-		}
-		automaticLoanDeduction, err := c.model.AutomaticLoanDeductionManager.Find(context, &model.AutomaticLoanDeduction{
-			OrganizationID:     userOrg.OrganizationID,
-			BranchID:           *userOrg.BranchID,
-			ComputationSheetID: account.ComputationSheetID,
-		})
-		if err != nil {
-			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve automatic loan deduction: " + err.Error()})
-		}
-
 		loanTransactionEntries := []*model.LoanTransactionEntry{
 			{
 				CreatedByID:       userOrg.UserID,
@@ -386,8 +371,8 @@ func (c *Controller) LoanTransactionController() {
 				OrganizationID:    userOrg.OrganizationID,
 				BranchID:          *userOrg.BranchID,
 				LoanTransactionID: loanTransaction.ID,
-				Credit:            request.Applied1,
-				Debit:             0,
+				Credit:            0,
+				Debit:             request.Applied1,
 				Description:       cashOnHand.Description,
 				Name:              cashOnHand.Name,
 				Index:             0,
@@ -395,78 +380,8 @@ func (c *Controller) LoanTransactionController() {
 			},
 		}
 
-		addOnEntry := &model.LoanTransactionEntry{
-			CreatedByID:       userOrg.UserID,
-			UpdatedByID:       userOrg.UserID,
-			CreatedAt:         time.Now().UTC(),
-			UpdatedAt:         time.Now().UTC(),
-			OrganizationID:    userOrg.OrganizationID,
-			BranchID:          *userOrg.BranchID,
-			LoanTransactionID: loanTransaction.ID,
-			Credit:            0,
-			Debit:             0,
-			Description:       "ADD ON Interest",
-			Name:              "add on interest loan",
-			Index:             1,
-			Type:              model.LoanTransactionAddOn,
-			IsAddOn:           true,
-		}
-		total_non_add_ons, total_add_ons := 0.0, 0.0
-		for i, ald := range automaticLoanDeduction {
-			if ald.AccountID == nil {
-				continue
-			}
-			ald.Account, err = c.model.AccountManager.GetByID(context, *ald.AccountID)
-			if err != nil {
-				continue
-			}
-
-			entry := &model.LoanTransactionEntry{
-				CreatedByID:       userOrg.UserID,
-				UpdatedByID:       userOrg.UserID,
-				CreatedAt:         time.Now().UTC(),
-				UpdatedAt:         time.Now().UTC(),
-				AccountID:         ald.AccountID,
-				OrganizationID:    userOrg.OrganizationID,
-				BranchID:          *userOrg.BranchID,
-				LoanTransactionID: loanTransaction.ID,
-				Credit:            0,
-				Debit:             0,
-				Description:       ald.Description,
-				Name:              ald.Name,
-				Index:             i + 2,
-				Type:              model.LoanTransactionStatic,
-				IsAddOn:           ald.AddOn,
-			}
-			entry.Credit = c.service.LoanComputation(context, *ald, *loanTransaction)
-			if ald.ChargesPercentage1 == 0 && ald.ChargesPercentage2 == 0 {
-				if ald.Account.Type == model.AccountTypeInterest && ald.Account.InterestStandard > 0 {
-					entry.Credit = request.Applied1 * (ald.Account.InterestStandard / 100) * float64(request.Terms)
-				}
-			}
-
-			if loanTransaction.IsAddOn && entry.IsAddOn {
-				entry.Debit += entry.Credit
-			}
-			if !entry.IsAddOn {
-				total_non_add_ons += entry.Credit
-			} else {
-				total_add_ons += entry.Credit
-			}
-			loanTransactionEntries = append(loanTransactionEntries, entry)
-		}
-
-		if loanTransaction.IsAddOn {
-			loanTransactionEntries[0].Credit = request.Applied1 - total_non_add_ons
-		} else {
-			loanTransactionEntries[0].Credit = request.Applied1 - (total_non_add_ons + total_add_ons)
-		}
-		if loanTransaction.IsAddOn {
-			loanTransactionEntries = append(loanTransactionEntries, addOnEntry)
-		}
-
 		for i, entry := range loanTransactionEntries {
-			entry.Index = i + 1
+			entry.Index = i
 			if err := c.model.LoanTransactionEntryManager.CreateWithTx(context, tx, entry); err != nil {
 				tx.Rollback()
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to create loan transaction entry for account ID %s: %s", entry.AccountID.String(), err.Error())})
@@ -1899,6 +1814,7 @@ func (c *Controller) LoanTransactionController() {
 	})
 
 	// POST /api/v1/loan-transaction/:loan_transaction_id/deduction
+
 	// PUT /api/v1/loan-transaction/:loan_transaction_id/deduction
 	// DELETE /api/v1/loan-transaction/:loan_transaction_id/deduction
 
