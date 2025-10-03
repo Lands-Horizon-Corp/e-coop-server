@@ -1674,14 +1674,7 @@ func (c *Controller) LoanTransactionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		// loanTransactionEntry, err := c.model.LoanTransactionEntryManager.FindOne(context, &model.LoanTransactionEntry{
-		// 	BranchID:          *userOrg.BranchID,
-		// 	OrganizationID:    userOrg.OrganizationID,
-		// 	LoanTransactionID: *loanTransactionID,
-		// 	Index:             0,
-		// 	Debit:             0,
-		// })
-		entries, err := c.model.LoanTransactionEntryManager.FindWithFilters(context, []horizon_services.Filter{
+		loanTransactionEntry, err := c.model.LoanTransactionEntryManager.FindOneWithFilters(context, []horizon_services.Filter{
 			{Field: "loan_transaction_entries.organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
 			{Field: "loan_transaction_entries.branch_id", Op: horizon_services.OpEq, Value: userOrg.BranchID},
 			{Field: "loan_transaction_entries.index", Op: horizon_services.OpEq, Value: 0},
@@ -1696,16 +1689,6 @@ func (c *Controller) LoanTransactionController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction entry not found: " + err.Error()})
 		}
-		if len(entries) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "not-found",
-				Description: "Loan transaction entry not found (/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change), no entries found",
-				Module:      "LoanTransaction",
-			})
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction entry not found"})
-		}
-		loanTransactionEntry := entries[0]
-
 		loanTransactionEntry.AccountID = &account.ID
 		loanTransactionEntry.Name = account.Name
 		loanTransactionEntry.Description = account.Description

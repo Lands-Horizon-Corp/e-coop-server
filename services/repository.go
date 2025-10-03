@@ -85,6 +85,7 @@ type Repository[TData any, TResponse any, TRequest any] interface {
 	Filtered(ctx context.Context, param echo.Context, data []*TData) []*TResponse
 	// Filter operations
 	FindWithFilters(ctx context.Context, filters []Filter, preloads ...string) ([]*TData, error)
+	FindOneWithFilters(ctx context.Context, filters []Filter, preloads ...string) (*TData, error)
 
 	// Retrieval methods
 	List(ctx context.Context, preloads ...string) ([]*TData, error)
@@ -251,6 +252,48 @@ func (c *CollectionManager[TData, TResponse, TRequest]) Filtered(ctx context.Con
 		return c.ToModels(filtered)
 	}
 	return c.ToModels(filtered)
+}
+
+func (c *CollectionManager[TData, TResponse, TRequest]) FindOneWithFilters(
+	ctx context.Context, filters []Filter, preloads ...string,
+) (*TData, error) {
+	var entity *TData
+	db := c.service.Database.Client().Model(new(TData))
+
+	// Handle joins for related table filters
+	joinMap := make(map[string]bool)
+	for _, f := range filters {
+		// Check if field references a relationship (contains dot)
+		if strings.Contains(f.Field, ".") {
+			parts := strings.Split(f.Field, ".")
+			if len(parts) == 2 {
+				relationName := strings.ToUpper(string(parts[0][0])) + parts[0][1:]
+				if !joinMap[relationName] {
+					db = db.Joins(relationName)
+					joinMap[relationName] = true
+				}
+			}
+		}
+	}
+
+	for _, f := range filters {
+		switch f.Op {
+		case OpIn:
+			db = db.Where(fmt.Sprintf("%s IN (?)", f.Field), f.Value)
+		default:
+			db = db.Where(fmt.Sprintf("%s %s ?", f.Field, f.Op), f.Value)
+		}
+	}
+
+	preloads = handlers.MergeStrings(c.preloads, preloads)
+	for _, preload := range preloads {
+		db = db.Preload(preload)
+	}
+
+	if err := db.Order("updated_at DESC").Find(&entity).Error; err != nil {
+		return nil, eris.Wrapf(err, "failed to find entities with %d filters", len(filters))
+	}
+	return entity, nil
 }
 
 func (c *CollectionManager[TData, TResponse, TRequest]) FindWithFilters(
