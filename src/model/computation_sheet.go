@@ -71,6 +71,8 @@ type (
 
 	ComputationSheetAmortizationResponse struct {
 		Entries      []*LoanTransactionEntryResponse `json:"entries"`
+		TotalDebit   float64                         `json:"total_debit"`
+		TotalCredit  float64                         `json:"total_credit"`
 		Amortization struct {
 			Amortizations       []AmortizationPayment `json:"amortizations"`
 			AmortizationSummary AmortizationSummary   `json:"amortization_summary"`

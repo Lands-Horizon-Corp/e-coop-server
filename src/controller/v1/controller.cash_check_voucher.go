@@ -213,13 +213,21 @@ func (c *Controller) CashCheckVoucherController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create cash check voucher: " + err.Error()})
 		}
 
-		// Handle cash check voucher entries
+		transactionBatch, err := c.model.TransactionBatchCurrent(context, user.UserID, user.OrganizationID, *user.BranchID)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "End transaction batch failed: retrieve error: " + err.Error(),
+				Module:      "TransactionBatch",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batch: " + err.Error()})
+		}
 		if request.CashCheckVoucherEntries != nil {
 			for _, entryReq := range request.CashCheckVoucherEntries {
 				entry := &model.CashCheckVoucherEntry{
 					AccountID:              entryReq.AccountID,
-					EmployeeUserID:         entryReq.EmployeeUserID,
-					TransactionBatchID:     entryReq.TransactionBatchID,
+					EmployeeUserID:         &user.UserID,
+					TransactionBatchID:     &transactionBatch.ID,
 					CashCheckVoucherID:     cashCheckVoucher.ID,
 					Debit:                  entryReq.Debit,
 					Credit:                 entryReq.Credit,
@@ -230,7 +238,7 @@ func (c *Controller) CashCheckVoucherController() {
 					UpdatedByID:            user.UserID,
 					BranchID:               *user.BranchID,
 					OrganizationID:         user.OrganizationID,
-					CashCheckVoucherNumber: cashCheckVoucher.CashVoucherNumber,
+					CashCheckVoucherNumber: entryReq.CashCheckVoucherNumber,
 					MemberProfileID:        entryReq.MemberProfileID,
 				}
 
@@ -417,7 +425,15 @@ func (c *Controller) CashCheckVoucherController() {
 				}
 			}
 		}
-
+		transactionBatch, err := c.model.TransactionBatchCurrent(context, user.UserID, user.OrganizationID, *user.BranchID)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "End transaction batch failed: retrieve error: " + err.Error(),
+				Module:      "TransactionBatch",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batch: " + err.Error()})
+		}
 		// Handle cash check voucher entries (create new or update existing)
 		if request.CashCheckVoucherEntries != nil {
 			for _, entryReq := range request.CashCheckVoucherEntries {
@@ -434,15 +450,15 @@ func (c *Controller) CashCheckVoucherController() {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get cash check voucher entry: " + err.Error()})
 					}
 					entry.AccountID = entryReq.AccountID
-					entry.EmployeeUserID = entryReq.EmployeeUserID
-					entry.TransactionBatchID = entryReq.TransactionBatchID
+					entry.EmployeeUserID = &user.UserID
+					entry.TransactionBatchID = &transactionBatch.ID
 					entry.Debit = entryReq.Debit
 					entry.Credit = entryReq.Credit
 					entry.Description = entryReq.Description
 					entry.UpdatedAt = time.Now().UTC()
 					entry.UpdatedByID = user.UserID
 					entry.MemberProfileID = entryReq.MemberProfileID
-					entry.CashCheckVoucherNumber = cashCheckVoucher.CashVoucherNumber
+					entry.CashCheckVoucherNumber = entryReq.CashCheckVoucherNumber
 					if err := c.model.CashCheckVoucherEntryManager.UpdateFieldsWithTx(context, tx, entry.ID, entry); err != nil {
 						tx.Rollback()
 						c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -455,8 +471,8 @@ func (c *Controller) CashCheckVoucherController() {
 				} else {
 					entry := &model.CashCheckVoucherEntry{
 						AccountID:              entryReq.AccountID,
-						EmployeeUserID:         entryReq.EmployeeUserID,
-						TransactionBatchID:     entryReq.TransactionBatchID,
+						EmployeeUserID:         &user.UserID,
+						TransactionBatchID:     &transactionBatch.ID,
 						CashCheckVoucherID:     cashCheckVoucher.ID,
 						Debit:                  entryReq.Debit,
 						Credit:                 entryReq.Credit,
@@ -467,7 +483,7 @@ func (c *Controller) CashCheckVoucherController() {
 						UpdatedByID:            user.UserID,
 						BranchID:               *user.BranchID,
 						OrganizationID:         user.OrganizationID,
-						CashCheckVoucherNumber: cashCheckVoucher.CashVoucherNumber,
+						CashCheckVoucherNumber: entryReq.CashCheckVoucherNumber,
 						MemberProfileID:        entryReq.MemberProfileID,
 					}
 

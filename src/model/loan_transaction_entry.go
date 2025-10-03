@@ -13,9 +13,10 @@ import (
 type LoanTransactionEntryType string
 
 const (
-	LoanTransactionStatic    LoanTransactionEntryType = "static"
-	LoanTransactionDeduction LoanTransactionEntryType = "deduction"
-	LoanTransactionAddOn     LoanTransactionEntryType = "add-on"
+	LoanTransactionStatic             LoanTransactionEntryType = "static"
+	LoanTransactionDeduction          LoanTransactionEntryType = "deduction"
+	LoanTransactionAddOn              LoanTransactionEntryType = "add-on"
+	LoanTransactionAutomaticDeduction LoanTransactionEntryType = "automatic-deduction"
 )
 
 type (
@@ -52,6 +53,7 @@ type (
 		Credit      float64 `gorm:"type:decimal"`
 		Debit       float64 `gorm:"type:decimal"`
 	}
+
 
 	LoanTransactionEntryResponse struct {
 		ID                uuid.UUID                `json:"id"`

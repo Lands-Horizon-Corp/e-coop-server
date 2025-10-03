@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
@@ -32,38 +33,11 @@ func (c *Controller) LoanTransactionController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view loan transactions"})
 		}
 
-		// Build query with filters
-		query := c.provider.Service.Database.Client().Where("organization_id = ? AND branch_id = ?", userOrg.OrganizationID, *userOrg.BranchID)
-
-		// Filter by print date if parameter is provided
-		if hasPrintDate := ctx.QueryParam("has_print_date"); hasPrintDate != "" {
-			if hasPrintDate == "true" {
-				query = query.Where("printed_date IS NOT NULL")
-			} else if hasPrintDate == "false" {
-				query = query.Where("printed_date IS NULL")
-			}
-		}
-
-		// Filter by approved date if parameter is provided
-		if hasApprovedDate := ctx.QueryParam("has_approved_date"); hasApprovedDate != "" {
-			if hasApprovedDate == "true" {
-				query = query.Where("approved_date IS NOT NULL")
-			} else if hasApprovedDate == "false" {
-				query = query.Where("approved_date IS NULL")
-			}
-		}
-
-		// Filter by release date if parameter is provided
-		if hasReleaseDate := ctx.QueryParam("has_release_date"); hasReleaseDate != "" {
-			if hasReleaseDate == "true" {
-				query = query.Where("released_date IS NOT NULL")
-			} else if hasReleaseDate == "false" {
-				query = query.Where("released_date IS NULL")
-			}
-		}
-
-		var loanTransactions []*model.LoanTransaction
-		if err := query.Find(&loanTransactions).Error; err != nil {
+		loanTransactions, err := c.model.LoanTransactionManager.Find(context, &model.LoanTransaction{
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+		})
+		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve loan transactions: " + err.Error()})
 		}
 
@@ -377,16 +351,6 @@ func (c *Controller) LoanTransactionController() {
 			tx.Rollback()
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve account: " + err.Error()})
 		}
-		automaticLoanDeduction, err := c.model.AutomaticLoanDeductionManager.Find(context, &model.AutomaticLoanDeduction{
-			OrganizationID:     userOrg.OrganizationID,
-			BranchID:           *userOrg.BranchID,
-			ComputationSheetID: account.ComputationSheetID,
-		})
-		if err != nil {
-			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve automatic loan deduction: " + err.Error()})
-		}
-
 		loanTransactionEntries := []*model.LoanTransactionEntry{
 			{
 				CreatedByID:       userOrg.UserID,
@@ -409,91 +373,20 @@ func (c *Controller) LoanTransactionController() {
 				UpdatedByID:       userOrg.UserID,
 				CreatedAt:         time.Now().UTC(),
 				UpdatedAt:         time.Now().UTC(),
-				AccountID:         &cashOnHand.ID,
-				OrganizationID:    userOrg.OrganizationID,
-				BranchID:          *userOrg.BranchID,
-				LoanTransactionID: loanTransaction.ID,
-				Credit:            request.Applied1,
-				Debit:             0,
-				Description:       cashOnHand.Description,
-				Name:              cashOnHand.Name,
-				Index:             0,
-				Type:              model.LoanTransactionStatic,
-			},
-		}
-
-		addOnEntry := &model.LoanTransactionEntry{
-			CreatedByID:       userOrg.UserID,
-			UpdatedByID:       userOrg.UserID,
-			CreatedAt:         time.Now().UTC(),
-			UpdatedAt:         time.Now().UTC(),
-			OrganizationID:    userOrg.OrganizationID,
-			BranchID:          *userOrg.BranchID,
-			LoanTransactionID: loanTransaction.ID,
-			Credit:            0,
-			Debit:             0,
-			Description:       "ADD ON Interest",
-			Name:              "add on interest loan",
-			Index:             1,
-			Type:              model.LoanTransactionAddOn,
-			IsAddOn:           true,
-		}
-		total_non_add_ons, total_add_ons := 0.0, 0.0
-		for i, ald := range automaticLoanDeduction {
-			if ald.AccountID == nil {
-				continue
-			}
-			ald.Account, err = c.model.AccountManager.GetByID(context, *ald.AccountID)
-			if err != nil {
-				continue
-			}
-
-			entry := &model.LoanTransactionEntry{
-				CreatedByID:       userOrg.UserID,
-				UpdatedByID:       userOrg.UserID,
-				CreatedAt:         time.Now().UTC(),
-				UpdatedAt:         time.Now().UTC(),
-				AccountID:         ald.AccountID,
+				AccountID:         &account.ID,
 				OrganizationID:    userOrg.OrganizationID,
 				BranchID:          *userOrg.BranchID,
 				LoanTransactionID: loanTransaction.ID,
 				Credit:            0,
-				Debit:             0,
-				Description:       ald.Description,
-				Name:              ald.Name,
-				Index:             i + 2,
+				Debit:             request.Applied1,
+				Description:       account.Description,
+				Name:              account.Name,
+				Index:             1,
 				Type:              model.LoanTransactionStatic,
-				IsAddOn:           ald.AddOn,
-			}
-			entry.Credit = c.service.LoanComputation(context, *ald, *loanTransaction)
-			if ald.ChargesPercentage1 == 0 && ald.ChargesPercentage2 == 0 {
-				if ald.Account.Type == model.AccountTypeInterest && ald.Account.InterestStandard > 0 {
-					entry.Credit = request.Applied1 * (ald.Account.InterestStandard / 100) * float64(request.Terms)
-				}
-			}
-
-			if loanTransaction.IsAddOn && entry.IsAddOn {
-				entry.Debit += entry.Credit
-			}
-			if !entry.IsAddOn {
-				total_non_add_ons += entry.Credit
-			} else {
-				total_add_ons += entry.Credit
-			}
-			loanTransactionEntries = append(loanTransactionEntries, entry)
+			},
 		}
 
-		if loanTransaction.IsAddOn {
-			loanTransactionEntries[0].Credit = request.Applied1 - total_non_add_ons
-		} else {
-			loanTransactionEntries[0].Credit = request.Applied1 - (total_non_add_ons + total_add_ons)
-		}
-		if loanTransaction.IsAddOn {
-			loanTransactionEntries = append(loanTransactionEntries, addOnEntry)
-		}
-
-		for i, entry := range loanTransactionEntries {
-			entry.Index = i + 1
+		for _, entry := range loanTransactionEntries {
 			if err := c.model.LoanTransactionEntryManager.CreateWithTx(context, tx, entry); err != nil {
 				tx.Rollback()
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to create loan transaction entry for account ID %s: %s", entry.AccountID.String(), err.Error())})
@@ -655,6 +548,7 @@ func (c *Controller) LoanTransactionController() {
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id",
 		Method:       "PUT",
 		ResponseType: model.LoanTransactionResponse{},
+		RequestType:  model.LoanTransactionRequest{},
 		Note:         "Updates an existing loan transaction.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -675,7 +569,10 @@ func (c *Controller) LoanTransactionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-
+		account, err := c.model.AccountManager.GetByID(context, *request.AccountID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve account: " + err.Error()})
+		}
 		loanTransaction, err := c.model.LoanTransactionManager.GetByID(context, *loanTransactionID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction not found"})
@@ -778,27 +675,8 @@ func (c *Controller) LoanTransactionController() {
 		loanTransaction.PaidByPosition = request.PaidByPosition
 		loanTransaction.ModeOfPaymentFixedDays = request.ModeOfPaymentFixedDays
 		loanTransaction.ModeOfPaymentMonthlyExactDay = request.ModeOfPaymentMonthlyExactDay
-
 		loanTransaction.UpdatedAt = time.Now().UTC()
 
-		if request.LoanTransactionEntriesDeleted != nil {
-			for _, deletedID := range request.LoanTransactionEntriesDeleted {
-				loanTransactionEntry, err := c.model.LoanTransactionEntryManager.GetByID(context, deletedID)
-				if err != nil {
-					tx.Rollback()
-					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find loan transaction entry for deletion: " + err.Error()})
-				}
-				if loanTransactionEntry.LoanTransactionID != loanTransaction.ID {
-					tx.Rollback()
-					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete loan clearance analysis that doesn't belong to this loan transaction"})
-				}
-				loanTransactionEntry.DeletedByID = &userOrg.UserID
-				if err := c.model.LoanTransactionEntryManager.DeleteWithTx(context, tx, loanTransactionEntry); err != nil {
-					tx.Rollback()
-					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan transaction entry: " + err.Error()})
-				}
-			}
-		}
 		// Handle deletions first (same as before)
 		if request.LoanClearanceAnalysisDeleted != nil {
 			for _, deletedID := range request.LoanClearanceAnalysisDeleted {
@@ -964,92 +842,6 @@ func (c *Controller) LoanTransactionController() {
 					if err := c.model.LoanClearanceAnalysisManager.CreateWithTx(context, tx, clearanceAnalysis); err != nil {
 						tx.Rollback()
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "(updated) Failed to create loan clearance analysis: " + err.Error()})
-					}
-				}
-			}
-		}
-
-		if request.LoanTransactionEntries != nil {
-			for _, entryReq := range request.LoanTransactionEntries {
-				if entryReq.ID != nil {
-					// Update existing record
-					existingRecord, err := c.model.LoanTransactionEntryManager.GetByID(context, *entryReq.ID)
-					if err != nil {
-						tx.Rollback()
-						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find existing loan transaction entry: " + err.Error()})
-					}
-					// Verify ownership
-					if existingRecord.LoanTransactionID != loanTransaction.ID {
-						tx.Rollback()
-						return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot update loan transaction entry that doesn't belong to this loan transaction"})
-					}
-					// Update fields
-					existingRecord.UpdatedAt = time.Now().UTC()
-					existingRecord.UpdatedByID = userOrg.UserID
-					existingRecord.AccountID = entryReq.AccountID
-					existingRecord.Credit = entryReq.Credit
-					existingRecord.Debit = entryReq.Debit
-					existingRecord.IsAddOn = entryReq.IsAddOn
-
-					// Validate AccountID if provided
-					if entryReq.AccountID != nil {
-						account, err := c.model.AccountManager.GetByID(context, *entryReq.AccountID)
-						if err != nil {
-							tx.Rollback()
-							return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID: account not found"})
-						}
-
-						existingRecord.Description = account.Description
-						existingRecord.Name = account.Name
-					} else {
-						existingRecord.Description = entryReq.Description
-						existingRecord.Name = entryReq.Name
-					}
-					existingRecord.Index = entryReq.Index
-					existingRecord.Type = entryReq.Type
-					if err := c.model.LoanTransactionEntryManager.UpdateFieldsWithTx(context, tx, existingRecord.ID, existingRecord); err != nil {
-						tx.Rollback()
-						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction entry: " + err.Error()})
-					}
-				} else {
-					var accountName, accountDescription string
-
-					if entryReq.AccountID != nil {
-						account, err := c.model.AccountManager.GetByID(context, *entryReq.AccountID)
-						if err != nil {
-							accountName = entryReq.Name
-							accountDescription = entryReq.Description
-						} else {
-							accountName = account.Name
-							accountDescription = account.Description
-						}
-					} else {
-						// No account ID provided, use provided name and description
-						accountName = entryReq.Name
-						accountDescription = entryReq.Description
-					}
-
-					newEntry := &model.LoanTransactionEntry{
-						CreatedByID:       userOrg.UserID,
-						UpdatedByID:       userOrg.UserID,
-						CreatedAt:         time.Now().UTC(),
-						UpdatedAt:         time.Now().UTC(),
-						AccountID:         entryReq.AccountID, // This can be nil
-						OrganizationID:    userOrg.OrganizationID,
-						BranchID:          *userOrg.BranchID,
-						LoanTransactionID: loanTransaction.ID,
-						Credit:            entryReq.Credit,
-						Debit:             entryReq.Debit,
-						Description:       accountDescription,
-						Name:              accountName,
-						Index:             entryReq.Index,
-						Type:              entryReq.Type,
-						IsAddOn:           entryReq.IsAddOn,
-					}
-
-					if err := c.model.LoanTransactionEntryManager.CreateWithTx(context, tx, newEntry); err != nil {
-						tx.Rollback()
-						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan transaction entry: " + err.Error()})
 					}
 				}
 			}
@@ -1302,14 +1094,33 @@ func (c *Controller) LoanTransactionController() {
 			}
 		}
 
-		totalCredit, totalDebit := 0.0, 0.0
-		for _, entry := range request.LoanTransactionEntries {
-			totalCredit += entry.Credit
-			totalDebit += entry.Debit
+		loanTransactionEntry, err := c.model.LoanTransactionEntryManager.FindOneWithFilters(context, []horizon_services.Filter{
+			{Field: "loan_transaction_entries.organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
+			{Field: "loan_transaction_entries.branch_id", Op: horizon_services.OpEq, Value: userOrg.BranchID},
+			{Field: "loan_transaction_entries.index", Op: horizon_services.OpEq, Value: 1},
+			{Field: "loan_transaction_entries.credit", Op: horizon_services.OpEq, Value: 0},
+			{Field: "loan_transaction_entries.loan_transaction_id", Op: horizon_services.OpEq, Value: loanTransactionID},
+		})
+		if err != nil {
+			tx.Rollback()
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Failed to find loan transaction entry (/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change): " + err.Error(),
+				Module:      "LoanTransaction",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find loan transaction entry: " + err.Error()})
 		}
-
-		loanTransaction.TotalCredit = totalCredit
-		loanTransaction.TotalDebit = totalDebit
+		loanTransactionEntry.AccountID = &account.ID
+		loanTransactionEntry.Name = account.Name
+		loanTransactionEntry.Description = account.Description
+		if err := c.model.LoanTransactionEntryManager.UpdateFieldsWithTx(context, tx, loanTransactionEntry.ID, loanTransactionEntry); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Loan transaction entry update failed (/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change), db error: " + err.Error(),
+				Module:      "LoanTransaction",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction entry: " + err.Error()})
+		}
 
 		if err := c.model.LoanTransactionManager.UpdateFieldsWithTx(context, tx, loanTransaction.ID, loanTransaction); err != nil {
 			tx.Rollback()
@@ -1868,5 +1679,82 @@ func (c *Controller) LoanTransactionController() {
 		}
 		return ctx.JSON(http.StatusOK, newLoanTransaction)
 	})
+
+	// PUT /api/v1/loan-transaction/:loan_transaction_id/cash-and_cash-equivalence-account/:account_id/change
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change",
+		Method:       "PUT",
+		Note:         "Changes the cash and cash equivalence account for a loan transaction by ID.",
+		ResponseType: model.LoanTransaction{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
+		}
+		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID"})
+		}
+		account, err := c.model.AccountManager.GetByID(context, *accountID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found"})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		loanTransactionEntry, err := c.model.LoanTransactionEntryManager.FindOneWithFilters(context, []horizon_services.Filter{
+			{Field: "loan_transaction_entries.organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
+			{Field: "loan_transaction_entries.branch_id", Op: horizon_services.OpEq, Value: userOrg.BranchID},
+			{Field: "loan_transaction_entries.index", Op: horizon_services.OpEq, Value: 0},
+			{Field: "loan_transaction_entries.debit", Op: horizon_services.OpEq, Value: 0},
+			{Field: "loan_transaction_entries.loan_transaction_id", Op: horizon_services.OpEq, Value: loanTransactionID},
+		})
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "not-found",
+				Description: "Loan transaction entry not found (/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change), db error: " + err.Error(),
+				Module:      "LoanTransaction",
+			})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction entry not found: " + err.Error()})
+		}
+		loanTransactionEntry.AccountID = &account.ID
+		loanTransactionEntry.Name = account.Name
+		loanTransactionEntry.Description = account.Description
+		if err := c.model.LoanTransactionEntryManager.UpdateFields(context, loanTransactionEntry.ID, loanTransactionEntry); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Loan transaction entry update failed (/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change), db error: " + err.Error(),
+				Module:      "LoanTransaction",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction entry: " + err.Error()})
+		}
+		loanTransaction, err := c.model.LoanTransactionManager.GetByIDRaw(context, loanTransactionEntry.LoanTransactionID)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "not-found",
+				Description: "Loan transaction not found after entry update (/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change), db error: " + err.Error(),
+				Module:      "LoanTransaction",
+			})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction not found after entry update: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, loanTransaction)
+	})
+
+	// POST /api/v1/loan-transaction/:loan_transaction_id/deduction
+	// req.RegisterRoute(handlers.Route{
+	// 	Route:        "/api/v1/loan-transaction/:loan_transaction_id/deduction",
+	// 	Method:       "POST",
+	// 	Note:         "Adds a deduction to a loan transaction by ID.",
+	// 	RequestType:  model.LoanTransactionDeductionRequest{},
+	// 	ResponseType: model.LoanTransaction{},
+	// }, func(ctx echo.Context) error {
+	// 	// Implementation goes here
+	// 	return ctx.JSON(http.StatusNotImplemented, map[string]string{"error": "Not implemented"})
+	// })
+
+	// PUT /api/v1/loan-transaction/deduction/:loan_transaction_entry_id
+	// DELETE /api/v1/loan-transaction/:loan_transaction_id/deduction
 
 }
