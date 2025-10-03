@@ -1842,4 +1842,5 @@ func (c *Controller) LoanTransactionController() {
 		return ctx.JSON(http.StatusOK, newLoanTransaction)
 	})
 
+	// POST /api/v1/loan-transaction/
 }

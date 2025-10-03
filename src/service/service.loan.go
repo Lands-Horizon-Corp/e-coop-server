@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
+	"github.com/rotisserie/eris"
 )
 
 func (t *TransactionService) LoanComputation(ctx context.Context, ald model.AutomaticLoanDeduction, lt model.LoanTransaction) float64 {
@@ -57,6 +58,22 @@ func (t *TransactionService) LoanComputation(ctx context.Context, ald model.Auto
 	return result
 }
 
-// func (t *TransactionService) LoanBalancing(ctx context.Context, ltr model.LoanTransactionRequest) float64 {
+func (t *TransactionService) LoanBalancing(ctx context.Context, entries []*model.LoanTransactionEntry) ([]*model.LoanTransactionEntry, error) {
+	static, addOn, deduction := []*model.LoanTransactionEntry{}, []*model.LoanTransactionEntry{}, []*model.LoanTransactionEntry{}
+	for _, entries := range entries {
+		if entries.Type == model.LoanTransactionStatic {
+			static = append(static, entries)
+		}
+		if entries.Type == model.LoanTransactionAddOn {
+			addOn = append(addOn, entries)
+		}
+		if entries.Type == model.LoanTransactionDeduction {
+			deduction = append(deduction, entries)
+		}
+	}
+	if len(static) <= 1 {
+		return nil, eris.New("at least 2 static entries are required")
+	}
 
-// }
+	return nil, nil
+}
