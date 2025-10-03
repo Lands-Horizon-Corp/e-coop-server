@@ -1705,14 +1705,7 @@ func (c *Controller) LoanTransactionController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction entry not found"})
 		}
 		loanTransactionEntry := entries[0]
-		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "not-found",
-				Description: "Loan transaction entry not found (/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change), db error: " + err.Error(),
-				Module:      "LoanTransaction",
-			})
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction entry not found: " + err.Error()})
-		}
+
 		loanTransactionEntry.AccountID = &account.ID
 		loanTransactionEntry.Name = account.Name
 		loanTransactionEntry.Description = account.Description
