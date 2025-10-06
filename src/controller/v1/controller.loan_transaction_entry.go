@@ -94,7 +94,6 @@ func (c *Controller) LoanTransactionEntryController() {
 	})
 
 	// PUT /api/v1/loan-transaction/deduction/:loan_transaction_entry_id
-
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction-entry/:loan_transaction_entry_id/deduction",
 		Method:       "PUT",
