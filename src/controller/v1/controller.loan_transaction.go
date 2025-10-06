@@ -1901,6 +1901,5 @@ func (c *Controller) LoanTransactionController() {
 		}
 		return ctx.JSON(http.StatusNotImplemented, newLoanTransaction)
 	})
-	// DELETE /api/v1/loan-transaction/:loan_transaction_id/deduction
 
 }
