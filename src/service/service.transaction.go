@@ -14,10 +14,14 @@ type TransactionData struct {
 	Reverse       bool
 }
 
-type TransactionService struct{}
+type TransactionService struct {
+	model *model.Model
+}
 
-func NewTransactionService() (*TransactionService, error) {
-	return &TransactionService{}, nil
+func NewTransactionService(model *model.Model) (*TransactionService, error) {
+	return &TransactionService{
+		model: model,
+	}, nil
 }
 
 func (t *TransactionService) ComputeTotalBalance(context context.Context, generalLedgers []*model.GeneralLedger) (credit, debit, balance float64, err error) {

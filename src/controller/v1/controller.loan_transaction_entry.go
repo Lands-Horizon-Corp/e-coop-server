@@ -2,14 +2,176 @@ package controller_v1
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
 	"github.com/labstack/echo/v4"
 )
 
 func (c *Controller) LoanTransactionEntryController() {
 	req := c.provider.Service.Request
+
+	// POST /api/v1/loan-transaction/:loan_transaction_id/deduction
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/loan-transaction-entry/loan-transaction/:loan_transaction_id/deduction",
+		Method:       "POST",
+		Note:         "Adds a deduction to a loan transaction by ID.",
+		RequestType:  model.LoanTransactionDeductionRequest{},
+		ResponseType: model.LoanTransaction{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
+		}
+		var req model.LoanTransactionDeductionRequest
+		if err := ctx.Bind(&req); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Loan transaction deduction failed: invalid payload: " + err.Error(),
+				Module:      "LoanTransaction",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction deduction payload: " + err.Error()})
+		}
+		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Loan transaction deduction failed: validation error: " + err.Error(),
+				Module:      "LoanTransaction",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		account, err := c.model.AccountManager.GetByID(context, req.AccountID)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "not-found",
+				Description: "Account not found for loan transaction deduction: " + err.Error(),
+				Module:      "LoanTransaction",
+			})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found: " + err.Error()})
+		}
+
+		loanTransaction := &model.LoanTransactionEntry{
+			CreatedByID:       userOrg.UserID,
+			UpdatedByID:       userOrg.UserID,
+			CreatedAt:         time.Now().UTC(),
+			UpdatedAt:         time.Now().UTC(),
+			OrganizationID:    userOrg.OrganizationID,
+			BranchID:          *userOrg.BranchID,
+			LoanTransactionID: *loanTransactionID,
+			Type:              model.LoanTransactionAutomaticDeduction,
+			Debit:             0,
+			Credit:            req.Amount,
+			IsAddOn:           req.IsAddOn,
+			AccountID:         &req.AccountID,
+			Name:              account.Name,
+		}
+		if err := c.model.LoanTransactionEntryManager.Create(context, loanTransaction); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Loan transaction deduction creation failed: " + err.Error(),
+				Module:      "LoanTransaction",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan transaction deduction: " + err.Error()})
+		}
+
+		newLoanTransaction, err := c.model.LoanTransactionManager.GetByIDRaw(context, *loanTransactionID)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "not-found",
+				Description: "Loan transaction not found after deduction creation: " + err.Error(),
+				Module:      "LoanTransaction",
+			})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction not found after deduction creation: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusNotImplemented, newLoanTransaction)
+	})
+
+	// PUT /api/v1/loan-transaction/deduction/:loan_transaction_entry_id
+
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/loan-transaction-entry/:loan_transaction_entry_id/deduction",
+		Method:       "PUT",
+		Note:         "Adds a deduction to a loan transaction by ID.",
+		RequestType:  model.LoanTransactionDeductionRequest{},
+		ResponseType: model.LoanTransaction{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		loanTransactionEntryId, err := handlers.EngineUUIDParam(ctx, "loan_transaction_entry_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
+		}
+		var req model.LoanTransactionDeductionRequest
+		if err := ctx.Bind(&req); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Loan transaction deduction failed: invalid payload: " + err.Error(),
+				Module:      "LoanTransaction",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction deduction payload: " + err.Error()})
+		}
+		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Loan transaction deduction failed: validation error: " + err.Error(),
+				Module:      "LoanTransaction",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		account, err := c.model.AccountManager.GetByID(context, req.AccountID)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "not-found",
+				Description: "Account not found for loan transaction deduction: " + err.Error(),
+				Module:      "LoanTransaction",
+			})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found: " + err.Error()})
+		}
+		loanTransactionEntry, err := c.model.LoanTransactionEntryManager.GetByID(context, *loanTransactionEntryId)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "not-found",
+				Description: "Loan transaction entry not found for deduction update: " + err.Error(),
+				Module:      "LoanTransaction",
+			})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction entry not found for deduction update: " + err.Error()})
+		}
+		loanTransactionEntry.Credit = req.Amount
+		loanTransactionEntry.IsAddOn = req.IsAddOn
+		loanTransactionEntry.AccountID = &req.AccountID
+		loanTransactionEntry.Name = account.Name
+		loanTransactionEntry.UpdatedAt = time.Now().UTC()
+		loanTransactionEntry.UpdatedByID = userOrg.UserID
+		if err := c.model.LoanTransactionEntryManager.UpdateFields(context, *loanTransactionEntryId, loanTransactionEntry); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Loan transaction deduction creation failed: " + err.Error(),
+				Module:      "LoanTransaction",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan transaction deduction: " + err.Error()})
+		}
+
+		newLoanTransaction, err := c.model.LoanTransactionManager.GetByIDRaw(context, loanTransactionEntry.LoanTransactionID)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "not-found",
+				Description: "Loan transaction not found after deduction creation: " + err.Error(),
+				Module:      "LoanTransaction",
+			})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction not found after deduction creation: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusNotImplemented, newLoanTransaction)
+	})
 
 	// DELETE /api/v1/loan-transaction-entry/:loan_transaction_entry_id
 	req.RegisterRoute(handlers.Route{
