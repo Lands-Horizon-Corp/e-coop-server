@@ -83,6 +83,7 @@ func (h *UserOrganizationToken) CurrentUserOrganization(ctx context.Context, ech
 	// Try JWT token first
 	claim, err := h.Token.GetToken(ctx, echoCtx)
 	if err == nil {
+		// We have a JWT token, so we should clear it if there are any issues
 		id, err := uuid.Parse(claim.UserOrganizationID)
 		if err != nil {
 			h.ClearCurrentToken(ctx, echoCtx)
@@ -109,8 +110,6 @@ func (h *UserOrganizationToken) CurrentUserOrganization(ctx context.Context, ech
 		}
 		return userOrganization, nil
 	}
-
-	// No valid authentication found - don't clear tokens here!
 	return nil, echo.NewHTTPError(http.StatusUnauthorized, "authentication required")
 }
 
