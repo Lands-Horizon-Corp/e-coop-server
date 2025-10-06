@@ -554,7 +554,6 @@ type (
 		PaidByPosition         string     `json:"paid_by_position,omitempty" validate:"omitempty,max=255"`
 	}
 
-	LoanTransactionDeductionRequest struct{}
 )
 
 func (m *Model) LoanTransaction() {

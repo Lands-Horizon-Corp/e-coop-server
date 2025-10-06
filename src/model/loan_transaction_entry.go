@@ -54,7 +54,6 @@ type (
 		Debit       float64 `gorm:"type:decimal"`
 	}
 
-
 	LoanTransactionEntryResponse struct {
 		ID                uuid.UUID                `json:"id"`
 		CreatedAt         string                   `json:"created_at"`
@@ -91,6 +90,13 @@ type (
 		Description       string                   `json:"description,omitempty"`
 		Credit            float64                  `json:"credit,omitempty"`
 		Debit             float64                  `json:"debit,omitempty"`
+	}
+
+	LoanTransactionDeductionRequest struct {
+		AccountID   uuid.UUID `json:"account_id" validate:"required"`
+		Amount      float64   `json:"amount" validate:"required,gt=0"`
+		Description string    `json:"description,omitempty"`
+		IsAddOn     bool      `json:"is_add_on,omitempty"`
 	}
 )
 
