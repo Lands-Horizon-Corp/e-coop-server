@@ -1743,16 +1743,33 @@ func (c *Controller) LoanTransactionController() {
 	})
 
 	// POST /api/v1/loan-transaction/:loan_transaction_id/deduction
-	// req.RegisterRoute(handlers.Route{
-	// 	Route:        "/api/v1/loan-transaction/:loan_transaction_id/deduction",
-	// 	Method:       "POST",
-	// 	Note:         "Adds a deduction to a loan transaction by ID.",
-	// 	RequestType:  model.LoanTransactionDeductionRequest{},
-	// 	ResponseType: model.LoanTransaction{},
-	// }, func(ctx echo.Context) error {
-	// 	// Implementation goes here
-	// 	return ctx.JSON(http.StatusNotImplemented, map[string]string{"error": "Not implemented"})
-	// })
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/loan-transaction/:loan_transaction_id/deduction",
+		Method:       "POST",
+		Note:         "Adds a deduction to a loan transaction by ID.",
+		RequestType:  model.LoanTransactionDeductionRequest{},
+		ResponseType: model.LoanTransaction{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		var req model.LoanTransactionDeductionRequest
+		if err := ctx.Bind(&req); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Loan transaction deduction failed: invalid payload: " + err.Error(),
+				Module:      "LoanTransaction",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction deduction payload: " + err.Error()})
+		}
+		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Loan transaction deduction failed: validation error: " + err.Error(),
+				Module:      "LoanTransaction",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusNotImplemented, map[string]string{"error": "Not implemented"})
+	})
 
 	// PUT /api/v1/loan-transaction/deduction/:loan_transaction_entry_id
 	// DELETE /api/v1/loan-transaction/:loan_transaction_id/deduction
