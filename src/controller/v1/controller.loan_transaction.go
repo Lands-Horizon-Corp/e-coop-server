@@ -386,13 +386,64 @@ func (c *Controller) LoanTransactionController() {
 			},
 		}
 
+		total_non_add_ons, total_add_ons := 0.0, 0.0
+		if account.ComputationSheetID != nil {
+			automaticLoanDeductionEntries, err := c.model.AutomaticLoanDeductionManager.Find(context, &model.AutomaticLoanDeduction{
+				ComputationSheetID: account.ComputationSheetID,
+				BranchID:           *userOrg.BranchID,
+				OrganizationID:     userOrg.OrganizationID,
+			})
+			if err != nil {
+				tx.Rollback()
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve automatic loan deduction entries: " + err.Error()})
+			}
+			for _, ald := range automaticLoanDeductionEntries {
+				if ald.AccountID == nil {
+					continue
+				}
+				ald.Account, err = c.model.AccountManager.GetByID(context, *ald.AccountID)
+				if err != nil {
+					continue
+				}
+				entry := &model.LoanTransactionEntry{
+					Credit:  0,
+					Debit:   0,
+					Name:    ald.Name,
+					Type:    model.LoanTransactionDeduction,
+					IsAddOn: ald.AddOn,
+					Account: ald.Account,
+				}
+				entry.Credit = c.service.LoanComputation(context, *ald, model.LoanTransaction{
+					Terms:    request.Terms,
+					Applied1: request.Applied1,
+				})
+				if !entry.IsAddOn {
+					total_non_add_ons += entry.Credit
+				} else {
+					total_add_ons += entry.Credit
+				}
+				loanTransactionEntries = append(loanTransactionEntries, entry)
+			}
+		}
+
+		totalDebit, totalCredit := 0.0, 0.0
+		for _, entry := range loanTransactionEntries {
+			totalDebit += entry.Debit
+			totalCredit += entry.Credit
+		}
+
 		for _, entry := range loanTransactionEntries {
 			if err := c.model.LoanTransactionEntryManager.CreateWithTx(context, tx, entry); err != nil {
 				tx.Rollback()
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to create loan transaction entry for account ID %s: %s", entry.AccountID.String(), err.Error())})
 			}
 		}
-
+		loanTransaction.TotalCredit = totalCredit
+		loanTransaction.TotalDebit = totalDebit
+		if err := c.model.LoanTransactionManager.UpdateFieldsWithTx(context, tx, loanTransaction.ID, loanTransaction); err != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction: " + err.Error()})
+		}
 		if request.LoanClearanceAnalysis != nil {
 			for _, clearanceAnalysisReq := range request.LoanClearanceAnalysis {
 				clearanceAnalysis := &model.LoanClearanceAnalysis{
@@ -1741,20 +1792,4 @@ func (c *Controller) LoanTransactionController() {
 		}
 		return ctx.JSON(http.StatusOK, loanTransaction)
 	})
-
-	// POST /api/v1/loan-transaction/:loan_transaction_id/deduction
-	// req.RegisterRoute(handlers.Route{
-	// 	Route:        "/api/v1/loan-transaction/:loan_transaction_id/deduction",
-	// 	Method:       "POST",
-	// 	Note:         "Adds a deduction to a loan transaction by ID.",
-	// 	RequestType:  model.LoanTransactionDeductionRequest{},
-	// 	ResponseType: model.LoanTransaction{},
-	// }, func(ctx echo.Context) error {
-	// 	// Implementation goes here
-	// 	return ctx.JSON(http.StatusNotImplemented, map[string]string{"error": "Not implemented"})
-	// })
-
-	// PUT /api/v1/loan-transaction/deduction/:loan_transaction_entry_id
-	// DELETE /api/v1/loan-transaction/:loan_transaction_id/deduction
-
 }

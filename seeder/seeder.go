@@ -3,7 +3,10 @@ package seeder
 import (
 	"context"
 	"fmt"
+	"io/fs"
 	"math/rand"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
@@ -15,39 +18,78 @@ import (
 )
 
 type Seeder struct {
-	provider *src.Provider
-	model    *model.Model
-	faker    faker.Faker
+	provider   *src.Provider
+	model      *model.Model
+	faker      faker.Faker
+	imagePaths []string
 }
 
 func NewSeeder(provider *src.Provider, model *model.Model) (*Seeder, error) {
-	return &Seeder{
+	seeder := &Seeder{
 		provider: provider,
 		model:    model,
 		faker:    faker.New(),
-	}, nil
+	}
+	
+	// Load image paths from seeder/images directory
+	if err := seeder.loadImagePaths(); err != nil {
+		return nil, eris.Wrap(err, "failed to load image paths")
+	}
+	
+	return seeder, nil
 }
 
-// createImageMedia generates a random image using Picsum URLs and creates a media record for it
+// loadImagePaths scans the seeder/images directory and loads all image file paths
+func (s *Seeder) loadImagePaths() error {
+	imagesDir := "seeder/images"
+	supportedExtensions := map[string]bool{
+		".jpg":  true,
+		".jpeg": true,
+		".png":  true,
+		".webp": true,
+	}
+	
+	err := filepath.WalkDir(imagesDir, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		
+		if !d.IsDir() {
+			ext := strings.ToLower(filepath.Ext(path))
+			if supportedExtensions[ext] {
+				s.imagePaths = append(s.imagePaths, path)
+			}
+		}
+		
+		return nil
+	})
+	
+	if err != nil {
+		return eris.Wrap(err, "failed to scan images directory")
+	}
+	
+	if len(s.imagePaths) == 0 {
+		return eris.New("no image files found in seeder/images directory")
+	}
+	
+	s.provider.Service.Logger.Info(fmt.Sprintf("Loaded %d image files from seeder/images directory", len(s.imagePaths)))
+	return nil
+}
+
+// createImageMedia randomly selects a local image file and creates a media record for it
 func (s *Seeder) createImageMedia(ctx context.Context, imageType string) (*model.Media, error) {
-	// Array of Picsum URLs with different image IDs
-	imageUrls := []string{
-		"https://picsum.photos/640/480",
-		"https://placebear.com/400/300",
-		"https://unsplash.it/300/300/?random",
+	if len(s.imagePaths) == 0 {
+		return nil, eris.New("no image files available for seeding")
 	}
 
-	// Randomly choose one URL from the array
-	randomIndex := rand.Intn(len(imageUrls))
-	imageUrl := imageUrls[randomIndex]
+	// Randomly choose one image from the loaded paths
+	randomIndex := rand.Intn(len(s.imagePaths))
+	imagePath := s.imagePaths[randomIndex]
 
-	// Add 1 second delay to avoid rate limiting
-	time.Sleep(1 * time.Second)
-
-	// Upload the image from URL
-	storage, err := s.provider.Service.Storage.UploadFromURL(ctx, imageUrl, func(progress, total int64, storage *horizon.Storage) {})
+	// Upload the image from local path
+	storage, err := s.provider.Service.Storage.UploadFromPath(ctx, imagePath, func(progress, total int64, storage *horizon.Storage) {})
 	if err != nil {
-		return nil, eris.Wrapf(err, "failed to upload image from Picsum %s", imageType)
+		return nil, eris.Wrapf(err, "failed to upload image from path %s for %s", imagePath, imageType)
 	} // Create media record
 	media := &model.Media{
 		FileName:   storage.FileName,

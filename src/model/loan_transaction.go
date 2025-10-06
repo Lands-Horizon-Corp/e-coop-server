@@ -553,6 +553,7 @@ type (
 		PaidByName             string     `json:"paid_by_name,omitempty" validate:"omitempty,max=255"`
 		PaidByPosition         string     `json:"paid_by_position,omitempty" validate:"omitempty,max=255"`
 	}
+
 )
 
 func (m *Model) LoanTransaction() {
