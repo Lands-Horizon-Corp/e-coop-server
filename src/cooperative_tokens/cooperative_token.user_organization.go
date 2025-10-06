@@ -35,6 +35,8 @@ type UserOrganizationToken struct {
 }
 
 func NewUserOrganizationToken(provider *src.Provider, model *model.Model) (*UserOrganizationToken, error) {
+	isStaging := provider.Service.Environment.GetString("APP_ENV", "development") == "staging"
+
 	context := context.Background()
 	appName := provider.Service.Environment.GetString("APP_NAME", "")
 	appToken := provider.Service.Environment.GetString("APP_TOKEN", "")
@@ -46,7 +48,7 @@ func NewUserOrganizationToken(provider *src.Provider, model *model.Model) (*User
 	tokenService := horizon.NewTokenService[UserOrganizationClaim](
 		fmt.Sprintf("%s-%s", "X-SECURE-TOKEN-ORGANIZATION", appName),
 		[]byte(token),
-		true,
+		isStaging,
 	)
 	return &UserOrganizationToken{Token: tokenService, model: model, provider: provider}, nil
 }
