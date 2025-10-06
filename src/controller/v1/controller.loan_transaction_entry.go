@@ -90,7 +90,7 @@ func (c *Controller) LoanTransactionEntryController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction not found after deduction creation: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusNotImplemented, newLoanTransaction)
+		return ctx.JSON(http.StatusOK, newLoanTransaction)
 	})
 
 	// PUT /api/v1/loan-transaction/deduction/:loan_transaction_entry_id
@@ -169,7 +169,7 @@ func (c *Controller) LoanTransactionEntryController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction not found after deduction creation: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusNotImplemented, newLoanTransaction)
+		return ctx.JSON(http.StatusOK, newLoanTransaction)
 	})
 
 	// DELETE /api/v1/loan-transaction-entry/:loan_transaction_entry_id
