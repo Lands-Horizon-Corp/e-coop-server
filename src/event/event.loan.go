@@ -124,22 +124,24 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		fmt.Println("Line 108: LoanTransaction Account - ID:", loanTransaction.Account.ID, "Name:", loanTransaction.Account.Name, "Description:", loanTransaction.Account.Description)
 		static = []*model.LoanTransactionEntry{
 			{
-				Credit:      loanTransaction.Applied1,
-				Debit:       0,
-				Description: cashOnCashEquivalenceAccount.Description,
-				Account:     cashOnCashEquivalenceAccount,
-				AccountID:   &cashOnCashEquivalenceAccount.ID,
-				Name:        cashOnCashEquivalenceAccount.Name,
-				Type:        model.LoanTransactionStatic,
+				Credit:            loanTransaction.Applied1,
+				Debit:             0,
+				Description:       cashOnCashEquivalenceAccount.Description,
+				Account:           cashOnCashEquivalenceAccount,
+				AccountID:         &cashOnCashEquivalenceAccount.ID,
+				Name:              cashOnCashEquivalenceAccount.Name,
+				Type:              model.LoanTransactionStatic,
+				LoanTransactionID: loanTransaction.ID,
 			},
 			{
-				Credit:      0,
-				Debit:       loanTransaction.Applied1,
-				Account:     loanTransaction.Account,
-				AccountID:   loanTransaction.AccountID,
-				Description: loanTransaction.Account.Description,
-				Name:        loanTransaction.Account.Name,
-				Type:        model.LoanTransactionStatic,
+				Credit:            0,
+				Debit:             loanTransaction.Applied1,
+				Account:           loanTransaction.Account,
+				AccountID:         loanTransaction.AccountID,
+				Description:       loanTransaction.Account.Description,
+				Name:              loanTransaction.Account.Name,
+				Type:              model.LoanTransactionStatic,
+				LoanTransactionID: loanTransaction.ID,
 			},
 		}
 	}
@@ -161,12 +163,13 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	}
 	// Deductions
 	addOnEntry := &model.LoanTransactionEntry{
-		Account: nil,
-		Credit:  0,
-		Debit:   0,
-		Name:    "ADD ON INTEREST",
-		Type:    model.LoanTransactionAddOn,
-		IsAddOn: true,
+		Account:           nil,
+		Credit:            0,
+		Debit:             0,
+		Name:              "ADD ON INTEREST",
+		Type:              model.LoanTransactionAddOn,
+		LoanTransactionID: loanTransaction.ID,
+		IsAddOn:           true,
 	}
 	fmt.Println("Line 143: Processing deductions, count:", len(deduction))
 	total_non_add_ons, total_add_ons := 0.0, 0.0
@@ -177,6 +180,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		} else {
 			total_add_ons += entry.Credit
 		}
+		result = append(result, entry)
 	}
 	fmt.Printf("Line 154: After deductions - total_non_add_ons:%f, total_add_ons:%f\n", total_non_add_ons, total_add_ons)
 
@@ -213,12 +217,13 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		if !exist {
 			fmt.Printf("Line 183: Creating new entry for ALD:%s\n", ald.Name)
 			entry := &model.LoanTransactionEntry{
-				Credit:  0,
-				Debit:   0,
-				Name:    ald.Name,
-				Type:    model.LoanTransactionAutomaticDeduction,
-				IsAddOn: ald.AddOn,
-				Account: ald.Account,
+				Credit:            0,
+				Debit:             0,
+				Name:              ald.Name,
+				Type:              model.LoanTransactionAutomaticDeduction,
+				IsAddOn:           ald.AddOn,
+				Account:           ald.Account,
+				LoanTransactionID: loanTransaction.ID,
 			}
 			entry.Credit = e.service.LoanComputation(ctx, *ald, *loanTransaction)
 			fmt.Printf("Line 192: Pre computed credit:%f for ALD:%s, IsAddOn:%v\n", entry.Credit, ald.Name, entry.IsAddOn)
