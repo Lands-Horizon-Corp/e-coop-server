@@ -491,8 +491,8 @@ func (c *Controller) LoanTransactionController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
 		}
 		newLoanTransaction, err := c.event.LoanBalancing(context, ctx, tx, event.LoanBalanceEvent{
-			CashOnCashEquivalenceAccountID: cashAndCashEquivalence.AccountID,
-			LoanTransactionID:              &loanTransaction.ID,
+			CashOnCashEquivalenceAccountID: *cashAndCashEquivalence.AccountID,
+			LoanTransactionID:              loanTransaction.ID,
 		})
 		if err != nil {
 			tx.Rollback()
@@ -1097,8 +1097,8 @@ func (c *Controller) LoanTransactionController() {
 		}
 
 		newLoanTransaction, err := c.event.LoanBalancing(context, ctx, tx, event.LoanBalanceEvent{
-			CashOnCashEquivalenceAccountID: cashAndCashEquivalence.AccountID,
-			LoanTransactionID:              &loanTransaction.ID,
+			CashOnCashEquivalenceAccountID: *cashAndCashEquivalence.AccountID,
+			LoanTransactionID:              loanTransaction.ID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated loan transaction: " + err.Error()})

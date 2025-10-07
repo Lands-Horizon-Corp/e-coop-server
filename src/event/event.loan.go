@@ -12,8 +12,8 @@ import (
 )
 
 type LoanBalanceEvent struct {
-	CashOnCashEquivalenceAccountID *uuid.UUID `json:"cash_on_cash_equivalence_account_id" validate:"required"`
-	LoanTransactionID              *uuid.UUID `json:"loan_transaction_id" validate:"required"`
+	CashOnCashEquivalenceAccountID uuid.UUID
+	LoanTransactionID              uuid.UUID
 }
 
 func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gorm.DB, data LoanBalanceEvent) (*model.LoanTransaction, error) {
@@ -31,7 +31,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	}
 
 	fmt.Println("Line 26: Getting cash on cash equivalence account")
-	cashOnCashEquivalenceAccount, err := e.model.AccountManager.GetByID(ctx, *data.CashOnCashEquivalenceAccountID)
+	cashOnCashEquivalenceAccount, err := e.model.AccountManager.GetByID(ctx, data.CashOnCashEquivalenceAccountID)
 	fmt.Println("Line 28: Retrieved cash on cash equivalence account, err:", err)
 	if err != nil {
 		tx.Rollback()
@@ -44,7 +44,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	}
 
 	fmt.Println("Line 37: Getting loan transaction")
-	loanTransaction, err := e.model.LoanTransactionManager.GetByID(ctx, *data.LoanTransactionID)
+	loanTransaction, err := e.model.LoanTransactionManager.GetByID(ctx, data.LoanTransactionID)
 	fmt.Println("Line 39: Retrieved loan transaction, err:", err)
 	if err != nil {
 		tx.Rollback()
