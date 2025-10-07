@@ -142,7 +142,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		}
 	}
 	fmt.Println("Line 121: Static entries:", static)
-	fmt.Println(static[0])
+	fmt.Println("Line 122: Static entries AccountID:", static[0].AccountID)
 	fmt.Println("")
 	fmt.Println("Line 123: Ordering static entries based on CashAndCashEquivalence:", static[0].Account.CashAndCashEquivalence)
 	if static[0].Account.CashAndCashEquivalence {
