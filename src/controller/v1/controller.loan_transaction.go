@@ -503,12 +503,7 @@ func (c *Controller) LoanTransactionController() {
 			LoanTransactionID:              loanTransaction.ID,
 		})
 		if err != nil {
-			tx.Rollback()
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to balance loan transaction: %v", err)})
-		}
-		if err := tx.Commit().Error; err != nil {
-
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit database transaction: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model.LoanTransactionManager.ToModel(newLoanTransaction))
 	})
