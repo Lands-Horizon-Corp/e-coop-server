@@ -180,7 +180,9 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	for _, entry := range postComputed {
 		fmt.Printf("Line 159: Post computed entry - ID:%v\n", entry.ID)
 		fmt.Println(entry.AutomaticLoanDeduction)
+		fmt.Println()
 		fmt.Println(loanTransaction)
+		fmt.Println()
 		entry.Credit = e.service.LoanComputation(ctx, *entry.AutomaticLoanDeduction, *loanTransaction)
 		fmt.Printf("Line 161: Computed credit:%f for entry, IsAddOn:%v\n", entry.Credit, entry.IsAddOn)
 		if !entry.IsAddOn {
