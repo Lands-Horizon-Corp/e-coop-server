@@ -180,3 +180,24 @@ func (m *Model) LoanTransactionEntryCurrentBranch(context context.Context, orgId
 		BranchID:       branchId,
 	})
 }
+
+func (m *Model) GetCashOnCashEquivalence(ctx context.Context, loanTransactionID, orgId, branchId uuid.UUID) (*LoanTransactionEntry, error) {
+	return m.LoanTransactionEntryManager.FindOneWithFilters(ctx, []horizon_services.Filter{
+		{Field: "loan_transaction_entries.organization_id", Op: horizon_services.OpEq, Value: orgId},
+		{Field: "loan_transaction_entries.branch_id", Op: horizon_services.OpEq, Value: branchId},
+		{Field: "loan_transaction_entries.index", Op: horizon_services.OpEq, Value: 0},
+		{Field: "loan_transaction_entries.debit", Op: horizon_services.OpEq, Value: 0},
+		{Field: "loan_transaction_entries.loan_transaction_id", Op: horizon_services.OpEq, Value: loanTransactionID},
+	})
+
+}
+
+func (m *Model) GetLoanEntryAccount(ctx context.Context, loanTransactionID, orgId, branchId uuid.UUID) (*LoanTransactionEntry, error) {
+	return m.LoanTransactionEntryManager.FindOneWithFilters(ctx, []horizon_services.Filter{
+		{Field: "loan_transaction_entries.organization_id", Op: horizon_services.OpEq, Value: orgId},
+		{Field: "loan_transaction_entries.branch_id", Op: horizon_services.OpEq, Value: branchId},
+		{Field: "loan_transaction_entries.index", Op: horizon_services.OpEq, Value: 1},
+		{Field: "loan_transaction_entries.credit", Op: horizon_services.OpEq, Value: 0},
+		{Field: "loan_transaction_entries.loan_transaction_id", Op: horizon_services.OpEq, Value: loanTransactionID},
+	})
+}

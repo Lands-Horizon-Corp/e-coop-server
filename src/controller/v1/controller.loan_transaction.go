@@ -341,30 +341,6 @@ func (c *Controller) LoanTransactionController() {
 			tx.Rollback()
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Cash on hand account is not set for the branch"})
 		}
-
-		account, err := c.model.AccountManager.GetByID(context, *request.AccountID)
-		if err != nil {
-			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve account: " + err.Error()})
-		}
-
-		automaticLoanDeduction, err := c.model.AutomaticLoanDeductionManager.Find(context, &model.AutomaticLoanDeduction{
-			BranchID:       *userOrg.BranchID,
-			OrganizationID: userOrg.OrganizationID,
-			AccountID:      &account.ID,
-		})
-		if err == nil {
-			automaticLoanDeduction = []*model.AutomaticLoanDeduction{}
-		}
-
-		if err := c.model.LoanTransactionEntriesCompute(
-			context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID,
-			*cashOnHandAccountID, loanTransaction,
-			[]*model.LoanTransactionEntry{},
-			automaticLoanDeduction,
-		); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("failed to compute loan transaction entries: %v", err)})
-		}
 		if err := c.model.LoanTransactionManager.UpdateFieldsWithTx(context, tx, loanTransaction.ID, loanTransaction); err != nil {
 			tx.Rollback()
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction: " + err.Error()})
@@ -503,20 +479,33 @@ func (c *Controller) LoanTransactionController() {
 				}
 			}
 		}
-		if err := tx.Commit().Error; err != nil {
+		cashAndCashEquivalence, err := c.model.GetCashOnCashEquivalence(context, loanTransaction.ID, userOrg.OrganizationID, *userOrg.BranchID)
+		if err != nil {
+			tx.Rollback()
+			errMsg := fmt.Sprintf("Failed to retrieve cash and cash equivalence account: %v", err)
 			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "commit-error",
-				Description: "Failed to commit transaction: " + err.Error(),
+				Activity:    "account-error",
+				Description: errMsg,
 				Module:      "LoanTransaction",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
 		}
-		loanTransactionUpdated, err := c.model.LoanTransactionManager.GetByIDRaw(context, loanTransaction.ID)
+		newLoanTransaction, err := c.event.LoanBalancing(context, ctx, tx, event.LoanBalanceEvent{
+			CashOnCashEquivalenceAccountID: cashAndCashEquivalence.AccountID,
+			LoanTransactionID:              &loanTransaction.ID,
+		})
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated loan transaction: " + err.Error()})
+			tx.Rollback()
+			errMsg := fmt.Sprintf("Failed to balance loan transaction: %v", err)
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "balance-error",
+				Description: errMsg,
+				Module:      "LoanTransaction",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
 		}
 
-		return ctx.JSON(http.StatusOK, loanTransactionUpdated)
+		return ctx.JSON(http.StatusOK, c.model.LoanTransactionManager.ToModel(newLoanTransaction))
 	})
 
 	// PUT /api/v1/loan-transaction/:id
@@ -1070,13 +1059,7 @@ func (c *Controller) LoanTransactionController() {
 			}
 		}
 
-		loanTransactionEntry, err := c.model.LoanTransactionEntryManager.FindOneWithFilters(context, []horizon_services.Filter{
-			{Field: "loan_transaction_entries.organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
-			{Field: "loan_transaction_entries.branch_id", Op: horizon_services.OpEq, Value: userOrg.BranchID},
-			{Field: "loan_transaction_entries.index", Op: horizon_services.OpEq, Value: 1},
-			{Field: "loan_transaction_entries.credit", Op: horizon_services.OpEq, Value: 0},
-			{Field: "loan_transaction_entries.loan_transaction_id", Op: horizon_services.OpEq, Value: loanTransactionID},
-		})
+		loanTransactionEntry, err := c.model.GetLoanEntryAccount(context, loanTransaction.ID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -1103,69 +1086,20 @@ func (c *Controller) LoanTransactionController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction: " + err.Error()})
 		}
 
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "commit-error",
-				Description: "Failed to commit transaction: " + err.Error(),
-				Module:      "LoanTransaction",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
-		}
-
-		automaticLoanDeduction, err := c.model.AutomaticLoanDeductionManager.Find(context, &model.AutomaticLoanDeduction{
-			BranchID:       *userOrg.BranchID,
-			OrganizationID: userOrg.OrganizationID,
-			AccountID:      &account.ID,
-		})
-		if err == nil {
-			automaticLoanDeduction = []*model.AutomaticLoanDeduction{}
-		}
-
-		cashOnHand, err := c.model.LoanTransactionEntryManager.FindOneWithFilters(context, []horizon_services.Filter{
-			{Field: "loan_transaction_entries.organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
-			{Field: "loan_transaction_entries.branch_id", Op: horizon_services.OpEq, Value: userOrg.BranchID},
-			{Field: "loan_transaction_entries.index", Op: horizon_services.OpEq, Value: 0},
-			{Field: "loan_transaction_entries.debit", Op: horizon_services.OpEq, Value: 0},
-			{Field: "loan_transaction_entries.loan_transaction_id", Op: horizon_services.OpEq, Value: loanTransactionID},
-		})
+		cashAndCashEquivalence, err := c.model.GetCashOnCashEquivalence(context, loanTransaction.ID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "not-found",
-				Description: "Cash on hand loan transaction entry not found (/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change), db error: " + err.Error(),
+				Description: "Loan transaction entry not found (/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change), db error: " + err.Error(),
 				Module:      "LoanTransaction",
 			})
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Cash on hand loan transaction entry not found: " + err.Error()})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction entry not found: " + err.Error()})
 		}
 
-		loanTransactionEntries, err := c.model.LoanTransactionEntryManager.Find(context, &model.LoanTransactionEntry{
-			OrganizationID:    userOrg.OrganizationID,
-			BranchID:          *userOrg.BranchID,
-			LoanTransactionID: loanTransaction.ID,
+		newLoanTransaction, err := c.event.LoanBalancing(context, ctx, tx, event.LoanBalanceEvent{
+			CashOnCashEquivalenceAccountID: cashAndCashEquivalence.AccountID,
+			LoanTransactionID:              &loanTransaction.ID,
 		})
-		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "not-found",
-				Description: "Cash on hand loan transaction entry not found (/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change), db error: " + err.Error(),
-				Module:      "LoanTransaction",
-			})
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Cash on hand loan transaction entry not found: " + err.Error()})
-		}
-
-		if err := c.model.LoanTransactionEntriesCompute(
-			context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID,
-			cashOnHand.ID, loanTransaction,
-			loanTransactionEntries,
-			automaticLoanDeduction,
-		); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "compute-error",
-				Description: "Failed to compute loan transaction entries: " + err.Error(),
-				Module:      "LoanTransaction",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("failed to compute loan transaction entries: %v", err)})
-		}
-
-		newLoanTransaction, err := c.model.LoanTransactionManager.GetByIDRaw(context, loanTransaction.ID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated loan transaction: " + err.Error()})
 		}
