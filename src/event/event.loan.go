@@ -270,7 +270,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 			UpdatedAt:                time.Now().UTC(),
 			UpdatedByID:              userOrg.UserID,
 			OrganizationID:           userOrg.OrganizationID,
-			BranchID:                 userOrg.OrganizationID,
+			BranchID:                 *userOrg.BranchID,
 			LoanTransactionID:        loanTransaction.ID,
 			Index:                    index,
 			Type:                     entry.Type,
@@ -282,7 +282,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 			Credit:                   entry.Credit,
 			Debit:                    entry.Debit,
 		}
-		fmt.Printf("Line 237: Creating entry - Name:%s, Credit:%f, Debit:%f\n", entry.Name, entry.Credit, entry.Debit)
+		fmt.Printf("Line 237: Creating entry - Name:%s, Credit:%f, Debit:%f\n", value.Name, value.Credit, value.Debit)
 		if err := e.model.LoanTransactionEntryManager.CreateWithTx(ctx, tx, value); err != nil {
 			tx.Rollback()
 			e.Footstep(ctx, echoCtx, FootstepEvent{
