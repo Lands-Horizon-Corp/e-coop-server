@@ -226,13 +226,16 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		if !exist {
 			fmt.Printf("Line 183: Creating new entry for ALD:%s\n", ald.Name)
 			entry := &model.LoanTransactionEntry{
-				Credit:            0,
-				Debit:             0,
-				Name:              ald.Name,
-				Type:              model.LoanTransactionAutomaticDeduction,
-				IsAddOn:           ald.AddOn,
-				Account:           ald.Account,
-				LoanTransactionID: loanTransaction.ID,
+				Credit:                   0,
+				Debit:                    0,
+				Name:                     ald.Name,
+				Type:                     model.LoanTransactionAutomaticDeduction,
+				IsAddOn:                  ald.AddOn,
+				Account:                  ald.Account,
+				AccountID:                ald.AccountID,
+				Description:              ald.Description,
+				AutomaticLoanDeductionID: &ald.ID,
+				LoanTransactionID:        loanTransaction.ID,
 			}
 			entry.Credit = e.service.LoanComputation(ctx, *ald, *loanTransaction)
 			fmt.Printf("Line 192: Pre computed credit:%f for ALD:%s, IsAddOn:%v\n", entry.Credit, ald.Name, entry.IsAddOn)
