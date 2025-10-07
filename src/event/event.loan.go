@@ -120,7 +120,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	fmt.Println("Line 104: Checking static entries count:", len(static))
 	if len(static) < 2 {
 		fmt.Println("Line 106: Creating default static entries")
-		fmt.Println()
+		fmt.Println("Line 107: CashOnCashEquivalenceAccount - ID:", cashOnCashEquivalenceAccount.ID, "Name:", cashOnCashEquivalenceAccount.Name, "Description:", cashOnCashEquivalenceAccount.Description)
 		static = []*model.LoanTransactionEntry{
 			{
 				Credit:      loanTransaction.Applied1,
