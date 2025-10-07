@@ -31,19 +31,6 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		return nil, eris.Wrap(err, "failed to get user organization")
 	}
 
-	fmt.Println("Line 26: Getting cash on cash equivalence account")
-	cashOnCashEquivalenceAccount, err := e.model.AccountManager.GetByID(ctx, data.CashOnCashEquivalenceAccountID)
-	fmt.Println("Line 28: Retrieved cash on cash equivalence account, err:", err)
-	if err != nil {
-		tx.Rollback()
-		e.Footstep(ctx, echoCtx, FootstepEvent{
-			Activity:    "data-error",
-			Description: "Failed to get cash on cash equivalence account (/transaction/payment/:transaction_id): " + err.Error(),
-			Module:      "Transaction",
-		})
-		return nil, eris.Wrap(err, "failed to get cash on cash equivalence account")
-	}
-
 	fmt.Println("Line 37: Getting loan transaction")
 	loanTransaction, err := e.model.LoanTransactionManager.GetByID(ctx, data.LoanTransactionID)
 	fmt.Println("Line 39: Retrieved loan transaction, err:", err)
@@ -120,6 +107,18 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 
 	fmt.Println("Line 104: Checking static entries count:", len(static))
 	if len(static) < 2 {
+		fmt.Println("Line 26: Getting cash on cash equivalence account")
+		cashOnCashEquivalenceAccount, err := e.model.AccountManager.GetByID(ctx, data.CashOnCashEquivalenceAccountID)
+		fmt.Println("Line 28: Retrieved cash on cash equivalence account, err:", err)
+		if err != nil {
+			tx.Rollback()
+			e.Footstep(ctx, echoCtx, FootstepEvent{
+				Activity:    "data-error",
+				Description: "Failed to get cash on cash equivalence account (/transaction/payment/:transaction_id): " + err.Error(),
+				Module:      "Transaction",
+			})
+			return nil, eris.Wrap(err, "failed to get cash on cash equivalence account")
+		}
 		fmt.Println("Line 106: Creating default static entries")
 		fmt.Println("Line 107: CashOnCashEquivalenceAccount - ID:", cashOnCashEquivalenceAccount.ID, "Name:", cashOnCashEquivalenceAccount.Name, "Description:", cashOnCashEquivalenceAccount.Description)
 		fmt.Println("Line 108: LoanTransaction Account - ID:", loanTransaction.Account.ID, "Name:", loanTransaction.Account.Name, "Description:", loanTransaction.Account.Description)

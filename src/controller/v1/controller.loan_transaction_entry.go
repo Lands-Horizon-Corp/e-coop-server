@@ -1,6 +1,7 @@
 package controller_v1
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -71,6 +72,7 @@ func (c *Controller) LoanTransactionEntryController() {
 			IsAddOn:           req.IsAddOn,
 			AccountID:         &req.AccountID,
 			Name:              account.Name,
+			Description:       account.Description,
 		}
 		if err := c.model.LoanTransactionEntryManager.Create(context, loanTransaction); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -81,14 +83,21 @@ func (c *Controller) LoanTransactionEntryController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan transaction deduction: " + err.Error()})
 		}
 
-		newLoanTransaction, err := c.model.LoanTransactionManager.GetByIDRaw(context, *loanTransactionID)
-		if err != nil {
+		tx := c.provider.Service.Database.Client().Begin()
+		if tx.Error != nil {
+			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "not-found",
-				Description: "Loan transaction not found after deduction creation: " + err.Error(),
+				Activity:    "update-error",
+				Description: "Failed to start database transaction: " + tx.Error.Error(),
 				Module:      "LoanTransaction",
 			})
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction not found after deduction creation: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+		}
+		newLoanTransaction, err := c.event.LoanBalancing(context, ctx, tx, event.LoanBalanceEvent{
+			LoanTransactionID: *loanTransactionID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to balance loan transaction: %v", err)})
 		}
 		return ctx.JSON(http.StatusOK, newLoanTransaction)
 	})
