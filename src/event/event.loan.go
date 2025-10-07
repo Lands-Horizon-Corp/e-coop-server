@@ -225,6 +225,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 			return nil, eris.Wrap(err, "failed to delete existing automatic loan deduction entries + "+err.Error())
 		}
 	}
+	result[1].Debit = loanTransaction.Applied1
 	totalDebit, totalCredit := 0.0, 0.0
 	for index, entry := range result {
 		value := &model.LoanTransactionEntry{
