@@ -751,7 +751,7 @@ func (m *Model) LoanTransactionEntriesCompute(
 	automaticLoanDeductionCurrent []*AutomaticLoanDeduction,
 ) error {
 	result := []*LoanTransactionEntry{}
-	static, addOn, deduction, automaticLoanDeduction := []*LoanTransactionEntry{}, []*LoanTransactionEntry{}, []*LoanTransactionEntry{}, []*LoanTransactionEntry{}
+	static, addOn, deduction, postComputed := []*LoanTransactionEntry{}, []*LoanTransactionEntry{}, []*LoanTransactionEntry{}, []*LoanTransactionEntry{}
 	for _, entries := range entries {
 		if entries.Type == LoanTransactionStatic {
 			static = append(static, entries)
@@ -763,21 +763,7 @@ func (m *Model) LoanTransactionEntriesCompute(
 			deduction = append(deduction, entries)
 		}
 		if entries.Type == LoanTransactionAutomaticDeduction {
-			automaticLoanDeduction = append(automaticLoanDeduction, entries)
-		}
-	}
-	// Filter out automaticLoanDeductionCurrent entries that already exist in automaticLoanDeduction entries
-	filteredAutomaticLoanDeductionCurrent := []*AutomaticLoanDeduction{}
-	for _, ald := range automaticLoanDeductionCurrent {
-		exists := false
-		for _, entry := range automaticLoanDeduction {
-			if entry.AutomaticLoanDeductionID != nil && ald.ID == *entry.AutomaticLoanDeductionID {
-				exists = true
-				break
-			}
-		}
-		if !exists {
-			filteredAutomaticLoanDeductionCurrent = append(filteredAutomaticLoanDeductionCurrent, ald)
+			postComputed = append(postComputed, entries)
 		}
 	}
 
@@ -792,12 +778,14 @@ func (m *Model) LoanTransactionEntriesCompute(
 				Debit:       0,
 				Description: cashOnHand.Description,
 				Name:        cashOnHand.Name,
+				Type:        LoanTransactionStatic,
 			},
 			{
 				Credit:      0,
 				Debit:       loanTransaction.Applied1,
 				Description: loanTransaction.Account.Description,
 				Name:        loanTransaction.Account.Name,
+				Type:        LoanTransactionStatic,
 			},
 		}
 	}
@@ -821,33 +809,9 @@ func (m *Model) LoanTransactionEntriesCompute(
 			total_add_ons += entry.Credit
 		}
 	}
-	for _, entry := range automaticLoanDeduction {
-		for _, ald := range automaticLoanDeductionCurrent {
-			if entry.AutomaticLoanDeductionID != nil && ald.ID == *entry.AutomaticLoanDeductionID {
-				entry.AutomaticLoanDeduction = ald
-				break
-			}
-		}
-		if entry.AutomaticLoanDeduction != nil {
-			entry.Credit = m.LoanComputation(context, *entry.AutomaticLoanDeduction, LoanTransaction{
-				Terms:    loanTransaction.Terms,
-				Applied1: loanTransaction.Applied1,
-			})
-		}
-		if !entry.IsAddOn {
-			total_non_add_ons += entry.Credit
-		} else {
-			total_add_ons += entry.Credit
-		}
-		result = append(result, entry)
-	}
 
-	for _, ald := range filteredAutomaticLoanDeductionCurrent {
-		entry := &LoanTransactionEntry{
-			Type:                     LoanTransactionAutomaticDeduction,
-			AutomaticLoanDeduction:   ald,
-			AutomaticLoanDeductionID: &ald.ID,
-		}
+	// Post Computed
+	for _, entry := range postComputed {
 		entry.Credit = m.LoanComputation(context, *entry.AutomaticLoanDeduction, LoanTransaction{
 			Terms:    loanTransaction.Terms,
 			Applied1: loanTransaction.Applied1,
@@ -859,6 +823,54 @@ func (m *Model) LoanTransactionEntriesCompute(
 		}
 		result = append(result, entry)
 	}
+
+	// Pre computed
+	for _, ald := range automaticLoanDeductionCurrent {
+		exist := false
+		for _, computed := range postComputed {
+			if ald.ID == *computed.AutomaticLoanDeductionID {
+				exist = true
+				break
+			}
+		}
+		if !exist {
+			entry := &LoanTransactionEntry{
+				Credit:  0,
+				Debit:   0,
+				Name:    ald.Name,
+				Type:    LoanTransactionAutomaticDeduction,
+				IsAddOn: ald.AddOn,
+				Account: ald.Account,
+			}
+			entry.Credit = m.LoanComputation(context, *ald, LoanTransaction{
+				Terms:    loanTransaction.Terms,
+				Applied1: loanTransaction.Applied1,
+			})
+			if !entry.IsAddOn {
+				total_non_add_ons += entry.Credit
+			} else {
+				total_add_ons += entry.Credit
+			}
+			result = append(result, entry)
+		}
+	}
+
+	// 	entry := &LoanTransactionEntry{
+	// 		Type:                     LoanTransactionAutomaticDeduction,
+	// 		AutomaticLoanDeduction:   ald,
+	// 		AutomaticLoanDeductionID: &ald.ID,
+	// 	}
+	// 	entry.Credit = m.LoanComputation(context, *entry.AutomaticLoanDeduction, LoanTransaction{
+	// 		Terms:    loanTransaction.Terms,
+	// 		Applied1: loanTransaction.Applied1,
+	// 	})
+	// 	if !entry.IsAddOn {
+	// 		total_non_add_ons += entry.Credit
+	// 	} else {
+	// 		total_add_ons += entry.Credit
+	// 	}
+	// 	result = append(result, entry)
+	// }
 	if loanTransaction.IsAddOn {
 		result[0].Credit = loanTransaction.Applied1 - total_non_add_ons
 	} else {

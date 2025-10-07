@@ -341,113 +341,30 @@ func (c *Controller) LoanTransactionController() {
 			tx.Rollback()
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Cash on hand account is not set for the branch"})
 		}
-		cashOnHand, err := c.model.AccountManager.GetByID(context, *cashOnHandAccountID)
-		if err != nil {
-			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve cash on hand account: " + err.Error()})
-		}
+
 		account, err := c.model.AccountManager.GetByID(context, *request.AccountID)
 		if err != nil {
 			tx.Rollback()
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve account: " + err.Error()})
 		}
-		loanTransactionEntries := []*model.LoanTransactionEntry{
-			{
-				CreatedByID:       userOrg.UserID,
-				UpdatedByID:       userOrg.UserID,
-				CreatedAt:         time.Now().UTC(),
-				UpdatedAt:         time.Now().UTC(),
-				AccountID:         &cashOnHand.ID,
-				OrganizationID:    userOrg.OrganizationID,
-				BranchID:          *userOrg.BranchID,
-				LoanTransactionID: loanTransaction.ID,
-				Credit:            request.Applied1,
-				Debit:             0,
-				Description:       cashOnHand.Description,
-				Name:              cashOnHand.Name,
-				Index:             0,
-				Type:              model.LoanTransactionStatic,
-			},
-			{
-				CreatedByID:       userOrg.UserID,
-				UpdatedByID:       userOrg.UserID,
-				CreatedAt:         time.Now().UTC(),
-				UpdatedAt:         time.Now().UTC(),
-				AccountID:         &account.ID,
-				OrganizationID:    userOrg.OrganizationID,
-				BranchID:          *userOrg.BranchID,
-				LoanTransactionID: loanTransaction.ID,
-				Credit:            0,
-				Debit:             request.Applied1,
-				Description:       account.Description,
-				Name:              account.Name,
-				Index:             1,
-				Type:              model.LoanTransactionStatic,
-			},
+
+		automaticLoanDeduction, err := c.model.AutomaticLoanDeductionManager.Find(context, &model.AutomaticLoanDeduction{
+			BranchID:       *userOrg.BranchID,
+			OrganizationID: userOrg.OrganizationID,
+			AccountID:      &account.ID,
+		})
+		if err == nil {
+			automaticLoanDeduction = []*model.AutomaticLoanDeduction{}
 		}
 
-		total_non_add_ons, total_add_ons := 0.0, 0.0
-		if account.ComputationSheetID != nil {
-			automaticLoanDeductionEntries, err := c.model.AutomaticLoanDeductionManager.Find(context, &model.AutomaticLoanDeduction{
-				ComputationSheetID: account.ComputationSheetID,
-				BranchID:           *userOrg.BranchID,
-				OrganizationID:     userOrg.OrganizationID,
-			})
-			if err != nil {
-				tx.Rollback()
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve automatic loan deduction entries: " + err.Error()})
-			}
-			for _, ald := range automaticLoanDeductionEntries {
-				if ald.AccountID == nil {
-					continue
-				}
-				ald.Account, err = c.model.AccountManager.GetByID(context, *ald.AccountID)
-				if err != nil {
-					continue
-				}
-				entry := &model.LoanTransactionEntry{
-					Credit:                   0,
-					Debit:                    0,
-					Name:                     ald.Name,
-					Type:                     model.LoanTransactionDeduction,
-					IsAddOn:                  ald.AddOn,
-					Account:                  ald.Account,
-					AccountID:                ald.AccountID,
-					CreatedAt:                time.Now().UTC(),
-					UpdatedAt:                time.Now().UTC(),
-					CreatedByID:              userOrg.UserID,
-					UpdatedByID:              userOrg.UserID,
-					OrganizationID:           userOrg.OrganizationID,
-					BranchID:                 *userOrg.BranchID,
-					AutomaticLoanDeductionID: &ald.ID,
-				}
-				entry.Credit = c.service.LoanComputation(context, *ald, model.LoanTransaction{
-					Terms:    request.Terms,
-					Applied1: request.Applied1,
-				})
-				if !entry.IsAddOn {
-					total_non_add_ons += entry.Credit
-				} else {
-					total_add_ons += entry.Credit
-				}
-				loanTransactionEntries = append(loanTransactionEntries, entry)
-			}
+		if err := c.model.LoanTransactionEntriesCompute(
+			context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID,
+			*cashOnHandAccountID, loanTransaction,
+			[]*model.LoanTransactionEntry{},
+			automaticLoanDeduction,
+		); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("failed to compute loan transaction entries: %v", err)})
 		}
-
-		totalDebit, totalCredit := 0.0, 0.0
-		for _, entry := range loanTransactionEntries {
-			totalDebit += entry.Debit
-			totalCredit += entry.Credit
-		}
-
-		for _, entry := range loanTransactionEntries {
-			if err := c.model.LoanTransactionEntryManager.CreateWithTx(context, tx, entry); err != nil {
-				tx.Rollback()
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to create loan transaction entry for account ID %s: %s", entry.AccountID.String(), err.Error())})
-			}
-		}
-		loanTransaction.TotalCredit = totalCredit
-		loanTransaction.TotalDebit = totalDebit
 		if err := c.model.LoanTransactionManager.UpdateFieldsWithTx(context, tx, loanTransaction.ID, loanTransaction); err != nil {
 			tx.Rollback()
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction: " + err.Error()})
@@ -735,8 +652,6 @@ func (c *Controller) LoanTransactionController() {
 		loanTransaction.ModeOfPaymentFixedDays = request.ModeOfPaymentFixedDays
 		loanTransaction.ModeOfPaymentMonthlyExactDay = request.ModeOfPaymentMonthlyExactDay
 		loanTransaction.UpdatedAt = time.Now().UTC()
-		
-
 
 		// Handle deletions first (same as before)
 		if request.LoanClearanceAnalysisDeleted != nil {
@@ -1196,6 +1111,60 @@ func (c *Controller) LoanTransactionController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
+
+		automaticLoanDeduction, err := c.model.AutomaticLoanDeductionManager.Find(context, &model.AutomaticLoanDeduction{
+			BranchID:       *userOrg.BranchID,
+			OrganizationID: userOrg.OrganizationID,
+			AccountID:      &account.ID,
+		})
+		if err == nil {
+			automaticLoanDeduction = []*model.AutomaticLoanDeduction{}
+		}
+
+		cashOnHand, err := c.model.LoanTransactionEntryManager.FindOneWithFilters(context, []horizon_services.Filter{
+			{Field: "loan_transaction_entries.organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
+			{Field: "loan_transaction_entries.branch_id", Op: horizon_services.OpEq, Value: userOrg.BranchID},
+			{Field: "loan_transaction_entries.index", Op: horizon_services.OpEq, Value: 0},
+			{Field: "loan_transaction_entries.debit", Op: horizon_services.OpEq, Value: 0},
+			{Field: "loan_transaction_entries.loan_transaction_id", Op: horizon_services.OpEq, Value: loanTransactionID},
+		})
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "not-found",
+				Description: "Cash on hand loan transaction entry not found (/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change), db error: " + err.Error(),
+				Module:      "LoanTransaction",
+			})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Cash on hand loan transaction entry not found: " + err.Error()})
+		}
+
+		loanTransactionEntries, err := c.model.LoanTransactionEntryManager.Find(context, &model.LoanTransactionEntry{
+			OrganizationID:    userOrg.OrganizationID,
+			BranchID:          *userOrg.BranchID,
+			LoanTransactionID: loanTransaction.ID,
+		})
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "not-found",
+				Description: "Cash on hand loan transaction entry not found (/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change), db error: " + err.Error(),
+				Module:      "LoanTransaction",
+			})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Cash on hand loan transaction entry not found: " + err.Error()})
+		}
+
+		if err := c.model.LoanTransactionEntriesCompute(
+			context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID,
+			cashOnHand.ID, loanTransaction,
+			loanTransactionEntries,
+			automaticLoanDeduction,
+		); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "compute-error",
+				Description: "Failed to compute loan transaction entries: " + err.Error(),
+				Module:      "LoanTransaction",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("failed to compute loan transaction entries: %v", err)})
+		}
+
 		newLoanTransaction, err := c.model.LoanTransactionManager.GetByIDRaw(context, loanTransaction.ID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated loan transaction: " + err.Error()})
