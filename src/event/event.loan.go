@@ -158,8 +158,17 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	}
 	fmt.Println("Line 131: Checking addOn entries count:", len(addOn))
 	if len(addOn) > 1 {
-		fmt.Println("Line 133: ERROR - Too many addOn entries:", len(addOn))
-		return nil, eris.New("only 1 add on entry is allowed")
+		for _, entry := range addOn {
+			if err := e.model.LoanTransactionEntryManager.DeleteByIDWithTx(ctx, tx, entry.ID); err != nil {
+				tx.Rollback()
+				e.Footstep(ctx, echoCtx, FootstepEvent{
+					Activity:    "data-error",
+					Description: "Failed to delete existing add on interest entries (/transaction/payment/:transaction_id): " + err.Error(),
+					Module:      "Transaction",
+				})
+				return nil, eris.Wrap(err, "failed to delete existing add on interest entries + "+err.Error())
+			}
+		}
 	}
 	// Deductions
 	addOnEntry := &model.LoanTransactionEntry{
