@@ -3,6 +3,7 @@ package event
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
 	"github.com/google/uuid"
@@ -258,6 +259,16 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		}
 	}
 	fmt.Println("Line 235: Creating new loan transaction entries, count:", len(result))
+	for index, entry := range result {
+		entry.CreatedAt = time.Now().UTC()
+		entry.UpdatedAt = time.Now().UTC()
+		entry.CreatedByID = userOrg.UserID
+		entry.UpdatedByID = userOrg.UserID
+		entry.OrganizationID = userOrg.OrganizationID
+		entry.BranchID = *userOrg.BranchID
+		entry.LoanTransactionID = loanTransaction.ID
+		entry.Index = index
+	}
 	for _, entry := range result {
 		fmt.Printf("Line 237: Creating entry - Name:%s, Credit:%f, Debit:%f\n", entry.Name, entry.Credit, entry.Debit)
 		if err := e.model.LoanTransactionEntryManager.CreateWithTx(ctx, tx, entry); err != nil {
