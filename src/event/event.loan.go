@@ -89,7 +89,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	fmt.Println("Line 74: Finding automatic loan deductions")
 	automaticLoanDeductions, err := e.model.AutomaticLoanDeductionManager.Find(ctx, &model.AutomaticLoanDeduction{
 		OrganizationID:     userOrg.OrganizationID,
-		BranchID:           loanTransaction.BranchID,
+		BranchID:           *userOrg.BranchID,
 		ComputationSheetID: account.ComputationSheetID,
 	})
 	fmt.Println("Line 80: Found", len(automaticLoanDeductions), "automatic loan deductions, err:", err)
