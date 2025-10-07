@@ -99,7 +99,7 @@ func (c *Controller) LoanTransactionEntryController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to balance loan transaction: %v", err)})
 		}
-		return ctx.JSON(http.StatusOK, newLoanTransaction)
+		return ctx.JSON(http.StatusOK, c.model.LoanTransactionManager.ToModel(newLoanTransaction))
 	})
 
 	// PUT /api/v1/loan-transaction/deduction/:loan_transaction_entry_id
