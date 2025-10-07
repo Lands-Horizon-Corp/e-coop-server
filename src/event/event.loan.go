@@ -233,7 +233,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 				IsAddOn:                  ald.AddOn,
 				Account:                  ald.Account,
 				AccountID:                ald.AccountID,
-				Description:              ald.Description,
+				Description:              ald.Account.Description,
 				AutomaticLoanDeductionID: &ald.ID,
 				LoanTransactionID:        loanTransaction.ID,
 			}
