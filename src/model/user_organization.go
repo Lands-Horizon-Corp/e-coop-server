@@ -118,6 +118,7 @@ type (
 		UserSettingEndVoucher   int64 `json:"user_setting_end_voucher,omitempty" validate:"min=0"`
 		UserSettingUsedVoucher  int64 `json:"user_setting_used_voucher,omitempty" validate:"min=0"`
 	}
+	
 	UserOrganizationSettingsRequest struct {
 		UserType    UserOrganizationType `json:"user_type,omitempty" validate:"omitempty,oneof=employee member"`
 		Description string               `json:"description,omitempty"`
@@ -238,6 +239,7 @@ type (
 	UserOrganizationStatusRequest struct {
 		UserOrganizationStatus UserOrganizationStatus `json:"user_organization_status" validate:"required,oneof=online offline busy vacation commuting"`
 	}
+	
 	UserOrganizationStatusResponse struct {
 		OfflineUsers   []*UserOrganizationResponse `json:"user_organizations,omitempty"`
 		OnlineUsers    []*UserOrganizationResponse `json:"online_user_organizations,omitempty"`
@@ -287,7 +289,7 @@ func (m *Model) UserOrganization() {
 				return nil
 			}
 			if data.Permissions == nil {
-				data.Permissions = []string{}
+			data.Permissions = []string{}
 			}
 			return &UserOrganizationResponse{
 				ID:             data.ID,

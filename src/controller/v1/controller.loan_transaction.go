@@ -406,12 +406,20 @@ func (c *Controller) LoanTransactionController() {
 					continue
 				}
 				entry := &model.LoanTransactionEntry{
-					Credit:  0,
-					Debit:   0,
-					Name:    ald.Name,
-					Type:    model.LoanTransactionDeduction,
-					IsAddOn: ald.AddOn,
-					Account: ald.Account,
+					Credit:                   0,
+					Debit:                    0,
+					Name:                     ald.Name,
+					Type:                     model.LoanTransactionDeduction,
+					IsAddOn:                  ald.AddOn,
+					Account:                  ald.Account,
+					AccountID:                ald.AccountID,
+					CreatedAt:                time.Now().UTC(),
+					UpdatedAt:                time.Now().UTC(),
+					CreatedByID:              userOrg.UserID,
+					UpdatedByID:              userOrg.UserID,
+					OrganizationID:           userOrg.OrganizationID,
+					BranchID:                 *userOrg.BranchID,
+					AutomaticLoanDeductionID: &ald.ID,
 				}
 				entry.Credit = c.service.LoanComputation(context, *ald, model.LoanTransaction{
 					Terms:    request.Terms,
