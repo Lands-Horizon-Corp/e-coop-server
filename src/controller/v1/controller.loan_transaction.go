@@ -489,7 +489,7 @@ func (c *Controller) LoanTransactionController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit database transaction: " + err.Error()})
 		}
 
-		tx = c.provider.Service.Database.Client().Begin()
+		newTx := c.provider.Service.Database.Client().Begin()
 		if tx.Error != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -499,7 +499,7 @@ func (c *Controller) LoanTransactionController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
-		newLoanTransaction, err := c.event.LoanBalancing(context, ctx, tx, event.LoanBalanceEvent{
+		newLoanTransaction, err := c.event.LoanBalancing(context, ctx, newTx, event.LoanBalanceEvent{
 			CashOnCashEquivalenceAccountID: *cashOnHandAccountID,
 			LoanTransactionID:              loanTransaction.ID,
 		})

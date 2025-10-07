@@ -255,6 +255,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		fmt.Printf("Line 210: Set result[0].Credit (non-AddOn case):%f\n", result[0].Credit)
 	}
 
+	fmt.Println("Line 213:", loanTransaction.IsAddOn)
 	if loanTransaction.IsAddOn {
 		addOnEntry.Debit = total_add_ons
 		fmt.Printf("Line 214: Adding addOnEntry with Debit:%f\n", addOnEntry.Debit)
