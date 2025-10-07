@@ -163,7 +163,12 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		result = append(result, entry)
 	}
 	for _, entry := range postComputed {
-		entry.Credit = e.service.LoanComputation(ctx, *entry.AutomaticLoanDeduction, *loanTransaction)
+		if entry.Amount != 0 {
+			entry.Credit = e.service.LoanComputation(ctx, *entry.AutomaticLoanDeduction, *loanTransaction)
+		} else {
+			entry.Credit = entry.Amount
+		}
+
 		if !entry.IsAddOn {
 			total_non_add_ons += entry.Credit
 		} else {
@@ -191,6 +196,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 				Description:              ald.Account.Description,
 				AutomaticLoanDeductionID: &ald.ID,
 				LoanTransactionID:        loanTransaction.ID,
+				Amount:                   0,
 			}
 			entry.Credit = e.service.LoanComputation(ctx, *ald, *loanTransaction)
 			if !entry.IsAddOn {

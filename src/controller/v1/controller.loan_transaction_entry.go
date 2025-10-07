@@ -163,6 +163,7 @@ func (c *Controller) LoanTransactionEntryController() {
 			loanTransactionEntry.AccountID = &req.AccountID
 			loanTransactionEntry.Name = account.Name
 		}
+		loanTransactionEntry.Amount = req.Amount
 		loanTransactionEntry.UpdatedAt = time.Now().UTC()
 		loanTransactionEntry.UpdatedByID = userOrg.UserID
 		if err := c.model.LoanTransactionEntryManager.UpdateFields(context, *loanTransactionEntryId, loanTransactionEntry); err != nil {

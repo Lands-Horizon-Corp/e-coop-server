@@ -55,6 +55,7 @@ type (
 		Description string  `gorm:"type:varchar(500)" json:"description"`
 		Credit      float64 `gorm:"type:decimal"`
 		Debit       float64 `gorm:"type:decimal"`
+		Amount      float64 `gorm:"type:decimal;default:0" json:"amount,omitempty"`
 	}
 
 	LoanTransactionEntryResponse struct {
@@ -82,6 +83,7 @@ type (
 		Description              string                          `json:"description"`
 		Credit                   float64                         `json:"credit"`
 		Debit                    float64                         `json:"debit"`
+		Amount                   float64                         `json:"amount"`
 	}
 
 	LoanTransactionEntryRequest struct {
@@ -144,6 +146,7 @@ func (m *Model) LoanTransactionEntry() {
 				Description: data.Description,
 				Credit:      data.Credit,
 				Debit:       data.Debit,
+				Amount:      data.Amount,
 			}
 		},
 
