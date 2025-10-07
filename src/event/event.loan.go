@@ -276,7 +276,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		}
 	}
 	fmt.Println("Line 235: Creating new loan transaction entries, count:", len(result))
-
+	totalDebit, totalCredit := 0.0, 0.0
 	for index, entry := range result {
 		value := &model.LoanTransactionEntry{
 			CreatedAt:                time.Now().UTC(),
@@ -296,6 +296,8 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 			Credit:                   entry.Credit,
 			Debit:                    entry.Debit,
 		}
+		totalDebit += entry.Debit
+		totalCredit += entry.Credit
 		fmt.Printf("Line 237: Creating entry - Name:%s, Credit:%f, Debit:%f\n", value.Name, value.Credit, value.Debit)
 		if err := e.model.LoanTransactionEntryManager.CreateWithTx(ctx, tx, value); err != nil {
 			tx.Rollback()
@@ -307,7 +309,19 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 			return nil, eris.Wrap(err, "failed to create loan transaction entry + "+err.Error())
 		}
 	}
+	loanTransaction.TotalCredit = totalCredit
+	loanTransaction.TotalDebit = totalDebit
+	fmt.Printf("Line 244: Updating loan transaction - TotalCredit:%f, TotalDebit:%f\n", totalCredit, totalDebit)
 
+	if err := e.model.LoanTransactionManager.UpdateFieldsWithTx(ctx, tx, loanTransaction.ID, loanTransaction); err != nil {
+		tx.Rollback()
+		e.Footstep(ctx, echoCtx, FootstepEvent{
+			Activity:    "data-error",
+			Description: "Failed to update loan transaction (/transaction/payment/:transaction_id): " + err.Error(),
+			Module:      "Transaction",
+		})
+		return nil, eris.Wrap(err, "failed to update loan transaction + "+err.Error())
+	}
 	fmt.Println("Line 246: Committing transaction")
 	if err := tx.Commit().Error; err != nil {
 		e.Footstep(ctx, echoCtx, FootstepEvent{
