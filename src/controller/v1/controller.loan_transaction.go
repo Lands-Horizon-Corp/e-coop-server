@@ -479,19 +479,8 @@ func (c *Controller) LoanTransactionController() {
 				}
 			}
 		}
-		cashAndCashEquivalence, err := c.model.GetCashOnCashEquivalence(context, loanTransaction.ID, userOrg.OrganizationID, *userOrg.BranchID)
-		if err != nil {
-			tx.Rollback()
-			errMsg := fmt.Sprintf("Failed to retrieve cash and cash equivalence account: %v", err)
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "account-error",
-				Description: errMsg,
-				Module:      "LoanTransaction",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": errMsg})
-		}
 		newLoanTransaction, err := c.event.LoanBalancing(context, ctx, tx, event.LoanBalanceEvent{
-			CashOnCashEquivalenceAccountID: *cashAndCashEquivalence.AccountID,
+			CashOnCashEquivalenceAccountID: *cashOnHandAccountID,
 			LoanTransactionID:              loanTransaction.ID,
 		})
 		if err != nil {
