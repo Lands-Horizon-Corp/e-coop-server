@@ -1075,18 +1075,8 @@ func (c *Controller) LoanTransactionController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction: " + err.Error()})
 		}
 
-		cashAndCashEquivalence, err := c.model.GetCashOnCashEquivalence(context, loanTransaction.ID, userOrg.OrganizationID, *userOrg.BranchID)
-		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "not-found",
-				Description: "Loan transaction entry not found (/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change), db error: " + err.Error(),
-				Module:      "LoanTransaction",
-			})
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction entry not found: " + err.Error()})
-		}
-
 		newLoanTransaction, err := c.event.LoanBalancing(context, ctx, tx, event.LoanBalanceEvent{
-			CashOnCashEquivalenceAccountID: *cashAndCashEquivalence.AccountID,
+			CashOnCashEquivalenceAccountID: account.ID,
 			LoanTransactionID:              loanTransaction.ID,
 		})
 		if err != nil {
