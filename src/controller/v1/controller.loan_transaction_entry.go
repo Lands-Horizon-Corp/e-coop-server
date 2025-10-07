@@ -154,10 +154,15 @@ func (c *Controller) LoanTransactionEntryController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction entry not found for deduction update: " + err.Error()})
 		}
-		loanTransactionEntry.Credit = req.Amount
-		loanTransactionEntry.IsAddOn = req.IsAddOn
-		loanTransactionEntry.AccountID = &req.AccountID
-		loanTransactionEntry.Name = account.Name
+		if loanTransactionEntry.Type != model.LoanTransactionAutomaticDeduction {
+			loanTransactionEntry.Credit = req.Amount
+			loanTransactionEntry.IsAddOn = req.IsAddOn
+		} else {
+			loanTransactionEntry.Credit = req.Amount
+			loanTransactionEntry.IsAddOn = req.IsAddOn
+			loanTransactionEntry.AccountID = &req.AccountID
+			loanTransactionEntry.Name = account.Name
+		}
 		loanTransactionEntry.UpdatedAt = time.Now().UTC()
 		loanTransactionEntry.UpdatedByID = userOrg.UserID
 		if err := c.model.LoanTransactionEntryManager.UpdateFields(context, *loanTransactionEntryId, loanTransactionEntry); err != nil {

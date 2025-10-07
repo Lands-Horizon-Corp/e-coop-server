@@ -172,7 +172,6 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		result = append(result, entry)
 	}
 	for _, ald := range automaticLoanDeductions {
-
 		exist := false
 		for _, computed := range postComputed {
 			if ald.ID == *computed.AutomaticLoanDeductionID {
