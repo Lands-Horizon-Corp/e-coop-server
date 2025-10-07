@@ -261,12 +261,6 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		result = append(result, addOnEntry)
 	}
 
-	if loanTransaction.IsAddOn {
-		addOnEntry.Debit = total_add_ons
-		fmt.Printf("Line 220: Adding duplicate addOnEntry with Debit:%f\n", addOnEntry.Debit)
-		result = append(result, addOnEntry)
-	}
-
 	fmt.Println("Line 224: Deleting existing loan transaction entries, count:", len(loanTransactionEntries))
 	for _, entry := range loanTransactionEntries {
 		fmt.Printf("Line 226: Deleting entry ID:%v\n", entry.ID)
