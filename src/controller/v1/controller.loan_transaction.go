@@ -735,6 +735,8 @@ func (c *Controller) LoanTransactionController() {
 		loanTransaction.ModeOfPaymentFixedDays = request.ModeOfPaymentFixedDays
 		loanTransaction.ModeOfPaymentMonthlyExactDay = request.ModeOfPaymentMonthlyExactDay
 		loanTransaction.UpdatedAt = time.Now().UTC()
+		
+
 
 		// Handle deletions first (same as before)
 		if request.LoanClearanceAnalysisDeleted != nil {

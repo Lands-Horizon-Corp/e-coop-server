@@ -749,7 +749,7 @@ func (m *Model) LoanTransactionEntriesCompute(
 	loanTransaction *LoanTransaction,
 	entries []*LoanTransactionEntry,
 	automaticLoanDeductionCurrent []*AutomaticLoanDeduction,
-) ([]*LoanTransactionEntry, error) {
+) error {
 	result := []*LoanTransactionEntry{}
 	static, addOn, deduction, automaticLoanDeduction := []*LoanTransactionEntry{}, []*LoanTransactionEntry{}, []*LoanTransactionEntry{}, []*LoanTransactionEntry{}
 	for _, entries := range entries {
@@ -784,7 +784,7 @@ func (m *Model) LoanTransactionEntriesCompute(
 	if len(static) < 2 {
 		cashOnHand, err := m.AccountManager.GetByID(context, cashOnHandAccountID)
 		if err != nil {
-			return nil, eris.Wrap(err, "failed to find cash on hand account")
+			return eris.Wrap(err, "failed to find cash on hand account")
 		}
 		static = []*LoanTransactionEntry{
 			{
@@ -802,7 +802,7 @@ func (m *Model) LoanTransactionEntriesCompute(
 		}
 	}
 	if len(addOn) > 1 {
-		return nil, eris.New("only 1 add on entry is allowed")
+		return eris.New("only 1 add on entry is allowed")
 	}
 	addOnEntry := addOn[0]
 	total_non_add_ons, total_add_ons := 0.0, 0.0
@@ -886,19 +886,19 @@ func (m *Model) LoanTransactionEntriesCompute(
 		LoanTransactionID: loanTransaction.ID,
 	})
 	if err != nil {
-		return nil, eris.Wrap(err, "failed to find existing automatic loan deduction entries")
+		return eris.Wrap(err, "failed to find existing automatic loan deduction entries")
 	}
 	for _, entry := range automaticLoanDeductions {
 		if err := m.LoanTransactionEntryManager.Delete(context, entry); err != nil {
-			return nil, eris.Wrap(err, "failed to delete existing automatic loan deduction entries")
+			return eris.Wrap(err, "failed to delete existing automatic loan deduction entries")
 		}
 	}
 	for _, entry := range result {
 		if err := m.LoanTransactionEntryManager.Create(context, entry); err != nil {
-			return nil, eris.Wrap(err, "failed to create loan transaction entry")
+			return eris.Wrap(err, "failed to create loan transaction entry")
 		}
 	}
-	return result, nil
+	return nil
 
 }
 
