@@ -59,9 +59,9 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 
 	fmt.Println("Line 59: Finding loan transaction entries")
 	loanTransactionEntries, err := e.model.LoanTransactionEntryManager.Find(ctx, &model.LoanTransactionEntry{
-		ID:             loanTransaction.ID,
-		OrganizationID: userOrg.OrganizationID,
-		BranchID:       loanTransaction.BranchID,
+		LoanTransactionID: loanTransaction.ID,
+		OrganizationID:    userOrg.OrganizationID,
+		BranchID:          *userOrg.BranchID,
 	})
 	fmt.Println("Line 65: Found", len(loanTransactionEntries), "loan transaction entries, err:", err)
 	if err != nil {
