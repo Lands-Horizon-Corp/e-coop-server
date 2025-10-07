@@ -66,7 +66,7 @@ func (c *Controller) LoanTransactionEntryController() {
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
 			LoanTransactionID: *loanTransactionID,
-			Type:              model.LoanTransactionAutomaticDeduction,
+			Type:              model.LoanTransactionDeduction,
 			Debit:             0,
 			Credit:            req.Amount,
 			IsAddOn:           req.IsAddOn,
