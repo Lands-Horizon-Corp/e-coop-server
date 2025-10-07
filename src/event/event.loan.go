@@ -263,6 +263,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	}
 	fmt.Println("Line 235: Creating new loan transaction entries, count:", len(result))
 	for index, entry := range result {
+		entry.ID = uuid.UUID{}
 		entry.CreatedAt = time.Now().UTC()
 		entry.UpdatedAt = time.Now().UTC()
 		entry.CreatedByID = userOrg.UserID
