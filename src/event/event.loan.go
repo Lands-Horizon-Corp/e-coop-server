@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -228,7 +229,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	for _, ald := range automaticLoanDeductions {
 		exist := false
 		for _, computed := range postComputed {
-			if ald.ID == *computed.AutomaticLoanDeductionID {
+			if handlers.UuidPtrEqual(&ald.ID, computed.AutomaticLoanDeductionID) {
 				exist = true
 				break
 			}

@@ -389,3 +389,13 @@ func PrintASCIIArt() {
 func Ptr[T any](v T) *T {
 	return &v
 }
+
+func UuidPtrEqual(a, b *uuid.UUID) bool {
+	if a == nil && b == nil {
+		return true
+	}
+	if a == nil || b == nil {
+		return false
+	}
+	return *a == *b
+}
