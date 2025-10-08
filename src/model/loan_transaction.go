@@ -792,16 +792,12 @@ func (m *Model) LoanTransactionWithDatesNotNull(ctx context.Context, memberId uu
 		{Field: "member_profile_id", Op: horizon_services.OpEq, Value: memberId},
 		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
 		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
-		{Field: "approved_date", Op: horizon_services.OpNe, Value: ""},
-		{Field: "printed_date", Op: horizon_services.OpNe, Value: ""},
-		{Field: "released_date", Op: horizon_services.OpNe, Value: ""},
+		{Field: "approved_date", Op: horizon_services.OpNotNull, Value: nil},
+		{Field: "printed_date", Op: horizon_services.OpNotNull, Value: nil},
+		{Field: "released_date", Op: horizon_services.OpNotNull, Value: nil},
 	}
-	// fmt.Println("----------------------")
-	// fmt.Println(filters)
 
 	loanTransactions, err := m.LoanTransactionManager.FindWithFilters(ctx, filters)
-	fmt.Println(loanTransactions)
-	fmt.Println(len(loanTransactions))
 	if err != nil {
 		return nil, err
 	}
