@@ -154,7 +154,7 @@ func (c *Controller) LoanTransactionEntryController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction entry not found for deduction update: " + err.Error()})
 		}
-		if loanTransactionEntry.Type != model.LoanTransactionAutomaticDeduction {
+		if loanTransactionEntry.Type == model.LoanTransactionAutomaticDeduction {
 			loanTransactionEntry.Credit = req.Amount
 			loanTransactionEntry.IsAddOn = req.IsAddOn
 		} else {
