@@ -209,9 +209,14 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 			continue
 		}
 		if entry.Amount != 0 {
+			fmt.Println("210: Amount specified, computing...", entry.Name)
+			fmt.Println("211: Amount", entry.Amount)
+
 			entry.Credit = entry.Amount
+			fmt.Println("212: ", entry)
+
 		} else {
-			fmt.Println("214: No Amount specified, computing...", entry.Name)
+			fmt.Println("213: No Amount specified, computing...", entry.Name)
 			entry.Credit = e.service.LoanComputation(ctx, *entry.AutomaticLoanDeduction, *loanTransaction)
 		}
 
