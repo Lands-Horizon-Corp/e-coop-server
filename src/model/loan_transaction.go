@@ -804,6 +804,10 @@ func (m *Model) LoanTransactionWithDatesNotNull(ctx context.Context, memberId uu
 	return loanTransactions, nil
 }
 
+func (m *Model) GenerateLoanAmortization(ctx context.Context, loanTransaction *LoanTransaction) {
+
+}
+
 // Helper function to generate amortization schedule
 func (m *Model) GenerateLoanAmortizationSchedule(ctx context.Context, loanTransaction *LoanTransaction) (*AmortizationScheduleResponse, error) {
 	// Extract loan details
