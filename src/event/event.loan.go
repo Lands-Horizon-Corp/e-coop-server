@@ -299,26 +299,30 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	for index, entry := range result {
 
 		value := &model.LoanTransactionEntry{
-			CreatedAt:                time.Now().UTC(),
-			CreatedByID:              userOrg.UserID,
-			UpdatedAt:                time.Now().UTC(),
-			UpdatedByID:              userOrg.UserID,
-			OrganizationID:           userOrg.OrganizationID,
-			BranchID:                 *userOrg.BranchID,
-			LoanTransactionID:        loanTransaction.ID,
-			Index:                    index,
-			Type:                     entry.Type,
-			IsAddOn:                  entry.IsAddOn,
-			AccountID:                entry.AccountID,
-			AutomaticLoanDeductionID: entry.AutomaticLoanDeductionID,
-			Name:                     entry.Name,
-			Description:              entry.Description,
-			Credit:                   entry.Credit,
-			Debit:                    entry.Debit,
-			Amount:                   entry.Amount,
+			CreatedAt:                       time.Now().UTC(),
+			CreatedByID:                     userOrg.UserID,
+			UpdatedAt:                       time.Now().UTC(),
+			UpdatedByID:                     userOrg.UserID,
+			OrganizationID:                  userOrg.OrganizationID,
+			BranchID:                        *userOrg.BranchID,
+			LoanTransactionID:               loanTransaction.ID,
+			Index:                           index,
+			Type:                            entry.Type,
+			IsAddOn:                         entry.IsAddOn,
+			AccountID:                       entry.AccountID,
+			AutomaticLoanDeductionID:        entry.AutomaticLoanDeductionID,
+			Name:                            entry.Name,
+			Description:                     entry.Description,
+			Credit:                          entry.Credit,
+			Debit:                           entry.Debit,
+			Amount:                          entry.Amount,
+			IsAutomaticLoanDeductionDeleted: entry.IsAutomaticLoanDeductionDeleted,
 		}
-		totalDebit += entry.Debit
-		totalCredit += entry.Credit
+		if !entry.IsAutomaticLoanDeductionDeleted {
+			totalDebit += entry.Debit
+			totalCredit += entry.Credit
+		}
+
 		if err := e.model.LoanTransactionEntryManager.CreateWithTx(ctx, tx, value); err != nil {
 			tx.Rollback()
 			e.Footstep(ctx, echoCtx, FootstepEvent{
