@@ -6,15 +6,16 @@ import (
 	"net/http"
 	"time"
 
+	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"go.uber.org/zap"
 )
 
+// UserOrganizationClaim defines the JWT claims for a user organization.
 type UserOrganizationClaim struct {
 	UserOrganizationID string                     `json:"user_organization_id"`
 	UserID             string                     `json:"user_id"`
@@ -24,215 +25,179 @@ type UserOrganizationClaim struct {
 	jwt.RegisteredClaims
 }
 
+// GetRegisteredClaims returns the JWT registered claims from UserOrganizationClaim.
 func (c UserOrganizationClaim) GetRegisteredClaims() *jwt.RegisteredClaims {
 	return &c.RegisteredClaims
 }
 
+// UserOrganizationCSRF holds user organization info for CSRF protection.
+type UserOrganizationCSRF struct {
+	UserOrganizationID string                     `json:"user_organization_id"`
+	UserID             string                     `json:"user_id"`
+	BranchID           string                     `json:"branch_id"`
+	OrganizationID     string                     `json:"organization_id"`
+	UserType           model.UserOrganizationType `json:"user_type"`
+	Language           string                     `json:"language"`
+	Location           string                     `json:"location"`
+	UserAgent          string                     `json:"user_agent"`
+	IPAddress          string                     `json:"ip_address"`
+	DeviceType         string                     `json:"device_type"`
+	Longitude          float64                    `json:"longitude"`
+	Latitude           float64                    `json:"latitude"`
+	Referer            string                     `json:"referer"`
+	AcceptLanguage     string                     `json:"accept_language"`
+}
+
+// UserOrganizationCSRFResponse is the response model for CSRF user organization info.
+type UserOrganizationCSRFResponse struct {
+	Language       string  `json:"language"`
+	Location       string  `json:"location"`
+	UserAgent      string  `json:"user_agent"`
+	IPAddress      string  `json:"ip_address"`
+	DeviceType     string  `json:"device_type"`
+	Longitude      float64 `json:"longitude"`
+	Latitude       float64 `json:"latitude"`
+	Referer        string  `json:"referer"`
+	AcceptLanguage string  `json:"accept_language"`
+}
+
+// UserOrganizationCSRFModel maps a UserOrganizationCSRF to a UserOrganizationCSRFResponse.
+func (m *UserOrganizationCSRFResponse) UserOrganizationCSRFModel(data *UserOrganizationCSRF) *UserOrganizationCSRFResponse {
+	if data == nil {
+		return nil
+	}
+	return horizon_services.ToModel(data, func(data *UserOrganizationCSRF) *UserOrganizationCSRFResponse {
+		return &UserOrganizationCSRFResponse{
+			Language:       data.Language,
+			Location:       data.Location,
+			UserAgent:      data.UserAgent,
+			IPAddress:      data.IPAddress,
+			DeviceType:     data.DeviceType,
+			Longitude:      data.Longitude,
+			Latitude:       data.Latitude,
+			Referer:        data.Referer,
+			AcceptLanguage: data.AcceptLanguage,
+		}
+	})
+}
+
+// UserOrganizationCSRFModels maps a slice of UserOrganizationCSRF to a slice of UserOrganizationCSRFResponse.
+func (m *UserOrganizationCSRFResponse) UserOrganizationCSRFModels(data []*UserOrganizationCSRF) []*UserOrganizationCSRFResponse {
+	return horizon_services.ToModels(data, m.UserOrganizationCSRFModel)
+}
+
+// GetID returns the user organization ID from the UserOrganizationCSRF struct.
+func (m UserOrganizationCSRF) GetID() string {
+	return m.UserOrganizationID
+}
+
+// UserOrganizationToken handles user organization token and CSRF logic.
 type UserOrganizationToken struct {
 	model    *model.Model
-	Token    horizon.TokenService[UserOrganizationClaim]
 	provider *src.Provider
+
+	CSRF horizon.AuthService[UserOrganizationCSRF]
 }
 
+// NewUserOrganizationToken initializes a new UserOrganizationToken.
 func NewUserOrganizationToken(provider *src.Provider, model *model.Model) (*UserOrganizationToken, error) {
-	isStaging := provider.Service.Environment.GetString("APP_ENV", "development") == "staging"
-
-	context := context.Background()
 	appName := provider.Service.Environment.GetString("APP_NAME", "")
-	appToken := provider.Service.Environment.GetString("APP_TOKEN", "")
-	token, err := provider.Service.Security.GenerateUUIDv5(context, appToken+"-user-organization")
-	if err != nil {
-		return nil, err
-	}
 
-	tokenService := horizon.NewTokenService[UserOrganizationClaim](
-		fmt.Sprintf("%s-%s", "X-SECURE-TOKEN-ORGANIZATION", appName),
-		[]byte(token),
-		isStaging,
+	csrfService := horizon.NewHorizonAuthService[UserOrganizationCSRF](
+		provider.Service.Cache,
+		"user-organization-csrf",
+		fmt.Sprintf("%s-%s", "X-SECURE-CSRF-USER-ORGANIZATION", appName),
+		true,
 	)
-	return &UserOrganizationToken{Token: tokenService, model: model, provider: provider}, nil
+
+	return &UserOrganizationToken{
+		CSRF:     csrfService,
+		model:    model,
+		provider: provider,
+	}, nil
 }
 
-func (h *UserOrganizationToken) ClearCurrentToken(context context.Context, ctx echo.Context) {
-	h.provider.Service.Logger.Info("AUTH: ClearCurrentToken called")
-
-	claim, err := h.Token.GetToken(context, ctx)
-	if err == nil {
-		h.provider.Service.Logger.Info("AUTH: Found token to clear",
-			zap.String("user_organization_id", claim.UserOrganizationID),
-			zap.String("user_id", claim.UserID),
-		)
-
-		id, err := uuid.Parse(claim.UserOrganizationID)
-		if err != nil {
-			h.provider.Service.Logger.Error("AUTH: Invalid UUID when clearing token",
-				zap.String("user_organization_id", claim.UserOrganizationID),
-				zap.Error(err),
-			)
-			h.Token.CleanToken(context, ctx)
-			return
-		}
-		userOrg, err := h.model.UserOrganizationManager.GetByID(context, id)
-		if err != nil {
-			h.provider.Service.Logger.Error("AUTH: User organization not found when clearing token",
-				zap.String("user_organization_id", id.String()),
-				zap.Error(err),
-			)
-			h.Token.CleanToken(context, ctx)
-			return
-		}
-
-		h.provider.Service.Logger.Info("AUTH: Setting user organization to offline",
-			zap.String("user_organization_id", userOrg.ID.String()),
-			zap.String("previous_status", string(userOrg.Status)),
-		)
-
-		userOrg.Status = model.UserOrganizationStatusOffline
-		userOrg.LastOnlineAt = time.Now().UTC()
-		if err := h.model.UserOrganizationManager.Update(context, userOrg); err != nil {
-			h.provider.Service.Logger.Error("AUTH: Failed to update user organization status",
-				zap.String("user_organization_id", userOrg.ID.String()),
-				zap.Error(err),
-			)
-			h.Token.CleanToken(context, ctx)
-			return
-		}
-		if err := h.provider.Service.Broker.Dispatch(context, []string{
-			fmt.Sprintf("user_organization.status.branch.%s", userOrg.BranchID),
-			fmt.Sprintf("user_organization.status.organization.%s", userOrg.OrganizationID),
-		}, nil); err != nil {
-			h.provider.Service.Logger.Error("AUTH: Failed to dispatch status update",
-				zap.String("user_organization_id", userOrg.ID.String()),
-				zap.Error(err),
-			)
-			return
-		}
-
-		h.provider.Service.Logger.Info("AUTH: Successfully cleared token and updated status")
-	} else {
-		h.provider.Service.Logger.Info("AUTH: No token found to clear",
-			zap.Error(err),
-		)
-	}
-
-	h.provider.Service.Logger.Info("AUTH: Cleaning token cookie")
-	h.Token.CleanToken(context, ctx)
+func (h *UserOrganizationToken) ClearCurrentToken(ctx context.Context, echoCtx echo.Context) {
+	h.CSRF.ClearCSRF(ctx, echoCtx)
 }
 
+// CurrentUserOrganization retrieves the current user organization from the CSRF token, validating the information.
 func (h *UserOrganizationToken) CurrentUserOrganization(ctx context.Context, echoCtx echo.Context) (*model.UserOrganization, error) {
-	h.provider.Service.Logger.Info("AUTH: Starting CurrentUserOrganization",
-		zap.String("method", echoCtx.Request().Method),
-		zap.String("path", echoCtx.Request().URL.Path),
-		zap.String("remote_addr", echoCtx.Request().RemoteAddr),
-	)
-
-	// Try JWT token first
-	claim, err := h.Token.GetToken(ctx, echoCtx)
-	if err == nil {
-		h.provider.Service.Logger.Info("AUTH: JWT token found, validating claim",
-			zap.String("user_organization_id", claim.UserOrganizationID),
-			zap.String("user_id", claim.UserID),
-			zap.String("user_type", string(claim.UserType)),
-		)
-
-		// We have a JWT token, so we should clear it if there are any issues
-		id, err := uuid.Parse(claim.UserOrganizationID)
-		if err != nil {
-			h.provider.Service.Logger.Error("AUTH: Invalid UUID in JWT token, clearing token",
-				zap.String("user_organization_id", claim.UserOrganizationID),
-				zap.Error(err),
-			)
-			h.ClearCurrentToken(ctx, echoCtx)
-			return nil, echo.NewHTTPError(http.StatusBadRequest, "invalid user ID in token")
-		}
-
-		userOrganization, err := h.model.UserOrganizationManager.GetByID(ctx, id)
-		if err != nil {
-			h.provider.Service.Logger.Error("AUTH: User organization not found in database, clearing token",
-				zap.String("user_organization_id", id.String()),
-				zap.Error(err),
-			)
-			h.ClearCurrentToken(ctx, echoCtx)
-			return nil, echo.NewHTTPError(http.StatusNotFound, "user not found")
-		}
-
-		h.provider.Service.Logger.Info("AUTH: JWT authentication successful",
-			zap.String("user_organization_id", userOrganization.ID.String()),
-			zap.String("user_id", userOrganization.UserID.String()),
-			zap.String("status", string(userOrganization.Status)),
-		)
-		return userOrganization, nil
-	}
-
-	h.provider.Service.Logger.Info("AUTH: No valid JWT token found, trying Bearer token",
-		zap.Error(err),
-	)
-
-	// Try Bearer token as fallback
+	// Try Bearer token as fallback first
 	authHeader := echoCtx.Request().Header.Get("Authorization")
 	if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
 		bearerToken := authHeader[7:]
-		h.provider.Service.Logger.Info("AUTH: Bearer token found, validating",
-			zap.String("token_prefix", bearerToken[:min(8, len(bearerToken))]),
-		)
-
 		userOrganization, err := h.model.UserOrganizationManager.FindOne(ctx, &model.UserOrganization{
 			DeveloperSecretKey: bearerToken,
 		})
 
 		if err != nil {
-			h.provider.Service.Logger.Error("AUTH: Invalid bearer token",
-				zap.String("token_prefix", bearerToken[:min(8, len(bearerToken))]),
-				zap.Error(err),
-			)
 			return nil, echo.NewHTTPError(http.StatusUnauthorized, "invalid bearer token")
 		}
-
-		h.provider.Service.Logger.Info("AUTH: Bearer token authentication successful",
-			zap.String("user_organization_id", userOrganization.ID.String()),
-			zap.String("user_id", userOrganization.UserID.String()),
-		)
 		return userOrganization, nil
 	}
 
-	h.provider.Service.Logger.Info("AUTH: No authentication provided",
-		zap.Bool("has_auth_header", len(authHeader) > 0),
-		zap.String("auth_header_prefix", authHeader[:min(10, len(authHeader))]),
-	)
-	return nil, echo.NewHTTPError(http.StatusUnauthorized, "authentication required")
+	claim, err := h.CSRF.GetCSRF(ctx, echoCtx)
+	if err != nil {
+		return nil, echo.NewHTTPError(http.StatusUnauthorized, "authentication required")
+	}
+
+	if claim.UserOrganizationID == "" || claim.UserID == "" || claim.BranchID == "" || claim.OrganizationID == "" {
+		h.ClearCurrentToken(ctx, echoCtx)
+		return nil, echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized: missing essential user organization information")
+	}
+
+	userOrganization, err := h.model.UserOrganizationManager.GetByID(ctx, handlers.ParseUUID(&claim.UserOrganizationID))
+	if err != nil || userOrganization == nil {
+		h.ClearCurrentToken(ctx, echoCtx)
+		return nil, echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized: user organization not found")
+	}
+
+	if userOrganization.UserID.String() != claim.UserID ||
+		userOrganization.BranchID.String() != claim.BranchID ||
+		userOrganization.OrganizationID.String() != claim.OrganizationID ||
+		userOrganization.UserType != claim.UserType {
+		h.ClearCurrentToken(ctx, echoCtx)
+		return nil, echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized: user organization information mismatch")
+	}
+
+	return userOrganization, nil
 }
 
+// SetUserOrganization sets the CSRF token for the provided user organization.
 func (h *UserOrganizationToken) SetUserOrganization(ctx context.Context, echoCtx echo.Context, userOrganization *model.UserOrganization) error {
-	h.provider.Service.Logger.Info("AUTH: Setting user organization token",
-		zap.String("user_organization_id", userOrganization.ID.String()),
-		zap.String("user_id", userOrganization.UserID.String()),
-		zap.String("user_type", string(userOrganization.UserType)),
-	)
-
 	h.ClearCurrentToken(ctx, echoCtx)
+	if userOrganization == nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "UserOrganization cannot be nil")
+	}
+	if userOrganization.UserID.String() == "" || userOrganization.BranchID.String() == "" || userOrganization.OrganizationID.String() == "" {
+		return echo.NewHTTPError(http.StatusBadRequest, "UserOrganization must have UserID, BranchID, and OrganizationID")
+	}
 
-	if err := h.Token.SetToken(ctx, echoCtx, UserOrganizationClaim{
+	longitude := handlers.ParseCoordinate(echoCtx.Request().Header.Get("X-Longitude"))
+	latitude := handlers.ParseCoordinate(echoCtx.Request().Header.Get("X-Latitude"))
+	location := echoCtx.Request().Header.Get("Location")
+
+	claim := UserOrganizationCSRF{
 		UserOrganizationID: userOrganization.ID.String(),
 		UserID:             userOrganization.UserID.String(),
 		BranchID:           userOrganization.BranchID.String(),
 		OrganizationID:     userOrganization.OrganizationID.String(),
 		UserType:           userOrganization.UserType,
-	}, 144*time.Hour); err != nil {
-		h.provider.Service.Logger.Error("AUTH: Failed to set authentication token",
-			zap.String("user_organization_id", userOrganization.ID.String()),
-			zap.Error(err),
-		)
-		return echo.NewHTTPError(http.StatusInternalServerError, "failed to set authentication token: "+err.Error())
+		Language:           echoCtx.Request().Header.Get("Accept-Language"),
+		Location:           location,
+		UserAgent:          echoCtx.Request().Header.Get("X-User-Agent"),
+		IPAddress:          echoCtx.RealIP(),
+		DeviceType:         echoCtx.Request().Header.Get("X-Device-Type"),
+		Longitude:          longitude,
+		Latitude:           latitude,
+		Referer:            echoCtx.Request().Referer(),
+		AcceptLanguage:     echoCtx.Request().Header.Get("Accept-Language"),
 	}
 
-	h.provider.Service.Logger.Info("AUTH: Successfully set user organization token")
+	if err := h.CSRF.SetCSRF(ctx, echoCtx, claim, 144*time.Hour); err != nil {
+		h.ClearCurrentToken(ctx, echoCtx)
+		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to set authentication token")
+	}
 	return nil
-}
-
-// Helper function for safe string truncation
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
 }

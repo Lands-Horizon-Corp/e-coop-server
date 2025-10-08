@@ -1,6 +1,7 @@
 package controller_v1
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -65,12 +66,13 @@ func (c *Controller) LoanTransactionEntryController() {
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
 			LoanTransactionID: *loanTransactionID,
-			Type:              model.LoanTransactionAutomaticDeduction,
+			Type:              model.LoanTransactionDeduction,
 			Debit:             0,
 			Credit:            req.Amount,
 			IsAddOn:           req.IsAddOn,
 			AccountID:         &req.AccountID,
 			Name:              account.Name,
+			Description:       account.Description,
 		}
 		if err := c.model.LoanTransactionEntryManager.Create(context, loanTransaction); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -81,16 +83,23 @@ func (c *Controller) LoanTransactionEntryController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan transaction deduction: " + err.Error()})
 		}
 
-		newLoanTransaction, err := c.model.LoanTransactionManager.GetByIDRaw(context, *loanTransactionID)
-		if err != nil {
+		tx := c.provider.Service.Database.Client().Begin()
+		if tx.Error != nil {
+			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "not-found",
-				Description: "Loan transaction not found after deduction creation: " + err.Error(),
+				Activity:    "update-error",
+				Description: "Failed to start database transaction: " + tx.Error.Error(),
 				Module:      "LoanTransaction",
 			})
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction not found after deduction creation: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
-		return ctx.JSON(http.StatusOK, newLoanTransaction)
+		newLoanTransaction, err := c.event.LoanBalancing(context, ctx, tx, event.LoanBalanceEvent{
+			LoanTransactionID: *loanTransactionID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to balance loan transaction: %v", err)})
+		}
+		return ctx.JSON(http.StatusOK, c.model.LoanTransactionManager.ToModel(newLoanTransaction))
 	})
 
 	// PUT /api/v1/loan-transaction/deduction/:loan_transaction_entry_id
@@ -145,10 +154,16 @@ func (c *Controller) LoanTransactionEntryController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction entry not found for deduction update: " + err.Error()})
 		}
-		loanTransactionEntry.Credit = req.Amount
-		loanTransactionEntry.IsAddOn = req.IsAddOn
-		loanTransactionEntry.AccountID = &req.AccountID
-		loanTransactionEntry.Name = account.Name
+		if loanTransactionEntry.Type != model.LoanTransactionAutomaticDeduction {
+			loanTransactionEntry.Credit = req.Amount
+			loanTransactionEntry.IsAddOn = req.IsAddOn
+		} else {
+			loanTransactionEntry.Credit = req.Amount
+			loanTransactionEntry.IsAddOn = req.IsAddOn
+			loanTransactionEntry.AccountID = &req.AccountID
+			loanTransactionEntry.Name = account.Name
+		}
+		loanTransactionEntry.Amount = req.Amount
 		loanTransactionEntry.UpdatedAt = time.Now().UTC()
 		loanTransactionEntry.UpdatedByID = userOrg.UserID
 		if err := c.model.LoanTransactionEntryManager.UpdateFields(context, *loanTransactionEntryId, loanTransactionEntry); err != nil {
@@ -160,16 +175,23 @@ func (c *Controller) LoanTransactionEntryController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan transaction deduction: " + err.Error()})
 		}
 
-		newLoanTransaction, err := c.model.LoanTransactionManager.GetByIDRaw(context, loanTransactionEntry.LoanTransactionID)
-		if err != nil {
+		tx := c.provider.Service.Database.Client().Begin()
+		if tx.Error != nil {
+			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "not-found",
-				Description: "Loan transaction not found after deduction creation: " + err.Error(),
+				Activity:    "update-error",
+				Description: "Failed to start database transaction: " + tx.Error.Error(),
 				Module:      "LoanTransaction",
 			})
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction not found after deduction creation: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
-		return ctx.JSON(http.StatusOK, newLoanTransaction)
+		newLoanTransaction, err := c.event.LoanBalancing(context, ctx, tx, event.LoanBalanceEvent{
+			LoanTransactionID: loanTransactionEntry.LoanTransactionID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to balance loan transaction: %v", err)})
+		}
+		return ctx.JSON(http.StatusOK, c.model.LoanTransactionManager.ToModel(newLoanTransaction))
 	})
 
 	// DELETE /api/v1/loan-transaction-entry/:loan_transaction_entry_id
@@ -209,6 +231,22 @@ func (c *Controller) LoanTransactionEntryController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan transaction entry: " + err.Error()})
 		}
 
+		tx := c.provider.Service.Database.Client().Begin()
+		if tx.Error != nil {
+			tx.Rollback()
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Failed to start database transaction: " + tx.Error.Error(),
+				Module:      "LoanTransaction",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+		}
+		_, err = c.event.LoanBalancing(context, ctx, tx, event.LoanBalanceEvent{
+			LoanTransactionID: loanTransactionEntry.LoanTransactionID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to balance loan transaction: %v", err)})
+		}
 		return ctx.JSON(http.StatusOK, map[string]string{"message": "Loan transaction entry deleted successfully"})
 	})
 }

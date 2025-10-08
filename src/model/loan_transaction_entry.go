@@ -48,35 +48,42 @@ type (
 		AccountID *uuid.UUID `gorm:"type:uuid"`
 		Account   *Account   `gorm:"foreignKey:AccountID;constraint:OnDelete:SET NULL;" json:"account,omitempty"`
 
+		AutomaticLoanDeductionID *uuid.UUID              `gorm:"type:uuid"`
+		AutomaticLoanDeduction   *AutomaticLoanDeduction `gorm:"foreignKey:AutomaticLoanDeductionID;constraint:OnDelete:SET NULL;" json:"automatic_loan_deduction,omitempty"`
+
 		Name        string  `gorm:"type:varchar(255)" json:"name"`
 		Description string  `gorm:"type:varchar(500)" json:"description"`
 		Credit      float64 `gorm:"type:decimal"`
 		Debit       float64 `gorm:"type:decimal"`
+		Amount      float64 `gorm:"type:decimal;default:0" json:"amount,omitempty"`
 	}
 
 	LoanTransactionEntryResponse struct {
-		ID                uuid.UUID                `json:"id"`
-		CreatedAt         string                   `json:"created_at"`
-		CreatedByID       uuid.UUID                `json:"created_by_id"`
-		CreatedBy         *UserResponse            `json:"created_by,omitempty"`
-		UpdatedAt         string                   `json:"updated_at"`
-		UpdatedByID       uuid.UUID                `json:"updated_by_id"`
-		UpdatedBy         *UserResponse            `json:"updated_by,omitempty"`
-		OrganizationID    uuid.UUID                `json:"organization_id"`
-		Organization      *OrganizationResponse    `json:"organization,omitempty"`
-		BranchID          uuid.UUID                `json:"branch_id"`
-		Branch            *BranchResponse          `json:"branch,omitempty"`
-		LoanTransactionID uuid.UUID                `json:"loan_transaction_id"`
-		LoanTransaction   *LoanTransactionResponse `json:"loan_transaction,omitempty"`
-		Index             int                      `json:"index"`
-		Type              LoanTransactionEntryType `json:"type"`
-		IsAddOn           bool                     `json:"is_add_on"`
-		AccountID         *uuid.UUID               `json:"account_id,omitempty"`
-		Account           *AccountResponse         `json:"account,omitempty"`
-		Name              string                   `json:"name"`
-		Description       string                   `json:"description"`
-		Credit            float64                  `json:"credit"`
-		Debit             float64                  `json:"debit"`
+		ID                       uuid.UUID                       `json:"id"`
+		CreatedAt                string                          `json:"created_at"`
+		CreatedByID              uuid.UUID                       `json:"created_by_id"`
+		CreatedBy                *UserResponse                   `json:"created_by,omitempty"`
+		UpdatedAt                string                          `json:"updated_at"`
+		UpdatedByID              uuid.UUID                       `json:"updated_by_id"`
+		UpdatedBy                *UserResponse                   `json:"updated_by,omitempty"`
+		OrganizationID           uuid.UUID                       `json:"organization_id"`
+		Organization             *OrganizationResponse           `json:"organization,omitempty"`
+		BranchID                 uuid.UUID                       `json:"branch_id"`
+		Branch                   *BranchResponse                 `json:"branch,omitempty"`
+		LoanTransactionID        uuid.UUID                       `json:"loan_transaction_id"`
+		LoanTransaction          *LoanTransactionResponse        `json:"loan_transaction,omitempty"`
+		Index                    int                             `json:"index"`
+		Type                     LoanTransactionEntryType        `json:"type"`
+		IsAddOn                  bool                            `json:"is_add_on"`
+		AccountID                *uuid.UUID                      `json:"account_id,omitempty"`
+		Account                  *AccountResponse                `json:"account,omitempty"`
+		AutomaticLoanDeductionID *uuid.UUID                      `json:"automatic_loan_deduction_id,omitempty"`
+		AutomaticLoanDeduction   *AutomaticLoanDeductionResponse `json:"automatic_loan_deduction,omitempty"`
+		Name                     string                          `json:"name"`
+		Description              string                          `json:"description"`
+		Credit                   float64                         `json:"credit"`
+		Debit                    float64                         `json:"debit"`
+		Amount                   float64                         `json:"amount"`
 	}
 
 	LoanTransactionEntryRequest struct {
@@ -106,7 +113,7 @@ func (m *Model) LoanTransactionEntry() {
 		LoanTransactionEntry, LoanTransactionEntryResponse, LoanTransactionEntryRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization", "LoanTransaction", "Account",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization", "LoanTransaction", "Account", "AutomaticLoanDeduction",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *LoanTransactionEntry) *LoanTransactionEntryResponse {
@@ -114,29 +121,32 @@ func (m *Model) LoanTransactionEntry() {
 				return nil
 			}
 			return &LoanTransactionEntryResponse{
-				ID:                data.ID,
-				CreatedAt:         data.CreatedAt.Format(time.RFC3339),
-				CreatedByID:       data.CreatedByID,
-				CreatedBy:         m.UserManager.ToModel(data.CreatedBy),
-				UpdatedAt:         data.UpdatedAt.Format(time.RFC3339),
-				UpdatedByID:       data.UpdatedByID,
-				UpdatedBy:         m.UserManager.ToModel(data.UpdatedBy),
-				OrganizationID:    data.OrganizationID,
-				Organization:      m.OrganizationManager.ToModel(data.Organization),
-				BranchID:          data.BranchID,
-				Branch:            m.BranchManager.ToModel(data.Branch),
-				LoanTransactionID: data.LoanTransactionID,
-				LoanTransaction:   m.LoanTransactionManager.ToModel(data.LoanTransaction),
-				Index:             data.Index,
-				Type:              data.Type,
-				IsAddOn:           data.IsAddOn,
-				AccountID:         data.AccountID,
-				Account:           m.AccountManager.ToModel(data.Account),
+				ID:                       data.ID,
+				CreatedAt:                data.CreatedAt.Format(time.RFC3339),
+				CreatedByID:              data.CreatedByID,
+				CreatedBy:                m.UserManager.ToModel(data.CreatedBy),
+				UpdatedAt:                data.UpdatedAt.Format(time.RFC3339),
+				UpdatedByID:              data.UpdatedByID,
+				UpdatedBy:                m.UserManager.ToModel(data.UpdatedBy),
+				OrganizationID:           data.OrganizationID,
+				Organization:             m.OrganizationManager.ToModel(data.Organization),
+				BranchID:                 data.BranchID,
+				Branch:                   m.BranchManager.ToModel(data.Branch),
+				LoanTransactionID:        data.LoanTransactionID,
+				LoanTransaction:          m.LoanTransactionManager.ToModel(data.LoanTransaction),
+				Index:                    data.Index,
+				Type:                     data.Type,
+				IsAddOn:                  data.IsAddOn,
+				AccountID:                data.AccountID,
+				Account:                  m.AccountManager.ToModel(data.Account),
+				AutomaticLoanDeductionID: data.AutomaticLoanDeductionID,
+				AutomaticLoanDeduction:   m.AutomaticLoanDeductionManager.ToModel(data.AutomaticLoanDeduction),
 
 				Name:        data.Name,
 				Description: data.Description,
 				Credit:      data.Credit,
 				Debit:       data.Debit,
+				Amount:      data.Amount,
 			}
 		},
 
@@ -171,5 +181,26 @@ func (m *Model) LoanTransactionEntryCurrentBranch(context context.Context, orgId
 	return m.LoanTransactionEntryManager.Find(context, &LoanTransactionEntry{
 		OrganizationID: orgId,
 		BranchID:       branchId,
+	})
+}
+
+func (m *Model) GetCashOnCashEquivalence(ctx context.Context, loanTransactionID, orgId, branchId uuid.UUID) (*LoanTransactionEntry, error) {
+	return m.LoanTransactionEntryManager.FindOneWithFilters(ctx, []horizon_services.Filter{
+		{Field: "loan_transaction_entries.organization_id", Op: horizon_services.OpEq, Value: orgId},
+		{Field: "loan_transaction_entries.branch_id", Op: horizon_services.OpEq, Value: branchId},
+		{Field: "loan_transaction_entries.index", Op: horizon_services.OpEq, Value: 0},
+		{Field: "loan_transaction_entries.debit", Op: horizon_services.OpEq, Value: 0},
+		{Field: "loan_transaction_entries.loan_transaction_id", Op: horizon_services.OpEq, Value: loanTransactionID},
+	})
+
+}
+
+func (m *Model) GetLoanEntryAccount(ctx context.Context, loanTransactionID, orgId, branchId uuid.UUID) (*LoanTransactionEntry, error) {
+	return m.LoanTransactionEntryManager.FindOneWithFilters(ctx, []horizon_services.Filter{
+		{Field: "loan_transaction_entries.organization_id", Op: horizon_services.OpEq, Value: orgId},
+		{Field: "loan_transaction_entries.branch_id", Op: horizon_services.OpEq, Value: branchId},
+		{Field: "loan_transaction_entries.index", Op: horizon_services.OpEq, Value: 1},
+		{Field: "loan_transaction_entries.credit", Op: horizon_services.OpEq, Value: 0},
+		{Field: "loan_transaction_entries.loan_transaction_id", Op: horizon_services.OpEq, Value: loanTransactionID},
 	})
 }
