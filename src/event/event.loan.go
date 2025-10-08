@@ -106,20 +106,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 			postComputed = append(postComputed, entry)
 		}
 	}
-	if (loanTransaction.LoanType == model.LoanTypeRestructured ||
-		loanTransaction.LoanType == model.LoanTypeRenewalWithoutDeduct ||
-		loanTransaction.LoanType == model.LoanTypeRenewal) && loanTransaction.PreviousLoanID != nil {
-		result = append(result, &model.LoanTransactionEntry{
-			Account:           loanTransaction.Account,
-			AccountID:         loanTransaction.AccountID,
-			Credit:            loanTransaction.Balance,
-			Debit:             0,
-			Description:       loanTransaction.PreviousLoan.Account.Name,
-			Name:              loanTransaction.PreviousLoan.Account.Description,
-			Type:              model.LoanTransactionPrevious,
-			LoanTransactionID: loanTransaction.ID,
-		})
-	}
+
 	// ================================================================================
 	// STEP 4: CREATE DEFAULT STATIC ENTRIES IF NOT EXISTS
 	// ================================================================================
@@ -302,6 +289,20 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 			})
 			return nil, eris.Wrap(err, "failed to delete existing automatic loan deduction entries + "+err.Error())
 		}
+	}
+	if (loanTransaction.LoanType == model.LoanTypeRestructured ||
+		loanTransaction.LoanType == model.LoanTypeRenewalWithoutDeduct ||
+		loanTransaction.LoanType == model.LoanTypeRenewal) && loanTransaction.PreviousLoanID != nil {
+		result = append(result, &model.LoanTransactionEntry{
+			Account:           loanTransaction.Account,
+			AccountID:         loanTransaction.AccountID,
+			Credit:            loanTransaction.Balance,
+			Debit:             0,
+			Description:       loanTransaction.PreviousLoan.Account.Name,
+			Name:              loanTransaction.PreviousLoan.Account.Description,
+			Type:              model.LoanTransactionPrevious,
+			LoanTransactionID: loanTransaction.ID,
+		})
 	}
 
 	// Set the debit amount for the loan account entry
