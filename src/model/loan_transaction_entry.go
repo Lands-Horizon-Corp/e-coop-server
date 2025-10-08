@@ -104,7 +104,7 @@ type (
 
 	LoanTransactionDeductionRequest struct {
 		AccountID   uuid.UUID `json:"account_id" validate:"required"`
-		Amount      float64   `json:"amount" validate:"required,gt=0"`
+		Amount      float64   `json:"amount" validate:"required"`
 		Description string    `json:"description,omitempty"`
 		IsAddOn     bool      `json:"is_add_on,omitempty"`
 	}
