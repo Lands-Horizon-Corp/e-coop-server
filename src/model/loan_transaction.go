@@ -771,8 +771,12 @@ func (m *Model) LoanTransactionWithDatesNotNull(ctx context.Context, memberId uu
 		{Field: "printed_date", Op: horizon_services.OpNe, Value: nil},
 		{Field: "released_date", Op: horizon_services.OpNe, Value: nil},
 	}
+	fmt.Println("----------------------")
+	fmt.Println(filters)
 
 	loanTransactions, err := m.LoanTransactionManager.FindWithFilters(ctx, filters)
+	fmt.Println(loanTransactions)
+	fmt.Println(len(loanTransactions))
 	if err != nil {
 		return nil, err
 	}
