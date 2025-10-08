@@ -338,6 +338,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	// STEP 11: UPDATE LOAN TRANSACTION TOTALS & COMMIT CHANGES
 	// ================================================================================
 	// Update the loan transaction with calculated totals
+	loanTransaction.Balance = totalCredit
 	loanTransaction.TotalCredit = totalCredit
 	loanTransaction.TotalDebit = totalDebit
 	loanTransaction.UpdatedAt = time.Now().UTC()
