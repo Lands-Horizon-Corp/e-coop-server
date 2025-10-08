@@ -1681,6 +1681,7 @@ func (c *Controller) LoanTransactionController() {
 		}
 		loanTransaction.PrintNumber = loanTransaction.PrintNumber + 1
 		loanTransaction.PrintedDate = handlers.Ptr(time.Now().UTC())
+		loanTransaction.PrintedByID = &userOrg.UserID
 		loanTransaction.Voucher = req.Voucher
 		loanTransaction.CheckNumber = req.CheckNumber
 		loanTransaction.CheckDate = req.CheckDate
@@ -1726,6 +1727,7 @@ func (c *Controller) LoanTransactionController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot undo print on an approved or released loan transaction"})
 		}
 		loanTransaction.PrintedDate = nil
+		loanTransaction.PrintedByID = nil
 		loanTransaction.PrintNumber = 0
 		loanTransaction.Voucher = ""
 		loanTransaction.CheckNumber = ""
@@ -1770,6 +1772,7 @@ func (c *Controller) LoanTransactionController() {
 		}
 		loanTransaction.PrintNumber = loanTransaction.PrintNumber + 1
 		loanTransaction.PrintedDate = handlers.Ptr(time.Now().UTC())
+		loanTransaction.PrintedByID = &userOrg.UserID
 		loanTransaction.UpdatedAt = time.Now().UTC()
 		loanTransaction.UpdatedByID = userOrg.UserID
 		if err := c.model.LoanTransactionManager.UpdateFields(context, loanTransaction.ID, loanTransaction); err != nil {
@@ -1816,6 +1819,7 @@ func (c *Controller) LoanTransactionController() {
 		}
 		now := time.Now().UTC()
 		loanTransaction.ApprovedDate = &now
+		loanTransaction.ApprovedByID = &userOrg.UserID
 		loanTransaction.UpdatedAt = now
 		loanTransaction.UpdatedByID = userOrg.UserID
 		if err := c.model.LoanTransactionManager.UpdateFields(context, loanTransaction.ID, loanTransaction); err != nil {
@@ -1861,6 +1865,7 @@ func (c *Controller) LoanTransactionController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Loan transaction is not approved"})
 		}
 		loanTransaction.ApprovedDate = nil
+		loanTransaction.ApprovedByID = nil
 		loanTransaction.UpdatedAt = time.Now().UTC()
 		loanTransaction.UpdatedByID = userOrg.UserID
 		if err := c.model.LoanTransactionManager.UpdateFields(context, loanTransaction.ID, loanTransaction); err != nil {
@@ -1910,6 +1915,7 @@ func (c *Controller) LoanTransactionController() {
 		}
 		now := time.Now().UTC()
 		loanTransaction.ReleasedDate = &now
+		loanTransaction.ReleasedByID = &userOrg.UserID
 		loanTransaction.UpdatedAt = now
 		loanTransaction.UpdatedByID = userOrg.UserID
 		if err := c.model.LoanTransactionManager.UpdateFields(context, loanTransaction.ID, loanTransaction); err != nil {

@@ -150,6 +150,14 @@ type (
 		ReleasedDate *time.Time `gorm:"type:timestamp"`
 		PrintNumber  int        `gorm:"type:int;default:0"`
 
+		// User relationships for tracking who performed actions
+		ReleasedByID *uuid.UUID `gorm:"type:uuid"`
+		ReleasedBy   *User      `gorm:"foreignKey:ReleasedByID;constraint:OnDelete:SET NULL;" json:"released_by,omitempty"`
+		PrintedByID  *uuid.UUID `gorm:"type:uuid"`
+		PrintedBy    *User      `gorm:"foreignKey:PrintedByID;constraint:OnDelete:SET NULL;" json:"printed_by,omitempty"`
+		ApprovedByID *uuid.UUID `gorm:"type:uuid"`
+		ApprovedBy   *User      `gorm:"foreignKey:ApprovedByID;constraint:OnDelete:SET NULL;" json:"approved_by,omitempty"`
+
 		ApprovedBySignatureMediaID *uuid.UUID `gorm:"type:uuid"`
 		ApprovedBySignatureMedia   *Media     `gorm:"foreignKey:ApprovedBySignatureMediaID;constraint:OnDelete:SET NULL;" json:"approved_by_signature_media,omitempty"`
 		ApprovedByName             string     `gorm:"type:varchar(255)"`
@@ -297,6 +305,14 @@ type (
 		PrintNumber  int        `json:"print_number"`
 		ApprovedDate *time.Time `json:"approved_date,omitempty"`
 		ReleasedDate *time.Time `json:"released_date,omitempty"`
+
+		// User relationships for tracking who performed actions
+		ReleasedByID *uuid.UUID    `json:"released_by_id,omitempty"`
+		ReleasedBy   *UserResponse `json:"released_by,omitempty"`
+		PrintedByID  *uuid.UUID    `json:"printed_by_id,omitempty"`
+		PrintedBy    *UserResponse `json:"printed_by,omitempty"`
+		ApprovedByID *uuid.UUID    `json:"approved_by_id,omitempty"`
+		ApprovedBy   *UserResponse `json:"approved_by,omitempty"`
 
 		ApprovedBySignatureMediaID *uuid.UUID     `json:"approved_by_signature_media_id,omitempty"`
 		ApprovedBySignatureMedia   *MediaResponse `json:"approved_by_signature_media,omitempty"`
@@ -566,6 +582,7 @@ func (m *Model) LoanTransaction() {
 			"ComakerDepositMemberAccountingLedger", "PreviousLoan", "ComakerDepositMemberAccountingLedger.Account",
 			"Account", "MemberProfile", "MemberJointAccount", "SignatureMedia", "MemberProfile.Media",
 			"MemberProfile.SignatureMedia", "MemberProfile.MemberType",
+			"ReleasedBy", "PrintedBy", "ApprovedBy",
 			"ApprovedBySignatureMedia", "PreparedBySignatureMedia", "CertifiedBySignatureMedia",
 			"VerifiedBySignatureMedia", "CheckBySignatureMedia", "AcknowledgeBySignatureMedia",
 			"NotedBySignatureMedia", "PostedBySignatureMedia", "PaidBySignatureMedia",
@@ -580,6 +597,8 @@ func (m *Model) LoanTransaction() {
 			"ComakerMemberProfiles", "ComakerMemberProfiles.MemberProfile", "ComakerMemberProfiles.MemberProfile.Media",
 			"ComakerCollaterals", "ComakerCollaterals.Collateral",
 			"PreviousLoan",
+			"ReleasedBy", "PrintedBy", "ApprovedBy",
+			"ReleasedBy.Media", "PrintedBy.Media", "ApprovedBy.Media",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *LoanTransaction) *LoanTransactionResponse {
@@ -654,6 +673,12 @@ func (m *Model) LoanTransaction() {
 				PrintNumber:                            data.PrintNumber,
 				ApprovedDate:                           data.ApprovedDate,
 				ReleasedDate:                           data.ReleasedDate,
+				ReleasedByID:                           data.ReleasedByID,
+				ReleasedBy:                             m.UserManager.ToModel(data.ReleasedBy),
+				PrintedByID:                            data.PrintedByID,
+				PrintedBy:                              m.UserManager.ToModel(data.PrintedBy),
+				ApprovedByID:                           data.ApprovedByID,
+				ApprovedBy:                             m.UserManager.ToModel(data.ApprovedBy),
 				ApprovedBySignatureMediaID:             data.ApprovedBySignatureMediaID,
 				ApprovedBySignatureMedia:               m.MediaManager.ToModel(data.ApprovedBySignatureMedia),
 				ApprovedByName:                         data.ApprovedByName,
