@@ -38,7 +38,7 @@ type (
 		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_loan_transaction_entry"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
-		LoanTransactionID uuid.UUID        `gorm:"type:uuid;not null"`
+		LoanTransactionID uuid.UUID        `gorm:"type:uuid;not null;index:idx_loan_transaction_entry_loan_transaction"`
 		LoanTransaction   *LoanTransaction `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"loan_transaction,omitempty"`
 
 		Index int `gorm:"type:int;default:0" json:"index"`
