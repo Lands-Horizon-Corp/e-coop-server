@@ -763,24 +763,32 @@ func (m *Model) mapLoanTransactionEntries(entries []*LoanTransactionEntry) []*Lo
 }
 
 func (m *Model) LoanTransactionWithDatesNotNull(ctx context.Context, memberId uuid.UUID, branchId uuid.UUID, orgId uuid.UUID) ([]*LoanTransaction, error) {
-	filters := []horizon_services.Filter{
-		{Field: "member_profile_id", Op: horizon_services.OpEq, Value: memberId},
-		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
-		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
-		// {Field: "approved_date", Op: horizon_services.OpNe, Value: nil},
-		// {Field: "printed_date", Op: horizon_services.OpNe, Value: nil},
-		// {Field: "released_date", Op: horizon_services.OpNe, Value: nil},
-	}
-	fmt.Println("----------------------")
-	fmt.Println(filters)
+	// filters := []horizon_services.Filter{
+	// 	{Field: "member_profile_id", Op: horizon_services.OpEq, Value: memberId},
+	// 	{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
+	// 	{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
+	// 	// {Field: "approved_date", Op: horizon_services.OpNe, Value: nil},
+	// 	// {Field: "printed_date", Op: horizon_services.OpNe, Value: nil},
+	// 	// {Field: "released_date", Op: horizon_services.OpNe, Value: nil},
+	// }
+	// fmt.Println("----------------------")
+	// fmt.Println(filters)
 
-	loanTransactions, err := m.LoanTransactionManager.FindWithFilters(ctx, filters)
-	fmt.Println(loanTransactions)
-	fmt.Println(len(loanTransactions))
-	if err != nil {
-		return nil, err
-	}
-	return loanTransactions, nil
+	// loanTransactions, err := m.LoanTransactionManager.FindWithFilters(ctx, filters)
+	// fmt.Println(loanTransactions)
+	// fmt.Println(len(loanTransactions))
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// return loanTransactions, nil
+	return m.LoanTransactionManager.Find(ctx, &LoanTransaction{
+		MemberProfileID: &memberId,
+		OrganizationID:  orgId,
+		BranchID:        branchId,
+		ApprovedDate:   nil,
+		PrintedDate:    nil,
+		ReleasedDate:  nil,
+	})
 }
 
 // Helper function to generate amortization schedule
