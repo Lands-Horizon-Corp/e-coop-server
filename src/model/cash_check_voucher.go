@@ -44,12 +44,12 @@ type (
 		EmployeeUser       *User             `gorm:"foreignKey:EmployeeUserID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"employee_user,omitempty"`
 		TransactionBatchID *uuid.UUID        `gorm:"type:uuid"`
 		TransactionBatch   *TransactionBatch `gorm:"foreignKey:TransactionBatchID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"transaction_batch,omitempty"`
-		PrintedByUserID    *uuid.UUID        `gorm:"type:uuid"`
-		PrintedByUser      *User             `gorm:"foreignKey:PrintedByUserID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"printed_by_user,omitempty"`
-		ApprovedByUserID   *uuid.UUID        `gorm:"type:uuid"`
-		ApprovedByUser     *User             `gorm:"foreignKey:ApprovedByUserID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"approved_by_user,omitempty"`
-		ReleasedByUserID   *uuid.UUID        `gorm:"type:uuid"`
-		ReleasedByUser     *User             `gorm:"foreignKey:ReleasedByUserID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"released_by_user,omitempty"`
+		PrintedByID        *uuid.UUID        `gorm:"type:uuid"`
+		PrintedBy          *User             `gorm:"foreignKey:PrintedByID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"printed_by,omitempty"`
+		ApprovedByID       *uuid.UUID        `gorm:"type:uuid"`
+		ApprovedBy         *User             `gorm:"foreignKey:ApprovedByID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"approved_by,omitempty"`
+		ReleasedByID       *uuid.UUID        `gorm:"type:uuid"`
+		ReleasedBy         *User             `gorm:"foreignKey:ReleasedByID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"released_by,omitempty"`
 
 		PayTo string `gorm:"type:varchar(255)"`
 
@@ -137,12 +137,12 @@ type (
 		EmployeeUser       *UserResponse             `json:"employee_user,omitempty"`
 		TransactionBatchID *uuid.UUID                `json:"transaction_batch_id,omitempty"`
 		TransactionBatch   *TransactionBatchResponse `json:"transaction_batch,omitempty"`
-		PrintedByUserID    *uuid.UUID                `json:"printed_by_user_id,omitempty"`
-		PrintedByUser      *UserResponse             `json:"printed_by_user,omitempty"`
-		ApprovedByUserID   *uuid.UUID                `json:"approved_by_user_id,omitempty"`
-		ApprovedByUser     *UserResponse             `json:"approved_by_user,omitempty"`
-		ReleasedByUserID   *uuid.UUID                `json:"released_by_user_id,omitempty"`
-		ReleasedByUser     *UserResponse             `json:"released_by_user,omitempty"`
+		PrintedByID        *uuid.UUID                `json:"printed_by_id,omitempty"`
+		PrintedBy          *UserResponse             `json:"printed_by,omitempty"`
+		ApprovedByID       *uuid.UUID                `json:"approved_by_id,omitempty"`
+		ApprovedBy         *UserResponse             `json:"approved_by,omitempty"`
+		ReleasedByID       *uuid.UUID                `json:"released_by_id,omitempty"`
+		ReleasedBy         *UserResponse             `json:"released_by,omitempty"`
 
 		PayTo string `json:"pay_to"`
 
@@ -214,20 +214,18 @@ type (
 	}
 
 	CashCheckVoucherRequest struct {
-		EmployeeUserID     *uuid.UUID             `json:"employee_user_id,omitempty"`
-		TransactionBatchID *uuid.UUID             `json:"transaction_batch_id,omitempty"`
-		PrintedByUserID    *uuid.UUID             `json:"printed_by_user_id,omitempty"`
-		ApprovedByUserID   *uuid.UUID             `json:"approved_by_user_id,omitempty"`
-		ReleasedByUserID   *uuid.UUID             `json:"released_by_user_id,omitempty"`
-		PayTo              string                 `json:"pay_to,omitempty"`
-		Status             CashCheckVoucherStatus `json:"status,omitempty"`
-		Description        string                 `json:"description,omitempty"`
-		CashVoucherNumber  string                 `json:"cash_voucher_number,omitempty"`
-		Name               string                 `json:"name" validate:"required"`
-		PrintCount         int                    `json:"print_count,omitempty"`
-		PrintedDate        *time.Time             `json:"printed_date,omitempty"`
-		ApprovedDate       *time.Time             `json:"approved_date,omitempty"`
-		ReleasedDate       *time.Time             `json:"released_date,omitempty"`
+		EmployeeUserID     *uuid.UUID `json:"employee_user_id,omitempty"`
+		TransactionBatchID *uuid.UUID `json:"transaction_batch_id,omitempty"`
+
+		PayTo             string                 `json:"pay_to,omitempty"`
+		Status            CashCheckVoucherStatus `json:"status,omitempty"`
+		Description       string                 `json:"description,omitempty"`
+		CashVoucherNumber string                 `json:"cash_voucher_number,omitempty"`
+		Name              string                 `json:"name" validate:"required"`
+		PrintCount        int                    `json:"print_count,omitempty"`
+		PrintedDate       *time.Time             `json:"printed_date,omitempty"`
+		ApprovedDate      *time.Time             `json:"approved_date,omitempty"`
+		ReleasedDate      *time.Time             `json:"released_date,omitempty"`
 
 		ApprovedBySignatureMediaID *uuid.UUID `json:"approved_by_signature_media_id,omitempty"`
 		ApprovedByName             string     `json:"approved_by_name,omitempty"`
@@ -287,7 +285,10 @@ func (m *Model) CashCheckVoucher() {
 	]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Branch", "Organization",
-			"EmployeeUser", "TransactionBatch", "PrintedByUser", "ApprovedByUser", "ReleasedByUser",
+			"EmployeeUser", "TransactionBatch",
+			"PrintedBy", "ApprovedBy", "ReleasedBy",
+			"PrintedBy.Media", "ApprovedBy.Media", "ReleasedBy.Media",
+
 			"CashCheckVoucherTags", "CashCheckVoucherEntries", "CheckEntryAccount",
 			"CashCheckVoucherEntries.MemberProfile", "CashCheckVoucherEntries.Account", "CashCheckVoucherEntries.MemberProfile.Media",
 			"ApprovedBySignatureMedia", "PreparedBySignatureMedia", "CertifiedBySignatureMedia",
@@ -329,12 +330,12 @@ func (m *Model) CashCheckVoucher() {
 				EmployeeUser:       m.UserManager.ToModel(data.EmployeeUser),
 				TransactionBatchID: data.TransactionBatchID,
 				TransactionBatch:   m.TransactionBatchManager.ToModel(data.TransactionBatch),
-				PrintedByUserID:    data.PrintedByUserID,
-				PrintedByUser:      m.UserManager.ToModel(data.PrintedByUser),
-				ApprovedByUserID:   data.ApprovedByUserID,
-				ApprovedByUser:     m.UserManager.ToModel(data.ApprovedByUser),
-				ReleasedByUserID:   data.ReleasedByUserID,
-				ReleasedByUser:     m.UserManager.ToModel(data.ReleasedByUser),
+				PrintedByID:        data.PrintedByID,
+				PrintedBy:          m.UserManager.ToModel(data.PrintedBy),
+				ApprovedByID:       data.ApprovedByID,
+				ApprovedBy:         m.UserManager.ToModel(data.ApprovedBy),
+				ReleasedByID:       data.ReleasedByID,
+				ReleasedBy:         m.UserManager.ToModel(data.ReleasedBy),
 
 				PayTo: data.PayTo,
 
