@@ -2,6 +2,7 @@ package event
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
@@ -209,7 +210,6 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		}
 		if entry.Amount != 0 {
 			entry.Credit = entry.Amount
-
 		} else {
 			entry.Credit = e.service.LoanComputation(ctx, *entry.AutomaticLoanDeduction, *loanTransaction)
 		}
@@ -235,6 +235,9 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 			}
 		}
 		if !exist {
+			fmt.Println("Account name", ald.Name)
+			fmt.Println("Account ID", ald.ID)
+			fmt.Println()
 			entry := &model.LoanTransactionEntry{
 				Credit:                   0,
 				Debit:                    0,
