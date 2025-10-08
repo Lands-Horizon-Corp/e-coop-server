@@ -17,6 +17,7 @@ const (
 	LoanTransactionDeduction          LoanTransactionEntryType = "deduction"
 	LoanTransactionAddOn              LoanTransactionEntryType = "add-on"
 	LoanTransactionAutomaticDeduction LoanTransactionEntryType = "automatic-deduction"
+	LoanTransactionPrevious           LoanTransactionEntryType = "previous"
 )
 
 type (

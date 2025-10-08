@@ -81,7 +81,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		BranchID:           *userOrg.BranchID,
 		ComputationSheetID: account.ComputationSheetID,
 	})
-	if err != nil {
+	if err != nil || loanTransaction.LoanType == model.LoanTypeRestructured || loanTransaction.LoanType == model.LoanTypeStandardPrevious {
 		automaticLoanDeductions = []*model.AutomaticLoanDeduction{}
 	}
 
@@ -102,11 +102,24 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		if entry.Type == model.LoanTransactionDeduction {
 			deduction = append(deduction, entry)
 		}
-		if entry.Type == model.LoanTransactionAutomaticDeduction {
+		if entry.Type == model.LoanTransactionAutomaticDeduction && loanTransaction.LoanType != model.LoanTypeRestructured && loanTransaction.LoanType != model.LoanTypeStandardPrevious {
 			postComputed = append(postComputed, entry)
 		}
 	}
-
+	if (loanTransaction.LoanType == model.LoanTypeRestructured ||
+		loanTransaction.LoanType == model.LoanTypeRenewalWithoutDeduct ||
+		loanTransaction.LoanType == model.LoanTypeRenewal) && loanTransaction.PreviousLoanID != nil {
+		result = append(result, &model.LoanTransactionEntry{
+			Account:           loanTransaction.Account,
+			AccountID:         loanTransaction.AccountID,
+			Credit:            loanTransaction.Balance,
+			Debit:             0,
+			Description:       loanTransaction.PreviousLoan.Account.Name,
+			Name:              loanTransaction.PreviousLoan.Account.Description,
+			Type:              model.LoanTransactionPrevious,
+			LoanTransactionID: loanTransaction.ID,
+		})
+	}
 	// ================================================================================
 	// STEP 4: CREATE DEFAULT STATIC ENTRIES IF NOT EXISTS
 	// ================================================================================
@@ -293,6 +306,20 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 
 	// Set the debit amount for the loan account entry
 	result[1].Debit = loanTransaction.Applied1
+	switch loanTransaction.LoanType {
+
+	case model.LoanTypeStandard:
+		result[1].Name = loanTransaction.Account.Name
+	case model.LoanTypeStandardPrevious:
+		result[1].Name = loanTransaction.Account.Name
+	case model.LoanTypeRestructured:
+		result[1].Name = loanTransaction.Account.Name + " - RESTRUCTURED"
+	case model.LoanTypeRenewal:
+		result[1].Name = loanTransaction.Account.Name + " - CURRENT"
+	case model.LoanTypeRenewalWithoutDeduct:
+		result[1].Name = loanTransaction.Account.Name + " - CURRENT"
+
+	}
 
 	// Create new loan transaction entries and calculate totals
 	totalDebit, totalCredit := 0.0, 0.0

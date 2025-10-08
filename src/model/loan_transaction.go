@@ -596,7 +596,7 @@ func (m *Model) LoanTransaction() {
 			"LoanTermsAndConditionAmountReceipt", "LoanTermsAndConditionAmountReceipt.Account",
 			"ComakerMemberProfiles", "ComakerMemberProfiles.MemberProfile", "ComakerMemberProfiles.MemberProfile.Media",
 			"ComakerCollaterals", "ComakerCollaterals.Collateral",
-			"PreviousLoan",
+			"PreviousLoan.Account",
 			"ReleasedBy", "PrintedBy", "ApprovedBy",
 			"ReleasedBy.Media", "PrintedBy.Media", "ApprovedBy.Media",
 		},
