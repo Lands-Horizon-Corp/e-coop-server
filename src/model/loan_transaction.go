@@ -762,7 +762,7 @@ func (m *Model) mapLoanTransactionEntries(entries []*LoanTransactionEntry) []*Lo
 	return result
 }
 
-func (m *Model) LoanTransactionWithDatesNotNull(ctx context.Context, memberId uuid.UUID, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanTransaction, error) {
+func (m *Model) LoanTransactionWithDatesNotNull(ctx context.Context, memberId uuid.UUID, branchId uuid.UUID, orgId uuid.UUID) ([]*LoanTransaction, error) {
 	filters := []horizon_services.Filter{
 		{Field: "member_profile_id", Op: horizon_services.OpEq, Value: memberId},
 		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
