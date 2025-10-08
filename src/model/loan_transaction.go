@@ -769,7 +769,7 @@ func (m *Model) LoanTransactionWithDatesNotNull(ctx context.Context, memberId uu
 		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
 		// {Field: "approved_date", Op: horizon_services.OpNe, Value: nil},
 		// {Field: "printed_date", Op: horizon_services.OpNe, Value: nil},
-		{Field: "released_date", Op: horizon_services.OpNe, Value: nil},
+		// {Field: "released_date", Op: horizon_services.OpNe, Value: nil},
 	}
 	fmt.Println("----------------------")
 	fmt.Println(filters)
