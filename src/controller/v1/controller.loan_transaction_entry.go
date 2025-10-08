@@ -322,13 +322,13 @@ func (c *Controller) LoanTransactionEntryController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
 
-		_, err = c.event.LoanBalancing(context, ctx, tx, event.LoanBalanceEvent{
+		loanTransaction, err := c.event.LoanBalancing(context, ctx, tx, event.LoanBalanceEvent{
 			LoanTransactionID: loanTransactionEntry.LoanTransactionID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to balance loan transaction: %v", err)})
 		}
 
-		return ctx.JSON(http.StatusOK, map[string]string{"message": "Automatic loan deduction entry restored successfully"})
+		return ctx.JSON(http.StatusOK, c.model.LoanTransactionManager.ToModel(loanTransaction))
 	})
 }
