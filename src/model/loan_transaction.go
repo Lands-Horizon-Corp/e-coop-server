@@ -579,6 +579,7 @@ func (m *Model) LoanTransaction() {
 			"LoanTermsAndConditionAmountReceipt", "LoanTermsAndConditionAmountReceipt.Account",
 			"ComakerMemberProfiles", "ComakerMemberProfiles.MemberProfile", "ComakerMemberProfiles.MemberProfile.Media",
 			"ComakerCollaterals", "ComakerCollaterals.Collateral",
+			"PreviousLoan",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *LoanTransaction) *LoanTransactionResponse {
