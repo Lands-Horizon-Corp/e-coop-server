@@ -207,9 +207,10 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 			continue
 		}
 		if entry.Amount != 0 {
-			entry.Credit = e.service.LoanComputation(ctx, *entry.AutomaticLoanDeduction, *loanTransaction)
-		} else {
 			entry.Credit = entry.Amount
+
+		} else {
+			entry.Credit = e.service.LoanComputation(ctx, *entry.AutomaticLoanDeduction, *loanTransaction)
 		}
 
 		if !entry.IsAddOn {
