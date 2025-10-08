@@ -79,7 +79,7 @@ func (c *Controller) LoanTransactionController() {
 	})
 
 	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/loan-transaction/member-profile/:member_profile_id/release",
+		Route:        "/api/v1/loan-transaction/member-profile/:member_profile_id/release/search",
 		Method:       "GET",
 		ResponseType: model.LoanTransactionResponse{},
 		Note:         "Returns all loan transactions for a specific member profile with pagination and filtering.",
