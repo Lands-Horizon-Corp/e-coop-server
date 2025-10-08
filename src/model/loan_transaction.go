@@ -754,9 +754,6 @@ func (m *Model) mapLoanTransactionEntries(entries []*LoanTransactionEntry) []*Lo
 	// Map entries to response models
 	var result []*LoanTransactionEntryResponse
 	for _, entry := range entries {
-		if entry.IsAutomaticLoanDeductionDeleted {
-			continue
-		}
 		if entry != nil {
 			result = append(result, m.LoanTransactionEntryManager.ToModel(entry))
 		}
