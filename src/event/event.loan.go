@@ -211,6 +211,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		if entry.Amount != 0 {
 			entry.Credit = entry.Amount
 		} else {
+			fmt.Println("214: No Amount specified, computing...", entry.Name)
 			entry.Credit = e.service.LoanComputation(ctx, *entry.AutomaticLoanDeduction, *loanTransaction)
 		}
 
@@ -234,9 +235,10 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 				break
 			}
 		}
+
 		if !exist {
-			fmt.Println("Account name", ald.Name)
-			fmt.Println("Account ID", ald.ID)
+			fmt.Println("240: Account name", ald.Name)
+			fmt.Println("241: Account ID", ald.ID)
 			fmt.Println()
 			entry := &model.LoanTransactionEntry{
 				Credit:                   0,
