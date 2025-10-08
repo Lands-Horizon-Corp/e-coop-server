@@ -202,6 +202,10 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 
 	// Process post-computed (automatic deduction) entries
 	for _, entry := range postComputed {
+		if entry.IsAutomaticLoanDeductionDeleted {
+			result = append(result, entry)
+			continue
+		}
 		if entry.Amount != 0 {
 			entry.Credit = e.service.LoanComputation(ctx, *entry.AutomaticLoanDeduction, *loanTransaction)
 		} else {
@@ -290,6 +294,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	// Create new loan transaction entries and calculate totals
 	totalDebit, totalCredit := 0.0, 0.0
 	for index, entry := range result {
+
 		value := &model.LoanTransactionEntry{
 			CreatedAt:                time.Now().UTC(),
 			CreatedByID:              userOrg.UserID,

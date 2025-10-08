@@ -751,9 +751,12 @@ func (m *Model) mapLoanTransactionEntries(entries []*LoanTransactionEntry) []*Lo
 	sort.Slice(entries, func(i, j int) bool {
 		return entries[i].Index < entries[j].Index
 	})
-
+	// Map entries to response models
 	var result []*LoanTransactionEntryResponse
 	for _, entry := range entries {
+		if entry.IsAutomaticLoanDeductionDeleted {
+			continue
+		}
 		if entry != nil {
 			result = append(result, m.LoanTransactionEntryManager.ToModel(entry))
 		}
@@ -955,4 +958,3 @@ func (m *Model) GenerateLoanAmortizationSchedule(ctx context.Context, loanTransa
 
 	return response, nil
 }
-

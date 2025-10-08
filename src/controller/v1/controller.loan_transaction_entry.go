@@ -218,6 +218,15 @@ func (c *Controller) LoanTransactionEntryController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction entry not found"})
 		}
+		if loanTransactionEntry.Type == model.LoanTransactionAutomaticDeduction {
+			loanTransactionEntry.IsAutomaticLoanDeductionDeleted = true
+			loanTransactionEntry.UpdatedAt = time.Now().UTC()
+			loanTransactionEntry.UpdatedByID = userOrg.UserID
+			if err := c.model.LoanTransactionEntryManager.UpdateFields(context, loanTransactionEntry.ID, loanTransactionEntry); err != nil {
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction entry: " + err.Error()})
+			}
+			return ctx.JSON(http.StatusOK, map[string]string{"message": "Loan transaction entry deleted successfully"})
+		}
 
 		// Check if the loan transaction entry belongs to the user's organization and branch
 		if loanTransactionEntry.OrganizationID != userOrg.OrganizationID || loanTransactionEntry.BranchID != *userOrg.BranchID {
