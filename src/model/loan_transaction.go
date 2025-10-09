@@ -124,7 +124,7 @@ type (
 		MemberProfileID      *uuid.UUID     `gorm:"type:uuid"`
 		MemberProfile        *MemberProfile `gorm:"foreignKey:MemberProfileID;constraint:OnDelete:SET NULL;" json:"member_profile,omitempty"`
 		MemberJointAccountID *uuid.UUID     `gorm:"type:uuid"`
-		MemberJointAccount   *Account       `gorm:"foreignKey:MemberJ																			ointAccountID;constraint:OnDelete:SET NULL;" json:"member_joint_account,omitempty"`
+		MemberJointAccount   *Account       `gorm:"foreignKey:MemberJointAccountID;constraint:OnDelete:SET NULL;" json:"member_joint_account,omitempty"`
 		SignatureMediaID     *uuid.UUID     `gorm:"type:uuid"`
 		SignatureMedia       *Media         `gorm:"foreignKey:SignatureMediaID;constraint:OnDelete:SET NULL;" json:"signature_media,omitempty"`
 
