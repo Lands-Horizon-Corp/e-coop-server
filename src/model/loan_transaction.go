@@ -508,7 +508,7 @@ type (
 		LoanAmount      float64           `json:"loan_amount"`
 		MonthlyPayment  float64           `json:"monthly_payment"`
 		InterestRate    float64           `json:"interest_rate"`
-		ComputationType string            `json:"computation_type"`
+		ComputationType ComputationType   `json:"computation_type"`
 		ModeOfPayment   LoanModeOfPayment `json:"mode_of_payment"`
 	}
 
@@ -827,7 +827,7 @@ func (m *Model) GenerateLoanAmortizationSchedule(ctx context.Context, loanTransa
 
 	// Default values if account is not available
 	interestRate := 10.0 / 100 // Default 10% annual interest rate
-	computationType := "Simple Interest"
+	computationType := Straight
 
 	// Get account information if AccountID is provided
 	if loanTransaction.AccountID != nil {
@@ -915,7 +915,7 @@ func (m *Model) GenerateLoanAmortizationSchedule(ctx context.Context, loanTransa
 
 		// Calculate interest for this period
 		var periodInterest float64
-		if computationType == "Diminishing Balance" {
+		if computationType == Diminishing {
 			// Diminishing balance - interest on remaining balance
 			periodInterest = remainingBalance * (interestRate / 12)
 		} else {
@@ -970,7 +970,7 @@ func (m *Model) GenerateLoanAmortizationSchedule(ctx context.Context, loanTransa
 		LoanAmount:      principal,
 		MonthlyPayment:  monthlyPayment,
 		InterestRate:    interestRate * 100,
-		ComputationType: computationType,
+		ComputationType: Diminishing,
 		ModeOfPayment:   loanTransaction.ModeOfPayment,
 	}
 
