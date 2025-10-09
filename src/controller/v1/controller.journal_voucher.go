@@ -157,7 +157,7 @@ func (c *Controller) JournalVoucherController() {
 			TotalDebit:        totalDebit,
 			TotalCredit:       totalCredit,
 			CashVoucherNumber: request.CashVoucherNumber,
-			Name:   request.Name,
+			Name:              request.Name,
 		}
 
 		if err := c.model.JournalVoucherManager.CreateWithTx(context, tx, journalVoucher); err != nil {
@@ -593,6 +593,7 @@ func (c *Controller) JournalVoucherController() {
 		// Update print details
 		journalVoucher.PrintNumber = journalVoucher.PrintNumber + 1
 		journalVoucher.PrintedDate = handlers.Ptr(time.Now().UTC())
+		journalVoucher.PrintedByID = &userOrg.UserID
 		journalVoucher.CashVoucherNumber = req.CashVoucherNumber
 		journalVoucher.UpdatedAt = time.Now().UTC()
 		journalVoucher.UpdatedByID = userOrg.UserID
@@ -667,6 +668,7 @@ func (c *Controller) JournalVoucherController() {
 		// Revert print details
 		journalVoucher.PrintNumber = 0
 		journalVoucher.PrintedDate = nil
+		journalVoucher.PrintedByID = nil
 		journalVoucher.UpdatedAt = time.Now().UTC()
 		journalVoucher.UpdatedByID = userOrg.UserID
 
@@ -739,6 +741,7 @@ func (c *Controller) JournalVoucherController() {
 
 		// Update approval details
 		journalVoucher.ApprovedDate = handlers.Ptr(time.Now().UTC())
+		journalVoucher.ApprovedByID = &userOrg.UserID
 		journalVoucher.UpdatedAt = time.Now().UTC()
 		journalVoucher.UpdatedByID = userOrg.UserID
 
@@ -808,6 +811,7 @@ func (c *Controller) JournalVoucherController() {
 		// Update print details without voucher number change
 		journalVoucher.PrintNumber = journalVoucher.PrintNumber + 1
 		journalVoucher.PrintedDate = handlers.Ptr(time.Now().UTC())
+		journalVoucher.PrintedByID = &userOrg.UserID
 		journalVoucher.UpdatedAt = time.Now().UTC()
 		journalVoucher.UpdatedByID = userOrg.UserID
 
@@ -884,6 +888,7 @@ func (c *Controller) JournalVoucherController() {
 
 		// Revert approval details
 		journalVoucher.ApprovedDate = nil
+		journalVoucher.ApprovedByID = nil
 		journalVoucher.UpdatedAt = time.Now().UTC()
 		journalVoucher.UpdatedByID = userOrg.UserID
 
@@ -960,6 +965,7 @@ func (c *Controller) JournalVoucherController() {
 
 		// Update release details
 		journalVoucher.ReleasedDate = handlers.Ptr(time.Now().UTC())
+		journalVoucher.ReleasedByID = &userOrg.UserID
 		journalVoucher.UpdatedAt = time.Now().UTC()
 		journalVoucher.UpdatedByID = userOrg.UserID
 

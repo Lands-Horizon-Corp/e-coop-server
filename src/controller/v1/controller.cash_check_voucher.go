@@ -159,9 +159,6 @@ func (c *Controller) CashCheckVoucherController() {
 			ReleasedDate:                  request.ReleasedDate,
 			EmployeeUserID:                request.EmployeeUserID,
 			TransactionBatchID:            request.TransactionBatchID,
-			PrintedByUserID:               request.PrintedByUserID,
-			ApprovedByUserID:              request.ApprovedByUserID,
-			ReleasedByUserID:              request.ReleasedByUserID,
 			ApprovedBySignatureMediaID:    request.ApprovedBySignatureMediaID,
 			ApprovedByName:                request.ApprovedByName,
 			ApprovedByPosition:            request.ApprovedByPosition,
@@ -363,9 +360,6 @@ func (c *Controller) CashCheckVoucherController() {
 		cashCheckVoucher.ReleasedDate = request.ReleasedDate
 		cashCheckVoucher.EmployeeUserID = request.EmployeeUserID
 		cashCheckVoucher.TransactionBatchID = request.TransactionBatchID
-		cashCheckVoucher.PrintedByUserID = request.PrintedByUserID
-		cashCheckVoucher.ApprovedByUserID = request.ApprovedByUserID
-		cashCheckVoucher.ReleasedByUserID = request.ReleasedByUserID
 		cashCheckVoucher.ApprovedBySignatureMediaID = request.ApprovedBySignatureMediaID
 		cashCheckVoucher.ApprovedByName = request.ApprovedByName
 		cashCheckVoucher.ApprovedByPosition = request.ApprovedByPosition
@@ -691,7 +685,7 @@ func (c *Controller) CashCheckVoucherController() {
 		cashCheckVoucher.Status = model.CashCheckVoucherStatusPrinted
 		cashCheckVoucher.UpdatedAt = time.Now().UTC()
 		cashCheckVoucher.UpdatedByID = userOrg.UserID
-		cashCheckVoucher.PrintedByUserID = &userOrg.UserID
+		cashCheckVoucher.PrintedByID = &userOrg.UserID
 
 		if err := c.model.CashCheckVoucherManager.UpdateFields(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update cash check voucher print status: " + err.Error()})
@@ -745,7 +739,7 @@ func (c *Controller) CashCheckVoucherController() {
 		cashCheckVoucher.Status = model.CashCheckVoucherStatusApproved
 		cashCheckVoucher.UpdatedAt = time.Now().UTC()
 		cashCheckVoucher.UpdatedByID = userOrg.UserID
-		cashCheckVoucher.ApprovedByUserID = &userOrg.UserID
+		cashCheckVoucher.ApprovedByID = &userOrg.UserID
 
 		if err := c.model.CashCheckVoucherManager.UpdateFields(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to approve cash check voucher: " + err.Error()})
@@ -803,7 +797,7 @@ func (c *Controller) CashCheckVoucherController() {
 		cashCheckVoucher.Status = model.CashCheckVoucherStatusReleased
 		cashCheckVoucher.UpdatedAt = time.Now().UTC()
 		cashCheckVoucher.UpdatedByID = userOrg.UserID
-		cashCheckVoucher.ReleasedByUserID = &userOrg.UserID
+		cashCheckVoucher.ReleasedByID = &userOrg.UserID
 
 		if err := c.model.CashCheckVoucherManager.UpdateFields(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to release cash check voucher: " + err.Error()})
@@ -858,7 +852,7 @@ func (c *Controller) CashCheckVoucherController() {
 		cashCheckVoucher.Status = model.CashCheckVoucherStatusPending
 		cashCheckVoucher.UpdatedAt = time.Now().UTC()
 		cashCheckVoucher.UpdatedByID = userOrg.UserID
-		cashCheckVoucher.PrintedByUserID = nil
+		cashCheckVoucher.PrintedByID = nil
 
 		if err := c.model.CashCheckVoucherManager.UpdateFields(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to undo print for cash check voucher: " + err.Error()})
@@ -909,7 +903,7 @@ func (c *Controller) CashCheckVoucherController() {
 		cashCheckVoucher.Status = model.CashCheckVoucherStatusPrinted
 		cashCheckVoucher.UpdatedAt = time.Now().UTC()
 		cashCheckVoucher.UpdatedByID = userOrg.UserID
-		cashCheckVoucher.PrintedByUserID = &userOrg.UserID
+		cashCheckVoucher.PrintedByID = &userOrg.UserID
 
 		if err := c.model.CashCheckVoucherManager.UpdateFields(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to print cash check voucher: " + err.Error()})
@@ -970,7 +964,7 @@ func (c *Controller) CashCheckVoucherController() {
 		}
 		cashCheckVoucher.UpdatedAt = time.Now().UTC()
 		cashCheckVoucher.UpdatedByID = userOrg.UserID
-		cashCheckVoucher.ApprovedByUserID = nil
+		cashCheckVoucher.ApprovedBy = nil
 
 		if err := c.model.CashCheckVoucherManager.UpdateFields(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to undo approval for cash check voucher: " + err.Error()})

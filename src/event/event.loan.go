@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -80,7 +81,8 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		BranchID:           *userOrg.BranchID,
 		ComputationSheetID: account.ComputationSheetID,
 	})
-	if err != nil {
+	disableLoanDeduction := loanTransaction.LoanType == model.LoanTypeRenewalWithoutDeduct || loanTransaction.LoanType == model.LoanTypeRestructured || loanTransaction.LoanType == model.LoanTypeStandardPrevious
+	if err != nil || disableLoanDeduction {
 		automaticLoanDeductions = []*model.AutomaticLoanDeduction{}
 	}
 
@@ -101,7 +103,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		if entry.Type == model.LoanTransactionDeduction {
 			deduction = append(deduction, entry)
 		}
-		if entry.Type == model.LoanTransactionAutomaticDeduction {
+		if entry.Type == model.LoanTransactionAutomaticDeduction && !disableLoanDeduction {
 			postComputed = append(postComputed, entry)
 		}
 	}
@@ -202,10 +204,15 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 
 	// Process post-computed (automatic deduction) entries
 	for _, entry := range postComputed {
+		if entry.IsAutomaticLoanDeductionDeleted {
+			result = append(result, entry)
+			continue
+		}
 		if entry.Amount != 0 {
-			entry.Credit = e.service.LoanComputation(ctx, *entry.AutomaticLoanDeduction, *loanTransaction)
-		} else {
 			entry.Credit = entry.Amount
+
+		} else {
+			entry.Credit = e.service.LoanComputation(ctx, *entry.AutomaticLoanDeduction, *loanTransaction)
 		}
 
 		if !entry.IsAddOn {
@@ -223,11 +230,12 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	for _, ald := range automaticLoanDeductions {
 		exist := false
 		for _, computed := range postComputed {
-			if ald.ID == *computed.AutomaticLoanDeductionID {
+			if handlers.UuidPtrEqual(&ald.ID, computed.AutomaticLoanDeductionID) {
 				exist = true
 				break
 			}
 		}
+
 		if !exist {
 			entry := &model.LoanTransactionEntry{
 				Credit:                   0,
@@ -250,6 +258,23 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 			}
 			result = append(result, entry)
 		}
+	}
+
+	if (loanTransaction.LoanType == model.LoanTypeRestructured ||
+		loanTransaction.LoanType == model.LoanTypeRenewalWithoutDeduct ||
+		loanTransaction.LoanType == model.LoanTypeRenewal) && loanTransaction.PreviousLoanID != nil {
+		previous := loanTransaction.PreviousLoan
+		result = append(result, &model.LoanTransactionEntry{
+			Account:           previous.Account,
+			AccountID:         previous.AccountID,
+			Credit:            previous.Balance,
+			Debit:             0,
+			Name:              previous.Account.Name,
+			Description:       previous.Account.Description,
+			Type:              model.LoanTransactionPrevious,
+			LoanTransactionID: loanTransaction.ID,
+		})
+		total_non_add_ons += previous.Balance
 	}
 
 	// ================================================================================
@@ -286,30 +311,50 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 
 	// Set the debit amount for the loan account entry
 	result[1].Debit = loanTransaction.Applied1
+	switch loanTransaction.LoanType {
+
+	case model.LoanTypeStandard:
+		result[1].Name = loanTransaction.Account.Name
+	case model.LoanTypeStandardPrevious:
+		result[1].Name = loanTransaction.Account.Name
+	case model.LoanTypeRestructured:
+		result[1].Name = loanTransaction.Account.Name + " - RESTRUCTURED"
+	case model.LoanTypeRenewal:
+		result[1].Name = loanTransaction.Account.Name + " - CURRENT"
+	case model.LoanTypeRenewalWithoutDeduct:
+		result[1].Name = loanTransaction.Account.Name + " - CURRENT"
+
+	}
 
 	// Create new loan transaction entries and calculate totals
 	totalDebit, totalCredit := 0.0, 0.0
 	for index, entry := range result {
+
 		value := &model.LoanTransactionEntry{
-			CreatedAt:                time.Now().UTC(),
-			CreatedByID:              userOrg.UserID,
-			UpdatedAt:                time.Now().UTC(),
-			UpdatedByID:              userOrg.UserID,
-			OrganizationID:           userOrg.OrganizationID,
-			BranchID:                 *userOrg.BranchID,
-			LoanTransactionID:        loanTransaction.ID,
-			Index:                    index,
-			Type:                     entry.Type,
-			IsAddOn:                  entry.IsAddOn,
-			AccountID:                entry.AccountID,
-			AutomaticLoanDeductionID: entry.AutomaticLoanDeductionID,
-			Name:                     entry.Name,
-			Description:              entry.Description,
-			Credit:                   entry.Credit,
-			Debit:                    entry.Debit,
+			CreatedAt:                       time.Now().UTC(),
+			CreatedByID:                     userOrg.UserID,
+			UpdatedAt:                       time.Now().UTC(),
+			UpdatedByID:                     userOrg.UserID,
+			OrganizationID:                  userOrg.OrganizationID,
+			BranchID:                        *userOrg.BranchID,
+			LoanTransactionID:               loanTransaction.ID,
+			Index:                           index,
+			Type:                            entry.Type,
+			IsAddOn:                         entry.IsAddOn,
+			AccountID:                       entry.AccountID,
+			AutomaticLoanDeductionID:        entry.AutomaticLoanDeductionID,
+			Name:                            entry.Name,
+			Description:                     entry.Description,
+			Credit:                          entry.Credit,
+			Debit:                           entry.Debit,
+			Amount:                          entry.Amount,
+			IsAutomaticLoanDeductionDeleted: entry.IsAutomaticLoanDeductionDeleted,
 		}
-		totalDebit += entry.Debit
-		totalCredit += entry.Credit
+		if !entry.IsAutomaticLoanDeductionDeleted {
+			totalDebit += entry.Debit
+			totalCredit += entry.Credit
+		}
+
 		if err := e.model.LoanTransactionEntryManager.CreateWithTx(ctx, tx, value); err != nil {
 			tx.Rollback()
 			e.Footstep(ctx, echoCtx, FootstepEvent{
@@ -320,13 +365,28 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 			return nil, eris.Wrap(err, "failed to create loan transaction entry + "+err.Error())
 		}
 	}
+	// Amortization
+	amort, err := e.service.LoanModeOfPayment(ctx, loanTransaction)
+	if err != nil {
+		tx.Rollback()
+		e.Footstep(ctx, echoCtx, FootstepEvent{
+			Activity:    "data-error",
+			Description: "Failed to calculate loan amortization (/transaction/payment/:transaction_id): " + err.Error(),
+			Module:      "Transaction",
+		})
+		return nil, eris.Wrap(err, "failed to calculate loan amortization + "+err.Error())
+	}
 
 	// ================================================================================
 	// STEP 11: UPDATE LOAN TRANSACTION TOTALS & COMMIT CHANGES
 	// ================================================================================
 	// Update the loan transaction with calculated totals
+	loanTransaction.Balance = totalCredit
 	loanTransaction.TotalCredit = totalCredit
 	loanTransaction.TotalDebit = totalDebit
+	loanTransaction.UpdatedAt = time.Now().UTC()
+	loanTransaction.UpdatedByID = userOrg.UserID
+	loanTransaction.Interest = amort
 	if err := e.model.LoanTransactionManager.UpdateFieldsWithTx(ctx, tx, loanTransaction.ID, loanTransaction); err != nil {
 		tx.Rollback()
 		e.Footstep(ctx, echoCtx, FootstepEvent{
@@ -360,5 +420,6 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		})
 		return nil, eris.Wrap(err, "failed to get updated loan transaction")
 	}
+
 	return newLoanTransaction, nil
 }

@@ -55,16 +55,18 @@ func ToModels[T any, G any](data []*T, mapFunc func(*T) *G) []*G {
 type FilterOp string
 
 const (
-	OpEq    FilterOp = "="
-	OpGt    FilterOp = ">"
-	OpGte   FilterOp = ">="
-	OpLt    FilterOp = "<"
-	OpLte   FilterOp = "<="
-	OpNe    FilterOp = "<>"
-	OpIn    FilterOp = "IN"
-	OpNotIn FilterOp = "NOT IN"
-	OpLike  FilterOp = "LIKE"
-	OpILike FilterOp = "ILIKE"
+	OpEq      FilterOp = "="
+	OpGt      FilterOp = ">"
+	OpGte     FilterOp = ">="
+	OpLt      FilterOp = "<"
+	OpLte     FilterOp = "<="
+	OpNe      FilterOp = "<>"
+	OpIn      FilterOp = "IN"
+	OpNotIn   FilterOp = "NOT IN"
+	OpLike    FilterOp = "LIKE"
+	OpILike   FilterOp = "ILIKE"
+	OpIsNull  FilterOp = "IS NULL"
+	OpNotNull FilterOp = "IS NOT NULL"
 )
 
 type Filter struct {
@@ -280,6 +282,9 @@ func (c *CollectionManager[TData, TResponse, TRequest]) FindOneWithFilters(
 		switch f.Op {
 		case OpIn:
 			db = db.Where(fmt.Sprintf("%s IN (?)", f.Field), f.Value)
+		case OpIsNull, OpNotNull:
+			// For NULL operations, don't use a parameter placeholder
+			db = db.Where(fmt.Sprintf("%s %s", f.Field, f.Op))
 		default:
 			db = db.Where(fmt.Sprintf("%s %s ?", f.Field, f.Op), f.Value)
 		}
@@ -324,6 +329,9 @@ func (c *CollectionManager[TData, TResponse, TRequest]) FindWithFilters(
 		switch f.Op {
 		case OpIn:
 			db = db.Where(fmt.Sprintf("%s IN (?)", f.Field), f.Value)
+		case OpIsNull, OpNotNull:
+			// For NULL operations, don't use a parameter placeholder
+			db = db.Where(fmt.Sprintf("%s %s", f.Field, f.Op))
 		default:
 			db = db.Where(fmt.Sprintf("%s %s ?", f.Field, f.Op), f.Value)
 		}

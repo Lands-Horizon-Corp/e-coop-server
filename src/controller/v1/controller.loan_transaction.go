@@ -77,6 +77,34 @@ func (c *Controller) LoanTransactionController() {
 
 		return ctx.JSON(http.StatusOK, c.model.LoanTransactionManager.Pagination(context, ctx, loanTransactions))
 	})
+
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/loan-transaction/member-profile/:member_profile_id/release/search",
+		Method:       "GET",
+		ResponseType: model.LoanTransactionResponse{},
+		Note:         "Returns all loan transactions for a specific member profile with pagination and filtering.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view loan transactions"})
+		}
+		loanTransactions, err := c.model.LoanTransactionWithDatesNotNull(
+			context, *memberProfileID, *userOrg.BranchID, userOrg.OrganizationID,
+		)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve loan transactions: " + err.Error()})
+		}
+
+		return ctx.JSON(http.StatusOK, c.model.LoanTransactionManager.Pagination(context, ctx, loanTransactions))
+	})
 	// GET /api/v1/loan-transaction/:loan_transaction_id
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id",
@@ -491,13 +519,12 @@ func (c *Controller) LoanTransactionController() {
 
 		newTx := c.provider.Service.Database.Client().Begin()
 		if newTx.Error != nil {
-			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
-				Description: "Failed to start database transaction: " + tx.Error.Error(),
+				Description: "Failed to start database transaction: " + newTx.Error.Error(),
 				Module:      "LoanTransaction",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + newTx.Error.Error()})
 		}
 		newLoanTransaction, err := c.event.LoanBalancing(context, ctx, newTx, event.LoanBalanceEvent{
 			CashOnCashEquivalenceAccountID: *cashOnHandAccountID,
@@ -642,6 +669,7 @@ func (c *Controller) LoanTransactionController() {
 		loanTransaction.ModeOfPaymentFixedDays = request.ModeOfPaymentFixedDays
 		loanTransaction.ModeOfPaymentMonthlyExactDay = request.ModeOfPaymentMonthlyExactDay
 		loanTransaction.UpdatedAt = time.Now().UTC()
+		loanTransaction.PreviousLoanID = request.PreviousLoanID
 
 		// Handle deletions first (same as before)
 		if request.LoanClearanceAnalysisDeleted != nil {
@@ -1097,13 +1125,12 @@ func (c *Controller) LoanTransactionController() {
 
 		newTx := c.provider.Service.Database.Client().Begin()
 		if newTx.Error != nil {
-			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
-				Description: "Failed to start database transaction: " + tx.Error.Error(),
+				Description: "Failed to start database transaction: " + newTx.Error.Error(),
 				Module:      "LoanTransaction",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + newTx.Error.Error()})
 		}
 		newLoanTransaction, err := c.event.LoanBalancing(context, ctx, newTx, event.LoanBalanceEvent{
 			CashOnCashEquivalenceAccountID: account.ID,
@@ -1653,6 +1680,7 @@ func (c *Controller) LoanTransactionController() {
 		}
 		loanTransaction.PrintNumber = loanTransaction.PrintNumber + 1
 		loanTransaction.PrintedDate = handlers.Ptr(time.Now().UTC())
+		loanTransaction.PrintedByID = &userOrg.UserID
 		loanTransaction.Voucher = req.Voucher
 		loanTransaction.CheckNumber = req.CheckNumber
 		loanTransaction.CheckDate = req.CheckDate
@@ -1698,6 +1726,7 @@ func (c *Controller) LoanTransactionController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot undo print on an approved or released loan transaction"})
 		}
 		loanTransaction.PrintedDate = nil
+		loanTransaction.PrintedByID = nil
 		loanTransaction.PrintNumber = 0
 		loanTransaction.Voucher = ""
 		loanTransaction.CheckNumber = ""
@@ -1742,6 +1771,7 @@ func (c *Controller) LoanTransactionController() {
 		}
 		loanTransaction.PrintNumber = loanTransaction.PrintNumber + 1
 		loanTransaction.PrintedDate = handlers.Ptr(time.Now().UTC())
+		loanTransaction.PrintedByID = &userOrg.UserID
 		loanTransaction.UpdatedAt = time.Now().UTC()
 		loanTransaction.UpdatedByID = userOrg.UserID
 		if err := c.model.LoanTransactionManager.UpdateFields(context, loanTransaction.ID, loanTransaction); err != nil {
@@ -1788,6 +1818,7 @@ func (c *Controller) LoanTransactionController() {
 		}
 		now := time.Now().UTC()
 		loanTransaction.ApprovedDate = &now
+		loanTransaction.ApprovedByID = &userOrg.UserID
 		loanTransaction.UpdatedAt = now
 		loanTransaction.UpdatedByID = userOrg.UserID
 		if err := c.model.LoanTransactionManager.UpdateFields(context, loanTransaction.ID, loanTransaction); err != nil {
@@ -1833,6 +1864,7 @@ func (c *Controller) LoanTransactionController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Loan transaction is not approved"})
 		}
 		loanTransaction.ApprovedDate = nil
+		loanTransaction.ApprovedByID = nil
 		loanTransaction.UpdatedAt = time.Now().UTC()
 		loanTransaction.UpdatedByID = userOrg.UserID
 		if err := c.model.LoanTransactionManager.UpdateFields(context, loanTransaction.ID, loanTransaction); err != nil {
@@ -1882,6 +1914,7 @@ func (c *Controller) LoanTransactionController() {
 		}
 		now := time.Now().UTC()
 		loanTransaction.ReleasedDate = &now
+		loanTransaction.ReleasedByID = &userOrg.UserID
 		loanTransaction.UpdatedAt = now
 		loanTransaction.UpdatedByID = userOrg.UserID
 		if err := c.model.LoanTransactionManager.UpdateFields(context, loanTransaction.ID, loanTransaction); err != nil {
@@ -2028,5 +2061,33 @@ func (c *Controller) LoanTransactionController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction not found after entry update: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, loanTransaction)
+	})
+
+	// PUT /api/v1/loan-transaction/:loan_transaction_id/suggested/
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/loan-transaction/suggested",
+		Method:       "PUT",
+		RequestType:  model.LoanTransactionSuggestedRequest{},
+		ResponseType: model.LoanTransactionSuggestedResponse{},
+		Note:         "Updates the suggested payment details for a loan transaction by ID.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+
+		var req model.LoanTransactionSuggestedRequest
+		if err := ctx.Bind(&req); err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction suggested request: " + err.Error()})
+		}
+		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
+		}
+
+		suggestedTerms, err := c.service.SuggestedNumberOfTerms(context, req.Amount, req.Principal, req.ModeOfPayment, req.FixedDays)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to calculate suggested terms: " + err.Error()})
+		}
+
+		return ctx.JSON(http.StatusOK, &model.LoanTransactionSuggestedResponse{
+			Terms: suggestedTerms,
+		})
 	})
 }

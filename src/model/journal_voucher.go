@@ -41,9 +41,15 @@ type (
 
 		// Print and approval fields
 		PrintedDate  *time.Time `gorm:"type:timestamp"`
+		PrintedByID  *uuid.UUID `gorm:"type:uuid"`
+		PrintedBy    *User      `gorm:"foreignKey:PrintedByID;constraint:OnDelete:SET NULL;" json:"printed_by,omitempty"`
 		PrintNumber  int        `gorm:"type:int;default:0"`
 		ApprovedDate *time.Time `gorm:"type:timestamp"`
+		ApprovedByID *uuid.UUID `gorm:"type:uuid"`
+		ApprovedBy   *User      `gorm:"foreignKey:ApprovedByID;constraint:OnDelete:SET NULL;" json:"approved_by,omitempty"`
 		ReleasedDate *time.Time `gorm:"type:timestamp"`
+		ReleasedByID *uuid.UUID `gorm:"type:uuid"`
+		ReleasedBy   *User      `gorm:"foreignKey:ReleasedByID;constraint:OnDelete:SET NULL;" json:"released_by,omitempty"`
 
 		JournalVoucherTags []*JournalVoucherTag `gorm:"foreignKey:JournalVoucherID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"journal_voucher_tags,omitempty"`
 
@@ -79,10 +85,16 @@ type (
 		PostedBy          *UserResponse         `json:"posted_by,omitempty"`
 
 		// Print and approval fields
-		PrintedDate  *string `json:"printed_date,omitempty"`
-		PrintNumber  int     `json:"print_number"`
-		ApprovedDate *string `json:"approved_date,omitempty"`
-		ReleasedDate *string `json:"released_date,omitempty"`
+		PrintedDate  *string       `json:"printed_date,omitempty"`
+		PrintedByID  *uuid.UUID    `json:"printed_by_id,omitempty"`
+		PrintedBy    *UserResponse `json:"printed_by,omitempty"`
+		PrintNumber  int           `json:"print_number"`
+		ApprovedDate *string       `json:"approved_date,omitempty"`
+		ApprovedByID *uuid.UUID    `json:"approved_by_id,omitempty"`
+		ApprovedBy   *UserResponse `json:"approved_by,omitempty"`
+		ReleasedDate *string       `json:"released_date,omitempty"`
+		ReleasedByID *uuid.UUID    `json:"released_by_id,omitempty"`
+		ReleasedBy   *UserResponse `json:"released_by,omitempty"`
 
 		JournalVoucherTags []*JournalVoucherTagResponse `json:"journal_voucher_tags,omitempty"`
 
@@ -118,7 +130,10 @@ func (m *Model) JournalVoucher() {
 		JournalVoucher, JournalVoucherResponse, JournalVoucherRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization", "PostedBy", "JournalVoucherTags",
+			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization", "PostedBy",
+			"PrintedBy", "ApprovedBy", "ReleasedBy",
+			"PrintedBy.Media", "ApprovedBy.Media", "ReleasedBy.Media",
+			"JournalVoucherTags",
 			"JournalVoucherEntries", "JournalVoucherEntries.Account",
 			"JournalVoucherEntries.MemberProfile", "JournalVoucherEntries.EmployeeUser",
 		},
@@ -178,9 +193,15 @@ func (m *Model) JournalVoucher() {
 				PostedByID:            data.PostedByID,
 				PostedBy:              m.UserManager.ToModel(data.PostedBy),
 				PrintedDate:           printedDate,
+				PrintedByID:           data.PrintedByID,
+				PrintedBy:             m.UserManager.ToModel(data.PrintedBy),
 				PrintNumber:           data.PrintNumber,
 				ApprovedDate:          approvedDate,
+				ApprovedByID:          data.ApprovedByID,
+				ApprovedBy:            m.UserManager.ToModel(data.ApprovedBy),
 				ReleasedDate:          releasedDate,
+				ReleasedByID:          data.ReleasedByID,
+				ReleasedBy:            m.UserManager.ToModel(data.ReleasedBy),
 				JournalVoucherTags:    m.JournalVoucherTagManager.ToModels(data.JournalVoucherTags),
 				JournalVoucherEntries: m.mapJournalVoucherEntries(data.JournalVoucherEntries),
 				TotalDebit:            totalDebit,
