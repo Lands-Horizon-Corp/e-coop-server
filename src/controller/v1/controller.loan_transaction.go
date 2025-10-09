@@ -2067,7 +2067,8 @@ func (c *Controller) LoanTransactionController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id/suggested",
 		Method:       "PUT",
-		ResponseType: model.LoanTransactionSuggestedRequest{},
+		RequestType:  model.LoanTransactionSuggestedRequest{},
+		ResponseType: model.LoanTransactionResponse{},
 		Note:         "Updates the suggested payment details for a loan transaction by ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -2081,14 +2082,18 @@ func (c *Controller) LoanTransactionController() {
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
-		}
-		// userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
-		// if err != nil {
-		// 	return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
-		// }
+		} 
 		loanTransaction, err := c.model.LoanTransactionManager.GetByID(context, *loanTransactionID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction not found"})
+		}
+		suggestedTerms, err := c.service.SuggestedNumberOfTerms(context, req.Amount, loanTransaction)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to calculate suggested terms: " + err.Error()})
+		}
+		loanTransaction.Terms = suggestedTerms
+		if err := c.model.LoanTransactionManager.UpdateFields(context, loanTransaction.ID, loanTransaction); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction: " + err.Error()})
 		}
 		newTx := c.provider.Service.Database.Client().Begin()
 		if newTx.Error != nil {

@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"errors"
+	"math"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
 	"github.com/rotisserie/eris"
@@ -84,4 +86,26 @@ func (t *TransactionService) LoanModeOfPayment(ctx context.Context, lt *model.Lo
 		return lt.Applied1 / float64(lt.Terms), nil
 	}
 	return 0, eris.New("not implemented yet")
+}
+
+func (t *TransactionService) SuggestedNumberOfTerms(
+	ctx context.Context,
+	suggestedAmount float64,
+	lt *model.LoanTransaction,
+) (int, error) {
+	if lt == nil {
+		return 0, errors.New("loan transaction is nil")
+	}
+	if suggestedAmount <= 0 {
+		return 0, errors.New("suggested amount must be greater than zero")
+	}
+	if lt.Applied1 <= 0 {
+		return 0, errors.New("invalid loan total amount")
+	}
+	numberOfTerms := int(math.Ceil(lt.Applied1 / suggestedAmount))
+
+	if numberOfTerms < 1 {
+		numberOfTerms = 1
+	}
+	return numberOfTerms, nil
 }
