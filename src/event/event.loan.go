@@ -81,7 +81,8 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		BranchID:           *userOrg.BranchID,
 		ComputationSheetID: account.ComputationSheetID,
 	})
-	if err != nil || loanTransaction.LoanType == model.LoanTypeRenewalWithoutDeduct || loanTransaction.LoanType == model.LoanTypeRestructured || loanTransaction.LoanType == model.LoanTypeStandardPrevious {
+	disableLoanDeduction := loanTransaction.LoanType == model.LoanTypeRenewalWithoutDeduct || loanTransaction.LoanType == model.LoanTypeRestructured || loanTransaction.LoanType == model.LoanTypeStandardPrevious
+	if err != nil || disableLoanDeduction {
 		automaticLoanDeductions = []*model.AutomaticLoanDeduction{}
 	}
 
@@ -102,7 +103,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		if entry.Type == model.LoanTransactionDeduction {
 			deduction = append(deduction, entry)
 		}
-		if entry.Type == model.LoanTransactionAutomaticDeduction && loanTransaction.LoanType != model.LoanTypeRestructured && loanTransaction.LoanType != model.LoanTypeStandardPrevious {
+		if entry.Type == model.LoanTransactionAutomaticDeduction && !disableLoanDeduction {
 			postComputed = append(postComputed, entry)
 		}
 	}
