@@ -298,8 +298,8 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 			AccountID:         loanTransaction.AccountID,
 			Credit:            loanTransaction.Balance,
 			Debit:             0,
-			Description:       loanTransaction.PreviousLoan.Account.Name,
-			Name:              loanTransaction.PreviousLoan.Account.Description,
+			Name:              loanTransaction.PreviousLoan.Account.Name,
+			Description:       loanTransaction.PreviousLoan.Account.Description,
 			Type:              model.LoanTransactionPrevious,
 			LoanTransactionID: loanTransaction.ID,
 		})
