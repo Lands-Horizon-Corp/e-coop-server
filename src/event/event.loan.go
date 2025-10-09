@@ -273,7 +273,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 			Type:              model.LoanTransactionPrevious,
 			LoanTransactionID: loanTransaction.ID,
 		})
-		total_non_add_ons -= previous.Balance
+		total_non_add_ons += previous.Balance
 	}
 
 	// ================================================================================
