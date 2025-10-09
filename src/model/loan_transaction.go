@@ -574,7 +574,7 @@ type (
 		Amount        float64           `json:"amount" validate:"required,gt=0"`
 		Principal     float64           `json:"principal" validate:"required,gt=0"`
 		ModeOfPayment LoanModeOfPayment `json:"mode_of_payment"`
-		FixedDays     int               `json:"fixed_days,omitempty" validate:"omitempty,gte=1"`
+		FixedDays     int               `json:"fixed_days,omitempty" validate:"omitempty"`
 	}
 	LoanTransactionSuggestedResponse struct {
 		Terms int `json:"terms"`
