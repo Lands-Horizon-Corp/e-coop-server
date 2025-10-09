@@ -571,7 +571,13 @@ type (
 	}
 
 	LoanTransactionSuggestedRequest struct {
-		Amount float64 `json:"amount" validate:"required,gt=0"`
+		Amount        float64           `json:"amount" validate:"required,gt=0"`
+		Principal     float64           `json:"principal" validate:"required,gt=0"`
+		ModeOfPayment LoanModeOfPayment `json:"mode_of_payment" validate:"required,oneof='SINGLE' 'WEEKLY' 'SEMI-MONTHLY' 'FIXED DAYS' 'MONTHLY'"`
+		FixedDays     int               `json:"fixed_days,omitempty" validate:"omitempty,gte=1"`
+	}
+	LoanTransactionSuggestedResponse struct {
+		Terms int `json:"terms"`
 	}
 )
 

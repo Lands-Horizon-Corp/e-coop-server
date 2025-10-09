@@ -91,19 +91,50 @@ func (t *TransactionService) LoanModeOfPayment(ctx context.Context, lt *model.Lo
 func (t *TransactionService) SuggestedNumberOfTerms(
 	ctx context.Context,
 	suggestedAmount float64,
-	lt *model.LoanTransaction,
+	principal float64,
+	modeOfPayment model.LoanModeOfPayment,
+	fixedDays int,
 ) (int, error) {
-	if lt == nil {
-		return 0, errors.New("loan transaction is nil")
-	}
 	if suggestedAmount <= 0 {
 		return 0, errors.New("suggested amount must be greater than zero")
 	}
-	if lt.Applied1 <= 0 {
-		return 0, errors.New("invalid loan total amount")
+	if principal <= 0 {
+		return 0, errors.New("invalid total loan amount")
 	}
-	numberOfTerms := int(math.Ceil(lt.Applied1 / suggestedAmount))
 
+	var terms float64
+
+	switch modeOfPayment {
+	case model.LoanModeOfPaymentDaily:
+		// daily = total / (payment * 30)
+		terms = (principal / suggestedAmount) / 30
+	case model.LoanModeOfPaymentWeekly:
+		// weekly = total / (payment * 4)
+		terms = (principal / suggestedAmount) / 4
+	case model.LoanModeOfPaymentSemiMonthly:
+		// semi-monthly = total / (payment * 2)
+		terms = (principal / suggestedAmount) / 2
+	case model.LoanModeOfPaymentMonthly:
+		// monthly = total / payment
+		terms = principal / suggestedAmount
+	case model.LoanModeOfPaymentQuarterly:
+		// quarterly = total / (payment / 3)
+		terms = (principal / suggestedAmount) * 3
+	case model.LoanModeOfPaymentSemiAnnual:
+		// semi-annual = total / (payment / 6)
+		terms = (principal / suggestedAmount) * 6
+	case model.LoanModeOfPaymentLumpsum:
+		terms = 1
+	case model.LoanModeOfPaymentFixedDays:
+		if fixedDays <= 0 {
+			return 0, errors.New("invalid fixed days: must be greater than 0")
+		}
+		terms = principal / suggestedAmount
+	default:
+		return 0, errors.New("unsupported mode of payment")
+	}
+
+	numberOfTerms := int(math.Ceil(terms))
 	if numberOfTerms < 1 {
 		numberOfTerms = 1
 	}
