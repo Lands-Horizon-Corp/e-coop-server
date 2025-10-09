@@ -2066,7 +2066,7 @@ func (c *Controller) LoanTransactionController() {
 	// PUT /api/v1/loan-transaction/:loan_transaction_id/suggested/
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/suggested",
-		Method:       "PUT",
+		Method:       "POST",
 		RequestType:  model.LoanTransactionSuggestedRequest{},
 		ResponseType: model.LoanTransactionSuggestedResponse{},
 		Note:         "Updates the suggested payment details for a loan transaction by ID.",
