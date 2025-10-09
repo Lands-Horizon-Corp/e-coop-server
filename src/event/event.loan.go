@@ -365,6 +365,17 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 			return nil, eris.Wrap(err, "failed to create loan transaction entry + "+err.Error())
 		}
 	}
+	// Amortization
+	amort, err := e.service.LoanModeOfPayment(ctx, loanTransaction)
+	if err != nil {
+		tx.Rollback()
+		e.Footstep(ctx, echoCtx, FootstepEvent{
+			Activity:    "data-error",
+			Description: "Failed to calculate loan amortization (/transaction/payment/:transaction_id): " + err.Error(),
+			Module:      "Transaction",
+		})
+		return nil, eris.Wrap(err, "failed to calculate loan amortization + "+err.Error())
+	}
 
 	// ================================================================================
 	// STEP 11: UPDATE LOAN TRANSACTION TOTALS & COMMIT CHANGES
@@ -375,7 +386,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	loanTransaction.TotalDebit = totalDebit
 	loanTransaction.UpdatedAt = time.Now().UTC()
 	loanTransaction.UpdatedByID = userOrg.UserID
-	loanTransaction.Interest = loanTransaction.Applied1 / float64(loanTransaction.Terms)
+	loanTransaction.Interest = amort
 	if err := e.model.LoanTransactionManager.UpdateFieldsWithTx(ctx, tx, loanTransaction.ID, loanTransaction); err != nil {
 		tx.Rollback()
 		e.Footstep(ctx, echoCtx, FootstepEvent{
@@ -409,5 +420,6 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		})
 		return nil, eris.Wrap(err, "failed to get updated loan transaction")
 	}
+
 	return newLoanTransaction, nil
 }
