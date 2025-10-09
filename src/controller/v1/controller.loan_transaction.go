@@ -519,13 +519,12 @@ func (c *Controller) LoanTransactionController() {
 
 		newTx := c.provider.Service.Database.Client().Begin()
 		if newTx.Error != nil {
-			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
-				Description: "Failed to start database transaction: " + tx.Error.Error(),
+				Description: "Failed to start database transaction: " + newTx.Error.Error(),
 				Module:      "LoanTransaction",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + newTx.Error.Error()})
 		}
 		newLoanTransaction, err := c.event.LoanBalancing(context, ctx, newTx, event.LoanBalanceEvent{
 			CashOnCashEquivalenceAccountID: *cashOnHandAccountID,
@@ -1126,13 +1125,12 @@ func (c *Controller) LoanTransactionController() {
 
 		newTx := c.provider.Service.Database.Client().Begin()
 		if newTx.Error != nil {
-			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
-				Description: "Failed to start database transaction: " + tx.Error.Error(),
+				Description: "Failed to start database transaction: " + newTx.Error.Error(),
 				Module:      "LoanTransaction",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + newTx.Error.Error()})
 		}
 		newLoanTransaction, err := c.event.LoanBalancing(context, ctx, newTx, event.LoanBalanceEvent{
 			CashOnCashEquivalenceAccountID: account.ID,
@@ -2063,5 +2061,50 @@ func (c *Controller) LoanTransactionController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction not found after entry update: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, loanTransaction)
+	})
+
+	// PUT /api/v1/loan-transaction/:loan_transaction_id/suggested/
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/loan-transaction/:loan_transaction_id/suggested",
+		Method:       "PUT",
+		ResponseType: model.LoanTransactionSuggestedRequest{},
+		Note:         "Updates the suggested payment details for a loan transaction by ID.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
+		}
+		var req model.LoanTransactionSuggestedRequest
+		if err := ctx.Bind(&req); err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction suggested request: " + err.Error()})
+		}
+		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
+		}
+		// userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		// if err != nil {
+		// 	return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		// }
+		loanTransaction, err := c.model.LoanTransactionManager.GetByID(context, *loanTransactionID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction not found"})
+		}
+		newTx := c.provider.Service.Database.Client().Begin()
+		if newTx.Error != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Failed to start database transaction: " + newTx.Error.Error(),
+				Module:      "LoanTransaction",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + newTx.Error.Error()})
+		}
+		newLoanTransaction, err := c.event.LoanBalancing(context, ctx, newTx, event.LoanBalanceEvent{
+			LoanTransactionID: loanTransaction.ID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated loan transaction: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.LoanTransactionManager.ToModel(newLoanTransaction))
 	})
 }
