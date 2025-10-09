@@ -262,17 +262,18 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	if (loanTransaction.LoanType == model.LoanTypeRestructured ||
 		loanTransaction.LoanType == model.LoanTypeRenewalWithoutDeduct ||
 		loanTransaction.LoanType == model.LoanTypeRenewal) && loanTransaction.PreviousLoanID != nil {
+		previous := loanTransaction.PreviousLoan
 		result = append(result, &model.LoanTransactionEntry{
-			Account:           loanTransaction.Account,
-			AccountID:         loanTransaction.AccountID,
-			Credit:            loanTransaction.Balance,
+			Account:           previous.Account,
+			AccountID:         previous.AccountID,
+			Credit:            previous.Balance,
 			Debit:             0,
-			Name:              loanTransaction.PreviousLoan.Account.Name,
-			Description:       loanTransaction.PreviousLoan.Account.Description,
+			Name:              previous.Account.Name,
+			Description:       previous.Account.Description,
 			Type:              model.LoanTransactionPrevious,
 			LoanTransactionID: loanTransaction.ID,
 		})
-		total_non_add_ons -= loanTransaction.Balance
+		total_non_add_ons -= previous.Balance
 	}
 
 	// ================================================================================
