@@ -80,7 +80,7 @@ func (c *Controller) CashCheckVoucherController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		cashCheckVouchers, err := c.model.CashCheckVoucherDraft(context, userOrg.OrganizationID, *userOrg.BranchID)
+		cashCheckVouchers, err := c.model.CashCheckVoucherDraft(context, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch draft cash check vouchers: " + err.Error()})
 		}
@@ -107,7 +107,7 @@ func (c *Controller) CashCheckVoucherController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		cashCheckVouchers, err := c.model.CashCheckVoucherPrinted(context, userOrg.OrganizationID, *userOrg.BranchID)
+		cashCheckVouchers, err := c.model.CashCheckVoucherPrinted(context, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch printed cash check vouchers: " + err.Error()})
 		}
@@ -134,7 +134,7 @@ func (c *Controller) CashCheckVoucherController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		cashCheckVouchers, err := c.model.CashCheckVoucherApproved(context, userOrg.OrganizationID, *userOrg.BranchID)
+		cashCheckVouchers, err := c.model.CashCheckVoucherApproved(context, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch approved cash check vouchers: " + err.Error()})
 		}
@@ -161,7 +161,7 @@ func (c *Controller) CashCheckVoucherController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		cashCheckVouchers, err := c.model.CashCheckVoucherReleased(context, userOrg.OrganizationID, *userOrg.BranchID)
+		cashCheckVouchers, err := c.model.CashCheckVoucherReleased(context, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch released cash check vouchers: " + err.Error()})
 		}
