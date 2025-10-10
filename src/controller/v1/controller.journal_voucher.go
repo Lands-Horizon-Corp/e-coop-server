@@ -987,4 +987,100 @@ func (c *Controller) JournalVoucherController() {
 		return ctx.JSON(http.StatusOK, c.model.JournalVoucherManager.ToModel(journalVoucher))
 	})
 
+	// GET POST /api/v1/journal-voucher/draft
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/journal-voucher/draft",
+		Method:       "GET",
+		Note:         "Fetches draft journal vouchers for the current user's organization and branch.",
+		ResponseType: model.JournalVoucherResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "release-error",
+				Description: "Journal voucher release failed, user org error.",
+				Module:      "JournalVoucher",
+			})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		journalVouchers, err := c.model.JournalVoucherDraft(context, userOrg.OrganizationID, *userOrg.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch draft journal vouchers: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusNotImplemented, c.model.JournalVoucherManager.ToModels(journalVouchers))
+	})
+
+	// GET POST /api/v1/journal-voucher/printed
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/journal-voucher/printed",
+		Method:       "GET",
+		Note:         "Fetches printed journal vouchers for the current user's organization and branch.",
+		ResponseType: model.JournalVoucherResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "printed-error",
+				Description: "Journal voucher printed fetch failed, user org error.",
+				Module:      "JournalVoucher",
+			})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		journalVouchers, err := c.model.JournalVoucherPrinted(context, userOrg.OrganizationID, *userOrg.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch printed journal vouchers: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusNotImplemented, c.model.JournalVoucherManager.ToModels(journalVouchers))
+	})
+
+	// GET POST /api/v1/journal-voucher/approved
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/journal-voucher/approved",
+		Method:       "GET",
+		Note:         "Fetches approved journal vouchers for the current user's organization and branch.",
+		ResponseType: model.JournalVoucherResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "approved-error",
+				Description: "Journal voucher approved fetch failed, user org error.",
+				Module:      "JournalVoucher",
+			})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		journalVouchers, err := c.model.JournalVoucherApproved(context, userOrg.OrganizationID, *userOrg.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch approved journal vouchers: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusNotImplemented, c.model.JournalVoucherManager.ToModels(journalVouchers))
+	})
+
+	// GET POST /api/v1/journal-voucher/released
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/journal-voucher/released",
+		Method:       "GET",
+		Note:         "Fetches released journal vouchers for the current user's organization and branch.",
+		ResponseType: model.JournalVoucherResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "released-error",
+				Description: "Journal voucher released fetch failed, user org error.",
+				Module:      "JournalVoucher",
+			})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		journalVouchers, err := c.model.JournalVoucherReleased(context, userOrg.OrganizationID, *userOrg.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch released journal vouchers: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusNotImplemented, c.model.JournalVoucherManager.ToModels(journalVouchers))
+	})
+
 }

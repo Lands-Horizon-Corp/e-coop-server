@@ -508,7 +508,7 @@ type (
 		LoanAmount      float64           `json:"loan_amount"`
 		MonthlyPayment  float64           `json:"monthly_payment"`
 		InterestRate    float64           `json:"interest_rate"`
-		ComputationType string            `json:"computation_type"`
+		ComputationType ComputationType   `json:"computation_type"`
 		ModeOfPayment   LoanModeOfPayment `json:"mode_of_payment"`
 	}
 
@@ -574,7 +574,7 @@ type (
 		Amount        float64           `json:"amount" validate:"required,gt=0"`
 		Principal     float64           `json:"principal" validate:"required,gt=0"`
 		ModeOfPayment LoanModeOfPayment `json:"mode_of_payment"`
-		FixedDays     int               `json:"fixed_days,omitempty" validate:"omitempty,gte=1"`
+		FixedDays     int               `json:"fixed_days,omitempty" validate:"omitempty"`
 	}
 	LoanTransactionSuggestedResponse struct {
 		Terms int `json:"terms"`
@@ -797,11 +797,29 @@ func (m *Model) mapLoanTransactionEntries(entries []*LoanTransactionEntry) []*Lo
 	return result
 }
 
-func (m *Model) LoanTransactionWithDatesNotNull(ctx context.Context, memberId uuid.UUID, branchId uuid.UUID, orgId uuid.UUID) ([]*LoanTransaction, error) {
+func (m *Model) LoanTransactionWithDatesNotNull(ctx context.Context, memberId, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
 	filters := []horizon_services.Filter{
 		{Field: "member_profile_id", Op: horizon_services.OpEq, Value: memberId},
 		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
 		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
+		{Field: "approved_date", Op: horizon_services.OpNotNull, Value: nil},
+		{Field: "printed_date", Op: horizon_services.OpNotNull, Value: nil},
+		{Field: "released_date", Op: horizon_services.OpNotNull, Value: nil},
+	}
+
+	loanTransactions, err := m.LoanTransactionManager.FindWithFilters(ctx, filters)
+	if err != nil {
+		return nil, err
+	}
+	return loanTransactions, nil
+}
+
+func (m *Model) LoanTransactionsMemberAccount(ctx context.Context, memberId, accountId, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
+	filters := []horizon_services.Filter{
+		{Field: "member_profile_id", Op: horizon_services.OpEq, Value: memberId},
+		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
+		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
+		{Field: "account_id", Op: horizon_services.OpEq, Value: accountId},
 		{Field: "approved_date", Op: horizon_services.OpNotNull, Value: nil},
 		{Field: "printed_date", Op: horizon_services.OpNotNull, Value: nil},
 		{Field: "released_date", Op: horizon_services.OpNotNull, Value: nil},
@@ -827,7 +845,7 @@ func (m *Model) GenerateLoanAmortizationSchedule(ctx context.Context, loanTransa
 
 	// Default values if account is not available
 	interestRate := 10.0 / 100 // Default 10% annual interest rate
-	computationType := "Simple Interest"
+	computationType := Straight
 
 	// Get account information if AccountID is provided
 	if loanTransaction.AccountID != nil {
@@ -915,7 +933,7 @@ func (m *Model) GenerateLoanAmortizationSchedule(ctx context.Context, loanTransa
 
 		// Calculate interest for this period
 		var periodInterest float64
-		if computationType == "Diminishing Balance" {
+		if computationType == Diminishing {
 			// Diminishing balance - interest on remaining balance
 			periodInterest = remainingBalance * (interestRate / 12)
 		} else {
@@ -970,7 +988,7 @@ func (m *Model) GenerateLoanAmortizationSchedule(ctx context.Context, loanTransa
 		LoanAmount:      principal,
 		MonthlyPayment:  monthlyPayment,
 		InterestRate:    interestRate * 100,
-		ComputationType: computationType,
+		ComputationType: Diminishing,
 		ModeOfPayment:   loanTransaction.ModeOfPayment,
 	}
 
@@ -994,4 +1012,74 @@ func (m *Model) GenerateLoanAmortizationSchedule(ctx context.Context, loanTransa
 	}
 
 	return response, nil
+}
+
+func (m *Model) LoanTransactionDraft(ctx context.Context, orgId, branchId uuid.UUID) ([]*LoanTransaction, error) {
+	filters := []horizon_services.Filter{
+		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
+		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
+		{Field: "approved_date", Op: horizon_services.OpIsNull, Value: nil},
+		{Field: "printed_date", Op: horizon_services.OpIsNull, Value: nil},
+		{Field: "released_date", Op: horizon_services.OpIsNull, Value: nil},
+	}
+
+	loanTransactions, err := m.LoanTransactionManager.FindWithFilters(ctx, filters)
+	if err != nil {
+		return nil, err
+	}
+	return loanTransactions, nil
+}
+
+func (m *Model) LoanTransactionPrinted(ctx context.Context, orgId, branchId uuid.UUID) ([]*LoanTransaction, error) {
+	filters := []horizon_services.Filter{
+		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
+		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
+		{Field: "printed_date", Op: horizon_services.OpNotNull, Value: nil},
+		{Field: "approved_date", Op: horizon_services.OpIsNull, Value: nil},
+		{Field: "released_date", Op: horizon_services.OpIsNull, Value: nil},
+	}
+
+	loanTransactions, err := m.LoanTransactionManager.FindWithFilters(ctx, filters)
+	if err != nil {
+		return nil, err
+	}
+	return loanTransactions, nil
+}
+
+func (m *Model) LoanTransactionApproved(ctx context.Context, orgId, branchId uuid.UUID) ([]*LoanTransaction, error) {
+	filters := []horizon_services.Filter{
+		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
+		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
+		{Field: "printed_date", Op: horizon_services.OpNotNull, Value: nil},
+		{Field: "approved_date", Op: horizon_services.OpNotNull, Value: nil},
+		{Field: "released_date", Op: horizon_services.OpIsNull, Value: nil},
+	}
+
+	loanTransactions, err := m.LoanTransactionManager.FindWithFilters(ctx, filters)
+	if err != nil {
+		return nil, err
+	}
+	return loanTransactions, nil
+}
+
+func (m *Model) LoanTransactionReleased(ctx context.Context, orgId, branchId uuid.UUID) ([]*LoanTransaction, error) {
+	now := time.Now().UTC()
+	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+	endOfDay := startOfDay.Add(24 * time.Hour)
+
+	filters := []horizon_services.Filter{
+		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
+		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
+		{Field: "printed_date", Op: horizon_services.OpNotNull, Value: nil},
+		{Field: "approved_date", Op: horizon_services.OpNotNull, Value: nil},
+		{Field: "released_date", Op: horizon_services.OpNotNull, Value: nil},
+		{Field: "created_at", Op: horizon_services.OpGte, Value: startOfDay},
+		{Field: "created_at", Op: horizon_services.OpLt, Value: endOfDay},
+	}
+
+	loanTransactions, err := m.LoanTransactionManager.FindWithFilters(ctx, filters)
+	if err != nil {
+		return nil, err
+	}
+	return loanTransactions, nil
 }

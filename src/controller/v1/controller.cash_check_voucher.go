@@ -60,6 +60,114 @@ func (c *Controller) CashCheckVoucherController() {
 		return ctx.JSON(http.StatusOK, c.model.CashCheckVoucherManager.Pagination(context, ctx, cashCheckVouchers))
 	})
 
+	// GET /api/v1/cash-check-voucher/draft
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/cash-check-voucher/draft",
+		Method:       "GET",
+		Note:         "Fetches draft cash check vouchers for the current user's organization and branch.",
+		ResponseType: model.CashCheckVoucherResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "draft-error",
+				Description: "Cash check voucher draft failed, user org error.",
+				Module:      "CashCheckVoucher",
+			})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if userOrg.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		cashCheckVouchers, err := c.model.CashCheckVoucherDraft(context, userOrg.OrganizationID, *userOrg.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch draft cash check vouchers: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.CashCheckVoucherManager.ToModels(cashCheckVouchers))
+	})
+
+	// GET /api/v1/cash-check-voucher/printed
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/cash-check-voucher/printed",
+		Method:       "GET",
+		Note:         "Fetches printed cash check vouchers for the current user's organization and branch.",
+		ResponseType: model.CashCheckVoucherResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "printed-error",
+				Description: "Cash check voucher printed fetch failed, user org error.",
+				Module:      "CashCheckVoucher",
+			})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if userOrg.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		cashCheckVouchers, err := c.model.CashCheckVoucherPrinted(context, userOrg.OrganizationID, *userOrg.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch printed cash check vouchers: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.CashCheckVoucherManager.ToModels(cashCheckVouchers))
+	})
+
+	// GET /api/v1/cash-check-voucher/approved
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/cash-check-voucher/approved",
+		Method:       "GET",
+		Note:         "Fetches approved cash check vouchers for the current user's organization and branch.",
+		ResponseType: model.CashCheckVoucherResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "approved-error",
+				Description: "Cash check voucher approved fetch failed, user org error.",
+				Module:      "CashCheckVoucher",
+			})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if userOrg.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		cashCheckVouchers, err := c.model.CashCheckVoucherApproved(context, userOrg.OrganizationID, *userOrg.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch approved cash check vouchers: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.CashCheckVoucherManager.ToModels(cashCheckVouchers))
+	})
+
+	// GET /api/v1/cash-check-voucher/released
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/cash-check-voucher/released",
+		Method:       "GET",
+		Note:         "Fetches released cash check vouchers for the current user's organization and branch.",
+		ResponseType: model.CashCheckVoucherResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "released-error",
+				Description: "Cash check voucher released fetch failed, user org error.",
+				Module:      "CashCheckVoucher",
+			})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if userOrg.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		cashCheckVouchers, err := c.model.CashCheckVoucherReleased(context, userOrg.OrganizationID, *userOrg.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch released cash check vouchers: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.CashCheckVoucherManager.ToModels(cashCheckVouchers))
+	})
+
 	// GET /cash-check-voucher/:cash_check_voucher_id: Get specific cash check voucher by ID. (NO footstep)
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/cash-check-voucher/:cash_check_voucher_id",
@@ -659,12 +767,12 @@ func (c *Controller) CashCheckVoucherController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Insufficient permissions to print cash check voucher"})
 		}
 
-		var req model.JournalVoucherPrintRequest
+		var req model.CashCheckVoucherPrintRequest
 		if err := ctx.Bind(&req); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "print-error",
-				Description: "Journal voucher print failed, invalid request body.",
-				Module:      "JournalVoucher",
+				Description: "Cash check voucher print failed, invalid request body.",
+				Module:      "CashCheckVoucher",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
 		}
@@ -680,6 +788,7 @@ func (c *Controller) CashCheckVoucherController() {
 		}
 
 		// Update print details
+		cashCheckVoucher.CashVoucherNumber = req.CashVoucherNumber
 		cashCheckVoucher.PrintCount = cashCheckVoucher.PrintCount + 1
 		cashCheckVoucher.PrintedDate = handlers.Ptr(time.Now().UTC())
 		cashCheckVoucher.Status = model.CashCheckVoucherStatusPrinted

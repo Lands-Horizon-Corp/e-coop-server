@@ -18,6 +18,35 @@ import (
 func (c *Controller) LoanTransactionController() {
 	req := c.provider.Service.Request
 
+	// GET /api/v1/loan-transaction/member-profile/:member_profile_id/account/:account_id
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/loan-transaction/member-profile/:member_profile_id/account/:account_id",
+		Method:       "GET",
+		ResponseType: model.LoanTransactionResponse{},
+		Note:         "Returns the latest loan transaction for a specific member profile and account.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
+		}
+		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID"})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		loanTransactions, err := c.model.LoanTransactionsMemberAccount(
+			context, *memberProfileID, *accountID, *userOrg.BranchID, userOrg.OrganizationID,
+		)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve loan transactions: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.LoanTransactionManager.ToModels(loanTransactions))
+	})
+
 	// GET /api/v1/loan-transaction/search
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/search",
@@ -105,6 +134,115 @@ func (c *Controller) LoanTransactionController() {
 
 		return ctx.JSON(http.StatusOK, c.model.LoanTransactionManager.Pagination(context, ctx, loanTransactions))
 	})
+
+	// GET /api/v1/loan-transaction/draft
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/loan-transaction/draft",
+		Method:       "GET",
+		Note:         "Fetches draft loan transactions for the current user's organization and branch.",
+		ResponseType: model.LoanTransactionResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "draft-error",
+				Description: "Loan transaction draft failed, user org error.",
+				Module:      "LoanTransaction",
+			})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if userOrg.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		loanTransactions, err := c.model.LoanTransactionDraft(context, userOrg.OrganizationID, *userOrg.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch draft loan transactions: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.LoanTransactionManager.ToModels(loanTransactions))
+	})
+
+	// GET /api/v1/loan-transaction/printed
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/loan-transaction/printed",
+		Method:       "GET",
+		Note:         "Fetches printed loan transactions for the current user's organization and branch.",
+		ResponseType: model.LoanTransactionResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "printed-error",
+				Description: "Loan transaction printed fetch failed, user org error.",
+				Module:      "LoanTransaction",
+			})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if userOrg.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		loanTransactions, err := c.model.LoanTransactionPrinted(context, userOrg.OrganizationID, *userOrg.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch printed loan transactions: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.LoanTransactionManager.ToModels(loanTransactions))
+	})
+
+	// GET /api/v1/loan-transaction/approved
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/loan-transaction/approved",
+		Method:       "GET",
+		Note:         "Fetches approved loan transactions for the current user's organization and branch.",
+		ResponseType: model.LoanTransactionResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "approved-error",
+				Description: "Loan transaction approved fetch failed, user org error.",
+				Module:      "LoanTransaction",
+			})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if userOrg.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		loanTransactions, err := c.model.LoanTransactionApproved(context, userOrg.OrganizationID, *userOrg.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch approved loan transactions: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.LoanTransactionManager.ToModels(loanTransactions))
+	})
+
+	// GET /api/v1/loan-transaction/released
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/loan-transaction/released",
+		Method:       "GET",
+		Note:         "Fetches released loan transactions for the current user's organization and branch.",
+		ResponseType: model.LoanTransactionResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "released-error",
+				Description: "Loan transaction released fetch failed, user org error.",
+				Module:      "LoanTransaction",
+			})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if userOrg.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		loanTransactions, err := c.model.LoanTransactionReleased(context, userOrg.OrganizationID, *userOrg.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch released loan transactions: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.LoanTransactionManager.ToModels(loanTransactions))
+	})
+
 	// GET /api/v1/loan-transaction/:loan_transaction_id
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id",
@@ -1920,8 +2058,16 @@ func (c *Controller) LoanTransactionController() {
 		if err := c.model.LoanTransactionManager.UpdateFields(context, loanTransaction.ID, loanTransaction); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction: " + err.Error()})
 		}
-		newLoanTransaction, err := c.model.LoanTransactionManager.GetByIDRaw(context, loanTransaction.ID)
+		tx := c.provider.Service.Database.Client().Begin()
+		if tx.Error != nil {
+			tx.Rollback()
+			return err
+		}
+		newLoanTransaction, err := c.event.LoanPayment(context, ctx, tx, event.LoanBalanceEvent{
+			LoanTransactionID: loanTransaction.ID,
+		})
 		if err != nil {
+			tx.Rollback()
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated loan transaction: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, newLoanTransaction)
@@ -2066,7 +2212,7 @@ func (c *Controller) LoanTransactionController() {
 	// PUT /api/v1/loan-transaction/:loan_transaction_id/suggested/
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/suggested",
-		Method:       "PUT",
+		Method:       "POST",
 		RequestType:  model.LoanTransactionSuggestedRequest{},
 		ResponseType: model.LoanTransactionSuggestedResponse{},
 		Note:         "Updates the suggested payment details for a loan transaction by ID.",
@@ -2090,4 +2236,5 @@ func (c *Controller) LoanTransactionController() {
 			Terms: suggestedTerms,
 		})
 	})
+
 }

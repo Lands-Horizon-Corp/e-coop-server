@@ -273,3 +273,73 @@ func (m *Model) ValidateJournalVoucherBalance(entries []*JournalVoucherEntry) er
 
 	return nil
 }
+
+func (m *Model) JournalVoucherDraft(ctx context.Context, branchId, orgId uuid.UUID) ([]*JournalVoucher, error) {
+	filters := []horizon_services.Filter{
+		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
+		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
+		{Field: "approved_date", Op: horizon_services.OpIsNull, Value: nil},
+		{Field: "printed_date", Op: horizon_services.OpIsNull, Value: nil},
+		{Field: "released_date", Op: horizon_services.OpIsNull, Value: nil},
+	}
+
+	journalVouchers, err := m.JournalVoucherManager.FindWithFilters(ctx, filters)
+	if err != nil {
+		return nil, err
+	}
+	return journalVouchers, nil
+}
+
+func (m *Model) JournalVoucherPrinted(ctx context.Context, branchId, orgId uuid.UUID) ([]*JournalVoucher, error) {
+	filters := []horizon_services.Filter{
+		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
+		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
+		{Field: "printed_date", Op: horizon_services.OpNotNull, Value: nil},
+		{Field: "approved_date", Op: horizon_services.OpIsNull, Value: nil},
+		{Field: "released_date", Op: horizon_services.OpIsNull, Value: nil},
+	}
+
+	journalVouchers, err := m.JournalVoucherManager.FindWithFilters(ctx, filters)
+	if err != nil {
+		return nil, err
+	}
+	return journalVouchers, nil
+}
+
+func (m *Model) JournalVoucherApproved(ctx context.Context, branchId, orgId uuid.UUID) ([]*JournalVoucher, error) {
+	filters := []horizon_services.Filter{
+		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
+		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
+		{Field: "printed_date", Op: horizon_services.OpNotNull, Value: nil},
+		{Field: "approved_date", Op: horizon_services.OpNotNull, Value: nil},
+		{Field: "released_date", Op: horizon_services.OpIsNull, Value: nil},
+	}
+
+	journalVouchers, err := m.JournalVoucherManager.FindWithFilters(ctx, filters)
+	if err != nil {
+		return nil, err
+	}
+	return journalVouchers, nil
+}
+
+func (m *Model) JournalVoucherReleased(ctx context.Context, branchId, orgId uuid.UUID) ([]*JournalVoucher, error) {
+	now := time.Now().UTC()
+	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+	endOfDay := startOfDay.Add(24 * time.Hour)
+
+	filters := []horizon_services.Filter{
+		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
+		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
+		{Field: "printed_date", Op: horizon_services.OpNotNull, Value: nil},
+		{Field: "approved_date", Op: horizon_services.OpNotNull, Value: nil},
+		{Field: "released_date", Op: horizon_services.OpNotNull, Value: nil},
+		{Field: "created_at", Op: horizon_services.OpGte, Value: startOfDay},
+		{Field: "created_at", Op: horizon_services.OpLt, Value: endOfDay},
+	}
+
+	journalVouchers, err := m.JournalVoucherManager.FindWithFilters(ctx, filters)
+	if err != nil {
+		return nil, err
+	}
+	return journalVouchers, nil
+}

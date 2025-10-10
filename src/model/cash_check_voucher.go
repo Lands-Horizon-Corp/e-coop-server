@@ -22,101 +22,101 @@ const (
 
 type (
 	CashCheckVoucher struct {
-		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-		CreatedAt   time.Time      `gorm:"not null;default:now()"`
-		CreatedByID uuid.UUID      `gorm:"type:uuid"`
+		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
+		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
+		CreatedByID uuid.UUID      `gorm:"type:uuid" json:"created_by_id"`
 		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt   time.Time      `gorm:"not null;default:now()"`
-		UpdatedByID uuid.UUID      `gorm:"type:uuid"`
+		UpdatedAt   time.Time      `gorm:"not null;default:now()" json:"updated_at"`
+		UpdatedByID uuid.UUID      `gorm:"type:uuid" json:"updated_by_id"`
 		UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt   gorm.DeletedAt `gorm:"index"`
-		DeletedByID *uuid.UUID     `gorm:"type:uuid"`
+		DeletedAt   gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
+		DeletedByID *uuid.UUID     `gorm:"type:uuid" json:"deleted_by_id,omitempty"`
 		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
 
 		Name string `gorm:"type:varchar(255)"`
 
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_cash_check_voucher"`
+		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_cash_check_voucher" json:"organization_id"`
 		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_cash_check_voucher"`
+		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_cash_check_voucher" json:"branch_id"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
-		EmployeeUserID     *uuid.UUID        `gorm:"type:uuid"`
+		EmployeeUserID     *uuid.UUID        `gorm:"type:uuid" json:"employee_user_id,omitempty"`
 		EmployeeUser       *User             `gorm:"foreignKey:EmployeeUserID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"employee_user,omitempty"`
-		TransactionBatchID *uuid.UUID        `gorm:"type:uuid"`
+		TransactionBatchID *uuid.UUID        `gorm:"type:uuid" json:"transaction_batch_id,omitempty"`
 		TransactionBatch   *TransactionBatch `gorm:"foreignKey:TransactionBatchID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"transaction_batch,omitempty"`
-		PrintedByID        *uuid.UUID        `gorm:"type:uuid"`
+		PrintedByID        *uuid.UUID        `gorm:"type:uuid" json:"printed_by_id,omitempty"`
 		PrintedBy          *User             `gorm:"foreignKey:PrintedByID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"printed_by,omitempty"`
-		ApprovedByID       *uuid.UUID        `gorm:"type:uuid"`
+		ApprovedByID       *uuid.UUID        `gorm:"type:uuid" json:"approved_by_id,omitempty"`
 		ApprovedBy         *User             `gorm:"foreignKey:ApprovedByID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"approved_by,omitempty"`
-		ReleasedByID       *uuid.UUID        `gorm:"type:uuid"`
+		ReleasedByID       *uuid.UUID        `gorm:"type:uuid" json:"released_by_id,omitempty"`
 		ReleasedBy         *User             `gorm:"foreignKey:ReleasedByID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"released_by,omitempty"`
 
-		PayTo string `gorm:"type:varchar(255)"`
+		PayTo string `gorm:"type:varchar(255)" json:"pay_to,omitempty"`
 
-		Status            CashCheckVoucherStatus `gorm:"type:varchar(20)"` // enum as string
-		Description       string                 `gorm:"type:text"`
-		CashVoucherNumber string                 `gorm:"type:varchar(255)"`
-		TotalDebit        float64                `gorm:"type:decimal"`
-		TotalCredit       float64                `gorm:"type:decimal"`
-		PrintCount        int                    `gorm:"default:0"`
-		PrintedDate       *time.Time
-		ApprovedDate      *time.Time
-		ReleasedDate      *time.Time
+		Status            CashCheckVoucherStatus `gorm:"type:varchar(20)" json:"status,omitempty"` // enum as string
+		Description       string                 `gorm:"type:text" json:"description,omitempty"`
+		CashVoucherNumber string                 `gorm:"type:varchar(255)" json:"cash_voucher_number,omitempty"`
+		TotalDebit        float64                `gorm:"type:decimal" json:"total_debit,omitempty"`
+		TotalCredit       float64                `gorm:"type:decimal" json:"total_credit,omitempty"`
+		PrintCount        int                    `gorm:"default:0" json:"print_count,omitempty"`
+		PrintedDate       *time.Time             `gorm:"default:null" json:"printed_date,omitempty"`
+		ApprovedDate      *time.Time             `gorm:"default:null" json:"approved_date,omitempty"`
+		ReleasedDate      *time.Time             `gorm:"default:null" json:"released_date,omitempty"`
 
 		// SIGNATURES
-		ApprovedBySignatureMediaID *uuid.UUID `gorm:"type:uuid"`
+		ApprovedBySignatureMediaID *uuid.UUID `gorm:"type:uuid" json:"approved_by_signature_media_id,omitempty"`
 		ApprovedBySignatureMedia   *Media     `gorm:"foreignKey:ApprovedBySignatureMediaID;constraint:OnDelete:SET NULL;" json:"approved_by_signature_media,omitempty"`
-		ApprovedByName             string     `gorm:"type:varchar(255)"`
-		ApprovedByPosition         string     `gorm:"type:varchar(255)"`
+		ApprovedByName             string     `gorm:"type:varchar(255)" json:"approved_by_name,omitempty"`
+		ApprovedByPosition         string     `gorm:"type:varchar(255)" json:"approved_by_position,omitempty"`
 
-		PreparedBySignatureMediaID *uuid.UUID `gorm:"type:uuid"`
+		PreparedBySignatureMediaID *uuid.UUID `gorm:"type:uuid" json:"prepared_by_signature_media_id,omitempty"`
 		PreparedBySignatureMedia   *Media     `gorm:"foreignKey:PreparedBySignatureMediaID;constraint:OnDelete:SET NULL;" json:"prepared_by_signature_media,omitempty"`
-		PreparedByName             string     `gorm:"type:varchar(255)"`
-		PreparedByPosition         string     `gorm:"type:varchar(255)"`
+		PreparedByName             string     `gorm:"type:varchar(255)" json:"prepared_by_name,omitempty"`
+		PreparedByPosition         string     `gorm:"type:varchar(255)" json:"prepared_by_position,omitempty"`
 
-		CertifiedBySignatureMediaID *uuid.UUID `gorm:"type:uuid"`
+		CertifiedBySignatureMediaID *uuid.UUID `gorm:"type:uuid" json:"certified_by_signature_media_id,omitempty"`
 		CertifiedBySignatureMedia   *Media     `gorm:"foreignKey:CertifiedBySignatureMediaID;constraint:OnDelete:SET NULL;" json:"certified_by_signature_media,omitempty"`
-		CertifiedByName             string     `gorm:"type:varchar(255)"`
-		CertifiedByPosition         string     `gorm:"type:varchar(255)"`
+		CertifiedByName             string     `gorm:"type:varchar(255)" json:"certified_by_name,omitempty"`
+		CertifiedByPosition         string     `gorm:"type:varchar(255)" json:"certified_by_position,omitempty"`
 
-		VerifiedBySignatureMediaID *uuid.UUID `gorm:"type:uuid"`
+		VerifiedBySignatureMediaID *uuid.UUID `gorm:"type:uuid" json:"verified_by_signature_media_id,omitempty"`
 		VerifiedBySignatureMedia   *Media     `gorm:"foreignKey:VerifiedBySignatureMediaID;constraint:OnDelete:SET NULL;" json:"verified_by_signature_media,omitempty"`
-		VerifiedByName             string     `gorm:"type:varchar(255)"`
-		VerifiedByPosition         string     `gorm:"type:varchar(255)"`
+		VerifiedByName             string     `gorm:"type:varchar(255)" json:"verified_by_name,omitempty"`
+		VerifiedByPosition         string     `gorm:"type:varchar(255)" json:"verified_by_position,omitempty"`
 
-		CheckBySignatureMediaID *uuid.UUID `gorm:"type:uuid"`
+		CheckBySignatureMediaID *uuid.UUID `gorm:"type:uuid" json:"check_by_signature_media_id,omitempty"`
 		CheckBySignatureMedia   *Media     `gorm:"foreignKey:CheckBySignatureMediaID;constraint:OnDelete:SET NULL;" json:"check_by_signature_media,omitempty"`
-		CheckByName             string     `gorm:"type:varchar(255)"`
-		CheckByPosition         string     `gorm:"type:varchar(255)"`
+		CheckByName             string     `gorm:"type:varchar(255)" json:"check_by_name,omitempty"`
+		CheckByPosition         string     `gorm:"type:varchar(255)" json:"check_by_position,omitempty"`
 
-		AcknowledgeBySignatureMediaID *uuid.UUID `gorm:"type:uuid"`
+		AcknowledgeBySignatureMediaID *uuid.UUID `gorm:"type:uuid" json:"acknowledge_by_signature_media_id,omitempty"`
 		AcknowledgeBySignatureMedia   *Media     `gorm:"foreignKey:AcknowledgeBySignatureMediaID;constraint:OnDelete:SET NULL;" json:"acknowledge_by_signature_media,omitempty"`
-		AcknowledgeByName             string     `gorm:"type:varchar(255)"`
-		AcknowledgeByPosition         string     `gorm:"type:varchar(255)"`
+		AcknowledgeByName             string     `gorm:"type:varchar(255)" json:"acknowledge_by_name,omitempty"`
+		AcknowledgeByPosition         string     `gorm:"type:varchar(255)" json:"acknowledge_by_position,omitempty"`
 
-		NotedBySignatureMediaID *uuid.UUID `gorm:"type:uuid"`
+		NotedBySignatureMediaID *uuid.UUID `gorm:"type:uuid" json:"noted_by_signature_media_id,omitempty"`
 		NotedBySignatureMedia   *Media     `gorm:"foreignKey:NotedBySignatureMediaID;constraint:OnDelete:SET NULL;" json:"noted_by_signature_media,omitempty"`
-		NotedByName             string     `gorm:"type:varchar(255)"`
-		NotedByPosition         string     `gorm:"type:varchar(255)"`
+		NotedByName             string     `gorm:"type:varchar(255)" json:"noted_by_name,omitempty"`
+		NotedByPosition         string     `gorm:"type:varchar(255)" json:"noted_by_position,omitempty"`
 
-		PostedBySignatureMediaID *uuid.UUID `gorm:"type:uuid"`
+		PostedBySignatureMediaID *uuid.UUID `gorm:"type:uuid" json:"posted_by_signature_media_id,omitempty"`
 		PostedBySignatureMedia   *Media     `gorm:"foreignKey:PostedBySignatureMediaID;constraint:OnDelete:SET NULL;" json:"posted_by_signature_media,omitempty"`
-		PostedByName             string     `gorm:"type:varchar(255)"`
-		PostedByPosition         string     `gorm:"type:varchar(255)"`
+		PostedByName             string     `gorm:"type:varchar(255)" json:"posted_by_name,omitempty"`
+		PostedByPosition         string     `gorm:"type:varchar(255)" json:"posted_by_position,omitempty"`
 
-		PaidBySignatureMediaID *uuid.UUID `gorm:"type:uuid"`
+		PaidBySignatureMediaID *uuid.UUID `gorm:"type:uuid" json:"paid_by_signature_media_id,omitempty"`
 		PaidBySignatureMedia   *Media     `gorm:"foreignKey:PaidBySignatureMediaID;constraint:OnDelete:SET NULL;" json:"paid_by_signature_media,omitempty"`
-		PaidByName             string     `gorm:"type:varchar(255)"`
-		PaidByPosition         string     `gorm:"type:varchar(255)"`
+		PaidByName             string     `gorm:"type:varchar(255)" json:"paid_by_name,omitempty"`
+		PaidByPosition         string     `gorm:"type:varchar(255)" json:"paid_by_position,omitempty"`
 
 		CashCheckVoucherTags    []*CashCheckVoucherTag   `gorm:"foreignKey:CashCheckVoucherID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"cash_check_voucher_tags,omitempty"`
 		CashCheckVoucherEntries []*CashCheckVoucherEntry `gorm:"foreignKey:CashCheckVoucherID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"cash_check_voucher_entries,omitempty"`
 
 		// Check Entry Fields
-		CheckEntryAmount      float64 `gorm:"type:decimal;default:0"`
-		CheckEntryCheckNumber string  `gorm:"type:varchar(255)"`
-		CheckEntryCheckDate   *time.Time
-		CheckEntryAccountID   *uuid.UUID `gorm:"type:uuid"`
+		CheckEntryAmount      float64    `gorm:"type:decimal;default:0" json:"check_entry_amount,omitempty"`
+		CheckEntryCheckNumber string     `gorm:"type:varchar(255)" json:"check_entry_check_number,omitempty"`
+		CheckEntryCheckDate   *time.Time `json:"check_entry_check_date,omitempty"`
+		CheckEntryAccountID   *uuid.UUID `gorm:"type:uuid" json:"check_entry_account_id,omitempty"`
 		CheckEntryAccount     *Account   `gorm:"foreignKey:CheckEntryAccountID;constraint:OnDelete:SET NULL,OnUpdate:CASCADE;" json:"check_entry_account,omitempty"`
 	}
 
@@ -274,7 +274,7 @@ type (
 	}
 
 	CashCheckVoucherPrintRequest struct {
-		VoucherNumber string `json:"voucher_number" validate:"required"`
+		CashVoucherNumber string `json:"cash_voucher_number" validate:"required"`
 	}
 )
 
@@ -439,4 +439,74 @@ func (m *Model) CashCheckVoucherCurrentBranch(context context.Context, orgId uui
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})
+}
+
+func (m *Model) CashCheckVoucherDraft(ctx context.Context, branchId, orgId uuid.UUID) ([]*CashCheckVoucher, error) {
+	filters := []horizon_services.Filter{
+		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
+		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
+		{Field: "approved_date", Op: horizon_services.OpIsNull, Value: nil},
+		{Field: "printed_date", Op: horizon_services.OpIsNull, Value: nil},
+		{Field: "released_date", Op: horizon_services.OpIsNull, Value: nil},
+	}
+
+	cashCheckVouchers, err := m.CashCheckVoucherManager.FindWithFilters(ctx, filters)
+	if err != nil {
+		return nil, err
+	}
+	return cashCheckVouchers, nil
+}
+
+func (m *Model) CashCheckVoucherPrinted(ctx context.Context, branchId, orgId uuid.UUID) ([]*CashCheckVoucher, error) {
+	filters := []horizon_services.Filter{
+		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
+		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
+		{Field: "printed_date", Op: horizon_services.OpNotNull, Value: nil},
+		{Field: "approved_date", Op: horizon_services.OpIsNull, Value: nil},
+		{Field: "released_date", Op: horizon_services.OpIsNull, Value: nil},
+	}
+
+	cashCheckVouchers, err := m.CashCheckVoucherManager.FindWithFilters(ctx, filters)
+	if err != nil {
+		return nil, err
+	}
+	return cashCheckVouchers, nil
+}
+
+func (m *Model) CashCheckVoucherApproved(ctx context.Context, branchId, orgId uuid.UUID) ([]*CashCheckVoucher, error) {
+	filters := []horizon_services.Filter{
+		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
+		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
+		{Field: "printed_date", Op: horizon_services.OpNotNull, Value: nil},
+		{Field: "approved_date", Op: horizon_services.OpNotNull, Value: nil},
+		{Field: "released_date", Op: horizon_services.OpIsNull, Value: nil},
+	}
+
+	cashCheckVouchers, err := m.CashCheckVoucherManager.FindWithFilters(ctx, filters)
+	if err != nil {
+		return nil, err
+	}
+	return cashCheckVouchers, nil
+}
+
+func (m *Model) CashCheckVoucherReleased(ctx context.Context, branchId, orgId uuid.UUID) ([]*CashCheckVoucher, error) {
+	now := time.Now().UTC()
+	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+	endOfDay := startOfDay.Add(24 * time.Hour)
+
+	filters := []horizon_services.Filter{
+		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
+		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
+		{Field: "printed_date", Op: horizon_services.OpNotNull, Value: nil},
+		{Field: "approved_date", Op: horizon_services.OpNotNull, Value: nil},
+		{Field: "released_date", Op: horizon_services.OpNotNull, Value: nil},
+		{Field: "created_at", Op: horizon_services.OpGte, Value: startOfDay},
+		{Field: "created_at", Op: horizon_services.OpLt, Value: endOfDay},
+	}
+
+	cashCheckVouchers, err := m.CashCheckVoucherManager.FindWithFilters(ctx, filters)
+	if err != nil {
+		return nil, err
+	}
+	return cashCheckVouchers, nil
 }

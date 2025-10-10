@@ -505,7 +505,7 @@ func (m *Model) GeneralLedgerExcludeCashonHandWithFilters(
 		})
 	}
 
-branchSetting, err := m.BranchSettingManager.FindOne(ctx, &BranchSetting{BranchID: branchId})
+	branchSetting, err := m.BranchSettingManager.FindOne(ctx, &BranchSetting{BranchID: branchId})
 	if err != nil {
 		return nil, err
 	}

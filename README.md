@@ -153,7 +153,7 @@ The server follows a clean architecture pattern with:
 
 ## Makefile Commands
 
-For streamlined development, use the provided Makefile commands:
+For streamlined development, use the provided Mak dfile commands:
 
 ### Quick Start Commands
 

@@ -124,6 +124,17 @@ const (
 	ISC_Mmonthly InterestStandardComputation = "Monthly"
 )
 
+type ComputationType string
+
+const (
+	Straight             ComputationType = "Straight"
+	Diminishing          ComputationType = "Diminishing"
+	DiminishingAddOn     ComputationType = "DiminishingAddOn"
+	DiminishingYearly    ComputationType = "DiminishingYearly"
+	DiminishingStraight  ComputationType = "DiminishingStraight"
+	DiminishingQuarterly ComputationType = "DiminishingQuarterly"
+)
+
 // --- MODEL ---
 
 type (
@@ -171,7 +182,7 @@ type (
 		CashOnHand         bool `gorm:"default:false" json:"cash_on_hand"`
 		PaidUpShareCapital bool `gorm:"default:false" json:"paid_up_share_capital"`
 
-		ComputationType string `gorm:"type:varchar(50)" json:"computation_type"`
+		ComputationType ComputationType `gorm:"type:varchar(50)" json:"computation_type"`
 
 		FinesAmort       float64 `gorm:"type:decimal" json:"fines_amort"`
 		FinesMaturity    float64 `gorm:"type:decimal" json:"fines_maturity"`
@@ -284,7 +295,7 @@ type AccountResponse struct {
 	CashOnHand         bool `json:"cash_on_hand"`
 	PaidUpShareCapital bool `json:"paid_up_share_capital"`
 
-	ComputationType string `json:"computation_type"`
+	ComputationType ComputationType `json:"computation_type"`
 
 	FinesAmort       float64 `json:"fines_amort"`
 	FinesMaturity    float64 `json:"fines_maturity"`
@@ -374,7 +385,7 @@ type AccountRequest struct {
 	CashOnHand         bool `json:"cash_on_hand,omitempty"`
 	PaidUpShareCapital bool `json:"paid_up_share_capital,omitempty"`
 
-	ComputationType string `json:"computation_type,omitempty"`
+	ComputationType ComputationType `json:"computation_type,omitempty"`
 
 	FinesAmort       float64 `json:"fines_amort,omitempty"`
 	FinesMaturity    float64 `json:"fines_maturity,omitempty"`
