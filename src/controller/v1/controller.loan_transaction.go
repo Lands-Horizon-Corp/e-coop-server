@@ -155,7 +155,7 @@ func (c *Controller) LoanTransactionController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		loanTransactions, err := c.model.LoanTransactionDraft(context, userOrg.OrganizationID, *userOrg.BranchID)
+		loanTransactions, err := c.model.LoanTransactionDraft(context, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch draft loan transactions: " + err.Error()})
 		}
@@ -182,7 +182,7 @@ func (c *Controller) LoanTransactionController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		loanTransactions, err := c.model.LoanTransactionPrinted(context, userOrg.OrganizationID, *userOrg.BranchID)
+		loanTransactions, err := c.model.LoanTransactionPrinted(context, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch printed loan transactions: " + err.Error()})
 		}
@@ -209,7 +209,7 @@ func (c *Controller) LoanTransactionController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		loanTransactions, err := c.model.LoanTransactionApproved(context, userOrg.OrganizationID, *userOrg.BranchID)
+		loanTransactions, err := c.model.LoanTransactionApproved(context, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch approved loan transactions: " + err.Error()})
 		}
@@ -236,7 +236,7 @@ func (c *Controller) LoanTransactionController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		loanTransactions, err := c.model.LoanTransactionReleased(context, userOrg.OrganizationID, *userOrg.BranchID)
+		loanTransactions, err := c.model.LoanTransactionReleased(context, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch released loan transactions: " + err.Error()})
 		}
