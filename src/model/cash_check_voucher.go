@@ -440,3 +440,73 @@ func (m *Model) CashCheckVoucherCurrentBranch(context context.Context, orgId uui
 		BranchID:       branchId,
 	})
 }
+
+func (m *Model) CashCheckVoucherDraft(ctx context.Context, branchId, orgId uuid.UUID) ([]*CashCheckVoucher, error) {
+	filters := []horizon_services.Filter{
+		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
+		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
+		{Field: "approved_date", Op: horizon_services.OpIsNull, Value: nil},
+		{Field: "printed_date", Op: horizon_services.OpIsNull, Value: nil},
+		{Field: "released_date", Op: horizon_services.OpIsNull, Value: nil},
+	}
+
+	cashCheckVouchers, err := m.CashCheckVoucherManager.FindWithFilters(ctx, filters)
+	if err != nil {
+		return nil, err
+	}
+	return cashCheckVouchers, nil
+}
+
+func (m *Model) CashCheckVoucherPrinted(ctx context.Context, branchId, orgId uuid.UUID) ([]*CashCheckVoucher, error) {
+	filters := []horizon_services.Filter{
+		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
+		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
+		{Field: "printed_date", Op: horizon_services.OpNotNull, Value: nil},
+		{Field: "approved_date", Op: horizon_services.OpIsNull, Value: nil},
+		{Field: "released_date", Op: horizon_services.OpIsNull, Value: nil},
+	}
+
+	cashCheckVouchers, err := m.CashCheckVoucherManager.FindWithFilters(ctx, filters)
+	if err != nil {
+		return nil, err
+	}
+	return cashCheckVouchers, nil
+}
+
+func (m *Model) CashCheckVoucherApproved(ctx context.Context, branchId, orgId uuid.UUID) ([]*CashCheckVoucher, error) {
+	filters := []horizon_services.Filter{
+		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
+		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
+		{Field: "printed_date", Op: horizon_services.OpNotNull, Value: nil},
+		{Field: "approved_date", Op: horizon_services.OpNotNull, Value: nil},
+		{Field: "released_date", Op: horizon_services.OpIsNull, Value: nil},
+	}
+
+	cashCheckVouchers, err := m.CashCheckVoucherManager.FindWithFilters(ctx, filters)
+	if err != nil {
+		return nil, err
+	}
+	return cashCheckVouchers, nil
+}
+
+func (m *Model) CashCheckVoucherReleased(ctx context.Context, branchId, orgId uuid.UUID) ([]*CashCheckVoucher, error) {
+	now := time.Now().UTC()
+	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+	endOfDay := startOfDay.Add(24 * time.Hour)
+
+	filters := []horizon_services.Filter{
+		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
+		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
+		{Field: "printed_date", Op: horizon_services.OpNotNull, Value: nil},
+		{Field: "approved_date", Op: horizon_services.OpNotNull, Value: nil},
+		{Field: "released_date", Op: horizon_services.OpNotNull, Value: nil},
+		{Field: "created_at", Op: horizon_services.OpGte, Value: startOfDay},
+		{Field: "created_at", Op: horizon_services.OpLt, Value: endOfDay},
+	}
+
+	cashCheckVouchers, err := m.CashCheckVoucherManager.FindWithFilters(ctx, filters)
+	if err != nil {
+		return nil, err
+	}
+	return cashCheckVouchers, nil
+}
