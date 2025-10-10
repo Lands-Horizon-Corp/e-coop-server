@@ -9,8 +9,6 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
-	
-
 
 type (
 	LoanTag struct {
