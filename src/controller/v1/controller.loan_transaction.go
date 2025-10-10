@@ -1949,8 +1949,16 @@ func (c *Controller) LoanTransactionController() {
 		if err := c.model.LoanTransactionManager.UpdateFields(context, loanTransaction.ID, loanTransaction); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction: " + err.Error()})
 		}
-		newLoanTransaction, err := c.model.LoanTransactionManager.GetByIDRaw(context, loanTransaction.ID)
+		tx := c.provider.Service.Database.Client().Begin()
+		if tx.Error != nil {
+			tx.Rollback()
+			return err
+		}
+		newLoanTransaction, err := c.event.LoanPayment(context, ctx, tx, event.LoanBalanceEvent{
+			LoanTransactionID: loanTransaction.ID,
+		})
 		if err != nil {
+			tx.Rollback()
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated loan transaction: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, newLoanTransaction)
