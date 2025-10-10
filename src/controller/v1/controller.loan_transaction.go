@@ -2127,4 +2127,6 @@ func (c *Controller) LoanTransactionController() {
 			Terms: suggestedTerms,
 		})
 	})
+
+	
 }

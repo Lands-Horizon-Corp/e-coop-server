@@ -1013,3 +1013,73 @@ func (m *Model) GenerateLoanAmortizationSchedule(ctx context.Context, loanTransa
 
 	return response, nil
 }
+
+func (m *Model) LoanTransactionDraft(ctx context.Context, orgId, branchId uuid.UUID) ([]*LoanTransaction, error) {
+	filters := []horizon_services.Filter{
+		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
+		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
+		{Field: "approved_date", Op: horizon_services.OpIsNull, Value: nil},
+		{Field: "printed_date", Op: horizon_services.OpIsNull, Value: nil},
+		{Field: "released_date", Op: horizon_services.OpIsNull, Value: nil},
+	}
+
+	loanTransactions, err := m.LoanTransactionManager.FindWithFilters(ctx, filters)
+	if err != nil {
+		return nil, err
+	}
+	return loanTransactions, nil
+}
+
+func (m *Model) LoanTransactionPrinted(ctx context.Context, orgId, branchId uuid.UUID) ([]*LoanTransaction, error) {
+	filters := []horizon_services.Filter{
+		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
+		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
+		{Field: "printed_date", Op: horizon_services.OpNotNull, Value: nil},
+		{Field: "approved_date", Op: horizon_services.OpIsNull, Value: nil},
+		{Field: "released_date", Op: horizon_services.OpIsNull, Value: nil},
+	}
+
+	loanTransactions, err := m.LoanTransactionManager.FindWithFilters(ctx, filters)
+	if err != nil {
+		return nil, err
+	}
+	return loanTransactions, nil
+}
+
+func (m *Model) LoanTransactionApproved(ctx context.Context, orgId, branchId uuid.UUID) ([]*LoanTransaction, error) {
+	filters := []horizon_services.Filter{
+		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
+		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
+		{Field: "printed_date", Op: horizon_services.OpNotNull, Value: nil},
+		{Field: "approved_date", Op: horizon_services.OpNotNull, Value: nil},
+		{Field: "released_date", Op: horizon_services.OpIsNull, Value: nil},
+	}
+
+	loanTransactions, err := m.LoanTransactionManager.FindWithFilters(ctx, filters)
+	if err != nil {
+		return nil, err
+	}
+	return loanTransactions, nil
+}
+
+func (m *Model) LoanTransactionReleased(ctx context.Context, orgId, branchId uuid.UUID) ([]*LoanTransaction, error) {
+	now := time.Now().UTC()
+	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+	endOfDay := startOfDay.Add(24 * time.Hour)
+
+	filters := []horizon_services.Filter{
+		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
+		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
+		{Field: "printed_date", Op: horizon_services.OpNotNull, Value: nil},
+		{Field: "approved_date", Op: horizon_services.OpNotNull, Value: nil},
+		{Field: "released_date", Op: horizon_services.OpNotNull, Value: nil},
+		{Field: "created_at", Op: horizon_services.OpGte, Value: startOfDay},
+		{Field: "created_at", Op: horizon_services.OpLt, Value: endOfDay},
+	}
+
+	loanTransactions, err := m.LoanTransactionManager.FindWithFilters(ctx, filters)
+	if err != nil {
+		return nil, err
+	}
+	return loanTransactions, nil
+}
