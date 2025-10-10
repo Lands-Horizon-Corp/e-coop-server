@@ -819,7 +819,7 @@ func (m *Model) LoanTransactionsMemberAccount(ctx context.Context, memberId, acc
 		{Field: "member_profile_id", Op: horizon_services.OpEq, Value: memberId},
 		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
 		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
-		// {Field: "account_id", Op: horizon_services.OpEq, Value: accountId},
+		{Field: "account_id", Op: horizon_services.OpEq, Value: accountId},
 		{Field: "approved_date", Op: horizon_services.OpNotNull, Value: nil},
 		{Field: "printed_date", Op: horizon_services.OpNotNull, Value: nil},
 		{Field: "released_date", Op: horizon_services.OpNotNull, Value: nil},
