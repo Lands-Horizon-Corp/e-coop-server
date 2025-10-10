@@ -824,8 +824,6 @@ func (m *Model) LoanTransactionsMemberAccount(ctx context.Context, memberId, acc
 		{Field: "printed_date", Op: horizon_services.OpNotNull, Value: nil},
 		{Field: "released_date", Op: horizon_services.OpNotNull, Value: nil},
 	}
-	fmt.Println(filters)
-	fmt.Println()
 
 	loanTransactions, err := m.LoanTransactionManager.FindWithFilters(ctx, filters)
 	if err != nil {
