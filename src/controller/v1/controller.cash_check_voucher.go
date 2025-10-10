@@ -659,12 +659,12 @@ func (c *Controller) CashCheckVoucherController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Insufficient permissions to print cash check voucher"})
 		}
 
-		var req model.JournalVoucherPrintRequest
+		var req model.CashCheckVoucherPrintRequest
 		if err := ctx.Bind(&req); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "print-error",
-				Description: "Journal voucher print failed, invalid request body.",
-				Module:      "JournalVoucher",
+				Description: "Cash check voucher print failed, invalid request body.",
+				Module:      "CashCheckVoucher",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
 		}

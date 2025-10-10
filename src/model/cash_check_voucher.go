@@ -274,7 +274,7 @@ type (
 	}
 
 	CashCheckVoucherPrintRequest struct {
-		VoucherNumber string `json:"voucher_number" validate:"required"`
+		CashVoucherNumber string `json:"cash_voucher_number" validate:"required"`
 	}
 )
 
