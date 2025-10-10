@@ -1008,7 +1008,7 @@ func (c *Controller) JournalVoucherController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch draft journal vouchers: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusNotImplemented, c.model.JournalVoucherManager.ToModels(journalVouchers))
+		return ctx.JSON(http.StatusOK, c.model.JournalVoucherManager.ToModels(journalVouchers))
 	})
 
 	// GET POST /api/v1/journal-voucher/printed
@@ -1032,7 +1032,7 @@ func (c *Controller) JournalVoucherController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch printed journal vouchers: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusNotImplemented, c.model.JournalVoucherManager.ToModels(journalVouchers))
+		return ctx.JSON(http.StatusOK, c.model.JournalVoucherManager.ToModels(journalVouchers))
 	})
 
 	// GET POST /api/v1/journal-voucher/approved
@@ -1056,7 +1056,7 @@ func (c *Controller) JournalVoucherController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch approved journal vouchers: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusNotImplemented, c.model.JournalVoucherManager.ToModels(journalVouchers))
+		return ctx.JSON(http.StatusOK, c.model.JournalVoucherManager.ToModels(journalVouchers))
 	})
 
 	// GET POST /api/v1/journal-voucher/released
@@ -1080,7 +1080,7 @@ func (c *Controller) JournalVoucherController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch released journal vouchers: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusNotImplemented, c.model.JournalVoucherManager.ToModels(journalVouchers))
+		return ctx.JSON(http.StatusOK, c.model.JournalVoucherManager.ToModels(journalVouchers))
 	})
 
 }
