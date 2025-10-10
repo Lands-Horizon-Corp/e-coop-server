@@ -797,11 +797,29 @@ func (m *Model) mapLoanTransactionEntries(entries []*LoanTransactionEntry) []*Lo
 	return result
 }
 
-func (m *Model) LoanTransactionWithDatesNotNull(ctx context.Context, memberId uuid.UUID, branchId uuid.UUID, orgId uuid.UUID) ([]*LoanTransaction, error) {
+func (m *Model) LoanTransactionWithDatesNotNull(ctx context.Context, memberId, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
 	filters := []horizon_services.Filter{
 		{Field: "member_profile_id", Op: horizon_services.OpEq, Value: memberId},
 		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
 		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
+		{Field: "approved_date", Op: horizon_services.OpNotNull, Value: nil},
+		{Field: "printed_date", Op: horizon_services.OpNotNull, Value: nil},
+		{Field: "released_date", Op: horizon_services.OpNotNull, Value: nil},
+	}
+
+	loanTransactions, err := m.LoanTransactionManager.FindWithFilters(ctx, filters)
+	if err != nil {
+		return nil, err
+	}
+	return loanTransactions, nil
+}
+
+func (m *Model) LoanTransactionsMemberAccount(ctx context.Context, memberId, accountId, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
+	filters := []horizon_services.Filter{
+		{Field: "member_profile_id", Op: horizon_services.OpEq, Value: memberId},
+		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
+		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
+		{Field: "account_id", Op: horizon_services.OpEq, Value: accountId},
 		{Field: "approved_date", Op: horizon_services.OpNotNull, Value: nil},
 		{Field: "printed_date", Op: horizon_services.OpNotNull, Value: nil},
 		{Field: "released_date", Op: horizon_services.OpNotNull, Value: nil},

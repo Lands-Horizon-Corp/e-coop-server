@@ -18,6 +18,35 @@ import (
 func (c *Controller) LoanTransactionController() {
 	req := c.provider.Service.Request
 
+	// GET /api/v1/loan-transaction/member-profile/:member_profile_id/account/:account_id
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/loan-transaction/member-profile/:member_profile_id/account/:account_id",
+		Method:       "GET",
+		ResponseType: model.LoanTransactionResponse{},
+		Note:         "Returns the latest loan transaction for a specific member profile and account.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
+		}
+		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID"})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		loanTransactions, err := c.model.LoanTransactionsMemberAccount(
+			context, *memberProfileID, *accountID, *userOrg.BranchID, userOrg.OrganizationID,
+		)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve loan transactions: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model.LoanTransactionManager.ToModels(loanTransactions))
+	})
+
 	// GET /api/v1/loan-transaction/search
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/search",
