@@ -101,6 +101,8 @@ func NewHorizonAPIService(
 		AllowOrigins: []string{
 			"https://ecoop-suite.netlify.app",
 			"https://ecoop-suite.com",
+			"https://development.ecoop-suite.com",
+			"https://staging.ecoop-suite.com",
 			"http://localhost:3000",
 			"http://localhost:3001",
 			"http://localhost:3002",
