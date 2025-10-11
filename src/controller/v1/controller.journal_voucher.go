@@ -1004,11 +1004,11 @@ func (c *Controller) JournalVoucherController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		journalVouchers, err := c.model.JournalVoucherDraft(context, userOrg.OrganizationID, *userOrg.BranchID)
+		journalVouchers, err := c.model.JournalVoucherDraft(context, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch draft journal vouchers: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusNotImplemented, c.model.JournalVoucherManager.ToModels(journalVouchers))
+		return ctx.JSON(http.StatusOK, c.model.JournalVoucherManager.ToModels(journalVouchers))
 	})
 
 	// GET POST /api/v1/journal-voucher/printed
@@ -1028,11 +1028,11 @@ func (c *Controller) JournalVoucherController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		journalVouchers, err := c.model.JournalVoucherPrinted(context, userOrg.OrganizationID, *userOrg.BranchID)
+		journalVouchers, err := c.model.JournalVoucherPrinted(context, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch printed journal vouchers: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusNotImplemented, c.model.JournalVoucherManager.ToModels(journalVouchers))
+		return ctx.JSON(http.StatusOK, c.model.JournalVoucherManager.ToModels(journalVouchers))
 	})
 
 	// GET POST /api/v1/journal-voucher/approved
@@ -1052,11 +1052,11 @@ func (c *Controller) JournalVoucherController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		journalVouchers, err := c.model.JournalVoucherApproved(context, userOrg.OrganizationID, *userOrg.BranchID)
+		journalVouchers, err := c.model.JournalVoucherApproved(context, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch approved journal vouchers: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusNotImplemented, c.model.JournalVoucherManager.ToModels(journalVouchers))
+		return ctx.JSON(http.StatusOK, c.model.JournalVoucherManager.ToModels(journalVouchers))
 	})
 
 	// GET POST /api/v1/journal-voucher/released
@@ -1076,11 +1076,11 @@ func (c *Controller) JournalVoucherController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		journalVouchers, err := c.model.JournalVoucherReleased(context, userOrg.OrganizationID, *userOrg.BranchID)
+		journalVouchers, err := c.model.JournalVoucherReleased(context, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch released journal vouchers: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusNotImplemented, c.model.JournalVoucherManager.ToModels(journalVouchers))
+		return ctx.JSON(http.StatusOK, c.model.JournalVoucherManager.ToModels(journalVouchers))
 	})
 
 }

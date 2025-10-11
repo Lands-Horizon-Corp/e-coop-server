@@ -1014,7 +1014,7 @@ func (m *Model) GenerateLoanAmortizationSchedule(ctx context.Context, loanTransa
 	return response, nil
 }
 
-func (m *Model) LoanTransactionDraft(ctx context.Context, orgId, branchId uuid.UUID) ([]*LoanTransaction, error) {
+func (m *Model) LoanTransactionDraft(ctx context.Context, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
 	filters := []horizon_services.Filter{
 		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
 		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
@@ -1030,7 +1030,7 @@ func (m *Model) LoanTransactionDraft(ctx context.Context, orgId, branchId uuid.U
 	return loanTransactions, nil
 }
 
-func (m *Model) LoanTransactionPrinted(ctx context.Context, orgId, branchId uuid.UUID) ([]*LoanTransaction, error) {
+func (m *Model) LoanTransactionPrinted(ctx context.Context, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
 	filters := []horizon_services.Filter{
 		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
 		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
@@ -1046,7 +1046,7 @@ func (m *Model) LoanTransactionPrinted(ctx context.Context, orgId, branchId uuid
 	return loanTransactions, nil
 }
 
-func (m *Model) LoanTransactionApproved(ctx context.Context, orgId, branchId uuid.UUID) ([]*LoanTransaction, error) {
+func (m *Model) LoanTransactionApproved(ctx context.Context, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
 	filters := []horizon_services.Filter{
 		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
 		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
@@ -1062,7 +1062,7 @@ func (m *Model) LoanTransactionApproved(ctx context.Context, orgId, branchId uui
 	return loanTransactions, nil
 }
 
-func (m *Model) LoanTransactionReleased(ctx context.Context, orgId, branchId uuid.UUID) ([]*LoanTransaction, error) {
+func (m *Model) LoanTransactionReleased(ctx context.Context, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
 	now := time.Now().UTC()
 	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 	endOfDay := startOfDay.Add(24 * time.Hour)
