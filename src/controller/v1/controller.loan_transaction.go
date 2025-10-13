@@ -2063,7 +2063,7 @@ func (c *Controller) LoanTransactionController() {
 			tx.Rollback()
 			return err
 		}
-		newLoanTransaction, err := c.event.LoanPayment(context, ctx, tx, event.LoanBalanceEvent{
+		newLoanTransaction, err := c.event.LoanRelease(context, ctx, tx, event.LoanBalanceEvent{
 			LoanTransactionID: loanTransaction.ID,
 		})
 		if err != nil {
