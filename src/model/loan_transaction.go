@@ -213,13 +213,15 @@ type (
 		ComakerMemberProfiles                 []*ComakerMemberProfile                  `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"comaker_member_profiles,omitempty"`
 		ComakerCollaterals                    []*ComakerCollateral                     `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"comaker_collaterals,omitempty"`
 
-		Count       int        `gorm:"type:int;default:0" json:"count"`
-		Balance     float64    `gorm:"type:decimal;default:0" json:"balance"`
-		LastPay     *time.Time `gorm:"type:timestamp" json:"last_pay,omitempty"`
-		Fines       float64    `gorm:"type:decimal;default:0" json:"fines"`
-		Interest    float64    `gorm:"type:decimal;default:0" json:"interest"`
-		TotalDebit  float64    `gorm:"total_debit;type:decimal;default:0" json:"total_debit"`
-		TotalCredit float64    `gorm:"total_credit;type:decimal;default:0" json:"total_credit"`
+		Count          int        `gorm:"type:int;default:0" json:"count"`
+		Balance        float64    `gorm:"type:decimal;default:0" json:"balance"`
+		LastPay        *time.Time `gorm:"type:timestamp" json:"last_pay,omitempty"`
+		Fines          float64    `gorm:"type:decimal;default:0" json:"fines"`
+		Interest       float64    `gorm:"type:decimal;default:0" json:"interest"`
+		TotalDebit     float64    `gorm:"total_debit;type:decimal;default:0" json:"total_debit"`
+		TotalCredit    float64    `gorm:"total_credit;type:decimal;default:0" json:"total_credit"`
+		TotalPrincipal float64    `gorm:"total_principal;type:decimal;default:0" json:"total_principal"`
+		Amortization   float64    `gorm:"type:decimal" json:"amortization"`
 	}
 
 	LoanTransactionResponse struct {

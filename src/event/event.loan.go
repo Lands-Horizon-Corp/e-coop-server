@@ -381,12 +381,12 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	// STEP 11: UPDATE LOAN TRANSACTION TOTALS & COMMIT CHANGES
 	// ================================================================================
 	// Update the loan transaction with calculated totals
+	loanTransaction.Amortization = amort
 	loanTransaction.Balance = totalCredit
 	loanTransaction.TotalCredit = totalCredit
 	loanTransaction.TotalDebit = totalDebit
 	loanTransaction.UpdatedAt = time.Now().UTC()
 	loanTransaction.UpdatedByID = userOrg.UserID
-	loanTransaction.Interest = amort
 	if err := e.model.LoanTransactionManager.UpdateFieldsWithTx(ctx, tx, loanTransaction.ID, loanTransaction); err != nil {
 		tx.Rollback()
 		e.Footstep(ctx, echoCtx, FootstepEvent{
