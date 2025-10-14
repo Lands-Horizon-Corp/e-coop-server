@@ -22,35 +22,15 @@ func (c *Controller) FootstepController() {
 		ResponseType: model.FootstepResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-
-		// Parse the footstep request
-		var footstepReq struct {
-			Description string   `json:"description" validate:"required,max=1000"`
-			Activity    string   `json:"activity" validate:"required,max=255"`
-			Module      string   `json:"module" validate:"required,max=255"`
-			Latitude    *float64 `json:"latitude,omitempty"`
-			Longitude   *float64 `json:"longitude,omitempty"`
-			Location    string   `json:"location,omitempty"`
-		}
-
-		if err := ctx.Bind(&footstepReq); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "create-error",
-				Description: "Footstep creation failed (/footstep), binding error: " + err.Error(),
-				Module:      "Footstep",
-			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid footstep data: " + err.Error()})
-		}
-
-		if err := c.provider.Service.Validator.Struct(footstepReq); err != nil {
+		req, err := c.model.FootstepManager.Validate(ctx)
+		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Footstep creation failed (/footstep), validation error: " + err.Error(),
 				Module:      "Footstep",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid footstep data: " + err.Error()})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid bank data: " + err.Error()})
 		}
-
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -68,26 +48,22 @@ func (c *Controller) FootstepController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-
-		// Get client IP and user agent
-		clientIP := ctx.RealIP()
-		userAgent := ctx.Request().UserAgent()
-		referer := ctx.Request().Referer()
-		acceptLanguage := ctx.Request().Header.Get("Accept-Language")
-
+		longitude := handlers.ParseCoordinate(ctx.Request().Header.Get("X-Longitude"))
+		latitude := handlers.ParseCoordinate(ctx.Request().Header.Get("X-Latitude"))
 		footstep := &model.Footstep{
-			Description:    footstepReq.Description,
-			Activity:       footstepReq.Activity,
-			UserType:       user.UserType,
-			Module:         footstepReq.Module,
-			Latitude:       footstepReq.Latitude,
-			Longitude:      footstepReq.Longitude,
+			Activity: req.Activity,
+			UserType: user.UserType,
+			Module:   req.Module,
+
+			Description:    req.Description,
+			Latitude:       &latitude,
+			Longitude:      &longitude,
+			IPAddress:      ctx.RealIP(),
+			UserAgent:      ctx.Request().UserAgent(),
+			Referer:        ctx.Request().Referer(),
+			Location:       ctx.Request().Header.Get("Location"),
+			AcceptLanguage: ctx.Request().Header.Get("Accept-Language"),
 			Timestamp:      time.Now().UTC(),
-			IPAddress:      clientIP,
-			UserAgent:      userAgent,
-			Referer:        referer,
-			Location:       footstepReq.Location,
-			AcceptLanguage: acceptLanguage,
 			CreatedAt:      time.Now().UTC(),
 			CreatedByID:    user.UserID,
 			UpdatedAt:      time.Now().UTC(),

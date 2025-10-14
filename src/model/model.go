@@ -56,7 +56,7 @@ type (
 		CategoryManager               horizon_services.Repository[Category, CategoryResponse, CategoryRequest]
 		ContactUsManager              horizon_services.Repository[ContactUs, ContactUsResponse, ContactUsRequest]
 		FeedbackManager               horizon_services.Repository[Feedback, FeedbackResponse, FeedbackRequest]
-		FootstepManager               horizon_services.Repository[Footstep, FootstepResponse, any]
+		FootstepManager               horizon_services.Repository[Footstep, FootstepResponse, FootstepRequest]
 		GeneratedReportManager        horizon_services.Repository[GeneratedReport, GeneratedReportResponse, GeneratedReportRequest]
 		InvitationCodeManager         horizon_services.Repository[InvitationCode, InvitationCodeResponse, InvitationCodeRequest]
 		MediaManager                  horizon_services.Repository[Media, MediaResponse, MediaRequest]
