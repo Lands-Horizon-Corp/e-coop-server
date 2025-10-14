@@ -29,7 +29,7 @@ func (c *Controller) FootstepController() {
 				Description: "Footstep creation failed (/footstep), validation error: " + err.Error(),
 				Module:      "Footstep",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid bank data: " + err.Error()})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid footstep data: " + err.Error()})
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
