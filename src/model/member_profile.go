@@ -83,6 +83,9 @@ type (
 		MemberEducationalAttainments []*MemberEducationalAttainment `gorm:"foreignKey:MemberProfileID" json:"member_educational_attainments,omitempty"`
 		MemberContactReferences      []*MemberContactReference      `gorm:"foreignKey:MemberProfileID" json:"member_contact_references,omitempty"`
 		MemberCloseRemarks           []*MemberCloseRemark           `gorm:"foreignKey:MemberProfileID" json:"member_close_remarks,omitempty"`
+
+		Latitude  *float64 `gorm:"type:double precision" json:"latitude,omitempty"`
+		Longitude *float64 `gorm:"type:double precision" json:"longitude,omitempty"`
 	}
 	MemberProfileResponse struct {
 		ID                             uuid.UUID                     `json:"id"`
@@ -139,6 +142,9 @@ type (
 		BusinessContactNumber          string                        `json:"business_contact_number"`
 		CivilStatus                    string                        `json:"civil_status"`
 
+		Latitude  *float64 `json:"latitude,omitempty"`
+		Longitude *float64 `json:"longitude,omitempty"`
+
 		QRCode *horizon.QRResult `json:"qr_code,omitempty"`
 
 		MemberAddresses              []*MemberAddressReponse                `json:"member_addresses,omitempty"`
@@ -187,6 +193,11 @@ type (
 		BusinessAddress                string     `json:"business_address,omitempty"`
 		BusinessContactNumber          string     `json:"business_contact_number,omitempty"`
 		CivilStatus                    string     `json:"civil_status,omitempty"`
+	}
+
+MemberProfileCoordinatesRequest struct {
+		Latitude  float64 `json:"latitude" validate:"required"`
+		Longitude float64 `json:"longitude" validate:"required"`
 	}
 
 	MemberProfilePersonalInfoRequest struct {

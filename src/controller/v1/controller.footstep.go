@@ -2,8 +2,10 @@ package controller_v1
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
 	"github.com/labstack/echo/v4"
 )
@@ -11,6 +13,81 @@ import (
 // FootstepController manages endpoints related to footstep records.
 func (c *Controller) FootstepController() {
 	req := c.provider.Service.Request
+
+	// POST /footstep: Create a new footstep. (WITH footstep)
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/footstep",
+		Method:       "POST",
+		Note:         "Creates a new footstep record for the current user's organization and branch.",
+		ResponseType: model.FootstepResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		req, err := c.model.FootstepManager.Validate(ctx)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Footstep creation failed (/footstep), validation error: " + err.Error(),
+				Module:      "Footstep",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid bank data: " + err.Error()})
+		}
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Footstep creation failed (/footstep), user org error: " + err.Error(),
+				Module:      "Footstep",
+			})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if user.BranchID == nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Footstep creation failed (/footstep), user not assigned to branch.",
+				Module:      "Footstep",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		longitude := handlers.ParseCoordinate(ctx.Request().Header.Get("X-Longitude"))
+		latitude := handlers.ParseCoordinate(ctx.Request().Header.Get("X-Latitude"))
+		footstep := &model.Footstep{
+			Activity: req.Activity,
+			UserType: user.UserType,
+			Module:   req.Module,
+
+			Description:    req.Description,
+			Latitude:       &latitude,
+			Longitude:      &longitude,
+			IPAddress:      ctx.RealIP(),
+			UserAgent:      ctx.Request().UserAgent(),
+			Referer:        ctx.Request().Referer(),
+			Location:       ctx.Request().Header.Get("Location"),
+			AcceptLanguage: ctx.Request().Header.Get("Accept-Language"),
+			Timestamp:      time.Now().UTC(),
+			CreatedAt:      time.Now().UTC(),
+			CreatedByID:    user.UserID,
+			UpdatedAt:      time.Now().UTC(),
+			UpdatedByID:    user.UserID,
+			UserID:         &user.UserID,
+			BranchID:       user.BranchID,
+			OrganizationID: &user.OrganizationID,
+		}
+
+		if err := c.model.FootstepManager.Create(context, footstep); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Footstep creation failed (/footstep), db error: " + err.Error(),
+				Module:      "Footstep",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create footstep: " + err.Error()})
+		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "create-success",
+			Description: "Created footstep (/footstep): " + footstep.Activity,
+			Module:      "Footstep",
+		})
+		return ctx.JSON(http.StatusCreated, c.model.FootstepManager.ToModel(footstep))
+	})
 
 	// GET /footstep/me: Get all footsteps for the currently logged-in user.
 	req.RegisterRoute(handlers.Route{

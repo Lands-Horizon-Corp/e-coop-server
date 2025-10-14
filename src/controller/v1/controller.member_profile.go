@@ -1264,4 +1264,78 @@ func (c *Controller) MemberProfileController() {
 		}
 		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(memberProfile))
 	})
+
+	// PUT /api/v1/member-profile/:member_profile_id/coordinates
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/member-profile/:member_profile_id/coordinates",
+		Method:       "PUT",
+		RequestType:  model.MemberProfileCoordinatesRequest{},
+		ResponseType: model.MemberProfileResponse{},
+		Note:         "Updates the coordinates (latitude and longitude) of a member profile by member_profile_id.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		var req model.MemberProfileCoordinatesRequest
+		if err := ctx.Bind(&req); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member profile coordinates failed: invalid request body: " + err.Error(),
+				Module:      "MemberProfile",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
+		}
+		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member profile coordinates failed: validation error: " + err.Error(),
+				Module:      "MemberProfile",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
+		}
+		memberProfileId, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member profile coordinates failed: invalid member_profile_id: " + err.Error(),
+				Module:      "MemberProfile",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
+		}
+		profile, err := c.model.MemberProfileManager.GetByID(context, *memberProfileId)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member profile coordinates failed: member profile not found: " + err.Error(),
+				Module:      "MemberProfile",
+			})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found: %v", memberProfileId, err)})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member profile coordinates failed: user org error: " + err.Error(),
+				Module:      "MemberProfile",
+			})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
+		}
+		profile.UpdatedAt = time.Now().UTC()
+		profile.UpdatedByID = userOrg.UserID
+		profile.Latitude = &req.Latitude
+		profile.Longitude = &req.Longitude
+
+		if err := c.model.MemberProfileManager.UpdateFields(context, profile.ID, profile); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update member profile coordinates failed: update error: " + err.Error(),
+				Module:      "MemberProfile",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not update member profile: " + err.Error()})
+		}
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "update-success",
+			Description: fmt.Sprintf("Updated member profile coordinates: %s", profile.FullName),
+			Module:      "MemberProfile",
+		})
+		return ctx.JSON(http.StatusOK, c.model.MemberProfileManager.ToModel(profile))
+	})
 }

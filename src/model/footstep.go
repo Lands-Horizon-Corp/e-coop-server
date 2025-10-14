@@ -45,6 +45,7 @@ type (
 		Referer        string               `gorm:"type:varchar(1000)" json:"referer"`
 		Location       string               `gorm:"type:varchar(255)" json:"location"`
 		AcceptLanguage string               `gorm:"type:varchar(255)" json:"accept_language"`
+		Level          string               `gorm:"type:varchar(255)" json:"level"`
 	}
 
 	FootstepResponse struct {
@@ -78,12 +79,20 @@ type (
 		Referer        string               `json:"referer"`
 		Location       string               `json:"location"`
 		AcceptLanguage string               `json:"accept_language"`
+		Level          string               `json:"level"`
+	}
+
+	FootstepRequest struct {
+		Level       string `json:"level" validate:"required,oneof=info warning error debug"`
+		Description string `json:"description"`
+		Activity    string `json:"activity"`
+		Module      string `json:"module"`
 	}
 )
 
 func (m *Model) Footstep() {
 	m.Migration = append(m.Migration, &Footstep{})
-	m.FootstepManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Footstep, FootstepResponse, any]{
+	m.FootstepManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Footstep, FootstepResponse, FootstepRequest]{
 		Preloads: []string{
 			"User",
 			"User.Media",
@@ -130,6 +139,7 @@ func (m *Model) Footstep() {
 				Referer:        data.Referer,
 				Location:       data.Location,
 				AcceptLanguage: data.AcceptLanguage,
+				Level:          data.Level,
 			}
 		},
 		Created: func(data *Footstep) []string {
