@@ -10,6 +10,15 @@ import (
 	"gorm.io/gorm"
 )
 
+type FootstepLevel string
+
+const (
+	FootstepLevelInfo    FootstepLevel = "info"
+	FootstepLevelWarning FootstepLevel = "warning"
+	FootstepLevelError   FootstepLevel = "error"
+	FootstepLevelDebug   FootstepLevel = "debug"
+)
+
 type (
 	Footstep struct {
 		ID             uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
@@ -45,7 +54,7 @@ type (
 		Referer        string               `gorm:"type:varchar(1000)" json:"referer"`
 		Location       string               `gorm:"type:varchar(255)" json:"location"`
 		AcceptLanguage string               `gorm:"type:varchar(255)" json:"accept_language"`
-		Level          string               `gorm:"type:varchar(255)" json:"level"`
+		Level          FootstepLevel        `gorm:"type:varchar(255)" json:"level"`
 	}
 
 	FootstepResponse struct {
@@ -79,14 +88,14 @@ type (
 		Referer        string               `json:"referer"`
 		Location       string               `json:"location"`
 		AcceptLanguage string               `json:"accept_language"`
-		Level          string               `json:"level"`
+		Level          FootstepLevel        `json:"level"`
 	}
 
 	FootstepRequest struct {
-		Level       string `json:"level" validate:"required,oneof=info warning error debug"`
-		Description string `json:"description"`
-		Activity    string `json:"activity"`
-		Module      string `json:"module"`
+		Level       FootstepLevel `json:"level" validate:"required,oneof=info warning error debug"`
+		Description string        `json:"description"`
+		Activity    string        `json:"activity"`
+		Module      string        `json:"module"`
 	}
 )
 
