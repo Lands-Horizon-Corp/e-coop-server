@@ -236,6 +236,14 @@ func (m *ModelCore) CurrencyFindAll(context context.Context) ([]*Currency, error
 	return m.CurrencyManager.Find(context, &Currency{})
 }
 
+func (m *ModelCore) CurrencyFindByAlpha2(context context.Context, iso3166Alpha2 string) (*Currency, error) {
+	currencies, err := m.CurrencyManager.FindOne(context, &Currency{ISO3166Alpha2: iso3166Alpha2})
+	if err != nil {
+		return nil, err
+	}
+	return currencies, nil
+}
+
 func (m *ModelCore) CurrencyFindByCode(context context.Context, currencyCode string) (*Currency, error) {
 	currencies, err := m.CurrencyManager.Find(context, &Currency{CurrencyCode: currencyCode})
 	if err != nil {
