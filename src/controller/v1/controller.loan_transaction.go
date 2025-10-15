@@ -108,6 +108,38 @@ func (c *Controller) LoanTransactionController() {
 	})
 
 	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/loan-transaction/member-profile/:member_profile_id",
+		Method:       "GET",
+		ResponseType: model_core.LoanTransactionResponse{},
+		Note:         "Returns all loan transactions for a specific member profile with pagination and filtering.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
+		}
+
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view loan transactions"})
+		}
+
+		loanTransactions, err := c.model_core.LoanTransactionManager.FindRaw(context, &model_core.LoanTransaction{
+			MemberProfileID: memberProfileID,
+			OrganizationID:  userOrg.OrganizationID,
+			BranchID:        *userOrg.BranchID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve loan transactions: " + err.Error()})
+		}
+
+		return ctx.JSON(http.StatusOK, loanTransactions)
+	})
+
+	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/member-profile/:member_profile_id/release/search",
 		Method:       "GET",
 		ResponseType: model_core.LoanTransactionResponse{},
