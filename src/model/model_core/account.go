@@ -2161,8 +2161,11 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 		userOrganization.SettingsAccountingWithdrawDefaultValueID = &regularSavings.ID
 	}
 
+	// Set default currency to PHP
+	userOrganization.SettingsCurrencyDefaultValueID = &phpCurrency.ID
+
 	if err := m.UserOrganizationManager.UpdateFieldsWithTx(context, tx, userOrganization.ID, userOrganization); err != nil {
-		return eris.Wrap(err, "failed to update user organization with default accounting accounts")
+		return eris.Wrap(err, "failed to update user organization with default accounting accounts and currency")
 	}
 
 	return nil
