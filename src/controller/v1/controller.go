@@ -53,6 +53,7 @@ func (c *Controller) Start() error {
 	c.BranchController()
 	c.CategoryController()
 	c.ContactController()
+	c.CurrencyController()
 	c.FeedbackController()
 	c.FootstepController()
 	c.GeneratedReports()
