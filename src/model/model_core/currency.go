@@ -135,7 +135,7 @@ func (m *ModelCore) CurrencySeed(context context.Context, tx *gorm.DB) error {
 		{CreatedAt: now, UpdatedAt: now, Name: "Czech Koruna", Country: "Czech Republic", CurrencyCode: "CZK", Symbol: "Kč", Emoji: "🇨🇿"},
 		{CreatedAt: now, UpdatedAt: now, Name: "Hungarian Forint", Country: "Hungary", CurrencyCode: "HUF", Symbol: "Ft", Emoji: "🇭🇺"},
 		{CreatedAt: now, UpdatedAt: now, Name: "Russian Ruble", Country: "Russia", CurrencyCode: "RUB", Symbol: "₽", Emoji: "🇷🇺"},
-		{CreatedAt: now, UpdatedAt: now, Name: "Euro", Country: "Croatia", CurrencyCode: "EUR", Symbol: "€", Emoji: "🇭🇷"},
+		{CreatedAt: now, UpdatedAt: now, Name: "Euro (Croatia)", Country: "Croatia", CurrencyCode: "EUR", Symbol: "€", Emoji: "🇭🇷"},
 
 		// Latin American Currencies
 		{CreatedAt: now, UpdatedAt: now, Name: "Brazilian Real", Country: "Brazil", CurrencyCode: "BRL", Symbol: "R$", Emoji: "🇧🇷"},
