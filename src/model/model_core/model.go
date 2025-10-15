@@ -55,6 +55,7 @@ type (
 		BranchSettingManager          horizon_services.Repository[BranchSetting, BranchSettingResponse, BranchSettingRequest]
 		CategoryManager               horizon_services.Repository[Category, CategoryResponse, CategoryRequest]
 		ContactUsManager              horizon_services.Repository[ContactUs, ContactUsResponse, ContactUsRequest]
+		CurrencyManager               horizon_services.Repository[Currency, CurrencyResponse, CurrencyRequest]
 		FeedbackManager               horizon_services.Repository[Feedback, FeedbackResponse, FeedbackRequest]
 		FootstepManager               horizon_services.Repository[Footstep, FootstepResponse, FootstepRequest]
 		GeneratedReportManager        horizon_services.Repository[GeneratedReport, GeneratedReportResponse, GeneratedReportRequest]
@@ -244,6 +245,7 @@ func (c *ModelCore) Start(context context.Context) error {
 	c.CancelledCashCheckVoucher()
 	c.CashCount()
 	c.Category()
+	c.Currency()
 	c.ChargesRateByRangeOrMinimumAmount()
 	c.ChargesRateByTerm()
 	c.ChargesRateByTermHeader()
@@ -372,6 +374,7 @@ func (m *ModelCore) OrganizationSeeder(context context.Context, tx *gorm.DB, use
 	if err := m.BankSeed(context, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
+
 	if err := m.BillAndCoinsSeed(context, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}

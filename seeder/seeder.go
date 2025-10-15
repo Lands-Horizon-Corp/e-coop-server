@@ -124,6 +124,9 @@ func (s *Seeder) Run(ctx context.Context, multiplier int32) error {
 	if err := s.SeedCategory(ctx); err != nil {
 		return err
 	}
+	if err := s.SeedCurrency(ctx); err != nil {
+		return err
+	}
 	if err := s.SeedUsers(ctx, multiplier); err != nil {
 		return err
 	}
@@ -213,6 +216,38 @@ func (s *Seeder) SeedCategory(ctx context.Context) error {
 			return err
 		}
 	}
+	return nil
+}
+
+func (s *Seeder) SeedCurrency(ctx context.Context) error {
+	currencies, err := s.model_core.CurrencyManager.List(ctx)
+	if err != nil {
+		return err
+	}
+	if len(currencies) >= 1 {
+		s.provider.Service.Logger.Info("Currencies already exist, skipping currency seeding.")
+		return nil
+	}
+
+	s.provider.Service.Logger.Info("Starting currency seeding...")
+
+	// Run currency seeder
+	tx := s.provider.Service.Database.Client().Begin()
+	if tx.Error != nil {
+		tx.Rollback()
+		return tx.Error
+	}
+
+	if err := s.model_core.CurrencySeed(ctx, tx); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return err
+	}
+
+	s.provider.Service.Logger.Info("Currency seeding completed successfully.")
 	return nil
 }
 

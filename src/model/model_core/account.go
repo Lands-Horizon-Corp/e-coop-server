@@ -170,6 +170,9 @@ type (
 		MemberTypeID *uuid.UUID  `gorm:"type:uuid" json:"member_type_id"`
 		MemberType   *MemberType `gorm:"foreignKey:MemberTypeID;constraint:OnDelete:SET NULL;" json:"member_type,omitempty"`
 
+		CurrencyID *uuid.UUID `gorm:"type:uuid" json:"currency_id"`
+		Currency   *Currency  `gorm:"foreignKey:CurrencyID;constraint:OnDelete:SET NULL;" json:"currency,omitempty"`
+
 		Name        string `gorm:"type:varchar(255);not null" json:"name"`
 		Description string `gorm:"type:text;not null" json:"description"`
 
@@ -283,6 +286,8 @@ type AccountResponse struct {
 	AccountCategory                *AccountCategoryResponse              `json:"account_category,omitempty"`
 	MemberTypeID                   *uuid.UUID                            `json:"member_type_id,omitempty"`
 	MemberType                     *MemberTypeResponse                   `json:"member_type,omitempty"`
+	CurrencyID                     *uuid.UUID                            `json:"currency_id,omitempty"`
+	Currency                       *CurrencyResponse                     `json:"currency,omitempty"`
 
 	Name        string      `json:"name"`
 	Description string      `json:"description"`
@@ -373,6 +378,7 @@ type AccountRequest struct {
 	AccountClassificationID        *uuid.UUID `json:"account_classification_id,omitempty"`
 	AccountCategoryID              *uuid.UUID `json:"account_category_id,omitempty"`
 	MemberTypeID                   *uuid.UUID `json:"member_type_id,omitempty"`
+	CurrencyID                     *uuid.UUID `json:"currency_id" validate:"required"`
 
 	Name        string      `json:"name" validate:"required,min=1,max=255"`
 	Description string      `json:"description"`
@@ -465,7 +471,7 @@ func (m *ModelCore) Account() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
 			"AccountClassification", "AccountCategory",
-			"AccountTags", "ComputationSheet",
+			"AccountTags", "ComputationSheet", "Currency",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *Account) *AccountResponse {
@@ -495,6 +501,8 @@ func (m *ModelCore) Account() {
 				AccountCategory:                m.AccountCategoryManager.ToModel(data.AccountCategory),
 				MemberTypeID:                   data.MemberTypeID,
 				MemberType:                     m.MemberTypeManager.ToModel(data.MemberType),
+				CurrencyID:                     data.CurrencyID,
+				Currency:                       m.CurrencyManager.ToModel(data.Currency),
 
 				Name:                                  data.Name,
 				Description:                           data.Description,
@@ -597,6 +605,13 @@ func (m *ModelCore) Account() {
 
 func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
+
+	// Get PHP currency as default
+	phpCurrency, err := m.CurrencyFindByCode(context, "PHP")
+	if err != nil {
+		return eris.Wrap(err, "failed to find PHP currency for account seeding")
+	}
+
 	accounts := []*Account{
 		// Regular Savings Accounts
 		{
@@ -757,6 +772,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 
 	// Create all deposit accounts first
 	for _, data := range accounts {
+		data.CurrencyID = &phpCurrency.ID
 		data.ShowInGeneralLedgerSourceWithdraw = true
 		data.ShowInGeneralLedgerSourceDeposit = true
 		data.ShowInGeneralLedgerSourceJournal = true
@@ -883,6 +899,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 
 	// Create loan accounts and their alternative accounts
 	for _, loanAccount := range loanAccounts {
+		loanAccount.CurrencyID = &phpCurrency.ID
 		// Create the main loan account
 		if err := m.AccountManager.CreateWithTx(context, tx, loanAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed loan account %s", loanAccount.Name)
@@ -896,6 +913,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			UpdatedByID:                             userID,
 			OrganizationID:                          organizationID,
 			BranchID:                                branchID,
+			CurrencyID:                              &phpCurrency.ID,
 			Name:                                    "Interest " + loanAccount.Name,
 			Description:                             "Interest account for " + loanAccount.Description,
 			Type:                                    AccountTypeInterest,
@@ -928,6 +946,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			UpdatedByID:                             userID,
 			OrganizationID:                          organizationID,
 			BranchID:                                branchID,
+			CurrencyID:                              &phpCurrency.ID,
 			Name:                                    "Service Fee " + loanAccount.Name,
 			Description:                             "Service fee account for " + loanAccount.Description,
 			Type:                                    AccountTypeSVFLedger,
@@ -960,6 +979,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			UpdatedByID:                             userID,
 			OrganizationID:                          organizationID,
 			BranchID:                                branchID,
+			CurrencyID:                              &phpCurrency.ID,
 			Name:                                    "Fines " + loanAccount.Name,
 			Description:                             "Fines account for " + loanAccount.Description,
 			Type:                                    AccountTypeFines,
@@ -991,6 +1011,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 		UpdatedByID:                       userID,
 		OrganizationID:                    organizationID,
 		BranchID:                          branchID,
+		CurrencyID:                        &phpCurrency.ID,
 		Name:                              "Paid Up Share Capital",
 		Description:                       "Member's share capital contribution representing ownership stake in the cooperative.",
 		Type:                              AccountTypeOther,
@@ -1016,6 +1037,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 		UpdatedByID:                             userID,
 		OrganizationID:                          organizationID,
 		BranchID:                                branchID,
+		CurrencyID:                              &phpCurrency.ID,
 		Name:                                    "Cash on Hand",
 		Description:                             "Physical cash available at the branch for daily operations and transactions.",
 		Type:                                    AccountTypeOther,
@@ -1049,6 +1071,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 		UpdatedByID:                             userID,
 		OrganizationID:                          organizationID,
 		BranchID:                                branchID,
+		CurrencyID:                              &phpCurrency.ID,
 		Name:                                    "Cash in Bank",
 		Description:                             "Funds deposited in bank accounts for secure storage and banking transactions.",
 		Type:                                    AccountTypeOther,
@@ -2088,6 +2111,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 
 	// Create all fee accounts
 	for _, feeAccount := range feeAccounts {
+		feeAccount.CurrencyID = &phpCurrency.ID
 		if err := m.AccountManager.CreateWithTx(context, tx, feeAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed fee account %s", feeAccount.Name)
 		}
@@ -2095,6 +2119,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 
 	// Create all operational expense accounts
 	for _, operationalAccount := range operationalAccounts {
+		operationalAccount.CurrencyID = &phpCurrency.ID
 		if err := m.AccountManager.CreateWithTx(context, tx, operationalAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed operational account %s", operationalAccount.Name)
 		}
