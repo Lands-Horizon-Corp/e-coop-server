@@ -30,14 +30,16 @@ type (
 		MemberProfileID *uuid.UUID     `gorm:"type:uuid"`
 		MemberProfile   *MemberProfile `gorm:"foreignKey:MemberProfileID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_profile,omitempty"`
 
-		Label         string `gorm:"type:varchar(255);not null;default:home"`
-		City          string `gorm:"type:varchar(255);not null"`
-		CountryCode   string `gorm:"type:varchar(5);not null"`
-		PostalCode    string `gorm:"type:varchar(255)"`
-		ProvinceState string `gorm:"type:varchar(255)"`
-		Barangay      string `gorm:"type:varchar(255)"`
-		Landmark      string `gorm:"type:varchar(255)"`
-		Address       string `gorm:"type:varchar(255);not null"`
+		Label         string   `gorm:"type:varchar(255);not null;default:home"`
+		City          string   `gorm:"type:varchar(255);not null"`
+		CountryCode   string   `gorm:"type:varchar(5);not null"`
+		PostalCode    string   `gorm:"type:varchar(255)"`
+		ProvinceState string   `gorm:"type:varchar(255)"`
+		Barangay      string   `gorm:"type:varchar(255)"`
+		Landmark      string   `gorm:"type:varchar(255)"`
+		Address       string   `gorm:"type:varchar(255);not null"`
+		Longitude     *float64 `gorm:"type:decimal(10,8)" json:"longitude,omitempty"`
+		Latitude      *float64 `gorm:"type:decimal(10,8)" json:"latitude,omitempty"`
 	}
 
 	MemberAddressReponse struct {
@@ -56,27 +58,31 @@ type (
 		MemberProfileID *uuid.UUID             `json:"member_profile_id,omitempty"`
 		MemberProfile   *MemberProfileResponse `json:"member_profile,omitempty"`
 
-		Label         string `json:"label"`
-		City          string `json:"city"`
-		CountryCode   string `json:"country_code"`
-		PostalCode    string `json:"postal_code"`
-		ProvinceState string `json:"province_state"`
-		Barangay      string `json:"barangay"`
-		Landmark      string `json:"landmark"`
-		Address       string `json:"address"`
+		Label         string   `json:"label"`
+		City          string   `json:"city"`
+		CountryCode   string   `json:"country_code"`
+		PostalCode    string   `json:"postal_code"`
+		ProvinceState string   `json:"province_state"`
+		Barangay      string   `json:"barangay"`
+		Landmark      string   `json:"landmark"`
+		Address       string   `json:"address"`
+		Longitude     *float64 `json:"longitude,omitempty"`
+		Latitude      *float64 `json:"latitude,omitempty"`
 	}
 
 	MemberAddressRequest struct {
 		MemberProfileID *uuid.UUID `json:"member_profile_id,omitempty"`
 
-		Label         string `json:"label" validate:"required,min=1,max=255"`
-		City          string `json:"city" validate:"required,min=1,max=255"`
-		CountryCode   string `json:"country_code" validate:"required,min=1,max=5"`
-		PostalCode    string `json:"postal_code,omitempty" validate:"omitempty,max=255"`
-		ProvinceState string `json:"province_state,omitempty" validate:"omitempty,max=255"`
-		Barangay      string `json:"barangay,omitempty" validate:"omitempty,max=255"`
-		Landmark      string `json:"landmark,omitempty" validate:"omitempty,max=255"`
-		Address       string `json:"address" validate:"required,min=1,max=255"`
+		Label         string   `json:"label" validate:"required,min=1,max=255"`
+		City          string   `json:"city" validate:"required,min=1,max=255"`
+		CountryCode   string   `json:"country_code" validate:"required,min=1,max=5"`
+		PostalCode    string   `json:"postal_code,omitempty" validate:"omitempty,max=255"`
+		ProvinceState string   `json:"province_state,omitempty" validate:"omitempty,max=255"`
+		Barangay      string   `json:"barangay,omitempty" validate:"omitempty,max=255"`
+		Landmark      string   `json:"landmark,omitempty" validate:"omitempty,max=255"`
+		Address       string   `json:"address" validate:"required,min=1,max=255"`
+		Longitude     *float64 `json:"longitude,omitempty" validate:"omitempty,min=-180,max=180"`
+		Latitude      *float64 `json:"latitude,omitempty" validate:"omitempty,min=-90,max=90"`
 	}
 )
 
@@ -111,6 +117,8 @@ func (m *ModelCore) MemberAddress() {
 				Barangay:        data.Barangay,
 				Landmark:        data.Landmark,
 				Address:         data.Address,
+				Longitude:       data.Longitude,
+				Latitude:        data.Latitude,
 			}
 		},
 

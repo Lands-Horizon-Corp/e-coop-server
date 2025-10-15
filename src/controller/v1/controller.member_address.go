@@ -74,6 +74,8 @@ func (c *Controller) MemberAddressController() {
 			UpdatedByID:     user.UserID,
 			BranchID:        *user.BranchID,
 			OrganizationID:  user.OrganizationID,
+			Longitude:       req.Longitude,
+			Latitude:        req.Latitude,
 		}
 		if err := c.model_core.MemberAddressManager.Create(context, value); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -158,6 +160,8 @@ func (c *Controller) MemberAddressController() {
 		value.Barangay = req.Barangay
 		value.Landmark = req.Landmark
 		value.Address = req.Address
+		value.Longitude = req.Longitude
+		value.Latitude = req.Latitude
 		if err := c.model_core.MemberAddressManager.UpdateFields(context, value.ID, value); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
