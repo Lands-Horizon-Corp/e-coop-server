@@ -20,7 +20,7 @@ type (
 
 		Name         string `gorm:"type:varchar(255);not null;unique" json:"name"`
 		Country      string `gorm:"type:varchar(255);not null" json:"country"`
-		CurrencyCode string `gorm:"type:varchar(10);not null;unique" json:"currency_code"`
+		CurrencyCode string `gorm:"type:varchar(10);not null" json:"currency_code"`
 		Symbol       string `gorm:"type:varchar(10)" json:"symbol"`
 		Emoji        string `gorm:"type:varchar(10)" json:"emoji"`
 	}
