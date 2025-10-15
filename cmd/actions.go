@@ -9,7 +9,7 @@ import (
 	controller_v1 "github.com/Lands-Horizon-Corp/e-coop-server/src/controller/v1"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/cooperative_tokens"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/service"
 	"github.com/fatih/color"
 	"go.uber.org/fx"
@@ -18,8 +18,8 @@ import (
 func migrateDatabase() {
 	color.Blue("Migrating database...")
 	app := fx.New(
-		fx.Provide(src.NewProvider, model.NewModel),
-		fx.Invoke(func(lc fx.Lifecycle, prov *src.Provider, mod *model.Model) {
+		fx.Provide(src.NewProvider, model_core.NewModelCore),
+		fx.Invoke(func(lc fx.Lifecycle, prov *src.Provider, mod *model_core.ModelCore) {
 			lc.Append(fx.Hook{
 				OnStart: func(ctx context.Context) error {
 					if err := prov.Service.RunDatabase(ctx); err != nil {
@@ -43,11 +43,11 @@ func migrateDatabase() {
 func seedDatabase() {
 	color.Blue("Seeding database...")
 	app := fx.New(
-		fx.Provide(src.NewProvider, model.NewModel, seeder.NewSeeder),
+		fx.Provide(src.NewProvider, model_core.NewModelCore, seeder.NewSeeder),
 		fx.Invoke(func(
 			lc fx.Lifecycle,
 			prov *src.Provider,
-			mod *model.Model,
+			mod *model_core.ModelCore,
 			seed *seeder.Seeder,
 		) {
 			lc.Append(fx.Hook{
@@ -83,11 +83,11 @@ func seedDatabase() {
 func seedDatabasePerformance(multiplier int32) {
 	color.Blue("Seeding database...")
 	app := fx.New(
-		fx.Provide(src.NewProvider, model.NewModel, seeder.NewSeeder),
+		fx.Provide(src.NewProvider, model_core.NewModelCore, seeder.NewSeeder),
 		fx.Invoke(func(
 			lc fx.Lifecycle,
 			prov *src.Provider,
-			mod *model.Model,
+			mod *model_core.ModelCore,
 			seed *seeder.Seeder,
 		) {
 			lc.Append(fx.Hook{
@@ -123,8 +123,8 @@ func seedDatabasePerformance(multiplier int32) {
 func resetDatabase() {
 	color.Blue("Resetting database...")
 	app := fx.New(
-		fx.Provide(src.NewProvider, model.NewModel),
-		fx.Invoke(func(lc fx.Lifecycle, prov *src.Provider, mod *model.Model) {
+		fx.Provide(src.NewProvider, model_core.NewModelCore),
+		fx.Invoke(func(lc fx.Lifecycle, prov *src.Provider, mod *model_core.ModelCore) {
 			lc.Append(fx.Hook{
 				OnStart: func(ctx context.Context) error {
 					if err := prov.Service.RunDatabase(ctx); err != nil {
@@ -161,7 +161,7 @@ func startServer() {
 		fx.Provide(
 			src.NewProvider,
 			src.NewValidator,
-			model.NewModel,
+			model_core.NewModelCore,
 			controller_v1.NewController,
 			event.NewEvent,
 			seeder.NewSeeder,
@@ -169,7 +169,7 @@ func startServer() {
 			cooperative_tokens.NewUserOrganizationToken,
 			service.NewTransactionService,
 		),
-		fx.Invoke(func(lc fx.Lifecycle, ctrl *controller_v1.Controller, mod *model.Model, prov *src.Provider) error {
+		fx.Invoke(func(lc fx.Lifecycle, ctrl *controller_v1.Controller, mod *model_core.ModelCore, prov *src.Provider) error {
 			lc.Append(fx.Hook{
 				OnStart: func(ctx context.Context) error {
 					if err := ctrl.Start(); err != nil {
@@ -220,8 +220,8 @@ func cleanCache() {
 func refreshDatabase() {
 	color.Blue("Refreshing database...")
 	app := fx.New(
-		fx.Provide(src.NewProvider, model.NewModel, seeder.NewSeeder),
-		fx.Invoke(func(lc fx.Lifecycle, prov *src.Provider, mod *model.Model, seed *seeder.Seeder) {
+		fx.Provide(src.NewProvider, model_core.NewModelCore, seeder.NewSeeder),
+		fx.Invoke(func(lc fx.Lifecycle, prov *src.Provider, mod *model_core.ModelCore, seed *seeder.Seeder) {
 			lc.Append(fx.Hook{
 				OnStart: func(ctx context.Context) error {
 					if err := prov.Service.RunDatabase(ctx); err != nil {

@@ -7,7 +7,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -19,8 +19,8 @@ func (c *Controller) MemberEducationalAttainmentController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-educational-attainment/member-profile/:member_profile_id",
 		Method:       "POST",
-		RequestType:  model.MemberEducationalAttainmentRequest{},
-		ResponseType: model.MemberEducationalAttainmentResponse{},
+		RequestType:  model_core.MemberEducationalAttainmentRequest{},
+		ResponseType: model_core.MemberEducationalAttainmentResponse{},
 		Note:         "Creates a new educational attainment record for the specified member profile.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -33,7 +33,7 @@ func (c *Controller) MemberEducationalAttainmentController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
-		req, err := c.model.MemberEducationalAttainmentManager.Validate(ctx)
+		req, err := c.model_core.MemberEducationalAttainmentManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -52,7 +52,7 @@ func (c *Controller) MemberEducationalAttainmentController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
-		value := &model.MemberEducationalAttainment{
+		value := &model_core.MemberEducationalAttainment{
 			MemberProfileID:       *memberProfileID,
 			SchoolName:            req.SchoolName,
 			SchoolYear:            req.SchoolYear,
@@ -67,7 +67,7 @@ func (c *Controller) MemberEducationalAttainmentController() {
 			OrganizationID:        user.OrganizationID,
 		}
 
-		if err := c.model.MemberEducationalAttainmentManager.Create(context, value); err != nil {
+		if err := c.model_core.MemberEducationalAttainmentManager.Create(context, value); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create educational attainment failed (/member-educational-attainment/member-profile/:member_profile_id), db error: " + err.Error(),
@@ -82,15 +82,15 @@ func (c *Controller) MemberEducationalAttainmentController() {
 			Module:      "MemberEducationalAttainment",
 		})
 
-		return ctx.JSON(http.StatusOK, c.model.MemberEducationalAttainmentManager.ToModel(value))
+		return ctx.JSON(http.StatusOK, c.model_core.MemberEducationalAttainmentManager.ToModel(value))
 	})
 
 	// Update an existing educational attainment record by its ID
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-educational-attainment/:member_educational_attainment_id",
 		Method:       "PUT",
-		RequestType:  model.MemberEducationalAttainmentRequest{},
-		ResponseType: model.MemberEducationalAttainmentResponse{},
+		RequestType:  model_core.MemberEducationalAttainmentRequest{},
+		ResponseType: model_core.MemberEducationalAttainmentResponse{},
 		Note:         "Updates an existing educational attainment record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -103,7 +103,7 @@ func (c *Controller) MemberEducationalAttainmentController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_educational_attainment_id: " + err.Error()})
 		}
-		req, err := c.model.MemberEducationalAttainmentManager.Validate(ctx)
+		req, err := c.model_core.MemberEducationalAttainmentManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -122,7 +122,7 @@ func (c *Controller) MemberEducationalAttainmentController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
-		value, err := c.model.MemberEducationalAttainmentManager.GetByID(context, *memberEducationalAttainmentID)
+		value, err := c.model_core.MemberEducationalAttainmentManager.GetByID(context, *memberEducationalAttainmentID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -143,7 +143,7 @@ func (c *Controller) MemberEducationalAttainmentController() {
 		value.EducationalAttainment = req.EducationalAttainment
 		value.Description = req.Description
 
-		if err := c.model.MemberEducationalAttainmentManager.UpdateFields(context, value.ID, value); err != nil {
+		if err := c.model_core.MemberEducationalAttainmentManager.UpdateFields(context, value.ID, value); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update educational attainment failed (/member-educational-attainment/:member_educational_attainment_id), db error: " + err.Error(),
@@ -156,7 +156,7 @@ func (c *Controller) MemberEducationalAttainmentController() {
 			Description: "Updated educational attainment (/member-educational-attainment/:member_educational_attainment_id): " + value.SchoolName,
 			Module:      "MemberEducationalAttainment",
 		})
-		return ctx.JSON(http.StatusOK, c.model.MemberEducationalAttainmentManager.ToModel(value))
+		return ctx.JSON(http.StatusOK, c.model_core.MemberEducationalAttainmentManager.ToModel(value))
 	})
 
 	// Delete an educational attainment record by its ID
@@ -175,7 +175,7 @@ func (c *Controller) MemberEducationalAttainmentController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_educational_attainment_id: " + err.Error()})
 		}
-		value, err := c.model.MemberEducationalAttainmentManager.GetByID(context, *memberEducationalAttainmentID)
+		value, err := c.model_core.MemberEducationalAttainmentManager.GetByID(context, *memberEducationalAttainmentID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -184,7 +184,7 @@ func (c *Controller) MemberEducationalAttainmentController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Educational attainment record not found: " + err.Error()})
 		}
-		if err := c.model.MemberEducationalAttainmentManager.DeleteByID(context, *memberEducationalAttainmentID); err != nil {
+		if err := c.model_core.MemberEducationalAttainmentManager.DeleteByID(context, *memberEducationalAttainmentID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete educational attainment failed (/member-educational-attainment/:member_educational_attainment_id), db error: " + err.Error(),
@@ -204,11 +204,11 @@ func (c *Controller) MemberEducationalAttainmentController() {
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/member-educational-attainment/bulk-delete",
 		Method:      "DELETE",
-		RequestType: model.IDSRequest{},
+		RequestType: model_core.IDSRequest{},
 		Note:        "Deletes multiple educational attainment records by their IDs.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody model.IDSRequest
+		var reqBody model_core.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
@@ -247,7 +247,7 @@ func (c *Controller) MemberEducationalAttainmentController() {
 				})
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID '%s': %s", rawID, err.Error())})
 			}
-			value, err := c.model.MemberEducationalAttainmentManager.GetByID(context, attainmentID)
+			value, err := c.model_core.MemberEducationalAttainmentManager.GetByID(context, attainmentID)
 			if err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -258,7 +258,7 @@ func (c *Controller) MemberEducationalAttainmentController() {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Educational attainment record with ID '%s' not found: %s", rawID, err.Error())})
 			}
 			names += value.SchoolName + ","
-			if err := c.model.MemberEducationalAttainmentManager.DeleteByIDWithTx(context, tx, attainmentID); err != nil {
+			if err := c.model_core.MemberEducationalAttainmentManager.DeleteByIDWithTx(context, tx, attainmentID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

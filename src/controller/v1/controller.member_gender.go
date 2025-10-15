@@ -7,7 +7,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -19,7 +19,7 @@ func (c *Controller) MemberGenderController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-gender-history",
 		Method:       "GET",
-		ResponseType: model.MemberGenderHistory{},
+		ResponseType: model_core.MemberGenderHistory{},
 		Note:         "Returns all member gender history entries for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -27,18 +27,18 @@ func (c *Controller) MemberGenderController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberGenderHistory, err := c.model.MemberGenderHistoryCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		memberGenderHistory, err := c.model_core.MemberGenderHistoryCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member gender history: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.MemberGenderHistoryManager.Filtered(context, ctx, memberGenderHistory))
+		return ctx.JSON(http.StatusOK, c.model_core.MemberGenderHistoryManager.Filtered(context, ctx, memberGenderHistory))
 	})
 
 	// Get member gender history by member profile ID
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-gender-history/member-profile/:member_profile_id/search",
 		Method:       "GET",
-		ResponseType: model.MemberGenderHistoryResponse{},
+		ResponseType: model_core.MemberGenderHistoryResponse{},
 		Note:         "Returns member gender history for a specific member profile ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -50,18 +50,18 @@ func (c *Controller) MemberGenderController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberGenderHistory, err := c.model.MemberGenderHistoryMemberProfileID(context, *memberProfileID, user.OrganizationID, *user.BranchID)
+		memberGenderHistory, err := c.model_core.MemberGenderHistoryMemberProfileID(context, *memberProfileID, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member gender history by profile: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.MemberGenderHistoryManager.Pagination(context, ctx, memberGenderHistory))
+		return ctx.JSON(http.StatusOK, c.model_core.MemberGenderHistoryManager.Pagination(context, ctx, memberGenderHistory))
 	})
 
 	// Get all member genders for the current branch
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-gender",
 		Method:       "GET",
-		ResponseType: model.MemberGenderResponse{},
+		ResponseType: model_core.MemberGenderResponse{},
 		Note:         "Returns all member genders for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -69,18 +69,18 @@ func (c *Controller) MemberGenderController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberGender, err := c.model.MemberGenderCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		memberGender, err := c.model_core.MemberGenderCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member genders: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.MemberGenderManager.Filtered(context, ctx, memberGender))
+		return ctx.JSON(http.StatusOK, c.model_core.MemberGenderManager.Filtered(context, ctx, memberGender))
 	})
 
 	// Get paginated member genders
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-gender/search",
 		Method:       "GET",
-		ResponseType: model.MemberGenderResponse{},
+		ResponseType: model_core.MemberGenderResponse{},
 		Note:         "Returns paginated member genders for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -88,23 +88,23 @@ func (c *Controller) MemberGenderController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberGender, err := c.model.MemberGenderCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		memberGender, err := c.model_core.MemberGenderCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member genders for pagination: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.MemberGenderManager.Pagination(context, ctx, memberGender))
+		return ctx.JSON(http.StatusOK, c.model_core.MemberGenderManager.Pagination(context, ctx, memberGender))
 	})
 
 	// Create a new member gender
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-gender",
 		Method:       "POST",
-		ResponseType: model.MemberGenderResponse{},
-		RequestType:  model.MemberGenderRequest{},
+		ResponseType: model_core.MemberGenderResponse{},
+		RequestType:  model_core.MemberGenderRequest{},
 		Note:         "Creates a new member gender record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.model.MemberGenderManager.Validate(ctx)
+		req, err := c.model_core.MemberGenderManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -123,7 +123,7 @@ func (c *Controller) MemberGenderController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
-		memberGender := &model.MemberGender{
+		memberGender := &model_core.MemberGender{
 			Name:           req.Name,
 			Description:    req.Description,
 			CreatedAt:      time.Now().UTC(),
@@ -134,7 +134,7 @@ func (c *Controller) MemberGenderController() {
 			OrganizationID: user.OrganizationID,
 		}
 
-		if err := c.model.MemberGenderManager.Create(context, memberGender); err != nil {
+		if err := c.model_core.MemberGenderManager.Create(context, memberGender); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member gender failed (/member-gender), db error: " + err.Error(),
@@ -149,15 +149,15 @@ func (c *Controller) MemberGenderController() {
 			Module:      "MemberGender",
 		})
 
-		return ctx.JSON(http.StatusOK, c.model.MemberGenderManager.ToModel(memberGender))
+		return ctx.JSON(http.StatusOK, c.model_core.MemberGenderManager.ToModel(memberGender))
 	})
 
 	// Update an existing member gender by ID
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-gender/:member_gender_id",
 		Method:       "PUT",
-		ResponseType: model.MemberGenderResponse{},
-		RequestType:  model.MemberGenderRequest{},
+		ResponseType: model_core.MemberGenderResponse{},
+		RequestType:  model_core.MemberGenderRequest{},
 		Note:         "Updates an existing member gender record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -179,7 +179,7 @@ func (c *Controller) MemberGenderController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		req, err := c.model.MemberGenderManager.Validate(ctx)
+		req, err := c.model_core.MemberGenderManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -188,7 +188,7 @@ func (c *Controller) MemberGenderController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		memberGender, err := c.model.MemberGenderManager.GetByID(context, *memberGenderID)
+		memberGender, err := c.model_core.MemberGenderManager.GetByID(context, *memberGenderID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -203,7 +203,7 @@ func (c *Controller) MemberGenderController() {
 		memberGender.BranchID = *user.BranchID
 		memberGender.Name = req.Name
 		memberGender.Description = req.Description
-		if err := c.model.MemberGenderManager.UpdateFields(context, memberGender.ID, memberGender); err != nil {
+		if err := c.model_core.MemberGenderManager.UpdateFields(context, memberGender.ID, memberGender); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member gender failed (/member-gender/:member_gender_id), db error: " + err.Error(),
@@ -216,7 +216,7 @@ func (c *Controller) MemberGenderController() {
 			Description: "Updated member gender (/member-gender/:member_gender_id): " + memberGender.Name,
 			Module:      "MemberGender",
 		})
-		return ctx.JSON(http.StatusOK, c.model.MemberGenderManager.ToModel(memberGender))
+		return ctx.JSON(http.StatusOK, c.model_core.MemberGenderManager.ToModel(memberGender))
 	})
 
 	// Delete a member gender by ID
@@ -235,7 +235,7 @@ func (c *Controller) MemberGenderController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_gender_id: " + err.Error()})
 		}
-		value, err := c.model.MemberGenderManager.GetByID(context, *memberGenderID)
+		value, err := c.model_core.MemberGenderManager.GetByID(context, *memberGenderID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -244,7 +244,7 @@ func (c *Controller) MemberGenderController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member gender not found: " + err.Error()})
 		}
-		if err := c.model.MemberGenderManager.DeleteByID(context, *memberGenderID); err != nil {
+		if err := c.model_core.MemberGenderManager.DeleteByID(context, *memberGenderID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member gender failed (/member-gender/:member_gender_id), db error: " + err.Error(),
@@ -265,10 +265,10 @@ func (c *Controller) MemberGenderController() {
 		Route:       "/api/v1/member-gender/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple member gender records by their IDs.",
-		RequestType: model.IDSRequest{},
+		RequestType: model_core.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody model.IDSRequest
+		var reqBody model_core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -312,7 +312,7 @@ func (c *Controller) MemberGenderController() {
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID '%s': %s", rawID, err.Error())})
 			}
 
-			value, err := c.model.MemberGenderManager.GetByID(context, memberGenderID)
+			value, err := c.model_core.MemberGenderManager.GetByID(context, memberGenderID)
 			if err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -324,7 +324,7 @@ func (c *Controller) MemberGenderController() {
 			}
 
 			names += value.Name + ","
-			if err := c.model.MemberGenderManager.DeleteByIDWithTx(context, tx, memberGenderID); err != nil {
+			if err := c.model_core.MemberGenderManager.DeleteByIDWithTx(context, tx, memberGenderID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

@@ -7,7 +7,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -21,8 +21,8 @@ func (c *Controller) TimeDepositComputationController() {
 		Route:        "/api/v1/time-deposit-computation/time-deposit-type/:time_deposit_type_id",
 		Method:       "POST",
 		Note:         "Creates a new time deposit computation for the current user's organization and branch.",
-		RequestType:  model.TimeDepositComputationRequest{},
-		ResponseType: model.TimeDepositComputationResponse{},
+		RequestType:  model_core.TimeDepositComputationRequest{},
+		ResponseType: model_core.TimeDepositComputationResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		timeDepositTypeID, err := handlers.EngineUUIDParam(ctx, "time_deposit_type_id")
@@ -34,7 +34,7 @@ func (c *Controller) TimeDepositComputationController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid time deposit computation ID"})
 		}
-		req, err := c.model.TimeDepositComputationManager.Validate(ctx)
+		req, err := c.model_core.TimeDepositComputationManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -61,7 +61,7 @@ func (c *Controller) TimeDepositComputationController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		timeDepositComputation := &model.TimeDepositComputation{
+		timeDepositComputation := &model_core.TimeDepositComputation{
 			TimeDepositTypeID: *timeDepositTypeID,
 			MininimumAmount:   req.MininimumAmount,
 			MaximumAmount:     req.MaximumAmount,
@@ -84,7 +84,7 @@ func (c *Controller) TimeDepositComputationController() {
 			OrganizationID:    user.OrganizationID,
 		}
 
-		if err := c.model.TimeDepositComputationManager.Create(context, timeDepositComputation); err != nil {
+		if err := c.model_core.TimeDepositComputationManager.Create(context, timeDepositComputation); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Time deposit computation creation failed (/time-deposit-computation), db error: " + err.Error(),
@@ -97,7 +97,7 @@ func (c *Controller) TimeDepositComputationController() {
 			Description: "Created time deposit computation (/time-deposit-computation): " + timeDepositComputation.ID.String(),
 			Module:      "TimeDepositComputation",
 		})
-		return ctx.JSON(http.StatusCreated, c.model.TimeDepositComputationManager.ToModel(timeDepositComputation))
+		return ctx.JSON(http.StatusCreated, c.model_core.TimeDepositComputationManager.ToModel(timeDepositComputation))
 	})
 
 	// PUT /time-deposit-computation/:time_deposit_computation_id: Update time deposit computation by ID. (WITH footstep)
@@ -105,8 +105,8 @@ func (c *Controller) TimeDepositComputationController() {
 		Route:        "/api/v1/time-deposit-computation/:time_deposit_computation_id",
 		Method:       "PUT",
 		Note:         "Updates an existing time deposit computation by its ID.",
-		RequestType:  model.TimeDepositComputationRequest{},
-		ResponseType: model.TimeDepositComputationResponse{},
+		RequestType:  model_core.TimeDepositComputationRequest{},
+		ResponseType: model_core.TimeDepositComputationResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		timeDepositComputationID, err := handlers.EngineUUIDParam(ctx, "time_deposit_computation_id")
@@ -119,7 +119,7 @@ func (c *Controller) TimeDepositComputationController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid time deposit computation ID"})
 		}
 
-		req, err := c.model.TimeDepositComputationManager.Validate(ctx)
+		req, err := c.model_core.TimeDepositComputationManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -137,7 +137,7 @@ func (c *Controller) TimeDepositComputationController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		timeDepositComputation, err := c.model.TimeDepositComputationManager.GetByID(context, *timeDepositComputationID)
+		timeDepositComputation, err := c.model_core.TimeDepositComputationManager.GetByID(context, *timeDepositComputationID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -161,7 +161,7 @@ func (c *Controller) TimeDepositComputationController() {
 		timeDepositComputation.Header11 = req.Header11
 		timeDepositComputation.UpdatedAt = time.Now().UTC()
 		timeDepositComputation.UpdatedByID = user.UserID
-		if err := c.model.TimeDepositComputationManager.UpdateFields(context, timeDepositComputation.ID, timeDepositComputation); err != nil {
+		if err := c.model_core.TimeDepositComputationManager.UpdateFields(context, timeDepositComputation.ID, timeDepositComputation); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Time deposit computation update failed (/time-deposit-computation/:time_deposit_computation_id), db error: " + err.Error(),
@@ -174,7 +174,7 @@ func (c *Controller) TimeDepositComputationController() {
 			Description: "Updated time deposit computation (/time-deposit-computation/:time_deposit_computation_id): " + timeDepositComputation.ID.String(),
 			Module:      "TimeDepositComputation",
 		})
-		return ctx.JSON(http.StatusOK, c.model.TimeDepositComputationManager.ToModel(timeDepositComputation))
+		return ctx.JSON(http.StatusOK, c.model_core.TimeDepositComputationManager.ToModel(timeDepositComputation))
 	})
 
 	// DELETE /time-deposit-computation/:time_deposit_computation_id: Delete a time deposit computation by ID. (WITH footstep)
@@ -193,7 +193,7 @@ func (c *Controller) TimeDepositComputationController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid time deposit computation ID"})
 		}
-		timeDepositComputation, err := c.model.TimeDepositComputationManager.GetByID(context, *timeDepositComputationID)
+		timeDepositComputation, err := c.model_core.TimeDepositComputationManager.GetByID(context, *timeDepositComputationID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -202,7 +202,7 @@ func (c *Controller) TimeDepositComputationController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Time deposit computation not found"})
 		}
-		if err := c.model.TimeDepositComputationManager.DeleteByID(context, *timeDepositComputationID); err != nil {
+		if err := c.model_core.TimeDepositComputationManager.DeleteByID(context, *timeDepositComputationID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Time deposit computation delete failed (/time-deposit-computation/:time_deposit_computation_id), db error: " + err.Error(),
@@ -223,10 +223,10 @@ func (c *Controller) TimeDepositComputationController() {
 		Route:       "/api/v1/time-deposit-computation/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple time deposit computations by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: model.IDSRequest{},
+		RequestType: model_core.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody model.IDSRequest
+		var reqBody model_core.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
@@ -265,7 +265,7 @@ func (c *Controller) TimeDepositComputationController() {
 				})
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
 			}
-			timeDepositComputation, err := c.model.TimeDepositComputationManager.GetByID(context, timeDepositComputationID)
+			timeDepositComputation, err := c.model_core.TimeDepositComputationManager.GetByID(context, timeDepositComputationID)
 			if err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -276,7 +276,7 @@ func (c *Controller) TimeDepositComputationController() {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Time deposit computation not found with ID: %s", rawID)})
 			}
 			ids += timeDepositComputation.ID.String() + ","
-			if err := c.model.TimeDepositComputationManager.DeleteByIDWithTx(context, tx, timeDepositComputationID); err != nil {
+			if err := c.model_core.TimeDepositComputationManager.DeleteByIDWithTx(context, tx, timeDepositComputationID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

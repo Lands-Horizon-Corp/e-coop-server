@@ -7,7 +7,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -19,7 +19,7 @@ func (c *Controller) MemberTypeController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-type-history",
 		Method:       "GET",
-		ResponseType: model.MemberTypeHistoryResponse{},
+		ResponseType: model_core.MemberTypeHistoryResponse{},
 		Note:         "Returns all member type history entries for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -27,18 +27,18 @@ func (c *Controller) MemberTypeController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberTypeHistory, err := c.model.MemberTypeHistoryCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		memberTypeHistory, err := c.model_core.MemberTypeHistoryCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member type history: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.MemberTypeHistoryManager.Filtered(context, ctx, memberTypeHistory))
+		return ctx.JSON(http.StatusOK, c.model_core.MemberTypeHistoryManager.Filtered(context, ctx, memberTypeHistory))
 	})
 
 	// Get member type history by member profile ID
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-type-history/member-profile/:member_profile_id/search",
 		Method:       "GET",
-		ResponseType: model.MemberTypeHistoryResponse{},
+		ResponseType: model_core.MemberTypeHistoryResponse{},
 		Note:         "Returns member type history for a specific member profile ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -50,18 +50,18 @@ func (c *Controller) MemberTypeController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberTypeHistory, err := c.model.MemberTypeHistoryMemberProfileID(context, *memberProfileID, user.OrganizationID, *user.BranchID)
+		memberTypeHistory, err := c.model_core.MemberTypeHistoryMemberProfileID(context, *memberProfileID, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member type history by profile: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.MemberTypeHistoryManager.Pagination(context, ctx, memberTypeHistory))
+		return ctx.JSON(http.StatusOK, c.model_core.MemberTypeHistoryManager.Pagination(context, ctx, memberTypeHistory))
 	})
 
 	// Get all member types for the current branch
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-type",
 		Method:       "GET",
-		ResponseType: model.MemberTypeResponse{},
+		ResponseType: model_core.MemberTypeResponse{},
 		Note:         "Returns all member types for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -69,18 +69,18 @@ func (c *Controller) MemberTypeController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberType, err := c.model.MemberTypeCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		memberType, err := c.model_core.MemberTypeCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member types: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.MemberTypeManager.Filtered(context, ctx, memberType))
+		return ctx.JSON(http.StatusOK, c.model_core.MemberTypeManager.Filtered(context, ctx, memberType))
 	})
 
 	// Get paginated member types for the current branch
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-type/search",
 		Method:       "GET",
-		ResponseType: model.MemberTypeResponse{},
+		ResponseType: model_core.MemberTypeResponse{},
 		Note:         "Returns paginated member types for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -88,23 +88,23 @@ func (c *Controller) MemberTypeController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := c.model.MemberTypeCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		value, err := c.model_core.MemberTypeCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member types for pagination: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.MemberTypeManager.Pagination(context, ctx, value))
+		return ctx.JSON(http.StatusOK, c.model_core.MemberTypeManager.Pagination(context, ctx, value))
 	})
 
 	// Create a new member type
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-type",
 		Method:       "POST",
-		RequestType:  model.MemberTypeRequest{},
-		ResponseType: model.MemberTypeResponse{},
+		RequestType:  model_core.MemberTypeRequest{},
+		ResponseType: model_core.MemberTypeResponse{},
 		Note:         "Creates a new member type record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.model.MemberTypeManager.Validate(ctx)
+		req, err := c.model_core.MemberTypeManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -123,7 +123,7 @@ func (c *Controller) MemberTypeController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
-		memberType := &model.MemberType{
+		memberType := &model_core.MemberType{
 			Name:           req.Name,
 			Description:    req.Description,
 			Prefix:         req.Prefix,
@@ -135,7 +135,7 @@ func (c *Controller) MemberTypeController() {
 			OrganizationID: user.OrganizationID,
 		}
 
-		if err := c.model.MemberTypeManager.Create(context, memberType); err != nil {
+		if err := c.model_core.MemberTypeManager.Create(context, memberType); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member type failed: " + err.Error(),
@@ -150,15 +150,15 @@ func (c *Controller) MemberTypeController() {
 			Module:      "MemberType",
 		})
 
-		return ctx.JSON(http.StatusOK, c.model.MemberTypeManager.ToModel(memberType))
+		return ctx.JSON(http.StatusOK, c.model_core.MemberTypeManager.ToModel(memberType))
 	})
 
 	// Update an existing member type by ID
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-type/:member_type_id",
 		Method:       "PUT",
-		RequestType:  model.MemberTypeRequest{},
-		ResponseType: model.MemberTypeResponse{},
+		RequestType:  model_core.MemberTypeRequest{},
+		ResponseType: model_core.MemberTypeResponse{},
 		Note:         "Updates an existing member type record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -181,7 +181,7 @@ func (c *Controller) MemberTypeController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
-		req, err := c.model.MemberTypeManager.Validate(ctx)
+		req, err := c.model_core.MemberTypeManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -191,7 +191,7 @@ func (c *Controller) MemberTypeController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		memberType, err := c.model.MemberTypeManager.GetByID(context, *memberTypeID)
+		memberType, err := c.model_core.MemberTypeManager.GetByID(context, *memberTypeID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -208,7 +208,7 @@ func (c *Controller) MemberTypeController() {
 		memberType.Name = req.Name
 		memberType.Description = req.Description
 		memberType.Prefix = req.Prefix
-		if err := c.model.MemberTypeManager.UpdateFields(context, memberType.ID, memberType); err != nil {
+		if err := c.model_core.MemberTypeManager.UpdateFields(context, memberType.ID, memberType); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member type failed: update error: " + err.Error(),
@@ -221,7 +221,7 @@ func (c *Controller) MemberTypeController() {
 			Description: "Updated member type: " + memberType.Name,
 			Module:      "MemberType",
 		})
-		return ctx.JSON(http.StatusOK, c.model.MemberTypeManager.ToModel(memberType))
+		return ctx.JSON(http.StatusOK, c.model_core.MemberTypeManager.ToModel(memberType))
 	})
 
 	// Delete a member type by ID
@@ -240,7 +240,7 @@ func (c *Controller) MemberTypeController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_type_id: " + err.Error()})
 		}
-		memberType, err := c.model.MemberTypeManager.GetByID(context, *memberTypeID)
+		memberType, err := c.model_core.MemberTypeManager.GetByID(context, *memberTypeID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -249,7 +249,7 @@ func (c *Controller) MemberTypeController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberType with ID %s not found: %v", memberTypeID, err)})
 		}
-		if err := c.model.MemberTypeManager.DeleteByID(context, *memberTypeID); err != nil {
+		if err := c.model_core.MemberTypeManager.DeleteByID(context, *memberTypeID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member type failed: " + err.Error(),
@@ -269,11 +269,11 @@ func (c *Controller) MemberTypeController() {
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/member-type/bulk-delete",
 		Method:      "DELETE",
-		RequestType: model.IDSRequest{},
+		RequestType: model_core.IDSRequest{},
 		Note:        "Deletes multiple member type records by their IDs.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody model.IDSRequest
+		var reqBody model_core.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
@@ -316,7 +316,7 @@ func (c *Controller) MemberTypeController() {
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s - %v", rawID, err)})
 			}
 
-			memberType, err := c.model.MemberTypeManager.GetByID(context, memberTypeID)
+			memberType, err := c.model_core.MemberTypeManager.GetByID(context, memberTypeID)
 			if err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -328,7 +328,7 @@ func (c *Controller) MemberTypeController() {
 			}
 
 			names += memberType.Name + ","
-			if err := c.model.MemberTypeManager.DeleteByIDWithTx(context, tx, memberTypeID); err != nil {
+			if err := c.model_core.MemberTypeManager.DeleteByIDWithTx(context, tx, memberTypeID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

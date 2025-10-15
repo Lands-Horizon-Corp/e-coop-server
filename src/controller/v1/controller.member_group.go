@@ -7,7 +7,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -19,7 +19,7 @@ func (c *Controller) MemberGroupController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-group-history",
 		Method:       "GET",
-		ResponseType: model.MemberGroupHistoryResponse{},
+		ResponseType: model_core.MemberGroupHistoryResponse{},
 		Note:         "Returns all member group history entries for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -27,18 +27,18 @@ func (c *Controller) MemberGroupController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberGroupHistory, err := c.model.MemberGroupHistoryCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		memberGroupHistory, err := c.model_core.MemberGroupHistoryCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member group history: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.MemberGroupHistoryManager.Filtered(context, ctx, memberGroupHistory))
+		return ctx.JSON(http.StatusOK, c.model_core.MemberGroupHistoryManager.Filtered(context, ctx, memberGroupHistory))
 	})
 
 	// Get member group history by member profile ID
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-group-history/member-profile/:member_profile_id/search",
 		Method:       "GET",
-		ResponseType: model.MemberGroupHistoryResponse{},
+		ResponseType: model_core.MemberGroupHistoryResponse{},
 		Note:         "Returns member group history for a specific member profile ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -50,18 +50,18 @@ func (c *Controller) MemberGroupController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberGroupHistory, err := c.model.MemberGroupHistoryMemberProfileID(context, *memberProfileID, user.OrganizationID, *user.BranchID)
+		memberGroupHistory, err := c.model_core.MemberGroupHistoryMemberProfileID(context, *memberProfileID, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member group history by profile: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.MemberGroupHistoryManager.Pagination(context, ctx, memberGroupHistory))
+		return ctx.JSON(http.StatusOK, c.model_core.MemberGroupHistoryManager.Pagination(context, ctx, memberGroupHistory))
 	})
 
 	// Get all member groups for the current branch
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-group",
 		Method:       "GET",
-		ResponseType: model.MemberGroupResponse{},
+		ResponseType: model_core.MemberGroupResponse{},
 		Note:         "Returns all member groups for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -69,19 +69,19 @@ func (c *Controller) MemberGroupController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberGroup, err := c.model.MemberGroupCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		memberGroup, err := c.model_core.MemberGroupCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member groups: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.MemberGroupManager.Filtered(context, ctx, memberGroup))
+		return ctx.JSON(http.StatusOK, c.model_core.MemberGroupManager.Filtered(context, ctx, memberGroup))
 	})
 
 	// Get paginated member groups
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-group/search",
 		Method:       "GET",
-		RequestType:  model.MemberGroupRequest{},
-		ResponseType: model.MemberGroupResponse{},
+		RequestType:  model_core.MemberGroupRequest{},
+		ResponseType: model_core.MemberGroupResponse{},
 		Note:         "Returns paginated member groups for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -89,23 +89,23 @@ func (c *Controller) MemberGroupController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := c.model.MemberGroupCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		value, err := c.model_core.MemberGroupCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member groups for pagination: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.MemberGroupManager.Pagination(context, ctx, value))
+		return ctx.JSON(http.StatusOK, c.model_core.MemberGroupManager.Pagination(context, ctx, value))
 	})
 
 	// Create a new member group
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-group",
 		Method:       "POST",
-		ResponseType: model.MemberGroupResponse{},
-		RequestType:  model.MemberGroupRequest{},
+		ResponseType: model_core.MemberGroupResponse{},
+		RequestType:  model_core.MemberGroupRequest{},
 		Note:         "Creates a new member group record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.model.MemberGroupManager.Validate(ctx)
+		req, err := c.model_core.MemberGroupManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -124,7 +124,7 @@ func (c *Controller) MemberGroupController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
-		memberGroup := &model.MemberGroup{
+		memberGroup := &model_core.MemberGroup{
 			Name:           req.Name,
 			Description:    req.Description,
 			CreatedAt:      time.Now().UTC(),
@@ -135,7 +135,7 @@ func (c *Controller) MemberGroupController() {
 			OrganizationID: user.OrganizationID,
 		}
 
-		if err := c.model.MemberGroupManager.Create(context, memberGroup); err != nil {
+		if err := c.model_core.MemberGroupManager.Create(context, memberGroup); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member group failed (/member-group), db error: " + err.Error(),
@@ -150,15 +150,15 @@ func (c *Controller) MemberGroupController() {
 			Module:      "MemberGroup",
 		})
 
-		return ctx.JSON(http.StatusOK, c.model.MemberGroupManager.ToModel(memberGroup))
+		return ctx.JSON(http.StatusOK, c.model_core.MemberGroupManager.ToModel(memberGroup))
 	})
 
 	// Update an existing member group by ID
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-group/:member_group_id",
 		Method:       "PUT",
-		ResponseType: model.MemberGroupResponse{},
-		RequestType:  model.MemberGroupRequest{},
+		ResponseType: model_core.MemberGroupResponse{},
+		RequestType:  model_core.MemberGroupRequest{},
 		Note:         "Updates an existing member group record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -180,7 +180,7 @@ func (c *Controller) MemberGroupController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		req, err := c.model.MemberGroupManager.Validate(ctx)
+		req, err := c.model_core.MemberGroupManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -189,7 +189,7 @@ func (c *Controller) MemberGroupController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		memberGroup, err := c.model.MemberGroupManager.GetByID(context, *memberGroupID)
+		memberGroup, err := c.model_core.MemberGroupManager.GetByID(context, *memberGroupID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -204,7 +204,7 @@ func (c *Controller) MemberGroupController() {
 		memberGroup.BranchID = *user.BranchID
 		memberGroup.Name = req.Name
 		memberGroup.Description = req.Description
-		if err := c.model.MemberGroupManager.UpdateFields(context, memberGroup.ID, memberGroup); err != nil {
+		if err := c.model_core.MemberGroupManager.UpdateFields(context, memberGroup.ID, memberGroup); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member group failed (/member-group/:member_group_id), db error: " + err.Error(),
@@ -217,7 +217,7 @@ func (c *Controller) MemberGroupController() {
 			Description: "Updated member group (/member-group/:member_group_id): " + memberGroup.Name,
 			Module:      "MemberGroup",
 		})
-		return ctx.JSON(http.StatusOK, c.model.MemberGroupManager.ToModel(memberGroup))
+		return ctx.JSON(http.StatusOK, c.model_core.MemberGroupManager.ToModel(memberGroup))
 	})
 
 	// Delete a member group by ID
@@ -236,7 +236,7 @@ func (c *Controller) MemberGroupController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_group_id: " + err.Error()})
 		}
-		value, err := c.model.MemberGroupManager.GetByID(context, *memberGroupID)
+		value, err := c.model_core.MemberGroupManager.GetByID(context, *memberGroupID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -245,7 +245,7 @@ func (c *Controller) MemberGroupController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member group not found: " + err.Error()})
 		}
-		if err := c.model.MemberGroupManager.DeleteByID(context, *memberGroupID); err != nil {
+		if err := c.model_core.MemberGroupManager.DeleteByID(context, *memberGroupID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member group failed (/member-group/:member_group_id), db error: " + err.Error(),
@@ -265,11 +265,11 @@ func (c *Controller) MemberGroupController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-group/bulk-delete",
 		Method:       "DELETE",
-		ResponseType: model.IDSRequest{},
+		ResponseType: model_core.IDSRequest{},
 		Note:         "Deletes multiple member group records by their IDs.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody model.IDSRequest
+		var reqBody model_core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -313,7 +313,7 @@ func (c *Controller) MemberGroupController() {
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID '%s': %s", rawID, err.Error())})
 			}
 
-			value, err := c.model.MemberGroupManager.GetByID(context, memberGroupID)
+			value, err := c.model_core.MemberGroupManager.GetByID(context, memberGroupID)
 			if err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -325,7 +325,7 @@ func (c *Controller) MemberGroupController() {
 			}
 
 			names += value.Name + ","
-			if err := c.model.MemberGroupManager.DeleteByIDWithTx(context, tx, memberGroupID); err != nil {
+			if err := c.model_core.MemberGroupManager.DeleteByIDWithTx(context, tx, memberGroupID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

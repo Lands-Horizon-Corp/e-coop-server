@@ -6,7 +6,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
 	"github.com/labstack/echo/v4"
 )
 
@@ -19,18 +19,18 @@ func (c *Controller) CheckRemittanceController() {
 		Route:        "/api/v1/check-remittance",
 		Method:       "GET",
 		Note:         "Returns all check remittances for the current active transaction batch of the authenticated user's branch. Only 'owner' or 'employee' roles are allowed.",
-		ResponseType: model.CheckRemittanceResponse{},
+		ResponseType: model_core.CheckRemittanceResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
+		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view check remittances"})
 		}
 
-		transactionBatch, err := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
+		transactionBatch, err := c.model_core.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
 			"organization_id": userOrg.OrganizationID,
 			"branch_id":       *userOrg.BranchID,
 			"is_closed":       false,
@@ -42,7 +42,7 @@ func (c *Controller) CheckRemittanceController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No active transaction batch found for your branch"})
 		}
 
-		checkRemittance, err := c.model.CheckRemittanceManager.Find(context, &model.CheckRemittance{
+		checkRemittance, err := c.model_core.CheckRemittanceManager.Find(context, &model_core.CheckRemittance{
 			TransactionBatchID: &transactionBatch.ID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
@@ -51,19 +51,19 @@ func (c *Controller) CheckRemittanceController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve check remittances: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, c.model.CheckRemittanceManager.Filtered(context, ctx, checkRemittance))
+		return ctx.JSON(http.StatusOK, c.model_core.CheckRemittanceManager.Filtered(context, ctx, checkRemittance))
 	})
 
 	// POST /check-remittance: Create a new check remittance for the current transaction batch. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/check-remittance",
 		Method:       "POST",
-		ResponseType: model.CheckRemittanceResponse{},
-		RequestType:  model.CheckRemittanceRequest{},
+		ResponseType: model_core.CheckRemittanceResponse{},
+		RequestType:  model_core.CheckRemittanceRequest{},
 		Note:         "Creates a new check remittance for the current active transaction batch. Only 'owner' or 'employee' roles are allowed.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.model.CheckRemittanceManager.Validate(ctx)
+		req, err := c.model_core.CheckRemittanceManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -82,7 +82,7 @@ func (c *Controller) CheckRemittanceController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
+		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Unauthorized create attempt for check remittance (/check-remittance)",
@@ -91,7 +91,7 @@ func (c *Controller) CheckRemittanceController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to create check remittances"})
 		}
 
-		transactionBatch, err := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
+		transactionBatch, err := c.model_core.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
 			"organization_id": userOrg.OrganizationID,
 			"branch_id":       *userOrg.BranchID,
 			"is_closed":       false,
@@ -113,7 +113,7 @@ func (c *Controller) CheckRemittanceController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No active transaction batch found for your branch"})
 		}
 
-		checkRemittance := &model.CheckRemittance{
+		checkRemittance := &model_core.CheckRemittance{
 			CreatedAt:          time.Now().UTC(),
 			CreatedByID:        userOrg.UserID,
 			UpdatedAt:          time.Now().UTC(),
@@ -137,7 +137,7 @@ func (c *Controller) CheckRemittanceController() {
 			checkRemittance.DateEntry = &now
 		}
 
-		if err := c.model.CheckRemittanceManager.Create(context, checkRemittance); err != nil {
+		if err := c.model_core.CheckRemittanceManager.Create(context, checkRemittance); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Check remittance creation failed (/check-remittance), db error: " + err.Error(),
@@ -146,7 +146,7 @@ func (c *Controller) CheckRemittanceController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create check remittance: " + err.Error()})
 		}
 
-		allCheckRemittances, err := c.model.CheckRemittanceManager.Find(context, &model.CheckRemittance{
+		allCheckRemittances, err := c.model_core.CheckRemittanceManager.Find(context, &model_core.CheckRemittance{
 			TransactionBatchID: &transactionBatch.ID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
@@ -170,7 +170,7 @@ func (c *Controller) CheckRemittanceController() {
 		transactionBatch.UpdatedAt = time.Now().UTC()
 		transactionBatch.UpdatedByID = userOrg.UserID
 
-		if err := c.model.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
+		if err := c.model_core.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Check remittance creation failed (/check-remittance), batch totals update error: " + err.Error(),
@@ -185,7 +185,7 @@ func (c *Controller) CheckRemittanceController() {
 			Module:      "CheckRemittance",
 		})
 
-		return ctx.JSON(http.StatusCreated, c.model.CheckRemittanceManager.ToModel(checkRemittance))
+		return ctx.JSON(http.StatusCreated, c.model_core.CheckRemittanceManager.ToModel(checkRemittance))
 	})
 
 	// PUT /check-remittance/:check_remittance_id: Update a check remittance by ID for the current transaction batch. (WITH footstep)
@@ -193,8 +193,8 @@ func (c *Controller) CheckRemittanceController() {
 		Route:        "/api/v1/check-remittance/:check_remittance_id",
 		Method:       "PUT",
 		Note:         "Updates an existing check remittance by ID for the current transaction batch. Only 'owner' or 'employee' roles are allowed.",
-		ResponseType: model.CheckRemittanceResponse{},
-		RequestType:  model.CheckRemittanceRequest{},
+		ResponseType: model_core.CheckRemittanceResponse{},
+		RequestType:  model_core.CheckRemittanceRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		checkRemittanceId, err := handlers.EngineUUIDParam(ctx, "check_remittance_id")
@@ -207,7 +207,7 @@ func (c *Controller) CheckRemittanceController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid check remittance ID"})
 		}
 
-		req, err := c.model.CheckRemittanceManager.Validate(ctx)
+		req, err := c.model_core.CheckRemittanceManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -226,7 +226,7 @@ func (c *Controller) CheckRemittanceController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
+		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Unauthorized update attempt for check remittance (/check-remittance/:check_remittance_id)",
@@ -235,7 +235,7 @@ func (c *Controller) CheckRemittanceController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to update check remittances"})
 		}
 
-		existingCheckRemittance, err := c.model.CheckRemittanceManager.GetByID(context, *checkRemittanceId)
+		existingCheckRemittance, err := c.model_core.CheckRemittanceManager.GetByID(context, *checkRemittanceId)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -254,7 +254,7 @@ func (c *Controller) CheckRemittanceController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Check remittance does not belong to your organization/branch"})
 		}
 
-		transactionBatch, err := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
+		transactionBatch, err := c.model_core.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
 			"organization_id": userOrg.OrganizationID,
 			"branch_id":       *userOrg.BranchID,
 			"is_closed":       false,
@@ -276,7 +276,7 @@ func (c *Controller) CheckRemittanceController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No active transaction batch found for your branch"})
 		}
 
-		updatedCheckRemittance := &model.CheckRemittance{
+		updatedCheckRemittance := &model_core.CheckRemittance{
 			UpdatedAt:          time.Now().UTC(),
 			UpdatedByID:        userOrg.UserID,
 			OrganizationID:     userOrg.OrganizationID,
@@ -298,7 +298,7 @@ func (c *Controller) CheckRemittanceController() {
 			updatedCheckRemittance.DateEntry = &now
 		}
 
-		if err := c.model.CheckRemittanceManager.UpdateFields(context, *checkRemittanceId, updatedCheckRemittance); err != nil {
+		if err := c.model_core.CheckRemittanceManager.UpdateFields(context, *checkRemittanceId, updatedCheckRemittance); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Check remittance update failed (/check-remittance/:check_remittance_id), db error: " + err.Error(),
@@ -307,7 +307,7 @@ func (c *Controller) CheckRemittanceController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update check remittance: " + err.Error()})
 		}
 
-		allCheckRemittances, err := c.model.CheckRemittanceManager.Find(context, &model.CheckRemittance{
+		allCheckRemittances, err := c.model_core.CheckRemittanceManager.Find(context, &model_core.CheckRemittance{
 			TransactionBatchID: &transactionBatch.ID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
@@ -330,7 +330,7 @@ func (c *Controller) CheckRemittanceController() {
 		transactionBatch.UpdatedAt = time.Now().UTC()
 		transactionBatch.UpdatedByID = userOrg.UserID
 
-		if err := c.model.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
+		if err := c.model_core.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Check remittance update failed (/check-remittance/:check_remittance_id), batch totals update error: " + err.Error(),
@@ -345,12 +345,12 @@ func (c *Controller) CheckRemittanceController() {
 			Module:      "CheckRemittance",
 		})
 
-		updatedRemittance, err := c.model.CheckRemittanceManager.GetByID(context, *checkRemittanceId)
+		updatedRemittance, err := c.model_core.CheckRemittanceManager.GetByID(context, *checkRemittanceId)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated check remittance: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, c.model.CheckRemittanceManager.ToModel(updatedRemittance))
+		return ctx.JSON(http.StatusOK, c.model_core.CheckRemittanceManager.ToModel(updatedRemittance))
 	})
 
 	// DELETE /check-remittance/:check_remittance_id: Delete a check remittance by ID for the current transaction batch. (WITH footstep)
@@ -379,7 +379,7 @@ func (c *Controller) CheckRemittanceController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
+		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Unauthorized delete attempt for check remittance (/check-remittance/:check_remittance_id)",
@@ -388,7 +388,7 @@ func (c *Controller) CheckRemittanceController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to delete check remittance"})
 		}
 
-		existingCheckRemittance, err := c.model.CheckRemittanceManager.GetByID(context, *checkRemittanceId)
+		existingCheckRemittance, err := c.model_core.CheckRemittanceManager.GetByID(context, *checkRemittanceId)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -407,7 +407,7 @@ func (c *Controller) CheckRemittanceController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Check remittance does not belong to your organization/branch"})
 		}
 
-		transactionBatch, err := c.model.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
+		transactionBatch, err := c.model_core.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
 			"organization_id": userOrg.OrganizationID,
 			"branch_id":       *userOrg.BranchID,
 			"is_closed":       false,
@@ -438,7 +438,7 @@ func (c *Controller) CheckRemittanceController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Check remittance does not belong to current transaction batch"})
 		}
 
-		if err := c.model.CheckRemittanceManager.DeleteByID(context, *checkRemittanceId); err != nil {
+		if err := c.model_core.CheckRemittanceManager.DeleteByID(context, *checkRemittanceId); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Check remittance delete failed (/check-remittance/:check_remittance_id), db error: " + err.Error(),
@@ -447,7 +447,7 @@ func (c *Controller) CheckRemittanceController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete check remittance: " + err.Error()})
 		}
 
-		allCheckRemittances, err := c.model.CheckRemittanceManager.Find(context, &model.CheckRemittance{
+		allCheckRemittances, err := c.model_core.CheckRemittanceManager.Find(context, &model_core.CheckRemittance{
 			TransactionBatchID: &transactionBatch.ID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
@@ -470,7 +470,7 @@ func (c *Controller) CheckRemittanceController() {
 		transactionBatch.UpdatedAt = time.Now().UTC()
 		transactionBatch.UpdatedByID = userOrg.UserID
 
-		if err := c.model.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
+		if err := c.model_core.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Check remittance delete failed (/check-remittance/:check_remittance_id), batch totals update error: " + err.Error(),
@@ -485,6 +485,6 @@ func (c *Controller) CheckRemittanceController() {
 			Module:      "CheckRemittance",
 		})
 
-		return ctx.JSON(http.StatusOK, c.model.CheckRemittanceManager.ToModel(existingCheckRemittance))
+		return ctx.JSON(http.StatusOK, c.model_core.CheckRemittanceManager.ToModel(existingCheckRemittance))
 	})
 }

@@ -9,7 +9,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/cooperative_tokens"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -21,7 +21,7 @@ func (c *Controller) UserController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/user/:user_id",
 		Method:       "GET",
-		ResponseType: model.UserResponse{},
+		ResponseType: model_core.UserResponse{},
 		Note:         "Returns a specific user by their ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -29,7 +29,7 @@ func (c *Controller) UserController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_id: " + err.Error()})
 		}
-		user, err := c.model.UserManager.GetByIDRaw(context, *userId)
+		user, err := c.model_core.UserManager.GetByIDRaw(context, *userId)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user: " + err.Error()})
 		}
@@ -40,7 +40,7 @@ func (c *Controller) UserController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/authentication/current",
 		Method:       "GET",
-		ResponseType: model.CurrentUserResponse{},
+		ResponseType: model_core.CurrentUserResponse{},
 		Note:         "Returns the current authenticated user and their user organization, if any.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -50,13 +50,13 @@ func (c *Controller) UserController() {
 			return ctx.NoContent(http.StatusUnauthorized)
 		}
 		userOrganization, _ := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
-		var userOrg *model.UserOrganizationResponse
+		var userOrg *model_core.UserOrganizationResponse
 		if userOrganization != nil {
-			userOrg = c.model.UserOrganizationManager.ToModel(userOrganization)
+			userOrg = c.model_core.UserOrganizationManager.ToModel(userOrganization)
 		}
-		return ctx.JSON(http.StatusOK, model.CurrentUserResponse{
+		return ctx.JSON(http.StatusOK, model_core.CurrentUserResponse{
 			UserID:           user.ID,
-			User:             c.model.UserManager.ToModel(user),
+			User:             c.model_core.UserManager.ToModel(user),
 			UserOrganization: userOrg,
 		})
 	})
@@ -108,19 +108,19 @@ func (c *Controller) UserController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/authentication/login",
 		Method:       "POST",
-		RequestType:  model.UserLoginRequest{},
-		ResponseType: model.CurrentUserResponse{},
+		RequestType:  model_core.UserLoginRequest{},
+		ResponseType: model_core.CurrentUserResponse{},
 		Note:         "Authenticates a user and returns user details.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req model.UserLoginRequest
+		var req model_core.UserLoginRequest
 		if err := ctx.Bind(&req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid login payload: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		user, err := c.model.GetUserByIdentifier(context, req.Key)
+		user, err := c.model_core.GetUserByIdentifier(context, req.Key)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid credentials: " + err.Error()})
 		}
@@ -136,9 +136,9 @@ func (c *Controller) UserController() {
 			Description: "User logged in successfully: " + user.ID.String(),
 			Module:      "User",
 		})
-		return ctx.JSON(http.StatusOK, model.CurrentUserResponse{
+		return ctx.JSON(http.StatusOK, model_core.CurrentUserResponse{
 			UserID: user.ID,
-			User:   c.model.UserManager.ToModel(user),
+			User:   c.model_core.UserManager.ToModel(user),
 		})
 	})
 
@@ -162,12 +162,12 @@ func (c *Controller) UserController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/authentication/register",
 		Method:       "POST",
-		ResponseType: model.CurrentUserResponse{},
-		RequestType:  model.UserRegisterRequest{},
+		ResponseType: model_core.CurrentUserResponse{},
+		RequestType:  model_core.UserRegisterRequest{},
 		Note:         "Registers a new user.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.model.UserManager.Validate(ctx)
+		req, err := c.model_core.UserManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -185,7 +185,7 @@ func (c *Controller) UserController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to hash password: " + err.Error()})
 		}
-		user := &model.User{
+		user := &model_core.User{
 			Email:             req.Email,
 			Password:          hashedPwd,
 			Birthdate:         req.Birthdate,
@@ -202,7 +202,7 @@ func (c *Controller) UserController() {
 			CreatedAt:         time.Now().UTC(),
 			UpdatedAt:         time.Now().UTC(),
 		}
-		if err := c.model.UserManager.Create(context, user); err != nil {
+		if err := c.model_core.UserManager.Create(context, user); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Register failed: create user error: " + err.Error(),
@@ -223,9 +223,9 @@ func (c *Controller) UserController() {
 			Description: "User registered successfully: " + user.ID.String(),
 			Module:      "User",
 		})
-		return ctx.JSON(http.StatusOK, model.CurrentUserResponse{
+		return ctx.JSON(http.StatusOK, model_core.CurrentUserResponse{
 			UserID: user.ID,
-			User:   c.model.UserManager.ToModel(user),
+			User:   c.model_core.UserManager.ToModel(user),
 		})
 	})
 
@@ -233,11 +233,11 @@ func (c *Controller) UserController() {
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/authentication/forgot-password",
 		Method:      "POST",
-		RequestType: model.UserForgotPasswordRequest{},
+		RequestType: model_core.UserForgotPasswordRequest{},
 		Note:        "Initiates forgot password flow and sends a reset link.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req model.UserForgotPasswordRequest
+		var req model_core.UserForgotPasswordRequest
 		if err := ctx.Bind(&req); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -254,7 +254,7 @@ func (c *Controller) UserController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		user, err := c.model.GetUserByIdentifier(context, req.Key)
+		user, err := c.model_core.GetUserByIdentifier(context, req.Key)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -325,7 +325,7 @@ func (c *Controller) UserController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user ID: " + err.Error()})
 		}
-		_, err = c.model.UserManager.GetByID(context, userId)
+		_, err = c.model_core.UserManager.GetByID(context, userId)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User not found for reset token: " + err.Error()})
 		}
@@ -336,11 +336,11 @@ func (c *Controller) UserController() {
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/authentication/change-password/:reset_id",
 		Method:      "POST",
-		RequestType: model.UserChangePasswordRequest{},
+		RequestType: model_core.UserChangePasswordRequest{},
 		Note:        "Changes the user's password using the reset link.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req model.UserChangePasswordRequest
+		var req model_core.UserChangePasswordRequest
 		if err := ctx.Bind(&req); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -369,7 +369,7 @@ func (c *Controller) UserController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user ID: " + err.Error()})
 		}
-		user, err := c.model.UserManager.GetByID(context, userId)
+		user, err := c.model_core.UserManager.GetByID(context, userId)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User not found for reset token: " + err.Error()})
 		}
@@ -383,7 +383,7 @@ func (c *Controller) UserController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to hash password: " + err.Error()})
 		}
 		user.Password = hashedPwd
-		if err := c.model.UserManager.UpdateFields(context, user.ID, user); err != nil {
+		if err := c.model_core.UserManager.UpdateFields(context, user.ID, user); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Change password failed: update user error: " + err.Error(),
@@ -455,12 +455,12 @@ func (c *Controller) UserController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/authentication/verify-contact-number",
 		Method:       "POST",
-		RequestType:  model.UserVerifyContactNumberRequest{},
-		ResponseType: model.UserResponse{},
+		RequestType:  model_core.UserVerifyContactNumberRequest{},
+		ResponseType: model_core.UserResponse{},
 		Note:         "Verifies OTP for contact number verification.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req model.UserVerifyContactNumberRequest
+		var req model_core.UserVerifyContactNumberRequest
 		if err := ctx.Bind(&req); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -508,7 +508,7 @@ func (c *Controller) UserController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to revoke OTP: " + err.Error()})
 		}
 		user.IsContactVerified = true
-		if err := c.model.UserManager.UpdateFields(context, user.ID, user); err != nil {
+		if err := c.model_core.UserManager.UpdateFields(context, user.ID, user); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Verify contact number failed: update user error: " + err.Error(),
@@ -516,7 +516,7 @@ func (c *Controller) UserController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user: " + err.Error()})
 		}
-		updatedUser, err := c.model.UserManager.GetByID(context, user.ID)
+		updatedUser, err := c.model_core.UserManager.GetByID(context, user.ID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -538,7 +538,7 @@ func (c *Controller) UserController() {
 			Description: "Contact number verified for user: " + user.ID.String(),
 			Module:      "User",
 		})
-		return ctx.JSON(http.StatusOK, c.model.UserManager.ToModel(updatedUser))
+		return ctx.JSON(http.StatusOK, c.model_core.UserManager.ToModel(updatedUser))
 	})
 
 	// Send OTP for email verification
@@ -590,11 +590,11 @@ func (c *Controller) UserController() {
 		Route:        "/api/v1/authentication/verify-email",
 		Method:       "POST",
 		Note:         "Verifies OTP for email verification.",
-		ResponseType: model.UserResponse{},
-		RequestType:  model.UserVerifyEmailRequest{},
+		ResponseType: model_core.UserResponse{},
+		RequestType:  model_core.UserVerifyEmailRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req model.UserVerifyEmailRequest
+		var req model_core.UserVerifyEmailRequest
 		if err := ctx.Bind(&req); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -642,7 +642,7 @@ func (c *Controller) UserController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to revoke OTP: " + err.Error()})
 		}
 		user.IsEmailVerified = true
-		if err := c.model.UserManager.UpdateFields(context, user.ID, user); err != nil {
+		if err := c.model_core.UserManager.UpdateFields(context, user.ID, user); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Verify email failed: update user error: " + err.Error(),
@@ -650,7 +650,7 @@ func (c *Controller) UserController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user: " + err.Error()})
 		}
-		updatedUser, err := c.model.UserManager.GetByID(context, user.ID)
+		updatedUser, err := c.model_core.UserManager.GetByID(context, user.ID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -672,7 +672,7 @@ func (c *Controller) UserController() {
 			Description: "Email verified for user: " + user.ID.String(),
 			Module:      "User",
 		})
-		return ctx.JSON(http.StatusOK, c.model.UserManager.ToModel(updatedUser))
+		return ctx.JSON(http.StatusOK, c.model_core.UserManager.ToModel(updatedUser))
 	})
 
 	// Verify user with password for self-protected actions
@@ -680,11 +680,11 @@ func (c *Controller) UserController() {
 		Route:        "/api/v1/authentication/verify-with-password",
 		Method:       "POST",
 		Note:         "Verifies the user's password for protected self actions.",
-		ResponseType: model.UserResponse{},
-		RequestType:  model.UserVerifyWithPasswordRequest{},
+		ResponseType: model_core.UserResponse{},
+		RequestType:  model_core.UserVerifyWithPasswordRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req model.UserVerifyWithPasswordRequest
+		var req model_core.UserVerifyWithPasswordRequest
 		if err := ctx.Bind(&req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid verify with password payload: " + err.Error()})
 		}
@@ -707,11 +707,11 @@ func (c *Controller) UserController() {
 		Route:        "/api/v1/profile/password",
 		Method:       "PUT",
 		Note:         "Changes the user's password from profile settings.",
-		ResponseType: model.UserResponse{},
-		RequestType:  model.UserSettingsChangePasswordRequest{},
+		ResponseType: model_core.UserResponse{},
+		RequestType:  model_core.UserSettingsChangePasswordRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req model.UserSettingsChangePasswordRequest
+		var req model_core.UserSettingsChangePasswordRequest
 		if err := ctx.Bind(&req); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -746,7 +746,7 @@ func (c *Controller) UserController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to hash password: " + err.Error()})
 		}
 		user.Password = hashedPwd
-		if err := c.model.UserManager.UpdateFields(context, user.ID, user); err != nil {
+		if err := c.model_core.UserManager.UpdateFields(context, user.ID, user); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Change password from profile failed: update user error: " + err.Error(),
@@ -754,7 +754,7 @@ func (c *Controller) UserController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user: " + err.Error()})
 		}
-		updatedUser, err := c.model.UserManager.GetByID(context, user.ID)
+		updatedUser, err := c.model_core.UserManager.GetByID(context, user.ID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -776,7 +776,7 @@ func (c *Controller) UserController() {
 			Description: "Password changed from profile for user: " + user.ID.String(),
 			Module:      "User",
 		})
-		return ctx.JSON(http.StatusOK, c.model.UserManager.ToModel(updatedUser))
+		return ctx.JSON(http.StatusOK, c.model_core.UserManager.ToModel(updatedUser))
 	})
 
 	// Change user's profile picture
@@ -784,11 +784,11 @@ func (c *Controller) UserController() {
 		Route:        "/api/v1/profile/profile-picture",
 		Method:       "PUT",
 		Note:         "Changes the user's profile picture.",
-		RequestType:  model.UserSettingsChangeProfilePictureRequest{},
-		ResponseType: model.UserResponse{},
+		RequestType:  model_core.UserSettingsChangeProfilePictureRequest{},
+		ResponseType: model_core.UserResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req model.UserSettingsChangeProfilePictureRequest
+		var req model_core.UserSettingsChangeProfilePictureRequest
 		if err := ctx.Bind(&req); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -813,7 +813,7 @@ func (c *Controller) UserController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Media ID is the same as the current one"})
 		}
 		user.MediaID = req.MediaID
-		if err := c.model.UserManager.UpdateFields(context, user.ID, user); err != nil {
+		if err := c.model_core.UserManager.UpdateFields(context, user.ID, user); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Change profile picture failed: update user error: " + err.Error(),
@@ -821,7 +821,7 @@ func (c *Controller) UserController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user: " + err.Error()})
 		}
-		updatedUser, err := c.model.UserManager.GetByID(context, user.ID)
+		updatedUser, err := c.model_core.UserManager.GetByID(context, user.ID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -843,7 +843,7 @@ func (c *Controller) UserController() {
 			Description: "Profile picture changed for user: " + user.ID.String(),
 			Module:      "User",
 		})
-		return ctx.JSON(http.StatusOK, c.model.UserManager.ToModel(updatedUser))
+		return ctx.JSON(http.StatusOK, c.model_core.UserManager.ToModel(updatedUser))
 	})
 
 	// Change user's general profile settings
@@ -851,11 +851,11 @@ func (c *Controller) UserController() {
 		Route:        "/api/v1/profile/general",
 		Method:       "PUT",
 		Note:         "Changes the user's general profile settings.",
-		RequestType:  model.UserSettingsChangeGeneralRequest{},
-		ResponseType: model.UserResponse{},
+		RequestType:  model_core.UserSettingsChangeGeneralRequest{},
+		ResponseType: model_core.UserResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req model.UserSettingsChangeGeneralRequest
+		var req model_core.UserSettingsChangeGeneralRequest
 		if err := ctx.Bind(&req); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -886,7 +886,7 @@ func (c *Controller) UserController() {
 			user.ContactNumber = req.ContactNumber
 			user.IsContactVerified = false
 		}
-		if err := c.model.UserManager.UpdateFields(context, user.ID, user); err != nil {
+		if err := c.model_core.UserManager.UpdateFields(context, user.ID, user); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Change general profile failed: update user error: " + err.Error(),
@@ -894,7 +894,7 @@ func (c *Controller) UserController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user: " + err.Error()})
 		}
-		updatedUser, err := c.model.UserManager.GetByID(context, user.ID)
+		updatedUser, err := c.model_core.UserManager.GetByID(context, user.ID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -916,7 +916,7 @@ func (c *Controller) UserController() {
 			Description: "General profile changed for user: " + user.ID.String(),
 			Module:      "User",
 		})
-		return ctx.JSON(http.StatusOK, c.model.UserManager.ToModel(updatedUser))
+		return ctx.JSON(http.StatusOK, c.model_core.UserManager.ToModel(updatedUser))
 	})
 
 	req.RegisterRoute(handlers.Route{
@@ -925,7 +925,7 @@ func (c *Controller) UserController() {
 		Note:   "Verifies the user's password for protected owner actions. (must be owner and inside a branch)",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req model.UserAdminPasswordVerificationRequest
+		var req model_core.UserAdminPasswordVerificationRequest
 		if err := ctx.Bind(&req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid login payload: " + err.Error()})
 		}
@@ -936,12 +936,12 @@ func (c *Controller) UserController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
-		userOrganization, err := c.model.UserOrganizationManager.GetByID(context, req.UserOrganizationID)
+		userOrganization, err := c.model_core.UserOrganizationManager.GetByID(context, req.UserOrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
-		if userOrganization.UserType != model.UserOrganizationTypeOwner {
+		if userOrganization.UserType != model_core.UserOrganizationTypeOwner {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Forbidden: User is not an owner"})
 		}
 		valid, err := c.provider.Service.Security.VerifyPassword(context, userOrganization.User.Password, req.Password)

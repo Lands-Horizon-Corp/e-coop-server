@@ -7,7 +7,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
 	"github.com/labstack/echo/v4"
 )
 
@@ -20,7 +20,7 @@ func (c *Controller) UserMediaController() {
 		Route:        "/api/v1/user-media/search",
 		Method:       "GET",
 		Note:         "Get all media of the current user across all branches.",
-		ResponseType: model.UserMediaResponse{},
+		ResponseType: model_core.UserMediaResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
@@ -35,7 +35,7 @@ func (c *Controller) UserMediaController() {
 		}
 
 		// Search across all branches for the current user and organization
-		userMediaList, err := c.model.UserMediaManager.Find(context, &model.UserMedia{
+		userMediaList, err := c.model_core.UserMediaManager.Find(context, &model_core.UserMedia{
 			UserID: &user.UserID,
 		})
 		if err != nil {
@@ -53,7 +53,7 @@ func (c *Controller) UserMediaController() {
 			Module:      "UserMedia",
 		})
 
-		return ctx.JSON(http.StatusOK, c.model.UserMediaManager.Pagination(context, ctx, userMediaList))
+		return ctx.JSON(http.StatusOK, c.model_core.UserMediaManager.Pagination(context, ctx, userMediaList))
 	})
 
 	// GET /api/v1/user-media/current/search: Get all media of the current user of specific branch
@@ -61,7 +61,7 @@ func (c *Controller) UserMediaController() {
 		Route:        "/api/v1/user-media/current/search",
 		Method:       "GET",
 		Note:         "Get all media of the current user for their current branch.",
-		ResponseType: model.UserMediaResponse{},
+		ResponseType: model_core.UserMediaResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
@@ -85,7 +85,7 @@ func (c *Controller) UserMediaController() {
 		}
 
 		// Search for current user's media in their current branch
-		userMediaList, err := c.model.UserMediaManager.Find(context, &model.UserMedia{
+		userMediaList, err := c.model_core.UserMediaManager.Find(context, &model_core.UserMedia{
 			OrganizationID: &user.OrganizationID,
 			BranchID:       user.BranchID,
 			UserID:         &user.UserID,
@@ -105,7 +105,7 @@ func (c *Controller) UserMediaController() {
 			Module:      "UserMedia",
 		})
 
-		return ctx.JSON(http.StatusOK, c.model.UserMediaManager.Pagination(context, ctx, userMediaList))
+		return ctx.JSON(http.StatusOK, c.model_core.UserMediaManager.Pagination(context, ctx, userMediaList))
 	})
 
 	// GET /api/v1/user-media/branch/:branch_id/search: Get all media of all users from the branch
@@ -113,7 +113,7 @@ func (c *Controller) UserMediaController() {
 		Route:        "/api/v1/user-media/branch/search",
 		Method:       "GET",
 		Note:         "Get all user media from a specific branch.",
-		ResponseType: model.UserMediaResponse{},
+		ResponseType: model_core.UserMediaResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
@@ -128,7 +128,7 @@ func (c *Controller) UserMediaController() {
 		}
 
 		// Search for all user media in the specified branch
-		userMediaList, err := c.model.UserMediaManager.Find(context, &model.UserMedia{
+		userMediaList, err := c.model_core.UserMediaManager.Find(context, &model_core.UserMedia{
 			BranchID: user.BranchID,
 		})
 		if err != nil {
@@ -146,7 +146,7 @@ func (c *Controller) UserMediaController() {
 			Module:      "UserMedia",
 		})
 
-		return ctx.JSON(http.StatusOK, c.model.UserMediaManager.Pagination(context, ctx, userMediaList))
+		return ctx.JSON(http.StatusOK, c.model_core.UserMediaManager.Pagination(context, ctx, userMediaList))
 	})
 
 	// GET /api/v1/user-media/member-profile/:member_profile_id/search: Get all media for a specific member profile
@@ -154,7 +154,7 @@ func (c *Controller) UserMediaController() {
 		Route:        "/api/v1/user-media/member-profile/:member_profile_id/search",
 		Method:       "GET",
 		Note:         "Get all user media for a specific member profile.",
-		ResponseType: model.UserMediaResponse{},
+		ResponseType: model_core.UserMediaResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
@@ -179,7 +179,7 @@ func (c *Controller) UserMediaController() {
 		}
 
 		// Verify member profile belongs to user's organization
-		memberProfile, err := c.model.MemberProfileManager.GetByID(context, *memberProfileID)
+		memberProfile, err := c.model_core.MemberProfileManager.GetByID(context, *memberProfileID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "member-profile-search-error",
@@ -189,7 +189,7 @@ func (c *Controller) UserMediaController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member profile not found"})
 		}
 		// Search for all user media for the specified member profile
-		userMediaList, err := c.model.UserMediaManager.Find(context, &model.UserMedia{
+		userMediaList, err := c.model_core.UserMediaManager.Find(context, &model_core.UserMedia{
 			BranchID:       user.BranchID,
 			OrganizationID: &user.OrganizationID,
 			UserID:         memberProfile.UserID,
@@ -209,7 +209,7 @@ func (c *Controller) UserMediaController() {
 			Module:      "UserMedia",
 		})
 
-		return ctx.JSON(http.StatusOK, c.model.UserMediaManager.Pagination(context, ctx, userMediaList))
+		return ctx.JSON(http.StatusOK, c.model_core.UserMediaManager.Pagination(context, ctx, userMediaList))
 	})
 
 	// POST /api/v1/user-media: Create a new user media
@@ -217,12 +217,12 @@ func (c *Controller) UserMediaController() {
 		Route:        "/api/v1/user-media",
 		Method:       "POST",
 		Note:         "Creates a new user media for the current user's organization and branch.",
-		RequestType:  model.UserMediaRequest{},
-		ResponseType: model.UserMediaResponse{},
+		RequestType:  model_core.UserMediaRequest{},
+		ResponseType: model_core.UserMediaResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		reqData, err := c.model.UserMediaManager.Validate(ctx)
+		reqData, err := c.model_core.UserMediaManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -251,7 +251,7 @@ func (c *Controller) UserMediaController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		userMedia := &model.UserMedia{
+		userMedia := &model_core.UserMedia{
 			MediaID:        reqData.MediaID,
 			Name:           reqData.Name,
 			Description:    reqData.Description,
@@ -263,7 +263,7 @@ func (c *Controller) UserMediaController() {
 			OrganizationID: &user.OrganizationID,
 		}
 
-		if err := c.model.UserMediaManager.Create(context, userMedia); err != nil {
+		if err := c.model_core.UserMediaManager.Create(context, userMedia); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "User media creation failed (/user-media), db error: " + err.Error(),
@@ -278,7 +278,7 @@ func (c *Controller) UserMediaController() {
 			Module:      "UserMedia",
 		})
 
-		result, err := c.model.UserMediaManager.GetByID(context, userMedia.ID)
+		result, err := c.model_core.UserMediaManager.GetByID(context, userMedia.ID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve created user media: " + err.Error()})
 		}
@@ -291,8 +291,8 @@ func (c *Controller) UserMediaController() {
 		Route:        "/api/v1/user-media/:user_media_id",
 		Method:       "PUT",
 		Note:         "Update a user media by ID.",
-		RequestType:  model.UserMediaRequest{},
-		ResponseType: model.UserMediaResponse{},
+		RequestType:  model_core.UserMediaRequest{},
+		ResponseType: model_core.UserMediaResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
@@ -306,7 +306,7 @@ func (c *Controller) UserMediaController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user media ID"})
 		}
 
-		reqData, err := c.model.UserMediaManager.Validate(ctx)
+		reqData, err := c.model_core.UserMediaManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -326,7 +326,7 @@ func (c *Controller) UserMediaController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 
-		userMedia, err := c.model.UserMediaManager.GetByID(context, *userMediaID)
+		userMedia, err := c.model_core.UserMediaManager.GetByID(context, *userMediaID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -336,7 +336,7 @@ func (c *Controller) UserMediaController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User media not found"})
 		}
 		if userMedia.MediaID != reqData.MediaID {
-			if err := c.model.MediaDelete(context, *userMedia.MediaID); err != nil {
+			if err := c.model_core.MediaDelete(context, *userMedia.MediaID); err != nil {
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "delete-error",
 					Description: "Media delete failed (/media/:media_id), db error: " + err.Error(),
@@ -346,7 +346,7 @@ func (c *Controller) UserMediaController() {
 			}
 		}
 
-		updateData := &model.UserMedia{
+		updateData := &model_core.UserMedia{
 			MediaID:     reqData.MediaID,
 			Name:        reqData.Name,
 			Description: reqData.Description,
@@ -354,7 +354,7 @@ func (c *Controller) UserMediaController() {
 			UpdatedByID: user.UserID,
 		}
 
-		if err := c.model.UserMediaManager.UpdateByID(context, *userMediaID, updateData); err != nil {
+		if err := c.model_core.UserMediaManager.UpdateByID(context, *userMediaID, updateData); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "User media update failed (/user-media/:user_media_id), db error: " + err.Error(),
@@ -369,7 +369,7 @@ func (c *Controller) UserMediaController() {
 			Module:      "UserMedia",
 		})
 
-		result, err := c.model.UserMediaManager.GetByID(context, *userMediaID)
+		result, err := c.model_core.UserMediaManager.GetByID(context, *userMediaID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated user media: " + err.Error()})
 		}
@@ -405,7 +405,7 @@ func (c *Controller) UserMediaController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 
-		userMedia, err := c.model.UserMediaManager.GetByID(context, *userMediaID)
+		userMedia, err := c.model_core.UserMediaManager.GetByID(context, *userMediaID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -414,7 +414,7 @@ func (c *Controller) UserMediaController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User media not found"})
 		}
-		if err := c.model.MediaDelete(context, *userMedia.MediaID); err != nil {
+		if err := c.model_core.MediaDelete(context, *userMedia.MediaID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Media delete failed (/media/:media_id), db error: " + err.Error(),
@@ -423,7 +423,7 @@ func (c *Controller) UserMediaController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete media record: " + err.Error()})
 		}
 
-		if err := c.model.UserMediaManager.DeleteByID(context, userMedia.ID); err != nil {
+		if err := c.model_core.UserMediaManager.DeleteByID(context, userMedia.ID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "User media delete failed (/user-media/:user_media_id), db error: " + err.Error(),
@@ -445,7 +445,7 @@ func (c *Controller) UserMediaController() {
 		Route:        "/api/v1/user-media/:user_media_id",
 		Method:       "GET",
 		Note:         "Get a specific user media by ID.",
-		ResponseType: model.UserMediaResponse{},
+		ResponseType: model_core.UserMediaResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
@@ -454,7 +454,7 @@ func (c *Controller) UserMediaController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user media ID"})
 		}
 
-		userMedia, err := c.model.UserMediaManager.GetByIDRaw(context, *userMediaID)
+		userMedia, err := c.model_core.UserMediaManager.GetByIDRaw(context, *userMediaID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User media not found"})
 		}

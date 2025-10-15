@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/cooperative_tokens"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -19,15 +19,15 @@ type FootstepEvent struct {
 func (e *Event) Footstep(context context.Context, ctx echo.Context, data FootstepEvent) {
 
 	go func() {
-		user, err := e.userToken.CurrentUser(context, ctx)
+		user, err := e.user_token.CurrentUser(context, ctx)
 		if err != nil || user == nil {
 			return
 		}
 
 		userId := user.ID
-		userOrganization, _ := e.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrganization, _ := e.user_organization_token.CurrentUserOrganization(context, ctx)
 
-		var userType model.UserOrganizationType
+		var userType model_core.UserOrganizationType
 		var orgId, branchId *uuid.UUID
 		if userOrganization != nil {
 			userType = userOrganization.UserType
@@ -35,7 +35,7 @@ func (e *Event) Footstep(context context.Context, ctx echo.Context, data Footste
 			branchId = userOrganization.BranchID
 		}
 
-		claim, _ := e.userToken.CSRF.GetCSRF(context, ctx)
+		claim, _ := e.user_token.CSRF.GetCSRF(context, ctx)
 		var latitude, longitude *float64
 		var ipAddress, userAgent, referer, location, acceptLanguage string
 
@@ -49,7 +49,7 @@ func (e *Event) Footstep(context context.Context, ctx echo.Context, data Footste
 			acceptLanguage = claim.AcceptLanguage
 		}
 
-		if err := e.model.FootstepManager.Create(context, &model.Footstep{
+		if err := e.model_core.FootstepManager.Create(context, &model_core.Footstep{
 			CreatedAt:      time.Now().UTC(),
 			CreatedByID:    userId,
 			UpdatedAt:      time.Now().UTC(),

@@ -7,7 +7,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -21,7 +21,7 @@ func (c *Controller) CashCheckVoucherController() {
 		Route:        "/api/v1/cash-check-voucher",
 		Method:       "GET",
 		Note:         "Returns all cash check vouchers for the current user's organization and branch. Returns empty if not authenticated.",
-		ResponseType: model.CashCheckVoucherResponse{},
+		ResponseType: model_core.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -31,11 +31,11 @@ func (c *Controller) CashCheckVoucherController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		cashCheckVouchers, err := c.model.CashCheckVoucherCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		cashCheckVouchers, err := c.model_core.CashCheckVoucherCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No cash check vouchers found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.model.CashCheckVoucherManager.Filtered(context, ctx, cashCheckVouchers))
+		return ctx.JSON(http.StatusOK, c.model_core.CashCheckVoucherManager.Filtered(context, ctx, cashCheckVouchers))
 	})
 
 	// GET /cash-check-voucher/search: Paginated search of cash check vouchers for the current branch. (NO footstep)
@@ -43,7 +43,7 @@ func (c *Controller) CashCheckVoucherController() {
 		Route:        "/api/v1/cash-check-voucher/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of cash check vouchers for the current user's organization and branch.",
-		ResponseType: model.CashCheckVoucherResponse{},
+		ResponseType: model_core.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -53,11 +53,11 @@ func (c *Controller) CashCheckVoucherController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		cashCheckVouchers, err := c.model.CashCheckVoucherCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		cashCheckVouchers, err := c.model_core.CashCheckVoucherCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch cash check vouchers for pagination: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.CashCheckVoucherManager.Pagination(context, ctx, cashCheckVouchers))
+		return ctx.JSON(http.StatusOK, c.model_core.CashCheckVoucherManager.Pagination(context, ctx, cashCheckVouchers))
 	})
 
 	// GET /api/v1/cash-check-voucher/draft
@@ -65,7 +65,7 @@ func (c *Controller) CashCheckVoucherController() {
 		Route:        "/api/v1/cash-check-voucher/draft",
 		Method:       "GET",
 		Note:         "Fetches draft cash check vouchers for the current user's organization and branch.",
-		ResponseType: model.CashCheckVoucherResponse{},
+		ResponseType: model_core.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -80,11 +80,11 @@ func (c *Controller) CashCheckVoucherController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		cashCheckVouchers, err := c.model.CashCheckVoucherDraft(context, *userOrg.BranchID, userOrg.OrganizationID)
+		cashCheckVouchers, err := c.model_core.CashCheckVoucherDraft(context, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch draft cash check vouchers: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.CashCheckVoucherManager.ToModels(cashCheckVouchers))
+		return ctx.JSON(http.StatusOK, c.model_core.CashCheckVoucherManager.ToModels(cashCheckVouchers))
 	})
 
 	// GET /api/v1/cash-check-voucher/printed
@@ -92,7 +92,7 @@ func (c *Controller) CashCheckVoucherController() {
 		Route:        "/api/v1/cash-check-voucher/printed",
 		Method:       "GET",
 		Note:         "Fetches printed cash check vouchers for the current user's organization and branch.",
-		ResponseType: model.CashCheckVoucherResponse{},
+		ResponseType: model_core.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -107,11 +107,11 @@ func (c *Controller) CashCheckVoucherController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		cashCheckVouchers, err := c.model.CashCheckVoucherPrinted(context, *userOrg.BranchID, userOrg.OrganizationID)
+		cashCheckVouchers, err := c.model_core.CashCheckVoucherPrinted(context, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch printed cash check vouchers: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.CashCheckVoucherManager.ToModels(cashCheckVouchers))
+		return ctx.JSON(http.StatusOK, c.model_core.CashCheckVoucherManager.ToModels(cashCheckVouchers))
 	})
 
 	// GET /api/v1/cash-check-voucher/approved
@@ -119,7 +119,7 @@ func (c *Controller) CashCheckVoucherController() {
 		Route:        "/api/v1/cash-check-voucher/approved",
 		Method:       "GET",
 		Note:         "Fetches approved cash check vouchers for the current user's organization and branch.",
-		ResponseType: model.CashCheckVoucherResponse{},
+		ResponseType: model_core.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -134,11 +134,11 @@ func (c *Controller) CashCheckVoucherController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		cashCheckVouchers, err := c.model.CashCheckVoucherApproved(context, *userOrg.BranchID, userOrg.OrganizationID)
+		cashCheckVouchers, err := c.model_core.CashCheckVoucherApproved(context, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch approved cash check vouchers: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.CashCheckVoucherManager.ToModels(cashCheckVouchers))
+		return ctx.JSON(http.StatusOK, c.model_core.CashCheckVoucherManager.ToModels(cashCheckVouchers))
 	})
 
 	// GET /api/v1/cash-check-voucher/released
@@ -146,7 +146,7 @@ func (c *Controller) CashCheckVoucherController() {
 		Route:        "/api/v1/cash-check-voucher/released",
 		Method:       "GET",
 		Note:         "Fetches released cash check vouchers for the current user's organization and branch.",
-		ResponseType: model.CashCheckVoucherResponse{},
+		ResponseType: model_core.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -161,11 +161,11 @@ func (c *Controller) CashCheckVoucherController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		cashCheckVouchers, err := c.model.CashCheckVoucherReleased(context, *userOrg.BranchID, userOrg.OrganizationID)
+		cashCheckVouchers, err := c.model_core.CashCheckVoucherReleased(context, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch released cash check vouchers: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.CashCheckVoucherManager.ToModels(cashCheckVouchers))
+		return ctx.JSON(http.StatusOK, c.model_core.CashCheckVoucherManager.ToModels(cashCheckVouchers))
 	})
 
 	// GET /cash-check-voucher/:cash_check_voucher_id: Get specific cash check voucher by ID. (NO footstep)
@@ -173,14 +173,14 @@ func (c *Controller) CashCheckVoucherController() {
 		Route:        "/api/v1/cash-check-voucher/:cash_check_voucher_id",
 		Method:       "GET",
 		Note:         "Returns a single cash check voucher by its ID.",
-		ResponseType: model.CashCheckVoucherResponse{},
+		ResponseType: model_core.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		cashCheckVoucherID, err := handlers.EngineUUIDParam(ctx, "cash_check_voucher_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid cash check voucher ID"})
 		}
-		cashCheckVoucher, err := c.model.CashCheckVoucherManager.GetByIDRaw(context, *cashCheckVoucherID)
+		cashCheckVoucher, err := c.model_core.CashCheckVoucherManager.GetByIDRaw(context, *cashCheckVoucherID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Cash check voucher not found"})
 		}
@@ -192,11 +192,11 @@ func (c *Controller) CashCheckVoucherController() {
 		Route:        "/api/v1/cash-check-voucher",
 		Method:       "POST",
 		Note:         "Creates a new cash check voucher for the current user's organization and branch.",
-		RequestType:  model.CashCheckVoucherRequest{},
-		ResponseType: model.CashCheckVoucherResponse{},
+		RequestType:  model_core.CashCheckVoucherRequest{},
+		ResponseType: model_core.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		request, err := c.model.CashCheckVoucherManager.Validate(ctx)
+		request, err := c.model_core.CashCheckVoucherManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -254,7 +254,7 @@ func (c *Controller) CashCheckVoucherController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Cash check voucher is not balanced: debit %.2f != credit %.2f", totalDebit, totalCredit)})
 		}
 
-		cashCheckVoucher := &model.CashCheckVoucher{
+		cashCheckVoucher := &model_core.CashCheckVoucher{
 			PayTo:                         request.PayTo,
 			Status:                        request.Status,
 			Description:                   request.Description,
@@ -308,7 +308,7 @@ func (c *Controller) CashCheckVoucherController() {
 		}
 
 		// Save cash check voucher first
-		if err := c.model.CashCheckVoucherManager.CreateWithTx(context, tx, cashCheckVoucher); err != nil {
+		if err := c.model_core.CashCheckVoucherManager.CreateWithTx(context, tx, cashCheckVoucher); err != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -318,7 +318,7 @@ func (c *Controller) CashCheckVoucherController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create cash check voucher: " + err.Error()})
 		}
 
-		transactionBatch, err := c.model.TransactionBatchCurrent(context, user.UserID, user.OrganizationID, *user.BranchID)
+		transactionBatch, err := c.model_core.TransactionBatchCurrent(context, user.UserID, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -329,7 +329,7 @@ func (c *Controller) CashCheckVoucherController() {
 		}
 		if request.CashCheckVoucherEntries != nil {
 			for _, entryReq := range request.CashCheckVoucherEntries {
-				entry := &model.CashCheckVoucherEntry{
+				entry := &model_core.CashCheckVoucherEntry{
 					AccountID:              entryReq.AccountID,
 					EmployeeUserID:         &user.UserID,
 					TransactionBatchID:     &transactionBatch.ID,
@@ -347,7 +347,7 @@ func (c *Controller) CashCheckVoucherController() {
 					MemberProfileID:        entryReq.MemberProfileID,
 				}
 
-				if err := c.model.CashCheckVoucherEntryManager.CreateWithTx(context, tx, entry); err != nil {
+				if err := c.model_core.CashCheckVoucherEntryManager.CreateWithTx(context, tx, entry); err != nil {
 					tx.Rollback()
 					c.event.Footstep(context, ctx, event.FootstepEvent{
 						Activity:    "create-error",
@@ -369,7 +369,7 @@ func (c *Controller) CashCheckVoucherController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
-		newCashCheckVoucher, err := c.model.CashCheckVoucherManager.GetByIDRaw(context, cashCheckVoucher.ID)
+		newCashCheckVoucher, err := c.model_core.CashCheckVoucherManager.GetByIDRaw(context, cashCheckVoucher.ID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch updated cash check voucher: " + err.Error()})
 		}
@@ -386,8 +386,8 @@ func (c *Controller) CashCheckVoucherController() {
 		Route:        "/api/v1/cash-check-voucher/:cash_check_voucher_id",
 		Method:       "PUT",
 		Note:         "Updates an existing cash check voucher by its ID.",
-		RequestType:  model.CashCheckVoucherRequest{},
-		ResponseType: model.CashCheckVoucherResponse{},
+		RequestType:  model_core.CashCheckVoucherRequest{},
+		ResponseType: model_core.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		cashCheckVoucherID, err := handlers.EngineUUIDParam(ctx, "cash_check_voucher_id")
@@ -395,7 +395,7 @@ func (c *Controller) CashCheckVoucherController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid cash check voucher ID"})
 		}
 
-		request, err := c.model.CashCheckVoucherManager.Validate(ctx)
+		request, err := c.model_core.CashCheckVoucherManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -415,7 +415,7 @@ func (c *Controller) CashCheckVoucherController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 
-		cashCheckVoucher, err := c.model.CashCheckVoucherManager.GetByID(context, *cashCheckVoucherID)
+		cashCheckVoucher, err := c.model_core.CashCheckVoucherManager.GetByID(context, *cashCheckVoucherID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -506,7 +506,7 @@ func (c *Controller) CashCheckVoucherController() {
 		// Handle deleted entries
 		if request.CashCheckVoucherEntriesDeleted != nil {
 			for _, entryID := range request.CashCheckVoucherEntriesDeleted {
-				entry, err := c.model.CashCheckVoucherEntryManager.GetByID(context, entryID)
+				entry, err := c.model_core.CashCheckVoucherEntryManager.GetByID(context, entryID)
 				if err != nil {
 					tx.Rollback()
 					continue
@@ -516,7 +516,7 @@ func (c *Controller) CashCheckVoucherController() {
 					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete entry that doesn't belong to this cash check voucher"})
 				}
 				entry.DeletedByID = &user.UserID
-				if err := c.model.CashCheckVoucherEntryManager.DeleteWithTx(context, tx, entry); err != nil {
+				if err := c.model_core.CashCheckVoucherEntryManager.DeleteWithTx(context, tx, entry); err != nil {
 					tx.Rollback()
 					c.event.Footstep(context, ctx, event.FootstepEvent{
 						Activity:    "update-error",
@@ -527,7 +527,7 @@ func (c *Controller) CashCheckVoucherController() {
 				}
 			}
 		}
-		transactionBatch, err := c.model.TransactionBatchCurrent(context, user.UserID, user.OrganizationID, *user.BranchID)
+		transactionBatch, err := c.model_core.TransactionBatchCurrent(context, user.UserID, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -541,7 +541,7 @@ func (c *Controller) CashCheckVoucherController() {
 			for _, entryReq := range request.CashCheckVoucherEntries {
 				if entryReq.ID != nil {
 					// Update existing entry
-					entry, err := c.model.CashCheckVoucherEntryManager.GetByID(context, *entryReq.ID)
+					entry, err := c.model_core.CashCheckVoucherEntryManager.GetByID(context, *entryReq.ID)
 					if err != nil {
 						tx.Rollback()
 						c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -561,7 +561,7 @@ func (c *Controller) CashCheckVoucherController() {
 					entry.UpdatedByID = user.UserID
 					entry.MemberProfileID = entryReq.MemberProfileID
 					entry.CashCheckVoucherNumber = entryReq.CashCheckVoucherNumber
-					if err := c.model.CashCheckVoucherEntryManager.UpdateFieldsWithTx(context, tx, entry.ID, entry); err != nil {
+					if err := c.model_core.CashCheckVoucherEntryManager.UpdateFieldsWithTx(context, tx, entry.ID, entry); err != nil {
 						tx.Rollback()
 						c.event.Footstep(context, ctx, event.FootstepEvent{
 							Activity:    "update-error",
@@ -571,7 +571,7 @@ func (c *Controller) CashCheckVoucherController() {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update cash check voucher entry: " + err.Error()})
 					}
 				} else {
-					entry := &model.CashCheckVoucherEntry{
+					entry := &model_core.CashCheckVoucherEntry{
 						AccountID:              entryReq.AccountID,
 						EmployeeUserID:         &user.UserID,
 						TransactionBatchID:     &transactionBatch.ID,
@@ -589,7 +589,7 @@ func (c *Controller) CashCheckVoucherController() {
 						MemberProfileID:        entryReq.MemberProfileID,
 					}
 
-					if err := c.model.CashCheckVoucherEntryManager.CreateWithTx(context, tx, entry); err != nil {
+					if err := c.model_core.CashCheckVoucherEntryManager.CreateWithTx(context, tx, entry); err != nil {
 						tx.Rollback()
 						c.event.Footstep(context, ctx, event.FootstepEvent{
 							Activity:    "update-error",
@@ -603,7 +603,7 @@ func (c *Controller) CashCheckVoucherController() {
 		}
 
 		// Save updated cash check voucher
-		if err := c.model.CashCheckVoucherManager.UpdateFieldsWithTx(context, tx, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
+		if err := c.model_core.CashCheckVoucherManager.UpdateFieldsWithTx(context, tx, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -623,7 +623,7 @@ func (c *Controller) CashCheckVoucherController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
-		newCashCheckVoucher, err := c.model.CashCheckVoucherManager.GetByIDRaw(context, cashCheckVoucher.ID)
+		newCashCheckVoucher, err := c.model_core.CashCheckVoucherManager.GetByIDRaw(context, cashCheckVoucher.ID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch updated cash check voucher: " + err.Error()})
 		}
@@ -646,7 +646,7 @@ func (c *Controller) CashCheckVoucherController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid cash check voucher ID"})
 		}
-		cashCheckVoucher, err := c.model.CashCheckVoucherManager.GetByID(context, *cashCheckVoucherID)
+		cashCheckVoucher, err := c.model_core.CashCheckVoucherManager.GetByID(context, *cashCheckVoucherID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -655,7 +655,7 @@ func (c *Controller) CashCheckVoucherController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Cash check voucher not found"})
 		}
-		if err := c.model.CashCheckVoucherManager.DeleteByID(context, *cashCheckVoucherID); err != nil {
+		if err := c.model_core.CashCheckVoucherManager.DeleteByID(context, *cashCheckVoucherID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Cash check voucher deletion failed (/cash-check-voucher/:cash_check_voucher_id), delete error: " + err.Error(),
@@ -676,10 +676,10 @@ func (c *Controller) CashCheckVoucherController() {
 		Route:       "/api/v1/cash-check-voucher/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple cash check vouchers by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: model.IDSRequest{},
+		RequestType: model_core.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody model.IDSRequest
+		var reqBody model_core.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
 		}
@@ -700,7 +700,7 @@ func (c *Controller) CashCheckVoucherController() {
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid UUID format: " + rawID})
 			}
 
-			cashCheckVoucher, err := c.model.CashCheckVoucherManager.GetByID(context, voucherID)
+			cashCheckVoucher, err := c.model_core.CashCheckVoucherManager.GetByID(context, voucherID)
 			if err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -711,7 +711,7 @@ func (c *Controller) CashCheckVoucherController() {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Cash check voucher not found: " + rawID})
 			}
 
-			if err := tx.Delete(&model.CashCheckVoucher{}, voucherID).Error; err != nil {
+			if err := tx.Delete(&model_core.CashCheckVoucher{}, voucherID).Error; err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",
@@ -750,8 +750,8 @@ func (c *Controller) CashCheckVoucherController() {
 		Route:        "/api/v1/cash-check-voucher/:cash_check_voucher_id/print",
 		Method:       "PUT",
 		Note:         "Marks a cash check voucher as printed by ID and updates print count.",
-		RequestType:  model.CashCheckVoucherPrintRequest{},
-		ResponseType: model.CashCheckVoucherResponse{},
+		RequestType:  model_core.CashCheckVoucherPrintRequest{},
+		ResponseType: model_core.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		cashCheckVoucherID, err := handlers.EngineUUIDParam(ctx, "cash_check_voucher_id")
@@ -763,11 +763,11 @@ func (c *Controller) CashCheckVoucherController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
+		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Insufficient permissions to print cash check voucher"})
 		}
 
-		var req model.CashCheckVoucherPrintRequest
+		var req model_core.CashCheckVoucherPrintRequest
 		if err := ctx.Bind(&req); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "print-error",
@@ -779,7 +779,7 @@ func (c *Controller) CashCheckVoucherController() {
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		cashCheckVoucher, err := c.model.CashCheckVoucherManager.GetByID(context, *cashCheckVoucherID)
+		cashCheckVoucher, err := c.model_core.CashCheckVoucherManager.GetByID(context, *cashCheckVoucherID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Cash check voucher not found"})
 		}
@@ -791,12 +791,12 @@ func (c *Controller) CashCheckVoucherController() {
 		cashCheckVoucher.CashVoucherNumber = req.CashVoucherNumber
 		cashCheckVoucher.PrintCount = cashCheckVoucher.PrintCount + 1
 		cashCheckVoucher.PrintedDate = handlers.Ptr(time.Now().UTC())
-		cashCheckVoucher.Status = model.CashCheckVoucherStatusPrinted
+		cashCheckVoucher.Status = model_core.CashCheckVoucherStatusPrinted
 		cashCheckVoucher.UpdatedAt = time.Now().UTC()
 		cashCheckVoucher.UpdatedByID = userOrg.UserID
 		cashCheckVoucher.PrintedByID = &userOrg.UserID
 
-		if err := c.model.CashCheckVoucherManager.UpdateFields(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
+		if err := c.model_core.CashCheckVoucherManager.UpdateFields(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update cash check voucher print status: " + err.Error()})
 		}
 
@@ -806,7 +806,7 @@ func (c *Controller) CashCheckVoucherController() {
 			Module:      "CashCheckVoucher",
 		})
 
-		return ctx.JSON(http.StatusOK, c.model.CashCheckVoucherManager.ToModel(cashCheckVoucher))
+		return ctx.JSON(http.StatusOK, c.model_core.CashCheckVoucherManager.ToModel(cashCheckVoucher))
 	})
 
 	// PUT /api/v1/cash-check-voucher/:cash_check_voucher_id/approve
@@ -814,7 +814,7 @@ func (c *Controller) CashCheckVoucherController() {
 		Route:        "/api/v1/cash-check-voucher/:cash_check_voucher_id/approve",
 		Method:       "PUT",
 		Note:         "Approves a cash check voucher by ID.",
-		ResponseType: model.CashCheckVoucherResponse{},
+		ResponseType: model_core.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		cashCheckVoucherID, err := handlers.EngineUUIDParam(ctx, "cash_check_voucher_id")
@@ -826,11 +826,11 @@ func (c *Controller) CashCheckVoucherController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
+		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Insufficient permissions to approve cash check voucher"})
 		}
 
-		cashCheckVoucher, err := c.model.CashCheckVoucherManager.GetByID(context, *cashCheckVoucherID)
+		cashCheckVoucher, err := c.model_core.CashCheckVoucherManager.GetByID(context, *cashCheckVoucherID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Cash check voucher not found"})
 		}
@@ -845,12 +845,12 @@ func (c *Controller) CashCheckVoucherController() {
 
 		// Update approval details
 		cashCheckVoucher.ApprovedDate = handlers.Ptr(time.Now().UTC())
-		cashCheckVoucher.Status = model.CashCheckVoucherStatusApproved
+		cashCheckVoucher.Status = model_core.CashCheckVoucherStatusApproved
 		cashCheckVoucher.UpdatedAt = time.Now().UTC()
 		cashCheckVoucher.UpdatedByID = userOrg.UserID
 		cashCheckVoucher.ApprovedByID = &userOrg.UserID
 
-		if err := c.model.CashCheckVoucherManager.UpdateFields(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
+		if err := c.model_core.CashCheckVoucherManager.UpdateFields(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to approve cash check voucher: " + err.Error()})
 		}
 
@@ -860,7 +860,7 @@ func (c *Controller) CashCheckVoucherController() {
 			Module:      "CashCheckVoucher",
 		})
 
-		return ctx.JSON(http.StatusOK, c.model.CashCheckVoucherManager.ToModel(cashCheckVoucher))
+		return ctx.JSON(http.StatusOK, c.model_core.CashCheckVoucherManager.ToModel(cashCheckVoucher))
 	})
 
 	// POST /api/v1/cash-check-voucher/:cash_check_voucher_id/release
@@ -868,7 +868,7 @@ func (c *Controller) CashCheckVoucherController() {
 		Route:        "/api/v1/cash-check-voucher/:cash_check_voucher_id/release",
 		Method:       "POST",
 		Note:         "Releases a cash check voucher by ID. RELEASED SHOULD NOT BE UNAPPROVED.",
-		ResponseType: model.CashCheckVoucherResponse{},
+		ResponseType: model_core.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		cashCheckVoucherID, err := handlers.EngineUUIDParam(ctx, "cash_check_voucher_id")
@@ -880,11 +880,11 @@ func (c *Controller) CashCheckVoucherController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
+		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Insufficient permissions to release cash check voucher"})
 		}
 
-		cashCheckVoucher, err := c.model.CashCheckVoucherManager.GetByID(context, *cashCheckVoucherID)
+		cashCheckVoucher, err := c.model_core.CashCheckVoucherManager.GetByID(context, *cashCheckVoucherID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Cash check voucher not found"})
 		}
@@ -903,12 +903,12 @@ func (c *Controller) CashCheckVoucherController() {
 
 		// Update release details
 		cashCheckVoucher.ReleasedDate = handlers.Ptr(time.Now().UTC())
-		cashCheckVoucher.Status = model.CashCheckVoucherStatusReleased
+		cashCheckVoucher.Status = model_core.CashCheckVoucherStatusReleased
 		cashCheckVoucher.UpdatedAt = time.Now().UTC()
 		cashCheckVoucher.UpdatedByID = userOrg.UserID
 		cashCheckVoucher.ReleasedByID = &userOrg.UserID
 
-		if err := c.model.CashCheckVoucherManager.UpdateFields(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
+		if err := c.model_core.CashCheckVoucherManager.UpdateFields(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to release cash check voucher: " + err.Error()})
 		}
 
@@ -918,7 +918,7 @@ func (c *Controller) CashCheckVoucherController() {
 			Module:      "CashCheckVoucher",
 		})
 
-		return ctx.JSON(http.StatusOK, c.model.CashCheckVoucherManager.ToModel(cashCheckVoucher))
+		return ctx.JSON(http.StatusOK, c.model_core.CashCheckVoucherManager.ToModel(cashCheckVoucher))
 	})
 
 	// PUT /api/v1/cash-check-voucher/:cash_check_voucher_id/print-undo
@@ -926,7 +926,7 @@ func (c *Controller) CashCheckVoucherController() {
 		Route:        "/api/v1/cash-check-voucher/:cash_check_voucher_id/print-undo",
 		Method:       "PUT",
 		Note:         "Reverts the print status of a cash check voucher by ID.",
-		ResponseType: model.CashCheckVoucherResponse{},
+		ResponseType: model_core.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		cashCheckVoucherID, err := handlers.EngineUUIDParam(ctx, "cash_check_voucher_id")
@@ -938,11 +938,11 @@ func (c *Controller) CashCheckVoucherController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
+		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Insufficient permissions to undo print for cash check voucher"})
 		}
 
-		cashCheckVoucher, err := c.model.CashCheckVoucherManager.GetByID(context, *cashCheckVoucherID)
+		cashCheckVoucher, err := c.model_core.CashCheckVoucherManager.GetByID(context, *cashCheckVoucherID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Cash check voucher not found"})
 		}
@@ -958,12 +958,12 @@ func (c *Controller) CashCheckVoucherController() {
 		// Revert print details
 		cashCheckVoucher.PrintCount = 0
 		cashCheckVoucher.PrintedDate = nil
-		cashCheckVoucher.Status = model.CashCheckVoucherStatusPending
+		cashCheckVoucher.Status = model_core.CashCheckVoucherStatusPending
 		cashCheckVoucher.UpdatedAt = time.Now().UTC()
 		cashCheckVoucher.UpdatedByID = userOrg.UserID
 		cashCheckVoucher.PrintedByID = nil
 
-		if err := c.model.CashCheckVoucherManager.UpdateFields(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
+		if err := c.model_core.CashCheckVoucherManager.UpdateFields(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to undo print for cash check voucher: " + err.Error()})
 		}
 
@@ -973,7 +973,7 @@ func (c *Controller) CashCheckVoucherController() {
 			Module:      "CashCheckVoucher",
 		})
 
-		return ctx.JSON(http.StatusOK, c.model.CashCheckVoucherManager.ToModel(cashCheckVoucher))
+		return ctx.JSON(http.StatusOK, c.model_core.CashCheckVoucherManager.ToModel(cashCheckVoucher))
 	})
 
 	// POST /api/v1/cash-check-voucher/:cash_check_voucher_id/print-only
@@ -981,7 +981,7 @@ func (c *Controller) CashCheckVoucherController() {
 		Route:        "/api/v1/cash-check-voucher/:cash_check_voucher_id/print-only",
 		Method:       "POST",
 		Note:         "Marks a cash check voucher as printed without additional details by ID.",
-		ResponseType: model.CashCheckVoucherResponse{},
+		ResponseType: model_core.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		cashCheckVoucherID, err := handlers.EngineUUIDParam(ctx, "cash_check_voucher_id")
@@ -993,11 +993,11 @@ func (c *Controller) CashCheckVoucherController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
+		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Insufficient permissions to print cash check voucher"})
 		}
 
-		cashCheckVoucher, err := c.model.CashCheckVoucherManager.GetByID(context, *cashCheckVoucherID)
+		cashCheckVoucher, err := c.model_core.CashCheckVoucherManager.GetByID(context, *cashCheckVoucherID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Cash check voucher not found"})
 		}
@@ -1009,12 +1009,12 @@ func (c *Controller) CashCheckVoucherController() {
 		// Update print details without changing voucher number
 		cashCheckVoucher.PrintCount = cashCheckVoucher.PrintCount + 1
 		cashCheckVoucher.PrintedDate = handlers.Ptr(time.Now().UTC())
-		cashCheckVoucher.Status = model.CashCheckVoucherStatusPrinted
+		cashCheckVoucher.Status = model_core.CashCheckVoucherStatusPrinted
 		cashCheckVoucher.UpdatedAt = time.Now().UTC()
 		cashCheckVoucher.UpdatedByID = userOrg.UserID
 		cashCheckVoucher.PrintedByID = &userOrg.UserID
 
-		if err := c.model.CashCheckVoucherManager.UpdateFields(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
+		if err := c.model_core.CashCheckVoucherManager.UpdateFields(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to print cash check voucher: " + err.Error()})
 		}
 
@@ -1024,7 +1024,7 @@ func (c *Controller) CashCheckVoucherController() {
 			Module:      "CashCheckVoucher",
 		})
 
-		return ctx.JSON(http.StatusOK, c.model.CashCheckVoucherManager.ToModel(cashCheckVoucher))
+		return ctx.JSON(http.StatusOK, c.model_core.CashCheckVoucherManager.ToModel(cashCheckVoucher))
 	})
 
 	// POST /api/v1/cash-check-voucher/:cash_check_voucher_id/approve-undo
@@ -1032,7 +1032,7 @@ func (c *Controller) CashCheckVoucherController() {
 		Route:        "/api/v1/cash-check-voucher/:cash_check_voucher_id/approve-undo",
 		Method:       "POST",
 		Note:         "Reverts the approval status of a cash check voucher by ID.",
-		ResponseType: model.CashCheckVoucherResponse{},
+		ResponseType: model_core.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		cashCheckVoucherID, err := handlers.EngineUUIDParam(ctx, "cash_check_voucher_id")
@@ -1044,11 +1044,11 @@ func (c *Controller) CashCheckVoucherController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
+		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Insufficient permissions to undo approval for cash check voucher"})
 		}
 
-		cashCheckVoucher, err := c.model.CashCheckVoucherManager.GetByID(context, *cashCheckVoucherID)
+		cashCheckVoucher, err := c.model_core.CashCheckVoucherManager.GetByID(context, *cashCheckVoucherID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Cash check voucher not found"})
 		}
@@ -1067,15 +1067,15 @@ func (c *Controller) CashCheckVoucherController() {
 
 		// Revert approval details
 		cashCheckVoucher.ApprovedDate = nil
-		cashCheckVoucher.Status = model.CashCheckVoucherStatusPrinted // Or pending if not printed
+		cashCheckVoucher.Status = model_core.CashCheckVoucherStatusPrinted // Or pending if not printed
 		if cashCheckVoucher.PrintedDate == nil {
-			cashCheckVoucher.Status = model.CashCheckVoucherStatusPending
+			cashCheckVoucher.Status = model_core.CashCheckVoucherStatusPending
 		}
 		cashCheckVoucher.UpdatedAt = time.Now().UTC()
 		cashCheckVoucher.UpdatedByID = userOrg.UserID
 		cashCheckVoucher.ApprovedBy = nil
 
-		if err := c.model.CashCheckVoucherManager.UpdateFields(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
+		if err := c.model_core.CashCheckVoucherManager.UpdateFields(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to undo approval for cash check voucher: " + err.Error()})
 		}
 
@@ -1085,7 +1085,7 @@ func (c *Controller) CashCheckVoucherController() {
 			Module:      "CashCheckVoucher",
 		})
 
-		return ctx.JSON(http.StatusOK, c.model.CashCheckVoucherManager.ToModel(cashCheckVoucher))
+		return ctx.JSON(http.StatusOK, c.model_core.CashCheckVoucherManager.ToModel(cashCheckVoucher))
 	})
 
 }

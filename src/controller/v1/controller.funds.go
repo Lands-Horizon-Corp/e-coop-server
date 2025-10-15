@@ -7,7 +7,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -19,7 +19,7 @@ func (c *Controller) FundsController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/funds",
 		Method:       "GET",
-		ResponseType: model.FundsResponse{},
+		ResponseType: model_core.FundsResponse{},
 		Note:         "Returns all funds for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -27,18 +27,18 @@ func (c *Controller) FundsController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		funds, err := c.model.FundsCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		funds, err := c.model_core.FundsCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get funds: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.FundsManager.Filtered(context, ctx, funds))
+		return ctx.JSON(http.StatusOK, c.model_core.FundsManager.Filtered(context, ctx, funds))
 	})
 
 	// Get paginated funds
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/funds/search",
 		Method:       "GET",
-		ResponseType: model.FundsResponse{},
+		ResponseType: model_core.FundsResponse{},
 		Note:         "Returns paginated funds for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -46,23 +46,23 @@ func (c *Controller) FundsController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		funds, err := c.model.FundsCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		funds, err := c.model_core.FundsCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get funds for pagination: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.FundsManager.Pagination(context, ctx, funds))
+		return ctx.JSON(http.StatusOK, c.model_core.FundsManager.Pagination(context, ctx, funds))
 	})
 
 	// Create a new funds record
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/funds",
 		Method:       "POST",
-		ResponseType: model.FundsResponse{},
-		RequestType:  model.FundsRequest{},
+		ResponseType: model_core.FundsResponse{},
+		RequestType:  model_core.FundsRequest{},
 		Note:         "Creates a new funds record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.model.FundsManager.Validate(ctx)
+		req, err := c.model_core.FundsManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -81,7 +81,7 @@ func (c *Controller) FundsController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
-		funds := &model.Funds{
+		funds := &model_core.Funds{
 			AccountID:      req.AccountID,
 			Type:           req.Type,
 			Description:    req.Description,
@@ -95,7 +95,7 @@ func (c *Controller) FundsController() {
 			OrganizationID: user.OrganizationID,
 		}
 
-		if err := c.model.FundsManager.Create(context, funds); err != nil {
+		if err := c.model_core.FundsManager.Create(context, funds); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create funds failed (/funds), db error: " + err.Error(),
@@ -110,15 +110,15 @@ func (c *Controller) FundsController() {
 			Module:      "Funds",
 		})
 
-		return ctx.JSON(http.StatusOK, c.model.FundsManager.ToModel(funds))
+		return ctx.JSON(http.StatusOK, c.model_core.FundsManager.ToModel(funds))
 	})
 
 	// Update an existing funds record by ID
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/funds/:funds_id",
 		Method:       "PUT",
-		ResponseType: model.FundsResponse{},
-		RequestType:  model.FundsRequest{},
+		ResponseType: model_core.FundsResponse{},
+		RequestType:  model_core.FundsRequest{},
 		Note:         "Updates an existing funds record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -140,7 +140,7 @@ func (c *Controller) FundsController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		req, err := c.model.FundsManager.Validate(ctx)
+		req, err := c.model_core.FundsManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -149,7 +149,7 @@ func (c *Controller) FundsController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		funds, err := c.model.FundsManager.GetByID(context, *fundsID)
+		funds, err := c.model_core.FundsManager.GetByID(context, *fundsID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -167,7 +167,7 @@ func (c *Controller) FundsController() {
 		funds.Description = req.Description
 		funds.Icon = req.Icon
 		funds.GLBooks = req.GLBooks
-		if err := c.model.FundsManager.UpdateFields(context, funds.ID, funds); err != nil {
+		if err := c.model_core.FundsManager.UpdateFields(context, funds.ID, funds); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update funds failed (/funds/:funds_id), db error: " + err.Error(),
@@ -180,7 +180,7 @@ func (c *Controller) FundsController() {
 			Description: "Updated funds (/funds/:funds_id): " + funds.Type,
 			Module:      "Funds",
 		})
-		return ctx.JSON(http.StatusOK, c.model.FundsManager.ToModel(funds))
+		return ctx.JSON(http.StatusOK, c.model_core.FundsManager.ToModel(funds))
 	})
 
 	// Delete a funds record by ID
@@ -199,7 +199,7 @@ func (c *Controller) FundsController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid funds_id: " + err.Error()})
 		}
-		value, err := c.model.FundsManager.GetByID(context, *fundsID)
+		value, err := c.model_core.FundsManager.GetByID(context, *fundsID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -208,7 +208,7 @@ func (c *Controller) FundsController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Funds not found: " + err.Error()})
 		}
-		if err := c.model.FundsManager.DeleteByID(context, *fundsID); err != nil {
+		if err := c.model_core.FundsManager.DeleteByID(context, *fundsID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete funds failed (/funds/:funds_id), db error: " + err.Error(),
@@ -229,10 +229,10 @@ func (c *Controller) FundsController() {
 		Route:       "/api/v1/funds/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple funds records by their IDs.",
-		RequestType: model.IDSRequest{},
+		RequestType: model_core.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody model.IDSRequest
+		var reqBody model_core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -276,7 +276,7 @@ func (c *Controller) FundsController() {
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID '%s': %s", rawID, err.Error())})
 			}
 
-			value, err := c.model.FundsManager.GetByID(context, fundsID)
+			value, err := c.model_core.FundsManager.GetByID(context, fundsID)
 			if err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -288,7 +288,7 @@ func (c *Controller) FundsController() {
 			}
 
 			types += value.Type + ","
-			if err := c.model.FundsManager.DeleteByIDWithTx(context, tx, fundsID); err != nil {
+			if err := c.model_core.FundsManager.DeleteByIDWithTx(context, tx, fundsID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",
