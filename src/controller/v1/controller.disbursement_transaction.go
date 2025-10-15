@@ -6,7 +6,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
 	"github.com/labstack/echo/v4"
 )
 
@@ -17,11 +17,11 @@ func (c *Controller) DisbursementTransactionController() {
 		Route:        "/api/v1/disbursement-transaction",
 		Method:       "POST",
 		Note:         "Returns all disbursement transactions for a specific/current transaction batch.",
-		ResponseType: model.DisbursementTransactionResponse{},
-		RequestType:  model.DisbursementTransactionRequest{},
+		ResponseType: model_core.DisbursementTransactionResponse{},
+		RequestType:  model_core.DisbursementTransactionRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.model.DisbursementTransactionManager.Validate(ctx)
+		req, err := c.model_core.DisbursementTransactionManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -35,15 +35,15 @@ func (c *Controller) DisbursementTransactionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		if userOrg.UserType != model.UserOrganizationTypeOwner && userOrg.UserType != model.UserOrganizationTypeEmployee {
+		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
 
-		transactionBatch, err := c.model.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
+		transactionBatch, err := c.model_core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil || transactionBatch == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No active transaction batch found for the user"})
 		}
-		data := &model.DisbursementTransaction{
+		data := &model_core.DisbursementTransaction{
 			CreatedAt:          time.Now().UTC(),
 			CreatedByID:        userOrg.UserID,
 			UpdatedAt:          time.Now().UTC(),
@@ -58,7 +58,7 @@ func (c *Controller) DisbursementTransactionController() {
 			ReferenceNumber:    req.ReferenceNumber,
 			Amount:             req.Amount,
 		}
-		if err := c.model.DisbursementTransactionManager.Create(context, data); err != nil {
+		if err := c.model_core.DisbursementTransactionManager.Create(context, data); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Disbursement transaction creation failed (/disbursement-transaction), db error: " + err.Error(),
@@ -68,7 +68,7 @@ func (c *Controller) DisbursementTransactionController() {
 		}
 		if req.IsReferenceNumberChecked {
 			userOrg.UserSettingUsedOR += 1
-			if err := c.model.UserOrganizationManager.UpdateFields(context, userOrg.ID, userOrg); err != nil {
+			if err := c.model_core.UserOrganizationManager.UpdateFields(context, userOrg.ID, userOrg); err != nil {
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "create-error",
 					Description: "Disbursement transaction reference number update failed (/disbursement-transaction), db error: " + err.Error(),
@@ -82,7 +82,7 @@ func (c *Controller) DisbursementTransactionController() {
 			Description: "Created disbursement transaction (/disbursement-transaction): " + data.ID.String(),
 			Module:      "DisbursementTransaction",
 		})
-		return ctx.JSON(http.StatusCreated, c.model.DisbursementTransactionManager.ToModel(data))
+		return ctx.JSON(http.StatusCreated, c.model_core.DisbursementTransactionManager.ToModel(data))
 
 	})
 
@@ -90,7 +90,7 @@ func (c *Controller) DisbursementTransactionController() {
 		Route:        "/api/v1/disbursement-transaction/transaction-batch/:transaction_batch_id/search",
 		Method:       "GET",
 		Note:         "Returns all disbursement transactions for a specific transaction batch.",
-		ResponseType: model.DisbursementResponse{},
+		ResponseType: model_core.DisbursementResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		transactionBatchID, err := handlers.EngineUUIDParam(ctx, "transaction_batch_id")
@@ -104,7 +104,7 @@ func (c *Controller) DisbursementTransactionController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		disbursementTransactions, err := c.model.DisbursementTransactionManager.Find(context, &model.DisbursementTransaction{
+		disbursementTransactions, err := c.model_core.DisbursementTransactionManager.Find(context, &model_core.DisbursementTransaction{
 			TransactionBatchID: *transactionBatchID,
 			BranchID:           *user.BranchID,
 			OrganizationID:     user.OrganizationID,
@@ -112,28 +112,28 @@ func (c *Controller) DisbursementTransactionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve disbursement transactions: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.DisbursementTransactionManager.Pagination(context, ctx, disbursementTransactions))
+		return ctx.JSON(http.StatusOK, c.model_core.DisbursementTransactionManager.Pagination(context, ctx, disbursementTransactions))
 	})
 
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/disbursement-transaction/employee/:user_organization_id/search",
 		Method:       "GET",
 		Note:         "Returns all disbursement transactions handled by a specific employee.",
-		ResponseType: model.DisbursementResponse{},
+		ResponseType: model_core.DisbursementResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrganizationID, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction batch ID"})
 		}
-		useOrganization, err := c.model.UserOrganizationManager.GetByID(context, *userOrganizationID)
+		useOrganization, err := c.model_core.UserOrganizationManager.GetByID(context, *userOrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
 		if useOrganization.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		disbursementTransactions, err := c.model.DisbursementTransactionManager.Find(context, &model.DisbursementTransaction{
+		disbursementTransactions, err := c.model_core.DisbursementTransactionManager.Find(context, &model_core.DisbursementTransaction{
 			CreatedByID:    useOrganization.UserID,
 			BranchID:       *useOrganization.BranchID,
 			OrganizationID: useOrganization.OrganizationID,
@@ -142,14 +142,14 @@ func (c *Controller) DisbursementTransactionController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve disbursement transactions: " + err.Error()})
 		}
 		// Return paginated response
-		return ctx.JSON(http.StatusOK, c.model.DisbursementTransactionManager.Pagination(context, ctx, disbursementTransactions))
+		return ctx.JSON(http.StatusOK, c.model_core.DisbursementTransactionManager.Pagination(context, ctx, disbursementTransactions))
 	})
 
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/disbursement-transaction/current/search",
 		Method:       "GET",
 		Note:         "Returns all disbursement transactions for the currently authenticated user.",
-		ResponseType: model.DisbursementResponse{},
+		ResponseType: model_core.DisbursementResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -159,7 +159,7 @@ func (c *Controller) DisbursementTransactionController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		disbursementTransactions, err := c.model.DisbursementTransactionManager.Find(context, &model.DisbursementTransaction{
+		disbursementTransactions, err := c.model_core.DisbursementTransactionManager.Find(context, &model_core.DisbursementTransaction{
 			CreatedByID:    user.UserID,
 			BranchID:       *user.BranchID,
 			OrganizationID: user.OrganizationID,
@@ -168,14 +168,14 @@ func (c *Controller) DisbursementTransactionController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve disbursement transactions: " + err.Error()})
 		}
 		// Return paginated response
-		return ctx.JSON(http.StatusOK, c.model.DisbursementTransactionManager.Pagination(context, ctx, disbursementTransactions))
+		return ctx.JSON(http.StatusOK, c.model_core.DisbursementTransactionManager.Pagination(context, ctx, disbursementTransactions))
 	})
 
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/disbursement-transaction/branch/search",
 		Method:       "GET",
 		Note:         "Returns all disbursement transactions for the current user's branch.",
-		ResponseType: model.DisbursementResponse{},
+		ResponseType: model_core.DisbursementResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -185,21 +185,21 @@ func (c *Controller) DisbursementTransactionController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		disbursementTransactions, err := c.model.DisbursementTransactionManager.Find(context, &model.DisbursementTransaction{
+		disbursementTransactions, err := c.model_core.DisbursementTransactionManager.Find(context, &model_core.DisbursementTransaction{
 			BranchID:       *user.BranchID,
 			OrganizationID: user.OrganizationID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve disbursement transactions: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.DisbursementTransactionManager.Pagination(context, ctx, disbursementTransactions))
+		return ctx.JSON(http.StatusOK, c.model_core.DisbursementTransactionManager.Pagination(context, ctx, disbursementTransactions))
 	})
 
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/disbursement-transaction/disbursement/:disbursement_id/search",
 		Method:       "GET",
 		Note:         "Returns all disbursement transactions for a specific disbursement ID.",
-		ResponseType: model.DisbursementResponse{},
+		ResponseType: model_core.DisbursementResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		disbursementID, err := handlers.EngineUUIDParam(ctx, "disbursement_id")
@@ -213,7 +213,7 @@ func (c *Controller) DisbursementTransactionController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		disbursementTransactions, err := c.model.DisbursementTransactionManager.Find(context, &model.DisbursementTransaction{
+		disbursementTransactions, err := c.model_core.DisbursementTransactionManager.Find(context, &model_core.DisbursementTransaction{
 			DisbursementID: *disbursementID,
 			BranchID:       *user.BranchID,
 			OrganizationID: user.OrganizationID,
@@ -221,6 +221,6 @@ func (c *Controller) DisbursementTransactionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve disbursement transactions"})
 		}
-		return ctx.JSON(http.StatusOK, c.model.DisbursementTransactionManager.Pagination(context, ctx, disbursementTransactions))
+		return ctx.JSON(http.StatusOK, c.model_core.DisbursementTransactionManager.Pagination(context, ctx, disbursementTransactions))
 	})
 }

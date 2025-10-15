@@ -7,7 +7,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -21,7 +21,7 @@ func (c *Controller) AdjustmentEntryController() {
 		Route:        "/api/v1/adjustment-entry",
 		Method:       "GET",
 		Note:         "Returns all adjustment entries for the current user's organization and branch. Returns empty if not authenticated.",
-		ResponseType: model.AdjustmentEntryResponse{},
+		ResponseType: model_core.AdjustmentEntryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -31,11 +31,11 @@ func (c *Controller) AdjustmentEntryController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		adjustmentEntries, err := c.model.AdjustmentEntryCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		adjustmentEntries, err := c.model_core.AdjustmentEntryCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No adjustment entries found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.model.AdjustmentEntryManager.Filtered(context, ctx, adjustmentEntries))
+		return ctx.JSON(http.StatusOK, c.model_core.AdjustmentEntryManager.Filtered(context, ctx, adjustmentEntries))
 	})
 
 	// GET /adjustment-entry/search: Paginated search of adjustment entries for the current branch. (NO footstep)
@@ -43,7 +43,7 @@ func (c *Controller) AdjustmentEntryController() {
 		Route:        "/api/v1/adjustment-entry/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of adjustment entries for the current user's organization and branch.",
-		ResponseType: model.AdjustmentEntryResponse{},
+		ResponseType: model_core.AdjustmentEntryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -53,11 +53,11 @@ func (c *Controller) AdjustmentEntryController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		adjustmentEntries, err := c.model.AdjustmentEntryCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		adjustmentEntries, err := c.model_core.AdjustmentEntryCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch adjustment entries for pagination: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model.AdjustmentEntryManager.Pagination(context, ctx, adjustmentEntries))
+		return ctx.JSON(http.StatusOK, c.model_core.AdjustmentEntryManager.Pagination(context, ctx, adjustmentEntries))
 	})
 
 	// GET /adjustment-entry/:adjustment_entry_id: Get specific adjustment entry by ID. (NO footstep)
@@ -65,14 +65,14 @@ func (c *Controller) AdjustmentEntryController() {
 		Route:        "/api/v1/adjustment-entry/:adjustment_entry_id",
 		Method:       "GET",
 		Note:         "Returns a single adjustment entry by its ID.",
-		ResponseType: model.AdjustmentEntryResponse{},
+		ResponseType: model_core.AdjustmentEntryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		adjustmentEntryID, err := handlers.EngineUUIDParam(ctx, "adjustment_entry_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid adjustment entry ID"})
 		}
-		adjustmentEntry, err := c.model.AdjustmentEntryManager.GetByIDRaw(context, *adjustmentEntryID)
+		adjustmentEntry, err := c.model_core.AdjustmentEntryManager.GetByIDRaw(context, *adjustmentEntryID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Adjustment entry not found"})
 		}
@@ -84,11 +84,11 @@ func (c *Controller) AdjustmentEntryController() {
 		Route:        "/api/v1/adjustment-entry",
 		Method:       "POST",
 		Note:         "Creates a new adjustment entry for the current user's organization and branch.",
-		RequestType:  model.AdjustmentEntryRequest{},
-		ResponseType: model.AdjustmentEntryResponse{},
+		RequestType:  model_core.AdjustmentEntryRequest{},
+		ResponseType: model_core.AdjustmentEntryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.model.AdjustmentEntryManager.Validate(ctx)
+		req, err := c.model_core.AdjustmentEntryManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -115,7 +115,7 @@ func (c *Controller) AdjustmentEntryController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		adjustmentEntry := &model.AdjustmentEntry{
+		adjustmentEntry := &model_core.AdjustmentEntry{
 			SignatureMediaID:  req.SignatureMediaID,
 			AccountID:         req.AccountID,
 			MemberProfileID:   req.MemberProfileID,
@@ -135,7 +135,7 @@ func (c *Controller) AdjustmentEntryController() {
 			OrganizationID:    user.OrganizationID,
 		}
 
-		if err := c.model.AdjustmentEntryManager.Create(context, adjustmentEntry); err != nil {
+		if err := c.model_core.AdjustmentEntryManager.Create(context, adjustmentEntry); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Adjustment entry creation failed (/adjustment-entry), db error: " + err.Error(),
@@ -148,7 +148,7 @@ func (c *Controller) AdjustmentEntryController() {
 			Description: "Created adjustment entry (/adjustment-entry): " + adjustmentEntry.ReferenceNumber,
 			Module:      "AdjustmentEntry",
 		})
-		return ctx.JSON(http.StatusCreated, c.model.AdjustmentEntryManager.ToModel(adjustmentEntry))
+		return ctx.JSON(http.StatusCreated, c.model_core.AdjustmentEntryManager.ToModel(adjustmentEntry))
 	})
 
 	// PUT /adjustment-entry/:adjustment_entry_id: Update adjustment entry by ID. (WITH footstep)
@@ -156,8 +156,8 @@ func (c *Controller) AdjustmentEntryController() {
 		Route:        "/api/v1/adjustment-entry/:adjustment_entry_id",
 		Method:       "PUT",
 		Note:         "Updates an existing adjustment entry by its ID.",
-		RequestType:  model.AdjustmentEntryRequest{},
-		ResponseType: model.AdjustmentEntryResponse{},
+		RequestType:  model_core.AdjustmentEntryRequest{},
+		ResponseType: model_core.AdjustmentEntryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		adjustmentEntryID, err := handlers.EngineUUIDParam(ctx, "adjustment_entry_id")
@@ -170,7 +170,7 @@ func (c *Controller) AdjustmentEntryController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid adjustment entry ID"})
 		}
 
-		req, err := c.model.AdjustmentEntryManager.Validate(ctx)
+		req, err := c.model_core.AdjustmentEntryManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -188,7 +188,7 @@ func (c *Controller) AdjustmentEntryController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		adjustmentEntry, err := c.model.AdjustmentEntryManager.GetByID(context, *adjustmentEntryID)
+		adjustmentEntry, err := c.model_core.AdjustmentEntryManager.GetByID(context, *adjustmentEntryID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -210,7 +210,7 @@ func (c *Controller) AdjustmentEntryController() {
 		adjustmentEntry.Credit = req.Credit
 		adjustmentEntry.UpdatedAt = time.Now().UTC()
 		adjustmentEntry.UpdatedByID = user.UserID
-		if err := c.model.AdjustmentEntryManager.UpdateFields(context, adjustmentEntry.ID, adjustmentEntry); err != nil {
+		if err := c.model_core.AdjustmentEntryManager.UpdateFields(context, adjustmentEntry.ID, adjustmentEntry); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Adjustment entry update failed (/adjustment-entry/:adjustment_entry_id), db error: " + err.Error(),
@@ -223,7 +223,7 @@ func (c *Controller) AdjustmentEntryController() {
 			Description: "Updated adjustment entry (/adjustment-entry/:adjustment_entry_id): " + adjustmentEntry.ReferenceNumber,
 			Module:      "AdjustmentEntry",
 		})
-		return ctx.JSON(http.StatusOK, c.model.AdjustmentEntryManager.ToModel(adjustmentEntry))
+		return ctx.JSON(http.StatusOK, c.model_core.AdjustmentEntryManager.ToModel(adjustmentEntry))
 	})
 
 	// DELETE /adjustment-entry/:adjustment_entry_id: Delete an adjustment entry by ID. (WITH footstep)
@@ -242,7 +242,7 @@ func (c *Controller) AdjustmentEntryController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid adjustment entry ID"})
 		}
-		adjustmentEntry, err := c.model.AdjustmentEntryManager.GetByID(context, *adjustmentEntryID)
+		adjustmentEntry, err := c.model_core.AdjustmentEntryManager.GetByID(context, *adjustmentEntryID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -251,7 +251,7 @@ func (c *Controller) AdjustmentEntryController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Adjustment entry not found"})
 		}
-		if err := c.model.AdjustmentEntryManager.DeleteByID(context, *adjustmentEntryID); err != nil {
+		if err := c.model_core.AdjustmentEntryManager.DeleteByID(context, *adjustmentEntryID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Adjustment entry delete failed (/adjustment-entry/:adjustment_entry_id), db error: " + err.Error(),
@@ -272,10 +272,10 @@ func (c *Controller) AdjustmentEntryController() {
 		Route:       "/api/v1/adjustment-entry/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple adjustment entries by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: model.IDSRequest{},
+		RequestType: model_core.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody model.IDSRequest
+		var reqBody model_core.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
@@ -314,7 +314,7 @@ func (c *Controller) AdjustmentEntryController() {
 				})
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
 			}
-			adjustmentEntry, err := c.model.AdjustmentEntryManager.GetByID(context, adjustmentEntryID)
+			adjustmentEntry, err := c.model_core.AdjustmentEntryManager.GetByID(context, adjustmentEntryID)
 			if err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -325,7 +325,7 @@ func (c *Controller) AdjustmentEntryController() {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Adjustment entry not found with ID: %s", rawID)})
 			}
 			names += adjustmentEntry.ReferenceNumber + ","
-			if err := c.model.AdjustmentEntryManager.DeleteByIDWithTx(context, tx, adjustmentEntryID); err != nil {
+			if err := c.model_core.AdjustmentEntryManager.DeleteByIDWithTx(context, tx, adjustmentEntryID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",
@@ -356,7 +356,7 @@ func (c *Controller) AdjustmentEntryController() {
 		Route:        "/api/v1/adjustment-entry/total",
 		Method:       "GET",
 		Note:         "Returns the total debit and credit of all adjustment entries for the current user's organization and branch.",
-		ResponseType: model.AdjustmentEntryTotalResponse{},
+		ResponseType: model_core.AdjustmentEntryTotalResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -366,7 +366,7 @@ func (c *Controller) AdjustmentEntryController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		adjustmentEntries, err := c.model.AdjustmentEntryCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		adjustmentEntries, err := c.model_core.AdjustmentEntryCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No adjustment entries found for the current branch"})
 		}
@@ -376,7 +376,7 @@ func (c *Controller) AdjustmentEntryController() {
 			totalDebit += entry.Debit
 			totalCredit += entry.Credit
 		}
-		return ctx.JSON(http.StatusOK, model.AdjustmentEntryTotalResponse{
+		return ctx.JSON(http.StatusOK, model_core.AdjustmentEntryTotalResponse{
 			TotalDebit:  totalDebit,
 			TotalCredit: totalCredit,
 		})

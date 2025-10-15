@@ -10,18 +10,18 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 )
 
 // UserOrganizationClaim defines the JWT claims for a user organization.
 type UserOrganizationClaim struct {
-	UserOrganizationID string                     `json:"user_organization_id"`
-	UserID             string                     `json:"user_id"`
-	BranchID           string                     `json:"branch_id"`
-	OrganizationID     string                     `json:"organization_id"`
-	UserType           model.UserOrganizationType `json:"user_type"`
+	UserOrganizationID string                          `json:"user_organization_id"`
+	UserID             string                          `json:"user_id"`
+	BranchID           string                          `json:"branch_id"`
+	OrganizationID     string                          `json:"organization_id"`
+	UserType           model_core.UserOrganizationType `json:"user_type"`
 	jwt.RegisteredClaims
 }
 
@@ -32,20 +32,20 @@ func (c UserOrganizationClaim) GetRegisteredClaims() *jwt.RegisteredClaims {
 
 // UserOrganizationCSRF holds user organization info for CSRF protection.
 type UserOrganizationCSRF struct {
-	UserOrganizationID string                     `json:"user_organization_id"`
-	UserID             string                     `json:"user_id"`
-	BranchID           string                     `json:"branch_id"`
-	OrganizationID     string                     `json:"organization_id"`
-	UserType           model.UserOrganizationType `json:"user_type"`
-	Language           string                     `json:"language"`
-	Location           string                     `json:"location"`
-	UserAgent          string                     `json:"user_agent"`
-	IPAddress          string                     `json:"ip_address"`
-	DeviceType         string                     `json:"device_type"`
-	Longitude          float64                    `json:"longitude"`
-	Latitude           float64                    `json:"latitude"`
-	Referer            string                     `json:"referer"`
-	AcceptLanguage     string                     `json:"accept_language"`
+	UserOrganizationID string                          `json:"user_organization_id"`
+	UserID             string                          `json:"user_id"`
+	BranchID           string                          `json:"branch_id"`
+	OrganizationID     string                          `json:"organization_id"`
+	UserType           model_core.UserOrganizationType `json:"user_type"`
+	Language           string                          `json:"language"`
+	Location           string                          `json:"location"`
+	UserAgent          string                          `json:"user_agent"`
+	IPAddress          string                          `json:"ip_address"`
+	DeviceType         string                          `json:"device_type"`
+	Longitude          float64                         `json:"longitude"`
+	Latitude           float64                         `json:"latitude"`
+	Referer            string                          `json:"referer"`
+	AcceptLanguage     string                          `json:"accept_language"`
 }
 
 // UserOrganizationCSRFResponse is the response model for CSRF user organization info.
@@ -93,14 +93,14 @@ func (m UserOrganizationCSRF) GetID() string {
 
 // UserOrganizationToken handles user organization token and CSRF logic.
 type UserOrganizationToken struct {
-	model    *model.Model
-	provider *src.Provider
+	model_core *model_core.ModelCore
+	provider   *src.Provider
 
 	CSRF horizon.AuthService[UserOrganizationCSRF]
 }
 
 // NewUserOrganizationToken initializes a new UserOrganizationToken.
-func NewUserOrganizationToken(provider *src.Provider, model *model.Model) (*UserOrganizationToken, error) {
+func NewUserOrganizationToken(provider *src.Provider, model_core *model_core.ModelCore) (*UserOrganizationToken, error) {
 	appName := provider.Service.Environment.GetString("APP_NAME", "")
 
 	csrfService := horizon.NewHorizonAuthService[UserOrganizationCSRF](
@@ -111,9 +111,9 @@ func NewUserOrganizationToken(provider *src.Provider, model *model.Model) (*User
 	)
 
 	return &UserOrganizationToken{
-		CSRF:     csrfService,
-		model:    model,
-		provider: provider,
+		CSRF:       csrfService,
+		model_core: model_core,
+		provider:   provider,
 	}, nil
 }
 
@@ -122,12 +122,12 @@ func (h *UserOrganizationToken) ClearCurrentToken(ctx context.Context, echoCtx e
 }
 
 // CurrentUserOrganization retrieves the current user organization from the CSRF token, validating the information.
-func (h *UserOrganizationToken) CurrentUserOrganization(ctx context.Context, echoCtx echo.Context) (*model.UserOrganization, error) {
+func (h *UserOrganizationToken) CurrentUserOrganization(ctx context.Context, echoCtx echo.Context) (*model_core.UserOrganization, error) {
 	// Try Bearer token as fallback first
 	authHeader := echoCtx.Request().Header.Get("Authorization")
 	if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
 		bearerToken := authHeader[7:]
-		userOrganization, err := h.model.UserOrganizationManager.FindOne(ctx, &model.UserOrganization{
+		userOrganization, err := h.model_core.UserOrganizationManager.FindOne(ctx, &model_core.UserOrganization{
 			DeveloperSecretKey: bearerToken,
 		})
 
@@ -147,7 +147,7 @@ func (h *UserOrganizationToken) CurrentUserOrganization(ctx context.Context, ech
 		return nil, echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized: missing essential user organization information")
 	}
 
-	userOrganization, err := h.model.UserOrganizationManager.GetByID(ctx, handlers.ParseUUID(&claim.UserOrganizationID))
+	userOrganization, err := h.model_core.UserOrganizationManager.GetByID(ctx, handlers.ParseUUID(&claim.UserOrganizationID))
 	if err != nil || userOrganization == nil {
 		h.ClearCurrentToken(ctx, echoCtx)
 		return nil, echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized: user organization not found")
@@ -165,7 +165,7 @@ func (h *UserOrganizationToken) CurrentUserOrganization(ctx context.Context, ech
 }
 
 // SetUserOrganization sets the CSRF token for the provided user organization.
-func (h *UserOrganizationToken) SetUserOrganization(ctx context.Context, echoCtx echo.Context, userOrganization *model.UserOrganization) error {
+func (h *UserOrganizationToken) SetUserOrganization(ctx context.Context, echoCtx echo.Context, userOrganization *model_core.UserOrganization) error {
 	h.ClearCurrentToken(ctx, echoCtx)
 	if userOrganization == nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "UserOrganization cannot be nil")

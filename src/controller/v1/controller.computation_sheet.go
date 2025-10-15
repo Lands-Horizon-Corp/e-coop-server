@@ -7,7 +7,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -21,10 +21,10 @@ func (c *Controller) ComputationSheetController() {
 		Route:        "/api/v1/computation-sheet/:computation_sheet_id/calculator",
 		Method:       "POST",
 		Note:         "Returns sample payment calculation data for a computation sheet.",
-		ResponseType: model.ComputationSheetAmortizationResponse{},
+		ResponseType: model_core.ComputationSheetAmortizationResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var request model.LoanTransactionRequest
+		var request model_core.LoanTransactionRequest
 		computationSheetID, err := handlers.EngineUUIDParam(ctx, "computation_sheet_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
@@ -42,11 +42,11 @@ func (c *Controller) ComputationSheetController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		computationSheet, err := c.model.ComputationSheetManager.GetByID(context, *computationSheetID)
+		computationSheet, err := c.model_core.ComputationSheetManager.GetByID(context, *computationSheetID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Computation sheet not found"})
 		}
-		automaticLoanDeductionEntries, err := c.model.AutomaticLoanDeductionManager.Find(context, &model.AutomaticLoanDeduction{
+		automaticLoanDeductionEntries, err := c.model_core.AutomaticLoanDeductionManager.Find(context, &model_core.AutomaticLoanDeduction{
 			ComputationSheetID: &computationSheet.ID,
 			BranchID:           computationSheet.BranchID,
 			OrganizationID:     computationSheet.OrganizationID,
@@ -54,20 +54,20 @@ func (c *Controller) ComputationSheetController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve automatic loan deduction entries: " + err.Error()})
 		}
-		account, err := c.model.AccountManager.GetByID(context, *request.AccountID)
+		account, err := c.model_core.AccountManager.GetByID(context, *request.AccountID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found"})
 		}
 		cashOnHandAccountID := userOrg.Branch.BranchSetting.CashOnHandAccountID
-		cashOnHand, err := c.model.AccountManager.GetByID(context, *cashOnHandAccountID)
+		cashOnHand, err := c.model_core.AccountManager.GetByID(context, *cashOnHandAccountID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve cash on hand account: " + err.Error()})
 		}
-		loanTransactionEntries := []*model.LoanTransactionEntry{
+		loanTransactionEntries := []*model_core.LoanTransactionEntry{
 			{
 				Account: cashOnHand,
 				IsAddOn: false,
-				Type:    model.LoanTransactionStatic,
+				Type:    model_core.LoanTransactionStatic,
 				Debit:   0,
 				Credit:  request.Applied1,
 				Name:    account.Name,
@@ -75,18 +75,18 @@ func (c *Controller) ComputationSheetController() {
 			{
 				Account: account,
 				IsAddOn: false,
-				Type:    model.LoanTransactionStatic,
+				Type:    model_core.LoanTransactionStatic,
 				Debit:   request.Applied1,
 				Credit:  0,
 				Name:    cashOnHand.Name,
 			},
 		}
-		addOnEntry := &model.LoanTransactionEntry{
+		addOnEntry := &model_core.LoanTransactionEntry{
 			Account: nil,
 			Credit:  0,
 			Debit:   0,
 			Name:    "ADD ON INTEREST",
-			Type:    model.LoanTransactionAddOn,
+			Type:    model_core.LoanTransactionAddOn,
 			IsAddOn: true,
 		}
 		total_non_add_ons, total_add_ons := 0.0, 0.0
@@ -94,19 +94,19 @@ func (c *Controller) ComputationSheetController() {
 			if ald.AccountID == nil {
 				continue
 			}
-			ald.Account, err = c.model.AccountManager.GetByID(context, *ald.AccountID)
+			ald.Account, err = c.model_core.AccountManager.GetByID(context, *ald.AccountID)
 			if err != nil {
 				continue
 			}
-			entry := &model.LoanTransactionEntry{
+			entry := &model_core.LoanTransactionEntry{
 				Credit:  0,
 				Debit:   0,
 				Name:    ald.Name,
-				Type:    model.LoanTransactionDeduction,
+				Type:    model_core.LoanTransactionDeduction,
 				IsAddOn: ald.AddOn,
 				Account: ald.Account,
 			}
-			entry.Credit = c.service.LoanComputation(context, *ald, model.LoanTransaction{
+			entry.Credit = c.service.LoanComputation(context, *ald, model_core.LoanTransaction{
 				Terms:    request.Terms,
 				Applied1: request.Applied1,
 			})
@@ -132,8 +132,8 @@ func (c *Controller) ComputationSheetController() {
 			totalDebit += entry.Debit
 			totalCredit += entry.Credit
 		}
-		return ctx.JSON(http.StatusOK, model.ComputationSheetAmortizationResponse{
-			Entries:     c.model.LoanTransactionEntryManager.ToModels(loanTransactionEntries),
+		return ctx.JSON(http.StatusOK, model_core.ComputationSheetAmortizationResponse{
+			Entries:     c.model_core.LoanTransactionEntryManager.ToModels(loanTransactionEntries),
 			TotalDebit:  totalDebit,
 			TotalCredit: totalCredit,
 		})
@@ -144,7 +144,7 @@ func (c *Controller) ComputationSheetController() {
 		Route:        "/api/v1/computation-sheet",
 		Method:       "GET",
 		Note:         "Returns all computation sheets for the current user's organization and branch.",
-		ResponseType: model.ComputationSheetResponse{},
+		ResponseType: model_core.ComputationSheetResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -154,18 +154,18 @@ func (c *Controller) ComputationSheetController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		sheets, err := c.model.ComputationSheetCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		sheets, err := c.model_core.ComputationSheetCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No computation sheets found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.model.ComputationSheetManager.Filtered(context, ctx, sheets))
+		return ctx.JSON(http.StatusOK, c.model_core.ComputationSheetManager.Filtered(context, ctx, sheets))
 	})
 
 	// GET /computation-sheet/:id: Get specific computation sheet by ID.
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/computation-sheet/:id",
 		Method:       "GET",
-		ResponseType: model.ComputationSheetResponse{},
+		ResponseType: model_core.ComputationSheetResponse{},
 		Note:         "Returns a single computation sheet by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -173,7 +173,7 @@ func (c *Controller) ComputationSheetController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
 		}
-		sheet, err := c.model.ComputationSheetManager.GetByIDRaw(context, *id)
+		sheet, err := c.model_core.ComputationSheetManager.GetByIDRaw(context, *id)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Computation sheet not found"})
 		}
@@ -184,12 +184,12 @@ func (c *Controller) ComputationSheetController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/computation-sheet",
 		Method:       "POST",
-		RequestType:  model.ComputationSheetRequest{},
-		ResponseType: model.ComputationSheetResponse{},
+		RequestType:  model_core.ComputationSheetRequest{},
+		ResponseType: model_core.ComputationSheetResponse{},
 		Note:         "Creates a new computation sheet for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.model.ComputationSheetManager.Validate(ctx)
+		req, err := c.model_core.ComputationSheetManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -216,7 +216,7 @@ func (c *Controller) ComputationSheetController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		sheet := &model.ComputationSheet{
+		sheet := &model_core.ComputationSheet{
 			Name:              req.Name,
 			Description:       req.Description,
 			DeliquentAccount:  req.DeliquentAccount,
@@ -232,7 +232,7 @@ func (c *Controller) ComputationSheetController() {
 			OrganizationID:    user.OrganizationID,
 		}
 
-		if err := c.model.ComputationSheetManager.Create(context, sheet); err != nil {
+		if err := c.model_core.ComputationSheetManager.Create(context, sheet); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Computation sheet creation failed (/computation-sheet), db error: " + err.Error(),
@@ -245,15 +245,15 @@ func (c *Controller) ComputationSheetController() {
 			Description: "Created computation sheet (/computation-sheet): " + sheet.Name,
 			Module:      "ComputationSheet",
 		})
-		return ctx.JSON(http.StatusCreated, c.model.ComputationSheetManager.ToModel(sheet))
+		return ctx.JSON(http.StatusCreated, c.model_core.ComputationSheetManager.ToModel(sheet))
 	})
 
 	// PUT /computation-sheet/:id: Update computation sheet by ID.
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/computation-sheet/:id",
 		Method:       "PUT",
-		RequestType:  model.ComputationSheetRequest{},
-		ResponseType: model.ComputationSheetResponse{},
+		RequestType:  model_core.ComputationSheetRequest{},
+		ResponseType: model_core.ComputationSheetResponse{},
 		Note:         "Updates an existing computation sheet by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -267,7 +267,7 @@ func (c *Controller) ComputationSheetController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
 		}
 
-		req, err := c.model.ComputationSheetManager.Validate(ctx)
+		req, err := c.model_core.ComputationSheetManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -285,7 +285,7 @@ func (c *Controller) ComputationSheetController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		sheet, err := c.model.ComputationSheetManager.GetByID(context, *id)
+		sheet, err := c.model_core.ComputationSheetManager.GetByID(context, *id)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -304,7 +304,7 @@ func (c *Controller) ComputationSheetController() {
 		sheet.UpdatedAt = time.Now().UTC()
 		sheet.UpdatedByID = user.UserID
 
-		if err := c.model.ComputationSheetManager.UpdateFields(context, sheet.ID, sheet); err != nil {
+		if err := c.model_core.ComputationSheetManager.UpdateFields(context, sheet.ID, sheet); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Computation sheet update failed (/computation-sheet/:id), db error: " + err.Error(),
@@ -317,7 +317,7 @@ func (c *Controller) ComputationSheetController() {
 			Description: "Updated computation sheet (/computation-sheet/:id): " + sheet.Name,
 			Module:      "ComputationSheet",
 		})
-		return ctx.JSON(http.StatusOK, c.model.ComputationSheetManager.ToModel(sheet))
+		return ctx.JSON(http.StatusOK, c.model_core.ComputationSheetManager.ToModel(sheet))
 	})
 
 	// DELETE /computation-sheet/:id: Delete a computation sheet by ID.
@@ -336,7 +336,7 @@ func (c *Controller) ComputationSheetController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
 		}
-		sheet, err := c.model.ComputationSheetManager.GetByID(context, *id)
+		sheet, err := c.model_core.ComputationSheetManager.GetByID(context, *id)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -345,7 +345,7 @@ func (c *Controller) ComputationSheetController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Computation sheet not found"})
 		}
-		if err := c.model.ComputationSheetManager.DeleteByID(context, *id); err != nil {
+		if err := c.model_core.ComputationSheetManager.DeleteByID(context, *id); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Computation sheet delete failed (/computation-sheet/:id), db error: " + err.Error(),
@@ -366,10 +366,10 @@ func (c *Controller) ComputationSheetController() {
 		Route:       "/api/v1/computation-sheet/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple computation sheets by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: model.IDSRequest{},
+		RequestType: model_core.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody model.IDSRequest
+		var reqBody model_core.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
@@ -408,7 +408,7 @@ func (c *Controller) ComputationSheetController() {
 				})
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
 			}
-			sheet, err := c.model.ComputationSheetManager.GetByID(context, id)
+			sheet, err := c.model_core.ComputationSheetManager.GetByID(context, id)
 			if err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -419,7 +419,7 @@ func (c *Controller) ComputationSheetController() {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Computation sheet not found with ID: %s", rawID)})
 			}
 			names += sheet.Name + ","
-			if err := c.model.ComputationSheetManager.DeleteByIDWithTx(context, tx, id); err != nil {
+			if err := c.model_core.ComputationSheetManager.DeleteByIDWithTx(context, tx, id); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
 	"github.com/labstack/echo/v4"
 )
 
@@ -18,7 +18,7 @@ type NotificationEvent struct {
 // Only users with a valid CSRF token can trigger notifications
 func (e *Event) Notification(ctx context.Context, echoCtx echo.Context, data NotificationEvent) {
 	go func() {
-		user, err := e.userToken.CurrentUser(ctx, echoCtx)
+		user, err := e.user_token.CurrentUser(ctx, echoCtx)
 		if err != nil {
 			return
 		}
@@ -28,7 +28,7 @@ func (e *Event) Notification(ctx context.Context, echoCtx echo.Context, data Not
 			return
 		}
 
-		if err := e.model.NotificationManager.Create(ctx, &model.Notification{
+		if err := e.model_core.NotificationManager.Create(ctx, &model_core.Notification{
 			CreatedAt:        time.Now().UTC(),
 			UpdatedAt:        time.Now().UTC(),
 			UserID:           user.ID,

@@ -4,16 +4,16 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/src"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/cooperative_tokens"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/service"
 	"github.com/google/uuid"
 )
 
 type Controller struct {
 	// Services
-	provider *src.Provider
-	model    *model.Model
-	event    *event.Event
+	provider   *src.Provider
+	model_core *model_core.ModelCore
+	event      *event.Event
 	// Tokens
 	userOrganizationToken *cooperative_tokens.UserOrganizationToken
 	userToken             *cooperative_tokens.UserToken
@@ -23,7 +23,7 @@ type Controller struct {
 func NewController(
 	// Services
 	provider *src.Provider,
-	model *model.Model,
+	model_core *model_core.ModelCore,
 	event *event.Event,
 
 	// Tokens
@@ -34,9 +34,9 @@ func NewController(
 ) (*Controller, error) {
 	return &Controller{
 		// Services
-		provider: provider,
-		model:    model,
-		event:    event,
+		provider:   provider,
+		model_core: model_core,
+		event:      event,
 
 		userOrganizationToken: userOrganizationToken,
 		userToken:             userToken,

@@ -5,11 +5,11 @@ import (
 	"errors"
 	"math"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
 	"github.com/rotisserie/eris"
 )
 
-func (t *TransactionService) LoanComputation(ctx context.Context, ald model.AutomaticLoanDeduction, lt model.LoanTransaction) float64 {
+func (t *TransactionService) LoanComputation(ctx context.Context, ald model_core.AutomaticLoanDeduction, lt model_core.LoanTransaction) float64 {
 	result := lt.Applied1
 	// --- Min/Max check ---
 	if ald.MinAmount > 0 && result < ald.MinAmount {
@@ -60,23 +60,23 @@ func (t *TransactionService) LoanComputation(ctx context.Context, ald model.Auto
 	return result
 }
 
-func (t *TransactionService) LoanModeOfPayment(ctx context.Context, lt *model.LoanTransaction) (float64, error) {
+func (t *TransactionService) LoanModeOfPayment(ctx context.Context, lt *model_core.LoanTransaction) (float64, error) {
 	switch lt.ModeOfPayment {
-	case model.LoanModeOfPaymentDaily:
+	case model_core.LoanModeOfPaymentDaily:
 		return lt.Applied1 / float64(lt.Terms) / 30, nil
-	case model.LoanModeOfPaymentWeekly:
+	case model_core.LoanModeOfPaymentWeekly:
 		return lt.Applied1 / float64(lt.Terms) / 4, nil
-	case model.LoanModeOfPaymentSemiMonthly:
+	case model_core.LoanModeOfPaymentSemiMonthly:
 		return lt.Applied1 / float64(lt.Terms) / 2, nil
-	case model.LoanModeOfPaymentMonthly:
+	case model_core.LoanModeOfPaymentMonthly:
 		return lt.Applied1 / float64(lt.Terms), nil
-	case model.LoanModeOfPaymentQuarterly:
+	case model_core.LoanModeOfPaymentQuarterly:
 		return lt.Applied1 / (float64(lt.Terms) / 3), nil
-	case model.LoanModeOfPaymentSemiAnnual:
+	case model_core.LoanModeOfPaymentSemiAnnual:
 		return lt.Applied1 / (float64(lt.Terms) / 6), nil
-	case model.LoanModeOfPaymentLumpsum:
+	case model_core.LoanModeOfPaymentLumpsum:
 		return lt.Applied1, nil
-	case model.LoanModeOfPaymentFixedDays:
+	case model_core.LoanModeOfPaymentFixedDays:
 		if lt.Terms <= 0 {
 			return 0, eris.New("invalid terms: must be greater than 0")
 		}
@@ -92,7 +92,7 @@ func (t *TransactionService) SuggestedNumberOfTerms(
 	ctx context.Context,
 	suggestedAmount float64,
 	principal float64,
-	modeOfPayment model.LoanModeOfPayment,
+	modeOfPayment model_core.LoanModeOfPayment,
 	fixedDays int,
 ) (int, error) {
 	if suggestedAmount <= 0 {
@@ -105,27 +105,27 @@ func (t *TransactionService) SuggestedNumberOfTerms(
 	var terms float64
 
 	switch modeOfPayment {
-	case model.LoanModeOfPaymentDaily:
+	case model_core.LoanModeOfPaymentDaily:
 		// daily = total / (payment * 30)
 		terms = (principal / suggestedAmount) / 30
-	case model.LoanModeOfPaymentWeekly:
+	case model_core.LoanModeOfPaymentWeekly:
 		// weekly = total / (payment * 4)
 		terms = (principal / suggestedAmount) / 4
-	case model.LoanModeOfPaymentSemiMonthly:
+	case model_core.LoanModeOfPaymentSemiMonthly:
 		// semi-monthly = total / (payment * 2)
 		terms = (principal / suggestedAmount) / 2
-	case model.LoanModeOfPaymentMonthly:
+	case model_core.LoanModeOfPaymentMonthly:
 		// monthly = total / payment
 		terms = principal / suggestedAmount
-	case model.LoanModeOfPaymentQuarterly:
+	case model_core.LoanModeOfPaymentQuarterly:
 		// quarterly = total / (payment / 3)
 		terms = (principal / suggestedAmount) * 3
-	case model.LoanModeOfPaymentSemiAnnual:
+	case model_core.LoanModeOfPaymentSemiAnnual:
 		// semi-annual = total / (payment / 6)
 		terms = (principal / suggestedAmount) * 6
-	case model.LoanModeOfPaymentLumpsum:
+	case model_core.LoanModeOfPaymentLumpsum:
 		terms = 1
-	case model.LoanModeOfPaymentFixedDays:
+	case model_core.LoanModeOfPaymentFixedDays:
 		if fixedDays <= 0 {
 			return 0, errors.New("invalid fixed days: must be greater than 0")
 		}

@@ -7,7 +7,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
 	"github.com/labstack/echo/v4"
 )
 
@@ -28,12 +28,12 @@ func (c *Controller) Heartbeat() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.Status == model.UserOrganizationStatusOnline {
+		if userOrg.Status == model_core.UserOrganizationStatusOnline {
 			return ctx.NoContent(http.StatusNoContent)
 		}
-		userOrg.Status = model.UserOrganizationStatusOnline
+		userOrg.Status = model_core.UserOrganizationStatusOnline
 		userOrg.LastOnlineAt = time.Now()
-		if err := c.model.UserOrganizationManager.Update(context, userOrg); err != nil {
+		if err := c.model_core.UserOrganizationManager.Update(context, userOrg); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "online-error",
 				Description: "Failed to update user organization status: " + err.Error(),
@@ -69,12 +69,12 @@ func (c *Controller) Heartbeat() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.Status == model.UserOrganizationStatusOffline {
+		if userOrg.Status == model_core.UserOrganizationStatusOffline {
 			return ctx.NoContent(http.StatusNoContent)
 		}
-		userOrg.Status = model.UserOrganizationStatusOffline
+		userOrg.Status = model_core.UserOrganizationStatusOffline
 		userOrg.LastOnlineAt = time.Now()
-		if err := c.model.UserOrganizationManager.Update(context, userOrg); err != nil {
+		if err := c.model_core.UserOrganizationManager.Update(context, userOrg); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "offline-error",
 				Description: "Failed to update user organization status: " + err.Error(),
@@ -99,11 +99,11 @@ func (c *Controller) Heartbeat() {
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/heartbeat/status",
 		Method:      "POST",
-		RequestType: model.UserOrganizationStatusRequest{},
+		RequestType: model_core.UserOrganizationStatusRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		var req model.UserOrganizationStatusRequest
+		var req model_core.UserOrganizationStatusRequest
 		if err := ctx.Bind(&req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid payload: " + err.Error()})
 		}
@@ -119,7 +119,7 @@ func (c *Controller) Heartbeat() {
 		}
 		userOrg.Status = req.UserOrganizationStatus
 		userOrg.LastOnlineAt = time.Now()
-		if err := c.model.UserOrganizationManager.Update(context, userOrg); err != nil {
+		if err := c.model_core.UserOrganizationManager.Update(context, userOrg); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user organization status"})
 		}
 		if err := c.provider.Service.Broker.Dispatch(context, []string{
@@ -134,58 +134,58 @@ func (c *Controller) Heartbeat() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/heartbeat/status",
 		Method:       "GET",
-		ResponseType: model.UserOrganizationStatusResponse{},
+		ResponseType: model_core.UserOrganizationStatusResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		userOrganizations, err := c.model.UserOrganizationManager.Find(context, &model.UserOrganization{
+		userOrganizations, err := c.model_core.UserOrganizationManager.Find(context, &model_core.UserOrganization{
 			BranchID:       userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user organization status"})
 		}
-		statuses := c.model.UserOrganizationManager.Filtered(context, ctx, userOrganizations)
+		statuses := c.model_core.UserOrganizationManager.Filtered(context, ctx, userOrganizations)
 
 		var (
-			offlineUsers   []*model.UserOrganizationResponse
-			onlineUsers    []*model.UserOrganizationResponse
-			commutingUsers []*model.UserOrganizationResponse
-			busyUsers      []*model.UserOrganizationResponse
-			vacationUsers  []*model.UserOrganizationResponse
+			offlineUsers   []*model_core.UserOrganizationResponse
+			onlineUsers    []*model_core.UserOrganizationResponse
+			commutingUsers []*model_core.UserOrganizationResponse
+			busyUsers      []*model_core.UserOrganizationResponse
+			vacationUsers  []*model_core.UserOrganizationResponse
 		)
 		onlineMembers, onlineEmployees := 0, 0
 		totalMembers, totalEmployees := 0, 0
 		for _, org := range statuses {
 			switch org.Status {
-			case model.UserOrganizationStatusOnline:
+			case model_core.UserOrganizationStatusOnline:
 				onlineUsers = append(onlineUsers, org)
-				if org.UserType == model.UserOrganizationTypeMember {
+				if org.UserType == model_core.UserOrganizationTypeMember {
 					onlineMembers++
 					totalMembers++
 				}
-				if org.UserType == model.UserOrganizationTypeEmployee {
+				if org.UserType == model_core.UserOrganizationTypeEmployee {
 					onlineEmployees++
 					totalEmployees++
 				}
-			case model.UserOrganizationStatusOffline:
+			case model_core.UserOrganizationStatusOffline:
 				offlineUsers = append(offlineUsers, org)
-			case model.UserOrganizationStatusCommuting:
+			case model_core.UserOrganizationStatusCommuting:
 				commutingUsers = append(commutingUsers, org)
-			case model.UserOrganizationStatusBusy:
+			case model_core.UserOrganizationStatusBusy:
 				busyUsers = append(busyUsers, org)
-			case model.UserOrganizationStatusVacation:
+			case model_core.UserOrganizationStatusVacation:
 				vacationUsers = append(vacationUsers, org)
 			}
 		}
-		timesheets, err := c.model.TimeSheetActiveUsers(context, userOrg.OrganizationID, *userOrg.BranchID)
+		timesheets, err := c.model_core.TimeSheetActiveUsers(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve active timesheets: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, model.UserOrganizationStatusResponse{
+		return ctx.JSON(http.StatusOK, model_core.UserOrganizationStatusResponse{
 			OfflineUsers:   offlineUsers,
 			OnlineUsers:    onlineUsers,
 			CommutingUsers: commutingUsers,
@@ -198,7 +198,7 @@ func (c *Controller) Heartbeat() {
 			OnlineEmployees:      onlineEmployees,
 			TotalEmployees:       totalEmployees,
 			TotalActiveEmployees: len(timesheets),
-			ActiveEmployees:      c.model.TimesheetManager.Filtered(context, ctx, timesheets),
+			ActiveEmployees:      c.model_core.TimesheetManager.Filtered(context, ctx, timesheets),
 		})
 	})
 

@@ -7,7 +7,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -21,7 +21,7 @@ func (c *Controller) AutomaticLoanDeductionController() {
 		Route:        "/api/v1/automatic-loan-deduction/computation-sheet/:computation_sheet_id",
 		Method:       "GET",
 		Note:         "Returns all automatic loan deductions for a computation sheet in the current user's org/branch.",
-		ResponseType: model.AutomaticLoanDeductionResponse{},
+		ResponseType: model_core.AutomaticLoanDeductionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -36,7 +36,7 @@ func (c *Controller) AutomaticLoanDeductionController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
 		}
 		// Find all for this computation sheet, org, and branch
-		alds, err := c.model.AutomaticLoanDeductionManager.Find(context, &model.AutomaticLoanDeduction{
+		alds, err := c.model_core.AutomaticLoanDeductionManager.Find(context, &model_core.AutomaticLoanDeduction{
 			OrganizationID:     user.OrganizationID,
 			BranchID:           *user.BranchID,
 			ComputationSheetID: sheetID,
@@ -44,7 +44,7 @@ func (c *Controller) AutomaticLoanDeductionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No automatic loan deductions found for this computation sheet"})
 		}
-		return ctx.JSON(http.StatusOK, c.model.AutomaticLoanDeductionManager.Filtered(context, ctx, alds))
+		return ctx.JSON(http.StatusOK, c.model_core.AutomaticLoanDeductionManager.Filtered(context, ctx, alds))
 	})
 
 	// GET /automatic-loan-deduction/computation-sheet/:computation_sheet_id/search
@@ -52,7 +52,7 @@ func (c *Controller) AutomaticLoanDeductionController() {
 		Route:        "/api/v1/automatic-loan-deduction/computation-sheet/:computation_sheet_id/search",
 		Method:       "GET",
 		Note:         "Returns all automatic loan deductions for a computation sheet in the current user's org/branch.",
-		ResponseType: model.AutomaticLoanDeductionResponse{},
+		ResponseType: model_core.AutomaticLoanDeductionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -67,7 +67,7 @@ func (c *Controller) AutomaticLoanDeductionController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
 		}
 		// Find all for this computation sheet, org, and branch
-		alds, err := c.model.AutomaticLoanDeductionManager.Find(context, &model.AutomaticLoanDeduction{
+		alds, err := c.model_core.AutomaticLoanDeductionManager.Find(context, &model_core.AutomaticLoanDeduction{
 			OrganizationID:     user.OrganizationID,
 			BranchID:           *user.BranchID,
 			ComputationSheetID: sheetID,
@@ -75,7 +75,7 @@ func (c *Controller) AutomaticLoanDeductionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No automatic loan deductions found for this computation sheet"})
 		}
-		return ctx.JSON(http.StatusOK, c.model.AutomaticLoanDeductionManager.Pagination(context, ctx, alds))
+		return ctx.JSON(http.StatusOK, c.model_core.AutomaticLoanDeductionManager.Pagination(context, ctx, alds))
 	})
 
 	// POST /automatic-loan-deduction
@@ -83,11 +83,11 @@ func (c *Controller) AutomaticLoanDeductionController() {
 		Route:        "/api/v1/automatic-loan-deduction",
 		Method:       "POST",
 		Note:         "Creates a new automatic loan deduction for the current user's org/branch.",
-		RequestType:  model.AutomaticLoanDeductionRequest{},
-		ResponseType: model.AutomaticLoanDeductionResponse{},
+		RequestType:  model_core.AutomaticLoanDeductionRequest{},
+		ResponseType: model_core.AutomaticLoanDeductionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		request, err := c.model.AutomaticLoanDeductionManager.Validate(ctx)
+		request, err := c.model_core.AutomaticLoanDeductionManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -115,7 +115,7 @@ func (c *Controller) AutomaticLoanDeductionController() {
 		}
 		name := request.Name
 		if name == "" {
-			account, err := c.model.AccountManager.GetByID(context, *request.AccountID)
+			account, err := c.model_core.AccountManager.GetByID(context, *request.AccountID)
 			if err != nil {
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "create-error",
@@ -126,7 +126,7 @@ func (c *Controller) AutomaticLoanDeductionController() {
 			}
 			name = account.Name
 		}
-		ald := &model.AutomaticLoanDeduction{
+		ald := &model_core.AutomaticLoanDeduction{
 			AccountID:          request.AccountID,
 			ComputationSheetID: request.ComputationSheetID,
 			LinkAccountID:      request.LinkAccountID,
@@ -152,7 +152,7 @@ func (c *Controller) AutomaticLoanDeductionController() {
 			NumberOfMonths:     request.NumberOfMonths,
 		}
 
-		if err := c.model.AutomaticLoanDeductionManager.Create(context, ald); err != nil {
+		if err := c.model_core.AutomaticLoanDeductionManager.Create(context, ald); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Automatic loan deduction creation failed (/automatic-loan-deduction), db error: " + err.Error(),
@@ -165,7 +165,7 @@ func (c *Controller) AutomaticLoanDeductionController() {
 			Description: "Created automatic loan deduction (/automatic-loan-deduction): " + ald.Name,
 			Module:      "AutomaticLoanDeduction",
 		})
-		return ctx.JSON(http.StatusCreated, c.model.AutomaticLoanDeductionManager.ToModel(ald))
+		return ctx.JSON(http.StatusCreated, c.model_core.AutomaticLoanDeductionManager.ToModel(ald))
 	})
 
 	// PUT /automatic-loan-deduction/:automatic_loan_deduction_id
@@ -173,8 +173,8 @@ func (c *Controller) AutomaticLoanDeductionController() {
 		Route:        "/api/v1/automatic-loan-deduction/:automatic_loan_deduction_id",
 		Method:       "PUT",
 		Note:         "Updates an existing automatic loan deduction by its ID.",
-		RequestType:  model.AutomaticLoanDeductionRequest{},
-		ResponseType: model.AutomaticLoanDeductionResponse{},
+		RequestType:  model_core.AutomaticLoanDeductionRequest{},
+		ResponseType: model_core.AutomaticLoanDeductionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		id, err := handlers.EngineUUIDParam(ctx, "automatic_loan_deduction_id")
@@ -187,7 +187,7 @@ func (c *Controller) AutomaticLoanDeductionController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid automatic loan deduction ID"})
 		}
 
-		request, err := c.model.AutomaticLoanDeductionManager.Validate(ctx)
+		request, err := c.model_core.AutomaticLoanDeductionManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -205,7 +205,7 @@ func (c *Controller) AutomaticLoanDeductionController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		ald, err := c.model.AutomaticLoanDeductionManager.GetByID(context, *id)
+		ald, err := c.model_core.AutomaticLoanDeductionManager.GetByID(context, *id)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -216,7 +216,7 @@ func (c *Controller) AutomaticLoanDeductionController() {
 		}
 		name := request.Name
 		if name == "" {
-			account, err := c.model.AccountManager.GetByID(context, *request.AccountID)
+			account, err := c.model_core.AccountManager.GetByID(context, *request.AccountID)
 			if err != nil {
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "create-error",
@@ -247,7 +247,7 @@ func (c *Controller) AutomaticLoanDeductionController() {
 		ald.UpdatedByID = user.UserID
 		ald.NumberOfMonths = request.NumberOfMonths
 
-		if err := c.model.AutomaticLoanDeductionManager.UpdateFields(context, ald.ID, ald); err != nil {
+		if err := c.model_core.AutomaticLoanDeductionManager.UpdateFields(context, ald.ID, ald); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Automatic loan deduction update failed (/automatic-loan-deduction/:automatic_loan_deduction_id), db error: " + err.Error(),
@@ -260,7 +260,7 @@ func (c *Controller) AutomaticLoanDeductionController() {
 			Description: "Updated automatic loan deduction (/automatic-loan-deduction/:automatic_loan_deduction_id): " + ald.Name,
 			Module:      "AutomaticLoanDeduction",
 		})
-		return ctx.JSON(http.StatusOK, c.model.AutomaticLoanDeductionManager.ToModel(ald))
+		return ctx.JSON(http.StatusOK, c.model_core.AutomaticLoanDeductionManager.ToModel(ald))
 	})
 
 	// DELETE /automatic-loan-deduction/:automatic_loan_deduction_id
@@ -279,7 +279,7 @@ func (c *Controller) AutomaticLoanDeductionController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid automatic loan deduction ID"})
 		}
-		ald, err := c.model.AutomaticLoanDeductionManager.GetByID(context, *id)
+		ald, err := c.model_core.AutomaticLoanDeductionManager.GetByID(context, *id)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -288,7 +288,7 @@ func (c *Controller) AutomaticLoanDeductionController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Automatic loan deduction not found"})
 		}
-		if err := c.model.AutomaticLoanDeductionManager.DeleteByID(context, *id); err != nil {
+		if err := c.model_core.AutomaticLoanDeductionManager.DeleteByID(context, *id); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Automatic loan deduction delete failed (/automatic-loan-deduction/:automatic_loan_deduction_id), db error: " + err.Error(),
@@ -309,10 +309,10 @@ func (c *Controller) AutomaticLoanDeductionController() {
 		Route:       "/api/v1/automatic-loan-deduction/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple automatic loan deductions by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: model.IDSRequest{},
+		RequestType: model_core.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody model.IDSRequest
+		var reqBody model_core.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
@@ -351,7 +351,7 @@ func (c *Controller) AutomaticLoanDeductionController() {
 				})
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
 			}
-			ald, err := c.model.AutomaticLoanDeductionManager.GetByID(context, id)
+			ald, err := c.model_core.AutomaticLoanDeductionManager.GetByID(context, id)
 			if err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -362,7 +362,7 @@ func (c *Controller) AutomaticLoanDeductionController() {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Automatic loan deduction not found with ID: %s", rawID)})
 			}
 			names += ald.Name + ","
-			if err := c.model.AutomaticLoanDeductionManager.DeleteByIDWithTx(context, tx, id); err != nil {
+			if err := c.model_core.AutomaticLoanDeductionManager.DeleteByIDWithTx(context, tx, id); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",
