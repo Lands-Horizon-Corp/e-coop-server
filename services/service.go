@@ -16,25 +16,25 @@ import (
 type HorizonService struct {
 	Environment horizon.EnvironmentService
 	Database    horizon.SQLDatabaseService
-	LogDatabase horizon.SQLDatabaseService
-	Storage     horizon.StorageService
-	Cache       horizon.CacheService
-	Broker      horizon.MessageBrokerService
-	Cron        horizon.SchedulerService
-	Security    horizon.SecurityService
-	OTP         horizon.OTPService
-	SMS         horizon.SMSService
-	SMTP        horizon.SMTPService
-	Request     horizon.APIService
-	QR          horizon.QRService
-	Validator   *validator.Validate
-	Logger      *zap.Logger
+	// LogDatabase horizon.SQLDatabaseService
+	Storage   horizon.StorageService
+	Cache     horizon.CacheService
+	Broker    horizon.MessageBrokerService
+	Cron      horizon.SchedulerService
+	Security  horizon.SecurityService
+	OTP       horizon.OTPService
+	SMS       horizon.SMSService
+	SMTP      horizon.SMTPService
+	Request   horizon.APIService
+	QR        horizon.QRService
+	Validator *validator.Validate
+	Logger    *zap.Logger
 }
 
 type HorizonServiceConfig struct {
-	EnvironmentConfig    *EnvironmentServiceConfig
-	SQLConfig            *SQLServiceConfig
-	SQLLogConfig         *SQLLogsServiceConfig
+	EnvironmentConfig *EnvironmentServiceConfig
+	SQLConfig         *SQLServiceConfig
+	// SQLLogConfig         *SQLLogsServiceConfig
 	StorageConfig        *StorageServiceConfig
 	CacheConfig          *CacheServiceConfig
 	BrokerConfig         *BrokerServiceConfig
@@ -45,40 +45,6 @@ type HorizonServiceConfig struct {
 	RequestServiceConfig *RequestServiceConfig
 }
 
-func Databases(cfg HorizonServiceConfig, service *HorizonService) {
-	if cfg.SQLConfig != nil {
-		service.Database = horizon.NewGormDatabase(
-			cfg.SQLConfig.DSN,
-			cfg.SQLConfig.MaxIdleConn,
-			cfg.SQLConfig.MaxOpenConn,
-			cfg.SQLConfig.MaxLifetime,
-		)
-	} else {
-		service.Database = horizon.NewGormDatabase(
-			service.Environment.GetString("DATABASE_URL", ""),
-			service.Environment.GetInt("DB_MAX_IDLE_CONN", 10),
-			service.Environment.GetInt("DB_MAX_OPEN_CONN", 100),
-			service.Environment.GetDuration("DB_MAX_LIFETIME", 0),
-		)
-	}
-
-	if cfg.SQLLogConfig != nil {
-		service.LogDatabase = horizon.NewGormDatabase(
-			cfg.SQLLogConfig.DSN,
-			cfg.SQLLogConfig.MaxIdleConn,
-			cfg.SQLLogConfig.MaxOpenConn,
-			cfg.SQLLogConfig.MaxLifetime,
-		)
-	} else {
-		service.LogDatabase = horizon.NewGormDatabase(
-			service.Environment.GetString("DATABASE_LOG_URL", ""),
-			service.Environment.GetInt("DB_MAX_IDLE_CONN", 10),
-			service.Environment.GetInt("DB_MAX_OPEN_CONN", 100),
-			service.Environment.GetDuration("DB_MAX_LIFETIME", 0),
-		)
-	}
-
-}
 func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 	service := &HorizonService{}
 	service.Validator = validator.New()
@@ -176,6 +142,22 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 			service.Environment.GetString("STORAGE_DRIVER", ""),
 			service.Environment.GetInt64("STORAGE_MAX_SIZE", 1001024*1024*10),
 			isStaging,
+		)
+	}
+
+	if cfg.SQLConfig != nil {
+		service.Database = horizon.NewGormDatabase(
+			cfg.SQLConfig.DSN,
+			cfg.SQLConfig.MaxIdleConn,
+			cfg.SQLConfig.MaxOpenConn,
+			cfg.SQLConfig.MaxLifetime,
+		)
+	} else {
+		service.Database = horizon.NewGormDatabase(
+			service.Environment.GetString("DATABASE_URL", ""),
+			service.Environment.GetInt("DB_MAX_IDLE_CONN", 10),
+			service.Environment.GetInt("DB_MAX_OPEN_CONN", 100),
+			service.Environment.GetDuration("DB_MAX_LIFETIME", 0),
 		)
 	}
 
