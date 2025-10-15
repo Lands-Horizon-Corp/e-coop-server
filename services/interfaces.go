@@ -15,6 +15,13 @@ type SQLServiceConfig struct {
 	MaxLifetime time.Duration `env:"DB_MAX_LIFETIME"`
 }
 
+type SQLLogsServiceConfig struct {
+	DSN         string        `env:"DATABASE_LOG_URL"`
+	MaxIdleConn int           `env:"DB_MAX_IDLE_CONN"`
+	MaxOpenConn int           `env:"DB_MAX_OPEN_CONN"`
+	MaxLifetime time.Duration `env:"DB_MAX_LIFETIME"`
+}
+
 type StorageServiceConfig struct {
 	AccessKey   string `env:"STORAGE_ACCESS_KEY"`
 	SecretKey   string `env:"STORAGE_SECRET_KEY"`
