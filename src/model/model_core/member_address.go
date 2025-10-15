@@ -38,8 +38,8 @@ type (
 		Barangay      string   `gorm:"type:varchar(255)"`
 		Landmark      string   `gorm:"type:varchar(255)"`
 		Address       string   `gorm:"type:varchar(255);not null"`
-		Longitude     *float64 `gorm:"type:numeric(11,8)" json:"longitude,omitempty"`
-		Latitude      *float64 `gorm:"type:numeric(11,8)" json:"latitude,omitempty"`
+		Latitude      *float64 `gorm:"type:double precision" json:"latitude,omitempty"`
+		Longitude     *float64 `gorm:"type:double precision" json:"longitude,omitempty"`
 	}
 
 	MemberAddressReponse struct {
