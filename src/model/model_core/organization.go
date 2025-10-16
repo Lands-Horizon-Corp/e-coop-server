@@ -52,6 +52,7 @@ type (
 
 		Branches               []*Branch                 `gorm:"foreignKey:OrganizationID" json:"branches,omitempty"`                 // branches
 		OrganizationCategories []*OrganizationCategory   `gorm:"foreignKey:OrganizationID" json:"organization_categories,omitempty"`  // organization categories
+		OrganizationMedias     []*OrganizationMedia      `gorm:"foreignKey:OrganizationID" json:"organization_medias,omitempty"`      // organization media
 		Footsteps              []*Footstep               `gorm:"foreignKey:OrganizationID" json:"footsteps,omitempty"`                // footstep
 		GeneratedReports       []*GeneratedReport        `gorm:"foreignKey:OrganizationID" json:"generated_reports,omitempty"`        // generated report
 		InvitationCodes        []*InvitationCode         `gorm:"foreignKey:OrganizationID" json:"invitation_codes,omitempty"`         // invitation code
@@ -98,6 +99,7 @@ type (
 
 		Branches               []*BranchResponse                 `json:"branches,omitempty"`
 		OrganizationCategories []*OrganizationCategoryResponse   `json:"organization_categories,omitempty"`
+		OrganizationMedias     []*OrganizationMediaResponse      `json:"organization_medias,omitempty"`
 		Footsteps              []*FootstepResponse               `json:"footsteps,omitempty"`
 		GeneratedReports       []*GeneratedReportResponse        `json:"generated_reports,omitempty"`
 		InvitationCodes        []*InvitationCodeResponse         `json:"invitation_codes,omitempty"`
@@ -146,8 +148,13 @@ type (
 func (m *ModelCore) Organization() {
 	m.Migration = append(m.Migration, &Organization{})
 	m.OrganizationManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Organization, OrganizationResponse, OrganizationRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Media", "CoverMedia", "SubscriptionPlan", "Branches", "OrganizationCategories", "Footsteps", "GeneratedReports", "InvitationCodes", "PermissionTemplates"},
-		Service:  m.provider.Service,
+		Preloads: []string{"CreatedBy",
+			"UpdatedBy", "Media", "CoverMedia",
+			"SubscriptionPlan", "Branches",
+			"OrganizationCategories", "OrganizationMedias", "OrganizationMedias.Media",
+			"Footsteps", "GeneratedReports", "InvitationCodes",
+			"PermissionTemplates"},
+		Service: m.provider.Service,
 		Resource: func(data *Organization) *OrganizationResponse {
 			if data == nil {
 				return nil
@@ -189,6 +196,7 @@ func (m *ModelCore) Organization() {
 
 				Branches:               m.BranchManager.ToModels(data.Branches),
 				OrganizationCategories: m.OrganizationCategoryManager.ToModels(data.OrganizationCategories),
+				OrganizationMedias:     m.OrganizationMediaManager.ToModels(data.OrganizationMedias),
 				Footsteps:              m.FootstepManager.ToModels(data.Footsteps),
 				GeneratedReports:       m.GeneratedReportManager.ToModels(data.GeneratedReports),
 				InvitationCodes:        m.InvitationCodeManager.ToModels(data.InvitationCodes),
