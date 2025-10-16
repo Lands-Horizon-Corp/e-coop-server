@@ -54,7 +54,7 @@ type (
 func (m *ModelCore) OrganizationMedia() {
 	m.Migration = append(m.Migration, &OrganizationMedia{})
 	m.OrganizationMediaManager = horizon_services.NewRepository(horizon_services.RepositoryParams[OrganizationMedia, OrganizationMediaResponse, OrganizationMediaRequest]{
-		Preloads: []string{"Organization", "Media"},
+		Preloads: []string{"Media"},
 		Service:  m.provider.Service,
 		Resource: func(data *OrganizationMedia) *OrganizationMediaResponse {
 			if data == nil {
