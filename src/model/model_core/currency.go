@@ -115,6 +115,7 @@ func (m *ModelCore) Currency() {
 func (m *ModelCore) CurrencySeed(context context.Context, tx *gorm.DB) error {
 	now := time.Now().UTC()
 	currencies := []*Currency{
+
 		// Major World Currencies
 		{CreatedAt: now, UpdatedAt: now, Name: "US Dollar", Country: "United States", CurrencyCode: "USD", Symbol: "US$", Emoji: "🇺🇸", ISO3166Alpha2: "US", ISO3166Alpha3: "USA", ISO3166Numeric: "840", PhoneCode: "+1", Domain: ".us", Locale: "en-US"},
 		{CreatedAt: now, UpdatedAt: now, Name: "Euro", Country: "European Union", CurrencyCode: "EUR", Symbol: "€", Emoji: "🇪🇺", ISO3166Alpha2: "EU", ISO3166Alpha3: "EUR", ISO3166Numeric: "978", PhoneCode: "", Domain: ".eu", Locale: "en-EU"},

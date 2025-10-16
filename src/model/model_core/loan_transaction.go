@@ -601,6 +601,7 @@ func (m *ModelCore) LoanTransaction() {
 			"LoanTags",
 			"LoanTransactionEntries",
 			"LoanTransactionEntries.Account",
+			"LoanTransactionEntries.Account.Currency",
 			"LoanTransactionEntries.AutomaticLoanDeduction",
 			"LoanClearanceAnalysis",
 			"LoanClearanceAnalysisInstitution",
