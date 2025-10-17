@@ -260,9 +260,3 @@ func (m *ModelCore) CurrencyGetDefault(context context.Context) (*Currency, erro
 	// Default to PHP (Philippine Peso) as the system default currency
 	return m.CurrencyFindByCode(context, "PHP")
 }
-
-func (m *ModelCore) CurrencySetDefaultForUserOrganization(context context.Context, userOrgID uuid.UUID, currencyID uuid.UUID) error {
-	return m.UserOrganizationManager.UpdateFields(context, userOrgID, &UserOrganization{
-		SettingsCurrencyDefaultValueID: &currencyID,
-	})
-}

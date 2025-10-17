@@ -1299,7 +1299,6 @@ func (c *Controller) UserOrganinzationController() {
 		userOrg.SettingsAccountingDepositDefaultValueID = req.SettingsAccountingDepositDefaultValueID
 		userOrg.SettingsAccountingWithdrawDefaultValueID = req.SettingsAccountingWithdrawDefaultValueID
 		userOrg.SettingsPaymentTypeDefaultValueID = req.SettingsPaymentTypeDefaultValueID
-		userOrg.SettingsCurrencyDefaultValueID = req.SettingsCurrencyDefaultValueID
 
 		if err := c.model_core.UserOrganizationManager.UpdateFields(context, userOrg.ID, userOrg); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -1368,7 +1367,6 @@ func (c *Controller) UserOrganinzationController() {
 		userOrg.SettingsAccountingDepositDefaultValueID = req.SettingsAccountingDepositDefaultValueID
 		userOrg.SettingsAccountingWithdrawDefaultValueID = req.SettingsAccountingWithdrawDefaultValueID
 		userOrg.SettingsPaymentTypeDefaultValueID = req.SettingsPaymentTypeDefaultValueID
-		userOrg.SettingsCurrencyDefaultValueID = req.SettingsCurrencyDefaultValueID
 
 		if err := c.model_core.UserOrganizationManager.UpdateFields(context, userOrg.ID, userOrg); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{

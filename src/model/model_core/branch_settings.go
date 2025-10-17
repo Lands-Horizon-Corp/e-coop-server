@@ -19,6 +19,9 @@ type (
 		BranchID uuid.UUID `gorm:"type:uuid;not null;uniqueIndex" json:"branch_id"`
 		Branch   *Branch   `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE;" json:"branch,omitempty"`
 
+		CurrencyID uuid.UUID `gorm:"type:uuid;not null" json:"currency_id"`
+		Currency   *Currency `gorm:"foreignKey:CurrencyID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"currency,omitempty"`
+
 		CashOnHandAccountID *uuid.UUID `gorm:"type:uuid" json:"cash_on_hand_account_id,omitempty"`
 		CashOnHandAccount   *Account   `gorm:"foreignKey:CashOnHandAccountID;constraint:OnDelete:SET NULL;" json:"cash_on_hand_account,omitempty"`
 
@@ -72,6 +75,8 @@ type (
 	}
 
 	BranchSettingRequest struct {
+		CurrencyID uuid.UUID `json:"currency_id" validate:"required"`
+
 		// Withdraw Settings
 		WithdrawAllowUserInput bool   `json:"withdraw_allow_user_input"`
 		WithdrawPrefix         string `json:"withdraw_prefix" validate:"omitempty"`
@@ -118,10 +123,12 @@ type (
 	}
 
 	BranchSettingResponse struct {
-		ID        uuid.UUID `json:"id"`
-		CreatedAt string    `json:"created_at"`
-		UpdatedAt string    `json:"updated_at"`
-		BranchID  uuid.UUID `json:"branch_id"`
+		ID         uuid.UUID         `json:"id"`
+		CreatedAt  string            `json:"created_at"`
+		UpdatedAt  string            `json:"updated_at"`
+		BranchID   uuid.UUID         `json:"branch_id"`
+		CurrencyID uuid.UUID         `json:"currency_id"`
+		Currency   *CurrencyResponse `json:"currency,omitempty"`
 
 		// Withdraw Settings
 		WithdrawAllowUserInput bool   `json:"withdraw_allow_user_input"`
@@ -180,6 +187,7 @@ func (m *ModelCore) BranchSetting() {
 	m.BranchSettingManager = horizon_services.NewRepository(horizon_services.RepositoryParams[BranchSetting, BranchSettingResponse, BranchSettingRequest]{
 		Preloads: []string{
 			"Branch",
+			"Currency",
 			"DefaultMemberType",
 			"CashOnHandAccount",
 			"PaidUpSharedCapitalAccount",
@@ -190,10 +198,12 @@ func (m *ModelCore) BranchSetting() {
 				return nil
 			}
 			return &BranchSettingResponse{
-				ID:        data.ID,
-				CreatedAt: data.CreatedAt.Format(time.RFC3339),
-				UpdatedAt: data.UpdatedAt.Format(time.RFC3339),
-				BranchID:  data.BranchID,
+				ID:         data.ID,
+				CreatedAt:  data.CreatedAt.Format(time.RFC3339),
+				UpdatedAt:  data.UpdatedAt.Format(time.RFC3339),
+				BranchID:   data.BranchID,
+				CurrencyID: data.CurrencyID,
+				Currency:   m.CurrencyManager.ToModel(data.Currency),
 
 				WithdrawAllowUserInput: data.WithdrawAllowUserInput,
 				WithdrawPrefix:         data.WithdrawPrefix,

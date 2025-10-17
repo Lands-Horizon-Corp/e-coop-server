@@ -92,9 +92,6 @@ type (
 		SettingsPaymentTypeDefaultValueID *uuid.UUID   `gorm:"type:uuid;index" json:"settings_payment_type_default_value_id,omitempty"`
 		SettingsPaymentTypeDefaultValue   *PaymentType `gorm:"foreignKey:SettingsPaymentTypeDefaultValueID;constraint:OnDelete:SET NULL;" json:"settings_payment_type_default_value,omitempty"`
 
-		SettingsCurrencyDefaultValueID *uuid.UUID `gorm:"type:uuid;index" json:"settings_currency_default_value_id,omitempty"`
-		SettingsCurrencyDefaultValue   *Currency  `gorm:"foreignKey:SettingsCurrencyDefaultValueID;constraint:OnDelete:SET NULL;" json:"settings_currency_default_value,omitempty"`
-
 		BranchSettingDefaultMemberTypeID *uuid.UUID  `gorm:"type:uuid;index" json:"branch_setting_default_member_type_id,omitempty"`
 		BranchSettingDefaultMemberType   *MemberType `gorm:"foreignKey:BranchSettingDefaultMemberTypeID;constraint:OnDelete:SET NULL;"`
 	}
@@ -148,7 +145,6 @@ type (
 		SettingsAccountingDepositDefaultValueID  *uuid.UUID `json:"settings_accounting_deposit_default_value_id,omitempty"`
 		SettingsAccountingWithdrawDefaultValueID *uuid.UUID `json:"settings_accounting_withdraw_default_value_id,omitempty"`
 		SettingsPaymentTypeDefaultValueID        *uuid.UUID `json:"settings_payment_type_default_value_id,omitempty"`
-		SettingsCurrencyDefaultValueID           *uuid.UUID `json:"settings_currency_default_value_id,omitempty"`
 	}
 
 	UserOrganizationSelfSettingsRequest struct {
@@ -172,7 +168,6 @@ type (
 		SettingsAccountingDepositDefaultValueID  *uuid.UUID `json:"settings_accounting_deposit_default_value_id,omitempty"`
 		SettingsAccountingWithdrawDefaultValueID *uuid.UUID `json:"settings_accounting_withdraw_default_value_id,omitempty"`
 		SettingsPaymentTypeDefaultValueID        *uuid.UUID `json:"settings_payment_type_default_value_id,omitempty"`
-		SettingsCurrencyDefaultValueID           *uuid.UUID `json:"settings_currency_default_value_id,omitempty"`
 	}
 
 	UserOrganizationResponse struct {
@@ -229,9 +224,6 @@ type (
 
 		SettingsPaymentTypeDefaultValueID *uuid.UUID           `json:"settings_payment_type_default_value_id"`
 		SettingsPaymentTypeDefaultValue   *PaymentTypeResponse `json:"settings_payment_type_default_value,omitempty"`
-
-		SettingsCurrencyDefaultValueID *uuid.UUID        `json:"settings_currency_default_value_id"`
-		SettingsCurrencyDefaultValue   *CurrencyResponse `json:"settings_currency_default_value,omitempty"`
 	}
 
 	UserOrganizationPermissionPayload struct {
@@ -287,7 +279,6 @@ func (m *ModelCore) UserOrganization() {
 			"SettingsAccountingDepositDefaultValue",
 			"SettingsAccountingWithdrawDefaultValue",
 			"SettingsPaymentTypeDefaultValue",
-			"SettingsCurrencyDefaultValue",
 
 			"Branch.BranchSetting.CashOnHandAccount",
 			"Branch.BranchSetting.PaidUpSharedCapitalAccount",
@@ -347,8 +338,6 @@ func (m *ModelCore) UserOrganization() {
 				SettingsAccountingWithdrawDefaultValue:   m.AccountManager.ToModel(data.SettingsAccountingWithdrawDefaultValue),
 				SettingsPaymentTypeDefaultValueID:        data.SettingsPaymentTypeDefaultValueID,
 				SettingsPaymentTypeDefaultValue:          m.PaymentTypeManager.ToModel(data.SettingsPaymentTypeDefaultValue),
-				SettingsCurrencyDefaultValueID:           data.SettingsCurrencyDefaultValueID,
-				SettingsCurrencyDefaultValue:             m.CurrencyManager.ToModel(data.SettingsCurrencyDefaultValue),
 			}
 		},
 		Created: func(data *UserOrganization) []string {
