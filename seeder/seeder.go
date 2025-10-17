@@ -418,7 +418,10 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 				if err := s.model_core.BranchManager.Create(ctx, branch); err != nil {
 					return err
 				}
-
+				currency, err := s.model_core.CurrencyFindByAlpha2(ctx, branch.CountryCode)
+				if err != nil {
+					return eris.Wrap(err, "failed to find currency for account seeding")
+				}
 				// Create default branch settings for each branch
 				branchSetting := &model_core.BranchSetting{
 					CreatedAt: time.Now().UTC(),
@@ -468,6 +471,7 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 					// Default Member Type - can be set later when MemberType is available
 					DefaultMemberTypeID:       nil,
 					LoanAppliedEqualToBalance: true,
+					CurrencyID:                currency.ID,
 				}
 
 				if err := s.model_core.BranchSettingManager.Create(ctx, branchSetting); err != nil {

@@ -2207,20 +2207,6 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 		userOrganization.SettingsAccountingDepositDefaultValueID = &regularSavings.ID
 		userOrganization.SettingsAccountingWithdrawDefaultValueID = &regularSavings.ID
 	}
-
-	// Set default currency to PHP
-	branchSetting, err := m.BranchSettingManager.FindOne(context, &BranchSetting{
-		BranchID: branchID,
-	})
-
-	if err != nil {
-		return eris.Wrap(err, "failed to find branch setting for seeding default currency")
-	}
-	branchSetting.CurrencyID = currency.ID
-	if err := m.BranchSettingManager.UpdateFieldsWithTx(context, tx, branchSetting.ID, branchSetting); err != nil {
-		return eris.Wrap(err, "failed to update user organization with default accounting accounts and currency")
-	}
-
 	return nil
 }
 
