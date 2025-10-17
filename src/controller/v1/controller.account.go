@@ -1288,7 +1288,7 @@ func (c *Controller) AccountController() {
 
 	// GET - api/v1/computation-sheet/:computation-sheet-id/accounts
 	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/accounts/computation-sheet/:computation_sheet_id",
+		Route:        "/api/v1/account/computation-sheet/:computation_sheet_id",
 		Method:       "GET",
 		Note:         "Returns all accounts connected to a computation sheet.",
 		ResponseType: model_core.AccountResponse{},
