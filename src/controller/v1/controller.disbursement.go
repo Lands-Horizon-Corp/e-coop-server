@@ -125,6 +125,7 @@ func (c *Controller) DisbursementController() {
 			UpdatedByID:    user.UserID,
 			BranchID:       *user.BranchID,
 			OrganizationID: user.OrganizationID,
+			CurrencyID:     req.CurrencyID,
 		}
 
 		if err := c.model_core.DisbursementManager.Create(context, disbursement); err != nil {
@@ -194,6 +195,7 @@ func (c *Controller) DisbursementController() {
 		disbursement.Description = req.Description
 		disbursement.UpdatedAt = time.Now().UTC()
 		disbursement.UpdatedByID = user.UserID
+		disbursement.CurrencyID = req.CurrencyID
 		if err := c.model_core.DisbursementManager.UpdateFields(context, disbursement.ID, disbursement); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
