@@ -116,6 +116,7 @@ func (c *Controller) BatchFundingController() {
 			Description:        batchFundingReq.Description,
 			Amount:             batchFundingReq.Amount,
 			SignatureMediaID:   batchFundingReq.SignatureMediaID,
+			CurrencyID:         batchFundingReq.CurrencyID,
 		}
 
 		if err := c.model_core.BatchFundingManager.Create(context, batchFunding); err != nil {
