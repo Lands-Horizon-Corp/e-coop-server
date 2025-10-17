@@ -37,7 +37,8 @@ type (
 		TransactionBatchID *uuid.UUID        `gorm:"type:uuid"`
 		TransactionBatch   *TransactionBatch `gorm:"foreignKey:TransactionBatchID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"transaction_batch,omitempty"`
 
-		CountryCode     string     `gorm:"type:varchar(5)"`
+		CurrencyID      uuid.UUID  `gorm:"type:uuid;not null"`
+		Currency        *Currency  `gorm:"foreignKey:CurrencyID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"currency,omitempty"`
 		ReferenceNumber string     `gorm:"type:varchar(255)"`
 		AccountName     string     `gorm:"type:varchar(255)"`
 		Amount          float64    `gorm:"type:decimal;not null"`
@@ -65,7 +66,8 @@ type (
 		EmployeeUser       *UserResponse             `json:"employee_user,omitempty"`
 		TransactionBatchID *uuid.UUID                `json:"transaction_batch_id,omitempty"`
 		TransactionBatch   *TransactionBatchResponse `json:"transaction_batch,omitempty"`
-		CountryCode        string                    `json:"country_code"`
+		CurrencyID         uuid.UUID                 `json:"currency_id"`
+		Currency           *CurrencyResponse         `json:"currency,omitempty"`
 		ReferenceNumber    string                    `json:"reference_number"`
 		AccountName        string                    `json:"account_name"`
 		Amount             float64                   `json:"amount"`
@@ -78,7 +80,7 @@ type (
 		MediaID            *uuid.UUID `json:"media_id,omitempty"`
 		EmployeeUserID     *uuid.UUID `json:"employee_user_id,omitempty"`
 		TransactionBatchID *uuid.UUID `json:"transaction_batch_id,omitempty"`
-		CountryCode        string     `json:"country_code,omitempty"`
+		CurrencyID         uuid.UUID  `json:"currency_id" validate:"required"`
 		ReferenceNumber    string     `json:"reference_number,omitempty"`
 		AccountName        string     `json:"account_name,omitempty"`
 		Amount             float64    `json:"amount" validate:"required"`
@@ -94,7 +96,7 @@ func (m *ModelCore) CheckRemittance() {
 	]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Branch", "Organization",
-			"Bank", "Media", "EmployeeUser", "TransactionBatch",
+			"Bank", "Media", "EmployeeUser", "TransactionBatch", "Currency",
 			"Bank.Media",
 		},
 		Service: m.provider.Service,
@@ -127,7 +129,8 @@ func (m *ModelCore) CheckRemittance() {
 				EmployeeUser:       m.UserManager.ToModel(data.EmployeeUser),
 				TransactionBatchID: data.TransactionBatchID,
 				TransactionBatch:   m.TransactionBatchManager.ToModel(data.TransactionBatch),
-				CountryCode:        data.CountryCode,
+				CurrencyID:         data.CurrencyID,
+				Currency:           m.CurrencyManager.ToModel(data.Currency),
 				ReferenceNumber:    data.ReferenceNumber,
 				AccountName:        data.AccountName,
 				Amount:             data.Amount,
