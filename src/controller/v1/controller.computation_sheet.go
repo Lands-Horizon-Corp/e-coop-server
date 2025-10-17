@@ -444,4 +444,9 @@ func (c *Controller) ComputationSheetController() {
 		})
 		return ctx.NoContent(http.StatusNoContent)
 	})
+
+	
+
+	// POST - api/v1/computation-sheeet/:computation-sheet-id/account/:account-id/connect
+	// PUT - api/v1/computation-sheeet/:computation-sheet-id/account/:account-id/disconnect
 }

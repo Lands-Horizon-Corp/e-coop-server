@@ -35,7 +35,7 @@ type (
 
 		Name        string    `gorm:"type:varchar(255);not null"`
 		EntryDate   time.Time `gorm:"not null"`
-		Description string    `gorm:"type:text;not null"`
+		Description string    `gorm:"type:text;"`
 		Cost        float64   `gorm:"type:decimal(20,6);default:0"`
 	}
 

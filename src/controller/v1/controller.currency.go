@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/service"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -319,5 +320,45 @@ func (c *Controller) CurrencyController() {
 		})
 
 		return ctx.NoContent(http.StatusNoContent)
+	})
+
+	// POST /api/v1/currency/exchange-rate/:currency_from_id/:currency_to_id/:amount
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/currency/exchange-rate/:currency_from_id/:currency_to_id/:amount",
+		Method:       "POST",
+		ResponseType: service.ExchangeResult{},
+		Note:         "Computes exchange rate between two currencies for a given amount.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		currencyFromID, err := handlers.EngineUUIDParam(ctx, "currency_from_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency_from_id: " + err.Error()})
+		}
+		currencyToID, err := handlers.EngineUUIDParam(ctx, "currency_to_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency_to_id: " + err.Error()})
+		}
+		amountParam := ctx.Param("amount")
+		var amount float64
+		_, err = fmt.Sscanf(amountParam, "%f", &amount)
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid amount: " + err.Error()})
+		}
+
+		fromCurrency, err := c.model_core.CurrencyManager.GetByID(context, *currencyFromID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Currency from not found: " + err.Error()})
+		}
+		toCurrency, err := c.model_core.CurrencyManager.GetByID(context, *currencyToID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Currency to not found: " + err.Error()})
+		}
+
+		result, err := c.service.ExchangeRateComputeAmount(*fromCurrency, *toCurrency, amount)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to compute exchange rate: " + err.Error()})
+		}
+
+		return ctx.JSON(http.StatusOK, result)
 	})
 }

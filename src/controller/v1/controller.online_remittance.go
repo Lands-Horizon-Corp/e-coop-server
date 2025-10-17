@@ -124,7 +124,7 @@ func (c *Controller) OnlineRemittanceController() {
 			BankID:             req.BankID,
 			MediaID:            req.MediaID,
 			EmployeeUserID:     &userOrg.UserID,
-			CountryCode:        req.CountryCode,
+			CurrencyID:         req.CurrencyID,
 			ReferenceNumber:    req.ReferenceNumber,
 			AccountName:        req.AccountName,
 			Amount:             req.Amount,
@@ -285,7 +285,7 @@ func (c *Controller) OnlineRemittanceController() {
 		existingOnlineRemittance.TransactionBatchID = &transactionBatch.ID
 		existingOnlineRemittance.BankID = req.BankID
 		existingOnlineRemittance.MediaID = req.MediaID
-		existingOnlineRemittance.CountryCode = req.CountryCode
+		existingOnlineRemittance.CurrencyID = req.CurrencyID
 		existingOnlineRemittance.ReferenceNumber = req.ReferenceNumber
 		existingOnlineRemittance.AccountName = req.AccountName
 		existingOnlineRemittance.Amount = req.Amount

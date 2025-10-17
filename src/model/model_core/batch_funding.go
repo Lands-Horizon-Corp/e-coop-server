@@ -37,6 +37,9 @@ type (
 		SignatureMediaID *uuid.UUID `gorm:"type:uuid" json:"signature_media_id"`
 		SignatureMedia   *Media     `gorm:"foreignKey:SignatureMediaID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"signature_media,omitempty"`
 
+		CurrencyID uuid.UUID `gorm:"type:uuid;not null" json:"currency_id"`
+		Currency   *Currency `gorm:"foreignKey:CurrencyID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"currency,omitempty"`
+
 		Name        string  `gorm:"type:varchar(50)" json:"name"`
 		Amount      float64 `gorm:"type:decimal" json:"amount"`
 		Description string  `gorm:"type:text" json:"description"`
@@ -60,6 +63,8 @@ type (
 		ProvidedByUser     *UserResponse             `json:"provided_by_user,omitempty"`
 		SignatureMediaID   *uuid.UUID                `json:"signature_media_id,omitempty"`
 		SignatureMedia     *MediaResponse            `json:"signature_media,omitempty"`
+		CurrencyID         uuid.UUID                 `json:"currency_id"`
+		Currency           *CurrencyResponse         `json:"currency,omitempty"`
 		Name               string                    `json:"name"`
 		Amount             float64                   `json:"amount"`
 		Description        string                    `json:"description"`
@@ -68,6 +73,7 @@ type (
 	BatchFundingRequest struct {
 		ProvidedByUserID uuid.UUID  `json:"provided_by_user_id" validate:"required"`
 		SignatureMediaID *uuid.UUID `json:"signature_media_id,omitempty"`
+		CurrencyID       uuid.UUID  `json:"currency_id" validate:"required"`
 		Name             string     `json:"name" validate:"required,min=1,max=50"`
 		Amount           float64    `json:"amount,omitempty"`
 		Description      string     `json:"description,omitempty"`
@@ -81,7 +87,7 @@ func (m *ModelCore) BatchFunding() {
 	]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Branch", "Organization",
-			"TransactionBatch", "ProvidedByUser", "SignatureMedia",
+			"TransactionBatch", "ProvidedByUser", "SignatureMedia", "Currency",
 			"ProvidedByUser.Media",
 		},
 		Service: m.provider.Service,
@@ -107,6 +113,8 @@ func (m *ModelCore) BatchFunding() {
 				ProvidedByUser:     m.UserManager.ToModel(data.ProvidedByUser),
 				SignatureMediaID:   data.SignatureMediaID,
 				SignatureMedia:     m.MediaManager.ToModel(data.SignatureMedia),
+				CurrencyID:         data.CurrencyID,
+				Currency:           m.CurrencyManager.ToModel(data.Currency),
 				Name:               data.Name,
 				Amount:             data.Amount,
 				Description:        data.Description,

@@ -287,6 +287,34 @@ func (c *Controller) OrganizationController() {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create organization category: " + err.Error()})
 			}
 		}
+
+		organizationMedia := &[]model_core.OrganizationMedia{
+			{
+				Name:           "Cover Image",
+				CreatedAt:      time.Now().UTC(),
+				UpdatedAt:      time.Now().UTC(),
+				OrganizationID: organization.ID,
+				MediaID:        *req.CoverMediaID,
+			},
+			{
+				Name:           "Profile Image",
+				CreatedAt:      time.Now().UTC(),
+				UpdatedAt:      time.Now().UTC(),
+				OrganizationID: organization.ID,
+				MediaID:        *req.MediaID,
+			},
+		}
+		for _, orgMedia := range *organizationMedia {
+			if err := c.model_core.OrganizationMediaManager.CreateWithTx(context, tx, &orgMedia); err != nil {
+				tx.Rollback()
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "create-error",
+					Description: "Create organization failed: create org media error: " + err.Error(),
+					Module:      "Organization",
+				})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create organization media: " + err.Error()})
+			}
+		}
 		if err := tx.Commit().Error; err != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{

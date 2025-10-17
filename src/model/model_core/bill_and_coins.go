@@ -32,9 +32,11 @@ type (
 		MediaID *uuid.UUID `gorm:"type:uuid" json:"media_id"`
 		Media   *Media     `gorm:"foreignKey:MediaID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"media,omitempty"`
 
-		Name        string  `gorm:"type:varchar(255);uniqueIndex:idx_unique_name_org_branch" json:"name"`
-		Value       float64 `gorm:"type:decimal;not null" json:"value"`
-		CountryCode string  `gorm:"type:varchar(5);not null" json:"country_code"`
+		CurrencyID uuid.UUID `gorm:"type:uuid;not null" json:"currency_id"`
+		Currency   *Currency `gorm:"foreignKey:CurrencyID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"currency,omitempty"`
+
+		Name  string  `gorm:"type:varchar(255);uniqueIndex:idx_unique_name_org_branch" json:"name"`
+		Value float64 `gorm:"type:decimal;not null" json:"value"`
 	}
 
 	BillAndCoinsResponse struct {
@@ -51,16 +53,17 @@ type (
 		Branch         *BranchResponse       `json:"branch,omitempty"`
 		MediaID        *uuid.UUID            `json:"media_id,omitempty"`
 		Media          *MediaResponse        `json:"media,omitempty"`
+		CurrencyID     uuid.UUID             `json:"currency_id"`
+		Currency       *CurrencyResponse     `json:"currency,omitempty"`
 		Name           string                `json:"name"`
 		Value          float64               `json:"value"`
-		CountryCode    string                `json:"country_code"`
 	}
 
 	BillAndCoinsRequest struct {
-		Name        string     `json:"name" validate:"required,min=1,max=255"`
-		Value       float64    `json:"value" validate:"required"`
-		CountryCode string     `json:"country_code" validate:"required,min=1,max=5"`
-		MediaID     *uuid.UUID `json:"media_id,omitempty"`
+		Name       string     `json:"name" validate:"required,min=1,max=255"`
+		Value      float64    `json:"value" validate:"required"`
+		CurrencyID uuid.UUID  `json:"currency_id" validate:"required"`
+		MediaID    *uuid.UUID `json:"media_id,omitempty"`
 	}
 )
 
@@ -69,7 +72,7 @@ func (m *ModelCore) BillAndCoins() {
 	m.BillAndCoinsManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		BillAndCoins, BillAndCoinsResponse, BillAndCoinsRequest,
 	]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization", "Media"},
+		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization", "Media", "Currency"},
 		Service:  m.provider.Service,
 		Resource: func(data *BillAndCoins) *BillAndCoinsResponse {
 			if data == nil {
@@ -89,9 +92,10 @@ func (m *ModelCore) BillAndCoins() {
 				Branch:         m.BranchManager.ToModel(data.Branch),
 				MediaID:        data.MediaID,
 				Media:          m.MediaManager.ToModel(data.Media),
+				CurrencyID:     data.CurrencyID,
+				Currency:       m.CurrencyManager.ToModel(data.Currency),
 				Name:           data.Name,
 				Value:          data.Value,
-				CountryCode:    data.CountryCode,
 			}
 		},
 		Created: func(data *BillAndCoins) []string {
@@ -124,23 +128,29 @@ func (m *ModelCore) BillAndCoins() {
 func (m *ModelCore) BillAndCoinsSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
 
+	// Find Philippine Peso currency
+	phpCurrency, err := m.CurrencyManager.FindOne(context, &Currency{CurrencyCode: "PHP"})
+	if err != nil {
+		return eris.Wrap(err, "failed to find PHP currency for bill and coins seeding")
+	}
+
 	billAndCoins := []*BillAndCoins{
 		// Banknotes (New Generation Currency Series)
-		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₱ 1000 Bill", Value: 1000.00, CountryCode: "PHP"},
-		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₱ 500 Bill", Value: 500.00, CountryCode: "PHP"},
-		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₱ 200 Bill", Value: 200.00, CountryCode: "PHP"},
-		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₱ 100 Bill", Value: 100.00, CountryCode: "PHP"},
-		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₱ 50 Bill", Value: 50.00, CountryCode: "PHP"},
-		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₱ 20 Bill", Value: 20.00, CountryCode: "PHP"},
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₱ 1000 Bill", Value: 1000.00, CurrencyID: phpCurrency.ID},
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₱ 500 Bill", Value: 500.00, CurrencyID: phpCurrency.ID},
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₱ 200 Bill", Value: 200.00, CurrencyID: phpCurrency.ID},
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₱ 100 Bill", Value: 100.00, CurrencyID: phpCurrency.ID},
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₱ 50 Bill", Value: 50.00, CurrencyID: phpCurrency.ID},
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₱ 20 Bill", Value: 20.00, CurrencyID: phpCurrency.ID},
 
 		// Coins (New Generation Currency Series)
-		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₱ 20 Coin", Value: 20.00, CountryCode: "PHP"},
-		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₱ 10 Coin", Value: 10.00, CountryCode: "PHP"},
-		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₱ 5 Coin", Value: 5.00, CountryCode: "PHP"},
-		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₱ 1 Coin", Value: 1.00, CountryCode: "PHP"},
-		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₱ 0.25 Sentimo Coin", Value: 0.25, CountryCode: "PHP"},
-		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₱ 0.05 Sentimo Coin", Value: 0.05, CountryCode: "PHP"},
-		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₱ 0.1 Sentimo Coin", Value: 0.01, CountryCode: "PHP"},
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₱ 20 Coin", Value: 20.00, CurrencyID: phpCurrency.ID},
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₱ 10 Coin", Value: 10.00, CurrencyID: phpCurrency.ID},
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₱ 5 Coin", Value: 5.00, CurrencyID: phpCurrency.ID},
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₱ 1 Coin", Value: 1.00, CurrencyID: phpCurrency.ID},
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₱ 0.25 Sentimo Coin", Value: 0.25, CurrencyID: phpCurrency.ID},
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₱ 0.05 Sentimo Coin", Value: 0.05, CurrencyID: phpCurrency.ID},
+		{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₱ 0.1 Sentimo Coin", Value: 0.01, CurrencyID: phpCurrency.ID},
 	}
 	for _, data := range billAndCoins {
 		if err := m.BillAndCoinsManager.CreateWithTx(context, tx, data); err != nil {

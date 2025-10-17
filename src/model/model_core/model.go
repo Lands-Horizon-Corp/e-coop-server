@@ -65,6 +65,7 @@ type (
 		OrganizationCategoryManager   horizon_services.Repository[OrganizationCategory, OrganizationCategoryResponse, OrganizationCategoryRequest]
 		OrganizationDailyUsageManager horizon_services.Repository[OrganizationDailyUsage, OrganizationDailyUsageResponse, OrganizationDailyUsageRequest]
 		OrganizationManager           horizon_services.Repository[Organization, OrganizationResponse, OrganizationRequest]
+		OrganizationMediaManager      horizon_services.Repository[OrganizationMedia, OrganizationMediaResponse, OrganizationMediaRequest]
 		PermissionTemplateManager     horizon_services.Repository[PermissionTemplate, PermissionTemplateResponse, PermissionTemplateRequest]
 		SubscriptionPlanManager       horizon_services.Repository[SubscriptionPlan, SubscriptionPlanResponse, SubscriptionPlanRequest]
 		UserOrganizationManager       horizon_services.Repository[UserOrganization, UserOrganizationResponse, UserOrganizationRequest]
@@ -341,6 +342,7 @@ func (c *ModelCore) Start(context context.Context) error {
 	c.OrganizationCategory()
 	c.OrganizationDailyUsage()
 	c.Organization()
+	c.OrganizationMedia()
 	c.PaymentType()
 	c.PermissionTemplate()
 	c.PostDatedCheck()
