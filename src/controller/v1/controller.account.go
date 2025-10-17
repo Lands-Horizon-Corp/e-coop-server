@@ -1285,4 +1285,91 @@ func (c *Controller) AccountController() {
 		}
 		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.Pagination(context, ctx, accounts))
 	})
+
+	// GET - api/v1/computation-sheet/:computation-sheet-id/accounts
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/accounts/computation-sheet/:computation_sheet_id",
+		Method:       "GET",
+		Note:         "Returns all accounts connected to a computation sheet.",
+		ResponseType: model_core.AccountResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		computationSheetID, err := handlers.EngineUUIDParam(ctx, "computation_sheet_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
+		}
+		accounts, err := c.model_core.AccountManager.FindRaw(context, &model_core.Account{
+			ComputationSheetID: computationSheetID,
+			OrganizationID:     userOrg.OrganizationID,
+			BranchID:           *userOrg.BranchID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No accounts found for the specified computation sheet"})
+		}
+		return ctx.JSON(http.StatusOK, accounts)
+	})
+
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/account/:account_id/computation-sheet/:computation_sheet_id/connect",
+		Method:       "PUT",
+		Note:         "Connect an account to a computation sheet.",
+		ResponseType: model_core.AccountResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID"})
+		}
+		computationSheetID, err := handlers.EngineUUIDParam(ctx, "computation_sheet_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
+		}
+		account, err := c.model_core.AccountManager.GetByID(context, *accountID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found"})
+		}
+		account.ComputationSheetID = computationSheetID
+		account.UpdatedAt = time.Now().UTC()
+		account.UpdatedByID = userOrg.UserID
+		if err := c.model_core.AccountManager.UpdateFields(context, account.ID, account); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to connect account to computation sheet: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.ToModel(account))
+	})
+
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/account/:account_id/computation-sheet/disconnect",
+		Method:       "PUT",
+		Note:         "Disconnect an account from a computation sheet.",
+		ResponseType: model_core.AccountResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID"})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
+		}
+		account, err := c.model_core.AccountManager.GetByID(context, *accountID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found"})
+		}
+		account.ComputationSheetID = nil
+		account.UpdatedAt = time.Now().UTC()
+		account.UpdatedByID = userOrg.UserID
+		if err := c.model_core.AccountManager.UpdateFields(context, account.ID, account); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to connect account to computation sheet: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.ToModel(account))
+	})
 }
