@@ -116,10 +116,10 @@ func (c *Controller) BillAndCoinsController() {
 		}
 
 		billAndCoins := &model_core.BillAndCoins{
-			MediaID:     req.MediaID,
-			Name:        req.Name,
-			Value:       req.Value,
-			CountryCode: req.CountryCode,
+			MediaID:    req.MediaID,
+			Name:       req.Name,
+			Value:      req.Value,
+			CurrencyID: req.CurrencyID,
 
 			CreatedAt:      time.Now().UTC(),
 			CreatedByID:    user.UserID,
@@ -194,7 +194,7 @@ func (c *Controller) BillAndCoinsController() {
 		billAndCoins.MediaID = req.MediaID
 		billAndCoins.Name = req.Name
 		billAndCoins.Value = req.Value
-		billAndCoins.CountryCode = req.CountryCode
+		billAndCoins.CurrencyID = req.CurrencyID
 
 		billAndCoins.UpdatedAt = time.Now().UTC()
 		billAndCoins.UpdatedByID = user.UserID
