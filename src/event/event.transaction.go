@@ -434,6 +434,7 @@ func (e *Event) TransactionPayment(
 			FinesDue:             0,
 			TotalLoan:            0,
 			InterestDue:          0,
+			CurrencyID:           *account.CurrencyID,
 		}
 		if err := e.model_core.TransactionManager.CreateWithTx(ctx, tx, transaction); err != nil {
 			tx.Rollback()
