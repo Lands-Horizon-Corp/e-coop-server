@@ -33,7 +33,7 @@ func (c *Controller) AccountController() {
 		accounts, err := c.model_core.AccountManager.Find(context, &model_core.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
-		})
+	})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}

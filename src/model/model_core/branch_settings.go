@@ -75,7 +75,6 @@ type (
 	}
 
 	BranchSettingRequest struct {
-		CurrencyID uuid.UUID `json:"currency_id" validate:"required"`
 
 		// Withdraw Settings
 		WithdrawAllowUserInput bool   `json:"withdraw_allow_user_input"`
