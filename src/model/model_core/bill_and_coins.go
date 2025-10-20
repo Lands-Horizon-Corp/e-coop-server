@@ -1364,14 +1364,14 @@ func (m *ModelCore) BillAndCoinsSeed(context context.Context, tx *gorm.DB, userI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Br5 Banknote", Value: 5.00, CurrencyID: currency.ID},
 
 				// Coins (Belarusian Ruble - Current denominations)
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Br2 Coin", Value: 2.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Br1 Coin", Value: 1.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "50 Kopecks Coin", Value: 0.50, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "20 Kopecks Coin", Value: 0.20, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "10 Kopecks Coin", Value: 0.10, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "5 Kopecks Coin", Value: 0.05, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "2 Kopecks Coin", Value: 0.02, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "1 Kopeck Coin", Value: 0.01, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "2 Br2 Coin", Value: 2.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "2 Br1 Coin", Value: 1.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "50 Br Kopecks Coin", Value: 0.50, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "20 Br Kopecks Coin", Value: 0.20, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "10 Br Kopecks Coin", Value: 0.10, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "5 Br Kopecks Coin", Value: 0.05, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "2 Br Kopecks Coin", Value: 0.02, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "1 Br Kopeck Coin", Value: 0.01, CurrencyID: currency.ID},
 			}
 		case "FJD":
 			billAndCoins = []*BillAndCoins{
