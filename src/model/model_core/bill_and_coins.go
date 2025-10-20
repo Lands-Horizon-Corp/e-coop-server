@@ -823,10 +823,10 @@ func (m *ModelCore) BillAndCoinsSeed(context context.Context, tx *gorm.DB, userI
 
 				// Coins (Brazilian Real - Current denominations)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "R$1 Coin", Value: 1.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "50 Centavos Coin", Value: 0.50, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "25 Centavos Coin", Value: 0.25, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "10 Centavos Coin", Value: 0.10, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "5 Centavos Coin", Value: 0.05, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BRL 50 Centavos Coin", Value: 0.50, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BRL 25 Centavos Coin", Value: 0.25, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BRL 10 Centavos Coin", Value: 0.10, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BRL 5 Centavos Coin", Value: 0.05, CurrencyID: currency.ID},
 			}
 		case "MXN":
 			billAndCoins = []*BillAndCoins{
@@ -844,9 +844,9 @@ func (m *ModelCore) BillAndCoinsSeed(context context.Context, tx *gorm.DB, userI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "MX$5 Coin", Value: 5.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "MX$2 Coin", Value: 2.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "MX$1 Coin", Value: 1.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "50 Centavos Coin", Value: 0.50, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "20 Centavos Coin", Value: 0.20, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "10 Centavos Coin", Value: 0.10, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "MXN 50 Centavos Coin", Value: 0.50, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "MXN 20 Centavos Coin", Value: 0.20, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "MXN 10 Centavos Coin", Value: 0.10, CurrencyID: currency.ID},
 			}
 		case "ARS":
 			billAndCoins = []*BillAndCoins{
@@ -864,9 +864,9 @@ func (m *ModelCore) BillAndCoinsSeed(context context.Context, tx *gorm.DB, userI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "AR$5 Coin", Value: 5.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "AR$2 Coin", Value: 2.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "AR$1 Coin", Value: 1.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "50 Centavos Coin", Value: 0.50, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "25 Centavos Coin", Value: 0.25, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "10 Centavos Coin", Value: 0.10, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "ARS 50 Centavos Coin", Value: 0.50, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "ARS 25 Centavos Coin", Value: 0.25, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "ARS 10 Centavos Coin", Value: 0.10, CurrencyID: currency.ID},
 			}
 		case "CLP":
 			billAndCoins = []*BillAndCoins{
@@ -913,9 +913,9 @@ func (m *ModelCore) BillAndCoinsSeed(context context.Context, tx *gorm.DB, userI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "S/5 Coin", Value: 5.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "S/2 Coin", Value: 2.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "S/1 Coin", Value: 1.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "50 Céntimos Coin", Value: 0.50, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "20 Céntimos Coin", Value: 0.20, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "10 Céntimos Coin", Value: 0.10, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "PEN 50 Céntimos Coin", Value: 0.50, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "PEN 20 Céntimos Coin", Value: 0.20, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "PEN 10 Céntimos Coin", Value: 0.10, CurrencyID: currency.ID},
 			}
 		case "UYU":
 			billAndCoins = []*BillAndCoins{
@@ -951,8 +951,8 @@ func (m *ModelCore) BillAndCoinsSeed(context context.Context, tx *gorm.DB, userI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "RD$10 Coin", Value: 10.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "RD$5 Coin", Value: 5.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "RD$1 Coin", Value: 1.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "50 Centavos Coin", Value: 0.50, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "25 Centavos Coin", Value: 0.25, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "DOP 50 Centavos Coin", Value: 0.50, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "DOP 25 Centavos Coin", Value: 0.25, CurrencyID: currency.ID},
 			}
 		case "PYG":
 			billAndCoins = []*BillAndCoins{
@@ -983,9 +983,9 @@ func (m *ModelCore) BillAndCoinsSeed(context context.Context, tx *gorm.DB, userI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Bs5 Coin", Value: 5.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Bs2 Coin", Value: 2.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Bs1 Coin", Value: 1.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "50 Centavos Coin", Value: 0.50, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "20 Centavos Coin", Value: 0.20, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "10 Centavos Coin", Value: 0.10, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BOB 50 Centavos Coin", Value: 0.50, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BOB 20 Centavos Coin", Value: 0.20, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BOB 10 Centavos Coin", Value: 0.10, CurrencyID: currency.ID},
 			}
 		case "VES":
 			billAndCoins = []*BillAndCoins{
@@ -1455,9 +1455,9 @@ func (m *ModelCore) BillAndCoinsSeed(context context.Context, tx *gorm.DB, userI
 
 				// Coins (Guatemalan Quetzal - Current denominations)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Q1 Coin", Value: 1.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "50 Centavos Coin", Value: 0.50, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "25 Centavos Coin", Value: 0.25, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "10 Centavos Coin", Value: 0.10, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "GTQ 50 Centavos Coin", Value: 0.50, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "GTQ 25 Centavos Coin", Value: 0.25, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "GTQ 10 Centavos Coin", Value: 0.10, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "5 Centavos Coin", Value: 0.05, CurrencyID: currency.ID},
 			}
 		case "XDR":
