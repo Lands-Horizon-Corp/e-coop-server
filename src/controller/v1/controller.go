@@ -48,7 +48,7 @@ func (c *Controller) Start() error {
 	// Others
 	c.Heartbeat()
 	c.FormGeneratorController()
-
+	c.AuthenticationController()
 	// Basic Onboardding & Utilities
 	c.BranchController()
 	c.CategoryController()
