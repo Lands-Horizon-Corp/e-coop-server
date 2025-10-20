@@ -16,6 +16,7 @@ import (
 type HorizonService struct {
 	Environment horizon.EnvironmentService
 	Database    horizon.SQLDatabaseService
+
 	// LogDatabase horizon.SQLDatabaseService
 	Storage   horizon.StorageService
 	Cache     horizon.CacheService
@@ -34,6 +35,7 @@ type HorizonService struct {
 type HorizonServiceConfig struct {
 	EnvironmentConfig *EnvironmentServiceConfig
 	SQLConfig         *SQLServiceConfig
+
 	// SQLLogConfig         *SQLLogsServiceConfig
 	StorageConfig        *StorageServiceConfig
 	CacheConfig          *CacheServiceConfig
@@ -49,7 +51,7 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 	service := &HorizonService{}
 	service.Validator = validator.New()
 
-	logger, err := zap.NewProduction() 
+	logger, err := zap.NewProduction()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to initialize zap logger: %v\n", err)
 		service.Logger = zap.NewNop()
@@ -535,3 +537,4 @@ func (h *HorizonService) StopBroker(ctx context.Context) error {
 	h.Logger.Info("Broker Service Stopped Successfully")
 	return nil
 }
+ 

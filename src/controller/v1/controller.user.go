@@ -830,14 +830,7 @@ func (c *Controller) UserController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch updated user: " + err.Error()})
 		}
-		if err := c.userToken.SetUser(context, ctx, updatedUser); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "Change profile picture failed: set user token error: " + err.Error(),
-				Module:      "User",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to set user token: " + err.Error()})
-		}
+
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Profile picture changed for user: " + user.ID.String(),
@@ -903,14 +896,7 @@ func (c *Controller) UserController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch updated user: " + err.Error()})
 		}
-		if err := c.userToken.SetUser(context, ctx, updatedUser); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "Change general profile failed: set user token error: " + err.Error(),
-				Module:      "User",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to set user token: " + err.Error()})
-		}
+
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "General profile changed for user: " + user.ID.String(),
