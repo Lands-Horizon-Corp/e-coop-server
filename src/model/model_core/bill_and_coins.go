@@ -200,18 +200,18 @@ func (m *ModelCore) BillAndCoinsSeed(context context.Context, tx *gorm.DB, userI
 		case "JPY":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Japanese Yen - Current Series)
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "¥10,000 Banknote", Value: 10000.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "¥5,000 Banknote", Value: 5000.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "¥2,000 Banknote", Value: 2000.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "¥1,000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "JPY ¥10,000 Banknote", Value: 10000.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "JPY ¥5,000 Banknote", Value: 5000.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "JPY ¥2,000 Banknote", Value: 2000.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "JPY ¥1,000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
 
 				// Coins (Japanese Yen - Current denominations)
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "¥500 Coin", Value: 500.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "¥100 Coin", Value: 100.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "¥50 Coin", Value: 50.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "¥10 Coin", Value: 10.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "¥5 Coin", Value: 5.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "¥1 Coin", Value: 1.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "JPY ¥500 Coin", Value: 500.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "JPY ¥100 Coin", Value: 100.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "JPY ¥50 Coin", Value: 50.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "JPY ¥10 Coin", Value: 10.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "JPY ¥5 Coin", Value: 5.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "JPY ¥1 Coin", Value: 1.00, CurrencyID: currency.ID},
 			}
 		case "GBP":
 			billAndCoins = []*BillAndCoins{
@@ -429,10 +429,10 @@ func (m *ModelCore) BillAndCoinsSeed(context context.Context, tx *gorm.DB, userI
 
 				// Coins (Malaysian Ringgit - Current denominations)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "RM1 Coin", Value: 1.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "50 Sen Coin", Value: 0.50, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "20 Sen Coin", Value: 0.20, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "10 Sen Coin", Value: 0.10, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "5 Sen Coin", Value: 0.05, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "MYR 50 Sen Coin", Value: 0.50, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "MYR 20 Sen Coin", Value: 0.20, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "MYR 10 Sen Coin", Value: 0.10, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "MYR 5 Sen Coin", Value: 0.05, CurrencyID: currency.ID},
 			}
 		case "IDR":
 			billAndCoins = []*BillAndCoins{
@@ -496,10 +496,10 @@ func (m *ModelCore) BillAndCoinsSeed(context context.Context, tx *gorm.DB, userI
 
 				// Coins (Brunei Dollar - Current denominations)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "B$1 Coin", Value: 1.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "50 Sen Coin", Value: 0.50, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "20 Sen Coin", Value: 0.20, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "10 Sen Coin", Value: 0.10, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "5 Sen Coin", Value: 0.05, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BND 50 Sen Coin", Value: 0.50, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BND 20 Sen Coin", Value: 0.20, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BND 10 Sen Coin", Value: 0.10, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BND 5 Sen Coin", Value: 0.05, CurrencyID: currency.ID},
 			}
 		case "SAR":
 			billAndCoins = []*BillAndCoins{
@@ -610,55 +610,55 @@ func (m *ModelCore) BillAndCoinsSeed(context context.Context, tx *gorm.DB, userI
 		case "XOF":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (West African CFA Franc - Current Series)
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CFA 10,000 Banknote", Value: 10000.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CFA 5,000 Banknote", Value: 5000.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CFA 2,000 Banknote", Value: 2000.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CFA 1,000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CFA 500 Banknote", Value: 500.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "XOF CFA 10,000 Banknote", Value: 10000.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "XOF CFA 5,000 Banknote", Value: 5000.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "XOF CFA 2,000 Banknote", Value: 2000.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "XOF CFA 1,000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "XOF CFA 500 Banknote", Value: 500.00, CurrencyID: currency.ID},
 
 				// Coins (West African CFA Franc - Current denominations)
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CFA 500 Coin", Value: 500.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CFA 250 Coin", Value: 250.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CFA 100 Coin", Value: 100.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CFA 50 Coin", Value: 50.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CFA 25 Coin", Value: 25.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CFA 10 Coin", Value: 10.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "XOF CFA 500 Coin", Value: 500.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "XOF CFA 250 Coin", Value: 250.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "XOF CFA 100 Coin", Value: 100.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "XOF CFA 50 Coin", Value: 50.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "XOF CFA 25 Coin", Value: 25.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "XOF CFA 10 Coin", Value: 10.00, CurrencyID: currency.ID},
 			}
 		case "XAF":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Central African CFA Franc - Current Series)
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CFA 10,000 Banknote", Value: 10000.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CFA 5,000 Banknote", Value: 5000.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CFA 2,000 Banknote", Value: 2000.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CFA 1,000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CFA 500 Banknote", Value: 500.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "XAF CFA 10,000 Banknote", Value: 10000.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "XAF CFA 5,000 Banknote", Value: 5000.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "XAF CFA 2,000 Banknote", Value: 2000.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "XAF CFA 1,000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "XAF CFA 500 Banknote", Value: 500.00, CurrencyID: currency.ID},
 
 				// Coins (Central African CFA Franc - Current denominations)
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CFA 500 Coin", Value: 500.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CFA 100 Coin", Value: 100.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CFA 50 Coin", Value: 50.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CFA 25 Coin", Value: 25.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CFA 10 Coin", Value: 10.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CFA 5 Coin", Value: 5.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "XAF CFA 500 Coin", Value: 500.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "XAF CFA 100 Coin", Value: 100.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "XAF CFA 50 Coin", Value: 50.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "XAF CFA 25 Coin", Value: 25.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "XAF CFA 10 Coin", Value: 10.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "XAF CFA 5 Coin", Value: 5.00, CurrencyID: currency.ID},
 			}
 		case "MUR":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Mauritian Rupee - Current Series)
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₨2000 Banknote", Value: 2000.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₨1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₨500 Banknote", Value: 500.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₨200 Banknote", Value: 200.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₨100 Banknote", Value: 100.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₨50 Banknote", Value: 50.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₨25 Banknote", Value: 25.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "MUR ₨2000 Banknote", Value: 2000.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "MUR ₨1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "MUR ₨500 Banknote", Value: 500.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "MUR ₨200 Banknote", Value: 200.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "MUR ₨100 Banknote", Value: 100.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "MUR ₨50 Banknote", Value: 50.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "MUR ₨25 Banknote", Value: 25.00, CurrencyID: currency.ID},
 
 				// Coins (Mauritian Rupee - Current denominations)
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₨20 Coin", Value: 20.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₨10 Coin", Value: 10.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₨5 Coin", Value: 5.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₨1 Coin", Value: 1.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "50 Cents Coin", Value: 0.50, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "20 Cents Coin", Value: 0.20, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "MUR ₨20 Coin", Value: 20.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "MUR ₨10 Coin", Value: 10.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "MUR ₨5 Coin", Value: 5.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "MUR ₨1 Coin", Value: 1.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "MUR 50 Cents Coin", Value: 0.50, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "MUR 20 Cents Coin", Value: 0.20, CurrencyID: currency.ID},
 			}
 		case "MVR":
 			billAndCoins = []*BillAndCoins{
@@ -681,34 +681,34 @@ func (m *ModelCore) BillAndCoinsSeed(context context.Context, tx *gorm.DB, userI
 		case "NOK":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Norwegian Krone - Current Series)
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "1000 kr Banknote", Value: 1000.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "500 kr Banknote", Value: 500.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "200 kr Banknote", Value: 200.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "100 kr Banknote", Value: 100.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "50 kr Banknote", Value: 50.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NOK 1000 kr Banknote", Value: 1000.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NOK 500 kr Banknote", Value: 500.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NOK 200 kr Banknote", Value: 200.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NOK 100 kr Banknote", Value: 100.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NOK 50 kr Banknote", Value: 50.00, CurrencyID: currency.ID},
 
 				// Coins (Norwegian Krone - Current denominations)
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "20 kr Coin", Value: 20.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "10 kr Coin", Value: 10.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "5 kr Coin", Value: 5.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "1 kr Coin", Value: 1.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NOK 20 kr Coin", Value: 20.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NOK 10 kr Coin", Value: 10.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NOK 5 kr Coin", Value: 5.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NOK 1 kr Coin", Value: 1.00, CurrencyID: currency.ID},
 			}
 		case "DKK":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Danish Krone - Current Series)
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "1000 kr Banknote", Value: 1000.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "500 kr Banknote", Value: 500.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "200 kr Banknote", Value: 200.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "100 kr Banknote", Value: 100.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "50 kr Banknote", Value: 50.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "DKK 1000 kr Banknote", Value: 1000.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "DKK 500 kr Banknote", Value: 500.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "DKK 200 kr Banknote", Value: 200.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "DKK 100 kr Banknote", Value: 100.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "DKK 50 kr Banknote", Value: 50.00, CurrencyID: currency.ID},
 
 				// Coins (Danish Krone - Current denominations)
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "20 kr Coin", Value: 20.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "10 kr Coin", Value: 10.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "5 kr Coin", Value: 5.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "2 kr Coin", Value: 2.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "1 kr Coin", Value: 1.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "50 øre Coin", Value: 0.50, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "DKK 20 kr Coin", Value: 20.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "DKK 10 kr Coin", Value: 10.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "DKK 5 kr Coin", Value: 5.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "DKK 2 kr Coin", Value: 2.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "DKK 1 kr Coin", Value: 1.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "DKK 50 øre Coin", Value: 0.50, CurrencyID: currency.ID},
 			}
 		case "PLN":
 			billAndCoins = []*BillAndCoins{
@@ -987,76 +987,76 @@ func (m *ModelCore) BillAndCoinsSeed(context context.Context, tx *gorm.DB, userI
 		case "PKR":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Pakistani Rupee - Current Series)
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₨5000 Banknote", Value: 5000.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₨1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₨500 Banknote", Value: 500.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₨100 Banknote", Value: 100.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₨50 Banknote", Value: 50.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₨20 Banknote", Value: 20.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₨10 Banknote", Value: 10.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "PKR ₨5000 Banknote", Value: 5000.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "PKR ₨1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "PKR ₨500 Banknote", Value: 500.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "PKR ₨100 Banknote", Value: 100.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "PKR ₨50 Banknote", Value: 50.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "PKR ₨20 Banknote", Value: 20.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "PKR ₨10 Banknote", Value: 10.00, CurrencyID: currency.ID},
 
 				// Coins (Pakistani Rupee - Current denominations)
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₨5 Coin", Value: 5.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₨2 Coin", Value: 2.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₨1 Coin", Value: 1.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "50 Paisa Coin", Value: 0.50, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "PKR ₨5 Coin", Value: 5.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "PKR ₨2 Coin", Value: 2.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "PKR ₨1 Coin", Value: 1.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "PKR 50 Paisa Coin", Value: 0.50, CurrencyID: currency.ID},
 			}
 		case "BDT":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Bangladeshi Taka - Current Series)
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "৳1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "৳500 Banknote", Value: 500.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "৳100 Banknote", Value: 100.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "৳50 Banknote", Value: 50.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "৳20 Banknote", Value: 20.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "৳10 Banknote", Value: 10.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "৳5 Banknote", Value: 5.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "৳2 Banknote", Value: 2.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BDT ৳1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BDT ৳500 Banknote", Value: 500.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BDT ৳100 Banknote", Value: 100.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BDT ৳50 Banknote", Value: 50.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BDT ৳20 Banknote", Value: 20.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BDT ৳10 Banknote", Value: 10.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BDT ৳5 Banknote", Value: 5.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BDT ৳2 Banknote", Value: 2.00, CurrencyID: currency.ID},
 
 				// Coins (Bangladeshi Taka - Current denominations)
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "৳5 Coin", Value: 5.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "৳2 Coin", Value: 2.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "৳1 Coin", Value: 1.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "50 Paisa Coin", Value: 0.50, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "25 Paisa Coin", Value: 0.25, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BDT ৳5 Coin", Value: 5.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BDT ৳2 Coin", Value: 2.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BDT ৳1 Coin", Value: 1.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BDT 50 Paisa Coin", Value: 0.50, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BDT 25 Paisa Coin", Value: 0.25, CurrencyID: currency.ID},
 			}
 		case "LKR":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Sri Lankan Rupee - Current Series)
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Rs5000 Banknote", Value: 5000.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Rs2000 Banknote", Value: 2000.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Rs1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Rs500 Banknote", Value: 500.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Rs100 Banknote", Value: 100.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Rs50 Banknote", Value: 50.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Rs20 Banknote", Value: 20.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "LKR Rs5000 Banknote", Value: 5000.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "LKR Rs2000 Banknote", Value: 2000.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "LKR Rs1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "LKR Rs500 Banknote", Value: 500.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "LKR Rs100 Banknote", Value: 100.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "LKR Rs50 Banknote", Value: 50.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "LKR Rs20 Banknote", Value: 20.00, CurrencyID: currency.ID},
 
 				// Coins (Sri Lankan Rupee - Current denominations)
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Rs10 Coin", Value: 10.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Rs5 Coin", Value: 5.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Rs2 Coin", Value: 2.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Rs1 Coin", Value: 1.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "50 Cents Coin", Value: 0.50, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "25 Cents Coin", Value: 0.25, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "LKR Rs10 Coin", Value: 10.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "LKR Rs5 Coin", Value: 5.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "LKR Rs2 Coin", Value: 2.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "LKR Rs1 Coin", Value: 1.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "LKR 50 Cents Coin", Value: 0.50, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "LKR 25 Cents Coin", Value: 0.25, CurrencyID: currency.ID},
 			}
 		case "NPR":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Nepalese Rupee - Current Series)
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Rs1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Rs500 Banknote", Value: 500.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Rs100 Banknote", Value: 100.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Rs50 Banknote", Value: 50.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Rs20 Banknote", Value: 20.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Rs10 Banknote", Value: 10.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Rs5 Banknote", Value: 5.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NPR Rs1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NPR Rs500 Banknote", Value: 500.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NPR Rs100 Banknote", Value: 100.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NPR Rs50 Banknote", Value: 50.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NPR Rs20 Banknote", Value: 20.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NPR Rs10 Banknote", Value: 10.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NPR Rs5 Banknote", Value: 5.00, CurrencyID: currency.ID},
 
 				// Coins (Nepalese Rupee - Current denominations)
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Rs10 Coin", Value: 10.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Rs5 Coin", Value: 5.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Rs2 Coin", Value: 2.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Rs1 Coin", Value: 1.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "50 Paisa Coin", Value: 0.50, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "25 Paisa Coin", Value: 0.25, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NPR Rs10 Coin", Value: 10.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NPR Rs5 Coin", Value: 5.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NPR Rs2 Coin", Value: 2.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NPR Rs1 Coin", Value: 1.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NPR 50 Paisa Coin", Value: 0.50, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NPR 25 Paisa Coin", Value: 0.25, CurrencyID: currency.ID},
 			}
 		case "MMK":
 			billAndCoins = []*BillAndCoins{
