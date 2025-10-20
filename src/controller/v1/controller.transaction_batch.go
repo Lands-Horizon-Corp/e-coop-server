@@ -393,14 +393,14 @@ func (c *Controller) TransactionBatchController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start transaction: " + tx.Error.Error()})
 		}
 		transBatch := &model_core.TransactionBatch{
-			CreatedAt:      time.Now().UTC(),
-			CreatedByID:    userOrg.UserID,
-			UpdatedAt:      time.Now().UTC(),
-			UpdatedByID:    userOrg.UserID,
-			OrganizationID: userOrg.OrganizationID,
-			BranchID:       *userOrg.BranchID,
-			EmployeeUserID: &userOrg.UserID,
-
+			CreatedAt:                     time.Now().UTC(),
+			CreatedByID:                   userOrg.UserID,
+			UpdatedAt:                     time.Now().UTC(),
+			UpdatedByID:                   userOrg.UserID,
+			OrganizationID:                userOrg.OrganizationID,
+			BranchID:                      *userOrg.BranchID,
+			EmployeeUserID:                &userOrg.UserID,
+			CurrencyID:                    batchFundingReq.CurrencyID,
 			BeginningBalance:              batchFundingReq.Amount,
 			DepositInBank:                 0,
 			CashCountTotal:                0,
