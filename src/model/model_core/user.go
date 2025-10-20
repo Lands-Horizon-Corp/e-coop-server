@@ -161,13 +161,13 @@ type (
 	}
 
 	UserSettingsChangeProfileRequest struct {
-		Birthdate   time.Time `json:"birthdate"`
-		Description *string   `json:"description,omitempty"`
-		FirstName   *string   `json:"first_name,omitempty"`
-		MiddleName  *string   `json:"middle_name,omitempty"`
-		LastName    *string   `json:"last_name,omitempty"`
-		FullName    string    `json:"full_name,omitempty"`
-		Suffix      *string   `json:"suffix,omitempty"`
+		Birthdate time.Time `json:"birthdate"`
+
+		FirstName  *string `json:"first_name,omitempty"`
+		MiddleName *string `json:"middle_name,omitempty"`
+		LastName   *string `json:"last_name,omitempty"`
+		FullName   string  `json:"full_name,omitempty"`
+		Suffix     *string `json:"suffix,omitempty"`
 	}
 
 	UserSettingsChangeGeneralRequest struct {
