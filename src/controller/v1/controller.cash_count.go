@@ -81,11 +81,7 @@ func (c *Controller) CashCountController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view cash counts"})
 		}
 
-		transactionBatch, err := c.model_core.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
-			"organization_id": userOrg.OrganizationID,
-			"branch_id":       *userOrg.BranchID,
-			"is_closed":       false,
-		})
+		transactionBatch, err := c.model_core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find active transaction batch: " + err.Error()})
 		}
