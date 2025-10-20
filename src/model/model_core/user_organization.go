@@ -267,6 +267,7 @@ func (m *ModelCore) UserOrganization() {
 			"Branch",
 			"Branch.Media",
 			"Branch.BranchSetting",
+			"Branch.BranchSetting.Currency",
 			"User",
 			"User.Media",
 			"Organization",
