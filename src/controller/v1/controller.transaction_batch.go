@@ -419,7 +419,7 @@ func (c *Controller) TransactionBatchController() {
 			TotalDepositInBank:            0,
 			TotalActualRemittance:         0,
 			TotalActualSupposedComparison: 0,
-
+BatchName: batchFundingReq.Name,
 			IsClosed:    false,
 			CanView:     false,
 			RequestView: false,
