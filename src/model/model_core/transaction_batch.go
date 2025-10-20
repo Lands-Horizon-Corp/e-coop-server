@@ -118,7 +118,7 @@ type (
 		PaidByPosition         string     `gorm:"type:varchar(255)"`
 
 		CurrencyID uuid.UUID `gorm:"type:uuid;not null" json:"currency_id"`
-		Currency   *Currency `gorm:"foreignKey:CurrencyID;constraint:OnDelete:RESTRICT,OnUpdate:C	ASCADE;" json:"currency,omitempty"`
+		Currency   *Currency `gorm:"foreignKey:CurrencyID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"currency,omitempty"`
 
 		EndedAt *time.Time `gorm:"type:timestamp"`
 	}
