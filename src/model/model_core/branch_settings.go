@@ -122,6 +122,12 @@ type (
 		DefaultMemberTypeID *uuid.UUID `json:"default_member_type_id,omitempty"`
 	}
 
+	BranchSettingsCurrencyRequest struct {
+		CurrencyID                   uuid.UUID  `json:"currency_id" validate:"required"`
+		PaidUpSharedCapitalAccountID *uuid.UUID `json:"paid_up_shared_capital_account_id,omitempty"`
+		CashOnHandAccountID          *uuid.UUID `json:"cash_on_hand_account_id,omitempty"`
+	}
+
 	BranchSettingResponse struct {
 		ID         uuid.UUID         `json:"id"`
 		CreatedAt  string            `json:"created_at"`
