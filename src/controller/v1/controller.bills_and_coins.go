@@ -43,7 +43,9 @@ func (c *Controller) BillAndCoinsController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get current transaction batch: " + err.Error()})
 		}
 		billAndCoins, err := c.model_core.BillAndCoinsManager.FindRaw(context, &model_core.BillAndCoins{
-			CurrencyID: transactionBatch.CurrencyID,
+			CurrencyID:     transactionBatch.CurrencyID,
+			BranchID:       *userOrg.BranchID,
+			OrganizationID: userOrg.OrganizationID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch bills and coins: " + err.Error()})
