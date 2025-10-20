@@ -446,6 +446,7 @@ func (c *Controller) TransactionBatchController() {
 			Description:        batchFundingReq.Description,
 			Amount:             batchFundingReq.Amount,
 			SignatureMediaID:   batchFundingReq.SignatureMediaID,
+			CurrencyID:         batchFundingReq.CurrencyID,
 		}
 		if err := c.model_core.BatchFundingManager.CreateWithTx(context, tx, batchFunding); err != nil {
 			tx.Rollback()
