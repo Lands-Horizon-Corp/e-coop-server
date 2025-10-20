@@ -33,11 +33,13 @@ type (
 		TransactionBatchID uuid.UUID         `gorm:"type:uuid;not null"`
 		TransactionBatch   *TransactionBatch `gorm:"foreignKey:TransactionBatchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"transaction_batch,omitempty"`
 
-		CountryCode string  `gorm:"type:varchar(5);not null"`
-		Name        string  `gorm:"type:varchar(100);not null"`
-		BillAmount  float64 `gorm:"type:decimal"`
-		Quantity    int     `gorm:"type:int"`
-		Amount      float64 `gorm:"type:decimal"`
+		CurrencyID uuid.UUID `gorm:"type:uuid;not null"`
+		Currency   *Currency `gorm:"foreignKey:CurrencyID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"currency,omitempty"`
+
+		Name       string  `gorm:"type:varchar(100);not null"`
+		BillAmount float64 `gorm:"type:decimal"`
+		Quantity   int     `gorm:"type:int"`
+		Amount     float64 `gorm:"type:decimal"`
 	}
 
 	CashCountResponse struct {
@@ -56,7 +58,8 @@ type (
 		EmployeeUser       *UserResponse             `json:"employee_user,omitempty"`
 		TransactionBatchID uuid.UUID                 `json:"transaction_batch_id"`
 		TransactionBatch   *TransactionBatchResponse `json:"transaction_batch,omitempty"`
-		CountryCode        string                    `json:"country_code"`
+		CurrencyID         uuid.UUID                 `json:"currency_id"`
+		Currency           *CurrencyResponse         `json:"currency,omitempty"`
 		BillAmount         float64                   `json:"bill_amount"`
 		Quantity           int                       `json:"quantity"`
 		Amount             float64                   `json:"amount"`
@@ -67,7 +70,7 @@ type (
 		ID                 *uuid.UUID `json:"id,omitempty"`
 		EmployeeUserID     uuid.UUID  `json:"employee_user_id" validate:"required"`
 		TransactionBatchID uuid.UUID  `json:"transaction_batch_id" validate:"required"`
-		CountryCode        string     `json:"country_code" validate:"required,min=1,max=5"`
+		CurrencyID         uuid.UUID  `json:"currency_id,omitempty"`
 		BillAmount         float64    `json:"bill_amount,omitempty"`
 		Quantity           int        `json:"quantity,omitempty"`
 		Amount             float64    `json:"amount,omitempty"`
@@ -82,7 +85,7 @@ func (m *ModelCore) CashCount() {
 	]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Branch", "Organization",
-			"EmployeeUser", "TransactionBatch",
+			"EmployeeUser", "TransactionBatch", "Currency",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *CashCount) *CashCountResponse {
@@ -105,7 +108,8 @@ func (m *ModelCore) CashCount() {
 				EmployeeUser:       m.UserManager.ToModel(data.EmployeeUser),
 				TransactionBatchID: data.TransactionBatchID,
 				TransactionBatch:   m.TransactionBatchManager.ToModel(data.TransactionBatch),
-				CountryCode:        data.CountryCode,
+				CurrencyID:         data.CurrencyID,
+				Currency:           m.CurrencyManager.ToModel(data.Currency),
 				BillAmount:         data.BillAmount,
 				Quantity:           data.Quantity,
 				Amount:             data.Amount,
