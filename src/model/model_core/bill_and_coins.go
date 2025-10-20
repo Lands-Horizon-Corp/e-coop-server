@@ -301,8 +301,8 @@ func (m *ModelCore) BillAndCoinsSeed(context context.Context, tx *gorm.DB, userI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CHF 1 Coin", Value: 1.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CHF 50 Rappen Coin", Value: 0.50, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CHF 20 Rappen Coin", Value: 0.20, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CHF 10 Rappen Coin", Value: 0.10, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CHF 5 Rappen Coin", Value: 0.05, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "10 Rappen Coin", Value: 0.10, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "5 Rappen Coin", Value: 0.05, CurrencyID: currency.ID},
 			}
 		case "CNY":
 			billAndCoins = []*BillAndCoins{
@@ -1225,20 +1225,20 @@ func (m *ModelCore) BillAndCoinsSeed(context context.Context, tx *gorm.DB, userI
 		case "ETB":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Ethiopian Birr - Current Series)
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Br200 Banknote", Value: 200.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Br100 Banknote", Value: 100.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Br50 Banknote", Value: 50.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Br10 Banknote", Value: 10.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Br5 Banknote", Value: 5.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Br1 Banknote", Value: 1.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Bir200 Banknote", Value: 200.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Bir100 Banknote", Value: 100.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Bir50 Banknote", Value: 50.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Bir10 Banknote", Value: 10.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Bir5 Banknote", Value: 5.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Bir1 Banknote", Value: 1.00, CurrencyID: currency.ID},
 
 				// Coins (Ethiopian Birr - Current denominations)
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Br1 Coin", Value: 1.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "50 Santim Coin", Value: 0.50, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "25 Santim Coin", Value: 0.25, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "10 Santim Coin", Value: 0.10, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "5 Santim Coin", Value: 0.05, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "1 Santim Coin", Value: 0.01, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Bir1 Coin", Value: 1.00, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "50 Bir Santim Coin", Value: 0.50, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "25 Bir Santim Coin", Value: 0.25, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "10 Bir Santim Coin", Value: 0.10, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "5 Bir Santim Coin", Value: 0.05, CurrencyID: currency.ID},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "1 Bir Santim Coin", Value: 0.01, CurrencyID: currency.ID},
 			}
 		case "DZD":
 			billAndCoins = []*BillAndCoins{
