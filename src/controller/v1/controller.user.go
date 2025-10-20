@@ -158,6 +158,37 @@ func (c *Controller) UserController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/profile",
+		Method:       "POST",
+		Note:         "Changes the profile of the current user.",
+		ResponseType: model_core.UserResponse{},
+		RequestType:  model_core.UserSettingsChangeProfileRequest{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		var req model_core.UserSettingsChangeProfileRequest
+		if err := ctx.Bind(&req); err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid change profile payload: " + err.Error()})
+		}
+		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
+		}
+		user, err := c.userToken.CurrentUser(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
+		}
+		user.Birthdate = req.Birthdate
+		user.Description = req.Description
+		user.FirstName = req.FirstName
+		user.MiddleName = req.MiddleName
+		user.LastName = req.LastName
+		user.FullName = req.FullName
+		user.Suffix = req.Suffix
+		if err := c.model_core.UserManager.UpdateFields(context, user.ID, user); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user profile: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model_core.UserManager.ToModel(user))
+	})
 	// Register a new user
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/authentication/register",
