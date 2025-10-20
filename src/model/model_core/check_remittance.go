@@ -38,7 +38,7 @@ type (
 		TransactionBatch   *TransactionBatch `gorm:"foreignKey:TransactionBatchID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"transaction_batch,omitempty"`
 
 		CurrencyID      uuid.UUID  `gorm:"type:uuid;not null"`
-		Currency        *Currency  `gorm:"foreignKey:CurrencyID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"currency,omitempty"`
+		Currency        *Currency  `gorm:"foreignKey:CurrencyIgvf,D;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"currency,omitempty"`
 		ReferenceNumber string     `gorm:"type:varchar(255)"`
 		AccountName     string     `gorm:"type:varchar(255)"`
 		Amount          float64    `gorm:"type:decimal;not null"`
