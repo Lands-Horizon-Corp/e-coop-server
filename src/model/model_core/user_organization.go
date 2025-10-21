@@ -282,7 +282,9 @@ func (m *ModelCore) UserOrganization() {
 			"SettingsPaymentTypeDefaultValue",
 
 			"Branch.BranchSetting.CashOnHandAccount",
+			"Branch.BranchSetting.CashOnHandAccount.Currency",
 			"Branch.BranchSetting.PaidUpSharedCapitalAccount",
+			"Branch.BranchSetting.PaidUpSharedCapitalAccount.Currency",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *UserOrganization) *UserOrganizationResponse {

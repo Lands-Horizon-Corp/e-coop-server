@@ -765,6 +765,23 @@ func (c *Controller) LoanTransactionController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
+		cashOnCashEquivalenceAccountID := userOrg.Branch.BranchSetting.CashOnHandAccountID
+		if account.CurrencyID != userOrg.Branch.BranchSetting.CashOnHandAccount.CurrencyID {
+			accounts, err := c.model_core.AccountManager.Find(context, &model_core.Account{
+				OrganizationID: userOrg.OrganizationID,
+				BranchID:       *userOrg.BranchID,
+				CurrencyID:     userOrg.Branch.BranchSetting.CashOnHandAccount.CurrencyID,
+			})
+			if err != nil {
+				tx.Rollback()
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve accounts for currency conversion: " + err.Error()})
+			}
+			if len(accounts) == 0 {
+				tx.Rollback()
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "No account found for currency conversion"})
+			}
+			cashOnCashEquivalenceAccountID = &accounts[0].ID
+		}
 		if account.CurrencyID != loanTransaction.Account.CurrencyID {
 			loanTransactionEntries, err := c.model_core.LoanTransactionEntryManager.Find(context, &model_core.LoanTransactionEntry{
 				LoanTransactionID: loanTransaction.ID,
@@ -1318,7 +1335,7 @@ func (c *Controller) LoanTransactionController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + newTx.Error.Error()})
 		}
 		newLoanTransaction, err := c.event.LoanBalancing(context, ctx, newTx, event.LoanBalanceEvent{
-			CashOnCashEquivalenceAccountID: account.ID,
+			CashOnCashEquivalenceAccountID: *cashOnCashEquivalenceAccountID,
 			LoanTransactionID:              loanTransaction.ID,
 		})
 		if err != nil {
