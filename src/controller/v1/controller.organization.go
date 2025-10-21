@@ -173,6 +173,8 @@ func (c *Controller) OrganizationController() {
 			UpdatedAt: time.Now().UTC(),
 			BranchID:  branch.ID,
 
+			CurrencyID: *req.CurrencyID,
+
 			// Withdraw Settings
 			WithdrawAllowUserInput: true,
 			WithdrawPrefix:         "WD",

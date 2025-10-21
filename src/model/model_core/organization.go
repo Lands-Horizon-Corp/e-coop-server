@@ -131,6 +131,8 @@ type (
 		SubscriptionPlanIsYearly bool       `json:"subscription_plan_is_yearly,omitempty"`
 
 		OrganizationCategories []*OrganizationCategoryRequest `json:"organization_categories,omitempty"`
+
+		CurrencyID *uuid.UUID `json:"currency_id,omitempty"`
 	}
 
 	OrganizationSubscriptionRequest struct {
