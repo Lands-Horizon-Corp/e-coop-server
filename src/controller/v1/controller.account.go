@@ -180,6 +180,21 @@ func (c *Controller) AccountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}
+		result := []*model_core.Account{}
+		for _, acc := range accounts {
+			cashAndCashEquivalence, _ := c.model_core.AccountManager.Find(context, &model_core.Account{
+				OrganizationID:         userOrg.OrganizationID,
+				BranchID:               *userOrg.BranchID,
+				CashAndCashEquivalence: true,
+				CurrencyID:             acc.CurrencyID,
+			})
+			if len(cashAndCashEquivalence) > 0 {
+				result = append(result, acc)
+			}
+		}
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve cash and cash equivalence accounts: " + err.Error()})
+		}
 		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.Pagination(context, ctx, accounts))
 	})
 
@@ -212,15 +227,15 @@ func (c *Controller) AccountController() {
 			Type:           model_core.AccountTypeLoan,
 		})
 		result := []*model_core.Account{}
-		for _, account := range accounts {
+		for _, acc := range accounts {
 			cashAndCashEquivalence, _ := c.model_core.AccountManager.Find(context, &model_core.Account{
 				OrganizationID:         userOrg.OrganizationID,
 				BranchID:               *userOrg.BranchID,
 				CashAndCashEquivalence: true,
-				CurrencyID:             account.CurrencyID,
+				CurrencyID:             acc.CurrencyID,
 			})
 			if len(cashAndCashEquivalence) > 0 {
-				result = append(result, account)
+				result = append(result, acc)
 			}
 		}
 		if err != nil {
