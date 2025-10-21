@@ -183,6 +183,37 @@ func (c *Controller) AccountController() {
 		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.Pagination(context, ctx, accounts))
 	})
 
+	// GET: /api/v1/account/cash-and-cash-equivalence/search
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/account/currency/:currency_id/loan/search",
+		Method:       "GET",
+		Note:         "Retrieve all loan accounts for the current branch.",
+		ResponseType: model_core.AccountResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
+		}
+		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
+		}
+		currencyId, err := handlers.EngineUUIDParam(ctx, "currency_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID: " + err.Error()})
+		}
+		accounts, err := c.model_core.AccountManager.Find(context, &model_core.Account{
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			CurrencyID:     currencyId,
+			Type:           model_core.AccountTypeLoan,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve cash and cash equivalence accounts: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.Pagination(context, ctx, accounts))
+	})
+
 	// GET: /api/v1/account/ar-ledger/search
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/account/ar-ledger/search",
