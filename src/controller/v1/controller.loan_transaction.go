@@ -770,7 +770,7 @@ func (c *Controller) LoanTransactionController() {
 			accounts, err := c.model_core.AccountManager.Find(context, &model_core.Account{
 				OrganizationID:         userOrg.OrganizationID,
 				BranchID:               *userOrg.BranchID,
-				CurrencyID:             userOrg.Branch.BranchSetting.CashOnHandAccount.CurrencyID,
+				CurrencyID:             account.CurrencyID,
 				CashAndCashEquivalence: true,
 			})
 			if err != nil {
