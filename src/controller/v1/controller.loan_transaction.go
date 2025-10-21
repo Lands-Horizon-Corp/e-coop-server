@@ -765,7 +765,24 @@ func (c *Controller) LoanTransactionController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
-
+		if account.CurrencyID != loanTransaction.Account.CurrencyID {
+			loanTransactionEntries, err := c.model_core.LoanTransactionEntryManager.Find(context, &model_core.LoanTransactionEntry{
+				LoanTransactionID: loanTransaction.ID,
+				OrganizationID:    userOrg.OrganizationID,
+				BranchID:          *userOrg.BranchID,
+			})
+			if err != nil {
+				tx.Rollback()
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve loan transaction entries: " + err.Error()})
+			}
+			// Process currency conversion for each loan transaction entry
+			for _, entry := range loanTransactionEntries {
+				if err := c.model_core.LoanTransactionEntryManager.DeleteByIDWithTx(context, tx, entry.ID); err != nil {
+					tx.Rollback()
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan transaction entry: " + err.Error()})
+				}
+			}
+		}
 		// Update fields
 		loanTransaction.UpdatedByID = userOrg.UserID
 		loanTransaction.TransactionBatchID = &transactionBatch.ID
