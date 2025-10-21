@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -52,9 +53,25 @@ func Execute() {
 	}
 }
 
+// getOperationTimeout returns timeout from environment or default
+func getOperationTimeout(defaultTimeout time.Duration) time.Duration {
+	if timeoutStr := os.Getenv("OPERATION_TIMEOUT_MINUTES"); timeoutStr != "" {
+		if minutes, err := strconv.Atoi(timeoutStr); err == nil {
+			return time.Duration(minutes) * time.Minute
+		}
+	}
+	return defaultTimeout
+}
+
 // executeLifecycle handles the fx application lifecycle
 func executeLifecycle(app *fx.App) {
-	startCtx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
+	timeout := getOperationTimeout(2 * time.Hour)
+	executeLifecycleWithTimeout(app, timeout)
+}
+
+// executeLifecycleWithTimeout handles the fx application lifecycle with custom timeout
+func executeLifecycleWithTimeout(app *fx.App, timeout time.Duration) {
+	startCtx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	if err := app.Start(startCtx); err != nil {
 		log.Fatalf("Failed to start: %v", err)

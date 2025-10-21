@@ -43,6 +43,7 @@ func migrateDatabase() {
 func seedDatabase() {
 	color.Blue("Seeding database...")
 	app := fx.New(
+		fx.StartTimeout(3*time.Hour), // Longer timeout for seeding
 		fx.Provide(src.NewProvider, model_core.NewModelCore, seeder.NewSeeder),
 		fx.Invoke(func(
 			lc fx.Lifecycle,
@@ -76,7 +77,7 @@ func seedDatabase() {
 		}),
 	)
 
-	executeLifecycle(app)
+	executeLifecycleWithTimeout(app, 3*time.Hour)
 	color.Green("Database seeding completed successfully.")
 }
 
@@ -220,6 +221,7 @@ func cleanCache() {
 func refreshDatabase() {
 	color.Blue("Refreshing database...")
 	app := fx.New(
+		fx.StartTimeout(3*time.Hour), // Longer timeout for full refresh
 		fx.Provide(src.NewProvider, model_core.NewModelCore, seeder.NewSeeder),
 		fx.Invoke(func(lc fx.Lifecycle, prov *src.Provider, mod *model_core.ModelCore, seed *seeder.Seeder) {
 			lc.Append(fx.Hook{
@@ -254,6 +256,6 @@ func refreshDatabase() {
 		}),
 	)
 
-	executeLifecycle(app)
+	executeLifecycleWithTimeout(app, 3*time.Hour)
 	color.Green("Database reset completed successfully.")
 }
