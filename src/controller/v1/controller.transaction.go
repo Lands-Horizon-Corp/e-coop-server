@@ -48,6 +48,15 @@ func (c *Controller) TransactionController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
+		account, err := c.model_core.AccountManager.GetByID(context, *req.AccountID)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "account-error",
+				Description: "Failed to retrieve member joint account (/transaction): " + err.Error(),
+				Module:      "Transaction",
+			})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Failed to retrieve member joint account: " + err.Error()})
+		}
 		transactionBatch, err := c.model_core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -57,6 +66,7 @@ func (c *Controller) TransactionController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Failed to retrieve transaction batch: " + err.Error()})
 		}
+
 		transaction := &model_core.Transaction{
 			CreatedAt:   time.Now().UTC(),
 			CreatedByID: userOrg.UserID,
@@ -72,7 +82,7 @@ func (c *Controller) TransactionController() {
 
 			MemberProfileID:      req.MemberProfileID,
 			MemberJointAccountID: req.MemberJointAccountID,
-			CurrencyID:           req.CurrencyID,
+			CurrencyID:           *account.CurrencyID,
 
 			LoanBalance:     0,
 			LoanDue:         0,
