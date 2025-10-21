@@ -31,6 +31,43 @@ func (c *Controller) CurrencyController() {
 		return ctx.JSON(http.StatusOK, c.model_core.CurrencyManager.Filtered(context, ctx, currencies))
 	})
 
+	// GET /api/v1/currency/available
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/currency/available",
+		Method:       "GET",
+		ResponseType: model_core.CurrencyResponse{},
+		Note:         "Returns all available currencies.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Bank update failed (/bank/:bank_id), user org error: " + err.Error(),
+				Module:      "Bank",
+			})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		accounts, err := c.model_core.AccountManager.Find(context, &model_core.Account{
+			OrganizationID: user.OrganizationID,
+			BranchID:       *user.BranchID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve accounts: " + err.Error()})
+		}
+		currencies := []*model_core.Currency{}
+		currencyMap := make(map[uuid.UUID]*model_core.Currency)
+		for _, account := range accounts {
+			if account.Currency != nil {
+				currencyMap[account.Currency.ID] = account.Currency
+			}
+		}
+		for _, currency := range currencyMap {
+			currencies = append(currencies, currency)
+		}
+		return ctx.JSON(http.StatusOK, c.model_core.CurrencyManager.ToModels(currencies))
+	})
+
 	// Get a currency by its ID
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/currency/:currency_id",
