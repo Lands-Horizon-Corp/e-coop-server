@@ -361,4 +361,24 @@ func (c *Controller) CurrencyController() {
 
 		return ctx.JSON(http.StatusOK, result)
 	})
+
+	// GET /api/v1/currency/country-code/:country_code
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/currency/country-code/:country_code",
+		Method:       "GET",
+		ResponseType: model_core.CurrencyResponse{},
+		Note:         "Returns the currency for a given country code.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		countryCode := ctx.Param("country_code")
+		if countryCode == "" {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Country code is required"})
+		}
+		currency, err := c.model_core.CurrencyFindByCode(context, countryCode)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Currency not found for country code: " + err.Error()})
+		}
+
+		return ctx.JSON(http.StatusOK, c.model_core.CurrencyManager.ToModel(currency))
+	})
 }
