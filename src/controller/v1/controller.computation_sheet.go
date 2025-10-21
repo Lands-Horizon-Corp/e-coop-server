@@ -230,6 +230,7 @@ func (c *Controller) ComputationSheetController() {
 			UpdatedByID:       user.UserID,
 			BranchID:          *user.BranchID,
 			OrganizationID:    user.OrganizationID,
+			CurrencyID:        req.CurrencyID,
 		}
 
 		if err := c.model_core.ComputationSheetManager.Create(context, sheet); err != nil {
@@ -303,6 +304,7 @@ func (c *Controller) ComputationSheetController() {
 		sheet.ExistAccount = req.ExistAccount
 		sheet.UpdatedAt = time.Now().UTC()
 		sheet.UpdatedByID = user.UserID
+		sheet.CurrencyID = req.CurrencyID
 
 		if err := c.model_core.ComputationSheetManager.UpdateFields(context, sheet.ID, sheet); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -444,8 +446,6 @@ func (c *Controller) ComputationSheetController() {
 		})
 		return ctx.NoContent(http.StatusNoContent)
 	})
-
-	
 
 	// POST - api/v1/computation-sheeet/:computation-sheet-id/account/:account-id/connect
 	// PUT - api/v1/computation-sheeet/:computation-sheet-id/account/:account-id/disconnect

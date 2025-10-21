@@ -27,6 +27,8 @@ type (
 		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
 		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_computation_sheet"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
+		CurrencyID     uuid.UUID     `gorm:"type:uuid;not null"`
+		Currency       *Currency     `gorm:"foreignKey:CurrencyID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"currency,omitempty"`
 
 		Name              string  `gorm:"type:varchar(254)"`
 		Description       string  `gorm:"type:text"`
@@ -50,6 +52,8 @@ type (
 		Organization      *OrganizationResponse `json:"organization,omitempty"`
 		BranchID          uuid.UUID             `json:"branch_id"`
 		Branch            *BranchResponse       `json:"branch,omitempty"`
+		CurrencyID        uuid.UUID             `json:"currency_id"`
+		Currency          *CurrencyResponse     `json:"currency,omitempty"`
 		Name              string                `json:"name"`
 		Description       string                `json:"description"`
 		DeliquentAccount  bool                  `json:"deliquent_account"`
@@ -60,13 +64,14 @@ type (
 	}
 
 	ComputationSheetRequest struct {
-		Name              string  `json:"name" validate:"required,min=1,max=254"`
-		Description       string  `json:"description,omitempty"`
-		DeliquentAccount  bool    `json:"deliquent_account,omitempty"`
-		FinesAccount      bool    `json:"fines_account,omitempty"`
-		InterestAccountID bool    `json:"interest_account_id,omitempty"`
-		ComakerAccount    float64 `json:"comaker_account,omitempty"`
-		ExistAccount      bool    `json:"exist_account,omitempty"`
+		Name              string    `json:"name" validate:"required,min=1,max=254"`
+		Description       string    `json:"description,omitempty"`
+		CurrencyID        uuid.UUID `json:"currency_id" validate:"required"`
+		DeliquentAccount  bool      `json:"deliquent_account,omitempty"`
+		FinesAccount      bool      `json:"fines_account,omitempty"`
+		InterestAccountID bool      `json:"interest_account_id,omitempty"`
+		ComakerAccount    float64   `json:"comaker_account,omitempty"`
+		ExistAccount      bool      `json:"exist_account,omitempty"`
 	}
 
 	ComputationSheetAmortizationResponse struct {
@@ -86,7 +91,7 @@ func (m *ModelCore) ComputationSheet() {
 		ComputationSheet, ComputationSheetResponse, ComputationSheetRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy", "Branch", "Organization", "Currency",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *ComputationSheet) *ComputationSheetResponse {
@@ -112,6 +117,8 @@ func (m *ModelCore) ComputationSheet() {
 				InterestAccountID: data.InterestAccountID,
 				ComakerAccount:    data.ComakerAccount,
 				ExistAccount:      data.ExistAccount,
+				CurrencyID:        data.CurrencyID,
+				Currency:          m.CurrencyManager.ToModel(data.Currency),
 			}
 		},
 		Created: func(data *ComputationSheet) []string {
