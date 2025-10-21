@@ -104,6 +104,7 @@ type (
 		Description              string     `json:"description,omitempty"`
 		AccountID                *uuid.UUID `json:"account_id" validate:"required"`
 	}
+	
 	TransactionRequestEdit struct {
 		Description     string `json:"description,omitempty"`
 		ReferenceNumber string `json:"reference_number,omitempty"`
