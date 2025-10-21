@@ -119,6 +119,7 @@ func (m *ModelCore) AdjustmentEntry() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
 			"SignatureMedia", "Account", "MemberProfile", "EmployeeUser", "PaymentType", "AdjustmentTags",
+			"Account.Currency",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *AdjustmentEntry) *AdjustmentEntryResponse {
