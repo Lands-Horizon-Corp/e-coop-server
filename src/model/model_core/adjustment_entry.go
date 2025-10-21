@@ -104,6 +104,11 @@ type (
 		TotalDebit  float64 `json:"total_debit"`
 		TotalCredit float64 `json:"total_credit"`
 	}
+
+	AdjustmentEntrySummaryRequest struct {
+		CurrencyID         uuid.UUID  `json:"currency_id" validate:"required"`
+		UserOrganizationID *uuid.UUID `json:"user_organization_id,omitempty"`
+	}
 )
 
 func (m *ModelCore) AdjustmentEntry() {
