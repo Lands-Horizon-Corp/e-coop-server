@@ -1285,14 +1285,13 @@ func (c *Controller) LoanTransactionController() {
 			}
 			// Process currency conversion for each loan transaction entry
 			for _, entry := range loanTransactionEntries {
-				if err := c.model_core.LoanTransactionEntryManager.DeleteByIDWithTx(context, tx, entry.ID); err != nil {
+				if err := c.model_core.LoanTransactionEntryManager.DeleteByID(context, entry.ID); err != nil {
 					tx.Rollback()
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan transaction entry: " + err.Error()})
 				}
 			}
 			fmt.Println("Converted loan transaction entries due to currency change.")
 		} else {
-
 			loanTransactionEntry, err := c.model_core.GetLoanEntryAccount(context, loanTransaction.ID, userOrg.OrganizationID, *userOrg.BranchID)
 			if err != nil {
 				tx.Rollback()
