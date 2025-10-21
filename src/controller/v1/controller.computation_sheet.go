@@ -304,7 +304,6 @@ func (c *Controller) ComputationSheetController() {
 		sheet.ExistAccount = req.ExistAccount
 		sheet.UpdatedAt = time.Now().UTC()
 		sheet.UpdatedByID = user.UserID
-		sheet.CurrencyID = req.CurrencyID
 
 		if err := c.model_core.ComputationSheetManager.UpdateFields(context, sheet.ID, sheet); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
