@@ -217,7 +217,7 @@ func (c *Controller) AccountController() {
 				OrganizationID:         userOrg.OrganizationID,
 				BranchID:               *userOrg.BranchID,
 				CashAndCashEquivalence: true,
-				CurrencyID:             currencyId,
+				CurrencyID:             account.CurrencyID,
 			})
 			if len(cashAndCashEquivalence) > 0 {
 				result = append(result, account)
