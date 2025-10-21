@@ -33,7 +33,7 @@ func (c *Controller) UserController() {
 
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/profile",
-		Method:       "POST",
+		Method:       "PUT",
 		Note:         "Changes the profile of the current user.",
 		ResponseType: model_core.UserResponse{},
 		RequestType:  model_core.UserSettingsChangeProfileRequest{},
@@ -51,7 +51,6 @@ func (c *Controller) UserController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
 		user.Birthdate = req.Birthdate
-		user.Description = req.Description
 		user.FirstName = req.FirstName
 		user.MiddleName = req.MiddleName
 		user.LastName = req.LastName

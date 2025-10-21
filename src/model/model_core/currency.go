@@ -160,7 +160,7 @@ func (m *ModelCore) CurrencySeed(context context.Context, tx *gorm.DB) error {
 		{CreatedAt: now, UpdatedAt: now, Name: "Czech Koruna", Country: "Czech Republic", CurrencyCode: "CZK", Symbol: "Kč", Emoji: "🇨🇿", ISO3166Alpha2: "CZ", ISO3166Alpha3: "CZE", ISO3166Numeric: "203", PhoneCode: "+420", Domain: ".cz", Locale: "cs-CZ"},
 		{CreatedAt: now, UpdatedAt: now, Name: "Hungarian Forint", Country: "Hungary", CurrencyCode: "HUF", Symbol: "Ft", Emoji: "🇭🇺", ISO3166Alpha2: "HU", ISO3166Alpha3: "HUN", ISO3166Numeric: "348", PhoneCode: "+36", Domain: ".hu", Locale: "hu-HU"},
 		{CreatedAt: now, UpdatedAt: now, Name: "Russian Ruble", Country: "Russia", CurrencyCode: "RUB", Symbol: "₽", Emoji: "🇷🇺", ISO3166Alpha2: "RU", ISO3166Alpha3: "RUS", ISO3166Numeric: "643", PhoneCode: "+7", Domain: ".ru", Locale: "ru-RU"},
-		{CreatedAt: now, UpdatedAt: now, Name: "Euro (Croatia)", Country: "Croatia", CurrencyCode: "EUR", Symbol: "€", Emoji: "🇭🇷", ISO3166Alpha2: "HR", ISO3166Alpha3: "HRV", ISO3166Numeric: "191", PhoneCode: "+385", Domain: ".hr", Locale: "hr-HR"},
+		{CreatedAt: now, UpdatedAt: now, Name: "Euro (Croatia)", Country: "Croatia", CurrencyCode: "EUR-HR", Symbol: "€", Emoji: "🇭🇷", ISO3166Alpha2: "HR", ISO3166Alpha3: "HRV", ISO3166Numeric: "191", PhoneCode: "+385", Domain: ".hr", Locale: "hr-HR"},
 
 		// Latin American Currencies
 		{CreatedAt: now, UpdatedAt: now, Name: "Brazilian Real", Country: "Brazil", CurrencyCode: "BRL", Symbol: "R$", Emoji: "🇧🇷", ISO3166Alpha2: "BR", ISO3166Alpha3: "BRA", ISO3166Numeric: "076", PhoneCode: "+55", Domain: ".br", Locale: "pt-BR"},

@@ -31,7 +31,18 @@ func (c *Controller) DisbursementController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		disbursements, err := c.model_core.DisbursementCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		transactionBatch, err := c.model_core.TransactionBatchCurrent(context, user.UserID, user.OrganizationID, *user.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch current transaction batch: " + err.Error()})
+		}
+		if transactionBatch == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No active transaction batch found for the current branch"})
+		}
+		disbursements, err := c.model_core.DisbursementManager.Find(context, &model_core.Disbursement{
+			OrganizationID: user.OrganizationID,
+			BranchID:       *user.BranchID,
+			CurrencyID:     transactionBatch.CurrencyID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No disbursements found for the current branch"})
 		}

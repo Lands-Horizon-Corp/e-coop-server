@@ -72,6 +72,7 @@ func (c *Controller) TransactionController() {
 
 			MemberProfileID:      req.MemberProfileID,
 			MemberJointAccountID: req.MemberJointAccountID,
+			CurrencyID:           req.CurrencyID,
 
 			LoanBalance:     0,
 			LoanDue:         0,

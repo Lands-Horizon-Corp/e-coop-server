@@ -803,4 +803,81 @@ func (c *Controller) BranchController() {
 
 		return ctx.JSON(http.StatusOK, c.model_core.BranchSettingManager.ToModel(branchSetting))
 	})
+
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/branch-settings/currency",
+		Method:       "PUT",
+		Note:         "Updates branch settings for the current user's branch.",
+		RequestType:  model_core.BranchSettingsCurrencyRequest{},
+		ResponseType: model_core.BranchSettingResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+
+		// Validate the branch settings currency request
+		var settingsReq model_core.BranchSettingsCurrencyRequest
+		if err := ctx.Bind(&settingsReq); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update error",
+				Description: fmt.Sprintf("Failed to bind branch settings currency for PUT /branch-settings/currency: %v", err),
+				Module:      "branch",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil || userOrg.BranchID == nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update error",
+				Description: "User not assigned to a branch for PUT /branch-settings/currency",
+				Module:      "branch",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User not assigned to a branch"})
+		}
+		if err := c.provider.Service.Validator.Struct(settingsReq); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update error",
+				Description: fmt.Sprintf("Failed to validate branch settings currency for PUT /branch-settings/currency: %v", err),
+				Module:      "branch",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
+		}
+
+		branchSetting, err := c.model_core.BranchSettingManager.FindOne(context, &model_core.BranchSetting{
+			BranchID: *userOrg.BranchID,
+		})
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update error",
+				Description: fmt.Sprintf("Branch settings not found for PUT /branch-settings/currency: %v", err),
+				Module:      "branch",
+			})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Branch settings not found: " + err.Error()})
+		}
+		branchSetting.CurrencyID = settingsReq.CurrencyID
+		branchSetting.PaidUpSharedCapitalAccountID = settingsReq.PaidUpSharedCapitalAccountID
+		branchSetting.CashOnHandAccountID = settingsReq.CashOnHandAccountID
+		branchSetting.UpdatedAt = time.Now().UTC()
+
+		if err := c.model_core.BranchSettingManager.UpdateFields(context, branchSetting.ID, branchSetting); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update error",
+				Description: fmt.Sprintf("Failed to update branch settings currency for PUT /branch-settings/currency: %v", err),
+				Module:      "branch",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update branch settings currency: " + err.Error()})
+		}
+
+		// Log success
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "update success",
+			Description: fmt.Sprintf("Updated branch settings currency for branch settings ID: %s", branchSetting.ID),
+			Module:      "branch",
+		})
+
+		c.event.Notification(context, ctx, event.NotificationEvent{
+			Title:       "Branch Settings Currency Updated",
+			Description: "Branch settings currency have been successfully updated",
+		})
+
+		return ctx.JSON(http.StatusOK, c.model_core.BranchSettingManager.ToModel(branchSetting))
+	})
 }

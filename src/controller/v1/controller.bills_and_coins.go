@@ -24,18 +24,33 @@ func (c *Controller) BillAndCoinsController() {
 		ResponseType: model_core.BillAndCoinsResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create transaction batch failed: user org error: " + err.Error(),
+				Module:      "TransactionBatch",
+			})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		if user.BranchID == nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
-		}
-		billAndCoins, err := c.model_core.BillAndCoinsCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		transactionBatch, err := c.model_core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No bills and coins found for the current branch"})
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create transaction batch failed: current batch error: " + err.Error(),
+				Module:      "TransactionBatch",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get current transaction batch: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.BillAndCoinsManager.Filtered(context, ctx, billAndCoins))
+		billAndCoins, err := c.model_core.BillAndCoinsManager.FindRaw(context, &model_core.BillAndCoins{
+			CurrencyID:     transactionBatch.CurrencyID,
+			BranchID:       *userOrg.BranchID,
+			OrganizationID: userOrg.OrganizationID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch bills and coins: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, billAndCoins)
 	})
 
 	// GET /bills-and-coins/search: Paginated search of bills and coins for current branch. (NO footstep)

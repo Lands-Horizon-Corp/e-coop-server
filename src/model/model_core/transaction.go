@@ -41,6 +41,9 @@ type (
 		MemberJointAccountID *uuid.UUID          `gorm:"type:uuid"`
 		MemberJointAccount   *MemberJointAccount `gorm:"foreignKey:MemberJointAccountID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_joint_account,omitempty"`
 
+		CurrencyID uuid.UUID `gorm:"type:uuid;not null" json:"currency_id"`
+		Currency   *Currency `gorm:"foreignKey:CurrencyID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"currency,omitempty"`
+
 		LoanBalance float64 `gorm:"type:decimal;default:0"`
 		LoanDue     float64 `gorm:"type:decimal;default:0"`
 		TotalDue    float64 `gorm:"type:decimal;default:0"`
@@ -78,6 +81,8 @@ type (
 		MemberProfile        *MemberProfileResponse      `json:"member_profile,omitempty"`
 		MemberJointAccountID *uuid.UUID                  `json:"member_joint_account_id,omitempty"`
 		MemberJointAccount   *MemberJointAccountResponse `json:"member_joint_account,omitempty"`
+		CurrencyID           uuid.UUID                   `json:"currency_id"`
+		Currency             *CurrencyResponse           `json:"currency,omitempty"`
 		LoanBalance          float64                     `json:"loan_balance"`
 		LoanDue              float64                     `json:"loan_due"`
 		TotalDue             float64                     `json:"total_due"`
@@ -93,6 +98,7 @@ type (
 		SignatureMediaID         *uuid.UUID `json:"signature_media_id,omitempty"`
 		MemberProfileID          *uuid.UUID `json:"member_profile_id" validate:"required"`
 		MemberJointAccountID     *uuid.UUID `json:"member_joint_account_id,omitempty"`
+		CurrencyID               uuid.UUID  `json:"currency_id" validate:"required"`
 		ReferenceNumber          string     `json:"reference_number" validate:"required"`
 		IsReferenceNumberChecked bool       `json:"is_reference_number_checked,omitempty"`
 		Description              string     `json:"description,omitempty"`
@@ -152,6 +158,7 @@ func (m *ModelCore) Transaction() {
 				ReferenceNumber:      data.ReferenceNumber,
 				Amount:               data.Amount,
 				Description:          data.Description,
+				CurrencyID:           data.CurrencyID,
 			}
 		},
 

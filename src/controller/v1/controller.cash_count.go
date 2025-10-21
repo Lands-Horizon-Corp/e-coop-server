@@ -81,11 +81,7 @@ func (c *Controller) CashCountController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view cash counts"})
 		}
 
-		transactionBatch, err := c.model_core.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
-			"organization_id": userOrg.OrganizationID,
-			"branch_id":       *userOrg.BranchID,
-			"is_closed":       false,
-		})
+		transactionBatch, err := c.model_core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find active transaction batch: " + err.Error()})
 		}
@@ -183,7 +179,7 @@ func (c *Controller) CashCountController() {
 			UpdatedByID:        userOrg.UserID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
-			CountryCode:        cashCountReq.CountryCode,
+			CurrencyID:         cashCountReq.CurrencyID,
 			TransactionBatchID: transactionBatch.ID,
 			EmployeeUserID:     userOrg.UserID,
 			BillAmount:         cashCountReq.BillAmount,
@@ -303,7 +299,7 @@ func (c *Controller) CashCountController() {
 			if cashCountReq.ID != nil {
 				data := &model_core.CashCount{
 					ID:                 *cashCountReq.ID,
-					CountryCode:        cashCountReq.CountryCode,
+					CurrencyID:         cashCountReq.CurrencyID,
 					TransactionBatchID: transactionBatch.ID,
 					EmployeeUserID:     userOrg.UserID,
 					BillAmount:         cashCountReq.BillAmount,
@@ -343,7 +339,7 @@ func (c *Controller) CashCountController() {
 					UpdatedByID:        userOrg.UserID,
 					OrganizationID:     userOrg.OrganizationID,
 					BranchID:           *userOrg.BranchID,
-					CountryCode:        cashCountReq.CountryCode,
+					CurrencyID:         cashCountReq.CurrencyID,
 					TransactionBatchID: transactionBatch.ID,
 					EmployeeUserID:     userOrg.UserID,
 					BillAmount:         cashCountReq.BillAmount,
@@ -395,7 +391,7 @@ func (c *Controller) CashCountController() {
 				ID:                 &cashCount.ID,
 				TransactionBatchID: cashCount.TransactionBatchID,
 				EmployeeUserID:     cashCount.EmployeeUserID,
-				CountryCode:        cashCount.CountryCode,
+				CurrencyID:         cashCount.CurrencyID,
 				BillAmount:         cashCount.BillAmount,
 				Quantity:           cashCount.Quantity,
 				Amount:             cashCount.Amount,

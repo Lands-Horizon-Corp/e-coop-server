@@ -117,6 +117,9 @@ type (
 		PaidByName             string     `gorm:"type:varchar(255)"`
 		PaidByPosition         string     `gorm:"type:varchar(255)"`
 
+		CurrencyID uuid.UUID `gorm:"type:uuid;not null" json:"currency_id"`
+		Currency   *Currency `gorm:"foreignKey:CurrencyID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"currency,omitempty"`
+
 		EndedAt *time.Time `gorm:"type:timestamp"`
 	}
 
@@ -210,6 +213,9 @@ type (
 		PaidByName             string         `json:"paid_by_name"`
 		PaidByPosition         string         `json:"paid_by_position"`
 
+		CurrencyID uuid.UUID         `json:"currency_id"`
+		Currency   *CurrencyResponse `json:"currency,omitempty"`
+
 		EndedAt *string `json:"ended_at,omitempty"`
 	}
 
@@ -272,6 +278,7 @@ type (
 		PaidBySignatureMediaID        *uuid.UUID     `json:"paid_by_signature_media_id,omitempty"`
 		PaidByName                    string         `json:"paid_by_name,omitempty"`
 		PaidByPosition                string         `json:"paid_by_position,omitempty"`
+		CurrencyID                    uuid.UUID      `json:"currency_id,omitempty"`
 		EndedAt                       *time.Time     `json:"ended_at,omitempty"`
 	}
 
@@ -342,6 +349,7 @@ func (m *ModelCore) TransactionBatch() {
 			"CreatedBy", "UpdatedBy", "Branch", "Organization",
 			"EmployeeUser",
 			"EmployeeUser.Media",
+			"Currency",
 			"ApprovedBySignatureMedia",
 			"PreparedBySignatureMedia",
 			"CertifiedBySignatureMedia",
@@ -442,6 +450,8 @@ func (m *ModelCore) TransactionBatch() {
 				PaidBySignatureMedia:          m.MediaManager.ToModel(data.PaidBySignatureMedia),
 				PaidByName:                    data.PaidByName,
 				PaidByPosition:                data.PaidByPosition,
+				CurrencyID:                    data.CurrencyID,
+				Currency:                      m.CurrencyManager.ToModel(data.Currency),
 				EndedAt:                       endedAt,
 			}
 		},
@@ -529,6 +539,8 @@ func (m *ModelCore) TransactionBatchMinimal(context context.Context, id uuid.UUI
 		CanView:          data.CanView,
 		IsClosed:         data.IsClosed,
 		RequestView:      data.RequestView,
+		CurrencyID:       data.CurrencyID,
+		Currency:         m.CurrencyManager.ToModel(data.Currency),
 		EndedAt:          endedAt,
 	}, nil
 }

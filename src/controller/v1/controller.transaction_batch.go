@@ -393,14 +393,14 @@ func (c *Controller) TransactionBatchController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start transaction: " + tx.Error.Error()})
 		}
 		transBatch := &model_core.TransactionBatch{
-			CreatedAt:      time.Now().UTC(),
-			CreatedByID:    userOrg.UserID,
-			UpdatedAt:      time.Now().UTC(),
-			UpdatedByID:    userOrg.UserID,
-			OrganizationID: userOrg.OrganizationID,
-			BranchID:       *userOrg.BranchID,
-			EmployeeUserID: &userOrg.UserID,
-
+			CreatedAt:                     time.Now().UTC(),
+			CreatedByID:                   userOrg.UserID,
+			UpdatedAt:                     time.Now().UTC(),
+			UpdatedByID:                   userOrg.UserID,
+			OrganizationID:                userOrg.OrganizationID,
+			BranchID:                      *userOrg.BranchID,
+			EmployeeUserID:                &userOrg.UserID,
+			CurrencyID:                    batchFundingReq.CurrencyID,
 			BeginningBalance:              batchFundingReq.Amount,
 			DepositInBank:                 0,
 			CashCountTotal:                0,
@@ -419,7 +419,7 @@ func (c *Controller) TransactionBatchController() {
 			TotalDepositInBank:            0,
 			TotalActualRemittance:         0,
 			TotalActualSupposedComparison: 0,
-
+BatchName: batchFundingReq.Name,
 			IsClosed:    false,
 			CanView:     false,
 			RequestView: false,
@@ -446,6 +446,7 @@ func (c *Controller) TransactionBatchController() {
 			Description:        batchFundingReq.Description,
 			Amount:             batchFundingReq.Amount,
 			SignatureMediaID:   batchFundingReq.SignatureMediaID,
+			CurrencyID:         batchFundingReq.CurrencyID,
 		}
 		if err := c.model_core.BatchFundingManager.CreateWithTx(context, tx, batchFunding); err != nil {
 			tx.Rollback()

@@ -434,6 +434,7 @@ func (e *Event) TransactionPayment(
 			FinesDue:             0,
 			TotalLoan:            0,
 			InterestDue:          0,
+			CurrencyID:           *account.CurrencyID,
 		}
 		if err := e.model_core.TransactionManager.CreateWithTx(ctx, tx, transaction); err != nil {
 			tx.Rollback()
@@ -550,6 +551,7 @@ func (e *Event) TransactionPayment(
 		Credit:                     credit,
 		Debit:                      debit,
 		Balance:                    balance,
+		CurrencyID:                 account.CurrencyID,
 	}
 	if err := e.model_core.GeneralLedgerManager.CreateWithTx(ctx, tx, newGeneralLedger); err != nil {
 		tx.Rollback()
@@ -720,6 +722,7 @@ func (e *Event) TransactionPayment(
 		TypeOfPaymentType:          paymentType.Type,
 		Credit:                     cohCredit,
 		Debit:                      cohDebit,
+		CurrencyID:                 account.CurrencyID,
 		Balance:                    cohBalance,
 	}
 	if err := e.model_core.GeneralLedgerManager.CreateWithTx(ctx, tx, cashOnHandGeneralLedger); err != nil {

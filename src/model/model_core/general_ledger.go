@@ -74,6 +74,8 @@ type (
 		Bank                       *Bank               `gorm:"foreignKey:BankID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"bank,omitempty"`
 		ProofOfPaymentMediaID      *uuid.UUID          `gorm:"type:uuid"`
 		ProofOfPaymentMedia        *Media              `gorm:"foreignKey:ProofOfPaymentMediaID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"proof_of_payment_media,omitempty"`
+		CurrencyID                 *uuid.UUID          `gorm:"type:uuid"`
+		Currency                   *Currency           `gorm:"foreignKey:CurrencyID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"currency,omitempty"`
 		BankReferenceNumber        string              `gorm:"type:varchar(50)"`
 		Description                string              `gorm:"type:text"`
 		PrintNumber                int                 `gorm:"default:0"`
@@ -132,6 +134,9 @@ type (
 		ProofOfPaymentMediaID *uuid.UUID     `json:"proof_of_payment_media_id,omitempty"`
 		ProofOfPaymentMedia   *MediaResponse `json:"proof_of_payment_media,omitempty"`
 
+		CurrencyID *uuid.UUID        `json:"currency_id,omitempty"`
+		Currency   *CurrencyResponse `json:"currency,omitempty"`
+
 		BankReferenceNumber string `json:"bank_reference_number,omitempty"`
 
 		Description string `json:"description,omitempty"`
@@ -161,6 +166,7 @@ type (
 		EntryDate                  *time.Time          `json:"entry_date,omitempty"`
 		BankID                     *uuid.UUID          `json:"bank_id,omitempty"`
 		ProofOfPaymentMediaID      *uuid.UUID          `json:"proof_of_payment_media_id,omitempty"`
+		CurrencyID                 *uuid.UUID          `json:"currency_id,omitempty"`
 		BankReferenceNumber        string              `json:"bank_reference_number,omitempty"`
 		Description                string              `json:"description,omitempty"`
 	}
@@ -216,6 +222,7 @@ func (m *ModelCore) GeneralLedger() {
 			"SignatureMedia",
 			"Bank",
 			"ProofOfPaymentMedia",
+			"Currency",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *GeneralLedger) *GeneralLedgerResponse {
@@ -266,6 +273,8 @@ func (m *ModelCore) GeneralLedger() {
 				Bank:                  m.BankManager.ToModel(data.Bank),
 				ProofOfPaymentMediaID: data.ProofOfPaymentMediaID,
 				ProofOfPaymentMedia:   m.MediaManager.ToModel(data.ProofOfPaymentMedia),
+				CurrencyID:            data.CurrencyID,
+				Currency:              m.CurrencyManager.ToModel(data.Currency),
 				BankReferenceNumber:   data.BankReferenceNumber,
 				Description:           data.Description,
 				PrintNumber:           data.PrintNumber,
