@@ -766,7 +766,7 @@ func (c *Controller) LoanTransactionController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
 		cashOnCashEquivalenceAccountID := userOrg.Branch.BranchSetting.CashOnHandAccountID
-		if account.CurrencyID != userOrg.Branch.BranchSetting.CashOnHandAccount.CurrencyID {
+		if !uuidPtrEqual(account.CurrencyID, userOrg.Branch.BranchSetting.CashOnHandAccount.CurrencyID) {
 			accounts, err := c.model_core.AccountManager.Find(context, &model_core.Account{
 				OrganizationID: userOrg.OrganizationID,
 				BranchID:       *userOrg.BranchID,
@@ -782,7 +782,7 @@ func (c *Controller) LoanTransactionController() {
 			}
 			cashOnCashEquivalenceAccountID = &accounts[0].ID
 		}
-		if account.CurrencyID != loanTransaction.Account.CurrencyID {
+		if !uuidPtrEqual(account.CurrencyID, loanTransaction.Account.CurrencyID) {
 			loanTransactionEntries, err := c.model_core.LoanTransactionEntryManager.Find(context, &model_core.LoanTransactionEntry{
 				LoanTransactionID: loanTransaction.ID,
 				OrganizationID:    userOrg.OrganizationID,
