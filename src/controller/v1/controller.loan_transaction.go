@@ -768,9 +768,10 @@ func (c *Controller) LoanTransactionController() {
 		cashOnCashEquivalenceAccountID := userOrg.Branch.BranchSetting.CashOnHandAccountID
 		if !uuidPtrEqual(account.CurrencyID, userOrg.Branch.BranchSetting.CashOnHandAccount.CurrencyID) {
 			accounts, err := c.model_core.AccountManager.Find(context, &model_core.Account{
-				OrganizationID: userOrg.OrganizationID,
-				BranchID:       *userOrg.BranchID,
-				CurrencyID:     userOrg.Branch.BranchSetting.CashOnHandAccount.CurrencyID,
+				OrganizationID:         userOrg.OrganizationID,
+				BranchID:               *userOrg.BranchID,
+				CurrencyID:             userOrg.Branch.BranchSetting.CashOnHandAccount.CurrencyID,
+				CashAndCashEquivalence: true,
 			})
 			if err != nil {
 				tx.Rollback()
