@@ -799,6 +799,42 @@ func (c *Controller) LoanTransactionController() {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan transaction entry: " + err.Error()})
 				}
 			}
+		} else {
+
+			loanTransactionEntry, err := c.model_core.GetLoanEntryAccount(context, loanTransaction.ID, userOrg.OrganizationID, *userOrg.BranchID)
+			if err != nil {
+				tx.Rollback()
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "update-error",
+					Description: "Failed to find loan transaction entry (/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change): " + err.Error(),
+					Module:      "LoanTransaction",
+				})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find loan transaction entry: " + err.Error()})
+			}
+			loanTransactionEntry.AccountID = &account.ID
+			loanTransactionEntry.Name = account.Name
+			loanTransactionEntry.Description = account.Description
+			if err := c.model_core.LoanTransactionEntryManager.UpdateFieldsWithTx(context, tx, loanTransactionEntry.ID, loanTransactionEntry); err != nil {
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "update-error",
+					Description: "Loan transaction entry update failed (/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change), db error: " + err.Error(),
+					Module:      "LoanTransaction",
+				})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction entry: " + err.Error()})
+			}
+
+			if err := c.model_core.LoanTransactionManager.UpdateFieldsWithTx(context, tx, loanTransaction.ID, loanTransaction); err != nil {
+				tx.Rollback()
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction: " + err.Error()})
+			}
+			if err := tx.Commit().Error; err != nil {
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "db-commit-error",
+					Description: "Failed to commit transaction (/transaction/payment/:transaction_id): " + err.Error(),
+					Module:      "Transaction",
+				})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit database transaction: " + err.Error()})
+			}
 		}
 		// Update fields
 		loanTransaction.UpdatedByID = userOrg.UserID
@@ -1288,41 +1324,6 @@ func (c *Controller) LoanTransactionController() {
 					}
 				}
 			}
-		}
-
-		loanTransactionEntry, err := c.model_core.GetLoanEntryAccount(context, loanTransaction.ID, userOrg.OrganizationID, *userOrg.BranchID)
-		if err != nil {
-			tx.Rollback()
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "Failed to find loan transaction entry (/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change): " + err.Error(),
-				Module:      "LoanTransaction",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find loan transaction entry: " + err.Error()})
-		}
-		loanTransactionEntry.AccountID = &account.ID
-		loanTransactionEntry.Name = account.Name
-		loanTransactionEntry.Description = account.Description
-		if err := c.model_core.LoanTransactionEntryManager.UpdateFieldsWithTx(context, tx, loanTransactionEntry.ID, loanTransactionEntry); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "Loan transaction entry update failed (/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change), db error: " + err.Error(),
-				Module:      "LoanTransaction",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction entry: " + err.Error()})
-		}
-
-		if err := c.model_core.LoanTransactionManager.UpdateFieldsWithTx(context, tx, loanTransaction.ID, loanTransaction); err != nil {
-			tx.Rollback()
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction: " + err.Error()})
-		}
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "db-commit-error",
-				Description: "Failed to commit transaction (/transaction/payment/:transaction_id): " + err.Error(),
-				Module:      "Transaction",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit database transaction: " + err.Error()})
 		}
 
 		newTx := c.provider.Service.Database.Client().Begin()
