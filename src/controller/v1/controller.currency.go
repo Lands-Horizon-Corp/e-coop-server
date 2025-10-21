@@ -98,6 +98,7 @@ func (c *Controller) CurrencyController() {
 			CurrencyCode: req.CurrencyCode,
 			Symbol:       req.Symbol,
 			Emoji:        req.Emoji,
+			Timezone:     req.Timezone,
 			CreatedAt:    time.Now().UTC(),
 			UpdatedAt:    time.Now().UTC(),
 		}
@@ -164,6 +165,7 @@ func (c *Controller) CurrencyController() {
 		currency.CurrencyCode = req.CurrencyCode
 		currency.Symbol = req.Symbol
 		currency.Emoji = req.Emoji
+		currency.Timezone = req.Timezone
 		currency.UpdatedAt = time.Now().UTC()
 
 		if err := c.model_core.CurrencyManager.UpdateFields(context, currency.ID, currency); err != nil {
@@ -362,23 +364,23 @@ func (c *Controller) CurrencyController() {
 		return ctx.JSON(http.StatusOK, result)
 	})
 
-	// GET /api/v1/currency/country-code/:country_code
+	// GET /api/v1/currency/timezone/:timezone
 	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/currency/country-code/:country_code",
+		Route:        "/api/v1/currency/timezone/:timezone",
 		Method:       "GET",
 		ResponseType: model_core.CurrencyResponse{},
-		Note:         "Returns the currency for a given country code.",
+		Note:         "Returns the currency for a given timezone.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		countryCode := ctx.Param("country_code")
-		if countryCode == "" {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Country code is required"})
+		timezone := ctx.Param("timezone")
+		if timezone == "" {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Timezone is required"})
 		}
-		currency, err := c.model_core.CurrencyFindByCode(context, countryCode)
+		currency, err := c.model_core.CurrencyManager.FindOneRaw(context, &model_core.Currency{Timezone: timezone})
 		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Currency not found for country code: " + err.Error()})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Currency not found for timezone: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, c.model_core.CurrencyManager.ToModel(currency))
+		return ctx.JSON(http.StatusOK, currency)
 	})
 }
