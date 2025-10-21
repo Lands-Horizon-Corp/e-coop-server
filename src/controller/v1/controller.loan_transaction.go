@@ -765,8 +765,14 @@ func (c *Controller) LoanTransactionController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
-		cashOnCashEquivalenceAccountID := userOrg.Branch.BranchSetting.CashOnHandAccountID
-		if !uuidPtrEqual(account.CurrencyID, userOrg.Branch.BranchSetting.CashOnHandAccount.CurrencyID) {
+		cashOnHandAccount, err := c.model_core.GetCashOnCashEquivalence(
+			context, *loanTransactionID, userOrg.OrganizationID, *userOrg.BranchID)
+		if err != nil {
+			tx.Rollback()
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve cash on cash equivalence account: " + err.Error()})
+		}
+		cashOnCashEquivalenceAccountID := cashOnHandAccount.ID
+		if !uuidPtrEqual(account.CurrencyID, &cashOnCashEquivalenceAccountID) {
 			accounts, err := c.model_core.AccountManager.Find(context, &model_core.Account{
 				OrganizationID:         userOrg.OrganizationID,
 				BranchID:               *userOrg.BranchID,
@@ -781,7 +787,7 @@ func (c *Controller) LoanTransactionController() {
 				tx.Rollback()
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "No account found for currency conversion"})
 			}
-			cashOnCashEquivalenceAccountID = &accounts[0].ID
+			cashOnCashEquivalenceAccountID = accounts[0].ID
 			fmt.Println("Converted Cash on Cash Equivalence Account ID:", cashOnCashEquivalenceAccountID)
 		}
 
@@ -1340,7 +1346,7 @@ func (c *Controller) LoanTransactionController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + newTx.Error.Error()})
 		}
 		newLoanTransaction, err := c.event.LoanBalancing(context, ctx, newTx, event.LoanBalanceEvent{
-			CashOnCashEquivalenceAccountID: *cashOnCashEquivalenceAccountID,
+			CashOnCashEquivalenceAccountID: cashOnCashEquivalenceAccountID,
 			LoanTransactionID:              loanTransaction.ID,
 		})
 		if err != nil {
