@@ -202,16 +202,31 @@ func (c *Controller) AccountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID: " + err.Error()})
 		}
+		// If loan exist on settings
+		// if branch settings has paid up shared capital account
+
 		accounts, err := c.model_core.AccountManager.Find(context, &model_core.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			CurrencyID:     currencyId,
 			Type:           model_core.AccountTypeLoan,
 		})
+		result := []*model_core.Account{}
+		for _, account := range accounts {
+			cashAndCashEquivalence, _ := c.model_core.AccountManager.Find(context, &model_core.Account{
+				OrganizationID:         userOrg.OrganizationID,
+				BranchID:               *userOrg.BranchID,
+				CashAndCashEquivalence: true,
+				CurrencyID:             currencyId,
+			})
+			if len(cashAndCashEquivalence) > 0 {
+				result = append(result, account)
+			}
+		}
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve cash and cash equivalence accounts: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.Pagination(context, ctx, result))
 	})
 
 	// GET: /api/v1/account/ar-ledger/search
