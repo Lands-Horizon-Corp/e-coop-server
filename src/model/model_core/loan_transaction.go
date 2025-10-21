@@ -113,8 +113,8 @@ type (
 		PreviousLoan   *LoanTransaction `gorm:"foreignKey:PreviousLoanID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"previous_loan,omitempty"`
 		Terms          int              `gorm:"not null"`
 
-		AmortizationAmount float64 `gorm:"type:decimal"`
-		IsAddOn            bool    `gorm:"type:boolean"`
+		Amortization float64 `gorm:"type:decimal"`
+		IsAddOn      bool    `gorm:"type:boolean"`
 
 		Applied1 float64 `gorm:"type:decimal;not null"`
 		Applied2 float64 `gorm:"type:decimal"`
@@ -221,7 +221,6 @@ type (
 		TotalDebit     float64    `gorm:"total_debit;type:decimal;default:0" json:"total_debit"`
 		TotalCredit    float64    `gorm:"total_credit;type:decimal;default:0" json:"total_credit"`
 		TotalPrincipal float64    `gorm:"total_principal;type:decimal;default:0" json:"total_principal"`
-		Amortization   float64    `gorm:"type:decimal" json:"amortization"`
 	}
 
 	LoanTransactionResponse struct {
@@ -271,8 +270,8 @@ type (
 		PreviousLoan   *LoanTransactionResponse `json:"previous_loan,omitempty"`
 		Terms          int                      `json:"terms"`
 
-		AmortizationAmount float64 `json:"amortization_amount"`
-		IsAddOn            bool    `json:"is_add_on"`
+		Amortization float64 `json:"amortization"`
+		IsAddOn      bool    `json:"is_add_on"`
 
 		Applied1 float64 `json:"applied_1"`
 		Applied2 float64 `json:"applied_2"`
@@ -402,8 +401,8 @@ type (
 		PreviousLoanID *uuid.UUID `json:"previous_loan_id,omitempty"`
 		Terms          int        `json:"terms"`
 
-		AmortizationAmount float64 `json:"amortization_amount,omitempty"`
-		IsAddOn            bool    `json:"is_add_on,omitempty"`
+		Amortization float64 `json:"amortization,omitempty"`
+		IsAddOn      bool    `json:"is_add_on,omitempty"`
 
 		Applied1 float64 `json:"applied_1"`
 		Applied2 float64 `json:"applied_2,omitempty"`
@@ -659,7 +658,7 @@ func (m *ModelCore) LoanTransaction() {
 				PreviousLoanID:                         data.PreviousLoanID,
 				PreviousLoan:                           m.LoanTransactionManager.ToModel(data.PreviousLoan),
 				Terms:                                  data.Terms,
-				AmortizationAmount:                     data.AmortizationAmount,
+				Amortization:                           data.Amortization,
 				IsAddOn:                                data.IsAddOn,
 				Applied1:                               data.Applied1,
 				Applied2:                               data.Applied2,
@@ -846,7 +845,7 @@ func (m *ModelCore) GenerateLoanAmortizationSchedule(ctx context.Context, loanTr
 	// Extract loan details
 	principal := loanTransaction.Applied1
 	terms := loanTransaction.Terms
-	amortizationAmount := loanTransaction.AmortizationAmount
+	amortizationAmount := loanTransaction.Amortization
 
 	// Default values if account is not available
 	interestRate := 10.0 / 100 // Default 10% annual interest rate
