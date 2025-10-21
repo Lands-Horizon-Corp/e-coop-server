@@ -783,55 +783,9 @@ func (c *Controller) LoanTransactionController() {
 			cashOnCashEquivalenceAccountID = &accounts[0].ID
 			fmt.Println("Converted Cash on Cash Equivalence Account ID:", cashOnCashEquivalenceAccountID)
 		}
-		if !uuidPtrEqual(account.CurrencyID, loanTransaction.Account.CurrencyID) {
-			loanTransactionEntries, err := c.model_core.LoanTransactionEntryManager.Find(context, &model_core.LoanTransactionEntry{
-				LoanTransactionID: loanTransaction.ID,
-				OrganizationID:    userOrg.OrganizationID,
-				BranchID:          *userOrg.BranchID,
-			})
-			if err != nil {
-				tx.Rollback()
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve loan transaction entries: " + err.Error()})
-			}
-			// Process currency conversion for each loan transaction entry
-			for _, entry := range loanTransactionEntries {
-				if err := c.model_core.LoanTransactionEntryManager.DeleteByIDWithTx(context, tx, entry.ID); err != nil {
-					tx.Rollback()
-					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan transaction entry: " + err.Error()})
-				}
-			}
-			fmt.Println("Converted loan transaction entries due to currency change.")
-		} else {
 
-			loanTransactionEntry, err := c.model_core.GetLoanEntryAccount(context, loanTransaction.ID, userOrg.OrganizationID, *userOrg.BranchID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "update-error",
-					Description: "Failed to find loan transaction entry (/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change): " + err.Error(),
-					Module:      "LoanTransaction",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find loan transaction entry: " + err.Error()})
-			}
-			loanTransactionEntry.AccountID = &account.ID
-			loanTransactionEntry.Name = account.Name
-			loanTransactionEntry.Description = account.Description
-			if err := c.model_core.LoanTransactionEntryManager.UpdateFieldsWithTx(context, tx, loanTransactionEntry.ID, loanTransactionEntry); err != nil {
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "update-error",
-					Description: "Loan transaction entry update failed (/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change), db error: " + err.Error(),
-					Module:      "LoanTransaction",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction entry: " + err.Error()})
-			}
-
-			if err := c.model_core.LoanTransactionManager.UpdateFieldsWithTx(context, tx, loanTransaction.ID, loanTransaction); err != nil {
-				tx.Rollback()
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction: " + err.Error()})
-			}
-
-		}
 		// Update fields
+		loanTransaction.AccountID = request.AccountID
 		loanTransaction.UpdatedByID = userOrg.UserID
 		loanTransaction.TransactionBatchID = &transactionBatch.ID
 		loanTransaction.OfficialReceiptNumber = request.OfficialReceiptNumber
@@ -852,7 +806,6 @@ func (c *Controller) LoanTransactionController() {
 		loanTransaction.IsAddOn = request.IsAddOn
 		loanTransaction.Applied1 = request.Applied1
 		loanTransaction.Applied2 = request.Applied2
-		loanTransaction.AccountID = request.AccountID
 		loanTransaction.MemberProfileID = request.MemberProfileID
 		loanTransaction.MemberJointAccountID = request.MemberJointAccountID
 		loanTransaction.SignatureMediaID = request.SignatureMediaID
@@ -1319,6 +1272,54 @@ func (c *Controller) LoanTransactionController() {
 					}
 				}
 			}
+		}
+		if !uuidPtrEqual(account.CurrencyID, loanTransaction.Account.CurrencyID) {
+			loanTransactionEntries, err := c.model_core.LoanTransactionEntryManager.Find(context, &model_core.LoanTransactionEntry{
+				LoanTransactionID: loanTransaction.ID,
+				OrganizationID:    userOrg.OrganizationID,
+				BranchID:          *userOrg.BranchID,
+			})
+			if err != nil {
+				tx.Rollback()
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve loan transaction entries: " + err.Error()})
+			}
+			// Process currency conversion for each loan transaction entry
+			for _, entry := range loanTransactionEntries {
+				if err := c.model_core.LoanTransactionEntryManager.DeleteByIDWithTx(context, tx, entry.ID); err != nil {
+					tx.Rollback()
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan transaction entry: " + err.Error()})
+				}
+			}
+			fmt.Println("Converted loan transaction entries due to currency change.")
+		} else {
+
+			loanTransactionEntry, err := c.model_core.GetLoanEntryAccount(context, loanTransaction.ID, userOrg.OrganizationID, *userOrg.BranchID)
+			if err != nil {
+				tx.Rollback()
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "update-error",
+					Description: "Failed to find loan transaction entry (/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change): " + err.Error(),
+					Module:      "LoanTransaction",
+				})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find loan transaction entry: " + err.Error()})
+			}
+			loanTransactionEntry.AccountID = &account.ID
+			loanTransactionEntry.Name = account.Name
+			loanTransactionEntry.Description = account.Description
+			if err := c.model_core.LoanTransactionEntryManager.UpdateFieldsWithTx(context, tx, loanTransactionEntry.ID, loanTransactionEntry); err != nil {
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "update-error",
+					Description: "Loan transaction entry update failed (/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change), db error: " + err.Error(),
+					Module:      "LoanTransaction",
+				})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction entry: " + err.Error()})
+			}
+
+			if err := c.model_core.LoanTransactionManager.UpdateFieldsWithTx(context, tx, loanTransaction.ID, loanTransaction); err != nil {
+				tx.Rollback()
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction: " + err.Error()})
+			}
+
 		}
 
 		if err := tx.Commit().Error; err != nil {
