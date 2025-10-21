@@ -66,7 +66,7 @@ type (
 func (m *ModelCore) MemberContactReference() {
 	m.Migration = append(m.Migration, &MemberContactReference{})
 	m.MemberContactReferenceManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberContactReference, MemberContactReferenceResponse, MemberContactReferenceRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization", "MemberProfile"},
+		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberContactReference) *MemberContactReferenceResponse {
 			if data == nil {

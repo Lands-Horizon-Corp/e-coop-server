@@ -75,7 +75,7 @@ func (m *ModelCore) ChargesRateByRangeOrMinimumAmount() {
 		ChargesRateByRangeOrMinimumAmount, ChargesRateByRangeOrMinimumAmountResponse, ChargesRateByRangeOrMinimumAmountRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization", "ChargesRateScheme",
+			"CreatedBy", "UpdatedBy", "ChargesRateScheme",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *ChargesRateByRangeOrMinimumAmount) *ChargesRateByRangeOrMinimumAmountResponse {

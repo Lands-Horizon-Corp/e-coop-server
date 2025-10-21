@@ -104,6 +104,11 @@ type (
 		TotalDebit  float64 `json:"total_debit"`
 		TotalCredit float64 `json:"total_credit"`
 	}
+
+	AdjustmentEntrySummaryRequest struct {
+		CurrencyID         uuid.UUID  `json:"currency_id" validate:"required"`
+		UserOrganizationID *uuid.UUID `json:"user_organization_id,omitempty"`
+	}
 )
 
 func (m *ModelCore) AdjustmentEntry() {
@@ -112,8 +117,9 @@ func (m *ModelCore) AdjustmentEntry() {
 		AdjustmentEntry, AdjustmentEntryResponse, AdjustmentEntryRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy",
 			"SignatureMedia", "Account", "MemberProfile", "EmployeeUser", "PaymentType", "AdjustmentTags",
+			"Account.Currency",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *AdjustmentEntry) *AdjustmentEntryResponse {

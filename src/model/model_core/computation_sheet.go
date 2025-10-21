@@ -91,7 +91,7 @@ func (m *ModelCore) ComputationSheet() {
 		ComputationSheet, ComputationSheetResponse, ComputationSheetRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization", "Currency",
+			"CreatedBy", "UpdatedBy", "Currency",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *ComputationSheet) *ComputationSheetResponse {

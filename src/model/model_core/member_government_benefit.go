@@ -84,7 +84,7 @@ type (
 func (m *ModelCore) MemberGovernmentBenefit() {
 	m.Migration = append(m.Migration, &MemberGovernmentBenefit{})
 	m.MemberGovernmentBenefitManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberGovernmentBenefit, MemberGovernmentBenefitResponse, MemberGovernmentBenefitRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization", "MemberProfile", "FrontMedia", "BackMedia"},
+		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile", "FrontMedia", "BackMedia"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberGovernmentBenefit) *MemberGovernmentBenefitResponse {
 			if data == nil {

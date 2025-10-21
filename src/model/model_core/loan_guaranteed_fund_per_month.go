@@ -60,7 +60,7 @@ func (m *ModelCore) LoanGuaranteedFundPerMonth() {
 		LoanGuaranteedFundPerMonth, LoanGuaranteedFundPerMonthResponse, LoanGuaranteedFundPerMonthRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *LoanGuaranteedFundPerMonth) *LoanGuaranteedFundPerMonthResponse {

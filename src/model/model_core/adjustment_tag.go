@@ -75,7 +75,7 @@ func (m *ModelCore) AdjustmentTag() {
 		AdjustmentTag, AdjustmentTagResponse, AdjustmentTagRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization", "AdjustmentEntry",
+			"CreatedBy", "UpdatedBy", "AdjustmentEntry",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *AdjustmentTag) *AdjustmentTagResponse {

@@ -72,7 +72,7 @@ func (m *ModelCore) TimeDepositComputationPreMature() {
 		TimeDepositComputationPreMature, TimeDepositComputationPreMatureResponse, TimeDepositComputationPreMatureRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization", "TimeDepositType",
+			"CreatedBy", "UpdatedBy", "TimeDepositType",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *TimeDepositComputationPreMature) *TimeDepositComputationPreMatureResponse {

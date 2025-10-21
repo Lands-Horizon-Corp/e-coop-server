@@ -75,7 +75,7 @@ func (m *ModelCore) MemberDeductionEntry() {
 		MemberDeductionEntry, MemberDeductionEntryResponse, MemberDeductionEntryRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization", "MemberProfile", "Account",
+			"CreatedBy", "UpdatedBy", "MemberProfile", "Account",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *MemberDeductionEntry) *MemberDeductionEntryResponse {

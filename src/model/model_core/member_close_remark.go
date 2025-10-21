@@ -62,7 +62,7 @@ type (
 func (m *ModelCore) MemberCloseRemark() {
 	m.Migration = append(m.Migration, &MemberCloseRemark{})
 	m.MemberCloseRemarkManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberCloseRemark, MemberCloseRemarkResponse, MemberCloseRemarkRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization", "MemberProfile"},
+		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberCloseRemark) *MemberCloseRemarkResponse {
 			if data == nil {

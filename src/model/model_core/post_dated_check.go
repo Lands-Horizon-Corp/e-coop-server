@@ -103,7 +103,7 @@ func (m *ModelCore) PostDatedCheck() {
 		PostDatedCheck, PostDatedCheckResponse, PostDatedCheckRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization", "MemberProfile", "Bank",
+			"CreatedBy", "UpdatedBy", "MemberProfile", "Bank",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *PostDatedCheck) *PostDatedCheckResponse {

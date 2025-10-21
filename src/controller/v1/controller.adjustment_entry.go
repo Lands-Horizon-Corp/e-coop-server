@@ -381,4 +381,165 @@ func (c *Controller) AdjustmentEntryController() {
 			TotalCredit: totalCredit,
 		})
 	})
+
+	// GET api/v1/adjustment-entry/currency/:currency_id/search
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/adjustment-entry/currency/:currency_id/search",
+		Method:       "GET",
+		Note:         "Returns a paginated list of adjustment entries filtered by currency and optionally by user organization.",
+		ResponseType: model_core.AdjustmentEntryResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if user.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		currencyID, err := handlers.EngineUUIDParam(ctx, "currency_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID"})
+		}
+		adjustmentEntries, err := c.model_core.AdjustmentEntryManager.Find(context, &model_core.AdjustmentEntry{
+			OrganizationID: user.OrganizationID,
+			BranchID:       *user.BranchID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch adjustment entries for pagination: " + err.Error()})
+		}
+		result := []*model_core.AdjustmentEntry{}
+		for _, entry := range adjustmentEntries {
+			if uuidPtrEqual(entry.Account.CurrencyID, currencyID) {
+				result = append(result, entry)
+			}
+		}
+		return ctx.JSON(http.StatusNotImplemented, c.model_core.AdjustmentEntryManager.Pagination(context, ctx, result))
+	})
+
+	// GET api/v1/adjustment-entry/currency/:currency_id/total
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/adjustment-entry/currency/:currency_id/total",
+		Method:       "GET",
+		Note:         "Returns the total amount of adjustment entries filtered by currency and optionally by user organization.",
+		ResponseType: model_core.AdjustmentEntryTotalResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if user.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		currencyID, err := handlers.EngineUUIDParam(ctx, "currency_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID"})
+		}
+		adjustmentEntries, err := c.model_core.AdjustmentEntryManager.Find(context, &model_core.AdjustmentEntry{
+			OrganizationID: user.OrganizationID,
+			BranchID:       *user.BranchID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch adjustment entries for pagination: " + err.Error()})
+		}
+		totalDebit := 0.0
+		totalCredit := 0.0
+		for _, entry := range adjustmentEntries {
+			if uuidPtrEqual(entry.Account.CurrencyID, currencyID) {
+				totalDebit += entry.Debit
+				totalCredit += entry.Credit
+			}
+		}
+		return ctx.JSON(http.StatusOK, model_core.AdjustmentEntryTotalResponse{
+			TotalDebit:  totalDebit,
+			TotalCredit: totalCredit,
+		})
+	})
+
+	// GET api/v1/adjustment-entry/currency/:currency_id/employee/:user_organization_id/search
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/adjustment-entry/currency/:currency_id/employee/:user_organization_id/search",
+		Method:       "GET",
+		Note:         "Returns a paginated list of adjustment entries filtered by currency and user organization.",
+		ResponseType: model_core.AdjustmentEntryResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		currencyID, err := handlers.EngineUUIDParam(ctx, "currency_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID"})
+		}
+		userOrganizationID, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user organization ID"})
+		}
+		userOrganization, err := c.model_core.UserOrganizationManager.GetByID(context, *userOrganizationID)
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User organization not found"})
+		}
+		if userOrganization.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User organization is not assigned to a branch"})
+		}
+		adjustmentEntries, err := c.model_core.AdjustmentEntryManager.Find(context, &model_core.AdjustmentEntry{
+			OrganizationID: userOrganization.OrganizationID,
+			BranchID:       *userOrganization.BranchID,
+			EmployeeUserID: &userOrganization.UserID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch adjustment entries for pagination: " + err.Error()})
+		}
+		result := []*model_core.AdjustmentEntry{}
+		for _, entry := range adjustmentEntries {
+			if uuidPtrEqual(entry.Account.CurrencyID, currencyID) {
+				result = append(result, entry)
+			}
+		}
+		return ctx.JSON(http.StatusNotImplemented, c.model_core.AdjustmentEntryManager.Pagination(context, ctx, result))
+	})
+
+	// GET api/v1/adjustment-entry/currency/:currency_id/employee/:user_organization_id/total
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/adjustment-entry/currency/:currency_id/employee/:user_organization_id/total",
+		Method:       "GET",
+		Note:         "Returns the total amount of adjustment entries filtered by currency and user organization.",
+		ResponseType: model_core.AdjustmentEntryTotalResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		currencyID, err := handlers.EngineUUIDParam(ctx, "currency_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID"})
+		}
+		userOrganizationID, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user organization ID"})
+		}
+		userOrganization, err := c.model_core.UserOrganizationManager.GetByID(context, *userOrganizationID)
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User organization not found"})
+		}
+		if userOrganization.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User organization is not assigned to a branch"})
+		}
+		adjustmentEntries, err := c.model_core.AdjustmentEntryManager.Find(context, &model_core.AdjustmentEntry{
+			OrganizationID: userOrganization.OrganizationID,
+			BranchID:       *userOrganization.BranchID,
+			EmployeeUserID: &userOrganization.UserID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch adjustment entries for pagination: " + err.Error()})
+		}
+		totalDebit := 0.0
+		totalCredit := 0.0
+		for _, entry := range adjustmentEntries {
+			if uuidPtrEqual(entry.Account.CurrencyID, currencyID) {
+				totalDebit += entry.Debit
+				totalCredit += entry.Credit
+			}
+		}
+		return ctx.JSON(http.StatusOK, model_core.AdjustmentEntryTotalResponse{
+			TotalDebit:  totalDebit,
+			TotalCredit: totalCredit,
+		})
+	})
+
 }

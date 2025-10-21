@@ -39,6 +39,8 @@ type (
 		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
 		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_cash_check_voucher" json:"branch_id"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
+		CurrencyID     uuid.UUID     `gorm:"type:uuid;not null" json:"currency_id"`
+		Currency       *Currency     `gorm:"foreignKey:CurrencyID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"currency,omitempty"`
 
 		EmployeeUserID     *uuid.UUID        `gorm:"type:uuid" json:"employee_user_id,omitempty"`
 		EmployeeUser       *User             `gorm:"foreignKey:EmployeeUserID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"employee_user,omitempty"`
@@ -132,6 +134,8 @@ type (
 		Organization   *OrganizationResponse `json:"organization,omitempty"`
 		BranchID       uuid.UUID             `json:"branch_id"`
 		Branch         *BranchResponse       `json:"branch,omitempty"`
+		CurrencyID     uuid.UUID             `json:"currency_id"`
+		Currency       *CurrencyResponse     `json:"currency,omitempty"`
 
 		EmployeeUserID     *uuid.UUID                `json:"employee_user_id,omitempty"`
 		EmployeeUser       *UserResponse             `json:"employee_user,omitempty"`
@@ -216,6 +220,7 @@ type (
 	CashCheckVoucherRequest struct {
 		EmployeeUserID     *uuid.UUID `json:"employee_user_id,omitempty"`
 		TransactionBatchID *uuid.UUID `json:"transaction_batch_id,omitempty"`
+		CurrencyID         uuid.UUID  `json:"currency_id" validate:"required"`
 
 		PayTo             string                 `json:"pay_to,omitempty"`
 		Status            CashCheckVoucherStatus `json:"status,omitempty"`
@@ -284,7 +289,7 @@ func (m *ModelCore) CashCheckVoucher() {
 		CashCheckVoucher, CashCheckVoucherResponse, CashCheckVoucherRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy", "Currency",
 			"EmployeeUser", "TransactionBatch",
 			"PrintedBy", "ApprovedBy", "ReleasedBy",
 			"PrintedBy.Media", "ApprovedBy.Media", "ReleasedBy.Media",
@@ -325,6 +330,8 @@ func (m *ModelCore) CashCheckVoucher() {
 				Organization:   m.OrganizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
 				Branch:         m.BranchManager.ToModel(data.Branch),
+				CurrencyID:     data.CurrencyID,
+				Currency:       m.CurrencyManager.ToModel(data.Currency),
 
 				EmployeeUserID:     data.EmployeeUserID,
 				EmployeeUser:       m.UserManager.ToModel(data.EmployeeUser),

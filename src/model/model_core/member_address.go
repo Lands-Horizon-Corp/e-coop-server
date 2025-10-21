@@ -89,7 +89,7 @@ type (
 func (m *ModelCore) MemberAddress() {
 	m.Migration = append(m.Migration, &MemberAddress{})
 	m.MemberAddressManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberAddress, MemberAddressReponse, MemberAddressRequest]{
-		Preloads: []string{"Branch", "Organization", "CreatedBy", "UpdatedBy"},
+		Preloads: []string{"CreatedBy", "UpdatedBy"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberAddress) *MemberAddressReponse {
 			if data == nil {

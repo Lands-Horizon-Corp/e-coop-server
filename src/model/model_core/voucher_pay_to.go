@@ -65,7 +65,7 @@ func (m *ModelCore) VoucherPayTo() {
 		VoucherPayTo, VoucherPayToResponse, VoucherPayToRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization", "Media",
+			"CreatedBy", "UpdatedBy", "Media",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *VoucherPayTo) *VoucherPayToResponse {

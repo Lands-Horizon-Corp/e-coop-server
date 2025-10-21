@@ -77,7 +77,7 @@ func (m *ModelCore) LoanComakerMember() {
 		LoanComakerMember, LoanComakerMemberResponse, LoanComakerMemberRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy",
 			"MemberProfile", "LoanTransaction",
 		},
 		Service: m.provider.Service,

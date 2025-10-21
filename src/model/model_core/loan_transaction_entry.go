@@ -117,7 +117,7 @@ func (m *ModelCore) LoanTransactionEntry() {
 		LoanTransactionEntry, LoanTransactionEntryResponse, LoanTransactionEntryRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization", "LoanTransaction", "Account", "AutomaticLoanDeduction",
+			"CreatedBy", "UpdatedBy", "LoanTransaction", "Account", "AutomaticLoanDeduction",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *LoanTransactionEntry) *LoanTransactionEntryResponse {

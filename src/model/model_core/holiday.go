@@ -64,7 +64,7 @@ func (m *ModelCore) Holiday() {
 		Holiday, HolidayResponse, HolidayRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *Holiday) *HolidayResponse {

@@ -69,7 +69,7 @@ type (
 func (m *ModelCore) Funds() {
 	m.Migration = append(m.Migration, &Funds{})
 	m.FundsManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Funds, FundsResponse, FundsRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization", "Account"},
+		Preloads: []string{"CreatedBy", "UpdatedBy", "Account"},
 		Service:  m.provider.Service,
 		Resource: func(data *Funds) *FundsResponse {
 			if data == nil {

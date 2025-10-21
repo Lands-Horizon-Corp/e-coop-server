@@ -62,7 +62,7 @@ type (
 func (m *ModelCore) MemberCenterHistory() {
 	m.Migration = append(m.Migration, &MemberCenterHistory{})
 	m.MemberCenterHistoryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberCenterHistory, MemberCenterHistoryResponse, MemberCenterHistoryRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization", "MemberCenter", "MemberProfile"},
+		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberCenter", "MemberProfile"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberCenterHistory) *MemberCenterHistoryResponse {
 			if data == nil {

@@ -70,7 +70,7 @@ func (m *ModelCore) Disbursement() {
 		Disbursement, DisbursementResponse, DisbursementRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization", "Currency",
+			"CreatedBy", "UpdatedBy", "Currency",
 			"Organization.Media", "Branch.Media",
 		},
 		Service: m.provider.Service,

@@ -66,7 +66,7 @@ type (
 func (m *ModelCore) MemberDamayanExtensionEntry() {
 	m.Migration = append(m.Migration, &MemberDamayanExtensionEntry{})
 	m.MemberDamayanExtensionEntryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberDamayanExtensionEntry, MemberDamayanExtensionEntryResponse, MemberDamayanExtensionEntryRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization", "MemberProfile"},
+		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberDamayanExtensionEntry) *MemberDamayanExtensionEntryResponse {
 			if data == nil {

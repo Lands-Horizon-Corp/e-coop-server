@@ -78,7 +78,7 @@ type (
 func (m *ModelCore) MemberBankCard() {
 	m.Migration = append(m.Migration, &MemberBankCard{})
 	m.MemberBankCardManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberBankCard, MemberBankCardResponse, MemberBankCardRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization", "Bank", "MemberProfile"},
+		Preloads: []string{"CreatedBy", "UpdatedBy", "Bank", "MemberProfile"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberBankCard) *MemberBankCardResponse {
 			if data == nil {

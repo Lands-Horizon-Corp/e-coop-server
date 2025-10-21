@@ -72,7 +72,7 @@ func (m *ModelCore) BillAndCoins() {
 	m.BillAndCoinsManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		BillAndCoins, BillAndCoinsResponse, BillAndCoinsRequest,
 	]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization", "Media", "Currency"},
+		Preloads: []string{"CreatedBy", "UpdatedBy", "Media", "Currency"},
 		Service:  m.provider.Service,
 		Resource: func(data *BillAndCoins) *BillAndCoinsResponse {
 			if data == nil {

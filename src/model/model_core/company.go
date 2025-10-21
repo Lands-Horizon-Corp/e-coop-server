@@ -64,7 +64,7 @@ type (
 func (m *ModelCore) Company() {
 	m.Migration = append(m.Migration, &Company{})
 	m.CompanyManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Company, CompanyResponse, CompanyRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization", "Media"},
+		Preloads: []string{"CreatedBy", "UpdatedBy", "Media"},
 		Service:  m.provider.Service,
 		Resource: func(data *Company) *CompanyResponse {
 			if data == nil {

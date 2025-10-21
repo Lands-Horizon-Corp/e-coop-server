@@ -79,7 +79,7 @@ type (
 func (m *ModelCore) ComakerCollateral() {
 	m.Migration = append(m.Migration, &ComakerCollateral{})
 	m.ComakerCollateralManager = horizon_services.NewRepository(horizon_services.RepositoryParams[ComakerCollateral, ComakerCollateralResponse, ComakerCollateralRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization", "LoanTransaction", "Collateral"},
+		Preloads: []string{"CreatedBy", "UpdatedBy", "LoanTransaction", "Collateral"},
 		Service:  m.provider.Service,
 		Resource: func(data *ComakerCollateral) *ComakerCollateralResponse {
 			if data == nil {

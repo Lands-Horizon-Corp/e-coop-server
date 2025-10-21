@@ -254,7 +254,7 @@ func (m *ModelCore) ChargesRateScheme() {
 		ChargesRateScheme, ChargesRateSchemeResponse, ChargesRateSchemeRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy",
 			"ChargesRateByTermHeader",
 			"MemberType",
 			"ChargesRateSchemeAccounts",

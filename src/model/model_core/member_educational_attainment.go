@@ -73,7 +73,7 @@ type (
 func (m *ModelCore) MemberEducationalAttainment() {
 	m.Migration = append(m.Migration, &MemberEducationalAttainment{})
 	m.MemberEducationalAttainmentManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberEducationalAttainment, MemberEducationalAttainmentResponse, MemberEducationalAttainmentRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization", "MemberProfile"},
+		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberEducationalAttainment) *MemberEducationalAttainmentResponse {
 			if data == nil {

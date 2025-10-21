@@ -76,7 +76,7 @@ type (
 func (m *ModelCore) MemberAsset() {
 	m.Migration = append(m.Migration, &MemberAsset{})
 	m.MemberAssetManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberAsset, MemberAssetResponse, MemberAssetRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization", "Media", "MemberProfile"},
+		Preloads: []string{"CreatedBy", "UpdatedBy", "Media", "MemberProfile"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberAsset) *MemberAssetResponse {
 			if data == nil {

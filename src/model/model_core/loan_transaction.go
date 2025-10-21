@@ -588,7 +588,7 @@ func (m *ModelCore) LoanTransaction() {
 		LoanTransaction, LoanTransactionResponse, LoanTransactionRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization", "EmployeeUser",
+			"CreatedBy", "UpdatedBy", "EmployeeUser",
 			"TransactionBatch", "LoanPurpose", "LoanStatus",
 			"ComakerDepositMemberAccountingLedger", "PreviousLoan", "ComakerDepositMemberAccountingLedger.Account",
 			"Account",
