@@ -95,13 +95,14 @@ type (
 	}
 
 	TransactionRequest struct {
-		SignatureMediaID         *uuid.UUID `json:"signature_media_id,omitempty"`
-		MemberProfileID          *uuid.UUID `json:"member_profile_id" validate:"required"`
-		MemberJointAccountID     *uuid.UUID `json:"member_joint_account_id,omitempty"`
-		CurrencyID               uuid.UUID  `json:"currency_id" validate:"required"`
+		SignatureMediaID     *uuid.UUID `json:"signature_media_id,omitempty"`
+		MemberProfileID      *uuid.UUID `json:"member_profile_id" validate:"required"`
+		MemberJointAccountID *uuid.UUID `json:"member_joint_account_id,omitempty"`
+
 		ReferenceNumber          string     `json:"reference_number" validate:"required"`
 		IsReferenceNumberChecked bool       `json:"is_reference_number_checked,omitempty"`
 		Description              string     `json:"description,omitempty"`
+		AccountID                *uuid.UUID `json:"account_id" validate:"required"`
 	}
 	TransactionRequestEdit struct {
 		Description     string `json:"description,omitempty"`
