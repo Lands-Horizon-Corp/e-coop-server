@@ -110,6 +110,7 @@ func (m *ModelCore) MemberAccountingLedger() {
 	]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Account", "MemberProfile", "Account",
+			"Account.Currency",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *MemberAccountingLedger) *MemberAccountingLedgerResponse {
