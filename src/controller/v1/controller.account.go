@@ -192,10 +192,7 @@ func (c *Controller) AccountController() {
 				result = append(result, acc)
 			}
 		}
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve cash and cash equivalence accounts: " + err.Error()})
-		}
-		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.Pagination(context, ctx, result))
 	})
 
 	// GET: /api/v1/account/cash-and-cash-equivalence/search
