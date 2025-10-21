@@ -69,7 +69,7 @@ func (m *ModelCore) FinesMaturity() {
 		FinesMaturity, FinesMaturityResponse, FinesMaturityRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization", "Account",
+			"CreatedBy", "UpdatedBy", "Account",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *FinesMaturity) *FinesMaturityResponse {

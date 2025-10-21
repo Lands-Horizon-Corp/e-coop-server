@@ -74,7 +74,7 @@ func (m *ModelCore) GeneralAccountGroupingNetSurplusNegative() {
 		GeneralAccountGroupingNetSurplusNegativeRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization", "Account",
+			"CreatedBy", "UpdatedBy", "Account",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *GeneralAccountGroupingNetSurplusNegative) *GeneralAccountGroupingNetSurplusNegativeResponse {

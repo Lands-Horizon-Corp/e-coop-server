@@ -73,7 +73,7 @@ func (m *ModelCore) CollectorsMemberAccountEntry() {
 		CollectorsMemberAccountEntry, CollectorsMemberAccountEntryResponse, CollectorsMemberAccountEntryRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy",
 			"CollectorUser", "MemberProfile", "Account",
 		},
 		Service: m.provider.Service,

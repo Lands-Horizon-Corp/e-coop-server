@@ -66,7 +66,7 @@ type (
 func (m *ModelCore) MemberVerification() {
 	m.Migration = append(m.Migration, &MemberVerification{})
 	m.MemberVerificationManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberVerification, MemberVerificationResponse, MemberVerificationRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization", "MemberProfile", "VerifiedByUser"},
+		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile", "VerifiedByUser"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberVerification) *MemberVerificationResponse {
 			if data == nil {

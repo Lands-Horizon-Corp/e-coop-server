@@ -289,7 +289,7 @@ func (m *ModelCore) CashCheckVoucher() {
 		CashCheckVoucher, CashCheckVoucherResponse, CashCheckVoucherRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization", "Currency",
+			"CreatedBy", "UpdatedBy", "Currency",
 			"EmployeeUser", "TransactionBatch",
 			"PrintedBy", "ApprovedBy", "ReleasedBy",
 			"PrintedBy.Media", "ApprovedBy.Media", "ReleasedBy.Media",

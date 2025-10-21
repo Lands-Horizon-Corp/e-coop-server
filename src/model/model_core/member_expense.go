@@ -66,7 +66,7 @@ type (
 func (m *ModelCore) MemberExpense() {
 	m.Migration = append(m.Migration, &MemberExpense{})
 	m.MemberExpenseManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberExpense, MemberExpenseResponse, MemberExpenseRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization", "MemberProfile"},
+		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberExpense) *MemberExpenseResponse {
 			if data == nil {

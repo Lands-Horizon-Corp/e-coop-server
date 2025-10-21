@@ -64,7 +64,7 @@ func (m *ModelCore) Collateral() {
 		Collateral, CollateralResponse, CollateralRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *Collateral) *CollateralResponse {

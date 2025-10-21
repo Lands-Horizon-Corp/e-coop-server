@@ -86,7 +86,7 @@ func (m *ModelCore) BatchFunding() {
 		BatchFunding, BatchFundingResponse, BatchFundingRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy",
 			"TransactionBatch", "ProvidedByUser", "SignatureMedia", "Currency",
 			"ProvidedByUser.Media",
 		},

@@ -64,7 +64,7 @@ type (
 func (m *ModelCore) Bank() {
 	m.Migration = append(m.Migration, &Bank{})
 	m.BankManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Bank, BankResponse, BankRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization", "Media"},
+		Preloads: []string{"CreatedBy", "UpdatedBy", "Media"},
 		Service:  m.provider.Service,
 		Resource: func(data *Bank) *BankResponse {
 			if data == nil {

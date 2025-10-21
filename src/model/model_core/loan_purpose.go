@@ -61,7 +61,7 @@ func (m *ModelCore) LoanPurpose() {
 		LoanPurpose, LoanPurposeResponse, LoanPurposeRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *LoanPurpose) *LoanPurposeResponse {

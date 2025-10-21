@@ -135,7 +135,7 @@ func (m *ModelCore) JournalVoucher() {
 		JournalVoucher, JournalVoucherResponse, JournalVoucherRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization", "Currency", "PostedBy",
+			"CreatedBy", "UpdatedBy", "DeletedBy", "Currency", "PostedBy",
 			"PrintedBy", "ApprovedBy", "ReleasedBy",
 			"PrintedBy.Media", "ApprovedBy.Media", "ReleasedBy.Media",
 			"JournalVoucherTags",

@@ -63,7 +63,7 @@ func (m *ModelCore) MemberOccupationHistory() {
 	m.Migration = append(m.Migration, &MemberOccupationHistory{})
 	m.MemberOccupationHistoryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberOccupationHistory, MemberOccupationHistoryResponse, MemberOccupationHistoryRequest]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization", "MemberProfile", "MemberOccupation",
+			"CreatedBy", "UpdatedBy", "MemberProfile", "MemberOccupation",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *MemberOccupationHistory) *MemberOccupationHistoryResponse {

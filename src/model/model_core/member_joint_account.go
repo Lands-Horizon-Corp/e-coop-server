@@ -93,7 +93,7 @@ func (m *ModelCore) MemberJointAccount() {
 	m.Migration = append(m.Migration, &MemberJointAccount{})
 	m.MemberJointAccountManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberJointAccount, MemberJointAccountResponse, MemberJointAccountRequest]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy",
 			"MemberProfile", "PictureMedia", "SignatureMedia",
 		},
 		Service: m.provider.Service,

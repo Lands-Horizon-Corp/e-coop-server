@@ -78,7 +78,7 @@ func (m *ModelCore) MemberClassificationInterestRate() {
 		MemberClassificationInterestRate, MemberClassificationInterestRateResponse, MemberClassificationInterestRateRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy",
 			"InterestRateScheme", "MemberClassification", "InterestRateByTermsHeader",
 		},
 		Service: m.provider.Service,

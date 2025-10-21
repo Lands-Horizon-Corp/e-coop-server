@@ -62,7 +62,7 @@ type (
 func (m *ModelCore) MemberGenderHistory() {
 	m.Migration = append(m.Migration, &MemberGenderHistory{})
 	m.MemberGenderHistoryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberGenderHistory, MemberGenderHistoryResponse, MemberGenderHistoryRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization", "MemberProfile", "MemberGender"},
+		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile", "MemberGender"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberGenderHistory) *MemberGenderHistoryResponse {
 			if data == nil {

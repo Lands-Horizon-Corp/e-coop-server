@@ -60,7 +60,7 @@ func (m *ModelCore) InterestRateScheme() {
 		InterestRateScheme, InterestRateSchemeResponse, InterestRateSchemeRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *InterestRateScheme) *InterestRateSchemeResponse {

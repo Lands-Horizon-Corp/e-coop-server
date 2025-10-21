@@ -71,7 +71,7 @@ func (m *ModelCore) MemberTypeReferenceInterestRateByUltimaMembershipDate() {
 		MemberTypeReferenceInterestRateByUltimaMembershipDateRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization", "MemberTypeReference",
+			"CreatedBy", "UpdatedBy", "MemberTypeReference",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *MemberTypeReferenceInterestRateByUltimaMembershipDate) *MemberTypeReferenceInterestRateByUltimaMembershipDateResponse {

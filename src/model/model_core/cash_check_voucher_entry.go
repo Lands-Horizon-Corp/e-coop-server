@@ -91,7 +91,7 @@ func (m *ModelCore) CashCheckVoucherEntry() {
 		CashCheckVoucherEntry, CashCheckVoucherEntryResponse, CashCheckVoucherEntryRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization",
+			"CreatedBy", "UpdatedBy", "DeletedBy", "Account.Currency",
 			"Account", "EmployeeUser", "TransactionBatch", "CashCheckVoucher",
 			"MemberProfile", "MemberProfile.Media",
 		},

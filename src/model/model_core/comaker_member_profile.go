@@ -79,7 +79,7 @@ type (
 func (m *ModelCore) ComakerMemberProfile() {
 	m.Migration = append(m.Migration, &ComakerMemberProfile{})
 	m.ComakerMemberProfileManager = horizon_services.NewRepository(horizon_services.RepositoryParams[ComakerMemberProfile, ComakerMemberProfileResponse, ComakerMemberProfileRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization", "LoanTransaction", "MemberProfile"},
+		Preloads: []string{"CreatedBy", "UpdatedBy", "LoanTransaction", "MemberProfile"},
 		Service:  m.provider.Service,
 		Resource: func(data *ComakerMemberProfile) *ComakerMemberProfileResponse {
 			if data == nil {

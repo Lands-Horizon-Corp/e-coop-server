@@ -77,7 +77,7 @@ func (m *ModelCore) TransactionTag() {
 		TransactionTag, TransactionTagResponse, TransactionTagRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization", "Transaction",
+			"CreatedBy", "UpdatedBy", "Transaction",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *TransactionTag) *TransactionTagResponse {

@@ -71,7 +71,7 @@ type (
 func (m *ModelCore) UserMedia() {
 	m.Migration = append(m.Migration, &UserMedia{})
 	m.UserMediaManager = horizon_services.NewRepository(horizon_services.RepositoryParams[UserMedia, UserMediaResponse, UserMediaRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization", "Media", "User"},
+		Preloads: []string{"CreatedBy", "UpdatedBy", "Media", "User"},
 		Service:  m.provider.Service,
 		Resource: func(data *UserMedia) *UserMediaResponse {
 			if data == nil {

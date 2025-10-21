@@ -69,7 +69,7 @@ type (
 func (m *ModelCore) MemberRelativeAccount() {
 	m.Migration = append(m.Migration, &MemberRelativeAccount{})
 	m.MemberRelativeAccountManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberRelativeAccount, MemberRelativeAccountResponse, MemberRelativeAccountRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization", "MemberProfile", "RelativeMemberProfile"},
+		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile", "RelativeMemberProfile"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberRelativeAccount) *MemberRelativeAccountResponse {
 			if data == nil {

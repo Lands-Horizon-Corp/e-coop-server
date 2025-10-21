@@ -135,7 +135,7 @@ func (m *ModelCore) ChargesRateSchemeModeOfPayment() {
 		ChargesRateSchemeModeOfPayment, ChargesRateSchemeModeOfPaymentResponse, ModeOfPayment,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Branch", "Organization", "ChargesRateScheme",
+			"CreatedBy", "UpdatedBy", "ChargesRateScheme",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *ChargesRateSchemeModeOfPayment) *ChargesRateSchemeModeOfPaymentResponse {

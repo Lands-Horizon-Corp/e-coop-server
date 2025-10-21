@@ -291,7 +291,7 @@ func (m *ModelCore) MemberProfile() {
 	m.MemberProfileManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberProfile, MemberProfileResponse, MemberProfileRequest]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
-			"Branch", "Organization",
+
 			"Branch.Media", "Organization.Media",
 			"Media", "SignatureMedia",
 			"User",
