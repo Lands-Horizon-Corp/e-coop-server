@@ -161,7 +161,7 @@ func (m *ModelCore) MemberClassificationSeed(context context.Context, tx *gorm.D
 			BranchID:       branchID,
 			Name:           "Platinum",
 			Icon:           "gem",
-			Description:    "Platinum membership offers exclusive benefits to elite members with outstanding history and contributions.",
+			Description:    "Platinum membership offers ZEDE benefits to elite members with outstanding history and contributions.",
 		},
 	}
 	for _, data := range memberClassifications {
