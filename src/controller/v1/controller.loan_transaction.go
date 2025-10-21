@@ -827,14 +827,7 @@ func (c *Controller) LoanTransactionController() {
 				tx.Rollback()
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction: " + err.Error()})
 			}
-			if err := tx.Commit().Error; err != nil {
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "db-commit-error",
-					Description: "Failed to commit transaction (/transaction/payment/:transaction_id): " + err.Error(),
-					Module:      "Transaction",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit database transaction: " + err.Error()})
-			}
+
 		}
 		// Update fields
 		loanTransaction.UpdatedByID = userOrg.UserID
@@ -1324,6 +1317,15 @@ func (c *Controller) LoanTransactionController() {
 					}
 				}
 			}
+		}
+
+		if err := tx.Commit().Error; err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "db-commit-error",
+				Description: "Failed to commit transaction (/transaction/payment/:transaction_id): " + err.Error(),
+				Module:      "Transaction",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit database transaction: " + err.Error()})
 		}
 
 		newTx := c.provider.Service.Database.Client().Begin()
