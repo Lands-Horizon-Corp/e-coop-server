@@ -158,6 +158,7 @@ func (c *Controller) JournalVoucherController() {
 			TotalCredit:       totalCredit,
 			CashVoucherNumber: request.CashVoucherNumber,
 			Name:              request.Name,
+			CurrencyID:        request.CurrencyID,
 		}
 
 		if err := c.model_core.JournalVoucherManager.CreateWithTx(context, tx, journalVoucher); err != nil {

@@ -28,6 +28,8 @@ type (
 		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
 		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_journal_voucher"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
+		CurrencyID     uuid.UUID     `gorm:"type:uuid;not null"`
+		Currency       *Currency     `gorm:"foreignKey:CurrencyID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"currency,omitempty"`
 
 		Name              string     `gorm:"type:varchar(255)"`
 		CashVoucherNumber string     `gorm:"type:varchar(255)"`
@@ -73,6 +75,8 @@ type (
 		Organization      *OrganizationResponse `json:"organization,omitempty"`
 		BranchID          uuid.UUID             `json:"branch_id"`
 		Branch            *BranchResponse       `json:"branch,omitempty"`
+		CurrencyID        uuid.UUID             `json:"currency_id"`
+		Currency          *CurrencyResponse     `json:"currency,omitempty"`
 		Name              string                `json:"name"`
 		VoucherNumber     string                `json:"voucher_number"`
 		CashVoucherNumber string                `json:"cash_voucher_number"`
@@ -113,6 +117,7 @@ type (
 		Description       string    `json:"description,omitempty"`
 		Reference         string    `json:"reference,omitempty"`
 		Status            string    `json:"status,omitempty"`
+		CurrencyID        uuid.UUID `json:"currency_id" validate:"required"`
 
 		// Nested relationships for creation/update
 		JournalVoucherEntries        []*JournalVoucherEntryRequest `json:"journal_voucher_entries,omitempty"`
@@ -130,7 +135,7 @@ func (m *ModelCore) JournalVoucher() {
 		JournalVoucher, JournalVoucherResponse, JournalVoucherRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization", "PostedBy",
+			"CreatedBy", "UpdatedBy", "DeletedBy", "Branch", "Organization", "Currency", "PostedBy",
 			"PrintedBy", "ApprovedBy", "ReleasedBy",
 			"PrintedBy.Media", "ApprovedBy.Media", "ReleasedBy.Media",
 			"JournalVoucherTags",
@@ -183,6 +188,8 @@ func (m *ModelCore) JournalVoucher() {
 				Organization:          m.OrganizationManager.ToModel(data.Organization),
 				BranchID:              data.BranchID,
 				Branch:                m.BranchManager.ToModel(data.Branch),
+				CurrencyID:            data.CurrencyID,
+				Currency:              m.CurrencyManager.ToModel(data.Currency),
 				Name:                  data.Name,
 				CashVoucherNumber:     data.CashVoucherNumber,
 				Date:                  data.Date.Format("2006-01-02"),

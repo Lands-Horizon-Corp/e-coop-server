@@ -305,6 +305,7 @@ func (c *Controller) CashCheckVoucherController() {
 			BranchID:                      *user.BranchID,
 			OrganizationID:                user.OrganizationID,
 			Name:                          request.Name,
+			CurrencyID:                    request.CurrencyID,
 		}
 
 		// Save cash check voucher first
