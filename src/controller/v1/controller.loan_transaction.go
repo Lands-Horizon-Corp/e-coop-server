@@ -474,7 +474,6 @@ func (c *Controller) LoanTransactionController() {
 			LoanType:                               request.LoanType,
 			PreviousLoanID:                         request.PreviousLoanID,
 			Terms:                                  request.Terms,
-			AmortizationAmount:                     request.AmortizationAmount,
 			IsAddOn:                                request.IsAddOn,
 			Applied1:                               request.Applied1,
 			Applied2:                               request.Applied2,
@@ -785,7 +784,6 @@ func (c *Controller) LoanTransactionController() {
 		loanTransaction.LoanType = request.LoanType
 		loanTransaction.PreviousLoanID = request.PreviousLoanID
 		loanTransaction.Terms = request.Terms
-		loanTransaction.AmortizationAmount = request.AmortizationAmount
 		loanTransaction.IsAddOn = request.IsAddOn
 		loanTransaction.Applied1 = request.Applied1
 		loanTransaction.Applied2 = request.Applied2
