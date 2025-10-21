@@ -162,6 +162,7 @@ func (m *ModelCore) Transaction() {
 				Amount:               data.Amount,
 				Description:          data.Description,
 				CurrencyID:           data.CurrencyID,
+				Currency:             m.CurrencyManager.ToModel(data.Currency),
 			}
 		},
 
