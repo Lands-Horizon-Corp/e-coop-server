@@ -172,6 +172,32 @@ func (c *Controller) DisbursementTransactionController() {
 	})
 
 	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/disbursement-transaction/current",
+		Method:       "GET",
+		Note:         "Returns all disbursement transactions for the currently authenticated user.",
+		ResponseType: model_core.DisbursementResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if user.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		disbursementTransactions, err := c.model_core.DisbursementTransactionManager.Find(context, &model_core.DisbursementTransaction{
+			CreatedByID:    user.UserID,
+			BranchID:       *user.BranchID,
+			OrganizationID: user.OrganizationID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve disbursement transactions: " + err.Error()})
+		}
+		// Return paginated response
+		return ctx.JSON(http.StatusOK, c.model_core.DisbursementTransactionManager.Pagination(context, ctx, disbursementTransactions))
+	})
+
+	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/disbursement-transaction/branch/search",
 		Method:       "GET",
 		Note:         "Returns all disbursement transactions for the current user's branch.",
