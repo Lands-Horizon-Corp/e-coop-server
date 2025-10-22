@@ -296,6 +296,7 @@ func (m *ModelCore) CashCheckVoucher() {
 
 			"CashCheckVoucherTags", "CashCheckVoucherEntries", "CheckEntryAccount",
 			"CashCheckVoucherEntries.MemberProfile", "CashCheckVoucherEntries.Account", "CashCheckVoucherEntries.MemberProfile.Media",
+			"CashCheckVoucherEntries.Account.Currency",
 			"ApprovedBySignatureMedia", "PreparedBySignatureMedia", "CertifiedBySignatureMedia",
 			"VerifiedBySignatureMedia", "CheckBySignatureMedia", "AcknowledgeBySignatureMedia",
 			"NotedBySignatureMedia", "PostedBySignatureMedia", "PaidBySignatureMedia",
