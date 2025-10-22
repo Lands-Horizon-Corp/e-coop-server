@@ -414,7 +414,7 @@ func (c *Controller) AdjustmentEntryController() {
 				result = append(result, entry)
 			}
 		}
-		return ctx.JSON(http.StatusNotImplemented, c.model_core.AdjustmentEntryManager.Pagination(context, ctx, result))
+		return ctx.JSON(http.StatusOK, c.model_core.AdjustmentEntryManager.Pagination(context, ctx, result))
 	})
 
 	// GET api/v1/adjustment-entry/currency/:currency_id/total
@@ -494,7 +494,7 @@ func (c *Controller) AdjustmentEntryController() {
 				result = append(result, entry)
 			}
 		}
-		return ctx.JSON(http.StatusNotImplemented, c.model_core.AdjustmentEntryManager.Pagination(context, ctx, result))
+		return ctx.JSON(http.StatusOK, c.model_core.AdjustmentEntryManager.Pagination(context, ctx, result))
 	})
 
 	// GET api/v1/adjustment-entry/currency/:currency_id/employee/:user_organization_id/total
