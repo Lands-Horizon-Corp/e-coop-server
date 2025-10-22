@@ -140,6 +140,7 @@ func (m *ModelCore) JournalVoucher() {
 			"PrintedBy.Media", "ApprovedBy.Media", "ReleasedBy.Media",
 			"JournalVoucherTags",
 			"JournalVoucherEntries", "JournalVoucherEntries.Account",
+			"JournalVoucherEntries.Account.Currency",
 			"JournalVoucherEntries.MemberProfile", "JournalVoucherEntries.EmployeeUser",
 		},
 		Service: m.provider.Service,

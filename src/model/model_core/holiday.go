@@ -28,6 +28,8 @@ type (
 		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
 		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_holidays"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
+		CurrencyID     uuid.UUID     `gorm:"type:uuid;not null"`
+		Currency       *Currency     `gorm:"foreignKey:CurrencyID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"currency,omitempty"`
 
 		EntryDate   time.Time `gorm:"not null"`
 		Name        string    `gorm:"type:varchar(255)"`
@@ -46,6 +48,8 @@ type (
 		Organization   *OrganizationResponse `json:"organization,omitempty"`
 		BranchID       uuid.UUID             `json:"branch_id"`
 		Branch         *BranchResponse       `json:"branch,omitempty"`
+		CurrencyID     uuid.UUID             `json:"currency_id"`
+		Currency       *CurrencyResponse     `json:"currency,omitempty"`
 		EntryDate      string                `json:"entry_date"`
 		Name           string                `json:"name"`
 		Description    string                `json:"description"`
@@ -55,6 +59,7 @@ type (
 		EntryDate   time.Time `json:"entry_date" validate:"required"`
 		Name        string    `json:"name" validate:"required,min=1,max=255"`
 		Description string    `json:"description,omitempty"`
+		CurrencyID  uuid.UUID `json:"currency_id" validate:"required"`
 	}
 )
 
@@ -64,7 +69,7 @@ func (m *ModelCore) Holiday() {
 		Holiday, HolidayResponse, HolidayRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy",
+			"CreatedBy", "UpdatedBy", "Currency",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *Holiday) *HolidayResponse {
@@ -83,6 +88,8 @@ func (m *ModelCore) Holiday() {
 				Organization:   m.OrganizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
 				Branch:         m.BranchManager.ToModel(data.Branch),
+				CurrencyID:     data.CurrencyID,
+				Currency:       m.CurrencyManager.ToModel(data.Currency),
 				EntryDate:      data.EntryDate.Format(time.RFC3339),
 				Name:           data.Name,
 				Description:    data.Description,

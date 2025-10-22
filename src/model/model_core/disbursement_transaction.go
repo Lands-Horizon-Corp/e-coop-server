@@ -84,6 +84,7 @@ func (m *ModelCore) DisbursementTransaction() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
 			"Disbursement", "TransactionBatch", "EmployeeUser",
+			"Disbursement.Currency",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *DisbursementTransaction) *DisbursementTransactionResponse {

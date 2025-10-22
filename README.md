@@ -139,29 +139,12 @@ golangci-lint run
 ### Deploy to Fly.io
 
 ```bash
-fly deploy; fly machine restart 148e4d55f36278; fly machine restart 90802d3ea0ed38; fly logs
+  fly deploy; fly machine restart 148e4d55f36278; fly machine restart 90802d3ea0ed38; fly logs
 ```
 
 ## Architecture
 
 The server follows a clean architecture pattern with:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 - **Controllers** - HTTP request handlingsd
 - **Services** - Business logic layer
