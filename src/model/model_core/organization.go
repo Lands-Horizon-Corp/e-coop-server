@@ -229,8 +229,13 @@ func (m *ModelCore) Organization() {
 	})
 }
 
-func (m *ModelCore) GetPublicOrganization(context context.Context) ([]*Organization, error) {
-	return m.OrganizationManager.Find(context, &Organization{
-		IsPrivate: false,
-	})
+func (m *ModelCore) GetPublicOrganization(ctx context.Context) ([]*Organization, error) {
+	filters := []horizon_services.Filter{
+		{Field: "is_private", Op: horizon_services.OpEq, Value: false},
+	}
+	organizations, err := m.OrganizationManager.FindWithFilters(ctx, filters)
+	if err != nil {
+		return nil, err
+	}
+	return organizations, nil
 }
