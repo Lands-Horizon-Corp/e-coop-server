@@ -3,6 +3,7 @@ package controller_v1
 import (
 	"fmt"
 	"net/http"
+	"sort"
 	"strconv"
 	"time"
 
@@ -393,6 +394,9 @@ func (c *Controller) HolidayController() {
 				Count: count,
 			})
 		}
+		sort.SliceStable(response, func(i, j int) bool {
+			return response[i].Year < response[j].Year
+		})
 		return ctx.JSON(http.StatusOK, response)
 	})
 
