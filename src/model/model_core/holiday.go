@@ -615,6 +615,120 @@ func (m *ModelCore) HolidaySeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 11, 11, 0, 0, 0, 0, time.UTC), Name: "Republic Day", Description: "Establishment of the Republic"},
 			}
 
+		case "NOK": // Norway
+			holidays = []*Holiday{
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 28, 0, 0, 0, 0, time.UTC), Name: "Maundy Thursday", Description: "Christian holiday"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 29, 0, 0, 0, 0, time.UTC), Name: "Good Friday", Description: "Christian holiday"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 31, 0, 0, 0, 0, time.UTC), Name: "Easter Sunday", Description: "Christian holiday"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 1, 0, 0, 0, 0, time.UTC), Name: "Easter Monday", Description: "Day after Easter Sunday"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 5, 1, 0, 0, 0, 0, time.UTC), Name: "Labour Day", Description: "International Workers' Day"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 5, 9, 0, 0, 0, 0, time.UTC), Name: "Ascension Day", Description: "Christian holiday"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 5, 17, 0, 0, 0, 0, time.UTC), Name: "Constitution Day", Description: "Norwegian National Day"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 5, 19, 0, 0, 0, 0, time.UTC), Name: "Whit Sunday", Description: "Christian holiday"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 5, 20, 0, 0, 0, 0, time.UTC), Name: "Whit Monday", Description: "Christian holiday"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 25, 0, 0, 0, 0, time.UTC), Name: "Christmas Day", Description: "Celebration of the birth of Jesus Christ"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 26, 0, 0, 0, 0, time.UTC), Name: "Boxing Day", Description: "Second day of Christmas"},
+			}
+
+		case "DKK": // Denmark
+			holidays = []*Holiday{
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 28, 0, 0, 0, 0, time.UTC), Name: "Maundy Thursday", Description: "Christian holiday"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 29, 0, 0, 0, 0, time.UTC), Name: "Good Friday", Description: "Christian holiday"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 31, 0, 0, 0, 0, time.UTC), Name: "Easter Sunday", Description: "Christian holiday"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 1, 0, 0, 0, 0, time.UTC), Name: "Easter Monday", Description: "Day after Easter Sunday"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 25, 0, 0, 0, 0, time.UTC), Name: "Great Prayer Day", Description: "Store Bededag - Danish holiday"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 5, 9, 0, 0, 0, 0, time.UTC), Name: "Ascension Day", Description: "Christian holiday"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 5, 19, 0, 0, 0, 0, time.UTC), Name: "Whit Sunday", Description: "Christian holiday"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 5, 20, 0, 0, 0, 0, time.UTC), Name: "Whit Monday", Description: "Christian holiday"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 6, 5, 0, 0, 0, 0, time.UTC), Name: "Constitution Day", Description: "Danish Constitution Day"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 24, 0, 0, 0, 0, time.UTC), Name: "Christmas Eve", Description: "Day before Christmas"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 25, 0, 0, 0, 0, time.UTC), Name: "Christmas Day", Description: "Celebration of the birth of Jesus Christ"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 26, 0, 0, 0, 0, time.UTC), Name: "Boxing Day", Description: "Second day of Christmas"},
+			}
+
+		case "PLN": // Poland
+			holidays = []*Holiday{
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 6, 0, 0, 0, 0, time.UTC), Name: "Epiphany", Description: "Christian holiday"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 31, 0, 0, 0, 0, time.UTC), Name: "Easter Sunday", Description: "Christian holiday"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 1, 0, 0, 0, 0, time.UTC), Name: "Easter Monday", Description: "Day after Easter Sunday"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 5, 1, 0, 0, 0, 0, time.UTC), Name: "Labour Day", Description: "International Workers' Day"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 5, 3, 0, 0, 0, 0, time.UTC), Name: "Constitution Day", Description: "Constitution of 3 May 1791"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 5, 19, 0, 0, 0, 0, time.UTC), Name: "Pentecost", Description: "Christian holiday"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 5, 29, 0, 0, 0, 0, time.UTC), Name: "Corpus Christi", Description: "Christian holiday"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 8, 15, 0, 0, 0, 0, time.UTC), Name: "Assumption of Mary", Description: "Christian holiday"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 11, 1, 0, 0, 0, 0, time.UTC), Name: "All Saints' Day", Description: "Christian holiday"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 11, 11, 0, 0, 0, 0, time.UTC), Name: "Independence Day", Description: "Restoration of independence in 1918"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 25, 0, 0, 0, 0, time.UTC), Name: "Christmas Day", Description: "Celebration of the birth of Jesus Christ"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 26, 0, 0, 0, 0, time.UTC), Name: "Boxing Day", Description: "Second day of Christmas"},
+			}
+
+		case "CZK": // Czech Republic
+			holidays = []*Holiday{
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 31, 0, 0, 0, 0, time.UTC), Name: "Easter Sunday", Description: "Christian holiday"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 1, 0, 0, 0, 0, time.UTC), Name: "Easter Monday", Description: "Day after Easter Sunday"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 5, 1, 0, 0, 0, 0, time.UTC), Name: "Labour Day", Description: "International Workers' Day"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 5, 8, 0, 0, 0, 0, time.UTC), Name: "Liberation Day", Description: "End of World War II in Europe"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 7, 5, 0, 0, 0, 0, time.UTC), Name: "Saints Cyril and Methodius Day", Description: "Apostles of the Slavs"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 7, 6, 0, 0, 0, 0, time.UTC), Name: "Jan Hus Day", Description: "Death of Jan Hus"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 9, 28, 0, 0, 0, 0, time.UTC), Name: "Czech Statehood Day", Description: "Day of Czech Statehood"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 10, 28, 0, 0, 0, 0, time.UTC), Name: "Independence Day", Description: "Creation of Czechoslovakia"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 11, 17, 0, 0, 0, 0, time.UTC), Name: "Freedom and Democracy Day", Description: "Velvet Revolution"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 24, 0, 0, 0, 0, time.UTC), Name: "Christmas Eve", Description: "Day before Christmas"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 25, 0, 0, 0, 0, time.UTC), Name: "Christmas Day", Description: "Celebration of the birth of Jesus Christ"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 26, 0, 0, 0, 0, time.UTC), Name: "St. Stephen's Day", Description: "Second day of Christmas"},
+			}
+
+		case "HUF": // Hungary
+			holidays = []*Holiday{
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 15, 0, 0, 0, 0, time.UTC), Name: "National Day", Description: "1848 Revolution and War of Independence"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 31, 0, 0, 0, 0, time.UTC), Name: "Easter Sunday", Description: "Christian holiday"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 1, 0, 0, 0, 0, time.UTC), Name: "Easter Monday", Description: "Day after Easter Sunday"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 5, 1, 0, 0, 0, 0, time.UTC), Name: "Labour Day", Description: "International Workers' Day"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 5, 19, 0, 0, 0, 0, time.UTC), Name: "Whit Sunday", Description: "Christian holiday"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 5, 20, 0, 0, 0, 0, time.UTC), Name: "Whit Monday", Description: "Christian holiday"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 8, 20, 0, 0, 0, 0, time.UTC), Name: "St. Stephen's Day", Description: "Foundation of the Hungarian state"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 10, 23, 0, 0, 0, 0, time.UTC), Name: "National Day", Description: "1956 Revolution"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 11, 1, 0, 0, 0, 0, time.UTC), Name: "All Saints' Day", Description: "Christian holiday"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 25, 0, 0, 0, 0, time.UTC), Name: "Christmas Day", Description: "Celebration of the birth of Jesus Christ"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 26, 0, 0, 0, 0, time.UTC), Name: "Boxing Day", Description: "Second day of Christmas"},
+			}
+
+		case "RUB": // Russia
+			holidays = []*Holiday{
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 2, 0, 0, 0, 0, time.UTC), Name: "New Year Holidays", Description: "Second day of New Year holidays"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 7, 0, 0, 0, 0, time.UTC), Name: "Orthodox Christmas", Description: "Russian Orthodox Christmas"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 23, 0, 0, 0, 0, time.UTC), Name: "Defender of the Fatherland Day", Description: "Armed Forces Day"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 8, 0, 0, 0, 0, time.UTC), Name: "International Women's Day", Description: "Women's Day"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 5, 1, 0, 0, 0, 0, time.UTC), Name: "Labour Day", Description: "Spring and Labour Holiday"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 5, 9, 0, 0, 0, 0, time.UTC), Name: "Victory Day", Description: "Victory in World War II"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 6, 12, 0, 0, 0, 0, time.UTC), Name: "Russia Day", Description: "National Day of Russia"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 11, 4, 0, 0, 0, 0, time.UTC), Name: "Unity Day", Description: "Day of People's Unity"},
+			}
+
+		case "EUR-HR": // Croatia (Euro)
+			holidays = []*Holiday{
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 6, 0, 0, 0, 0, time.UTC), Name: "Epiphany", Description: "Christian holiday"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 31, 0, 0, 0, 0, time.UTC), Name: "Easter Sunday", Description: "Christian holiday"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 1, 0, 0, 0, 0, time.UTC), Name: "Easter Monday", Description: "Day after Easter Sunday"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 5, 1, 0, 0, 0, 0, time.UTC), Name: "Labour Day", Description: "International Workers' Day"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 5, 30, 0, 0, 0, 0, time.UTC), Name: "Statehood Day", Description: "Croatian Parliament Day"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 6, 19, 0, 0, 0, 0, time.UTC), Name: "Corpus Christi", Description: "Christian holiday"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 6, 22, 0, 0, 0, 0, time.UTC), Name: "Anti-Fascist Struggle Day", Description: "Resistance movement in WWII"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 8, 5, 0, 0, 0, 0, time.UTC), Name: "Victory and Homeland Thanksgiving Day", Description: "Operation Storm"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 8, 15, 0, 0, 0, 0, time.UTC), Name: "Assumption of Mary", Description: "Christian holiday"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 10, 8, 0, 0, 0, 0, time.UTC), Name: "Independence Day", Description: "Croatian independence from Yugoslavia"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 11, 1, 0, 0, 0, 0, time.UTC), Name: "All Saints' Day", Description: "Christian holiday"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 25, 0, 0, 0, 0, time.UTC), Name: "Christmas Day", Description: "Celebration of the birth of Jesus Christ"},
+				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 26, 0, 0, 0, 0, time.UTC), Name: "St. Stephen's Day", Description: "Second day of Christmas"},
+			}
+
 		default:
 			// For currencies without specific holidays, add common international holidays
 			holidays = []*Holiday{
