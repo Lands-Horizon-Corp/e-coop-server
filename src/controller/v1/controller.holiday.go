@@ -400,6 +400,71 @@ func (c *Controller) HolidayController() {
 		return ctx.JSON(http.StatusOK, response)
 	})
 
+	// api/v1/holiday/year-available
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/holiday/currency/:currency_id/year-available",
+		Method:       "GET",
+		ResponseType: model_core.HoldayYearAvaiable{},
+		Note:         "Returns years with available holiday records for a specific currency for the current user's organization and branch.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		currencyId, err := handlers.EngineUUIDParam(ctx, "currency_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID parameter"})
+		}
+		if currencyId == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID parameter"})
+		}
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization/branch not found"})
+		}
+		if user.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		holidays, err := c.model_core.HolidayManager.Find(context, &model_core.Holiday{
+			OrganizationID: user.OrganizationID,
+			BranchID:       *user.BranchID,
+			CurrencyID:     *currencyId,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch years with holiday records: " + err.Error()})
+		}
+
+		// Count holidays by year
+		yearCount := make(map[int]int)
+		maxYear := 0
+		for _, holiday := range holidays {
+			year := holiday.EntryDate.Year()
+			yearCount[year]++
+			if year > maxYear {
+				maxYear = year
+			}
+		}
+
+		// If no holidays found, add current year with count 0
+		if len(yearCount) == 0 {
+			currentYear := time.Now().UTC().Year()
+			yearCount[currentYear] = 0
+			yearCount[currentYear+1] = 0 // Add next year as well
+		} else {
+			// Add one more year beyond the latest existing year with count 0
+			yearCount[maxYear+1] = 0
+		}
+
+		var response []model_core.HoldayYearAvaiable
+		for year, count := range yearCount {
+			response = append(response, model_core.HoldayYearAvaiable{
+				Year:  year,
+				Count: count,
+			})
+		}
+		sort.SliceStable(response, func(i, j int) bool {
+			return response[i].Year < response[j].Year
+		})
+		return ctx.JSON(http.StatusOK, response)
+	})
+
 	// GET api/v1/holiday/year/:year
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/holiday/year/:year",
