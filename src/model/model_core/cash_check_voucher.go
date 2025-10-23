@@ -497,6 +497,22 @@ func (m *ModelCore) CashCheckVoucherApproved(ctx context.Context, branchId, orgI
 }
 
 func (m *ModelCore) CashCheckVoucherReleased(ctx context.Context, branchId, orgId uuid.UUID) ([]*CashCheckVoucher, error) {
+	filters := []horizon_services.Filter{
+		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
+		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
+		{Field: "printed_date", Op: horizon_services.OpNotNull, Value: nil},
+		{Field: "approved_date", Op: horizon_services.OpNotNull, Value: nil},
+		{Field: "released_date", Op: horizon_services.OpNotNull, Value: nil},
+	}
+
+	cashCheckVouchers, err := m.CashCheckVoucherManager.FindWithFilters(ctx, filters)
+	if err != nil {
+		return nil, err
+	}
+	return cashCheckVouchers, nil
+}
+
+func (m *ModelCore) CashCheckVoucherReleasedCurrentDay(ctx context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*CashCheckVoucher, error) {
 	now := time.Now().UTC()
 	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 	endOfDay := startOfDay.Add(24 * time.Hour)
@@ -507,8 +523,8 @@ func (m *ModelCore) CashCheckVoucherReleased(ctx context.Context, branchId, orgI
 		{Field: "printed_date", Op: horizon_services.OpNotNull, Value: nil},
 		{Field: "approved_date", Op: horizon_services.OpNotNull, Value: nil},
 		{Field: "released_date", Op: horizon_services.OpNotNull, Value: nil},
-		{Field: "created_at", Op: horizon_services.OpGte, Value: startOfDay},
-		{Field: "created_at", Op: horizon_services.OpLt, Value: endOfDay},
+		{Field: "released_date", Op: horizon_services.OpGte, Value: startOfDay},
+		{Field: "released_date", Op: horizon_services.OpLt, Value: endOfDay},
 	}
 
 	cashCheckVouchers, err := m.CashCheckVoucherManager.FindWithFilters(ctx, filters)

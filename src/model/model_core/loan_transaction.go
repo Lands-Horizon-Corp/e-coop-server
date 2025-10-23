@@ -1065,8 +1065,22 @@ func (m *ModelCore) LoanTransactionApproved(ctx context.Context, branchId, orgId
 	}
 	return loanTransactions, nil
 }
-
 func (m *ModelCore) LoanTransactionReleased(ctx context.Context, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
+	filters := []horizon_services.Filter{
+		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
+		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
+		{Field: "printed_date", Op: horizon_services.OpNotNull, Value: nil},
+		{Field: "approved_date", Op: horizon_services.OpNotNull, Value: nil},
+		{Field: "released_date", Op: horizon_services.OpNotNull, Value: nil},
+	}
+	loanTransactions, err := m.LoanTransactionManager.FindWithFilters(ctx, filters)
+	if err != nil {
+		return nil, err
+	}
+	return loanTransactions, nil
+}
+
+func (m *ModelCore) LoanTransactionReleasedCurrentDay(ctx context.Context, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
 	now := time.Now().UTC()
 	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 	endOfDay := startOfDay.Add(24 * time.Hour)

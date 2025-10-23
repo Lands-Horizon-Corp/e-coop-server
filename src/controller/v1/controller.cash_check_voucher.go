@@ -1089,4 +1089,22 @@ func (c *Controller) CashCheckVoucherController() {
 		return ctx.JSON(http.StatusOK, c.model_core.CashCheckVoucherManager.ToModel(cashCheckVoucher))
 	})
 
+	// GET api/v1/cash-check-voucher/released/today
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/cash-check-voucher/released/today",
+		Method:       "GET",
+		Note:         "Retrieves all cash check vouchers released today.",
+		ResponseType: []model_core.CashCheckVoucherResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		vouchers, err := c.model_core.CashCheckVoucherReleasedCurrentDay(context, userOrg.OrganizationID, *userOrg.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve today's released cash check vouchers: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model_core.CashCheckVoucherManager.ToModels(vouchers))
+	})
 }
