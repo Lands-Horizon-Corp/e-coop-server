@@ -1094,7 +1094,7 @@ func (c *Controller) CashCheckVoucherController() {
 		Route:        "/api/v1/cash-check-voucher/released/today",
 		Method:       "GET",
 		Note:         "Retrieves all cash check vouchers released today.",
-		ResponseType: []model_core.CashCheckVoucherResponse{},
+		ResponseType: model_core.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)

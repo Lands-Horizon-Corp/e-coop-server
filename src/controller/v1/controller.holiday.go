@@ -469,4 +469,48 @@ func (c *Controller) HolidayController() {
 		return ctx.JSON(http.StatusOK, c.model_core.HolidayManager.ToModels(holiday))
 	})
 
+	// GET api/v1/holiday/year/:year/currency/:currency_id
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/holiday/year/:year/currency/:currency_id",
+		Method:       "GET",
+		ResponseType: model_core.HolidayResponse{},
+		Note:         "Returns holiday records for a specific year and currency for the current user's organization and branch.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		yearParam := ctx.Param("year")
+		year, err := strconv.Atoi(yearParam)
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid year parameter"})
+		}
+		currencyId, err := handlers.EngineUUIDParam(ctx, "currency_id")
+		if currencyId == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID parameter"})
+		}
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID parameter"})
+		}
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization/branch not found"})
+		}
+		if user.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		holiday, err := c.model_core.HolidayManager.Find(context, &model_core.Holiday{
+			OrganizationID: user.OrganizationID,
+			BranchID:       *user.BranchID,
+			CurrencyID:     *currencyId,
+		})
+		result := []*model_core.Holiday{}
+		for _, h := range holiday {
+			if h.EntryDate.Year() == year {
+				result = append(result, h)
+			}
+		}
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch holiday records for the year and currency: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model_core.HolidayManager.ToModels(result))
+	})
+
 }
