@@ -154,6 +154,7 @@ func (m *ModelCore) Organization() {
 			"UpdatedBy", "Media", "CoverMedia",
 			"SubscriptionPlan", "Branches",
 			"OrganizationCategories", "OrganizationMedias", "OrganizationMedias.Media",
+			"OrganizationCategories.Category",
 			"Footsteps", "GeneratedReports", "InvitationCodes",
 			"PermissionTemplates"},
 		Service: m.provider.Service,
