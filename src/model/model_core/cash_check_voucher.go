@@ -512,7 +512,7 @@ func (m *ModelCore) CashCheckVoucherReleased(ctx context.Context, branchId, orgI
 	return cashCheckVouchers, nil
 }
 
-func (m *ModelCore) CashCheckVoucherReleasedCurrentDay(ctx context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*CashCheckVoucher, error) {
+func (m *ModelCore) CashCheckVoucherReleasedCurrentDay(ctx context.Context, branchId uuid.UUID, orgId uuid.UUID) ([]*CashCheckVoucher, error) {
 	now := time.Now().UTC()
 	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 	endOfDay := startOfDay.Add(24 * time.Hour)

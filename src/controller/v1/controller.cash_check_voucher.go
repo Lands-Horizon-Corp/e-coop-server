@@ -1101,7 +1101,7 @@ func (c *Controller) CashCheckVoucherController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		vouchers, err := c.model_core.CashCheckVoucherReleasedCurrentDay(context, userOrg.OrganizationID, *userOrg.BranchID)
+		vouchers, err := c.model_core.CashCheckVoucherReleasedCurrentDay(context, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve today's released cash check vouchers: " + err.Error()})
 		}
