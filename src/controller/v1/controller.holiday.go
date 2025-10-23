@@ -127,6 +127,7 @@ func (c *Controller) HolidayController() {
 			UpdatedByID:    user.UserID,
 			BranchID:       *user.BranchID,
 			OrganizationID: user.OrganizationID,
+			CurrencyID:     req.CurrencyID,
 		}
 		if err := c.model_core.HolidayManager.Create(context, holiday); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -198,6 +199,7 @@ func (c *Controller) HolidayController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Holiday record not found"})
 		}
 		holiday.EntryDate = req.EntryDate
+		holiday.CurrencyID = req.CurrencyID
 		holiday.Name = req.Name
 		holiday.Description = req.Description
 		holiday.UpdatedAt = time.Now().UTC()
