@@ -1060,7 +1060,7 @@ func (c *Controller) JournalVoucherController() {
 		return ctx.JSON(http.StatusOK, c.model_core.JournalVoucherManager.ToModels(journalVouchers))
 	})
 
-	// GET POST /api/v1/journal-voucher/released
+	// GET /api/v1/journal-voucher/released
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/journal-voucher/released",
 		Method:       "GET",
@@ -1080,6 +1080,30 @@ func (c *Controller) JournalVoucherController() {
 		journalVouchers, err := c.model_core.JournalVoucherReleased(context, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch released journal vouchers: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model_core.JournalVoucherManager.ToModels(journalVouchers))
+	})
+
+	// GET /api/v1/journal-voucher/released/today
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/journal-voucher/released/today",
+		Method:       "GET",
+		Note:         "Fetches journal vouchers released today for the current user's organization and branch.",
+		ResponseType: model_core.JournalVoucherResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "released-today-error",
+				Description: "Journal voucher released today fetch failed, user org error.",
+				Module:      "JournalVoucher",
+			})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		journalVouchers, err := c.model_core.JournalVoucherReleasedCurrentDay(context, *userOrg.BranchID, userOrg.OrganizationID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch journal vouchers released today: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model_core.JournalVoucherManager.ToModels(journalVouchers))
 	})
