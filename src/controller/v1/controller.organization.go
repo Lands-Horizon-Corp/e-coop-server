@@ -418,6 +418,7 @@ func (c *Controller) OrganizationController() {
 		organization.CoverMediaID = req.CoverMediaID
 		organization.UpdatedAt = time.Now().UTC()
 		organization.UpdatedByID = user.ID
+		organization.IsPrivate = req.IsPrivate
 		if err := c.model_core.OrganizationManager.UpdateFieldsWithTx(context, tx, organization.ID, organization); err != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
