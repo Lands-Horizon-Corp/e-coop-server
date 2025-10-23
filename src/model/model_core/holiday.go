@@ -1456,6 +1456,7 @@ func (m *ModelCore) HolidaySeed(context context.Context, tx *gorm.DB, userID uui
 		}
 
 		for _, holiday := range holidays {
+			holiday.CurrencyID = currency.ID
 			if err := m.HolidayManager.CreateWithTx(context, tx, holiday); err != nil {
 				return eris.Wrapf(err, "failed to seed holiday %s for currency %s", holiday.Name, currency.CurrencyCode)
 			}
