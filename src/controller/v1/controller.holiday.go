@@ -575,4 +575,68 @@ func (c *Controller) HolidayController() {
 		return ctx.JSON(http.StatusOK, c.model_core.HolidayManager.ToModels(result))
 	})
 
+	// POST /api/v1/holiday/year/:year/currency/:currency/copy/:year
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/holiday/year/:year/currency/:currency_id/copy/:source_year",
+		Method:       "POST",
+		ResponseType: model_core.HolidayResponse{},
+		Note:         "Copies holiday records from source year to target year for a specific currency in the current user's organization and branch.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		yearParam := ctx.Param("year")
+		targetYear, err := strconv.Atoi(yearParam)
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid target year parameter"})
+		}
+		sourceYearParam := ctx.Param("source_year")
+		sourceYear, err := strconv.Atoi(sourceYearParam)
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid source year parameter"})
+		}
+		currencyId, err := handlers.EngineUUIDParam(ctx, "currency_id")
+		if currencyId == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID parameter"})
+		}
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID parameter"})
+		}
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization/branch not found"})
+		}
+		if user.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		holidays, err := c.model_core.HolidayManager.Find(context, &model_core.Holiday{
+			OrganizationID: user.OrganizationID,
+			BranchID:       *user.BranchID,
+			CurrencyID:     *currencyId,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch holiday records for the currency: " + err.Error()})
+		}
+		var copiedHolidays []*model_core.Holiday
+		for _, h := range holidays {
+			if h.EntryDate.Year() == sourceYear {
+				newHoliday := &model_core.Holiday{
+					EntryDate:      time.Date(targetYear, h.EntryDate.Month(), h.EntryDate.Day(), 0, 0, 0, 0, time.UTC),
+					Name:           h.Name,
+					Description:    h.Description,
+					CreatedAt:      time.Now().UTC(),
+					CreatedByID:    user.UserID,
+					UpdatedAt:      time.Now().UTC(),
+					UpdatedByID:    user.UserID,
+					BranchID:       *user.BranchID,
+					OrganizationID: user.OrganizationID,
+					CurrencyID:     h.CurrencyID,
+				}
+				if err := c.model_core.HolidayManager.Create(context, newHoliday); err != nil {
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to copy holiday record: " + err.Error()})
+				}
+				copiedHolidays = append(copiedHolidays, newHoliday)
+			}
+		}
+		return ctx.JSON(http.StatusCreated, c.model_core.HolidayManager.ToModels(copiedHolidays))
+	})
+
 }
