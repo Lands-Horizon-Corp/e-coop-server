@@ -549,7 +549,7 @@ func (c *Controller) TimeDepositTypeController() {
 		Route:        "/api/v1/time-deposit-type/currency/:currency_id",
 		Method:       "GET",
 		Note:         "Fetch time deposit types by currency ID.",
-		ResponseType: []model_core.TimeDepositTypeResponse{},
+		ResponseType: model_core.TimeDepositTypeResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		currencyID, err := handlers.EngineUUIDParam(ctx, "currency_id")
