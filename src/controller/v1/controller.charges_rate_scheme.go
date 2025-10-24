@@ -244,6 +244,19 @@ func (c *Controller) ChargesRateSchemeController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Charges rate scheme not found"})
 		}
 
+		// Start database transaction
+		tx := c.provider.Service.Database.Client().Begin()
+		if tx.Error != nil {
+			tx.Rollback()
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Failed to start database transaction: " + tx.Error.Error(),
+				Module:      "ChargesRateScheme",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+		}
+
+		// Update main charges rate scheme fields
 		chargesRateScheme.ChargesRateByTermHeaderID = req.ChargesRateByTermHeaderID
 		chargesRateScheme.MemberTypeID = req.MemberTypeID
 		chargesRateScheme.ModeOfPayment = req.ModeOfPayment
@@ -299,7 +312,9 @@ func (c *Controller) ChargesRateSchemeController() {
 		chargesRateScheme.ByTermHeader22 = req.ByTermHeader22
 		chargesRateScheme.UpdatedAt = time.Now().UTC()
 		chargesRateScheme.UpdatedByID = user.UserID
-		if err := c.model_core.ChargesRateSchemeManager.UpdateFields(context, chargesRateScheme.ID, chargesRateScheme); err != nil {
+
+		if err := c.model_core.ChargesRateSchemeManager.UpdateFieldsWithTx(context, tx, chargesRateScheme.ID, chargesRateScheme); err != nil {
+			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Charges rate scheme update failed (/charges-rate-scheme/:charges_rate_scheme_id), db error: " + err.Error(),
@@ -308,53 +323,321 @@ func (c *Controller) ChargesRateSchemeController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate scheme: " + err.Error()})
 		}
 
-		// Handle account associations - delete existing and create new ones
-		if req.AccountIDs != nil {
-			// Delete existing associations
-			existingAccounts, err := c.model_core.ChargesRateSchemeAccountManager.Find(context, &model_core.ChargesRateSchemeAccount{
-				ChargesRateSchemeID: chargesRateScheme.ID,
+		// Handle deletions first
+		if req.ChargesRateSchemeAccountsDeleted != nil {
+			for _, id := range req.ChargesRateSchemeAccountsDeleted {
+				if err := c.model_core.ChargesRateSchemeAccountManager.DeleteByIDWithTx(context, tx, id); err != nil {
+					tx.Rollback()
+					c.event.Footstep(context, ctx, event.FootstepEvent{
+						Activity:    "update-error",
+						Description: "Failed to delete charges rate scheme account: " + err.Error(),
+						Module:      "ChargesRateScheme",
+					})
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete charges rate scheme account: " + err.Error()})
+				}
+			}
+		}
+
+		if req.ChargesRateByRangeOrMinimumAmountsDeleted != nil {
+			for _, id := range req.ChargesRateByRangeOrMinimumAmountsDeleted {
+				if err := c.model_core.ChargesRateByRangeOrMinimumAmountManager.DeleteByIDWithTx(context, tx, id); err != nil {
+					tx.Rollback()
+					c.event.Footstep(context, ctx, event.FootstepEvent{
+						Activity:    "update-error",
+						Description: "Failed to delete charges rate by range or minimum amount: " + err.Error(),
+						Module:      "ChargesRateScheme",
+					})
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete charges rate by range or minimum amount: " + err.Error()})
+				}
+			}
+		}
+
+		if req.ChargesRateSchemeModeOfPaymentsDeleted != nil {
+			for _, id := range req.ChargesRateSchemeModeOfPaymentsDeleted {
+				if err := c.model_core.ChargesRateSchemeModeOfPaymentManager.DeleteByIDWithTx(context, tx, id); err != nil {
+					tx.Rollback()
+					c.event.Footstep(context, ctx, event.FootstepEvent{
+						Activity:    "update-error",
+						Description: "Failed to delete charges rate scheme mode of payment: " + err.Error(),
+						Module:      "ChargesRateScheme",
+					})
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete charges rate scheme mode of payment: " + err.Error()})
+				}
+			}
+		}
+
+		if req.ChargesRateByTermsDeleted != nil {
+			for _, id := range req.ChargesRateByTermsDeleted {
+				if err := c.model_core.ChargesRateByTermManager.DeleteByIDWithTx(context, tx, id); err != nil {
+					tx.Rollback()
+					c.event.Footstep(context, ctx, event.FootstepEvent{
+						Activity:    "update-error",
+						Description: "Failed to delete charges rate by term: " + err.Error(),
+						Module:      "ChargesRateScheme",
+					})
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete charges rate by term: " + err.Error()})
+				}
+			}
+		}
+
+		// Handle ChargesRateSchemeAccounts creation/update
+		if req.ChargesRateSchemeAccounts != nil {
+			for _, accountReq := range req.ChargesRateSchemeAccounts {
+				if accountReq.ID != nil {
+					// Update existing record
+					existingAccount, err := c.model_core.ChargesRateSchemeAccountManager.GetByID(context, *accountReq.ID)
+					if err != nil {
+						tx.Rollback()
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get charges rate scheme account: " + err.Error()})
+					}
+					existingAccount.AccountID = accountReq.AccountID
+					existingAccount.UpdatedAt = time.Now().UTC()
+					existingAccount.UpdatedByID = user.UserID
+					if err := c.model_core.ChargesRateSchemeAccountManager.UpdateFieldsWithTx(context, tx, existingAccount.ID, existingAccount); err != nil {
+						tx.Rollback()
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate scheme account: " + err.Error()})
+					}
+				} else {
+					// Create new record
+					newAccount := &model_core.ChargesRateSchemeAccount{
+						ChargesRateSchemeID: chargesRateScheme.ID,
+						AccountID:           accountReq.AccountID,
+						CreatedAt:           time.Now().UTC(),
+						CreatedByID:         user.UserID,
+						UpdatedAt:           time.Now().UTC(),
+						UpdatedByID:         user.UserID,
+						BranchID:            *user.BranchID,
+						OrganizationID:      user.OrganizationID,
+					}
+					if err := c.model_core.ChargesRateSchemeAccountManager.CreateWithTx(context, tx, newAccount); err != nil {
+						tx.Rollback()
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create charges rate scheme account: " + err.Error()})
+					}
+				}
+			}
+		}
+
+		// Handle ChargesRateByRangeOrMinimumAmounts creation/update
+		if req.ChargesRateByRangeOrMinimumAmounts != nil {
+			for _, rangeReq := range req.ChargesRateByRangeOrMinimumAmounts {
+				if rangeReq.ID != nil {
+					// Update existing record
+					existingRange, err := c.model_core.ChargesRateByRangeOrMinimumAmountManager.GetByID(context, *rangeReq.ID)
+					if err != nil {
+						tx.Rollback()
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get charges rate by range or minimum amount: " + err.Error()})
+					}
+					existingRange.From = rangeReq.From
+					existingRange.To = rangeReq.To
+					existingRange.Charge = rangeReq.Charge
+					existingRange.Amount = rangeReq.Amount
+					existingRange.MinimumAmount = rangeReq.MinimumAmount
+					existingRange.UpdatedAt = time.Now().UTC()
+					existingRange.UpdatedByID = user.UserID
+					if err := c.model_core.ChargesRateByRangeOrMinimumAmountManager.UpdateFieldsWithTx(context, tx, existingRange.ID, existingRange); err != nil {
+						tx.Rollback()
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate by range or minimum amount: " + err.Error()})
+					}
+				} else {
+					// Create new record
+					newRange := &model_core.ChargesRateByRangeOrMinimumAmount{
+						ChargesRateSchemeID: chargesRateScheme.ID,
+						From:                rangeReq.From,
+						To:                  rangeReq.To,
+						Charge:              rangeReq.Charge,
+						Amount:              rangeReq.Amount,
+						MinimumAmount:       rangeReq.MinimumAmount,
+						CreatedAt:           time.Now().UTC(),
+						CreatedByID:         user.UserID,
+						UpdatedAt:           time.Now().UTC(),
+						UpdatedByID:         user.UserID,
+						BranchID:            *user.BranchID,
+						OrganizationID:      user.OrganizationID,
+					}
+					if err := c.model_core.ChargesRateByRangeOrMinimumAmountManager.CreateWithTx(context, tx, newRange); err != nil {
+						tx.Rollback()
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create charges rate by range or minimum amount: " + err.Error()})
+					}
+				}
+			}
+		}
+
+		// Handle ChargesRateSchemeModeOfPayments creation/update
+		if req.ChargesRateSchemeModeOfPayments != nil {
+			for _, modeReq := range req.ChargesRateSchemeModeOfPayments {
+				if modeReq.ID != nil {
+					// Update existing record
+					existingMode, err := c.model_core.ChargesRateSchemeModeOfPaymentManager.GetByID(context, *modeReq.ID)
+					if err != nil {
+						tx.Rollback()
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get charges rate scheme mode of payment: " + err.Error()})
+					}
+					existingMode.From = modeReq.From
+					existingMode.To = modeReq.To
+					existingMode.Column1 = modeReq.Column1
+					existingMode.Column2 = modeReq.Column2
+					existingMode.Column3 = modeReq.Column3
+					existingMode.Column4 = modeReq.Column4
+					existingMode.Column5 = modeReq.Column5
+					existingMode.Column6 = modeReq.Column6
+					existingMode.Column7 = modeReq.Column7
+					existingMode.Column8 = modeReq.Column8
+					existingMode.Column9 = modeReq.Column9
+					existingMode.Column10 = modeReq.Column10
+					existingMode.Column11 = modeReq.Column11
+					existingMode.Column12 = modeReq.Column12
+					existingMode.Column13 = modeReq.Column13
+					existingMode.Column14 = modeReq.Column14
+					existingMode.Column15 = modeReq.Column15
+					existingMode.Column16 = modeReq.Column16
+					existingMode.Column17 = modeReq.Column17
+					existingMode.Column18 = modeReq.Column18
+					existingMode.Column19 = modeReq.Column19
+					existingMode.Column20 = modeReq.Column20
+					existingMode.Column21 = modeReq.Column21
+					existingMode.Column22 = modeReq.Column22
+					existingMode.UpdatedAt = time.Now().UTC()
+					existingMode.UpdatedByID = user.UserID
+					if err := c.model_core.ChargesRateSchemeModeOfPaymentManager.UpdateFieldsWithTx(context, tx, existingMode.ID, existingMode); err != nil {
+						tx.Rollback()
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate scheme mode of payment: " + err.Error()})
+					}
+				} else {
+					// Create new record
+					newMode := &model_core.ChargesRateSchemeModeOfPayment{
+						ChargesRateSchemeID: chargesRateScheme.ID,
+						From:                modeReq.From,
+						To:                  modeReq.To,
+						Column1:             modeReq.Column1,
+						Column2:             modeReq.Column2,
+						Column3:             modeReq.Column3,
+						Column4:             modeReq.Column4,
+						Column5:             modeReq.Column5,
+						Column6:             modeReq.Column6,
+						Column7:             modeReq.Column7,
+						Column8:             modeReq.Column8,
+						Column9:             modeReq.Column9,
+						Column10:            modeReq.Column10,
+						Column11:            modeReq.Column11,
+						Column12:            modeReq.Column12,
+						Column13:            modeReq.Column13,
+						Column14:            modeReq.Column14,
+						Column15:            modeReq.Column15,
+						Column16:            modeReq.Column16,
+						Column17:            modeReq.Column17,
+						Column18:            modeReq.Column18,
+						Column19:            modeReq.Column19,
+						Column20:            modeReq.Column20,
+						Column21:            modeReq.Column21,
+						Column22:            modeReq.Column22,
+						CreatedAt:           time.Now().UTC(),
+						CreatedByID:         user.UserID,
+						UpdatedAt:           time.Now().UTC(),
+						UpdatedByID:         user.UserID,
+						BranchID:            *user.BranchID,
+						OrganizationID:      user.OrganizationID,
+					}
+					if err := c.model_core.ChargesRateSchemeModeOfPaymentManager.CreateWithTx(context, tx, newMode); err != nil {
+						tx.Rollback()
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create charges rate scheme mode of payment: " + err.Error()})
+					}
+				}
+			}
+		}
+
+		// Handle ChargesRateByTerms creation/update
+		if req.ChargesRateByTerms != nil {
+			for _, termReq := range req.ChargesRateByTerms {
+				if termReq.ID != nil {
+					// Update existing record
+					existingTerm, err := c.model_core.ChargesRateByTermManager.GetByID(context, *termReq.ID)
+					if err != nil {
+						tx.Rollback()
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get charges rate by term: " + err.Error()})
+					}
+					existingTerm.Name = termReq.Name
+					existingTerm.Description = termReq.Description
+					existingTerm.ModeOfPayment = termReq.ModeOfPayment
+					existingTerm.Rate1 = termReq.Rate1
+					existingTerm.Rate2 = termReq.Rate2
+					existingTerm.Rate3 = termReq.Rate3
+					existingTerm.Rate4 = termReq.Rate4
+					existingTerm.Rate5 = termReq.Rate5
+					existingTerm.Rate6 = termReq.Rate6
+					existingTerm.Rate7 = termReq.Rate7
+					existingTerm.Rate8 = termReq.Rate8
+					existingTerm.Rate9 = termReq.Rate9
+					existingTerm.Rate10 = termReq.Rate10
+					existingTerm.Rate11 = termReq.Rate11
+					existingTerm.Rate12 = termReq.Rate12
+					existingTerm.Rate13 = termReq.Rate13
+					existingTerm.Rate14 = termReq.Rate14
+					existingTerm.Rate15 = termReq.Rate15
+					existingTerm.Rate16 = termReq.Rate16
+					existingTerm.Rate17 = termReq.Rate17
+					existingTerm.Rate18 = termReq.Rate18
+					existingTerm.Rate19 = termReq.Rate19
+					existingTerm.Rate20 = termReq.Rate20
+					existingTerm.Rate21 = termReq.Rate21
+					existingTerm.Rate22 = termReq.Rate22
+					existingTerm.UpdatedAt = time.Now().UTC()
+					existingTerm.UpdatedByID = user.UserID
+					if err := c.model_core.ChargesRateByTermManager.UpdateFieldsWithTx(context, tx, existingTerm.ID, existingTerm); err != nil {
+						tx.Rollback()
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate by term: " + err.Error()})
+					}
+				} else {
+					// Create new record
+					newTerm := &model_core.ChargesRateByTerm{
+						ChargesRateSchemeID: chargesRateScheme.ID,
+						Name:                termReq.Name,
+						Description:         termReq.Description,
+						ModeOfPayment:       termReq.ModeOfPayment,
+						Rate1:               termReq.Rate1,
+						Rate2:               termReq.Rate2,
+						Rate3:               termReq.Rate3,
+						Rate4:               termReq.Rate4,
+						Rate5:               termReq.Rate5,
+						Rate6:               termReq.Rate6,
+						Rate7:               termReq.Rate7,
+						Rate8:               termReq.Rate8,
+						Rate9:               termReq.Rate9,
+						Rate10:              termReq.Rate10,
+						Rate11:              termReq.Rate11,
+						Rate12:              termReq.Rate12,
+						Rate13:              termReq.Rate13,
+						Rate14:              termReq.Rate14,
+						Rate15:              termReq.Rate15,
+						Rate16:              termReq.Rate16,
+						Rate17:              termReq.Rate17,
+						Rate18:              termReq.Rate18,
+						Rate19:              termReq.Rate19,
+						Rate20:              termReq.Rate20,
+						Rate21:              termReq.Rate21,
+						Rate22:              termReq.Rate22,
+						CreatedAt:           time.Now().UTC(),
+						CreatedByID:         user.UserID,
+						UpdatedAt:           time.Now().UTC(),
+						UpdatedByID:         user.UserID,
+						BranchID:            *user.BranchID,
+						OrganizationID:      user.OrganizationID,
+					}
+					if err := c.model_core.ChargesRateByTermManager.CreateWithTx(context, tx, newTerm); err != nil {
+						tx.Rollback()
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create charges rate by term: " + err.Error()})
+					}
+				}
+			}
+		}
+
+		// Commit the transaction
+		if err := tx.Commit().Error; err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Failed to commit charges rate scheme update transaction: " + err.Error(),
+				Module:      "ChargesRateScheme",
 			})
-			if err != nil {
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "update-error",
-					Description: "Failed to fetch existing charges rate scheme accounts (/charges-rate-scheme/:charges_rate_scheme_id), db error: " + err.Error(),
-					Module:      "ChargesRateScheme",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch existing accounts: " + err.Error()})
-			}
-
-			for _, existingAccount := range existingAccounts {
-				if err := c.model_core.ChargesRateSchemeAccountManager.DeleteByID(context, existingAccount.ID); err != nil {
-					c.event.Footstep(context, ctx, event.FootstepEvent{
-						Activity:    "update-error",
-						Description: "Failed to delete existing charges rate scheme account (/charges-rate-scheme/:charges_rate_scheme_id), db error: " + err.Error(),
-						Module:      "ChargesRateScheme",
-					})
-					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete existing account association: " + err.Error()})
-				}
-			}
-
-			// Create new associations
-			for _, accountID := range req.AccountIDs {
-				chargesRateSchemeAccount := &model_core.ChargesRateSchemeAccount{
-					ChargesRateSchemeID: chargesRateScheme.ID,
-					AccountID:           accountID,
-					CreatedAt:           time.Now().UTC(),
-					CreatedByID:         user.UserID,
-					UpdatedAt:           time.Now().UTC(),
-					UpdatedByID:         user.UserID,
-					BranchID:            *user.BranchID,
-					OrganizationID:      user.OrganizationID,
-				}
-				if err := c.model_core.ChargesRateSchemeAccountManager.Create(context, chargesRateSchemeAccount); err != nil {
-					c.event.Footstep(context, ctx, event.FootstepEvent{
-						Activity:    "update-error",
-						Description: "Charges rate scheme account creation failed (/charges-rate-scheme/:charges_rate_scheme_id), db error: " + err.Error(),
-						Module:      "ChargesRateScheme",
-					})
-					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create charges rate scheme account: " + err.Error()})
-				}
-			}
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit charges rate scheme update: " + err.Error()})
 		}
 
 		c.event.Footstep(context, ctx, event.FootstepEvent{

@@ -100,9 +100,10 @@ type (
 	}
 
 	ChargesRateSchemeModeOfPaymentRequest struct {
-		ChargesRateSchemeID uuid.UUID `json:"charges_rate_scheme_id" validate:"required"`
-		From                int       `json:"from,omitempty"`
-		To                  int       `json:"to,omitempty"`
+		ID                  *uuid.UUID `json:"id,omitempty"`
+		ChargesRateSchemeID uuid.UUID  `json:"charges_rate_scheme_id" validate:"required"`
+		From                int        `json:"from,omitempty"`
+		To                  int        `json:"to,omitempty"`
 
 		Column1  float64 `json:"column1,omitempty"`
 		Column2  float64 `json:"column2,omitempty"`
