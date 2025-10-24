@@ -836,8 +836,22 @@ func (m *ModelCore) LoanTransactionsMemberAccount(ctx context.Context, memberId,
 	return loanTransactions, nil
 }
 
-func (m *ModelCore) GenerateLoanAmortization(ctx context.Context, loanTransaction *LoanTransaction) {
+func (m *ModelCore) GenerateLoanAmortization(ctx context.Context, loanTransaction *LoanTransaction) error {
 
+	// Fetch the holidays if needed for amortization calculation
+	// holidays, err := m.HolidayManager.Find(ctx, &Holiday{
+	// 	OrganizationID: loanTransaction.OrganizationID,
+	// 	BranchID:       loanTransaction.BranchID,
+	// })
+	// if err != nil {
+	// 	return eris.Wrap(err, "failed to fetch holidays")
+	// }
+	// schedules := []*AmortizationSchedule{}
+	// for {
+
+	// }
+	// fines, service fee, interest
+	return nil
 }
 
 // Helper function to generate amortization schedule

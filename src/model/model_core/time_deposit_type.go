@@ -27,6 +27,8 @@ type (
 		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
 		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_time_deposit_type"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
+		CurrencyID     uuid.UUID     `gorm:"type:uuid;not null"`
+		Currency       *Currency     `gorm:"foreignKey:CurrencyID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"currency,omitempty"`
 
 		Header1  int `gorm:"default:30"`
 		Header2  int `gorm:"default:60"`
@@ -66,6 +68,8 @@ type (
 		Organization   *OrganizationResponse `json:"organization,omitempty"`
 		BranchID       uuid.UUID             `json:"branch_id"`
 		Branch         *BranchResponse       `json:"branch,omitempty"`
+		CurrencyID     uuid.UUID             `json:"currency_id"`
+		Currency       *CurrencyResponse     `json:"currency,omitempty"`
 
 		Header1  int `json:"header_1"`
 		Header2  int `json:"header_2"`
@@ -94,10 +98,13 @@ type (
 		TimeDepositComputationHeaderID uuid.UUID `json:"time_deposit_computation_header_id,omitempty"`
 		Name                           string    `json:"name" validate:"required,min=1,max=255"`
 		Description                    string    `json:"description,omitempty"`
+		CurrencyID                     uuid.UUID `json:"currency_id" validate:"required"`
 		PreMature                      int       `json:"pre_mature,omitempty"`
 		PreMatureRate                  float64   `json:"pre_mature_rate,omitempty"`
 		Excess                         float64   `json:"excess,omitempty"`
+	}
 
+	TimeDepositTypeHeadersRequest struct {
 		Header1  int `json:"header_1,omitempty"`
 		Header2  int `json:"header_2,omitempty"`
 		Header3  int `json:"header_3,omitempty"`
@@ -118,7 +125,7 @@ func (m *ModelCore) TimeDepositType() {
 		TimeDepositType, TimeDepositTypeResponse, TimeDepositTypeRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "TimeDepositComputations", "TimeDepositComputationPreMatures",
+			"CreatedBy", "UpdatedBy", "Currency", "TimeDepositComputations", "TimeDepositComputationPreMatures",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *TimeDepositType) *TimeDepositTypeResponse {
@@ -137,6 +144,8 @@ func (m *ModelCore) TimeDepositType() {
 				Organization:   m.OrganizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
 				Branch:         m.BranchManager.ToModel(data.Branch),
+				CurrencyID:     data.CurrencyID,
+				Currency:       m.CurrencyManager.ToModel(data.Currency),
 
 				Header1:  data.Header1,
 				Header2:  data.Header2,
