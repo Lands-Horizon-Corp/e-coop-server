@@ -194,7 +194,6 @@ type (
 		ChargesRateSchemeManager                 horizon_services.Repository[ChargesRateScheme, ChargesRateSchemeResponse, ChargesRateSchemeRequest]
 		ChargesRateSchemeAccountManager          horizon_services.Repository[ChargesRateSchemeAccount, ChargesRateSchemeAccountResponse, ChargesRateSchemeAccountRequest]
 		ChargesRateByRangeOrMinimumAmountManager horizon_services.Repository[ChargesRateByRangeOrMinimumAmount, ChargesRateByRangeOrMinimumAmountResponse, ChargesRateByRangeOrMinimumAmountRequest]
-		ChargesRateByTermHeaderManager           horizon_services.Repository[ChargesRateByTermHeader, ChargesRateByTermHeaderResponse, ChargesRateByTermHeaderRequest]
 		ChargesRateByTermManager                 horizon_services.Repository[ChargesRateByTerm, ChargesRateByTermResponse, ChargesRateByTermRequest]
 
 		// ACCOUNTING ENTRY
@@ -249,7 +248,6 @@ func (c *ModelCore) Start(context context.Context) error {
 	c.Currency()
 	c.ChargesRateByRangeOrMinimumAmount()
 	c.ChargesRateByTerm()
-	c.ChargesRateByTermHeader()
 	c.ChargesRateSchemeAccount()
 	c.ChargesRateScheme()
 	c.CheckRemittance()

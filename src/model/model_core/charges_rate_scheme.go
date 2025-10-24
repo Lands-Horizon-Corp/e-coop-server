@@ -51,9 +51,6 @@ type (
 		CurrencyID     uuid.UUID     `gorm:"type:uuid;not null"`
 		Currency       *Currency     `gorm:"foreignKey:CurrencyID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"currency,omitempty"`
 
-		ChargesRateByTermHeaderID uuid.UUID                `gorm:"type:uuid"`
-		ChargesRateByTermHeader   *ChargesRateByTermHeader `gorm:"foreignKey:ChargesRateByTermHeaderID;constraint:OnDelete:SET NULL,OnUpdate:CASCADE;" json:"charges_rate_by_term_header,omitempty"`
-
 		Name        string                `gorm:"type:varchar(255);not null;unique"`
 		Description string                `gorm:"type:text;not null;unique"`
 		Icon        string                `gorm:"type:varchar(255)"`
@@ -132,7 +129,6 @@ type (
 		CurrencyID                uuid.UUID                        `json:"currency_id"`
 		Currency                  *CurrencyResponse                `json:"currency,omitempty"`
 		ChargesRateByTermHeaderID uuid.UUID                        `json:"charges_rate_by_term_header_id"`
-		ChargesRateByTermHeader   *ChargesRateByTermHeaderResponse `json:"charges_rate_by_term_header,omitempty"`
 
 		Name        string                `json:"name"`
 		Description string                `json:"description"`
@@ -300,8 +296,6 @@ func (m *ModelCore) ChargesRateScheme() {
 				Branch:                    m.BranchManager.ToModel(data.Branch),
 				CurrencyID:                data.CurrencyID,
 				Currency:                  m.CurrencyManager.ToModel(data.Currency),
-				ChargesRateByTermHeaderID: data.ChargesRateByTermHeaderID,
-				ChargesRateByTermHeader:   m.ChargesRateByTermHeaderManager.ToModel(data.ChargesRateByTermHeader),
 				Name:                      data.Name,
 				Description:               data.Description,
 				Icon:                      data.Icon,

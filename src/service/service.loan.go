@@ -10,6 +10,7 @@ import (
 )
 
 func (t *TransactionService) LoanChargesRateComputation(ctx context.Context, crs model_core.ChargesRateScheme, member model_core.MemberProfile) float64 {
+	
 	return 0.0
 }
 
