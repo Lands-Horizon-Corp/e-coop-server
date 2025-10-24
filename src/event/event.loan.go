@@ -212,7 +212,17 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 			entry.Credit = entry.Amount
 
 		} else {
-			entry.Credit = e.service.LoanComputation(ctx, *entry.AutomaticLoanDeduction, *loanTransaction)
+			if entry.AutomaticLoanDeduction.ChargesRateSchemeID != nil {
+				chargesRateScheme, err := e.model_core.ChargesRateSchemeManager.GetByID(ctx, *entry.AutomaticLoanDeduction.ChargesRateSchemeID)
+				if err != nil {
+					return nil, err
+				}
+				entry.Credit = e.service.LoanChargesRateComputation(ctx, *chargesRateScheme, *loanTransaction.MemberProfile)
+			}
+			if entry.Credit != 0 {
+				entry.Credit = e.service.LoanComputation(ctx, *entry.AutomaticLoanDeduction, *loanTransaction)
+			}
+
 		}
 
 		if !entry.IsAddOn {
