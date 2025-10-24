@@ -28,12 +28,12 @@ type (
 		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_automatic_loan_deduction" json:"branch_id"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
-		AccountID          *uuid.UUID        `gorm:"type:uuid" json:"account_id"`
-		Account            *Account          `gorm:"foreignKey:AccountID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"account,omitempty"`
-		ComputationSheetID *uuid.UUID        `gorm:"type:uuid" json:"computation_sheet_id"`
-		ComputationSheet   *ComputationSheet `gorm:"foreignKey:ComputationSheetID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"computation_sheet,omitempty"`
-		LinkAccountID      *uuid.UUID        `gorm:"type:uuid" json:"link_account_id"`
-		LinkAccount        *Account          `gorm:"foreignKey:LinkAccountID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"link_account,omitempty"`
+		AccountID           *uuid.UUID         `gorm:"type:uuid" json:"account_id"`
+		Account             *Account           `gorm:"foreignKey:AccountID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"account,omitempty"`
+		ComputationSheetID  *uuid.UUID         `gorm:"type:uuid" json:"computation_sheet_id"`
+		ComputationSheet    *ComputationSheet  `gorm:"foreignKey:ComputationSheetID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"computation_sheet,omitempty"`
+		ChargesRateSchemeID *uuid.UUID         `gorm:"type:uuid" json:"charges_rate_scheme_id"`
+		ChargesRateScheme   *ChargesRateScheme `gorm:"foreignKey:ChargesRateSchemeID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"charges_rate_scheme,omitempty"`
 
 		ChargesPercentage1 float64 `gorm:"type:decimal" json:"charges_percentage_1"`
 		ChargesPercentage2 float64 `gorm:"type:decimal" json:"charges_percentage_2"`
@@ -69,12 +69,12 @@ type (
 		BranchID       uuid.UUID             `json:"branch_id"`
 		Branch         *BranchResponse       `json:"branch,omitempty"`
 
-		AccountID          *uuid.UUID                `json:"account_id,omitempty"`
-		Account            *AccountResponse          `json:"account,omitempty"`
-		ComputationSheetID *uuid.UUID                `json:"computation_sheet_id,omitempty"`
-		ComputationSheet   *ComputationSheetResponse `json:"computation_sheet,omitempty"`
-		LinkAccountID      *uuid.UUID                `json:"link_account_id,omitempty"`
-		LinkAccount        *AccountResponse          `json:"link_account,omitempty"`
+		AccountID           *uuid.UUID                 `json:"account_id,omitempty"`
+		Account             *AccountResponse           `json:"account,omitempty"`
+		ComputationSheetID  *uuid.UUID                 `json:"computation_sheet_id,omitempty"`
+		ComputationSheet    *ComputationSheetResponse  `json:"computation_sheet,omitempty"`
+		ChargesRateSchemeID *uuid.UUID                 `json:"charges_rate_scheme_id,omitempty"`
+		ChargesRateScheme   *ChargesRateSchemeResponse `json:"charges_rate_scheme,omitempty"`
 
 		ChargesPercentage1 float64 `json:"charges_percentage_1"`
 		ChargesPercentage2 float64 `json:"charges_percentage_2"`
@@ -98,23 +98,23 @@ type (
 	}
 
 	AutomaticLoanDeductionRequest struct {
-		AccountID          *uuid.UUID `json:"account_id" validate:"required"`
-		ComputationSheetID *uuid.UUID `json:"computation_sheet_id,omitempty"`
-		LinkAccountID      *uuid.UUID `json:"link_account_id,omitempty"`
-		ChargesPercentage1 float64    `json:"charges_percentage_1,omitempty"`
-		ChargesPercentage2 float64    `json:"charges_percentage_2,omitempty"`
-		ChargesAmount      float64    `json:"charges_amount,omitempty"`
-		ChargesDivisor     float64    `json:"charges_divisor,omitempty"`
-		MinAmount          float64    `json:"min_amount,omitempty"`
-		MaxAmount          float64    `json:"max_amount,omitempty"`
-		Anum               int16      `json:"anum,omitempty"`
-		NumberOfMonths     int        `json:"number_of_months,omitempty"`
-		AddOn              bool       `json:"add_on,omitempty"`
-		AoRest             bool       `json:"ao_rest,omitempty"`
-		ExcludeRenewal     bool       `json:"exclude_renewal,omitempty"`
-		Ct                 int        `json:"ct,omitempty"`
-		Name               string     `json:"name,omitempty"`
-		Description        string     `json:"description,omitempty"`
+		AccountID           *uuid.UUID `json:"account_id" validate:"required"`
+		ComputationSheetID  *uuid.UUID `json:"computation_sheet_id,omitempty"`
+		ChargesRateSchemeID *uuid.UUID `json:"charges_rate_scheme_id,omitempty"`
+		ChargesPercentage1  float64    `json:"charges_percentage_1,omitempty"`
+		ChargesPercentage2  float64    `json:"charges_percentage_2,omitempty"`
+		ChargesAmount       float64    `json:"charges_amount,omitempty"`
+		ChargesDivisor      float64    `json:"charges_divisor,omitempty"`
+		MinAmount           float64    `json:"min_amount,omitempty"`
+		MaxAmount           float64    `json:"max_amount,omitempty"`
+		Anum                int16      `json:"anum,omitempty"`
+		NumberOfMonths      int        `json:"number_of_months,omitempty"`
+		AddOn               bool       `json:"add_on,omitempty"`
+		AoRest              bool       `json:"ao_rest,omitempty"`
+		ExcludeRenewal      bool       `json:"exclude_renewal,omitempty"`
+		Ct                  int        `json:"ct,omitempty"`
+		Name                string     `json:"name,omitempty"`
+		Description         string     `json:"description,omitempty"`
 	}
 )
 
@@ -125,7 +125,7 @@ func (m *ModelCore) AutomaticLoanDeduction() {
 	]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
-			"Account", "ComputationSheet", "LinkAccount",
+			"Account", "ComputationSheet", "ChargesRateScheme",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *AutomaticLoanDeduction) *AutomaticLoanDeductionResponse {
@@ -133,37 +133,37 @@ func (m *ModelCore) AutomaticLoanDeduction() {
 				return nil
 			}
 			return &AutomaticLoanDeductionResponse{
-				ID:                 data.ID,
-				CreatedAt:          data.CreatedAt.Format(time.RFC3339),
-				CreatedByID:        data.CreatedByID,
-				CreatedBy:          m.UserManager.ToModel(data.CreatedBy),
-				UpdatedAt:          data.UpdatedAt.Format(time.RFC3339),
-				UpdatedByID:        data.UpdatedByID,
-				UpdatedBy:          m.UserManager.ToModel(data.UpdatedBy),
-				OrganizationID:     data.OrganizationID,
-				Organization:       m.OrganizationManager.ToModel(data.Organization),
-				BranchID:           data.BranchID,
-				Branch:             m.BranchManager.ToModel(data.Branch),
-				AccountID:          data.AccountID,
-				Account:            m.AccountManager.ToModel(data.Account),
-				ComputationSheetID: data.ComputationSheetID,
-				ComputationSheet:   m.ComputationSheetManager.ToModel(data.ComputationSheet),
-				LinkAccountID:      data.LinkAccountID,
-				LinkAccount:        m.AccountManager.ToModel(data.LinkAccount),
-				ChargesPercentage1: data.ChargesPercentage1,
-				ChargesPercentage2: data.ChargesPercentage2,
-				ChargesAmount:      data.ChargesAmount,
-				ChargesDivisor:     data.ChargesDivisor,
-				MinAmount:          data.MinAmount,
-				MaxAmount:          data.MaxAmount,
-				Anum:               data.Anum,
-				NumberOfMonths:     data.NumberOfMonths,
-				AddOn:              data.AddOn,
-				AoRest:             data.AoRest,
-				ExcludeRenewal:     data.ExcludeRenewal,
-				Ct:                 data.Ct,
-				Name:               data.Name,
-				Description:        data.Description,
+				ID:                  data.ID,
+				CreatedAt:           data.CreatedAt.Format(time.RFC3339),
+				CreatedByID:         data.CreatedByID,
+				CreatedBy:           m.UserManager.ToModel(data.CreatedBy),
+				UpdatedAt:           data.UpdatedAt.Format(time.RFC3339),
+				UpdatedByID:         data.UpdatedByID,
+				UpdatedBy:           m.UserManager.ToModel(data.UpdatedBy),
+				OrganizationID:      data.OrganizationID,
+				Organization:        m.OrganizationManager.ToModel(data.Organization),
+				BranchID:            data.BranchID,
+				Branch:              m.BranchManager.ToModel(data.Branch),
+				AccountID:           data.AccountID,
+				Account:             m.AccountManager.ToModel(data.Account),
+				ComputationSheetID:  data.ComputationSheetID,
+				ComputationSheet:    m.ComputationSheetManager.ToModel(data.ComputationSheet),
+				ChargesRateSchemeID: data.ChargesRateSchemeID,
+				ChargesRateScheme:   m.ChargesRateSchemeManager.ToModel(data.ChargesRateScheme),
+				ChargesPercentage1:  data.ChargesPercentage1,
+				ChargesPercentage2:  data.ChargesPercentage2,
+				ChargesAmount:       data.ChargesAmount,
+				ChargesDivisor:      data.ChargesDivisor,
+				MinAmount:           data.MinAmount,
+				MaxAmount:           data.MaxAmount,
+				Anum:                data.Anum,
+				NumberOfMonths:      data.NumberOfMonths,
+				AddOn:               data.AddOn,
+				AoRest:              data.AoRest,
+				ExcludeRenewal:      data.ExcludeRenewal,
+				Ct:                  data.Ct,
+				Name:                data.Name,
+				Description:         data.Description,
 			}
 		},
 		Created: func(data *AutomaticLoanDeduction) []string {
