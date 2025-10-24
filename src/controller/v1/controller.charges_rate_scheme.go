@@ -152,6 +152,8 @@ func (c *Controller) ChargesRateSchemeController() {
 			UpdatedByID:    user.UserID,
 			BranchID:       *user.BranchID,
 			OrganizationID: user.OrganizationID,
+
+			Type: req.Type,
 		}
 
 		if err := c.model_core.ChargesRateSchemeManager.Create(context, chargesRateScheme); err != nil {
@@ -248,6 +250,7 @@ func (c *Controller) ChargesRateSchemeController() {
 		chargesRateScheme.Name = req.Name
 		chargesRateScheme.Description = req.Description
 		chargesRateScheme.Icon = req.Icon
+		chargesRateScheme.Type = req.Type
 		// ModeOfPayment header fields
 		chargesRateScheme.ModeOfPaymentHeader1 = req.ModeOfPaymentHeader1
 		chargesRateScheme.ModeOfPaymentHeader2 = req.ModeOfPaymentHeader2

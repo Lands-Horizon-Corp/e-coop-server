@@ -23,6 +23,14 @@ const (
 	ChargesMemberTypeLumpsum     ChargesRateMemberTypeEnum = "lumpsum"
 )
 
+type ChargesRateSchemeType string
+
+const (
+	ChargesRateSchemeTypeByRange   ChargesRateSchemeType = "by_range"
+	ChargesRateSchemeTypeByMinimum ChargesRateSchemeType = "by_type"
+	ChargesRateSchemeTypeByTerm    ChargesRateSchemeType = "by_term"
+)
+
 type (
 	ChargesRateScheme struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
@@ -44,9 +52,10 @@ type (
 		ChargesRateByTermHeaderID uuid.UUID                `gorm:"type:uuid"`
 		ChargesRateByTermHeader   *ChargesRateByTermHeader `gorm:"foreignKey:ChargesRateByTermHeaderID;constraint:OnDelete:SET NULL,OnUpdate:CASCADE;" json:"charges_rate_by_term_header,omitempty"`
 
-		Name        string `gorm:"type:varchar(255);not null;unique"`
-		Description string `gorm:"type:text;not null;unique"`
-		Icon        string `gorm:"type:varchar(255)"`
+		Name        string                `gorm:"type:varchar(255);not null;unique"`
+		Description string                `gorm:"type:text;not null;unique"`
+		Icon        string                `gorm:"type:varchar(255)"`
+		Type        ChargesRateSchemeType `gorm:"type:varchar(50);not null"`
 
 		// One-to-many relationship with ChargesRateSchemeAccount
 		ChargesRateSchemeAccounts []*ChargesRateSchemeAccount `gorm:"foreignKey:ChargesRateSchemeID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"charges_rate_scheme_accounts,omitempty"`
@@ -128,9 +137,10 @@ type (
 		ChargesRateByTermHeaderID uuid.UUID                        `json:"charges_rate_by_term_header_id"`
 		ChargesRateByTermHeader   *ChargesRateByTermHeaderResponse `json:"charges_rate_by_term_header,omitempty"`
 
-		Name        string `json:"name"`
-		Description string `json:"description"`
-		Icon        string `json:"icon"`
+		Name        string                `json:"name"`
+		Description string                `json:"description"`
+		Icon        string                `json:"icon"`
+		Type        ChargesRateSchemeType `json:"type"`
 
 		ChargesRateSchemeAccounts []*ChargesRateSchemeAccountResponse `json:"charges_rate_scheme_accounts,omitempty"`
 
@@ -191,11 +201,12 @@ type (
 	}
 
 	ChargesRateSchemeRequest struct {
-		ChargesRateByTermHeaderID uuid.UUID   `json:"charges_rate_by_term_header_id,omitempty"`
-		Name                      string      `json:"name" validate:"required,min=1,max=255"`
-		Description               string      `json:"description" validate:"required"`
-		Icon                      string      `json:"icon,omitempty"`
-		AccountIDs                []uuid.UUID `json:"account_ids,omitempty"`
+		ChargesRateByTermHeaderID uuid.UUID             `json:"charges_rate_by_term_header_id,omitempty"`
+		Name                      string                `json:"name" validate:"required,min=1,max=255"`
+		Description               string                `json:"description" validate:"required"`
+		Icon                      string                `json:"icon,omitempty"`
+		Type                      ChargesRateSchemeType `json:"type" validate:"required,oneof=by_range by_type by_term"`
+		AccountIDs                []uuid.UUID           `json:"account_ids,omitempty"`
 
 		MemberTypeID  uuid.UUID                 `json:"member_type_id" validate:"required"`
 		ModeOfPayment ChargesRateMemberTypeEnum `json:"mode_of_payment,omitempty" validate:"omitempty,oneof=all daily weekly monthly semi-monthly quarterly semi-annual lumpsum"`
@@ -284,6 +295,7 @@ func (m *ModelCore) ChargesRateScheme() {
 				Name:                      data.Name,
 				Description:               data.Description,
 				Icon:                      data.Icon,
+				Type:                      data.Type,
 
 				ChargesRateSchemeAccounts: m.ChargesRateSchemeAccountManager.ToModels(data.ChargesRateSchemeAccounts),
 
