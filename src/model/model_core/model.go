@@ -210,7 +210,7 @@ type (
 		JournalVoucherTagManager         horizon_services.Repository[JournalVoucherTag, JournalVoucherTagResponse, JournalVoucherTagRequest]
 
 		FundsManager                          horizon_services.Repository[Funds, FundsResponse, FundsRequest]
-		ChargesRateSchemeModeOfPaymentManager horizon_services.Repository[ChargesRateSchemeModeOfPayment, ChargesRateSchemeModeOfPaymentResponse, ModeOfPayment]
+		ChargesRateSchemeModeOfPaymentManager horizon_services.Repository[ChargesRateSchemeModeOfPayment, ChargesRateSchemeModeOfPaymentResponse, ChargesRateSchemeModeOfPaymentRequest]
 	}
 )
 

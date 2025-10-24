@@ -21,7 +21,7 @@ func (c *Controller) ChargesRateSchemeModeOfPaymentController() {
 		Route:        "/api/v1/charges-rate-scheme-mode-of-payment/charges-rate-scheme/:charges_rate_scheme_id",
 		Method:       "POST",
 		Note:         "Creates a new charges rate scheme model of payment for the current user's organization and branch.",
-		RequestType:  model_core.ModeOfPayment{},
+		RequestType:  model_core.ChargesRateSchemeModeOfPaymentRequest{},
 		ResponseType: model_core.ChargesRateSchemeModeOfPaymentResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -116,7 +116,7 @@ func (c *Controller) ChargesRateSchemeModeOfPaymentController() {
 		Route:        "/api/v1/charges-rate-scheme-mode-of-payment/:charges_rate_scheme_model_of_payment_id",
 		Method:       "PUT",
 		Note:         "Updates an existing charges rate scheme model of payment by its ID.",
-		RequestType:  model_core.ModeOfPayment{},
+		RequestType:  model_core.ChargesRateSchemeModeOfPaymentRequest{},
 		ResponseType: model_core.ChargesRateSchemeModeOfPaymentResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

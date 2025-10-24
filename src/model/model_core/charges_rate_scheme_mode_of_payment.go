@@ -99,7 +99,7 @@ type (
 		Column22 float64 `json:"column22"`
 	}
 
-	ModeOfPayment struct {
+	ChargesRateSchemeModeOfPaymentRequest struct {
 		ChargesRateSchemeID uuid.UUID `json:"charges_rate_scheme_id" validate:"required"`
 		From                int       `json:"from,omitempty"`
 		To                  int       `json:"to,omitempty"`
@@ -132,7 +132,7 @@ type (
 func (m *ModelCore) ChargesRateSchemeModeOfPayment() {
 	m.Migration = append(m.Migration, &ChargesRateSchemeModeOfPayment{})
 	m.ChargesRateSchemeModeOfPaymentManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
-		ChargesRateSchemeModeOfPayment, ChargesRateSchemeModeOfPaymentResponse, ModeOfPayment,
+		ChargesRateSchemeModeOfPayment, ChargesRateSchemeModeOfPaymentResponse, ChargesRateSchemeModeOfPaymentRequest,
 	]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "ChargesRateScheme",

@@ -57,18 +57,6 @@ type (
 		Icon        string                `gorm:"type:varchar(255)"`
 		Type        ChargesRateSchemeType `gorm:"type:varchar(50);not null"`
 
-		// One-to-many relationship with ChargesRateSchemeAccount
-		ChargesRateSchemeAccounts []*ChargesRateSchemeAccount `gorm:"foreignKey:ChargesRateSchemeID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"charges_rate_scheme_accounts,omitempty"`
-
-		// One-to-many relationship with ChargesRateByRangeOrMinimumAmount
-		ChargesRateByRangeOrMinimumAmounts []*ChargesRateByRangeOrMinimumAmount `gorm:"foreignKey:ChargesRateSchemeID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"charges_rate_by_range_or_minimum_amounts,omitempty"`
-
-		// One-to-many relationship with ChargesRateSchemeModeOfPayment
-		ChargesRateSchemeModeOfPayments []*ChargesRateSchemeModeOfPayment `gorm:"foreignKey:ChargesRateSchemeID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"charges_rate_scheme_model_of_payments,omitempty"`
-
-		// One-to-many relationship with ChargesRateByTerm
-		ChargesRateByTerms []*ChargesRateByTerm `gorm:"foreignKey:ChargesRateSchemeID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"charges_rate_by_terms,omitempty"`
-
 		// By type / MOP / Terms
 		MemberTypeID  uuid.UUID                 `gorm:"type:uuid;not null"`
 		MemberType    *MemberType               `gorm:"foreignKey:MemberTypeID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_type,omitempty"`
@@ -120,6 +108,11 @@ type (
 		ByTermHeader20 int `gorm:"default:0"`
 		ByTermHeader21 int `gorm:"default:0"`
 		ByTermHeader22 int `gorm:"default:0"`
+
+		ChargesRateSchemeAccounts          []*ChargesRateSchemeAccount          `gorm:"foreignKey:ChargesRateSchemeID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"charges_rate_scheme_accounts,omitempty"`
+		ChargesRateByRangeOrMinimumAmounts []*ChargesRateByRangeOrMinimumAmount `gorm:"foreignKey:ChargesRateSchemeID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"charges_rate_by_range_or_minimum_amounts,omitempty"`
+		ChargesRateSchemeModeOfPayments    []*ChargesRateSchemeModeOfPayment    `gorm:"foreignKey:ChargesRateSchemeID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"charges_rate_scheme_model_of_payments,omitempty"`
+		ChargesRateByTerms                 []*ChargesRateByTerm                 `gorm:"foreignKey:ChargesRateSchemeID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"charges_rate_by_terms,omitempty"`
 	}
 
 	ChargesRateSchemeResponse struct {
@@ -141,14 +134,6 @@ type (
 		Description string                `json:"description"`
 		Icon        string                `json:"icon"`
 		Type        ChargesRateSchemeType `json:"type"`
-
-		ChargesRateSchemeAccounts []*ChargesRateSchemeAccountResponse `json:"charges_rate_scheme_accounts,omitempty"`
-
-		ChargesRateByRangeOrMinimumAmounts []*ChargesRateByRangeOrMinimumAmountResponse `json:"charges_rate_by_range_or_minimum_amounts,omitempty"`
-
-		ChargesRateSchemeModeOfPayments []*ChargesRateSchemeModeOfPaymentResponse `json:"charges_rate_scheme_model_of_payments,omitempty"`
-
-		ChargesRateByTerms []*ChargesRateByTermResponse `json:"charges_rate_by_terms,omitempty"`
 
 		MemberTypeID          uuid.UUID                 `json:"member_type_id"`
 		MemberType            *MemberTypeResponse       `json:"member_type,omitempty"`
@@ -198,6 +183,11 @@ type (
 		ByTermHeader20 int `json:"by_term_header_20"`
 		ByTermHeader21 int `json:"by_term_header_21"`
 		ByTermHeader22 int `json:"by_term_header_22"`
+
+		ChargesRateSchemeAccounts          []*ChargesRateSchemeAccountResponse          `json:"charges_rate_scheme_accounts,omitempty"`
+		ChargesRateByRangeOrMinimumAmounts []*ChargesRateByRangeOrMinimumAmountResponse `json:"charges_rate_by_range_or_minimum_amounts,omitempty"`
+		ChargesRateSchemeModeOfPayments    []*ChargesRateSchemeModeOfPaymentResponse    `json:"charges_rate_scheme_model_of_payments,omitempty"`
+		ChargesRateByTerms                 []*ChargesRateByTermResponse                 `json:"charges_rate_by_terms,omitempty"`
 	}
 
 	ChargesRateSchemeRequest struct {
@@ -256,6 +246,18 @@ type (
 		ByTermHeader20 int `json:"by_term_header_20,omitempty"`
 		ByTermHeader21 int `json:"by_term_header_21,omitempty"`
 		ByTermHeader22 int `json:"by_term_header_22,omitempty"`
+
+		// Nested relationships for creation/update
+		ChargesRateSchemeAccounts          []*ChargesRateSchemeAccountRequest          `json:"charges_rate_scheme_accounts,omitempty"`
+		ChargesRateByRangeOrMinimumAmounts []*ChargesRateByRangeOrMinimumAmountRequest `json:"charges_rate_by_range_or_minimum_amounts,omitempty"`
+		ChargesRateSchemeModeOfPayments    []*ChargesRateSchemeModeOfPaymentRequest    `json:"charges_rate_scheme_model_of_payments,omitempty"`
+		ChargesRateByTerms                 []*ChargesRateByTermRequest                 `json:"charges_rate_by_terms,omitempty"`
+
+		// Deletion arrays
+		ChargesRateSchemeAccountsDeleted          []uuid.UUID `json:"charges_rate_scheme_accounts_deleted,omitempty"`
+		ChargesRateByRangeOrMinimumAmountsDeleted []uuid.UUID `json:"charges_rate_by_range_or_minimum_amounts_deleted,omitempty"`
+		ChargesRateSchemeModeOfPaymentsDeleted    []uuid.UUID `json:"charges_rate_scheme_model_of_payments_deleted,omitempty"`
+		ChargesRateByTermsDeleted                 []uuid.UUID `json:"charges_rate_by_terms_deleted,omitempty"`
 	}
 )
 
