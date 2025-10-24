@@ -114,6 +114,7 @@ type (
 	}
 
 	ChargesRateByTermRequest struct {
+		ID                  *uuid.UUID               `json:"id,omitempty"`
 		ChargesRateSchemeID uuid.UUID                `json:"charges_rate_scheme_id" validate:"required"`
 		Name                string                   `json:"name,omitempty"`
 		Description         string                   `json:"description,omitempty"`

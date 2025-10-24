@@ -54,8 +54,9 @@ type (
 	}
 
 	ChargesRateSchemeAccountRequest struct {
-		ChargesRateSchemeID uuid.UUID `json:"charges_rate_scheme_id" validate:"required"`
-		AccountID           uuid.UUID `json:"account_id" validate:"required"`
+		ID                  *uuid.UUID `json:"id,omitempty"`
+		ChargesRateSchemeID uuid.UUID  `json:"charges_rate_scheme_id" validate:"required"`
+		AccountID           uuid.UUID  `json:"account_id" validate:"required"`
 	}
 )
 

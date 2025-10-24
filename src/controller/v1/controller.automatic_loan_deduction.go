@@ -127,29 +127,29 @@ func (c *Controller) AutomaticLoanDeductionController() {
 			name = account.Name
 		}
 		ald := &model_core.AutomaticLoanDeduction{
-			AccountID:          request.AccountID,
-			ComputationSheetID: request.ComputationSheetID,
-			LinkAccountID:      request.LinkAccountID,
-			ChargesPercentage1: request.ChargesPercentage1,
-			ChargesPercentage2: request.ChargesPercentage2,
-			ChargesAmount:      request.ChargesAmount,
-			ChargesDivisor:     request.ChargesDivisor,
-			MinAmount:          request.MinAmount,
-			MaxAmount:          request.MaxAmount,
-			Anum:               request.Anum,
-			AddOn:              request.AddOn,
-			AoRest:             request.AoRest,
-			ExcludeRenewal:     request.ExcludeRenewal,
-			Ct:                 request.Ct,
-			Name:               name,
-			Description:        request.Description,
-			CreatedAt:          time.Now().UTC(),
-			CreatedByID:        user.UserID,
-			UpdatedAt:          time.Now().UTC(),
-			UpdatedByID:        user.UserID,
-			BranchID:           *user.BranchID,
-			OrganizationID:     user.OrganizationID,
-			NumberOfMonths:     request.NumberOfMonths,
+			AccountID:           request.AccountID,
+			ComputationSheetID:  request.ComputationSheetID,
+			ChargesRateSchemeID: request.ChargesRateSchemeID,
+			ChargesPercentage1:  request.ChargesPercentage1,
+			ChargesPercentage2:  request.ChargesPercentage2,
+			ChargesAmount:       request.ChargesAmount,
+			ChargesDivisor:      request.ChargesDivisor,
+			MinAmount:           request.MinAmount,
+			MaxAmount:           request.MaxAmount,
+			Anum:                request.Anum,
+			AddOn:               request.AddOn,
+			AoRest:              request.AoRest,
+			ExcludeRenewal:      request.ExcludeRenewal,
+			Ct:                  request.Ct,
+			Name:                name,
+			Description:         request.Description,
+			CreatedAt:           time.Now().UTC(),
+			CreatedByID:         user.UserID,
+			UpdatedAt:           time.Now().UTC(),
+			UpdatedByID:         user.UserID,
+			BranchID:            *user.BranchID,
+			OrganizationID:      user.OrganizationID,
+			NumberOfMonths:      request.NumberOfMonths,
 		}
 
 		if err := c.model_core.AutomaticLoanDeductionManager.Create(context, ald); err != nil {
@@ -229,7 +229,7 @@ func (c *Controller) AutomaticLoanDeductionController() {
 		}
 		ald.AccountID = request.AccountID
 		ald.ComputationSheetID = request.ComputationSheetID
-		ald.LinkAccountID = request.LinkAccountID
+		ald.ChargesRateSchemeID = request.ChargesRateSchemeID
 		ald.ChargesPercentage1 = request.ChargesPercentage1
 		ald.ChargesPercentage2 = request.ChargesPercentage2
 		ald.ChargesAmount = request.ChargesAmount
