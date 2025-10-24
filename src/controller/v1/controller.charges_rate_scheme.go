@@ -152,8 +152,8 @@ func (c *Controller) ChargesRateSchemeController() {
 			UpdatedByID:    user.UserID,
 			BranchID:       *user.BranchID,
 			OrganizationID: user.OrganizationID,
-
-			Type: req.Type,
+			CurrencyID:     req.CurrencyID,
+			Type:           req.Type,
 		}
 
 		if err := c.model_core.ChargesRateSchemeManager.Create(context, chargesRateScheme); err != nil {
@@ -312,6 +312,7 @@ func (c *Controller) ChargesRateSchemeController() {
 		chargesRateScheme.ByTermHeader22 = req.ByTermHeader22
 		chargesRateScheme.UpdatedAt = time.Now().UTC()
 		chargesRateScheme.UpdatedByID = user.UserID
+		chargesRateScheme.CurrencyID = req.CurrencyID
 
 		if err := c.model_core.ChargesRateSchemeManager.UpdateFieldsWithTx(context, tx, chargesRateScheme.ID, chargesRateScheme); err != nil {
 			tx.Rollback()

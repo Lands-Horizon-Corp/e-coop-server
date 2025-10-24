@@ -48,6 +48,8 @@ type (
 		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
 		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_charges_rate_scheme"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
+		CurrencyID     uuid.UUID     `gorm:"type:uuid;not null"`
+		Currency       *Currency     `gorm:"foreignKey:CurrencyID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"currency,omitempty"`
 
 		ChargesRateByTermHeaderID uuid.UUID                `gorm:"type:uuid"`
 		ChargesRateByTermHeader   *ChargesRateByTermHeader `gorm:"foreignKey:ChargesRateByTermHeaderID;constraint:OnDelete:SET NULL,OnUpdate:CASCADE;" json:"charges_rate_by_term_header,omitempty"`
@@ -127,6 +129,8 @@ type (
 		Organization              *OrganizationResponse            `json:"organization,omitempty"`
 		BranchID                  uuid.UUID                        `json:"branch_id"`
 		Branch                    *BranchResponse                  `json:"branch,omitempty"`
+		CurrencyID                uuid.UUID                        `json:"currency_id"`
+		Currency                  *CurrencyResponse                `json:"currency,omitempty"`
 		ChargesRateByTermHeaderID uuid.UUID                        `json:"charges_rate_by_term_header_id"`
 		ChargesRateByTermHeader   *ChargesRateByTermHeaderResponse `json:"charges_rate_by_term_header,omitempty"`
 
@@ -196,6 +200,7 @@ type (
 		Description               string                `json:"description" validate:"required"`
 		Icon                      string                `json:"icon,omitempty"`
 		Type                      ChargesRateSchemeType `json:"type" validate:"required,oneof=by_range by_type by_term"`
+		CurrencyID                uuid.UUID             `json:"currency_id" validate:"required"`
 		AccountIDs                []uuid.UUID           `json:"account_ids,omitempty"`
 
 		MemberTypeID  uuid.UUID                 `json:"member_type_id" validate:"required"`
@@ -268,6 +273,7 @@ func (m *ModelCore) ChargesRateScheme() {
 	]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
+			"Currency",
 			"ChargesRateByTermHeader",
 			"MemberType",
 			"ChargesRateSchemeAccounts",
@@ -292,6 +298,8 @@ func (m *ModelCore) ChargesRateScheme() {
 				Organization:              m.OrganizationManager.ToModel(data.Organization),
 				BranchID:                  data.BranchID,
 				Branch:                    m.BranchManager.ToModel(data.Branch),
+				CurrencyID:                data.CurrencyID,
+				Currency:                  m.CurrencyManager.ToModel(data.Currency),
 				ChargesRateByTermHeaderID: data.ChargesRateByTermHeaderID,
 				ChargesRateByTermHeader:   m.ChargesRateByTermHeaderManager.ToModel(data.ChargesRateByTermHeader),
 				Name:                      data.Name,
