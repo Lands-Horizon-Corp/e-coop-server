@@ -77,19 +77,20 @@ type (
 	}
 
 	TimeDepositComputationRequest struct {
-		MininimumAmount float64 `json:"mininimum_amount,omitempty"`
-		MaximumAmount   float64 `json:"maximum_amount,omitempty"`
-		Header1         float64 `json:"header_1,omitempty"`
-		Header2         float64 `json:"header_2,omitempty"`
-		Header3         float64 `json:"header_3,omitempty"`
-		Header4         float64 `json:"header_4,omitempty"`
-		Header5         float64 `json:"header_5,omitempty"`
-		Header6         float64 `json:"header_6,omitempty"`
-		Header7         float64 `json:"header_7,omitempty"`
-		Header8         float64 `json:"header_8,omitempty"`
-		Header9         float64 `json:"header_9,omitempty"`
-		Header10        float64 `json:"header_10,omitempty"`
-		Header11        float64 `json:"header_11,omitempty"`
+		ID              *uuid.UUID `json:"id,omitempty"`
+		MininimumAmount float64    `json:"mininimum_amount,omitempty"`
+		MaximumAmount   float64    `json:"maximum_amount,omitempty"`
+		Header1         float64    `json:"header_1,omitempty"`
+		Header2         float64    `json:"header_2,omitempty"`
+		Header3         float64    `json:"header_3,omitempty"`
+		Header4         float64    `json:"header_4,omitempty"`
+		Header5         float64    `json:"header_5,omitempty"`
+		Header6         float64    `json:"header_6,omitempty"`
+		Header7         float64    `json:"header_7,omitempty"`
+		Header8         float64    `json:"header_8,omitempty"`
+		Header9         float64    `json:"header_9,omitempty"`
+		Header10        float64    `json:"header_10,omitempty"`
+		Header11        float64    `json:"header_11,omitempty"`
 	}
 )
 

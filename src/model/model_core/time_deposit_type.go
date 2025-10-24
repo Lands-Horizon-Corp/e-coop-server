@@ -49,10 +49,7 @@ type (
 		PreMatureRate float64 `gorm:"type:decimal;default:0"`
 		Excess        float64 `gorm:"type:decimal;default:0"`
 
-		// One-to-many relationship with TimeDepositComputation
-		TimeDepositComputations []*TimeDepositComputation `gorm:"foreignKey:TimeDepositTypeID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"time_deposit_computations,omitempty"`
-
-		// One-to-many relationship with TimeDepositComputationPreMature
+		TimeDepositComputations          []*TimeDepositComputation          `gorm:"foreignKey:TimeDepositTypeID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"time_deposit_computations,omitempty"`
 		TimeDepositComputationPreMatures []*TimeDepositComputationPreMature `gorm:"foreignKey:TimeDepositTypeID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"time_deposit_computation_pre_matures,omitempty"`
 	}
 
@@ -89,8 +86,7 @@ type (
 		PreMatureRate float64 `json:"pre_mature_rate"`
 		Excess        float64 `json:"excess"`
 
-		TimeDepositComputations []*TimeDepositComputationResponse `json:"time_deposit_computations,omitempty"`
-
+		TimeDepositComputations          []*TimeDepositComputationResponse          `json:"time_deposit_computations,omitempty"`
 		TimeDepositComputationPreMatures []*TimeDepositComputationPreMatureResponse `json:"time_deposit_computation_pre_matures,omitempty"`
 	}
 
@@ -102,6 +98,14 @@ type (
 		PreMature                      int       `json:"pre_mature,omitempty"`
 		PreMatureRate                  float64   `json:"pre_mature_rate,omitempty"`
 		Excess                         float64   `json:"excess,omitempty"`
+
+		// Nested relationships for creation/update
+		TimeDepositComputations          []*TimeDepositComputationRequest          `json:"time_deposit_computations,omitempty"`
+		TimeDepositComputationPreMatures []*TimeDepositComputationPreMatureRequest `json:"time_deposit_computation_pre_matures,omitempty"`
+
+		// Deletion arrays
+		TimeDepositComputationsDeleted          []uuid.UUID `json:"time_deposit_computations_deleted,omitempty"`
+		TimeDepositComputationPreMaturesDeleted []uuid.UUID `json:"time_deposit_computation_pre_matures_deleted,omitempty"`
 	}
 
 	TimeDepositTypeHeadersRequest struct {

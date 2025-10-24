@@ -169,14 +169,31 @@ func (c *Controller) TimeDepositTypeController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Time deposit type not found"})
 		}
+
+		// Start database transaction
+		tx := c.provider.Service.Database.Client().Begin()
+		if tx.Error != nil {
+			tx.Rollback()
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Failed to start database transaction: " + tx.Error.Error(),
+				Module:      "TimeDepositType",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+		}
+
+		// Update main time deposit type fields
 		timeDepositType.Name = req.Name
 		timeDepositType.Description = req.Description
+		timeDepositType.CurrencyID = req.CurrencyID
 		timeDepositType.PreMature = req.PreMature
 		timeDepositType.PreMatureRate = req.PreMatureRate
 		timeDepositType.Excess = req.Excess
 		timeDepositType.UpdatedAt = time.Now().UTC()
 		timeDepositType.UpdatedByID = user.UserID
-		if err := c.model_core.TimeDepositTypeManager.UpdateFields(context, timeDepositType.ID, timeDepositType); err != nil {
+
+		if err := c.model_core.TimeDepositTypeManager.UpdateFieldsWithTx(context, tx, timeDepositType.ID, timeDepositType); err != nil {
+			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Time deposit type update failed (/time-deposit-type/:time_deposit_type_id), db error: " + err.Error(),
@@ -184,6 +201,150 @@ func (c *Controller) TimeDepositTypeController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update time deposit type: " + err.Error()})
 		}
+
+		// Handle deletions first
+		if req.TimeDepositComputationsDeleted != nil {
+			for _, id := range req.TimeDepositComputationsDeleted {
+				if err := c.model_core.TimeDepositComputationManager.DeleteByIDWithTx(context, tx, id); err != nil {
+					tx.Rollback()
+					c.event.Footstep(context, ctx, event.FootstepEvent{
+						Activity:    "update-error",
+						Description: "Failed to delete time deposit computation: " + err.Error(),
+						Module:      "TimeDepositType",
+					})
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete time deposit computation: " + err.Error()})
+				}
+			}
+		}
+
+		if req.TimeDepositComputationPreMaturesDeleted != nil {
+			for _, id := range req.TimeDepositComputationPreMaturesDeleted {
+				if err := c.model_core.TimeDepositComputationPreMatureManager.DeleteByIDWithTx(context, tx, id); err != nil {
+					tx.Rollback()
+					c.event.Footstep(context, ctx, event.FootstepEvent{
+						Activity:    "update-error",
+						Description: "Failed to delete time deposit computation pre mature: " + err.Error(),
+						Module:      "TimeDepositType",
+					})
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete time deposit computation pre mature: " + err.Error()})
+				}
+			}
+		}
+
+		// Handle TimeDepositComputations creation/update
+		if req.TimeDepositComputations != nil {
+			for _, computationReq := range req.TimeDepositComputations {
+				if computationReq.ID != nil {
+					// Update existing record
+					existingComputation, err := c.model_core.TimeDepositComputationManager.GetByID(context, *computationReq.ID)
+					if err != nil {
+						tx.Rollback()
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get time deposit computation: " + err.Error()})
+					}
+					existingComputation.MininimumAmount = computationReq.MininimumAmount
+					existingComputation.MaximumAmount = computationReq.MaximumAmount
+					existingComputation.Header1 = computationReq.Header1
+					existingComputation.Header2 = computationReq.Header2
+					existingComputation.Header3 = computationReq.Header3
+					existingComputation.Header4 = computationReq.Header4
+					existingComputation.Header5 = computationReq.Header5
+					existingComputation.Header6 = computationReq.Header6
+					existingComputation.Header7 = computationReq.Header7
+					existingComputation.Header8 = computationReq.Header8
+					existingComputation.Header9 = computationReq.Header9
+					existingComputation.Header10 = computationReq.Header10
+					existingComputation.Header11 = computationReq.Header11
+					existingComputation.UpdatedAt = time.Now().UTC()
+					existingComputation.UpdatedByID = user.UserID
+					if err := c.model_core.TimeDepositComputationManager.UpdateFieldsWithTx(context, tx, existingComputation.ID, existingComputation); err != nil {
+						tx.Rollback()
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update time deposit computation: " + err.Error()})
+					}
+				} else {
+					// Create new record
+					newComputation := &model_core.TimeDepositComputation{
+						TimeDepositTypeID: timeDepositType.ID,
+						MininimumAmount:   computationReq.MininimumAmount,
+						MaximumAmount:     computationReq.MaximumAmount,
+						Header1:           computationReq.Header1,
+						Header2:           computationReq.Header2,
+						Header3:           computationReq.Header3,
+						Header4:           computationReq.Header4,
+						Header5:           computationReq.Header5,
+						Header6:           computationReq.Header6,
+						Header7:           computationReq.Header7,
+						Header8:           computationReq.Header8,
+						Header9:           computationReq.Header9,
+						Header10:          computationReq.Header10,
+						Header11:          computationReq.Header11,
+						CreatedAt:         time.Now().UTC(),
+						CreatedByID:       user.UserID,
+						UpdatedAt:         time.Now().UTC(),
+						UpdatedByID:       user.UserID,
+						BranchID:          *user.BranchID,
+						OrganizationID:    user.OrganizationID,
+					}
+					if err := c.model_core.TimeDepositComputationManager.CreateWithTx(context, tx, newComputation); err != nil {
+						tx.Rollback()
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create time deposit computation: " + err.Error()})
+					}
+				}
+			}
+		}
+
+		// Handle TimeDepositComputationPreMatures creation/update
+		if req.TimeDepositComputationPreMatures != nil {
+			for _, preMatureReq := range req.TimeDepositComputationPreMatures {
+				if preMatureReq.ID != nil {
+					// Update existing record
+					existingPreMature, err := c.model_core.TimeDepositComputationPreMatureManager.GetByID(context, *preMatureReq.ID)
+					if err != nil {
+						tx.Rollback()
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get time deposit computation pre mature: " + err.Error()})
+					}
+					existingPreMature.Terms = preMatureReq.Terms
+					existingPreMature.From = preMatureReq.From
+					existingPreMature.To = preMatureReq.To
+					existingPreMature.Rate = preMatureReq.Rate
+					existingPreMature.UpdatedAt = time.Now().UTC()
+					existingPreMature.UpdatedByID = user.UserID
+					if err := c.model_core.TimeDepositComputationPreMatureManager.UpdateFieldsWithTx(context, tx, existingPreMature.ID, existingPreMature); err != nil {
+						tx.Rollback()
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update time deposit computation pre mature: " + err.Error()})
+					}
+				} else {
+					// Create new record
+					newPreMature := &model_core.TimeDepositComputationPreMature{
+						TimeDepositTypeID: timeDepositType.ID,
+						Terms:             preMatureReq.Terms,
+						From:              preMatureReq.From,
+						To:                preMatureReq.To,
+						Rate:              preMatureReq.Rate,
+						CreatedAt:         time.Now().UTC(),
+						CreatedByID:       user.UserID,
+						UpdatedAt:         time.Now().UTC(),
+						UpdatedByID:       user.UserID,
+						BranchID:          *user.BranchID,
+						OrganizationID:    user.OrganizationID,
+					}
+					if err := c.model_core.TimeDepositComputationPreMatureManager.CreateWithTx(context, tx, newPreMature); err != nil {
+						tx.Rollback()
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create time deposit computation pre mature: " + err.Error()})
+					}
+				}
+			}
+		}
+
+		// Commit the transaction
+		if err := tx.Commit().Error; err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Failed to commit time deposit type update transaction: " + err.Error(),
+				Module:      "TimeDepositType",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit time deposit type update: " + err.Error()})
+		}
+
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated time deposit type (/time-deposit-type/:time_deposit_type_id): " + timeDepositType.Name,
@@ -383,28 +544,35 @@ func (c *Controller) TimeDepositTypeController() {
 		return ctx.JSON(http.StatusNotImplemented, c.model_core.TimeDepositTypeManager.ToModel(timeDepositType))
 	})
 
-	// req.RegisterRoute(handlers.Route{
-	// 	Route:        "/api/v1/member-profile/:member_profile_id/membership-info",
-	// 	Method:       "PUT",
-	// 	RequestType:  model_core.MemberProfileMembershipInfoRequest{},
-	// 	ResponseType: model_core.MemberProfileResponse{},
-	// 	Note:         "Updates the membership information of a member profile by member_profile_id.",
-	// }, func(ctx echo.Context) error {
-	// 	context := ctx.Request().Context()
-	// 	var req model_core.MemberProfileMembershipInfoRequest
-	// 	if err := ctx.Bind(&req); err != nil {
-	// 		c.event.Footstep(context, ctx, event.FootstepEvent{
-	// 			Activity:    "update-error",
-	// 			Description: "Update member profile membership info failed: invalid request body: " + err.Error(),
-	// 			Module:      "MemberProfile",
-	// 		})
-	// 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
-	// 	}
-	// 	if err := c.provider.Service.Validator.Struct(req); err != nil {
-	// 		c.event.Footstep(context, ctx, event.FootstepEvent{
-	// 			Activity:    "update-error",
-	// 			Description: "Update member profile membership info failed: validation error: " + err.Error(),
-	// 			Module:      "MemberProfile",
-	// 		})
-	// 		re
+	// GET /api/v1/time-deposit-type/currency/:currency_id
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/time-deposit-type/currency/:currency_id",
+		Method:       "GET",
+		Note:         "Fetch time deposit types by currency ID.",
+		ResponseType: []model_core.TimeDepositTypeResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		currencyID, err := handlers.EngineUUIDParam(ctx, "currency_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID"})
+		}
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Bank update failed (/bank/:bank_id), user org error: " + err.Error(),
+				Module:      "Bank",
+			})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		timeDepositTypes, err := c.model_core.TimeDepositTypeManager.Find(context, &model_core.TimeDepositType{
+			CurrencyID:     *currencyID,
+			BranchID:       *user.BranchID,
+			OrganizationID: user.OrganizationID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch time deposit types: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model_core.TimeDepositTypeManager.ToModels(timeDepositTypes))
+	})
 }

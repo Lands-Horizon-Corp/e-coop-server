@@ -58,11 +58,12 @@ type (
 	}
 
 	TimeDepositComputationPreMatureRequest struct {
-		TimeDepositTypeID uuid.UUID `json:"time_deposit_type_id" validate:"required"`
-		Terms             int       `json:"terms,omitempty"`
-		From              int       `json:"from,omitempty"`
-		To                int       `json:"to,omitempty"`
-		Rate              float64   `json:"rate,omitempty"`
+		ID                *uuid.UUID `json:"id,omitempty"`
+		TimeDepositTypeID uuid.UUID  `json:"time_deposit_type_id" validate:"required"`
+		Terms             int        `json:"terms,omitempty"`
+		From              int        `json:"from,omitempty"`
+		To                int        `json:"to,omitempty"`
+		Rate              float64    `json:"rate,omitempty"`
 	}
 )
 
