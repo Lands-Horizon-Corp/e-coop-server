@@ -248,6 +248,32 @@ func (c *Controller) LoanTransactionController() {
 		return ctx.JSON(http.StatusOK, c.model_core.LoanTransactionManager.ToModels(loanTransactions))
 	})
 
+	// GET /api/v1/loan-transaction/released/today
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/loan-transaction/released/today",
+		Method:       "GET",
+		Note:         "Fetches released loan transactions for the current user's organization and branch.",
+		ResponseType: model_core.LoanTransactionResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "released-error",
+				Description: "Loan transaction released fetch failed, user org error.",
+				Module:      "LoanTransaction",
+			})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if userOrg.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		loanTransactions, err := c.model_core.LoanTransactionReleasedCurrentDay(context, *userOrg.BranchID, userOrg.OrganizationID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch released loan transactions: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model_core.LoanTransactionManager.ToModels(loanTransactions))
+	})
 	// GET /api/v1/loan-transaction/released
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/released",
