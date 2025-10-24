@@ -53,14 +53,13 @@ type (
 
 		Name        string                `gorm:"type:varchar(255);not null;unique"`
 		Description string                `gorm:"type:text;not null;unique"`
-		Icon        string                `gorm:"type:varchar(255)"`
-		Type        ChargesRateSchemeType `gorm:"type:varchar(50);not null"`
+	Icon        string                `gorm:"type:varchar(255)"`
+	Type        ChargesRateSchemeType `gorm:"type:varchar(50);not null"`
 
-		// By type / MOP / Terms
-		MemberTypeID  uuid.UUID                 `gorm:"type:uuid;not null"`
-		MemberType    *MemberType               `gorm:"foreignKey:MemberTypeID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_type,omitempty"`
-		ModeOfPayment ChargesRateMemberTypeEnum `gorm:"type:varchar(20);default:'all'"`
-
+	// By type / MOP / Terms
+	MemberTypeID  *uuid.UUID                `gorm:"type:uuid"`
+	MemberType    *MemberType               `gorm:"foreignKey:MemberTypeID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_type,omitempty"`
+	ModeOfPayment ChargesRateMemberTypeEnum `gorm:"type:varchar(20);default:'all'"`
 		ModeOfPaymentHeader1  int `gorm:"default:0"`
 		ModeOfPaymentHeader2  int `gorm:"default:0"`
 		ModeOfPaymentHeader3  int `gorm:"default:0"`
@@ -135,7 +134,7 @@ type (
 		Icon        string                `json:"icon"`
 		Type        ChargesRateSchemeType `json:"type"`
 
-		MemberTypeID          uuid.UUID                 `json:"member_type_id"`
+		MemberTypeID          *uuid.UUID                `json:"member_type_id,omitempty"`
 		MemberType            *MemberTypeResponse       `json:"member_type,omitempty"`
 		ModeOfPayment         ChargesRateMemberTypeEnum `json:"mode_of_payment"`
 		ModeOfPaymentHeader1  int                       `json:"mode_of_payment_header_1"`
@@ -199,7 +198,7 @@ type (
 		CurrencyID                uuid.UUID             `json:"currency_id" validate:"required"`
 		AccountIDs                []uuid.UUID           `json:"account_ids,omitempty"`
 
-		MemberTypeID  uuid.UUID                 `json:"member_type_id" validate:"required"`
+		MemberTypeID  *uuid.UUID                 `json:"member_type_id,omitempty"`
 		ModeOfPayment ChargesRateMemberTypeEnum `json:"mode_of_payment,omitempty" validate:"omitempty,oneof=all daily weekly monthly semi-monthly quarterly semi-annual lumpsum"`
 
 		ModeOfPaymentHeader1  int `json:"mode_of_payment_header_1,omitempty"`
