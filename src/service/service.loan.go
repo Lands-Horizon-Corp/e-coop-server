@@ -5,27 +5,165 @@ import (
 	"errors"
 	"math"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
 	"github.com/rotisserie/eris"
 )
 
 func (t *TransactionService) LoanChargesRateComputation(ctx context.Context, crs model_core.ChargesRateScheme, ald model_core.LoanTransaction) float64 {
 	result := 0.0
+	termHeaders := []int{
+		crs.ByTermHeader1,
+		crs.ByTermHeader2,
+		crs.ByTermHeader3,
+		crs.ByTermHeader4,
+		crs.ByTermHeader5,
+		crs.ByTermHeader6,
+		crs.ByTermHeader7,
+		crs.ByTermHeader8,
+		crs.ByTermHeader9,
+		crs.ByTermHeader10,
+		crs.ByTermHeader11,
+		crs.ByTermHeader12,
+		crs.ByTermHeader13,
+		crs.ByTermHeader14,
+		crs.ByTermHeader15,
+		crs.ByTermHeader16,
+		crs.ByTermHeader17,
+		crs.ByTermHeader18,
+		crs.ByTermHeader19,
+		crs.ByTermHeader20,
+		crs.ByTermHeader21,
+		crs.ByTermHeader22,
+	}
+	modeOfPaymentHeaders := []int{
+		crs.ModeOfPaymentHeader1,
+		crs.ModeOfPaymentHeader2,
+		crs.ModeOfPaymentHeader3,
+		crs.ModeOfPaymentHeader4,
+		crs.ModeOfPaymentHeader5,
+		crs.ModeOfPaymentHeader6,
+		crs.ModeOfPaymentHeader7,
+		crs.ModeOfPaymentHeader8,
+		crs.ModeOfPaymentHeader9,
+		crs.ModeOfPaymentHeader10,
+		crs.ModeOfPaymentHeader11,
+		crs.ModeOfPaymentHeader12,
+		crs.ModeOfPaymentHeader13,
+		crs.ModeOfPaymentHeader14,
+		crs.ModeOfPaymentHeader15,
+		crs.ModeOfPaymentHeader16,
+		crs.ModeOfPaymentHeader17,
+		crs.ModeOfPaymentHeader18,
+		crs.ModeOfPaymentHeader19,
+		crs.ModeOfPaymentHeader20,
+		crs.ModeOfPaymentHeader21,
+		crs.ModeOfPaymentHeader22,
+	}
 	switch crs.Type {
 	case model_core.ChargesRateSchemeTypeByRange:
 
-	case model_core.ChargesRateSchemeTypeByMinimum:
-
-	case model_core.ChargesRateSchemeTypeByTerm:
+	case model_core.ChargesRateSchemeTypeByType:
 		if crs.MemberType != nil && ald.MemberProfile.MemberType != crs.MemberType {
 			return 0.0
 		}
 		if crs.ModeOfPayment != nil && ald.ModeOfPayment != *crs.ModeOfPayment {
 			return 0.0
 		}
+		if ald.Terms < 1 || ald.Terms > len(termHeaders) {
+			return 0.0
+		}
+	case model_core.ChargesRateSchemeTypeByTerm:
+		if ald.Terms < 1 || ald.Terms > len(modeOfPaymentHeaders) {
+			return 0.0
+		}
+		for _, data := range crs.ChargesRateByTerms {
+			if data.ModeOfPayment != ald.ModeOfPayment {
+				continue
+			}
+			chargesTerms := []float64{
+				data.Rate1,
+				data.Rate2,
+				data.Rate3,
+				data.Rate4,
+				data.Rate5,
+				data.Rate6,
+				data.Rate7,
+				data.Rate8,
+				data.Rate9,
+				data.Rate10,
+				data.Rate11,
+				data.Rate12,
+				data.Rate13,
+				data.Rate14,
+				data.Rate15,
+				data.Rate16,
+				data.Rate17,
+				data.Rate18,
+				data.Rate19,
+				data.Rate20,
+				data.Rate21,
+				data.Rate22,
+			}
+			lastRate := 0.0
+			for _, header := range handlers.Zip(chargesTerms, termHeaders) {
+				rate := header.First
+				term := header.Second
+				if term <= ald.Terms && rate > 0 {
+					lastRate = rate
+				} else {
+					break
+				}
+			}
+			if lastRate == 0.0 {
+				continue
+			}
+			switch ald.ModeOfPayment {
+			case model_core.LoanModeOfPaymentDaily:
+				result = ald.Applied1 * (lastRate / 100 / 30)
+			case model_core.LoanModeOfPaymentWeekly:
+				result = ald.Applied1 * (lastRate / 100 / 30) * 7
+			case model_core.LoanModeOfPaymentSemiMonthly:
+				result = ald.Applied1 * (lastRate / 100 / 30) * 15
+			case model_core.LoanModeOfPaymentMonthly:
+				result = ald.Applied1 * lastRate / 100
+			case model_core.LoanModeOfPaymentQuarterly:
+				result = ald.Applied1 * (lastRate / 100) * 3
+			case model_core.LoanModeOfPaymentSemiAnnual:
+				result = ald.Applied1 * (lastRate / 100) * 6
+			}
+			if result > 0 {
+				break
+			}
 
+		}
 	}
 	return result
+}
+
+func (t *TransactionService) LoanNumberOfPayments(ctx context.Context, lt *model_core.LoanTransaction) (int, error) {
+	switch lt.ModeOfPayment {
+	case model_core.LoanModeOfPaymentDaily:
+		return lt.Terms * 30, nil
+	case model_core.LoanModeOfPaymentWeekly:
+		return lt.Terms * 4, nil
+	case model_core.LoanModeOfPaymentSemiMonthly:
+		return lt.Terms * 2, nil
+	case model_core.LoanModeOfPaymentMonthly:
+		return lt.Terms, nil
+	case model_core.LoanModeOfPaymentQuarterly:
+		return lt.Terms / 3, nil
+	case model_core.LoanModeOfPaymentSemiAnnual:
+		return lt.Terms / 6, nil
+	case model_core.LoanModeOfPaymentLumpsum:
+		return 1, nil
+	case model_core.LoanModeOfPaymentFixedDays:
+		if lt.ModeOfPaymentFixedDays <= 0 {
+			return 0, eris.New("invalid fixed days: must be greater than 0")
+		}
+		return lt.Terms, nil
+	}
+	return 0, eris.New("not implemented yet")
 }
 
 func (t *TransactionService) LoanComputation(ctx context.Context, ald model_core.AutomaticLoanDeduction, lt model_core.LoanTransaction) float64 {

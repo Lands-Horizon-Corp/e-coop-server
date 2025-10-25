@@ -13,9 +13,9 @@ import (
 type ChargesRateSchemeType string
 
 const (
-	ChargesRateSchemeTypeByRange   ChargesRateSchemeType = "by_range"
-	ChargesRateSchemeTypeByMinimum ChargesRateSchemeType = "by_type"
-	ChargesRateSchemeTypeByTerm    ChargesRateSchemeType = "by_term"
+	ChargesRateSchemeTypeByRange ChargesRateSchemeType = "by_range"
+	ChargesRateSchemeTypeByType  ChargesRateSchemeType = "by_type"
+	ChargesRateSchemeTypeByTerm  ChargesRateSchemeType = "by_term"
 )
 
 type (

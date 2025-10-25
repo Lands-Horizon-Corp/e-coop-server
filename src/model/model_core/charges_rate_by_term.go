@@ -10,19 +10,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// Enum for charges_mode_of_payment_type
-type ChargesModeOfPaymentType string
-
-const (
-	Daily       ChargesModeOfPaymentType = "daily"
-	Weekly      ChargesModeOfPaymentType = "weekly"
-	Monthly     ChargesModeOfPaymentType = "monthly"
-	SemiMonthly ChargesModeOfPaymentType = "semi-monthly"
-	Quarterly   ChargesModeOfPaymentType = "quarterly"
-	SemiAnnual  ChargesModeOfPaymentType = "semi-annual"
-	LumpSum     ChargesModeOfPaymentType = "lumpsum"
-)
-
 type (
 	ChargesRateByTerm struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
@@ -44,9 +31,9 @@ type (
 		ChargesRateSchemeID uuid.UUID          `gorm:"type:uuid;not null"`
 		ChargesRateScheme   *ChargesRateScheme `gorm:"foreignKey:ChargesRateSchemeID;constraint:OnDelete:SET NULL,OnUpdate:CASCADE;" json:"charges_rate_scheme,omitempty"`
 
-		Name          string                   `gorm:"type:varchar(255)"`
-		Description   string                   `gorm:"type:text"`
-		ModeOfPayment ChargesModeOfPaymentType `gorm:"type:varchar(20);default:monthly"`
+		Name          string            `gorm:"type:varchar(255)"`
+		Description   string            `gorm:"type:text"`
+		ModeOfPayment LoanModeOfPayment `gorm:"type:varchar(20);default:monthly"`
 
 		Rate1  float64 `gorm:"type:decimal;default:0"`
 		Rate2  float64 `gorm:"type:decimal;default:0"`
@@ -88,7 +75,7 @@ type (
 		ChargesRateScheme   *ChargesRateSchemeResponse `json:"charges_rate_scheme,omitempty"`
 		Name                string                     `json:"name"`
 		Description         string                     `json:"description"`
-		ModeOfPayment       ChargesModeOfPaymentType   `json:"mode_of_payment"`
+		ModeOfPayment       LoanModeOfPayment          `json:"mode_of_payment"`
 		Rate1               float64                    `json:"rate_1"`
 		Rate2               float64                    `json:"rate_2"`
 		Rate3               float64                    `json:"rate_3"`
@@ -114,33 +101,33 @@ type (
 	}
 
 	ChargesRateByTermRequest struct {
-		ID                  *uuid.UUID               `json:"id,omitempty"`
-		ChargesRateSchemeID uuid.UUID                `json:"charges_rate_scheme_id" validate:"required"`
-		Name                string                   `json:"name,omitempty"`
-		Description         string                   `json:"description,omitempty"`
-		ModeOfPayment       ChargesModeOfPaymentType `json:"mode_of_payment,omitempty"`
-		Rate1               float64                  `json:"rate_1,omitempty"`
-		Rate2               float64                  `json:"rate_2,omitempty"`
-		Rate3               float64                  `json:"rate_3,omitempty"`
-		Rate4               float64                  `json:"rate_4,omitempty"`
-		Rate5               float64                  `json:"rate_5,omitempty"`
-		Rate6               float64                  `json:"rate_6,omitempty"`
-		Rate7               float64                  `json:"rate_7,omitempty"`
-		Rate8               float64                  `json:"rate_8,omitempty"`
-		Rate9               float64                  `json:"rate_9,omitempty"`
-		Rate10              float64                  `json:"rate_10,omitempty"`
-		Rate11              float64                  `json:"rate_11,omitempty"`
-		Rate12              float64                  `json:"rate_12,omitempty"`
-		Rate13              float64                  `json:"rate_13,omitempty"`
-		Rate14              float64                  `json:"rate_14,omitempty"`
-		Rate15              float64                  `json:"rate_15,omitempty"`
-		Rate16              float64                  `json:"rate_16,omitempty"`
-		Rate17              float64                  `json:"rate_17,omitempty"`
-		Rate18              float64                  `json:"rate_18,omitempty"`
-		Rate19              float64                  `json:"rate_19,omitempty"`
-		Rate20              float64                  `json:"rate_20,omitempty"`
-		Rate21              float64                  `json:"rate_21,omitempty"`
-		Rate22              float64                  `json:"rate_22,omitempty"`
+		ID                  *uuid.UUID        `json:"id,omitempty"`
+		ChargesRateSchemeID uuid.UUID         `json:"charges_rate_scheme_id" validate:"required"`
+		Name                string            `json:"name,omitempty"`
+		Description         string            `json:"description,omitempty"`
+		ModeOfPayment       LoanModeOfPayment `json:"mode_of_payment,omitempty"`
+		Rate1               float64           `json:"rate_1,omitempty"`
+		Rate2               float64           `json:"rate_2,omitempty"`
+		Rate3               float64           `json:"rate_3,omitempty"`
+		Rate4               float64           `json:"rate_4,omitempty"`
+		Rate5               float64           `json:"rate_5,omitempty"`
+		Rate6               float64           `json:"rate_6,omitempty"`
+		Rate7               float64           `json:"rate_7,omitempty"`
+		Rate8               float64           `json:"rate_8,omitempty"`
+		Rate9               float64           `json:"rate_9,omitempty"`
+		Rate10              float64           `json:"rate_10,omitempty"`
+		Rate11              float64           `json:"rate_11,omitempty"`
+		Rate12              float64           `json:"rate_12,omitempty"`
+		Rate13              float64           `json:"rate_13,omitempty"`
+		Rate14              float64           `json:"rate_14,omitempty"`
+		Rate15              float64           `json:"rate_15,omitempty"`
+		Rate16              float64           `json:"rate_16,omitempty"`
+		Rate17              float64           `json:"rate_17,omitempty"`
+		Rate18              float64           `json:"rate_18,omitempty"`
+		Rate19              float64           `json:"rate_19,omitempty"`
+		Rate20              float64           `json:"rate_20,omitempty"`
+		Rate21              float64           `json:"rate_21,omitempty"`
+		Rate22              float64           `json:"rate_22,omitempty"`
 	}
 )
 

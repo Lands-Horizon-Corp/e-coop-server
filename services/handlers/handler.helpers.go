@@ -399,3 +399,24 @@ func UuidPtrEqual(a, b *uuid.UUID) bool {
 	}
 	return *a == *b
 }
+func Zip[T, U any](slice1 []T, slice2 []U) []struct {
+	First  T
+	Second U
+} {
+	minLen := len(slice1)
+	if len(slice2) < minLen {
+		minLen = len(slice2)
+	}
+
+	result := make([]struct {
+		First  T
+		Second U
+	}, minLen)
+	for i := 0; i < minLen; i++ {
+		result[i] = struct {
+			First  T
+			Second U
+		}{slice1[i], slice2[i]}
+	}
+	return result
+}
