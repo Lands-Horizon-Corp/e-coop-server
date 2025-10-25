@@ -1415,7 +1415,6 @@ func (m *ModelCore) SubscriptionPlanSeed(ctx context.Context) error {
 					MaxAPICallsPerMonth: 100, CurrencyID: &currency.ID,
 				},
 			}
-
 		case "BND": // Brunei (B$) — English
 			subscription = []*SubscriptionPlan{
 				{
@@ -1469,7 +1468,6 @@ func (m *ModelCore) SubscriptionPlanSeed(ctx context.Context) error {
 					CurrencyID: &currency.ID,
 				},
 			}
-
 		case "SAR": // Saudi Arabia (﷼) — English
 			subscription = []*SubscriptionPlan{
 				{
@@ -1523,7 +1521,6 @@ func (m *ModelCore) SubscriptionPlanSeed(ctx context.Context) error {
 					CurrencyID: &currency.ID,
 				},
 			}
-
 		case "AED": // United Arab Emirates (د.إ) — English
 			subscription = []*SubscriptionPlan{
 				{
@@ -1577,7 +1574,6 @@ func (m *ModelCore) SubscriptionPlanSeed(ctx context.Context) error {
 					CurrencyID: &currency.ID,
 				},
 			}
-
 		case "ILS": // Israel (₪) — English
 			subscription = []*SubscriptionPlan{
 				{
@@ -1632,15 +1628,244 @@ func (m *ModelCore) SubscriptionPlanSeed(ctx context.Context) error {
 				},
 			}
 		case "ZAR": // South Africa
-			subscription = []*SubscriptionPlan{}
+			subscription = []*SubscriptionPlan{
+				{
+					Name:        "Enterprise Plan",
+					Description: "Top-tier plan with AI, machine learning, and unlimited features.",
+					Cost:        7000,
+					Timespan:    int64(30 * 24 * time.Hour),
+					MaxBranches: 50, MaxEmployees: 1000, MaxMembersPerBranch: 500,
+					Discount: 15, YearlyDiscount: 25,
+					HasAPIAccess: true, HasFlexibleOrgStructures: true,
+					HasAIEnabled: true, HasMachineLearning: true,
+					MaxAPICallsPerMonth: 0, // Unlimited
+					CurrencyID:          &currency.ID,
+				},
+				{
+					Name:        "Pro Plan",
+					Description: "Perfect for growing cooperatives with AI tools.",
+					Cost:        3500,
+					Timespan:    int64(30 * 24 * time.Hour),
+					MaxBranches: 20, MaxEmployees: 200, MaxMembersPerBranch: 100,
+					Discount: 10, YearlyDiscount: 20,
+					IsRecommended: true,
+					HasAPIAccess:  true, HasFlexibleOrgStructures: true,
+					HasAIEnabled: true, CurrencyID: &currency.ID,
+				},
+				{
+					Name:        "Growth Plan",
+					Description: "For mid-sized co-ops ready to expand operations.",
+					Cost:        1800,
+					Timespan:    int64(30 * 24 * time.Hour),
+					MaxBranches: 8, MaxEmployees: 75, MaxMembersPerBranch: 50,
+					Discount: 7, YearlyDiscount: 17,
+					HasAPIAccess: true, HasFlexibleOrgStructures: true,
+					CurrencyID: &currency.ID,
+				},
+				{
+					Name:        "Starter Plan",
+					Description: "Affordable option for new organizations.",
+					Cost:        900,
+					Timespan:    int64(30 * 24 * time.Hour),
+					MaxBranches: 3, MaxEmployees: 25, MaxMembersPerBranch: 25,
+					Discount: 5, YearlyDiscount: 15,
+					HasAPIAccess: true, CurrencyID: &currency.ID,
+				},
+				{
+					Name:        "Free Plan",
+					Description: "Free 30-day trial with basic features.",
+					Cost:        0,
+					Timespan:    int64(30 * 24 * time.Hour),
+					MaxBranches: 1, MaxEmployees: 3, MaxMembersPerBranch: 10,
+					CurrencyID: &currency.ID,
+				},
+			}
+
 		case "EGP": // Egypt
-			subscription = []*SubscriptionPlan{}
+			subscription = []*SubscriptionPlan{
+				{
+					Name:        "خطة المؤسسات",
+					Description: "الخطة الشاملة للمؤسسات الكبيرة مع ميزات الذكاء الاصطناعي والدعم المميز.",
+					Cost:        12000,
+					Timespan:    int64(30 * 24 * time.Hour),
+					MaxBranches: 50, MaxEmployees: 1000, MaxMembersPerBranch: 500,
+					Discount: 15, YearlyDiscount: 25,
+					HasAPIAccess: true, HasFlexibleOrgStructures: true,
+					HasAIEnabled: true, HasMachineLearning: true,
+					MaxAPICallsPerMonth: 0, CurrencyID: &currency.ID,
+				},
+				{
+					Name:        "الخطة الاحترافية",
+					Description: "الخطة المثالية للمؤسسات النامية مع أدوات الذكاء الاصطناعي.",
+					Cost:        6000,
+					Timespan:    int64(30 * 24 * time.Hour),
+					MaxBranches: 20, MaxEmployees: 200, MaxMembersPerBranch: 100,
+					IsRecommended: true,
+					Discount:      10, YearlyDiscount: 20,
+					HasAPIAccess: true, HasAIEnabled: true,
+					CurrencyID: &currency.ID,
+				},
+				{
+					Name:        "خطة النمو",
+					Description: "للمؤسسات المتوسطة التي تستعد للتوسع.",
+					Cost:        3000,
+					Timespan:    int64(30 * 24 * time.Hour),
+					MaxBranches: 8, MaxEmployees: 75, MaxMembersPerBranch: 50,
+					Discount: 7, YearlyDiscount: 17,
+					HasAPIAccess: true, CurrencyID: &currency.ID,
+				},
+				{
+					Name:        "الخطة المبتدئة",
+					Description: "خطة مناسبة للمؤسسات الصغيرة.",
+					Cost:        1500,
+					Timespan:    int64(30 * 24 * time.Hour),
+					MaxBranches: 3, MaxEmployees: 25, MaxMembersPerBranch: 25,
+					CurrencyID: &currency.ID,
+				},
+				{
+					Name:        "الخطة المجانية",
+					Description: "تجربة مجانية لمدة 30 يومًا مع ميزات أساسية.",
+					Cost:        0,
+					Timespan:    int64(30 * 24 * time.Hour),
+					MaxBranches: 1, MaxEmployees: 3, MaxMembersPerBranch: 10,
+					CurrencyID: &currency.ID,
+				},
+			}
+
 		case "TRY": // Turkey
-			subscription = []*SubscriptionPlan{}
+			subscription = []*SubscriptionPlan{
+				{
+					Name:        "Kurumsal Plan",
+					Description: "Sınırsız özellikler, AI/ML desteği ve öncelikli destek içeren üst düzey plan.",
+					Cost:        9000,
+					Timespan:    int64(30 * 24 * time.Hour),
+					MaxBranches: 50, MaxEmployees: 1000, MaxMembersPerBranch: 500,
+					Discount: 15, YearlyDiscount: 25,
+					HasAPIAccess: true, HasAIEnabled: true, HasMachineLearning: true,
+					CurrencyID: &currency.ID,
+				},
+				{
+					Name:          "Profesyonel Plan",
+					Description:   "Büyüyen kooperatifler için profesyonel plan.",
+					Cost:          4500,
+					Timespan:      int64(30 * 24 * time.Hour),
+					IsRecommended: true,
+					MaxBranches:   20, MaxEmployees: 200, MaxMembersPerBranch: 100,
+					Discount: 10, YearlyDiscount: 20,
+					HasAPIAccess: true, HasAIEnabled: true,
+					CurrencyID: &currency.ID,
+				},
+				{
+					Name:        "Büyüme Planı",
+					Description: "Orta ölçekli kurumlar için dengeli bir plan.",
+					Cost:        2200,
+					Timespan:    int64(30 * 24 * time.Hour),
+					MaxBranches: 8, MaxEmployees: 75, MaxMembersPerBranch: 50,
+					CurrencyID: &currency.ID,
+				},
+				{
+					Name:        "Başlangıç Planı",
+					Description: "Yeni başlayanlar için uygun fiyatlı plan.",
+					Cost:        1000,
+					Timespan:    int64(30 * 24 * time.Hour),
+					CurrencyID:  &currency.ID,
+				},
+				{
+					Name:        "Ücretsiz Plan",
+					Description: "Temel özelliklerle 30 günlük ücretsiz deneme.",
+					Cost:        0,
+					Timespan:    int64(30 * 24 * time.Hour),
+					CurrencyID:  &currency.ID,
+				},
+			}
+
 		case "XOF": // West African CFA Franc
-			subscription = []*SubscriptionPlan{}
+			subscription = []*SubscriptionPlan{
+				{
+					Name:        "Plan Entreprise",
+					Description: "Plan complet avec IA et assistance prioritaire.",
+					Cost:        2400000,
+					Timespan:    int64(30 * 24 * time.Hour),
+					MaxBranches: 50, MaxEmployees: 1000,
+					Discount: 15, YearlyDiscount: 25,
+					HasAPIAccess: true, HasAIEnabled: true, HasMachineLearning: true,
+					CurrencyID: &currency.ID,
+				},
+				{
+					Name:          "Plan Pro",
+					Description:   "Idéal pour les coopératives en croissance avec des outils d'IA.",
+					Cost:          1200000,
+					Timespan:      int64(30 * 24 * time.Hour),
+					IsRecommended: true,
+					HasAPIAccess:  true, HasAIEnabled: true,
+					CurrencyID: &currency.ID,
+				},
+				{
+					Name:        "Plan Croissance",
+					Description: "Pour les structures prêtes à se développer.",
+					Cost:        600000,
+					Timespan:    int64(30 * 24 * time.Hour),
+					CurrencyID:  &currency.ID,
+				},
+				{
+					Name:        "Plan Débutant",
+					Description: "Plan économique pour les petites structures.",
+					Cost:        300000,
+					Timespan:    int64(30 * 24 * time.Hour),
+					CurrencyID:  &currency.ID,
+				},
+				{
+					Name:        "Plan Gratuit",
+					Description: "Essai gratuit de 30 jours avec fonctions de base.",
+					Cost:        0,
+					Timespan:    int64(30 * 24 * time.Hour),
+					CurrencyID:  &currency.ID,
+				},
+			}
+
 		case "XAF": // Central African CFA Franc
-			subscription = []*SubscriptionPlan{}
+			subscription = []*SubscriptionPlan{
+				{
+					Name:        "Plan Entreprise",
+					Description: "Plan complet avec IA, ML et support premium.",
+					Cost:        2400000,
+					Timespan:    int64(30 * 24 * time.Hour),
+					MaxBranches: 50, MaxEmployees: 1000,
+					Discount: 15, YearlyDiscount: 25,
+					HasAPIAccess: true, HasAIEnabled: true, HasMachineLearning: true,
+					CurrencyID: &currency.ID,
+				},
+				{
+					Name:          "Plan Pro",
+					Description:   "Plan professionnel pour coopératives en expansion.",
+					Cost:          1200000,
+					Timespan:      int64(30 * 24 * time.Hour),
+					IsRecommended: true,
+					HasAPIAccess:  true, HasAIEnabled: true,
+					CurrencyID: &currency.ID,
+				},
+				{
+					Name:        "Plan Croissance",
+					Description: "Plan équilibré pour structures moyennes.",
+					Cost:        600000,
+					Timespan:    int64(30 * 24 * time.Hour),
+					CurrencyID:  &currency.ID,
+				},
+				{
+					Name:        "Plan Débutant",
+					Description: "Plan abordable pour petites organisations.",
+					Cost:        300000,
+					Timespan:    int64(30 * 24 * time.Hour),
+					CurrencyID:  &currency.ID,
+				},
+				{
+					Name:        "Plan Gratuit",
+					Description: "Essai gratuit de 30 jours avec fonctionnalités limitées.",
+					Cost:        0,
+					Timespan:    int64(30 * 24 * time.Hour),
+					CurrencyID:  &currency.ID,
+				},
+			}
 		case "MUR": // Mauritius
 			subscription = []*SubscriptionPlan{}
 		case "MVR": // Maldives
