@@ -217,7 +217,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 				if err != nil {
 					return nil, err
 				}
-				entry.Credit = e.service.LoanChargesRateComputation(ctx, *chargesRateScheme, *loanTransaction.MemberProfile)
+				entry.Credit = e.service.LoanChargesRateComputation(ctx, *chargesRateScheme, *loanTransaction)
 			}
 			if entry.Credit != 0 {
 				entry.Credit = e.service.LoanComputation(ctx, *entry.AutomaticLoanDeduction, *loanTransaction)
@@ -260,7 +260,16 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 				LoanTransactionID:        loanTransaction.ID,
 				Amount:                   0,
 			}
-			entry.Credit = e.service.LoanComputation(ctx, *ald, *loanTransaction)
+			if entry.AutomaticLoanDeduction.ChargesRateSchemeID != nil {
+				chargesRateScheme, err := e.model_core.ChargesRateSchemeManager.GetByID(ctx, *entry.AutomaticLoanDeduction.ChargesRateSchemeID)
+				if err != nil {
+					return nil, err
+				}
+				entry.Credit = e.service.LoanChargesRateComputation(ctx, *chargesRateScheme, *loanTransaction)
+			}
+			if entry.Credit != 0 {
+				entry.Credit = e.service.LoanComputation(ctx, *entry.AutomaticLoanDeduction, *loanTransaction)
+			}
 			if !entry.IsAddOn {
 				total_non_add_ons += entry.Credit
 			} else {

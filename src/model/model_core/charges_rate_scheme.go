@@ -53,35 +53,35 @@ type (
 
 		Name        string                `gorm:"type:varchar(255);not null;unique"`
 		Description string                `gorm:"type:text;not null;unique"`
-	Icon        string                `gorm:"type:varchar(255)"`
-	Type        ChargesRateSchemeType `gorm:"type:varchar(50);not null"`
+		Icon        string                `gorm:"type:varchar(255)"`
+		Type        ChargesRateSchemeType `gorm:"type:varchar(50);not null"`
 
-	// By type / MOP / Terms
-	MemberTypeID  *uuid.UUID                `gorm:"type:uuid"`
-	MemberType    *MemberType               `gorm:"foreignKey:MemberTypeID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_type,omitempty"`
-	ModeOfPayment ChargesRateMemberTypeEnum `gorm:"type:varchar(20);default:'all'"`
-		ModeOfPaymentHeader1  int `gorm:"default:0"`
-		ModeOfPaymentHeader2  int `gorm:"default:0"`
-		ModeOfPaymentHeader3  int `gorm:"default:0"`
-		ModeOfPaymentHeader4  int `gorm:"default:0"`
-		ModeOfPaymentHeader5  int `gorm:"default:0"`
-		ModeOfPaymentHeader6  int `gorm:"default:0"`
-		ModeOfPaymentHeader7  int `gorm:"default:0"`
-		ModeOfPaymentHeader8  int `gorm:"default:0"`
-		ModeOfPaymentHeader9  int `gorm:"default:0"`
-		ModeOfPaymentHeader10 int `gorm:"default:0"`
-		ModeOfPaymentHeader11 int `gorm:"default:0"`
-		ModeOfPaymentHeader12 int `gorm:"default:0"`
-		ModeOfPaymentHeader13 int `gorm:"default:0"`
-		ModeOfPaymentHeader14 int `gorm:"default:0"`
-		ModeOfPaymentHeader15 int `gorm:"default:0"`
-		ModeOfPaymentHeader16 int `gorm:"default:0"`
-		ModeOfPaymentHeader17 int `gorm:"default:0"`
-		ModeOfPaymentHeader18 int `gorm:"default:0"`
-		ModeOfPaymentHeader19 int `gorm:"default:0"`
-		ModeOfPaymentHeader20 int `gorm:"default:0"`
-		ModeOfPaymentHeader21 int `gorm:"default:0"`
-		ModeOfPaymentHeader22 int `gorm:"default:0"`
+		// By type / MOP / Terms
+		MemberTypeID          *uuid.UUID                `gorm:"type:uuid"`
+		MemberType            *MemberType               `gorm:"foreignKey:MemberTypeID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_type,omitempty"`
+		ModeOfPayment         ChargesRateMemberTypeEnum `gorm:"type:varchar(20);default:'all'"`
+		ModeOfPaymentHeader1  int                       `gorm:"default:0"`
+		ModeOfPaymentHeader2  int                       `gorm:"default:0"`
+		ModeOfPaymentHeader3  int                       `gorm:"default:0"`
+		ModeOfPaymentHeader4  int                       `gorm:"default:0"`
+		ModeOfPaymentHeader5  int                       `gorm:"default:0"`
+		ModeOfPaymentHeader6  int                       `gorm:"default:0"`
+		ModeOfPaymentHeader7  int                       `gorm:"default:0"`
+		ModeOfPaymentHeader8  int                       `gorm:"default:0"`
+		ModeOfPaymentHeader9  int                       `gorm:"default:0"`
+		ModeOfPaymentHeader10 int                       `gorm:"default:0"`
+		ModeOfPaymentHeader11 int                       `gorm:"default:0"`
+		ModeOfPaymentHeader12 int                       `gorm:"default:0"`
+		ModeOfPaymentHeader13 int                       `gorm:"default:0"`
+		ModeOfPaymentHeader14 int                       `gorm:"default:0"`
+		ModeOfPaymentHeader15 int                       `gorm:"default:0"`
+		ModeOfPaymentHeader16 int                       `gorm:"default:0"`
+		ModeOfPaymentHeader17 int                       `gorm:"default:0"`
+		ModeOfPaymentHeader18 int                       `gorm:"default:0"`
+		ModeOfPaymentHeader19 int                       `gorm:"default:0"`
+		ModeOfPaymentHeader20 int                       `gorm:"default:0"`
+		ModeOfPaymentHeader21 int                       `gorm:"default:0"`
+		ModeOfPaymentHeader22 int                       `gorm:"default:0"`
 
 		// By Terms
 		ByTermHeader1  int `gorm:"default:0"`
@@ -198,7 +198,7 @@ type (
 		CurrencyID                uuid.UUID             `json:"currency_id" validate:"required"`
 		AccountIDs                []uuid.UUID           `json:"account_ids,omitempty"`
 
-		MemberTypeID  *uuid.UUID                 `json:"member_type_id,omitempty"`
+		MemberTypeID  *uuid.UUID                `json:"member_type_id,omitempty"`
 		ModeOfPayment ChargesRateMemberTypeEnum `json:"mode_of_payment,omitempty" validate:"omitempty,oneof=all daily weekly monthly semi-monthly quarterly semi-annual lumpsum"`
 
 		ModeOfPaymentHeader1  int `json:"mode_of_payment_header_1,omitempty"`

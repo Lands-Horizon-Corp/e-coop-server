@@ -9,9 +9,17 @@ import (
 	"github.com/rotisserie/eris"
 )
 
-func (t *TransactionService) LoanChargesRateComputation(ctx context.Context, crs model_core.ChargesRateScheme, member model_core.MemberProfile) float64 {
-	
-	return 0.0
+func (t *TransactionService) LoanChargesRateComputation(ctx context.Context, crs model_core.ChargesRateScheme, ald model_core.LoanTransaction) float64 {
+	result := 0.0
+	switch crs.Type {
+	case model_core.ChargesRateSchemeTypeByRange:
+
+	case model_core.ChargesRateSchemeTypeByMinimum:
+
+	case model_core.ChargesRateSchemeTypeByTerm:
+
+	}
+	return result
 }
 
 func (t *TransactionService) LoanComputation(ctx context.Context, ald model_core.AutomaticLoanDeduction, lt model_core.LoanTransaction) float64 {
