@@ -62,6 +62,21 @@ func (t *TransactionService) LoanChargesRateComputation(ctx context.Context, crs
 	}
 	switch crs.Type {
 	case model_core.ChargesRateSchemeTypeByRange:
+		for _, data := range crs.ChargesRateByRangeOrMinimumAmounts {
+			if ald.Applied1 < data.From || ald.Applied1 > data.To {
+				continue
+			}
+			if data.Amount > 0 {
+				result = data.Amount
+			}
+			if data.Charge > 0 {
+				result = ald.Applied1 * (data.Charge / 100)
+			}
+			if result > 0 && result >= data.MinimumAmount {
+				result = data.MinimumAmount
+				return result
+			}
+		}
 	case model_core.ChargesRateSchemeTypeByType:
 		if crs.MemberType != nil && ald.MemberProfile.MemberType != crs.MemberType {
 			return 0.0
