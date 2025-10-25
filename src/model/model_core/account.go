@@ -2210,6 +2210,313 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 	return nil
 }
 
+// BeforeUpdate hook for Account model to track changes
+func (a *Account) BeforeUpdate(tx *gorm.DB) error {
+	// Get the original account data before update
+	var original Account
+	if err := tx.First(&original, a.ID).Error; err != nil {
+		return err
+	}
+
+	// Create history record with the original data
+	now := time.Now().UTC()
+	history := &AccountHistory{
+		AccountID:      a.ID,
+		OrganizationID: original.OrganizationID,
+		BranchID:       original.BranchID,
+		CreatedByID:    a.UpdatedByID,
+		ChangeType:     HistoryChangeTypeUpdated,
+		ValidFrom:      original.UpdatedAt,
+		ValidTo:        &now,
+		ChangeReason:   "Account updated",
+
+		// Copy all original data
+		Name:                                original.Name,
+		Description:                         original.Description,
+		Type:                                original.Type,
+		MinAmount:                           original.MinAmount,
+		MaxAmount:                           original.MaxAmount,
+		Index:                               original.Index,
+		IsInternal:                          original.IsInternal,
+		CashOnHand:                          original.CashOnHand,
+		PaidUpShareCapital:                  original.PaidUpShareCapital,
+		ComputationType:                     original.ComputationType,
+		FinesAmort:                          original.FinesAmort,
+		FinesMaturity:                       original.FinesMaturity,
+		InterestStandard:                    original.InterestStandard,
+		InterestSecured:                     original.InterestSecured,
+		FinesGracePeriodAmortization:        original.FinesGracePeriodAmortization,
+		AdditionalGracePeriod:               original.AdditionalGracePeriod,
+		NumberGracePeriodDaily:              original.NumberGracePeriodDaily,
+		FinesGracePeriodMaturity:            original.FinesGracePeriodMaturity,
+		YearlySubscriptionFee:               original.YearlySubscriptionFee,
+		LoanCutOffDays:                      original.LoanCutOffDays,
+		LumpsumComputationType:              original.LumpsumComputationType,
+		InterestFinesComputationDiminishing: original.InterestFinesComputationDiminishing,
+		InterestFinesComputationDiminishingStraightYearly: original.InterestFinesComputationDiminishingStraightYearly,
+		EarnedUnearnedInterest:                            original.EarnedUnearnedInterest,
+		LoanSavingType:                                    original.LoanSavingType,
+		InterestDeduction:                                 original.InterestDeduction,
+		OtherDeductionEntry:                               original.OtherDeductionEntry,
+		InterestSavingTypeDiminishingStraight:             original.InterestSavingTypeDiminishingStraight,
+		OtherInformationOfAnAccount:                       original.OtherInformationOfAnAccount,
+		FinancialStatementType:                            original.FinancialStatementType,
+		GeneralLedgerType:                                 original.GeneralLedgerType,
+		HeaderRow:                                         original.HeaderRow,
+		CenterRow:                                         original.CenterRow,
+		TotalRow:                                          original.TotalRow,
+		GeneralLedgerGroupingExcludeAccount:               original.GeneralLedgerGroupingExcludeAccount,
+		Icon:                                              original.Icon,
+		ShowInGeneralLedgerSourceWithdraw:                 original.ShowInGeneralLedgerSourceWithdraw,
+		ShowInGeneralLedgerSourceDeposit:                  original.ShowInGeneralLedgerSourceDeposit,
+		ShowInGeneralLedgerSourceJournal:                  original.ShowInGeneralLedgerSourceJournal,
+		ShowInGeneralLedgerSourcePayment:                  original.ShowInGeneralLedgerSourcePayment,
+		ShowInGeneralLedgerSourceAdjustment:               original.ShowInGeneralLedgerSourceAdjustment,
+		ShowInGeneralLedgerSourceJournalVoucher:           original.ShowInGeneralLedgerSourceJournalVoucher,
+		ShowInGeneralLedgerSourceCheckVoucher:             original.ShowInGeneralLedgerSourceCheckVoucher,
+		CompassionFund:                                    original.CompassionFund,
+		CompassionFundAmount:                              original.CompassionFundAmount,
+		CashAndCashEquivalence:                            original.CashAndCashEquivalence,
+		InterestStandardComputation:                       original.InterestStandardComputation,
+
+		// Foreign key references
+		GeneralLedgerDefinitionID:      original.GeneralLedgerDefinitionID,
+		FinancialStatementDefinitionID: original.FinancialStatementDefinitionID,
+		AccountClassificationID:        original.AccountClassificationID,
+		AccountCategoryID:              original.AccountCategoryID,
+		MemberTypeID:                   original.MemberTypeID,
+		CurrencyID:                     original.CurrencyID,
+		ComputationSheetID:             original.ComputationSheetID,
+		AlternativeAccountID:           original.AlternativeAccountID,
+
+		// Grace period entries
+		CohCibFinesGracePeriodEntryCashHand:                original.CohCibFinesGracePeriodEntryCashHand,
+		CohCibFinesGracePeriodEntryCashInBank:              original.CohCibFinesGracePeriodEntryCashInBank,
+		CohCibFinesGracePeriodEntryDailyAmortization:       original.CohCibFinesGracePeriodEntryDailyAmortization,
+		CohCibFinesGracePeriodEntryDailyMaturity:           original.CohCibFinesGracePeriodEntryDailyMaturity,
+		CohCibFinesGracePeriodEntryWeeklyAmortization:      original.CohCibFinesGracePeriodEntryWeeklyAmortization,
+		CohCibFinesGracePeriodEntryWeeklyMaturity:          original.CohCibFinesGracePeriodEntryWeeklyMaturity,
+		CohCibFinesGracePeriodEntryMonthlyAmortization:     original.CohCibFinesGracePeriodEntryMonthlyAmortization,
+		CohCibFinesGracePeriodEntryMonthlyMaturity:         original.CohCibFinesGracePeriodEntryMonthlyMaturity,
+		CohCibFinesGracePeriodEntrySemiMonthlyAmortization: original.CohCibFinesGracePeriodEntrySemiMonthlyAmortization,
+		CohCibFinesGracePeriodEntrySemiMonthlyMaturity:     original.CohCibFinesGracePeriodEntrySemiMonthlyMaturity,
+		CohCibFinesGracePeriodEntryQuarterlyAmortization:   original.CohCibFinesGracePeriodEntryQuarterlyAmortization,
+		CohCibFinesGracePeriodEntryQuarterlyMaturity:       original.CohCibFinesGracePeriodEntryQuarterlyMaturity,
+		CohCibFinesGracePeriodEntrySemiAnualAmortization:   original.CohCibFinesGracePeriodEntrySemiAnualAmortization,
+		CohCibFinesGracePeriodEntrySemiAnualMaturity:       original.CohCibFinesGracePeriodEntrySemiAnualMaturity,
+		CohCibFinesGracePeriodEntryLumpsumAmortization:     original.CohCibFinesGracePeriodEntryLumpsumAmortization,
+		CohCibFinesGracePeriodEntryLumpsumMaturity:         original.CohCibFinesGracePeriodEntryLumpsumMaturity,
+	}
+
+	// Save the history record
+	if err := tx.Create(history).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// AfterCreate hook for Account model to create initial history record
+func (a *Account) AfterCreate(tx *gorm.DB) error {
+	history := &AccountHistory{
+		AccountID:      a.ID,
+		OrganizationID: a.OrganizationID,
+		BranchID:       a.BranchID,
+		CreatedByID:    a.CreatedByID,
+		ChangeType:     HistoryChangeTypeCreated,
+		ValidFrom:      a.CreatedAt,
+		ChangeReason:   "Account created",
+
+		// Copy all current data
+		Name:                                a.Name,
+		Description:                         a.Description,
+		Type:                                a.Type,
+		MinAmount:                           a.MinAmount,
+		MaxAmount:                           a.MaxAmount,
+		Index:                               a.Index,
+		IsInternal:                          a.IsInternal,
+		CashOnHand:                          a.CashOnHand,
+		PaidUpShareCapital:                  a.PaidUpShareCapital,
+		ComputationType:                     a.ComputationType,
+		FinesAmort:                          a.FinesAmort,
+		FinesMaturity:                       a.FinesMaturity,
+		InterestStandard:                    a.InterestStandard,
+		InterestSecured:                     a.InterestSecured,
+		FinesGracePeriodAmortization:        a.FinesGracePeriodAmortization,
+		AdditionalGracePeriod:               a.AdditionalGracePeriod,
+		NumberGracePeriodDaily:              a.NumberGracePeriodDaily,
+		FinesGracePeriodMaturity:            a.FinesGracePeriodMaturity,
+		YearlySubscriptionFee:               a.YearlySubscriptionFee,
+		LoanCutOffDays:                      a.LoanCutOffDays,
+		LumpsumComputationType:              a.LumpsumComputationType,
+		InterestFinesComputationDiminishing: a.InterestFinesComputationDiminishing,
+		InterestFinesComputationDiminishingStraightYearly: a.InterestFinesComputationDiminishingStraightYearly,
+		EarnedUnearnedInterest:                            a.EarnedUnearnedInterest,
+		LoanSavingType:                                    a.LoanSavingType,
+		InterestDeduction:                                 a.InterestDeduction,
+		OtherDeductionEntry:                               a.OtherDeductionEntry,
+		InterestSavingTypeDiminishingStraight:             a.InterestSavingTypeDiminishingStraight,
+		OtherInformationOfAnAccount:                       a.OtherInformationOfAnAccount,
+		FinancialStatementType:                            a.FinancialStatementType,
+		GeneralLedgerType:                                 a.GeneralLedgerType,
+		HeaderRow:                                         a.HeaderRow,
+		CenterRow:                                         a.CenterRow,
+		TotalRow:                                          a.TotalRow,
+		GeneralLedgerGroupingExcludeAccount:               a.GeneralLedgerGroupingExcludeAccount,
+		Icon:                                              a.Icon,
+		ShowInGeneralLedgerSourceWithdraw:                 a.ShowInGeneralLedgerSourceWithdraw,
+		ShowInGeneralLedgerSourceDeposit:                  a.ShowInGeneralLedgerSourceDeposit,
+		ShowInGeneralLedgerSourceJournal:                  a.ShowInGeneralLedgerSourceJournal,
+		ShowInGeneralLedgerSourcePayment:                  a.ShowInGeneralLedgerSourcePayment,
+		ShowInGeneralLedgerSourceAdjustment:               a.ShowInGeneralLedgerSourceAdjustment,
+		ShowInGeneralLedgerSourceJournalVoucher:           a.ShowInGeneralLedgerSourceJournalVoucher,
+		ShowInGeneralLedgerSourceCheckVoucher:             a.ShowInGeneralLedgerSourceCheckVoucher,
+		CompassionFund:                                    a.CompassionFund,
+		CompassionFundAmount:                              a.CompassionFundAmount,
+		CashAndCashEquivalence:                            a.CashAndCashEquivalence,
+		InterestStandardComputation:                       a.InterestStandardComputation,
+
+		// Foreign key references
+		GeneralLedgerDefinitionID:      a.GeneralLedgerDefinitionID,
+		FinancialStatementDefinitionID: a.FinancialStatementDefinitionID,
+		AccountClassificationID:        a.AccountClassificationID,
+		AccountCategoryID:              a.AccountCategoryID,
+		MemberTypeID:                   a.MemberTypeID,
+		CurrencyID:                     a.CurrencyID,
+		ComputationSheetID:             a.ComputationSheetID,
+		AlternativeAccountID:           a.AlternativeAccountID,
+
+		// Grace period entries
+		CohCibFinesGracePeriodEntryCashHand:                a.CohCibFinesGracePeriodEntryCashHand,
+		CohCibFinesGracePeriodEntryCashInBank:              a.CohCibFinesGracePeriodEntryCashInBank,
+		CohCibFinesGracePeriodEntryDailyAmortization:       a.CohCibFinesGracePeriodEntryDailyAmortization,
+		CohCibFinesGracePeriodEntryDailyMaturity:           a.CohCibFinesGracePeriodEntryDailyMaturity,
+		CohCibFinesGracePeriodEntryWeeklyAmortization:      a.CohCibFinesGracePeriodEntryWeeklyAmortization,
+		CohCibFinesGracePeriodEntryWeeklyMaturity:          a.CohCibFinesGracePeriodEntryWeeklyMaturity,
+		CohCibFinesGracePeriodEntryMonthlyAmortization:     a.CohCibFinesGracePeriodEntryMonthlyAmortization,
+		CohCibFinesGracePeriodEntryMonthlyMaturity:         a.CohCibFinesGracePeriodEntryMonthlyMaturity,
+		CohCibFinesGracePeriodEntrySemiMonthlyAmortization: a.CohCibFinesGracePeriodEntrySemiMonthlyAmortization,
+		CohCibFinesGracePeriodEntrySemiMonthlyMaturity:     a.CohCibFinesGracePeriodEntrySemiMonthlyMaturity,
+		CohCibFinesGracePeriodEntryQuarterlyAmortization:   a.CohCibFinesGracePeriodEntryQuarterlyAmortization,
+		CohCibFinesGracePeriodEntryQuarterlyMaturity:       a.CohCibFinesGracePeriodEntryQuarterlyMaturity,
+		CohCibFinesGracePeriodEntrySemiAnualAmortization:   a.CohCibFinesGracePeriodEntrySemiAnualAmortization,
+		CohCibFinesGracePeriodEntrySemiAnualMaturity:       a.CohCibFinesGracePeriodEntrySemiAnualMaturity,
+		CohCibFinesGracePeriodEntryLumpsumAmortization:     a.CohCibFinesGracePeriodEntryLumpsumAmortization,
+		CohCibFinesGracePeriodEntryLumpsumMaturity:         a.CohCibFinesGracePeriodEntryLumpsumMaturity,
+	}
+
+	// Save the history record
+	return tx.Create(history).Error
+}
+
+// BeforeDelete hook for Account model to track deletion
+func (a *Account) BeforeDelete(tx *gorm.DB) error {
+	now := time.Now().UTC()
+
+	// Close any open history records for this account
+	if err := tx.Model(&AccountHistory{}).
+		Where("account_id = ? AND valid_to IS NULL", a.ID).
+		Update("valid_to", now).Error; err != nil {
+		return err
+	}
+
+	// Create deletion history record
+	history := &AccountHistory{
+		AccountID:      a.ID,
+		OrganizationID: a.OrganizationID,
+		BranchID:       a.BranchID,
+		CreatedByID: func() uuid.UUID {
+			if a.DeletedByID != nil {
+				return *a.DeletedByID
+			}
+			return uuid.Nil
+		}(),
+		ChangeType:   HistoryChangeTypeDeleted,
+		ValidFrom:    now,
+		ChangeReason: "Account deleted",
+
+		// Copy all current data before deletion
+		Name:                                a.Name,
+		Description:                         a.Description,
+		Type:                                a.Type,
+		MinAmount:                           a.MinAmount,
+		MaxAmount:                           a.MaxAmount,
+		Index:                               a.Index,
+		IsInternal:                          a.IsInternal,
+		CashOnHand:                          a.CashOnHand,
+		PaidUpShareCapital:                  a.PaidUpShareCapital,
+		ComputationType:                     a.ComputationType,
+		FinesAmort:                          a.FinesAmort,
+		FinesMaturity:                       a.FinesMaturity,
+		InterestStandard:                    a.InterestStandard,
+		InterestSecured:                     a.InterestSecured,
+		FinesGracePeriodAmortization:        a.FinesGracePeriodAmortization,
+		AdditionalGracePeriod:               a.AdditionalGracePeriod,
+		NumberGracePeriodDaily:              a.NumberGracePeriodDaily,
+		FinesGracePeriodMaturity:            a.FinesGracePeriodMaturity,
+		YearlySubscriptionFee:               a.YearlySubscriptionFee,
+		LoanCutOffDays:                      a.LoanCutOffDays,
+		LumpsumComputationType:              a.LumpsumComputationType,
+		InterestFinesComputationDiminishing: a.InterestFinesComputationDiminishing,
+		InterestFinesComputationDiminishingStraightYearly: a.InterestFinesComputationDiminishingStraightYearly,
+		EarnedUnearnedInterest:                            a.EarnedUnearnedInterest,
+		LoanSavingType:                                    a.LoanSavingType,
+		InterestDeduction:                                 a.InterestDeduction,
+		OtherDeductionEntry:                               a.OtherDeductionEntry,
+		InterestSavingTypeDiminishingStraight:             a.InterestSavingTypeDiminishingStraight,
+		OtherInformationOfAnAccount:                       a.OtherInformationOfAnAccount,
+		FinancialStatementType:                            a.FinancialStatementType,
+		GeneralLedgerType:                                 a.GeneralLedgerType,
+		HeaderRow:                                         a.HeaderRow,
+		CenterRow:                                         a.CenterRow,
+		TotalRow:                                          a.TotalRow,
+		GeneralLedgerGroupingExcludeAccount:               a.GeneralLedgerGroupingExcludeAccount,
+		Icon:                                              a.Icon,
+		ShowInGeneralLedgerSourceWithdraw:                 a.ShowInGeneralLedgerSourceWithdraw,
+		ShowInGeneralLedgerSourceDeposit:                  a.ShowInGeneralLedgerSourceDeposit,
+		ShowInGeneralLedgerSourceJournal:                  a.ShowInGeneralLedgerSourceJournal,
+		ShowInGeneralLedgerSourcePayment:                  a.ShowInGeneralLedgerSourcePayment,
+		ShowInGeneralLedgerSourceAdjustment:               a.ShowInGeneralLedgerSourceAdjustment,
+		ShowInGeneralLedgerSourceJournalVoucher:           a.ShowInGeneralLedgerSourceJournalVoucher,
+		ShowInGeneralLedgerSourceCheckVoucher:             a.ShowInGeneralLedgerSourceCheckVoucher,
+		CompassionFund:                                    a.CompassionFund,
+		CompassionFundAmount:                              a.CompassionFundAmount,
+		CashAndCashEquivalence:                            a.CashAndCashEquivalence,
+		InterestStandardComputation:                       a.InterestStandardComputation,
+
+		// Foreign key references
+		GeneralLedgerDefinitionID:      a.GeneralLedgerDefinitionID,
+		FinancialStatementDefinitionID: a.FinancialStatementDefinitionID,
+		AccountClassificationID:        a.AccountClassificationID,
+		AccountCategoryID:              a.AccountCategoryID,
+		MemberTypeID:                   a.MemberTypeID,
+		CurrencyID:                     a.CurrencyID,
+		ComputationSheetID:             a.ComputationSheetID,
+		AlternativeAccountID:           a.AlternativeAccountID,
+
+		// Grace period entries
+		CohCibFinesGracePeriodEntryCashHand:                a.CohCibFinesGracePeriodEntryCashHand,
+		CohCibFinesGracePeriodEntryCashInBank:              a.CohCibFinesGracePeriodEntryCashInBank,
+		CohCibFinesGracePeriodEntryDailyAmortization:       a.CohCibFinesGracePeriodEntryDailyAmortization,
+		CohCibFinesGracePeriodEntryDailyMaturity:           a.CohCibFinesGracePeriodEntryDailyMaturity,
+		CohCibFinesGracePeriodEntryWeeklyAmortization:      a.CohCibFinesGracePeriodEntryWeeklyAmortization,
+		CohCibFinesGracePeriodEntryWeeklyMaturity:          a.CohCibFinesGracePeriodEntryWeeklyMaturity,
+		CohCibFinesGracePeriodEntryMonthlyAmortization:     a.CohCibFinesGracePeriodEntryMonthlyAmortization,
+		CohCibFinesGracePeriodEntryMonthlyMaturity:         a.CohCibFinesGracePeriodEntryMonthlyMaturity,
+		CohCibFinesGracePeriodEntrySemiMonthlyAmortization: a.CohCibFinesGracePeriodEntrySemiMonthlyAmortization,
+		CohCibFinesGracePeriodEntrySemiMonthlyMaturity:     a.CohCibFinesGracePeriodEntrySemiMonthlyMaturity,
+		CohCibFinesGracePeriodEntryQuarterlyAmortization:   a.CohCibFinesGracePeriodEntryQuarterlyAmortization,
+		CohCibFinesGracePeriodEntryQuarterlyMaturity:       a.CohCibFinesGracePeriodEntryQuarterlyMaturity,
+		CohCibFinesGracePeriodEntrySemiAnualAmortization:   a.CohCibFinesGracePeriodEntrySemiAnualAmortization,
+		CohCibFinesGracePeriodEntrySemiAnualMaturity:       a.CohCibFinesGracePeriodEntrySemiAnualMaturity,
+		CohCibFinesGracePeriodEntryLumpsumAmortization:     a.CohCibFinesGracePeriodEntryLumpsumAmortization,
+		CohCibFinesGracePeriodEntryLumpsumMaturity:         a.CohCibFinesGracePeriodEntryLumpsumMaturity,
+	}
+
+	// Save the deletion history record
+	return tx.Create(history).Error
+}
+
 func (m *ModelCore) AccountCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Account, error) {
 	return m.AccountManager.Find(context, &Account{
 		OrganizationID: orgId,

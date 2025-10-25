@@ -125,8 +125,9 @@ type (
 		BillAndCoinsManager          horizon_services.Repository[BillAndCoins, BillAndCoinsResponse, BillAndCoinsRequest]
 
 		// ACCOUNT
-		AccountManager    horizon_services.Repository[Account, AccountResponse, AccountRequest]
-		AccountTagManager horizon_services.Repository[AccountTag, AccountTagResponse, AccountTagRequest]
+		AccountManager        horizon_services.Repository[Account, AccountResponse, AccountRequest]
+		AccountTagManager     horizon_services.Repository[AccountTag, AccountTagResponse, AccountTagRequest]
+		AccountHistoryManager horizon_services.Repository[AccountHistory, AccountHistoryResponse, AccountHistoryRequest]
 
 		// LEDGERS
 		GeneralLedgerManager          horizon_services.Repository[GeneralLedger, GeneralLedgerResponse, GeneralLedgerRequest]
@@ -271,6 +272,7 @@ func (c *ModelCore) Start(context context.Context) error {
 	c.GeneralLedgerDefinition()
 	c.Account()
 	c.AccountTag()
+	c.AccountHistory()
 	c.GroceryComputationSheet()
 	c.GroceryComputationSheetMonthly()
 	c.Holiday()
