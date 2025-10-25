@@ -94,12 +94,11 @@ func (c *Controller) ChargesRateSchemeController() {
 		}
 
 		chargesRateScheme := &model_core.ChargesRateScheme{
-			ChargesRateByTermHeaderID: req.ChargesRateByTermHeaderID,
-			MemberTypeID:              req.MemberTypeID,
-			ModeOfPayment:             req.ModeOfPayment,
-			Name:                      req.Name,
-			Description:               req.Description,
-			Icon:                      req.Icon,
+			MemberTypeID:  req.MemberTypeID,
+			ModeOfPayment: req.ModeOfPayment,
+			Name:          req.Name,
+			Description:   req.Description,
+			Icon:          req.Icon,
 			// ModeOfPayment header fields
 			ModeOfPaymentHeader1:  req.ModeOfPaymentHeader1,
 			ModeOfPaymentHeader2:  req.ModeOfPaymentHeader2,
@@ -256,8 +255,6 @@ func (c *Controller) ChargesRateSchemeController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
 
-		// Update main charges rate scheme fields
-		chargesRateScheme.ChargesRateByTermHeaderID = req.ChargesRateByTermHeaderID
 		chargesRateScheme.MemberTypeID = req.MemberTypeID
 		chargesRateScheme.ModeOfPayment = req.ModeOfPayment
 		chargesRateScheme.Name = req.Name

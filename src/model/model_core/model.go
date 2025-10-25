@@ -125,8 +125,9 @@ type (
 		BillAndCoinsManager          horizon_services.Repository[BillAndCoins, BillAndCoinsResponse, BillAndCoinsRequest]
 
 		// ACCOUNT
-		AccountManager    horizon_services.Repository[Account, AccountResponse, AccountRequest]
-		AccountTagManager horizon_services.Repository[AccountTag, AccountTagResponse, AccountTagRequest]
+		AccountManager        horizon_services.Repository[Account, AccountResponse, AccountRequest]
+		AccountTagManager     horizon_services.Repository[AccountTag, AccountTagResponse, AccountTagRequest]
+		AccountHistoryManager horizon_services.Repository[AccountHistory, AccountHistoryResponse, AccountHistoryRequest]
 
 		// LEDGERS
 		GeneralLedgerManager          horizon_services.Repository[GeneralLedger, GeneralLedgerResponse, GeneralLedgerRequest]
@@ -194,7 +195,6 @@ type (
 		ChargesRateSchemeManager                 horizon_services.Repository[ChargesRateScheme, ChargesRateSchemeResponse, ChargesRateSchemeRequest]
 		ChargesRateSchemeAccountManager          horizon_services.Repository[ChargesRateSchemeAccount, ChargesRateSchemeAccountResponse, ChargesRateSchemeAccountRequest]
 		ChargesRateByRangeOrMinimumAmountManager horizon_services.Repository[ChargesRateByRangeOrMinimumAmount, ChargesRateByRangeOrMinimumAmountResponse, ChargesRateByRangeOrMinimumAmountRequest]
-		ChargesRateByTermHeaderManager           horizon_services.Repository[ChargesRateByTermHeader, ChargesRateByTermHeaderResponse, ChargesRateByTermHeaderRequest]
 		ChargesRateByTermManager                 horizon_services.Repository[ChargesRateByTerm, ChargesRateByTermResponse, ChargesRateByTermRequest]
 
 		// ACCOUNTING ENTRY
@@ -249,7 +249,6 @@ func (c *ModelCore) Start(context context.Context) error {
 	c.Currency()
 	c.ChargesRateByRangeOrMinimumAmount()
 	c.ChargesRateByTerm()
-	c.ChargesRateByTermHeader()
 	c.ChargesRateSchemeAccount()
 	c.ChargesRateScheme()
 	c.CheckRemittance()
@@ -273,6 +272,7 @@ func (c *ModelCore) Start(context context.Context) error {
 	c.GeneralLedgerDefinition()
 	c.Account()
 	c.AccountTag()
+	c.AccountHistory()
 	c.GroceryComputationSheet()
 	c.GroceryComputationSheetMonthly()
 	c.Holiday()

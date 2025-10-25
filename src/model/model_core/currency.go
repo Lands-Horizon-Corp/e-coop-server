@@ -116,7 +116,7 @@ func (m *ModelCore) Currency() {
 	})
 }
 
-func (m *ModelCore) CurrencySeed(context context.Context, tx *gorm.DB) error {
+func (m *ModelCore) CurrencySeed(context context.Context) error {
 	now := time.Now().UTC()
 	currencies := []*Currency{
 		{CreatedAt: now, UpdatedAt: now, Name: "US Dollar", Country: "United States", CurrencyCode: "USD", Symbol: "US$", Emoji: "🇺🇸", ISO3166Alpha2: "US", ISO3166Alpha3: "USA", ISO3166Numeric: "840", PhoneCode: "+1", Domain: ".us", Locale: "en-US", Timezone: "America/New_York"},
@@ -226,7 +226,7 @@ func (m *ModelCore) CurrencySeed(context context.Context, tx *gorm.DB) error {
 	}
 
 	for _, currency := range currencies {
-		if err := m.CurrencyManager.CreateWithTx(context, tx, currency); err != nil {
+		if err := m.CurrencyManager.Create(context, currency); err != nil {
 			return eris.Wrapf(err, "failed to seed currency %s", currency.Name)
 		}
 	}

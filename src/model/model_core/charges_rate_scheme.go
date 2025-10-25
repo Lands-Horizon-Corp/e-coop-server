@@ -10,25 +10,12 @@ import (
 	"gorm.io/gorm"
 )
 
-type ChargesRateMemberTypeEnum string
-
-const (
-	ChargesMemberTypeAll         ChargesRateMemberTypeEnum = "all"
-	ChargesMemberTypeDaily       ChargesRateMemberTypeEnum = "daily"
-	ChargesMemberTypeWeekly      ChargesRateMemberTypeEnum = "weekly"
-	ChargesMemberTypeMonthly     ChargesRateMemberTypeEnum = "monthly"
-	ChargesMemberTypeSemiMonthly ChargesRateMemberTypeEnum = "semi-monthly"
-	ChargesMemberTypeQuarterly   ChargesRateMemberTypeEnum = "quarterly"
-	ChargesMemberTypeSemiAnnual  ChargesRateMemberTypeEnum = "semi-annual"
-	ChargesMemberTypeLumpsum     ChargesRateMemberTypeEnum = "lumpsum"
-)
-
 type ChargesRateSchemeType string
 
 const (
-	ChargesRateSchemeTypeByRange   ChargesRateSchemeType = "by_range"
-	ChargesRateSchemeTypeByMinimum ChargesRateSchemeType = "by_type"
-	ChargesRateSchemeTypeByTerm    ChargesRateSchemeType = "by_term"
+	ChargesRateSchemeTypeByRange ChargesRateSchemeType = "by_range"
+	ChargesRateSchemeTypeByType  ChargesRateSchemeType = "by_type"
+	ChargesRateSchemeTypeByTerm  ChargesRateSchemeType = "by_term"
 )
 
 type (
@@ -51,18 +38,15 @@ type (
 		CurrencyID     uuid.UUID     `gorm:"type:uuid;not null"`
 		Currency       *Currency     `gorm:"foreignKey:CurrencyID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"currency,omitempty"`
 
-		ChargesRateByTermHeaderID uuid.UUID                `gorm:"type:uuid"`
-		ChargesRateByTermHeader   *ChargesRateByTermHeader `gorm:"foreignKey:ChargesRateByTermHeaderID;constraint:OnDelete:SET NULL,OnUpdate:CASCADE;" json:"charges_rate_by_term_header,omitempty"`
-
 		Name        string                `gorm:"type:varchar(255);not null;unique"`
 		Description string                `gorm:"type:text;not null;unique"`
 		Icon        string                `gorm:"type:varchar(255)"`
 		Type        ChargesRateSchemeType `gorm:"type:varchar(50);not null"`
 
 		// By type / MOP / Terms
-		MemberTypeID  uuid.UUID                 `gorm:"type:uuid;not null"`
-		MemberType    *MemberType               `gorm:"foreignKey:MemberTypeID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_type,omitempty"`
-		ModeOfPayment ChargesRateMemberTypeEnum `gorm:"type:varchar(20);default:'all'"`
+		MemberTypeID  *uuid.UUID         `gorm:"type:uuid"`
+		MemberType    *MemberType        `gorm:"foreignKey:MemberTypeID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_type,omitempty"`
+		ModeOfPayment *LoanModeOfPayment `gorm:"type:varchar(20)"`
 
 		ModeOfPaymentHeader1  int `gorm:"default:0"`
 		ModeOfPaymentHeader2  int `gorm:"default:0"`
@@ -118,52 +102,51 @@ type (
 	}
 
 	ChargesRateSchemeResponse struct {
-		ID                        uuid.UUID                        `json:"id"`
-		CreatedAt                 string                           `json:"created_at"`
-		CreatedByID               uuid.UUID                        `json:"created_by_id"`
-		CreatedBy                 *UserResponse                    `json:"created_by,omitempty"`
-		UpdatedAt                 string                           `json:"updated_at"`
-		UpdatedByID               uuid.UUID                        `json:"updated_by_id"`
-		UpdatedBy                 *UserResponse                    `json:"updated_by,omitempty"`
-		OrganizationID            uuid.UUID                        `json:"organization_id"`
-		Organization              *OrganizationResponse            `json:"organization,omitempty"`
-		BranchID                  uuid.UUID                        `json:"branch_id"`
-		Branch                    *BranchResponse                  `json:"branch,omitempty"`
-		CurrencyID                uuid.UUID                        `json:"currency_id"`
-		Currency                  *CurrencyResponse                `json:"currency,omitempty"`
-		ChargesRateByTermHeaderID uuid.UUID                        `json:"charges_rate_by_term_header_id"`
-		ChargesRateByTermHeader   *ChargesRateByTermHeaderResponse `json:"charges_rate_by_term_header,omitempty"`
+		ID                        uuid.UUID             `json:"id"`
+		CreatedAt                 string                `json:"created_at"`
+		CreatedByID               uuid.UUID             `json:"created_by_id"`
+		CreatedBy                 *UserResponse         `json:"created_by,omitempty"`
+		UpdatedAt                 string                `json:"updated_at"`
+		UpdatedByID               uuid.UUID             `json:"updated_by_id"`
+		UpdatedBy                 *UserResponse         `json:"updated_by,omitempty"`
+		OrganizationID            uuid.UUID             `json:"organization_id"`
+		Organization              *OrganizationResponse `json:"organization,omitempty"`
+		BranchID                  uuid.UUID             `json:"branch_id"`
+		Branch                    *BranchResponse       `json:"branch,omitempty"`
+		CurrencyID                uuid.UUID             `json:"currency_id"`
+		Currency                  *CurrencyResponse     `json:"currency,omitempty"`
+		ChargesRateByTermHeaderID uuid.UUID             `json:"charges_rate_by_term_header_id"`
 
 		Name        string                `json:"name"`
 		Description string                `json:"description"`
 		Icon        string                `json:"icon"`
 		Type        ChargesRateSchemeType `json:"type"`
 
-		MemberTypeID          uuid.UUID                 `json:"member_type_id"`
-		MemberType            *MemberTypeResponse       `json:"member_type,omitempty"`
-		ModeOfPayment         ChargesRateMemberTypeEnum `json:"mode_of_payment"`
-		ModeOfPaymentHeader1  int                       `json:"mode_of_payment_header_1"`
-		ModeOfPaymentHeader2  int                       `json:"mode_of_payment_header_2"`
-		ModeOfPaymentHeader3  int                       `json:"mode_of_payment_header_3"`
-		ModeOfPaymentHeader4  int                       `json:"mode_of_payment_header_4"`
-		ModeOfPaymentHeader5  int                       `json:"mode_of_payment_header_5"`
-		ModeOfPaymentHeader6  int                       `json:"mode_of_payment_header_6"`
-		ModeOfPaymentHeader7  int                       `json:"mode_of_payment_header_7"`
-		ModeOfPaymentHeader8  int                       `json:"mode_of_payment_header_8"`
-		ModeOfPaymentHeader9  int                       `json:"mode_of_payment_header_9"`
-		ModeOfPaymentHeader10 int                       `json:"mode_of_payment_header_10"`
-		ModeOfPaymentHeader11 int                       `json:"mode_of_payment_header_11"`
-		ModeOfPaymentHeader12 int                       `json:"mode_of_payment_header_12"`
-		ModeOfPaymentHeader13 int                       `json:"mode_of_payment_header_13"`
-		ModeOfPaymentHeader14 int                       `json:"mode_of_payment_header_14"`
-		ModeOfPaymentHeader15 int                       `json:"mode_of_payment_header_15"`
-		ModeOfPaymentHeader16 int                       `json:"mode_of_payment_header_16"`
-		ModeOfPaymentHeader17 int                       `json:"mode_of_payment_header_17"`
-		ModeOfPaymentHeader18 int                       `json:"mode_of_payment_header_18"`
-		ModeOfPaymentHeader19 int                       `json:"mode_of_payment_header_19"`
-		ModeOfPaymentHeader20 int                       `json:"mode_of_payment_header_20"`
-		ModeOfPaymentHeader21 int                       `json:"mode_of_payment_header_21"`
-		ModeOfPaymentHeader22 int                       `json:"mode_of_payment_header_22"`
+		MemberTypeID          *uuid.UUID          `json:"member_type_id,omitempty"`
+		MemberType            *MemberTypeResponse `json:"member_type,omitempty"`
+		ModeOfPayment         *LoanModeOfPayment  `json:"mode_of_payment,omitempty"`
+		ModeOfPaymentHeader1  int                 `json:"mode_of_payment_header_1"`
+		ModeOfPaymentHeader2  int                 `json:"mode_of_payment_header_2"`
+		ModeOfPaymentHeader3  int                 `json:"mode_of_payment_header_3"`
+		ModeOfPaymentHeader4  int                 `json:"mode_of_payment_header_4"`
+		ModeOfPaymentHeader5  int                 `json:"mode_of_payment_header_5"`
+		ModeOfPaymentHeader6  int                 `json:"mode_of_payment_header_6"`
+		ModeOfPaymentHeader7  int                 `json:"mode_of_payment_header_7"`
+		ModeOfPaymentHeader8  int                 `json:"mode_of_payment_header_8"`
+		ModeOfPaymentHeader9  int                 `json:"mode_of_payment_header_9"`
+		ModeOfPaymentHeader10 int                 `json:"mode_of_payment_header_10"`
+		ModeOfPaymentHeader11 int                 `json:"mode_of_payment_header_11"`
+		ModeOfPaymentHeader12 int                 `json:"mode_of_payment_header_12"`
+		ModeOfPaymentHeader13 int                 `json:"mode_of_payment_header_13"`
+		ModeOfPaymentHeader14 int                 `json:"mode_of_payment_header_14"`
+		ModeOfPaymentHeader15 int                 `json:"mode_of_payment_header_15"`
+		ModeOfPaymentHeader16 int                 `json:"mode_of_payment_header_16"`
+		ModeOfPaymentHeader17 int                 `json:"mode_of_payment_header_17"`
+		ModeOfPaymentHeader18 int                 `json:"mode_of_payment_header_18"`
+		ModeOfPaymentHeader19 int                 `json:"mode_of_payment_header_19"`
+		ModeOfPaymentHeader20 int                 `json:"mode_of_payment_header_20"`
+		ModeOfPaymentHeader21 int                 `json:"mode_of_payment_header_21"`
+		ModeOfPaymentHeader22 int                 `json:"mode_of_payment_header_22"`
 
 		ByTermHeader1  int `json:"by_term_header_1"`
 		ByTermHeader2  int `json:"by_term_header_2"`
@@ -203,8 +186,8 @@ type (
 		CurrencyID                uuid.UUID             `json:"currency_id" validate:"required"`
 		AccountIDs                []uuid.UUID           `json:"account_ids,omitempty"`
 
-		MemberTypeID  uuid.UUID                 `json:"member_type_id" validate:"required"`
-		ModeOfPayment ChargesRateMemberTypeEnum `json:"mode_of_payment,omitempty" validate:"omitempty,oneof=all daily weekly monthly semi-monthly quarterly semi-annual lumpsum"`
+		MemberTypeID  *uuid.UUID         `json:"member_type_id,omitempty"`
+		ModeOfPayment *LoanModeOfPayment `json:"mode_of_payment,omitempty" validate:"omitempty,oneof=all daily weekly monthly semi-monthly quarterly semi-annual lumpsum"`
 
 		ModeOfPaymentHeader1  int `json:"mode_of_payment_header_1,omitempty"`
 		ModeOfPaymentHeader2  int `json:"mode_of_payment_header_2,omitempty"`
@@ -274,7 +257,7 @@ func (m *ModelCore) ChargesRateScheme() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
 			"Currency",
-			"ChargesRateByTermHeader",
+
 			"MemberType",
 			"ChargesRateSchemeAccounts",
 			"ChargesRateByRangeOrMinimumAmounts",
@@ -287,25 +270,23 @@ func (m *ModelCore) ChargesRateScheme() {
 				return nil
 			}
 			return &ChargesRateSchemeResponse{
-				ID:                        data.ID,
-				CreatedAt:                 data.CreatedAt.Format(time.RFC3339),
-				CreatedByID:               data.CreatedByID,
-				CreatedBy:                 m.UserManager.ToModel(data.CreatedBy),
-				UpdatedAt:                 data.UpdatedAt.Format(time.RFC3339),
-				UpdatedByID:               data.UpdatedByID,
-				UpdatedBy:                 m.UserManager.ToModel(data.UpdatedBy),
-				OrganizationID:            data.OrganizationID,
-				Organization:              m.OrganizationManager.ToModel(data.Organization),
-				BranchID:                  data.BranchID,
-				Branch:                    m.BranchManager.ToModel(data.Branch),
-				CurrencyID:                data.CurrencyID,
-				Currency:                  m.CurrencyManager.ToModel(data.Currency),
-				ChargesRateByTermHeaderID: data.ChargesRateByTermHeaderID,
-				ChargesRateByTermHeader:   m.ChargesRateByTermHeaderManager.ToModel(data.ChargesRateByTermHeader),
-				Name:                      data.Name,
-				Description:               data.Description,
-				Icon:                      data.Icon,
-				Type:                      data.Type,
+				ID:             data.ID,
+				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
+				CreatedByID:    data.CreatedByID,
+				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
+				UpdatedByID:    data.UpdatedByID,
+				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				OrganizationID: data.OrganizationID,
+				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				BranchID:       data.BranchID,
+				Branch:         m.BranchManager.ToModel(data.Branch),
+				CurrencyID:     data.CurrencyID,
+				Currency:       m.CurrencyManager.ToModel(data.Currency),
+				Name:           data.Name,
+				Description:    data.Description,
+				Icon:           data.Icon,
+				Type:           data.Type,
 
 				ChargesRateSchemeAccounts: m.ChargesRateSchemeAccountManager.ToModels(data.ChargesRateSchemeAccounts),
 
