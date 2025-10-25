@@ -31,8 +31,8 @@ type (
 		ChargesRateSchemeID uuid.UUID          `gorm:"type:uuid;not null"`
 		ChargesRateScheme   *ChargesRateScheme `gorm:"foreignKey:ChargesRateSchemeID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"charges_rate_scheme,omitempty"`
 
-		From int `gorm:"type:int;default:0"`
-		To   int `gorm:"type:int;default:0"`
+		From float64 `gorm:"type:decimal;default:0"`
+		To   float64 `gorm:"type:decimal;default:0"`
 
 		Column1  float64 `gorm:"type:decimal;default:0"`
 		Column2  float64 `gorm:"type:decimal;default:0"`
@@ -72,8 +72,8 @@ type (
 		Branch              *BranchResponse            `json:"branch,omitempty"`
 		ChargesRateSchemeID uuid.UUID                  `json:"charges_rate_scheme_id"`
 		ChargesRateScheme   *ChargesRateSchemeResponse `json:"charges_rate_scheme,omitempty"`
-		From                int                        `json:"from"`
-		To                  int                        `json:"to"`
+		From                float64                    `json:"from"`
+		To                  float64                    `json:"to"`
 
 		Column1  float64 `json:"column1"`
 		Column2  float64 `json:"column2"`
@@ -102,8 +102,8 @@ type (
 	ChargesRateSchemeModeOfPaymentRequest struct {
 		ID                  *uuid.UUID `json:"id,omitempty"`
 		ChargesRateSchemeID uuid.UUID  `json:"charges_rate_scheme_id" validate:"required"`
-		From                int        `json:"from,omitempty"`
-		To                  int        `json:"to,omitempty"`
+		From                float64    `json:"from,omitempty"`
+		To                  float64    `json:"to,omitempty"`
 
 		Column1  float64 `json:"column1,omitempty"`
 		Column2  float64 `json:"column2,omitempty"`

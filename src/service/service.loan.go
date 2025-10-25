@@ -62,7 +62,6 @@ func (t *TransactionService) LoanChargesRateComputation(ctx context.Context, crs
 	}
 	switch crs.Type {
 	case model_core.ChargesRateSchemeTypeByRange:
-
 	case model_core.ChargesRateSchemeTypeByType:
 		if crs.MemberType != nil && ald.MemberProfile.MemberType != crs.MemberType {
 			return 0.0
@@ -70,11 +69,69 @@ func (t *TransactionService) LoanChargesRateComputation(ctx context.Context, crs
 		if crs.ModeOfPayment != nil && ald.ModeOfPayment != *crs.ModeOfPayment {
 			return 0.0
 		}
-		if ald.Terms < 1 || ald.Terms > len(termHeaders) {
-			return 0.0
+
+		for _, data := range crs.ChargesRateSchemeModeOfPayments {
+			if ald.Applied1 < data.From || ald.Applied1 > data.To {
+				continue
+			}
+			chargesTerms := []float64{
+				data.Column1,
+				data.Column2,
+				data.Column3,
+				data.Column4,
+				data.Column5,
+				data.Column6,
+				data.Column7,
+				data.Column8,
+				data.Column9,
+				data.Column10,
+				data.Column11,
+				data.Column12,
+				data.Column13,
+				data.Column14,
+				data.Column15,
+				data.Column16,
+				data.Column17,
+				data.Column18,
+				data.Column19,
+				data.Column20,
+				data.Column21,
+				data.Column22,
+			}
+			lastRate := 0.0
+			for _, header := range handlers.Zip(chargesTerms, modeOfPaymentHeaders) {
+				rate := header.First
+				term := header.Second
+				if term <= ald.Terms && rate > 0 {
+					lastRate = rate
+				} else {
+					break
+				}
+			}
+			if lastRate == 0.0 {
+				continue
+			}
+			switch ald.ModeOfPayment {
+			case model_core.LoanModeOfPaymentDaily:
+				result = ald.Applied1 * (lastRate / 100 / 30)
+			case model_core.LoanModeOfPaymentWeekly:
+				result = ald.Applied1 * (lastRate / 100 / 30) * 7
+			case model_core.LoanModeOfPaymentSemiMonthly:
+				result = ald.Applied1 * (lastRate / 100 / 30) * 15
+			case model_core.LoanModeOfPaymentMonthly:
+				result = ald.Applied1 * lastRate / 100
+			case model_core.LoanModeOfPaymentQuarterly:
+				result = ald.Applied1 * (lastRate / 100) * 3
+			case model_core.LoanModeOfPaymentSemiAnnual:
+				result = ald.Applied1 * (lastRate / 100) * 6
+			}
+			if result > 0 {
+				return result
+			}
+
 		}
 	case model_core.ChargesRateSchemeTypeByTerm:
-		if ald.Terms < 1 || ald.Terms > len(modeOfPaymentHeaders) {
+		if ald.Terms < 1 {
 			return 0.0
 		}
 		for _, data := range crs.ChargesRateByTerms {
@@ -133,9 +190,8 @@ func (t *TransactionService) LoanChargesRateComputation(ctx context.Context, crs
 				result = ald.Applied1 * (lastRate / 100) * 6
 			}
 			if result > 0 {
-				break
+				return result
 			}
-
 		}
 	}
 	return result
