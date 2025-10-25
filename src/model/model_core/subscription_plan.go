@@ -1361,16 +1361,276 @@ func (m *ModelCore) SubscriptionPlanSeed(ctx context.Context) error {
 					CurrencyID: &currency.ID,
 				},
 			}
-		case "TWD": // Taiwan
-			subscription = []*SubscriptionPlan{}
-		case "BND": // Brunei
-			subscription = []*SubscriptionPlan{}
-		case "SAR": // Saudi Arabia
-			subscription = []*SubscriptionPlan{}
-		case "AED": // United Arab Emirates
-			subscription = []*SubscriptionPlan{}
-		case "ILS": // Israel
-			subscription = []*SubscriptionPlan{}
+		case "TWD": // Taiwan (NT$) — English
+			subscription = []*SubscriptionPlan{
+				{
+					Name:        "Enterprise Plan",
+					Description: "Comprehensive enterprise solution with AI and ML capabilities.",
+					Cost:        11999, // NT$11,999
+					Timespan:    int64(30 * 24 * time.Hour),
+					MaxBranches: 50, MaxEmployees: 1000, MaxMembersPerBranch: 500,
+					Discount: 15, YearlyDiscount: 25,
+					IsRecommended: false,
+					HasAPIAccess:  true, HasFlexibleOrgStructures: true,
+					HasAIEnabled: true, HasMachineLearning: true,
+					MaxAPICallsPerMonth: 0, CurrencyID: &currency.ID,
+				},
+				{
+					Name:          "Pro Plan",
+					Description:   "For growing cooperatives with AI tools and premium support.",
+					Cost:          5999, // NT$5,999
+					IsRecommended: true,
+					Timespan:      int64(30 * 24 * time.Hour),
+					MaxBranches:   20, MaxEmployees: 200, MaxMembersPerBranch: 100,
+					Discount: 10, YearlyDiscount: 20,
+					HasAPIAccess: true, HasFlexibleOrgStructures: true, HasAIEnabled: true,
+					MaxAPICallsPerMonth: 0, CurrencyID: &currency.ID,
+				},
+				{
+					Name:        "Growth Plan",
+					Description: "Mid-tier plan for scaling co-ops with flexibility.",
+					Cost:        2999, // NT$2,999
+					Timespan:    int64(30 * 24 * time.Hour),
+					MaxBranches: 8, MaxEmployees: 75, MaxMembersPerBranch: 50,
+					Discount: 7, YearlyDiscount: 17,
+					HasAPIAccess: true, HasFlexibleOrgStructures: true,
+					MaxAPICallsPerMonth: 10000, CurrencyID: &currency.ID,
+				},
+				{
+					Name:        "Starter Plan",
+					Description: "Affordable entry plan for small organizations.",
+					Cost:        1299, // NT$1,299
+					Timespan:    int64(30 * 24 * time.Hour),
+					MaxBranches: 3, MaxEmployees: 25, MaxMembersPerBranch: 25,
+					Discount: 5, YearlyDiscount: 15,
+					HasAPIAccess: true, HasFlexibleOrgStructures: false,
+					MaxAPICallsPerMonth: 1000, CurrencyID: &currency.ID,
+				},
+				{
+					Name:        "Free Plan",
+					Description: "Try the essential tools free for 30 days.",
+					Cost:        0,
+					Timespan:    int64(30 * 24 * time.Hour),
+					MaxBranches: 1, MaxEmployees: 3, MaxMembersPerBranch: 10,
+					MaxAPICallsPerMonth: 100, CurrencyID: &currency.ID,
+				},
+			}
+
+		case "BND": // Brunei (B$) — English
+			subscription = []*SubscriptionPlan{
+				{
+					Name:        "Enterprise Plan",
+					Description: "Enterprise-grade plan with full AI and ML capabilities.",
+					Cost:        499, // B$499
+					Timespan:    int64(30 * 24 * time.Hour),
+					MaxBranches: 50, MaxEmployees: 1000, MaxMembersPerBranch: 500,
+					Discount: 15, YearlyDiscount: 25,
+					HasAPIAccess: true, HasFlexibleOrgStructures: true,
+					HasAIEnabled: true, HasMachineLearning: true,
+					CurrencyID: &currency.ID,
+				},
+				{
+					Name:          "Pro Plan",
+					Description:   "For growing cooperatives with AI integration.",
+					Cost:          249, // B$249
+					IsRecommended: true,
+					Timespan:      int64(30 * 24 * time.Hour),
+					MaxBranches:   20, MaxEmployees: 200, MaxMembersPerBranch: 100,
+					Discount: 10, YearlyDiscount: 20,
+					HasAPIAccess: true, HasFlexibleOrgStructures: true, HasAIEnabled: true,
+					CurrencyID: &currency.ID,
+				},
+				{
+					Name:        "Growth Plan",
+					Description: "Flexible plan for expanding co-ops.",
+					Cost:        129, // B$129
+					Timespan:    int64(30 * 24 * time.Hour),
+					MaxBranches: 8, MaxEmployees: 75, MaxMembersPerBranch: 50,
+					Discount: 7, YearlyDiscount: 17,
+					HasAPIAccess: true, HasFlexibleOrgStructures: true,
+					CurrencyID: &currency.ID,
+				},
+				{
+					Name:        "Starter Plan",
+					Description: "Affordable plan for small organizations.",
+					Cost:        59, // B$59
+					Timespan:    int64(30 * 24 * time.Hour),
+					MaxBranches: 3, MaxEmployees: 25, MaxMembersPerBranch: 25,
+					Discount: 5, YearlyDiscount: 15,
+					HasAPIAccess: true,
+					CurrencyID:   &currency.ID,
+				},
+				{
+					Name:        "Free Plan",
+					Description: "Free 30-day trial with core features.",
+					Cost:        0,
+					Timespan:    int64(30 * 24 * time.Hour),
+					MaxBranches: 1, MaxEmployees: 3, MaxMembersPerBranch: 10,
+					CurrencyID: &currency.ID,
+				},
+			}
+
+		case "SAR": // Saudi Arabia (﷼) — English
+			subscription = []*SubscriptionPlan{
+				{
+					Name:        "Enterprise Plan",
+					Description: "Full-featured enterprise solution with AI/ML.",
+					Cost:        1499, // SAR 1,499
+					Timespan:    int64(30 * 24 * time.Hour),
+					MaxBranches: 50, MaxEmployees: 1000, MaxMembersPerBranch: 500,
+					Discount: 15, YearlyDiscount: 25,
+					HasAPIAccess: true, HasFlexibleOrgStructures: true,
+					HasAIEnabled: true, HasMachineLearning: true,
+					CurrencyID: &currency.ID,
+				},
+				{
+					Name:          "Pro Plan",
+					Description:   "AI-ready plan for growing organizations.",
+					Cost:          799,
+					IsRecommended: true,
+					Timespan:      int64(30 * 24 * time.Hour),
+					MaxBranches:   20, MaxEmployees: 200, MaxMembersPerBranch: 100,
+					Discount: 10, YearlyDiscount: 20,
+					HasAPIAccess: true, HasFlexibleOrgStructures: true, HasAIEnabled: true,
+					CurrencyID: &currency.ID,
+				},
+				{
+					Name:        "Growth Plan",
+					Description: "Ideal for mid-sized co-ops looking to expand.",
+					Cost:        399,
+					Timespan:    int64(30 * 24 * time.Hour),
+					MaxBranches: 8, MaxEmployees: 75, MaxMembersPerBranch: 50,
+					Discount: 7, YearlyDiscount: 17,
+					HasAPIAccess: true, HasFlexibleOrgStructures: true,
+					CurrencyID: &currency.ID,
+				},
+				{
+					Name:        "Starter Plan",
+					Description: "Affordable plan for small organizations.",
+					Cost:        199,
+					Timespan:    int64(30 * 24 * time.Hour),
+					MaxBranches: 3, MaxEmployees: 25, MaxMembersPerBranch: 25,
+					Discount: 5, YearlyDiscount: 15,
+					HasAPIAccess: true,
+					CurrencyID:   &currency.ID,
+				},
+				{
+					Name:        "Free Plan",
+					Description: "Free trial for 30 days with basic tools.",
+					Cost:        0,
+					Timespan:    int64(30 * 24 * time.Hour),
+					MaxBranches: 1, MaxEmployees: 3, MaxMembersPerBranch: 10,
+					CurrencyID: &currency.ID,
+				},
+			}
+
+		case "AED": // United Arab Emirates (د.إ) — English
+			subscription = []*SubscriptionPlan{
+				{
+					Name:        "Enterprise Plan",
+					Description: "Advanced enterprise-level solution with AI/ML.",
+					Cost:        1499, // AED 1,499
+					Timespan:    int64(30 * 24 * time.Hour),
+					MaxBranches: 50, MaxEmployees: 1000, MaxMembersPerBranch: 500,
+					Discount: 15, YearlyDiscount: 25,
+					HasAPIAccess: true, HasFlexibleOrgStructures: true,
+					HasAIEnabled: true, HasMachineLearning: true,
+					CurrencyID: &currency.ID,
+				},
+				{
+					Name:          "Pro Plan",
+					Description:   "AI-powered plan for growing cooperatives.",
+					Cost:          749,
+					IsRecommended: true,
+					Timespan:      int64(30 * 24 * time.Hour),
+					MaxBranches:   20, MaxEmployees: 200, MaxMembersPerBranch: 100,
+					Discount: 10, YearlyDiscount: 20,
+					HasAPIAccess: true, HasFlexibleOrgStructures: true, HasAIEnabled: true,
+					CurrencyID: &currency.ID,
+				},
+				{
+					Name:        "Growth Plan",
+					Description: "Balanced plan for scaling co-ops.",
+					Cost:        349,
+					Timespan:    int64(30 * 24 * time.Hour),
+					MaxBranches: 8, MaxEmployees: 75, MaxMembersPerBranch: 50,
+					Discount: 7, YearlyDiscount: 17,
+					HasAPIAccess: true, HasFlexibleOrgStructures: true,
+					CurrencyID: &currency.ID,
+				},
+				{
+					Name:        "Starter Plan",
+					Description: "Starter option for small organizations.",
+					Cost:        179,
+					Timespan:    int64(30 * 24 * time.Hour),
+					MaxBranches: 3, MaxEmployees: 25, MaxMembersPerBranch: 25,
+					Discount: 5, YearlyDiscount: 15,
+					HasAPIAccess: true,
+					CurrencyID:   &currency.ID,
+				},
+				{
+					Name:        "Free Plan",
+					Description: "Free trial for 30 days with core tools.",
+					Cost:        0,
+					Timespan:    int64(30 * 24 * time.Hour),
+					MaxBranches: 1, MaxEmployees: 3, MaxMembersPerBranch: 10,
+					CurrencyID: &currency.ID,
+				},
+			}
+
+		case "ILS": // Israel (₪) — English
+			subscription = []*SubscriptionPlan{
+				{
+					Name:        "Enterprise Plan",
+					Description: "Comprehensive enterprise plan with AI/ML and unlimited features.",
+					Cost:        1499, // ₪1,499
+					Timespan:    int64(30 * 24 * time.Hour),
+					MaxBranches: 50, MaxEmployees: 1000, MaxMembersPerBranch: 500,
+					Discount: 15, YearlyDiscount: 25,
+					HasAPIAccess: true, HasFlexibleOrgStructures: true,
+					HasAIEnabled: true, HasMachineLearning: true,
+					CurrencyID: &currency.ID,
+				},
+				{
+					Name:          "Pro Plan",
+					Description:   "Perfect for growing cooperatives with AI support.",
+					Cost:          799, // ₪799
+					IsRecommended: true,
+					Timespan:      int64(30 * 24 * time.Hour),
+					MaxBranches:   20, MaxEmployees: 200, MaxMembersPerBranch: 100,
+					Discount: 10, YearlyDiscount: 20,
+					HasAPIAccess: true, HasFlexibleOrgStructures: true, HasAIEnabled: true,
+					CurrencyID: &currency.ID,
+				},
+				{
+					Name:        "Growth Plan",
+					Description: "Mid-tier flexible plan for scaling cooperatives.",
+					Cost:        399, // ₪399
+					Timespan:    int64(30 * 24 * time.Hour),
+					MaxBranches: 8, MaxEmployees: 75, MaxMembersPerBranch: 50,
+					Discount: 7, YearlyDiscount: 17,
+					HasAPIAccess: true, HasFlexibleOrgStructures: true,
+					CurrencyID: &currency.ID,
+				},
+				{
+					Name:        "Starter Plan",
+					Description: "Entry-level plan for small organizations.",
+					Cost:        179, // ₪179
+					Timespan:    int64(30 * 24 * time.Hour),
+					MaxBranches: 3, MaxEmployees: 25, MaxMembersPerBranch: 25,
+					Discount: 5, YearlyDiscount: 15,
+					HasAPIAccess: true,
+					CurrencyID:   &currency.ID,
+				},
+				{
+					Name:        "Free Plan",
+					Description: "Free 30-day access with basic features.",
+					Cost:        0,
+					Timespan:    int64(30 * 24 * time.Hour),
+					MaxBranches: 1, MaxEmployees: 3, MaxMembersPerBranch: 10,
+					CurrencyID: &currency.ID,
+				},
+			}
 		case "ZAR": // South Africa
 			subscription = []*SubscriptionPlan{}
 		case "EGP": // Egypt
