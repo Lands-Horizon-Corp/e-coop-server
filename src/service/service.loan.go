@@ -17,6 +17,12 @@ func (t *TransactionService) LoanChargesRateComputation(ctx context.Context, crs
 	case model_core.ChargesRateSchemeTypeByMinimum:
 
 	case model_core.ChargesRateSchemeTypeByTerm:
+		if crs.MemberType != nil && ald.MemberProfile.MemberType != crs.MemberType {
+			return 0.0
+		}
+		if crs.ModeOfPayment != nil && ald.ModeOfPayment != *crs.ModeOfPayment {
+			return 0.0
+		}
 
 	}
 	return result
