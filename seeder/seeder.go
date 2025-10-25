@@ -118,13 +118,14 @@ func (s *Seeder) Run(ctx context.Context, multiplier int32) error {
 	}
 
 	s.provider.Service.Logger.Info("Starting database seeding with multiplier: " + fmt.Sprintf("%d", multiplier))
-	if err := s.SeedSubscription(ctx); err != nil {
+
+	if err := s.model_core.CategorySeed(ctx); err != nil {
 		return err
 	}
-	if err := s.SeedCategory(ctx); err != nil {
+	if err := s.model_core.CurrencySeed(ctx); err != nil {
 		return err
 	}
-	if err := s.SeedCurrency(ctx); err != nil {
+	if err := s.model_core.SubscriptionPlanSeed(ctx); err != nil {
 		return err
 	}
 	if err := s.SeedUsers(ctx, multiplier); err != nil {
@@ -140,180 +141,6 @@ func (s *Seeder) Run(ctx context.Context, multiplier int32) error {
 		return err
 	}
 	s.provider.Service.Logger.Info("Seeding completed successfully.")
-	return nil
-}
-
-func (s *Seeder) SeedCategory(ctx context.Context) error {
-	category, err := s.model_core.CategoryManager.List(ctx)
-	if err != nil {
-		return err
-	}
-	if len(category) >= 1 {
-		return nil
-	}
-
-	categories := []model_core.Category{
-		{
-			Name:        "Loaning",
-			Description: "Loan-related cooperative services",
-			Color:       "#FF5733",
-			Icon:        "loan",
-			CreatedAt:   time.Now().UTC(),
-			UpdatedAt:   time.Now().UTC(),
-		},
-		{
-			Name:        "Membership",
-			Description: "Member registration and benefits",
-			Color:       "#33C1FF",
-			Icon:        "user-group",
-			CreatedAt:   time.Now().UTC(),
-			UpdatedAt:   time.Now().UTC(),
-		},
-		{
-			Name:        "Team Building",
-			Description: "Events and programs to strengthen teamwork",
-			Color:       "#33FF6F",
-			Icon:        "team",
-			CreatedAt:   time.Now().UTC(),
-			UpdatedAt:   time.Now().UTC(),
-		},
-		{
-			Name:        "Farming",
-			Description: "Agricultural and farming initiatives",
-			Color:       "#A3D633",
-			Icon:        "tractor",
-			CreatedAt:   time.Now().UTC(),
-			UpdatedAt:   time.Now().UTC(),
-		},
-		{
-			Name:        "Technology",
-			Description: "Tech support and infrastructure",
-			Color:       "#8E44AD",
-			Icon:        "chip",
-			CreatedAt:   time.Now().UTC(),
-			UpdatedAt:   time.Now().UTC(),
-		},
-		{
-			Name:        "Education",
-			Description: "Training and educational programs",
-			Color:       "#FFC300",
-			Icon:        "book-open",
-			CreatedAt:   time.Now().UTC(),
-			UpdatedAt:   time.Now().UTC(),
-		},
-		{
-			Name:        "Livelihood",
-			Description: "Community livelihood support",
-			Color:       "#2ECC71",
-			Icon:        "briefcase",
-			CreatedAt:   time.Now().UTC(),
-			UpdatedAt:   time.Now().UTC(),
-		},
-	}
-
-	for _, category := range categories {
-		if err := s.model_core.CategoryManager.Create(ctx, &category); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (s *Seeder) SeedCurrency(ctx context.Context) error {
-	currencies, err := s.model_core.CurrencyManager.List(ctx)
-	if err != nil {
-		return err
-	}
-	if len(currencies) >= 1 {
-		s.provider.Service.Logger.Info("Currencies already exist, skipping currency seeding.")
-		return nil
-	}
-
-	s.provider.Service.Logger.Info("Starting currency seeding...")
-
-	// Run currency seeder
-	tx := s.provider.Service.Database.Client().Begin()
-	if tx.Error != nil {
-		tx.Rollback()
-		return tx.Error
-	}
-
-	if err := s.model_core.CurrencySeed(ctx, tx); err != nil {
-		tx.Rollback()
-		return err
-	}
-
-	if err := tx.Commit().Error; err != nil {
-		return err
-	}
-
-	s.provider.Service.Logger.Info("Currency seeding completed successfully.")
-	return nil
-}
-
-func (s *Seeder) SeedSubscription(ctx context.Context) error {
-	subscriptionPlan, err := s.model_core.SubscriptionPlanManager.List(ctx)
-	if err != nil {
-		return err
-	}
-	if len(subscriptionPlan) >= 1 {
-		return nil
-	}
-	subscriptionPlans := []model_core.SubscriptionPlan{
-		{
-			Name:                "Enterprise Plan",
-			Description:         "An enterprise-level plan with unlimited features and priority support.",
-			Cost:                499.99,
-			Timespan:            int64(30 * 24 * time.Hour),
-			MaxBranches:         50,
-			MaxEmployees:        1000,
-			MaxMembersPerBranch: 500,
-			Discount:            15.00, // 15% discount
-			YearlyDiscount:      25.00, // 25% yearly discount
-			IsRecommended:       false,
-		},
-		{
-			Name:                "Pro Plan",
-			Description:         "A professional plan perfect for growing cooperatives.",
-			Cost:                199.99,
-			Timespan:            int64(30 * 24 * time.Hour),
-			MaxBranches:         15,
-			MaxEmployees:        200,
-			MaxMembersPerBranch: 100,
-			Discount:            10.00, // 10% discount
-			YearlyDiscount:      20.00, // 20% yearly discount
-			IsRecommended:       true,
-		},
-		{
-			Name:                "Starter Plan",
-			Description:         "An affordable plan for small organizations just getting started.",
-			Cost:                49.99,
-			Timespan:            int64(30 * 24 * time.Hour),
-			MaxBranches:         3,
-			MaxEmployees:        25,
-			MaxMembersPerBranch: 25,
-			Discount:            5.00,  // 5% discount
-			YearlyDiscount:      15.00, // 15% yearly discount
-			IsRecommended:       false,
-		},
-		{
-			Name:                "Free Plan",
-			Description:         "A basic trial plan with essential features to get you started.",
-			Cost:                0.00,
-			Timespan:            int64(14 * 24 * time.Hour), // 14 days trial
-			MaxBranches:         1,
-			MaxEmployees:        3,
-			MaxMembersPerBranch: 10,
-			Discount:            0,
-			YearlyDiscount:      0,
-			IsRecommended:       false,
-		},
-	}
-	for _, subscriptionPlan := range subscriptionPlans {
-		if err := s.model_core.SubscriptionPlanManager.Create(ctx, &subscriptionPlan); err != nil {
-			return err // optionally log and continue
-		}
-	}
 	return nil
 }
 

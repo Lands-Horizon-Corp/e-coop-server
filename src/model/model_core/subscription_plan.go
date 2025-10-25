@@ -1,6 +1,7 @@
 package model_core
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"time"
@@ -26,9 +27,20 @@ type (
 		MaxMembersPerBranch int     `gorm:"not null"`
 		Discount            float64 `gorm:"type:numeric(5,2);default:0"`
 		YearlyDiscount      float64 `gorm:"type:numeric(5,2);default:0"`
-		IsRecommended       bool    `gorm:"not null;default:false"` // <-- Added field
+		IsRecommended       bool    `gorm:"not null;default:false"`
 
-		Organizations []*Organization `gorm:"foreignKey:SubscriptionPlanID" json:"organizations,omitempty"` // organization
+		// Core Features
+		HasAPIAccess             bool `gorm:"not null;default:false"` // False for free
+		HasFlexibleOrgStructures bool `gorm:"not null;default:false"` // False for free
+		HasAIEnabled             bool `gorm:"not null;default:false"`
+		HasMachineLearning       bool `gorm:"not null;default:false"`
+
+		// Limits
+		MaxAPICallsPerMonth int64 `gorm:"default:0"` // 0 for unlimited
+
+		Organizations []*Organization `gorm:"foreignKey:SubscriptionPlanID" json:"organizations,omitempty"`
+		CurrencyID    *uuid.UUID      `gorm:"type:uuid"`
+		Currency      *Currency       `gorm:"foreignKey:CurrencyID"`
 	}
 
 	SubscriptionPlanRequest struct {
@@ -43,9 +55,19 @@ type (
 		MaxMembersPerBranch int     `json:"max_members_per_branch" validate:"required,gte=0"`
 		Discount            float64 `json:"discount" validate:"gte=0"`
 		IsRecommended       bool    `json:"is_recommended"`
+		YearlyDiscount      float64 `json:"yearly_discount" validate:"gte=0"`
 
-		YearlyDiscount float64         `json:"yearly_discount" validate:"gte=0"`
-		Organizations  []*Organization `json:"organizations,omitempty"`
+		// Core Features
+		HasAPIAccess             bool `json:"has_api_access"`
+		HasFlexibleOrgStructures bool `json:"has_flexible_org_structures"`
+		HasAIEnabled             bool `json:"has_ai_enabled"`
+		HasMachineLearning       bool `json:"has_machine_learning"`
+
+		// Limits
+		MaxAPICallsPerMonth int64 `json:"max_api_calls_per_month" validate:"gte=0"`
+
+		Organizations []*Organization `json:"organizations,omitempty"`
+		CurrencyID    *uuid.UUID      `json:"currency_id,omitempty"`
 	}
 
 	SubscriptionPlanResponse struct {
@@ -61,6 +83,15 @@ type (
 		YearlyDiscount      float64   `json:"yearly_discount"`
 		IsRecommended       bool      `json:"is_recommended"`
 
+		// Core Features
+		HasAPIAccess             bool `json:"has_api_access"`
+		HasFlexibleOrgStructures bool `json:"has_flexible_org_structures"`
+		HasAIEnabled             bool `json:"has_ai_enabled"`
+		HasMachineLearning       bool `json:"has_machine_learning"`
+
+		// Limits
+		MaxAPICallsPerMonth int64 `json:"max_api_calls_per_month"`
+
 		MonthlyPrice           float64 `json:"monthly_price"`
 		YearlyPrice            float64 `json:"yearly_price"`
 		DiscountedMonthlyPrice float64 `json:"discounted_monthly_price"`
@@ -68,8 +99,77 @@ type (
 
 		CreatedAt string `json:"created_at"`
 		UpdatedAt string `json:"updated_at"`
+
+		CurrencyID *uuid.UUID        `json:"currency_id,omitempty"`
+		Currency   *CurrencyResponse `json:"currency,omitempty"`
 	}
 )
+
+func (m *ModelCore) SubscriptionPlanSeed(ctx context.Context) error {
+	subscriptionPlan, err := m.SubscriptionPlanManager.List(ctx)
+	if err != nil {
+		return err
+	}
+	if len(subscriptionPlan) >= 1 {
+		return nil
+	}
+	subscriptionPlans := []SubscriptionPlan{
+		{
+			Name:                "Enterprise Plan",
+			Description:         "An enterprise-level plan with unlimited features and priority support.",
+			Cost:                499.99,
+			Timespan:            int64(30 * 24 * time.Hour),
+			MaxBranches:         50,
+			MaxEmployees:        1000,
+			MaxMembersPerBranch: 500,
+			Discount:            15.00, // 15% discount
+			YearlyDiscount:      25.00, // 25% yearly discount
+			IsRecommended:       false,
+		},
+		{
+			Name:                "Pro Plan",
+			Description:         "A professional plan perfect for growing cooperatives.",
+			Cost:                199.99,
+			Timespan:            int64(30 * 24 * time.Hour),
+			MaxBranches:         15,
+			MaxEmployees:        200,
+			MaxMembersPerBranch: 100,
+			Discount:            10.00, // 10% discount
+			YearlyDiscount:      20.00, // 20% yearly discount
+			IsRecommended:       true,
+		},
+		{
+			Name:                "Starter Plan",
+			Description:         "An affordable plan for small organizations just getting started.",
+			Cost:                49.99,
+			Timespan:            int64(30 * 24 * time.Hour),
+			MaxBranches:         3,
+			MaxEmployees:        25,
+			MaxMembersPerBranch: 25,
+			Discount:            5.00,  // 5% discount
+			YearlyDiscount:      15.00, // 15% yearly discount
+			IsRecommended:       false,
+		},
+		{
+			Name:                "Free Plan",
+			Description:         "A basic trial plan with essential features to get you started.",
+			Cost:                0.00,
+			Timespan:            int64(14 * 24 * time.Hour), // 14 days trial
+			MaxBranches:         1,
+			MaxEmployees:        3,
+			MaxMembersPerBranch: 10,
+			Discount:            0,
+			YearlyDiscount:      0,
+			IsRecommended:       false,
+		},
+	}
+	for _, subscriptionPlan := range subscriptionPlans {
+		if err := m.SubscriptionPlanManager.Create(ctx, &subscriptionPlan); err != nil {
+			return err // optionally log and continue
+		}
+	}
+	return nil
+}
 
 func (m *ModelCore) SubscriptionPlan() {
 	m.Migration = append(m.Migration, &SubscriptionPlan{})
@@ -87,23 +187,35 @@ func (m *ModelCore) SubscriptionPlan() {
 			discountedYearlyPrice := math.Round((sp.Cost*12*(1-sp.YearlyDiscount/100))*100) / 100
 
 			return &SubscriptionPlanResponse{
-				ID:                     sp.ID,
-				Name:                   sp.Name,
-				Description:            sp.Description,
-				Cost:                   sp.Cost,
-				Timespan:               sp.Timespan,
-				MaxBranches:            sp.MaxBranches,
-				MaxEmployees:           sp.MaxEmployees,
-				MaxMembersPerBranch:    sp.MaxMembersPerBranch,
-				Discount:               sp.Discount,
-				YearlyDiscount:         sp.YearlyDiscount,
-				IsRecommended:          sp.IsRecommended,
+				ID:                  sp.ID,
+				Name:                sp.Name,
+				Description:         sp.Description,
+				Cost:                sp.Cost,
+				Timespan:            sp.Timespan,
+				MaxBranches:         sp.MaxBranches,
+				MaxEmployees:        sp.MaxEmployees,
+				MaxMembersPerBranch: sp.MaxMembersPerBranch,
+				Discount:            sp.Discount,
+				YearlyDiscount:      sp.YearlyDiscount,
+				IsRecommended:       sp.IsRecommended,
+
+				// Core Features
+				HasAPIAccess:             sp.HasAPIAccess,
+				HasFlexibleOrgStructures: sp.HasFlexibleOrgStructures,
+				HasAIEnabled:             sp.HasAIEnabled,
+				HasMachineLearning:       sp.HasMachineLearning,
+
+				// Limits
+				MaxAPICallsPerMonth: sp.MaxAPICallsPerMonth,
+
 				MonthlyPrice:           monthlyPrice,
 				YearlyPrice:            yearlyPrice,
 				DiscountedMonthlyPrice: discountedMonthlyPrice,
 				DiscountedYearlyPrice:  discountedYearlyPrice,
 				CreatedAt:              sp.CreatedAt.Format(time.RFC3339),
 				UpdatedAt:              sp.UpdatedAt.Format(time.RFC3339),
+				CurrencyID:             sp.CurrencyID,
+				Currency:               m.CurrencyManager.ToModel(sp.Currency),
 			}
 		},
 
