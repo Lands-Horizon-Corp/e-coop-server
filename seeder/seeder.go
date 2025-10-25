@@ -3,13 +3,8 @@ package seeder
 import (
 	"context"
 	"fmt"
-	"io/fs"
-	"math/rand"
-	"path/filepath"
-	"strings"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
 	"github.com/google/uuid"
@@ -19,110 +14,15 @@ import (
 )
 
 type Seeder struct {
-	provider   *src.Provider
-	model_core *model_core.ModelCore
-	faker      faker.Faker
-	imagePaths []string
+	provider    *src.Provider
+	model_core  *model_core.ModelCore
+	faker       faker.Faker
+	imagePaths  []string
+	progressBar *progressbar.ProgressBar
 }
 
 func NewSeeder(provider *src.Provider, model_core *model_core.ModelCore) (*Seeder, error) {
-	seeder := &Seeder{
-		provider:   provider,
-		model_core: model_core,
-		faker:      faker.New(),
-	}
-
-	// Load image paths from seeder/images directory
-	if err := seeder.loadImagePaths(); err != nil {
-		return nil, eris.Wrap(err, "failed to load image paths")
-	}
-
-	return seeder, nil
-}
-
-// loadImagePaths scans the seeder/images directory and loads all image file paths
-func (s *Seeder) loadImagePaths() error {
-	imagesDir := "seeder/images"
-	supportedExtensions := map[string]bool{
-		".jpg":  true,
-		".jpeg": true,
-		".png":  true,
-		".webp": true,
-	}
-
-	err := filepath.WalkDir(imagesDir, func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if !d.IsDir() {
-			ext := strings.ToLower(filepath.Ext(path))
-			if supportedExtensions[ext] {
-				s.imagePaths = append(s.imagePaths, path)
-			}
-		}
-
-		return nil
-	})
-
-	if err != nil {
-		return eris.Wrap(err, "failed to scan images directory")
-	}
-
-	if len(s.imagePaths) == 0 {
-		return eris.New("no image files found in seeder/images directory")
-	}
-
-	s.provider.Service.Logger.Info(fmt.Sprintf("Loaded %d image files from seeder/images directory", len(s.imagePaths)))
-	return nil
-}
-
-// createImageMedia randomly selects a local image file and creates a media record for it
-func (s *Seeder) createImageMedia(ctx context.Context, imageType string) (*model_core.Media, error) {
-	if len(s.imagePaths) == 0 {
-		return nil, eris.New("no image files available for seeding")
-	}
-
-	// Randomly choose one image from the loaded paths
-	randomIndex := rand.Intn(len(s.imagePaths))
-	imagePath := s.imagePaths[randomIndex]
-
-	// Upload the image from local path
-	storage, err := s.provider.Service.Storage.UploadFromPath(ctx, imagePath, func(progress, total int64, storage *horizon.Storage) {})
-	if err != nil {
-		return nil, eris.Wrapf(err, "failed to upload image from path %s for %s", imagePath, imageType)
-	} // Create media record
-	media := &model_core.Media{
-		FileName:   storage.FileName,
-		FileType:   storage.FileType,
-		FileSize:   storage.FileSize,
-		StorageKey: storage.StorageKey,
-		URL:        storage.URL,
-		BucketName: storage.BucketName,
-		Status:     "completed",
-		Progress:   100,
-		CreatedAt:  time.Now().UTC(),
-		UpdatedAt:  time.Now().UTC(),
-	}
-
-	if err := s.model_core.MediaManager.Create(ctx, media); err != nil {
-		return nil, eris.Wrap(err, "failed to create media record")
-	}
-
-	return media, nil
-}
-
-func (s *Seeder) Run(ctx context.Context, multiplier int32) error {
-	if multiplier <= 0 {
-		s.provider.Service.Logger.Info("Multiplier is 0 or less, skipping database seeding.")
-		return nil
-	}
-
-	s.provider.Service.Logger.Info("Starting database seeding with multiplier: " + fmt.Sprintf("%d", multiplier))
-
-	// Create comprehensive progress bar for all seeding operations
-	totalSteps := 7 // CategorySeed, CurrencySeed, SubscriptionPlanSeed, SeedUsers, SeedOrganization, SeedEmployees, SeedMemberProfiles
-	overallBar := progressbar.NewOptions(totalSteps,
+	overallBar := progressbar.NewOptions(7,
 		progressbar.OptionSetDescription("🌱 Database Seeding Progress"),
 		progressbar.OptionSetWidth(70),
 		progressbar.OptionShowCount(),
@@ -137,51 +37,70 @@ func (s *Seeder) Run(ctx context.Context, multiplier int32) error {
 			BarEnd:        "│",
 		}),
 	)
+	seeder := &Seeder{
+		provider:    provider,
+		model_core:  model_core,
+		faker:       faker.New(),
+		progressBar: overallBar,
+	}
+	if err := seeder.loadImagePaths(); err != nil {
+		return nil, eris.Wrap(err, "failed to load image paths")
+	}
+	return seeder, nil
+}
 
-	overallBar.Describe("🏷️  Seeding categories...")
+func (s *Seeder) Run(ctx context.Context, multiplier int32) error {
+	if multiplier <= 0 {
+		s.provider.Service.Logger.Info("Multiplier is 0 or less, skipping database seeding.")
+		return nil
+	}
+
+	s.provider.Service.Logger.Info("Starting database seeding with multiplier: " + fmt.Sprintf("%d", multiplier))
+
+	s.progressBar.Describe("🏷️  Seeding categories...")
 	if err := s.model_core.CategorySeed(ctx); err != nil {
 		return err
 	}
-	overallBar.Add(1)
+	s.progressBar.Add(1)
 
-	overallBar.Describe("💰 Seeding currencies...")
+	s.progressBar.Describe("💰 Seeding currencies...")
 	if err := s.model_core.CurrencySeed(ctx); err != nil {
 		return err
 	}
-	overallBar.Add(1)
+	s.progressBar.Add(1)
 
-	overallBar.Describe("📋 Seeding subscription plans...")
+	s.progressBar.Describe("📋 Seeding subscription plans...")
 	if err := s.model_core.SubscriptionPlanSeed(ctx); err != nil {
 		return err
 	}
-	overallBar.Add(1)
+	s.progressBar.Add(1)
 
-	overallBar.Describe(fmt.Sprintf("👤 Creating %d users...", int(multiplier)*1))
+	s.progressBar.Describe(fmt.Sprintf("👤 Creating %d users...", int(multiplier)*1))
 	if err := s.SeedUsers(ctx, multiplier); err != nil {
 		return err
 	}
-	overallBar.Add(1)
+	s.progressBar.Add(1)
 
-	overallBar.Describe(fmt.Sprintf("🏢 Creating organizations & branches (multiplier: %d)...", multiplier))
+	s.progressBar.Describe(fmt.Sprintf("🏢 Creating organizations & branches (multiplier: %d)...", multiplier))
 	if err := s.SeedOrganization(ctx, multiplier); err != nil {
 		return err
 	}
-	overallBar.Add(1)
+	s.progressBar.Add(1)
 
-	overallBar.Describe("👥 Assigning employees to organizations...")
+	s.progressBar.Describe("👥 Assigning employees to organizations...")
 	if err := s.SeedEmployees(ctx, multiplier); err != nil {
 		return err
 	}
-	overallBar.Add(1)
+	s.progressBar.Add(1)
 
-	overallBar.Describe("📋 Creating member profiles...")
+	s.progressBar.Describe("📋 Creating member profiles...")
 	if err := s.SeedMemberProfiles(ctx, multiplier); err != nil {
 		return err
 	}
-	overallBar.Add(1)
+	s.progressBar.Add(1)
 
 	// Finish overall progress bar
-	overallBar.Finish()
+	s.progressBar.Finish()
 	s.provider.Service.Logger.Info("🎉 Database seeding completed successfully!")
 	return nil
 }
@@ -210,13 +129,16 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 	}
 
 	for _, user := range users {
+		s.progressBar.Add(1)
 		for j := 0; j < numOrgsPerUser; j++ {
+			s.progressBar.Add(1)
 			sub := subscriptions[j%len(subscriptions)]
 			subscriptionEndDate := time.Now().Add(30 * 24 * time.Hour)
 			orgMedia, err := s.createImageMedia(ctx, "Organization")
 			if err != nil {
 				return eris.Wrap(err, "failed to create organization media")
 			}
+			s.progressBar.Add(1)
 			organization := &model_core.Organization{
 				CreatedAt:                           time.Now().UTC(),
 				CreatedByID:                         user.ID,
@@ -243,9 +165,11 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 				SubscriptionStartDate:               time.Now().UTC(),
 				SubscriptionEndDate:                 subscriptionEndDate,
 			}
+
 			if err := s.model_core.OrganizationManager.Create(ctx, organization); err != nil {
 				return err
 			}
+			s.progressBar.Add(1)
 
 			// Add categories to organization
 			for _, category := range categories {
@@ -291,6 +215,7 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 				if err := s.model_core.BranchManager.Create(ctx, branch); err != nil {
 					return err
 				}
+				s.progressBar.Add(1)
 				currency, err := s.model_core.CurrencyFindByAlpha2(ctx, branch.CountryCode)
 				if err != nil {
 					return eris.Wrap(err, "failed to find currency for account seeding")
@@ -350,6 +275,7 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 				if err := s.model_core.BranchSettingManager.Create(ctx, branchSetting); err != nil {
 					return err
 				}
+				s.progressBar.Add(1)
 
 				// Create the owner relationship for the user who created the organization
 				developerKey, err := s.provider.Service.Security.GenerateUUIDv5(ctx, fmt.Sprintf("%s-%s-%s", user.ID, organization.ID, branch.ID))
@@ -387,6 +313,7 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 				if err := s.model_core.UserOrganizationManager.Create(ctx, ownerOrganization); err != nil {
 					return err
 				}
+				s.progressBar.Add(1)
 
 				// Run organization seeder for accounting setup
 				tx := s.provider.Service.Database.Client().Begin()
@@ -401,6 +328,7 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 				if err := tx.Commit().Error; err != nil {
 					return err
 				}
+				s.progressBar.Add(1)
 
 				numInvites := int(multiplier) * 1
 				for m := 0; m < numInvites; m++ {
@@ -426,6 +354,7 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 						return err
 					}
 				}
+				s.progressBar.Add(1)
 
 				s.provider.Service.Logger.Info(fmt.Sprintf("Created organization: %s with branch: %s (Owner: %s %s)",
 					organization.Name, branch.Name, *user.FirstName, *user.LastName))
@@ -443,13 +372,13 @@ func (s *Seeder) SeedEmployees(ctx context.Context, multiplier int32) error {
 	if err != nil {
 		return err
 	}
-
+	s.progressBar.Add(1)
 	// Get all users to use as employees
 	users, err := s.model_core.UserManager.List(ctx)
 	if err != nil {
 		return err
 	}
-
+	s.progressBar.Add(1)
 	if len(users) == 0 || len(organizations) == 0 {
 		s.provider.Service.Logger.Warn("No users or organizations found for employee seeding")
 		return nil
@@ -457,6 +386,7 @@ func (s *Seeder) SeedEmployees(ctx context.Context, multiplier int32) error {
 
 	// Create cross-employment: users work as employees in other users' organizations
 	for _, org := range organizations {
+		s.progressBar.Add(1)
 		// Get branches for this organization
 		branches, err := s.model_core.BranchManager.Find(ctx, &model_core.Branch{
 			OrganizationID: org.ID,
@@ -464,6 +394,7 @@ func (s *Seeder) SeedEmployees(ctx context.Context, multiplier int32) error {
 		if err != nil {
 			continue
 		}
+		s.progressBar.Add(1)
 
 		// Find potential employees (users who don't own this organization)
 		potentialEmployees := make([]*model_core.User, 0)
@@ -472,6 +403,7 @@ func (s *Seeder) SeedEmployees(ctx context.Context, multiplier int32) error {
 				potentialEmployees = append(potentialEmployees, user)
 			}
 		}
+		s.progressBar.Add(1)
 
 		if len(potentialEmployees) == 0 {
 			continue
@@ -562,6 +494,7 @@ func (s *Seeder) SeedEmployees(ctx context.Context, multiplier int32) error {
 						*selectedUser.FirstName, *selectedUser.LastName, branch.Name, err))
 					continue
 				}
+				s.progressBar.Add(1)
 
 				s.provider.Service.Logger.Info(fmt.Sprintf("Created employee: %s %s for organization: %s, branch: %s (Owner: %s)",
 					*selectedUser.FirstName, *selectedUser.LastName, org.Name, branch.Name,
@@ -640,6 +573,7 @@ func (s *Seeder) SeedUsers(ctx context.Context, multiplier int32) error {
 		if err := s.model_core.UserManager.Create(ctx, user); err != nil {
 			return err
 		}
+		s.progressBar.Add(1)
 	}
 	return nil
 }
@@ -675,6 +609,7 @@ func (s *Seeder) SeedMemberProfiles(ctx context.Context, multiplier int32) error
 
 	for _, org := range organizations {
 		// Get branches for this organization
+		s.progressBar.Add(1)
 		branches, err := s.model_core.BranchManager.Find(ctx, &model_core.Branch{
 			OrganizationID: org.ID,
 		})
@@ -734,6 +669,7 @@ func (s *Seeder) SeedMemberProfiles(ctx context.Context, multiplier int32) error
 					s.provider.Service.Logger.Error(fmt.Sprintf("Failed to create member profile %s: %v", fullName, err))
 					continue
 				}
+				s.progressBar.Add(1)
 
 				// Create sample member address
 				memberAddress := &model_core.MemberAddress{
@@ -757,6 +693,7 @@ func (s *Seeder) SeedMemberProfiles(ctx context.Context, multiplier int32) error
 				if err := s.model_core.MemberAddressManager.Create(ctx, memberAddress); err != nil {
 					s.provider.Service.Logger.Error(fmt.Sprintf("Failed to create member address for %s: %v", fullName, err))
 				}
+				s.progressBar.Add(1)
 
 				s.provider.Service.Logger.Info(fmt.Sprintf("Created member profile: %s for branch: %s", fullName, branch.Name))
 			}
@@ -767,13 +704,3 @@ func (s *Seeder) SeedMemberProfiles(ctx context.Context, multiplier int32) error
 	return nil
 }
 
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
-
-func ptr[T any](v T) *T {
-	return &v
-}
