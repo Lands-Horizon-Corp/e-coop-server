@@ -106,66 +106,108 @@ type (
 )
 
 func (m *ModelCore) SubscriptionPlanSeed(ctx context.Context) error {
-	subscriptionPlan, err := m.SubscriptionPlanManager.List(ctx)
+	subscriptionPlans, err := m.SubscriptionPlanManager.List(ctx)
 	if err != nil {
 		return err
 	}
-	if len(subscriptionPlan) >= 1 {
+	if len(subscriptionPlans) >= 1 {
 		return nil
 	}
-	subscriptionPlans := []SubscriptionPlan{
+	subscriptionPlansData := []SubscriptionPlan{
 		{
-			Name:                "Enterprise Plan",
-			Description:         "An enterprise-level plan with unlimited features and priority support.",
-			Cost:                499.99,
-			Timespan:            int64(30 * 24 * time.Hour),
-			MaxBranches:         50,
-			MaxEmployees:        1000,
-			MaxMembersPerBranch: 500,
-			Discount:            15.00, // 15% discount
-			YearlyDiscount:      25.00, // 25% yearly discount
-			IsRecommended:       false,
+			Name:                     "Enterprise Plan",
+			Description:              "An enterprise-level plan with unlimited features, AI/ML capabilities, and priority support.",
+			Cost:                     399.99,
+			Timespan:                 int64(30 * 24 * time.Hour),
+			MaxBranches:              50,
+			MaxEmployees:             1000,
+			MaxMembersPerBranch:      500,
+			Discount:                 15.00, // 15% discount
+			YearlyDiscount:           25.00, // 25% yearly discount
+			IsRecommended:            false,
+			HasAPIAccess:             true,
+			HasFlexibleOrgStructures: true,
+			HasAIEnabled:             true,
+			HasMachineLearning:       true,
+			MaxAPICallsPerMonth:      0,   // Unlimited
+			CurrencyID:               nil, // Set to default USD UUID if available
 		},
 		{
-			Name:                "Pro Plan",
-			Description:         "A professional plan perfect for growing cooperatives.",
-			Cost:                199.99,
-			Timespan:            int64(30 * 24 * time.Hour),
-			MaxBranches:         15,
-			MaxEmployees:        200,
-			MaxMembersPerBranch: 100,
-			Discount:            10.00, // 10% discount
-			YearlyDiscount:      20.00, // 20% yearly discount
-			IsRecommended:       true,
+			Name:                     "Pro Plan",
+			Description:              "A professional plan perfect for growing cooperatives with AI features.",
+			Cost:                     199.99,
+			Timespan:                 int64(30 * 24 * time.Hour),
+			MaxBranches:              20, // Increased for competitiveness
+			MaxEmployees:             200,
+			MaxMembersPerBranch:      100,
+			Discount:                 10.00, // 10% discount
+			YearlyDiscount:           20.00, // 20% yearly discount
+			IsRecommended:            true,
+			HasAPIAccess:             true,
+			HasFlexibleOrgStructures: true,
+			HasAIEnabled:             true,
+			HasMachineLearning:       false,
+			MaxAPICallsPerMonth:      0, // Unlimited
+			CurrencyID:               nil,
 		},
 		{
-			Name:                "Starter Plan",
-			Description:         "An affordable plan for small organizations just getting started.",
-			Cost:                49.99,
-			Timespan:            int64(30 * 24 * time.Hour),
-			MaxBranches:         3,
-			MaxEmployees:        25,
-			MaxMembersPerBranch: 25,
-			Discount:            5.00,  // 5% discount
-			YearlyDiscount:      15.00, // 15% yearly discount
-			IsRecommended:       false,
+			Name:                     "Growth Plan",
+			Description:              "A balanced plan for mid-sized co-ops ready to scale with flexible structures.",
+			Cost:                     99.99,
+			Timespan:                 int64(30 * 24 * time.Hour),
+			MaxBranches:              8,
+			MaxEmployees:             75,
+			MaxMembersPerBranch:      50,
+			Discount:                 7.50,  // 7.5% discount
+			YearlyDiscount:           17.50, // 17.5% yearly discount
+			IsRecommended:            false,
+			HasAPIAccess:             true,
+			HasFlexibleOrgStructures: true,
+			HasAIEnabled:             false,
+			HasMachineLearning:       false,
+			MaxAPICallsPerMonth:      10000,
+			CurrencyID:               nil,
 		},
 		{
-			Name:                "Free Plan",
-			Description:         "A basic trial plan with essential features to get you started.",
-			Cost:                0.00,
-			Timespan:            int64(14 * 24 * time.Hour), // 14 days trial
-			MaxBranches:         1,
-			MaxEmployees:        3,
-			MaxMembersPerBranch: 10,
-			Discount:            0,
-			YearlyDiscount:      0,
-			IsRecommended:       false,
+			Name:                     "Starter Plan",
+			Description:              "An affordable plan for small organizations just getting started.",
+			Cost:                     49.99,
+			Timespan:                 int64(30 * 24 * time.Hour),
+			MaxBranches:              3,
+			MaxEmployees:             25,
+			MaxMembersPerBranch:      25,
+			Discount:                 5.00,
+			YearlyDiscount:           15.00,
+			IsRecommended:            false,
+			HasAPIAccess:             true,
+			HasFlexibleOrgStructures: false,
+			HasAIEnabled:             false,
+			HasMachineLearning:       false,
+			MaxAPICallsPerMonth:      1000,
+			CurrencyID:               nil,
+		},
+		{
+			Name:                     "Free Plan",
+			Description:              "A basic trial plan with essential features to get you started.",
+			Cost:                     0.00,
+			Timespan:                 int64(30 * 24 * time.Hour), // Extended to 30 days for better testing
+			MaxBranches:              1,
+			MaxEmployees:             3,
+			MaxMembersPerBranch:      10,
+			Discount:                 0,
+			YearlyDiscount:           0,
+			IsRecommended:            false,
+			HasAPIAccess:             false,
+			HasFlexibleOrgStructures: false,
+			HasAIEnabled:             false,
+			HasMachineLearning:       false,
+			MaxAPICallsPerMonth:      100,
+			CurrencyID:               nil,
 		},
 	}
-	for _, subscriptionPlan := range subscriptionPlans {
+	for _, subscriptionPlan := range subscriptionPlansData {
 		if err := m.SubscriptionPlanManager.Create(ctx, &subscriptionPlan); err != nil {
-			return err // optionally log and continue
+			return err
 		}
 	}
 	return nil
