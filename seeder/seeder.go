@@ -15,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jaswdr/faker"
 	"github.com/rotisserie/eris"
+	"github.com/schollz/progressbar/v3"
 )
 
 type Seeder struct {
@@ -119,28 +120,69 @@ func (s *Seeder) Run(ctx context.Context, multiplier int32) error {
 
 	s.provider.Service.Logger.Info("Starting database seeding with multiplier: " + fmt.Sprintf("%d", multiplier))
 
+	// Create comprehensive progress bar for all seeding operations
+	totalSteps := 7 // CategorySeed, CurrencySeed, SubscriptionPlanSeed, SeedUsers, SeedOrganization, SeedEmployees, SeedMemberProfiles
+	overallBar := progressbar.NewOptions(totalSteps,
+		progressbar.OptionSetDescription("🌱 Database Seeding Progress"),
+		progressbar.OptionSetWidth(70),
+		progressbar.OptionShowCount(),
+		progressbar.OptionShowIts(),
+		progressbar.OptionSetPredictTime(true),
+		progressbar.OptionShowElapsedTimeOnFinish(),
+		progressbar.OptionSetTheme(progressbar.Theme{
+			Saucer:        "█",
+			SaucerHead:    "█",
+			SaucerPadding: "░",
+			BarStart:      "│",
+			BarEnd:        "│",
+		}),
+	)
+
+	overallBar.Describe("🏷️  Seeding categories...")
 	if err := s.model_core.CategorySeed(ctx); err != nil {
 		return err
 	}
+	overallBar.Add(1)
+
+	overallBar.Describe("💰 Seeding currencies...")
 	if err := s.model_core.CurrencySeed(ctx); err != nil {
 		return err
 	}
+	overallBar.Add(1)
+
+	overallBar.Describe("📋 Seeding subscription plans...")
 	if err := s.model_core.SubscriptionPlanSeed(ctx); err != nil {
 		return err
 	}
+	overallBar.Add(1)
+
+	overallBar.Describe(fmt.Sprintf("👤 Creating %d users...", int(multiplier)*1))
 	if err := s.SeedUsers(ctx, multiplier); err != nil {
 		return err
 	}
+	overallBar.Add(1)
+
+	overallBar.Describe(fmt.Sprintf("🏢 Creating organizations & branches (multiplier: %d)...", multiplier))
 	if err := s.SeedOrganization(ctx, multiplier); err != nil {
 		return err
 	}
+	overallBar.Add(1)
+
+	overallBar.Describe("👥 Assigning employees to organizations...")
 	if err := s.SeedEmployees(ctx, multiplier); err != nil {
 		return err
 	}
+	overallBar.Add(1)
+
+	overallBar.Describe("📋 Creating member profiles...")
 	if err := s.SeedMemberProfiles(ctx, multiplier); err != nil {
 		return err
 	}
-	s.provider.Service.Logger.Info("Seeding completed successfully.")
+	overallBar.Add(1)
+
+	// Finish overall progress bar
+	overallBar.Finish()
+	s.provider.Service.Logger.Info("🎉 Database seeding completed successfully!")
 	return nil
 }
 
@@ -218,6 +260,7 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 			}
 
 			numBranches := int(multiplier) * 1
+
 			for k := range numBranches {
 				branchMedia, err := s.createImageMedia(ctx, "Organization")
 				if err != nil {
@@ -557,6 +600,7 @@ func (s *Seeder) SeedUsers(ctx context.Context, multiplier int32) error {
 	// Base number of users is 4, scale with multiplier
 	baseNumUsers := 1
 	numUsers := int(multiplier) * baseNumUsers
+
 	for i := range numUsers {
 		firstName := s.faker.Person().FirstName()
 		middleName := s.faker.Person().LastName()[:1] // Simulate middle initial

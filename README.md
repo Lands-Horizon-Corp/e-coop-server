@@ -6,7 +6,7 @@ E-Coop Server is a server for multipurpose cooperatives. A comprehensive financi
 
 ## Prerequisites
 
-- **Go** 1.25.0 or later
+- **Go** 1.25.3 or later
 - **Docker** and **Docker Compose**
 - **PostgreSQL** 13+
 - **Redis** 6+
@@ -136,8 +136,6 @@ gofmt -w .
 golangci-lint run
 ```
 
-fly deploy; fly machine restart 148e4d55f36278; fly machine restart 90802d3ea0ed38; fly logs
-
 ### Deploy to Fly.io
 
 ```bash
@@ -260,4 +258,3 @@ Date
 Amortizaion
 Total
 Balance
-
