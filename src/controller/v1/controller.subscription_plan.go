@@ -71,18 +71,24 @@ func (c *Controller) SubscriptionPlanController() {
 		}
 
 		subscriptionPlan := &model_core.SubscriptionPlan{
-			Name:                req.Name,
-			Description:         req.Description,
-			Cost:                req.Cost,
-			Timespan:            req.Timespan,
-			MaxBranches:         req.MaxBranches,
-			MaxEmployees:        req.MaxEmployees,
-			MaxMembersPerBranch: req.MaxMembersPerBranch,
-			Discount:            req.Discount,
-			YearlyDiscount:      req.YearlyDiscount,
-			IsRecommended:       req.IsRecommended, // <-- Use the new field
-			CreatedAt:           time.Now().UTC(),
-			UpdatedAt:           time.Now().UTC(),
+			Name:                     req.Name,
+			Description:              req.Description,
+			Cost:                     req.Cost,
+			Timespan:                 req.Timespan,
+			MaxBranches:              req.MaxBranches,
+			MaxEmployees:             req.MaxEmployees,
+			MaxMembersPerBranch:      req.MaxMembersPerBranch,
+			Discount:                 req.Discount,
+			YearlyDiscount:           req.YearlyDiscount,
+			IsRecommended:            req.IsRecommended,
+			HasAPIAccess:             req.HasAPIAccess,
+			HasFlexibleOrgStructures: req.HasFlexibleOrgStructures,
+			HasAIEnabled:             req.HasAIEnabled,
+			HasMachineLearning:       req.HasMachineLearning,
+			MaxAPICallsPerMonth:      req.MaxAPICallsPerMonth,
+			CurrencyID:               req.CurrencyID,
+			CreatedAt:                time.Now().UTC(),
+			UpdatedAt:                time.Now().UTC(),
 		}
 
 		if err := c.model_core.SubscriptionPlanManager.Create(context, subscriptionPlan); err != nil {
@@ -151,8 +157,14 @@ func (c *Controller) SubscriptionPlanController() {
 		subscriptionPlan.MaxMembersPerBranch = req.MaxMembersPerBranch
 		subscriptionPlan.Discount = req.Discount
 		subscriptionPlan.YearlyDiscount = req.YearlyDiscount
+		subscriptionPlan.IsRecommended = req.IsRecommended
+		subscriptionPlan.HasAPIAccess = req.HasAPIAccess
+		subscriptionPlan.HasFlexibleOrgStructures = req.HasFlexibleOrgStructures
+		subscriptionPlan.HasAIEnabled = req.HasAIEnabled
+		subscriptionPlan.HasMachineLearning = req.HasMachineLearning
+		subscriptionPlan.MaxAPICallsPerMonth = req.MaxAPICallsPerMonth
+		subscriptionPlan.CurrencyID = req.CurrencyID
 		subscriptionPlan.UpdatedAt = time.Now().UTC()
-		subscriptionPlan.IsRecommended = req.IsRecommended // <-- Update the new field
 
 		if err := c.model_core.SubscriptionPlanManager.UpdateFields(context, subscriptionPlan.ID, subscriptionPlan); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -309,4 +321,26 @@ func (c *Controller) SubscriptionPlanController() {
 
 		return ctx.NoContent(http.StatusNoContent)
 	})
+
+	// GET /api/v1/subscription-plan/currency/:currency_id
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/subscription-plan/currency/:currency_id",
+		Method:       "GET",
+		ResponseType: model_core.SubscriptionPlanResponse{},
+		Note:         "Returns all subscription plans for a specific currency.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		currencyID, err := handlers.EngineUUIDParam(ctx, "currency_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency_id: " + err.Error()})
+		}
+		subscriptionPlans, err := c.model_core.SubscriptionPlanManager.FindRaw(context, &model_core.SubscriptionPlan{
+			CurrencyID: currencyID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve subscription plans: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, subscriptionPlans)
+	})
+
 }
