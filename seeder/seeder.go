@@ -15,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jaswdr/faker"
 	"github.com/rotisserie/eris"
+	"github.com/schollz/progressbar/v3"
 )
 
 type Seeder struct {
@@ -119,27 +120,58 @@ func (s *Seeder) Run(ctx context.Context, multiplier int32) error {
 
 	s.provider.Service.Logger.Info("Starting database seeding with multiplier: " + fmt.Sprintf("%d", multiplier))
 
+	// Create overall progress bar for main seeding steps
+	totalSteps := 7 // CategorySeed, CurrencySeed, SubscriptionPlanSeed, SeedUsers, SeedOrganization, SeedEmployees, SeedMemberProfiles
+	overallBar := progressbar.NewOptions(totalSteps,
+		progressbar.OptionSetDescription("Overall seeding progress..."),
+		progressbar.OptionSetWidth(60),
+		progressbar.OptionShowCount(),
+		progressbar.OptionSetTheme(progressbar.Theme{
+			Saucer:        "▓",
+			SaucerHead:    "▓",
+			SaucerPadding: "░",
+			BarStart:      "╢",
+			BarEnd:        "╟",
+		}),
+	)
+
 	if err := s.model_core.CategorySeed(ctx); err != nil {
 		return err
 	}
+	overallBar.Add(1)
+
 	if err := s.model_core.CurrencySeed(ctx); err != nil {
 		return err
 	}
+	overallBar.Add(1)
+
 	if err := s.model_core.SubscriptionPlanSeed(ctx); err != nil {
 		return err
 	}
+	overallBar.Add(1)
+
 	if err := s.SeedUsers(ctx, multiplier); err != nil {
 		return err
 	}
+	overallBar.Add(1)
+
 	if err := s.SeedOrganization(ctx, multiplier); err != nil {
 		return err
 	}
+	overallBar.Add(1)
+
 	if err := s.SeedEmployees(ctx, multiplier); err != nil {
 		return err
 	}
+	overallBar.Add(1)
+
 	if err := s.SeedMemberProfiles(ctx, multiplier); err != nil {
 		return err
 	}
+	overallBar.Add(1)
+
+	// Finish overall progress bar
+	overallBar.Finish()
 	s.provider.Service.Logger.Info("Seeding completed successfully.")
 	return nil
 }
@@ -166,6 +198,22 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 	if err != nil {
 		return err
 	}
+
+	// Create progress bar for organization creation
+	totalOrgs := len(users) * numOrgsPerUser
+	orgBar := progressbar.NewOptions(totalOrgs,
+		progressbar.OptionSetDescription("Creating organizations..."),
+		progressbar.OptionSetWidth(50),
+		progressbar.OptionShowCount(),
+		progressbar.OptionShowIts(),
+		progressbar.OptionSetTheme(progressbar.Theme{
+			Saucer:        "█",
+			SaucerHead:    "█",
+			SaucerPadding: " ",
+			BarStart:      "[",
+			BarEnd:        "]",
+		}),
+	)
 
 	for _, user := range users {
 		for j := 0; j < numOrgsPerUser; j++ {
@@ -218,6 +266,15 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 			}
 
 			numBranches := int(multiplier) * 1
+
+			// Create progress bar for branches within this organization
+			branchBar := progressbar.NewOptions(numBranches,
+				progressbar.OptionSetDescription(fmt.Sprintf("Creating branches for %s...", organization.Name)),
+				progressbar.OptionSetWidth(40),
+				progressbar.OptionShowCount(),
+				progressbar.OptionClearOnFinish(),
+			)
+
 			for k := range numBranches {
 				branchMedia, err := s.createImageMedia(ctx, "Organization")
 				if err != nil {
@@ -386,9 +443,21 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 
 				s.provider.Service.Logger.Info(fmt.Sprintf("Created organization: %s with branch: %s (Owner: %s %s)",
 					organization.Name, branch.Name, *user.FirstName, *user.LastName))
+
+				// Update branch progress bar
+				branchBar.Add(1)
 			}
+
+			// Finish branch progress bar
+			branchBar.Finish()
+
+			// Update organization progress bar
+			orgBar.Add(1)
 		}
 	}
+
+	// Finish organization progress bar
+	orgBar.Finish()
 	return nil
 }
 
@@ -411,6 +480,21 @@ func (s *Seeder) SeedEmployees(ctx context.Context, multiplier int32) error {
 		s.provider.Service.Logger.Warn("No users or organizations found for employee seeding")
 		return nil
 	}
+
+	// Create progress bar for employee creation
+	employeeBar := progressbar.NewOptions(len(organizations),
+		progressbar.OptionSetDescription("Creating employees..."),
+		progressbar.OptionSetWidth(50),
+		progressbar.OptionShowCount(),
+		progressbar.OptionShowIts(),
+		progressbar.OptionSetTheme(progressbar.Theme{
+			Saucer:        "█",
+			SaucerHead:    "█",
+			SaucerPadding: " ",
+			BarStart:      "[",
+			BarEnd:        "]",
+		}),
+	)
 
 	// Create cross-employment: users work as employees in other users' organizations
 	for _, org := range organizations {
@@ -532,8 +616,13 @@ func (s *Seeder) SeedEmployees(ctx context.Context, multiplier int32) error {
 					}()))
 			}
 		}
+
+		// Update progress bar for each organization processed
+		employeeBar.Add(1)
 	}
 
+	// Finish progress bar
+	employeeBar.Finish()
 	s.provider.Service.Logger.Info("Employee seeding completed")
 	return nil
 }
@@ -557,6 +646,22 @@ func (s *Seeder) SeedUsers(ctx context.Context, multiplier int32) error {
 	// Base number of users is 4, scale with multiplier
 	baseNumUsers := 1
 	numUsers := int(multiplier) * baseNumUsers
+
+	// Create progress bar for user creation
+	userBar := progressbar.NewOptions(numUsers,
+		progressbar.OptionSetDescription("Creating users..."),
+		progressbar.OptionSetWidth(50),
+		progressbar.OptionShowCount(),
+		progressbar.OptionShowIts(),
+		progressbar.OptionSetTheme(progressbar.Theme{
+			Saucer:        "█",
+			SaucerHead:    "█",
+			SaucerPadding: " ",
+			BarStart:      "[",
+			BarEnd:        "]",
+		}),
+	)
+
 	for i := range numUsers {
 		firstName := s.faker.Person().FirstName()
 		middleName := s.faker.Person().LastName()[:1] // Simulate middle initial
@@ -596,7 +701,13 @@ func (s *Seeder) SeedUsers(ctx context.Context, multiplier int32) error {
 		if err := s.model_core.UserManager.Create(ctx, user); err != nil {
 			return err
 		}
+
+		// Update progress bar
+		userBar.Add(1)
 	}
+
+	// Finish progress bar
+	userBar.Finish()
 	return nil
 }
 
@@ -628,6 +739,21 @@ func (s *Seeder) SeedMemberProfiles(ctx context.Context, multiplier int32) error
 		s.provider.Service.Logger.Warn("No organizations or users found, skipping member profile seeding")
 		return nil
 	}
+
+	// Create progress bar for member profiles
+	memberBar := progressbar.NewOptions(len(organizations),
+		progressbar.OptionSetDescription("Creating member profiles..."),
+		progressbar.OptionSetWidth(50),
+		progressbar.OptionShowCount(),
+		progressbar.OptionShowIts(),
+		progressbar.OptionSetTheme(progressbar.Theme{
+			Saucer:        "█",
+			SaucerHead:    "█",
+			SaucerPadding: " ",
+			BarStart:      "[",
+			BarEnd:        "]",
+		}),
+	)
 
 	for _, org := range organizations {
 		// Get branches for this organization
@@ -717,8 +843,13 @@ func (s *Seeder) SeedMemberProfiles(ctx context.Context, multiplier int32) error
 				s.provider.Service.Logger.Info(fmt.Sprintf("Created member profile: %s for branch: %s", fullName, branch.Name))
 			}
 		}
+
+		// Update progress bar for each organization processed
+		memberBar.Add(1)
 	}
 
+	// Finish progress bar
+	memberBar.Finish()
 	s.provider.Service.Logger.Info("Member profile seeding completed")
 	return nil
 }
