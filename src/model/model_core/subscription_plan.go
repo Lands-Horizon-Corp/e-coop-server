@@ -5571,7 +5571,6 @@ func (m *ModelCore) SubscriptionPlanSeed(ctx context.Context) error {
 					CurrencyID:               &currency.ID,
 				},
 			}
-
 		case "PGK": // Papua New Guinea
 			subscription = []*SubscriptionPlan{
 				{
@@ -5665,7 +5664,6 @@ func (m *ModelCore) SubscriptionPlanSeed(ctx context.Context) error {
 					CurrencyID:               &currency.ID,
 				},
 			}
-
 		case "JMD": // Jamaica
 			subscription = []*SubscriptionPlan{
 				{
@@ -5759,7 +5757,6 @@ func (m *ModelCore) SubscriptionPlanSeed(ctx context.Context) error {
 					CurrencyID:               &currency.ID,
 				},
 			}
-
 		case "CRC": // Costa Rica
 			subscription = []*SubscriptionPlan{
 				{
@@ -5853,7 +5850,6 @@ func (m *ModelCore) SubscriptionPlanSeed(ctx context.Context) error {
 					CurrencyID:               &currency.ID,
 				},
 			}
-
 		case "GTQ": // Guatemala
 			subscription = []*SubscriptionPlan{}
 		case "XDR": // Special Drawing Rights (IMF)
