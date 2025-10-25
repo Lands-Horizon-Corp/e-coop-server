@@ -135,7 +135,8 @@ goimports -w .
 gofmt -w .
 golangci-lint run
 ```
-  fly deploy; fly machine restart 148e4d55f36278; fly machine restart 90802d3ea0ed38; fly logs
+
+fly deploy; fly machine restart 148e4d55f36278; fly machine restart 90802d3ea0ed38; fly logs
 
 ### Deploy to Fly.io
 
@@ -254,11 +255,8 @@ make deploy-fly
 
 This project is proprietary software owned by Lands Horizon Corp.
 
-
-//  Straight
+// Straight
 Date
 Amortizaion
 Total
 Balance
-
-// ~    
