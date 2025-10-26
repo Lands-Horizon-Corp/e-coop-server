@@ -2,7 +2,6 @@ package seeder
 
 import (
 	"context"
-	"fmt"
 	"io/fs"
 	"math/rand"
 	"path/filepath"
@@ -47,7 +46,6 @@ func (s *Seeder) loadImagePaths() error {
 		return eris.New("no image files found in seeder/images directory")
 	}
 
-	s.provider.Service.Logger.Info(fmt.Sprintf("Loaded %d image files from seeder/images directory", len(s.imagePaths)))
 	return nil
 }
 
