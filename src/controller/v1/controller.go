@@ -6,7 +6,6 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/service"
-	"github.com/google/uuid"
 )
 
 type Controller struct {
@@ -151,14 +150,4 @@ func (c *Controller) Start() error {
 	c.AdjustmentEntryController()
 	c.CompanyController()
 	return nil
-}
-
-func uuidPtrEqual(a, b *uuid.UUID) bool {
-	if a == nil && b == nil {
-		return true
-	}
-	if a == nil || b == nil {
-		return false
-	}
-	return *a == *b
 }

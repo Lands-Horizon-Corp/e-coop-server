@@ -410,7 +410,7 @@ func (c *Controller) AdjustmentEntryController() {
 		}
 		result := []*model_core.AdjustmentEntry{}
 		for _, entry := range adjustmentEntries {
-			if uuidPtrEqual(entry.Account.CurrencyID, currencyID) {
+			if handlers.UuidPtrEqual(entry.Account.CurrencyID, currencyID) {
 				result = append(result, entry)
 			}
 		}
@@ -446,7 +446,7 @@ func (c *Controller) AdjustmentEntryController() {
 		totalDebit := 0.0
 		totalCredit := 0.0
 		for _, entry := range adjustmentEntries {
-			if uuidPtrEqual(entry.Account.CurrencyID, currencyID) {
+			if handlers.UuidPtrEqual(entry.Account.CurrencyID, currencyID) {
 				totalDebit += entry.Debit
 				totalCredit += entry.Credit
 			}
@@ -490,7 +490,7 @@ func (c *Controller) AdjustmentEntryController() {
 		}
 		result := []*model_core.AdjustmentEntry{}
 		for _, entry := range adjustmentEntries {
-			if uuidPtrEqual(entry.Account.CurrencyID, currencyID) {
+			if handlers.UuidPtrEqual(entry.Account.CurrencyID, currencyID) {
 				result = append(result, entry)
 			}
 		}
@@ -531,7 +531,7 @@ func (c *Controller) AdjustmentEntryController() {
 		totalDebit := 0.0
 		totalCredit := 0.0
 		for _, entry := range adjustmentEntries {
-			if uuidPtrEqual(entry.Account.CurrencyID, currencyID) {
+			if handlers.UuidPtrEqual(entry.Account.CurrencyID, currencyID) {
 				totalDebit += entry.Debit
 				totalCredit += entry.Credit
 			}
