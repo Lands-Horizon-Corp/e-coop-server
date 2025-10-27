@@ -372,8 +372,7 @@ type AccountResponse struct {
 	InterestStandardComputation InterestStandardComputation `json:"interest_standard_computation"`
 }
 
-type 
-AccountRequest struct {
+type AccountRequest struct {
 	GeneralLedgerDefinitionID      *uuid.UUID `json:"general_ledger_definition_id,omitempty"`
 	FinancialStatementDefinitionID *uuid.UUID `json:"financial_statement_definition_id,omitempty"`
 	AccountClassificationID        *uuid.UUID `json:"account_classification_id,omitempty"`
@@ -2228,7 +2227,8 @@ func (a *Account) BeforeUpdate(tx *gorm.DB) error {
 		AccountID:      a.ID,
 		OrganizationID: original.OrganizationID,
 		BranchID:       original.BranchID,
-		CreatedByID:    a.UpdatedByID,
+		CreatedByID:    a.CreatedByID,
+		CreatedAt:      now,
 		ChangeType:     HistoryChangeTypeUpdated,
 		ValidFrom:      original.UpdatedAt,
 		ValidTo:        &now,
