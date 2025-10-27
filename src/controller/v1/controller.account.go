@@ -788,7 +788,7 @@ func (c *Controller) AccountController() {
 		account.InterestStandardComputation = req.InterestStandardComputation
 		account.CurrencyID = req.CurrencyID
 
-		if err := c.model_core.AccountManager.UpdateFields(context, account.ID, account); err != nil {
+		if err := c.model_core.AccountManager.Update(context, account); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account update failed (/account/:account_id), db error: " + err.Error(),
