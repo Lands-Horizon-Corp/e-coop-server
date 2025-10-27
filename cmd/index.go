@@ -65,7 +65,7 @@ func getOperationTimeout(defaultTimeout time.Duration) time.Duration {
 
 // executeLifecycle handles the fx application lifecycle
 func executeLifecycle(app *fx.App) {
-	timeout := getOperationTimeout(2 * time.Hour)
+	timeout := getOperationTimeout(4 * time.Hour)
 	executeLifecycleWithTimeout(app, timeout)
 }
 
