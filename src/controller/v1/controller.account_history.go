@@ -1,0 +1,35 @@
+package controller_v1
+
+import (
+	"net/http"
+
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
+	"github.com/labstack/echo/v4"
+)
+
+func (c *Controller) AccountHistory() {
+	req := c.provider.Service.Request
+
+	// GET api/v1/account-history/account/:account_id
+	req.RegisterRoute(handlers.Route{
+		Method:       "GET",
+		Route:        "/account-history/account/:account_id",
+		ResponseType: model_core.AccountHistoryResponse{},
+		Note:         "Get account history by account ID",
+	},
+		func(ctx echo.Context) error {
+			context := ctx.Request().Context()
+			accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
+			if err != nil {
+				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account_id: " + err.Error()})
+			}
+			accountHistory, err := c.model_core.AccountHistoryManager.FindRaw(context, &model_core.AccountHistory{
+				AccountID: *accountID,
+			})
+			if err != nil {
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve account history: " + err.Error()})
+			}
+			return ctx.JSON(http.StatusOK, accountHistory)
+		})
+}

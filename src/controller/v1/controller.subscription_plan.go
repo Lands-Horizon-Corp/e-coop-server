@@ -342,5 +342,5 @@ func (c *Controller) SubscriptionPlanController() {
 		}
 		return ctx.JSON(http.StatusOK, subscriptionPlans)
 	})
-time
+
 }
