@@ -2217,8 +2217,9 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 func (a *Account) BeforeUpdate(tx *gorm.DB) error {
 	// Get the original account data before update
 	var original Account
-	if err := tx.First(&original, a.ID).Error; err != nil {
-		return err
+	if err := tx.Unscoped().Where("id = ?", a.ID).First(&original).Error; err != nil {
+		// If we can't find the original record, skip history creation to avoid blocking the update
+		return nil
 	}
 
 	// Create history record with the original data
