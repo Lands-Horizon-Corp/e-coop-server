@@ -14,7 +14,7 @@ func (c *Controller) AccountHistory() {
 	// GET api/v1/account-history/account/:account_id
 	req.RegisterRoute(handlers.Route{
 		Method:       "GET",
-		Route:        "/account-history/account/:account_id",
+		Route:        "/api/v1/account-history/account/:account_id",
 		ResponseType: model_core.AccountHistoryResponse{},
 		Note:         "Get account history by account ID",
 	},
