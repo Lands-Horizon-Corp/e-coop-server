@@ -60,13 +60,12 @@ type (
 	}
 
 	ChargesRateByRangeOrMinimumAmountRequest struct {
-		ID                  *uuid.UUID `json:"id,omitempty"`
-		ChargesRateSchemeID uuid.UUID  `json:"charges_rate_scheme_id" validate:"required"`
-		From                float64    `json:"from,omitempty"`
-		To                  float64    `json:"to,omitempty"`
-		Charge              float64    `json:"charge,omitempty"`
-		Amount              float64    `json:"amount,omitempty"`
-		MinimumAmount       float64    `json:"minimum_amount,omitempty"`
+		ID            *uuid.UUID `json:"id,omitempty"`
+		From          float64    `json:"from,omitempty"`
+		To            float64    `json:"to,omitempty"`
+		Charge        float64    `json:"charge,omitempty"`
+		Amount        float64    `json:"amount,omitempty"`
+		MinimumAmount float64    `json:"minimum_amount,omitempty"`
 	}
 )
 
