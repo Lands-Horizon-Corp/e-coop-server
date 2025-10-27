@@ -264,7 +264,7 @@ func (m *ModelCore) AccountHistory() {
 	m.AccountHistoryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		AccountHistory, AccountHistoryResponse, AccountHistoryRequest,
 	]{
-		Preloads: []string{"CreatedBy", "Account", "Organization", "Branch"},
+		Preloads: []string{"CreatedBy", "CreatedBy.Media", "Account", "Organization", "Branch"},
 		Service:  m.provider.Service,
 		Resource: func(data *AccountHistory) *AccountHistoryResponse {
 			if data == nil {

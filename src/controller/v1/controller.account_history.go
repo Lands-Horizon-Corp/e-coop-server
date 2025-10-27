@@ -24,8 +24,14 @@ func (c *Controller) AccountHistory() {
 			if err != nil {
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account_id: " + err.Error()})
 			}
+			userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+			if err != nil {
+				return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
+			}
 			accountHistory, err := c.model_core.AccountHistoryManager.FindRaw(context, &model_core.AccountHistory{
-				AccountID: *accountID,
+				AccountID:      *accountID,
+				OrganizationID: userOrg.OrganizationID,
+				BranchID:       *userOrg.BranchID,
 			})
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve account history: " + err.Error()})
