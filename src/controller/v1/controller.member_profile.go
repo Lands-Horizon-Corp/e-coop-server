@@ -862,7 +862,7 @@ func (c *Controller) MemberProfileController() {
 		profile.ContactNumber = req.ContactNumber
 		profile.CivilStatus = req.CivilStatus
 
-		if req.MemberGenderID != nil && !uuidPtrEqual(profile.MemberGenderID, req.MemberGenderID) {
+		if req.MemberGenderID != nil && !handlers.UuidPtrEqual(profile.MemberGenderID, req.MemberGenderID) {
 			data := &model_core.MemberGenderHistory{
 				OrganizationID:  userOrg.OrganizationID,
 				BranchID:        *userOrg.BranchID,
@@ -883,7 +883,7 @@ func (c *Controller) MemberProfileController() {
 			}
 			profile.MemberGenderID = req.MemberGenderID
 		}
-		if req.MemberOccupationID != nil && !uuidPtrEqual(profile.MemberOccupationID, req.MemberOccupationID) {
+		if req.MemberOccupationID != nil && !handlers.UuidPtrEqual(profile.MemberOccupationID, req.MemberOccupationID) {
 			data := &model_core.MemberOccupationHistory{
 				OrganizationID:     userOrg.OrganizationID,
 				BranchID:           *userOrg.BranchID,
@@ -988,7 +988,7 @@ func (c *Controller) MemberProfileController() {
 		profile.Status = req.Status
 		profile.MemberDepartmentID = req.MemberDepartmentID
 
-		if req.MemberDepartmentID != nil && !uuidPtrEqual(profile.MemberDepartmentID, req.MemberDepartmentID) {
+		if req.MemberDepartmentID != nil && !handlers.UuidPtrEqual(profile.MemberDepartmentID, req.MemberDepartmentID) {
 			data := &model_core.MemberDepartmentHistory{
 				OrganizationID:     userOrg.OrganizationID,
 				BranchID:           *userOrg.BranchID,
@@ -1010,7 +1010,7 @@ func (c *Controller) MemberProfileController() {
 			profile.MemberDepartmentID = req.MemberDepartmentID
 		}
 
-		if req.MemberTypeID != nil && !uuidPtrEqual(profile.MemberTypeID, req.MemberTypeID) {
+		if req.MemberTypeID != nil && !handlers.UuidPtrEqual(profile.MemberTypeID, req.MemberTypeID) {
 			data := &model_core.MemberTypeHistory{
 				OrganizationID:  userOrg.OrganizationID,
 				BranchID:        *userOrg.BranchID,
@@ -1031,7 +1031,7 @@ func (c *Controller) MemberProfileController() {
 			}
 			profile.MemberTypeID = req.MemberTypeID
 		}
-		if req.MemberGroupID != nil && !uuidPtrEqual(profile.MemberGroupID, req.MemberGroupID) {
+		if req.MemberGroupID != nil && !handlers.UuidPtrEqual(profile.MemberGroupID, req.MemberGroupID) {
 			data := &model_core.MemberGroupHistory{
 				OrganizationID:  userOrg.OrganizationID,
 				BranchID:        *userOrg.BranchID,
@@ -1052,7 +1052,7 @@ func (c *Controller) MemberProfileController() {
 			}
 			profile.MemberGroupID = req.MemberGroupID
 		}
-		if req.MemberClassificationID != nil && !uuidPtrEqual(profile.MemberClassificationID, req.MemberClassificationID) {
+		if req.MemberClassificationID != nil && !handlers.UuidPtrEqual(profile.MemberClassificationID, req.MemberClassificationID) {
 			data := &model_core.MemberClassificationHistory{
 				OrganizationID:         userOrg.OrganizationID,
 				BranchID:               *userOrg.BranchID,
@@ -1073,7 +1073,7 @@ func (c *Controller) MemberProfileController() {
 			}
 			profile.MemberClassificationID = req.MemberClassificationID
 		}
-		if req.MemberCenterID != nil && !uuidPtrEqual(profile.MemberCenterID, req.MemberCenterID) {
+		if req.MemberCenterID != nil && !handlers.UuidPtrEqual(profile.MemberCenterID, req.MemberCenterID) {
 			data := &model_core.MemberCenterHistory{
 				OrganizationID:  userOrg.OrganizationID,
 				BranchID:        *userOrg.BranchID,

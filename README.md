@@ -140,7 +140,7 @@ golangci-lint run
 
 ```bash
 
-  fly deploy; fly machine stop 148e4d55f36278; fly machine stop 148e4d55f36278; fly machine restart 148e4d55f36278; fly machine restart 90802d3ea0ed38; fly logs
+  fly deploy; fly machine stop 148e4d55f36278; fly machine restart 148e4d55f36278; fly machine restart 90802d3ea0ed38; fly logs
 ```
 
 ## Architecture
