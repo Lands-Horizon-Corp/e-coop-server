@@ -2178,6 +2178,8 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 
 	branch.BranchSetting.PaidUpSharedCapitalAccountID = &paidUpShareCapital.ID
 	branch.BranchSetting.CashOnHandAccountID = &cashOnHand.ID
+	branch.BranchSetting.AccountForOverflowID = &cashOnHand.ID
+	branch.BranchSetting.AccountForUnderflowID = &cashOnHand.ID
 	if err := m.BranchSettingManager.UpdateFieldsWithTx(context, tx, branch.BranchSetting.ID, branch.BranchSetting); err != nil {
 		return eris.Wrapf(err, "failed to update branch %s with paid up share capital account", branch.Name)
 	}

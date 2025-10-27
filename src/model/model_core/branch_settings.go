@@ -28,6 +28,12 @@ type (
 		PaidUpSharedCapitalAccountID *uuid.UUID `gorm:"type:uuid" json:"paid_up_shared_capital_account_id,omitempty"`
 		PaidUpSharedCapitalAccount   *Account   `gorm:"foreignKey:PaidUpSharedCapitalAccountID;constraint:OnDelete:SET NULL;" json:"paid_up_shared_capital_account,omitempty"`
 
+		AccountForOverflowID *uuid.UUID `gorm:"type:uuid" json:"account_for_overflow_id,omitempty"`
+		AccountForOverflow   *Account   `gorm:"foreignKey:AccountForOverflowID;constraint:OnDelete:SET NULL;" json:"account_for_overflow,omitempty"`
+
+		AccountForUnderflowID *uuid.UUID `gorm:"type:uuid" json:"account_for_underflow_id,omitempty"`
+		AccountForUnderflow   *Account   `gorm:"foreignKey:AccountForUnderflowID;constraint:OnDelete:SET NULL;" json:"account_for_underflow,omitempty"`
+
 		// Withdraw Settings
 		WithdrawAllowUserInput bool   `gorm:"not null;default:true" json:"withdraw_allow_user_input"`
 		WithdrawPrefix         string `gorm:"type:varchar(50);not null;default:'WD'" json:"withdraw_prefix"`
@@ -119,12 +125,18 @@ type (
 
 		// Default Member Type
 		DefaultMemberTypeID *uuid.UUID `json:"default_member_type_id,omitempty"`
+
+		// Account References
+		AccountForOverflowID  *uuid.UUID `json:"account_for_overflow_id,omitempty"`
+		AccountForUnderflowID *uuid.UUID `json:"account_for_underflow_id,omitempty"`
 	}
 
 	BranchSettingsCurrencyRequest struct {
 		CurrencyID                   uuid.UUID  `json:"currency_id" validate:"required"`
 		PaidUpSharedCapitalAccountID *uuid.UUID `json:"paid_up_shared_capital_account_id,omitempty"`
 		CashOnHandAccountID          *uuid.UUID `json:"cash_on_hand_account_id,omitempty"`
+		AccountForOverflowID         *uuid.UUID `json:"account_for_overflow_id,omitempty"`
+		AccountForUnderflowID        *uuid.UUID `json:"account_for_underflow_id,omitempty"`
 	}
 
 	BranchSettingResponse struct {
@@ -184,6 +196,11 @@ type (
 		CashOnHandAccount            *AccountResponse `json:"cash_on_hand_account,omitempty"`
 		PaidUpSharedCapitalAccountID *uuid.UUID       `json:"paid_up_shared_capital_account_id,omitempty"`
 		PaidUpSharedCapitalAccount   *AccountResponse `json:"paid_up_shared_capital_account,omitempty"`
+
+		AccountForOverflowID  *uuid.UUID       `json:"account_for_overflow_id,omitempty"`
+		AccountForOverflow    *AccountResponse `json:"account_for_overflow,omitempty"`
+		AccountForUnderflowID *uuid.UUID       `json:"account_for_underflow_id,omitempty"`
+		AccountForUnderflow   *AccountResponse `json:"account_for_underflow,omitempty"`
 	}
 )
 
@@ -196,6 +213,8 @@ func (m *ModelCore) BranchSetting() {
 			"DefaultMemberType",
 			"CashOnHandAccount",
 			"PaidUpSharedCapitalAccount",
+			"AccountForOverflow",
+			"AccountForUnderflow",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *BranchSetting) *BranchSettingResponse {
@@ -254,6 +273,11 @@ func (m *ModelCore) BranchSetting() {
 				CashOnHandAccount:            m.AccountManager.ToModel(data.CashOnHandAccount),
 				PaidUpSharedCapitalAccountID: data.PaidUpSharedCapitalAccountID,
 				PaidUpSharedCapitalAccount:   m.AccountManager.ToModel(data.PaidUpSharedCapitalAccount),
+
+				AccountForOverflowID:  data.AccountForOverflowID,
+				AccountForOverflow:    m.AccountManager.ToModel(data.AccountForOverflow),
+				AccountForUnderflowID: data.AccountForUnderflowID,
+				AccountForUnderflow:   m.AccountManager.ToModel(data.AccountForUnderflow),
 			}
 		},
 		Created: func(data *BranchSetting) []string {
