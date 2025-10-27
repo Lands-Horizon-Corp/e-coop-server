@@ -101,33 +101,33 @@ type (
 	}
 
 	ChargesRateByTermRequest struct {
-		ID                  *uuid.UUID        `json:"id,omitempty"`
-		ChargesRateSchemeID uuid.UUID         `json:"charges_rate_scheme_id" validate:"required"`
-		Name                string            `json:"name,omitempty"`
-		Description         string            `json:"description,omitempty"`
-		ModeOfPayment       LoanModeOfPayment `json:"mode_of_payment,omitempty"`
-		Rate1               float64           `json:"rate_1,omitempty"`
-		Rate2               float64           `json:"rate_2,omitempty"`
-		Rate3               float64           `json:"rate_3,omitempty"`
-		Rate4               float64           `json:"rate_4,omitempty"`
-		Rate5               float64           `json:"rate_5,omitempty"`
-		Rate6               float64           `json:"rate_6,omitempty"`
-		Rate7               float64           `json:"rate_7,omitempty"`
-		Rate8               float64           `json:"rate_8,omitempty"`
-		Rate9               float64           `json:"rate_9,omitempty"`
-		Rate10              float64           `json:"rate_10,omitempty"`
-		Rate11              float64           `json:"rate_11,omitempty"`
-		Rate12              float64           `json:"rate_12,omitempty"`
-		Rate13              float64           `json:"rate_13,omitempty"`
-		Rate14              float64           `json:"rate_14,omitempty"`
-		Rate15              float64           `json:"rate_15,omitempty"`
-		Rate16              float64           `json:"rate_16,omitempty"`
-		Rate17              float64           `json:"rate_17,omitempty"`
-		Rate18              float64           `json:"rate_18,omitempty"`
-		Rate19              float64           `json:"rate_19,omitempty"`
-		Rate20              float64           `json:"rate_20,omitempty"`
-		Rate21              float64           `json:"rate_21,omitempty"`
-		Rate22              float64           `json:"rate_22,omitempty"`
+		ID *uuid.UUID `json:"id,omitempty"`
+
+		Name          string            `json:"name,omitempty"`
+		Description   string            `json:"description,omitempty"`
+		ModeOfPayment LoanModeOfPayment `json:"mode_of_payment,omitempty"`
+		Rate1         float64           `json:"rate_1,omitempty"`
+		Rate2         float64           `json:"rate_2,omitempty"`
+		Rate3         float64           `json:"rate_3,omitempty"`
+		Rate4         float64           `json:"rate_4,omitempty"`
+		Rate5         float64           `json:"rate_5,omitempty"`
+		Rate6         float64           `json:"rate_6,omitempty"`
+		Rate7         float64           `json:"rate_7,omitempty"`
+		Rate8         float64           `json:"rate_8,omitempty"`
+		Rate9         float64           `json:"rate_9,omitempty"`
+		Rate10        float64           `json:"rate_10,omitempty"`
+		Rate11        float64           `json:"rate_11,omitempty"`
+		Rate12        float64           `json:"rate_12,omitempty"`
+		Rate13        float64           `json:"rate_13,omitempty"`
+		Rate14        float64           `json:"rate_14,omitempty"`
+		Rate15        float64           `json:"rate_15,omitempty"`
+		Rate16        float64           `json:"rate_16,omitempty"`
+		Rate17        float64           `json:"rate_17,omitempty"`
+		Rate18        float64           `json:"rate_18,omitempty"`
+		Rate19        float64           `json:"rate_19,omitempty"`
+		Rate20        float64           `json:"rate_20,omitempty"`
+		Rate21        float64           `json:"rate_21,omitempty"`
+		Rate22        float64           `json:"rate_22,omitempty"`
 	}
 )
 

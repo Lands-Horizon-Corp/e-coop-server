@@ -665,5 +665,118 @@ func (m *ModelCore) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, user
 			return eris.Wrapf(err, "failed to destroy collateral %s", data.Name)
 		}
 	}
+
+	// Delete Accounts
+	accounts, err := m.AccountManager.Find(ctx, &Account{
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+	})
+	if err != nil {
+		return eris.Wrapf(err, "failed to get accounts")
+	}
+	for _, data := range accounts {
+		if err := m.AccountManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+			return eris.Wrapf(err, "failed to destroy account %s", data.Name)
+		}
+	}
+
+	// Delete LoanPurpose
+	loanPurposes, err := m.LoanPurposeManager.Find(ctx, &LoanPurpose{
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+	})
+	if err != nil {
+		return eris.Wrapf(err, "failed to get loan purposes")
+	}
+	for _, data := range loanPurposes {
+		if err := m.LoanPurposeManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+			return eris.Wrapf(err, "failed to destroy loan purpose %s", data.Description)
+		}
+	}
+
+	// Delete AccountCategory
+	accountCategories, err := m.AccountCategoryManager.Find(ctx, &AccountCategory{
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+	})
+	if err != nil {
+		return eris.Wrapf(err, "failed to get account categories")
+	}
+	for _, data := range accountCategories {
+		if err := m.AccountCategoryManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+			return eris.Wrapf(err, "failed to destroy account category %s", data.Name)
+		}
+	}
+
+	// Delete TagTemplate
+	tagTemplates, err := m.TagTemplateManager.Find(ctx, &TagTemplate{
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+	})
+	if err != nil {
+		return eris.Wrapf(err, "failed to get tag templates")
+	}
+	for _, data := range tagTemplates {
+		if err := m.TagTemplateManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+			return eris.Wrapf(err, "failed to destroy tag template %s", data.Name)
+		}
+	}
+
+	// Delete LoanStatus
+	loanStatuses, err := m.LoanStatusManager.Find(ctx, &LoanStatus{
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+	})
+	if err != nil {
+		return eris.Wrapf(err, "failed to get loan statuses")
+	}
+	for _, data := range loanStatuses {
+		if err := m.LoanStatusManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+			return eris.Wrapf(err, "failed to destroy loan status %s", data.Name)
+		}
+	}
+
+	// Delete MemberProfile
+	memberProfiles, err := m.MemberProfileManager.Find(ctx, &MemberProfile{
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+	})
+	if err != nil {
+		return eris.Wrapf(err, "failed to get member profiles")
+	}
+	for _, data := range memberProfiles {
+		if err := m.MemberProfileManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+			return eris.Wrapf(err, "failed to destroy member profile %s %s", data.FirstName, data.LastName)
+		}
+	}
+
+	// Delete Company
+	companies, err := m.CompanyManager.Find(ctx, &Company{
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+	})
+	if err != nil {
+		return eris.Wrapf(err, "failed to get companies")
+	}
+	for _, data := range companies {
+		if err := m.CompanyManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+			return eris.Wrapf(err, "failed to destroy company %s", data.Name)
+		}
+	}
+
+	// Delete MemberDepartment
+	memberDepartments, err := m.MemberDepartmentManager.Find(ctx, &MemberDepartment{
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+	})
+	if err != nil {
+		return eris.Wrapf(err, "failed to get member departments")
+	}
+	for _, data := range memberDepartments {
+		if err := m.MemberDepartmentManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+			return eris.Wrapf(err, "failed to destroy member department %s", data.Name)
+		}
+	}
+
 	return nil
 }

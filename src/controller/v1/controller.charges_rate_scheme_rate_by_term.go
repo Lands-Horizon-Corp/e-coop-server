@@ -158,7 +158,6 @@ func (c *Controller) ChargesRateByTermController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Charges rate by term not found"})
 		}
-		chargesRateByTerm.ChargesRateSchemeID = req.ChargesRateSchemeID
 		chargesRateByTerm.Name = req.Name
 		chargesRateByTerm.Description = req.Description
 		chargesRateByTerm.ModeOfPayment = req.ModeOfPayment

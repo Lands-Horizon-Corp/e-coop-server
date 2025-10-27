@@ -6610,7 +6610,7 @@ func (m *ModelCore) SubscriptionPlanSeed(ctx context.Context) error {
 func (m *ModelCore) SubscriptionPlan() {
 	m.Migration = append(m.Migration, &SubscriptionPlan{})
 	m.SubscriptionPlanManager = horizon_services.NewRepository(horizon_services.RepositoryParams[SubscriptionPlan, SubscriptionPlanResponse, SubscriptionPlanRequest]{
-		Preloads: nil,
+		Preloads: []string{"Currency"},
 		Service:  m.provider.Service,
 		Resource: func(sp *SubscriptionPlan) *SubscriptionPlanResponse {
 			if sp == nil {

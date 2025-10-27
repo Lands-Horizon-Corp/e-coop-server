@@ -157,7 +157,6 @@ func (c *Controller) ChargesRateSchemeModeOfPaymentController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Charges rate scheme model of payment not found"})
 		}
-		chargesRateSchemeModeOfPayment.ChargesRateSchemeID = req.ChargesRateSchemeID
 		chargesRateSchemeModeOfPayment.From = req.From
 		chargesRateSchemeModeOfPayment.To = req.To
 		chargesRateSchemeModeOfPayment.Column1 = req.Column1

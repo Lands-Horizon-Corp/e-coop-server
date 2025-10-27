@@ -138,7 +138,6 @@ func (c *Controller) ChargesRateByRangeOrMinimumAmountController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Charges rate by range or minimum amount not found"})
 		}
-		chargesRateByRangeOrMinimumAmount.ChargesRateSchemeID = req.ChargesRateSchemeID
 		chargesRateByRangeOrMinimumAmount.From = req.From
 		chargesRateByRangeOrMinimumAmount.To = req.To
 		chargesRateByRangeOrMinimumAmount.Charge = req.Charge

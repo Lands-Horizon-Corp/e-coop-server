@@ -22,7 +22,7 @@ RUN apk add --no-cache ffmpeg
 # Copy only the built binary from the builder stage
 COPY --from=builder /app/app .
 
-# Copy seeder directory with images for runtime seeding
+# Copy seeder directory with images for runtime seeding`
 COPY --from=builder /app/seeder ./seeder
 
 # Copy entrypoint script and set permissions

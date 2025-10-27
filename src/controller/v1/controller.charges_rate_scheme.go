@@ -643,7 +643,12 @@ func (c *Controller) ChargesRateSchemeController() {
 			Description: "Updated charges rate scheme (/charges-rate-scheme/:charges_rate_scheme_id): " + chargesRateScheme.Name,
 			Module:      "ChargesRateScheme",
 		})
-		return ctx.JSON(http.StatusOK, c.model_core.ChargesRateSchemeManager.ToModel(chargesRateScheme))
+
+		newRateScheme, err := c.model_core.ChargesRateSchemeManager.GetByIDRaw(context, chargesRateScheme.ID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated charges rate scheme: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, newRateScheme)
 	})
 
 	// DELETE /charges-rate-scheme/:charges_rate_scheme_id: Delete a charges rate scheme by ID. (WITH footstep)
