@@ -106,17 +106,32 @@ func (c *Controller) ComputationSheetController() {
 				IsAddOn: ald.AddOn,
 				Account: ald.Account,
 			}
-			entry.Credit = c.service.LoanComputation(context, *ald, model_core.LoanTransaction{
-				Terms:    request.Terms,
-				Applied1: request.Applied1,
-			})
+			if entry.AutomaticLoanDeduction.ChargesRateSchemeID != nil {
+				chargesRateScheme, err := c.model_core.ChargesRateSchemeManager.GetByID(context, *entry.AutomaticLoanDeduction.ChargesRateSchemeID)
+				if err != nil {
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to retrieve charges rate scheme for %s: %s", entry.Name, err.Error())})
+				}
+				entry.Credit = c.service.LoanChargesRateComputation(context, *chargesRateScheme, model_core.LoanTransaction{
+					Applied1: request.Applied1,
+					Terms:    request.Terms,
+				})
+
+			}
+			if entry.Credit <= 0 {
+				entry.Credit = c.service.LoanComputation(context, *ald, model_core.LoanTransaction{
+					Terms:    request.Terms,
+					Applied1: request.Applied1,
+				})
+			}
 
 			if !entry.IsAddOn {
 				total_non_add_ons += entry.Credit
 			} else {
 				total_add_ons += entry.Credit
 			}
-			loanTransactionEntries = append(loanTransactionEntries, entry)
+			if entry.Credit > 0 {
+				loanTransactionEntries = append(loanTransactionEntries, entry)
+			}
 		}
 		if request.IsAddOn {
 			loanTransactionEntries[0].Credit = request.Applied1 - total_non_add_ons
