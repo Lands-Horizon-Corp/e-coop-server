@@ -2180,12 +2180,12 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 	branch.BranchSetting.CashOnHandAccountID = &cashOnHand.ID
 
 	unbalanced := &UnbalancedAccount{
-		CreatedAt:        now,
-		CreatedByID:      userID,
-		UpdatedAt:        now,
-		UpdatedByID:      userID,
-		BranchSettingsID: branch.BranchSetting.ID,
-
+		CreatedAt:            now,
+		CreatedByID:          userID,
+		UpdatedAt:            now,
+		UpdatedByID:          userID,
+		BranchSettingsID:     branch.BranchSetting.ID,
+		CurrencyID:           currency.ID,
 		AccountForShortageID: cashOnHand.ID,
 		AccountForOverageID:  cashOnHand.ID,
 	}
