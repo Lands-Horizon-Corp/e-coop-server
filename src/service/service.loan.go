@@ -128,7 +128,7 @@ func (t *TransactionService) LoanChargesRateComputation(ctx context.Context, crs
 		}
 	case model_core.ChargesRateSchemeTypeByType:
 
-		if crs.MemberType != nil && ald.MemberProfile.MemberType != crs.MemberType {
+		if crs.MemberType != nil && ald.MemberProfile.MemberTypeID != &crs.MemberType.ID {
 			return 0.0
 		}
 		if crs.ModeOfPayment != nil && ald.ModeOfPayment != *crs.ModeOfPayment {

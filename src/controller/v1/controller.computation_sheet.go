@@ -21,10 +21,11 @@ func (c *Controller) ComputationSheetController() {
 		Route:        "/api/v1/computation-sheet/:computation_sheet_id/calculator",
 		Method:       "POST",
 		Note:         "Returns sample payment calculation data for a computation sheet.",
+		RequestType:  model_core.LoanComputationSheetCalculatorRequest{},
 		ResponseType: model_core.ComputationSheetAmortizationResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var request model_core.LoanTransactionRequest
+		var request model_core.LoanComputationSheetCalculatorRequest
 		computationSheetID, err := handlers.EngineUUIDParam(ctx, "computation_sheet_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
@@ -114,6 +115,9 @@ func (c *Controller) ComputationSheetController() {
 				entry.Credit = c.service.LoanChargesRateComputation(context, *chargesRateScheme, model_core.LoanTransaction{
 					Applied1: request.Applied1,
 					Terms:    request.Terms,
+					MemberProfile: &model_core.MemberProfile{
+						MemberTypeID: request.MemberTypeID,
+					},
 				})
 
 			}
