@@ -117,14 +117,22 @@ func (t *TransactionService) LoanChargesRateComputation(ctx context.Context, crs
 			charge := 0.0
 			if data.Charge > 0 {
 				charge = ald.Applied1 * (data.Charge / 100.0)
+				log.Printf("[DEBUG] Calculated charge using percentage - Applied1: %f * (Charge: %f / 100) = %f",
+					ald.Applied1, data.Charge, charge)
 			} else if data.Amount > 0 {
 				charge = data.Amount
+				log.Printf("[DEBUG] Using fixed amount as charge - Amount: %f", charge)
 			}
+			log.Printf("[DEBUG] Final charge calculated: %f", charge)
 			if charge > 0 {
 				result = charge
+				log.Printf("[DEBUG] Setting result to charge: %f", result)
 				if result >= data.MinimumAmount {
+					log.Printf("[DEBUG] Result %f >= MinimumAmount %f, setting result to MinimumAmount", result, data.MinimumAmount)
 					result = data.MinimumAmount
 				}
+				log.Printf("[DEBUG] Final result before return: %f", result)
+				return result
 			}
 		}
 	case model_core.ChargesRateSchemeTypeByType:
@@ -221,6 +229,7 @@ func (t *TransactionService) LoanChargesRateComputation(ctx context.Context, crs
 			}
 		}
 	}
+	log.Printf("[DEBUG] LoanChargesRateComputation completed - Final result: %f", result)
 	return result
 }
 
