@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"log"
 	"math"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
@@ -10,6 +11,8 @@ import (
 )
 
 func (t *TransactionService) LoanChargesRateComputation(ctx context.Context, crs model_core.ChargesRateScheme, ald model_core.LoanTransaction) float64 {
+	log.Printf("[DEBUG] LoanChargesRateComputation started - Type: %v, Applied1: %f, Terms: %d, ModeOfPayment: %v",
+		crs.Type, ald.Applied1, ald.Terms, ald.ModeOfPayment)
 	result := 0.0
 
 	termHeaders := []int{
@@ -103,10 +106,14 @@ func (t *TransactionService) LoanChargesRateComputation(ctx context.Context, crs
 
 	switch crs.Type {
 	case model_core.ChargesRateSchemeTypeByRange:
+		log.Printf("[DEBUG] Processing ChargesRateSchemeTypeByRange - Items count: %d", len(crs.ChargesRateByRangeOrMinimumAmounts))
 		for _, data := range crs.ChargesRateByRangeOrMinimumAmounts {
 			if ald.Applied1 < data.From || ald.Applied1 > data.To {
+				log.Printf("[DEBUG] Range check failed - Applied1: %f not in range [%f, %f]", ald.Applied1, data.From, data.To)
 				continue
 			}
+			log.Printf("[DEBUG] Range check passed - Applied1: %f in range [%f, %f], Charge: %f, Amount: %f",
+				ald.Applied1, data.From, data.To, data.Charge, data.Amount)
 			charge := 0.0
 			if data.Charge > 0 {
 				charge = ald.Applied1 * (data.Charge / 100.0)
@@ -121,10 +128,13 @@ func (t *TransactionService) LoanChargesRateComputation(ctx context.Context, crs
 			}
 		}
 	case model_core.ChargesRateSchemeTypeByType:
+		log.Printf("[DEBUG] Processing ChargesRateSchemeTypeByType")
 		if crs.MemberType != nil && ald.MemberProfile.MemberType != crs.MemberType {
+			log.Printf("[DEBUG] Member type mismatch - Expected: %v, Got: %v", *crs.MemberType, ald.MemberProfile.MemberType)
 			return 0.0
 		}
 		if crs.ModeOfPayment != nil && ald.ModeOfPayment != *crs.ModeOfPayment {
+			log.Printf("[DEBUG] Mode of payment mismatch - Expected: %v, Got: %v", *crs.ModeOfPayment, ald.ModeOfPayment)
 			return 0.0
 		}
 		for _, data := range crs.ChargesRateSchemeModeOfPayments {
@@ -156,16 +166,21 @@ func (t *TransactionService) LoanChargesRateComputation(ctx context.Context, crs
 				data.Column22,
 			}
 			lastRate := findLastApplicableRate(chargesTerms, modeOfPaymentHeaders, ald.Terms)
+			log.Printf("[DEBUG] ByType lastRate found: %f for terms: %d", lastRate, ald.Terms)
 			if lastRate == 0.0 {
+				log.Printf("[DEBUG] ByType lastRate is 0, continuing to next item")
 				continue
 			}
 			result = computeCharge(ald.Applied1, lastRate, ald.ModeOfPayment)
+			log.Printf("[DEBUG] ByType computed charge: %f", result)
 			if result > 0 {
 				return result
 			}
 		}
 	case model_core.ChargesRateSchemeTypeByTerm:
+		log.Printf("[DEBUG] Processing ChargesRateSchemeTypeByTerm")
 		if ald.Terms < 1 {
+			log.Printf("[DEBUG] Invalid terms: %d (must be >= 1)", ald.Terms)
 			return 0.0
 		}
 		for _, data := range crs.ChargesRateByTerms {
