@@ -125,9 +125,10 @@ type (
 		BillAndCoinsManager          horizon_services.Repository[BillAndCoins, BillAndCoinsResponse, BillAndCoinsRequest]
 
 		// ACCOUNT
-		AccountManager        horizon_services.Repository[Account, AccountResponse, AccountRequest]
-		AccountTagManager     horizon_services.Repository[AccountTag, AccountTagResponse, AccountTagRequest]
-		AccountHistoryManager horizon_services.Repository[AccountHistory, AccountHistoryResponse, AccountHistoryRequest]
+		AccountManager           horizon_services.Repository[Account, AccountResponse, AccountRequest]
+		AccountTagManager        horizon_services.Repository[AccountTag, AccountTagResponse, AccountTagRequest]
+		AccountHistoryManager    horizon_services.Repository[AccountHistory, AccountHistoryResponse, AccountHistoryRequest]
+		UnbalancedAccountManager horizon_services.Repository[UnbalancedAccount, UnbalancedAccountResponse, UnbalancedAccountRequest]
 
 		// LEDGERS
 		GeneralLedgerManager          horizon_services.Repository[GeneralLedger, GeneralLedgerResponse, GeneralLedgerRequest]
@@ -231,7 +232,7 @@ func (c *ModelCore) Start(context context.Context) error {
 	// Models
 	c.AccountCategory()
 	c.AccountClassification()
-
+	c.UnbalancedAccount()
 	c.AdjustmentEntry()
 	c.AdjustmentTag()
 	c.AutomaticLoanDeduction()
