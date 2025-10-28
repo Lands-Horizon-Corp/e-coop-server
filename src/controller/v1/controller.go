@@ -115,7 +115,6 @@ func (c *Controller) Start() error {
 	// Accounts
 	c.AccountController()
 	c.AccountHistory()
-	c.UnbalanceAccountController()
 	c.MemberAccountingLedgerController()
 	c.AccountCategoryController()
 	c.AccountClassificationController()
