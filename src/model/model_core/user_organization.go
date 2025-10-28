@@ -266,8 +266,7 @@ func (m *ModelCore) UserOrganization() {
 			"UpdatedBy",
 			"Branch",
 			"Branch.Media",
-			"Branch.BranchSetting",
-			"Branch.BranchSetting.Currency",
+
 			"User",
 			"User.Media",
 			"Organization",
@@ -280,6 +279,9 @@ func (m *ModelCore) UserOrganization() {
 			"SettingsAccountingDepositDefaultValue",
 			"SettingsAccountingWithdrawDefaultValue",
 			"SettingsPaymentTypeDefaultValue",
+
+			"Branch.BranchSetting",
+			"Branch.BranchSetting.Currency",
 
 			"Branch.BranchSetting.CashOnHandAccount",
 			"Branch.BranchSetting.CashOnHandAccount.Currency",
