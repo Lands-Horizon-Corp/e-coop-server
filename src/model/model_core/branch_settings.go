@@ -128,11 +128,11 @@ type (
 	}
 
 	BranchSettingsCurrencyRequest struct {
-		CurrencyID                   uuid.UUID  `json:"currency_id" validate:"required"`
-		PaidUpSharedCapitalAccountID *uuid.UUID `json:"paid_up_shared_capital_account_id,omitempty"`
-		CashOnHandAccountID          *uuid.UUID `json:"cash_on_hand_account_id,omitempty"`
-		AccountForOverflowID         *uuid.UUID `json:"account_for_overflow_id,omitempty"`
-		AccountForUnderflowID        *uuid.UUID `json:"account_for_underflow_id,omitempty"`
+		CurrencyID                   uuid.UUID `json:"currency_id" validate:"required"`
+		PaidUpSharedCapitalAccountID uuid.UUID `json:"paid_up_shared_capital_account_id" validate:"required"`
+		CashOnHandAccountID          uuid.UUID `json:"cash_on_hand_account_id" validate:"required"`
+		AccountForOverflowID         uuid.UUID `json:"account_for_overflow_id" validate:"required"`
+		AccountForUnderflowID        uuid.UUID `json:"account_for_underflow_id" validate:"required"`
 	}
 
 	BranchSettingResponse struct {
