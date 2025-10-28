@@ -285,6 +285,11 @@ func (m *ModelCore) UserOrganization() {
 			"Branch.BranchSetting.CashOnHandAccount.Currency",
 			"Branch.BranchSetting.PaidUpSharedCapitalAccount",
 			"Branch.BranchSetting.PaidUpSharedCapitalAccount.Currency",
+
+			"Branch.BranchSetting.UnbalancedAccounts.AccountForShortage",
+			"Branch.BranchSetting.UnbalancedAccounts.AccountForOverage",
+			"Branch.BranchSetting.UnbalancedAccounts.MemberProfileForShortage",
+			"Branch.BranchSetting.UnbalancedAccounts.MemberProfileForOverage",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *UserOrganization) *UserOrganizationResponse {
