@@ -39,7 +39,7 @@ type (
 		Currency       *Currency     `gorm:"foreignKey:CurrencyID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"currency,omitempty"`
 
 		Name        string                `gorm:"type:varchar(255);not null;unique"`
-		Description string                `gorm:"type:text;not null;unique"`
+		Description string                `gorm:"type:varchar(255);default:''"`
 		Icon        string                `gorm:"type:varchar(255)"`
 		Type        ChargesRateSchemeType `gorm:"type:varchar(50);not null"`
 
