@@ -22,7 +22,7 @@ type (
 		DeletedByID *uuid.UUID     `gorm:"type:uuid" json:"deleted_by_id"`
 		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
 
-		BranchSettingsID uuid.UUID      `gorm:"type:uuid;not null;index:idx_branch_settings_unbalanced_account" json:"branch_settings_id"`
+		BranchSettingsID uuid.UUID      `gorm:"type:uuid;not null;uniqueIndex:idx_unique_currency_per_branch_settings,priority:2" json:"branch_settings_id"`
 		BranchSettings   *BranchSetting `gorm:"foreignKey:BranchSettingsID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch_settings,omitempty"`
 
 		CurrencyID uuid.UUID `gorm:"type:uuid;not null;uniqueIndex:idx_unique_currency_per_branch_settings,priority:1" json:"currency_id"`
