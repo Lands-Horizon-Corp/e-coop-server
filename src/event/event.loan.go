@@ -2,7 +2,6 @@ package event
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
@@ -19,12 +18,10 @@ type LoanBalanceEvent struct {
 }
 
 func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gorm.DB, data LoanBalanceEvent) (*model_core.LoanTransaction, error) {
-	fmt.Printf("[LOAN BALANCING] Starting loan balancing process for LoanTransactionID: %s\n", data.LoanTransactionID.String())
 
 	// ================================================================================
 	// STEP 1: AUTHENTICATION & USER ORGANIZATION RETRIEVAL
 	// ================================================================================
-	fmt.Printf("[LOAN BALANCING] Step 1: Authenticating user and retrieving organization\n")
 	userOrg, err := e.user_organization_token.CurrentUserOrganization(ctx, echoCtx)
 	if err != nil {
 		tx.Rollback()
@@ -35,13 +32,9 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		})
 		return nil, eris.Wrap(err, "failed to get user organization")
 	}
-	fmt.Printf("[LOAN BALANCING] User organization retrieved: OrganizationID=%s, BranchID=%v\n", userOrg.OrganizationID.String(), userOrg.BranchID)
-
 	// ================================================================================
 	// STEP 2: LOAN TRANSACTION & RELATED DATA RETRIEVAL
 	// ================================================================================
-	fmt.Printf("[LOAN BALANCING] Step 2: Retrieving loan transaction and related data\n")
-	// Get the main loan transaction
 	loanTransaction, err := e.model_core.LoanTransactionManager.GetByID(ctx, data.LoanTransactionID)
 	if err != nil {
 		tx.Rollback()
@@ -52,8 +45,6 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		})
 		return nil, eris.Wrap(err, "failed to get loan transaction")
 	}
-	fmt.Printf("[LOAN BALANCING] Loan transaction retrieved: ID=%s, Applied1=%f, LoanType=%s\n",
-		loanTransaction.ID.String(), loanTransaction.Applied1, loanTransaction.LoanType)
 
 	// Get the account associated with the loan transaction
 	account, err := e.model_core.AccountManager.GetByID(ctx, *loanTransaction.AccountID)
@@ -97,8 +88,6 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	// ================================================================================
 	// STEP 3: CATEGORIZE EXISTING LOAN TRANSACTION ENTRIES BY TYPE
 	// ================================================================================
-	fmt.Printf("[LOAN BALANCING] Step 3: Categorizing existing loan transaction entries\n")
-	fmt.Printf("[LOAN BALANCING] Found %d existing loan transaction entries\n", len(loanTransactionEntries))
 	result := []*model_core.LoanTransactionEntry{}
 	static, addOn, deduction, postComputed := []*model_core.LoanTransactionEntry{}, []*model_core.LoanTransactionEntry{}, []*model_core.LoanTransactionEntry{}, []*model_core.LoanTransactionEntry{}
 
@@ -117,13 +106,9 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 			postComputed = append(postComputed, entry)
 		}
 	}
-	fmt.Printf("[LOAN BALANCING] Categorized entries - Static: %d, AddOn: %d, Deduction: %d, PostComputed: %d\n",
-		len(static), len(addOn), len(deduction), len(postComputed))
-
 	// ================================================================================
 	// STEP 4: CREATE DEFAULT STATIC ENTRIES IF NOT EXISTS
 	// ================================================================================
-	fmt.Printf("[LOAN BALANCING] Step 4: Creating default static entries if needed\n")
 	// If we don't have the required 2 static entries, create them
 	if len(static) < 2 {
 		cashOnCashEquivalenceAccount, err := e.model_core.AccountManager.GetByID(ctx, data.CashOnCashEquivalenceAccountID)
@@ -203,7 +188,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	// ================================================================================
 	// STEP 7: PROCESS EXISTING DEDUCTIONS & CALCULATE TOTALS
 	// ================================================================================
-	fmt.Printf("[LOAN BALANCING] Step 7: Processing existing deductions and calculating totals\n")
+
 	total_non_add_ons, total_add_ons := 0.0, 0.0
 
 	// Add existing deduction entries and calculate running totals
@@ -217,76 +202,58 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	}
 
 	// Process post-computed (automatic deduction) entries
-	fmt.Printf("[LOAN BALANCING] Processing %d post-computed (automatic deduction) entries\n", len(postComputed))
-	for i, entry := range postComputed {
-		fmt.Printf("[LOAN BALANCING] Processing post-computed entry %d: %s\n", i+1, entry.Name)
+
+	for _, entry := range postComputed {
 
 		if entry.IsAutomaticLoanDeductionDeleted {
-			fmt.Printf("[LOAN BALANCING] Entry %d is marked as deleted, adding to result without processing\n", i+1)
 			result = append(result, entry)
 			continue
 		}
 
 		if entry.Amount != 0 {
 			entry.Credit = entry.Amount
-			fmt.Printf("[LOAN BALANCING] Entry %d has preset amount: %f, setting as credit\n", i+1, entry.Amount)
 		} else {
-			fmt.Printf("[LOAN BALANCING] Entry %d has no preset amount, calculating credit\n", i+1)
-
 			if entry.AutomaticLoanDeduction.ChargesRateSchemeID != nil {
-				fmt.Printf("[LOAN BALANCING] Entry %d has ChargesRateSchemeID, calculating charges rate\n", i+1)
 				chargesRateScheme, err := e.model_core.ChargesRateSchemeManager.GetByID(ctx, *entry.AutomaticLoanDeduction.ChargesRateSchemeID)
 				if err != nil {
-					fmt.Printf("[LOAN BALANCING] ERROR: Failed to get charges rate scheme for entry %d: %s\n", i+1, err.Error())
 					return nil, err
 				}
 				entry.Credit = e.service.LoanChargesRateComputation(ctx, *chargesRateScheme, *loanTransaction)
-				fmt.Printf("[LOAN BALANCING] Entry %d charges rate computation result: %f\n", i+1, entry.Credit)
 			}
 
 			if entry.Credit <= 0 {
-				originalCredit := entry.Credit
 				entry.Credit = e.service.LoanComputation(ctx, *entry.AutomaticLoanDeduction, *loanTransaction)
-				fmt.Printf("[LOAN BALANCING] Entry %d loan computation: %f -> %f\n", i+1, originalCredit, entry.Credit)
-			} else {
-				fmt.Printf("[LOAN BALANCING] Entry %d credit remains 0 after calculations\n", i+1)
 			}
 		}
 
 		if !entry.IsAddOn {
 			total_non_add_ons += entry.Credit
-			fmt.Printf("[LOAN BALANCING] Entry %d is non-add-on, adding %f to total_non_add_ons (new total: %f)\n",
-				i+1, entry.Credit, total_non_add_ons)
+
 		} else {
 			total_add_ons += entry.Credit
-			fmt.Printf("[LOAN BALANCING] Entry %d is add-on, adding %f to total_add_ons (new total: %f)\n",
-				i+1, entry.Credit, total_add_ons)
 		}
 
-		fmt.Printf("[LOAN BALANCING] Entry %d final values - Credit: %f, Debit: %f, IsAddOn: %t\n",
-			i+1, entry.Credit, entry.Debit, entry.IsAddOn)
-		result = append(result, entry)
+		if entry.Credit > 0 {
+			result = append(result, entry)
+
+		}
 	}
 
 	// ================================================================================
 	// STEP 8: ADD MISSING AUTOMATIC DEDUCTIONS
 	// ================================================================================
-	fmt.Printf("[LOAN BALANCING] Step 8: Adding missing automatic deductions\n")
-	fmt.Printf("[LOAN BALANCING] Found %d automatic loan deductions to process\n", len(automaticLoanDeductions))
-	// Process automatic loan deductions that weren't already included in post-computed entries
-	for i, ald := range automaticLoanDeductions {
-		fmt.Printf("[LOAN BALANCING] Checking automatic deduction %d: %s (ID: %s)\n", i+1, ald.Name, ald.ID.String())
+
+	for _, ald := range automaticLoanDeductions {
 		exist := false
 		for _, computed := range postComputed {
 			if handlers.UuidPtrEqual(&ald.ID, computed.AutomaticLoanDeductionID) {
 				exist = true
-				fmt.Printf("[LOAN BALANCING] Automatic deduction %d already exists in post-computed entries\n", i+1)
+
 				break
 			}
 		}
 
 		if !exist {
-			fmt.Printf("[LOAN BALANCING] Automatic deduction %d not found in post-computed, creating new entry\n", i+1)
 			entry := &model_core.LoanTransactionEntry{
 				Credit:                   0,
 				Debit:                    0,
@@ -301,44 +268,33 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 				Amount:                   0,
 			}
 
-			fmt.Printf("[LOAN BALANCING] New entry %d created: %s, IsAddOn=%t\n", i+1, entry.Name, entry.IsAddOn)
-
 			if ald.ChargesRateSchemeID != nil {
-				fmt.Printf("[LOAN BALANCING] Entry %d has ChargesRateSchemeID, calculating charges rate\n", i+1)
 				chargesRateScheme, err := e.model_core.ChargesRateSchemeManager.GetByID(ctx, *ald.ChargesRateSchemeID)
 				if err != nil {
-					fmt.Printf("[LOAN BALANCING] ERROR: Failed to get charges rate scheme for entry %d: %s\n", i+1, err.Error())
+
 					return nil, err
 				}
 				entry.Credit = e.service.LoanChargesRateComputation(ctx, *chargesRateScheme, *loanTransaction)
-				fmt.Printf("[LOAN BALANCING] Entry %d charges rate computation result: %f\n", i+1, entry.Credit)
-			} else {
-				fmt.Printf("[LOAN BALANCING] Entry %d has no ChargesRateSchemeID\n", i+1)
+
 			}
 
 			if entry.Credit <= 0 {
-				originalCredit := entry.Credit
 				entry.Credit = e.service.LoanComputation(ctx, *ald, *loanTransaction)
-				fmt.Printf("[LOAN BALANCING] Entry %d loan computation: %f -> %f\n", i+1, originalCredit, entry.Credit)
-			} else {
-				fmt.Printf("[LOAN BALANCING] Entry %d credit remains 0, no loan computation needed\n", i+1)
 			}
 
 			if !entry.IsAddOn {
 				total_non_add_ons += entry.Credit
-				fmt.Printf("[LOAN BALANCING] Entry %d is non-add-on, adding %f to total_non_add_ons (new total: %f)\n",
-					i+1, entry.Credit, total_non_add_ons)
+
 			} else {
 				total_add_ons += entry.Credit
-				fmt.Printf("[LOAN BALANCING] Entry %d is add-on, adding %f to total_add_ons (new total: %f)\n",
-					i+1, entry.Credit, total_add_ons)
+
 			}
 
-			fmt.Printf("[LOAN BALANCING] Entry %d final values - Credit: %f, Debit: %f\n", i+1, entry.Credit, entry.Debit)
-			result = append(result, entry)
+			if entry.Credit > 0 {
+				result = append(result, entry)
+			}
 		}
 	}
-	fmt.Printf("[LOAN BALANCING] Step 8 completed - Added missing automatic deductions\n")
 
 	if (loanTransaction.LoanType == model_core.LoanTypeRestructured ||
 		loanTransaction.LoanType == model_core.LoanTypeRenewalWithoutDeduct ||
@@ -360,17 +316,12 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	// ================================================================================
 	// STEP 9: CALCULATE FINAL CREDIT AMOUNTS & ADD-ON INTEREST
 	// ================================================================================
-	fmt.Printf("[LOAN BALANCING] Step 9: Calculating final credit amounts\n")
-	fmt.Printf("[LOAN BALANCING] Total non-add-ons: %f, Total add-ons: %f\n", total_non_add_ons, total_add_ons)
+
 	// Adjust the first entry (cash equivalent) credit based on loan type and deductions
 	if loanTransaction.IsAddOn {
 		result[0].Credit = loanTransaction.Applied1 - total_non_add_ons
-		fmt.Printf("[LOAN BALANCING] IsAddOn=true: Cash equivalent credit = %f - %f = %f\n",
-			loanTransaction.Applied1, total_non_add_ons, result[0].Credit)
 	} else {
 		result[0].Credit = loanTransaction.Applied1 - (total_non_add_ons + total_add_ons)
-		fmt.Printf("[LOAN BALANCING] IsAddOn=false: Cash equivalent credit = %f - (%f + %f) = %f\n",
-			loanTransaction.Applied1, total_non_add_ons, total_add_ons, result[0].Credit)
 	}
 
 	// Add the add-on interest entry if applicable
@@ -382,8 +333,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	// ================================================================================
 	// STEP 10: CLEANUP OLD ENTRIES & CREATE NEW BALANCED ENTRIES
 	// ================================================================================
-	fmt.Printf("[LOAN BALANCING] Step 10: Cleaning up old entries and creating new balanced entries\n")
-	fmt.Printf("[LOAN BALANCING] Deleting %d existing entries\n", len(loanTransactionEntries))
+
 	// Delete all existing loan transaction entries before creating new ones
 	for _, entry := range loanTransactionEntries {
 		if err := e.model_core.LoanTransactionEntryManager.DeleteByIDWithTx(ctx, tx, entry.ID); err != nil {
@@ -415,7 +365,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	}
 
 	// Create new loan transaction entries and calculate totals
-	fmt.Printf("[LOAN BALANCING] Creating %d new loan transaction entries\n", len(result))
+
 	totalDebit, totalCredit := 0.0, 0.0
 	for index, entry := range result {
 
@@ -444,9 +394,6 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 			totalCredit += entry.Credit
 		}
 
-		fmt.Printf("[LOAN BALANCING] Creating entry %d: %s - Credit: %f, Debit: %f\n",
-			index, entry.Name, entry.Credit, entry.Debit)
-
 		if err := e.model_core.LoanTransactionEntryManager.CreateWithTx(ctx, tx, value); err != nil {
 			tx.Rollback()
 			e.Footstep(ctx, echoCtx, FootstepEvent{
@@ -472,9 +419,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	// ================================================================================
 	// STEP 11: UPDATE LOAN TRANSACTION TOTALS & COMMIT CHANGES
 	// ================================================================================
-	fmt.Printf("[LOAN BALANCING] Step 11: Updating loan transaction totals\n")
-	fmt.Printf("[LOAN BALANCING] Final totals - Credit: %f, Debit: %f, Amortization: %f\n",
-		totalCredit, totalDebit, amort)
+
 	// Update the loan transaction with calculated totals
 	loanTransaction.Amortization = amort
 	loanTransaction.Balance = totalCredit
@@ -493,9 +438,8 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	}
 
 	// Commit all database changes
-	fmt.Printf("[LOAN BALANCING] Committing database transaction\n")
+
 	if err := tx.Commit().Error; err != nil {
-		fmt.Printf("[LOAN BALANCING] ERROR: Failed to commit transaction: %s\n", err.Error())
 		e.Footstep(ctx, echoCtx, FootstepEvent{
 			Activity:    "db-commit-error",
 			Description: "Failed to commit transaction (/transaction/payment/:transaction_id): " + err.Error(),
@@ -503,16 +447,15 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		})
 		return nil, eris.Wrap(err, "failed to commit transaction")
 	}
-	fmt.Printf("[LOAN BALANCING] Transaction committed successfully\n")
 
 	// ================================================================================
 	// STEP 12: RETRIEVE & RETURN UPDATED LOAN TRANSACTION
 	// ================================================================================
-	fmt.Printf("[LOAN BALANCING] Step 12: Retrieving updated loan transaction\n")
+
 	// Get the updated loan transaction with all related data
 	newLoanTransaction, err := e.model_core.LoanTransactionManager.GetByID(ctx, loanTransaction.ID)
 	if err != nil {
-		fmt.Printf("[LOAN BALANCING] ERROR: Failed to get updated loan transaction: %s\n", err.Error())
+
 		e.Footstep(ctx, echoCtx, FootstepEvent{
 			Activity:    "data-error",
 			Description: "Failed to get updated loan transaction (/transaction/payment/:transaction_id): " + err.Error(),
@@ -521,8 +464,6 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		return nil, eris.Wrap(err, "failed to get updated loan transaction")
 	}
 
-	fmt.Printf("[LOAN BALANCING] Loan balancing completed successfully for LoanTransactionID: %s\n",
-		newLoanTransaction.ID.String())
 	return newLoanTransaction, nil
 }
 
