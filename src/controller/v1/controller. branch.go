@@ -855,8 +855,7 @@ func (c *Controller) BranchController() {
 		branchSetting.CurrencyID = settingsReq.CurrencyID
 		branchSetting.PaidUpSharedCapitalAccountID = &settingsReq.PaidUpSharedCapitalAccountID
 		branchSetting.CashOnHandAccountID = &settingsReq.CashOnHandAccountID
-		branchSetting.AccountForOverflowID = &settingsReq.AccountForOverflowID
-		branchSetting.AccountForUnderflowID = &settingsReq.AccountForUnderflowID
+
 		branchSetting.UpdatedAt = time.Now().UTC()
 
 		if err := c.model_core.BranchSettingManager.UpdateFields(context, branchSetting.ID, branchSetting); err != nil {
