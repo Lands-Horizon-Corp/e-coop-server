@@ -39,7 +39,7 @@ type (
 		Currency       *Currency     `gorm:"foreignKey:CurrencyID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"currency,omitempty"`
 
 		Name        string                `gorm:"type:varchar(255);not null;unique"`
-		Description string                `gorm:"type:text;not null;unique"`
+		Description string                `gorm:"type:varchar(255);default:''"`
 		Icon        string                `gorm:"type:varchar(255)"`
 		Type        ChargesRateSchemeType `gorm:"type:varchar(50);not null"`
 
@@ -180,7 +180,7 @@ type (
 	ChargesRateSchemeRequest struct {
 		ChargesRateByTermHeaderID uuid.UUID             `json:"charges_rate_by_term_header_id,omitempty"`
 		Name                      string                `json:"name" validate:"required,min=1,max=255"`
-		Description               string                `json:"description" validate:"required"`
+		Description               string                `json:"description,omitempty" validate:"omitempty,max=255"`
 		Icon                      string                `json:"icon,omitempty"`
 		Type                      ChargesRateSchemeType `json:"type" validate:"required,oneof=by_range by_type by_term"`
 		CurrencyID                uuid.UUID             `json:"currency_id" validate:"required"`

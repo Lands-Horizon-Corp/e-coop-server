@@ -31,6 +31,34 @@ func (c *Controller) CurrencyController() {
 		return ctx.JSON(http.StatusOK, c.model_core.CurrencyManager.Filtered(context, ctx, currencies))
 	})
 
+	// Get all available currencies on unbalance accounts
+	// GET /api/v1/currency/blotter-available
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/currency/blotter-available",
+		Method:       "GET",
+		ResponseType: model_core.CurrencyResponse{},
+		Note:         "Returns all available currencies on unbalance accounts.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		unbalanced, err := c.model_core.UnbalancedAccountManager.Find(context, &model_core.UnbalancedAccount{
+			BranchSettingsID: user.Branch.BranchSetting.ID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve currencies: " + err.Error()})
+		}
+		currency := []*model_core.Currency{}
+		for _, unbal := range unbalanced {
+			if unbal.Currency != nil {
+				currency = append(currency, unbal.Currency)
+			}
+		}
+		return ctx.JSON(http.StatusOK, c.model_core.CurrencyManager.ToModels(currency))
+	})
+
 	// GET /api/v1/currency/available
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/currency/available",

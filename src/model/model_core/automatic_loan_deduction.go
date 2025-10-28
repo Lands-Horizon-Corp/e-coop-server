@@ -124,7 +124,7 @@ func (m *ModelCore) AutomaticLoanDeduction() {
 		AutomaticLoanDeduction, AutomaticLoanDeductionResponse, AutomaticLoanDeductionRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy",
+			"CreatedBy", "UpdatedBy", "Account.Currency",
 			"Account", "ComputationSheet", "ChargesRateScheme",
 		},
 		Service: m.provider.Service,

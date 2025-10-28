@@ -667,10 +667,6 @@ func (c *Controller) BranchController() {
 				UpdatedAt: time.Now().UTC(),
 				BranchID:  *userOrg.BranchID,
 
-				// Account References
-				AccountForOverflowID:  settingsReq.AccountForOverflowID,
-				AccountForUnderflowID: settingsReq.AccountForUnderflowID,
-
 				// Withdraw Settings
 				WithdrawAllowUserInput: settingsReq.WithdrawAllowUserInput,
 				WithdrawPrefix:         settingsReq.WithdrawPrefix,
@@ -749,8 +745,6 @@ func (c *Controller) BranchController() {
 			branchSetting.DepositUseDateOR = settingsReq.DepositUseDateOR
 
 			// Loan Settings
-			branchSetting.AccountForOverflowID = settingsReq.AccountForOverflowID
-			branchSetting.AccountForUnderflowID = settingsReq.AccountForUnderflowID
 			branchSetting.LoanAllowUserInput = settingsReq.LoanAllowUserInput
 			branchSetting.LoanPrefix = settingsReq.LoanPrefix
 			branchSetting.LoanORStart = settingsReq.LoanORStart
@@ -858,12 +852,24 @@ func (c *Controller) BranchController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Branch settings not found: " + err.Error()})
 		}
+		// Start database transaction
+		tx := c.provider.Service.Database.Client().Begin()
+		if tx.Error != nil {
+			tx.Rollback()
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Failed to start database transaction: " + tx.Error.Error(),
+				Module:      "ChargesRateScheme",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+		}
+
 		branchSetting.CurrencyID = settingsReq.CurrencyID
-		branchSetting.PaidUpSharedCapitalAccountID = settingsReq.PaidUpSharedCapitalAccountID
-		branchSetting.CashOnHandAccountID = settingsReq.CashOnHandAccountID
+		branchSetting.PaidUpSharedCapitalAccountID = &settingsReq.PaidUpSharedCapitalAccountID
+		branchSetting.CashOnHandAccountID = &settingsReq.CashOnHandAccountID
 		branchSetting.UpdatedAt = time.Now().UTC()
 
-		if err := c.model_core.BranchSettingManager.UpdateFields(context, branchSetting.ID, branchSetting); err != nil {
+		if err := c.model_core.BranchSettingManager.UpdateFieldsWithTx(context, tx, branchSetting.ID, branchSetting); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("Failed to update branch settings currency for PUT /branch-settings/currency: %v", err),
@@ -872,6 +878,73 @@ func (c *Controller) BranchController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update branch settings currency: " + err.Error()})
 		}
 
+		// Handle deletions first
+		for _, id := range settingsReq.UnbalancedAccountDeleteIDs {
+			if err := c.model_core.UnbalancedAccountManager.DeleteByIDWithTx(context, tx, id); err != nil {
+				tx.Rollback()
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "update-error",
+					Description: "Failed to delete unbalanced account: " + err.Error(),
+					Module:      "UnbalancedAccount",
+				})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete unbalanced account: " + err.Error()})
+			}
+		}
+
+		// Handle UnbalancedAccounts creation/update
+		for _, accountReq := range settingsReq.UnbalancedAccount {
+			if accountReq.ID != nil {
+				// Update existing record
+				existingAccount, err := c.model_core.UnbalancedAccountManager.GetByID(context, *accountReq.ID)
+				if err != nil {
+					tx.Rollback()
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get unbalanced account: " + err.Error()})
+				}
+
+				existingAccount.Name = accountReq.Name
+				existingAccount.Description = accountReq.Description
+				existingAccount.CurrencyID = accountReq.CurrencyID
+				existingAccount.AccountForShortageID = accountReq.AccountForShortageID
+				existingAccount.AccountForOverageID = accountReq.AccountForOverageID
+				existingAccount.MemberProfileIDForShortage = accountReq.MemberProfileIDForShortage
+				existingAccount.MemberProfileIDForOverage = accountReq.MemberProfileIDForOverage
+
+				existingAccount.UpdatedAt = time.Now().UTC()
+				existingAccount.UpdatedByID = userOrg.UserID
+				if err := c.model_core.UnbalancedAccountManager.UpdateFieldsWithTx(context, tx, existingAccount.ID, existingAccount); err != nil {
+					tx.Rollback()
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate scheme account: " + err.Error()})
+				}
+			} else {
+				// Create new record
+				newUnbalancedAccount := &model_core.UnbalancedAccount{
+					CreatedAt:   time.Now().UTC(),
+					CreatedByID: userOrg.UserID,
+					UpdatedAt:   time.Now().UTC(),
+					UpdatedByID: userOrg.UserID,
+
+					Name:                       accountReq.Name,
+					Description:                accountReq.Description,
+					CurrencyID:                 accountReq.CurrencyID,
+					AccountForShortageID:       accountReq.AccountForShortageID,
+					AccountForOverageID:        accountReq.AccountForOverageID,
+					MemberProfileIDForShortage: accountReq.MemberProfileIDForShortage,
+					MemberProfileIDForOverage:  accountReq.MemberProfileIDForOverage,
+				}
+				if err := c.model_core.UnbalancedAccountManager.CreateWithTx(context, tx, newUnbalancedAccount); err != nil {
+					tx.Rollback()
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create unbalanced account: " + err.Error()})
+				}
+			}
+		}
+		if err := tx.Commit().Error; err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Failed to commit unbalanced account update transaction: " + err.Error(),
+				Module:      "UnbalancedAccount",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit unbalanced account update: " + err.Error()})
+		}
 		// Log success
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "update success",

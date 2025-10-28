@@ -21,10 +21,11 @@ func (c *Controller) ComputationSheetController() {
 		Route:        "/api/v1/computation-sheet/:computation_sheet_id/calculator",
 		Method:       "POST",
 		Note:         "Returns sample payment calculation data for a computation sheet.",
+		RequestType:  model_core.LoanComputationSheetCalculatorRequest{},
 		ResponseType: model_core.ComputationSheetAmortizationResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var request model_core.LoanTransactionRequest
+		var request model_core.LoanComputationSheetCalculatorRequest
 		computationSheetID, err := handlers.EngineUUIDParam(ctx, "computation_sheet_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
@@ -106,17 +107,35 @@ func (c *Controller) ComputationSheetController() {
 				IsAddOn: ald.AddOn,
 				Account: ald.Account,
 			}
-			entry.Credit = c.service.LoanComputation(context, *ald, model_core.LoanTransaction{
-				Terms:    request.Terms,
-				Applied1: request.Applied1,
-			})
+			if entry.AutomaticLoanDeduction.ChargesRateSchemeID != nil {
+				chargesRateScheme, err := c.model_core.ChargesRateSchemeManager.GetByID(context, *entry.AutomaticLoanDeduction.ChargesRateSchemeID)
+				if err != nil {
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to retrieve charges rate scheme for %s: %s", entry.Name, err.Error())})
+				}
+				entry.Credit = c.service.LoanChargesRateComputation(context, *chargesRateScheme, model_core.LoanTransaction{
+					Applied1: request.Applied1,
+					Terms:    request.Terms,
+					MemberProfile: &model_core.MemberProfile{
+						MemberTypeID: request.MemberTypeID,
+					},
+				})
+
+			}
+			if entry.Credit <= 0 {
+				entry.Credit = c.service.LoanComputation(context, *ald, model_core.LoanTransaction{
+					Terms:    request.Terms,
+					Applied1: request.Applied1,
+				})
+			}
 
 			if !entry.IsAddOn {
 				total_non_add_ons += entry.Credit
 			} else {
 				total_add_ons += entry.Credit
 			}
-			loanTransactionEntries = append(loanTransactionEntries, entry)
+			if entry.Credit > 0 {
+				loanTransactionEntries = append(loanTransactionEntries, entry)
+			}
 		}
 		if request.IsAddOn {
 			loanTransactionEntries[0].Credit = request.Applied1 - total_non_add_ons

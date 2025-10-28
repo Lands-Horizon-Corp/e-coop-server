@@ -212,8 +212,8 @@ type (
 		CohCibFinesGracePeriodEntryLumpsumAmortization     float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_lumpsum_amortization"`
 		CohCibFinesGracePeriodEntryLumpsumMaturity         float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_lumpsum_maturity"`
 
-		FinancialStatementType string `gorm:"type:varchar(50)" json:"financial_statement_type"`
-		GeneralLedgerType      string `gorm:"type:varchar(50)" json:"general_ledger_type"`
+		FinancialStatementType FinancialStatementType `gorm:"type:varchar(50)" json:"financial_statement_type"`
+		GeneralLedgerType      GeneralLedgerType      `gorm:"type:varchar(50)" json:"general_ledger_type"`
 
 		AlternativeAccountID *uuid.UUID `gorm:"type:uuid" json:"alternative_account_id"`
 		AlternativeAccount   *Account   `gorm:"foreignKey:AlternativeAccountID;constraint:OnDelete:SET NULL;" json:"alternative_account,omitempty"`
@@ -225,15 +225,15 @@ type (
 		YearlySubscriptionFee        int  `gorm:"type:int" json:"yearly_subscription_fee"`
 		LoanCutOffDays               int  `gorm:"type:int" json:"loan_cut_off_days"`
 
-		LumpsumComputationType                            string `gorm:"type:varchar(50);default:'None'" json:"lumpsum_computation_type"`
-		InterestFinesComputationDiminishing               string `gorm:"type:varchar(100);default:'None'" json:"interest_fines_computation_diminishing"`
-		InterestFinesComputationDiminishingStraightYearly string `gorm:"type:varchar(200);default:'None'" json:"interest_fines_computation_diminishing_straight_yearly"`
-		EarnedUnearnedInterest                            string `gorm:"type:varchar(50);default:'None'" json:"earned_unearned_interest"`
-		LoanSavingType                                    string `gorm:"type:varchar(50);default:'Separate'" json:"loan_saving_type"`
-		InterestDeduction                                 string `gorm:"type:varchar(10);default:'Above'" json:"interest_deduction"`
-		OtherDeductionEntry                               string `gorm:"type:varchar(20);default:'None'" json:"other_deduction_entry"`
-		InterestSavingTypeDiminishingStraight             string `gorm:"type:varchar(20);default:'Spread'" json:"interest_saving_type_diminishing_straight"`
-		OtherInformationOfAnAccount                       string `gorm:"type:varchar(50);default:'None'" json:"other_information_of_an_account"`
+		LumpsumComputationType                            LumpsumComputationType                            `gorm:"type:varchar(50);default:'None'" json:"lumpsum_computation_type"`
+		InterestFinesComputationDiminishing               InterestFinesComputationDiminishing               `gorm:"type:varchar(100);default:'None'" json:"interest_fines_computation_diminishing"`
+		InterestFinesComputationDiminishingStraightYearly InterestFinesComputationDiminishingStraightYearly `gorm:"type:varchar(200);default:'None'" json:"interest_fines_computation_diminishing_straight_yearly"`
+		EarnedUnearnedInterest                            EarnedUnearnedInterest                            `gorm:"type:varchar(50);default:'None'" json:"earned_unearned_interest"`
+		LoanSavingType                                    LoanSavingType                                    `gorm:"type:varchar(50);default:'Separate'" json:"loan_saving_type"`
+		InterestDeduction                                 InterestDeduction                                 `gorm:"type:varchar(10);default:'Above'" json:"interest_deduction"`
+		OtherDeductionEntry                               OtherDeductionEntry                               `gorm:"type:varchar(20);default:'None'" json:"other_deduction_entry"`
+		InterestSavingTypeDiminishingStraight             InterestSavingTypeDiminishingStraight             `gorm:"type:varchar(20);default:'Spread'" json:"interest_saving_type_diminishing_straight"`
+		OtherInformationOfAnAccount                       OtherInformationOfAnAccount                       `gorm:"type:varchar(50);default:'None'" json:"other_information_of_an_account"`
 
 		HeaderRow int `gorm:"type:int" json:"header_row"`
 		CenterRow int `gorm:"type:int" json:"center_row"`
@@ -328,7 +328,7 @@ type AccountResponse struct {
 	CohCibFinesGracePeriodEntryLumpsumMaturity         float64 `json:"coh_cib_fines_grace_period_entry_lumpsum_maturity"`
 
 	FinancialStatementType FinancialStatementType `json:"financial_statement_type"`
-	GeneralLedgerType      string                 `json:"general_ledger_type"`
+	GeneralLedgerType      GeneralLedgerType      `json:"general_ledger_type"`
 
 	AlternativeAccountID *uuid.UUID       `gorm:"type:uuid" json:"alternative_account_id,omitempty"`
 	AlternativeAccount   *AccountResponse `json:"alternative_account,omitempty"`
@@ -418,7 +418,7 @@ type AccountRequest struct {
 	CohCibFinesGracePeriodEntryLumpsumMaturity         float64 `json:"coh_cib_fines_grace_period_entry_lumpsum_maturity,omitempty"`
 
 	FinancialStatementType FinancialStatementType `json:"financial_statement_type,omitempty"`
-	GeneralLedgerType      string                 `json:"general_ledger_type,omitempty"`
+	GeneralLedgerType      GeneralLedgerType      `json:"general_ledger_type,omitempty"`
 
 	AlternativeAccountID *uuid.UUID `json:"alternative_account_id,omitempty"`
 
@@ -631,7 +631,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MaxAmount:              1000000.00,
 			InterestStandard:       2.5,
 			CurrencyID:             &currency.ID,
-			FinancialStatementType: string(FSTypeAssets),
+			FinancialStatementType: FSTypeAssets,
 			ComputationType:        "Simple Interest",
 			Index:                  1,
 		},
@@ -648,7 +648,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MinAmount:              5000.00,
 			MaxAmount:              5000000.00,
 			InterestStandard:       4.0,
-			FinancialStatementType: string(FSTypeAssets),
+			FinancialStatementType: FSTypeAssets,
 			ComputationType:        "Compound Interest",
 			Index:                  2,
 			CurrencyID:             &currency.ID,
@@ -666,7 +666,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MinAmount:              50.00,
 			MaxAmount:              100000.00,
 			InterestStandard:       3.0,
-			FinancialStatementType: string(FSTypeAssets),
+			FinancialStatementType: FSTypeAssets,
 			ComputationType:        "Simple Interest",
 			Index:                  3,
 			CurrencyID:             &currency.ID,
@@ -684,7 +684,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MinAmount:              500.00,
 			MaxAmount:              2000000.00,
 			InterestStandard:       3.5,
-			FinancialStatementType: string(FSTypeAssets),
+			FinancialStatementType: FSTypeAssets,
 			ComputationType:        "Compound Interest",
 			Index:                  4,
 			CurrencyID:             &currency.ID,
@@ -702,7 +702,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MinAmount:              200.00,
 			MaxAmount:              500000.00,
 			InterestStandard:       3.0,
-			FinancialStatementType: string(FSTypeAssets),
+			FinancialStatementType: FSTypeAssets,
 			ComputationType:        "Simple Interest",
 			Index:                  5,
 			CurrencyID:             &currency.ID,
@@ -720,7 +720,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MinAmount:              1000.00,
 			MaxAmount:              3000000.00,
 			InterestStandard:       4.0,
-			FinancialStatementType: string(FSTypeAssets),
+			FinancialStatementType: FSTypeAssets,
 			ComputationType:        "Compound Interest",
 			Index:                  6,
 			CurrencyID:             &currency.ID,
@@ -738,7 +738,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MinAmount:              500.00,
 			MaxAmount:              1000000.00,
 			InterestStandard:       2.0,
-			FinancialStatementType: string(FSTypeAssets),
+			FinancialStatementType: FSTypeAssets,
 			ComputationType:        "Simple Interest",
 			Index:                  7,
 			CurrencyID:             &currency.ID,
@@ -756,7 +756,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MinAmount:              2000.00,
 			MaxAmount:              10000000.00,
 			InterestStandard:       3.5,
-			FinancialStatementType: string(FSTypeAssets),
+			FinancialStatementType: FSTypeAssets,
 			ComputationType:        "Compound Interest",
 			Index:                  8,
 			CurrencyID:             &currency.ID,
@@ -774,7 +774,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MinAmount:              1000.00,
 			MaxAmount:              5000000.00,
 			InterestStandard:       4.5,
-			FinancialStatementType: string(FSTypeAssets),
+			FinancialStatementType: FSTypeAssets,
 			ComputationType:        "Compound Interest",
 			Index:                  9,
 			CurrencyID:             &currency.ID,
@@ -814,18 +814,18 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			InterestSecured:                         7.5,
 			FinesAmort:                              1.0,
 			FinesMaturity:                           2.0,
-			FinancialStatementType:                  string(FSTypeAssets),
+			FinancialStatementType:                  FSTypeAssets,
 			ComputationType:                         "Diminishing Balance",
 			Index:                                   10,
 			LoanCutOffDays:                          3,
 			FinesGracePeriodAmortization:            5,
 			FinesGracePeriodMaturity:                7,
 			AdditionalGracePeriod:                   2,
-			LumpsumComputationType:                  string(LumpsumComputationNone),
-			InterestFinesComputationDiminishing:     string(IFCDByAmortization),
-			EarnedUnearnedInterest:                  string(EUITypeByFormula),
-			LoanSavingType:                          string(LSTSeparate),
-			InterestDeduction:                       string(InterestDeductionAbove),
+			LumpsumComputationType:                  LumpsumComputationNone,
+			InterestFinesComputationDiminishing:     IFCDByAmortization,
+			EarnedUnearnedInterest:                  EUITypeByFormula,
+			LoanSavingType:                          LSTSeparate,
+			InterestDeduction:                       InterestDeductionAbove,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
 			ShowInGeneralLedgerSourceJournal:        true,
@@ -851,18 +851,18 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			InterestSecured:                         9.0,
 			FinesAmort:                              1.5,
 			FinesMaturity:                           2.5,
-			FinancialStatementType:                  string(FSTypeAssets),
+			FinancialStatementType:                  FSTypeAssets,
 			ComputationType:                         "Diminishing Balance",
 			Index:                                   11,
 			LoanCutOffDays:                          7,
 			FinesGracePeriodAmortization:            10,
 			FinesGracePeriodMaturity:                15,
 			AdditionalGracePeriod:                   5,
-			LumpsumComputationType:                  string(LumpsumComputationNone),
-			InterestFinesComputationDiminishing:     string(IFCDByAmortization),
-			EarnedUnearnedInterest:                  string(EUITypeByFormula),
-			LoanSavingType:                          string(LSTSeparate),
-			InterestDeduction:                       string(InterestDeductionAbove),
+			LumpsumComputationType:                  LumpsumComputationNone,
+			InterestFinesComputationDiminishing:     IFCDByAmortization,
+			EarnedUnearnedInterest:                  EUITypeByFormula,
+			LoanSavingType:                          LSTSeparate,
+			InterestDeduction:                       InterestDeductionAbove,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
 			ShowInGeneralLedgerSourceJournal:        true,
@@ -888,18 +888,18 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			InterestSecured:                         5.5,
 			FinesAmort:                              0.5,
 			FinesMaturity:                           1.0,
-			FinancialStatementType:                  string(FSTypeAssets),
+			FinancialStatementType:                  FSTypeAssets,
 			ComputationType:                         "Simple Interest",
 			Index:                                   12,
 			LoanCutOffDays:                          14,
 			FinesGracePeriodAmortization:            15,
 			FinesGracePeriodMaturity:                30,
 			AdditionalGracePeriod:                   10,
-			LumpsumComputationType:                  string(LumpsumComputationNone),
-			InterestFinesComputationDiminishing:     string(IFCDNone),
-			EarnedUnearnedInterest:                  string(EUITypeByFormula),
-			LoanSavingType:                          string(LSTSeparate),
-			InterestDeduction:                       string(InterestDeductionBelow),
+			LumpsumComputationType:                  LumpsumComputationNone,
+			InterestFinesComputationDiminishing:     IFCDNone,
+			EarnedUnearnedInterest:                  EUITypeByFormula,
+			LoanSavingType:                          LSTSeparate,
+			InterestDeduction:                       InterestDeductionBelow,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
 			ShowInGeneralLedgerSourceJournal:        true,
@@ -934,7 +934,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MinAmount:                               0.00,
 			MaxAmount:                               1000000.00,
 			InterestStandard:                        0.0,
-			FinancialStatementType:                  string(FSTypeRevenue),
+			FinancialStatementType:                  FSTypeRevenue,
 			ComputationType:                         "Fixed Amount",
 			Index:                                   loanAccount.Index + 100, // Offset to avoid conflicts
 			AlternativeAccountID:                    &loanAccount.ID,
@@ -945,7 +945,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             string(OIOA_None),
+			OtherInformationOfAnAccount:             OIOA_None,
 		}
 
 		if err := m.AccountManager.CreateWithTx(context, tx, interestAccount); err != nil {
@@ -967,7 +967,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MinAmount:                               0.00,
 			MaxAmount:                               50000.00,
 			InterestStandard:                        0.0,
-			FinancialStatementType:                  string(FSTypeRevenue),
+			FinancialStatementType:                  FSTypeRevenue,
 			ComputationType:                         "Fixed Amount",
 			Index:                                   loanAccount.Index + 200, // Offset to avoid conflicts
 			AlternativeAccountID:                    &loanAccount.ID,
@@ -978,7 +978,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             string(OIOA_None),
+			OtherInformationOfAnAccount:             OIOA_None,
 		}
 
 		if err := m.AccountManager.CreateWithTx(context, tx, serviceFeeAccount); err != nil {
@@ -1000,7 +1000,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MinAmount:                               0.00,
 			MaxAmount:                               100000.00,
 			InterestStandard:                        0.0,
-			FinancialStatementType:                  string(FSTypeRevenue),
+			FinancialStatementType:                  FSTypeRevenue,
 			ComputationType:                         "Fixed Amount",
 			Index:                                   loanAccount.Index + 300, // Offset to avoid conflicts
 			AlternativeAccountID:                    &loanAccount.ID,
@@ -1011,7 +1011,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             string(OIOA_None),
+			OtherInformationOfAnAccount:             OIOA_None,
 		}
 
 		if err := m.AccountManager.CreateWithTx(context, tx, finesAccount); err != nil {
@@ -1032,7 +1032,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 		MinAmount:                         100.00,
 		MaxAmount:                         1000000.00,
 		InterestStandard:                  0.0,
-		FinancialStatementType:            string(FSTypeEquity),
+		FinancialStatementType:            FSTypeEquity,
 		ComputationType:                   "Fixed Amount",
 		Index:                             10,
 		PaidUpShareCapital:                true,
@@ -1058,7 +1058,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 		MinAmount:                               0.00,
 		MaxAmount:                               10000000.00,
 		InterestStandard:                        0.0,
-		FinancialStatementType:                  string(FSTypeAssets),
+		FinancialStatementType:                  FSTypeAssets,
 		ComputationType:                         "None",
 		Index:                                   11,
 		CashOnHand:                              true,
@@ -1071,7 +1071,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 		ShowInGeneralLedgerSourceCheckVoucher:   true,
 		CashAndCashEquivalence:                  true,
 
-		OtherInformationOfAnAccount: string(OIOA_CashOnHand),
+		OtherInformationOfAnAccount: OIOA_CashOnHand,
 	}
 
 	if err := m.AccountManager.CreateWithTx(context, tx, cashOnHand); err != nil {
@@ -1093,7 +1093,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 		MinAmount:                               0.00,
 		MaxAmount:                               50000000.00,
 		InterestStandard:                        0.0,
-		FinancialStatementType:                  string(FSTypeAssets),
+		FinancialStatementType:                  FSTypeAssets,
 		ComputationType:                         "None",
 		Index:                                   12,
 		CashOnHand:                              false,
@@ -1105,7 +1105,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 		ShowInGeneralLedgerSourceJournalVoucher: true,
 		ShowInGeneralLedgerSourceCheckVoucher:   true,
 		CashAndCashEquivalence:                  true,
-		OtherInformationOfAnAccount:             string(OIOA_CashInBank),
+		OtherInformationOfAnAccount:             OIOA_CashInBank,
 	}
 
 	if err := m.AccountManager.CreateWithTx(context, tx, cashInBank); err != nil {
@@ -1126,7 +1126,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 		MinAmount:                               0.00,
 		MaxAmount:                               10000000.00,
 		InterestStandard:                        0.0,
-		FinancialStatementType:                  string(FSTypeAssets),
+		FinancialStatementType:                  FSTypeAssets,
 		ComputationType:                         "None",
 		Index:                                   13,
 		CashOnHand:                              false,
@@ -1138,7 +1138,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 		ShowInGeneralLedgerSourceJournalVoucher: true,
 		ShowInGeneralLedgerSourceCheckVoucher:   true,
 		CashAndCashEquivalence:                  true,
-		OtherInformationOfAnAccount:             string(OIOA_None),
+		OtherInformationOfAnAccount:             OIOA_None,
 		CurrencyID:                              &currency.ID,
 	}
 
@@ -1160,7 +1160,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 		MinAmount:                               0.00,
 		MaxAmount:                               100000.00,
 		InterestStandard:                        0.0,
-		FinancialStatementType:                  string(FSTypeAssets),
+		FinancialStatementType:                  FSTypeAssets,
 		ComputationType:                         "None",
 		Index:                                   14,
 		CashOnHand:                              true,
@@ -1172,7 +1172,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 		ShowInGeneralLedgerSourceJournalVoucher: true,
 		ShowInGeneralLedgerSourceCheckVoucher:   true,
 		CashAndCashEquivalence:                  true,
-		OtherInformationOfAnAccount:             string(OIOA_None),
+		OtherInformationOfAnAccount:             OIOA_None,
 		CurrencyID:                              &currency.ID,
 	}
 
@@ -1194,7 +1194,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 		MinAmount:                               0.00,
 		MaxAmount:                               5000000.00,
 		InterestStandard:                        0.0,
-		FinancialStatementType:                  string(FSTypeAssets),
+		FinancialStatementType:                  FSTypeAssets,
 		ComputationType:                         "None",
 		Index:                                   15,
 		CashOnHand:                              false,
@@ -1206,7 +1206,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 		ShowInGeneralLedgerSourceJournalVoucher: true,
 		ShowInGeneralLedgerSourceCheckVoucher:   true,
 		CashAndCashEquivalence:                  true,
-		OtherInformationOfAnAccount:             string(OIOA_None),
+		OtherInformationOfAnAccount:             OIOA_None,
 		CurrencyID:                              &currency.ID,
 	}
 
@@ -1228,7 +1228,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 		MinAmount:                               0.00,
 		MaxAmount:                               2000000.00,
 		InterestStandard:                        0.0,
-		FinancialStatementType:                  string(FSTypeAssets),
+		FinancialStatementType:                  FSTypeAssets,
 		ComputationType:                         "None",
 		Index:                                   16,
 		CashOnHand:                              true,
@@ -1241,7 +1241,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 		ShowInGeneralLedgerSourceCheckVoucher:   true,
 		CashAndCashEquivalence:                  true,
 		CurrencyID:                              &currency.ID,
-		OtherInformationOfAnAccount:             string(OIOA_None),
+		OtherInformationOfAnAccount:             OIOA_None,
 	}
 
 	if err := m.AccountManager.CreateWithTx(context, tx, foreignCurrencyCash); err != nil {
@@ -1262,7 +1262,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 		MinAmount:                               0.00,
 		MaxAmount:                               20000000.00,
 		InterestStandard:                        1.5,
-		FinancialStatementType:                  string(FSTypeAssets),
+		FinancialStatementType:                  FSTypeAssets,
 		ComputationType:                         "Simple Interest",
 		Index:                                   17,
 		CashOnHand:                              false,
@@ -1275,7 +1275,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 		ShowInGeneralLedgerSourceCheckVoucher:   true,
 		CashAndCashEquivalence:                  true,
 		CurrencyID:                              &currency.ID,
-		OtherInformationOfAnAccount:             string(OIOA_None),
+		OtherInformationOfAnAccount:             OIOA_None,
 	}
 
 	if err := m.AccountManager.CreateWithTx(context, tx, moneyMarketFund); err != nil {
@@ -1296,7 +1296,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 		MinAmount:                               0.00,
 		MaxAmount:                               15000000.00,
 		InterestStandard:                        2.0,
-		FinancialStatementType:                  string(FSTypeAssets),
+		FinancialStatementType:                  FSTypeAssets,
 		ComputationType:                         "Simple Interest",
 		Index:                                   18,
 		CashOnHand:                              false,
@@ -1309,7 +1309,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 		ShowInGeneralLedgerSourceCheckVoucher:   true,
 		CashAndCashEquivalence:                  true,
 		CurrencyID:                              &currency.ID,
-		OtherInformationOfAnAccount:             string(OIOA_None),
+		OtherInformationOfAnAccount:             OIOA_None,
 	}
 
 	if err := m.AccountManager.CreateWithTx(context, tx, treasuryBills); err != nil {
@@ -1332,7 +1332,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MinAmount:                               0.00,
 			MaxAmount:                               10000.00,
 			InterestStandard:                        0.0,
-			FinancialStatementType:                  string(FSTypeRevenue),
+			FinancialStatementType:                  FSTypeRevenue,
 			ComputationType:                         "Fixed Amount",
 			Index:                                   19,
 			ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1342,7 +1342,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             string(OIOA_None),
+			OtherInformationOfAnAccount:             OIOA_None,
 			CurrencyID:                              &currency.ID,
 		},
 		// Transaction Fees
@@ -1359,7 +1359,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MinAmount:                               0.00,
 			MaxAmount:                               1000.00,
 			InterestStandard:                        0.0,
-			FinancialStatementType:                  string(FSTypeRevenue),
+			FinancialStatementType:                  FSTypeRevenue,
 			ComputationType:                         "Fixed Amount",
 			Index:                                   20,
 			ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1369,7 +1369,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             string(OIOA_None),
+			OtherInformationOfAnAccount:             OIOA_None,
 			CurrencyID:                              &currency.ID,
 		},
 		// Loan Processing Fee
@@ -1386,7 +1386,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MinAmount:                               0.00,
 			MaxAmount:                               50000.00,
 			InterestStandard:                        0.0,
-			FinancialStatementType:                  string(FSTypeRevenue),
+			FinancialStatementType:                  FSTypeRevenue,
 			ComputationType:                         "Fixed Amount",
 			Index:                                   21,
 			ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1397,7 +1397,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
 			CurrencyID:                              &currency.ID,
-			OtherInformationOfAnAccount:             string(OIOA_None),
+			OtherInformationOfAnAccount:             OIOA_None,
 		},
 		// Passbook Fee
 		{
@@ -1413,7 +1413,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MinAmount:                               0.00,
 			MaxAmount:                               500.00,
 			InterestStandard:                        0.0,
-			FinancialStatementType:                  string(FSTypeRevenue),
+			FinancialStatementType:                  FSTypeRevenue,
 			ComputationType:                         "Fixed Amount",
 			Index:                                   22,
 			ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1423,7 +1423,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             string(OIOA_None),
+			OtherInformationOfAnAccount:             OIOA_None,
 			CurrencyID:                              &currency.ID,
 		},
 		// ATM Fee
@@ -1440,7 +1440,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MinAmount:                               0.00,
 			MaxAmount:                               200.00,
 			InterestStandard:                        0.0,
-			FinancialStatementType:                  string(FSTypeRevenue),
+			FinancialStatementType:                  FSTypeRevenue,
 			ComputationType:                         "Fixed Amount",
 			Index:                                   23,
 			ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1450,7 +1450,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             string(OIOA_None),
+			OtherInformationOfAnAccount:             OIOA_None,
 		},
 		// Check Processing Fee
 		{
@@ -1466,7 +1466,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MinAmount:                               0.00,
 			MaxAmount:                               1000.00,
 			InterestStandard:                        0.0,
-			FinancialStatementType:                  string(FSTypeRevenue),
+			FinancialStatementType:                  FSTypeRevenue,
 			ComputationType:                         "Fixed Amount",
 			Index:                                   24,
 			ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1476,7 +1476,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             string(OIOA_None),
+			OtherInformationOfAnAccount:             OIOA_None,
 			CurrencyID:                              &currency.ID,
 		},
 		// Documentation Fee
@@ -1493,7 +1493,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MinAmount:                               0.00,
 			MaxAmount:                               2000.00,
 			InterestStandard:                        0.0,
-			FinancialStatementType:                  string(FSTypeRevenue),
+			FinancialStatementType:                  FSTypeRevenue,
 			ComputationType:                         "Fixed Amount",
 			Index:                                   25,
 			ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1503,7 +1503,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             string(OIOA_None),
+			OtherInformationOfAnAccount:             OIOA_None,
 			CurrencyID:                              &currency.ID,
 		},
 		// Late Payment Fee
@@ -1520,7 +1520,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MinAmount:                               0.00,
 			MaxAmount:                               5000.00,
 			InterestStandard:                        0.0,
-			FinancialStatementType:                  string(FSTypeRevenue),
+			FinancialStatementType:                  FSTypeRevenue,
 			ComputationType:                         "Fixed Amount",
 			Index:                                   26,
 			ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1530,7 +1530,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             string(OIOA_None),
+			OtherInformationOfAnAccount:             OIOA_None,
 			CurrencyID:                              &currency.ID,
 		},
 		// Account Closure Fee
@@ -1547,7 +1547,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MinAmount:                               0.00,
 			MaxAmount:                               1000.00,
 			InterestStandard:                        0.0,
-			FinancialStatementType:                  string(FSTypeRevenue),
+			FinancialStatementType:                  FSTypeRevenue,
 			ComputationType:                         "Fixed Amount",
 			Index:                                   27,
 			ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1557,7 +1557,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             string(OIOA_None),
+			OtherInformationOfAnAccount:             OIOA_None,
 			CurrencyID:                              &currency.ID,
 		},
 		// Annual Membership Fee
@@ -1574,7 +1574,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MinAmount:                               0.00,
 			MaxAmount:                               5000.00,
 			InterestStandard:                        0.0,
-			FinancialStatementType:                  string(FSTypeRevenue),
+			FinancialStatementType:                  FSTypeRevenue,
 			ComputationType:                         "Fixed Amount",
 			Index:                                   28,
 			ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1584,7 +1584,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             string(OIOA_None),
+			OtherInformationOfAnAccount:             OIOA_None,
 			CurrencyID:                              &currency.ID,
 		},
 		// Insurance Premium Fee
@@ -1601,7 +1601,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MinAmount:                               0.00,
 			MaxAmount:                               20000.00,
 			InterestStandard:                        0.0,
-			FinancialStatementType:                  string(FSTypeRevenue),
+			FinancialStatementType:                  FSTypeRevenue,
 			ComputationType:                         "Fixed Amount",
 			Index:                                   29,
 			ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1611,7 +1611,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             string(OIOA_None),
+			OtherInformationOfAnAccount:             OIOA_None,
 			CurrencyID:                              &currency.ID,
 		},
 		// Notarial Fee
@@ -1628,7 +1628,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MinAmount:                               0.00,
 			MaxAmount:                               3000.00,
 			InterestStandard:                        0.0,
-			FinancialStatementType:                  string(FSTypeRevenue),
+			FinancialStatementType:                  FSTypeRevenue,
 			ComputationType:                         "Fixed Amount",
 			Index:                                   30,
 			ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1638,7 +1638,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             string(OIOA_None),
+			OtherInformationOfAnAccount:             OIOA_None,
 			CurrencyID:                              &currency.ID,
 		},
 	}
@@ -1659,7 +1659,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MinAmount:                               0.00,
 			MaxAmount:                               100000.00,
 			InterestStandard:                        0.0,
-			FinancialStatementType:                  string(FSTypeExpenses),
+			FinancialStatementType:                  FSTypeExpenses,
 			ComputationType:                         "Fixed Amount",
 			Index:                                   31,
 			ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1669,7 +1669,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             string(OIOA_None),
+			OtherInformationOfAnAccount:             OIOA_None,
 			CurrencyID:                              &currency.ID,
 		},
 		// General Maintenance
@@ -1686,7 +1686,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MinAmount:                               0.00,
 			MaxAmount:                               150000.00,
 			InterestStandard:                        0.0,
-			FinancialStatementType:                  string(FSTypeExpenses),
+			FinancialStatementType:                  FSTypeExpenses,
 			ComputationType:                         "Fixed Amount",
 			Index:                                   32,
 			ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1696,7 +1696,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             string(OIOA_None),
+			OtherInformationOfAnAccount:             OIOA_None,
 			CurrencyID:                              &currency.ID,
 		},
 		// Electricity Bills
@@ -1713,7 +1713,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MinAmount:                               0.00,
 			MaxAmount:                               50000.00,
 			InterestStandard:                        0.0,
-			FinancialStatementType:                  string(FSTypeExpenses),
+			FinancialStatementType:                  FSTypeExpenses,
 			ComputationType:                         "Fixed Amount",
 			Index:                                   33,
 			ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1723,7 +1723,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             string(OIOA_None),
+			OtherInformationOfAnAccount:             OIOA_None,
 			CurrencyID:                              &currency.ID,
 		},
 		// Water Bills
@@ -1740,7 +1740,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MinAmount:                               0.00,
 			MaxAmount:                               20000.00,
 			InterestStandard:                        0.0,
-			FinancialStatementType:                  string(FSTypeExpenses),
+			FinancialStatementType:                  FSTypeExpenses,
 			ComputationType:                         "Fixed Amount",
 			Index:                                   34,
 			ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1750,7 +1750,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             string(OIOA_None),
+			OtherInformationOfAnAccount:             OIOA_None,
 			CurrencyID:                              &currency.ID,
 		},
 		// Building Repairs and Maintenance
@@ -1767,7 +1767,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MinAmount:                               0.00,
 			MaxAmount:                               500000.00,
 			InterestStandard:                        0.0,
-			FinancialStatementType:                  string(FSTypeExpenses),
+			FinancialStatementType:                  FSTypeExpenses,
 			ComputationType:                         "Fixed Amount",
 			Index:                                   35,
 			ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1777,7 +1777,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             string(OIOA_None),
+			OtherInformationOfAnAccount:             OIOA_None,
 			CurrencyID:                              &currency.ID,
 		},
 		// Internet and Telecommunications
@@ -1794,7 +1794,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MinAmount:                               0.00,
 			MaxAmount:                               30000.00,
 			InterestStandard:                        0.0,
-			FinancialStatementType:                  string(FSTypeExpenses),
+			FinancialStatementType:                  FSTypeExpenses,
 			ComputationType:                         "Fixed Amount",
 			Index:                                   36,
 			ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1804,7 +1804,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             string(OIOA_None),
+			OtherInformationOfAnAccount:             OIOA_None,
 			CurrencyID:                              &currency.ID,
 		},
 		// Office Supplies
@@ -1821,7 +1821,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MinAmount:                               0.00,
 			MaxAmount:                               25000.00,
 			InterestStandard:                        0.0,
-			FinancialStatementType:                  string(FSTypeExpenses),
+			FinancialStatementType:                  FSTypeExpenses,
 			ComputationType:                         "Fixed Amount",
 			Index:                                   37,
 			ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1831,7 +1831,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             string(OIOA_None),
+			OtherInformationOfAnAccount:             OIOA_None,
 			CurrencyID:                              &currency.ID,
 		},
 		// Security Services
@@ -1848,7 +1848,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MinAmount:                               0.00,
 			MaxAmount:                               80000.00,
 			InterestStandard:                        0.0,
-			FinancialStatementType:                  string(FSTypeExpenses),
+			FinancialStatementType:                  FSTypeExpenses,
 			ComputationType:                         "Fixed Amount",
 			Index:                                   38,
 			ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1858,7 +1858,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             string(OIOA_None),
+			OtherInformationOfAnAccount:             OIOA_None,
 			CurrencyID:                              &currency.ID,
 		},
 		// Cleaning Services
@@ -1875,7 +1875,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MinAmount:                               0.00,
 			MaxAmount:                               40000.00,
 			InterestStandard:                        0.0,
-			FinancialStatementType:                  string(FSTypeExpenses),
+			FinancialStatementType:                  FSTypeExpenses,
 			ComputationType:                         "Fixed Amount",
 			Index:                                   39,
 			ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1885,7 +1885,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             string(OIOA_None),
+			OtherInformationOfAnAccount:             OIOA_None,
 			CurrencyID:                              &currency.ID,
 		},
 		// Professional Services
@@ -1902,7 +1902,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MinAmount:                               0.00,
 			MaxAmount:                               200000.00,
 			InterestStandard:                        0.0,
-			FinancialStatementType:                  string(FSTypeExpenses),
+			FinancialStatementType:                  FSTypeExpenses,
 			ComputationType:                         "Fixed Amount",
 			Index:                                   40,
 			ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1912,7 +1912,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             string(OIOA_None),
+			OtherInformationOfAnAccount:             OIOA_None,
 			CurrencyID:                              &currency.ID,
 		},
 		// Vehicle Maintenance
@@ -1929,7 +1929,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MinAmount:                               0.00,
 			MaxAmount:                               60000.00,
 			InterestStandard:                        0.0,
-			FinancialStatementType:                  string(FSTypeExpenses),
+			FinancialStatementType:                  FSTypeExpenses,
 			ComputationType:                         "Fixed Amount",
 			Index:                                   41,
 			ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1939,7 +1939,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             string(OIOA_None),
+			OtherInformationOfAnAccount:             OIOA_None,
 			CurrencyID:                              &currency.ID,
 		},
 		// Equipment Rental
@@ -1956,7 +1956,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MinAmount:                               0.00,
 			MaxAmount:                               100000.00,
 			InterestStandard:                        0.0,
-			FinancialStatementType:                  string(FSTypeExpenses),
+			FinancialStatementType:                  FSTypeExpenses,
 			ComputationType:                         "Fixed Amount",
 			Index:                                   42,
 			ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1966,7 +1966,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             string(OIOA_None),
+			OtherInformationOfAnAccount:             OIOA_None,
 			CurrencyID:                              &currency.ID,
 		},
 		// Training and Development
@@ -1983,7 +1983,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MinAmount:                               0.00,
 			MaxAmount:                               75000.00,
 			InterestStandard:                        0.0,
-			FinancialStatementType:                  string(FSTypeExpenses),
+			FinancialStatementType:                  FSTypeExpenses,
 			ComputationType:                         "Fixed Amount",
 			Index:                                   43,
 			ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1993,7 +1993,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             string(OIOA_None),
+			OtherInformationOfAnAccount:             OIOA_None,
 			CurrencyID:                              &currency.ID,
 		},
 		// Marketing and Advertising
@@ -2010,7 +2010,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MinAmount:                               0.00,
 			MaxAmount:                               100000.00,
 			InterestStandard:                        0.0,
-			FinancialStatementType:                  string(FSTypeExpenses),
+			FinancialStatementType:                  FSTypeExpenses,
 			ComputationType:                         "Fixed Amount",
 			Index:                                   44,
 			ShowInGeneralLedgerSourceWithdraw:       true,
@@ -2020,7 +2020,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             string(OIOA_None),
+			OtherInformationOfAnAccount:             OIOA_None,
 			CurrencyID:                              &currency.ID,
 		},
 		// Travel and Accommodation
@@ -2037,7 +2037,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MinAmount:                               0.00,
 			MaxAmount:                               80000.00,
 			InterestStandard:                        0.0,
-			FinancialStatementType:                  string(FSTypeExpenses),
+			FinancialStatementType:                  FSTypeExpenses,
 			ComputationType:                         "Fixed Amount",
 			Index:                                   45,
 			ShowInGeneralLedgerSourceWithdraw:       true,
@@ -2047,7 +2047,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             string(OIOA_None),
+			OtherInformationOfAnAccount:             OIOA_None,
 			CurrencyID:                              &currency.ID,
 		},
 		// Government Fees and Permits
@@ -2064,7 +2064,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MinAmount:                               0.00,
 			MaxAmount:                               50000.00,
 			InterestStandard:                        0.0,
-			FinancialStatementType:                  string(FSTypeExpenses),
+			FinancialStatementType:                  FSTypeExpenses,
 			ComputationType:                         "Fixed Amount",
 			Index:                                   46,
 			ShowInGeneralLedgerSourceWithdraw:       true,
@@ -2074,7 +2074,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             string(OIOA_None),
+			OtherInformationOfAnAccount:             OIOA_None,
 			CurrencyID:                              &currency.ID,
 		},
 		// Medical and Health Services
@@ -2091,7 +2091,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MinAmount:                               0.00,
 			MaxAmount:                               150000.00,
 			InterestStandard:                        0.0,
-			FinancialStatementType:                  string(FSTypeExpenses),
+			FinancialStatementType:                  FSTypeExpenses,
 			ComputationType:                         "Fixed Amount",
 			Index:                                   47,
 			ShowInGeneralLedgerSourceWithdraw:       true,
@@ -2101,7 +2101,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             string(OIOA_None),
+			OtherInformationOfAnAccount:             OIOA_None,
 			CurrencyID:                              &currency.ID,
 		},
 		// Waste Management
@@ -2118,7 +2118,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MinAmount:                               0.00,
 			MaxAmount:                               15000.00,
 			InterestStandard:                        0.0,
-			FinancialStatementType:                  string(FSTypeExpenses),
+			FinancialStatementType:                  FSTypeExpenses,
 			ComputationType:                         "Fixed Amount",
 			Index:                                   48,
 			ShowInGeneralLedgerSourceWithdraw:       true,
@@ -2128,7 +2128,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             string(OIOA_None),
+			OtherInformationOfAnAccount:             OIOA_None,
 			CurrencyID:                              &currency.ID,
 		},
 		// Emergency Expenses
@@ -2145,7 +2145,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MinAmount:                               0.00,
 			MaxAmount:                               200000.00,
 			InterestStandard:                        0.0,
-			FinancialStatementType:                  string(FSTypeExpenses),
+			FinancialStatementType:                  FSTypeExpenses,
 			ComputationType:                         "Fixed Amount",
 			Index:                                   49,
 			ShowInGeneralLedgerSourceWithdraw:       true,
@@ -2155,7 +2155,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             string(OIOA_None),
+			OtherInformationOfAnAccount:             OIOA_None,
 			CurrencyID:                              &currency.ID,
 		},
 	}
@@ -2178,12 +2178,20 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 
 	branch.BranchSetting.PaidUpSharedCapitalAccountID = &paidUpShareCapital.ID
 	branch.BranchSetting.CashOnHandAccountID = &cashOnHand.ID
-	branch.BranchSetting.AccountForOverflowID = &cashOnHand.ID
-	branch.BranchSetting.AccountForUnderflowID = &cashOnHand.ID
-	if err := m.BranchSettingManager.UpdateFieldsWithTx(context, tx, branch.BranchSetting.ID, branch.BranchSetting); err != nil {
-		return eris.Wrapf(err, "failed to update branch %s with paid up share capital account", branch.Name)
-	}
 
+	unbalanced := &UnbalancedAccount{
+		CreatedAt:            now,
+		CreatedByID:          userID,
+		UpdatedAt:            now,
+		UpdatedByID:          userID,
+		BranchSettingsID:     branch.BranchSetting.ID,
+		CurrencyID:           currency.ID,
+		AccountForShortageID: cashOnHand.ID,
+		AccountForOverageID:  cashOnHand.ID,
+	}
+	if err := m.UnbalancedAccountManager.CreateWithTx(context, tx, unbalanced); err != nil {
+		return eris.Wrap(err, "failed to create unbalanced account for branch")
+	}
 	// Set default accounting accounts for user organization
 	userOrganization, err := m.UserOrganizationManager.FindOne(context, &UserOrganization{
 		UserID:         userID,
@@ -2429,15 +2437,10 @@ func (a *Account) BeforeDelete(tx *gorm.DB) error {
 		AccountID:      a.ID,
 		OrganizationID: a.OrganizationID,
 		BranchID:       a.BranchID,
-		CreatedByID: func() uuid.UUID {
-			if a.DeletedByID != nil {
-				return *a.DeletedByID
-			}
-			return uuid.Nil
-		}(),
-		ChangeType:   HistoryChangeTypeDeleted,
-		ValidFrom:    now,
-		ChangeReason: "Account deleted",
+		CreatedByID:    a.CreatedByID,
+		ChangeType:     HistoryChangeTypeDeleted,
+		ValidFrom:      now,
+		ChangeReason:   "Account deleted",
 
 		// Copy all current data before deletion
 		Name:                                a.Name,

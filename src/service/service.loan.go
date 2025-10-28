@@ -10,6 +10,7 @@ import (
 )
 
 func (t *TransactionService) LoanChargesRateComputation(ctx context.Context, crs model_core.ChargesRateScheme, ald model_core.LoanTransaction) float64 {
+
 	result := 0.0
 
 	termHeaders := []int{
@@ -110,18 +111,24 @@ func (t *TransactionService) LoanChargesRateComputation(ctx context.Context, crs
 			charge := 0.0
 			if data.Charge > 0 {
 				charge = ald.Applied1 * (data.Charge / 100.0)
+
 			} else if data.Amount > 0 {
 				charge = data.Amount
+
 			}
 			if charge > 0 {
 				result = charge
-				if result >= data.MinimumAmount {
+
+				if result >= data.MinimumAmount && data.MinimumAmount > 0 {
+
 					result = data.MinimumAmount
 				}
+				return result
 			}
 		}
 	case model_core.ChargesRateSchemeTypeByType:
-		if crs.MemberType != nil && ald.MemberProfile.MemberType != crs.MemberType {
+
+		if crs.MemberType != nil && ald.MemberProfile.MemberTypeID != &crs.MemberType.ID {
 			return 0.0
 		}
 		if crs.ModeOfPayment != nil && ald.ModeOfPayment != *crs.ModeOfPayment {
@@ -156,6 +163,7 @@ func (t *TransactionService) LoanChargesRateComputation(ctx context.Context, crs
 				data.Column22,
 			}
 			lastRate := findLastApplicableRate(chargesTerms, modeOfPaymentHeaders, ald.Terms)
+
 			if lastRate == 0.0 {
 				continue
 			}

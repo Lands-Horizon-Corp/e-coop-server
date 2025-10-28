@@ -556,7 +556,7 @@ func (c *Controller) AccountController() {
 			CohCibFinesGracePeriodEntrySemiAnualMaturity:       req.CohCibFinesGracePeriodEntrySemiAnualMaturity,
 			CohCibFinesGracePeriodEntryLumpsumAmortization:     req.CohCibFinesGracePeriodEntryLumpsumAmortization,
 			CohCibFinesGracePeriodEntryLumpsumMaturity:         req.CohCibFinesGracePeriodEntryLumpsumMaturity,
-			FinancialStatementType:                             string(req.FinancialStatementType),
+			FinancialStatementType:                             req.FinancialStatementType,
 			GeneralLedgerType:                                  req.GeneralLedgerType,
 			AlternativeAccountID:                               req.AlternativeAccountID,
 			FinesGracePeriodAmortization:                       req.FinesGracePeriodAmortization,
@@ -565,15 +565,15 @@ func (c *Controller) AccountController() {
 			FinesGracePeriodMaturity:                           req.FinesGracePeriodMaturity,
 			YearlySubscriptionFee:                              req.YearlySubscriptionFee,
 			LoanCutOffDays:                                     req.LoanCutOffDays,
-			LumpsumComputationType:                             string(req.LumpsumComputationType),
-			InterestFinesComputationDiminishing:                string(req.InterestFinesComputationDiminishing),
-			InterestFinesComputationDiminishingStraightYearly:  string(req.InterestFinesComputationDiminishingStraightYearly),
-			EarnedUnearnedInterest:                             string(req.EarnedUnearnedInterest),
-			LoanSavingType:                                     string(req.LoanSavingType),
-			InterestDeduction:                                  string(req.InterestDeduction),
-			OtherDeductionEntry:                                string(req.OtherDeductionEntry),
-			InterestSavingTypeDiminishingStraight:              string(req.InterestSavingTypeDiminishingStraight),
-			OtherInformationOfAnAccount:                        string(req.OtherInformationOfAnAccount),
+			LumpsumComputationType:                             req.LumpsumComputationType,
+			InterestFinesComputationDiminishing:                req.InterestFinesComputationDiminishing,
+			InterestFinesComputationDiminishingStraightYearly:  req.InterestFinesComputationDiminishingStraightYearly,
+			EarnedUnearnedInterest:                             req.EarnedUnearnedInterest,
+			LoanSavingType:                                     req.LoanSavingType,
+			InterestDeduction:                                  req.InterestDeduction,
+			OtherDeductionEntry:                                req.OtherDeductionEntry,
+			InterestSavingTypeDiminishingStraight:              req.InterestSavingTypeDiminishingStraight,
+			OtherInformationOfAnAccount:                        req.OtherInformationOfAnAccount,
 			HeaderRow:                                          req.HeaderRow,
 			CenterRow:                                          req.CenterRow,
 			TotalRow:                                           req.TotalRow,
@@ -752,7 +752,7 @@ func (c *Controller) AccountController() {
 		account.CohCibFinesGracePeriodEntrySemiAnualMaturity = req.CohCibFinesGracePeriodEntrySemiAnualMaturity
 		account.CohCibFinesGracePeriodEntryLumpsumAmortization = req.CohCibFinesGracePeriodEntryLumpsumAmortization
 		account.CohCibFinesGracePeriodEntryLumpsumMaturity = req.CohCibFinesGracePeriodEntryLumpsumMaturity
-		account.FinancialStatementType = string(req.FinancialStatementType)
+		account.FinancialStatementType = req.FinancialStatementType
 		account.GeneralLedgerType = req.GeneralLedgerType
 		account.AlternativeAccountID = req.AlternativeAccountID
 		account.FinesGracePeriodAmortization = req.FinesGracePeriodAmortization
@@ -761,15 +761,15 @@ func (c *Controller) AccountController() {
 		account.FinesGracePeriodMaturity = req.FinesGracePeriodMaturity
 		account.YearlySubscriptionFee = req.YearlySubscriptionFee
 		account.LoanCutOffDays = req.LoanCutOffDays
-		account.LumpsumComputationType = string(req.LumpsumComputationType)
-		account.InterestFinesComputationDiminishing = string(req.InterestFinesComputationDiminishing)
-		account.InterestFinesComputationDiminishingStraightYearly = string(req.InterestFinesComputationDiminishingStraightYearly)
-		account.EarnedUnearnedInterest = string(req.EarnedUnearnedInterest)
-		account.LoanSavingType = string(req.LoanSavingType)
-		account.InterestDeduction = string(req.InterestDeduction)
-		account.OtherDeductionEntry = string(req.OtherDeductionEntry)
-		account.InterestSavingTypeDiminishingStraight = string(req.InterestSavingTypeDiminishingStraight)
-		account.OtherInformationOfAnAccount = string(req.OtherInformationOfAnAccount)
+		account.LumpsumComputationType = req.LumpsumComputationType
+		account.InterestFinesComputationDiminishing = req.InterestFinesComputationDiminishing
+		account.InterestFinesComputationDiminishingStraightYearly = req.InterestFinesComputationDiminishingStraightYearly
+		account.EarnedUnearnedInterest = req.EarnedUnearnedInterest
+		account.LoanSavingType = req.LoanSavingType
+		account.InterestDeduction = req.InterestDeduction
+		account.OtherDeductionEntry = req.OtherDeductionEntry
+		account.InterestSavingTypeDiminishingStraight = req.InterestSavingTypeDiminishingStraight
+		account.OtherInformationOfAnAccount = req.OtherInformationOfAnAccount
 		account.HeaderRow = req.HeaderRow
 		account.CenterRow = req.CenterRow
 		account.TotalRow = req.TotalRow
