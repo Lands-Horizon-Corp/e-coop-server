@@ -127,7 +127,7 @@ func (t *TransactionService) LoanChargesRateComputation(ctx context.Context, crs
 			if charge > 0 {
 				result = charge
 				log.Printf("[DEBUG] Setting result to charge: %f", result)
-				if result >= data.MinimumAmount {
+				if result >= data.MinimumAmount && data.MinimumAmount > 0 {
 					log.Printf("[DEBUG] Result %f >= MinimumAmount %f, setting result to MinimumAmount", result, data.MinimumAmount)
 					result = data.MinimumAmount
 				}
