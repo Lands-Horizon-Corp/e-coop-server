@@ -217,33 +217,54 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	}
 
 	// Process post-computed (automatic deduction) entries
-	for _, entry := range postComputed {
+	fmt.Printf("[LOAN BALANCING] Processing %d post-computed (automatic deduction) entries\n", len(postComputed))
+	for i, entry := range postComputed {
+		fmt.Printf("[LOAN BALANCING] Processing post-computed entry %d: %s\n", i+1, entry.Name)
+
 		if entry.IsAutomaticLoanDeductionDeleted {
+			fmt.Printf("[LOAN BALANCING] Entry %d is marked as deleted, adding to result without processing\n", i+1)
 			result = append(result, entry)
 			continue
 		}
+
 		if entry.Amount != 0 {
 			entry.Credit = entry.Amount
-
+			fmt.Printf("[LOAN BALANCING] Entry %d has preset amount: %f, setting as credit\n", i+1, entry.Amount)
 		} else {
+			fmt.Printf("[LOAN BALANCING] Entry %d has no preset amount, calculating credit\n", i+1)
+
 			if entry.AutomaticLoanDeduction.ChargesRateSchemeID != nil {
+				fmt.Printf("[LOAN BALANCING] Entry %d has ChargesRateSchemeID, calculating charges rate\n", i+1)
 				chargesRateScheme, err := e.model_core.ChargesRateSchemeManager.GetByID(ctx, *entry.AutomaticLoanDeduction.ChargesRateSchemeID)
 				if err != nil {
+					fmt.Printf("[LOAN BALANCING] ERROR: Failed to get charges rate scheme for entry %d: %s\n", i+1, err.Error())
 					return nil, err
 				}
 				entry.Credit = e.service.LoanChargesRateComputation(ctx, *chargesRateScheme, *loanTransaction)
-			}
-			if entry.Credit != 0 {
-				entry.Credit = e.service.LoanComputation(ctx, *entry.AutomaticLoanDeduction, *loanTransaction)
+				fmt.Printf("[LOAN BALANCING] Entry %d charges rate computation result: %f\n", i+1, entry.Credit)
 			}
 
+			if entry.Credit != 0 {
+				originalCredit := entry.Credit
+				entry.Credit = e.service.LoanComputation(ctx, *entry.AutomaticLoanDeduction, *loanTransaction)
+				fmt.Printf("[LOAN BALANCING] Entry %d loan computation: %f -> %f\n", i+1, originalCredit, entry.Credit)
+			} else {
+				fmt.Printf("[LOAN BALANCING] Entry %d credit remains 0 after calculations\n", i+1)
+			}
 		}
 
 		if !entry.IsAddOn {
 			total_non_add_ons += entry.Credit
+			fmt.Printf("[LOAN BALANCING] Entry %d is non-add-on, adding %f to total_non_add_ons (new total: %f)\n",
+				i+1, entry.Credit, total_non_add_ons)
 		} else {
 			total_add_ons += entry.Credit
+			fmt.Printf("[LOAN BALANCING] Entry %d is add-on, adding %f to total_add_ons (new total: %f)\n",
+				i+1, entry.Credit, total_add_ons)
 		}
+
+		fmt.Printf("[LOAN BALANCING] Entry %d final values - Credit: %f, Debit: %f, IsAddOn: %t\n",
+			i+1, entry.Credit, entry.Debit, entry.IsAddOn)
 		result = append(result, entry)
 	}
 
