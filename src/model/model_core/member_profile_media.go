@@ -28,8 +28,8 @@ type (
 		BranchID       *uuid.UUID    `gorm:"type:uuid;index:idx_organization_branch_member_profile_media" json:"branch_id,omitempty"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
-		UserID *uuid.UUID `gorm:"type:uuid" json:"user_id,omitempty"`
-		User   *User      `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"user,omitempty"`
+		MemberProfileID *uuid.UUID     `gorm:"type:uuid" json:"member_profile_id,omitempty"`
+		MemberProfile   *MemberProfile `gorm:"foreignKey:MemberProfileID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"member_profile,omitempty"`
 
 		MediaID *uuid.UUID `gorm:"type:uuid" json:"media_id"`
 		Media   *Media     `gorm:"foreignKey:MediaID;constraint:OnDelete:SET NULL;" json:"media,omitempty"`
@@ -39,62 +39,62 @@ type (
 	}
 
 	MemberProfileMediaResponse struct {
-		ID             uuid.UUID             `json:"id"`
-		CreatedAt      string                `json:"created_at"`
-		CreatedByID    uuid.UUID             `json:"created_by_id"`
-		CreatedBy      *UserResponse         `json:"created_by,omitempty"`
-		UpdatedAt      string                `json:"updated_at"`
-		UpdatedByID    uuid.UUID             `json:"updated_by_id"`
-		UpdatedBy      *UserResponse         `json:"updated_by,omitempty"`
-		OrganizationID *uuid.UUID            `json:"organization_id,omitempty"`
-		Organization   *OrganizationResponse `json:"organization,omitempty"`
-		BranchID       *uuid.UUID            `json:"branch_id,omitempty"`
-		Branch         *BranchResponse       `json:"branch,omitempty"`
-		UserID         *uuid.UUID            `json:"user_id,omitempty"`
-		User           *UserResponse         `json:"user,omitempty"`
-		MediaID        *uuid.UUID            `json:"media_id,omitempty"`
-		Media          *MediaResponse        `json:"media,omitempty"`
-		Name           string                `json:"name"`
-		Description    string                `json:"description"`
+		ID              uuid.UUID              `json:"id"`
+		CreatedAt       string                 `json:"created_at"`
+		CreatedByID     uuid.UUID              `json:"created_by_id"`
+		CreatedBy       *UserResponse          `json:"created_by,omitempty"`
+		UpdatedAt       string                 `json:"updated_at"`
+		UpdatedByID     uuid.UUID              `json:"updated_by_id"`
+		UpdatedBy       *UserResponse          `json:"updated_by,omitempty"`
+		OrganizationID  *uuid.UUID             `json:"organization_id,omitempty"`
+		Organization    *OrganizationResponse  `json:"organization,omitempty"`
+		BranchID        *uuid.UUID             `json:"branch_id,omitempty"`
+		Branch          *BranchResponse        `json:"branch,omitempty"`
+		MemberProfileID *uuid.UUID             `json:"member_profile_id,omitempty"`
+		MemberProfile   *MemberProfileResponse `json:"member_profile,omitempty"`
+		MediaID         *uuid.UUID             `json:"media_id,omitempty"`
+		Media           *MediaResponse         `json:"media,omitempty"`
+		Name            string                 `json:"name"`
+		Description     string                 `json:"description"`
 	}
 
 	MemberProfileMediaRequest struct {
-		Name           string     `json:"name" validate:"required,min=1,max=255"`
-		Description    string     `json:"description,omitempty"`
-		UserID         *uuid.UUID `json:"user_id,omitempty"`
-		MediaID        *uuid.UUID `json:"media_id,omitempty"`
-		OrganizationID *uuid.UUID `json:"organization_id,omitempty"`
-		BranchID       *uuid.UUID `json:"branch_id,omitempty"`
+		Name            string     `json:"name" validate:"required,min=1,max=255"`
+		Description     string     `json:"description,omitempty"`
+		MemberProfileID *uuid.UUID `json:"member_profile_id,omitempty"`
+		MediaID         *uuid.UUID `json:"media_id,omitempty"`
+		OrganizationID  *uuid.UUID `json:"organization_id,omitempty"`
+		BranchID        *uuid.UUID `json:"branch_id,omitempty"`
 	}
 )
 
 func (m *ModelCore) MemberProfileMedia() {
 	m.Migration = append(m.Migration, &MemberProfileMedia{})
 	m.MemberProfileMediaManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberProfileMedia, MemberProfileMediaResponse, MemberProfileMediaRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Media", "User"},
+		Preloads: []string{"CreatedBy", "UpdatedBy", "Media", "MemberProfile"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberProfileMedia) *MemberProfileMediaResponse {
 			if data == nil {
 				return nil
 			}
 			return &MemberProfileMediaResponse{
-				ID:             data.ID,
-				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
-				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
-				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
-				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
-				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
-				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
-				UserID:         data.UserID,
-				User:           m.UserManager.ToModel(data.User),
-				MediaID:        data.MediaID,
-				Media:          m.MediaManager.ToModel(data.Media),
-				Name:           data.Name,
-				Description:    data.Description,
+				ID:              data.ID,
+				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
+				CreatedByID:     data.CreatedByID,
+				CreatedBy:       m.UserManager.ToModel(data.CreatedBy),
+				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
+				UpdatedByID:     data.UpdatedByID,
+				UpdatedBy:       m.UserManager.ToModel(data.UpdatedBy),
+				OrganizationID:  data.OrganizationID,
+				Organization:    m.OrganizationManager.ToModel(data.Organization),
+				BranchID:        data.BranchID,
+				Branch:          m.BranchManager.ToModel(data.Branch),
+				MemberProfileID: data.MemberProfileID,
+				MemberProfile:   m.MemberProfileManager.ToModel(data.MemberProfile),
+				MediaID:         data.MediaID,
+				Media:           m.MediaManager.ToModel(data.Media),
+				Name:            data.Name,
+				Description:     data.Description,
 			}
 		},
 		Created: func(data *MemberProfileMedia) []string {
