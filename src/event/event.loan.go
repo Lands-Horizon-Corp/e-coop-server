@@ -244,7 +244,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 				fmt.Printf("[LOAN BALANCING] Entry %d charges rate computation result: %f\n", i+1, entry.Credit)
 			}
 
-			if entry.Credit != 0 {
+			if entry.Credit <= 0 {
 				originalCredit := entry.Credit
 				entry.Credit = e.service.LoanComputation(ctx, *entry.AutomaticLoanDeduction, *loanTransaction)
 				fmt.Printf("[LOAN BALANCING] Entry %d loan computation: %f -> %f\n", i+1, originalCredit, entry.Credit)
@@ -316,7 +316,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 				fmt.Printf("[LOAN BALANCING] Entry %d has no ChargesRateSchemeID\n", i+1)
 			}
 
-			if entry.Credit != 0 {
+			if entry.Credit <= 0 {
 				originalCredit := entry.Credit
 				entry.Credit = e.service.LoanComputation(ctx, *ald, *loanTransaction)
 				fmt.Printf("[LOAN BALANCING] Entry %d loan computation: %f -> %f\n", i+1, originalCredit, entry.Credit)
