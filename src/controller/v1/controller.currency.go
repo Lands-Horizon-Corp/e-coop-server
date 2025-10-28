@@ -44,14 +44,11 @@ func (c *Controller) CurrencyController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		unbalanced, err := c.model_core.UnbalancedAccountManager.Find(context, &model_core.UnbalancedAccount{
-			BranchSettingsID: user.Branch.BranchSetting.ID,
-		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve currencies: " + err.Error()})
 		}
 		currency := []*model_core.Currency{}
-		for _, unbal := range unbalanced {
+		for _, unbal := range user.Branch.BranchSetting.UnbalancedAccounts {
 			if unbal.Currency != nil {
 				currency = append(currency, unbal.Currency)
 			}
