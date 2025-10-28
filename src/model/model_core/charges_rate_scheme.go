@@ -180,7 +180,7 @@ type (
 	ChargesRateSchemeRequest struct {
 		ChargesRateByTermHeaderID uuid.UUID             `json:"charges_rate_by_term_header_id,omitempty"`
 		Name                      string                `json:"name" validate:"required,min=1,max=255"`
-		Description               string                `json:"description" validate:"required"`
+		Description               string                `json:"description,omitempty" validate:"omitempty,max=255"`
 		Icon                      string                `json:"icon,omitempty"`
 		Type                      ChargesRateSchemeType `json:"type" validate:"required,oneof=by_range by_type by_term"`
 		CurrencyID                uuid.UUID             `json:"currency_id" validate:"required"`
