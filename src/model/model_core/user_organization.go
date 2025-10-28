@@ -288,6 +288,7 @@ func (m *ModelCore) UserOrganization() {
 			"Branch.BranchSetting.PaidUpSharedCapitalAccount",
 			"Branch.BranchSetting.PaidUpSharedCapitalAccount.Currency",
 
+			"Branch.BranchSetting.UnbalancedAccounts.Currency",
 			"Branch.BranchSetting.UnbalancedAccounts.AccountForShortage",
 			"Branch.BranchSetting.UnbalancedAccounts.AccountForOverage",
 			"Branch.BranchSetting.UnbalancedAccounts.MemberProfileForShortage",
