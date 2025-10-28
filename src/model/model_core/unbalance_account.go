@@ -22,12 +22,10 @@ type (
 		DeletedByID *uuid.UUID     `gorm:"type:uuid" json:"deleted_by_id"`
 		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
 
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_unbalanced_account" json:"organization_id"`
-		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_unbalanced_account" json:"branch_id"`
-		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
+		BranchSettingsID uuid.UUID      `gorm:"type:uuid;not null;index:idx_branch_settings_unbalanced_account" json:"branch_settings_id"`
+		BranchSettings   *BranchSetting `gorm:"foreignKey:BranchSettingsID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch_settings,omitempty"`
 
-		CurrencyID uuid.UUID `gorm:"type:uuid;not null;uniqueIndex:idx_unique_currency_per_branch,priority:1" json:"currency_id"`
+		CurrencyID uuid.UUID `gorm:"type:uuid;not null;uniqueIndex:idx_unique_currency_per_branch_settings,priority:1" json:"currency_id"`
 		Currency   *Currency `gorm:"foreignKey:CurrencyID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"currency,omitempty"`
 
 		AccountForShortageID uuid.UUID `gorm:"type:uuid;not null" json:"account_for_shortage_id"`
@@ -47,19 +45,17 @@ type (
 	}
 
 	UnbalancedAccountResponse struct {
-		ID             uuid.UUID             `json:"id"`
-		CreatedAt      string                `json:"created_at"`
-		CreatedByID    uuid.UUID             `json:"created_by_id"`
-		CreatedBy      *UserResponse         `json:"created_by,omitempty"`
-		UpdatedAt      string                `json:"updated_at"`
-		UpdatedByID    uuid.UUID             `json:"updated_by_id"`
-		UpdatedBy      *UserResponse         `json:"updated_by,omitempty"`
-		OrganizationID uuid.UUID             `json:"organization_id"`
-		Organization   *OrganizationResponse `json:"organization,omitempty"`
-		BranchID       uuid.UUID             `json:"branch_id"`
-		Branch         *BranchResponse       `json:"branch,omitempty"`
-		CurrencyID     uuid.UUID             `json:"currency_id"`
-		Currency       *CurrencyResponse     `json:"currency,omitempty"`
+		ID               uuid.UUID              `json:"id"`
+		CreatedAt        string                 `json:"created_at"`
+		CreatedByID      uuid.UUID              `json:"created_by_id"`
+		CreatedBy        *UserResponse          `json:"created_by,omitempty"`
+		UpdatedAt        string                 `json:"updated_at"`
+		UpdatedByID      uuid.UUID              `json:"updated_by_id"`
+		UpdatedBy        *UserResponse          `json:"updated_by,omitempty"`
+		BranchSettingsID uuid.UUID              `json:"branch_settings_id"`
+		BranchSettings   *BranchSettingResponse `json:"branch_settings,omitempty"`
+		CurrencyID       uuid.UUID              `json:"currency_id"`
+		Currency         *CurrencyResponse      `json:"currency,omitempty"`
 
 		AccountForShortageID uuid.UUID        `json:"account_for_shortage_id"`
 		AccountForShortage   *AccountResponse `json:"account_for_shortage,omitempty"`
@@ -94,7 +90,7 @@ func (m *ModelCore) UnbalancedAccount() {
 	m.Migration = append(m.Migration, &UnbalancedAccount{})
 	m.UnbalancedAccountManager = horizon_services.NewRepository(horizon_services.RepositoryParams[UnbalancedAccount, UnbalancedAccountResponse, UnbalancedAccountRequest]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Organization", "Branch", "Currency",
+			"CreatedBy", "UpdatedBy", "BranchSettings", "Currency",
 			"AccountForShortage", "AccountForOverage",
 			"MemberProfileForShortage", "MemberProfileForOverage",
 		},
@@ -104,19 +100,17 @@ func (m *ModelCore) UnbalancedAccount() {
 				return nil
 			}
 			return &UnbalancedAccountResponse{
-				ID:             data.ID,
-				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
-				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
-				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
-				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
-				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
-				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
-				CurrencyID:     data.CurrencyID,
-				Currency:       m.CurrencyManager.ToModel(data.Currency),
+				ID:               data.ID,
+				CreatedAt:        data.CreatedAt.Format(time.RFC3339),
+				CreatedByID:      data.CreatedByID,
+				CreatedBy:        m.UserManager.ToModel(data.CreatedBy),
+				UpdatedAt:        data.UpdatedAt.Format(time.RFC3339),
+				UpdatedByID:      data.UpdatedByID,
+				UpdatedBy:        m.UserManager.ToModel(data.UpdatedBy),
+				BranchSettingsID: data.BranchSettingsID,
+				BranchSettings:   m.BranchSettingManager.ToModel(data.BranchSettings),
+				CurrencyID:       data.CurrencyID,
+				Currency:         m.CurrencyManager.ToModel(data.Currency),
 
 				AccountForShortageID: data.AccountForShortageID,
 				AccountForShortage:   m.AccountManager.ToModel(data.AccountForShortage),
@@ -138,8 +132,7 @@ func (m *ModelCore) UnbalancedAccount() {
 			return []string{
 				"unbalanced_account.create",
 				fmt.Sprintf("unbalanced_account.create.%s", data.ID),
-				fmt.Sprintf("unbalanced_account.create.branch.%s", data.BranchID),
-				fmt.Sprintf("unbalanced_account.create.organization.%s", data.OrganizationID),
+				fmt.Sprintf("unbalanced_account.create.branch_settings.%s", data.BranchSettingsID),
 				fmt.Sprintf("unbalanced_account.create.currency.%s", data.CurrencyID),
 			}
 		},
@@ -147,8 +140,7 @@ func (m *ModelCore) UnbalancedAccount() {
 			return []string{
 				"unbalanced_account.update",
 				fmt.Sprintf("unbalanced_account.update.%s", data.ID),
-				fmt.Sprintf("unbalanced_account.update.branch.%s", data.BranchID),
-				fmt.Sprintf("unbalanced_account.update.organization.%s", data.OrganizationID),
+				fmt.Sprintf("unbalanced_account.update.branch_settings.%s", data.BranchSettingsID),
 				fmt.Sprintf("unbalanced_account.update.currency.%s", data.CurrencyID),
 			}
 		},
@@ -156,8 +148,7 @@ func (m *ModelCore) UnbalancedAccount() {
 			return []string{
 				"unbalanced_account.delete",
 				fmt.Sprintf("unbalanced_account.delete.%s", data.ID),
-				fmt.Sprintf("unbalanced_account.delete.branch.%s", data.BranchID),
-				fmt.Sprintf("unbalanced_account.delete.organization.%s", data.OrganizationID),
+				fmt.Sprintf("unbalanced_account.delete.branch_settings.%s", data.BranchSettingsID),
 				fmt.Sprintf("unbalanced_account.delete.currency.%s", data.CurrencyID),
 			}
 		},

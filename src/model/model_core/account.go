@@ -2178,12 +2178,20 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 
 	branch.BranchSetting.PaidUpSharedCapitalAccountID = &paidUpShareCapital.ID
 	branch.BranchSetting.CashOnHandAccountID = &cashOnHand.ID
-	branch.BranchSetting.AccountForOverflowID = &cashOnHand.ID
-	branch.BranchSetting.AccountForUnderflowID = &cashOnHand.ID
-	if err := m.BranchSettingManager.UpdateFieldsWithTx(context, tx, branch.BranchSetting.ID, branch.BranchSetting); err != nil {
-		return eris.Wrapf(err, "failed to update branch %s with paid up share capital account", branch.Name)
-	}
 
+	unbalanced := &UnbalancedAccount{
+		CreatedAt:        now,
+		CreatedByID:      userID,
+		UpdatedAt:        now,
+		UpdatedByID:      userID,
+		BranchSettingsID: branch.BranchSetting.ID,
+
+		AccountForShortageID: cashOnHand.ID,
+		AccountForOverageID:  cashOnHand.ID,
+	}
+	if err := m.UnbalancedAccountManager.CreateWithTx(context, tx, unbalanced); err != nil {
+		return eris.Wrap(err, "failed to create unbalanced account for branch")
+	}
 	// Set default accounting accounts for user organization
 	userOrganization, err := m.UserOrganizationManager.FindOne(context, &UserOrganization{
 		UserID:         userID,
