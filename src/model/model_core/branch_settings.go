@@ -206,6 +206,12 @@ func (m *ModelCore) BranchSetting() {
 			"CashOnHandAccount",
 			"PaidUpSharedCapitalAccount",
 			"UnbalancedAccounts",
+			"UnbalancedAccounts.Currency",
+
+			"UnbalancedAccounts.AccountForShortage",
+			"UnbalancedAccounts.AccountForOverage",
+			"UnbalancedAccounts.MemberProfileForShortage",
+			"UnbalancedAccounts.MemberProfileForOverage",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *BranchSetting) *BranchSettingResponse {
