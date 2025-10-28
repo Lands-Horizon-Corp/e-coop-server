@@ -271,17 +271,22 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	// ================================================================================
 	// STEP 8: ADD MISSING AUTOMATIC DEDUCTIONS
 	// ================================================================================
+	fmt.Printf("[LOAN BALANCING] Step 8: Adding missing automatic deductions\n")
+	fmt.Printf("[LOAN BALANCING] Found %d automatic loan deductions to process\n", len(automaticLoanDeductions))
 	// Process automatic loan deductions that weren't already included in post-computed entries
-	for _, ald := range automaticLoanDeductions {
+	for i, ald := range automaticLoanDeductions {
+		fmt.Printf("[LOAN BALANCING] Checking automatic deduction %d: %s (ID: %s)\n", i+1, ald.Name, ald.ID.String())
 		exist := false
 		for _, computed := range postComputed {
 			if handlers.UuidPtrEqual(&ald.ID, computed.AutomaticLoanDeductionID) {
 				exist = true
+				fmt.Printf("[LOAN BALANCING] Automatic deduction %d already exists in post-computed entries\n", i+1)
 				break
 			}
 		}
 
 		if !exist {
+			fmt.Printf("[LOAN BALANCING] Automatic deduction %d not found in post-computed, creating new entry\n", i+1)
 			entry := &model_core.LoanTransactionEntry{
 				Credit:                   0,
 				Debit:                    0,
@@ -295,24 +300,45 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 				LoanTransactionID:        loanTransaction.ID,
 				Amount:                   0,
 			}
+			
+			fmt.Printf("[LOAN BALANCING] New entry %d created: %s, IsAddOn=%t\n", i+1, entry.Name, entry.IsAddOn)
+			
 			if entry.AutomaticLoanDeduction.ChargesRateSchemeID != nil {
+				fmt.Printf("[LOAN BALANCING] Entry %d has ChargesRateSchemeID, calculating charges rate\n", i+1)
 				chargesRateScheme, err := e.model_core.ChargesRateSchemeManager.GetByID(ctx, *entry.AutomaticLoanDeduction.ChargesRateSchemeID)
 				if err != nil {
+					fmt.Printf("[LOAN BALANCING] ERROR: Failed to get charges rate scheme for entry %d: %s\n", i+1, err.Error())
 					return nil, err
 				}
 				entry.Credit = e.service.LoanChargesRateComputation(ctx, *chargesRateScheme, *loanTransaction)
+				fmt.Printf("[LOAN BALANCING] Entry %d charges rate computation result: %f\n", i+1, entry.Credit)
+			} else {
+				fmt.Printf("[LOAN BALANCING] Entry %d has no ChargesRateSchemeID\n", i+1)
 			}
+			
 			if entry.Credit != 0 {
+				originalCredit := entry.Credit
 				entry.Credit = e.service.LoanComputation(ctx, *entry.AutomaticLoanDeduction, *loanTransaction)
+				fmt.Printf("[LOAN BALANCING] Entry %d loan computation: %f -> %f\n", i+1, originalCredit, entry.Credit)
+			} else {
+				fmt.Printf("[LOAN BALANCING] Entry %d credit remains 0, no loan computation needed\n", i+1)
 			}
+			
 			if !entry.IsAddOn {
 				total_non_add_ons += entry.Credit
+				fmt.Printf("[LOAN BALANCING] Entry %d is non-add-on, adding %f to total_non_add_ons (new total: %f)\n", 
+					i+1, entry.Credit, total_non_add_ons)
 			} else {
 				total_add_ons += entry.Credit
+				fmt.Printf("[LOAN BALANCING] Entry %d is add-on, adding %f to total_add_ons (new total: %f)\n", 
+					i+1, entry.Credit, total_add_ons)
 			}
+			
+			fmt.Printf("[LOAN BALANCING] Entry %d final values - Credit: %f, Debit: %f\n", i+1, entry.Credit, entry.Debit)
 			result = append(result, entry)
 		}
 	}
+	fmt.Printf("[LOAN BALANCING] Step 8 completed - Added missing automatic deductions\n")
 
 	if (loanTransaction.LoanType == model_core.LoanTypeRestructured ||
 		loanTransaction.LoanType == model_core.LoanTypeRenewalWithoutDeduct ||
