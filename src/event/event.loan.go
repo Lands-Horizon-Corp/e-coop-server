@@ -313,11 +313,17 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	// ================================================================================
 	// STEP 9: CALCULATE FINAL CREDIT AMOUNTS & ADD-ON INTEREST
 	// ================================================================================
+	fmt.Printf("[LOAN BALANCING] Step 9: Calculating final credit amounts\n")
+	fmt.Printf("[LOAN BALANCING] Total non-add-ons: %f, Total add-ons: %f\n", total_non_add_ons, total_add_ons)
 	// Adjust the first entry (cash equivalent) credit based on loan type and deductions
 	if loanTransaction.IsAddOn {
 		result[0].Credit = loanTransaction.Applied1 - total_non_add_ons
+		fmt.Printf("[LOAN BALANCING] IsAddOn=true: Cash equivalent credit = %f - %f = %f\n", 
+			loanTransaction.Applied1, total_non_add_ons, result[0].Credit)
 	} else {
 		result[0].Credit = loanTransaction.Applied1 - (total_non_add_ons + total_add_ons)
+		fmt.Printf("[LOAN BALANCING] IsAddOn=false: Cash equivalent credit = %f - (%f + %f) = %f\n", 
+			loanTransaction.Applied1, total_non_add_ons, total_add_ons, result[0].Credit)
 	}
 
 	// Add the add-on interest entry if applicable
@@ -329,6 +335,8 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	// ================================================================================
 	// STEP 10: CLEANUP OLD ENTRIES & CREATE NEW BALANCED ENTRIES
 	// ================================================================================
+	fmt.Printf("[LOAN BALANCING] Step 10: Cleaning up old entries and creating new balanced entries\n")
+	fmt.Printf("[LOAN BALANCING] Deleting %d existing entries\n", len(loanTransactionEntries))
 	// Delete all existing loan transaction entries before creating new ones
 	for _, entry := range loanTransactionEntries {
 		if err := e.model_core.LoanTransactionEntryManager.DeleteByIDWithTx(ctx, tx, entry.ID); err != nil {
@@ -360,6 +368,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	}
 
 	// Create new loan transaction entries and calculate totals
+	fmt.Printf("[LOAN BALANCING] Creating %d new loan transaction entries\n", len(result))
 	totalDebit, totalCredit := 0.0, 0.0
 	for index, entry := range result {
 
@@ -387,6 +396,9 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 			totalDebit += entry.Debit
 			totalCredit += entry.Credit
 		}
+		
+		fmt.Printf("[LOAN BALANCING] Creating entry %d: %s - Credit: %f, Debit: %f\n", 
+			index, entry.Name, entry.Credit, entry.Debit)
 
 		if err := e.model_core.LoanTransactionEntryManager.CreateWithTx(ctx, tx, value); err != nil {
 			tx.Rollback()
@@ -413,6 +425,9 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	// ================================================================================
 	// STEP 11: UPDATE LOAN TRANSACTION TOTALS & COMMIT CHANGES
 	// ================================================================================
+	fmt.Printf("[LOAN BALANCING] Step 11: Updating loan transaction totals\n")
+	fmt.Printf("[LOAN BALANCING] Final totals - Credit: %f, Debit: %f, Amortization: %f\n", 
+		totalCredit, totalDebit, amort)
 	// Update the loan transaction with calculated totals
 	loanTransaction.Amortization = amort
 	loanTransaction.Balance = totalCredit
@@ -431,7 +446,9 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	}
 
 	// Commit all database changes
+	fmt.Printf("[LOAN BALANCING] Committing database transaction\n")
 	if err := tx.Commit().Error; err != nil {
+		fmt.Printf("[LOAN BALANCING] ERROR: Failed to commit transaction: %s\n", err.Error())
 		e.Footstep(ctx, echoCtx, FootstepEvent{
 			Activity:    "db-commit-error",
 			Description: "Failed to commit transaction (/transaction/payment/:transaction_id): " + err.Error(),
@@ -439,13 +456,16 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		})
 		return nil, eris.Wrap(err, "failed to commit transaction")
 	}
+	fmt.Printf("[LOAN BALANCING] Transaction committed successfully\n")
 
 	// ================================================================================
 	// STEP 12: RETRIEVE & RETURN UPDATED LOAN TRANSACTION
 	// ================================================================================
+	fmt.Printf("[LOAN BALANCING] Step 12: Retrieving updated loan transaction\n")
 	// Get the updated loan transaction with all related data
 	newLoanTransaction, err := e.model_core.LoanTransactionManager.GetByID(ctx, loanTransaction.ID)
 	if err != nil {
+		fmt.Printf("[LOAN BALANCING] ERROR: Failed to get updated loan transaction: %s\n", err.Error())
 		e.Footstep(ctx, echoCtx, FootstepEvent{
 			Activity:    "data-error",
 			Description: "Failed to get updated loan transaction (/transaction/payment/:transaction_id): " + err.Error(),
@@ -454,6 +474,8 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		return nil, eris.Wrap(err, "failed to get updated loan transaction")
 	}
 
+	fmt.Printf("[LOAN BALANCING] Loan balancing completed successfully for LoanTransactionID: %s\n", 
+		newLoanTransaction.ID.String())
 	return newLoanTransaction, nil
 }
 
