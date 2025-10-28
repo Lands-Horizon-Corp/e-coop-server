@@ -300,12 +300,12 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 				LoanTransactionID:        loanTransaction.ID,
 				Amount:                   0,
 			}
-			
+
 			fmt.Printf("[LOAN BALANCING] New entry %d created: %s, IsAddOn=%t\n", i+1, entry.Name, entry.IsAddOn)
-			
-			if entry.AutomaticLoanDeduction.ChargesRateSchemeID != nil {
+
+			if ald.ChargesRateSchemeID != nil {
 				fmt.Printf("[LOAN BALANCING] Entry %d has ChargesRateSchemeID, calculating charges rate\n", i+1)
-				chargesRateScheme, err := e.model_core.ChargesRateSchemeManager.GetByID(ctx, *entry.AutomaticLoanDeduction.ChargesRateSchemeID)
+				chargesRateScheme, err := e.model_core.ChargesRateSchemeManager.GetByID(ctx, *ald.ChargesRateSchemeID)
 				if err != nil {
 					fmt.Printf("[LOAN BALANCING] ERROR: Failed to get charges rate scheme for entry %d: %s\n", i+1, err.Error())
 					return nil, err
@@ -315,25 +315,25 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 			} else {
 				fmt.Printf("[LOAN BALANCING] Entry %d has no ChargesRateSchemeID\n", i+1)
 			}
-			
+
 			if entry.Credit != 0 {
 				originalCredit := entry.Credit
-				entry.Credit = e.service.LoanComputation(ctx, *entry.AutomaticLoanDeduction, *loanTransaction)
+				entry.Credit = e.service.LoanComputation(ctx, *ald, *loanTransaction)
 				fmt.Printf("[LOAN BALANCING] Entry %d loan computation: %f -> %f\n", i+1, originalCredit, entry.Credit)
 			} else {
 				fmt.Printf("[LOAN BALANCING] Entry %d credit remains 0, no loan computation needed\n", i+1)
 			}
-			
+
 			if !entry.IsAddOn {
 				total_non_add_ons += entry.Credit
-				fmt.Printf("[LOAN BALANCING] Entry %d is non-add-on, adding %f to total_non_add_ons (new total: %f)\n", 
+				fmt.Printf("[LOAN BALANCING] Entry %d is non-add-on, adding %f to total_non_add_ons (new total: %f)\n",
 					i+1, entry.Credit, total_non_add_ons)
 			} else {
 				total_add_ons += entry.Credit
-				fmt.Printf("[LOAN BALANCING] Entry %d is add-on, adding %f to total_add_ons (new total: %f)\n", 
+				fmt.Printf("[LOAN BALANCING] Entry %d is add-on, adding %f to total_add_ons (new total: %f)\n",
 					i+1, entry.Credit, total_add_ons)
 			}
-			
+
 			fmt.Printf("[LOAN BALANCING] Entry %d final values - Credit: %f, Debit: %f\n", i+1, entry.Credit, entry.Debit)
 			result = append(result, entry)
 		}
