@@ -2429,15 +2429,10 @@ func (a *Account) BeforeDelete(tx *gorm.DB) error {
 		AccountID:      a.ID,
 		OrganizationID: a.OrganizationID,
 		BranchID:       a.BranchID,
-		CreatedByID: func() uuid.UUID {
-			if a.DeletedByID != nil {
-				return *a.DeletedByID
-			}
-			return uuid.Nil
-		}(),
-		ChangeType:   HistoryChangeTypeDeleted,
-		ValidFrom:    now,
-		ChangeReason: "Account deleted",
+		CreatedByID:    a.CreatedByID,
+		ChangeType:     HistoryChangeTypeDeleted,
+		ValidFrom:      now,
+		ChangeReason:   "Account deleted",
 
 		// Copy all current data before deletion
 		Name:                                a.Name,
