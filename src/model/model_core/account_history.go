@@ -26,6 +26,7 @@ type (
 	AccountHistory struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
+		UpdatedAt   time.Time      `gorm:"not null;default:now()" json:"updated_at"`
 		CreatedByID uuid.UUID      `gorm:"type:uuid" json:"created_by_id"`
 		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
 		DeletedAt   gorm.DeletedAt `gorm:"index" json:"deleted_at"`
@@ -144,6 +145,7 @@ type (
 	AccountHistoryResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
+		UpdatedAt      string                `json:"updated_at"`
 		CreatedByID    uuid.UUID             `json:"created_by_id"`
 		CreatedBy      *UserResponse         `json:"created_by,omitempty"`
 		AccountID      uuid.UUID             `json:"account_id"`
@@ -274,6 +276,7 @@ func (m *ModelCore) AccountHistory() {
 			response := &AccountHistoryResponse{
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
+				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
 				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
 				AccountID:      data.AccountID,

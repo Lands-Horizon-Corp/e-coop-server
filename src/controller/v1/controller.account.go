@@ -788,7 +788,7 @@ func (c *Controller) AccountController() {
 		account.InterestStandardComputation = req.InterestStandardComputation
 		account.CurrencyID = req.CurrencyID
 
-		if err := c.model_core.AccountManager.UpdateFields(context, account.ID, account); err != nil {
+		if err := c.model_core.AccountManager.Update(context, account); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account update failed (/account/:account_id), db error: " + err.Error(),
@@ -1085,7 +1085,7 @@ func (c *Controller) AccountController() {
 		account.Index = newIndex
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
-		if err := c.model_core.AccountManager.UpdateFields(context, account.ID, account); err != nil {
+		if err := c.model_core.AccountManager.Update(context, account); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account index update failed (/account/:account_id/index/:index), db error: " + err.Error(),
@@ -1147,7 +1147,7 @@ func (c *Controller) AccountController() {
 		account.GeneralLedgerDefinitionID = nil
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
-		if err := c.model_core.AccountManager.UpdateFields(context, account.ID, account); err != nil {
+		if err := c.model_core.AccountManager.Update(context, account); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account remove GL def failed (/account/:account_id/general-ledger-definition/remove), db error: " + err.Error(),
@@ -1208,7 +1208,7 @@ func (c *Controller) AccountController() {
 		account.FinancialStatementDefinitionID = nil
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
-		if err := c.model_core.AccountManager.UpdateFields(context, account.ID, account); err != nil {
+		if err := c.model_core.AccountManager.Update(context, account); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account remove FS def failed (/account/:account_id/financial-statement-definition/remove), db error: " + err.Error(),
@@ -1514,7 +1514,7 @@ func (c *Controller) AccountController() {
 		account.ComputationSheetID = computationSheetID
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
-		if err := c.model_core.AccountManager.UpdateFields(context, account.ID, account); err != nil {
+		if err := c.model_core.AccountManager.Update(context, account); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to connect account to computation sheet: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.ToModel(account))
@@ -1542,7 +1542,7 @@ func (c *Controller) AccountController() {
 		account.ComputationSheetID = nil
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
-		if err := c.model_core.AccountManager.UpdateFields(context, account.ID, account); err != nil {
+		if err := c.model_core.AccountManager.Update(context, account); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to connect account to computation sheet: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.ToModel(account))
