@@ -125,10 +125,6 @@ type (
 
 		// Default Member Type
 		DefaultMemberTypeID *uuid.UUID `json:"default_member_type_id,omitempty"`
-
-		// Account References
-		AccountForOverflowID  *uuid.UUID `json:"account_for_overflow_id,omitempty"`
-		AccountForUnderflowID *uuid.UUID `json:"account_for_underflow_id,omitempty"`
 	}
 
 	BranchSettingsCurrencyRequest struct {

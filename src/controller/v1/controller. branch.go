@@ -667,10 +667,6 @@ func (c *Controller) BranchController() {
 				UpdatedAt: time.Now().UTC(),
 				BranchID:  *userOrg.BranchID,
 
-				// Account References
-				AccountForOverflowID:  settingsReq.AccountForOverflowID,
-				AccountForUnderflowID: settingsReq.AccountForUnderflowID,
-
 				// Withdraw Settings
 				WithdrawAllowUserInput: settingsReq.WithdrawAllowUserInput,
 				WithdrawPrefix:         settingsReq.WithdrawPrefix,
@@ -749,8 +745,6 @@ func (c *Controller) BranchController() {
 			branchSetting.DepositUseDateOR = settingsReq.DepositUseDateOR
 
 			// Loan Settings
-			branchSetting.AccountForOverflowID = settingsReq.AccountForOverflowID
-			branchSetting.AccountForUnderflowID = settingsReq.AccountForUnderflowID
 			branchSetting.LoanAllowUserInput = settingsReq.LoanAllowUserInput
 			branchSetting.LoanPrefix = settingsReq.LoanPrefix
 			branchSetting.LoanORStart = settingsReq.LoanORStart
@@ -861,6 +855,8 @@ func (c *Controller) BranchController() {
 		branchSetting.CurrencyID = settingsReq.CurrencyID
 		branchSetting.PaidUpSharedCapitalAccountID = settingsReq.PaidUpSharedCapitalAccountID
 		branchSetting.CashOnHandAccountID = settingsReq.CashOnHandAccountID
+		branchSetting.AccountForOverflowID = settingsReq.AccountForOverflowID
+		branchSetting.AccountForUnderflowID = settingsReq.AccountForUnderflowID
 		branchSetting.UpdatedAt = time.Now().UTC()
 
 		if err := c.model_core.BranchSettingManager.UpdateFields(context, branchSetting.ID, branchSetting); err != nil {
