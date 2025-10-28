@@ -38,6 +38,36 @@ func (c *Controller) ChargesRateSchemeController() {
 		return ctx.JSON(http.StatusOK, c.model_core.ChargesRateSchemeManager.ToModels(chargesRateSchemes))
 	})
 
+	// GET	 /api/v1/charges-rate-scheme/currency/:currency_id: Get charges rate schemes by currency ID. (NO footstep)
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/charges-rate-scheme/currency/:currency_id",
+		Method:       "GET",
+		Note:         "Returns a list of charges rate schemes for a specific currency.",
+		ResponseType: model_core.ChargesRateSchemeResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		currencyID, err := handlers.EngineUUIDParam(ctx, "currency_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID"})
+		}
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if user.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		chargesRateSchemes, err := c.model_core.ChargesRateSchemeManager.Find(context, &model_core.ChargesRateScheme{
+			CurrencyID:     *currencyID,
+			OrganizationID: user.OrganizationID,
+			BranchID:       *user.BranchID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch charges rate schemes by currency ID: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model_core.ChargesRateSchemeManager.ToModels(chargesRateSchemes))
+	})
+
 	// GET /charges-rate-scheme/:charges_rate_scheme_id: Get specific charges rate scheme by ID. (NO footstep)
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/charges-rate-scheme/:charges_rate_scheme_id",

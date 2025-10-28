@@ -46,7 +46,7 @@ type (
 		ValidFrom     time.Time         `gorm:"not null;index:idx_account_history_valid_from" json:"valid_from"`
 		ValidTo       *time.Time        `gorm:"index:idx_account_history_valid_to" json:"valid_to,omitempty"`
 		ChangeReason  string            `gorm:"type:text" json:"change_reason,omitempty"`
-		ChangedFields string            `gorm:"type:text" json:"changed_fields,omitempty"` // JSON array of field names that changed
+		ChangedFields string            `gorm:"type:text" json:"changed_fields,omitempty"`
 
 		// Snapshot of account data at the time of change
 		Name        string      `gorm:"type:varchar(255)" json:"name"`
