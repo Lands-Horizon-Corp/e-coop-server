@@ -266,8 +266,7 @@ func (m *ModelCore) UserOrganization() {
 			"UpdatedBy",
 			"Branch",
 			"Branch.Media",
-			"Branch.BranchSetting",
-			"Branch.BranchSetting.Currency",
+
 			"User",
 			"User.Media",
 			"Organization",
@@ -281,10 +280,19 @@ func (m *ModelCore) UserOrganization() {
 			"SettingsAccountingWithdrawDefaultValue",
 			"SettingsPaymentTypeDefaultValue",
 
+			"Branch.BranchSetting",
+			"Branch.BranchSetting.Currency",
+
 			"Branch.BranchSetting.CashOnHandAccount",
 			"Branch.BranchSetting.CashOnHandAccount.Currency",
 			"Branch.BranchSetting.PaidUpSharedCapitalAccount",
 			"Branch.BranchSetting.PaidUpSharedCapitalAccount.Currency",
+
+			"Branch.BranchSetting.UnbalancedAccounts.Currency",
+			"Branch.BranchSetting.UnbalancedAccounts.AccountForShortage",
+			"Branch.BranchSetting.UnbalancedAccounts.AccountForOverage",
+			"Branch.BranchSetting.UnbalancedAccounts.MemberProfileForShortage",
+			"Branch.BranchSetting.UnbalancedAccounts.MemberProfileForOverage",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *UserOrganization) *UserOrganizationResponse {

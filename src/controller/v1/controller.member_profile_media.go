@@ -15,143 +15,9 @@ import (
 func (c *Controller) MemberProfileMediaController() {
 	req := c.provider.Service.Request
 
-	// GET /api/v1/member-profile-media/search: Get all media of the current user includes all branches
-	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/member-profile-media/search",
-		Method:       "GET",
-		Note:         "Get all media of the current user across all branches.",
-		ResponseType: model_core.MemberProfileMediaResponse{},
-	}, func(ctx echo.Context) error {
-		context := ctx.Request().Context()
-
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
-		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "search-error",
-				Description: "Member profile media search failed (/member-profile-media/search), user org error: " + err.Error(),
-				Module:      "MemberProfileMedia",
-			})
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
-		}
-
-		// Search across all branches for the current user and organization
-		memberProfileMediaList, err := c.model_core.MemberProfileMediaManager.Find(context, &model_core.MemberProfileMedia{
-			UserID: &user.UserID,
-		})
-		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "search-error",
-				Description: "Member profile media search failed (/member-profile-media/search), db error: " + err.Error(),
-				Module:      "MemberProfileMedia",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to search member profile media: " + err.Error()})
-		}
-
-		c.event.Footstep(context, ctx, event.FootstepEvent{
-			Activity:    "search-success",
-			Description: "Member profile media search successful (/member-profile-media/search), found " + strconv.Itoa(len(memberProfileMediaList)) + " media items.",
-			Module:      "MemberProfileMedia",
-		})
-
-		return ctx.JSON(http.StatusOK, c.model_core.MemberProfileMediaManager.Pagination(context, ctx, memberProfileMediaList))
-	})
-
-	// GET /api/v1/member-profile-media/current/search: Get all media of the current user of specific branch
-	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/member-profile-media/current/search",
-		Method:       "GET",
-		Note:         "Get all media of the current user for their current branch.",
-		ResponseType: model_core.MemberProfileMediaResponse{},
-	}, func(ctx echo.Context) error {
-		context := ctx.Request().Context()
-
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
-		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "current-search-error",
-				Description: "Member profile media current search failed (/member-profile-media/current/search), user org error: " + err.Error(),
-				Module:      "MemberProfileMedia",
-			})
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
-		}
-
-		if user.BranchID == nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "current-search-error",
-				Description: "Member profile media current search failed (/member-profile-media/current/search), user not assigned to branch.",
-				Module:      "MemberProfileMedia",
-			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
-		}
-
-		// Search for current user's media in their current branch
-		memberProfileMediaList, err := c.model_core.MemberProfileMediaManager.Find(context, &model_core.MemberProfileMedia{
-			OrganizationID: &user.OrganizationID,
-			BranchID:       user.BranchID,
-			UserID:         &user.UserID,
-		})
-		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "current-search-error",
-				Description: "Member profile media current search failed (/member-profile-media/current/search), db error: " + err.Error(),
-				Module:      "MemberProfileMedia",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to search member profile media: " + err.Error()})
-		}
-
-		c.event.Footstep(context, ctx, event.FootstepEvent{
-			Activity:    "current-search-success",
-			Description: "Member profile media current search successful (/member-profile-media/current/search), found " + strconv.Itoa(len(memberProfileMediaList)) + " media items.",
-			Module:      "MemberProfileMedia",
-		})
-
-		return ctx.JSON(http.StatusOK, c.model_core.MemberProfileMediaManager.Pagination(context, ctx, memberProfileMediaList))
-	})
-
-	// GET /api/v1/member-profile-media/branch/:branch_id/search: Get all media of all users from the branch
-	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/member-profile-media/branch/search",
-		Method:       "GET",
-		Note:         "Get all member profile media from a specific branch.",
-		ResponseType: model_core.MemberProfileMediaResponse{},
-	}, func(ctx echo.Context) error {
-		context := ctx.Request().Context()
-
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
-		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "branch-search-error",
-				Description: "Member profile media branch search failed (/member-profile-media/branch/:branch_id/search), user org error: " + err.Error(),
-				Module:      "MemberProfileMedia",
-			})
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
-		}
-
-		// Search for all member profile media in the specified branch
-		memberProfileMediaList, err := c.model_core.MemberProfileMediaManager.Find(context, &model_core.MemberProfileMedia{
-			BranchID: user.BranchID,
-		})
-		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "branch-search-error",
-				Description: "Member profile media branch search failed (/member-profile-media/branch/:branch_id/search), db error: " + err.Error(),
-				Module:      "MemberProfileMedia",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to search member profile media: " + err.Error()})
-		}
-
-		c.event.Footstep(context, ctx, event.FootstepEvent{
-			Activity:    "branch-search-success",
-			Description: "Member profile media branch search successful (/member-profile-media/branch/:branch_id/search), found " + strconv.Itoa(len(memberProfileMediaList)) + " media items.",
-			Module:      "MemberProfileMedia",
-		})
-
-		return ctx.JSON(http.StatusOK, c.model_core.MemberProfileMediaManager.Pagination(context, ctx, memberProfileMediaList))
-	})
-
 	// GET /api/v1/member-profile-media/member-profile/:member_profile_id/search: Get all media for a specific member profile
 	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/member-profile-media/member-profile/:member_profile_id/search",
+		Route:        "/api/v1/member-profile-media/member-profile/:member_profile_id",
 		Method:       "GET",
 		Note:         "Get all member profile media for a specific member profile.",
 		ResponseType: model_core.MemberProfileMediaResponse{},
@@ -189,10 +55,10 @@ func (c *Controller) MemberProfileMediaController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member profile not found"})
 		}
 		// Search for all member profile media for the specified member profile
-		memberProfileMediaList, err := c.model_core.MemberProfileMediaManager.Find(context, &model_core.MemberProfileMedia{
-			BranchID:       user.BranchID,
-			OrganizationID: &user.OrganizationID,
-			UserID:         memberProfile.UserID,
+		memberProfileMediaList, err := c.model_core.MemberProfileMediaManager.FindRaw(context, &model_core.MemberProfileMedia{
+			BranchID:        user.BranchID,
+			OrganizationID:  &user.OrganizationID,
+			MemberProfileID: &memberProfile.ID,
 		})
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -209,7 +75,7 @@ func (c *Controller) MemberProfileMediaController() {
 			Module:      "MemberProfileMedia",
 		})
 
-		return ctx.JSON(http.StatusOK, c.model_core.MemberProfileMediaManager.Pagination(context, ctx, memberProfileMediaList))
+		return ctx.JSON(http.StatusOK, memberProfileMediaList)
 	})
 
 	// POST /api/v1/member-profile-media: Create a new member profile media
@@ -460,5 +326,58 @@ func (c *Controller) MemberProfileMediaController() {
 		}
 
 		return ctx.JSON(http.StatusOK, memberProfileMedia)
+	})
+
+	// POST /api/v1/member-profile-media/bulk/member-profile/:member_profile_id: Bulk create member profile media for a specific member profile
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/member-profile-media/bulk/member-profile/:member_profile_id",
+		Method:       "POST",
+		Note:         "Bulk create member profile media for a specific member profile.",
+		RequestType:  model_core.MemberProfileBulkMediaRequest{},
+		ResponseType: model_core.MemberProfileMediaResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+
+		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
+		}
+
+		var reqData model_core.MemberProfileBulkMediaRequest
+		if err := ctx.Bind(&reqData); err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request data: " + err.Error()})
+		}
+
+		var createdMedia []*model_core.MemberProfileMedia
+		for _, mediaID := range reqData.MediaIDs {
+			media, err := c.model_core.MediaManager.GetByID(context, *mediaID)
+			if err != nil {
+				return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Media not found: " + mediaID.String()})
+			}
+			memberProfileMedia := &model_core.MemberProfileMedia{
+				MediaID:         mediaID,
+				CreatedAt:       time.Now().UTC(),
+				CreatedByID:     user.UserID,
+				UpdatedAt:       time.Now().UTC(),
+				UpdatedByID:     user.UserID,
+				BranchID:        user.BranchID,
+				OrganizationID:  &user.OrganizationID,
+				MemberProfileID: memberProfileID,
+				Name:            media.FileName,
+				Description:     media.FileName + " at " + time.Now().Format(time.RFC3339),
+			}
+
+			if err := c.model_core.MemberProfileMediaManager.Create(context, memberProfileMedia); err != nil {
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create member profile media: " + err.Error()})
+			}
+
+			createdMedia = append(createdMedia, memberProfileMedia)
+		}
+
+		return ctx.JSON(http.StatusCreated, c.model_core.MemberProfileMediaManager.ToModels(createdMedia))
 	})
 }

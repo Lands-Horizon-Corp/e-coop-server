@@ -102,15 +102,50 @@ func TestHorizonStorage_GenerateUniqueName(t *testing.T) {
 	hs := createTestService(t)
 
 	original := "testfile.txt"
-	name1, err := hs.GenerateUniqueName(ctx, original)
+	contentType := "text/plain"
+
+	name1, err := hs.GenerateUniqueName(ctx, original, contentType)
 	require.NoError(t, err)
 
-	name2, err := hs.GenerateUniqueName(ctx, original)
+	name2, err := hs.GenerateUniqueName(ctx, original, contentType)
 	require.NoError(t, err)
 
 	require.NotEqual(t, name1, name2)
-	require.Contains(t, name1, original)
-	require.Contains(t, name2, original)
+	require.Contains(t, name1, "testfile")
+	require.Contains(t, name2, "testfile")
+	require.True(t, strings.HasSuffix(name1, ".txt"))
+	require.True(t, strings.HasSuffix(name2, ".txt"))
+}
+
+func TestHorizonStorage_GenerateUniqueNameWithoutExtension(t *testing.T) {
+	ctx := context.Background()
+	hs := createTestService(t)
+
+	// Test file without extension - should get extension from content type
+	original := "testfile"
+	contentType := "image/jpeg"
+
+	name, err := hs.GenerateUniqueName(ctx, original, contentType)
+	require.NoError(t, err)
+
+	require.Contains(t, name, "testfile")
+	require.True(t, strings.HasSuffix(name, ".jpg"))
+}
+
+func TestHorizonStorage_GenerateUniqueNameEmptyContentType(t *testing.T) {
+	ctx := context.Background()
+	hs := createTestService(t)
+
+	// Test file without extension and empty content type
+	original := "testfile"
+	contentType := ""
+
+	name, err := hs.GenerateUniqueName(ctx, original, contentType)
+	require.NoError(t, err)
+
+	require.Contains(t, name, "testfile")
+	// Should not have any extension added
+	require.False(t, strings.Contains(name, "."))
 }
 
 func createTestService(t *testing.T) *horizon.HorizonStorage {

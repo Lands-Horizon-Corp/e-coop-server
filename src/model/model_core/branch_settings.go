@@ -129,7 +129,7 @@ type (
 		PaidUpSharedCapitalAccountID uuid.UUID `json:"paid_up_shared_capital_account_id" validate:"required"`
 		CashOnHandAccountID          uuid.UUID `json:"cash_on_hand_account_id" validate:"required"`
 
-		UnbalancedAccount          []UnbalancedAccountRequest `json:"unbalanced_account" validate:"required"`
+		UnbalancedAccount          []UnbalancedAccountRequest `json:"unbalanced_accounts"`
 		UnbalancedAccountDeleteIDs []uuid.UUID                `json:"unbalanced_account_delete_ids,omitempty"`
 	}
 

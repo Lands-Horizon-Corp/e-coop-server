@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/rotisserie/eris"
@@ -28,7 +29,7 @@ type StorageService interface {
 	GeneratePresignedURL(ctx context.Context, storage *Storage, expiry time.Duration) (string, error)
 	DeleteFile(ctx context.Context, storage *Storage) error
 	RemoveAllFiles(ctx context.Context) error
-	GenerateUniqueName(ctx context.Context, originalName string) (string, error)
+	GenerateUniqueName(ctx context.Context, originalName string, contentType string) (string, error)
 }
 
 type Storage struct {
@@ -198,7 +199,7 @@ func (h *HorizonStorage) UploadFromPath(ctx context.Context, path string, cb Pro
 	if _, err := file.Seek(0, 0); err != nil {
 		return nil, eris.Wrap(err, "failed to seek file to beginning")
 	}
-	fileName, err := h.GenerateUniqueName(ctx, filepath.Base(path))
+	fileName, err := h.GenerateUniqueName(ctx, filepath.Base(path), contentType)
 	if err != nil {
 		return nil, err
 	}
@@ -236,7 +237,7 @@ func (h *HorizonStorage) UploadFromPath(ctx context.Context, path string, cb Pro
 
 func (h *HorizonStorage) UploadFromBinary(ctx context.Context, data []byte, cb ProgressCallback) (*Storage, error) {
 	contentType := http.DetectContentType(data)
-	fileName, err := h.GenerateUniqueName(ctx, "file")
+	fileName, err := h.GenerateUniqueName(ctx, "file", contentType)
 	if err != nil {
 		return nil, err
 	}
@@ -311,7 +312,7 @@ func (h *HorizonStorage) UploadFromURL(ctx context.Context, url string, cb Progr
 		return nil, eris.Wrap(err, "failed to read file data from URL response")
 	}
 
-	fileName, err = h.GenerateUniqueName(ctx, fileName)
+	fileName, err = h.GenerateUniqueName(ctx, fileName, contentType)
 	if err != nil {
 		return nil, err
 	}
@@ -360,7 +361,7 @@ func (h *HorizonStorage) UploadFromHeader(ctx context.Context, header *multipart
 		contentType = "application/octet-stream"
 	}
 
-	fileName, err := h.GenerateUniqueName(ctx, header.Filename)
+	fileName, err := h.GenerateUniqueName(ctx, header.Filename, contentType)
 	if err != nil {
 		return nil, err
 	}
@@ -460,8 +461,14 @@ func (h *HorizonStorage) RemoveAllFiles(ctx context.Context) error {
 	return nil
 }
 
-func (h *HorizonStorage) GenerateUniqueName(ctx context.Context, original string) (string, error) {
+func (h *HorizonStorage) GenerateUniqueName(ctx context.Context, original string, contentType string) (string, error) {
 	ext := filepath.Ext(original)
 	base := strings.TrimSuffix(original, ext)
+
+	// If no extension in original filename, try to get it from content type
+	if ext == "" && contentType != "" {
+		ext = handlers.GetExtensionFromContentType(contentType)
+	}
+
 	return fmt.Sprintf("%s%d-%s%s", h.prefix, time.Now().UnixNano(), base, ext), nil
 }
