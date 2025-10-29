@@ -1,6 +1,7 @@
 package controller_v1
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -680,6 +681,7 @@ func (c *Controller) OrganizationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve organizations: " + err.Error()})
 		}
+		fmt.Println(organizations)
 		result := []model_core.OrganizationPerCategoryResponse{}
 		for _, category := range categories {
 			orgs := []*model_core.Organization{}
