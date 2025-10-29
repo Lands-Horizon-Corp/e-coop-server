@@ -70,10 +70,21 @@ func (c *Controller) MediaController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Missing file in upload"})
 		}
+		// Ensure filename has proper extension based on content type
+		fileName := file.Filename
+		contentType := file.Header.Get("Content-Type")
+
+		// If filename doesn't have extension, add it based on content type
+		if fileName != "" && !handlers.HasFileExtension(fileName) {
+			if ext := handlers.GetExtensionFromContentType(contentType); ext != "" {
+				fileName = fileName + ext
+			}
+		}
+
 		initial := &model_core.Media{
-			FileName:   file.Filename,
+			FileName:   fileName,
 			FileSize:   0,
-			FileType:   file.Header.Get("Content-Type"),
+			FileType:   contentType,
 			StorageKey: "",
 			URL:        "",
 			BucketName: "",
@@ -124,7 +135,7 @@ func (c *Controller) MediaController() {
 			UpdatedAt:  time.Now().UTC(),
 			ID:         initial.ID,
 		}
-		if err := c.model_core.MediaManager.Update(context, completed); err != nil {
+		if err := c.model_core.MediaManager.UpdateFields(context, completed.ID, completed); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Media upload failed (/media), update after upload error: " + err.Error(),

@@ -420,3 +420,114 @@ func Zip[T, U any](slice1 []T, slice2 []U) []struct {
 	}
 	return result
 }
+
+// Helper function to check if filename has an extension
+func HasFileExtension(filename string) bool {
+	return strings.Contains(filename, ".") && !strings.HasSuffix(filename, ".")
+}
+
+// Helper function to get file extension from content type
+func GetExtensionFromContentType(contentType string) string {
+	// Comprehensive content type to extension mappings based on MDN Web Docs
+	contentTypeMap := map[string]string{
+		// Audio formats
+		"audio/aac":    ".aac",
+		"audio/midi":   ".mid",
+		"audio/x-midi": ".midi",
+		"audio/mpeg":   ".mp3",
+		"audio/ogg":    ".oga",
+		"audio/wav":    ".wav",
+		"audio/webm":   ".weba",
+		"audio/3gpp":   ".3gp",
+		"audio/3gpp2":  ".3g2",
+
+		// Video formats
+		"video/x-msvideo": ".avi",
+		"video/mp4":       ".mp4",
+		"video/mpeg":      ".mpeg",
+		"video/ogg":       ".ogv",
+		"video/mp2t":      ".ts",
+		"video/webm":      ".webm",
+		"video/3gpp":      ".3gp",
+		"video/3gpp2":     ".3g2",
+
+		// Image formats
+		"image/apng":               ".apng",
+		"image/avif":               ".avif",
+		"image/bmp":                ".bmp",
+		"image/gif":                ".gif",
+		"image/jpeg":               ".jpg",
+		"image/png":                ".png",
+		"image/svg+xml":            ".svg",
+		"image/tiff":               ".tiff",
+		"image/webp":               ".webp",
+		"image/vnd.microsoft.icon": ".ico",
+
+		// Font formats
+		"font/otf":   ".otf",
+		"font/ttf":   ".ttf",
+		"font/woff":  ".woff",
+		"font/woff2": ".woff2",
+
+		// Application formats
+		"application/x-abiword":        ".abw",
+		"application/x-freearc":        ".arc",
+		"application/vnd.amazon.ebook": ".azw",
+		"application/octet-stream":     ".bin",
+		"application/x-bzip":           ".bz",
+		"application/x-bzip2":          ".bz2",
+		"application/x-cdf":            ".cda",
+		"application/x-csh":            ".csh",
+		"application/msword":           ".doc",
+		"application/vnd.openxmlformats-officedocument.wordprocessingml.document": ".docx",
+		"application/vnd.ms-fontobject":                                           ".eot",
+		"application/epub+zip":                                                    ".epub",
+		"application/gzip":                                                        ".gz",
+		"application/x-gzip":                                                      ".gz", // Non-standard but common on Windows/macOS
+		"application/java-archive":                                                ".jar",
+		"application/json":                                                        ".json",
+		"application/ld+json":                                                     ".jsonld",
+		"application/vnd.apple.installer+xml":                                     ".mpkg",
+		"application/vnd.oasis.opendocument.presentation":                         ".odp",
+		"application/vnd.oasis.opendocument.spreadsheet":                          ".ods",
+		"application/vnd.oasis.opendocument.text":                                 ".odt",
+		"application/ogg":                                                         ".ogx",
+		"application/pdf":                                                         ".pdf",
+		"application/x-httpd-php":                                                 ".php",
+		"application/vnd.ms-powerpoint":                                           ".ppt",
+		"application/vnd.openxmlformats-officedocument.presentationml.presentation": ".pptx",
+		"application/vnd.rar":       ".rar",
+		"application/rtf":           ".rtf",
+		"application/x-sh":          ".sh",
+		"application/x-tar":         ".tar",
+		"application/vnd.visio":     ".vsd",
+		"application/manifest+json": ".webmanifest",
+		"application/xhtml+xml":     ".xhtml",
+		"application/vnd.ms-excel":  ".xls",
+		"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": ".xlsx",
+		"application/xml":                 ".xml",
+		"application/vnd.mozilla.xul+xml": ".xul",
+		"application/zip":                 ".zip",
+		"application/x-zip-compressed":    ".zip", // Non-standard but common on Windows
+		"application/x-7z-compressed":     ".7z",
+
+		// Text formats
+		"text/css":        ".css",
+		"text/csv":        ".csv",
+		"text/html":       ".html",
+		"text/javascript": ".js",
+		"text/calendar":   ".ics",
+		"text/markdown":   ".md",
+		"text/plain":      ".txt",
+		"text/xml":        ".xml",
+	}
+
+	// Clean up content type (remove charset, etc.)
+	cleanContentType := strings.Split(contentType, ";")[0]
+	cleanContentType = strings.TrimSpace(cleanContentType)
+
+	if ext, exists := contentTypeMap[cleanContentType]; exists {
+		return ext
+	}
+	return ""
+}
