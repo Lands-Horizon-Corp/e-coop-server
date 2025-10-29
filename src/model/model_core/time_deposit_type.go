@@ -42,7 +42,7 @@ type (
 		Header10 int `gorm:"default:330"`
 		Header11 int `gorm:"default:360"`
 
-		Name        string `gorm:"type:varchar(255);not null;unique"`
+		Name        string `gorm:"type:varchar(255);not null"`
 		Description string `gorm:"type:text"`
 
 		PreMature     int     `gorm:"default:0"`

@@ -28,7 +28,7 @@ type (
 		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_interest_rate_scheme"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
-		Name        string `gorm:"type:varchar(255);unique;not null"`
+		Name        string `gorm:"type:varchar(255);not null"`
 		Description string `gorm:"type:text"`
 	}
 
