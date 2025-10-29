@@ -155,13 +155,11 @@ type (
 func (m *ModelCore) Organization() {
 	m.Migration = append(m.Migration, &Organization{})
 	m.OrganizationManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Organization, OrganizationResponse, OrganizationRequest]{
-		Preloads: []string{"CreatedBy",
-			"UpdatedBy", "Media", "CoverMedia",
+		Preloads: []string{"Media", "CoverMedia",
 			"SubscriptionPlan", "Branches",
 			"OrganizationCategories", "OrganizationMedias", "OrganizationMedias.Media",
 			"OrganizationCategories.Category",
-			"Footsteps", "GeneratedReports", "InvitationCodes",
-			"PermissionTemplates"},
+			},
 		Service: m.provider.Service,
 		Resource: func(data *Organization) *OrganizationResponse {
 			if data == nil {
