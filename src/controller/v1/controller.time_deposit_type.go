@@ -105,6 +105,7 @@ func (c *Controller) TimeDepositTypeController() {
 			UpdatedByID:    user.UserID,
 			BranchID:       *user.BranchID,
 			OrganizationID: user.OrganizationID,
+			CurrencyID:     req.CurrencyID,
 		}
 
 		if err := c.model_core.TimeDepositTypeManager.Create(context, timeDepositType); err != nil {
