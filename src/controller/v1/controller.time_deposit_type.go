@@ -363,7 +363,11 @@ func (c *Controller) TimeDepositTypeController() {
 			Description: "Updated time deposit type (/time-deposit-type/:time_deposit_type_id): " + timeDepositType.Name,
 			Module:      "TimeDepositType",
 		})
-		return ctx.JSON(http.StatusOK, c.model_core.TimeDepositTypeManager.ToModel(timeDepositType))
+		newTimeDepositType, err := c.model_core.TimeDepositTypeManager.GetByID(context, timeDepositType.ID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch updated time deposit type: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model_core.TimeDepositTypeManager.ToModel(newTimeDepositType))
 	})
 
 	// DELETE /time-deposit-type/:time_deposit_type_id: Delete a time deposit type by ID. (WITH footstep)
