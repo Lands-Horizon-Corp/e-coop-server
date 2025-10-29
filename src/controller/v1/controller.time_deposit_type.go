@@ -192,6 +192,18 @@ func (c *Controller) TimeDepositTypeController() {
 		timeDepositType.UpdatedAt = time.Now().UTC()
 		timeDepositType.UpdatedByID = user.UserID
 
+		timeDepositType.Header1 = req.Header1
+		timeDepositType.Header2 = req.Header2
+		timeDepositType.Header3 = req.Header3
+		timeDepositType.Header4 = req.Header4
+		timeDepositType.Header5 = req.Header5
+		timeDepositType.Header6 = req.Header6
+		timeDepositType.Header7 = req.Header7
+		timeDepositType.Header8 = req.Header8
+		timeDepositType.Header9 = req.Header9
+		timeDepositType.Header10 = req.Header10
+		timeDepositType.Header11 = req.Header11
+
 		if err := c.model_core.TimeDepositTypeManager.UpdateFieldsWithTx(context, tx, timeDepositType.ID, timeDepositType); err != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -476,72 +488,6 @@ func (c *Controller) TimeDepositTypeController() {
 			Module:      "TimeDepositType",
 		})
 		return ctx.NoContent(http.StatusNoContent)
-	})
-
-	// POST api/v1/time-deposit-type/:time_deposit_type_id/headers
-	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/time-deposit-type/:time_deposit_type_id/headers",
-		Method:       "POST",
-		Note:         "Updates the header values for a specific time deposit type.",
-		RequestType:  model_core.TimeDepositTypeHeadersRequest{},
-		ResponseType: model_core.TimeDepositTypeResponse{},
-	}, func(ctx echo.Context) error {
-		context := ctx.Request().Context()
-		timeDepositTypeID, err := handlers.EngineUUIDParam(ctx, "time_deposit_type_id")
-		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "Update time deposit type headers failed: invalid time deposit type ID.",
-				Module:      "TimeDepositType",
-			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid time deposit type ID"})
-		}
-		var req model_core.TimeDepositTypeHeadersRequest
-		if err := ctx.Bind(&req); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "Update time deposit type headers failed: invalid request body: " + err.Error(),
-				Module:      "TimeDepositType",
-			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
-		}
-
-		if err := c.provider.Service.Validator.Struct(req); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "Update time deposit type headers failed: validation error: " + err.Error(),
-				Module:      "TimeDepositType",
-			})
-		}
-		timeDepositType, err := c.model_core.TimeDepositTypeManager.GetByID(context, *timeDepositTypeID)
-		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "Update time deposit type headers failed: time deposit type not found.",
-				Module:      "TimeDepositType",
-			})
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Time deposit type not found"})
-		}
-		timeDepositType.Header1 = req.Header1
-		timeDepositType.Header2 = req.Header2
-		timeDepositType.Header3 = req.Header3
-		timeDepositType.Header4 = req.Header4
-		timeDepositType.Header5 = req.Header5
-		timeDepositType.Header6 = req.Header6
-		timeDepositType.Header7 = req.Header7
-		timeDepositType.Header8 = req.Header8
-		timeDepositType.Header9 = req.Header9
-		timeDepositType.Header10 = req.Header10
-		timeDepositType.Header11 = req.Header11
-		if err := c.model_core.TimeDepositTypeManager.UpdateFields(context, timeDepositType.ID, timeDepositType); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "Update time deposit type headers failed: db error: " + err.Error(),
-				Module:      "TimeDepositType",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Internal server error"})
-		}
-		return ctx.JSON(http.StatusNotImplemented, c.model_core.TimeDepositTypeManager.ToModel(timeDepositType))
 	})
 
 	// GET /api/v1/time-deposit-type/currency/:currency_id
