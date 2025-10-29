@@ -63,7 +63,7 @@ func (c *Controller) TimeDepositComputationController() {
 
 		timeDepositComputation := &model_core.TimeDepositComputation{
 			TimeDepositTypeID: *timeDepositTypeID,
-			MininimumAmount:   req.MininimumAmount,
+			MinimumAmount:     req.MinimumAmount,
 			MaximumAmount:     req.MaximumAmount,
 			Header1:           req.Header1,
 			Header2:           req.Header2,
@@ -146,7 +146,7 @@ func (c *Controller) TimeDepositComputationController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Time deposit computation not found"})
 		}
-		timeDepositComputation.MininimumAmount = req.MininimumAmount
+		timeDepositComputation.MinimumAmount = req.MinimumAmount
 		timeDepositComputation.MaximumAmount = req.MaximumAmount
 		timeDepositComputation.Header1 = req.Header1
 		timeDepositComputation.Header2 = req.Header2

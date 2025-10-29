@@ -254,7 +254,7 @@ func (c *Controller) TimeDepositTypeController() {
 						tx.Rollback()
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get time deposit computation: " + err.Error()})
 					}
-					existingComputation.MininimumAmount = computationReq.MininimumAmount
+					existingComputation.MinimumAmount = computationReq.MinimumAmount
 					existingComputation.MaximumAmount = computationReq.MaximumAmount
 					existingComputation.Header1 = computationReq.Header1
 					existingComputation.Header2 = computationReq.Header2
@@ -277,7 +277,7 @@ func (c *Controller) TimeDepositTypeController() {
 					// Create new record
 					newComputation := &model_core.TimeDepositComputation{
 						TimeDepositTypeID: timeDepositType.ID,
-						MininimumAmount:   computationReq.MininimumAmount,
+						MinimumAmount:     computationReq.MinimumAmount,
 						MaximumAmount:     computationReq.MaximumAmount,
 						Header1:           computationReq.Header1,
 						Header2:           computationReq.Header2,
