@@ -430,7 +430,7 @@ func HasFileExtension(filename string) bool {
 func GetExtensionFromContentType(contentType string) string {
 	// Comprehensive content type to extension mappings based on MDN Web Docs
 	contentTypeMap := map[string]string{
-		// Audio formats
+		// Audio formats (original + additions)
 		"audio/aac":    ".aac",
 		"audio/midi":   ".mid",
 		"audio/x-midi": ".midi",
@@ -440,18 +440,24 @@ func GetExtensionFromContentType(contentType string) string {
 		"audio/webm":   ".weba",
 		"audio/3gpp":   ".3gp",
 		"audio/3gpp2":  ".3g2",
+		"audio/flac":   ".flac", // Added: Free Lossless Audio Codec
+		"audio/x-aiff": ".aiff", // Added: Audio Interchange File Format
+		"audio/mp4":    ".m4a",  // Added: MPEG-4 Audio
 
-		// Video formats
-		"video/x-msvideo": ".avi",
-		"video/mp4":       ".mp4",
-		"video/mpeg":      ".mpeg",
-		"video/ogg":       ".ogv",
-		"video/mp2t":      ".ts",
-		"video/webm":      ".webm",
-		"video/3gpp":      ".3gp",
-		"video/3gpp2":     ".3g2",
+		// Video formats (original + additions)
+		"video/x-msvideo":  ".avi",
+		"video/mp4":        ".mp4",
+		"video/mpeg":       ".mpeg",
+		"video/ogg":        ".ogv",
+		"video/mp2t":       ".ts",
+		"video/webm":       ".webm",
+		"video/3gpp":       ".3gp",
+		"video/3gpp2":      ".3g2",
+		"video/quicktime":  ".mov", // Added: QuickTime Movie
+		"video/x-matroska": ".mkv", // Added: Matroska Video
+		"video/x-flv":      ".flv", // Added: Flash Video
 
-		// Image formats
+		// Image formats (original + additions)
 		"image/apng":               ".apng",
 		"image/avif":               ".avif",
 		"image/bmp":                ".bmp",
@@ -462,14 +468,19 @@ func GetExtensionFromContentType(contentType string) string {
 		"image/tiff":               ".tiff",
 		"image/webp":               ".webp",
 		"image/vnd.microsoft.icon": ".ico",
+		"image/x-icon":             ".ico",  // Added: Alternative for icons
+		"image/heic":               ".heic", // Added: High Efficiency Image Container
+		"image/heif":               ".heif", // Added: High Efficiency Image Format
 
-		// Font formats
-		"font/otf":   ".otf",
-		"font/ttf":   ".ttf",
-		"font/woff":  ".woff",
-		"font/woff2": ".woff2",
+		// Font formats (original + additions)
+		"font/otf":        ".otf",
+		"font/ttf":        ".ttf",
+		"font/woff":       ".woff",
+		"font/woff2":      ".woff2",
+		"font/collection": ".ttc", // Added: TrueType Collection
+		"font/sfnt":       ".ttf", // Added: Generic SFNT font (often TrueType)
 
-		// Application formats
+		// Application formats (original + additions)
 		"application/x-abiword":        ".abw",
 		"application/x-freearc":        ".arc",
 		"application/vnd.amazon.ebook": ".azw",
@@ -505,23 +516,56 @@ func GetExtensionFromContentType(contentType string) string {
 		"application/xhtml+xml":     ".xhtml",
 		"application/vnd.ms-excel":  ".xls",
 		"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": ".xlsx",
-		"application/xml":                 ".xml",
-		"application/vnd.mozilla.xul+xml": ".xul",
-		"application/zip":                 ".zip",
-		"application/x-zip-compressed":    ".zip", // Non-standard but common on Windows
-		"application/x-7z-compressed":     ".7z",
+		"application/xml":                         ".xml",
+		"application/vnd.mozilla.xul+xml":         ".xul",
+		"application/zip":                         ".zip",
+		"application/x-zip-compressed":            ".zip", // Non-standard but common on Windows
+		"application/x-7z-compressed":             ".7z",
+		"application/x-rar-compressed":            ".rar",        // Added: Alternative for RAR
+		"application/x-www-form-urlencoded":       ".urlencoded", // Added: Form data (not a file, but common)
+		"application/vnd.android.package-archive": ".apk",        // Added: Android Package
+		"application/x-apple-diskimage":           ".dmg",        // Added: Apple Disk Image
+		"application/x-debian-package":            ".deb",        // Added: Debian Package
+		"application/x-redhat-package-manager":    ".rpm",        // Added: RPM Package
 
-		// Text formats
-		"text/css":        ".css",
-		"text/csv":        ".csv",
-		"text/html":       ".html",
-		"text/javascript": ".js",
-		"text/calendar":   ".ics",
-		"text/markdown":   ".md",
-		"text/plain":      ".txt",
-		"text/xml":        ".xml",
+		// Text formats (original + additions)
+		"text/css":           ".css",
+		"text/csv":           ".csv",
+		"text/html":          ".html",
+		"text/javascript":    ".js",
+		"text/calendar":      ".ics",
+		"text/markdown":      ".md",
+		"text/plain":         ".txt",
+		"text/xml":           ".xml",
+		"text/x-python":      ".py",   // Added: Python script
+		"text/x-shellscript": ".sh",   // Added: Shell script (alternative)
+		"text/vcard":         ".vcf",  // Added: vCard
+		"text/yaml":          ".yaml", // Added: YAML
+		"text/x-yaml":        ".yml",  // Added: YAML alternative
+
+		// Additional categories
+		// 3D models and graphics
+		"model/gltf+json":   ".gltf", // Added: glTF JSON
+		"model/gltf-binary": ".glb",  // Added: glTF Binary
+		"model/obj":         ".obj",  // Added: Wavefront OBJ
+		"model/stl":         ".stl",  // Added: Stereolithography
+
+		// Subtitles and captions
+		"text/vtt":             ".vtt", // Added: WebVTT
+		"application/x-subrip": ".srt", // Added: SubRip
+
+		// Executables and binaries
+		"application/x-msdownload":      ".exe", // Added: Windows Executable
+		"application/x-shockwave-flash": ".swf", // Added: Shockwave Flash
+
+		// Database and data
+		"application/sql":     ".sql",    // Added: SQL script
+		
+		// Web-related
+		"application/rss+xml":  ".rss",  // Added: RSS Feed
+		"application/atom+xml": ".atom", // Added: Atom Feed
+		"application/wasm":     ".wasm", // Added: WebAssembly
 	}
-
 	// Clean up content type (remove charset, etc.)
 	cleanContentType := strings.Split(contentType, ";")[0]
 	cleanContentType = strings.TrimSpace(cleanContentType)
