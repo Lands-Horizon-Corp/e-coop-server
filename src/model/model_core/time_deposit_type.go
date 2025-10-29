@@ -91,13 +91,12 @@ type (
 	}
 
 	TimeDepositTypeRequest struct {
-		TimeDepositComputationHeaderID uuid.UUID `json:"time_deposit_computation_header_id,omitempty"`
-		Name                           string    `json:"name" validate:"required,min=1,max=255"`
-		Description                    string    `json:"description,omitempty"`
-		CurrencyID                     uuid.UUID `json:"currency_id" validate:"required"`
-		PreMature                      int       `json:"pre_mature,omitempty"`
-		PreMatureRate                  float64   `json:"pre_mature_rate,omitempty"`
-		Excess                         float64   `json:"excess,omitempty"`
+		Name          string    `json:"name" validate:"required,min=1,max=255"`
+		Description   string    `json:"description,omitempty"`
+		CurrencyID    uuid.UUID `json:"currency_id" validate:"required"`
+		PreMature     int       `json:"pre_mature,omitempty"`
+		PreMatureRate float64   `json:"pre_mature_rate,omitempty"`
+		Excess        float64   `json:"excess,omitempty"`
 
 		Header1  int `json:"header_1,omitempty"`
 		Header2  int `json:"header_2,omitempty"`
