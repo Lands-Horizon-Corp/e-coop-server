@@ -676,18 +676,31 @@ func (c *Controller) OrganizationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve organization categories: " + err.Error()})
 		}
+		organizations, err := c.model_core.GetPublicOrganization(context)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve organizations: " + err.Error()})
+		}
 		result := []model_core.OrganizationPerCategoryResponse{}
-
 		for _, category := range categories {
-			organizations, err := c.model_core.GetOrganizationsByCategoryID(context, category.ID)
-			if err != nil {
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve organizations for category " + category.Name + ": " + err.Error()})
+			orgs := []*model_core.Organization{}
+			for _, org := range organizations {
+				hasCategory := false
+				for _, orgCategory := range org.OrganizationCategories {
+					if handlers.UuidPtrEqual(orgCategory.CategoryID, &category.ID) {
+						hasCategory = true
+						break
+					}
+				}
+				if hasCategory {
+					organizations = append(organizations, org)
+				}
 			}
 			result = append(result, model_core.OrganizationPerCategoryResponse{
 				Category:      c.model_core.CategoryManager.ToModel(category),
-				Organizations: c.model_core.OrganizationManager.ToModels(organizations),
+				Organizations: c.model_core.OrganizationManager.ToModels(orgs),
 			})
 		}
+
 		return ctx.JSON(http.StatusOK, result)
 	})
 }
