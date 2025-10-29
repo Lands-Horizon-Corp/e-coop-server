@@ -1,7 +1,6 @@
 package controller_v1
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -673,79 +672,34 @@ func (c *Controller) OrganizationController() {
 		Note:         "Returns all organization categories.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		fmt.Println("=== DEBUG: Starting organization/category endpoint ===")
-
 		categories, err := c.model_core.CategoryManager.List(context)
 		if err != nil {
-			fmt.Println("ERROR: Failed to retrieve categories:", err.Error())
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve organization categories: " + err.Error()})
 		}
-		fmt.Printf("DEBUG: Found %d categories\n", len(categories))
-		for i, cat := range categories {
-			fmt.Printf("DEBUG: Category %d: ID=%s, Name=%s\n", i, cat.ID.String(), cat.Name)
-		}
-
 		organizations, err := c.model_core.GetPublicOrganization(context)
 		if err != nil {
-			fmt.Println("ERROR: Failed to retrieve organizations:", err.Error())
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve organizations: " + err.Error()})
 		}
-		fmt.Printf("DEBUG: Found %d organizations\n", len(organizations))
-		for i, org := range organizations {
-			fmt.Printf("DEBUG: Organization %d: ID=%s, Name=%s, Categories=%d\n", i, org.ID.String(), org.Name, len(org.OrganizationCategories))
-			if len(org.OrganizationCategories) == 0 {
-				fmt.Printf("  WARNING: Organization %s has NO categories loaded!\n", org.Name)
-			}
-			for j, orgCat := range org.OrganizationCategories {
-				if orgCat.CategoryID != nil {
-					fmt.Printf("  DEBUG: OrgCategory %d: CategoryID=%s\n", j, orgCat.CategoryID.String())
-				} else {
-					fmt.Printf("  DEBUG: OrgCategory %d: CategoryID=nil\n", j)
-				}
-			}
-		}
-
 		result := []model_core.OrganizationPerCategoryResponse{}
-		for catIndex, category := range categories {
-			fmt.Printf("DEBUG: Processing category %d: %s (ID: %s)\n", catIndex, category.Name, category.ID.String())
+		for _, category := range categories {
 			orgs := []*model_core.Organization{}
-
-			for orgIndex, org := range organizations {
+			for _, org := range organizations {
 				hasCategory := false
-				fmt.Printf("  DEBUG: Checking org %d: %s\n", orgIndex, org.Name)
-
 				for _, orgCategory := range org.OrganizationCategories {
-					fmt.Printf("    DEBUG: Comparing category IDs - OrgCat: %v, Current: %s\n",
-						orgCategory.CategoryID, category.ID.String())
-
 					if handlers.UuidPtrEqual(orgCategory.CategoryID, &category.ID) {
-						fmt.Printf("    DEBUG: MATCH FOUND! Organization %s belongs to category %s\n",
-							org.Name, category.Name)
 						hasCategory = true
 						break
 					}
 				}
-
 				if hasCategory {
 					orgs = append(orgs, org)
-					fmt.Printf("  DEBUG: Added org %s to category %s\n", org.Name, category.Name)
 				}
 			}
-
-			fmt.Printf("DEBUG: Category %s has %d organizations\n", category.Name, len(orgs))
 			result = append(result, model_core.OrganizationPerCategoryResponse{
 				Category:      c.model_core.CategoryManager.ToModel(category),
 				Organizations: c.model_core.OrganizationManager.ToModels(orgs),
 			})
 		}
-
-		fmt.Printf("DEBUG: Final result has %d categories\n", len(result))
-		for i, r := range result {
-			if r.Category != nil {
-				fmt.Printf("DEBUG: Result %d: Category=%s, Organizations=%d\n", i, r.Category.Name, len(r.Organizations))
-			}
-		}
-		fmt.Println("=== DEBUG: Returning response ===")
 
 		return ctx.JSON(http.StatusOK, result)
 	})
