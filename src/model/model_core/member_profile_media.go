@@ -58,7 +58,7 @@ type (
 		Description     string                 `json:"description"`
 	}
 	MemberProfileBulkMediaRequest struct {
-		MediaIDs []*uuid.UUID `json:"media_id,omitempty"`
+		MediaIDs []*uuid.UUID `json:"media_ids,omitempty"`
 	}
 	MemberProfileMediaRequest struct {
 		Name            string     `json:"name" validate:"required,min=1,max=255"`
