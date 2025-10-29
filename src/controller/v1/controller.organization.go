@@ -693,6 +693,9 @@ func (c *Controller) OrganizationController() {
 		fmt.Printf("DEBUG: Found %d organizations\n", len(organizations))
 		for i, org := range organizations {
 			fmt.Printf("DEBUG: Organization %d: ID=%s, Name=%s, Categories=%d\n", i, org.ID.String(), org.Name, len(org.OrganizationCategories))
+			if len(org.OrganizationCategories) == 0 {
+				fmt.Printf("  WARNING: Organization %s has NO categories loaded!\n", org.Name)
+			}
 			for j, orgCat := range org.OrganizationCategories {
 				if orgCat.CategoryID != nil {
 					fmt.Printf("  DEBUG: OrgCategory %d: CategoryID=%s\n", j, orgCat.CategoryID.String())
