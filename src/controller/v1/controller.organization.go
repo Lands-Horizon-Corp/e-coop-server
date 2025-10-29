@@ -692,7 +692,7 @@ func (c *Controller) OrganizationController() {
 					}
 				}
 				if hasCategory {
-					organizations = append(organizations, org)
+					orgs = append(orgs, org)
 				}
 			}
 			result = append(result, model_core.OrganizationPerCategoryResponse{
