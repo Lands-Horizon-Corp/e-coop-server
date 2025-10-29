@@ -327,4 +327,57 @@ func (c *Controller) MemberProfileMediaController() {
 
 		return ctx.JSON(http.StatusOK, memberProfileMedia)
 	})
+
+	// POST /api/v1/member-profile-media/bulk/member-profile/:member_profile_id: Bulk create member profile media for a specific member profile
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/member-profile-media/bulk/member-profile/:member_profile_id",
+		Method:       "POST",
+		Note:         "Bulk create member profile media for a specific member profile.",
+		RequestType:  model_core.MemberProfileBulkMediaRequest{},
+		ResponseType: model_core.MemberProfileMediaResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+
+		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
+		}
+
+		var reqData model_core.MemberProfileBulkMediaRequest
+		if err := ctx.Bind(&reqData); err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request data: " + err.Error()})
+		}
+
+		var createdMedia []*model_core.MemberProfileMedia
+		for _, mediaID := range reqData.MediaIDs {
+			media, err := c.model_core.MediaManager.GetByID(context, *mediaID)
+			if err != nil {
+				return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Media not found: " + mediaID.String()})
+			}
+			memberProfileMedia := &model_core.MemberProfileMedia{
+				MediaID:         mediaID,
+				CreatedAt:       time.Now().UTC(),
+				CreatedByID:     user.UserID,
+				UpdatedAt:       time.Now().UTC(),
+				UpdatedByID:     user.UserID,
+				BranchID:        user.BranchID,
+				OrganizationID:  &user.OrganizationID,
+				MemberProfileID: memberProfileID,
+				Name:            media.FileName,
+				Description:     media.FileName + " at " + time.Now().Format(time.RFC3339),
+			}
+
+			if err := c.model_core.MemberProfileMediaManager.Create(context, memberProfileMedia); err != nil {
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create member profile media: " + err.Error()})
+			}
+
+			createdMedia = append(createdMedia, memberProfileMedia)
+		}
+
+		return ctx.JSON(http.StatusCreated, c.model_core.MemberProfileMediaManager.ToModels(createdMedia))
+	})
 }
