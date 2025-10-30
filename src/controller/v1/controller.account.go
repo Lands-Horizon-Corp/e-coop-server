@@ -827,6 +827,12 @@ func (c *Controller) AccountController() {
 			Description: "Updated account (/account/:account_id): " + account.Name,
 			Module:      "Account",
 		})
+		// Event notification
+		c.event.Notification(context, ctx, event.NotificationEvent{
+			Title:       fmt.Sprintf("Account: the account has been updated - %s", account.Name),
+			Description: fmt.Sprintf("Updated account: %s", account.Name),
+		})
+
 		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.ToModel(account))
 	})
 
