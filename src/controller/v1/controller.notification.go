@@ -143,11 +143,129 @@ func (c *Controller) NotificationController() {
 		return ctx.JSON(http.StatusOK, c.model_core.NotificationManager.Filtered(context, ctx, notifications))
 	})
 
+	// PUT /api/v1/notification/view-all
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/notification/view-all",
+		Method:       "PUT",
+		ResponseType: model_core.NotificationResponse{},
+		Note:         "Marks all user notifications as viewed",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+
+		user, err := c.userToken.CurrentUser(context, ctx)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Failed to view notifications: unable to get current user - " + err.Error(),
+				Module:      "Notification",
+			})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{
+				"message": "Unauthorized: Unable to get current user.",
+				"error":   err.Error(),
+			})
+		}
+
+		notifications, err := c.model_core.NotificationManager.Find(context, &model_core.Notification{
+			UserID: user.ID,
+		})
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Failed to view notifications: unable to retrieve user notifications - " + err.Error(),
+				Module:      "Notification",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{
+				"message": "Unable to retrieve notifications.",
+				"error":   err.Error(),
+			})
+		}
+
+		tx := c.provider.Service.Database.Client().Begin()
+		if tx.Error != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Failed to view notifications: transaction start error - " + tx.Error.Error(),
+				Module:      "Notification",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{
+				"message": "Failed to start database transaction.",
+				"error":   tx.Error.Error(),
+			})
+		}
+
+		viewedCount := 0
+		for _, notif := range notifications {
+			notification, err := c.model_core.NotificationManager.GetByID(context, notif.ID)
+			if err != nil {
+				tx.Rollback()
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "update-error",
+					Description: fmt.Sprintf("Failed to mark notification %s as viewed: not found - %v", notif.ID, err),
+					Module:      "Notification",
+				})
+				return ctx.JSON(http.StatusNotFound, map[string]string{
+					"message": fmt.Sprintf("Notification with ID %s not found.", notif.ID),
+					"error":   err.Error(),
+				})
+			}
+
+			if notification.IsViewed {
+				continue
+			}
+
+			notification.IsViewed = true
+			if err := c.model_core.NotificationManager.UpdateFields(context, notification.ID, notification); err != nil {
+				tx.Rollback()
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "update-error",
+					Description: fmt.Sprintf("Failed to update notification %s: %v", notif.ID, err),
+					Module:      "Notification",
+				})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{
+					"message": fmt.Sprintf("Failed to update notification %s.", notif.ID),
+					"error":   err.Error(),
+				})
+			}
+
+			viewedCount++
+		}
+
+		if err := tx.Commit().Error; err != nil {
+			tx.Rollback()
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Failed to commit notification updates - " + err.Error(),
+				Module:      "Notification",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{
+				"message": "Failed to save notification updates.",
+				"error":   err.Error(),
+			})
+		}
+
+		// Success log and response
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "update-success",
+			Description: fmt.Sprintf("User %s marked %d notifications as viewed", user.ID, viewedCount),
+			Module:      "Notification",
+		})
+		newNotifications, err := c.model_core.NotificationManager.Find(context, &model_core.Notification{
+			UserID: user.ID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{
+				"message": "Failed to get the new notification updates.",
+				"error":   err.Error(),
+			})
+		}
+		return ctx.JSON(http.StatusOK, c.model_core.NotificationManager.ToModels(newNotifications))
+	})
+
 	// Delete a notification by its ID
 	req.RegisterRoute(handlers.Route{
 		Route:  "/api/v1/notification/:notification_id",
 		Method: "DELETE",
-		Note:   "Deletes a specific notification record by its notification_id.",
+		Note:   "Deletes a specific notification record by its notificationit_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		notificationId, err := handlers.EngineUUIDParam(ctx, "notification_id")
