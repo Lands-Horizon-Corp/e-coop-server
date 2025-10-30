@@ -2,6 +2,7 @@ package event
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"time"
 
@@ -27,6 +28,9 @@ func (e *Event) Notification(ctx context.Context, echoCtx echo.Context, data Not
 		if data.Description == "" || data.NotificationType == "" {
 			return
 		}
+		fmt.Println("progress")
+		fmt.Println(user.UserName)
+		fmt.Println(user.ID)
 
 		if err := e.model_core.NotificationManager.Create(ctx, &model_core.Notification{
 			CreatedAt:        time.Now().UTC(),
@@ -37,7 +41,10 @@ func (e *Event) Notification(ctx context.Context, echoCtx echo.Context, data Not
 			IsViewed:         false,
 			NotificationType: data.NotificationType,
 		}); err != nil {
+			fmt.Println(err)
+			fmt.Println("----")
 			return
 		}
+		fmt.Println("succcess")
 	}()
 }
