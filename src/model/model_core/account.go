@@ -632,7 +632,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			InterestStandard:       2.5,
 			CurrencyID:             &currency.ID,
 			FinancialStatementType: FSTypeAssets,
-			ComputationType:        "Simple Interest",
+			ComputationType:        Diminishing,
 			Index:                  1,
 		},
 		{
@@ -667,7 +667,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MaxAmount:              100000.00,
 			InterestStandard:       3.0,
 			FinancialStatementType: FSTypeAssets,
-			ComputationType:        "Simple Interest",
+			ComputationType:        Diminishing,
 			Index:                  3,
 			CurrencyID:             &currency.ID,
 		},
@@ -703,7 +703,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MaxAmount:              500000.00,
 			InterestStandard:       3.0,
 			FinancialStatementType: FSTypeAssets,
-			ComputationType:        "Simple Interest",
+			ComputationType:        Diminishing,
 			Index:                  5,
 			CurrencyID:             &currency.ID,
 		},
@@ -739,7 +739,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			MaxAmount:              1000000.00,
 			InterestStandard:       2.0,
 			FinancialStatementType: FSTypeAssets,
-			ComputationType:        "Simple Interest",
+			ComputationType:        Diminishing,
 			Index:                  7,
 			CurrencyID:             &currency.ID,
 		},
@@ -889,7 +889,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			FinesAmort:                              0.5,
 			FinesMaturity:                           1.0,
 			FinancialStatementType:                  FSTypeAssets,
-			ComputationType:                         "Simple Interest",
+			ComputationType:                         Diminishing,
 			Index:                                   12,
 			LoanCutOffDays:                          14,
 			FinesGracePeriodAmortization:            15,
@@ -1263,7 +1263,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 		MaxAmount:                               20000000.00,
 		InterestStandard:                        1.5,
 		FinancialStatementType:                  FSTypeAssets,
-		ComputationType:                         "Simple Interest",
+		ComputationType:                         Diminishing,
 		Index:                                   17,
 		CashOnHand:                              false,
 		ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1297,7 +1297,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 		MaxAmount:                               15000000.00,
 		InterestStandard:                        2.0,
 		FinancialStatementType:                  FSTypeAssets,
-		ComputationType:                         "Simple Interest",
+		ComputationType:                         Diminishing,
 		Index:                                   18,
 		CashOnHand:                              false,
 		ShowInGeneralLedgerSourceWithdraw:       true,
@@ -2206,7 +2206,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 	}
 
 	// Set default accounting accounts - using first suitable account for each type
-	var regularSavings *Account                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
+	var regularSavings *Account
 	for _, account := range accounts {
 		if account.Name == "Regular Savings" {
 			regularSavings = account
