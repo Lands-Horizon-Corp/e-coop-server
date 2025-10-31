@@ -3,7 +3,7 @@ package event
 import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/src"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/cooperative_tokens"
-	modelCore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
+	modelCore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelCore"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/service"
 )
 
