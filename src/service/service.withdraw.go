@@ -7,6 +7,8 @@ import (
 	"github.com/rotisserie/eris"
 )
 
+// Withdraw processes a withdrawal transaction for the specified account and amount.
+// It returns the credit, debit, and resulting balance after the withdrawal operation.
 func (t *TransactionService) Withdraw(ctx context.Context, account TransactionData, amount float64) (credit, debit, balance float64, err error) {
 	if account.Account == nil {
 		return 0, 0, 0, eris.New("account is required")
