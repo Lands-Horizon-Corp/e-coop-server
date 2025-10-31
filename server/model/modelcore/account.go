@@ -14,8 +14,10 @@ import (
 
 // --- ENUMS ---
 
+// AccountType represents the type of account in the system
 type AccountType string
 
+// Account type constants
 const (
 	AccountTypeDeposit     AccountType = "Deposit"
 	AccountTypeLoan        AccountType = "Loan"
@@ -30,8 +32,10 @@ const (
 	AccountTypeTimeDeposit AccountType = "Time Deposit"
 )
 
+// FinancialStatementType represents the type of financial statement
 type FinancialStatementType string
 
+// Financial statement type constants
 const (
 	FSTypeAssets      FinancialStatementType = "Assets"
 	FSTypeLiabilities FinancialStatementType = "Liabilities"
@@ -40,8 +44,10 @@ const (
 	FSTypeExpenses    FinancialStatementType = "Expenses"
 )
 
+// LumpsumComputationType represents the type of lumpsum computation
 type LumpsumComputationType string
 
+// Lumpsum computation type constants
 const (
 	LumpsumComputationNone             LumpsumComputationType = "None"
 	LumpsumComputationFinesMaturity    LumpsumComputationType = "Compute Fines Maturity"
@@ -49,16 +55,20 @@ const (
 	LumpsumComputationAdvanceInterest  LumpsumComputationType = "Compute Advance Interest"
 )
 
+// InterestFinesComputationDiminishing represents the type of interest fines computation diminishing
 type InterestFinesComputationDiminishing string
 
+// Interest fines computation diminishing constants
 const (
 	IFCDNone                  InterestFinesComputationDiminishing = "None"
 	IFCDByAmortization        InterestFinesComputationDiminishing = "By Amortization"
 	IFCDByAmortizationDalyArr InterestFinesComputationDiminishing = "By Amortization Daly on Interest Principal + Interest = Fines(Arr)"
 )
 
+// InterestFinesComputationDiminishingStraightYearly represents the type of interest fines computation diminishing straight yearly
 type InterestFinesComputationDiminishingStraightYearly string
 
+// Interest fines computation diminishing straight yearly constants
 const (
 	IFCDSYNone                   InterestFinesComputationDiminishingStraightYearly = "None"
 	IFCDSYByDailyInterestBalance InterestFinesComputationDiminishingStraightYearly = "By Daily on Interest based on loan balance by year Principal + Interest Amortization = Fines Fines Grace Period Month end Amortization"

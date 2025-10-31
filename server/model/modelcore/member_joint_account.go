@@ -77,8 +77,7 @@ type (
 		FamilyRelationship string                 `json:"family_relationship"`
 	}
 
-	// MemberJointAccountRequest represents the request structure for creating/updating memberjointaccount
-
+	// MemberJointAccountRequest represents the request structure for member joint account data
 	MemberJointAccountRequest struct {
 		PictureMediaID     uuid.UUID `json:"picture_media_id" validate:"required"`
 		SignatureMediaID   uuid.UUID `json:"signature_media_id" validate:"required"`
@@ -161,6 +160,7 @@ func (m *ModelCore) memberJointAccount() {
 	})
 }
 
+// MemberJointAccountCurrentBranch retrieves member joint accounts for the current branch
 func (m *ModelCore) MemberJointAccountCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberJointAccount, error) {
 	return m.MemberJointAccountManager.Find(context, &MemberJointAccount{
 		OrganizationID: orgID,

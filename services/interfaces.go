@@ -4,10 +4,12 @@ import (
 	"time"
 )
 
+// EnvironmentServiceConfig represents the configuration for environment service
 type EnvironmentServiceConfig struct {
 	Path string `env:"APP_ENV"`
 }
 
+// SQLServiceConfig represents the configuration for SQL service
 type SQLServiceConfig struct {
 	DSN         string        `env:"DATABASE_URL"`
 	MaxIdleConn int           `env:"DB_MAX_IDLE_CONN"`
@@ -15,6 +17,7 @@ type SQLServiceConfig struct {
 	MaxLifetime time.Duration `env:"DB_MAX_LIFETIME"`
 }
 
+// SQLLogsServiceConfig represents the configuration for SQL logs service
 type SQLLogsServiceConfig struct {
 	DSN         string        `env:"DATABASE_LOG_URL"`
 	MaxIdleConn int           `env:"DB_MAX_IDLE_CONN"`
@@ -22,6 +25,7 @@ type SQLLogsServiceConfig struct {
 	MaxLifetime time.Duration `env:"DB_MAX_LIFETIME"`
 }
 
+// StorageServiceConfig represents the configuration for storage service
 type StorageServiceConfig struct {
 	AccessKey   string `env:"STORAGE_ACCESS_KEY"`
 	SecretKey   string `env:"STORAGE_SECRET_KEY"`
@@ -32,6 +36,7 @@ type StorageServiceConfig struct {
 	Driver      string `env:"STORAGE_DRIVER"`
 }
 
+// CacheServiceConfig represents the configuration for cache service
 type CacheServiceConfig struct {
 	Host     string `env:"REDIS_HOST"`
 	Password string `env:"REDIS_PASSWORD"`
@@ -39,6 +44,7 @@ type CacheServiceConfig struct {
 	Port     int    `env:"REDIS_PORT"`
 }
 
+// BrokerServiceConfig represents the configuration for broker service
 type BrokerServiceConfig struct {
 	Host     string `env:"NATS_HOST"`
 	Port     int    `env:"NATS_CLIENT_PORT"`
@@ -47,6 +53,7 @@ type BrokerServiceConfig struct {
 	Password string `env:"NATS_PASSWORD"`
 }
 
+// SecurityServiceConfig represents the configuration for security service
 type SecurityServiceConfig struct {
 	Memory      uint32 `env:"PASSWORD_MEMORY"`
 	Iterations  uint32 `env:"PASSWORD_ITERATIONS"`
@@ -56,16 +63,20 @@ type SecurityServiceConfig struct {
 	Secret      []byte `env:"PASSWORD_SECRET"`
 }
 
+// OTPServiceConfig represents the configuration for OTP service
 type OTPServiceConfig struct {
 	Secret []byte `env:"OTP_SECRET"`
 }
 
+// SMSServiceConfig represents the configuration for SMS service
 type SMSServiceConfig struct {
 	AccountSID string `env:"TWILIO_ACCOUNT_SID"`
 	AuthToken  string `env:"TWILIO_AUTH_TOKEN"`
 	Sender     string `env:"TWILIO_SENDER"`
 	MaxChars   int32  `env:"TWILIO_MAX_CHARACTERS"`
 }
+
+// SMTPServiceConfig represents the configuration for SMTP service
 type SMTPServiceConfig struct {
 	Host     string `env:"SMTP_HOST"`
 	Port     int    `env:"SMTP_PORT"`
@@ -74,6 +85,7 @@ type SMTPServiceConfig struct {
 	From     string `env:"SMTP_FROM"`
 }
 
+// RequestServiceConfig represents the configuration for request service
 type RequestServiceConfig struct {
 	AppPort     int    `env:"APP_PORT"`
 	MetricsPort int    `env:"APP_METRICS_PORT"`

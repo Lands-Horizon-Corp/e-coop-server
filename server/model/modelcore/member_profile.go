@@ -13,6 +13,7 @@ import (
 )
 
 type (
+	// MemberProfile represents a member's profile information in the database
 	MemberProfile struct {
 		ID                             uuid.UUID             `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt                      time.Time             `gorm:"not null;default:now()" json:"created_at"`
@@ -161,7 +162,7 @@ type (
 		RecruitedMembers             []*MemberProfileResponse               `json:"recruited_members,omitempty"`
 	}
 
-	// MemberProfileRequest represents the request structure for creating/updating member profiles
+	// MemberProfileRequest represents the request structure for member profile data
 	MemberProfileRequest struct {
 		OrganizationID                 uuid.UUID  `json:"organization_id" validate:"required"`
 		BranchID                       uuid.UUID  `json:"branch_id" validate:"required"`
@@ -439,6 +440,7 @@ func (m *ModelCore) memberProfile() {
 	})
 }
 
+// MemberProfileCurrentBranch retrieves member profiles for the current branch
 func (m *ModelCore) MemberProfileCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberProfile, error) {
 	return m.MemberProfileManager.Find(context, &MemberProfile{
 		OrganizationID: orgID,
@@ -446,10 +448,10 @@ func (m *ModelCore) MemberProfileCurrentBranch(context context.Context, orgID uu
 	})
 }
 
-func (m *ModelCore) MemberProfileDelete(context context.Context, tx *gorm.DB, memberProfileId uuid.UUID) error {
+func (m *ModelCore) MemberProfileDelete(context context.Context, tx *gorm.DB, memberProfileID uuid.UUID) error {
 	// Delete MemberEducationalAttainment records
 	memberEducationalAttainments, err := m.MemberEducationalAttainmentManager.Find(context, &MemberEducationalAttainment{
-		MemberProfileID: memberProfileId,
+		MemberProfileID: memberProfileID,
 	})
 	if err != nil {
 		return err
@@ -461,7 +463,7 @@ func (m *ModelCore) MemberProfileDelete(context context.Context, tx *gorm.DB, me
 	}
 
 	memberCloseRemarks, err := m.MemberCloseRemarkManager.Find(context, &MemberCloseRemark{
-		MemberProfileID: &memberProfileId,
+		MemberProfileID: &memberProfileID,
 	})
 	if err != nil {
 		return err
@@ -474,7 +476,7 @@ func (m *ModelCore) MemberProfileDelete(context context.Context, tx *gorm.DB, me
 
 	// Delete MemberAddress records
 	memberAddresses, err := m.MemberAddressManager.Find(context, &MemberAddress{
-		MemberProfileID: &memberProfileId,
+		MemberProfileID: &memberProfileID,
 	})
 	if err != nil {
 		return err
@@ -487,7 +489,7 @@ func (m *ModelCore) MemberProfileDelete(context context.Context, tx *gorm.DB, me
 
 	// Delete MemberContactReference records
 	memberContactReferences, err := m.MemberContactReferenceManager.Find(context, &MemberContactReference{
-		MemberProfileID: memberProfileId,
+		MemberProfileID: memberProfileID,
 	})
 	if err != nil {
 		return err
@@ -500,7 +502,7 @@ func (m *ModelCore) MemberProfileDelete(context context.Context, tx *gorm.DB, me
 
 	// Delete MemberAsset records
 	memberAssets, err := m.MemberAssetManager.Find(context, &MemberAsset{
-		MemberProfileID: &memberProfileId,
+		MemberProfileID: &memberProfileID,
 	})
 	if err != nil {
 		return err
@@ -513,7 +515,7 @@ func (m *ModelCore) MemberProfileDelete(context context.Context, tx *gorm.DB, me
 
 	// Delete MemberIncome records
 	memberIncomes, err := m.MemberIncomeManager.Find(context, &MemberIncome{
-		MemberProfileID: memberProfileId,
+		MemberProfileID: memberProfileID,
 	})
 	if err != nil {
 		return err
@@ -524,7 +526,7 @@ func (m *ModelCore) MemberProfileDelete(context context.Context, tx *gorm.DB, me
 		}
 	}
 	memberExpenses, err := m.MemberExpenseManager.Find(context, &MemberExpense{
-		MemberProfileID: memberProfileId,
+		MemberProfileID: memberProfileID,
 	})
 	if err != nil {
 		return err
@@ -535,7 +537,7 @@ func (m *ModelCore) MemberProfileDelete(context context.Context, tx *gorm.DB, me
 		}
 	}
 	memberGovernmentBenefits, err := m.MemberGovernmentBenefitManager.Find(context, &MemberGovernmentBenefit{
-		MemberProfileID: memberProfileId,
+		MemberProfileID: memberProfileID,
 	})
 	if err != nil {
 		return err
@@ -546,7 +548,7 @@ func (m *ModelCore) MemberProfileDelete(context context.Context, tx *gorm.DB, me
 		}
 	}
 	memberJointAccounts, err := m.MemberJointAccountManager.Find(context, &MemberJointAccount{
-		MemberProfileID: memberProfileId,
+		MemberProfileID: memberProfileID,
 	})
 	if err != nil {
 		return err
@@ -557,7 +559,7 @@ func (m *ModelCore) MemberProfileDelete(context context.Context, tx *gorm.DB, me
 		}
 	}
 	memberRelativeAccounts, err := m.MemberRelativeAccountManager.Find(context, &MemberRelativeAccount{
-		MemberProfileID: memberProfileId,
+		MemberProfileID: memberProfileID,
 	})
 	if err != nil {
 		return err
@@ -570,7 +572,7 @@ func (m *ModelCore) MemberProfileDelete(context context.Context, tx *gorm.DB, me
 
 	// Delete MemberGenderHistory records
 	memberGenderHistories, err := m.MemberGenderHistoryManager.Find(context, &MemberGenderHistory{
-		MemberProfileID: memberProfileId,
+		MemberProfileID: memberProfileID,
 	})
 	if err != nil {
 		return err
@@ -583,7 +585,7 @@ func (m *ModelCore) MemberProfileDelete(context context.Context, tx *gorm.DB, me
 
 	// Delete MemberCenterHistory records
 	memberCenterHistories, err := m.MemberCenterHistoryManager.Find(context, &MemberCenterHistory{
-		MemberProfileID: memberProfileId,
+		MemberProfileID: memberProfileID,
 	})
 	if err != nil {
 		return err
@@ -596,7 +598,7 @@ func (m *ModelCore) MemberProfileDelete(context context.Context, tx *gorm.DB, me
 
 	// Delete MemberTypeHistory records
 	memberTypeHistories, err := m.MemberTypeHistoryManager.Find(context, &MemberTypeHistory{
-		MemberProfileID: memberProfileId,
+		MemberProfileID: memberProfileID,
 	})
 	if err != nil {
 		return err
@@ -609,7 +611,7 @@ func (m *ModelCore) MemberProfileDelete(context context.Context, tx *gorm.DB, me
 
 	// Delete MemberClassificationHistory records
 	memberClassificationHistories, err := m.MemberClassificationHistoryManager.Find(context, &MemberClassificationHistory{
-		MemberProfileID: memberProfileId,
+		MemberProfileID: memberProfileID,
 	})
 	if err != nil {
 		return err
@@ -622,7 +624,7 @@ func (m *ModelCore) MemberProfileDelete(context context.Context, tx *gorm.DB, me
 
 	// Delete MemberOccupationHistory records
 	memberOccupationHistories, err := m.MemberOccupationHistoryManager.Find(context, &MemberOccupationHistory{
-		MemberProfileID: memberProfileId,
+		MemberProfileID: memberProfileID,
 	})
 	if err != nil {
 		return err
@@ -635,7 +637,7 @@ func (m *ModelCore) MemberProfileDelete(context context.Context, tx *gorm.DB, me
 
 	// Delete MemberGroupHistory records
 	memberGroupHistories, err := m.MemberGroupHistoryManager.Find(context, &MemberGroupHistory{
-		MemberProfileID: memberProfileId,
+		MemberProfileID: memberProfileID,
 	})
 	if err != nil {
 		return err
@@ -646,11 +648,11 @@ func (m *ModelCore) MemberProfileDelete(context context.Context, tx *gorm.DB, me
 		}
 	}
 
-	return m.MemberProfileManager.DeleteByIDWithTx(context, tx, memberProfileId)
+	return m.MemberProfileManager.DeleteByIDWithTx(context, tx, memberProfileID)
 }
-func (m *ModelCore) MemberProfileFindUserByID(ctx context.Context, userId uuid.UUID, orgID uuid.UUID, branchID uuid.UUID) (*MemberProfile, error) {
+func (m *ModelCore) MemberProfileFindUserByID(ctx context.Context, userID uuid.UUID, orgID uuid.UUID, branchID uuid.UUID) (*MemberProfile, error) {
 	return m.MemberProfileManager.FindOne(ctx, &MemberProfile{
-		UserID:         &userId,
+		UserID:         &userID,
 		OrganizationID: orgID,
 		BranchID:       branchID,
 	})

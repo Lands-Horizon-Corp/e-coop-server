@@ -12,6 +12,7 @@ import (
 )
 
 type (
+	// MemberOccupation represents a member's occupation information in the database
 	MemberOccupation struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -33,8 +34,7 @@ type (
 		Description string `gorm:"type:text"`
 	}
 
-	// MemberOccupationResponse represents the response structure for memberoccupation data
-
+	// MemberOccupationResponse represents the response structure for member occupation data
 	MemberOccupationResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -51,8 +51,7 @@ type (
 		Description    string                `json:"description"`
 	}
 
-	// MemberOccupationRequest represents the request structure for creating/updating memberoccupation
-
+	// MemberOccupationRequest represents the request structure for member occupation data
 	MemberOccupationRequest struct {
 		Name        string `json:"name" validate:"required,min=1,max=255"`
 		Description string `json:"description,omitempty"`
@@ -169,6 +168,7 @@ func (m *ModelCore) memberOccupationSeed(context context.Context, tx *gorm.DB, u
 	return nil
 }
 
+// MemberOccupationCurrentBranch retrieves member occupations for the current branch
 func (m *ModelCore) MemberOccupationCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberOccupation, error) {
 	return m.MemberOccupationManager.Find(context, &MemberOccupation{
 		OrganizationID: orgID,
