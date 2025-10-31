@@ -2,6 +2,7 @@ package v1
 
 import (
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
@@ -359,11 +360,12 @@ func (c *Controller) accountCategoryController() {
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity: "bulk-delete-success",
 			Description: "Bulk deleted account categories (/account-category/bulk-delete): IDs=" + func() string {
-				b := ""
+				var sb strings.Builder
 				for _, id := range reqBody.IDs {
-					b += id + ","
+					sb.WriteString(id)
+					sb.WriteByte(',')
 				}
-				return b
+				return sb.String()
 			}(),
 			Module: "AccountCategory",
 		})
