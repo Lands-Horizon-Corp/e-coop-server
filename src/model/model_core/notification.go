@@ -86,6 +86,7 @@ func (m *ModelCore) Notification() {
 	})
 }
 
+// GetNotificationByUser retrieves all notifications for a specific user
 func (m *ModelCore) GetNotificationByUser(context context.Context, userID uuid.UUID) ([]*Notification, error) {
 	return m.NotificationManager.Find(context, &Notification{
 		UserID: userID,

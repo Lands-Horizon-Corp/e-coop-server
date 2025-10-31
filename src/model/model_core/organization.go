@@ -62,6 +62,7 @@ type (
 		UserOrganizations      []*UserOrganization       `gorm:"foreignKey:OrganizationID" json:"user_organizations,omitempty"`       // user organization
 	}
 
+	// OrganizationResponse represents the JSON response structure for organization data
 	OrganizationResponse struct {
 		ID          uuid.UUID     `json:"id"`
 		CreatedAt   string        `json:"created_at"`
@@ -109,6 +110,7 @@ type (
 		UserOrganizations      []*UserOrganizationResponse       `json:"user_organizations,omitempty"`
 	}
 
+	// OrganizationRequest represents the request payload for organization operations
 	OrganizationRequest struct {
 		ID *string `json:"id,omitempty"`
 

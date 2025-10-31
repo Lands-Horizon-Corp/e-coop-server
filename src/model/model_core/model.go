@@ -220,19 +220,15 @@ type (
 	}
 )
 
+// NewModelCore creates a new instance of ModelCore with the provided service provider
 func NewModelCore(provider *src.Provider) (*ModelCore, error) {
 	return &ModelCore{
 		provider: provider,
 	}, nil
 }
 
-// Setting up Validator, Broadcaster, Model, and Automigration
-/*
-x = x.replace(" ","").replace(".go","").replace("└──","").replace("├──","").replace(".", "")
-for i in x.split("\n"):
-    print(f'c.{i.replace("_", " ").title().replace(" ", "")}()')
-*/
-func (c *ModelCore) Start(context context.Context) error {
+// Start initializes all model managers and performs auto-migration setup
+func (c *ModelCore) Start(_ context.Context) error {
 
 	// Models
 	c.AccountCategory()
@@ -375,6 +371,7 @@ func (c *ModelCore) Start(context context.Context) error {
 	return nil
 }
 
+// OrganizationSeeder seeds initial data for a new organization including default accounts, payment types, and templates
 func (m *ModelCore) OrganizationSeeder(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	if err := m.InvitationCodeSeed(context, tx, userID, organizationID, branchID); err != nil {
 		return err
@@ -461,6 +458,7 @@ func (m *ModelCore) OrganizationSeeder(context context.Context, tx *gorm.DB, use
 	return nil
 }
 
+// OrganizationDestroyer cleans up and removes all data associated with an organization branch
 func (m *ModelCore) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	invitationCodes, err := m.InvitationCodeManager.Find(ctx, &InvitationCode{
 		OrganizationID: organizationID,
