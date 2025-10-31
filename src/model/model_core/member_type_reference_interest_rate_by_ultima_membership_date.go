@@ -57,8 +57,8 @@ type (
 
 	MemberTypeReferenceInterestRateByUltimaMembershipDateRequest struct {
 		MemberTypeReferenceID uuid.UUID `json:"member_type_reference_id" validate:"required"`
-		DateFrom              time.Time `json:"date_from,omitempty"`
-		DateTo                time.Time `json:"date_to,omitempty"`
+		DateFrom              time.Time `json:"date_from"`
+		DateTo                time.Time `json:"date_to"`
 		Rate                  float64   `json:"rate,omitempty"`
 	}
 )

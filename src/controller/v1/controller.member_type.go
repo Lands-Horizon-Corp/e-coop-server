@@ -3,6 +3,7 @@ package controller_v1
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
@@ -303,7 +304,7 @@ func (c *Controller) MemberTypeController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
 		}
 
-		names := ""
+		var namesBuilder strings.Builder
 		for _, rawID := range reqBody.IDs {
 			memberTypeID, err := uuid.Parse(rawID)
 			if err != nil {
@@ -327,7 +328,8 @@ func (c *Controller) MemberTypeController() {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberType with ID %s not found: %v", rawID, err)})
 			}
 
-			names += memberType.Name + ","
+			namesBuilder.WriteString(memberType.Name)
+			namesBuilder.WriteString(",")
 			if err := c.model_core.MemberTypeManager.DeleteByIDWithTx(context, tx, memberTypeID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -350,7 +352,7 @@ func (c *Controller) MemberTypeController() {
 
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted member types: " + names,
+			Description: "Bulk deleted member types: " + namesBuilder.String(),
 			Module:      "MemberType",
 		})
 

@@ -21,7 +21,7 @@ type (
 		Description *string `gorm:"type:text" json:"description,omitempty"`
 
 		OrganizationID uuid.UUID    `gorm:"type:uuid;not null;index" json:"organization_id"`
-		Organization   Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE;" json:"organization,omitempty"`
+		Organization   Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE;" json:"organization"`
 
 		MediaID uuid.UUID `gorm:"type:uuid;not null" json:"media_id"`
 		Media   Media     `gorm:"foreignKey:MediaID;constraint:OnDelete:CASCADE;" json:"media,omitempty"`
