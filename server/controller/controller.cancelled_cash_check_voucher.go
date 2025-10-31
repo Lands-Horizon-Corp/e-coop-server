@@ -3,6 +3,7 @@ package v1
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
@@ -286,7 +287,7 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
-		checkNumbers := ""
+		var sb strings.Builder
 		for _, rawID := range reqBody.IDs {
 			cancelledVoucherID, err := uuid.Parse(rawID)
 			if err != nil {
@@ -308,7 +309,8 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 				})
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Cancelled cash check voucher not found with ID: %s", rawID)})
 			}
-			checkNumbers += cancelledVoucher.CheckNumber + ","
+			sb.WriteString(cancelledVoucher.CheckNumber)
+			sb.WriteByte(',')
 			if err := c.modelcore.CancelledCashCheckVoucherManager.DeleteByIDWithTx(context, tx, cancelledVoucherID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -329,7 +331,7 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 		}
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted cancelled cash check vouchers (/cancelled-cash-check-voucher/bulk-delete): " + checkNumbers,
+			Description: "Bulk deleted cancelled cash check vouchers (/cancelled-cash-check-voucher/bulk-delete): " + sb.String(),
 			Module:      "CancelledCashCheckVoucher",
 		})
 		return ctx.NoContent(http.StatusNoContent)
