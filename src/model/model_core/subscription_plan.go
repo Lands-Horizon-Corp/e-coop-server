@@ -13,6 +13,7 @@ import (
 )
 
 type (
+	// SubscriptionPlan represents the different pricing and feature tiers available for cooperative organizations
 	SubscriptionPlan struct {
 		ID        uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt time.Time      `gorm:"not null;default:now()"`
@@ -44,6 +45,7 @@ type (
 		Currency      *Currency       `gorm:"foreignKey:CurrencyID"`
 	}
 
+	// SubscriptionPlanRequest represents the request structure for creating or updating subscription plans
 	SubscriptionPlanRequest struct {
 		ID *uuid.UUID `json:"id,omitempty"`
 
@@ -71,6 +73,7 @@ type (
 		CurrencyID    *uuid.UUID      `json:"currency_id,omitempty"`
 	}
 
+	// SubscriptionPlanResponse represents the response structure for subscription plan data with calculated pricing
 	SubscriptionPlanResponse struct {
 		ID                  uuid.UUID `json:"id"`
 		Name                string    `json:"name"`
@@ -108,6 +111,7 @@ type (
 
 const PRICING_COUNTRY_CODE = "PH"
 
+// SubscriptionPlanSeed initializes the database with default subscription plans for different currencies
 func (m *ModelCore) SubscriptionPlanSeed(ctx context.Context) error {
 
 	subscriptionPlans, err := m.SubscriptionPlanManager.List(ctx)
@@ -6607,6 +6611,7 @@ func (m *ModelCore) SubscriptionPlanSeed(ctx context.Context) error {
 	return nil
 }
 
+// SubscriptionPlan initializes the subscription plan model and its repository manager
 func (m *ModelCore) SubscriptionPlan() {
 	m.Migration = append(m.Migration, &SubscriptionPlan{})
 	m.SubscriptionPlanManager = horizon_services.NewRepository(horizon_services.RepositoryParams[SubscriptionPlan, SubscriptionPlanResponse, SubscriptionPlanRequest]{

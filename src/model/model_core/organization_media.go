@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// OrganizationMedia represents media files associated with cooperative organizations
 	OrganizationMedia struct {
 		ID        uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -27,6 +28,7 @@ type (
 		Media   Media     `gorm:"foreignKey:MediaID;constraint:OnDelete:CASCADE;" json:"media,omitempty"`
 	}
 
+	// OrganizationMediaResponse represents the response structure for organization media data
 	OrganizationMediaResponse struct {
 		ID        uuid.UUID `json:"id"`
 		CreatedAt string    `json:"created_at"`
@@ -42,6 +44,7 @@ type (
 		Media   *MediaResponse `json:"media,omitempty"`
 	}
 
+	// OrganizationMediaRequest represents the request structure for creating organization media associations
 	OrganizationMediaRequest struct {
 		Name        string  `json:"name" validate:"required,min=1,max=255"`
 		Description *string `json:"description,omitempty"`
@@ -51,6 +54,7 @@ type (
 	}
 )
 
+// OrganizationMedia initializes the organization media model and its repository manager
 func (m *ModelCore) OrganizationMedia() {
 	m.Migration = append(m.Migration, &OrganizationMedia{})
 	m.OrganizationMediaManager = horizon_services.NewRepository(horizon_services.RepositoryParams[OrganizationMedia, OrganizationMediaResponse, OrganizationMediaRequest]{
@@ -99,12 +103,14 @@ func (m *ModelCore) OrganizationMedia() {
 	})
 }
 
+// OrganizationMediaFindByOrganization retrieves all media files associated with a specific organization
 func (m *ModelCore) OrganizationMediaFindByOrganization(context context.Context, organizationID uuid.UUID) ([]*OrganizationMedia, error) {
 	return m.OrganizationMediaManager.Find(context, &OrganizationMedia{
 		OrganizationID: organizationID,
 	})
 }
 
+// OrganizationMediaCreateForOrganization creates a new media association for an organization
 func (m *ModelCore) OrganizationMediaCreateForOrganization(context context.Context, organizationID uuid.UUID, mediaID uuid.UUID, name string, description *string) (*OrganizationMedia, error) {
 	organizationMedia := &OrganizationMedia{
 		Name:           name,
@@ -120,6 +126,7 @@ func (m *ModelCore) OrganizationMediaCreateForOrganization(context context.Conte
 	return organizationMedia, nil
 }
 
+// OrganizationMediaDeleteByID deletes an organization media association by its ID
 func (m *ModelCore) OrganizationMediaDeleteByID(context context.Context, id uuid.UUID) error {
 	return m.OrganizationMediaManager.DeleteByID(context, id)
 }

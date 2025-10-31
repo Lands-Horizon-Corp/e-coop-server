@@ -12,6 +12,7 @@ import (
 )
 
 type (
+	// PermissionTemplate represents predefined sets of permissions for users within organizations and branches
 	PermissionTemplate struct {
 		ID             uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt      time.Time      `gorm:"not null;default:now()"`
@@ -33,6 +34,7 @@ type (
 		Permissions pq.StringArray `gorm:"type:varchar[];default:'{}'"`
 	}
 
+	// PermissionTemplateRequest represents the request structure for creating or updating permission templates
 	PermissionTemplateRequest struct {
 		ID *uuid.UUID `json:"id,omitempty"`
 
@@ -41,6 +43,7 @@ type (
 		Permissions []string `json:"permissions,omitempty"`
 	}
 
+	// PermissionTemplateResponse represents the response structure for permission template data
 	PermissionTemplateResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -60,6 +63,7 @@ type (
 	}
 )
 
+// PermissionTemplate initializes the permission template model and its repository manager
 func (m *ModelCore) PermissionTemplate() {
 	m.Migration = append(m.Migration, &PermissionTemplate{})
 	m.PermissionTemplateManager = horizon_services.NewRepository(horizon_services.RepositoryParams[PermissionTemplate, PermissionTemplateResponse, PermissionTemplateRequest]{
@@ -128,9 +132,10 @@ func (m *ModelCore) PermissionTemplate() {
 	})
 }
 
-func (m *ModelCore) GetPermissionTemplateByBranch(context context.Context, organizationId uuid.UUID, branchId uuid.UUID) ([]*PermissionTemplate, error) {
+// GetPermissionTemplateByBranch retrieves permission templates for a specific branch within an organization
+func (m *ModelCore) GetPermissionTemplateByBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*PermissionTemplate, error) {
 	return m.PermissionTemplateManager.Find(context, &PermissionTemplate{
-		OrganizationID: organizationId,
-		BranchID:       branchId,
+		OrganizationID: organizationID,
+		BranchID:       branchID,
 	})
 }

@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// PostDatedCheck represents post-dated checks received from members as collateral or payment
 	PostDatedCheck struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -51,6 +52,7 @@ type (
 		Description string `gorm:"type:text"`
 	}
 
+	// PostDatedCheckResponse represents the response structure for post-dated check data
 	PostDatedCheckResponse struct {
 		ID                  uuid.UUID              `json:"id"`
 		CreatedAt           string                 `json:"created_at"`
@@ -80,6 +82,7 @@ type (
 		Description         string                 `json:"description"`
 	}
 
+	// PostDatedCheckRequest represents the request structure for creating or updating post-dated check records
 	PostDatedCheckRequest struct {
 		MemberProfileID     uuid.UUID `json:"member_profile_id,omitempty"`
 		FullName            string    `json:"full_name,omitempty"`

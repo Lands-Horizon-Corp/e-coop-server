@@ -11,6 +11,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// TagCategory represents different categorization types for tags in the cooperative system
 type TagCategory string
 
 const (
@@ -33,6 +34,7 @@ const (
 )
 
 type (
+	// TagTemplate represents reusable tag templates for categorizing and organizing cooperative data
 	TagTemplate struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -57,6 +59,7 @@ type (
 		Icon        string      `gorm:"type:varchar(20)"`
 	}
 
+	// TagTemplateResponse represents the response structure for tag template data
 	TagTemplateResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -76,6 +79,7 @@ type (
 		Icon           string                `json:"icon"`
 	}
 
+	// TagTemplateRequest represents the request structure for creating or updating tag templates
 	TagTemplateRequest struct {
 		Name        string      `json:"name" validate:"required,min=1,max=50"`
 		Description string      `json:"description,omitempty"`
@@ -85,6 +89,7 @@ type (
 	}
 )
 
+// TagTemplate initializes the tag template model and its repository manager
 func (m *ModelCore) TagTemplate() {
 	m.Migration = append(m.Migration, &TagTemplate{})
 	m.TagTemplateManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
@@ -145,6 +150,7 @@ func (m *ModelCore) TagTemplate() {
 	})
 }
 
+// TagTemplateSeed initializes the database with default tag templates for a branch
 func (m *ModelCore) TagTemplateSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
 	tagTemplates := []*TagTemplate{
@@ -948,9 +954,10 @@ func (m *ModelCore) TagTemplateSeed(context context.Context, tx *gorm.DB, userID
 	return nil
 }
 
-func (m *ModelCore) TagTemplateCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*TagTemplate, error) {
+// TagTemplateCurrentBranch retrieves all tag templates for a specific branch within an organization
+func (m *ModelCore) TagTemplateCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*TagTemplate, error) {
 	return m.TagTemplateManager.Find(context, &TagTemplate{
-		OrganizationID: orgId,
-		BranchID:       branchId,
+		OrganizationID: orgID,
+		BranchID:       branchID,
 	})
 }
