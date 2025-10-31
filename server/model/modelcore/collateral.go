@@ -227,7 +227,8 @@ func (m *ModelCore) collateralSeed(context context.Context, tx *gorm.DB, userID 
 	return nil
 }
 
-func (m *ModelCore) collateralCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Collateral, error) {
+// CollateralCurrentbranch returns all collaterals for the given organization and branch.
+func (m *ModelCore) CollateralCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Collateral, error) {
 	return m.CollateralManager.Find(context, &Collateral{
 		OrganizationID: orgId,
 		BranchID:       branchId,

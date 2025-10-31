@@ -128,7 +128,8 @@ func (m *ModelCore) cashCheckVoucherTag() {
 	})
 }
 
-func (m *ModelCore) cashCheckVoucherTagCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*CashCheckVoucherTag, error) {
+// CashCheckVoucherTagCurrentbranch returns all CashCheckVoucherTags for the current branch
+func (m *ModelCore) CashCheckVoucherTagCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*CashCheckVoucherTag, error) {
 	return m.CashCheckVoucherTagManager.Find(context, &CashCheckVoucherTag{
 		OrganizationID: orgId,
 		BranchID:       branchId,

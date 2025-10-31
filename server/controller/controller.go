@@ -2,10 +2,10 @@ package v1
 
 import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/server"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/service"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/tokens"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/tokens"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
 )
 
 type Controller struct {
@@ -16,7 +16,7 @@ type Controller struct {
 	// Tokens
 	userOrganizationToken *tokens.UserOrganizationToken
 	userToken             *tokens.UserToken
-	service               *service.TransactionService
+	usecase               *usecase.TransactionService
 }
 
 func NewController(
@@ -28,7 +28,7 @@ func NewController(
 	// Tokens
 	userOrganizationToken *tokens.UserOrganizationToken,
 	userToken *tokens.UserToken,
-	service *service.TransactionService,
+	usecase *usecase.TransactionService,
 
 ) (*Controller, error) {
 	return &Controller{
@@ -39,7 +39,7 @@ func NewController(
 
 		userOrganizationToken: userOrganizationToken,
 		userToken:             userToken,
-		service:               service,
+		usecase:               usecase,
 	}, nil
 }
 

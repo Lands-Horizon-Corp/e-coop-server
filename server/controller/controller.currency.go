@@ -415,7 +415,7 @@ func (c *Controller) currencyController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Currency to not found: " + err.Error()})
 		}
 
-		result, err := c.service.ExchangeRateComputeAmount(*fromCurrency, *toCurrency, amount)
+		result, err := c.usecase.ExchangeRateComputeAmount(*fromCurrency, *toCurrency, amount)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to compute exchange rate: " + err.Error()})
 		}

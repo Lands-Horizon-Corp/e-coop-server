@@ -112,7 +112,7 @@ func (c *Controller) computationSheetController() {
 				if err != nil {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to retrieve charges rate scheme for %s: %s", entry.Name, err.Error())})
 				}
-				entry.Credit = c.service.LoanChargesRateComputation(context, *chargesRateScheme, modelcore.LoanTransaction{
+				entry.Credit = c.usecase.LoanChargesRateComputation(context, *chargesRateScheme, modelcore.LoanTransaction{
 					Applied1: request.Applied1,
 					Terms:    request.Terms,
 					MemberProfile: &modelcore.MemberProfile{
@@ -122,7 +122,7 @@ func (c *Controller) computationSheetController() {
 
 			}
 			if entry.Credit <= 0 {
-				entry.Credit = c.service.LoanComputation(context, *ald, modelcore.LoanTransaction{
+				entry.Credit = c.usecase.LoanComputation(context, *ald, modelcore.LoanTransaction{
 					Terms:    request.Terms,
 					Applied1: request.Applied1,
 				})

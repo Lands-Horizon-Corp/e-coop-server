@@ -3,14 +3,14 @@ package v1
 import (
 	"net/http"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/labstack/echo/v4"
 )
 
 // GeneratedReports manages endpoints for generated report resources.
-func (c *Controller) generatedReports(
+func (c *Controller) generatedReports() {
 	req := c.provider.Service.Request
 
 	// GET /generated-report: Get all generated reports for the current user. (NO footstep)

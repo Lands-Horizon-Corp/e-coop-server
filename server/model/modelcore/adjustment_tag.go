@@ -130,7 +130,8 @@ func (m *ModelCore) adjustmentTag() {
 	})
 }
 
-func (m *ModelCore) adjustmentTagCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*AdjustmentTag, error) {
+// adjustmentTagCurrentbranch retrieves adjustment tags for a specific organization and branch.
+func (m *ModelCore) AdjustmentTagCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*AdjustmentTag, error) {
 	return m.AdjustmentTagManager.Find(context, &AdjustmentTag{
 		OrganizationID: orgId,
 		BranchID:       branchId,

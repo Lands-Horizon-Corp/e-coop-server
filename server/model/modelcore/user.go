@@ -281,34 +281,34 @@ func (m *ModelCore) user() {
 }
 
 // GetUserByContactNumber retrieves a user by their contact number (endpoint: user/contact-number/:contact_number_id)
-func (m *ModelCore) getUserByContactNumber(context context.Context, contactNumber string) (*User, error) {
+func (m *ModelCore) GetUserByContactNumber(context context.Context, contactNumber string) (*User, error) {
 	return m.UserManager.FindOne(context, &User{ContactNumber: contactNumber})
 }
 
 // GetUserByEmail retrieves a user by their email address (endpoint: user/email/:email)
-func (m *ModelCore) getUserByEmail(context context.Context, email string) (*User, error) {
+func (m *ModelCore) GetUserByEmail(context context.Context, email string) (*User, error) {
 	return m.UserManager.FindOne(context, &User{Email: email})
 }
 
 // GetUserByUserName retrieves a user by their username (endpoint: user/user-name/:user-name)
-func (m *ModelCore) getUserByUserName(context context.Context, userName string) (*User, error) {
+func (m *ModelCore) GetUserByUserName(context context.Context, userName string) (*User, error) {
 	return m.UserManager.FindOne(context, &User{UserName: userName})
 }
 
 // GetUserByIdentifier retrieves a user by email, contact number, or username (endpoint: user/identifier/:identifier)
-func (m *ModelCore) getUserByIdentifier(context context.Context, identifier string) (*User, error) {
+func (m *ModelCore) GetUserByIdentifier(context context.Context, identifier string) (*User, error) {
 	if strings.Contains(identifier, "@") {
-		if u, err := m.getUserByEmail(context, identifier); err == nil {
+		if u, err := m.GetUserByEmail(context, identifier); err == nil {
 			return u, nil
 		}
 	}
 	numeric := strings.Trim(identifier, "+-0123456789")
 	if numeric == "" {
-		if u, err := m.getUserByContactNumber(context, identifier); err == nil {
+		if u, err := m.GetUserByContactNumber(context, identifier); err == nil {
 			return u, nil
 		}
 	}
-	if u, err := m.getUserByUserName(context, identifier); err == nil {
+	if u, err := m.GetUserByUserName(context, identifier); err == nil {
 		return u, nil
 	}
 	return nil, eris.New("user not found by email, contact number, or username")
