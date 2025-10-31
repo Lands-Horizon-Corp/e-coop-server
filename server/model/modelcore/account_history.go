@@ -414,8 +414,7 @@ func (m *ModelCore) accountHistory() {
 	})
 }
 
-// Get history for a specific account
-// GetAccountHistory returns GetAccountHistory for the current branch or organization where applicable.
+// GetAccountHistory retrieves the history records for a specific account
 func (m *ModelCore) GetAccountHistory(ctx context.Context, accountID uuid.UUID) ([]*AccountHistory, error) {
 	filters := []services.Filter{
 		{Field: "account_id", Op: services.OpEq, Value: accountID},
@@ -459,8 +458,7 @@ func (m *ModelCore) GetAccountAtTime(ctx context.Context, accountID uuid.UUID, a
 	return nil, fmt.Errorf("no history found for account %s at time %s", accountID, asOfDate.Format(time.RFC3339))
 }
 
-// Get all accounts that had changes within a date range
-// GetAccountsChangedInRange returns GetAccountsChangedInRange for the current branch or organization where applicable.
+// GetAccountsChangedInRange retrieves all accounts that had changes within the specified date range
 func (m *ModelCore) GetAccountsChangedInRange(ctx context.Context, organizationID, branchID uuid.UUID, startDate, endDate time.Time) ([]*AccountHistory, error) {
 	filters := []services.Filter{
 		{Field: "organization_id", Op: services.OpEq, Value: organizationID},
@@ -472,8 +470,7 @@ func (m *ModelCore) GetAccountsChangedInRange(ctx context.Context, organizationI
 	return m.AccountHistoryManager.FindWithFilters(ctx, filters)
 }
 
-// Close open history records when updating valid_to
-// CloseAccountHistory returns CloseAccountHistory for the current branch or organization where applicable.
+// CloseAccountHistory closes open history records by updating their valid_to timestamp
 func (m *ModelCore) CloseAccountHistory(ctx context.Context, accountID uuid.UUID, closedAt time.Time) error {
 	// Since there's no UpdateWhere method, we'll need to find and update individually
 	filters := []services.Filter{

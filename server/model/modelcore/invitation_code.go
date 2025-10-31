@@ -213,8 +213,7 @@ func (m *ModelCore) GetInvitationCodeByBranch(context context.Context, organizat
 	})
 }
 
-// getInvitationCodeByCode retrieves a single invitation code by its code string.
-// GetInvitationCodeByCode returns GetInvitationCodeByCode for the current branch or organization where applicable.
+// GetInvitationCodeByCode retrieves a single invitation code by its code string
 func (m *ModelCore) GetInvitationCodeByCode(context context.Context, code string) (*InvitationCode, error) {
 	return m.InvitationCodeManager.FindOne(context, &InvitationCode{
 		Code: code,

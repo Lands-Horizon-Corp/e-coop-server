@@ -241,8 +241,7 @@ func (m *ModelCore) currencySeed(context context.Context) error {
 	return nil
 }
 
-// CurrencyFindByAlpha3 retrieves a currency by its ISO 3166-1 alpha-3 code.
-// CurrencyFindByAlpha2 returns CurrencyFindByAlpha2 for the current branch or organization where applicable.
+// CurrencyFindByAlpha2 retrieves a currency by its ISO 3166-1 alpha-2 code
 func (m *ModelCore) CurrencyFindByAlpha2(context context.Context, iso3166Alpha2 string) (*Currency, error) {
 	currencies, err := m.CurrencyManager.FindOne(context, &Currency{ISO3166Alpha2: iso3166Alpha2})
 	if err != nil {
@@ -251,8 +250,7 @@ func (m *ModelCore) CurrencyFindByAlpha2(context context.Context, iso3166Alpha2 
 	return currencies, nil
 }
 
-// CurrencyFindByAlpha3 retrieves a currency by its ISO 3166-1 alpha-3 code.
-// CurrencyFindByCode returns CurrencyFindByCode for the current branch or organization where applicable.
+// CurrencyFindByCode retrieves a currency by its currency code
 func (m *ModelCore) CurrencyFindByCode(context context.Context, currencyCode string) (*Currency, error) {
 	currency, err := m.CurrencyManager.FindOne(context, &Currency{CurrencyCode: currencyCode})
 	if err != nil {

@@ -10,10 +10,10 @@ import (
 	"gorm.io/gorm"
 )
 
-// Enum for cash_check_voucher_status
-// CashCheckVoucherStatus
+// CashCheckVoucherStatus represents the status of a cash check voucher
 type CashCheckVoucherStatus string
 
+// Cash check voucher status constants
 const (
 	CashCheckVoucherStatusPending  CashCheckVoucherStatus = "pending"
 	CashCheckVoucherStatusPrinted  CashCheckVoucherStatus = "printed"
@@ -452,8 +452,7 @@ func (m *ModelCore) cashCheckVoucher() {
 	})
 }
 
-// CashCheckVoucherCurrentBranch
-// CashCheckVoucherCurrentBranch retrieves all cash check vouchers for the specified organization and branch.
+// CashCheckVoucherCurrentBranch retrieves all cash check vouchers for the specified organization and branch
 func (m *ModelCore) CashCheckVoucherCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*CashCheckVoucher, error) {
 	return m.CashCheckVoucherManager.Find(context, &CashCheckVoucher{
 		OrganizationID: organizationID,

@@ -99,7 +99,6 @@ const (
 )
 
 // InterestDeduction indicates whether interest applies above/below a threshold.
-
 type InterestDeduction string
 
 // Values for InterestDeduction
@@ -122,7 +121,7 @@ type InterestSavingTypeDiminishingStraight string
 
 // Values for InterestSavingTypeDiminishingStraight
 const (
-	ISTDS_Spread    InterestSavingTypeDiminishingStraight = "Spread"
+	ISTDSSpread     InterestSavingTypeDiminishingStraight = "Spread"
 	ISTDS1stPayment InterestSavingTypeDiminishingStraight = "1st Payment"
 )
 
@@ -131,13 +130,13 @@ type OtherInformationOfAnAccount string
 
 // Values for OtherInformationOfAnAccount
 const (
-	OIOANone                OtherInformationOfAnAccount = "None"
-	OIOAJewely              OtherInformationOfAnAccount = "Jewely"
-	OIOAGrocery             OtherInformationOfAnAccount = "Grocery"
-	OIOA_TrackLoanDeduction OtherInformationOfAnAccount = "Track Loan Deduction"
-	OIOA_Restructured       OtherInformationOfAnAccount = "Restructured"
-	OIOA_CashInBank         OtherInformationOfAnAccount = "Cash in Bank / Cash in Check Account"
-	OIOA_CashOnHand         OtherInformationOfAnAccount = "Cash on Hand"
+	OIOANone               OtherInformationOfAnAccount = "None"
+	OIOAJewely             OtherInformationOfAnAccount = "Jewely"
+	OIOAGrocery            OtherInformationOfAnAccount = "Grocery"
+	OIOATrackLoanDeduction OtherInformationOfAnAccount = "Track Loan Deduction"
+	OIOARestructured       OtherInformationOfAnAccount = "Restructured"
+	OIOACashInBank         OtherInformationOfAnAccount = "Cash in Bank / Cash in Check Account"
+	OIOACashOnHand         OtherInformationOfAnAccount = "Cash on Hand"
 )
 
 // InterestStandardComputation indicates the standard way interest is computed for an account.
@@ -145,9 +144,9 @@ type InterestStandardComputation string
 
 // Values for InterestStandardComputation
 const (
-	ISC_None     InterestStandardComputation = "None"
-	ISC_Yearly   InterestStandardComputation = "Yearly"
-	ISC_Mmonthly InterestStandardComputation = "Monthly"
+	ISCNone    InterestStandardComputation = "None"
+	ISCYearly  InterestStandardComputation = "Yearly"
+	ISCMonthly InterestStandardComputation = "Monthly"
 )
 
 // ComputationType enumerates the supported computation algorithms for account interest/amortization.
@@ -1106,7 +1105,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 		ShowInGeneralLedgerSourceCheckVoucher:   true,
 		CashAndCashEquivalence:                  true,
 
-		OtherInformationOfAnAccount: OIOA_CashOnHand,
+		OtherInformationOfAnAccount: OIOACashOnHand,
 	}
 
 	if err := m.AccountManager.CreateWithTx(context, tx, cashOnHand); err != nil {
@@ -1140,7 +1139,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 		ShowInGeneralLedgerSourceJournalVoucher: true,
 		ShowInGeneralLedgerSourceCheckVoucher:   true,
 		CashAndCashEquivalence:                  true,
-		OtherInformationOfAnAccount:             OIOA_CashInBank,
+		OtherInformationOfAnAccount:             OIOACashInBank,
 	}
 
 	if err := m.AccountManager.CreateWithTx(context, tx, cashInBank); err != nil {

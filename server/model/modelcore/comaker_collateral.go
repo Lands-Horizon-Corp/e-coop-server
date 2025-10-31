@@ -153,8 +153,8 @@ func (m *ModelCore) ComakerCollateralCurrentBranch(context context.Context, orga
 }
 
 // ComakerCollateralByLoanTransaction retrieves all comaker collaterals for the specified loan transaction
-func (m *ModelCore) ComakerCollateralByLoanTransaction(context context.Context, loanTransactionId uuid.UUID) ([]*ComakerCollateral, error) {
+func (m *ModelCore) ComakerCollateralByLoanTransaction(context context.Context, loanTransactionID uuid.UUID) ([]*ComakerCollateral, error) {
 	return m.ComakerCollateralManager.Find(context, &ComakerCollateral{
-		LoanTransactionID: loanTransactionId,
+		LoanTransactionID: loanTransactionID,
 	})
 }

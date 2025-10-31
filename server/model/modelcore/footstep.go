@@ -10,9 +10,10 @@ import (
 	"gorm.io/gorm"
 )
 
-// FootstepLevel
+// FootstepLevel represents the severity level of a footstep log entry
 type FootstepLevel string
 
+// Footstep level constants
 const (
 	FootstepLevelInfo    FootstepLevel = "info"
 	FootstepLevelWarning FootstepLevel = "warning"
@@ -186,8 +187,7 @@ func (m *ModelCore) footstep() {
 	})
 }
 
-// GetFootstepByUser
-// GetFootstepByUser returns GetFootstepByUser for the current branch or organization where applicable.
+// GetFootstepByUser retrieves all footstep records for a specific user
 func (m *ModelCore) GetFootstepByUser(context context.Context, userID uuid.UUID) ([]*Footstep, error) {
 	return m.FootstepManager.Find(context, &Footstep{
 		UserID: &userID,

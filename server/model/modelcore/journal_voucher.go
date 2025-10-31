@@ -276,8 +276,7 @@ func (m *ModelCore) mapJournalVoucherEntries(entries []*JournalVoucherEntry) []*
 	return result
 }
 
-// Helper function to validate journal voucher balance
-// ValidateJournalVoucherBalance returns ValidateJournalVoucherBalance for the current branch or organization where applicable.
+// ValidateJournalVoucherBalance validates that journal voucher entries are balanced (debits equal credits)
 func (m *ModelCore) ValidateJournalVoucherBalance(entries []*JournalVoucherEntry) error {
 	totalDebit := 0.0
 	totalCredit := 0.0
@@ -311,8 +310,7 @@ func (m *ModelCore) JournalVoucherDraft(ctx context.Context, branchID, organizat
 	return journalVouchers, nil
 }
 
-// JournalVoucherApproved retrieves all journal vouchers that have been approved but not yet released for the specified organization and branch
-// JournalVoucherPrinted returns JournalVoucherPrinted for the current branch or organization where applicable.
+// JournalVoucherPrinted retrieves all journal vouchers that have been printed for the specified organization and branch
 func (m *ModelCore) JournalVoucherPrinted(ctx context.Context, branchID, organizationID uuid.UUID) ([]*JournalVoucher, error) {
 	filters := []services.Filter{
 		{Field: "organization_id", Op: services.OpEq, Value: organizationID},

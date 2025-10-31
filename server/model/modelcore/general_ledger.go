@@ -12,10 +12,10 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-// Enum for general_ledger_source
-// GeneralLedgerSource
+// GeneralLedgerSource represents the source type of a general ledger entry
 type GeneralLedgerSource string
 
+// General ledger source constants
 const (
 	GeneralLedgerSourceWithdraw       GeneralLedgerSource = "withdraw"
 	GeneralLedgerSourceDeposit        GeneralLedgerSource = "deposit"
@@ -322,9 +322,7 @@ func (m *ModelCore) generalLedger() {
 	})
 }
 
-// General Ledger Queries
-// GeneralLedgerCurrentBranch
-// GeneralLedgerCurrentBranch returns GeneralLedgerCurrentBranch for the current branch or organization where applicable.
+// GeneralLedgerCurrentBranch retrieves general ledger entries for the current branch
 func (m *ModelCore) GeneralLedgerCurrentBranch(context context.Context, organizationID, branchID uuid.UUID) ([]*GeneralLedger, error) {
 	return m.GeneralLedgerManager.Find(context, &GeneralLedger{
 		OrganizationID: organizationID,
@@ -332,9 +330,7 @@ func (m *ModelCore) GeneralLedgerCurrentBranch(context context.Context, organiza
 	})
 }
 
-// GeneralLedgerCurrentMemberAccount
-// General Ledger Queries with locking for update
-// GeneralLedgerCurrentMemberAccount returns GeneralLedgerCurrentMemberAccount for the current branch or organization where applicable.
+// GeneralLedgerCurrentMemberAccount retrieves the general ledger entry for a specific member account
 func (m *ModelCore) GeneralLedgerCurrentMemberAccount(context context.Context, memberProfileID, accountID, organizationID, branchID uuid.UUID) (*GeneralLedger, error) {
 	return m.GeneralLedgerManager.FindOne(context, &GeneralLedger{
 		OrganizationID:  organizationID,
@@ -344,10 +340,7 @@ func (m *ModelCore) GeneralLedgerCurrentMemberAccount(context context.Context, m
 	})
 }
 
-// GeneralLedgerCurrentMemberAccountForUpdate
-
-// General Ledger Queries with locking for update
-// GeneralLedgerCurrentMemberAccountForUpdate returns GeneralLedgerCurrentMemberAccountForUpdate for the current branch or organization where applicable.
+// GeneralLedgerCurrentMemberAccountForUpdate retrieves the general ledger entry for a member account with row locking for updates
 func (m *ModelCore) GeneralLedgerCurrentMemberAccountForUpdate(
 	ctx context.Context, tx *gorm.DB, memberProfileID, accountID, organizationID, branchID uuid.UUID,
 ) (*GeneralLedger, error) {
@@ -367,8 +360,7 @@ func (m *ModelCore) GeneralLedgerCurrentMemberAccountForUpdate(
 	// GeneralLedgerCurrentSubsidiaryAccountForUpdate
 }
 
-// General Ledger Queries with locking for update
-// GeneralLedgerCurrentSubsidiaryAccountForUpdate returns GeneralLedgerCurrentSubsidiaryAccountForUpdate for the current branch or organization where applicable.
+// GeneralLedgerCurrentSubsidiaryAccountForUpdate retrieves the general ledger entry for a subsidiary account with row locking for updates
 func (m *ModelCore) GeneralLedgerCurrentSubsidiaryAccountForUpdate(
 	ctx context.Context, tx *gorm.DB, accountID, organizationID, branchID uuid.UUID,
 ) (*GeneralLedger, error) {
@@ -388,8 +380,7 @@ func (m *ModelCore) GeneralLedgerCurrentSubsidiaryAccountForUpdate(
 	return &ledger, err
 }
 
-// General Ledger Queries with locking for update
-// GeneralLedgerCashOnHandOnUpdate returns GeneralLedgerCashOnHandOnUpdate for the current branch or organization where applicable.
+// GeneralLedgerCashOnHandOnUpdate retrieves the general ledger entry for a cash on hand account with row locking for updates
 func (m *ModelCore) GeneralLedgerCashOnHandOnUpdate(
 	ctx context.Context, tx *gorm.DB, accountID, organizationID, branchID uuid.UUID,
 ) (*GeneralLedger, error) {
@@ -409,10 +400,9 @@ func (m *ModelCore) GeneralLedgerCashOnHandOnUpdate(
 	return &ledger, err
 }
 
-// General Ledger Queries
-// GeneralLedgerPrintMaxNumber returns GeneralLedgerPrintMaxNumber for the current branch or organization where applicable.
+// GeneralLedgerPrintMaxNumber retrieves the maximum print number for a member's account ledger entries
 func (m *ModelCore) GeneralLedgerPrintMaxNumber(
-	ctx context.Context,
+	_ context.Context,
 	memberProfileID, accountID, branchID, organizationID uuid.UUID,
 ) (int, error) {
 	var maxPrintNumber int
@@ -427,8 +417,7 @@ func (m *ModelCore) GeneralLedgerPrintMaxNumber(
 	return maxPrintNumber, nil
 }
 
-// General Ledger Queries excluding Cash on Hand account
-// GeneralLedgerExcludeCashonHand returns GeneralLedgerExcludeCashonHand for the current branch or organization where applicable.
+// GeneralLedgerExcludeCashonHand retrieves general ledger entries excluding cash on hand accounts
 func (m *ModelCore) GeneralLedgerExcludeCashonHand(
 	ctx context.Context,
 	transactionID, organizationID,
@@ -454,8 +443,7 @@ func (m *ModelCore) GeneralLedgerExcludeCashonHand(
 	return m.GeneralLedgerManager.FindWithFilters(ctx, filters)
 }
 
-// General Ledger Queries excluding Cash on Hand account with TypeOfPaymentType filter
-// GeneralLedgerExcludeCashonHandWithType returns GeneralLedgerExcludeCashonHandWithType for the current branch or organization where applicable.
+// GeneralLedgerExcludeCashonHandWithType retrieves general ledger entries excluding cash on hand accounts with payment type filter
 func (m *ModelCore) GeneralLedgerExcludeCashonHandWithType(
 	ctx context.Context,
 	transactionID, organizationID, branchID uuid.UUID,
@@ -491,8 +479,7 @@ func (m *ModelCore) GeneralLedgerExcludeCashonHandWithType(
 	return m.GeneralLedgerManager.FindWithFilters(ctx, filters)
 }
 
-// General Ledger Queries excluding Cash on Hand account with Source filter
-// GeneralLedgerExcludeCashonHandWithSource returns GeneralLedgerExcludeCashonHandWithSource for the current branch or organization where applicable.
+// GeneralLedgerExcludeCashonHandWithSource retrieves general ledger entries excluding cash on hand accounts with source filter
 func (m *ModelCore) GeneralLedgerExcludeCashonHandWithSource(
 	ctx context.Context,
 	transactionID, organizationID, branchID uuid.UUID,
@@ -528,8 +515,7 @@ func (m *ModelCore) GeneralLedgerExcludeCashonHandWithSource(
 	return m.GeneralLedgerManager.FindWithFilters(ctx, filters)
 }
 
-// General Ledger Queries excluding Cash on Hand account with TypeOfPaymentType and Source filters
-// GeneralLedgerExcludeCashonHandWithFilters returns GeneralLedgerExcludeCashonHandWithFilters for the current branch or organization where applicable.
+// GeneralLedgerExcludeCashonHandWithFilters retrieves general ledger entries excluding cash on hand accounts with payment type and source filters
 func (m *ModelCore) GeneralLedgerExcludeCashonHandWithFilters(
 	ctx context.Context,
 	transactionID, organizationID, branchID uuid.UUID,

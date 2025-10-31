@@ -10,9 +10,10 @@ import (
 	"gorm.io/gorm"
 )
 
-// ChargesRateSchemeType
+// ChargesRateSchemeType represents the type of charges rate scheme calculation method
 type ChargesRateSchemeType string
 
+// Charges rate scheme type constants
 const (
 	ChargesRateSchemeTypeByRange ChargesRateSchemeType = "by_range"
 	ChargesRateSchemeTypeByType  ChargesRateSchemeType = "by_type"
@@ -381,8 +382,7 @@ func (m *ModelCore) chargesRateScheme() {
 	})
 }
 
-// ChargesRateSchemeCurrentBranch
-// ChargesRateSchemeCurrentBranch retrieves all ChargesRateSchemes for the current branch and organization.
+// ChargesRateSchemeCurrentBranch retrieves all charges rate schemes for the current branch and organization
 func (m *ModelCore) ChargesRateSchemeCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*ChargesRateScheme, error) {
 	return m.ChargesRateSchemeManager.Find(context, &ChargesRateScheme{
 		OrganizationID: organizationID,

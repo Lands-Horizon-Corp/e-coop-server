@@ -153,8 +153,8 @@ func (m *ModelCore) ComakerMemberProfileCurrentBranch(context context.Context, o
 }
 
 // ComakerMemberProfileByLoanTransaction retrieves all comaker member profiles for the specified loan transaction
-func (m *ModelCore) ComakerMemberProfileByLoanTransaction(context context.Context, loanTransactionId uuid.UUID) ([]*ComakerMemberProfile, error) {
+func (m *ModelCore) ComakerMemberProfileByLoanTransaction(context context.Context, loanTransactionID uuid.UUID) ([]*ComakerMemberProfile, error) {
 	return m.ComakerMemberProfileManager.Find(context, &ComakerMemberProfile{
-		LoanTransactionID: loanTransactionId,
+		LoanTransactionID: loanTransactionID,
 	})
 }
