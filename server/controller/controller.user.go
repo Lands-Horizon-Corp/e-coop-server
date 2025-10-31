@@ -20,11 +20,11 @@ func (c *Controller) userController() {
 		Note:         "Returns a specific user by their ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userId, err := handlers.EngineUUIDParam(ctx, "user_id")
+		userID, err := handlers.EngineUUIDParam(ctx, "user_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_id: " + err.Error()})
 		}
-		user, err := c.modelcore.UserManager.GetByIDRaw(context, *userId)
+		user, err := c.modelcore.UserManager.GetByIDRaw(context, *userID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user: " + err.Error()})
 		}

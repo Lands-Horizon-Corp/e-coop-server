@@ -85,9 +85,9 @@ type (
 
 	// ComputationSheetAmortizationResponse represents the response structure for ComputationSheetAmortization.
 	ComputationSheetAmortizationResponse struct {
-		Entries      []*LoanTransactionEntryResponse `json:"entries"`
-		TotalDebit   float64                         `json:"total_debit"`
-		TotalCredit  float64                         `json:"total_credit"`
+		Entries     []*LoanTransactionEntryResponse `json:"entries"`
+		TotalDebit  float64                         `json:"total_debit"`
+		TotalCredit float64                         `json:"total_credit"`
 		// Amortization represents the Amortization model.
 		Amortization struct {
 			Amortizations       []AmortizationPayment `json:"amortizations"`
@@ -160,9 +160,9 @@ func (m *ModelCore) computationSheet() {
 }
 
 // ComputationSheetCurrentBranch returns all computation sheets for the given organization and branch.
-func (m *ModelCore) ComputationSheetCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*ComputationSheet, error) {
+func (m *ModelCore) ComputationSheetCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*ComputationSheet, error) {
 	return m.ComputationSheetManager.Find(context, &ComputationSheet{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

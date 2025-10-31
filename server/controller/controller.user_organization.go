@@ -107,7 +107,7 @@ func (c *Controller) userOrganinzationController() {
 		Note:   "Seeds all branches inside an organization when first created.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		orgID, err := handlers.EngineUUIDParam(ctx, "organization_id")
+		organizationID, err := handlers.EngineUUIDParam(ctx, "organization_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -125,7 +125,7 @@ func (c *Controller) userOrganinzationController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
-		userOrganizations, err := c.modelcore.GetUserOrganizationByOrganization(context, *orgID, nil)
+		userOrganizations, err := c.modelcore.GetUserOrganizationByOrganization(context, *organizationID, nil)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -208,7 +208,7 @@ func (c *Controller) userOrganinzationController() {
 		if seededAny {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-success",
-				Description: "Seeded all branches for organization " + orgID.String(),
+				Description: "Seeded all branches for organization " + organizationID.String(),
 				Module:      "UserOrganization",
 			})
 		}
@@ -323,12 +323,12 @@ func (c *Controller) userOrganinzationController() {
 		Note:         "Returns all user organizations for a specific user. Use query param `pending=true` to include pending organizations.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userId, err := handlers.EngineUUIDParam(ctx, "user_id")
+		userID, err := handlers.EngineUUIDParam(ctx, "user_id")
 		isPending := ctx.QueryParam("pending") == "true"
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_id: " + err.Error()})
 		}
-		user, err := c.modelcore.UserManager.GetByID(context, *userId)
+		user, err := c.modelcore.UserManager.GetByID(context, *userID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User not found: " + err.Error()})
 		}
@@ -413,13 +413,13 @@ func (c *Controller) userOrganinzationController() {
 		Note:         "Returns all user organizations for a specific organization. Use query param `pending=true` to include pending organizations.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		organizationId, err := handlers.EngineUUIDParam(ctx, "organization_id")
+		organizationID, err := handlers.EngineUUIDParam(ctx, "organization_id")
 		isPending := ctx.QueryParam("pending") == "true"
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization_id: " + err.Error()})
 		}
 
-		organization, err := c.modelcore.OrganizationManager.GetByID(context, *organizationId)
+		organization, err := c.modelcore.OrganizationManager.GetByID(context, *organizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Organization not found: " + err.Error()})
 		}
@@ -706,7 +706,7 @@ func (c *Controller) userOrganinzationController() {
 		RequestType:  modelcore.UserOrganizationRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		orgID, err := handlers.EngineUUIDParam(ctx, "organization_id")
+		organizationID, err := handlers.EngineUUIDParam(ctx, "organization_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -743,7 +743,7 @@ func (c *Controller) userOrganinzationController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
 		if req.UserType == modelcore.UserOrganizationTypeMember {
-			if !c.modelcore.UserOrganizationMemberCanJoin(context, user.ID, *orgID, *branchID) {
+			if !c.modelcore.UserOrganizationMemberCanJoin(context, user.ID, *organizationID, *branchID) {
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "create-error",
 					Description: "Join organization failed: cannot join as member",
@@ -753,7 +753,7 @@ func (c *Controller) userOrganinzationController() {
 			}
 		}
 		if req.UserType == modelcore.UserOrganizationTypeEmployee {
-			if !c.modelcore.UserOrganizationEmployeeCanJoin(context, user.ID, *orgID, *branchID) {
+			if !c.modelcore.UserOrganizationEmployeeCanJoin(context, user.ID, *organizationID, *branchID) {
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "create-error",
 					Description: "Join organization failed: cannot join as employee",
@@ -777,7 +777,7 @@ func (c *Controller) userOrganinzationController() {
 			CreatedByID:              user.ID,
 			UpdatedAt:                time.Now().UTC(),
 			UpdatedByID:              user.ID,
-			OrganizationID:           *orgID,
+			OrganizationID:           *organizationID,
 			BranchID:                 branchID,
 			UserID:                   user.ID,
 			UserType:                 modelcore.UserOrganizationTypeMember,
@@ -809,7 +809,7 @@ func (c *Controller) userOrganinzationController() {
 
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "create-success",
-			Description: "Joined organization and branch " + orgID.String() + " - " + branchID.String() + " as member",
+			Description: "Joined organization and branch " + organizationID.String() + " - " + branchID.String() + " as member",
 			Module:      "UserOrganization",
 		})
 
@@ -871,7 +871,7 @@ func (c *Controller) userOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
-		orgID, err := handlers.EngineUUIDParam(ctx, "organization_id")
+		organizationID, err := handlers.EngineUUIDParam(ctx, "organization_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization_id: " + err.Error()})
 		}
@@ -879,7 +879,7 @@ func (c *Controller) userOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid branch_id: " + err.Error()})
 		}
-		if !c.modelcore.UserOrganizationMemberCanJoin(context, user.ID, *orgID, *branchID) {
+		if !c.modelcore.UserOrganizationMemberCanJoin(context, user.ID, *organizationID, *branchID) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot join as member"})
 		}
 		return ctx.NoContent(http.StatusOK)
@@ -896,7 +896,7 @@ func (c *Controller) userOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
-		orgID, err := handlers.EngineUUIDParam(ctx, "organization_id")
+		organizationID, err := handlers.EngineUUIDParam(ctx, "organization_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization_id: " + err.Error()})
 		}
@@ -904,7 +904,7 @@ func (c *Controller) userOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid branch_id: " + err.Error()})
 		}
-		if !c.modelcore.UserOrganizationEmployeeCanJoin(context, user.ID, *orgID, *branchID) {
+		if !c.modelcore.UserOrganizationEmployeeCanJoin(context, user.ID, *organizationID, *branchID) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot join as employee"})
 		}
 		return ctx.NoContent(http.StatusOK)

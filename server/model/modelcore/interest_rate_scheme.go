@@ -118,9 +118,9 @@ func (m *ModelCore) interestRateScheme() {
 }
 
 // InterestRateSchemeCurrentBranch returns InterestRateSchemeCurrentBranch for the current branch or organization where applicable.
-func (m *ModelCore) InterestRateSchemeCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*InterestRateScheme, error) {
+func (m *ModelCore) InterestRateSchemeCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*InterestRateScheme, error) {
 	return m.InterestRateSchemeManager.Find(context, &InterestRateScheme{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

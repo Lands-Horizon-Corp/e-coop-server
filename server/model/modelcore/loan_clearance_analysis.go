@@ -136,9 +136,9 @@ func (m *ModelCore) loanClearanceAnalysis() {
 }
 
 // LoanClearanceAnalysisCurrentBranch retrieves loan clearance analyses for the given organization and branch.
-func (m *ModelCore) LoanClearanceAnalysisCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*LoanClearanceAnalysis, error) {
+func (m *ModelCore) LoanClearanceAnalysisCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanClearanceAnalysis, error) {
 	return m.LoanClearanceAnalysisManager.Find(context, &LoanClearanceAnalysis{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

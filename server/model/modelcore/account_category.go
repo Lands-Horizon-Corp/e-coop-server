@@ -228,9 +228,9 @@ func (m *ModelCore) accountCategorySeed(context context.Context, tx *gorm.DB, us
 }
 
 // AccountCategoryCurrentBranch retrieves all account categories for the specified organization and branch
-func (m *ModelCore) AccountCategoryCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*AccountCategory, error) {
+func (m *ModelCore) AccountCategoryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*AccountCategory, error) {
 	return m.AccountCategoryManager.Find(context, &AccountCategory{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

@@ -139,9 +139,9 @@ func (m *ModelCore) loanTag() {
 }
 
 // LoanTagCurrentBranch retrieves loan tags for the specified organization and branch.
-func (m *ModelCore) LoanTagCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*LoanTag, error) {
+func (m *ModelCore) LoanTagCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanTag, error) {
 	return m.LoanTagManager.Find(context, &LoanTag{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

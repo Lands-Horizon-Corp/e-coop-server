@@ -1592,9 +1592,9 @@ func (m *ModelCore) billAndCoinsSeed(context context.Context, tx *gorm.DB, userI
 }
 
 // BillAndCoinsCurrentBranch retrieves all BillAndCoins for the current branch and organization.
-func (m *ModelCore) BillAndCoinsCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*BillAndCoins, error) {
+func (m *ModelCore) BillAndCoinsCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*BillAndCoins, error) {
 	return m.BillAndCoinsManager.Find(context, &BillAndCoins{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

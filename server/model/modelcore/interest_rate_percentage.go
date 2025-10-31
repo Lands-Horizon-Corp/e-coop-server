@@ -133,9 +133,9 @@ func (m *ModelCore) interestRatePercentage() {
 }
 
 // InterestRatePercentageCurrentBranch returns InterestRatePercentageCurrentBranch for the current branch or organization where applicable.
-func (m *ModelCore) InterestRatePercentageCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*InterestRatePercentage, error) {
+func (m *ModelCore) InterestRatePercentageCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*InterestRatePercentage, error) {
 	return m.InterestRatePercentageManager.Find(context, &InterestRatePercentage{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

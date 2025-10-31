@@ -178,10 +178,11 @@ func (m *ModelCore) memberClassificationSeed(context context.Context, tx *gorm.D
 	}
 	return nil
 }
+
 // MemberClassificationCurrentBranch returns MemberClassificationCurrentBranch for the current branch or organization where applicable.
-func (m *ModelCore) MemberClassificationCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberClassification, error) {
+func (m *ModelCore) MemberClassificationCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberClassification, error) {
 	return m.MemberClassificationManager.Find(context, &MemberClassification{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

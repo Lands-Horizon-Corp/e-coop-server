@@ -143,9 +143,9 @@ func (m *ModelCore) loanComakerMember() {
 }
 
 // LoanComakerMemberCurrentBranch returns LoanComakerMemberCurrentBranch for the current branch or organization where applicable.
-func (m *ModelCore) LoanComakerMemberCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*LoanComakerMember, error) {
+func (m *ModelCore) LoanComakerMemberCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanComakerMember, error) {
 	return m.LoanComakerMemberManager.Find(context, &LoanComakerMember{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

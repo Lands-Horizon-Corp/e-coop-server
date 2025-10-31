@@ -109,9 +109,9 @@ func (m *ModelCore) loanLedger() {
 }
 
 // LoanLedgerCurrentBranch retrieves loan ledger entries for a specific organization and branch.
-func (m *ModelCore) LoanLedgerCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*LoanLedger, error) {
+func (m *ModelCore) LoanLedgerCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanLedger, error) {
 	return m.LoanLedgerManager.Find(context, &LoanLedger{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

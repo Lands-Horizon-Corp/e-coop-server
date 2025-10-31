@@ -750,9 +750,9 @@ func (m *ModelCore) loanStatusSeed(context context.Context, tx *gorm.DB, userID 
 }
 
 // LoanStatusCurrentBranch retrieves loan statuses for the given organization and branch.
-func (m *ModelCore) LoanStatusCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*LoanStatus, error) {
+func (m *ModelCore) LoanStatusCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanStatus, error) {
 	return m.LoanStatusManager.Find(context, &LoanStatus{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

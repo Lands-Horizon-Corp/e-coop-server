@@ -514,9 +514,9 @@ func (m *ModelCore) companySeed(context context.Context, tx *gorm.DB, userID uui
 }
 
 // CompanyCurrentBranch returns all companies for the given organization and branch.
-func (m *ModelCore) CompanyCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*Company, error) {
+func (m *ModelCore) CompanyCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*Company, error) {
 	return m.CompanyManager.Find(context, &Company{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

@@ -139,9 +139,9 @@ func (m *ModelCore) adjustmentTag() {
 
 // adjustmentTagCurrentBranch retrieves adjustment tags for a specific organization and branch.
 // AdjustmentTagCurrentBranch returns AdjustmentTagCurrentBranch for the current branch or organization where applicable.
-func (m *ModelCore) AdjustmentTagCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*AdjustmentTag, error) {
+func (m *ModelCore) AdjustmentTagCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*AdjustmentTag, error) {
 	return m.AdjustmentTagManager.Find(context, &AdjustmentTag{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

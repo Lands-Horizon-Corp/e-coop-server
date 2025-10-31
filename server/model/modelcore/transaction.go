@@ -225,9 +225,9 @@ func (m *ModelCore) transaction() {
 }
 
 // TransactionCurrentBranch retrieves transactions for a specific organization branch
-func (m *ModelCore) TransactionCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*Transaction, error) {
+func (m *ModelCore) TransactionCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*Transaction, error) {
 	return m.TransactionManager.Find(context, &Transaction{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

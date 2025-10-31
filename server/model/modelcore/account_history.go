@@ -461,9 +461,9 @@ func (m *ModelCore) GetAccountAtTime(ctx context.Context, accountID uuid.UUID, a
 
 // Get all accounts that had changes within a date range
 // GetAccountsChangedInRange returns GetAccountsChangedInRange for the current branch or organization where applicable.
-func (m *ModelCore) GetAccountsChangedInRange(ctx context.Context, orgID, branchID uuid.UUID, startDate, endDate time.Time) ([]*AccountHistory, error) {
+func (m *ModelCore) GetAccountsChangedInRange(ctx context.Context, organizationID, branchID uuid.UUID, startDate, endDate time.Time) ([]*AccountHistory, error) {
 	filters := []services.Filter{
-		{Field: "organization_id", Op: services.OpEq, Value: orgID},
+		{Field: "organization_id", Op: services.OpEq, Value: organizationID},
 		{Field: "branch_id", Op: services.OpEq, Value: branchID},
 		{Field: "valid_from", Op: services.OpGte, Value: startDate},
 		{Field: "valid_from", Op: services.OpLte, Value: endDate},

@@ -24,14 +24,14 @@ func (e *Event) Footstep(context context.Context, ctx echo.Context, data Footste
 			return
 		}
 
-		userId := user.ID
+		userID := user.ID
 		userOrganization, _ := e.user_organization_token.CurrentUserOrganization(context, ctx)
 
 		var userType modelcore.UserOrganizationType
-		var orgID, branchID *uuid.UUID
+		var organizationID, branchID *uuid.UUID
 		if userOrganization != nil {
 			userType = userOrganization.UserType
-			orgID = &userOrganization.OrganizationID
+			organizationID = &userOrganization.OrganizationID
 			branchID = userOrganization.BranchID
 		}
 
@@ -51,12 +51,12 @@ func (e *Event) Footstep(context context.Context, ctx echo.Context, data Footste
 
 		if err := e.modelcore.FootstepManager.Create(context, &modelcore.Footstep{
 			CreatedAt:      time.Now().UTC(),
-			CreatedByID:    userId,
+			CreatedByID:    userID,
 			UpdatedAt:      time.Now().UTC(),
-			UpdatedByID:    userId,
-			OrganizationID: orgID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
 			BranchID:       branchID,
-			UserID:         &userId,
+			UserID:         &userID,
 			Description:    data.Description,
 			Activity:       data.Activity,
 			UserType:       userType,

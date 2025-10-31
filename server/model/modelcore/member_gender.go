@@ -162,9 +162,9 @@ func (m *ModelCore) memberGenderSeed(context context.Context, tx *gorm.DB, userI
 }
 
 // MemberGenderCurrentBranch returns MemberGenderCurrentBranch for the current branch or organization where applicable.
-func (m *ModelCore) MemberGenderCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberGender, error) {
+func (m *ModelCore) MemberGenderCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberGender, error) {
 	return m.MemberGenderManager.Find(context, &MemberGender{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

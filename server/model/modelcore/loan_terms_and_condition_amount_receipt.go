@@ -132,9 +132,9 @@ func (m *ModelCore) loanTermsAndConditionAmountReceipt() {
 }
 
 // LoanTermsAndConditionAmountReceiptCurrentBranch returns LoanTermsAndConditionAmountReceiptCurrentBranch for the current branch or organization where applicable.
-func (m *ModelCore) LoanTermsAndConditionAmountReceiptCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*LoanTermsAndConditionAmountReceipt, error) {
+func (m *ModelCore) LoanTermsAndConditionAmountReceiptCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanTermsAndConditionAmountReceipt, error) {
 	return m.LoanTermsAndConditionAmountReceiptManager.Find(context, &LoanTermsAndConditionAmountReceipt{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

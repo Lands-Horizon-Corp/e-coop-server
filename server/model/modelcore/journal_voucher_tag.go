@@ -137,9 +137,9 @@ func (m *ModelCore) journalVoucherTag() {
 }
 
 // JournalVoucherTagCurrentBranch returns JournalVoucherTagCurrentBranch for the current branch or organization where applicable.
-func (m *ModelCore) JournalVoucherTagCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*JournalVoucherTag, error) {
+func (m *ModelCore) JournalVoucherTagCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*JournalVoucherTag, error) {
 	return m.JournalVoucherTagManager.Find(context, &JournalVoucherTag{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

@@ -153,9 +153,9 @@ func (m *ModelCore) memberAddress() {
 }
 
 // MemberAddressCurrentBranch retrieves member addresses for the current branch
-func (m *ModelCore) MemberAddressCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberAddress, error) {
+func (m *ModelCore) MemberAddressCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberAddress, error) {
 	return m.MemberAddressManager.Find(context, &MemberAddress{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

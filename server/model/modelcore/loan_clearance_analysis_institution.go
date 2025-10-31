@@ -128,9 +128,9 @@ func (m *ModelCore) loanClearanceAnalysisInstitution() {
 }
 
 // LoanClearanceAnalysisInstitutionCurrentBranch returns LoanClearanceAnalysisInstitutionCurrentBranch for the current branch or organization where applicable.
-func (m *ModelCore) LoanClearanceAnalysisInstitutionCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*LoanClearanceAnalysisInstitution, error) {
+func (m *ModelCore) LoanClearanceAnalysisInstitutionCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanClearanceAnalysisInstitution, error) {
 	return m.LoanClearanceAnalysisInstitutionManager.Find(context, &LoanClearanceAnalysisInstitution{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

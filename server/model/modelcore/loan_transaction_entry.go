@@ -189,17 +189,17 @@ func (m *ModelCore) loanTransactionEntry() {
 }
 
 // LoanTransactionEntryCurrentBranch retrieves loan transaction entries for the specified branch and organization
-func (m *ModelCore) LoanTransactionEntryCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*LoanTransactionEntry, error) {
+func (m *ModelCore) LoanTransactionEntryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanTransactionEntry, error) {
 	return m.LoanTransactionEntryManager.Find(context, &LoanTransactionEntry{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }
 
 // GetCashOnCashEquivalence returns the cash-on-cash equivalence entry (index 0) for a loan transaction
-func (m *ModelCore) GetCashOnCashEquivalence(ctx context.Context, loanTransactionID, orgID, branchID uuid.UUID) (*LoanTransactionEntry, error) {
+func (m *ModelCore) GetCashOnCashEquivalence(ctx context.Context, loanTransactionID, organizationID, branchID uuid.UUID) (*LoanTransactionEntry, error) {
 	return m.LoanTransactionEntryManager.FindOneWithFilters(ctx, []services.Filter{
-		{Field: "loan_transaction_entries.organization_id", Op: services.OpEq, Value: orgID},
+		{Field: "loan_transaction_entries.organization_id", Op: services.OpEq, Value: organizationID},
 		{Field: "loan_transaction_entries.branch_id", Op: services.OpEq, Value: branchID},
 		{Field: "loan_transaction_entries.index", Op: services.OpEq, Value: 0},
 		{Field: "loan_transaction_entries.debit", Op: services.OpEq, Value: 0},
@@ -209,9 +209,9 @@ func (m *ModelCore) GetCashOnCashEquivalence(ctx context.Context, loanTransactio
 }
 
 // GetLoanEntryAccount returns the loan entry account (index 1) for the given loan transaction
-func (m *ModelCore) GetLoanEntryAccount(ctx context.Context, loanTransactionID, orgID, branchID uuid.UUID) (*LoanTransactionEntry, error) {
+func (m *ModelCore) GetLoanEntryAccount(ctx context.Context, loanTransactionID, organizationID, branchID uuid.UUID) (*LoanTransactionEntry, error) {
 	return m.LoanTransactionEntryManager.FindOneWithFilters(ctx, []services.Filter{
-		{Field: "loan_transaction_entries.organization_id", Op: services.OpEq, Value: orgID},
+		{Field: "loan_transaction_entries.organization_id", Op: services.OpEq, Value: organizationID},
 		{Field: "loan_transaction_entries.branch_id", Op: services.OpEq, Value: branchID},
 		{Field: "loan_transaction_entries.index", Op: services.OpEq, Value: 1},
 		{Field: "loan_transaction_entries.credit", Op: services.OpEq, Value: 0},

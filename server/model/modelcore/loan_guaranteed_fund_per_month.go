@@ -115,9 +115,9 @@ func (m *ModelCore) loanGuaranteedFundPerMonth() {
 }
 
 // LoanGuaranteedFundPerMonthCurrentBranch returns LoanGuaranteedFundPerMonth records for the given organization and branch.
-func (m *ModelCore) LoanGuaranteedFundPerMonthCurrentBranch(ctx context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*LoanGuaranteedFundPerMonth, error) {
+func (m *ModelCore) LoanGuaranteedFundPerMonthCurrentBranch(ctx context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanGuaranteedFundPerMonth, error) {
 	return m.LoanGuaranteedFundPerMonthManager.Find(ctx, &LoanGuaranteedFundPerMonth{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

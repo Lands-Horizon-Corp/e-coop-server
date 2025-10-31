@@ -955,9 +955,9 @@ func (m *ModelCore) tagTemplateSeed(context context.Context, tx *gorm.DB, userID
 }
 
 // TagTemplateCurrentBranch retrieves all tag templates for a specific branch within an organization
-func (m *ModelCore) TagTemplateCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*TagTemplate, error) {
+func (m *ModelCore) TagTemplateCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*TagTemplate, error) {
 	return m.TagTemplateManager.Find(context, &TagTemplate{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

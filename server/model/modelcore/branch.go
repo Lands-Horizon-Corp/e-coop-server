@@ -207,11 +207,11 @@ func (m *ModelCore) branch() {
 }
 
 // GetBranchesByOrganization retrieves all branches associated with a specific organization.
-func (m *ModelCore) GetBranchesByOrganization(context context.Context, organizationId uuid.UUID) ([]*Branch, error) {
-	return m.BranchManager.Find(context, &Branch{OrganizationID: organizationId})
+func (m *ModelCore) GetBranchesByOrganization(context context.Context, organizationID uuid.UUID) ([]*Branch, error) {
+	return m.BranchManager.Find(context, &Branch{OrganizationID: organizationID})
 }
 
 // GetBranchesByOrganizationCount retrieves the count of branches associated with a specific organization.
-func (m *ModelCore) GetBranchesByOrganizationCount(context context.Context, organizationId uuid.UUID) (int64, error) {
-	return m.BranchManager.Count(context, &Branch{OrganizationID: organizationId})
+func (m *ModelCore) GetBranchesByOrganizationCount(context context.Context, organizationID uuid.UUID) (int64, error) {
+	return m.BranchManager.Count(context, &Branch{OrganizationID: organizationID})
 }

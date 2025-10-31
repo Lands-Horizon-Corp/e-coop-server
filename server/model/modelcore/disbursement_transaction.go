@@ -148,9 +148,9 @@ func (m *ModelCore) disbursementTransaction() {
 }
 
 // DisbursementTransactionCurrentBranch returns DisbursementTransactionCurrentBranch for the current branch or organization where applicable.
-func (m *ModelCore) DisbursementTransactionCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*DisbursementTransaction, error) {
+func (m *ModelCore) DisbursementTransactionCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*DisbursementTransaction, error) {
 	return m.DisbursementTransactionManager.Find(context, &DisbursementTransaction{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

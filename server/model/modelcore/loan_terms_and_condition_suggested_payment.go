@@ -128,9 +128,9 @@ func (m *ModelCore) loanTermsAndConditionSuggestedPayment() {
 }
 
 // LoanTermsAndConditionSuggestedPaymentCurrentBranch returns LoanTermsAndConditionSuggestedPaymentCurrentBranch for the current branch or organization where applicable.
-func (m *ModelCore) LoanTermsAndConditionSuggestedPaymentCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*LoanTermsAndConditionSuggestedPayment, error) {
+func (m *ModelCore) LoanTermsAndConditionSuggestedPaymentCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanTermsAndConditionSuggestedPayment, error) {
 	return m.LoanTermsAndConditionSuggestedPaymentManager.Find(context, &LoanTermsAndConditionSuggestedPayment{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

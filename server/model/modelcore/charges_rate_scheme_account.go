@@ -125,9 +125,9 @@ func (m *ModelCore) chargesRateSchemeAccount() {
 }
 
 // ChargesRateSchemeAccountCurrentBranch retrieves all charges rate scheme accounts for the specified organization and branch
-func (m *ModelCore) ChargesRateSchemeAccountCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*ChargesRateSchemeAccount, error) {
+func (m *ModelCore) ChargesRateSchemeAccountCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*ChargesRateSchemeAccount, error) {
 	return m.ChargesRateSchemeAccountManager.Find(context, &ChargesRateSchemeAccount{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

@@ -134,16 +134,16 @@ func (m *ModelCore) generatedReport() {
 }
 
 // GetGenerationReportByUser retrieves generated reports for a specific user
-func (m *ModelCore) GetGenerationReportByUser(context context.Context, userId uuid.UUID) ([]*GeneratedReport, error) {
+func (m *ModelCore) GetGenerationReportByUser(context context.Context, userID uuid.UUID) ([]*GeneratedReport, error) {
 	return m.GeneratedReportManager.Find(context, &GeneratedReport{
-		UserID: &userId,
+		UserID: &userID,
 	})
 }
 
 // GeneratedReportCurrentBranch gets generated reports for the current branch
-func (m *ModelCore) GeneratedReportCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*GeneratedReport, error) {
+func (m *ModelCore) GeneratedReportCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*GeneratedReport, error) {
 	return m.GeneratedReportManager.Find(context, &GeneratedReport{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

@@ -48,11 +48,11 @@ func (c *Controller) branchController() {
 		ResponseType: modelcore.BranchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		orgID, err := handlers.EngineUUIDParam(ctx, "organization_id")
+		organizationID, err := handlers.EngineUUIDParam(ctx, "organization_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization ID: " + err.Error()})
 		}
-		branches, err := c.modelcore.GetBranchesByOrganization(context, *orgID)
+		branches, err := c.modelcore.GetBranchesByOrganization(context, *organizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not retrieve organization branches: " + err.Error()})
 		}
@@ -81,7 +81,7 @@ func (c *Controller) branchController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid branch data: " + err.Error()})
 		}
 
-		organizationId, err := handlers.EngineUUIDParam(ctx, "organization_id")
+		organizationID, err := handlers.EngineUUIDParam(ctx, "organization_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create error",
@@ -103,7 +103,7 @@ func (c *Controller) branchController() {
 
 		userOrganization, err := c.modelcore.UserOrganizationManager.FindOne(context, &modelcore.UserOrganization{
 			UserID:         user.ID,
-			OrganizationID: *organizationId,
+			OrganizationID: *organizationID,
 		})
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{

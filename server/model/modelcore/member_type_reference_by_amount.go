@@ -131,9 +131,9 @@ func (m *ModelCore) memberTypeReferenceByAmount() {
 }
 
 // MemberTypeReferenceByAmountCurrentBranch returns MemberTypeReferenceByAmountCurrentBranch for the current branch or organization where applicable.
-func (m *ModelCore) MemberTypeReferenceByAmountCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberTypeReferenceByAmount, error) {
+func (m *ModelCore) MemberTypeReferenceByAmountCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberTypeReferenceByAmount, error) {
 	return m.MemberTypeReferenceByAmountManager.Find(context, &MemberTypeReferenceByAmount{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

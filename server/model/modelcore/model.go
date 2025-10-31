@@ -474,7 +474,7 @@ func (m *ModelCore) OrganizationSeeder(context context.Context, tx *gorm.DB, use
 }
 
 // OrganizationDestroyer cleans up and removes all data associated with an organization branch
-func (m *ModelCore) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+func (m *ModelCore) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, organizationID uuid.UUID, branchID uuid.UUID) error {
 	invitationCodes, err := m.InvitationCodeManager.Find(ctx, &InvitationCode{
 		OrganizationID: organizationID,
 		BranchID:       branchID,

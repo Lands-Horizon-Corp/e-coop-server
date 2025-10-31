@@ -148,9 +148,9 @@ func (m *ModelCore) memberProfileMedia() {
 }
 
 // MemberProfileMediaCurrentBranch returns MemberProfileMediaCurrentBranch for the current branch or organization where applicable.
-func (m *ModelCore) MemberProfileMediaCurrentBranch(context context.Context, orgID *uuid.UUID, branchID *uuid.UUID) ([]*MemberProfileMedia, error) {
+func (m *ModelCore) MemberProfileMediaCurrentBranch(context context.Context, organizationID *uuid.UUID, branchID *uuid.UUID) ([]*MemberProfileMedia, error) {
 	return m.MemberProfileMediaManager.Find(context, &MemberProfileMedia{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

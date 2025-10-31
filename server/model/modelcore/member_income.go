@@ -138,9 +138,9 @@ func (m *ModelCore) memberIncome() {
 }
 
 // MemberIncomeCurrentBranch retrieves member income records for a specific organization branch
-func (m *ModelCore) MemberIncomeCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberIncome, error) {
+func (m *ModelCore) MemberIncomeCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberIncome, error) {
 	return m.MemberIncomeManager.Find(context, &MemberIncome{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

@@ -156,9 +156,9 @@ func (m *ModelCore) memberGovernmentBenefit() {
 }
 
 // MemberGovernmentBenefitCurrentBranch returns MemberGovernmentBenefitCurrentBranch for the current branch or organization where applicable.
-func (m *ModelCore) MemberGovernmentBenefitCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberGovernmentBenefit, error) {
+func (m *ModelCore) MemberGovernmentBenefitCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberGovernmentBenefit, error) {
 	return m.MemberGovernmentBenefitManager.Find(context, &MemberGovernmentBenefit{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

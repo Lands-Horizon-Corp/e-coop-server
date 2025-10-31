@@ -142,9 +142,9 @@ func (m *ModelCore) memberBankCard() {
 }
 
 // MemberBankCardCurrentBranch returns MemberBankCardCurrentBranch for the current branch or organization where applicable.
-func (m *ModelCore) MemberBankCardCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberBankCard, error) {
+func (m *ModelCore) MemberBankCardCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberBankCard, error) {
 	return m.MemberBankCardManager.Find(context, &MemberBankCard{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

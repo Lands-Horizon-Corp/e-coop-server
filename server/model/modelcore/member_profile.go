@@ -442,9 +442,9 @@ func (m *ModelCore) memberProfile() {
 }
 
 // MemberProfileCurrentBranch retrieves member profiles for the current branch
-func (m *ModelCore) MemberProfileCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberProfile, error) {
+func (m *ModelCore) MemberProfileCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberProfile, error) {
 	return m.MemberProfileManager.Find(context, &MemberProfile{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }
@@ -652,11 +652,12 @@ func (m *ModelCore) MemberProfileDelete(context context.Context, tx *gorm.DB, me
 
 	return m.MemberProfileManager.DeleteByIDWithTx(context, tx, memberProfileID)
 }
+
 // MemberProfileFindUserByID returns MemberProfileFindUserByID for the current branch or organization where applicable.
-func (m *ModelCore) MemberProfileFindUserByID(ctx context.Context, userID uuid.UUID, orgID uuid.UUID, branchID uuid.UUID) (*MemberProfile, error) {
+func (m *ModelCore) MemberProfileFindUserByID(ctx context.Context, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) (*MemberProfile, error) {
 	return m.MemberProfileManager.FindOne(ctx, &MemberProfile{
 		UserID:         &userID,
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

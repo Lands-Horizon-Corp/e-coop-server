@@ -160,9 +160,9 @@ func (m *ModelCore) memberCenterSeed(context context.Context, tx *gorm.DB, userI
 }
 
 // MemberCenterCurrentBranch returns MemberCenterCurrentBranch for the current branch or organization where applicable.
-func (m *ModelCore) MemberCenterCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberCenter, error) {
+func (m *ModelCore) MemberCenterCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberCenter, error) {
 	return m.MemberCenterManager.Find(context, &MemberCenter{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

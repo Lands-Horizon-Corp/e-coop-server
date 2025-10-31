@@ -221,10 +221,11 @@ func (m *ModelCore) financialStatementGroupingSeed(context context.Context, tx *
 	}
 	return nil
 }
+
 // FinancialStatementGroupingCurrentBranch returns FinancialStatementGroupingCurrentBranch for the current branch or organization where applicable.
-func (m *ModelCore) FinancialStatementGroupingCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*FinancialStatementGrouping, error) {
+func (m *ModelCore) FinancialStatementGroupingCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*FinancialStatementGrouping, error) {
 	return m.FinancialStatementGroupingManager.Find(context, &FinancialStatementGrouping{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

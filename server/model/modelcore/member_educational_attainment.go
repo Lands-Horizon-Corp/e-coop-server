@@ -136,9 +136,9 @@ func (m *ModelCore) memberEducationalAttainment() {
 }
 
 // MemberEducationalAttainmentCurrentBranch returns MemberEducationalAttainmentCurrentBranch for the current branch or organization where applicable.
-func (m *ModelCore) MemberEducationalAttainmentCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberEducationalAttainment, error) {
+func (m *ModelCore) MemberEducationalAttainmentCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberEducationalAttainment, error) {
 	return m.MemberEducationalAttainmentManager.Find(context, &MemberEducationalAttainment{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

@@ -179,9 +179,9 @@ func (m *ModelCore) financialStatementDefinition() {
 }
 
 // FinancialStatementDefinitionCurrentBranch returns FinancialStatementDefinitionCurrentBranch for the current branch or organization where applicable.
-func (m *ModelCore) FinancialStatementDefinitionCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*FinancialStatementDefinition, error) {
+func (m *ModelCore) FinancialStatementDefinitionCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*FinancialStatementDefinition, error) {
 	return m.FinancialStatementDefinitionManager.Find(context, &FinancialStatementDefinition{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

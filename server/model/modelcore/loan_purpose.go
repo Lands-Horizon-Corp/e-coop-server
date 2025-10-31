@@ -268,9 +268,9 @@ func (m *ModelCore) loanPurposeSeed(context context.Context, tx *gorm.DB, userID
 }
 
 // LoanPurposeCurrentBranch retrieves loan purposes for the specified organization and branch.
-func (m *ModelCore) LoanPurposeCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*LoanPurpose, error) {
+func (m *ModelCore) LoanPurposeCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanPurpose, error) {
 	return m.LoanPurposeManager.Find(context, &LoanPurpose{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

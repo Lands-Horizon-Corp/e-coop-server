@@ -158,9 +158,9 @@ func (m *ModelCore) journalVoucherEntry() {
 }
 
 // JournalVoucherEntryCurrentBranch returns JournalVoucherEntryCurrentBranch for the current branch or organization where applicable.
-func (m *ModelCore) JournalVoucherEntryCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*JournalVoucherEntry, error) {
+func (m *ModelCore) JournalVoucherEntryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*JournalVoucherEntry, error) {
 	return m.JournalVoucherEntryManager.Find(context, &JournalVoucherEntry{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

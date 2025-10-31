@@ -118,9 +118,9 @@ func (m *ModelCore) groceryComputationSheet() {
 }
 
 // GroceryComputationSheetCurrentBranch returns GroceryComputationSheetCurrentBranch for the current branch or organization where applicable.
-func (m *ModelCore) GroceryComputationSheetCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*GroceryComputationSheet, error) {
+func (m *ModelCore) GroceryComputationSheetCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*GroceryComputationSheet, error) {
 	return m.GroceryComputationSheetManager.Find(context, &GroceryComputationSheet{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

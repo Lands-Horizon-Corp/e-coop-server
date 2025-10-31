@@ -619,9 +619,9 @@ func (m *ModelCore) generalLedgerAccountsGroupingSeed(context context.Context, t
 }
 
 // GeneralLedgerAccountsGroupingCurrentBranch returns GeneralLedgerAccountsGroupingCurrentBranch for the current branch or organization where applicable.
-func (m *ModelCore) GeneralLedgerAccountsGroupingCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*GeneralLedgerAccountsGrouping, error) {
+func (m *ModelCore) GeneralLedgerAccountsGroupingCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*GeneralLedgerAccountsGrouping, error) {
 	return m.GeneralLedgerAccountsGroupingManager.Find(context, &GeneralLedgerAccountsGrouping{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

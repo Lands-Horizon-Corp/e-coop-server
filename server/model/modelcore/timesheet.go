@@ -146,26 +146,26 @@ func (m *ModelCore) timesheet() {
 }
 
 // TimesheetCurrentBranch gets timesheets for the current branch
-func (m *ModelCore) TimesheetCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*Timesheet, error) {
+func (m *ModelCore) TimesheetCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*Timesheet, error) {
 	return m.TimesheetManager.Find(context, &Timesheet{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }
 
 // GetUserTimesheet retrieves timesheets for a specific user in a branch
-func (m *ModelCore) GetUserTimesheet(context context.Context, userID, orgID, branchID uuid.UUID) ([]*Timesheet, error) {
+func (m *ModelCore) GetUserTimesheet(context context.Context, userID, organizationID, branchID uuid.UUID) ([]*Timesheet, error) {
 	return m.TimesheetManager.Find(context, &Timesheet{
 		UserID:         userID,
 		BranchID:       branchID,
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 	})
 }
 
 // TimeSheetActiveUsers gets all users with active timesheets in the branch
-func (m *ModelCore) TimeSheetActiveUsers(context context.Context, orgID, branchID uuid.UUID) ([]*Timesheet, error) {
+func (m *ModelCore) TimeSheetActiveUsers(context context.Context, organizationID, branchID uuid.UUID) ([]*Timesheet, error) {
 	return m.TimesheetManager.FindWithConditions(context, map[string]any{
-		"organization_id": orgID,
+		"organization_id": organizationID,
 		"branch_id":       branchID,
 		"time_out":        nil,
 	})

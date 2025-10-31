@@ -127,9 +127,9 @@ func (m *ModelCore) memberContactReference() {
 }
 
 // MemberContactReferenceCurrentBranch returns MemberContactReferenceCurrentBranch for the current branch or organization where applicable.
-func (m *ModelCore) MemberContactReferenceCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberContactReference, error) {
+func (m *ModelCore) MemberContactReferenceCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberContactReference, error) {
 	return m.MemberContactReferenceManager.Find(context, &MemberContactReference{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

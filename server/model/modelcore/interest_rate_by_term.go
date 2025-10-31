@@ -126,9 +126,9 @@ func (m *ModelCore) interestRateByTerm() {
 }
 
 // InterestRateByTermCurrentBranch returns InterestRateByTermCurrentBranch for the current branch or organization where applicable.
-func (m *ModelCore) InterestRateByTermCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*InterestRateByTerm, error) {
+func (m *ModelCore) InterestRateByTermCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*InterestRateByTerm, error) {
 	return m.InterestRateByTermManager.Find(context, &InterestRateByTerm{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

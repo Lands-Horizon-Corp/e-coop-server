@@ -132,9 +132,9 @@ func (m *ModelCore) memberDamayanExtensionEntry() {
 }
 
 // MemberDamayanExtensionEntryCurrentBranch returns MemberDamayanExtensionEntryCurrentBranch for the current branch or organization where applicable.
-func (m *ModelCore) MemberDamayanExtensionEntryCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberDamayanExtensionEntry, error) {
+func (m *ModelCore) MemberDamayanExtensionEntryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberDamayanExtensionEntry, error) {
 	return m.MemberDamayanExtensionEntryManager.Find(context, &MemberDamayanExtensionEntry{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

@@ -346,7 +346,7 @@ func (c *Controller) organizationController() {
 		Note:         "Updates an organization. User must be logged in.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		organizationId, err := handlers.EngineUUIDParam(ctx, "organization_id")
+		organizationID, err := handlers.EngineUUIDParam(ctx, "organization_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -375,7 +375,7 @@ func (c *Controller) organizationController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get current user: " + err.Error()})
 		}
 
-		organization, err := c.modelcore.OrganizationManager.GetByID(context, *organizationId)
+		organization, err := c.modelcore.OrganizationManager.GetByID(context, *organizationID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -493,7 +493,7 @@ func (c *Controller) organizationController() {
 		Note:   "Deletes an organization. User must be logged in.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		organizationId, err := handlers.EngineUUIDParam(ctx, "organization_id")
+		organizationID, err := handlers.EngineUUIDParam(ctx, "organization_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -502,7 +502,7 @@ func (c *Controller) organizationController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization_id: " + err.Error()})
 		}
-		organization, err := c.modelcore.OrganizationManager.GetByID(context, *organizationId)
+		organization, err := c.modelcore.OrganizationManager.GetByID(context, *organizationID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -537,15 +537,7 @@ func (c *Controller) organizationController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete organization with more than 2 user organizations"})
 		}
-		user, err := c.userToken.CurrentUser(context, ctx)
-		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "delete-error",
-				Description: "Delete organization failed: user error: " + err.Error(),
-				Module:      "Organization",
-			})
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get current user: " + err.Error()})
-		}
+
 		tx := c.provider.Service.Database.Client().Begin()
 		if tx.Error != nil {
 			tx.Rollback()
@@ -578,7 +570,7 @@ func (c *Controller) organizationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get branches for organization: " + err.Error()})
 		}
 		for _, branch := range branches {
-			if err := c.modelcore.OrganizationDestroyer(context, tx, user.ID, *organizationId, branch.ID); err != nil {
+			if err := c.modelcore.OrganizationDestroyer(context, tx, *organizationID, branch.ID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "delete-error",
@@ -597,7 +589,7 @@ func (c *Controller) organizationController() {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete branch: " + err.Error()})
 			}
 		}
-		if err := c.modelcore.OrganizationManager.DeleteByIDWithTx(context, tx, *organizationId); err != nil {
+		if err := c.modelcore.OrganizationManager.DeleteByIDWithTx(context, tx, *organizationID); err != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",

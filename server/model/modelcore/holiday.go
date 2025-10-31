@@ -1475,9 +1475,9 @@ func (m *ModelCore) holidaySeed(context context.Context, tx *gorm.DB, userID uui
 }
 
 // HolidayCurrentBranch returns HolidayCurrentBranch for the current branch or organization where applicable.
-func (m *ModelCore) HolidayCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*Holiday, error) {
+func (m *ModelCore) HolidayCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*Holiday, error) {
 	return m.HolidayManager.Find(context, &Holiday{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

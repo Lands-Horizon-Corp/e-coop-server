@@ -202,9 +202,9 @@ func (m *ModelCore) timeDepositType() {
 }
 
 // TimeDepositTypeCurrentBranch retrieves time deposit types for a specific organization branch
-func (m *ModelCore) TimeDepositTypeCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*TimeDepositType, error) {
+func (m *ModelCore) TimeDepositTypeCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*TimeDepositType, error) {
 	return m.TimeDepositTypeManager.Find(context, &TimeDepositType{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

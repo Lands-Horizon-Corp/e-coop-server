@@ -136,9 +136,9 @@ func (m *ModelCore) accountTag() {
 }
 
 // AccountTagCurrentBranch retrieves account tags for a specific organization and branch.
-func (m *ModelCore) AccountTagCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*AccountTag, error) {
+func (m *ModelCore) AccountTagCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*AccountTag, error) {
 	return m.AccountTagManager.Find(context, &AccountTag{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

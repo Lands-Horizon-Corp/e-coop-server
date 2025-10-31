@@ -137,9 +137,9 @@ func (m *ModelCore) collectorsMemberAccountEntry() {
 }
 
 // CollectorsMemberAccountEntryCurrentBranch retrieves all collectors member account entries for the specified organization and branch
-func (m *ModelCore) CollectorsMemberAccountEntryCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*CollectorsMemberAccountEntry, error) {
+func (m *ModelCore) CollectorsMemberAccountEntryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*CollectorsMemberAccountEntry, error) {
 	return m.CollectorsMemberAccountEntryManager.Find(context, &CollectorsMemberAccountEntry{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

@@ -169,9 +169,9 @@ func (m *ModelCore) memberOccupationSeed(context context.Context, tx *gorm.DB, u
 }
 
 // MemberOccupationCurrentBranch retrieves member occupations for the current branch
-func (m *ModelCore) MemberOccupationCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberOccupation, error) {
+func (m *ModelCore) MemberOccupationCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberOccupation, error) {
 	return m.MemberOccupationManager.Find(context, &MemberOccupation{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

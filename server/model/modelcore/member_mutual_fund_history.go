@@ -113,9 +113,9 @@ func (m *ModelCore) memberMutualFundHistory() {
 }
 
 // MemberMutualFundHistoryCurrentBranch returns MemberMutualFundHistoryCurrentBranch for the current branch or organization where applicable.
-func (m *ModelCore) MemberMutualFundHistoryCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberMutualFundHistory, error) {
+func (m *ModelCore) MemberMutualFundHistoryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberMutualFundHistory, error) {
 	return m.MemberMutualFundHistoryManager.Find(context, &MemberMutualFundHistory{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

@@ -140,9 +140,9 @@ func (m *ModelCore) generalLedgerTag() {
 }
 
 // GeneralLedgerTagCurrentBranch returns GeneralLedgerTagCurrentBranch for the current branch or organization where applicable.
-func (m *ModelCore) GeneralLedgerTagCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*GeneralLedgerTag, error) {
+func (m *ModelCore) GeneralLedgerTagCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*GeneralLedgerTag, error) {
 	return m.GeneralLedgerTagManager.Find(context, &GeneralLedgerTag{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

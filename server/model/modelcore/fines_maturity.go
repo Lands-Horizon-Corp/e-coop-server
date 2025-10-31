@@ -131,9 +131,9 @@ func (m *ModelCore) finesMaturity() {
 }
 
 // FinesMaturityCurrentBranch returns FinesMaturityCurrentBranch for the current branch or organization where applicable.
-func (m *ModelCore) FinesMaturityCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*FinesMaturity, error) {
+func (m *ModelCore) FinesMaturityCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*FinesMaturity, error) {
 	return m.FinesMaturityManager.Find(context, &FinesMaturity{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

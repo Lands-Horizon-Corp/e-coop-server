@@ -122,9 +122,9 @@ func (m *ModelCore) memberCloseRemark() {
 }
 
 // MemberCloseRemarkCurrentBranch returns MemberCloseRemarkCurrentBranch for the current branch or organization where applicable.
-func (m *ModelCore) MemberCloseRemarkCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberCloseRemark, error) {
+func (m *ModelCore) MemberCloseRemarkCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberCloseRemark, error) {
 	return m.MemberCloseRemarkManager.Find(context, &MemberCloseRemark{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

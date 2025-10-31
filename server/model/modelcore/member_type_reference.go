@@ -166,9 +166,9 @@ func (m *ModelCore) memberTypeReference() {
 }
 
 // MemberTypeReferenceCurrentBranch returns MemberTypeReferenceCurrentBranch for the current branch or organization where applicable.
-func (m *ModelCore) MemberTypeReferenceCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberTypeReference, error) {
+func (m *ModelCore) MemberTypeReferenceCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberTypeReference, error) {
 	return m.MemberTypeReferenceManager.Find(context, &MemberTypeReference{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

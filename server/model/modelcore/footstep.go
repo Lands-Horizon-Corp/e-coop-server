@@ -10,7 +10,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// FootstepLevel 
+// FootstepLevel
 type FootstepLevel string
 
 const (
@@ -186,29 +186,30 @@ func (m *ModelCore) footstep() {
 	})
 }
 
-// GetFootstepByUser 
+// GetFootstepByUser
 // GetFootstepByUser returns GetFootstepByUser for the current branch or organization where applicable.
-func (m *ModelCore) GetFootstepByUser(context context.Context, userId uuid.UUID) ([]*Footstep, error) {
+func (m *ModelCore) GetFootstepByUser(context context.Context, userID uuid.UUID) ([]*Footstep, error) {
 	return m.FootstepManager.Find(context, &Footstep{
-		UserID: &userId,
+		UserID: &userID,
 	})
 }
-// GetFootstepBybranch 
+
+// GetFootstepBybranch
 
 // GetFootstepBybranch returns GetFootstepBybranch for the current branch or organization where applicable.
-func (m *ModelCore) GetFootstepBybranch(context context.Context, organizationId uuid.UUID, branchID uuid.UUID) ([]*Footstep, error) {
+func (m *ModelCore) GetFootstepBybranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*Footstep, error) {
 	return m.FootstepManager.Find(context, &Footstep{
-		OrganizationID: &organizationId,
+		OrganizationID: &organizationID,
 		BranchID:       &branchID,
 	})
-// GetFootstepByUserOrganization 
+	// GetFootstepByUserOrganization
 }
 
 // GetFootstepByUserOrganization returns GetFootstepByUserOrganization for the current branch or organization where applicable.
-func (m *ModelCore) GetFootstepByUserOrganization(context context.Context, userId uuid.UUID, organizationId uuid.UUID, branchID uuid.UUID) ([]*Footstep, error) {
+func (m *ModelCore) GetFootstepByUserOrganization(context context.Context, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) ([]*Footstep, error) {
 	return m.FootstepManager.Find(context, &Footstep{
-		UserID:         &userId,
-		OrganizationID: &organizationId,
+		UserID:         &userID,
+		OrganizationID: &organizationID,
 		BranchID:       &branchID,
 	})
 }

@@ -126,17 +126,17 @@ func (m *ModelCore) memberOccupationHistory() {
 }
 
 // MemberOccupationHistoryCurrentBranch returns MemberOccupationHistoryCurrentBranch for the current branch or organization where applicable.
-func (m *ModelCore) MemberOccupationHistoryCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberOccupationHistory, error) {
+func (m *ModelCore) MemberOccupationHistoryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberOccupationHistory, error) {
 	return m.MemberOccupationHistoryManager.Find(context, &MemberOccupationHistory{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }
 
 // MemberOccupationHistoryMemberProfileID returns MemberOccupationHistoryMemberProfileID for the current branch or organization where applicable.
-func (m *ModelCore) MemberOccupationHistoryMemberProfileID(context context.Context, memberProfileID, orgID, branchID uuid.UUID) ([]*MemberOccupationHistory, error) {
+func (m *ModelCore) MemberOccupationHistoryMemberProfileID(context context.Context, memberProfileID, organizationID, branchID uuid.UUID) ([]*MemberOccupationHistory, error) {
 	return m.MemberOccupationHistoryManager.Find(context, &MemberOccupationHistory{
-		OrganizationID:  orgID,
+		OrganizationID:  organizationID,
 		BranchID:        branchID,
 		MemberProfileID: memberProfileID,
 	})

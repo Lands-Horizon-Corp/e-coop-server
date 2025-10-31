@@ -130,9 +130,9 @@ func (m *ModelCore) interestMaturity() {
 }
 
 // InterestMaturityCurrentBranch returns InterestMaturityCurrentBranch for the current branch or organization where applicable.
-func (m *ModelCore) InterestMaturityCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*InterestMaturity, error) {
+func (m *ModelCore) InterestMaturityCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*InterestMaturity, error) {
 	return m.InterestMaturityManager.Find(context, &InterestMaturity{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

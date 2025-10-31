@@ -119,9 +119,9 @@ func (m *ModelCore) memberOtherInformationEntry() {
 }
 
 // MemberOtherInformationEntryCurrentBranch returns MemberOtherInformationEntryCurrentBranch for the current branch or organization where applicable.
-func (m *ModelCore) MemberOtherInformationEntryCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberOtherInformationEntry, error) {
+func (m *ModelCore) MemberOtherInformationEntryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberOtherInformationEntry, error) {
 	return m.MemberOtherInformationEntryManager.Find(context, &MemberOtherInformationEntry{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

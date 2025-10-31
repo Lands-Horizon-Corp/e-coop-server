@@ -143,9 +143,9 @@ func (m *ModelCore) memberClassificationInterestRate() {
 }
 
 // MemberClassificationInterestRateCurrentBranch returns MemberClassificationInterestRateCurrentBranch for the current branch or organization where applicable.
-func (m *ModelCore) MemberClassificationInterestRateCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberClassificationInterestRate, error) {
+func (m *ModelCore) MemberClassificationInterestRateCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberClassificationInterestRate, error) {
 	return m.MemberClassificationInterestRateManager.Find(context, &MemberClassificationInterestRate{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

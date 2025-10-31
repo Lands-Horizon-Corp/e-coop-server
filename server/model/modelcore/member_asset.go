@@ -136,9 +136,9 @@ func (m *ModelCore) memberAsset() {
 }
 
 // MemberAssetCurrentBranch retrieves member assets for the current branch
-func (m *ModelCore) MemberAssetCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberAsset, error) {
+func (m *ModelCore) MemberAssetCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberAsset, error) {
 	return m.MemberAssetManager.Find(context, &MemberAsset{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

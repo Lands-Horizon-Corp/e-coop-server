@@ -161,9 +161,9 @@ func (m *ModelCore) memberJointAccount() {
 }
 
 // MemberJointAccountCurrentBranch retrieves member joint accounts for the current branch
-func (m *ModelCore) MemberJointAccountCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberJointAccount, error) {
+func (m *ModelCore) MemberJointAccountCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberJointAccount, error) {
 	return m.MemberJointAccountManager.Find(context, &MemberJointAccount{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

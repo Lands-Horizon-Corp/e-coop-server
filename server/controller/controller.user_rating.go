@@ -21,11 +21,11 @@ func (c *Controller) userRatingController() {
 		Note:         "Returns all user ratings given by the specified user (rater).",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userId, err := handlers.EngineUUIDParam(ctx, "user_id")
+		userID, err := handlers.EngineUUIDParam(ctx, "user_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_id: " + err.Error()})
 		}
-		userRating, err := c.modelcore.GetUserRater(context, *userId)
+		userRating, err := c.modelcore.GetUserRater(context, *userID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user ratings given by user: " + err.Error()})
 		}
@@ -40,11 +40,11 @@ func (c *Controller) userRatingController() {
 		Note:         "Returns all user ratings received by the specified user (ratee).",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userId, err := handlers.EngineUUIDParam(ctx, "user_id")
+		userID, err := handlers.EngineUUIDParam(ctx, "user_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_id: " + err.Error()})
 		}
-		userRating, err := c.modelcore.GetUserRatee(context, *userId)
+		userRating, err := c.modelcore.GetUserRatee(context, *userID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user ratings received by user: " + err.Error()})
 		}

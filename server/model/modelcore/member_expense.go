@@ -127,9 +127,9 @@ func (m *ModelCore) memberExpense() {
 }
 
 // MemberExpenseCurrentBranch returns MemberExpenseCurrentBranch for the current branch or organization where applicable.
-func (m *ModelCore) MemberExpenseCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberExpense, error) {
+func (m *ModelCore) MemberExpenseCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberExpense, error) {
 	return m.MemberExpenseManager.Find(context, &MemberExpense{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }

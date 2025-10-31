@@ -282,9 +282,9 @@ func (m *ModelCore) memberDepartmentSeed(context context.Context, tx *gorm.DB, u
 }
 
 // MemberDepartmentCurrentBranch returns MemberDepartmentCurrentBranch for the current branch or organization where applicable.
-func (m *ModelCore) MemberDepartmentCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberDepartment, error) {
+func (m *ModelCore) MemberDepartmentCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberDepartment, error) {
 	return m.MemberDepartmentManager.Find(context, &MemberDepartment{
-		OrganizationID: orgID,
+		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }
