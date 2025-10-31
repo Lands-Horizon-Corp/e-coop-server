@@ -240,7 +240,7 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 
 			numBranches := int(multiplier) * 1
 
-			for k := 0; k < numBranches; k++ {
+			for k := range numBranches {
 				branchMedia, err := s.createImageMedia(ctx, "Organization")
 				if err != nil {
 					return eris.Wrap(err, "failed to create organization media")
@@ -397,7 +397,7 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 				_ = s.progressBar.Add(1)
 
 				numInvites := int(multiplier) * 1
-				for m := 0; m < numInvites; m++ {
+				for m := range numInvites {
 					userType := modelcore.UserOrganizationTypeMember
 					if m%2 == 0 {
 						userType = modelcore.UserOrganizationTypeEmployee
@@ -600,7 +600,7 @@ func (s *Seeder) SeedUsers(ctx context.Context, multiplier int32) error {
 	baseNumUsers := 1
 	numUsers := int(multiplier) * baseNumUsers
 
-	for i := 0; i < numUsers; i++ {
+	for i := range numUsers {
 		firstName := s.faker.Person().FirstName()
 		middleName := s.faker.Person().LastName()[:1] // Simulate middle initial
 		lastName := s.faker.Person().LastName()
