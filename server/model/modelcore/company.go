@@ -1988,15 +1988,245 @@ func (m *ModelCore) companySeed(context context.Context, tx *gorm.DB, userID uui
 		)
 
 	case "KHR": // Cambodia
+		companies = append(companies,
+			&Company{
+				Name:        "Electricité du Cambodge (EDC)",
+				Description: "State-owned company responsible for electricity generation, transmission, and distribution across Cambodia.",
+			},
+			&Company{
+				Name:        "Phnom Penh Water Supply Authority (PPWSA)",
+				Description: "Public utility providing clean water supply and sanitation services in Phnom Penh.",
+			},
+			&Company{
+				Name:        "TotalEnergies Cambodia",
+				Description: "Energy company supplying fuel, lubricants, and gas products.",
+			},
+			&Company{
+				Name:        "Metfone",
+				Description: "Major telecommunications operator offering internet, mobile, and broadband services.",
+			},
+			&Company{
+				Name:        "Sodexo Cambodia",
+				Description: "Facilities management and maintenance services provider for commercial and industrial clients.",
+			},
+		)
+
 	case "LAK": // Laos
+		companies = append(companies,
+			&Company{
+				Name:        "Électricité du Laos (EDL)",
+				Description: "National power utility responsible for electricity generation and distribution in Laos.",
+			},
+			&Company{
+				Name:        "Vientiane Water Supply State Enterprise",
+				Description: "Provides water supply and sanitation services in Vientiane and nearby regions.",
+			},
+			&Company{
+				Name:        "PetroTrade Lao Public Company",
+				Description: "Major distributor of fuel and gas across Laos.",
+			},
+			&Company{
+				Name:        "Lao Telecom",
+				Description: "Leading telecommunications operator providing internet, mobile, and enterprise network services.",
+			},
+			&Company{
+				Name:        "EDL-Gen Services",
+				Description: "Subsidiary offering technical maintenance and energy infrastructure support.",
+			},
+		)
+
 	case "NGN": // Nigeria
+		companies = append(companies,
+			&Company{
+				Name:        "Ikeja Electric",
+				Description: "Nigeria’s largest electricity distribution company serving the Lagos area.",
+			},
+			&Company{
+				Name:        "Lagos Water Corporation",
+				Description: "Public water supply agency providing treated water to Lagos and nearby areas.",
+			},
+			&Company{
+				Name:        "TotalEnergies Nigeria",
+				Description: "Oil and gas company supplying fuel, lubricants, and LPG services nationwide.",
+			},
+			&Company{
+				Name:        "MTN Nigeria",
+				Description: "Largest telecom operator offering mobile, data, and broadband services.",
+			},
+			&Company{
+				Name:        "Alpha Mead Facilities",
+				Description: "Integrated facilities management and maintenance services provider.",
+			},
+		)
+
 	case "KES": // Kenya
+		companies = append(companies,
+			&Company{
+				Name:        "Kenya Power and Lighting Company (KPLC)",
+				Description: "State-owned company managing electricity distribution and billing in Kenya.",
+			},
+			&Company{
+				Name:        "Nairobi City Water and Sewerage Company",
+				Description: "Provides water supply and wastewater services in the capital region.",
+			},
+			&Company{
+				Name:        "Kenya Pipeline Company (KPC)",
+				Description: "Handles transportation and storage of petroleum products across Kenya.",
+			},
+			&Company{
+				Name:        "Safaricom PLC",
+				Description: "Telecom giant offering internet, mobile, and M-Pesa financial services.",
+			},
+			&Company{
+				Name:        "Sodexo Kenya",
+				Description: "Facilities management and maintenance company serving corporate and industrial sectors.",
+			},
+		)
+
 	case "GHS": // Ghana
+		companies = append(companies,
+			&Company{
+				Name:        "Electricity Company of Ghana (ECG)",
+				Description: "Main utility responsible for electricity distribution and customer billing.",
+			},
+			&Company{
+				Name:        "Ghana Water Company Limited (GWCL)",
+				Description: "Public utility managing water supply and sanitation services across Ghana.",
+			},
+			&Company{
+				Name:        "Ghana National Gas Company",
+				Description: "State-owned company managing gas processing and distribution infrastructure.",
+			},
+			&Company{
+				Name:        "MTN Ghana",
+				Description: "Leading telecom provider offering internet, mobile, and digital services.",
+			},
+			&Company{
+				Name:        "Broll Ghana",
+				Description: "Facilities and property management company providing cleaning and maintenance services.",
+			},
+		)
+
 	case "MAD": // Morocco
+		companies = append(companies,
+			&Company{
+				Name:        "ONEE (Office National de l'Électricité et de l'Eau Potable)",
+				Description: "National company providing electricity and potable water across Morocco.",
+			},
+			&Company{
+				Name:        "Lydec",
+				Description: "Private company managing water, electricity, and sanitation services in Casablanca.",
+			},
+			&Company{
+				Name:        "Afriquia Gaz",
+				Description: "Leading gas distributor providing LPG and energy solutions.",
+			},
+			&Company{
+				Name:        "Maroc Telecom",
+				Description: "Major telecommunications company offering mobile, internet, and landline services.",
+			},
+			&Company{
+				Name:        "Derichebourg Maroc",
+				Description: "Facilities management and industrial maintenance company operating nationwide.",
+			},
+		)
+
 	case "TND": // Tunisia
+		companies = append(companies,
+			&Company{
+				Name:        "STEG (Société Tunisienne de l'Électricité et du Gaz)",
+				Description: "Public utility providing electricity and natural gas services across Tunisia.",
+			},
+			&Company{
+				Name:        "SONEDE (Société Nationale d’Exploitation et de Distribution des Eaux)",
+				Description: "National water company managing supply and sanitation.",
+			},
+			&Company{
+				Name:        "Tunisie Telecom",
+				Description: "Leading telecom operator offering internet, mobile, and broadband services.",
+			},
+			&Company{
+				Name:        "Shell Tunisia",
+				Description: "Energy company engaged in gas and petroleum distribution.",
+			},
+			&Company{
+				Name:        "ISS Tunisie",
+				Description: "Facilities and workplace management company providing cleaning and maintenance solutions.",
+			},
+		)
+
 	case "ETB": // Ethiopia
+		companies = append(companies,
+			&Company{
+				Name:        "Ethiopian Electric Utility (EEU)",
+				Description: "Government utility company responsible for electricity distribution and customer services.",
+			},
+			&Company{
+				Name:        "Addis Ababa Water and Sewerage Authority (AAWSA)",
+				Description: "Provides water and wastewater services in the capital city.",
+			},
+			&Company{
+				Name:        "Ethiopian Petroleum Supply Enterprise",
+				Description: "State-owned distributor of petroleum and gas products.",
+			},
+			&Company{
+				Name:        "Ethio Telecom",
+				Description: "National telecommunications provider offering internet, mobile, and ICT solutions.",
+			},
+			&Company{
+				Name:        "Sodexo Ethiopia",
+				Description: "Facilities management and building maintenance services company.",
+			},
+		)
+
 	case "DZD": // Algeria
+		companies = append(companies,
+			&Company{
+				Name:        "Sonelgaz",
+				Description: "State-owned company overseeing electricity and gas distribution throughout Algeria.",
+			},
+			&Company{
+				Name:        "SEAAL (Société des Eaux et de l’Assainissement d’Alger)",
+				Description: "Water and sanitation company serving Algiers and nearby regions.",
+			},
+			&Company{
+				Name:        "Naftal",
+				Description: "National petroleum and gas distributor providing LPG and fuel products.",
+			},
+			&Company{
+				Name:        "Algérie Télécom",
+				Description: "Telecom operator offering internet, broadband, and telephony services.",
+			},
+			&Company{
+				Name:        "ENGIE Services Algérie",
+				Description: "Facilities and energy management company offering maintenance and engineering services.",
+			},
+		)
+
 	case "UAH": // Ukraine
+		companies = append(companies,
+			&Company{
+				Name:        "DTEK",
+				Description: "Largest private energy company generating and distributing electricity and gas across Ukraine.",
+			},
+			&Company{
+				Name:        "Kyivvodokanal",
+				Description: "Municipal water supply and wastewater treatment company serving Kyiv.",
+			},
+			&Company{
+				Name:        "Naftogaz of Ukraine",
+				Description: "National oil and gas company managing exploration, transport, and supply.",
+			},
+			&Company{
+				Name:        "Kyivstar",
+				Description: "Leading telecom company providing mobile, broadband, and digital services.",
+			},
+			&Company{
+				Name:        "ISS Ukraine",
+				Description: "Facilities management and maintenance service provider operating nationwide.",
+			},
+		)
+
 	case "RON": // Romania
 	case "BGN": // Bulgaria
 	case "RSD": // Serbia
