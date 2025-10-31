@@ -239,13 +239,13 @@ func (h *HorizonService) printStatus(service string, status string) {
 	switch status {
 	case "init":
 		h.Logger.Info("Initializing service", zap.String("service", service))
-		os.Stdout.Sync()
+		_ = os.Stdout.Sync()
 	case "ok":
 		h.Logger.Info("Service initialized successfully", zap.String("service", service))
-		os.Stdout.Sync()
+		_ = os.Stdout.Sync()
 	case "fail":
 		h.Logger.Error("Failed to initialize service", zap.String("service", service))
-		os.Stdout.Sync()
+		_ = os.Stdout.Sync()
 	}
 }
 
