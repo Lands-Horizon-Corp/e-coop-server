@@ -240,7 +240,7 @@ func (m *ModelCore) organization() {
 }
 
 // GetPublicOrganization retrieves all organizations marked as public
-func (m *ModelCore) getPublicOrganization(ctx context.Context) ([]*Organization, error) {
+func (m *ModelCore) GetPublicOrganization(ctx context.Context) ([]*Organization, error) {
 	filters := []services.Filter{
 		{Field: "is_private", Op: services.OpEq, Value: false},
 	}
@@ -252,7 +252,7 @@ func (m *ModelCore) getPublicOrganization(ctx context.Context) ([]*Organization,
 }
 
 // GetFeaturedOrganization retrieves organizations marked as featured for promotional display
-func (m *ModelCore) getFeaturedOrganization(ctx context.Context) ([]*Organization, error) {
+func (m *ModelCore) GetFeaturedOrganization(ctx context.Context) ([]*Organization, error) {
 	// Featured organizations are:
 	// 1. Public (not private)
 	// 2. Have a cover media (more visually appealing)
@@ -287,7 +287,7 @@ func (m *ModelCore) getFeaturedOrganization(ctx context.Context) ([]*Organizatio
 }
 
 // GetOrganizationsByCategoryID retrieves all organizations belonging to a specific category
-func (m *ModelCore) getOrganizationsByCategoryID(ctx context.Context, categoryID uuid.UUID) ([]*Organization, error) {
+func (m *ModelCore) GetOrganizationsByCategoryID(ctx context.Context, categoryID uuid.UUID) ([]*Organization, error) {
 	// Get organization categories that match the category ID
 	orgCategories, err := m.OrganizationCategoryManager.Find(ctx, &OrganizationCategory{
 		CategoryID: &categoryID,
@@ -315,7 +315,7 @@ func (m *ModelCore) getOrganizationsByCategoryID(ctx context.Context, categoryID
 }
 
 // GetRecentlyAddedOrganization retrieves organizations that were created within the last 30 days
-func (m *ModelCore) getRecentlyAddedOrganization(ctx context.Context) ([]*Organization, error) {
+func (m *ModelCore) GetRecentlyAddedOrganization(ctx context.Context) ([]*Organization, error) {
 	thirtyDaysAgo := time.Now().AddDate(0, 0, -30)
 	filters := []services.Filter{
 		{Field: "is_private", Op: services.OpEq, Value: false},

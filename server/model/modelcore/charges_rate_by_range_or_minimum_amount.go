@@ -130,7 +130,8 @@ func (m *ModelCore) chargesRateByRangeOrMinimumAmount() {
 	})
 }
 
-func (m *ModelCore) chargesRateByRangeOrMinimumAmountCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ChargesRateByRangeOrMinimumAmount, error) {
+// ChargesRateByRangeOrMinimumAmountCurrentBranch retrieves all charges rate by range or minimum amount for the specified organization and branch
+func (m *ModelCore) ChargesRateByRangeOrMinimumAmountCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ChargesRateByRangeOrMinimumAmount, error) {
 	return m.ChargesRateByRangeOrMinimumAmountManager.Find(context, &ChargesRateByRangeOrMinimumAmount{
 		OrganizationID: orgId,
 		BranchID:       branchId,

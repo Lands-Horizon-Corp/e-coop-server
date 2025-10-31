@@ -220,7 +220,7 @@ func (m *ModelCore) transaction() {
 	})
 }
 
-func (m *ModelCore) transactionCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Transaction, error) {
+func (m *ModelCore) TransactionCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Transaction, error) {
 	return m.TransactionManager.Find(context, &Transaction{
 		OrganizationID: orgId,
 		BranchID:       branchId,

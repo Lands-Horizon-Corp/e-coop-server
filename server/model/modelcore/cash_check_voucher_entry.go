@@ -155,7 +155,8 @@ func (m *ModelCore) cashCheckVoucherEntry() {
 	})
 }
 
-func (m *ModelCore) cashCheckVoucherEntryCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*CashCheckVoucherEntry, error) {
+// CashCheckVoucherEntryCurrentBranch retrieves all cash check voucher entries for the specified organization and branch
+func (m *ModelCore) CashCheckVoucherEntryCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*CashCheckVoucherEntry, error) {
 	return m.CashCheckVoucherEntryManager.Find(context, &CashCheckVoucherEntry{
 		OrganizationID: orgId,
 		BranchID:       branchId,

@@ -137,14 +137,16 @@ func (m *ModelCore) comakerCollateral() {
 	})
 }
 
-func (m *ModelCore) comakerCollateralCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ComakerCollateral, error) {
+// ComakerCollateralCurrentBranch retrieves all comaker collaterals for the specified organization and branch
+func (m *ModelCore) ComakerCollateralCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ComakerCollateral, error) {
 	return m.ComakerCollateralManager.Find(context, &ComakerCollateral{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})
 }
 
-func (m *ModelCore) comakerCollateralByLoanTransaction(context context.Context, loanTransactionId uuid.UUID) ([]*ComakerCollateral, error) {
+// ComakerCollateralByLoanTransaction retrieves all comaker collaterals for the specified loan transaction
+func (m *ModelCore) ComakerCollateralByLoanTransaction(context context.Context, loanTransactionId uuid.UUID) ([]*ComakerCollateral, error) {
 	return m.ComakerCollateralManager.Find(context, &ComakerCollateral{
 		LoanTransactionID: loanTransactionId,
 	})

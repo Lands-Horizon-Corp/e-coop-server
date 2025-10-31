@@ -91,7 +91,7 @@ func (m *ModelCore) organizationCategory() {
 }
 
 // GetOrganizationCategoryByOrganization retrieves all categories assigned to a specific organization
-func (m *ModelCore) getOrganizationCategoryByOrganization(context context.Context, organizationID uuid.UUID) ([]*OrganizationCategory, error) {
+func (m *ModelCore) GetOrganizationCategoryByOrganization(context context.Context, organizationID uuid.UUID) ([]*OrganizationCategory, error) {
 	return m.OrganizationCategoryManager.Find(context, &OrganizationCategory{
 		OrganizationID: &organizationID,
 	})

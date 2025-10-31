@@ -243,7 +243,8 @@ func (m *ModelCore) journalVoucher() {
 	})
 }
 
-func (m *ModelCore) journalVoucherCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*JournalVoucher, error) {
+// JournalVoucherCurrentBranch retrieves all journal vouchers for the specified organization and branch
+func (m *ModelCore) JournalVoucherCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*JournalVoucher, error) {
 	return m.JournalVoucherManager.Find(context, &JournalVoucher{
 		OrganizationID: orgId,
 		BranchID:       branchId,
@@ -266,7 +267,7 @@ func (m *ModelCore) mapJournalVoucherEntries(entries []*JournalVoucherEntry) []*
 }
 
 // Helper function to validate journal voucher balance
-func (m *ModelCore) validateJournalVoucherBalance(entries []*JournalVoucherEntry) error {
+func (m *ModelCore) ValidateJournalVoucherBalance(entries []*JournalVoucherEntry) error {
 	totalDebit := 0.0
 	totalCredit := 0.0
 
@@ -282,7 +283,8 @@ func (m *ModelCore) validateJournalVoucherBalance(entries []*JournalVoucherEntry
 	return nil
 }
 
-func (m *ModelCore) journalVoucherDraft(ctx context.Context, branchId, orgId uuid.UUID) ([]*JournalVoucher, error) {
+// JournalVoucherDraft retrieves all journal vouchers that are in draft status for the specified organization and branch
+func (m *ModelCore) JournalVoucherDraft(ctx context.Context, branchId, orgId uuid.UUID) ([]*JournalVoucher, error) {
 	filters := []services.Filter{
 		{Field: "organization_id", Op: services.OpEq, Value: orgId},
 		{Field: "branch_id", Op: services.OpEq, Value: branchId},
@@ -298,7 +300,8 @@ func (m *ModelCore) journalVoucherDraft(ctx context.Context, branchId, orgId uui
 	return journalVouchers, nil
 }
 
-func (m *ModelCore) journalVoucherPrinted(ctx context.Context, branchId, orgId uuid.UUID) ([]*JournalVoucher, error) {
+// JournalVoucherApproved retrieves all journal vouchers that have been approved but not yet released for the specified organization and branch
+func (m *ModelCore) JournalVoucherPrinted(ctx context.Context, branchId, orgId uuid.UUID) ([]*JournalVoucher, error) {
 	filters := []services.Filter{
 		{Field: "organization_id", Op: services.OpEq, Value: orgId},
 		{Field: "branch_id", Op: services.OpEq, Value: branchId},
@@ -314,7 +317,8 @@ func (m *ModelCore) journalVoucherPrinted(ctx context.Context, branchId, orgId u
 	return journalVouchers, nil
 }
 
-func (m *ModelCore) journalVoucherApproved(ctx context.Context, branchId, orgId uuid.UUID) ([]*JournalVoucher, error) {
+// JournalVoucherApproved retrieves all journal vouchers that have been approved but not yet released for the specified organization and branch
+func (m *ModelCore) JournalVoucherApproved(ctx context.Context, branchId, orgId uuid.UUID) ([]*JournalVoucher, error) {
 	filters := []services.Filter{
 		{Field: "organization_id", Op: services.OpEq, Value: orgId},
 		{Field: "branch_id", Op: services.OpEq, Value: branchId},
@@ -330,7 +334,8 @@ func (m *ModelCore) journalVoucherApproved(ctx context.Context, branchId, orgId 
 	return journalVouchers, nil
 }
 
-func (m *ModelCore) journalVoucherReleased(ctx context.Context, branchId, orgId uuid.UUID) ([]*JournalVoucher, error) {
+// JournalVoucherReleased retrieves all journal vouchers that have been released for the specified organization and branch
+func (m *ModelCore) JournalVoucherReleased(ctx context.Context, branchId, orgId uuid.UUID) ([]*JournalVoucher, error) {
 	filters := []services.Filter{
 		{Field: "organization_id", Op: services.OpEq, Value: orgId},
 		{Field: "branch_id", Op: services.OpEq, Value: branchId},
@@ -346,7 +351,8 @@ func (m *ModelCore) journalVoucherReleased(ctx context.Context, branchId, orgId 
 	return journalVouchers, nil
 }
 
-func (m *ModelCore) journalVoucherReleasedCurrentDay(ctx context.Context, branchId uuid.UUID, orgId uuid.UUID) ([]*JournalVoucher, error) {
+// JournalVoucherReleasedCurrentDay retrieves all journal vouchers that were released today for the specified organization and branch
+func (m *ModelCore) JournalVoucherReleasedCurrentDay(ctx context.Context, branchId uuid.UUID, orgId uuid.UUID) ([]*JournalVoucher, error) {
 	now := time.Now().UTC()
 	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 	endOfDay := startOfDay.Add(24 * time.Hour)

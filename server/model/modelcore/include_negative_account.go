@@ -122,6 +122,7 @@ func (m *ModelCore) includeNegativeAccount() {
 	})
 }
 
+// IncludeNegativeAccountCurrentBranch retrieves all include negative accounts for the specified organization and branch
 func (m *ModelCore) IncludeNegativeAccountCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*IncludeNegativeAccount, error) {
 	return m.IncludeNegativeAccountManager.Find(context, &IncludeNegativeAccount{
 		OrganizationID: orgId,

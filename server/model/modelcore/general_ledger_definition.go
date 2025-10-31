@@ -208,7 +208,7 @@ func (m *ModelCore) generalLedgerDefinition() {
 	})
 }
 
-func (m *ModelCore) generalLedgerDefinitionCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*GeneralLedgerDefinition, error) {
+func (m *ModelCore) GeneralLedgerDefinitionCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*GeneralLedgerDefinition, error) {
 	return m.GeneralLedgerDefinitionManager.Find(context, &GeneralLedgerDefinition{
 		OrganizationID: orgId,
 		BranchID:       branchId,

@@ -132,7 +132,7 @@ func (m *ModelCore) memberAsset() {
 	})
 }
 
-func (m *ModelCore) memberAssetCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberAsset, error) {
+func (m *ModelCore) MemberAssetCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberAsset, error) {
 	return m.MemberAssetManager.Find(context, &MemberAsset{
 		OrganizationID: orgId,
 		BranchID:       branchId,

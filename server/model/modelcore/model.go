@@ -372,7 +372,7 @@ func (m *ModelCore) start(_ context.Context) error {
 }
 
 // GlobalSeeder seeds initial global data such as currencies and categories
-func (m *ModelCore) GlobalSeeder(ctx context.Context) error {
+func (m *ModelCore) globalSeeder(ctx context.Context) error {
 	if err := m.currencySeed(ctx); err != nil {
 		return err
 	}
@@ -386,7 +386,7 @@ func (m *ModelCore) GlobalSeeder(ctx context.Context) error {
 }
 
 // OrganizationSeeder seeds initial data for a new organization including default accounts, payment types, and templates
-func (m *ModelCore) OrganizationSeeder(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+func (m *ModelCore) organizationSeeder(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	if err := m.invitationCodeSeed(context, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}

@@ -123,7 +123,7 @@ func (m *ModelCore) memberTypeReferenceByAmount() {
 	})
 }
 
-func (m *ModelCore) memberTypeReferenceByAmountCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberTypeReferenceByAmount, error) {
+func (m *ModelCore) MemberTypeReferenceByAmountCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberTypeReferenceByAmount, error) {
 	return m.MemberTypeReferenceByAmountManager.Find(context, &MemberTypeReferenceByAmount{
 		OrganizationID: orgId,
 		BranchID:       branchId,

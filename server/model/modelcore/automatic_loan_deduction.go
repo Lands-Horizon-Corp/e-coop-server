@@ -193,7 +193,8 @@ func (m *ModelCore) automaticLoanDeduction() {
 	})
 }
 
-func (m *ModelCore) automaticLoanDeductionCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*AutomaticLoanDeduction, error) {
+// AutomaticLoanDeductionCurrentBranch retrieves all automatic loan deductions for the specified organization and branch
+func (m *ModelCore) AutomaticLoanDeductionCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*AutomaticLoanDeduction, error) {
 	return m.AutomaticLoanDeductionManager.Find(context, &AutomaticLoanDeduction{
 		OrganizationID: orgId,
 		BranchID:       branchId,

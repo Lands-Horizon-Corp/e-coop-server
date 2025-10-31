@@ -209,7 +209,8 @@ func (m *ModelCore) chargesRateSchemeModeOfPayment() {
 	})
 }
 
-func (m *ModelCore) chargesRateSchemeModeOfPaymentCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ChargesRateSchemeModeOfPayment, error) {
+// ChargesRateSchemeModeOfPaymentCurrentBranch retrieves all charges rate scheme mode of payment for the specified organization and branch
+func (m *ModelCore) ChargesRateSchemeModeOfPaymentCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ChargesRateSchemeModeOfPayment, error) {
 	return m.ChargesRateSchemeModeOfPaymentManager.Find(context, &ChargesRateSchemeModeOfPayment{
 		OrganizationID: orgId,
 		BranchID:       branchId,

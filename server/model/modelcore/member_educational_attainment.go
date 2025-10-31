@@ -128,7 +128,7 @@ func (m *ModelCore) memberEducationalAttainment() {
 	})
 }
 
-func (m *ModelCore) memberEducationalAttainmentCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberEducationalAttainment, error) {
+func (m *ModelCore) MemberEducationalAttainmentCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberEducationalAttainment, error) {
 	return m.MemberEducationalAttainmentManager.Find(context, &MemberEducationalAttainment{
 		OrganizationID: orgId,
 		BranchID:       branchId,

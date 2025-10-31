@@ -148,7 +148,7 @@ func (m *ModelCore) organizationDailyUsage() {
 }
 
 // GetOrganizationDailyUsageByOrganization retrieves daily usage data for a specific organization
-func (m *ModelCore) getOrganizationDailyUsageByOrganization(context context.Context, organizationID uuid.UUID) ([]*OrganizationDailyUsage, error) {
+func (m *ModelCore) GetOrganizationDailyUsageByOrganization(context context.Context, organizationID uuid.UUID) ([]*OrganizationDailyUsage, error) {
 	return m.OrganizationDailyUsageManager.Find(context, &OrganizationDailyUsage{
 		OrganizationID: organizationID,
 	})

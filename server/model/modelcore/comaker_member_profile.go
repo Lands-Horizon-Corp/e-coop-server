@@ -137,14 +137,16 @@ func (m *ModelCore) comakerMemberProfile() {
 	})
 }
 
-func (m *ModelCore) comakerMemberProfileCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ComakerMemberProfile, error) {
+// ComakerMemberProfileCurrentBranch retrieves all comaker member profiles for the specified organization and branch
+func (m *ModelCore) ComakerMemberProfileCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ComakerMemberProfile, error) {
 	return m.ComakerMemberProfileManager.Find(context, &ComakerMemberProfile{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})
 }
 
-func (m *ModelCore) comakerMemberProfileByLoanTransaction(context context.Context, loanTransactionId uuid.UUID) ([]*ComakerMemberProfile, error) {
+// ComakerMemberProfileByLoanTransaction retrieves all comaker member profiles for the specified loan transaction
+func (m *ModelCore) ComakerMemberProfileByLoanTransaction(context context.Context, loanTransactionId uuid.UUID) ([]*ComakerMemberProfile, error) {
 	return m.ComakerMemberProfileManager.Find(context, &ComakerMemberProfile{
 		LoanTransactionID: loanTransactionId,
 	})

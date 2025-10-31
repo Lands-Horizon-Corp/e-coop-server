@@ -406,7 +406,7 @@ func (m *ModelCore) accountHistory() {
 }
 
 // Get history for a specific account
-func (m *ModelCore) getAccountHistory(ctx context.Context, accountID uuid.UUID) ([]*AccountHistory, error) {
+func (m *ModelCore) GetAccountHistory(ctx context.Context, accountID uuid.UUID) ([]*AccountHistory, error) {
 	filters := []services.Filter{
 		{Field: "account_id", Op: services.OpEq, Value: accountID},
 	}
@@ -414,7 +414,7 @@ func (m *ModelCore) getAccountHistory(ctx context.Context, accountID uuid.UUID) 
 	return m.AccountHistoryManager.FindWithFilters(ctx, filters)
 }
 
-func (m *ModelCore) getAccountAtTime(ctx context.Context, accountID uuid.UUID, asOfDate time.Time) (*AccountHistory, error) {
+func (m *ModelCore) GetAccountAtTime(ctx context.Context, accountID uuid.UUID, asOfDate time.Time) (*AccountHistory, error) {
 	filters := []services.Filter{
 		{Field: "account_id", Op: services.OpEq, Value: accountID},
 		{Field: "valid_from", Op: services.OpLte, Value: asOfDate},
@@ -449,7 +449,7 @@ func (m *ModelCore) getAccountAtTime(ctx context.Context, accountID uuid.UUID, a
 }
 
 // Get all accounts that had changes within a date range
-func (m *ModelCore) getAccountsChangedInRange(ctx context.Context, orgID, branchID uuid.UUID, startDate, endDate time.Time) ([]*AccountHistory, error) {
+func (m *ModelCore) GetAccountsChangedInRange(ctx context.Context, orgID, branchID uuid.UUID, startDate, endDate time.Time) ([]*AccountHistory, error) {
 	filters := []services.Filter{
 		{Field: "organization_id", Op: services.OpEq, Value: orgID},
 		{Field: "branch_id", Op: services.OpEq, Value: branchID},
@@ -461,7 +461,7 @@ func (m *ModelCore) getAccountsChangedInRange(ctx context.Context, orgID, branch
 }
 
 // Close open history records when updating valid_to
-func (m *ModelCore) closeAccountHistory(ctx context.Context, accountID uuid.UUID, closedAt time.Time) error {
+func (m *ModelCore) CloseAccountHistory(ctx context.Context, accountID uuid.UUID, closedAt time.Time) error {
 	// Since there's no UpdateWhere method, we'll need to find and update individually
 	filters := []services.Filter{
 		{Field: "account_id", Op: services.OpEq, Value: accountID},

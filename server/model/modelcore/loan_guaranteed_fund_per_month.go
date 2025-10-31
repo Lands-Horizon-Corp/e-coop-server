@@ -111,7 +111,7 @@ func (m *ModelCore) loanGuaranteedFundPerMonth() {
 	})
 }
 
-func (m *ModelCore) loanGuaranteedFundPerMonthCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanGuaranteedFundPerMonth, error) {
+func (m *ModelCore) LoanGuaranteedFundPerMonthCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanGuaranteedFundPerMonth, error) {
 	return m.LoanGuaranteedFundPerMonthManager.Find(context, &LoanGuaranteedFundPerMonth{
 		OrganizationID: orgId,
 		BranchID:       branchId,

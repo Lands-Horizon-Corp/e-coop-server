@@ -214,7 +214,7 @@ func (m *ModelCore) financialStatementGroupingSeed(context context.Context, tx *
 	}
 	return nil
 }
-func (m *ModelCore) financialStatementGroupingCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*FinancialStatementGrouping, error) {
+func (m *ModelCore) FinancialStatementGroupingCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*FinancialStatementGrouping, error) {
 	return m.FinancialStatementGroupingManager.Find(context, &FinancialStatementGrouping{
 		OrganizationID: orgId,
 		BranchID:       branchId,

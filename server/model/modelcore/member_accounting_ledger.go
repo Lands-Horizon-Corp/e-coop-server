@@ -180,7 +180,7 @@ func (m *ModelCore) memberAccountingLedger() {
 	})
 }
 
-func (m *ModelCore) memberAccountingLedgerCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberAccountingLedger, error) {
+func (m *ModelCore) MemberAccountingLedgerCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberAccountingLedger, error) {
 	return m.MemberAccountingLedgerManager.Find(context, &MemberAccountingLedger{
 		OrganizationID: orgId,
 		BranchID:       branchId,
@@ -189,7 +189,7 @@ func (m *ModelCore) memberAccountingLedgerCurrentBranch(context context.Context,
 
 // MemberAccountingLedgerFindForUpdate finds and locks a member accounting ledger for concurrent protection
 // Returns nil if not found (without error), allowing for create-or-update patterns
-func (m *ModelCore) memberAccountingLedgerFindForUpdate(ctx context.Context, tx *gorm.DB, memberProfileID, accountID, orgID, branchID uuid.UUID) (*MemberAccountingLedger, error) {
+func (m *ModelCore) MemberAccountingLedgerFindForUpdate(ctx context.Context, tx *gorm.DB, memberProfileID, accountID, orgID, branchID uuid.UUID) (*MemberAccountingLedger, error) {
 	var ledger MemberAccountingLedger
 	err := tx.WithContext(ctx).
 		Model(&MemberAccountingLedger{}).
@@ -232,7 +232,7 @@ func (m *ModelCore) MemberAccountingLedgerUpdateOrCreate(
 	lastPayTime time.Time,
 ) (*MemberAccountingLedger, error) {
 	// First, try to find and lock existing ledger
-	ledger, err := m.memberAccountingLedgerFindForUpdate(ctx, tx, memberProfileID, accountID, orgID, branchID)
+	ledger, err := m.MemberAccountingLedgerFindForUpdate(ctx, tx, memberProfileID, accountID, orgID, branchID)
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to find member accounting ledger for update")
 	}

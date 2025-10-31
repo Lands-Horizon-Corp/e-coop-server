@@ -742,7 +742,7 @@ func (m *ModelCore) loanStatusSeed(context context.Context, tx *gorm.DB, userID 
 	return nil
 }
 
-func (m *ModelCore) loanStatusCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanStatus, error) {
+func (m *ModelCore) LoanStatusCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanStatus, error) {
 	return m.LoanStatusManager.Find(context, &LoanStatus{
 		OrganizationID: orgId,
 		BranchID:       branchId,

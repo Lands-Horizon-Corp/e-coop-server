@@ -212,7 +212,8 @@ func (m *ModelCore) chargesRateByTerm() {
 	})
 }
 
-func (m *ModelCore) chargesRateByTermCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ChargesRateByTerm, error) {
+// ChargesRateByTermCurrentBranch retrieves all charges rate by term for the specified organization and branch
+func (m *ModelCore) ChargesRateByTermCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ChargesRateByTerm, error) {
 	return m.ChargesRateByTermManager.Find(context, &ChargesRateByTerm{
 		OrganizationID: orgId,
 		BranchID:       branchId,

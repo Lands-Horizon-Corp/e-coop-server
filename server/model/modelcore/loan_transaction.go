@@ -782,7 +782,7 @@ func (m *ModelCore) loanTransaction() {
 	})
 }
 
-func (m *ModelCore) loanTransactionCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanTransaction, error) {
+func (m *ModelCore) LoanTransactionCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanTransaction, error) {
 	return m.LoanTransactionManager.Find(context, &LoanTransaction{
 		OrganizationID: orgId,
 		BranchID:       branchId,
@@ -809,7 +809,7 @@ func (m *ModelCore) mapLoanTransactionEntries(entries []*LoanTransactionEntry) [
 	return result
 }
 
-func (m *ModelCore) loanTransactionWithDatesNotNull(ctx context.Context, memberId, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
+func (m *ModelCore) LoanTransactionWithDatesNotNull(ctx context.Context, memberId, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
 	filters := []services.Filter{
 		{Field: "member_profile_id", Op: services.OpEq, Value: memberId},
 		{Field: "organization_id", Op: services.OpEq, Value: orgId},
@@ -826,7 +826,7 @@ func (m *ModelCore) loanTransactionWithDatesNotNull(ctx context.Context, memberI
 	return loanTransactions, nil
 }
 
-func (m *ModelCore) loanTransactionsMemberAccount(ctx context.Context, memberId, accountId, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
+func (m *ModelCore) LoanTransactionsMemberAccount(ctx context.Context, memberId, accountId, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
 	filters := []services.Filter{
 		{Field: "member_profile_id", Op: services.OpEq, Value: memberId},
 		{Field: "organization_id", Op: services.OpEq, Value: orgId},
@@ -844,7 +844,7 @@ func (m *ModelCore) loanTransactionsMemberAccount(ctx context.Context, memberId,
 	return loanTransactions, nil
 }
 
-func (m *ModelCore) generateLoanAmortization(ctx context.Context, loanTransaction *LoanTransaction) error {
+func (m *ModelCore) GenerateLoanAmortization(ctx context.Context, loanTransaction *LoanTransaction) error {
 
 	// Fetch the holidays if needed for amortization calculation
 	// holidays, err := m.HolidayManager.Find(ctx, &Holiday{
@@ -863,7 +863,7 @@ func (m *ModelCore) generateLoanAmortization(ctx context.Context, loanTransactio
 }
 
 // Helper function to generate amortization schedule
-func (m *ModelCore) generateLoanAmortizationSchedule(ctx context.Context, loanTransaction *LoanTransaction) (*AmortizationScheduleResponse, error) {
+func (m *ModelCore) GenerateLoanAmortizationSchedule(ctx context.Context, loanTransaction *LoanTransaction) (*AmortizationScheduleResponse, error) {
 	// Extract loan details
 	principal := loanTransaction.Applied1
 	terms := loanTransaction.Terms
@@ -1040,7 +1040,7 @@ func (m *ModelCore) generateLoanAmortizationSchedule(ctx context.Context, loanTr
 	return response, nil
 }
 
-func (m *ModelCore) loanTransactionDraft(ctx context.Context, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
+func (m *ModelCore) LoanTransactionDraft(ctx context.Context, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
 	filters := []services.Filter{
 		{Field: "organization_id", Op: services.OpEq, Value: orgId},
 		{Field: "branch_id", Op: services.OpEq, Value: branchId},
@@ -1056,7 +1056,7 @@ func (m *ModelCore) loanTransactionDraft(ctx context.Context, branchId, orgId uu
 	return loanTransactions, nil
 }
 
-func (m *ModelCore) loanTransactionPrinted(ctx context.Context, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
+func (m *ModelCore) LoanTransactionPrinted(ctx context.Context, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
 	filters := []services.Filter{
 		{Field: "organization_id", Op: services.OpEq, Value: orgId},
 		{Field: "branch_id", Op: services.OpEq, Value: branchId},
@@ -1072,7 +1072,7 @@ func (m *ModelCore) loanTransactionPrinted(ctx context.Context, branchId, orgId 
 	return loanTransactions, nil
 }
 
-func (m *ModelCore) loanTransactionApproved(ctx context.Context, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
+func (m *ModelCore) LoanTransactionApproved(ctx context.Context, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
 	filters := []services.Filter{
 		{Field: "organization_id", Op: services.OpEq, Value: orgId},
 		{Field: "branch_id", Op: services.OpEq, Value: branchId},
@@ -1087,7 +1087,7 @@ func (m *ModelCore) loanTransactionApproved(ctx context.Context, branchId, orgId
 	}
 	return loanTransactions, nil
 }
-func (m *ModelCore) loanTransactionReleased(ctx context.Context, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
+func (m *ModelCore) LoanTransactionReleased(ctx context.Context, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
 	filters := []services.Filter{
 		{Field: "organization_id", Op: services.OpEq, Value: orgId},
 		{Field: "branch_id", Op: services.OpEq, Value: branchId},
@@ -1102,7 +1102,7 @@ func (m *ModelCore) loanTransactionReleased(ctx context.Context, branchId, orgId
 	return loanTransactions, nil
 }
 
-func (m *ModelCore) loanTransactionReleasedCurrentDay(ctx context.Context, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
+func (m *ModelCore) LoanTransactionReleasedCurrentDay(ctx context.Context, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
 	now := time.Now().UTC()
 	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 	endOfDay := startOfDay.Add(24 * time.Hour)

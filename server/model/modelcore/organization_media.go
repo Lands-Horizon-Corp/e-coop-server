@@ -104,14 +104,14 @@ func (m *ModelCore) organizationMedia() {
 }
 
 // OrganizationMediaFindByOrganization retrieves all media files associated with a specific organization
-func (m *ModelCore) organizationMediaFindByOrganization(context context.Context, organizationID uuid.UUID) ([]*OrganizationMedia, error) {
+func (m *ModelCore) OrganizationMediaFindByOrganization(context context.Context, organizationID uuid.UUID) ([]*OrganizationMedia, error) {
 	return m.OrganizationMediaManager.Find(context, &OrganizationMedia{
 		OrganizationID: organizationID,
 	})
 }
 
 // OrganizationMediaCreateForOrganization creates a new media association for an organization
-func (m *ModelCore) organizationMediaCreateForOrganization(context context.Context, organizationID uuid.UUID, mediaID uuid.UUID, name string, description *string) (*OrganizationMedia, error) {
+func (m *ModelCore) OrganizationMediaCreateForOrganization(context context.Context, organizationID uuid.UUID, mediaID uuid.UUID, name string, description *string) (*OrganizationMedia, error) {
 	organizationMedia := &OrganizationMedia{
 		Name:           name,
 		Description:    description,
@@ -127,6 +127,6 @@ func (m *ModelCore) organizationMediaCreateForOrganization(context context.Conte
 }
 
 // OrganizationMediaDeleteByID deletes an organization media association by its ID
-func (m *ModelCore) organizationMediaDeleteByID(context context.Context, id uuid.UUID) error {
+func (m *ModelCore) OrganizationMediaDeleteByID(context context.Context, id uuid.UUID) error {
 	return m.OrganizationMediaManager.DeleteByID(context, id)
 }

@@ -117,14 +117,14 @@ func (m *ModelCore) memberGroupHistory() {
 	})
 }
 
-func (m *ModelCore) memberGroupHistoryCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberGroupHistory, error) {
+func (m *ModelCore) MemberGroupHistoryCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberGroupHistory, error) {
 	return m.MemberGroupHistoryManager.Find(context, &MemberGroupHistory{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})
 }
 
-func (m *ModelCore) memberGroupHistoryMemberProfileID(context context.Context, memberProfileId, orgId, branchId uuid.UUID) ([]*MemberGroupHistory, error) {
+func (m *ModelCore) MemberGroupHistoryMemberProfileID(context context.Context, memberProfileId, orgId, branchId uuid.UUID) ([]*MemberGroupHistory, error) {
 	return m.MemberGroupHistoryManager.Find(context, &MemberGroupHistory{
 		OrganizationID:  orgId,
 		BranchID:        branchId,

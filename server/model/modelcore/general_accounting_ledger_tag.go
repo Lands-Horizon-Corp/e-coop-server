@@ -132,7 +132,7 @@ func (m *ModelCore) generalLedgerTag() {
 	})
 }
 
-func (m *ModelCore) generalLedgerTagCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*GeneralLedgerTag, error) {
+func (m *ModelCore) GeneralLedgerTagCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*GeneralLedgerTag, error) {
 	return m.GeneralLedgerTagManager.Find(context, &GeneralLedgerTag{
 		OrganizationID: orgId,
 		BranchID:       branchId,

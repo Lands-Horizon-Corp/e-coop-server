@@ -165,7 +165,8 @@ func (m *ModelCore) checkRemittance() {
 	})
 }
 
-func (m *ModelCore) checkRemittanceCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*CheckRemittance, error) {
+// CheckRemittanceCurrentBranch retrieves all check remittances for the specified organization and branch
+func (m *ModelCore) CheckRemittanceCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*CheckRemittance, error) {
 	return m.CheckRemittanceManager.Find(context, &CheckRemittance{
 		OrganizationID: orgId,
 		BranchID:       branchId,

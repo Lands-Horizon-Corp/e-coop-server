@@ -430,14 +430,14 @@ func (m *ModelCore) memberProfile() {
 	})
 }
 
-func (m *ModelCore) memberProfileCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberProfile, error) {
+func (m *ModelCore) MemberProfileCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberProfile, error) {
 	return m.MemberProfileManager.Find(context, &MemberProfile{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})
 }
 
-func (m *ModelCore) memberProfileDelete(context context.Context, tx *gorm.DB, memberProfileId uuid.UUID) error {
+func (m *ModelCore) MemberProfileDelete(context context.Context, tx *gorm.DB, memberProfileId uuid.UUID) error {
 	// Delete MemberEducationalAttainment records
 	memberEducationalAttainments, err := m.MemberEducationalAttainmentManager.Find(context, &MemberEducationalAttainment{
 		MemberProfileID: memberProfileId,
@@ -639,7 +639,7 @@ func (m *ModelCore) memberProfileDelete(context context.Context, tx *gorm.DB, me
 
 	return m.MemberProfileManager.DeleteByIDWithTx(context, tx, memberProfileId)
 }
-func (m *ModelCore) memberProfileFindUserByID(ctx context.Context, userId uuid.UUID, orgId uuid.UUID, branchId uuid.UUID) (*MemberProfile, error) {
+func (m *ModelCore) MemberProfileFindUserByID(ctx context.Context, userId uuid.UUID, orgId uuid.UUID, branchId uuid.UUID) (*MemberProfile, error) {
 	return m.MemberProfileManager.FindOne(ctx, &MemberProfile{
 		UserID:         &userId,
 		OrganizationID: orgId,
@@ -706,7 +706,7 @@ func (m *ModelCore) memberProfileSeed(context context.Context, tx *gorm.DB, user
 	return nil
 }
 
-func (m *ModelCore) memberProfileDestroy(ctx context.Context, tx *gorm.DB, id uuid.UUID) error {
+func (m *ModelCore) MemberProfileDestroy(ctx context.Context, tx *gorm.DB, id uuid.UUID) error {
 	memberProfile, err := m.MemberProfileManager.GetByID(ctx, id)
 	if err != nil {
 		return eris.Wrapf(err, "failed to get MemberProfile by ID: %s", id)
@@ -833,7 +833,7 @@ func (m *ModelCore) memberProfileDestroy(ctx context.Context, tx *gorm.DB, id uu
 			return eris.Wrapf(err, "failed to delete member contact reference: %s", memberContact.ID)
 		}
 	}
-	if err := m.memberProfileDelete(ctx, tx, memberProfile.ID); err != nil {
+	if err := m.MemberProfileDelete(ctx, tx, memberProfile.ID); err != nil {
 		return eris.Wrapf(err, "failed to delete member profile: %s", memberProfile.ID)
 	}
 	return err
