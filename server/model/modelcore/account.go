@@ -2527,14 +2527,16 @@ func (a *Account) BeforeDelete(tx *gorm.DB) error {
 	return tx.Create(history).Error
 }
 
-func (m *ModelCore) accountCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Account, error) {
+// AccountCurrentbranch retrieves all accounts for a given organization and branch.
+func (m *ModelCore) AccountCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Account, error) {
 	return m.AccountManager.Find(context, &Account{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})
 }
 
-func (m *ModelCore) accountLockForUpdate(ctx context.Context, tx *gorm.DB, accountID uuid.UUID) (*Account, error) {
+// account = lockedAccount
+func (m *ModelCore) AccountLockForUpdate(ctx context.Context, tx *gorm.DB, accountID uuid.UUID) (*Account, error) {
 	var lockedAccount Account
 	err := tx.WithContext(ctx).
 		Model(&Account{}).
@@ -2550,8 +2552,8 @@ func (m *ModelCore) accountLockForUpdate(ctx context.Context, tx *gorm.DB, accou
 }
 
 // account = lockedAccount
-func (m *ModelCore) accountLockWithValidation(ctx context.Context, tx *gorm.DB, accountID uuid.UUID, originalAccount *Account) (*Account, error) {
-	lockedAccount, err := m.accountLockForUpdate(ctx, tx, accountID)
+func (m *ModelCore) AccountLockWithValidation(ctx context.Context, tx *gorm.DB, accountID uuid.UUID, originalAccount *Account) (*Account, error) {
+	lockedAccount, err := m.AccountLockForUpdate(ctx, tx, accountID)
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to acquire account lock")
 	}

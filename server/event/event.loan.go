@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/rotisserie/eris"
@@ -218,11 +218,11 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 				if err != nil {
 					return nil, err
 				}
-				entry.Credit = e.service.LoanChargesRateComputation(ctx, *chargesRateScheme, *loanTransaction)
+				entry.Credit = e.usecase.LoanChargesRateComputation(ctx, *chargesRateScheme, *loanTransaction)
 			}
 
 			if entry.Credit <= 0 {
-				entry.Credit = e.service.LoanComputation(ctx, *entry.AutomaticLoanDeduction, *loanTransaction)
+				entry.Credit = e.usecase.LoanComputation(ctx, *entry.AutomaticLoanDeduction, *loanTransaction)
 			}
 		}
 
@@ -274,12 +274,12 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 
 					return nil, err
 				}
-				entry.Credit = e.service.LoanChargesRateComputation(ctx, *chargesRateScheme, *loanTransaction)
+				entry.Credit = e.usecase.LoanChargesRateComputation(ctx, *chargesRateScheme, *loanTransaction)
 
 			}
 
 			if entry.Credit <= 0 {
-				entry.Credit = e.service.LoanComputation(ctx, *ald, *loanTransaction)
+				entry.Credit = e.usecase.LoanComputation(ctx, *ald, *loanTransaction)
 			}
 
 			if !entry.IsAddOn {
@@ -405,7 +405,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		}
 	}
 	// Amortization
-	amort, err := e.service.LoanModeOfPayment(ctx, loanTransaction)
+	amort, err := e.usecase.LoanModeOfPayment(ctx, loanTransaction)
 	if err != nil {
 		tx.Rollback()
 		e.Footstep(ctx, echoCtx, FootstepEvent{

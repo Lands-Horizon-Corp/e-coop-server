@@ -307,14 +307,16 @@ func (m *ModelCore) generalLedger() {
 	})
 }
 
-func (m *ModelCore) generalLedgerCurrentbranch(context context.Context, orgId, branchId uuid.UUID) ([]*GeneralLedger, error) {
+// General Ledger Queries
+func (m *ModelCore) GeneralLedgerCurrentbranch(context context.Context, orgId, branchId uuid.UUID) ([]*GeneralLedger, error) {
 	return m.GeneralLedgerManager.Find(context, &GeneralLedger{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})
 }
 
-func (m *ModelCore) generalLedgerCurrentMemberAccount(context context.Context, memberProfileId, accountId, orgId, branchId uuid.UUID) (*GeneralLedger, error) {
+// General Ledger Queries with locking for update
+func (m *ModelCore) GeneralLedgerCurrentMemberAccount(context context.Context, memberProfileId, accountId, orgId, branchId uuid.UUID) (*GeneralLedger, error) {
 	return m.GeneralLedgerManager.FindOne(context, &GeneralLedger{
 		OrganizationID:  orgId,
 		BranchID:        branchId,
@@ -323,7 +325,8 @@ func (m *ModelCore) generalLedgerCurrentMemberAccount(context context.Context, m
 	})
 }
 
-func (m *ModelCore) generalLedgerCurrentMemberAccountForUpdate(
+// General Ledger Queries with locking for update
+func (m *ModelCore) GeneralLedgerCurrentMemberAccountForUpdate(
 	ctx context.Context, tx *gorm.DB, memberProfileId, accountId, orgId, branchId uuid.UUID,
 ) (*GeneralLedger, error) {
 	var ledger GeneralLedger
@@ -341,7 +344,8 @@ func (m *ModelCore) generalLedgerCurrentMemberAccountForUpdate(
 	return &ledger, err
 }
 
-func (m *ModelCore) generalLedgerCurrentSubsidiaryAccountForUpdate(
+// General Ledger Queries with locking for update
+func (m *ModelCore) GeneralLedgerCurrentSubsidiaryAccountForUpdate(
 	ctx context.Context, tx *gorm.DB, accountId, orgId, branchId uuid.UUID,
 ) (*GeneralLedger, error) {
 	var ledger GeneralLedger
@@ -359,7 +363,8 @@ func (m *ModelCore) generalLedgerCurrentSubsidiaryAccountForUpdate(
 	return &ledger, err
 }
 
-func (m *ModelCore) generalLedgerCashOnHandOnUpdate(
+// General Ledger Queries with locking for update
+func (m *ModelCore) GeneralLedgerCashOnHandOnUpdate(
 	ctx context.Context, tx *gorm.DB, accountId, orgId, branchId uuid.UUID,
 ) (*GeneralLedger, error) {
 	var ledger GeneralLedger
@@ -377,7 +382,8 @@ func (m *ModelCore) generalLedgerCashOnHandOnUpdate(
 	return &ledger, err
 }
 
-func (m *ModelCore) generalLedgerPrintMaxNumber(
+// General Ledger Queries
+func (m *ModelCore) GeneralLedgerPrintMaxNumber(
 	ctx context.Context,
 	memberProfileID, accountID, branchID, orgID uuid.UUID,
 ) (int, error) {
@@ -392,7 +398,8 @@ func (m *ModelCore) generalLedgerPrintMaxNumber(
 	return maxPrintNumber, nil
 }
 
-func (m *ModelCore) generalLedgerExcludeCashonHand(
+// General Ledger Queries excluding Cash on Hand account
+func (m *ModelCore) GeneralLedgerExcludeCashonHand(
 	ctx context.Context,
 	transactionId, orgId,
 	branchId uuid.UUID,
@@ -416,7 +423,8 @@ func (m *ModelCore) generalLedgerExcludeCashonHand(
 	return m.GeneralLedgerManager.FindWithFilters(ctx, filters)
 }
 
-func (m *ModelCore) generalLedgerExcludeCashonHandWithType(
+// General Ledger Queries excluding Cash on Hand account with TypeOfPaymentType filter
+func (m *ModelCore) GeneralLedgerExcludeCashonHandWithType(
 	ctx context.Context,
 	transactionId, orgId, branchId uuid.UUID,
 	paymentType *TypeOfPaymentType,
@@ -450,7 +458,8 @@ func (m *ModelCore) generalLedgerExcludeCashonHandWithType(
 	return m.GeneralLedgerManager.FindWithFilters(ctx, filters)
 }
 
-func (m *ModelCore) generalLedgerExcludeCashonHandWithSource(
+// General Ledger Queries excluding Cash on Hand account with Source filter
+func (m *ModelCore) GeneralLedgerExcludeCashonHandWithSource(
 	ctx context.Context,
 	transactionId, orgId, branchId uuid.UUID,
 	source *GeneralLedgerSource,
@@ -484,7 +493,8 @@ func (m *ModelCore) generalLedgerExcludeCashonHandWithSource(
 	return m.GeneralLedgerManager.FindWithFilters(ctx, filters)
 }
 
-func (m *ModelCore) generalLedgerExcludeCashonHandWithFilters(
+// General Ledger Queries excluding Cash on Hand account with TypeOfPaymentType and Source filters
+func (m *ModelCore) GeneralLedgerExcludeCashonHandWithFilters(
 	ctx context.Context,
 	transactionId, orgId, branchId uuid.UUID,
 	paymentType *TypeOfPaymentType,

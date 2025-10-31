@@ -7,8 +7,8 @@ import (
 	"math"
 	"time"
 
-	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/service"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/rotisserie/eris"
@@ -461,7 +461,7 @@ func (e *Event) TransactionPayment(
 	}
 
 	// Add nil checks for service operations
-	if e.service == nil {
+	if e.usecase == nil {
 		tx.Rollback()
 		e.Footstep(ctx, echoCtx, FootstepEvent{
 			Activity:    "service-error",
@@ -477,12 +477,12 @@ func (e *Event) TransactionPayment(
 
 	case modelcore.GeneralLedgerSourcePayment, modelcore.GeneralLedgerSourceDeposit:
 		if data.Reverse {
-			credit, debit, balance, err = e.service.Withdraw(ctx, service.TransactionData{
+			credit, debit, balance, err = e.usecase.Withdraw(ctx, usecase.TransactionData{
 				GeneralLedger: generalLedger,
 				Account:       account,
 			}, data.Amount)
 		} else {
-			credit, debit, balance, err = e.service.Deposit(ctx, service.TransactionData{
+			credit, debit, balance, err = e.usecase.Deposit(ctx, usecase.TransactionData{
 				GeneralLedger: generalLedger,
 				Account:       account,
 			}, data.Amount)
@@ -493,7 +493,7 @@ func (e *Event) TransactionPayment(
 		}
 	case modelcore.GeneralLedgerSourceWithdraw:
 		if data.Reverse {
-			credit, debit, balance, err = e.service.Deposit(ctx, service.TransactionData{
+			credit, debit, balance, err = e.usecase.Deposit(ctx, usecase.TransactionData{
 				GeneralLedger: generalLedger,
 				Account:       account,
 			}, data.Amount)
@@ -501,7 +501,7 @@ func (e *Event) TransactionPayment(
 				err = eris.Wrap(err, "Account")
 			}
 		} else {
-			credit, debit, balance, err = e.service.Withdraw(ctx, service.TransactionData{
+			credit, debit, balance, err = e.usecase.Withdraw(ctx, usecase.TransactionData{
 				GeneralLedger: generalLedger,
 				Account:       account,
 			}, data.Amount)
@@ -648,7 +648,7 @@ func (e *Event) TransactionPayment(
 	switch data.Source {
 	case modelcore.GeneralLedgerSourcePayment, modelcore.GeneralLedgerSourceDeposit:
 		if data.Reverse {
-			cohCredit, cohDebit, cohBalance, err = e.service.Withdraw(ctx, service.TransactionData{
+			cohCredit, cohDebit, cohBalance, err = e.usecase.Withdraw(ctx, usecase.TransactionData{
 				GeneralLedger: cohGeneralLedger,
 				Account:       cashOnHandAccount,
 			}, data.Amount)
@@ -656,7 +656,7 @@ func (e *Event) TransactionPayment(
 				err = eris.Wrap(err, "Cash on Hand Account")
 			}
 		} else {
-			cohCredit, cohDebit, cohBalance, err = e.service.Deposit(ctx, service.TransactionData{
+			cohCredit, cohDebit, cohBalance, err = e.usecase.Deposit(ctx, usecase.TransactionData{
 				GeneralLedger: cohGeneralLedger,
 				Account:       cashOnHandAccount,
 			}, data.Amount)
@@ -667,7 +667,7 @@ func (e *Event) TransactionPayment(
 
 	case modelcore.GeneralLedgerSourceWithdraw:
 		if data.Reverse {
-			cohCredit, cohDebit, cohBalance, err = e.service.Deposit(ctx, service.TransactionData{
+			cohCredit, cohDebit, cohBalance, err = e.usecase.Deposit(ctx, usecase.TransactionData{
 				GeneralLedger: cohGeneralLedger,
 				Account:       cashOnHandAccount,
 			}, data.Amount)
@@ -675,7 +675,7 @@ func (e *Event) TransactionPayment(
 				err = eris.Wrap(err, "Cash on Hand Account")
 			}
 		} else {
-			cohCredit, cohDebit, cohBalance, err = e.service.Withdraw(ctx, service.TransactionData{
+			cohCredit, cohDebit, cohBalance, err = e.usecase.Withdraw(ctx, usecase.TransactionData{
 				GeneralLedger: cohGeneralLedger,
 				Account:       cashOnHandAccount,
 			}, data.Amount)

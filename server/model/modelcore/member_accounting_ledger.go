@@ -224,7 +224,7 @@ func (m *ModelCore) memberAccountingLedgerFindForUpdate(ctx context.Context, tx 
 //	    newBalance, time.Now())
 //	if err != nil {
 //	}
-func (m *ModelCore) memberAccountingLedgerUpdateOrCreate(
+func (m *ModelCore) MemberAccountingLedgerUpdateOrCreate(
 	ctx context.Context,
 	tx *gorm.DB,
 	memberProfileID, accountID, orgID, branchID, userID uuid.UUID,

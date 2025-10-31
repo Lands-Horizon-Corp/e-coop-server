@@ -2,31 +2,31 @@ package event
 
 import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/server"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/cooperative_tokens"
-	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/service"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/tokens"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
 )
 
 type Event struct {
 	modelcore               *modelcore.ModelCore
-	user_organization_token *cooperative_tokens.UserOrganizationToken
-	user_token              *cooperative_tokens.UserToken
+	user_organization_token *tokens.UserOrganizationToken
+	user_token              *tokens.UserToken
 	provider                *server.Provider
-	service                 *service.TransactionService
+	usecase                 *usecase.TransactionService
 }
 
 func NewEvent(
 	modelcore *modelcore.ModelCore,
-	user_organization_token *cooperative_tokens.UserOrganizationToken,
-	user_token *cooperative_tokens.UserToken,
+	user_organization_token *tokens.UserOrganizationToken,
+	user_token *tokens.UserToken,
 	provider *server.Provider,
-	service *service.TransactionService,
+	usecase *usecase.TransactionService,
 ) (*Event, error) {
 	return &Event{
 		user_organization_token: user_organization_token,
 		user_token:              user_token,
 		modelcore:               modelcore,
 		provider:                provider,
-		service:                 service,
+		usecase:                 usecase,
 	}, nil
 }

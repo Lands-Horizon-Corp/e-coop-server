@@ -486,7 +486,7 @@ func (m *ModelCore) transactionBatch() {
 	})
 }
 
-func (m *ModelCore) transactionBatchCurrent(context context.Context, userId uuid.UUID, orgId uuid.UUID, branchId uuid.UUID) (*TransactionBatch, error) {
+func (m *ModelCore) TransactionBatchCurrent(context context.Context, userId uuid.UUID, orgId uuid.UUID, branchId uuid.UUID) (*TransactionBatch, error) {
 	return m.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
 		"organization_id":  orgId,
 		"branch_id":        branchId,
@@ -495,7 +495,7 @@ func (m *ModelCore) transactionBatchCurrent(context context.Context, userId uuid
 	})
 }
 
-func (m *ModelCore) transactionBatchViewRequests(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*TransactionBatch, error) {
+func (m *ModelCore) TransactionBatchViewRequests(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*TransactionBatch, error) {
 	return m.TransactionBatchManager.FindWithConditions(context, map[string]any{
 		"organization_id": orgId,
 		"branch_id":       branchId,
@@ -505,7 +505,8 @@ func (m *ModelCore) transactionBatchViewRequests(context context.Context, orgId 
 	})
 }
 
-func (m *ModelCore) transactionBatchMinimal(context context.Context, id uuid.UUID) (*TransactionBatchResponse, error) {
+// TransactionBatchMinimal retrieves a transaction batch by ID and returns a minimal representation.
+func (m *ModelCore) TransactionBatchMinimal(context context.Context, id uuid.UUID) (*TransactionBatchResponse, error) {
 	data, err := m.TransactionBatchManager.GetByID(context, id)
 	if err != nil {
 		return nil, err
@@ -545,14 +546,16 @@ func (m *ModelCore) transactionBatchMinimal(context context.Context, id uuid.UUI
 	}, nil
 }
 
-func (m *ModelCore) transactionBatchCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*TransactionBatch, error) {
+// TransactionBatchCurrentbranch retrieves all transaction batches for the current branch.
+func (m *ModelCore) TransactionBatchCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*TransactionBatch, error) {
 	return m.TransactionBatchManager.Find(context, &TransactionBatch{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})
 }
 
-func (m *ModelCore) transactionBatchCurrentDay(ctx context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*TransactionBatch, error) {
+// TransactionBatchCurrentDay retrieves all closed transaction batches for the current day.
+func (m *ModelCore) TransactionBatchCurrentDay(ctx context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*TransactionBatch, error) {
 	now := time.Now().UTC()
 	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 	endOfDay := startOfDay.Add(24 * time.Hour)

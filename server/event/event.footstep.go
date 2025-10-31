@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/cooperative_tokens"
-	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/tokens"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -39,7 +39,7 @@ func (e *Event) Footstep(context context.Context, ctx echo.Context, data Footste
 		var latitude, longitude *float64
 		var ipAddress, userAgent, referer, location, acceptLanguage string
 
-		if claim != (cooperative_tokens.UserCSRF{}) {
+		if claim != (tokens.UserCSRF{}) {
 			latitude = &claim.Latitude
 			longitude = &claim.Longitude
 			ipAddress = claim.IPAddress
