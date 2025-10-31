@@ -6,7 +6,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelCore"
 	"github.com/labstack/echo/v4"
 )
 
@@ -17,7 +17,7 @@ func (c *Controller) PaymentController() {
 		Route:        "/api/v1/transaction/general-ledger/:general_ledger_id/print",
 		Method:       "POST",
 		Note:         "Processes print number for the specified general ledger by general_ledger_id.",
-		ResponseType: model_core.GeneralLedgerResponse{},
+		ResponseType: modelCore.GeneralLedgerResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		generalLedgerId, err := handlers.EngineUUIDParam(ctx, "general_ledger_id")
@@ -32,7 +32,7 @@ func (c *Controller) PaymentController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		generalLedger, err := c.model_core.GeneralLedgerManager.GetByID(context, *generalLedgerId)
+		generalLedger, err := c.modelCore.GeneralLedgerManager.GetByID(context, *generalLedgerId)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "payment-general-ledger-not-found",
@@ -40,7 +40,7 @@ func (c *Controller) PaymentController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "General ledger not found: " + err.Error()})
 		}
-		max, err := c.model_core.GeneralLedgerPrintMaxNumber(context, *generalLedger.MemberProfileID, *generalLedger.AccountID, *userOrg.BranchID, userOrg.OrganizationID)
+		max, err := c.modelCore.GeneralLedgerPrintMaxNumber(context, *generalLedger.MemberProfileID, *generalLedger.AccountID, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "payment-general-ledger-max-number-error",
@@ -50,7 +50,7 @@ func (c *Controller) PaymentController() {
 		}
 
 		generalLedger.PrintNumber = max + 1
-		if err := c.model_core.GeneralLedgerManager.UpdateFields(context, generalLedger.ID, generalLedger); err != nil {
+		if err := c.modelCore.GeneralLedgerManager.UpdateFields(context, generalLedger.ID, generalLedger); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Connect account to FS definition failed (/financial-statement-definition/:financial_statement_definition_id/account/:account_id/connect), account db error: " + err.Error(),
@@ -58,18 +58,18 @@ func (c *Controller) PaymentController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to connect account: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.GeneralLedgerManager.ToModel(generalLedger))
+		return ctx.JSON(http.StatusOK, c.modelCore.GeneralLedgerManager.ToModel(generalLedger))
 	})
 
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/transaction/:transaction_id/payment",
 		Method:       "POST",
 		Note:         "Processes a payment for the specified transaction by transaction_id and records it in the general ledger.",
-		ResponseType: model_core.GeneralLedgerResponse{},
-		RequestType:  model_core.PaymentRequest{},
+		ResponseType: modelCore.GeneralLedgerResponse{},
+		RequestType:  modelCore.PaymentRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req model_core.PaymentRequest
+		var req modelCore.PaymentRequest
 		if err := ctx.Bind(&req); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "payment-bind-error",
@@ -116,7 +116,7 @@ func (c *Controller) PaymentController() {
 			ReferenceNumber:      "",
 
 			// On Request
-			Source:                model_core.GeneralLedgerSourcePayment,
+			Source:                modelCore.GeneralLedgerSourcePayment,
 			Amount:                req.Amount,
 			AccountID:             req.AccountID,
 			PaymentTypeID:         req.PaymentTypeID,
@@ -136,18 +136,18 @@ func (c *Controller) PaymentController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Payment processing failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.GeneralLedgerManager.ToModel(generalLedger))
+		return ctx.JSON(http.StatusOK, c.modelCore.GeneralLedgerManager.ToModel(generalLedger))
 	})
 
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/transaction/:transaction_id/withdraw",
 		Method:       "POST",
 		Note:         "Processes a withdrawal for the specified transaction by transaction_id and updates the general ledger accordingly.",
-		ResponseType: model_core.GeneralLedgerResponse{},
-		RequestType:  model_core.PaymentRequest{},
+		ResponseType: modelCore.GeneralLedgerResponse{},
+		RequestType:  modelCore.PaymentRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req model_core.PaymentRequest
+		var req modelCore.PaymentRequest
 		if err := ctx.Bind(&req); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "withdraw-bind-error",
@@ -194,7 +194,7 @@ func (c *Controller) PaymentController() {
 			ReferenceNumber:      "",
 
 			// On Request
-			Source:                model_core.GeneralLedgerSourceWithdraw,
+			Source:                modelCore.GeneralLedgerSourceWithdraw,
 			Amount:                req.Amount,
 			AccountID:             req.AccountID,
 			PaymentTypeID:         req.PaymentTypeID,
@@ -214,18 +214,18 @@ func (c *Controller) PaymentController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Withdrawal processing failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.GeneralLedgerManager.ToModel(generalLedger))
+		return ctx.JSON(http.StatusOK, c.modelCore.GeneralLedgerManager.ToModel(generalLedger))
 	})
 
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/transaction/:transaction_id/deposit",
 		Method:       "POST",
 		Note:         "Processes a deposit for the specified transaction by transaction_id and updates the general ledger accordingly.",
-		ResponseType: model_core.GeneralLedgerResponse{},
-		RequestType:  model_core.PaymentRequest{},
+		ResponseType: modelCore.GeneralLedgerResponse{},
+		RequestType:  modelCore.PaymentRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req model_core.PaymentRequest
+		var req modelCore.PaymentRequest
 		if err := ctx.Bind(&req); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "deposit-bind-error",
@@ -272,7 +272,7 @@ func (c *Controller) PaymentController() {
 			ReferenceNumber:      "",
 
 			// On Request
-			Source:                model_core.GeneralLedgerSourceDeposit,
+			Source:                modelCore.GeneralLedgerSourceDeposit,
 			Amount:                req.Amount,
 			AccountID:             req.AccountID,
 			PaymentTypeID:         req.PaymentTypeID,
@@ -292,18 +292,18 @@ func (c *Controller) PaymentController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Deposit processing failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.GeneralLedgerManager.ToModel(generalLedger))
+		return ctx.JSON(http.StatusOK, c.modelCore.GeneralLedgerManager.ToModel(generalLedger))
 	})
 
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/transaction/payment",
 		Method:       "POST",
 		Note:         "Processes a payment for a transaction without specifying transaction_id in the route. Used for general payments.",
-		ResponseType: model_core.GeneralLedger{},
-		RequestType:  model_core.PaymentQuickRequest{},
+		ResponseType: modelCore.GeneralLedger{},
+		RequestType:  modelCore.PaymentQuickRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req model_core.PaymentQuickRequest
+		var req modelCore.PaymentQuickRequest
 		if err := ctx.Bind(&req); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "general-payment-bind-error",
@@ -340,7 +340,7 @@ func (c *Controller) PaymentController() {
 			ReferenceNumber:      req.BankReferenceNumber,
 
 			// On Request
-			Source:                model_core.GeneralLedgerSourcePayment,
+			Source:                modelCore.GeneralLedgerSourcePayment,
 			Amount:                req.Amount,
 			AccountID:             req.AccountID,
 			PaymentTypeID:         req.PaymentTypeID,
@@ -361,18 +361,18 @@ func (c *Controller) PaymentController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Payment processing failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.GeneralLedgerManager.ToModel(generalLedger))
+		return ctx.JSON(http.StatusOK, c.modelCore.GeneralLedgerManager.ToModel(generalLedger))
 	})
 
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/transaction/withdraw",
 		Method:       "POST",
 		Note:         "Processes a withdrawal for a transaction without specifying transaction_id in the route. Used for general withdrawals.",
-		ResponseType: model_core.GeneralLedgerResponse{},
-		RequestType:  model_core.PaymentQuickRequest{},
+		ResponseType: modelCore.GeneralLedgerResponse{},
+		RequestType:  modelCore.PaymentQuickRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req model_core.PaymentQuickRequest
+		var req modelCore.PaymentQuickRequest
 		if err := ctx.Bind(&req); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "general-withdraw-bind-error",
@@ -409,7 +409,7 @@ func (c *Controller) PaymentController() {
 			ReferenceNumber:      req.BankReferenceNumber,
 
 			// On Request
-			Source:                model_core.GeneralLedgerSourceWithdraw,
+			Source:                modelCore.GeneralLedgerSourceWithdraw,
 			Amount:                req.Amount,
 			AccountID:             req.AccountID,
 			PaymentTypeID:         req.PaymentTypeID,
@@ -430,18 +430,18 @@ func (c *Controller) PaymentController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Withdrawal processing failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.GeneralLedgerManager.ToModel(generalLedger))
+		return ctx.JSON(http.StatusOK, c.modelCore.GeneralLedgerManager.ToModel(generalLedger))
 	})
 
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/transaction/deposit",
 		Method:       "POST",
 		Note:         "Processes a deposit for a transaction without specifying transaction_id in the route. Used for general deposits.",
-		ResponseType: model_core.GeneralLedgerResponse{},
-		RequestType:  model_core.PaymentQuickRequest{},
+		ResponseType: modelCore.GeneralLedgerResponse{},
+		RequestType:  modelCore.PaymentQuickRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req model_core.PaymentQuickRequest
+		var req modelCore.PaymentQuickRequest
 		if err := ctx.Bind(&req); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "general-deposit-bind-error",
@@ -478,7 +478,7 @@ func (c *Controller) PaymentController() {
 			ReferenceNumber:      req.BankReferenceNumber,
 
 			// On Request
-			Source:                model_core.GeneralLedgerSourceDeposit,
+			Source:                modelCore.GeneralLedgerSourceDeposit,
 			Amount:                req.Amount,
 			AccountID:             req.AccountID,
 			PaymentTypeID:         req.PaymentTypeID,
@@ -499,7 +499,7 @@ func (c *Controller) PaymentController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Deposit processing failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.GeneralLedgerManager.ToModel(generalLedger))
+		return ctx.JSON(http.StatusOK, c.modelCore.GeneralLedgerManager.ToModel(generalLedger))
 	})
 
 	req.RegisterRoute(handlers.Route{
@@ -512,7 +512,7 @@ func (c *Controller) PaymentController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid general ledger ID: " + err.Error()})
 		}
-		generalLedger, err := c.model_core.GeneralLedgerManager.GetByID(context, *generalLedgerId)
+		generalLedger, err := c.modelCore.GeneralLedgerManager.GetByID(context, *generalLedgerId)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "General ledger not found: " + err.Error()})
 		}
@@ -561,14 +561,14 @@ func (c *Controller) PaymentController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Payment processing failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.GeneralLedgerManager.ToModel(newGeneralLedger))
+		return ctx.JSON(http.StatusOK, c.modelCore.GeneralLedgerManager.ToModel(newGeneralLedger))
 	})
 
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/transaction/:transaction_id/reverse",
 		Method:       "POST",
 		Note:         "Reverses all general ledger entries for a specific transaction by transaction_id.",
-		ResponseType: model_core.TransactionResponse{},
+		ResponseType: modelCore.TransactionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		transactionId, err := handlers.EngineUUIDParam(ctx, "transaction_id")
@@ -582,7 +582,7 @@ func (c *Controller) PaymentController() {
 		}
 
 		// Get all general ledger entries for this transaction
-		generalLedgers, err := c.model_core.GeneralLedgerManager.Find(context, &model_core.GeneralLedger{
+		generalLedgers, err := c.modelCore.GeneralLedgerManager.Find(context, &modelCore.GeneralLedger{
 			TransactionID: transactionId,
 		})
 		if err != nil {
@@ -608,7 +608,7 @@ func (c *Controller) PaymentController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
 
-		var reversedLedgers []*model_core.GeneralLedger
+		var reversedLedgers []*modelCore.GeneralLedger
 
 		// Reverse each general ledger entry
 		for _, generalLedger := range generalLedgers {
@@ -649,7 +649,7 @@ func (c *Controller) PaymentController() {
 			}
 			reversedLedgers = append(reversedLedgers, newGeneralLedger)
 		}
-		transaction, err := c.model_core.TransactionManager.GetByIDRaw(context, *transactionId)
+		transaction, err := c.modelCore.TransactionManager.GetByIDRaw(context, *transactionId)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "transaction-reverse-fetch-error",

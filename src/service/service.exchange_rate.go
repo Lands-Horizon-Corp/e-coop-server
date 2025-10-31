@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelCore"
 )
 
 // ExchangeResult represents the result of a currency exchange operation
@@ -88,8 +88,8 @@ func GetExchangeRate(currencyFrom, currencyTo string, amount float64) (*Exchange
 
 // ExchangeRateComputeAmount computes the exchange rate and converts amount between two currencies
 func (s *TransactionService) ExchangeRateComputeAmount(
-	fromCurrency model_core.Currency,
-	toCurrency model_core.Currency,
+	fromCurrency modelCore.Currency,
+	toCurrency modelCore.Currency,
 	amount float64) (*ExchangeResult, error) {
 
 	fromCurrencyStr := fromCurrency.CurrencyCode

@@ -7,7 +7,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelCore"
 	"github.com/go-playground/validator"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -22,8 +22,8 @@ func (c *Controller) UserOrganinzationController() {
 		Route:        "/api/v1/user-organization/:user_organization_id/permission",
 		Method:       "PUT",
 		Note:         "Updates the permission fields of a user organization.",
-		RequestType:  model_core.UserOrganizationPermissionPayload{},
-		ResponseType: model_core.UserOrganizationResponse{},
+		RequestType:  modelCore.UserOrganizationPermissionPayload{},
+		ResponseType: modelCore.UserOrganizationResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrgId, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
@@ -36,7 +36,7 @@ func (c *Controller) UserOrganinzationController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_organization_id: " + err.Error()})
 		}
 
-		var payload model_core.UserOrganizationPermissionPayload
+		var payload modelCore.UserOrganizationPermissionPayload
 		if err := ctx.Bind(&payload); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -56,7 +56,7 @@ func (c *Controller) UserOrganinzationController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		userOrg, err := c.model_core.UserOrganizationManager.GetByID(context, *userOrgId)
+		userOrg, err := c.modelCore.UserOrganizationManager.GetByID(context, *userOrgId)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -82,7 +82,7 @@ func (c *Controller) UserOrganinzationController() {
 		userOrg.UpdatedAt = time.Now().UTC()
 		userOrg.UpdatedByID = currentUserOrg.UserID
 
-		if err := c.model_core.UserOrganizationManager.UpdateFields(context, userOrg.ID, userOrg); err != nil {
+		if err := c.modelCore.UserOrganizationManager.UpdateFields(context, userOrg.ID, userOrg); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update permission failed: update error: " + err.Error(),
@@ -97,7 +97,7 @@ func (c *Controller) UserOrganinzationController() {
 			Module:      "UserOrganization",
 		})
 
-		return ctx.JSON(http.StatusOK, c.model_core.UserOrganizationManager.ToModel(userOrg))
+		return ctx.JSON(http.StatusOK, c.modelCore.UserOrganizationManager.ToModel(userOrg))
 	})
 
 	// Seed all branches inside an organization when first created
@@ -125,7 +125,7 @@ func (c *Controller) UserOrganinzationController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
-		userOrganizations, err := c.model_core.GetUserOrganizationByOrganization(context, *orgId, nil)
+		userOrganizations, err := c.modelCore.GetUserOrganizationByOrganization(context, *orgId, nil)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -157,7 +157,7 @@ func (c *Controller) UserOrganinzationController() {
 			if userOrganization.UserID != user.ID {
 				continue
 			}
-			if userOrganization.UserType != model_core.UserOrganizationTypeOwner {
+			if userOrganization.UserType != modelCore.UserOrganizationTypeOwner {
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "create-error",
 					Description: "Seed organization failed: not owner",
@@ -176,7 +176,7 @@ func (c *Controller) UserOrganinzationController() {
 			if userOrganization.IsSeeded {
 				continue
 			}
-			if err := c.model_core.OrganizationSeeder(context, tx, user.ID, userOrganization.OrganizationID, *userOrganization.BranchID); err != nil {
+			if err := c.modelCore.OrganizationSeeder(context, tx, user.ID, userOrganization.OrganizationID, *userOrganization.BranchID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "create-error",
@@ -186,7 +186,7 @@ func (c *Controller) UserOrganinzationController() {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to seed organization: " + err.Error()})
 			}
 			userOrganization.IsSeeded = true
-			if err := c.model_core.UserOrganizationManager.UpdateFieldsWithTx(context, tx, userOrganization.ID, userOrganization); err != nil {
+			if err := c.modelCore.UserOrganizationManager.UpdateFieldsWithTx(context, tx, userOrganization.ID, userOrganization); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "create-error",
@@ -218,7 +218,7 @@ func (c *Controller) UserOrganinzationController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/user-organization/employee/search",
 		Method:       "GET",
-		ResponseType: model_core.UserOrganizationResponse{},
+		ResponseType: modelCore.UserOrganizationResponse{},
 		Note:         "Returns paginated employee user organizations for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -226,21 +226,21 @@ func (c *Controller) UserOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		userOrganization, err := c.model_core.UserOrganizationManager.Find(context, &model_core.UserOrganization{
+		userOrganization, err := c.modelCore.UserOrganizationManager.Find(context, &modelCore.UserOrganization{
 			OrganizationID: user.OrganizationID,
 			BranchID:       user.BranchID,
-			UserType:       model_core.UserOrganizationTypeEmployee,
+			UserType:       modelCore.UserOrganizationTypeEmployee,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve employee user organizations: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.UserOrganizationManager.Pagination(context, ctx, userOrganization))
+		return ctx.JSON(http.StatusOK, c.modelCore.UserOrganizationManager.Pagination(context, ctx, userOrganization))
 	})
 
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/user-organization/owner/search",
 		Method:       "GET",
-		ResponseType: model_core.UserOrganizationResponse{},
+		ResponseType: modelCore.UserOrganizationResponse{},
 		Note:         "Returns paginated employee user organizations for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -248,22 +248,22 @@ func (c *Controller) UserOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		userOrganization, err := c.model_core.UserOrganizationManager.Find(context, &model_core.UserOrganization{
+		userOrganization, err := c.modelCore.UserOrganizationManager.Find(context, &modelCore.UserOrganization{
 			OrganizationID: user.OrganizationID,
 			BranchID:       user.BranchID,
-			UserType:       model_core.UserOrganizationTypeOwner,
+			UserType:       modelCore.UserOrganizationTypeOwner,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve employee user organizations: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.UserOrganizationManager.Pagination(context, ctx, userOrganization))
+		return ctx.JSON(http.StatusOK, c.modelCore.UserOrganizationManager.Pagination(context, ctx, userOrganization))
 	})
 
 	// Get paginated user organizations for members on current branch
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/user-organization/member/search",
 		Method:       "GET",
-		ResponseType: model_core.UserOrganizationResponse{},
+		ResponseType: modelCore.UserOrganizationResponse{},
 		Note:         "Returns paginated member user organizations for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -271,22 +271,22 @@ func (c *Controller) UserOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		userOrganization, err := c.model_core.UserOrganizationManager.Find(context, &model_core.UserOrganization{
+		userOrganization, err := c.modelCore.UserOrganizationManager.Find(context, &modelCore.UserOrganization{
 			OrganizationID: user.OrganizationID,
 			BranchID:       user.BranchID,
-			UserType:       model_core.UserOrganizationTypeMember,
+			UserType:       modelCore.UserOrganizationTypeMember,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve member user organizations: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.UserOrganizationManager.Pagination(context, ctx, userOrganization))
+		return ctx.JSON(http.StatusOK, c.modelCore.UserOrganizationManager.Pagination(context, ctx, userOrganization))
 	})
 
 	// Get paginated user organizations for members without profiles on current branch
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/user-organization/none-member-profile/search",
 		Method:       "GET",
-		ResponseType: model_core.UserOrganizationResponse{},
+		ResponseType: modelCore.UserOrganizationResponse{},
 		Note:         "Returns paginated member user organizations without a member profile for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -294,32 +294,32 @@ func (c *Controller) UserOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		userOrganization, err := c.model_core.UserOrganizationManager.Find(context, &model_core.UserOrganization{
+		userOrganization, err := c.modelCore.UserOrganizationManager.Find(context, &modelCore.UserOrganization{
 			OrganizationID: user.OrganizationID,
 			BranchID:       user.BranchID,
-			UserType:       model_core.UserOrganizationTypeMember,
+			UserType:       modelCore.UserOrganizationTypeMember,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve member user organizations: " + err.Error()})
 		}
-		filteredUserOrganizations := []*model_core.UserOrganization{}
+		filteredUserOrganizations := []*modelCore.UserOrganization{}
 		for _, uo := range userOrganization {
 			if uo.BranchID == nil {
 				continue
 			}
-			userProfile, _ := c.model_core.MemberProfileFindUserByID(context, uo.UserID, uo.OrganizationID, *uo.BranchID)
+			userProfile, _ := c.modelCore.MemberProfileFindUserByID(context, uo.UserID, uo.OrganizationID, *uo.BranchID)
 			if userProfile == nil {
 				filteredUserOrganizations = append(filteredUserOrganizations, uo)
 			}
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.UserOrganizationManager.Pagination(context, ctx, filteredUserOrganizations))
+		return ctx.JSON(http.StatusOK, c.modelCore.UserOrganizationManager.Pagination(context, ctx, filteredUserOrganizations))
 	})
 
 	// Retrieve all user organizations for a user (optionally including pending)
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/user-organization/user/:user_id",
 		Method:       "GET",
-		ResponseType: model_core.UserOrganizationResponse{},
+		ResponseType: modelCore.UserOrganizationResponse{},
 		Note:         "Returns all user organizations for a specific user. Use query param `pending=true` to include pending organizations.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -328,22 +328,22 @@ func (c *Controller) UserOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_id: " + err.Error()})
 		}
-		user, err := c.model_core.UserManager.GetByID(context, *userId)
+		user, err := c.modelCore.UserManager.GetByID(context, *userId)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User not found: " + err.Error()})
 		}
-		userOrganization, err := c.model_core.GetUserOrganizationByUser(context, user.ID, &isPending)
+		userOrganization, err := c.modelCore.GetUserOrganizationByUser(context, user.ID, &isPending)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user organizations: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.UserOrganizationManager.Filtered(context, ctx, userOrganization))
+		return ctx.JSON(http.StatusOK, c.modelCore.UserOrganizationManager.Filtered(context, ctx, userOrganization))
 	})
 
 	// Retrieve all user organizations for the logged-in user (not pending)
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/user-organization/current",
 		Method:       "GET",
-		ResponseType: model_core.UserOrganizationResponse{},
+		ResponseType: modelCore.UserOrganizationResponse{},
 		Note:         "Returns all user organizations for the currently logged-in user.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -352,18 +352,18 @@ func (c *Controller) UserOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
-		userOrganization, err := c.model_core.GetUserOrganizationByUser(context, user.ID, &isPending)
+		userOrganization, err := c.modelCore.GetUserOrganizationByUser(context, user.ID, &isPending)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user organizations: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.UserOrganizationManager.Filtered(context, ctx, userOrganization))
+		return ctx.JSON(http.StatusOK, c.modelCore.UserOrganizationManager.Filtered(context, ctx, userOrganization))
 	})
 
 	// Get paginated join requests for user organizations in the current branch
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/user-organization/join-request/paginated",
 		Method:       "GET",
-		ResponseType: model_core.UserOrganizationResponse{},
+		ResponseType: modelCore.UserOrganizationResponse{},
 		Note:         "Returns paginated join requests for user organizations (pending applications) for the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -371,7 +371,7 @@ func (c *Controller) UserOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		userOrganization, err := c.model_core.UserOrganizationManager.Find(context, &model_core.UserOrganization{
+		userOrganization, err := c.modelCore.UserOrganizationManager.Find(context, &modelCore.UserOrganization{
 			OrganizationID:    user.OrganizationID,
 			BranchID:          user.BranchID,
 			ApplicationStatus: "pending",
@@ -379,14 +379,14 @@ func (c *Controller) UserOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve join requests: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.UserOrganizationManager.Pagination(context, ctx, userOrganization))
+		return ctx.JSON(http.StatusOK, c.modelCore.UserOrganizationManager.Pagination(context, ctx, userOrganization))
 	})
 
 	// Get all join requests for user organizations in the current branch
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/user-organization/join-request",
 		Method:       "GET",
-		ResponseType: model_core.UserOrganizationResponse{},
+		ResponseType: modelCore.UserOrganizationResponse{},
 		Note:         "Returns all join requests for user organizations (pending applications) for the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -394,7 +394,7 @@ func (c *Controller) UserOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		userOrganization, err := c.model_core.UserOrganizationManager.Find(context, &model_core.UserOrganization{
+		userOrganization, err := c.modelCore.UserOrganizationManager.Find(context, &modelCore.UserOrganization{
 			OrganizationID:    user.OrganizationID,
 			BranchID:          user.BranchID,
 			ApplicationStatus: "pending",
@@ -402,14 +402,14 @@ func (c *Controller) UserOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve join requests: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.UserOrganizationManager.Filtered(context, ctx, userOrganization))
+		return ctx.JSON(http.StatusOK, c.modelCore.UserOrganizationManager.Filtered(context, ctx, userOrganization))
 	})
 
 	// Retrieve all user organizations for a specific organization (optionally including pending)
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/user-organization/organization/:organization_id",
 		Method:       "GET",
-		ResponseType: model_core.UserOrganizationResponse{},
+		ResponseType: modelCore.UserOrganizationResponse{},
 		Note:         "Returns all user organizations for a specific organization. Use query param `pending=true` to include pending organizations.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -419,24 +419,24 @@ func (c *Controller) UserOrganinzationController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization_id: " + err.Error()})
 		}
 
-		organization, err := c.model_core.OrganizationManager.GetByID(context, *organizationId)
+		organization, err := c.modelCore.OrganizationManager.GetByID(context, *organizationId)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Organization not found: " + err.Error()})
 		}
 
-		userOrganization, err := c.model_core.GetUserOrganizationByOrganization(context, organization.ID, &isPending)
+		userOrganization, err := c.modelCore.GetUserOrganizationByOrganization(context, organization.ID, &isPending)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user organizations: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, c.model_core.UserOrganizationManager.Filtered(context, ctx, userOrganization))
+		return ctx.JSON(http.StatusOK, c.modelCore.UserOrganizationManager.Filtered(context, ctx, userOrganization))
 	})
 
 	// Retrieve all user organizations for a specific branch (optionally including pending)
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/user-organization/branch/:branch_id",
 		Method:       "GET",
-		ResponseType: model_core.UserOrganizationResponse{},
+		ResponseType: modelCore.UserOrganizationResponse{},
 		Note:         "Returns all user organizations for a specific branch. Use query param `pending=true` to include pending organizations.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -445,21 +445,21 @@ func (c *Controller) UserOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid branch_id: " + err.Error()})
 		}
-		branch, err := c.model_core.BranchManager.GetByID(context, *branchId)
+		branch, err := c.modelCore.BranchManager.GetByID(context, *branchId)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Branch not found: " + err.Error()})
 		}
-		userOrganization, err := c.model_core.GetUserOrganizationByBranch(context, branch.OrganizationID, branch.ID, &isPending)
+		userOrganization, err := c.modelCore.GetUserOrganizationByBranch(context, branch.OrganizationID, branch.ID, &isPending)
 		if err != nil {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Failed to retrieve user organizations: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.UserOrganizationManager.Filtered(context, ctx, userOrganization))
+		return ctx.JSON(http.StatusOK, c.modelCore.UserOrganizationManager.Filtered(context, ctx, userOrganization))
 	})
 
 	// Switch organization and branch stored in JWT (no database impact)
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/user-organization/:user_organization_id/switch",
-		ResponseType: model_core.UserOrganizationResponse{},
+		ResponseType: modelCore.UserOrganizationResponse{},
 		Method:       "GET",
 		Note:         "Switches organization and branch in JWT for the current user. No database impact.",
 	}, func(ctx echo.Context) error {
@@ -472,7 +472,7 @@ func (c *Controller) UserOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
-		userOrganization, err := c.model_core.UserOrganizationManager.GetByID(context, *userOrgId)
+		userOrganization, err := c.modelCore.UserOrganizationManager.GetByID(context, *userOrgId)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}
@@ -483,7 +483,7 @@ func (c *Controller) UserOrganinzationController() {
 			if err := c.userOrganizationToken.SetUserOrganization(context, ctx, userOrganization); err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to set user organization: " + err.Error()})
 			}
-			return ctx.JSON(http.StatusOK, c.model_core.UserOrganizationManager.ToModel(userOrganization))
+			return ctx.JSON(http.StatusOK, c.modelCore.UserOrganizationManager.ToModel(userOrganization))
 		}
 		return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Switching forbidden - user is " + string(userOrganization.UserType)})
 	})
@@ -514,7 +514,7 @@ func (c *Controller) UserOrganinzationController() {
 		Route:        "/api/v1/user-organization/developer-key-refresh",
 		Method:       "POST",
 		Note:         "Refreshes the developer key associated with the current user organization.",
-		ResponseType: model_core.DeveloperSecretKeyResponse{},
+		ResponseType: modelCore.DeveloperSecretKeyResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -536,7 +536,7 @@ func (c *Controller) UserOrganinzationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate developer key: " + err.Error()})
 		}
 		userOrg.DeveloperSecretKey = developerKey + uuid.NewString() + "-horizon"
-		if err := c.model_core.UserOrganizationManager.UpdateFields(context, userOrg.ID, userOrg); err != nil {
+		if err := c.modelCore.UserOrganizationManager.UpdateFields(context, userOrg.ID, userOrg); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Refresh developer key failed: update error: " + err.Error(),
@@ -549,7 +549,7 @@ func (c *Controller) UserOrganinzationController() {
 			Description: "Refreshed developer key for user organization " + userOrg.ID.String(),
 			Module:      "UserOrganization",
 		})
-		return ctx.JSON(http.StatusOK, model_core.DeveloperSecretKeyResponse{
+		return ctx.JSON(http.StatusOK, modelCore.DeveloperSecretKeyResponse{
 			DeveloperSecretKey: userOrg.DeveloperSecretKey,
 		})
 	})
@@ -559,7 +559,7 @@ func (c *Controller) UserOrganinzationController() {
 		Route:        "/api/v1/user-organization/invitation-code/:code/join",
 		Method:       "POST",
 		Note:         "Joins an organization and branch using an invitation code.",
-		ResponseType: model_core.UserOrganizationResponse{},
+		ResponseType: modelCore.UserOrganizationResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		code := ctx.Param("code")
@@ -572,7 +572,7 @@ func (c *Controller) UserOrganinzationController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
-		invitationCode, err := c.model_core.VerifyInvitationCodeByCode(context, code)
+		invitationCode, err := c.modelCore.VerifyInvitationCodeByCode(context, code)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -590,8 +590,8 @@ func (c *Controller) UserOrganinzationController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Invitation code not found"})
 		}
 		switch invitationCode.UserType {
-		case model_core.UserOrganizationTypeMember:
-			if !c.model_core.UserOrganizationMemberCanJoin(context, user.ID, invitationCode.OrganizationID, invitationCode.BranchID) {
+		case modelCore.UserOrganizationTypeMember:
+			if !c.modelCore.UserOrganizationMemberCanJoin(context, user.ID, invitationCode.OrganizationID, invitationCode.BranchID) {
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "create-error",
 					Description: "Join organization failed: cannot join as member",
@@ -599,8 +599,8 @@ func (c *Controller) UserOrganinzationController() {
 				})
 				return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot join as member"})
 			}
-		case model_core.UserOrganizationTypeEmployee:
-			if !c.model_core.UserOrganizationEmployeeCanJoin(context, user.ID, invitationCode.OrganizationID, invitationCode.BranchID) {
+		case modelCore.UserOrganizationTypeEmployee:
+			if !c.modelCore.UserOrganizationEmployeeCanJoin(context, user.ID, invitationCode.OrganizationID, invitationCode.BranchID) {
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "create-error",
 					Description: "Join organization failed: cannot join as employee",
@@ -627,7 +627,7 @@ func (c *Controller) UserOrganinzationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate developer key: " + err.Error()})
 		}
 		developerKey = developerKey + uuid.NewString() + "-horizon"
-		userOrg := &model_core.UserOrganization{
+		userOrg := &modelCore.UserOrganization{
 			CreatedAt:                time.Now().UTC(),
 			CreatedByID:              user.ID,
 			UpdatedAt:                time.Now().UTC(),
@@ -635,7 +635,7 @@ func (c *Controller) UserOrganinzationController() {
 			OrganizationID:           invitationCode.OrganizationID,
 			BranchID:                 &invitationCode.BranchID,
 			UserID:                   user.ID,
-			UserType:                 model_core.UserOrganizationType(invitationCode.UserType),
+			UserType:                 modelCore.UserOrganizationType(invitationCode.UserType),
 			Description:              invitationCode.Description,
 			ApplicationDescription:   "anything",
 			ApplicationStatus:        "pending",
@@ -662,7 +662,7 @@ func (c *Controller) UserOrganinzationController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start transaction: " + tx.Error.Error()})
 		}
-		if err := c.model_core.RedeemInvitationCode(context, tx, invitationCode.ID); err != nil {
+		if err := c.modelCore.RedeemInvitationCode(context, tx, invitationCode.ID); err != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -671,7 +671,7 @@ func (c *Controller) UserOrganinzationController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Failed to redeem invitation code: " + err.Error()})
 		}
-		if err := c.model_core.UserOrganizationManager.CreateWithTx(context, tx, userOrg); err != nil {
+		if err := c.modelCore.UserOrganizationManager.CreateWithTx(context, tx, userOrg); err != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -694,7 +694,7 @@ func (c *Controller) UserOrganinzationController() {
 			Description: "Joined organization and branch using invitation code " + code,
 			Module:      "UserOrganization",
 		})
-		return ctx.JSON(http.StatusOK, c.model_core.UserOrganizationManager.ToModel(userOrg))
+		return ctx.JSON(http.StatusOK, c.modelCore.UserOrganizationManager.ToModel(userOrg))
 	})
 
 	// Join an organization and branch that is already created
@@ -702,8 +702,8 @@ func (c *Controller) UserOrganinzationController() {
 		Route:        "/api/v1/user-organization/organization/:organization_id/branch/:branch_id/join",
 		Method:       "POST",
 		Note:         "Joins an existing organization and branch.",
-		ResponseType: model_core.UserOrganizationResponse{},
-		RequestType:  model_core.UserOrganizationRequest{},
+		ResponseType: modelCore.UserOrganizationResponse{},
+		RequestType:  modelCore.UserOrganizationRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		orgId, err := handlers.EngineUUIDParam(ctx, "organization_id")
@@ -724,7 +724,7 @@ func (c *Controller) UserOrganinzationController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid branch_id: " + err.Error()})
 		}
-		req, err := c.model_core.UserOrganizationManager.Validate(ctx)
+		req, err := c.modelCore.UserOrganizationManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -742,8 +742,8 @@ func (c *Controller) UserOrganinzationController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
-		if req.UserType == model_core.UserOrganizationTypeMember {
-			if !c.model_core.UserOrganizationMemberCanJoin(context, user.ID, *orgId, *branchId) {
+		if req.UserType == modelCore.UserOrganizationTypeMember {
+			if !c.modelCore.UserOrganizationMemberCanJoin(context, user.ID, *orgId, *branchId) {
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "create-error",
 					Description: "Join organization failed: cannot join as member",
@@ -752,8 +752,8 @@ func (c *Controller) UserOrganinzationController() {
 				return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot join as member"})
 			}
 		}
-		if req.UserType == model_core.UserOrganizationTypeEmployee {
-			if !c.model_core.UserOrganizationEmployeeCanJoin(context, user.ID, *orgId, *branchId) {
+		if req.UserType == modelCore.UserOrganizationTypeEmployee {
+			if !c.modelCore.UserOrganizationEmployeeCanJoin(context, user.ID, *orgId, *branchId) {
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "create-error",
 					Description: "Join organization failed: cannot join as employee",
@@ -772,7 +772,7 @@ func (c *Controller) UserOrganinzationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate developer key: " + err.Error()})
 		}
 		developerKey = developerKey + uuid.NewString() + "-horizon"
-		userOrg := &model_core.UserOrganization{
+		userOrg := &modelCore.UserOrganization{
 			CreatedAt:                time.Now().UTC(),
 			CreatedByID:              user.ID,
 			UpdatedAt:                time.Now().UTC(),
@@ -780,12 +780,12 @@ func (c *Controller) UserOrganinzationController() {
 			OrganizationID:           *orgId,
 			BranchID:                 branchId,
 			UserID:                   user.ID,
-			UserType:                 model_core.UserOrganizationTypeMember,
+			UserType:                 modelCore.UserOrganizationTypeMember,
 			Description:              req.Description,
 			ApplicationDescription:   "",
 			ApplicationStatus:        "pending",
 			DeveloperSecretKey:       developerKey,
-			PermissionName:           string(model_core.UserOrganizationTypeMember),
+			PermissionName:           string(modelCore.UserOrganizationTypeMember),
 			PermissionDescription:    "just a member",
 			Permissions:              []string{},
 			UserSettingDescription:   "",
@@ -798,7 +798,7 @@ func (c *Controller) UserOrganinzationController() {
 			UserSettingNumberPadding: 7,
 		}
 
-		if err := c.model_core.UserOrganizationManager.Create(context, userOrg); err != nil {
+		if err := c.modelCore.UserOrganizationManager.Create(context, userOrg); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Join organization failed: create user org error: " + err.Error(),
@@ -813,7 +813,7 @@ func (c *Controller) UserOrganinzationController() {
 			Module:      "UserOrganization",
 		})
 
-		return ctx.JSON(http.StatusOK, c.model_core.UserOrganizationManager.ToModel(userOrg))
+		return ctx.JSON(http.StatusOK, c.modelCore.UserOrganizationManager.ToModel(userOrg))
 	})
 
 	// Leave a specific organization and branch (must have current organization)
@@ -833,7 +833,7 @@ func (c *Controller) UserOrganinzationController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
 		switch userOrg.UserType {
-		case model_core.UserOrganizationTypeOwner, model_core.UserOrganizationTypeEmployee:
+		case modelCore.UserOrganizationTypeOwner, modelCore.UserOrganizationTypeEmployee:
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Leave organization failed: forbidden for owner or employee",
@@ -842,7 +842,7 @@ func (c *Controller) UserOrganinzationController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Owners and employees cannot leave an organization"})
 		}
 
-		if err := c.model_core.UserOrganizationManager.DeleteByID(context, userOrg.ID); err != nil {
+		if err := c.modelCore.UserOrganizationManager.DeleteByID(context, userOrg.ID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Leave organization failed: delete error: " + err.Error(),
@@ -879,7 +879,7 @@ func (c *Controller) UserOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid branch_id: " + err.Error()})
 		}
-		if !c.model_core.UserOrganizationMemberCanJoin(context, user.ID, *orgId, *branchId) {
+		if !c.modelCore.UserOrganizationMemberCanJoin(context, user.ID, *orgId, *branchId) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot join as member"})
 		}
 		return ctx.NoContent(http.StatusOK)
@@ -904,7 +904,7 @@ func (c *Controller) UserOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid branch_id: " + err.Error()})
 		}
-		if !c.model_core.UserOrganizationEmployeeCanJoin(context, user.ID, *orgId, *branchId) {
+		if !c.modelCore.UserOrganizationEmployeeCanJoin(context, user.ID, *orgId, *branchId) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot join as employee"})
 		}
 		return ctx.NoContent(http.StatusOK)
@@ -915,14 +915,14 @@ func (c *Controller) UserOrganinzationController() {
 		Route:        "/api/v1/user-organization/:user_organization_id",
 		Method:       "GET",
 		Note:         "Returns a specific user organization by ID.",
-		ResponseType: model_core.UserOrganizationResponse{},
+		ResponseType: modelCore.UserOrganizationResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrgId, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_organization_id: " + err.Error()})
 		}
-		userOrg, err := c.model_core.UserOrganizationManager.GetByIDRaw(context, *userOrgId)
+		userOrg, err := c.modelCore.UserOrganizationManager.GetByIDRaw(context, *userOrgId)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}
@@ -956,7 +956,7 @@ func (c *Controller) UserOrganinzationController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
 
-		userOrg, err := c.model_core.UserOrganizationManager.GetByID(context, *userOrgId)
+		userOrg, err := c.modelCore.UserOrganizationManager.GetByID(context, *userOrgId)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "approve-error",
@@ -966,7 +966,7 @@ func (c *Controller) UserOrganinzationController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}
 
-		if user.UserType != model_core.UserOrganizationTypeOwner && user.UserType != "admin" {
+		if user.UserType != modelCore.UserOrganizationTypeOwner && user.UserType != "admin" {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "approve-error",
 				Description: "Accept application failed: not owner or admin",
@@ -985,7 +985,7 @@ func (c *Controller) UserOrganinzationController() {
 		}
 
 		userOrg.ApplicationStatus = "accepted"
-		if err := c.model_core.UserOrganizationManager.UpdateFields(context, userOrg.ID, userOrg); err != nil {
+		if err := c.modelCore.UserOrganizationManager.UpdateFields(context, userOrg.ID, userOrg); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "approve-error",
 				Description: "Accept application failed: update error: " + err.Error(),
@@ -1030,7 +1030,7 @@ func (c *Controller) UserOrganinzationController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
 
-		userOrg, err := c.model_core.UserOrganizationManager.GetByID(context, *userOrgId)
+		userOrg, err := c.modelCore.UserOrganizationManager.GetByID(context, *userOrgId)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -1040,7 +1040,7 @@ func (c *Controller) UserOrganinzationController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}
 
-		if user.UserType != model_core.UserOrganizationTypeOwner && user.UserType != "admin" && user.UserType != model_core.UserOrganizationTypeEmployee {
+		if user.UserType != modelCore.UserOrganizationTypeOwner && user.UserType != "admin" && user.UserType != modelCore.UserOrganizationTypeEmployee {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Reject application failed: not allowed for user type " + string(user.UserType),
@@ -1058,7 +1058,7 @@ func (c *Controller) UserOrganinzationController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "You cannot reject your own application"})
 		}
 
-		if err := c.model_core.UserOrganizationManager.DeleteByID(context, userOrg.ID); err != nil {
+		if err := c.modelCore.UserOrganizationManager.DeleteByID(context, userOrg.ID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Reject application failed: delete error: " + err.Error(),
@@ -1092,7 +1092,7 @@ func (c *Controller) UserOrganinzationController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_organization_id: " + err.Error()})
 		}
-		userOrg, err := c.model_core.UserOrganizationManager.GetByID(context, *userOrgId)
+		userOrg, err := c.modelCore.UserOrganizationManager.GetByID(context, *userOrgId)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -1101,7 +1101,7 @@ func (c *Controller) UserOrganinzationController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}
-		if err := c.model_core.UserOrganizationManager.DeleteByID(context, userOrg.ID); err != nil {
+		if err := c.modelCore.UserOrganizationManager.DeleteByID(context, userOrg.ID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete user organization failed: delete error: " + err.Error(),
@@ -1121,11 +1121,11 @@ func (c *Controller) UserOrganinzationController() {
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/user-organization/bulk-delete",
 		Method:      "DELETE",
-		RequestType: model_core.IDSRequest{},
+		RequestType: modelCore.IDSRequest{},
 		Note:        "Deletes multiple user organizations by providing an array of IDs in the request body.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody model_core.IDSRequest
+		var reqBody modelCore.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -1168,7 +1168,7 @@ func (c *Controller) UserOrganinzationController() {
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s - %v", rawID, err)})
 			}
 
-			if _, err := c.model_core.UserOrganizationManager.GetByID(context, userOrgId); err != nil {
+			if _, err := c.modelCore.UserOrganizationManager.GetByID(context, userOrgId); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "delete-error",
@@ -1178,7 +1178,7 @@ func (c *Controller) UserOrganinzationController() {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("User organization with ID %s not found: %v", rawID, err)})
 			}
 
-			if err := c.model_core.UserOrganizationManager.DeleteByIDWithTx(context, tx, userOrgId); err != nil {
+			if err := c.modelCore.UserOrganizationManager.DeleteByIDWithTx(context, tx, userOrgId); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "delete-error",
@@ -1211,7 +1211,7 @@ func (c *Controller) UserOrganinzationController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/user-organization/employee",
 		Method:       "GET",
-		ResponseType: model_core.UserOrganizationResponse{},
+		ResponseType: modelCore.UserOrganizationResponse{},
 		Note:         "Returns all employees of the current user's organization.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1219,18 +1219,18 @@ func (c *Controller) UserOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		employees, err := c.model_core.Employees(context, user.OrganizationID, *user.BranchID)
+		employees, err := c.modelCore.Employees(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve employees: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.UserOrganizationManager.Filtered(context, ctx, employees))
+		return ctx.JSON(http.StatusOK, c.modelCore.UserOrganizationManager.Filtered(context, ctx, employees))
 	})
 
 	// Retrieve all members of the current user's organization
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/user-organization/members",
 		Method:       "GET",
-		ResponseType: model_core.UserOrganizationResponse{},
+		ResponseType: modelCore.UserOrganizationResponse{},
 		Note:         "Returns all members of the current user's organization.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1238,18 +1238,18 @@ func (c *Controller) UserOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		members, err := c.model_core.Members(context, user.OrganizationID, *user.BranchID)
+		members, err := c.modelCore.Members(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve members: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.UserOrganizationManager.Filtered(context, ctx, members))
+		return ctx.JSON(http.StatusOK, c.modelCore.UserOrganizationManager.Filtered(context, ctx, members))
 	})
 
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/user-organization/settings/:user_organization_id",
 		Method:       "PUT",
-		RequestType:  model_core.UserOrganizationSettingsRequest{},
-		ResponseType: model_core.UserOrganizationResponse{},
+		RequestType:  modelCore.UserOrganizationSettingsRequest{},
+		ResponseType: modelCore.UserOrganizationResponse{},
 		Note:         "Updates the user organization settings.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1258,7 +1258,7 @@ func (c *Controller) UserOrganinzationController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_organization_id: " + err.Error()})
 		}
 
-		var req model_core.UserOrganizationSettingsRequest
+		var req modelCore.UserOrganizationSettingsRequest
 		if err := ctx.Bind(&req); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -1277,7 +1277,7 @@ func (c *Controller) UserOrganinzationController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		userOrg, err := c.model_core.UserOrganizationManager.GetByID(context, *userOrgId)
+		userOrg, err := c.modelCore.UserOrganizationManager.GetByID(context, *userOrgId)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}
@@ -1300,7 +1300,7 @@ func (c *Controller) UserOrganinzationController() {
 		userOrg.SettingsAccountingWithdrawDefaultValueID = req.SettingsAccountingWithdrawDefaultValueID
 		userOrg.SettingsPaymentTypeDefaultValueID = req.SettingsPaymentTypeDefaultValueID
 
-		if err := c.model_core.UserOrganizationManager.UpdateFields(context, userOrg.ID, userOrg); err != nil {
+		if err := c.modelCore.UserOrganizationManager.UpdateFields(context, userOrg.ID, userOrg); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update settings failed: update error: " + err.Error(),
@@ -1315,19 +1315,19 @@ func (c *Controller) UserOrganinzationController() {
 			Module:      "UserOrganization",
 		})
 
-		return ctx.JSON(http.StatusOK, c.model_core.UserOrganizationManager.ToModel(userOrg))
+		return ctx.JSON(http.StatusOK, c.modelCore.UserOrganizationManager.ToModel(userOrg))
 	})
 
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/user-organization/settings/current",
 		Method:       "PUT",
-		RequestType:  model_core.UserOrganizationSelfSettingsRequest{},
-		ResponseType: model_core.UserOrganizationResponse{},
+		RequestType:  modelCore.UserOrganizationSelfSettingsRequest{},
+		ResponseType: modelCore.UserOrganizationResponse{},
 		Note:         "Updates the user organization settings.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		var req model_core.UserOrganizationSelfSettingsRequest
+		var req modelCore.UserOrganizationSelfSettingsRequest
 		if err := ctx.Bind(&req); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -1368,7 +1368,7 @@ func (c *Controller) UserOrganinzationController() {
 		userOrg.SettingsAccountingWithdrawDefaultValueID = req.SettingsAccountingWithdrawDefaultValueID
 		userOrg.SettingsPaymentTypeDefaultValueID = req.SettingsPaymentTypeDefaultValueID
 
-		if err := c.model_core.UserOrganizationManager.UpdateFields(context, userOrg.ID, userOrg); err != nil {
+		if err := c.modelCore.UserOrganizationManager.UpdateFields(context, userOrg.ID, userOrg); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update settings failed: update error: " + err.Error(),
@@ -1383,6 +1383,6 @@ func (c *Controller) UserOrganinzationController() {
 			Module:      "UserOrganization",
 		})
 
-		return ctx.JSON(http.StatusOK, c.model_core.UserOrganizationManager.ToModel(userOrg))
+		return ctx.JSON(http.StatusOK, c.modelCore.UserOrganizationManager.ToModel(userOrg))
 	})
 }

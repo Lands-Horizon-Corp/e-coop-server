@@ -7,7 +7,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelCore"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -21,8 +21,8 @@ func (c *Controller) ChargesRateByTermController() {
 		Route:        "/api/v1/charges-rate-by-term/charges-rate-scheme/:charges_rate_scheme_id",
 		Method:       "POST",
 		Note:         "Creates a new charges rate by term for the current user's organization and branch.",
-		RequestType:  model_core.ChargesRateByTermRequest{},
-		ResponseType: model_core.ChargesRateByTermResponse{},
+		RequestType:  modelCore.ChargesRateByTermRequest{},
+		ResponseType: modelCore.ChargesRateByTermResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		chargesRateSchemeID, err := handlers.EngineUUIDParam(ctx, "charges_rate_scheme_id")
@@ -34,7 +34,7 @@ func (c *Controller) ChargesRateByTermController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid charges rate scheme ID"})
 		}
-		req, err := c.model_core.ChargesRateByTermManager.Validate(ctx)
+		req, err := c.modelCore.ChargesRateByTermManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -61,7 +61,7 @@ func (c *Controller) ChargesRateByTermController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		chargesRateByTerm := &model_core.ChargesRateByTerm{
+		chargesRateByTerm := &modelCore.ChargesRateByTerm{
 			ChargesRateSchemeID: *chargesRateSchemeID,
 			Name:                req.Name,
 			Description:         req.Description,
@@ -96,7 +96,7 @@ func (c *Controller) ChargesRateByTermController() {
 			OrganizationID:      user.OrganizationID,
 		}
 
-		if err := c.model_core.ChargesRateByTermManager.Create(context, chargesRateByTerm); err != nil {
+		if err := c.modelCore.ChargesRateByTermManager.Create(context, chargesRateByTerm); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Charges rate by term creation failed (/charges-rate-by-term), db error: " + err.Error(),
@@ -109,7 +109,7 @@ func (c *Controller) ChargesRateByTermController() {
 			Description: "Created charges rate by term (/charges-rate-by-term): " + chargesRateByTerm.ID.String(),
 			Module:      "ChargesRateByTerm",
 		})
-		return ctx.JSON(http.StatusCreated, c.model_core.ChargesRateByTermManager.ToModel(chargesRateByTerm))
+		return ctx.JSON(http.StatusCreated, c.modelCore.ChargesRateByTermManager.ToModel(chargesRateByTerm))
 	})
 
 	// PUT /charges-rate-by-term/:charges_rate_by_term_id: Update charges rate by term by ID. (WITH footstep)
@@ -117,8 +117,8 @@ func (c *Controller) ChargesRateByTermController() {
 		Route:        "/api/v1/charges-rate-by-term/:charges_rate_by_term_id",
 		Method:       "PUT",
 		Note:         "Updates an existing charges rate by term by its ID.",
-		RequestType:  model_core.ChargesRateByTermRequest{},
-		ResponseType: model_core.ChargesRateByTermResponse{},
+		RequestType:  modelCore.ChargesRateByTermRequest{},
+		ResponseType: modelCore.ChargesRateByTermResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		chargesRateByTermID, err := handlers.EngineUUIDParam(ctx, "charges_rate_by_term_id")
@@ -131,7 +131,7 @@ func (c *Controller) ChargesRateByTermController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid charges rate by term ID"})
 		}
 
-		req, err := c.model_core.ChargesRateByTermManager.Validate(ctx)
+		req, err := c.modelCore.ChargesRateByTermManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -149,7 +149,7 @@ func (c *Controller) ChargesRateByTermController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		chargesRateByTerm, err := c.model_core.ChargesRateByTermManager.GetByID(context, *chargesRateByTermID)
+		chargesRateByTerm, err := c.modelCore.ChargesRateByTermManager.GetByID(context, *chargesRateByTermID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -185,7 +185,7 @@ func (c *Controller) ChargesRateByTermController() {
 		chargesRateByTerm.Rate22 = req.Rate22
 		chargesRateByTerm.UpdatedAt = time.Now().UTC()
 		chargesRateByTerm.UpdatedByID = user.UserID
-		if err := c.model_core.ChargesRateByTermManager.UpdateFields(context, chargesRateByTerm.ID, chargesRateByTerm); err != nil {
+		if err := c.modelCore.ChargesRateByTermManager.UpdateFields(context, chargesRateByTerm.ID, chargesRateByTerm); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Charges rate by term update failed (/charges-rate-by-term/:charges_rate_by_term_id), db error: " + err.Error(),
@@ -198,7 +198,7 @@ func (c *Controller) ChargesRateByTermController() {
 			Description: "Updated charges rate by term (/charges-rate-by-term/:charges_rate_by_term_id): " + chargesRateByTerm.ID.String(),
 			Module:      "ChargesRateByTerm",
 		})
-		return ctx.JSON(http.StatusOK, c.model_core.ChargesRateByTermManager.ToModel(chargesRateByTerm))
+		return ctx.JSON(http.StatusOK, c.modelCore.ChargesRateByTermManager.ToModel(chargesRateByTerm))
 	})
 
 	// DELETE /charges-rate-by-term/:charges_rate_by_term_id: Delete a charges rate by term by ID. (WITH footstep)
@@ -217,7 +217,7 @@ func (c *Controller) ChargesRateByTermController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid charges rate by term ID"})
 		}
-		chargesRateByTerm, err := c.model_core.ChargesRateByTermManager.GetByID(context, *chargesRateByTermID)
+		chargesRateByTerm, err := c.modelCore.ChargesRateByTermManager.GetByID(context, *chargesRateByTermID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -226,7 +226,7 @@ func (c *Controller) ChargesRateByTermController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Charges rate by term not found"})
 		}
-		if err := c.model_core.ChargesRateByTermManager.DeleteByID(context, *chargesRateByTermID); err != nil {
+		if err := c.modelCore.ChargesRateByTermManager.DeleteByID(context, *chargesRateByTermID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Charges rate by term delete failed (/charges-rate-by-term/:charges_rate_by_term_id), db error: " + err.Error(),
@@ -247,10 +247,10 @@ func (c *Controller) ChargesRateByTermController() {
 		Route:       "/api/v1/charges-rate-by-term/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple charges rate by term by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: model_core.IDSRequest{},
+		RequestType: modelCore.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody model_core.IDSRequest
+		var reqBody modelCore.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
@@ -289,7 +289,7 @@ func (c *Controller) ChargesRateByTermController() {
 				})
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
 			}
-			chargesRateByTerm, err := c.model_core.ChargesRateByTermManager.GetByID(context, chargesRateByTermID)
+			chargesRateByTerm, err := c.modelCore.ChargesRateByTermManager.GetByID(context, chargesRateByTermID)
 			if err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -300,7 +300,7 @@ func (c *Controller) ChargesRateByTermController() {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Charges rate by term not found with ID: %s", rawID)})
 			}
 			ids += chargesRateByTerm.ID.String() + ","
-			if err := c.model_core.ChargesRateByTermManager.DeleteByIDWithTx(context, tx, chargesRateByTermID); err != nil {
+			if err := c.modelCore.ChargesRateByTermManager.DeleteByIDWithTx(context, tx, chargesRateByTermID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

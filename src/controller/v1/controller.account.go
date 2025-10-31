@@ -7,7 +7,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelCore"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -20,30 +20,30 @@ func (c *Controller) AccountController() {
 		Route:        "/api/v1/account/search",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch. Only 'owner' and 'employee' roles are authorized. Returns paginated results.",
-		ResponseType: model_core.AccountResponse{},
+		ResponseType: modelCore.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
-		accounts, err := c.model_core.AccountManager.Find(context, &model_core.Account{
+		accounts, err := c.modelCore.AccountManager.Find(context, &modelCore.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, c.modelCore.AccountManager.Pagination(context, ctx, accounts))
 	})
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/account/currency/:currency_id/search",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch and currency. Only 'owner' and 'employee' roles are authorized. Returns paginated results.",
-		ResponseType: model_core.AccountResponse{},
+		ResponseType: modelCore.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -54,10 +54,10 @@ func (c *Controller) AccountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID: " + err.Error()})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
-		accounts, err := c.model_core.AccountManager.Find(context, &model_core.Account{
+		accounts, err := c.modelCore.AccountManager.Find(context, &modelCore.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			CurrencyID:     currencyId,
@@ -65,33 +65,33 @@ func (c *Controller) AccountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, c.modelCore.AccountManager.Pagination(context, ctx, accounts))
 	})
 	// GET: /api/v1/account/deposit/search
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/account/deposit/search",
 		Method:       "GET",
 		Note:         "Retrieve all deposit accounts for the current branch.",
-		ResponseType: model_core.AccountResponse{},
+		ResponseType: modelCore.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		accounts, err := c.model_core.AccountManager.Find(context, &model_core.Account{
+		accounts, err := c.modelCore.AccountManager.Find(context, &modelCore.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
-			Type:           model_core.AccountTypeDeposit,
+			Type:           modelCore.AccountTypeDeposit,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, c.modelCore.AccountManager.Pagination(context, ctx, accounts))
 	})
 
 	// GET: /api/v1/account/cash-and-cash-equivalence/search
@@ -99,21 +99,21 @@ func (c *Controller) AccountController() {
 		Route:        "/api/v1/account/currency/:currency_id/paid-up-shared-capital/search",
 		Method:       "GET",
 		Note:         "Retrieve all paid-up shared capital accounts for the current branch.",
-		ResponseType: model_core.AccountResponse{},
+		ResponseType: modelCore.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
 		currencyId, err := handlers.EngineUUIDParam(ctx, "currency_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID: " + err.Error()})
 		}
-		accounts, err := c.model_core.AccountManager.Find(context, &model_core.Account{
+		accounts, err := c.modelCore.AccountManager.Find(context, &modelCore.Account{
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
 			PaidUpShareCapital: true,
@@ -122,7 +122,7 @@ func (c *Controller) AccountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve cash and cash equivalence accounts: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, c.modelCore.AccountManager.Pagination(context, ctx, accounts))
 	})
 
 	// GET: /api/v1/account/loan/search
@@ -130,28 +130,28 @@ func (c *Controller) AccountController() {
 		Route:        "/api/v1/account/loan/search",
 		Method:       "GET",
 		Note:         "Retrieve all loan accounts for the current branch.",
-		ResponseType: model_core.AccountResponse{},
+		ResponseType: modelCore.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		accounts, err := c.model_core.AccountManager.Find(context, &model_core.Account{
+		accounts, err := c.modelCore.AccountManager.Find(context, &modelCore.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
-			Type:           model_core.AccountTypeLoan,
+			Type:           modelCore.AccountTypeLoan,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}
-		result := []*model_core.Account{}
+		result := []*modelCore.Account{}
 		for _, acc := range accounts {
-			cashAndCashEquivalence, _ := c.model_core.AccountManager.Find(context, &model_core.Account{
+			cashAndCashEquivalence, _ := c.modelCore.AccountManager.Find(context, &modelCore.Account{
 				OrganizationID:         userOrg.OrganizationID,
 				BranchID:               *userOrg.BranchID,
 				CashAndCashEquivalence: true,
@@ -161,7 +161,7 @@ func (c *Controller) AccountController() {
 				result = append(result, acc)
 			}
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.Pagination(context, ctx, result))
+		return ctx.JSON(http.StatusOK, c.modelCore.AccountManager.Pagination(context, ctx, result))
 	})
 
 	// GET: /api/v1/account/cash-and-cash-equivalence/search
@@ -169,14 +169,14 @@ func (c *Controller) AccountController() {
 		Route:        "/api/v1/account/currency/:currency_id/loan/search",
 		Method:       "GET",
 		Note:         "Retrieve all loan accounts for the current branch.",
-		ResponseType: model_core.AccountResponse{},
+		ResponseType: modelCore.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
 		currencyId, err := handlers.EngineUUIDParam(ctx, "currency_id")
@@ -186,15 +186,15 @@ func (c *Controller) AccountController() {
 		// If loan exist on settings
 		// if branch settings has paid up shared capital account
 
-		accounts, err := c.model_core.AccountManager.Find(context, &model_core.Account{
+		accounts, err := c.modelCore.AccountManager.Find(context, &modelCore.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			CurrencyID:     currencyId,
-			Type:           model_core.AccountTypeLoan,
+			Type:           modelCore.AccountTypeLoan,
 		})
-		result := []*model_core.Account{}
+		result := []*modelCore.Account{}
 		for _, acc := range accounts {
-			cashAndCashEquivalence, _ := c.model_core.AccountManager.Find(context, &model_core.Account{
+			cashAndCashEquivalence, _ := c.modelCore.AccountManager.Find(context, &modelCore.Account{
 				OrganizationID:         userOrg.OrganizationID,
 				BranchID:               *userOrg.BranchID,
 				CashAndCashEquivalence: true,
@@ -207,7 +207,7 @@ func (c *Controller) AccountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve cash and cash equivalence accounts: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.Pagination(context, ctx, result))
+		return ctx.JSON(http.StatusOK, c.modelCore.AccountManager.Pagination(context, ctx, result))
 	})
 
 	// GET: /api/v1/account/ar-ledger/search
@@ -215,25 +215,25 @@ func (c *Controller) AccountController() {
 		Route:        "/api/v1/account/ar-ledger/search",
 		Method:       "GET",
 		Note:         "Retrieve all A/R-Ledger accounts for the current branch.",
-		ResponseType: model_core.AccountResponse{},
+		ResponseType: modelCore.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
-		accounts, err := c.model_core.AccountManager.Find(context, &model_core.Account{
+		accounts, err := c.modelCore.AccountManager.Find(context, &modelCore.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
-			Type:           model_core.AccountTypeARLedger,
+			Type:           modelCore.AccountTypeARLedger,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, c.modelCore.AccountManager.Pagination(context, ctx, accounts))
 	})
 
 	// GET: /api/v1/account/ar-aging/search
@@ -241,27 +241,27 @@ func (c *Controller) AccountController() {
 		Route:        "/api/v1/account/ar-aging/search",
 		Method:       "GET",
 		Note:         "Retrieve all A/R-Aging accounts for the current branch.",
-		ResponseType: model_core.AccountResponse{},
+		ResponseType: modelCore.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		accounts, err := c.model_core.AccountManager.Find(context, &model_core.Account{
+		accounts, err := c.modelCore.AccountManager.Find(context, &modelCore.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
-			Type:           model_core.AccountTypeARAging,
+			Type:           modelCore.AccountTypeARAging,
 		})
 
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, c.modelCore.AccountManager.Pagination(context, ctx, accounts))
 	})
 
 	// GET: /api/v1/account/fines/search
@@ -269,27 +269,27 @@ func (c *Controller) AccountController() {
 		Route:        "/api/v1/account/fines/search",
 		Method:       "GET",
 		Note:         "Retrieve all fines accounts for the current branch.",
-		ResponseType: model_core.AccountResponse{},
+		ResponseType: modelCore.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		accounts, err := c.model_core.AccountManager.Find(context, &model_core.Account{
+		accounts, err := c.modelCore.AccountManager.Find(context, &modelCore.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
-			Type:           model_core.AccountTypeFines,
+			Type:           modelCore.AccountTypeFines,
 		})
 
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, c.modelCore.AccountManager.Pagination(context, ctx, accounts))
 	})
 
 	// GET: /api/v1/account/interest/search
@@ -297,26 +297,26 @@ func (c *Controller) AccountController() {
 		Route:        "/api/v1/account/interest/search",
 		Method:       "GET",
 		Note:         "Retrieve all interest accounts for the current branch.",
-		ResponseType: model_core.AccountResponse{},
+		ResponseType: modelCore.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		accounts, err := c.model_core.AccountManager.Find(context, &model_core.Account{
+		accounts, err := c.modelCore.AccountManager.Find(context, &modelCore.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
-			Type:           model_core.AccountTypeInterest,
+			Type:           modelCore.AccountTypeInterest,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, c.modelCore.AccountManager.Pagination(context, ctx, accounts))
 	})
 
 	// GET: /api/v1/account/svf-ledger/search
@@ -324,25 +324,25 @@ func (c *Controller) AccountController() {
 		Route:        "/api/v1/account/svf-ledger/search",
 		Method:       "GET",
 		Note:         "Retrieve all SVF-Ledger accounts for the current branch.",
-		ResponseType: model_core.AccountResponse{},
+		ResponseType: modelCore.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
-		accounts, err := c.model_core.AccountManager.Find(context, &model_core.Account{
+		accounts, err := c.modelCore.AccountManager.Find(context, &modelCore.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
-			Type:           model_core.AccountTypeSVFLedger,
+			Type:           modelCore.AccountTypeSVFLedger,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, c.modelCore.AccountManager.Pagination(context, ctx, accounts))
 	})
 
 	// GET: /api/v1/account/w-off/search
@@ -350,25 +350,25 @@ func (c *Controller) AccountController() {
 		Route:        "/api/v1/account/w-off/search",
 		Method:       "GET",
 		Note:         "Retrieve all W-Off accounts for the current branch.",
-		ResponseType: model_core.AccountResponse{},
+		ResponseType: modelCore.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
-		accounts, err := c.model_core.AccountManager.Find(context, &model_core.Account{
+		accounts, err := c.modelCore.AccountManager.Find(context, &modelCore.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
-			Type:           model_core.AccountTypeWOff,
+			Type:           modelCore.AccountTypeWOff,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, c.modelCore.AccountManager.Pagination(context, ctx, accounts))
 	})
 
 	// GET: /api/v1/account/ap-ledger/search
@@ -376,26 +376,26 @@ func (c *Controller) AccountController() {
 		Route:        "/api/v1/account/ap-ledger/search",
 		Method:       "GET",
 		Note:         "Retrieve all A/P-Ledger accounts for the current branch.",
-		ResponseType: model_core.AccountResponse{},
+		ResponseType: modelCore.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		accounts, err := c.model_core.AccountManager.Find(context, &model_core.Account{
+		accounts, err := c.modelCore.AccountManager.Find(context, &modelCore.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
-			Type:           model_core.AccountTypeAPLedger,
+			Type:           modelCore.AccountTypeAPLedger,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, c.modelCore.AccountManager.Pagination(context, ctx, accounts))
 	})
 
 	// GET: /api/v1/account/other/search
@@ -403,26 +403,26 @@ func (c *Controller) AccountController() {
 		Route:        "/api/v1/account/other/search",
 		Method:       "GET",
 		Note:         "Retrieve all other accounts for the current branch.",
-		ResponseType: model_core.AccountResponse{},
+		ResponseType: modelCore.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		accounts, err := c.model_core.AccountManager.Find(context, &model_core.Account{
+		accounts, err := c.modelCore.AccountManager.Find(context, &modelCore.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
-			Type:           model_core.AccountTypeOther,
+			Type:           modelCore.AccountTypeOther,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, c.modelCore.AccountManager.Pagination(context, ctx, accounts))
 	})
 
 	// GET: /api/v1/account/time-deposit/search
@@ -430,26 +430,26 @@ func (c *Controller) AccountController() {
 		Route:        "/api/v1/account/time-deposit/search",
 		Method:       "GET",
 		Note:         "Retrieve all time deposit accounts for the current branch.",
-		ResponseType: model_core.AccountResponse{},
+		ResponseType: modelCore.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		accounts, err := c.model_core.AccountManager.Find(context, &model_core.Account{
+		accounts, err := c.modelCore.AccountManager.Find(context, &modelCore.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
-			Type:           model_core.AccountTypeTimeDeposit,
+			Type:           modelCore.AccountTypeTimeDeposit,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, c.modelCore.AccountManager.Pagination(context, ctx, accounts))
 	})
 
 	// GET: Search (NO footstep)
@@ -457,24 +457,24 @@ func (c *Controller) AccountController() {
 		Route:        "/api/v1/account",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch.",
-		ResponseType: model_core.AccountResponse{},
+		ResponseType: modelCore.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accounts, err := c.model_core.AccountManager.Find(context, &model_core.Account{
+		accounts, err := c.modelCore.AccountManager.Find(context, &modelCore.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve accounts: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.Filtered(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, c.modelCore.AccountManager.Filtered(context, ctx, accounts))
 	})
 
 	// POST: Create (WITH footstep)
@@ -482,11 +482,11 @@ func (c *Controller) AccountController() {
 		Route:        "/api/v1/account",
 		Method:       "POST",
 		Note:         "Create a new account for the current branch.",
-		ResponseType: model_core.AccountResponse{},
-		RequestType:  model_core.AccountRequest{},
+		ResponseType: modelCore.AccountResponse{},
+		RequestType:  modelCore.AccountRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.model_core.AccountManager.Validate(ctx)
+		req, err := c.modelCore.AccountManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -504,7 +504,7 @@ func (c *Controller) AccountController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Unauthorized create attempt for account (/account)",
@@ -513,7 +513,7 @@ func (c *Controller) AccountController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
 
-		account := &model_core.Account{
+		account := &modelCore.Account{
 			CreatedAt:                             time.Now().UTC(),
 			CreatedByID:                           userOrg.UserID,
 			UpdatedAt:                             time.Now().UTC(),
@@ -594,7 +594,7 @@ func (c *Controller) AccountController() {
 			InterestStandardComputation: req.InterestStandardComputation,
 		}
 
-		if err := c.model_core.AccountManager.Create(context, account); err != nil {
+		if err := c.modelCore.AccountManager.Create(context, account); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Account creation failed (/account), db error: " + err.Error(),
@@ -603,9 +603,9 @@ func (c *Controller) AccountController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create account: " + err.Error()})
 		}
 		if len(req.AccountTags) > 0 {
-			var tags []model_core.AccountTag
+			var tags []modelCore.AccountTag
 			for _, tagReq := range req.AccountTags {
-				tags = append(tags, model_core.AccountTag{
+				tags = append(tags, modelCore.AccountTag{
 					AccountID:      account.ID,
 					Name:           tagReq.Name,
 					Description:    tagReq.Description,
@@ -643,18 +643,18 @@ func (c *Controller) AccountController() {
 		Route:        "/api/v1/account/:account_id",
 		Method:       "GET",
 		Note:         "Retrieve a specific account by ID.",
-		ResponseType: model_core.AccountResponse{},
+		ResponseType: modelCore.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID: " + err.Error()})
 		}
-		account, err := c.model_core.AccountManager.GetByID(context, *accountID)
+		account, err := c.modelCore.AccountManager.GetByID(context, *accountID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.ToModel(account))
+		return ctx.JSON(http.StatusOK, c.modelCore.AccountManager.ToModel(account))
 	})
 
 	// PUT: Update (WITH footstep)
@@ -662,11 +662,11 @@ func (c *Controller) AccountController() {
 		Route:        "/api/v1/account/:account_id",
 		Method:       "PUT",
 		Note:         "Update an account by ID.",
-		ResponseType: model_core.AccountResponse{},
-		RequestType:  model_core.AccountRequest{},
+		ResponseType: modelCore.AccountResponse{},
+		RequestType:  modelCore.AccountRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.model_core.AccountManager.Validate(ctx)
+		req, err := c.modelCore.AccountManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -684,7 +684,7 @@ func (c *Controller) AccountController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Unauthorized update attempt for account (/account/:account_id)",
@@ -701,7 +701,7 @@ func (c *Controller) AccountController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID: " + err.Error()})
 		}
-		account, err := c.model_core.AccountManager.GetByID(context, *accountID)
+		account, err := c.modelCore.AccountManager.GetByID(context, *accountID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -788,7 +788,7 @@ func (c *Controller) AccountController() {
 		account.InterestStandardComputation = req.InterestStandardComputation
 		account.CurrencyID = req.CurrencyID
 
-		if err := c.model_core.AccountManager.Update(context, account); err != nil {
+		if err := c.modelCore.AccountManager.Update(context, account); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account update failed (/account/:account_id), db error: " + err.Error(),
@@ -798,7 +798,7 @@ func (c *Controller) AccountController() {
 		}
 		if len(req.AccountTags) > 0 {
 			for _, tagReq := range req.AccountTags {
-				tag := &model_core.AccountTag{
+				tag := &modelCore.AccountTag{
 					AccountID:      account.ID,
 					Name:           tagReq.Name,
 					Description:    tagReq.Description,
@@ -812,7 +812,7 @@ func (c *Controller) AccountController() {
 					UpdatedAt:      time.Now().UTC(),
 					UpdatedByID:    userOrg.UserID,
 				}
-				if err := c.model_core.AccountTagManager.Create(context, tag); err != nil {
+				if err := c.modelCore.AccountTagManager.Create(context, tag); err != nil {
 					c.event.Footstep(context, ctx, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: "Account tag update failed (/account/:account_id), db error: " + err.Error(),
@@ -834,7 +834,7 @@ func (c *Controller) AccountController() {
 			NotificationType: "success",
 		})
 
-		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.ToModel(account))
+		return ctx.JSON(http.StatusOK, c.modelCore.AccountManager.ToModel(account))
 	})
 
 	// DELETE: Single (WITH footstep)
@@ -854,7 +854,7 @@ func (c *Controller) AccountController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID: " + err.Error()})
 		}
 
-		account, err := c.model_core.AccountManager.GetByID(context, *accountID)
+		account, err := c.modelCore.AccountManager.GetByID(context, *accountID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -888,7 +888,7 @@ func (c *Controller) AccountController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete paid up share capital account: " + account.Name})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Unauthorized delete attempt for account (/account/:account_id)",
@@ -896,7 +896,7 @@ func (c *Controller) AccountController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		if err := c.model_core.AccountManager.DeleteByID(context, account.ID); err != nil {
+		if err := c.modelCore.AccountManager.DeleteByID(context, account.ID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Account delete failed (/account/:account_id), db error: " + err.Error(),
@@ -909,7 +909,7 @@ func (c *Controller) AccountController() {
 			Description: "Deleted account (/account/:account_id): " + account.Name,
 			Module:      "Account",
 		})
-		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.ToModel(account))
+		return ctx.JSON(http.StatusOK, c.modelCore.AccountManager.ToModel(account))
 	})
 
 	// DELETE: Bulk (WITH footstep)
@@ -917,10 +917,10 @@ func (c *Controller) AccountController() {
 		Route:       "/api/v1/account/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Bulk delete multiple accounts by their IDs.",
-		RequestType: model_core.IDSRequest{},
+		RequestType: modelCore.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody model_core.IDSRequest
+		var reqBody modelCore.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
@@ -946,7 +946,7 @@ func (c *Controller) AccountController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Unauthorized bulk delete attempt for account (/account/bulk-delete)",
@@ -975,7 +975,7 @@ func (c *Controller) AccountController() {
 				})
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid UUID: " + rawID + " - " + err.Error()})
 			}
-			account, err := c.model_core.AccountManager.GetByID(context, id)
+			account, err := c.modelCore.AccountManager.GetByID(context, id)
 			if err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -1003,7 +1003,7 @@ func (c *Controller) AccountController() {
 				})
 				return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete paid up share capital account: " + account.Name})
 			}
-			if err := c.model_core.AccountManager.DeleteByIDWithTx(context, tx, id); err != nil {
+			if err := c.modelCore.AccountManager.DeleteByIDWithTx(context, tx, id); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",
@@ -1040,7 +1040,7 @@ func (c *Controller) AccountController() {
 		Route:        "/api/v1/account/:account_id/index/:index",
 		Method:       "PUT",
 		Note:         "Update only the index field of an account using URL param.",
-		ResponseType: model_core.AccountResponse{},
+		ResponseType: modelCore.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -1052,7 +1052,7 @@ func (c *Controller) AccountController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Unauthorized index update attempt for account (/account/:account_id/index/:index)",
@@ -1080,7 +1080,7 @@ func (c *Controller) AccountController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid index value: " + err.Error()})
 		}
-		account, err := c.model_core.AccountManager.GetByID(context, *accountID)
+		account, err := c.modelCore.AccountManager.GetByID(context, *accountID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -1092,7 +1092,7 @@ func (c *Controller) AccountController() {
 		account.Index = newIndex
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
-		if err := c.model_core.AccountManager.Update(context, account); err != nil {
+		if err := c.modelCore.AccountManager.Update(context, account); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account index update failed (/account/:account_id/index/:index), db error: " + err.Error(),
@@ -1105,7 +1105,7 @@ func (c *Controller) AccountController() {
 			Description: fmt.Sprintf("Updated account index (/account/:account_id/index/:index): %s to %d", account.Name, newIndex),
 			Module:      "Account",
 		})
-		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.ToModel(account))
+		return ctx.JSON(http.StatusOK, c.modelCore.AccountManager.ToModel(account))
 	})
 
 	// PUT: Remove GeneralLedgerDefinitionID (WITH footstep)
@@ -1113,7 +1113,7 @@ func (c *Controller) AccountController() {
 		Route:        "/api/v1/account/:account_id/general-ledger-definition/remove",
 		Method:       "PUT",
 		Note:         "Remove the GeneralLedgerDefinitionID from an account.",
-		ResponseType: model_core.AccountResponse{},
+		ResponseType: modelCore.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -1125,7 +1125,7 @@ func (c *Controller) AccountController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Unauthorized remove GL def attempt for account (/account/:account_id/general-ledger-definition/remove)",
@@ -1142,7 +1142,7 @@ func (c *Controller) AccountController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID: " + err.Error()})
 		}
-		account, err := c.model_core.AccountManager.GetByID(context, *accountID)
+		account, err := c.modelCore.AccountManager.GetByID(context, *accountID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -1154,7 +1154,7 @@ func (c *Controller) AccountController() {
 		account.GeneralLedgerDefinitionID = nil
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
-		if err := c.model_core.AccountManager.Update(context, account); err != nil {
+		if err := c.modelCore.AccountManager.Update(context, account); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account remove GL def failed (/account/:account_id/general-ledger-definition/remove), db error: " + err.Error(),
@@ -1167,14 +1167,14 @@ func (c *Controller) AccountController() {
 			Description: fmt.Sprintf("Removed GL def from account (/account/:account_id/general-ledger-definition/remove): %s", account.Name),
 			Module:      "Account",
 		})
-		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.ToModel(account))
+		return ctx.JSON(http.StatusOK, c.modelCore.AccountManager.ToModel(account))
 	})
 
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/account/:account_id/financial-statement-definition/remove",
 		Method:       "PUT",
 		Note:         "Remove the GeneralLedgerDefinitionID from an account.",
-		ResponseType: model_core.AccountResponse{},
+		ResponseType: modelCore.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -1186,7 +1186,7 @@ func (c *Controller) AccountController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Unauthorized remove FS def attempt for account (/account/:account_id/financial-statement-definition/remove)",
@@ -1203,7 +1203,7 @@ func (c *Controller) AccountController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID: " + err.Error()})
 		}
-		account, err := c.model_core.AccountManager.GetByID(context, *accountID)
+		account, err := c.modelCore.AccountManager.GetByID(context, *accountID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -1215,7 +1215,7 @@ func (c *Controller) AccountController() {
 		account.FinancialStatementDefinitionID = nil
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
-		if err := c.model_core.AccountManager.Update(context, account); err != nil {
+		if err := c.modelCore.AccountManager.Update(context, account); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account remove FS def failed (/account/:account_id/financial-statement-definition/remove), db error: " + err.Error(),
@@ -1228,7 +1228,7 @@ func (c *Controller) AccountController() {
 			Description: fmt.Sprintf("Removed FS def from account (/account/:account_id/financial-statement-definition/remove): %s", account.Name),
 			Module:      "Account",
 		})
-		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.ToModel(account))
+		return ctx.JSON(http.StatusOK, c.modelCore.AccountManager.ToModel(account))
 	})
 
 	// Quick Search
@@ -1237,17 +1237,17 @@ func (c *Controller) AccountController() {
 		Route:        "/api/v1/account/withdraw/search",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch.",
-		ResponseType: model_core.AccountResponse{},
+		ResponseType: modelCore.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accounts, err := c.model_core.AccountManager.Find(context, &model_core.Account{
+		accounts, err := c.modelCore.AccountManager.Find(context, &modelCore.Account{
 			OrganizationID:                    userOrg.OrganizationID,
 			BranchID:                          *userOrg.BranchID,
 			ShowInGeneralLedgerSourceWithdraw: true,
@@ -1255,24 +1255,24 @@ func (c *Controller) AccountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve accounts: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, c.modelCore.AccountManager.Pagination(context, ctx, accounts))
 	})
 
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/account/journal/search",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch.",
-		ResponseType: model_core.AccountResponse{},
+		ResponseType: modelCore.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accounts, err := c.model_core.AccountManager.Find(context, &model_core.Account{
+		accounts, err := c.modelCore.AccountManager.Find(context, &modelCore.Account{
 			OrganizationID:                   userOrg.OrganizationID,
 			BranchID:                         *userOrg.BranchID,
 			ShowInGeneralLedgerSourceJournal: true,
@@ -1280,24 +1280,24 @@ func (c *Controller) AccountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve accounts: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, c.modelCore.AccountManager.Pagination(context, ctx, accounts))
 	})
 
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/account/payment/search",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch.",
-		ResponseType: model_core.AccountResponse{},
+		ResponseType: modelCore.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accounts, err := c.model_core.AccountManager.Find(context, &model_core.Account{
+		accounts, err := c.modelCore.AccountManager.Find(context, &modelCore.Account{
 			OrganizationID:                   userOrg.OrganizationID,
 			BranchID:                         *userOrg.BranchID,
 			ShowInGeneralLedgerSourcePayment: true,
@@ -1305,14 +1305,14 @@ func (c *Controller) AccountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve accounts: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, c.modelCore.AccountManager.Pagination(context, ctx, accounts))
 	})
 
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/account/currency/:currency_id/payment/search",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch and currency. Only 'owner' and 'employee' roles are authorized. Returns paginated results.",
-		ResponseType: model_core.AccountResponse{},
+		ResponseType: modelCore.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -1323,10 +1323,10 @@ func (c *Controller) AccountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID: " + err.Error()})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
-		accounts, err := c.model_core.AccountManager.Find(context, &model_core.Account{
+		accounts, err := c.modelCore.AccountManager.Find(context, &modelCore.Account{
 			OrganizationID:                   userOrg.OrganizationID,
 			BranchID:                         *userOrg.BranchID,
 			CurrencyID:                       currencyId,
@@ -1335,24 +1335,24 @@ func (c *Controller) AccountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, c.modelCore.AccountManager.Pagination(context, ctx, accounts))
 	})
 
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/account/adjustment/search",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch.",
-		ResponseType: model_core.AccountResponse{},
+		ResponseType: modelCore.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accounts, err := c.model_core.AccountManager.Find(context, &model_core.Account{
+		accounts, err := c.modelCore.AccountManager.Find(context, &modelCore.Account{
 			OrganizationID:                      userOrg.OrganizationID,
 			BranchID:                            *userOrg.BranchID,
 			ShowInGeneralLedgerSourceAdjustment: true,
@@ -1360,24 +1360,24 @@ func (c *Controller) AccountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve accounts: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, c.modelCore.AccountManager.Pagination(context, ctx, accounts))
 	})
 
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/account/journal-voucher/search",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch.",
-		ResponseType: model_core.AccountResponse{},
+		ResponseType: modelCore.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accounts, err := c.model_core.AccountManager.Find(context, &model_core.Account{
+		accounts, err := c.modelCore.AccountManager.Find(context, &modelCore.Account{
 			OrganizationID:                          userOrg.OrganizationID,
 			BranchID:                                *userOrg.BranchID,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
@@ -1385,24 +1385,24 @@ func (c *Controller) AccountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve accounts: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, c.modelCore.AccountManager.Pagination(context, ctx, accounts))
 	})
 
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/account/check-voucher/search",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch.",
-		ResponseType: model_core.AccountResponse{},
+		ResponseType: modelCore.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accounts, err := c.model_core.AccountManager.Find(context, &model_core.Account{
+		accounts, err := c.modelCore.AccountManager.Find(context, &modelCore.Account{
 			OrganizationID:                        userOrg.OrganizationID,
 			BranchID:                              *userOrg.BranchID,
 			ShowInGeneralLedgerSourceCheckVoucher: true,
@@ -1410,24 +1410,24 @@ func (c *Controller) AccountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve accounts: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, c.modelCore.AccountManager.Pagination(context, ctx, accounts))
 	})
 
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/account/cash-and-cash-equivalence/search",
 		Method:       "GET",
 		Note:         "Retrieve all cash and cash equivalence accounts for the current branch.",
-		ResponseType: model_core.AccountResponse{},
+		ResponseType: modelCore.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accounts, err := c.model_core.AccountManager.Find(context, &model_core.Account{
+		accounts, err := c.modelCore.AccountManager.Find(context, &modelCore.Account{
 			OrganizationID:         userOrg.OrganizationID,
 			BranchID:               *userOrg.BranchID,
 			CashAndCashEquivalence: true,
@@ -1435,28 +1435,28 @@ func (c *Controller) AccountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve cash and cash equivalence accounts: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, c.modelCore.AccountManager.Pagination(context, ctx, accounts))
 	})
 	//
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/account/currency/:currency_id/cash-and-cash-equivalence/search",
 		Method:       "GET",
 		Note:         "Retrieve all cash and cash equivalence accounts for the current branch.",
-		ResponseType: model_core.AccountResponse{},
+		ResponseType: modelCore.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
 		currencyId, err := handlers.EngineUUIDParam(ctx, "currency_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID: " + err.Error()})
 		}
-		accounts, err := c.model_core.AccountManager.Find(context, &model_core.Account{
+		accounts, err := c.modelCore.AccountManager.Find(context, &modelCore.Account{
 			OrganizationID:         userOrg.OrganizationID,
 			BranchID:               *userOrg.BranchID,
 			CashAndCashEquivalence: true,
@@ -1465,7 +1465,7 @@ func (c *Controller) AccountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve cash and cash equivalence accounts: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, c.modelCore.AccountManager.Pagination(context, ctx, accounts))
 	})
 
 	// GET - api/v1/computation-sheet/:computation-sheet-id/accounts
@@ -1473,7 +1473,7 @@ func (c *Controller) AccountController() {
 		Route:        "/api/v1/account/computation-sheet/:computation_sheet_id",
 		Method:       "GET",
 		Note:         "Returns all accounts connected to a computation sheet.",
-		ResponseType: model_core.AccountResponse{},
+		ResponseType: modelCore.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		computationSheetID, err := handlers.EngineUUIDParam(ctx, "computation_sheet_id")
@@ -1484,7 +1484,7 @@ func (c *Controller) AccountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		accounts, err := c.model_core.AccountManager.FindRaw(context, &model_core.Account{
+		accounts, err := c.modelCore.AccountManager.FindRaw(context, &modelCore.Account{
 			ComputationSheetID: computationSheetID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
@@ -1499,7 +1499,7 @@ func (c *Controller) AccountController() {
 		Route:        "/api/v1/account/:account_id/computation-sheet/:computation_sheet_id/connect",
 		Method:       "PUT",
 		Note:         "Connect an account to a computation sheet.",
-		ResponseType: model_core.AccountResponse{},
+		ResponseType: modelCore.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
@@ -1514,24 +1514,24 @@ func (c *Controller) AccountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		account, err := c.model_core.AccountManager.GetByID(context, *accountID)
+		account, err := c.modelCore.AccountManager.GetByID(context, *accountID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found"})
 		}
 		account.ComputationSheetID = computationSheetID
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
-		if err := c.model_core.AccountManager.Update(context, account); err != nil {
+		if err := c.modelCore.AccountManager.Update(context, account); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to connect account to computation sheet: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.ToModel(account))
+		return ctx.JSON(http.StatusOK, c.modelCore.AccountManager.ToModel(account))
 	})
 
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/account/:account_id/computation-sheet/disconnect",
 		Method:       "PUT",
 		Note:         "Disconnect an account from a computation sheet.",
-		ResponseType: model_core.AccountResponse{},
+		ResponseType: modelCore.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
@@ -1542,16 +1542,16 @@ func (c *Controller) AccountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		account, err := c.model_core.AccountManager.GetByID(context, *accountID)
+		account, err := c.modelCore.AccountManager.GetByID(context, *accountID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found"})
 		}
 		account.ComputationSheetID = nil
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
-		if err := c.model_core.AccountManager.Update(context, account); err != nil {
+		if err := c.modelCore.AccountManager.Update(context, account); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to connect account to computation sheet: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.AccountManager.ToModel(account))
+		return ctx.JSON(http.StatusOK, c.modelCore.AccountManager.ToModel(account))
 	})
 }

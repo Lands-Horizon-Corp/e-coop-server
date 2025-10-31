@@ -7,7 +7,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
+	modelCore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -19,7 +19,7 @@ func (c *Controller) MemberOccupationController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-occupation-history",
 		Method:       "GET",
-		ResponseType: model_core.MemberOccupationHistoryResponse{},
+		ResponseType: modelCore.MemberOccupationHistoryResponse{},
 		Note:         "Returns all member occupation history entries for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -27,18 +27,18 @@ func (c *Controller) MemberOccupationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberOccupationHistory, err := c.model_core.MemberOccupationHistoryCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		memberOccupationHistory, err := c.modelCore.MemberOccupationHistoryCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member occupation history: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.MemberOccupationHistoryManager.Filtered(context, ctx, memberOccupationHistory))
+		return ctx.JSON(http.StatusOK, c.modelCore.MemberOccupationHistoryManager.Filtered(context, ctx, memberOccupationHistory))
 	})
 
 	// Get member occupation history by member profile ID
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-occupation-history/member-profile/:member_profile_id/search",
 		Method:       "GET",
-		ResponseType: model_core.MemberOccupationHistoryResponse{},
+		ResponseType: modelCore.MemberOccupationHistoryResponse{},
 		Note:         "Returns member occupation history for a specific member profile ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -50,18 +50,18 @@ func (c *Controller) MemberOccupationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberOccupationHistory, err := c.model_core.MemberOccupationHistoryMemberProfileID(context, *memberProfileID, user.OrganizationID, *user.BranchID)
+		memberOccupationHistory, err := c.modelCore.MemberOccupationHistoryMemberProfileID(context, *memberProfileID, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member occupation history by profile: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.MemberOccupationHistoryManager.Pagination(context, ctx, memberOccupationHistory))
+		return ctx.JSON(http.StatusOK, c.modelCore.MemberOccupationHistoryManager.Pagination(context, ctx, memberOccupationHistory))
 	})
 
 	// Get all member occupations for the current branch
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-occupation",
 		Method:       "GET",
-		ResponseType: model_core.MemberOccupationResponse{},
+		ResponseType: modelCore.MemberOccupationResponse{},
 		Note:         "Returns all member occupations for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -69,18 +69,18 @@ func (c *Controller) MemberOccupationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberOccupation, err := c.model_core.MemberOccupationCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		memberOccupation, err := c.modelCore.MemberOccupationCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member occupations: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.MemberOccupationManager.Filtered(context, ctx, memberOccupation))
+		return ctx.JSON(http.StatusOK, c.modelCore.MemberOccupationManager.Filtered(context, ctx, memberOccupation))
 	})
 
 	// Get paginated member occupations
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-occupation/search",
 		Method:       "GET",
-		ResponseType: model_core.MemberOccupationResponse{},
+		ResponseType: modelCore.MemberOccupationResponse{},
 		Note:         "Returns paginated member occupations for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -88,23 +88,23 @@ func (c *Controller) MemberOccupationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := c.model_core.MemberOccupationCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		value, err := c.modelCore.MemberOccupationCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member occupations for pagination: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.MemberOccupationManager.Pagination(context, ctx, value))
+		return ctx.JSON(http.StatusOK, c.modelCore.MemberOccupationManager.Pagination(context, ctx, value))
 	})
 
 	// Create a new member occupation
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-occupation",
 		Method:       "POST",
-		ResponseType: model_core.MemberOccupationResponse{},
-		RequestType:  model_core.MemberOccupationRequest{},
+		ResponseType: modelCore.MemberOccupationResponse{},
+		RequestType:  modelCore.MemberOccupationRequest{},
 		Note:         "Creates a new member occupation record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.model_core.MemberOccupationManager.Validate(ctx)
+		req, err := c.modelCore.MemberOccupationManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -123,7 +123,7 @@ func (c *Controller) MemberOccupationController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
-		memberOccupation := &model_core.MemberOccupation{
+		memberOccupation := &modelCore.MemberOccupation{
 			Name:           req.Name,
 			Description:    req.Description,
 			CreatedAt:      time.Now().UTC(),
@@ -134,7 +134,7 @@ func (c *Controller) MemberOccupationController() {
 			OrganizationID: user.OrganizationID,
 		}
 
-		if err := c.model_core.MemberOccupationManager.Create(context, memberOccupation); err != nil {
+		if err := c.modelCore.MemberOccupationManager.Create(context, memberOccupation); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member occupation failed (/member-occupation), db error: " + err.Error(),
@@ -149,15 +149,15 @@ func (c *Controller) MemberOccupationController() {
 			Module:      "MemberOccupation",
 		})
 
-		return ctx.JSON(http.StatusOK, c.model_core.MemberOccupationManager.ToModel(memberOccupation))
+		return ctx.JSON(http.StatusOK, c.modelCore.MemberOccupationManager.ToModel(memberOccupation))
 	})
 
 	// Update an existing member occupation by ID
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-occupation/:member_occupation_id",
 		Method:       "PUT",
-		ResponseType: model_core.MemberOccupationResponse{},
-		RequestType:  model_core.MemberOccupationRequest{},
+		ResponseType: modelCore.MemberOccupationResponse{},
+		RequestType:  modelCore.MemberOccupationRequest{},
 		Note:         "Updates an existing member occupation record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -179,7 +179,7 @@ func (c *Controller) MemberOccupationController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		req, err := c.model_core.MemberOccupationManager.Validate(ctx)
+		req, err := c.modelCore.MemberOccupationManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -188,7 +188,7 @@ func (c *Controller) MemberOccupationController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		memberOccupation, err := c.model_core.MemberOccupationManager.GetByID(context, *memberOccupationID)
+		memberOccupation, err := c.modelCore.MemberOccupationManager.GetByID(context, *memberOccupationID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -203,7 +203,7 @@ func (c *Controller) MemberOccupationController() {
 		memberOccupation.BranchID = *user.BranchID
 		memberOccupation.Name = req.Name
 		memberOccupation.Description = req.Description
-		if err := c.model_core.MemberOccupationManager.UpdateFields(context, memberOccupation.ID, memberOccupation); err != nil {
+		if err := c.modelCore.MemberOccupationManager.UpdateFields(context, memberOccupation.ID, memberOccupation); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member occupation failed (/member-occupation/:member_occupation_id), db error: " + err.Error(),
@@ -216,7 +216,7 @@ func (c *Controller) MemberOccupationController() {
 			Description: "Updated member occupation (/member-occupation/:member_occupation_id): " + memberOccupation.Name,
 			Module:      "MemberOccupation",
 		})
-		return ctx.JSON(http.StatusOK, c.model_core.MemberOccupationManager.ToModel(memberOccupation))
+		return ctx.JSON(http.StatusOK, c.modelCore.MemberOccupationManager.ToModel(memberOccupation))
 	})
 
 	// Delete a member occupation by ID
@@ -235,7 +235,7 @@ func (c *Controller) MemberOccupationController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_occupation_id: " + err.Error()})
 		}
-		value, err := c.model_core.MemberOccupationManager.GetByID(context, *memberOccupationID)
+		value, err := c.modelCore.MemberOccupationManager.GetByID(context, *memberOccupationID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -244,7 +244,7 @@ func (c *Controller) MemberOccupationController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member occupation not found: " + err.Error()})
 		}
-		if err := c.model_core.MemberOccupationManager.DeleteByID(context, *memberOccupationID); err != nil {
+		if err := c.modelCore.MemberOccupationManager.DeleteByID(context, *memberOccupationID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member occupation failed (/member-occupation/:member_occupation_id), db error: " + err.Error(),
@@ -264,11 +264,11 @@ func (c *Controller) MemberOccupationController() {
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/member-occupation/bulk-delete",
 		Method:      "DELETE",
-		RequestType: model_core.IDSRequest{},
+		RequestType: modelCore.IDSRequest{},
 		Note:        "Deletes multiple member occupation records by their IDs.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody model_core.IDSRequest
+		var reqBody modelCore.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -312,7 +312,7 @@ func (c *Controller) MemberOccupationController() {
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID '%s': %s", rawID, err.Error())})
 			}
 
-			value, err := c.model_core.MemberOccupationManager.GetByID(context, memberOccupationID)
+			value, err := c.modelCore.MemberOccupationManager.GetByID(context, memberOccupationID)
 			if err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -324,7 +324,7 @@ func (c *Controller) MemberOccupationController() {
 			}
 
 			names += value.Name + ","
-			if err := c.model_core.MemberOccupationManager.DeleteByIDWithTx(context, tx, memberOccupationID); err != nil {
+			if err := c.modelCore.MemberOccupationManager.DeleteByIDWithTx(context, tx, memberOccupationID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

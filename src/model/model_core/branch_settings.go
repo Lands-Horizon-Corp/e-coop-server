@@ -1,4 +1,4 @@
-package model_core
+package modelCore
 
 import (
 	"fmt"

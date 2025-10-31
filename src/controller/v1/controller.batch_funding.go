@@ -6,7 +6,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelCore"
 	"github.com/labstack/echo/v4"
 )
 
@@ -19,11 +19,11 @@ func (c *Controller) BatchFundingController() {
 		Route:        "/api/v1/batch-funding",
 		Method:       "POST",
 		Note:         "Creates a new batch funding for the currently active transaction batch of the user's organization and branch. Also updates the related transaction batch balances.",
-		RequestType:  model_core.BatchFundingRequest{},
-		ResponseType: model_core.BatchFundingResponse{},
+		RequestType:  modelCore.BatchFundingRequest{},
+		ResponseType: modelCore.BatchFundingResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		batchFundingReq, err := c.model_core.BatchFundingManager.Validate(ctx)
+		batchFundingReq, err := c.modelCore.BatchFundingManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -41,7 +41,7 @@ func (c *Controller) BatchFundingController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unable to determine user organization. Please login again."})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Unauthorized create attempt for batch funding (/batch-funding)",
@@ -49,7 +49,7 @@ func (c *Controller) BatchFundingController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "You do not have permission to create batch funding."})
 		}
-		transactionBatch, err := c.model_core.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
+		transactionBatch, err := c.modelCore.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
 			"organization_id": userOrg.OrganizationID,
 			"branch_id":       *userOrg.BranchID,
 			"is_closed":       false,
@@ -71,7 +71,7 @@ func (c *Controller) BatchFundingController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No active transaction batch is open for this branch."})
 		}
 
-		cashCounts, err := c.model_core.CashCountManager.Find(context, &model_core.CashCount{
+		cashCounts, err := c.modelCore.CashCountManager.Find(context, &modelCore.CashCount{
 			TransactionBatchID: transactionBatch.ID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
@@ -95,7 +95,7 @@ func (c *Controller) BatchFundingController() {
 		transactionBatch.CashCountTotal = totalCashCount
 		transactionBatch.GrandTotal = totalCashCount + transactionBatch.DepositInBank
 
-		if err := c.model_core.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
+		if err := c.modelCore.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Batch funding creation failed (/batch-funding), transaction batch update error: " + err.Error(),
@@ -103,7 +103,7 @@ func (c *Controller) BatchFundingController() {
 			})
 			return ctx.JSON(http.StatusConflict, map[string]string{"error": "Could not update transaction batch balances: " + err.Error()})
 		}
-		batchFunding := &model_core.BatchFunding{
+		batchFunding := &modelCore.BatchFunding{
 			CreatedAt:          time.Now().UTC(),
 			CreatedByID:        userOrg.UserID,
 			UpdatedAt:          time.Now().UTC(),
@@ -119,7 +119,7 @@ func (c *Controller) BatchFundingController() {
 			CurrencyID:         batchFundingReq.CurrencyID,
 		}
 
-		if err := c.model_core.BatchFundingManager.Create(context, batchFunding); err != nil {
+		if err := c.modelCore.BatchFundingManager.Create(context, batchFunding); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Batch funding creation failed (/batch-funding), db error: " + err.Error(),
@@ -132,7 +132,7 @@ func (c *Controller) BatchFundingController() {
 			Description: "Created batch funding (/batch-funding): " + batchFunding.Name,
 			Module:      "BatchFunding",
 		})
-		return ctx.JSON(http.StatusOK, c.model_core.BatchFundingManager.ToModel(batchFunding))
+		return ctx.JSON(http.StatusOK, c.modelCore.BatchFundingManager.ToModel(batchFunding))
 	})
 
 	// GET /batch-funding/transaction-batch/:transaction_batch_id/search: Paginated batch funding for a transaction batch. (NO footstep)
@@ -140,7 +140,7 @@ func (c *Controller) BatchFundingController() {
 		Route:        "/api/v1/batch-funding/transaction-batch/:transaction_batch_id/search",
 		Method:       "GET",
 		Note:         "Retrieves a paginated list of batch funding records for the specified transaction batch, if the user is authorized for the branch.",
-		ResponseType: model_core.BatchFundingResponse{},
+		ResponseType: modelCore.BatchFundingResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
@@ -154,11 +154,11 @@ func (c *Controller) BatchFundingController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unable to determine user organization. Please login again."})
 		}
 
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "You do not have permission to view batch funding records."})
 		}
 
-		transactionBatch, err := c.model_core.TransactionBatchManager.GetByID(context, *transactionBatchId)
+		transactionBatch, err := c.modelCore.TransactionBatchManager.GetByID(context, *transactionBatchId)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Transaction batch not found for this ID."})
 		}
@@ -167,7 +167,7 @@ func (c *Controller) BatchFundingController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this transaction batch. The batch does not belong to your organization or branch."})
 		}
 
-		batchFunding, err := c.model_core.BatchFundingManager.Find(context, &model_core.BatchFunding{
+		batchFunding, err := c.modelCore.BatchFundingManager.Find(context, &modelCore.BatchFunding{
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
 			TransactionBatchID: *transactionBatchId,
@@ -176,14 +176,14 @@ func (c *Controller) BatchFundingController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Unable to retrieve batch funding records: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, c.model_core.BatchFundingManager.Pagination(context, ctx, batchFunding))
+		return ctx.JSON(http.StatusOK, c.modelCore.BatchFundingManager.Pagination(context, ctx, batchFunding))
 	})
 
 	// GET /api/v1/batch-funding/search
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/batch-funding/search",
 		Method:       "GET",
-		ResponseType: model_core.BatchFundingResponse{},
+		ResponseType: modelCore.BatchFundingResponse{},
 		Note:         "Returns all batch funding records for the current user's organization and branch with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -191,11 +191,11 @@ func (c *Controller) BatchFundingController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view batch funding records"})
 		}
 
-		batchFundings, err := c.model_core.BatchFundingManager.Find(context, &model_core.BatchFunding{
+		batchFundings, err := c.modelCore.BatchFundingManager.Find(context, &modelCore.BatchFunding{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -203,6 +203,6 @@ func (c *Controller) BatchFundingController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve batch funding records: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, c.model_core.BatchFundingManager.Pagination(context, ctx, batchFundings))
+		return ctx.JSON(http.StatusOK, c.modelCore.BatchFundingManager.Pagination(context, ctx, batchFundings))
 	})
 }

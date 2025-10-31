@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelCore"
 	"github.com/rotisserie/eris"
 )
 
@@ -49,7 +49,7 @@ func (s *Seeder) loadImagePaths() error {
 	return nil
 }
 
-func (s *Seeder) createImageMedia(ctx context.Context, imageType string) (*model_core.Media, error) {
+func (s *Seeder) createImageMedia(ctx context.Context, imageType string) (*modelCore.Media, error) {
 	if len(s.imagePaths) == 0 {
 		return nil, eris.New("no image files available for seeding")
 	}
@@ -63,7 +63,7 @@ func (s *Seeder) createImageMedia(ctx context.Context, imageType string) (*model
 	if err != nil {
 		return nil, eris.Wrapf(err, "failed to upload image from path %s for %s", imagePath, imageType)
 	} // Create media record
-	media := &model_core.Media{
+	media := &modelCore.Media{
 		FileName:   storage.FileName,
 		FileType:   storage.FileType,
 		FileSize:   storage.FileSize,
@@ -76,7 +76,7 @@ func (s *Seeder) createImageMedia(ctx context.Context, imageType string) (*model
 		UpdatedAt:  time.Now().UTC(),
 	}
 
-	if err := s.model_core.MediaManager.Create(ctx, media); err != nil {
+	if err := s.modelCore.MediaManager.Create(ctx, media); err != nil {
 		return nil, eris.Wrap(err, "failed to create media record")
 	}
 

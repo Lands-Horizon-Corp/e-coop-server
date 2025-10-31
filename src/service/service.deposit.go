@@ -4,7 +4,7 @@ package service
 import (
 	"context"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelCore"
 	"github.com/rotisserie/eris"
 )
 
@@ -25,19 +25,19 @@ func (t *TransactionService) Deposit(ctx context.Context, account TransactionDat
 		balance = account.GeneralLedger.Balance
 	}
 	switch account.Account.Type {
-	case model_core.AccountTypeDeposit, model_core.AccountTypeTimeDeposit, model_core.AccountTypeSVFLedger:
+	case modelCore.AccountTypeDeposit, modelCore.AccountTypeTimeDeposit, modelCore.AccountTypeSVFLedger:
 		// Money in = credit to balance
 		return amount, 0, balance + amount, nil
 
-	case model_core.AccountTypeLoan, model_core.AccountTypeFines, model_core.AccountTypeInterest, model_core.AccountTypeAPLedger:
+	case modelCore.AccountTypeLoan, modelCore.AccountTypeFines, modelCore.AccountTypeInterest, modelCore.AccountTypeAPLedger:
 		// Paying off liabilities = debit (reduces liability balance)
 		return 0, amount, balance - amount, nil
 
-	case model_core.AccountTypeARLedger, model_core.AccountTypeARAging:
+	case modelCore.AccountTypeARLedger, modelCore.AccountTypeARAging:
 		// Receiving 32nt for receivables = credit balance
 		return amount, 0, balance + amount, nil
 
-	case model_core.AccountTypeWOff, model_core.AccountTypeOther:
+	case modelCore.AccountTypeWOff, modelCore.AccountTypeOther:
 		// Custom handling
 		return amount, 0, balance + amount, nil
 

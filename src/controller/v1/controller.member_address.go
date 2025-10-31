@@ -6,7 +6,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelCore"
 	"github.com/labstack/echo/v4"
 )
 
@@ -18,8 +18,8 @@ func (c *Controller) MemberAddressController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-address/member-profile/:member_profile_id",
 		Method:       "POST",
-		RequestType:  model_core.MemberAddress{},
-		ResponseType: model_core.MemberAddress{},
+		RequestType:  modelCore.MemberAddress{},
+		ResponseType: modelCore.MemberAddress{},
 		Note:         "Creates a new address record for a member profile.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -32,7 +32,7 @@ func (c *Controller) MemberAddressController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
 		}
-		req, err := c.model_core.MemberAddressManager.Validate(ctx)
+		req, err := c.modelCore.MemberAddressManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -58,7 +58,7 @@ func (c *Controller) MemberAddressController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		value := &model_core.MemberAddress{
+		value := &modelCore.MemberAddress{
 			MemberProfileID: memberProfileID,
 			Label:           req.Label,
 			City:            req.City,
@@ -77,7 +77,7 @@ func (c *Controller) MemberAddressController() {
 			Longitude:       req.Longitude,
 			Latitude:        req.Latitude,
 		}
-		if err := c.model_core.MemberAddressManager.Create(context, value); err != nil {
+		if err := c.modelCore.MemberAddressManager.Create(context, value); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member address failed (/member-address/member-profile/:member_profile_id), db error: " + err.Error(),
@@ -90,15 +90,15 @@ func (c *Controller) MemberAddressController() {
 			Description: "Created member address (/member-address/member-profile/:member_profile_id): " + value.Label,
 			Module:      "MemberAddress",
 		})
-		return ctx.JSON(http.StatusCreated, c.model_core.MemberAddressManager.ToModel(value))
+		return ctx.JSON(http.StatusCreated, c.modelCore.MemberAddressManager.ToModel(value))
 	})
 
 	// PUT /member-address/:member_address_id: Update an existing address record for a member.
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-address/:member_address_id",
 		Method:       "PUT",
-		RequestType:  model_core.MemberAddress{},
-		ResponseType: model_core.MemberAddress{},
+		RequestType:  modelCore.MemberAddress{},
+		ResponseType: modelCore.MemberAddress{},
 		Note:         "Updates an existing address record for a member in the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -111,7 +111,7 @@ func (c *Controller) MemberAddressController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member address ID"})
 		}
-		req, err := c.model_core.MemberAddressManager.Validate(ctx)
+		req, err := c.modelCore.MemberAddressManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -137,7 +137,7 @@ func (c *Controller) MemberAddressController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		value, err := c.model_core.MemberAddressManager.GetByID(context, *memberAddressID)
+		value, err := c.modelCore.MemberAddressManager.GetByID(context, *memberAddressID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -162,7 +162,7 @@ func (c *Controller) MemberAddressController() {
 		value.Address = req.Address
 		value.Longitude = req.Longitude
 		value.Latitude = req.Latitude
-		if err := c.model_core.MemberAddressManager.UpdateFields(context, value.ID, value); err != nil {
+		if err := c.modelCore.MemberAddressManager.UpdateFields(context, value.ID, value); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member address failed (/member-address/:member_address_id), db error: " + err.Error(),
@@ -175,7 +175,7 @@ func (c *Controller) MemberAddressController() {
 			Description: "Updated member address (/member-address/:member_address_id): " + value.Label,
 			Module:      "MemberAddress",
 		})
-		return ctx.JSON(http.StatusOK, c.model_core.MemberAddressManager.ToModel(value))
+		return ctx.JSON(http.StatusOK, c.modelCore.MemberAddressManager.ToModel(value))
 	})
 
 	// DELETE /member-address/:member_address_id: Delete a member's address record by ID.
@@ -194,7 +194,7 @@ func (c *Controller) MemberAddressController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member address ID"})
 		}
-		value, err := c.model_core.MemberAddressManager.GetByID(context, *memberAddressID)
+		value, err := c.modelCore.MemberAddressManager.GetByID(context, *memberAddressID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -203,7 +203,7 @@ func (c *Controller) MemberAddressController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member address record not found"})
 		}
-		if err := c.model_core.MemberAddressManager.DeleteByID(context, *memberAddressID); err != nil {
+		if err := c.modelCore.MemberAddressManager.DeleteByID(context, *memberAddressID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member address failed (/member-address/:member_address_id), db error: " + err.Error(),

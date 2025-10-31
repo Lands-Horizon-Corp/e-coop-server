@@ -7,7 +7,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelCore"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -20,7 +20,7 @@ func (c *Controller) IncludeNegativeAccountController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/include-negative-accounts/computation-sheet/:computation_sheet_id/search",
 		Method:       "GET",
-		ResponseType: model_core.IncludeNegativeAccountResponse{},
+		ResponseType: modelCore.IncludeNegativeAccountResponse{},
 		Note:         "Returns all include negative accounts for a computation sheet in the current user's org/branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -35,7 +35,7 @@ func (c *Controller) IncludeNegativeAccountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
 		}
-		records, err := c.model_core.IncludeNegativeAccountManager.Find(context, &model_core.IncludeNegativeAccount{
+		records, err := c.modelCore.IncludeNegativeAccountManager.Find(context, &modelCore.IncludeNegativeAccount{
 			OrganizationID:     user.OrganizationID,
 			BranchID:           *user.BranchID,
 			ComputationSheetID: sheetID,
@@ -43,14 +43,14 @@ func (c *Controller) IncludeNegativeAccountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No include negative accounts found for this computation sheet"})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.IncludeNegativeAccountManager.Pagination(context, ctx, records))
+		return ctx.JSON(http.StatusOK, c.modelCore.IncludeNegativeAccountManager.Pagination(context, ctx, records))
 	})
 
 	// GET /include-negative-accounts/computation-sheet/:computation_sheet_id/search
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/include-negative-accounts/computation-sheet/:computation_sheet_id",
 		Method:       "GET",
-		ResponseType: model_core.IncludeNegativeAccountResponse{},
+		ResponseType: modelCore.IncludeNegativeAccountResponse{},
 		Note:         "Returns all include negative accounts for a computation sheet in the current user's org/branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -65,7 +65,7 @@ func (c *Controller) IncludeNegativeAccountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
 		}
-		records, err := c.model_core.IncludeNegativeAccountManager.Find(context, &model_core.IncludeNegativeAccount{
+		records, err := c.modelCore.IncludeNegativeAccountManager.Find(context, &modelCore.IncludeNegativeAccount{
 			OrganizationID:     user.OrganizationID,
 			BranchID:           *user.BranchID,
 			ComputationSheetID: sheetID,
@@ -73,19 +73,19 @@ func (c *Controller) IncludeNegativeAccountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No include negative accounts found for this computation sheet"})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.IncludeNegativeAccountManager.Filtered(context, ctx, records))
+		return ctx.JSON(http.StatusOK, c.modelCore.IncludeNegativeAccountManager.Filtered(context, ctx, records))
 	})
 
 	// POST /include-negative-accounts
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/include-negative-accounts",
 		Method:       "POST",
-		ResponseType: model_core.IncludeNegativeAccountResponse{},
-		RequestType:  model_core.IncludeNegativeAccountRequest{},
+		ResponseType: modelCore.IncludeNegativeAccountResponse{},
+		RequestType:  modelCore.IncludeNegativeAccountRequest{},
 		Note:         "Creates a new include negative account for the current user's org/branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.model_core.IncludeNegativeAccountManager.Validate(ctx)
+		req, err := c.modelCore.IncludeNegativeAccountManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -112,7 +112,7 @@ func (c *Controller) IncludeNegativeAccountController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		record := &model_core.IncludeNegativeAccount{
+		record := &modelCore.IncludeNegativeAccount{
 			ComputationSheetID: req.ComputationSheetID,
 			AccountID:          req.AccountID,
 			Description:        req.Description,
@@ -124,7 +124,7 @@ func (c *Controller) IncludeNegativeAccountController() {
 			OrganizationID:     user.OrganizationID,
 		}
 
-		if err := c.model_core.IncludeNegativeAccountManager.Create(context, record); err != nil {
+		if err := c.modelCore.IncludeNegativeAccountManager.Create(context, record); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Include negative account creation failed (/include-negative-accounts), db error: " + err.Error(),
@@ -137,15 +137,15 @@ func (c *Controller) IncludeNegativeAccountController() {
 			Description: "Created include negative account (/include-negative-accounts)",
 			Module:      "IncludeNegativeAccount",
 		})
-		return ctx.JSON(http.StatusCreated, c.model_core.IncludeNegativeAccountManager.ToModel(record))
+		return ctx.JSON(http.StatusCreated, c.modelCore.IncludeNegativeAccountManager.ToModel(record))
 	})
 
 	// PUT /include-negative-accounts/:include_negative_accounts_id
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/include-negative-accounts/:include_negative_accounts_id",
 		Method:       "PUT",
-		ResponseType: model_core.IncludeNegativeAccountResponse{},
-		RequestType:  model_core.IncludeNegativeAccountRequest{},
+		ResponseType: modelCore.IncludeNegativeAccountResponse{},
+		RequestType:  modelCore.IncludeNegativeAccountRequest{},
 		Note:         "Updates an existing include negative account by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -159,7 +159,7 @@ func (c *Controller) IncludeNegativeAccountController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid include negative account ID"})
 		}
 
-		req, err := c.model_core.IncludeNegativeAccountManager.Validate(ctx)
+		req, err := c.modelCore.IncludeNegativeAccountManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -177,7 +177,7 @@ func (c *Controller) IncludeNegativeAccountController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		record, err := c.model_core.IncludeNegativeAccountManager.GetByID(context, *id)
+		record, err := c.modelCore.IncludeNegativeAccountManager.GetByID(context, *id)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -192,7 +192,7 @@ func (c *Controller) IncludeNegativeAccountController() {
 		record.UpdatedAt = time.Now().UTC()
 		record.UpdatedByID = user.UserID
 
-		if err := c.model_core.IncludeNegativeAccountManager.UpdateFields(context, record.ID, record); err != nil {
+		if err := c.modelCore.IncludeNegativeAccountManager.UpdateFields(context, record.ID, record); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Include negative account update failed (/include-negative-accounts/:include_negative_accounts_id), db error: " + err.Error(),
@@ -205,7 +205,7 @@ func (c *Controller) IncludeNegativeAccountController() {
 			Description: "Updated include negative account (/include-negative-accounts/:include_negative_accounts_id)",
 			Module:      "IncludeNegativeAccount",
 		})
-		return ctx.JSON(http.StatusOK, c.model_core.IncludeNegativeAccountManager.ToModel(record))
+		return ctx.JSON(http.StatusOK, c.modelCore.IncludeNegativeAccountManager.ToModel(record))
 	})
 
 	// DELETE /include-negative-accounts/:include_negative_accounts_id
@@ -224,7 +224,7 @@ func (c *Controller) IncludeNegativeAccountController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid include negative account ID"})
 		}
-		record, err := c.model_core.IncludeNegativeAccountManager.GetByID(context, *id)
+		record, err := c.modelCore.IncludeNegativeAccountManager.GetByID(context, *id)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -233,7 +233,7 @@ func (c *Controller) IncludeNegativeAccountController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Include negative account not found"})
 		}
-		if err := c.model_core.IncludeNegativeAccountManager.DeleteByID(context, record.ID); err != nil {
+		if err := c.modelCore.IncludeNegativeAccountManager.DeleteByID(context, record.ID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Include negative account delete failed (/include-negative-accounts/:include_negative_accounts_id), db error: " + err.Error(),
@@ -253,11 +253,11 @@ func (c *Controller) IncludeNegativeAccountController() {
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/include-negative-accounts/bulk-delete",
 		Method:      "DELETE",
-		RequestType: model_core.IDSRequest{},
+		RequestType: modelCore.IDSRequest{},
 		Note:        "Deletes multiple include negative accounts by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody model_core.IDSRequest
+		var reqBody modelCore.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
@@ -295,7 +295,7 @@ func (c *Controller) IncludeNegativeAccountController() {
 				})
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
 			}
-			record, err := c.model_core.IncludeNegativeAccountManager.GetByID(context, id)
+			record, err := c.modelCore.IncludeNegativeAccountManager.GetByID(context, id)
 			if err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -305,7 +305,7 @@ func (c *Controller) IncludeNegativeAccountController() {
 				})
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Include negative account not found with ID: %s", rawID)})
 			}
-			if err := c.model_core.IncludeNegativeAccountManager.DeleteByIDWithTx(context, tx, record.ID); err != nil {
+			if err := c.modelCore.IncludeNegativeAccountManager.DeleteByIDWithTx(context, tx, record.ID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

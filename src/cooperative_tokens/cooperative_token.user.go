@@ -10,7 +10,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelCore"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 )
@@ -118,14 +118,14 @@ func (c UserClaim) GetRegisteredClaims() *jwt.RegisteredClaims {
 
 // UserToken handles user token and CSRF logic.
 type UserToken struct {
-	model_core            *model_core.ModelCore
+	modelCore             *modelCore.ModelCore
 	userOrganizationToken *UserOrganizationToken
 
 	CSRF horizon.AuthService[UserCSRF]
 }
 
 // NewUserToken initializes a new UserToken.
-func NewUserToken(provider *src.Provider, model_core *model_core.ModelCore, userOrganizationToken *UserOrganizationToken) (*UserToken, error) {
+func NewUserToken(provider *src.Provider, modelCore *modelCore.ModelCore, userOrganizationToken *UserOrganizationToken) (*UserToken, error) {
 	appName := provider.Service.Environment.GetString("APP_NAME", "")
 
 	csrfService := horizon.NewHorizonAuthService[UserCSRF](
@@ -137,7 +137,7 @@ func NewUserToken(provider *src.Provider, model_core *model_core.ModelCore, user
 
 	return &UserToken{
 		CSRF:                  csrfService,
-		model_core:            model_core,
+		modelCore:             modelCore,
 		userOrganizationToken: userOrganizationToken,
 	}, nil
 }
@@ -149,7 +149,7 @@ func (h *UserToken) ClearCurrentCSRF(ctx context.Context, echoCtx echo.Context) 
 }
 
 // CurrentUser retrieves the current user from the CSRF token, validating the information.
-func (h *UserToken) CurrentUser(ctx context.Context, echoCtx echo.Context) (*model_core.User, error) {
+func (h *UserToken) CurrentUser(ctx context.Context, echoCtx echo.Context) (*modelCore.User, error) {
 	claim, err := h.CSRF.GetCSRF(ctx, echoCtx)
 	if err != nil {
 		h.ClearCurrentCSRF(ctx, echoCtx)
@@ -159,7 +159,7 @@ func (h *UserToken) CurrentUser(ctx context.Context, echoCtx echo.Context) (*mod
 		h.ClearCurrentCSRF(ctx, echoCtx)
 		return nil, echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized: missing essential user information")
 	}
-	user, err := h.model_core.UserManager.GetByID(ctx, handlers.ParseUUID(&claim.UserID))
+	user, err := h.modelCore.UserManager.GetByID(ctx, handlers.ParseUUID(&claim.UserID))
 	if err != nil || user == nil {
 		h.ClearCurrentCSRF(ctx, echoCtx)
 		return nil, echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized: user not found")
@@ -172,7 +172,7 @@ func (h *UserToken) CurrentUser(ctx context.Context, echoCtx echo.Context) (*mod
 }
 
 // SetUser sets the CSRF token for the provided user.
-func (h *UserToken) SetUser(ctx context.Context, echoCtx echo.Context, user *model_core.User) error {
+func (h *UserToken) SetUser(ctx context.Context, echoCtx echo.Context, user *modelCore.User) error {
 	h.ClearCurrentCSRF(ctx, echoCtx)
 	if user == nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "User cannot be nil")

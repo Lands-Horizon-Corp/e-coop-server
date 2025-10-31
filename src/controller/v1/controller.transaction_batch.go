@@ -6,7 +6,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelCore"
 	"github.com/labstack/echo/v4"
 )
 
@@ -17,7 +17,7 @@ func (c *Controller) TransactionBatchController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/transaction-batch",
 		Method:       "GET",
-		ResponseType: model_core.TransactionBatchResponse{},
+		ResponseType: modelCore.TransactionBatchResponse{},
 		Note:         "Returns all transaction batches for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -25,24 +25,24 @@ func (c *Controller) TransactionBatchController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
-		transactionBatch, err := c.model_core.TransactionBatchManager.Find(context, &model_core.TransactionBatch{
+		transactionBatch, err := c.modelCore.TransactionBatchManager.Find(context, &modelCore.TransactionBatch{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batches: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.TransactionBatchManager.Filtered(context, ctx, transactionBatch))
+		return ctx.JSON(http.StatusOK, c.modelCore.TransactionBatchManager.Filtered(context, ctx, transactionBatch))
 	})
 
 	// Paginate transaction batches for current branch
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/transaction-batch/search",
 		Method:       "GET",
-		ResponseType: model_core.TransactionBatchResponse{},
+		ResponseType: modelCore.TransactionBatchResponse{},
 		Note:         "Returns paginated transaction batches for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -50,23 +50,23 @@ func (c *Controller) TransactionBatchController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		transactionBatch, err := c.model_core.TransactionBatchCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
+		transactionBatch, err := c.modelCore.TransactionBatchCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve paginated transaction batches: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.TransactionBatchManager.Pagination(context, ctx, transactionBatch))
+		return ctx.JSON(http.StatusOK, c.modelCore.TransactionBatchManager.Pagination(context, ctx, transactionBatch))
 	})
 
 	// Update batch signatures for a transaction batch
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/transaction-batch/:transaction_batch_id/signature",
 		Method:       "PUT",
-		ResponseType: model_core.TransactionBatchResponse{},
-		RequestType:  model_core.TransactionBatchSignatureRequest{},
+		ResponseType: modelCore.TransactionBatchResponse{},
+		RequestType:  modelCore.TransactionBatchSignatureRequest{},
 		Note:         "Updates signature and position fields for a transaction batch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req model_core.TransactionBatchSignatureRequest
+		var req modelCore.TransactionBatchSignatureRequest
 		if err := ctx.Bind(&req); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -101,7 +101,7 @@ func (c *Controller) TransactionBatchController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update signature failed: user not authorized",
@@ -109,7 +109,7 @@ func (c *Controller) TransactionBatchController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
-		transactionBatch, err := c.model_core.TransactionBatchManager.GetByID(context, *transactionBatchId)
+		transactionBatch, err := c.modelCore.TransactionBatchManager.GetByID(context, *transactionBatchId)
 		if err != nil || transactionBatch == nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -154,7 +154,7 @@ func (c *Controller) TransactionBatchController() {
 		transactionBatch.UpdatedAt = time.Now().UTC()
 		transactionBatch.UpdatedByID = userOrg.UserID
 
-		if err := c.model_core.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
+		if err := c.modelCore.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update signature failed: update error: " + err.Error(),
@@ -167,14 +167,14 @@ func (c *Controller) TransactionBatchController() {
 			Description: "Updated transaction batch signatures for batch " + transactionBatch.ID.String(),
 			Module:      "TransactionBatch",
 		})
-		return ctx.JSON(http.StatusOK, c.model_core.TransactionBatchManager.ToModel(transactionBatch))
+		return ctx.JSON(http.StatusOK, c.modelCore.TransactionBatchManager.ToModel(transactionBatch))
 	})
 
 	// Get the current active transaction batch for the user
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/transaction-batch/current",
 		Method:       "GET",
-		ResponseType: model_core.TransactionBatchResponse{},
+		ResponseType: modelCore.TransactionBatchResponse{},
 		Note:         "Returns the current active transaction batch for the current user.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -182,31 +182,31 @@ func (c *Controller) TransactionBatchController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
 
-		transactionBatch, err := c.model_core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
+		transactionBatch, err := c.modelCore.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil || transactionBatch == nil {
 			return ctx.NoContent(http.StatusNoContent)
 		}
 
 		if !transactionBatch.CanView {
-			result, err := c.model_core.TransactionBatchMinimal(context, transactionBatch.ID)
+			result, err := c.modelCore.TransactionBatchMinimal(context, transactionBatch.ID)
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get minimal transaction batch: " + err.Error()})
 			}
 			return ctx.JSON(http.StatusOK, result)
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.TransactionBatchManager.ToModel(transactionBatch))
+		return ctx.JSON(http.StatusOK, c.modelCore.TransactionBatchManager.ToModel(transactionBatch))
 	})
 
 	// Update deposit in bank amount for a specific transaction batch
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/transaction-batch/:transaction_batch_id/deposit-in-bank",
 		Method:       "PUT",
-		ResponseType: model_core.TransactionBatchResponse{},
-		RequestType:  model_core.BatchFundingRequest{},
+		ResponseType: modelCore.TransactionBatchResponse{},
+		RequestType:  modelCore.BatchFundingRequest{},
 		Note:         "Updates the deposit in bank amount for a specific transaction batch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -229,7 +229,7 @@ func (c *Controller) TransactionBatchController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update deposit in bank failed: user not authorized",
@@ -259,7 +259,7 @@ func (c *Controller) TransactionBatchController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		transactionBatch, err := c.model_core.TransactionBatchManager.GetByID(context, *transactionBatchId)
+		transactionBatch, err := c.modelCore.TransactionBatchManager.GetByID(context, *transactionBatchId)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -287,7 +287,7 @@ func (c *Controller) TransactionBatchController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot update deposit for a closed transaction batch"})
 		}
 
-		cashCounts, err := c.model_core.CashCountManager.Find(context, &model_core.CashCount{
+		cashCounts, err := c.modelCore.CashCountManager.Find(context, &modelCore.CashCount{
 			TransactionBatchID: transactionBatch.ID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
@@ -313,7 +313,7 @@ func (c *Controller) TransactionBatchController() {
 		transactionBatch.UpdatedAt = time.Now().UTC()
 		transactionBatch.UpdatedByID = userOrg.UserID
 
-		if err := c.model_core.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
+		if err := c.modelCore.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update deposit in bank failed: update error: " + err.Error(),
@@ -329,25 +329,25 @@ func (c *Controller) TransactionBatchController() {
 		})
 
 		if !transactionBatch.CanView {
-			result, err := c.model_core.TransactionBatchMinimal(context, transactionBatch.ID)
+			result, err := c.modelCore.TransactionBatchMinimal(context, transactionBatch.ID)
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get minimal transaction batch: " + err.Error()})
 			}
 			return ctx.JSON(http.StatusOK, result)
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.TransactionBatchManager.ToModel(transactionBatch))
+		return ctx.JSON(http.StatusOK, c.modelCore.TransactionBatchManager.ToModel(transactionBatch))
 	})
 
 	// Create a new transaction batch and batch funding
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/transaction-batch",
 		Method:       "POST",
-		ResponseType: model_core.TransactionBatchResponse{},
-		RequestType:  model_core.TransactionBatchRequest{},
+		ResponseType: modelCore.TransactionBatchResponse{},
+		RequestType:  modelCore.TransactionBatchRequest{},
 		Note:         "Creates and starts a new transaction batch for the current branch (will also populate cash count).",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		batchFundingReq, err := c.model_core.BatchFundingManager.Validate(ctx)
+		batchFundingReq, err := c.modelCore.BatchFundingManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -365,7 +365,7 @@ func (c *Controller) TransactionBatchController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create transaction batch failed: user not authorized",
@@ -373,7 +373,7 @@ func (c *Controller) TransactionBatchController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
-		transactionBatch, _ := c.model_core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
+		transactionBatch, _ := c.modelCore.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 		if transactionBatch != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -392,7 +392,7 @@ func (c *Controller) TransactionBatchController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start transaction: " + tx.Error.Error()})
 		}
-		transBatch := &model_core.TransactionBatch{
+		transBatch := &modelCore.TransactionBatch{
 			CreatedAt:                     time.Now().UTC(),
 			CreatedByID:                   userOrg.UserID,
 			UpdatedAt:                     time.Now().UTC(),
@@ -424,7 +424,7 @@ func (c *Controller) TransactionBatchController() {
 			CanView:                       false,
 			RequestView:                   false,
 		}
-		if err := c.model_core.TransactionBatchManager.CreateWithTx(context, tx, transBatch); err != nil {
+		if err := c.modelCore.TransactionBatchManager.CreateWithTx(context, tx, transBatch); err != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -433,7 +433,7 @@ func (c *Controller) TransactionBatchController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create transaction batch: " + err.Error()})
 		}
-		batchFunding := &model_core.BatchFunding{
+		batchFunding := &modelCore.BatchFunding{
 			CreatedAt:          time.Now().UTC(),
 			CreatedByID:        userOrg.UserID,
 			UpdatedAt:          time.Now().UTC(),
@@ -448,7 +448,7 @@ func (c *Controller) TransactionBatchController() {
 			SignatureMediaID:   batchFundingReq.SignatureMediaID,
 			CurrencyID:         batchFundingReq.CurrencyID,
 		}
-		if err := c.model_core.BatchFundingManager.CreateWithTx(context, tx, batchFunding); err != nil {
+		if err := c.modelCore.BatchFundingManager.CreateWithTx(context, tx, batchFunding); err != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -470,7 +470,7 @@ func (c *Controller) TransactionBatchController() {
 			Description: "Created transaction batch and batch funding for branch " + userOrg.BranchID.String(),
 			Module:      "TransactionBatch",
 		})
-		result, err := c.model_core.TransactionBatchMinimal(context, transBatch.ID)
+		result, err := c.modelCore.TransactionBatchMinimal(context, transBatch.ID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve minimal transaction batch: " + err.Error()})
 		}
@@ -481,12 +481,12 @@ func (c *Controller) TransactionBatchController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/transaction-batch/end",
 		Method:       "PUT",
-		RequestType:  model_core.TransactionBatchEndRequest{},
-		ResponseType: model_core.TransactionBatchResponse{},
+		RequestType:  modelCore.TransactionBatchEndRequest{},
+		ResponseType: modelCore.TransactionBatchResponse{},
 		Note:         "Ends the current transaction batch for the authenticated user.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req model_core.TransactionBatchEndRequest
+		var req modelCore.TransactionBatchEndRequest
 		if err := ctx.Bind(&req); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -512,7 +512,7 @@ func (c *Controller) TransactionBatchController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "End transaction batch failed: user not authorized",
@@ -520,7 +520,7 @@ func (c *Controller) TransactionBatchController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
-		transactionBatch, err := c.model_core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
+		transactionBatch, err := c.modelCore.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -544,7 +544,7 @@ func (c *Controller) TransactionBatchController() {
 		transactionBatch.EmployeeByName = req.EmployeeByName
 		transactionBatch.EmployeeByPosition = req.EmployeeByPosition
 		transactionBatch.EndedAt = &now
-		if err := c.model_core.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
+		if err := c.modelCore.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "End transaction batch failed: update error: " + err.Error(),
@@ -559,13 +559,13 @@ func (c *Controller) TransactionBatchController() {
 		})
 
 		if !transactionBatch.CanView {
-			result, err := c.model_core.TransactionBatchMinimal(context, transactionBatch.ID)
+			result, err := c.modelCore.TransactionBatchMinimal(context, transactionBatch.ID)
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve minimal transaction batch: " + err.Error()})
 			}
 			return ctx.JSON(http.StatusOK, result)
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.TransactionBatchManager.ToModel(transactionBatch))
+		return ctx.JSON(http.StatusOK, c.modelCore.TransactionBatchManager.ToModel(transactionBatch))
 	})
 
 	// Retrieve a transaction batch by its ID
@@ -573,7 +573,7 @@ func (c *Controller) TransactionBatchController() {
 		Route:        "/api/v1/transaction-batch/:transaction_batch_id",
 		Method:       "GET",
 		Note:         "Returns a transaction batch by its ID.",
-		ResponseType: model_core.TransactionBatchResponse{},
+		ResponseType: modelCore.TransactionBatchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		transactionBatchId, err := handlers.EngineUUIDParam(ctx, "transaction_batch_id")
@@ -584,33 +584,33 @@ func (c *Controller) TransactionBatchController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
-		transactionBatch, err := c.model_core.TransactionBatchManager.GetByID(context, *transactionBatchId)
+		transactionBatch, err := c.modelCore.TransactionBatchManager.GetByID(context, *transactionBatchId)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Transaction batch not found: " + err.Error()})
 		}
 		if !transactionBatch.CanView {
-			result, err := c.model_core.TransactionBatchMinimal(context, transactionBatch.ID)
+			result, err := c.modelCore.TransactionBatchMinimal(context, transactionBatch.ID)
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve minimal transaction batch: " + err.Error()})
 			}
 			return ctx.JSON(http.StatusOK, result)
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.TransactionBatchManager.ToModel(transactionBatch))
+		return ctx.JSON(http.StatusOK, c.modelCore.TransactionBatchManager.ToModel(transactionBatch))
 	})
 
 	// Submit a request to view (blotter) a specific transaction batch
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/transaction-batch/:transaction_batch_id/view-request",
 		Method:       "PUT",
-		RequestType:  model_core.TransactionBatchEndRequest{},
-		ResponseType: model_core.TransactionBatchResponse{},
+		RequestType:  modelCore.TransactionBatchEndRequest{},
+		ResponseType: modelCore.TransactionBatchResponse{},
 		Note:         "Submits a request to view (blotter) a specific transaction batch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req model_core.TransactionBatchEndRequest
+		var req modelCore.TransactionBatchEndRequest
 		if err := ctx.Bind(&req); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -636,7 +636,7 @@ func (c *Controller) TransactionBatchController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "View request failed: user not authorized",
@@ -653,7 +653,7 @@ func (c *Controller) TransactionBatchController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction_batch_id: " + err.Error()})
 		}
-		transactionBatch, err := c.model_core.TransactionBatchManager.GetByID(context, *transactionBatchId)
+		transactionBatch, err := c.modelCore.TransactionBatchManager.GetByID(context, *transactionBatchId)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -666,7 +666,7 @@ func (c *Controller) TransactionBatchController() {
 		transactionBatch.CanView = false
 		transactionBatch.UpdatedAt = time.Now().UTC()
 		transactionBatch.UpdatedByID = userOrg.UserID
-		if err := c.model_core.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
+		if err := c.modelCore.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "View request failed: update error: " + err.Error(),
@@ -680,13 +680,13 @@ func (c *Controller) TransactionBatchController() {
 			Module:      "TransactionBatch",
 		})
 		if !transactionBatch.CanView {
-			result, err := c.model_core.TransactionBatchMinimal(context, transactionBatch.ID)
+			result, err := c.modelCore.TransactionBatchMinimal(context, transactionBatch.ID)
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve minimal transaction batch: " + err.Error()})
 			}
 			return ctx.JSON(http.StatusOK, result)
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.TransactionBatchManager.ToModel(transactionBatch))
+		return ctx.JSON(http.StatusOK, c.modelCore.TransactionBatchManager.ToModel(transactionBatch))
 	})
 
 	// List all pending view (blotter) requests for transaction batches
@@ -694,21 +694,21 @@ func (c *Controller) TransactionBatchController() {
 		Route:        "/api/v1/transaction-batch/view-request",
 		Method:       "GET",
 		Note:         "Returns all pending view (blotter) requests for transaction batches on the current branch.",
-		ResponseType: model_core.TransactionBatchResponse{},
+		ResponseType: modelCore.TransactionBatchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
-		transactionBatch, err := c.model_core.TransactionBatchViewRequests(context, userOrg.OrganizationID, *userOrg.BranchID)
+		transactionBatch, err := c.modelCore.TransactionBatchViewRequests(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve pending view requests: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.TransactionBatchManager.Filtered(context, ctx, transactionBatch))
+		return ctx.JSON(http.StatusOK, c.modelCore.TransactionBatchManager.Filtered(context, ctx, transactionBatch))
 	})
 
 	// List all ended (closed) batches for the current day
@@ -716,21 +716,21 @@ func (c *Controller) TransactionBatchController() {
 		Route:        "/api/v1/transaction-batch/ended-batch",
 		Method:       "GET",
 		Note:         "Returns all ended (closed) transaction batches for the current day.",
-		ResponseType: model_core.TransactionBatchResponse{},
+		ResponseType: modelCore.TransactionBatchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
-		batches, err := c.model_core.TransactionBatchCurrentDay(context, userOrg.OrganizationID, *userOrg.BranchID)
+		batches, err := c.modelCore.TransactionBatchCurrentDay(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ended transaction batches: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.TransactionBatchManager.Filtered(context, ctx, batches))
+		return ctx.JSON(http.StatusOK, c.modelCore.TransactionBatchManager.Filtered(context, ctx, batches))
 	})
 
 	// Accept a view (blotter) request for a transaction batch by ID
@@ -738,7 +738,7 @@ func (c *Controller) TransactionBatchController() {
 		Route:        "/api/v1/transaction-batch/:transaction_batch_id/view-accept",
 		Method:       "PUT",
 		Note:         "Accepts a view (blotter) request for a transaction batch by its ID.",
-		ResponseType: model_core.TransactionBatchResponse{},
+		ResponseType: modelCore.TransactionBatchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		transactionBatchId, err := handlers.EngineUUIDParam(ctx, "transaction_batch_id")
@@ -759,7 +759,7 @@ func (c *Controller) TransactionBatchController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Accept view request failed: user not authorized",
@@ -768,7 +768,7 @@ func (c *Controller) TransactionBatchController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
 
-		transactionBatch, err := c.model_core.TransactionBatchManager.GetByID(context, *transactionBatchId)
+		transactionBatch, err := c.modelCore.TransactionBatchManager.GetByID(context, *transactionBatchId)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -789,7 +789,7 @@ func (c *Controller) TransactionBatchController() {
 
 		transactionBatch.CanView = true
 
-		if err := c.model_core.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
+		if err := c.modelCore.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Accept view request failed: update error: " + err.Error(),
@@ -804,13 +804,13 @@ func (c *Controller) TransactionBatchController() {
 			Module:      "TransactionBatch",
 		})
 
-		return ctx.JSON(http.StatusOK, c.model_core.TransactionBatchManager.ToModel(transactionBatch))
+		return ctx.JSON(http.StatusOK, c.modelCore.TransactionBatchManager.ToModel(transactionBatch))
 	})
 
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/transaction-batch/employee/:user_organization_id/search",
 		Method:       "GET",
-		ResponseType: model_core.TransactionBatchResponse{},
+		ResponseType: modelCore.TransactionBatchResponse{},
 		Note:         "Returns transaction batches for a specific employee (user_id) in the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -818,7 +818,7 @@ func (c *Controller) TransactionBatchController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
 
@@ -826,12 +826,12 @@ func (c *Controller) TransactionBatchController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_organization_id: " + err.Error()})
 		}
-		userOrganization, err := c.model_core.UserOrganizationManager.GetByID(context, *userOrganizationID)
+		userOrganization, err := c.modelCore.UserOrganizationManager.GetByID(context, *userOrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}
 
-		batches, err := c.model_core.TransactionBatchManager.Find(context, &model_core.TransactionBatch{
+		batches, err := c.modelCore.TransactionBatchManager.Find(context, &modelCore.TransactionBatch{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			EmployeeUserID: &userOrganization.UserID,
@@ -839,12 +839,12 @@ func (c *Controller) TransactionBatchController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batches: " + err.Error()})
 		}
-		paginated := c.model_core.TransactionBatchManager.Pagination(context, ctx, batches)
+		paginated := c.modelCore.TransactionBatchManager.Pagination(context, ctx, batches)
 
 		// ✅ Fix: Use index to properly update the slice
 		for i, batch := range paginated.Data {
 			if !batch.CanView {
-				minimalBatch, err := c.model_core.TransactionBatchMinimal(context, batch.ID)
+				minimalBatch, err := c.modelCore.TransactionBatchMinimal(context, batch.ID)
 				if err != nil {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve minimal transaction batch: " + err.Error()})
 				}

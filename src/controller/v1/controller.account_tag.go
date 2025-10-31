@@ -7,7 +7,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
+	modelCore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -21,7 +21,7 @@ func (c *Controller) AccountTagController() {
 		Route:        "/api/v1/account-tag",
 		Method:       "GET",
 		Note:         "Returns all account tags for the current user's organization and branch. Returns empty if not authenticated.",
-		ResponseType: model_core.AccountTagResponse{},
+		ResponseType: modelCore.AccountTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -31,11 +31,11 @@ func (c *Controller) AccountTagController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		accountTags, err := c.model_core.AccountTagCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		accountTags, err := c.modelCore.AccountTagCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account tags not found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.AccountTagManager.Filtered(context, ctx, accountTags))
+		return ctx.JSON(http.StatusOK, c.modelCore.AccountTagManager.Filtered(context, ctx, accountTags))
 	})
 
 	// GET /account-tag/search - Paginated search of account tags for current branch.
@@ -43,7 +43,7 @@ func (c *Controller) AccountTagController() {
 		Route:        "/api/v1/account-tag/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of account tags for the current user's organization and branch.",
-		ResponseType: model_core.AccountTagResponse{},
+		ResponseType: modelCore.AccountTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -53,11 +53,11 @@ func (c *Controller) AccountTagController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		accountTags, err := c.model_core.AccountTagCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		accountTags, err := c.modelCore.AccountTagCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch account tags for pagination: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.AccountTagManager.Pagination(context, ctx, accountTags))
+		return ctx.JSON(http.StatusOK, c.modelCore.AccountTagManager.Pagination(context, ctx, accountTags))
 	})
 
 	// GET /account-tag/:account_tag_id - Get specific account tag by ID.
@@ -65,14 +65,14 @@ func (c *Controller) AccountTagController() {
 		Route:        "/api/v1/account-tag/:account_tag_id",
 		Method:       "GET",
 		Note:         "Returns a single account tag by its ID.",
-		ResponseType: model_core.AccountTagResponse{},
+		ResponseType: modelCore.AccountTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		accountTagID, err := handlers.EngineUUIDParam(ctx, "account_tag_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account tag ID"})
 		}
-		accountTag, err := c.model_core.AccountTagManager.GetByIDRaw(context, *accountTagID)
+		accountTag, err := c.modelCore.AccountTagManager.GetByIDRaw(context, *accountTagID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account tag not found"})
 		}
@@ -84,7 +84,7 @@ func (c *Controller) AccountTagController() {
 		Route:        "/api/v1/account-tag/account/:account_id",
 		Method:       "GET",
 		Note:         "Returns all account tags for a specific account ID within the user's organization and branch.",
-		ResponseType: model_core.AccountTagResponse{},
+		ResponseType: modelCore.AccountTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
@@ -99,7 +99,7 @@ func (c *Controller) AccountTagController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		accountTags, err := c.model_core.AccountTagManager.Find(context, &model_core.AccountTag{
+		accountTags, err := c.modelCore.AccountTagManager.Find(context, &modelCore.AccountTag{
 			AccountID:      *accountID,
 			OrganizationID: user.OrganizationID,
 			BranchID:       *user.BranchID,
@@ -115,11 +115,11 @@ func (c *Controller) AccountTagController() {
 		Route:        "/api/v1/account-tag",
 		Method:       "POST",
 		Note:         "Creates a new account tag for the user's organization and branch.",
-		ResponseType: model_core.AccountTagResponse{},
-		RequestType:  model_core.AccountTagRequest{},
+		ResponseType: modelCore.AccountTagResponse{},
+		RequestType:  modelCore.AccountTagRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.model_core.AccountTagManager.Validate(ctx)
+		req, err := c.modelCore.AccountTagManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create error",
@@ -146,7 +146,7 @@ func (c *Controller) AccountTagController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		accountTag := &model_core.AccountTag{
+		accountTag := &modelCore.AccountTag{
 			AccountID:      req.AccountID,
 			Name:           req.Name,
 			Description:    req.Description,
@@ -161,7 +161,7 @@ func (c *Controller) AccountTagController() {
 			OrganizationID: user.OrganizationID,
 		}
 
-		if err := c.model_core.AccountTagManager.Create(context, accountTag); err != nil {
+		if err := c.modelCore.AccountTagManager.Create(context, accountTag); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create error",
 				Description: fmt.Sprintf("Failed to create account tag on POST /account-tag: %v", err),
@@ -176,7 +176,7 @@ func (c *Controller) AccountTagController() {
 			Module:      "account-tag",
 		})
 
-		return ctx.JSON(http.StatusOK, c.model_core.AccountTagManager.ToModel(accountTag))
+		return ctx.JSON(http.StatusOK, c.modelCore.AccountTagManager.ToModel(accountTag))
 	})
 
 	// PUT /account-tag/:account_tag_id - Update account tag by ID.
@@ -184,8 +184,8 @@ func (c *Controller) AccountTagController() {
 		Route:        "/api/v1/account-tag/:account_tag_id",
 		Method:       "PUT",
 		Note:         "Updates an existing account tag by its ID.",
-		ResponseType: model_core.AccountTagResponse{},
-		RequestType:  model_core.AccountTagRequest{},
+		ResponseType: modelCore.AccountTagResponse{},
+		RequestType:  modelCore.AccountTagRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		accountTagID, err := handlers.EngineUUIDParam(ctx, "account_tag_id")
@@ -197,7 +197,7 @@ func (c *Controller) AccountTagController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account tag ID"})
 		}
-		req, err := c.model_core.AccountTagManager.Validate(ctx)
+		req, err := c.modelCore.AccountTagManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update error",
@@ -215,7 +215,7 @@ func (c *Controller) AccountTagController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		accountTag, err := c.model_core.AccountTagManager.GetByID(context, *accountTagID)
+		accountTag, err := c.modelCore.AccountTagManager.GetByID(context, *accountTagID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update error",
@@ -233,7 +233,7 @@ func (c *Controller) AccountTagController() {
 		accountTag.UpdatedAt = time.Now().UTC()
 		accountTag.UpdatedByID = user.UserID
 
-		if err := c.model_core.AccountTagManager.UpdateFields(context, accountTag.ID, accountTag); err != nil {
+		if err := c.modelCore.AccountTagManager.UpdateFields(context, accountTag.ID, accountTag); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("Failed to update account tag for PUT /account-tag/:account_tag_id: %v", err),
@@ -248,7 +248,7 @@ func (c *Controller) AccountTagController() {
 			Module:      "account-tag",
 		})
 
-		return ctx.JSON(http.StatusOK, c.model_core.AccountTagManager.ToModel(accountTag))
+		return ctx.JSON(http.StatusOK, c.modelCore.AccountTagManager.ToModel(accountTag))
 	})
 
 	// DELETE /account-tag/:account_tag_id - Delete account tag by ID.
@@ -267,7 +267,7 @@ func (c *Controller) AccountTagController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account tag ID"})
 		}
-		if err := c.model_core.AccountTagManager.DeleteByID(context, *accountTagID); err != nil {
+		if err := c.modelCore.AccountTagManager.DeleteByID(context, *accountTagID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete error",
 				Description: fmt.Sprintf("Failed to delete account tag for DELETE /account-tag/:account_tag_id: %v", err),
@@ -288,10 +288,10 @@ func (c *Controller) AccountTagController() {
 		Route:       "/api/v1/account-tag/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple account tags by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: model_core.IDSRequest{},
+		RequestType: modelCore.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody model_core.IDSRequest
+		var reqBody modelCore.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete error",
@@ -329,7 +329,7 @@ func (c *Controller) AccountTagController() {
 				})
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
 			}
-			if _, err := c.model_core.AccountTagManager.GetByID(context, accountTagID); err != nil {
+			if _, err := c.modelCore.AccountTagManager.GetByID(context, accountTagID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "delete error",
@@ -338,7 +338,7 @@ func (c *Controller) AccountTagController() {
 				})
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Account tag not found with ID: %s", rawID)})
 			}
-			if err := c.model_core.AccountTagManager.DeleteByIDWithTx(context, tx, accountTagID); err != nil {
+			if err := c.modelCore.AccountTagManager.DeleteByIDWithTx(context, tx, accountTagID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "delete error",

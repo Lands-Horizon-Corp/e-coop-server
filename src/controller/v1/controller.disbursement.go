@@ -7,7 +7,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
+	modelCore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -21,7 +21,7 @@ func (c *Controller) DisbursementController() {
 		Route:        "/api/v1/disbursement",
 		Method:       "GET",
 		Note:         "Returns all disbursements for the current user's organization and branch.",
-		ResponseType: model_core.DisbursementResponse{},
+		ResponseType: modelCore.DisbursementResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -31,14 +31,14 @@ func (c *Controller) DisbursementController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		transactionBatch, err := c.model_core.TransactionBatchCurrent(context, user.UserID, user.OrganizationID, *user.BranchID)
+		transactionBatch, err := c.modelCore.TransactionBatchCurrent(context, user.UserID, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch current transaction batch: " + err.Error()})
 		}
 		if transactionBatch == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No active transaction batch found for the current branch"})
 		}
-		disbursements, err := c.model_core.DisbursementManager.Find(context, &model_core.Disbursement{
+		disbursements, err := c.modelCore.DisbursementManager.Find(context, &modelCore.Disbursement{
 			OrganizationID: user.OrganizationID,
 			BranchID:       *user.BranchID,
 			CurrencyID:     transactionBatch.CurrencyID,
@@ -46,7 +46,7 @@ func (c *Controller) DisbursementController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No disbursements found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.DisbursementManager.Filtered(context, ctx, disbursements))
+		return ctx.JSON(http.StatusOK, c.modelCore.DisbursementManager.Filtered(context, ctx, disbursements))
 	})
 
 	// GET /disbursement/search: Paginated search of disbursements for the current branch.
@@ -54,7 +54,7 @@ func (c *Controller) DisbursementController() {
 		Route:        "/api/v1/disbursement/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of disbursements for the current user's organization and branch.",
-		ResponseType: model_core.DisbursementResponse{},
+		ResponseType: modelCore.DisbursementResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -64,11 +64,11 @@ func (c *Controller) DisbursementController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		disbursements, err := c.model_core.DisbursementCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		disbursements, err := c.modelCore.DisbursementCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch disbursements for pagination: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.model_core.DisbursementManager.Pagination(context, ctx, disbursements))
+		return ctx.JSON(http.StatusOK, c.modelCore.DisbursementManager.Pagination(context, ctx, disbursements))
 	})
 
 	// GET /disbursement/:disbursement_id: Get specific disbursement by ID.
@@ -76,14 +76,14 @@ func (c *Controller) DisbursementController() {
 		Route:        "/api/v1/disbursement/:disbursement_id",
 		Method:       "GET",
 		Note:         "Returns a single disbursement by its ID.",
-		ResponseType: model_core.DisbursementResponse{},
+		ResponseType: modelCore.DisbursementResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		disbursementID, err := handlers.EngineUUIDParam(ctx, "disbursement_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid disbursement ID"})
 		}
-		disbursement, err := c.model_core.DisbursementManager.GetByIDRaw(context, *disbursementID)
+		disbursement, err := c.modelCore.DisbursementManager.GetByIDRaw(context, *disbursementID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Disbursement not found"})
 		}
@@ -95,11 +95,11 @@ func (c *Controller) DisbursementController() {
 		Route:        "/api/v1/disbursement",
 		Method:       "POST",
 		Note:         "Creates a new disbursement for the current user's organization and branch.",
-		RequestType:  model_core.DisbursementRequest{},
-		ResponseType: model_core.DisbursementResponse{},
+		RequestType:  modelCore.DisbursementRequest{},
+		ResponseType: modelCore.DisbursementResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.model_core.DisbursementManager.Validate(ctx)
+		req, err := c.modelCore.DisbursementManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -126,7 +126,7 @@ func (c *Controller) DisbursementController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		disbursement := &model_core.Disbursement{
+		disbursement := &modelCore.Disbursement{
 			Name:           req.Name,
 			Icon:           req.Icon,
 			Description:    req.Description,
@@ -139,7 +139,7 @@ func (c *Controller) DisbursementController() {
 			CurrencyID:     req.CurrencyID,
 		}
 
-		if err := c.model_core.DisbursementManager.Create(context, disbursement); err != nil {
+		if err := c.modelCore.DisbursementManager.Create(context, disbursement); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Disbursement creation failed (/disbursement), db error: " + err.Error(),
@@ -152,7 +152,7 @@ func (c *Controller) DisbursementController() {
 			Description: "Created disbursement (/disbursement): " + disbursement.Name,
 			Module:      "Disbursement",
 		})
-		return ctx.JSON(http.StatusCreated, c.model_core.DisbursementManager.ToModel(disbursement))
+		return ctx.JSON(http.StatusCreated, c.modelCore.DisbursementManager.ToModel(disbursement))
 	})
 
 	// PUT /disbursement/:disbursement_id: Update disbursement by ID.
@@ -160,8 +160,8 @@ func (c *Controller) DisbursementController() {
 		Route:        "/api/v1/disbursement/:disbursement_id",
 		Method:       "PUT",
 		Note:         "Updates an existing disbursement by its ID.",
-		RequestType:  model_core.DisbursementRequest{},
-		ResponseType: model_core.DisbursementResponse{},
+		RequestType:  modelCore.DisbursementRequest{},
+		ResponseType: modelCore.DisbursementResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		disbursementID, err := handlers.EngineUUIDParam(ctx, "disbursement_id")
@@ -174,7 +174,7 @@ func (c *Controller) DisbursementController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid disbursement ID"})
 		}
 
-		req, err := c.model_core.DisbursementManager.Validate(ctx)
+		req, err := c.modelCore.DisbursementManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -192,7 +192,7 @@ func (c *Controller) DisbursementController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		disbursement, err := c.model_core.DisbursementManager.GetByID(context, *disbursementID)
+		disbursement, err := c.modelCore.DisbursementManager.GetByID(context, *disbursementID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -207,7 +207,7 @@ func (c *Controller) DisbursementController() {
 		disbursement.UpdatedAt = time.Now().UTC()
 		disbursement.UpdatedByID = user.UserID
 		disbursement.CurrencyID = req.CurrencyID
-		if err := c.model_core.DisbursementManager.UpdateFields(context, disbursement.ID, disbursement); err != nil {
+		if err := c.modelCore.DisbursementManager.UpdateFields(context, disbursement.ID, disbursement); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Disbursement update failed (/disbursement/:disbursement_id), db error: " + err.Error(),
@@ -220,7 +220,7 @@ func (c *Controller) DisbursementController() {
 			Description: "Updated disbursement (/disbursement/:disbursement_id): " + disbursement.Name,
 			Module:      "Disbursement",
 		})
-		return ctx.JSON(http.StatusOK, c.model_core.DisbursementManager.ToModel(disbursement))
+		return ctx.JSON(http.StatusOK, c.modelCore.DisbursementManager.ToModel(disbursement))
 	})
 
 	// DELETE /disbursement/:disbursement_id: Delete a disbursement by ID.
@@ -239,7 +239,7 @@ func (c *Controller) DisbursementController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid disbursement ID"})
 		}
-		disbursement, err := c.model_core.DisbursementManager.GetByID(context, *disbursementID)
+		disbursement, err := c.modelCore.DisbursementManager.GetByID(context, *disbursementID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -248,7 +248,7 @@ func (c *Controller) DisbursementController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Disbursement not found"})
 		}
-		if err := c.model_core.DisbursementManager.DeleteByID(context, *disbursementID); err != nil {
+		if err := c.modelCore.DisbursementManager.DeleteByID(context, *disbursementID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Disbursement delete failed (/disbursement/:disbursement_id), db error: " + err.Error(),
@@ -269,10 +269,10 @@ func (c *Controller) DisbursementController() {
 		Route:       "/api/v1/disbursement/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple disbursements by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: model_core.IDSRequest{},
+		RequestType: modelCore.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody model_core.IDSRequest
+		var reqBody modelCore.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
@@ -311,7 +311,7 @@ func (c *Controller) DisbursementController() {
 				})
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
 			}
-			disbursement, err := c.model_core.DisbursementManager.GetByID(context, disbursementID)
+			disbursement, err := c.modelCore.DisbursementManager.GetByID(context, disbursementID)
 			if err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -322,7 +322,7 @@ func (c *Controller) DisbursementController() {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Disbursement not found with ID: %s", rawID)})
 			}
 			names += disbursement.Name + ","
-			if err := c.model_core.DisbursementManager.DeleteByIDWithTx(context, tx, disbursementID); err != nil {
+			if err := c.modelCore.DisbursementManager.DeleteByIDWithTx(context, tx, disbursementID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

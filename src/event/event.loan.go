@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelCore"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/rotisserie/eris"
@@ -17,7 +17,7 @@ type LoanBalanceEvent struct {
 	LoanTransactionID              uuid.UUID
 }
 
-func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gorm.DB, data LoanBalanceEvent) (*model_core.LoanTransaction, error) {
+func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gorm.DB, data LoanBalanceEvent) (*modelCore.LoanTransaction, error) {
 
 	// ================================================================================
 	// STEP 1: AUTHENTICATION & USER ORGANIZATION RETRIEVAL
@@ -35,7 +35,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	// ================================================================================
 	// STEP 2: LOAN TRANSACTION & RELATED DATA RETRIEVAL
 	// ================================================================================
-	loanTransaction, err := e.model_core.LoanTransactionManager.GetByID(ctx, data.LoanTransactionID)
+	loanTransaction, err := e.modelCore.LoanTransactionManager.GetByID(ctx, data.LoanTransactionID)
 	if err != nil {
 		tx.Rollback()
 		e.Footstep(ctx, echoCtx, FootstepEvent{
@@ -47,7 +47,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	}
 
 	// Get the account associated with the loan transaction
-	account, err := e.model_core.AccountManager.GetByID(ctx, *loanTransaction.AccountID)
+	account, err := e.modelCore.AccountManager.GetByID(ctx, *loanTransaction.AccountID)
 	if err != nil {
 		tx.Rollback()
 		e.Footstep(ctx, echoCtx, FootstepEvent{
@@ -59,7 +59,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	}
 
 	// Get existing loan transaction entries
-	loanTransactionEntries, err := e.model_core.LoanTransactionEntryManager.Find(ctx, &model_core.LoanTransactionEntry{
+	loanTransactionEntries, err := e.modelCore.LoanTransactionEntryManager.Find(ctx, &modelCore.LoanTransactionEntry{
 		LoanTransactionID: loanTransaction.ID,
 		OrganizationID:    userOrg.OrganizationID,
 		BranchID:          *userOrg.BranchID,
@@ -75,34 +75,34 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	}
 
 	// Get automatic loan deductions for the computation sheet
-	automaticLoanDeductions, err := e.model_core.AutomaticLoanDeductionManager.Find(ctx, &model_core.AutomaticLoanDeduction{
+	automaticLoanDeductions, err := e.modelCore.AutomaticLoanDeductionManager.Find(ctx, &modelCore.AutomaticLoanDeduction{
 		OrganizationID:     userOrg.OrganizationID,
 		BranchID:           *userOrg.BranchID,
 		ComputationSheetID: account.ComputationSheetID,
 	})
-	disableLoanDeduction := loanTransaction.LoanType == model_core.LoanTypeRenewalWithoutDeduct || loanTransaction.LoanType == model_core.LoanTypeRestructured || loanTransaction.LoanType == model_core.LoanTypeStandardPrevious
+	disableLoanDeduction := loanTransaction.LoanType == modelCore.LoanTypeRenewalWithoutDeduct || loanTransaction.LoanType == modelCore.LoanTypeRestructured || loanTransaction.LoanType == modelCore.LoanTypeStandardPrevious
 	if err != nil || disableLoanDeduction {
-		automaticLoanDeductions = []*model_core.AutomaticLoanDeduction{}
+		automaticLoanDeductions = []*modelCore.AutomaticLoanDeduction{}
 	}
 
 	// ================================================================================
 	// STEP 3: CATEGORIZE EXISTING LOAN TRANSACTION ENTRIES BY TYPE
 	// ================================================================================
-	result := []*model_core.LoanTransactionEntry{}
-	static, addOn, deduction, postComputed := []*model_core.LoanTransactionEntry{}, []*model_core.LoanTransactionEntry{}, []*model_core.LoanTransactionEntry{}, []*model_core.LoanTransactionEntry{}
+	result := []*modelCore.LoanTransactionEntry{}
+	static, addOn, deduction, postComputed := []*modelCore.LoanTransactionEntry{}, []*modelCore.LoanTransactionEntry{}, []*modelCore.LoanTransactionEntry{}, []*modelCore.LoanTransactionEntry{}
 
 	// Categorize existing entries by their transaction type
 	for _, entry := range loanTransactionEntries {
-		if entry.Type == model_core.LoanTransactionStatic {
+		if entry.Type == modelCore.LoanTransactionStatic {
 			static = append(static, entry)
 		}
-		if entry.Type == model_core.LoanTransactionAddOn {
+		if entry.Type == modelCore.LoanTransactionAddOn {
 			addOn = append(addOn, entry)
 		}
-		if entry.Type == model_core.LoanTransactionDeduction {
+		if entry.Type == modelCore.LoanTransactionDeduction {
 			deduction = append(deduction, entry)
 		}
-		if entry.Type == model_core.LoanTransactionAutomaticDeduction && !disableLoanDeduction {
+		if entry.Type == modelCore.LoanTransactionAutomaticDeduction && !disableLoanDeduction {
 			postComputed = append(postComputed, entry)
 		}
 	}
@@ -111,7 +111,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	// ================================================================================
 	// If we don't have the required 2 static entries, create them
 	if len(static) < 2 {
-		cashOnCashEquivalenceAccount, err := e.model_core.AccountManager.GetByID(ctx, data.CashOnCashEquivalenceAccountID)
+		cashOnCashEquivalenceAccount, err := e.modelCore.AccountManager.GetByID(ctx, data.CashOnCashEquivalenceAccountID)
 		if err != nil {
 			tx.Rollback()
 			e.Footstep(ctx, echoCtx, FootstepEvent{
@@ -123,7 +123,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		}
 
 		// Create the two required static entries: credit to cash equivalent and debit to loan account
-		static = []*model_core.LoanTransactionEntry{
+		static = []*modelCore.LoanTransactionEntry{
 			{
 				Credit:            loanTransaction.Applied1,
 				Debit:             0,
@@ -131,7 +131,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 				Account:           cashOnCashEquivalenceAccount,
 				AccountID:         &cashOnCashEquivalenceAccount.ID,
 				Name:              cashOnCashEquivalenceAccount.Name,
-				Type:              model_core.LoanTransactionStatic,
+				Type:              modelCore.LoanTransactionStatic,
 				LoanTransactionID: loanTransaction.ID,
 			},
 			{
@@ -141,7 +141,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 				AccountID:         loanTransaction.AccountID,
 				Description:       loanTransaction.Account.Description,
 				Name:              loanTransaction.Account.Name,
-				Type:              model_core.LoanTransactionStatic,
+				Type:              modelCore.LoanTransactionStatic,
 				LoanTransactionID: loanTransaction.ID,
 			},
 		}
@@ -161,7 +161,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 
 	// Delete existing add-on entries (they will be recalculated)
 	for _, entry := range addOn {
-		if err := e.model_core.LoanTransactionEntryManager.DeleteByIDWithTx(ctx, tx, entry.ID); err != nil {
+		if err := e.modelCore.LoanTransactionEntryManager.DeleteByIDWithTx(ctx, tx, entry.ID); err != nil {
 			tx.Rollback()
 			e.Footstep(ctx, echoCtx, FootstepEvent{
 				Activity:    "data-error",
@@ -175,12 +175,12 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	// ================================================================================
 	// STEP 6: PREPARE ADD-ON INTEREST ENTRY TEMPLATE
 	// ================================================================================
-	addOnEntry := &model_core.LoanTransactionEntry{
+	addOnEntry := &modelCore.LoanTransactionEntry{
 		Account:           nil,
 		Credit:            0,
 		Debit:             0,
 		Name:              "ADD ON INTEREST",
-		Type:              model_core.LoanTransactionAddOn,
+		Type:              modelCore.LoanTransactionAddOn,
 		LoanTransactionID: loanTransaction.ID,
 		IsAddOn:           true,
 	}
@@ -214,7 +214,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 			entry.Credit = entry.Amount
 		} else {
 			if entry.AutomaticLoanDeduction.ChargesRateSchemeID != nil {
-				chargesRateScheme, err := e.model_core.ChargesRateSchemeManager.GetByID(ctx, *entry.AutomaticLoanDeduction.ChargesRateSchemeID)
+				chargesRateScheme, err := e.modelCore.ChargesRateSchemeManager.GetByID(ctx, *entry.AutomaticLoanDeduction.ChargesRateSchemeID)
 				if err != nil {
 					return nil, err
 				}
@@ -254,11 +254,11 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		}
 
 		if !exist {
-			entry := &model_core.LoanTransactionEntry{
+			entry := &modelCore.LoanTransactionEntry{
 				Credit:                   0,
 				Debit:                    0,
 				Name:                     ald.Name,
-				Type:                     model_core.LoanTransactionAutomaticDeduction,
+				Type:                     modelCore.LoanTransactionAutomaticDeduction,
 				IsAddOn:                  ald.AddOn,
 				Account:                  ald.Account,
 				AccountID:                ald.AccountID,
@@ -269,7 +269,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 			}
 
 			if ald.ChargesRateSchemeID != nil {
-				chargesRateScheme, err := e.model_core.ChargesRateSchemeManager.GetByID(ctx, *ald.ChargesRateSchemeID)
+				chargesRateScheme, err := e.modelCore.ChargesRateSchemeManager.GetByID(ctx, *ald.ChargesRateSchemeID)
 				if err != nil {
 
 					return nil, err
@@ -296,18 +296,18 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		}
 	}
 
-	if (loanTransaction.LoanType == model_core.LoanTypeRestructured ||
-		loanTransaction.LoanType == model_core.LoanTypeRenewalWithoutDeduct ||
-		loanTransaction.LoanType == model_core.LoanTypeRenewal) && loanTransaction.PreviousLoanID != nil {
+	if (loanTransaction.LoanType == modelCore.LoanTypeRestructured ||
+		loanTransaction.LoanType == modelCore.LoanTypeRenewalWithoutDeduct ||
+		loanTransaction.LoanType == modelCore.LoanTypeRenewal) && loanTransaction.PreviousLoanID != nil {
 		previous := loanTransaction.PreviousLoan
-		result = append(result, &model_core.LoanTransactionEntry{
+		result = append(result, &modelCore.LoanTransactionEntry{
 			Account:           previous.Account,
 			AccountID:         previous.AccountID,
 			Credit:            previous.Balance,
 			Debit:             0,
 			Name:              previous.Account.Name,
 			Description:       previous.Account.Description,
-			Type:              model_core.LoanTransactionPrevious,
+			Type:              modelCore.LoanTransactionPrevious,
 			LoanTransactionID: loanTransaction.ID,
 		})
 		total_non_add_ons += previous.Balance
@@ -336,7 +336,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 
 	// Delete all existing loan transaction entries before creating new ones
 	for _, entry := range loanTransactionEntries {
-		if err := e.model_core.LoanTransactionEntryManager.DeleteByIDWithTx(ctx, tx, entry.ID); err != nil {
+		if err := e.modelCore.LoanTransactionEntryManager.DeleteByIDWithTx(ctx, tx, entry.ID); err != nil {
 			tx.Rollback()
 			e.Footstep(ctx, echoCtx, FootstepEvent{
 				Activity:    "data-error",
@@ -351,15 +351,15 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	result[1].Debit = loanTransaction.Applied1
 	switch loanTransaction.LoanType {
 
-	case model_core.LoanTypeStandard:
+	case modelCore.LoanTypeStandard:
 		result[1].Name = loanTransaction.Account.Name
-	case model_core.LoanTypeStandardPrevious:
+	case modelCore.LoanTypeStandardPrevious:
 		result[1].Name = loanTransaction.Account.Name
-	case model_core.LoanTypeRestructured:
+	case modelCore.LoanTypeRestructured:
 		result[1].Name = loanTransaction.Account.Name + " - RESTRUCTURED"
-	case model_core.LoanTypeRenewal:
+	case modelCore.LoanTypeRenewal:
 		result[1].Name = loanTransaction.Account.Name + " - CURRENT"
-	case model_core.LoanTypeRenewalWithoutDeduct:
+	case modelCore.LoanTypeRenewalWithoutDeduct:
 		result[1].Name = loanTransaction.Account.Name + " - CURRENT"
 
 	}
@@ -369,7 +369,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	totalDebit, totalCredit := 0.0, 0.0
 	for index, entry := range result {
 
-		value := &model_core.LoanTransactionEntry{
+		value := &modelCore.LoanTransactionEntry{
 			CreatedAt:                       time.Now().UTC(),
 			CreatedByID:                     userOrg.UserID,
 			UpdatedAt:                       time.Now().UTC(),
@@ -394,7 +394,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 			totalCredit += entry.Credit
 		}
 
-		if err := e.model_core.LoanTransactionEntryManager.CreateWithTx(ctx, tx, value); err != nil {
+		if err := e.modelCore.LoanTransactionEntryManager.CreateWithTx(ctx, tx, value); err != nil {
 			tx.Rollback()
 			e.Footstep(ctx, echoCtx, FootstepEvent{
 				Activity:    "data-error",
@@ -427,7 +427,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	loanTransaction.TotalDebit = totalDebit
 	loanTransaction.UpdatedAt = time.Now().UTC()
 	loanTransaction.UpdatedByID = userOrg.UserID
-	if err := e.model_core.LoanTransactionManager.UpdateFieldsWithTx(ctx, tx, loanTransaction.ID, loanTransaction); err != nil {
+	if err := e.modelCore.LoanTransactionManager.UpdateFieldsWithTx(ctx, tx, loanTransaction.ID, loanTransaction); err != nil {
 		tx.Rollback()
 		e.Footstep(ctx, echoCtx, FootstepEvent{
 			Activity:    "data-error",
@@ -453,7 +453,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	// ================================================================================
 
 	// Get the updated loan transaction with all related data
-	newLoanTransaction, err := e.model_core.LoanTransactionManager.GetByID(ctx, loanTransaction.ID)
+	newLoanTransaction, err := e.modelCore.LoanTransactionManager.GetByID(ctx, loanTransaction.ID)
 	if err != nil {
 
 		e.Footstep(ctx, echoCtx, FootstepEvent{
@@ -467,7 +467,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	return newLoanTransaction, nil
 }
 
-func (e *Event) LoanRelease(ctx context.Context, echoCtx echo.Context, tx *gorm.DB, data LoanBalanceEvent) (*model_core.LoanTransaction, error) {
+func (e *Event) LoanRelease(ctx context.Context, echoCtx echo.Context, tx *gorm.DB, data LoanBalanceEvent) (*modelCore.LoanTransaction, error) {
 	// eneralLedger, err := c.event.TransactionPayment(context, ctx, tx, event.TransactionEvent{
 	// 		// Will be filled by transaction
 	// 		TransactionID:        nil,
@@ -476,7 +476,7 @@ func (e *Event) LoanRelease(ctx context.Context, echoCtx echo.Context, tx *gorm.
 	// 		ReferenceNumber:      loanTransaction.Re,
 
 	// 		// On Request
-	// 		Source:                model_core.GeneralLedgerSourcePayment,
+	// 		Source:                modelCore.GeneralLedgerSourcePayment,
 	// 		Amount:                req.Amount,
 	// 		AccountID:             req.AccountID,
 	// 		PaymentTypeID:         req.PaymentTypeID,
@@ -511,7 +511,7 @@ func (e *Event) LoanRelease(ctx context.Context, echoCtx echo.Context, tx *gorm.
 		})
 		return nil, eris.New("invalid user organization data")
 	}
-	if userOrg.UserType != model_core.UserOrganizationTypeOwner && userOrg.UserType != model_core.UserOrganizationTypeEmployee {
+	if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
 		tx.Rollback()
 		e.Footstep(ctx, echoCtx, FootstepEvent{
 			Activity:    "auth-error",
@@ -524,7 +524,7 @@ func (e *Event) LoanRelease(ctx context.Context, echoCtx echo.Context, tx *gorm.
 	// STEP 2: LOAN TRANSACTION & RELATED DATA RETRIEVAL
 	// ================================================================================
 	// Get the main loan transaction
-	loanTransaction, err := e.model_core.LoanTransactionManager.GetByID(ctx, data.LoanTransactionID)
+	loanTransaction, err := e.modelCore.LoanTransactionManager.GetByID(ctx, data.LoanTransactionID)
 	if err != nil {
 		tx.Rollback()
 		e.Footstep(ctx, echoCtx, FootstepEvent{
@@ -537,7 +537,7 @@ func (e *Event) LoanRelease(ctx context.Context, echoCtx echo.Context, tx *gorm.
 
 	for _, entry := range loanTransaction.LoanTransactionEntries {
 		// Computation of all ammortization accounts
-		if entry.Type == model_core.LoanTransactionPrevious {
+		if entry.Type == modelCore.LoanTransactionPrevious {
 			tx.Rollback()
 			return nil, eris.New("cannot release a restructured or renewed loan")
 		}
@@ -552,7 +552,7 @@ func (e *Event) LoanRelease(ctx context.Context, echoCtx echo.Context, tx *gorm.
 		})
 		return nil, eris.Wrap(err, "failed to commit transaction")
 	}
-	newLoanTransaction, err := e.model_core.LoanTransactionManager.GetByID(ctx, loanTransaction.ID)
+	newLoanTransaction, err := e.modelCore.LoanTransactionManager.GetByID(ctx, loanTransaction.ID)
 	if err != nil {
 		e.Footstep(ctx, echoCtx, FootstepEvent{
 			Activity:    "data-error",
