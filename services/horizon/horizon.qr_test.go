@@ -5,16 +5,15 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
 	"github.com/stretchr/testify/assert"
 )
 
-// go test ./services/horizon/horizon.qr_test.go
+// go test ./services/horizon/qr_test.go
 
-func setupSecurityUtilsQR() horizon.SecurityService {
-	env := horizon.NewEnvironmentService("../../.env")
+func setupSecurityUtilsQR() SecurityService {
+	env := NewEnvironmentService("../../.env")
 	token := env.GetByteSlice("APP_TOKEN", "")
-	return horizon.NewSecurityService(
+	return NewSecurityService(
 		env.GetUint32("PASSWORD_MEMORY", 65536),  // memory (e.g., 64MB)
 		env.GetUint32("PASSWORD_ITERATIONS", 3),  // iterations
 		env.GetUint8("PASSWORD_PARALLELISM", 2),  // parallelism
@@ -27,7 +26,7 @@ func setupSecurityUtilsQR() horizon.SecurityService {
 func TestHorizonQRService_EncodeDecode(t *testing.T) {
 	ctx := context.Background()
 	mockSecurity := setupSecurityUtilsQR()
-	qrService := horizon.NewHorizonQRService(mockSecurity)
+	qrService := NewHorizonQRService(mockSecurity)
 
 	// Sample data to encode
 	inputData := map[string]any{

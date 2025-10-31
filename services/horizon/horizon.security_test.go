@@ -5,16 +5,15 @@ import (
 	"encoding/base64"
 	"testing"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
-// go test ./services/horizon/horizon.security_test.go
-func setupSecurityUtils() horizon.SecurityService {
-	env := horizon.NewEnvironmentService("../../.env")
+// go test ./services/horizon/security_test.go
+func setupSecurityUtils() SecurityService {
+	env := NewEnvironmentService("../../.env")
 	token := env.GetByteSlice("APP_TOKEN", "")
-	return horizon.NewSecurityService(
+	return NewSecurityService(
 		env.GetUint32("PASSWORD_MEMORY", 65536),  // memory (e.g., 64MB)
 		env.GetUint32("PASSWORD_ITERATIONS", 3),  // iterations
 		env.GetUint8("PASSWORD_PARALLELISM", 2),  // parallelism

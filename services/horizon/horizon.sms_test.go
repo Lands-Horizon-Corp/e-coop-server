@@ -4,12 +4,11 @@ import (
 	"context"
 	"testing"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
 	"github.com/stretchr/testify/assert"
 )
 
-// go test ./services/horizon/horizon.sms_test.go
-func injectMockTwilio(h *horizon.HorizonSMS) {
+// go test ./services/horizon/sms_test.go
+func injectMockTwilio(h *HorizonSMS) {
 	err := h.Run(context.Background())
 	if err != nil {
 		panic(err)
@@ -17,7 +16,7 @@ func injectMockTwilio(h *horizon.HorizonSMS) {
 }
 
 func TestSendSMS(t *testing.T) {
-	env := horizon.NewEnvironmentService("../../.env")
+	env := NewEnvironmentService("../../.env")
 
 	accountSID := env.GetString("TWILIO_ACCOUNT_SID", "")
 	authToken := env.GetString("TWILIO_AUTH_TOKEN", "")
@@ -27,17 +26,17 @@ func TestSendSMS(t *testing.T) {
 		return
 	}
 
-	h := horizon.NewHorizonSMS(accountSID, authToken, sender, 160).(*horizon.HorizonSMS)
+	h := NewHorizonSMS(accountSID, authToken, sender, 160).(*HorizonSMS)
 	injectMockTwilio(h)
 
 	tests := []struct {
 		name    string
-		req     horizon.SMSRequest
+		req     SMSRequest
 		wantErr bool
 	}{
 		{
 			name: "valid request",
-			req: horizon.SMSRequest{
+			req: SMSRequest{
 				To:   receiver,
 				Body: "Hi {{.Name}}, alert {{.Code}}: {{.Message}}",
 				Vars: map[string]string{
@@ -50,7 +49,7 @@ func TestSendSMS(t *testing.T) {
 		},
 		{
 			name: "invalid recipient number",
-			req: horizon.SMSRequest{
+			req: SMSRequest{
 				To:   "invalid-number",
 				Body: "Test",
 				Vars: map[string]string{},
@@ -59,7 +58,7 @@ func TestSendSMS(t *testing.T) {
 		},
 		{
 			name: "body too long",
-			req: horizon.SMSRequest{
+			req: SMSRequest{
 				To:   receiver,
 				Body: string(make([]byte, 200)), // Exceeds 160 chars
 				Vars: map[string]string{},

@@ -4,17 +4,16 @@ import (
 	"context"
 	"testing"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-// go test -v ./services/horizon/horizon.otp_test.go
+// go test -v ./services/horizon/otp_test.go
 // --- Setup helpers ---
-func setupSecurityUtilsOTP() horizon.SecurityService {
-	env := horizon.NewEnvironmentService("../../.env")
+func setupSecurityUtilsOTP() SecurityService {
+	env := NewEnvironmentService("../../.env")
 	token := env.GetByteSlice("APP_TOKEN", "")
-	return horizon.NewSecurityService(
+	return NewSecurityService(
 		env.GetUint32("PASSWORD_MEMORY", 65536),  // memory (e.g., 64MB)
 		env.GetUint32("PASSWORD_ITERATIONS", 3),  // iterations
 		env.GetUint8("PASSWORD_PARALLELISM", 2),  // parallelism
@@ -24,9 +23,9 @@ func setupSecurityUtilsOTP() horizon.SecurityService {
 	)
 }
 
-func setupHorizonOTP() horizon.OTPService {
-	env := horizon.NewEnvironmentService("../../.env")
-	cache := horizon.NewHorizonCache(
+func setupHorizonOTP() OTPService {
+	env := NewEnvironmentService("../../.env")
+	cache := NewHorizonCache(
 		env.GetString("REDIS_HOST", ""),
 		env.GetString("REDIS_PASSWORD", ""),
 		env.GetString("REDIS_USERNAME", ""),
@@ -39,7 +38,7 @@ func setupHorizonOTP() horizon.OTPService {
 		panic(err)
 	}
 	security := setupSecurityUtilsOTP()
-	return horizon.NewHorizonOTP([]byte("secret"), cache, security)
+	return NewHorizonOTP([]byte("secret"), cache, security)
 }
 
 // --- Tests ---

@@ -5,23 +5,22 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
 	"github.com/stretchr/testify/assert"
 )
 
-// go test -v ./services/horizon/horizon.cache_test.go
+// go test -v ./services/horizon/cache_test.go
 
 func TestHorizonCache(t *testing.T) {
 	ctx := context.Background()
 
-	env := horizon.NewEnvironmentService("../../.env")
+	env := NewEnvironmentService("../../.env")
 
 	redisHost := env.GetString("REDIS_HOST", "")
 	redisPassword := env.GetString("REDIS_PASSWORD", "")
 	redisUsername := env.GetString("REDIS_USERNAME", "")
 	redisPort := env.GetInt("REDIS_PORT", 0)
 
-	cache := horizon.NewHorizonCache(redisHost, redisPassword, redisUsername, redisPort)
+	cache := NewHorizonCache(redisHost, redisPassword, redisUsername, redisPort)
 
 	// Start the Redis connection
 	err := cache.Run(ctx)

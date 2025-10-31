@@ -8,11 +8,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
 	"github.com/stretchr/testify/require"
 )
 
-// go test -v ./services/horizon/horizon.storage_test.go
+// go test -v ./services/horizon/storage_test.go
 func TestHorizonStorage_UploadFromBinary(t *testing.T) {
 	ctx := context.Background()
 	hs := createTestService(t)
@@ -59,7 +58,7 @@ func TestHorizonStorage_UploadFromPath(t *testing.T) {
 }
 
 func TestHorizonStorage_GeneratePresignedURL(t *testing.T) {
-	env := horizon.NewEnvironmentService("../../.env")
+	env := NewEnvironmentService("../../.env")
 
 	testBucket := env.GetString("STORAGE_BUCKET", "cooperatives-development")
 
@@ -148,9 +147,9 @@ func TestHorizonStorage_GenerateUniqueNameEmptyContentType(t *testing.T) {
 	require.False(t, strings.Contains(name, "."))
 }
 
-func createTestService(t *testing.T) *horizon.HorizonStorage {
+func createTestService(t *testing.T) *HorizonStorage {
 
-	env := horizon.NewEnvironmentService("../../.env")
+	env := NewEnvironmentService("../../.env")
 
 	accessKey := env.GetString("STORAGE_ACCESS_KEY", "minioadmin")
 	secretKey := env.GetString("STORAGE_SECRET_KEY", "minioadmin")
@@ -164,7 +163,7 @@ func createTestService(t *testing.T) *horizon.HorizonStorage {
 		t.Fatal("Missing required environment variables for B2 testing")
 	}
 
-	hs := horizon.NewHorizonStorageService(
+	hs := NewHorizonStorageService(
 		accessKey,
 		secretKey,
 		endpoint,
@@ -173,7 +172,7 @@ func createTestService(t *testing.T) *horizon.HorizonStorage {
 		driver,
 		1024*1024*10,
 		isStaging,
-	).(*horizon.HorizonStorage)
+	).(*HorizonStorage)
 
 	ctx := context.Background()
 	err := hs.Run(ctx)

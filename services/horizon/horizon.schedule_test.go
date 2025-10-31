@@ -6,13 +6,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
 	"github.com/stretchr/testify/assert"
 )
 
-// go test -v ./services/horizon/horizon.schedule_test.go
+// go test -v ./services/horizon/schedule_test.go
 func TestHorizonSchedule_CreateAndListJobs(t *testing.T) {
-	s := horizon.NewHorizonSchedule()
+	s := NewHorizonSchedule()
 	ctx := context.Background()
 
 	err := s.CreateJob(ctx, "job1", "@every 1s", func() {})
@@ -24,7 +23,7 @@ func TestHorizonSchedule_CreateAndListJobs(t *testing.T) {
 }
 
 func TestHorizonSchedule_ExecuteJob(t *testing.T) {
-	s := horizon.NewHorizonSchedule()
+	s := NewHorizonSchedule()
 	ctx := context.Background()
 
 	var executed int32 = 0
@@ -41,7 +40,7 @@ func TestHorizonSchedule_ExecuteJob(t *testing.T) {
 }
 
 func TestHorizonSchedule_RemoveJob(t *testing.T) {
-	s := horizon.NewHorizonSchedule()
+	s := NewHorizonSchedule()
 	ctx := context.Background()
 
 	err := s.CreateJob(ctx, "job3", "@every 1s", func() {})
@@ -56,7 +55,7 @@ func TestHorizonSchedule_RemoveJob(t *testing.T) {
 }
 
 func TestHorizonSchedule_ExecuteJob_NotFound(t *testing.T) {
-	s := horizon.NewHorizonSchedule()
+	s := NewHorizonSchedule()
 	ctx := context.Background()
 
 	err := s.ExecuteJob(ctx, "nonexistent")
@@ -65,7 +64,7 @@ func TestHorizonSchedule_ExecuteJob_NotFound(t *testing.T) {
 }
 
 func TestHorizonSchedule_RemoveJob_NotFound(t *testing.T) {
-	s := horizon.NewHorizonSchedule()
+	s := NewHorizonSchedule()
 	ctx := context.Background()
 
 	err := s.RemoveJob(ctx, "nonexistent")
@@ -74,7 +73,7 @@ func TestHorizonSchedule_RemoveJob_NotFound(t *testing.T) {
 }
 
 func TestHorizonSchedule_StartAndStop(t *testing.T) {
-	s := horizon.NewHorizonSchedule()
+	s := NewHorizonSchedule()
 	ctx := context.Background()
 
 	err := s.Run(ctx)

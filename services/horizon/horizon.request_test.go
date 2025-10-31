@@ -11,15 +11,14 @@ import (
 	"fmt"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
 	"github.com/stretchr/testify/assert"
 )
 
-// go test -v services/horizon/horizon.request_test.go
+// go test -v services/horizon/request_test.go
 var apiPort = handlers.GetFreePort()
 
 func TestMain(m *testing.M) {
-	env := horizon.NewEnvironmentService("../../.env")
+	env := NewEnvironmentService("../../.env")
 
 	metricsPort := handlers.GetFreePort()
 	clientUrl := env.GetString("APP_CLIENT_URL", "http://localhost:3000")
@@ -29,7 +28,7 @@ func TestMain(m *testing.M) {
 	// Assign package-level variables, do NOT use := to avoid shadowing
 	testCtx := context.Background()
 
-	service := horizon.NewHorizonAPIService(apiPort, metricsPort, clientUrl, clientName, false)
+	service := NewHorizonAPIService(apiPort, metricsPort, clientUrl, clientName, false)
 	go func() {
 		if err := service.Run(testCtx); err != nil {
 			println("Server exited with error:", err.Error())

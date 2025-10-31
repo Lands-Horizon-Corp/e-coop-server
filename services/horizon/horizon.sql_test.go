@@ -5,21 +5,20 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
 	"github.com/stretchr/testify/require"
 )
 
-// go test -v ./services/horizon/horizon.sql_test.go
+// go test -v ./services/horizon/sql_test.go
 
 func TestGormDatabaseLifecycle(t *testing.T) {
-	env := horizon.NewEnvironmentService("../../.env")
+	env := NewEnvironmentService("../../.env")
 	dsn := env.GetString("DATABASE_URL", "")
 
 	if dsn == "" {
 		t.Skip("TEST_DB_DSN environment variable not set")
 	}
 
-	db := horizon.NewGormDatabase(dsn, 5, 10, time.Minute)
+	db := NewGormDatabase(dsn, 5, 10, time.Minute)
 	ctx := context.Background()
 
 	// Start the database

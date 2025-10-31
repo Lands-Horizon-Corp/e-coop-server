@@ -1,4 +1,4 @@
-package horizon_test
+package horizon
 
 import (
 	"context"
@@ -7,13 +7,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-// go test -v ./services/horizon_test/horizon.auth_test.go
+// go test -v ./services/horizon/auth_test.go
 
 type TestClaimUserCSRF struct {
 	UserID string `json:"user_id"`
@@ -22,11 +21,11 @@ type TestClaimUserCSRF struct {
 
 func (t TestClaimUserCSRF) GetID() string { return t.UserID }
 
-func createCacheSetupService(t *testing.T) horizon.CacheService {
+func createCacheSetupService(t *testing.T) CacheService {
 	ctx := context.Background()
 
-	env := horizon.NewEnvironmentService("../../.env")
-	cache := horizon.NewHorizonCache(
+	env := NewEnvironmentService("../../.env")
+	cache := NewHorizonCache(
 		env.GetString("REDIS_HOST", "localhost"),
 		env.GetString("REDIS_PASSWORD", ""),
 		env.GetString("REDIS_USERNAME", ""),
@@ -49,7 +48,7 @@ func createCacheSetupService(t *testing.T) horizon.CacheService {
 	return cache
 }
 
-func setupTest(t *testing.T) (context.Context, *horizon.HorizonAuthService[TestClaimUserCSRF], horizon.CacheService) {
+func setupTest(t *testing.T) (context.Context, *HorizonAuthService[TestClaimUserCSRF], CacheService) {
 	ctx := context.Background()
 	cache := createCacheSetupService(t)
 
@@ -58,12 +57,12 @@ func setupTest(t *testing.T) (context.Context, *horizon.HorizonAuthService[TestC
 	require.NoError(t, err)
 	require.Empty(t, keys, "Cache should be empty before test starts")
 
-	service := horizon.NewHorizonAuthService[TestClaimUserCSRF](
+	service := NewHorizonAuthService[TestClaimUserCSRF](
 		cache,
 		"test",
 		"X-CSRF-Token",
 		false,
-	).(*horizon.HorizonAuthService[TestClaimUserCSRF])
+	).(*HorizonAuthService[TestClaimUserCSRF])
 
 	return ctx, service, cache
 }
