@@ -6,7 +6,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	modelCore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelCore"
+	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/labstack/echo/v4"
 )
 
@@ -17,7 +17,7 @@ func (c *Controller) UserRatingController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/user-rating/user-rater/:user_id",
 		Method:       "GET",
-		ResponseType: modelCore.UserRatingResponse{},
+		ResponseType: modelcore.UserRatingResponse{},
 		Note:         "Returns all user ratings given by the specified user (rater).",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -25,18 +25,18 @@ func (c *Controller) UserRatingController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_id: " + err.Error()})
 		}
-		userRating, err := c.modelCore.GetUserRater(context, *userId)
+		userRating, err := c.modelcore.GetUserRater(context, *userId)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user ratings given by user: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelCore.UserRatingManager.Filtered(context, ctx, userRating))
+		return ctx.JSON(http.StatusOK, c.modelcore.UserRatingManager.Filtered(context, ctx, userRating))
 	})
 
 	// Returns all user ratings received by the specified user (ratee)
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/user-rating/user-ratee/:user_id",
 		Method:       "GET",
-		ResponseType: modelCore.UserRatingResponse{},
+		ResponseType: modelcore.UserRatingResponse{},
 		Note:         "Returns all user ratings received by the specified user (ratee).",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -44,18 +44,18 @@ func (c *Controller) UserRatingController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_id: " + err.Error()})
 		}
-		userRating, err := c.modelCore.GetUserRatee(context, *userId)
+		userRating, err := c.modelcore.GetUserRatee(context, *userId)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user ratings received by user: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelCore.UserRatingManager.Filtered(context, ctx, userRating))
+		return ctx.JSON(http.StatusOK, c.modelcore.UserRatingManager.Filtered(context, ctx, userRating))
 	})
 
 	// Returns a specific user rating by its ID
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/user-rating/:user_rating_id",
 		Method:       "GET",
-		ResponseType: modelCore.UserRatingResponse{},
+		ResponseType: modelcore.UserRatingResponse{},
 		Note:         "Returns a specific user rating by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -63,18 +63,18 @@ func (c *Controller) UserRatingController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_rating_id: " + err.Error()})
 		}
-		userRating, err := c.modelCore.UserRatingManager.GetByID(context, *userRatingId)
+		userRating, err := c.modelcore.UserRatingManager.GetByID(context, *userRatingId)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user rating: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelCore.UserRatingManager.ToModel(userRating))
+		return ctx.JSON(http.StatusOK, c.modelcore.UserRatingManager.ToModel(userRating))
 	})
 
 	// Returns all user ratings in the current user's active branch
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/user-rating/branch",
 		Method:       "GET",
-		ResponseType: modelCore.UserRatingResponse{},
+		ResponseType: modelcore.UserRatingResponse{},
 		Note:         "Returns all user ratings in the current user's active branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -82,23 +82,23 @@ func (c *Controller) UserRatingController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		userRating, err := c.modelCore.UserRatingCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
+		userRating, err := c.modelcore.UserRatingCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user ratings for branch: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelCore.UserRatingManager.Filtered(context, ctx, userRating))
+		return ctx.JSON(http.StatusOK, c.modelcore.UserRatingManager.Filtered(context, ctx, userRating))
 	})
 
 	// Creates a new user rating in the current user's branch
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/user-rating",
 		Method:       "POST",
-		ResponseType: modelCore.UserRatingResponse{},
-		RequestType:  modelCore.UserRatingRequest{},
+		ResponseType: modelcore.UserRatingResponse{},
+		RequestType:  modelcore.UserRatingRequest{},
 		Note:         "Creates a new user rating in the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.modelCore.UserRatingManager.Validate(ctx)
+		req, err := c.modelcore.UserRatingManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -117,7 +117,7 @@ func (c *Controller) UserRatingController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
-		userRating := &modelCore.UserRating{
+		userRating := &modelcore.UserRating{
 			CreatedAt:      time.Now().UTC(),
 			CreatedByID:    userOrg.UserID,
 			UpdatedAt:      time.Now().UTC(),
@@ -130,7 +130,7 @@ func (c *Controller) UserRatingController() {
 			Remark:         req.Remark,
 		}
 
-		if err := c.modelCore.UserRatingManager.Create(context, userRating); err != nil {
+		if err := c.modelcore.UserRatingManager.Create(context, userRating); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create user rating failed: create error: " + err.Error(),
@@ -145,7 +145,7 @@ func (c *Controller) UserRatingController() {
 			Module:      "UserRating",
 		})
 
-		return ctx.JSON(http.StatusOK, c.modelCore.UserRatingManager.ToModel(userRating))
+		return ctx.JSON(http.StatusOK, c.modelcore.UserRatingManager.ToModel(userRating))
 	})
 
 	// Deletes a user rating by its ID
@@ -164,7 +164,7 @@ func (c *Controller) UserRatingController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_rating_id: " + err.Error()})
 		}
-		if err := c.modelCore.UserRatingManager.DeleteByID(context, *userRatingId); err != nil {
+		if err := c.modelcore.UserRatingManager.DeleteByID(context, *userRatingId); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete user rating failed: delete error: " + err.Error(),

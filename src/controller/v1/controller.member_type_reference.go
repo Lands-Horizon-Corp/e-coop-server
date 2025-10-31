@@ -7,7 +7,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	modelCore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelCore"
+	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -19,7 +19,7 @@ func (c *Controller) MemberTypeReferenceController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-type-reference/member-type/:member_type_id/search",
 		Method:       "GET",
-		ResponseType: modelCore.MemberTypeReferenceResponse{},
+		ResponseType: modelcore.MemberTypeReferenceResponse{},
 		Note:         "Returns all member type references for the specified member_type_id in the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -34,7 +34,7 @@ func (c *Controller) MemberTypeReferenceController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Branch ID is required"})
 		}
-		refs, err := c.modelCore.MemberTypeReferenceManager.Find(context, &modelCore.MemberTypeReference{
+		refs, err := c.modelcore.MemberTypeReferenceManager.Find(context, &modelcore.MemberTypeReference{
 			OrganizationID: user.OrganizationID,
 			BranchID:       *user.BranchID,
 			MemberTypeID:   *memberTypeID,
@@ -42,14 +42,14 @@ func (c *Controller) MemberTypeReferenceController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "MemberTypeReference not found: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelCore.MemberTypeReferenceManager.Pagination(context, ctx, refs))
+		return ctx.JSON(http.StatusOK, c.modelcore.MemberTypeReferenceManager.Pagination(context, ctx, refs))
 	})
 
 	// Get a single member type reference by its ID
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-type-reference/:member_type_reference_id",
 		Method:       "GET",
-		ResponseType: modelCore.MemberTypeReferenceResponse{},
+		ResponseType: modelcore.MemberTypeReferenceResponse{},
 		Note:         "Returns a specific member type reference by member_type_reference_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -57,7 +57,7 @@ func (c *Controller) MemberTypeReferenceController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_type_reference_id: " + err.Error()})
 		}
-		ref, err := c.modelCore.MemberTypeReferenceManager.GetByIDRaw(context, *id)
+		ref, err := c.modelcore.MemberTypeReferenceManager.GetByIDRaw(context, *id)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "MemberTypeReference not found: " + err.Error()})
 		}
@@ -68,12 +68,12 @@ func (c *Controller) MemberTypeReferenceController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-type-reference",
 		Method:       "POST",
-		ResponseType: modelCore.MemberTypeReferenceResponse{},
-		RequestType:  modelCore.MemberTypeReferenceRequest{},
+		ResponseType: modelcore.MemberTypeReferenceResponse{},
+		RequestType:  modelcore.MemberTypeReferenceRequest{},
 		Note:         "Creates a new member type reference record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.modelCore.MemberTypeReferenceManager.Validate(ctx)
+		req, err := c.modelcore.MemberTypeReferenceManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -92,7 +92,7 @@ func (c *Controller) MemberTypeReferenceController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
-		ref := &modelCore.MemberTypeReference{
+		ref := &modelcore.MemberTypeReference{
 			AccountID:                  req.AccountID,
 			MemberTypeID:               req.MemberTypeID,
 			MaintainingBalance:         req.MaintainingBalance,
@@ -112,7 +112,7 @@ func (c *Controller) MemberTypeReferenceController() {
 			OrganizationID: user.OrganizationID,
 		}
 
-		if err := c.modelCore.MemberTypeReferenceManager.Create(context, ref); err != nil {
+		if err := c.modelcore.MemberTypeReferenceManager.Create(context, ref); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member type reference failed: " + err.Error(),
@@ -127,15 +127,15 @@ func (c *Controller) MemberTypeReferenceController() {
 			Module:      "MemberTypeReference",
 		})
 
-		return ctx.JSON(http.StatusOK, c.modelCore.MemberTypeReferenceManager.ToModel(ref))
+		return ctx.JSON(http.StatusOK, c.modelcore.MemberTypeReferenceManager.ToModel(ref))
 	})
 
 	// Update an existing member type reference by its ID
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-type-reference/:member_type_reference_id",
 		Method:       "PUT",
-		ResponseType: modelCore.MemberTypeReferenceResponse{},
-		RequestType:  modelCore.MemberTypeReferenceRequest{},
+		ResponseType: modelcore.MemberTypeReferenceResponse{},
+		RequestType:  modelcore.MemberTypeReferenceRequest{},
 		Note:         "Updates an existing member type reference by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -149,7 +149,7 @@ func (c *Controller) MemberTypeReferenceController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_type_reference_id: " + err.Error()})
 		}
 
-		req, err := c.modelCore.MemberTypeReferenceManager.Validate(ctx)
+		req, err := c.modelcore.MemberTypeReferenceManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -168,7 +168,7 @@ func (c *Controller) MemberTypeReferenceController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
-		ref, err := c.modelCore.MemberTypeReferenceManager.GetByID(context, *id)
+		ref, err := c.modelcore.MemberTypeReferenceManager.GetByID(context, *id)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -190,7 +190,7 @@ func (c *Controller) MemberTypeReferenceController() {
 		ref.OtherInterestOnSavingComputationInterestRate = req.OtherInterestOnSavingComputationInterestRate
 		ref.UpdatedAt = time.Now().UTC()
 		ref.UpdatedByID = user.UserID
-		if err := c.modelCore.MemberTypeReferenceManager.UpdateFields(context, ref.ID, ref); err != nil {
+		if err := c.modelcore.MemberTypeReferenceManager.UpdateFields(context, ref.ID, ref); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member type reference failed: update error: " + err.Error(),
@@ -203,7 +203,7 @@ func (c *Controller) MemberTypeReferenceController() {
 			Description: "Updated member type reference for member_type_reference_id: " + ref.ID.String(),
 			Module:      "MemberTypeReference",
 		})
-		return ctx.JSON(http.StatusOK, c.modelCore.MemberTypeReferenceManager.ToModel(ref))
+		return ctx.JSON(http.StatusOK, c.modelcore.MemberTypeReferenceManager.ToModel(ref))
 	})
 
 	// Delete a member type reference by its ID
@@ -222,7 +222,7 @@ func (c *Controller) MemberTypeReferenceController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_type_reference_id: " + err.Error()})
 		}
-		if err := c.modelCore.MemberTypeReferenceManager.DeleteByID(context, *id); err != nil {
+		if err := c.modelcore.MemberTypeReferenceManager.DeleteByID(context, *id); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member type reference failed: " + err.Error(),
@@ -242,11 +242,11 @@ func (c *Controller) MemberTypeReferenceController() {
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/member-type-reference/bulk-delete",
 		Method:      "DELETE",
-		RequestType: modelCore.IDSRequest{},
+		RequestType: modelcore.IDSRequest{},
 		Note:        "Deletes multiple member type reference records by their IDs.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody modelCore.IDSRequest
+		var reqBody modelcore.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
@@ -285,7 +285,7 @@ func (c *Controller) MemberTypeReferenceController() {
 				})
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s - %v", rawID, err)})
 			}
-			ref, err := c.modelCore.MemberTypeReferenceManager.GetByID(context, id)
+			ref, err := c.modelcore.MemberTypeReferenceManager.GetByID(context, id)
 			if err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -296,7 +296,7 @@ func (c *Controller) MemberTypeReferenceController() {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberTypeReference with ID %s not found: %v", rawID, err)})
 			}
 			names += ref.Description + ","
-			if err := c.modelCore.MemberTypeReferenceManager.DeleteByIDWithTx(context, tx, id); err != nil {
+			if err := c.modelcore.MemberTypeReferenceManager.DeleteByIDWithTx(context, tx, id); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

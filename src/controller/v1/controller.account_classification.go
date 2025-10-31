@@ -6,7 +6,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	modelCore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelCore"
+	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -19,66 +19,66 @@ func (c *Controller) AccountClassificationController() {
 		Route:        "/api/v1/account-classification/search",
 		Method:       "GET",
 		Note:         "Retrieve all account classifications for the current branch.",
-		ResponseType: modelCore.AccountClassificationResponse{},
+		ResponseType: modelcore.AccountClassificationResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelcore.UserOrganizationTypeOwner && userOrg.UserType != modelcore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		classifications, err := c.modelCore.AccountClassificationManager.Find(context, &modelCore.AccountClassification{
+		classifications, err := c.modelcore.AccountClassificationManager.Find(context, &modelcore.AccountClassification{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve account classifications: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelCore.AccountClassificationManager.Pagination(context, ctx, classifications))
+		return ctx.JSON(http.StatusOK, c.modelcore.AccountClassificationManager.Pagination(context, ctx, classifications))
 	})
 
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/account-classification",
 		Method:       "GET",
 		Note:         "Retrieve all account classifications for the current branch (raw).",
-		ResponseType: modelCore.AccountClassificationResponse{},
+		ResponseType: modelcore.AccountClassificationResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelcore.UserOrganizationTypeOwner && userOrg.UserType != modelcore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		classifications, err := c.modelCore.AccountClassificationManager.Find(context, &modelCore.AccountClassification{
+		classifications, err := c.modelcore.AccountClassificationManager.Find(context, &modelcore.AccountClassification{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve account classifications (raw): " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelCore.AccountClassificationManager.Filtered(context, ctx, classifications))
+		return ctx.JSON(http.StatusOK, c.modelcore.AccountClassificationManager.Filtered(context, ctx, classifications))
 	})
 
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/account-classification/:account_classification_id",
 		Method:       "GET",
 		Note:         "Get an account classification by ID.",
-		ResponseType: modelCore.AccountClassificationResponse{},
+		ResponseType: modelcore.AccountClassificationResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		id, err := handlers.EngineUUIDParam(ctx, "account_classification_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account classification ID: " + err.Error()})
 		}
-		classification, err := c.modelCore.AccountClassificationManager.GetByID(context, *id)
+		classification, err := c.modelcore.AccountClassificationManager.GetByID(context, *id)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account classification not found: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelCore.AccountClassificationManager.ToModel(classification))
+		return ctx.JSON(http.StatusOK, c.modelcore.AccountClassificationManager.ToModel(classification))
 	})
 
 	// POST - Create (with footstep)
@@ -86,11 +86,11 @@ func (c *Controller) AccountClassificationController() {
 		Route:        "/api/v1/account-classification",
 		Method:       "POST",
 		Note:         "Create a new account classification for the current branch.",
-		ResponseType: modelCore.AccountClassificationResponse{},
-		RequestType:  modelCore.AccountClassificationRequest{},
+		ResponseType: modelcore.AccountClassificationResponse{},
+		RequestType:  modelcore.AccountClassificationRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.modelCore.AccountClassificationManager.Validate(ctx)
+		req, err := c.modelcore.AccountClassificationManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -108,7 +108,7 @@ func (c *Controller) AccountClassificationController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelcore.UserOrganizationTypeOwner && userOrg.UserType != modelcore.UserOrganizationTypeEmployee {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Unauthorized create attempt for account classification (/account-classification)",
@@ -117,7 +117,7 @@ func (c *Controller) AccountClassificationController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
 
-		accountClassification := &modelCore.AccountClassification{
+		accountClassification := &modelcore.AccountClassification{
 			CreatedAt:      time.Now().UTC(),
 			CreatedByID:    userOrg.UserID,
 			UpdatedAt:      time.Now().UTC(),
@@ -128,7 +128,7 @@ func (c *Controller) AccountClassificationController() {
 			Description:    req.Description,
 		}
 
-		if err := c.modelCore.AccountClassificationManager.Create(context, accountClassification); err != nil {
+		if err := c.modelcore.AccountClassificationManager.Create(context, accountClassification); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Failed to create account classification (/account-classification): db error: " + err.Error(),
@@ -141,7 +141,7 @@ func (c *Controller) AccountClassificationController() {
 			Description: "Created account classification (/account-classification): " + accountClassification.Name,
 			Module:      "AccountClassification",
 		})
-		return ctx.JSON(http.StatusCreated, c.modelCore.AccountClassificationManager.ToModel(accountClassification))
+		return ctx.JSON(http.StatusCreated, c.modelcore.AccountClassificationManager.ToModel(accountClassification))
 	})
 
 	// PUT - Update (with footstep)
@@ -149,11 +149,11 @@ func (c *Controller) AccountClassificationController() {
 		Route:        "/api/v1/account-classification/:account_classification_id",
 		Method:       "PUT",
 		Note:         "Update an account classification by ID.",
-		ResponseType: modelCore.AccountClassificationResponse{},
-		RequestType:  modelCore.AccountClassificationRequest{},
+		ResponseType: modelcore.AccountClassificationResponse{},
+		RequestType:  modelcore.AccountClassificationRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.modelCore.AccountClassificationManager.Validate(ctx)
+		req, err := c.modelcore.AccountClassificationManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -171,7 +171,7 @@ func (c *Controller) AccountClassificationController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelcore.UserOrganizationTypeOwner && userOrg.UserType != modelcore.UserOrganizationTypeEmployee {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Unauthorized update attempt for account classification (/account-classification/:account_classification_id)",
@@ -188,7 +188,7 @@ func (c *Controller) AccountClassificationController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account classification ID: " + err.Error()})
 		}
-		classification, err := c.modelCore.AccountClassificationManager.GetByID(context, *classificationID)
+		classification, err := c.modelcore.AccountClassificationManager.GetByID(context, *classificationID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -203,7 +203,7 @@ func (c *Controller) AccountClassificationController() {
 		classification.Description = req.Description
 		classification.BranchID = *userOrg.BranchID
 		classification.OrganizationID = userOrg.OrganizationID
-		if err := c.modelCore.AccountClassificationManager.UpdateFields(context, classification.ID, classification); err != nil {
+		if err := c.modelcore.AccountClassificationManager.UpdateFields(context, classification.ID, classification); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Failed to update account classification (/account-classification/:account_classification_id): db error: " + err.Error(),
@@ -216,7 +216,7 @@ func (c *Controller) AccountClassificationController() {
 			Description: "Updated account classification (/account-classification/:account_classification_id): " + classification.Name,
 			Module:      "AccountClassification",
 		})
-		return ctx.JSON(http.StatusOK, c.modelCore.AccountClassificationManager.ToModel(classification))
+		return ctx.JSON(http.StatusOK, c.modelcore.AccountClassificationManager.ToModel(classification))
 	})
 
 	// DELETE (single) - with footstep
@@ -235,7 +235,7 @@ func (c *Controller) AccountClassificationController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelcore.UserOrganizationTypeOwner && userOrg.UserType != modelcore.UserOrganizationTypeEmployee {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Unauthorized delete attempt for account classification (/account-classification/:account_classification_id)",
@@ -252,7 +252,7 @@ func (c *Controller) AccountClassificationController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account classification ID: " + err.Error()})
 		}
-		classification, err := c.modelCore.AccountClassificationManager.GetByID(context, *classificationID)
+		classification, err := c.modelcore.AccountClassificationManager.GetByID(context, *classificationID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -261,7 +261,7 @@ func (c *Controller) AccountClassificationController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account classification not found: " + err.Error()})
 		}
-		if err := c.modelCore.AccountClassificationManager.DeleteByID(context, classification.ID); err != nil {
+		if err := c.modelcore.AccountClassificationManager.DeleteByID(context, classification.ID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Failed to delete account classification (/account-classification/:account_classification_id): db error: " + err.Error(),
@@ -274,7 +274,7 @@ func (c *Controller) AccountClassificationController() {
 			Description: "Deleted account classification (/account-classification/:account_classification_id): " + classification.Name,
 			Module:      "AccountClassification",
 		})
-		return ctx.JSON(http.StatusOK, c.modelCore.AccountClassificationManager.ToModel(classification))
+		return ctx.JSON(http.StatusOK, c.modelcore.AccountClassificationManager.ToModel(classification))
 	})
 
 	// BULK DELETE (with footstep)
@@ -282,10 +282,10 @@ func (c *Controller) AccountClassificationController() {
 		Route:       "/api/v1/account-classification/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Bulk delete multiple account classifications by IDs.",
-		RequestType: modelCore.IDSRequest{},
+		RequestType: modelcore.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody modelCore.IDSRequest
+		var reqBody modelcore.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
@@ -323,7 +323,7 @@ func (c *Controller) AccountClassificationController() {
 				})
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid UUID: " + rawID + " - " + err.Error()})
 			}
-			if _, err := c.modelCore.AccountClassificationManager.GetByID(context, id); err != nil {
+			if _, err := c.modelcore.AccountClassificationManager.GetByID(context, id); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",
@@ -332,7 +332,7 @@ func (c *Controller) AccountClassificationController() {
 				})
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account classification with ID " + rawID + " not found: " + err.Error()})
 			}
-			if err := c.modelCore.AccountClassificationManager.DeleteByIDWithTx(context, tx, id); err != nil {
+			if err := c.modelcore.AccountClassificationManager.DeleteByIDWithTx(context, tx, id); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

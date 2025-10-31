@@ -7,7 +7,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	modelCore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelCore"
+	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/labstack/echo/v4"
 )
 
@@ -19,7 +19,7 @@ func (c *Controller) FinancialStatementController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/financial-statement-grouping",
 		Method:       "GET",
-		ResponseType: modelCore.FinancialStatementGroupingResponse{},
+		ResponseType: modelcore.FinancialStatementGroupingResponse{},
 		Note:         "Returns all financial statement groupings for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -27,10 +27,10 @@ func (c *Controller) FinancialStatementController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelcore.UserOrganizationTypeOwner && userOrg.UserType != modelcore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view financial statement groupings"})
 		}
-		fsGroupings, err := c.modelCore.FinancialStatementGroupingManager.Find(context, &modelCore.FinancialStatementGrouping{
+		fsGroupings, err := c.modelcore.FinancialStatementGroupingManager.Find(context, &modelcore.FinancialStatementGrouping{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -39,8 +39,8 @@ func (c *Controller) FinancialStatementController() {
 		}
 		for _, grouping := range fsGroupings {
 			if grouping != nil {
-				grouping.FinancialStatementDefinitionEntries = []*modelCore.FinancialStatementDefinition{}
-				entries, err := c.modelCore.FinancialStatementDefinitionManager.FindWithConditions(context, map[string]any{
+				grouping.FinancialStatementDefinitionEntries = []*modelcore.FinancialStatementDefinition{}
+				entries, err := c.modelcore.FinancialStatementDefinitionManager.FindWithConditions(context, map[string]any{
 					"organization_id":                 userOrg.OrganizationID,
 					"branch_id":                       *userOrg.BranchID,
 					"financial_statement_grouping_id": &grouping.ID,
@@ -49,7 +49,7 @@ func (c *Controller) FinancialStatementController() {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve definitions: " + err.Error()})
 				}
 
-				var filteredEntries []*modelCore.FinancialStatementDefinition
+				var filteredEntries []*modelcore.FinancialStatementDefinition
 				for _, entry := range entries {
 					if entry.FinancialStatementDefinitionEntriesID == nil {
 						filteredEntries = append(filteredEntries, entry)
@@ -59,15 +59,15 @@ func (c *Controller) FinancialStatementController() {
 				grouping.FinancialStatementDefinitionEntries = filteredEntries
 			}
 		}
-		return ctx.JSON(http.StatusOK, c.modelCore.FinancialStatementGroupingManager.Filtered(context, ctx, fsGroupings))
+		return ctx.JSON(http.StatusOK, c.modelcore.FinancialStatementGroupingManager.Filtered(context, ctx, fsGroupings))
 	})
 
 	// PUT /financial-statement-grouping/:financial_statement_grouping_id: Update a financial statement grouping. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/financial-statement-grouping/:financial_statement_grouping_id",
 		Method:       "PUT",
-		RequestType:  modelCore.FinancialStatementGroupingRequest{},
-		ResponseType: modelCore.FinancialStatementGroupingResponse{},
+		RequestType:  modelcore.FinancialStatementGroupingRequest{},
+		ResponseType: modelcore.FinancialStatementGroupingResponse{},
 		Note:         "Updates an existing financial statement grouping by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -80,7 +80,7 @@ func (c *Controller) FinancialStatementController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid financial statement grouping ID"})
 		}
-		reqBody, err := c.modelCore.FinancialStatementGroupingManager.Validate(ctx)
+		reqBody, err := c.modelcore.FinancialStatementGroupingManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -98,7 +98,7 @@ func (c *Controller) FinancialStatementController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelcore.UserOrganizationTypeOwner && userOrg.UserType != modelcore.UserOrganizationTypeEmployee {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Unauthorized update attempt for financial statement grouping (/financial-statement-grouping/:financial_statement_grouping_id)",
@@ -106,7 +106,7 @@ func (c *Controller) FinancialStatementController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to update financial statement groupings"})
 		}
-		grouping, err := c.modelCore.FinancialStatementGroupingManager.GetByID(context, *groupingID)
+		grouping, err := c.modelcore.FinancialStatementGroupingManager.GetByID(context, *groupingID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -123,7 +123,7 @@ func (c *Controller) FinancialStatementController() {
 		grouping.UpdatedAt = time.Now().UTC()
 		grouping.UpdatedByID = userOrg.UserID
 
-		if err := c.modelCore.FinancialStatementGroupingManager.UpdateFields(context, grouping.ID, grouping); err != nil {
+		if err := c.modelcore.FinancialStatementGroupingManager.UpdateFields(context, grouping.ID, grouping); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Financial statement grouping update failed (/financial-statement-grouping/:financial_statement_grouping_id), db error: " + err.Error(),
@@ -138,14 +138,14 @@ func (c *Controller) FinancialStatementController() {
 			Module:      "FinancialStatement",
 		})
 
-		return ctx.JSON(http.StatusOK, c.modelCore.FinancialStatementGroupingManager.ToModel(grouping))
+		return ctx.JSON(http.StatusOK, c.modelcore.FinancialStatementGroupingManager.ToModel(grouping))
 	})
 
 	// GET /financial-statement-definition: List all financial statement definitions for the current branch. (NO footstep)
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/financial-statement-definition",
 		Method:       "GET",
-		ResponseType: modelCore.FinancialStatementDefinitionResponse{},
+		ResponseType: modelcore.FinancialStatementDefinitionResponse{},
 		Note:         "Returns all financial statement definitions for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -153,10 +153,10 @@ func (c *Controller) FinancialStatementController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelcore.UserOrganizationTypeOwner && userOrg.UserType != modelcore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view financial statement definitions"})
 		}
-		fsDefs, err := c.modelCore.FinancialStatementDefinitionManager.FindRaw(context, &modelCore.FinancialStatementDefinition{
+		fsDefs, err := c.modelcore.FinancialStatementDefinitionManager.FindRaw(context, &modelcore.FinancialStatementDefinition{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -170,12 +170,12 @@ func (c *Controller) FinancialStatementController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/financial-statement-definition",
 		Method:       "POST",
-		RequestType:  modelCore.FinancialStatementDefinitionRequest{},
-		ResponseType: modelCore.FinancialStatementDefinitionResponse{},
+		RequestType:  modelcore.FinancialStatementDefinitionRequest{},
+		ResponseType: modelcore.FinancialStatementDefinitionResponse{},
 		Note:         "Creates a new financial statement definition for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.modelCore.FinancialStatementDefinitionManager.Validate(ctx)
+		req, err := c.modelcore.FinancialStatementDefinitionManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -193,7 +193,7 @@ func (c *Controller) FinancialStatementController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelcore.UserOrganizationTypeOwner && userOrg.UserType != modelcore.UserOrganizationTypeEmployee {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Unauthorized create attempt for financial statement definition (/financial-statement-definition)",
@@ -201,7 +201,7 @@ func (c *Controller) FinancialStatementController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to create financial statement definitions"})
 		}
-		fsDefinition := &modelCore.FinancialStatementDefinition{
+		fsDefinition := &modelcore.FinancialStatementDefinition{
 			OrganizationID:                        userOrg.OrganizationID,
 			BranchID:                              *userOrg.BranchID,
 			CreatedByID:                           userOrg.UserID,
@@ -217,7 +217,7 @@ func (c *Controller) FinancialStatementController() {
 			CreatedAt:                             time.Now().UTC(),
 			UpdatedAt:                             time.Now().UTC(),
 		}
-		if err := c.modelCore.FinancialStatementDefinitionManager.Create(context, fsDefinition); err != nil {
+		if err := c.modelcore.FinancialStatementDefinitionManager.Create(context, fsDefinition); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Financial statement definition creation failed (/financial-statement-definition), db error: " + err.Error(),
@@ -232,7 +232,7 @@ func (c *Controller) FinancialStatementController() {
 			Module:      "FinancialStatement",
 		})
 
-		return ctx.JSON(http.StatusCreated, c.modelCore.FinancialStatementDefinitionManager.ToModel(fsDefinition))
+		return ctx.JSON(http.StatusCreated, c.modelcore.FinancialStatementDefinitionManager.ToModel(fsDefinition))
 	})
 
 	// PUT /financial-statement-definition/:financial_statement_definition_id: Update a financial statement definition. (WITH footstep)
@@ -240,8 +240,8 @@ func (c *Controller) FinancialStatementController() {
 		Route:        "/api/v1/financial-statement-definition/:financial_statement_definition_id",
 		Method:       "PUT",
 		Note:         "Updates an existing financial statement definition by its ID.",
-		RequestType:  modelCore.FinancialStatementDefinitionRequest{},
-		ResponseType: modelCore.FinancialStatementDefinitionResponse{},
+		RequestType:  modelcore.FinancialStatementDefinitionRequest{},
+		ResponseType: modelcore.FinancialStatementDefinitionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		fsDefinitionID, err := handlers.EngineUUIDParam(ctx, "financial_statement_definition_id")
@@ -253,7 +253,7 @@ func (c *Controller) FinancialStatementController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid financial statement definition ID"})
 		}
-		req, err := c.modelCore.FinancialStatementDefinitionManager.Validate(ctx)
+		req, err := c.modelcore.FinancialStatementDefinitionManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -271,7 +271,7 @@ func (c *Controller) FinancialStatementController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelcore.UserOrganizationTypeOwner && userOrg.UserType != modelcore.UserOrganizationTypeEmployee {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Unauthorized update attempt for financial statement definition (/financial-statement-definition/:financial_statement_definition_id)",
@@ -279,7 +279,7 @@ func (c *Controller) FinancialStatementController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to update financial statement definitions"})
 		}
-		fsDefinition, err := c.modelCore.FinancialStatementDefinitionManager.GetByID(context, *fsDefinitionID)
+		fsDefinition, err := c.modelcore.FinancialStatementDefinitionManager.GetByID(context, *fsDefinitionID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -298,7 +298,7 @@ func (c *Controller) FinancialStatementController() {
 		fsDefinition.UpdatedAt = time.Now().UTC()
 		fsDefinition.UpdatedByID = userOrg.UserID
 
-		if err := c.modelCore.FinancialStatementDefinitionManager.UpdateFields(context, fsDefinition.ID, fsDefinition); err != nil {
+		if err := c.modelcore.FinancialStatementDefinitionManager.UpdateFields(context, fsDefinition.ID, fsDefinition); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Financial statement definition update failed (/financial-statement-definition/:financial_statement_definition_id), db error: " + err.Error(),
@@ -313,14 +313,14 @@ func (c *Controller) FinancialStatementController() {
 			Module:      "FinancialStatement",
 		})
 
-		return ctx.JSON(http.StatusOK, c.modelCore.FinancialStatementDefinitionManager.ToModel(fsDefinition))
+		return ctx.JSON(http.StatusOK, c.modelcore.FinancialStatementDefinitionManager.ToModel(fsDefinition))
 	})
 
 	// POST /financial-statement-definition/:financial_statement_definition_id/account/:account_id/connect: Connect an account to a financial statement definition. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/financial-statement-definition/:financial_statement_definition_id/account/:account_id/connect",
 		Method:       "POST",
-		ResponseType: modelCore.FinancialStatementDefinitionResponse{},
+		ResponseType: modelcore.FinancialStatementDefinitionResponse{},
 		Note:         "Connects an account to a financial statement definition by their IDs.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -351,7 +351,7 @@ func (c *Controller) FinancialStatementController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelcore.UserOrganizationTypeOwner && userOrg.UserType != modelcore.UserOrganizationTypeEmployee {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Unauthorized connect attempt for account to FS definition (/financial-statement-definition/:financial_statement_definition_id/account/:account_id/connect)",
@@ -359,7 +359,7 @@ func (c *Controller) FinancialStatementController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to connect accounts"})
 		}
-		fsDefinition, err := c.modelCore.FinancialStatementDefinitionManager.GetByID(context, *fsDefinitionID)
+		fsDefinition, err := c.modelcore.FinancialStatementDefinitionManager.GetByID(context, *fsDefinitionID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -376,7 +376,7 @@ func (c *Controller) FinancialStatementController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Financial statement definition does not belong to your organization/branch"})
 		}
-		account, err := c.modelCore.AccountManager.GetByID(context, *accountID)
+		account, err := c.modelcore.AccountManager.GetByID(context, *accountID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -396,7 +396,7 @@ func (c *Controller) FinancialStatementController() {
 		account.FinancialStatementDefinitionID = fsDefinitionID
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
-		if err := c.modelCore.AccountManager.UpdateFields(context, account.ID, account); err != nil {
+		if err := c.modelcore.AccountManager.UpdateFields(context, account.ID, account); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Connect account to FS definition failed (/financial-statement-definition/:financial_statement_definition_id/account/:account_id/connect), account db error: " + err.Error(),
@@ -406,7 +406,7 @@ func (c *Controller) FinancialStatementController() {
 		}
 		fsDefinition.UpdatedAt = time.Now().UTC()
 		fsDefinition.UpdatedByID = userOrg.UserID
-		if err := c.modelCore.FinancialStatementDefinitionManager.UpdateFields(context, fsDefinition.ID, fsDefinition); err != nil {
+		if err := c.modelcore.FinancialStatementDefinitionManager.UpdateFields(context, fsDefinition.ID, fsDefinition); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Connect account to FS definition failed (/financial-statement-definition/:financial_statement_definition_id/account/:account_id/connect), FS definition db error: " + err.Error(),
@@ -419,14 +419,14 @@ func (c *Controller) FinancialStatementController() {
 			Description: "Connected account to FS definition (/financial-statement-definition/:financial_statement_definition_id/account/:account_id/connect) for account: " + account.Name,
 			Module:      "FinancialStatement",
 		})
-		return ctx.JSON(http.StatusOK, c.modelCore.FinancialStatementDefinitionManager.ToModel(fsDefinition))
+		return ctx.JSON(http.StatusOK, c.modelcore.FinancialStatementDefinitionManager.ToModel(fsDefinition))
 	})
 
 	// PUT /financial-statement-definition/:financial_statement_definition_id/index/:index: Update the index of a financial statement definition. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/financial-statement-definition/:financial_statement_definition_id/index/:index",
 		Method:       "PUT",
-		ResponseType: modelCore.FinancialStatementDefinitionResponse{},
+		ResponseType: modelcore.FinancialStatementDefinitionResponse{},
 		Note:         "Updates the index of a financial statement definition by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -457,7 +457,7 @@ func (c *Controller) FinancialStatementController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelcore.UserOrganizationTypeOwner && userOrg.UserType != modelcore.UserOrganizationTypeEmployee {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Unauthorized FS definition index update attempt (/financial-statement-definition/:financial_statement_definition_id/index/:index)",
@@ -465,7 +465,7 @@ func (c *Controller) FinancialStatementController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to update financial statement definition index"})
 		}
-		fsDefinition, err := c.modelCore.FinancialStatementDefinitionManager.GetByID(context, *fsDefinitionID)
+		fsDefinition, err := c.modelcore.FinancialStatementDefinitionManager.GetByID(context, *fsDefinitionID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -477,7 +477,7 @@ func (c *Controller) FinancialStatementController() {
 		fsDefinition.Index = index
 		fsDefinition.UpdatedAt = time.Now().UTC()
 		fsDefinition.UpdatedByID = userOrg.UserID
-		if err := c.modelCore.FinancialStatementDefinitionManager.UpdateFields(context, fsDefinition.ID, fsDefinition); err != nil {
+		if err := c.modelcore.FinancialStatementDefinitionManager.UpdateFields(context, fsDefinition.ID, fsDefinition); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "FS definition index update failed (/financial-statement-definition/:financial_statement_definition_id/index/:index), db error: " + err.Error(),
@@ -490,14 +490,14 @@ func (c *Controller) FinancialStatementController() {
 			Description: "Updated FS definition index (/financial-statement-definition/:financial_statement_definition_id/index/:index): " + fsDefinition.Name,
 			Module:      "FinancialStatement",
 		})
-		return ctx.JSON(http.StatusOK, c.modelCore.FinancialStatementDefinitionManager.ToModel(fsDefinition))
+		return ctx.JSON(http.StatusOK, c.modelcore.FinancialStatementDefinitionManager.ToModel(fsDefinition))
 	})
 
 	// PUT /financial-statement-grouping/financial-statement-definition/:financial_statement_definition_id/account/:account_id/index: Update the index of an account within a financial statement definition. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/financial-statement-grouping/financial-statement-definition/:financial_statement_definition_id/account/:account_id/index",
 		Method:       "PUT",
-		ResponseType: modelCore.FinancialStatementDefinitionResponse{},
+		ResponseType: modelcore.FinancialStatementDefinitionResponse{},
 		Note:         "Updates the index of an account within a financial statement definition and reorders accordingly.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -541,7 +541,7 @@ func (c *Controller) FinancialStatementController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelcore.UserOrganizationTypeOwner && userOrg.UserType != modelcore.UserOrganizationTypeEmployee {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Unauthorized FS grouping/account index update attempt (/financial-statement-grouping/financial-statement-definition/:financial_statement_definition_id/account/:account_id/index)",
@@ -549,7 +549,7 @@ func (c *Controller) FinancialStatementController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to update account index"})
 		}
-		fsDefinition, err := c.modelCore.FinancialStatementDefinitionManager.GetByID(context, *fsDefinitionID)
+		fsDefinition, err := c.modelcore.FinancialStatementDefinitionManager.GetByID(context, *fsDefinitionID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -558,7 +558,7 @@ func (c *Controller) FinancialStatementController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Financial statement definition not found"})
 		}
-		account, err := c.modelCore.AccountManager.GetByID(context, *accountID)
+		account, err := c.modelcore.AccountManager.GetByID(context, *accountID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -570,7 +570,7 @@ func (c *Controller) FinancialStatementController() {
 		if account.FinancialStatementDefinitionID == nil || *account.FinancialStatementDefinitionID != *fsDefinitionID {
 			account.FinancialStatementDefinitionID = fsDefinitionID
 		}
-		accounts, err := c.modelCore.AccountManager.Find(context, &modelCore.Account{
+		accounts, err := c.modelcore.AccountManager.Find(context, &modelcore.Account{
 			FinancialStatementDefinitionID: fsDefinitionID,
 			OrganizationID:                 userOrg.OrganizationID,
 			BranchID:                       *userOrg.BranchID,
@@ -583,7 +583,7 @@ func (c *Controller) FinancialStatementController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve accounts: " + err.Error()})
 		}
-		var updatedAccounts []*modelCore.Account
+		var updatedAccounts []*modelcore.Account
 		for _, acc := range accounts {
 			if acc.ID != account.ID {
 				updatedAccounts = append(updatedAccounts, acc)
@@ -595,12 +595,12 @@ func (c *Controller) FinancialStatementController() {
 		if reqBody.AccountIndex > len(updatedAccounts) {
 			reqBody.AccountIndex = len(updatedAccounts)
 		}
-		updatedAccounts = append(updatedAccounts[:reqBody.AccountIndex], append([]*modelCore.Account{account}, updatedAccounts[reqBody.AccountIndex:]...)...)
+		updatedAccounts = append(updatedAccounts[:reqBody.AccountIndex], append([]*modelcore.Account{account}, updatedAccounts[reqBody.AccountIndex:]...)...)
 		for idx, acc := range updatedAccounts {
 			acc.Index = idx
 			acc.UpdatedAt = time.Now().UTC()
 			acc.UpdatedByID = userOrg.UserID
-			if err := c.modelCore.AccountManager.UpdateFields(context, acc.ID, acc); err != nil {
+			if err := c.modelcore.AccountManager.UpdateFields(context, acc.ID, acc); err != nil {
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "FS grouping/account index update failed (/financial-statement-grouping/financial-statement-definition/:financial_statement_definition_id/account/:account_id/index), update account error: " + err.Error(),
@@ -613,7 +613,7 @@ func (c *Controller) FinancialStatementController() {
 			fsDefinition.Index = reqBody.FinancialStatementDefinitionIndex
 			fsDefinition.UpdatedAt = time.Now().UTC()
 			fsDefinition.UpdatedByID = userOrg.UserID
-			if err := c.modelCore.FinancialStatementDefinitionManager.UpdateFields(context, fsDefinition.ID, fsDefinition); err != nil {
+			if err := c.modelcore.FinancialStatementDefinitionManager.UpdateFields(context, fsDefinition.ID, fsDefinition); err != nil {
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "FS grouping/account index update failed (/financial-statement-grouping/financial-statement-definition/:financial_statement_definition_id/account/:account_id/index), update FS definition error: " + err.Error(),
@@ -627,7 +627,7 @@ func (c *Controller) FinancialStatementController() {
 			Description: "Updated account index within FS definition (/financial-statement-grouping/financial-statement-definition/:financial_statement_definition_id/account/:account_id/index): " + account.Name,
 			Module:      "FinancialStatement",
 		})
-		return ctx.JSON(http.StatusOK, c.modelCore.FinancialStatementDefinitionManager.ToModel(fsDefinition))
+		return ctx.JSON(http.StatusOK, c.modelcore.FinancialStatementDefinitionManager.ToModel(fsDefinition))
 	})
 
 	// DELETE /financial-statement-definition/:financial_statement_definition_id: Delete a financial statement definition by ID, only if no accounts are linked. (WITH footstep)
@@ -655,7 +655,7 @@ func (c *Controller) FinancialStatementController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelcore.UserOrganizationTypeOwner && userOrg.UserType != modelcore.UserOrganizationTypeEmployee {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Unauthorized delete attempt for FS definition (/financial-statement-definition/:financial_statement_definition_id)",
@@ -663,7 +663,7 @@ func (c *Controller) FinancialStatementController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to delete financial statement definitions"})
 		}
-		fsDefinition, err := c.modelCore.FinancialStatementDefinitionManager.GetByID(context, *fsDefinitionID)
+		fsDefinition, err := c.modelcore.FinancialStatementDefinitionManager.GetByID(context, *fsDefinitionID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -680,7 +680,7 @@ func (c *Controller) FinancialStatementController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cannot delete: financial statement definition has sub-entries"})
 		}
-		accounts, err := c.modelCore.AccountManager.Find(context, &modelCore.Account{
+		accounts, err := c.modelcore.AccountManager.Find(context, &modelcore.Account{
 			FinancialStatementDefinitionID: fsDefinitionID,
 			OrganizationID:                 userOrg.OrganizationID,
 			BranchID:                       *userOrg.BranchID,
@@ -701,7 +701,7 @@ func (c *Controller) FinancialStatementController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cannot delete: accounts are linked to this financial statement definition"})
 		}
-		if err := c.modelCore.FinancialStatementDefinitionManager.DeleteByID(context, fsDefinition.ID); err != nil {
+		if err := c.modelcore.FinancialStatementDefinitionManager.DeleteByID(context, fsDefinition.ID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "FS definition delete failed (/financial-statement-definition/:financial_statement_definition_id), db error: " + err.Error(),

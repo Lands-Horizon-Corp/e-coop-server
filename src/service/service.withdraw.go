@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelCore"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/rotisserie/eris"
 )
 
@@ -28,19 +28,19 @@ func (t *TransactionService) Withdraw(ctx context.Context, account TransactionDa
 		return 0, 0, balance, eris.New("insufficient balance")
 	}
 	switch account.Account.Type {
-	case modelCore.AccountTypeDeposit, modelCore.AccountTypeTimeDeposit, modelCore.AccountTypeSVFLedger:
+	case modelcore.AccountTypeDeposit, modelcore.AccountTypeTimeDeposit, modelcore.AccountTypeSVFLedger:
 		// Money out = debit from balance
 		return 0, amount, balance - amount, nil
 
-	case modelCore.AccountTypeLoan, modelCore.AccountTypeFines, modelCore.AccountTypeInterest, modelCore.AccountTypeAPLedger:
+	case modelcore.AccountTypeLoan, modelcore.AccountTypeFines, modelcore.AccountTypeInterest, modelcore.AccountTypeAPLedger:
 		// Borrowing/owing more = credit (increase liability balance)
 		return amount, 0, balance + amount, nil
 
-	case modelCore.AccountTypeARLedger, modelCore.AccountTypeARAging:
+	case modelcore.AccountTypeARLedger, modelcore.AccountTypeARAging:
 		// Writing off receivables = debit (reduce asset)
 		return 0, amount, balance - amount, nil
 
-	case modelCore.AccountTypeWOff, modelCore.AccountTypeOther:
+	case modelcore.AccountTypeWOff, modelcore.AccountTypeOther:
 		// Custom handling
 		return 0, amount, balance - amount, nil
 

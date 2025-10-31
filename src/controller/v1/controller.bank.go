@@ -7,7 +7,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	modelCore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelCore"
+	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -21,7 +21,7 @@ func (c *Controller) BankController() {
 		Route:        "/api/v1/bank",
 		Method:       "GET",
 		Note:         "Returns all banks for the current user's organization and branch. Returns empty if not authenticated.",
-		ResponseType: modelCore.BankResponse{},
+		ResponseType: modelcore.BankResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -31,11 +31,11 @@ func (c *Controller) BankController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		banks, err := c.modelCore.BankCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		banks, err := c.modelcore.BankCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No banks found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.modelCore.BankManager.Filtered(context, ctx, banks))
+		return ctx.JSON(http.StatusOK, c.modelcore.BankManager.Filtered(context, ctx, banks))
 	})
 
 	// GET /bank/search: Paginated search of banks for the current branch. (NO footstep)
@@ -43,7 +43,7 @@ func (c *Controller) BankController() {
 		Route:        "/api/v1/bank/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of banks for the current user's organization and branch.",
-		ResponseType: modelCore.BankResponse{},
+		ResponseType: modelcore.BankResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -53,11 +53,11 @@ func (c *Controller) BankController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		banks, err := c.modelCore.BankCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		banks, err := c.modelcore.BankCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch banks for pagination: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelCore.BankManager.Pagination(context, ctx, banks))
+		return ctx.JSON(http.StatusOK, c.modelcore.BankManager.Pagination(context, ctx, banks))
 	})
 
 	// GET /bank/:bank_id: Get specific bank by ID. (NO footstep)
@@ -65,14 +65,14 @@ func (c *Controller) BankController() {
 		Route:        "/api/v1/bank/:bank_id",
 		Method:       "GET",
 		Note:         "Returns a single bank by its ID.",
-		ResponseType: modelCore.BankResponse{},
+		ResponseType: modelcore.BankResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		bankID, err := handlers.EngineUUIDParam(ctx, "bank_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid bank ID"})
 		}
-		bank, err := c.modelCore.BankManager.GetByIDRaw(context, *bankID)
+		bank, err := c.modelcore.BankManager.GetByIDRaw(context, *bankID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Bank not found"})
 		}
@@ -84,11 +84,11 @@ func (c *Controller) BankController() {
 		Route:        "/api/v1/bank",
 		Method:       "POST",
 		Note:         "Creates a new bank for the current user's organization and branch.",
-		RequestType:  modelCore.BankRequest{},
-		ResponseType: modelCore.BankResponse{},
+		RequestType:  modelcore.BankRequest{},
+		ResponseType: modelcore.BankResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.modelCore.BankManager.Validate(ctx)
+		req, err := c.modelcore.BankManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -115,7 +115,7 @@ func (c *Controller) BankController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		bank := &modelCore.Bank{
+		bank := &modelcore.Bank{
 			MediaID:        req.MediaID,
 			Name:           req.Name,
 			Description:    req.Description,
@@ -127,7 +127,7 @@ func (c *Controller) BankController() {
 			OrganizationID: user.OrganizationID,
 		}
 
-		if err := c.modelCore.BankManager.Create(context, bank); err != nil {
+		if err := c.modelcore.BankManager.Create(context, bank); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Bank creation failed (/bank), db error: " + err.Error(),
@@ -140,7 +140,7 @@ func (c *Controller) BankController() {
 			Description: "Created bank (/bank): " + bank.Name,
 			Module:      "Bank",
 		})
-		return ctx.JSON(http.StatusCreated, c.modelCore.BankManager.ToModel(bank))
+		return ctx.JSON(http.StatusCreated, c.modelcore.BankManager.ToModel(bank))
 	})
 
 	// PUT /bank/:bank_id: Update bank by ID. (WITH footstep)
@@ -148,8 +148,8 @@ func (c *Controller) BankController() {
 		Route:        "/api/v1/bank/:bank_id",
 		Method:       "PUT",
 		Note:         "Updates an existing bank by its ID.",
-		RequestType:  modelCore.BankRequest{},
-		ResponseType: modelCore.BankResponse{},
+		RequestType:  modelcore.BankRequest{},
+		ResponseType: modelcore.BankResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		bankID, err := handlers.EngineUUIDParam(ctx, "bank_id")
@@ -162,7 +162,7 @@ func (c *Controller) BankController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid bank ID"})
 		}
 
-		req, err := c.modelCore.BankManager.Validate(ctx)
+		req, err := c.modelcore.BankManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -180,7 +180,7 @@ func (c *Controller) BankController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		bank, err := c.modelCore.BankManager.GetByID(context, *bankID)
+		bank, err := c.modelcore.BankManager.GetByID(context, *bankID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -194,7 +194,7 @@ func (c *Controller) BankController() {
 		bank.Description = req.Description
 		bank.UpdatedAt = time.Now().UTC()
 		bank.UpdatedByID = user.UserID
-		if err := c.modelCore.BankManager.UpdateFields(context, bank.ID, bank); err != nil {
+		if err := c.modelcore.BankManager.UpdateFields(context, bank.ID, bank); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Bank update failed (/bank/:bank_id), db error: " + err.Error(),
@@ -207,7 +207,7 @@ func (c *Controller) BankController() {
 			Description: "Updated bank (/bank/:bank_id): " + bank.Name,
 			Module:      "Bank",
 		})
-		return ctx.JSON(http.StatusOK, c.modelCore.BankManager.ToModel(bank))
+		return ctx.JSON(http.StatusOK, c.modelcore.BankManager.ToModel(bank))
 	})
 
 	// DELETE /bank/:bank_id: Delete a bank by ID. (WITH footstep)
@@ -226,7 +226,7 @@ func (c *Controller) BankController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid bank ID"})
 		}
-		bank, err := c.modelCore.BankManager.GetByID(context, *bankID)
+		bank, err := c.modelcore.BankManager.GetByID(context, *bankID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -235,7 +235,7 @@ func (c *Controller) BankController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Bank not found"})
 		}
-		if err := c.modelCore.BankManager.DeleteByID(context, *bankID); err != nil {
+		if err := c.modelcore.BankManager.DeleteByID(context, *bankID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Bank delete failed (/bank/:bank_id), db error: " + err.Error(),
@@ -256,10 +256,10 @@ func (c *Controller) BankController() {
 		Route:       "/api/v1/bank/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple banks by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: modelCore.IDSRequest{},
+		RequestType: modelcore.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody modelCore.IDSRequest
+		var reqBody modelcore.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
@@ -298,7 +298,7 @@ func (c *Controller) BankController() {
 				})
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
 			}
-			bank, err := c.modelCore.BankManager.GetByID(context, bankID)
+			bank, err := c.modelcore.BankManager.GetByID(context, bankID)
 			if err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -309,7 +309,7 @@ func (c *Controller) BankController() {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Bank not found with ID: %s", rawID)})
 			}
 			names += bank.Name + ","
-			if err := c.modelCore.BankManager.DeleteByIDWithTx(context, tx, bankID); err != nil {
+			if err := c.modelcore.BankManager.DeleteByIDWithTx(context, tx, bankID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

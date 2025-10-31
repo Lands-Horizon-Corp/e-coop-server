@@ -7,7 +7,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	modelCore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelCore"
+	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -19,7 +19,7 @@ func (c *Controller) TagTemplateController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/tag-template",
 		Method:       "GET",
-		ResponseType: modelCore.TagTemplateResponse{},
+		ResponseType: modelcore.TagTemplateResponse{},
 		Note:         "Returns all tag templates for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -27,21 +27,21 @@ func (c *Controller) TagTemplateController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		templates, err := c.modelCore.TagTemplateManager.Find(context, &modelCore.TagTemplate{
+		templates, err := c.modelcore.TagTemplateManager.Find(context, &modelcore.TagTemplate{
 			OrganizationID: user.OrganizationID,
 			BranchID:       *user.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve tag templates: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelCore.TagTemplateManager.Filtered(context, ctx, templates))
+		return ctx.JSON(http.StatusOK, c.modelcore.TagTemplateManager.Filtered(context, ctx, templates))
 	})
 
 	// Returns paginated tag templates for the current user's branch.
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/tag-template/search",
 		Method:       "GET",
-		ResponseType: modelCore.TagTemplateResponse{},
+		ResponseType: modelcore.TagTemplateResponse{},
 		Note:         "Returns paginated tag templates for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -49,21 +49,21 @@ func (c *Controller) TagTemplateController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := c.modelCore.TagTemplateManager.Find(context, &modelCore.TagTemplate{
+		value, err := c.modelcore.TagTemplateManager.Find(context, &modelcore.TagTemplate{
 			OrganizationID: user.OrganizationID,
 			BranchID:       *user.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve tag templates for pagination: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelCore.TagTemplateManager.Pagination(context, ctx, value))
+		return ctx.JSON(http.StatusOK, c.modelcore.TagTemplateManager.Pagination(context, ctx, value))
 	})
 
 	// Returns a single tag template by its ID.
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/tag-template/:tag_template_id",
 		Method:       "GET",
-		ResponseType: modelCore.TagTemplateResponse{},
+		ResponseType: modelcore.TagTemplateResponse{},
 		Note:         "Returns a specific tag template by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -71,7 +71,7 @@ func (c *Controller) TagTemplateController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid tag_template_id: " + err.Error()})
 		}
-		template, err := c.modelCore.TagTemplateManager.GetByIDRaw(context, *id)
+		template, err := c.modelcore.TagTemplateManager.GetByIDRaw(context, *id)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "TagTemplate not found: " + err.Error()})
 		}
@@ -82,12 +82,12 @@ func (c *Controller) TagTemplateController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/tag-template",
 		Method:       "POST",
-		ResponseType: modelCore.TagTemplateResponse{},
-		RequestType:  modelCore.TagTemplateRequest{},
+		ResponseType: modelcore.TagTemplateResponse{},
+		RequestType:  modelcore.TagTemplateRequest{},
 		Note:         "Creates a new tag template for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.modelCore.TagTemplateManager.Validate(ctx)
+		req, err := c.modelcore.TagTemplateManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -106,7 +106,7 @@ func (c *Controller) TagTemplateController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
-		template := &modelCore.TagTemplate{
+		template := &modelcore.TagTemplate{
 			Name:           req.Name,
 			Description:    req.Description,
 			Category:       req.Category,
@@ -120,7 +120,7 @@ func (c *Controller) TagTemplateController() {
 			OrganizationID: user.OrganizationID,
 		}
 
-		if err := c.modelCore.TagTemplateManager.Create(context, template); err != nil {
+		if err := c.modelcore.TagTemplateManager.Create(context, template); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create tag template failed: create error: " + err.Error(),
@@ -135,15 +135,15 @@ func (c *Controller) TagTemplateController() {
 			Module:      "TagTemplate",
 		})
 
-		return ctx.JSON(http.StatusOK, c.modelCore.TagTemplateManager.ToModel(template))
+		return ctx.JSON(http.StatusOK, c.modelcore.TagTemplateManager.ToModel(template))
 	})
 
 	// Updates an existing tag template by its ID.
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/tag-template/:tag_template_id",
 		Method:       "PUT",
-		ResponseType: modelCore.TagTemplateResponse{},
-		RequestType:  modelCore.TagTemplateRequest{},
+		ResponseType: modelcore.TagTemplateResponse{},
+		RequestType:  modelcore.TagTemplateRequest{},
 		Note:         "Updates an existing tag template by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -157,7 +157,7 @@ func (c *Controller) TagTemplateController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid tag_template_id: " + err.Error()})
 		}
 
-		req, err := c.modelCore.TagTemplateManager.Validate(ctx)
+		req, err := c.modelcore.TagTemplateManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -176,7 +176,7 @@ func (c *Controller) TagTemplateController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
-		template, err := c.modelCore.TagTemplateManager.GetByID(context, *id)
+		template, err := c.modelcore.TagTemplateManager.GetByID(context, *id)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -192,7 +192,7 @@ func (c *Controller) TagTemplateController() {
 		template.Icon = req.Icon
 		template.UpdatedAt = time.Now().UTC()
 		template.UpdatedByID = user.UserID
-		if err := c.modelCore.TagTemplateManager.UpdateFields(context, template.ID, template); err != nil {
+		if err := c.modelcore.TagTemplateManager.UpdateFields(context, template.ID, template); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update tag template failed: update error: " + err.Error(),
@@ -205,7 +205,7 @@ func (c *Controller) TagTemplateController() {
 			Description: "Updated tag template: " + template.Name,
 			Module:      "TagTemplate",
 		})
-		return ctx.JSON(http.StatusOK, c.modelCore.TagTemplateManager.ToModel(template))
+		return ctx.JSON(http.StatusOK, c.modelcore.TagTemplateManager.ToModel(template))
 	})
 
 	// Deletes a tag template by its ID.
@@ -224,7 +224,7 @@ func (c *Controller) TagTemplateController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid tag_template_id: " + err.Error()})
 		}
-		template, err := c.modelCore.TagTemplateManager.GetByID(context, *id)
+		template, err := c.modelcore.TagTemplateManager.GetByID(context, *id)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -233,7 +233,7 @@ func (c *Controller) TagTemplateController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "TagTemplate not found: " + err.Error()})
 		}
-		if err := c.modelCore.TagTemplateManager.DeleteByID(context, *id); err != nil {
+		if err := c.modelcore.TagTemplateManager.DeleteByID(context, *id); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete tag template failed: delete error: " + err.Error(),
@@ -253,11 +253,11 @@ func (c *Controller) TagTemplateController() {
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/tag-template/bulk-delete",
 		Method:      "DELETE",
-		RequestType: modelCore.IDSRequest{},
+		RequestType: modelcore.IDSRequest{},
 		Note:        "Deletes multiple tag template records by their IDs.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody modelCore.IDSRequest
+		var reqBody modelcore.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
@@ -296,7 +296,7 @@ func (c *Controller) TagTemplateController() {
 				})
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s - %v", rawID, err)})
 			}
-			template, err := c.modelCore.TagTemplateManager.GetByID(context, id)
+			template, err := c.modelcore.TagTemplateManager.GetByID(context, id)
 			if err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -307,7 +307,7 @@ func (c *Controller) TagTemplateController() {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("TagTemplate with ID %s not found: %v", rawID, err)})
 			}
 			names += template.Name + ","
-			if err := c.modelCore.TagTemplateManager.DeleteByIDWithTx(context, tx, id); err != nil {
+			if err := c.modelcore.TagTemplateManager.DeleteByIDWithTx(context, tx, id); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

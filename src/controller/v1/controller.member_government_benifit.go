@@ -6,7 +6,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	modelCore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelCore"
+	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/labstack/echo/v4"
 )
 
@@ -17,8 +17,8 @@ func (c *Controller) MemberGovernmentBenefitController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-government-benefit/member-profile/:member_profile_id",
 		Method:       "POST",
-		ResponseType: modelCore.MemberGovernmentBenefitResponse{},
-		RequestType:  modelCore.MemberGovernmentBenefitRequest{},
+		ResponseType: modelcore.MemberGovernmentBenefitResponse{},
+		RequestType:  modelcore.MemberGovernmentBenefitRequest{},
 		Note:         "Creates a new government benefit record for the specified member profile.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -31,7 +31,7 @@ func (c *Controller) MemberGovernmentBenefitController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
-		req, err := c.modelCore.MemberGovernmentBenefitManager.Validate(ctx)
+		req, err := c.modelcore.MemberGovernmentBenefitManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -50,7 +50,7 @@ func (c *Controller) MemberGovernmentBenefitController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
-		value := &modelCore.MemberGovernmentBenefit{
+		value := &modelcore.MemberGovernmentBenefit{
 			MemberProfileID: *memberProfileID,
 			FrontMediaID:    req.FrontMediaID,
 			BackMediaID:     req.BackMediaID,
@@ -67,7 +67,7 @@ func (c *Controller) MemberGovernmentBenefitController() {
 			OrganizationID:  user.OrganizationID,
 		}
 
-		if err := c.modelCore.MemberGovernmentBenefitManager.Create(context, value); err != nil {
+		if err := c.modelcore.MemberGovernmentBenefitManager.Create(context, value); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create government benefit failed (/member-government-benefit/member-profile/:member_profile_id), db error: " + err.Error(),
@@ -82,15 +82,15 @@ func (c *Controller) MemberGovernmentBenefitController() {
 			Module:      "MemberGovernmentBenefit",
 		})
 
-		return ctx.JSON(http.StatusOK, c.modelCore.MemberGovernmentBenefitManager.ToModel(value))
+		return ctx.JSON(http.StatusOK, c.modelcore.MemberGovernmentBenefitManager.ToModel(value))
 	})
 
 	// Update an existing government benefit record by its ID
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-government-benefit/:member_government_benefit_id",
 		Method:       "PUT",
-		ResponseType: modelCore.MemberGovernmentBenefitResponse{},
-		RequestType:  modelCore.MemberGovernmentBenefitRequest{},
+		ResponseType: modelcore.MemberGovernmentBenefitResponse{},
+		RequestType:  modelcore.MemberGovernmentBenefitRequest{},
 		Note:         "Updates an existing government benefit record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -103,7 +103,7 @@ func (c *Controller) MemberGovernmentBenefitController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_government_benefit_id: " + err.Error()})
 		}
-		req, err := c.modelCore.MemberGovernmentBenefitManager.Validate(ctx)
+		req, err := c.modelcore.MemberGovernmentBenefitManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -122,7 +122,7 @@ func (c *Controller) MemberGovernmentBenefitController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
-		value, err := c.modelCore.MemberGovernmentBenefitManager.GetByID(context, *memberGovernmentBenefitID)
+		value, err := c.modelcore.MemberGovernmentBenefitManager.GetByID(context, *memberGovernmentBenefitID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -144,7 +144,7 @@ func (c *Controller) MemberGovernmentBenefitController() {
 		value.Value = req.Value
 		value.ExpiryDate = req.ExpiryDate
 
-		if err := c.modelCore.MemberGovernmentBenefitManager.UpdateFields(context, value.ID, value); err != nil {
+		if err := c.modelcore.MemberGovernmentBenefitManager.UpdateFields(context, value.ID, value); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update government benefit failed (/member-government-benefit/:member_government_benefit_id), db error: " + err.Error(),
@@ -157,7 +157,7 @@ func (c *Controller) MemberGovernmentBenefitController() {
 			Description: "Updated government benefit (/member-government-benefit/:member_government_benefit_id): " + value.Name,
 			Module:      "MemberGovernmentBenefit",
 		})
-		return ctx.JSON(http.StatusOK, c.modelCore.MemberGovernmentBenefitManager.ToModel(value))
+		return ctx.JSON(http.StatusOK, c.modelcore.MemberGovernmentBenefitManager.ToModel(value))
 	})
 
 	// Delete a government benefit record by its ID
@@ -176,7 +176,7 @@ func (c *Controller) MemberGovernmentBenefitController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_government_benefit_id: " + err.Error()})
 		}
-		value, err := c.modelCore.MemberGovernmentBenefitManager.GetByID(context, *memberGovernmentBenefitID)
+		value, err := c.modelcore.MemberGovernmentBenefitManager.GetByID(context, *memberGovernmentBenefitID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -185,7 +185,7 @@ func (c *Controller) MemberGovernmentBenefitController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Government benefit record not found: " + err.Error()})
 		}
-		if err := c.modelCore.MemberGovernmentBenefitManager.DeleteByID(context, *memberGovernmentBenefitID); err != nil {
+		if err := c.modelcore.MemberGovernmentBenefitManager.DeleteByID(context, *memberGovernmentBenefitID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete government benefit failed (/member-government-benefit/:member_government_benefit_id), db error: " + err.Error(),

@@ -7,7 +7,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	modelCore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelCore"
+	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -21,7 +21,7 @@ func (c *Controller) CollateralController() {
 		Route:        "/api/v1/collateral",
 		Method:       "GET",
 		Note:         "Returns all collateral records for the current user's organization and branch. Returns error if not authenticated.",
-		ResponseType: modelCore.CollateralResponse{},
+		ResponseType: modelcore.CollateralResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -31,18 +31,18 @@ func (c *Controller) CollateralController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		collaterals, err := c.modelCore.CollateralCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		collaterals, err := c.modelcore.CollateralCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No collateral records found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.modelCore.CollateralManager.Filtered(context, ctx, collaterals))
+		return ctx.JSON(http.StatusOK, c.modelcore.CollateralManager.Filtered(context, ctx, collaterals))
 	})
 
 	// GET /collateral/search: Paginated search of collaterals for current branch. (NO footstep)
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/collateral/search",
 		Method:       "GET",
-		ResponseType: modelCore.CollateralResponse{},
+		ResponseType: modelcore.CollateralResponse{},
 		Note:         "Returns a paginated list of collateral records for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -53,11 +53,11 @@ func (c *Controller) CollateralController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		collaterals, err := c.modelCore.CollateralCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		collaterals, err := c.modelcore.CollateralCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch collateral records: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelCore.CollateralManager.Pagination(context, ctx, collaterals))
+		return ctx.JSON(http.StatusOK, c.modelcore.CollateralManager.Pagination(context, ctx, collaterals))
 	})
 
 	// GET /collateral/:collateral_id: Get a specific collateral record by ID. (NO footstep)
@@ -65,14 +65,14 @@ func (c *Controller) CollateralController() {
 		Route:        "/api/v1/collateral/:collateral_id",
 		Method:       "GET",
 		Note:         "Returns a collateral record by its ID.",
-		ResponseType: modelCore.CollateralResponse{},
+		ResponseType: modelcore.CollateralResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		collateralID, err := handlers.EngineUUIDParam(ctx, "collateral_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid collateral ID"})
 		}
-		collateral, err := c.modelCore.CollateralManager.GetByIDRaw(context, *collateralID)
+		collateral, err := c.modelcore.CollateralManager.GetByIDRaw(context, *collateralID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Collateral record not found"})
 		}
@@ -83,12 +83,12 @@ func (c *Controller) CollateralController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/collateral",
 		Method:       "POST",
-		RequestType:  modelCore.CollateralRequest{},
-		ResponseType: modelCore.CollateralResponse{},
+		RequestType:  modelcore.CollateralRequest{},
+		ResponseType: modelcore.CollateralResponse{},
 		Note:         "Creates a new collateral record for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.modelCore.CollateralManager.Validate(ctx)
+		req, err := c.modelcore.CollateralManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -115,7 +115,7 @@ func (c *Controller) CollateralController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		collateral := &modelCore.Collateral{
+		collateral := &modelcore.Collateral{
 			Icon:           req.Icon,
 			Name:           req.Name,
 			Description:    req.Description,
@@ -127,7 +127,7 @@ func (c *Controller) CollateralController() {
 			OrganizationID: user.OrganizationID,
 		}
 
-		if err := c.modelCore.CollateralManager.Create(context, collateral); err != nil {
+		if err := c.modelcore.CollateralManager.Create(context, collateral); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Collateral creation failed (/collateral), db error: " + err.Error(),
@@ -141,15 +141,15 @@ func (c *Controller) CollateralController() {
 			Description: "Created collateral (/collateral): " + collateral.Name,
 			Module:      "Collateral",
 		})
-		return ctx.JSON(http.StatusCreated, c.modelCore.CollateralManager.ToModel(collateral))
+		return ctx.JSON(http.StatusCreated, c.modelcore.CollateralManager.ToModel(collateral))
 	})
 
 	// PUT /collateral/:collateral_id: Update a collateral record by ID. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/collateral/:collateral_id",
 		Method:       "PUT",
-		RequestType:  modelCore.CollateralRequest{},
-		ResponseType: modelCore.CollateralResponse{},
+		RequestType:  modelcore.CollateralRequest{},
+		ResponseType: modelcore.CollateralResponse{},
 		Note:         "Updates an existing collateral record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -163,7 +163,7 @@ func (c *Controller) CollateralController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid collateral ID"})
 		}
 
-		req, err := c.modelCore.CollateralManager.Validate(ctx)
+		req, err := c.modelcore.CollateralManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -181,7 +181,7 @@ func (c *Controller) CollateralController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		collateral, err := c.modelCore.CollateralManager.GetByID(context, *collateralID)
+		collateral, err := c.modelcore.CollateralManager.GetByID(context, *collateralID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -195,7 +195,7 @@ func (c *Controller) CollateralController() {
 		collateral.Description = req.Description
 		collateral.UpdatedAt = time.Now().UTC()
 		collateral.UpdatedByID = user.UserID
-		if err := c.modelCore.CollateralManager.UpdateFields(context, collateral.ID, collateral); err != nil {
+		if err := c.modelcore.CollateralManager.UpdateFields(context, collateral.ID, collateral); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Collateral update failed (/collateral/:collateral_id), db error: " + err.Error(),
@@ -208,7 +208,7 @@ func (c *Controller) CollateralController() {
 			Description: "Updated collateral (/collateral/:collateral_id): " + collateral.Name,
 			Module:      "Collateral",
 		})
-		return ctx.JSON(http.StatusOK, c.modelCore.CollateralManager.ToModel(collateral))
+		return ctx.JSON(http.StatusOK, c.modelcore.CollateralManager.ToModel(collateral))
 	})
 
 	// DELETE /collateral/:collateral_id: Delete a collateral record by ID. (WITH footstep)
@@ -227,7 +227,7 @@ func (c *Controller) CollateralController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid collateral ID"})
 		}
-		collateral, err := c.modelCore.CollateralManager.GetByID(context, *collateralID)
+		collateral, err := c.modelcore.CollateralManager.GetByID(context, *collateralID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -236,7 +236,7 @@ func (c *Controller) CollateralController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Collateral record not found"})
 		}
-		if err := c.modelCore.CollateralManager.DeleteByID(context, *collateralID); err != nil {
+		if err := c.modelcore.CollateralManager.DeleteByID(context, *collateralID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Collateral delete failed (/collateral/:collateral_id), db error: " + err.Error(),
@@ -257,10 +257,10 @@ func (c *Controller) CollateralController() {
 		Route:       "/api/v1/collateral/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple collateral records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: modelCore.IDSRequest{},
+		RequestType: modelcore.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody modelCore.IDSRequest
+		var reqBody modelcore.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
@@ -299,7 +299,7 @@ func (c *Controller) CollateralController() {
 				})
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
 			}
-			collateral, err := c.modelCore.CollateralManager.GetByID(context, collateralID)
+			collateral, err := c.modelcore.CollateralManager.GetByID(context, collateralID)
 			if err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -310,7 +310,7 @@ func (c *Controller) CollateralController() {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Collateral record not found with ID: %s", rawID)})
 			}
 			names += collateral.Name + ","
-			if err := c.modelCore.CollateralManager.DeleteByIDWithTx(context, tx, collateralID); err != nil {
+			if err := c.modelcore.CollateralManager.DeleteByIDWithTx(context, tx, collateralID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

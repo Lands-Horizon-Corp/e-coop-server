@@ -6,7 +6,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	modelCore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelCore"
+	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -20,66 +20,66 @@ func (c *Controller) AccountCategoryController() {
 		Route:        "/api/v1/account-category/search",
 		Method:       "GET",
 		Note:         "Retrieve all account categories for the current branch.",
-		ResponseType: modelCore.AccountCategoryResponse{},
+		ResponseType: modelcore.AccountCategoryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelcore.UserOrganizationTypeOwner && userOrg.UserType != modelcore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		categories, err := c.modelCore.AccountCategoryManager.Find(context, &modelCore.AccountCategory{
+		categories, err := c.modelcore.AccountCategoryManager.Find(context, &modelcore.AccountCategory{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve account categories: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelCore.AccountCategoryManager.Pagination(context, ctx, categories))
+		return ctx.JSON(http.StatusOK, c.modelcore.AccountCategoryManager.Pagination(context, ctx, categories))
 	})
 
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/account-category",
 		Method:       "GET",
 		Note:         "Retrieve all account categories for the current branch (raw).",
-		ResponseType: modelCore.AccountCategoryResponse{},
+		ResponseType: modelcore.AccountCategoryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelcore.UserOrganizationTypeOwner && userOrg.UserType != modelcore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		categories, err := c.modelCore.AccountCategoryManager.Find(context, &modelCore.AccountCategory{
+		categories, err := c.modelcore.AccountCategoryManager.Find(context, &modelcore.AccountCategory{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve account categories (raw): " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelCore.AccountCategoryManager.Filtered(context, ctx, categories))
+		return ctx.JSON(http.StatusOK, c.modelcore.AccountCategoryManager.Filtered(context, ctx, categories))
 	})
 
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/account-category/:account_category_id",
 		Method:       "GET",
 		Note:         "Get an account category by ID.",
-		ResponseType: modelCore.AccountCategoryResponse{},
+		ResponseType: modelcore.AccountCategoryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		id, err := handlers.EngineUUIDParam(ctx, "account_category_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account category ID: " + err.Error()})
 		}
-		category, err := c.modelCore.AccountCategoryManager.GetByID(context, *id)
+		category, err := c.modelcore.AccountCategoryManager.GetByID(context, *id)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account category not found: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelCore.AccountCategoryManager.ToModel(category))
+		return ctx.JSON(http.StatusOK, c.modelcore.AccountCategoryManager.ToModel(category))
 	})
 
 	// CREATE (POST) - ADD FOOTSTEP
@@ -88,11 +88,11 @@ func (c *Controller) AccountCategoryController() {
 		Route:        "/api/v1/account-category",
 		Method:       "POST",
 		Note:         "Create a new account category for the current branch.",
-		ResponseType: modelCore.AccountCategoryResponse{},
-		RequestType:  modelCore.AccountCategoryRequest{},
+		ResponseType: modelcore.AccountCategoryResponse{},
+		RequestType:  modelcore.AccountCategoryRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.modelCore.AccountCategoryManager.Validate(ctx)
+		req, err := c.modelcore.AccountCategoryManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -110,7 +110,7 @@ func (c *Controller) AccountCategoryController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelcore.UserOrganizationTypeOwner && userOrg.UserType != modelcore.UserOrganizationTypeEmployee {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Unauthorized create account category attempt (/account-category)",
@@ -119,7 +119,7 @@ func (c *Controller) AccountCategoryController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
 
-		accountCategory := &modelCore.AccountCategory{
+		accountCategory := &modelcore.AccountCategory{
 			CreatedAt:      time.Now().UTC(),
 			CreatedByID:    userOrg.UserID,
 			UpdatedAt:      time.Now().UTC(),
@@ -130,7 +130,7 @@ func (c *Controller) AccountCategoryController() {
 			Description:    req.Description,
 		}
 
-		if err := c.modelCore.AccountCategoryManager.Create(context, accountCategory); err != nil {
+		if err := c.modelcore.AccountCategoryManager.Create(context, accountCategory); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Failed create account category (/account-category) | db error: " + err.Error(),
@@ -144,7 +144,7 @@ func (c *Controller) AccountCategoryController() {
 			Description: "Created account category (/account-category): " + accountCategory.Name,
 			Module:      "AccountCategory",
 		})
-		return ctx.JSON(http.StatusCreated, c.modelCore.AccountCategoryManager.ToModel(accountCategory))
+		return ctx.JSON(http.StatusCreated, c.modelcore.AccountCategoryManager.ToModel(accountCategory))
 	})
 
 	// UPDATE (PUT) - ADD FOOTSTEP
@@ -153,11 +153,11 @@ func (c *Controller) AccountCategoryController() {
 		Route:        "/api/v1/account-category/:account_category_id",
 		Method:       "PUT",
 		Note:         "Update an account category by ID.",
-		ResponseType: modelCore.AccountCategoryResponse{},
-		RequestType:  modelCore.AccountCategoryRequest{},
+		ResponseType: modelcore.AccountCategoryResponse{},
+		RequestType:  modelcore.AccountCategoryRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.modelCore.AccountCategoryManager.Validate(ctx)
+		req, err := c.modelcore.AccountCategoryManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -175,7 +175,7 @@ func (c *Controller) AccountCategoryController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelcore.UserOrganizationTypeOwner && userOrg.UserType != modelcore.UserOrganizationTypeEmployee {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Unauthorized update account category attempt (/account-category/:account_category_id)",
@@ -192,7 +192,7 @@ func (c *Controller) AccountCategoryController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account category ID: " + err.Error()})
 		}
-		accountCategory, err := c.modelCore.AccountCategoryManager.GetByID(context, *accountCategoryID)
+		accountCategory, err := c.modelcore.AccountCategoryManager.GetByID(context, *accountCategoryID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -207,7 +207,7 @@ func (c *Controller) AccountCategoryController() {
 		accountCategory.Description = req.Description
 		accountCategory.BranchID = *userOrg.BranchID
 		accountCategory.OrganizationID = userOrg.OrganizationID
-		if err := c.modelCore.AccountCategoryManager.UpdateFields(context, accountCategory.ID, accountCategory); err != nil {
+		if err := c.modelcore.AccountCategoryManager.UpdateFields(context, accountCategory.ID, accountCategory); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Failed update account category (/account-category/:account_category_id) | db error: " + err.Error(),
@@ -220,7 +220,7 @@ func (c *Controller) AccountCategoryController() {
 			Description: "Updated account category (/account-category/:account_category_id): " + accountCategory.Name,
 			Module:      "AccountCategory",
 		})
-		return ctx.JSON(http.StatusOK, c.modelCore.AccountCategoryManager.ToModel(accountCategory))
+		return ctx.JSON(http.StatusOK, c.modelcore.AccountCategoryManager.ToModel(accountCategory))
 	})
 
 	// DELETE (DELETE) - ADD FOOTSTEP
@@ -240,7 +240,7 @@ func (c *Controller) AccountCategoryController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelcore.UserOrganizationTypeOwner && userOrg.UserType != modelcore.UserOrganizationTypeEmployee {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Unauthorized delete account category attempt (/account-category/:account_category_id)",
@@ -257,7 +257,7 @@ func (c *Controller) AccountCategoryController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account category ID: " + err.Error()})
 		}
-		accountCategory, err := c.modelCore.AccountCategoryManager.GetByID(context, *accountCategoryID)
+		accountCategory, err := c.modelcore.AccountCategoryManager.GetByID(context, *accountCategoryID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -266,7 +266,7 @@ func (c *Controller) AccountCategoryController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account category not found: " + err.Error()})
 		}
-		if err := c.modelCore.AccountCategoryManager.DeleteByID(context, accountCategory.ID); err != nil {
+		if err := c.modelcore.AccountCategoryManager.DeleteByID(context, accountCategory.ID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Failed delete account category (/account-category/:account_category_id) | db error: " + err.Error(),
@@ -279,7 +279,7 @@ func (c *Controller) AccountCategoryController() {
 			Description: "Deleted account category (/account-category/:account_category_id): " + accountCategory.Name,
 			Module:      "AccountCategory",
 		})
-		return ctx.JSON(http.StatusOK, c.modelCore.AccountCategoryManager.ToModel(accountCategory))
+		return ctx.JSON(http.StatusOK, c.modelcore.AccountCategoryManager.ToModel(accountCategory))
 	})
 
 	// BULK DELETE (DELETE) - ADD FOOTSTEP
@@ -288,10 +288,10 @@ func (c *Controller) AccountCategoryController() {
 		Route:       "/api/v1/account-category/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Bulk delete multiple account categories by IDs.",
-		RequestType: modelCore.IDSRequest{},
+		RequestType: modelcore.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody modelCore.IDSRequest
+		var reqBody modelcore.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
@@ -329,7 +329,7 @@ func (c *Controller) AccountCategoryController() {
 				})
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid UUID: " + rawID + " - " + err.Error()})
 			}
-			if _, err := c.modelCore.AccountCategoryManager.GetByID(context, id); err != nil {
+			if _, err := c.modelcore.AccountCategoryManager.GetByID(context, id); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",
@@ -338,7 +338,7 @@ func (c *Controller) AccountCategoryController() {
 				})
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account category with ID " + rawID + " not found: " + err.Error()})
 			}
-			if err := c.modelCore.AccountCategoryManager.DeleteByIDWithTx(context, tx, id); err != nil {
+			if err := c.modelcore.AccountCategoryManager.DeleteByIDWithTx(context, tx, id); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

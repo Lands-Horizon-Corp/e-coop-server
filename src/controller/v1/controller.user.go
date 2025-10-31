@@ -5,7 +5,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	modelCore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelCore"
+	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/labstack/echo/v4"
 )
 
@@ -16,7 +16,7 @@ func (c *Controller) UserController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/user/:user_id",
 		Method:       "GET",
-		ResponseType: modelCore.UserResponse{},
+		ResponseType: modelcore.UserResponse{},
 		Note:         "Returns a specific user by their ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -24,7 +24,7 @@ func (c *Controller) UserController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_id: " + err.Error()})
 		}
-		user, err := c.modelCore.UserManager.GetByIDRaw(context, *userId)
+		user, err := c.modelcore.UserManager.GetByIDRaw(context, *userId)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user: " + err.Error()})
 		}
@@ -35,11 +35,11 @@ func (c *Controller) UserController() {
 		Route:        "/api/v1/profile",
 		Method:       "PUT",
 		Note:         "Changes the profile of the current user.",
-		ResponseType: modelCore.UserResponse{},
-		RequestType:  modelCore.UserSettingsChangeProfileRequest{},
+		ResponseType: modelcore.UserResponse{},
+		RequestType:  modelcore.UserSettingsChangeProfileRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req modelCore.UserSettingsChangeProfileRequest
+		var req modelcore.UserSettingsChangeProfileRequest
 		if err := ctx.Bind(&req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid change profile payload: " + err.Error()})
 		}
@@ -56,10 +56,10 @@ func (c *Controller) UserController() {
 		user.LastName = req.LastName
 		user.FullName = req.FullName
 		user.Suffix = req.Suffix
-		if err := c.modelCore.UserManager.UpdateFields(context, user.ID, user); err != nil {
+		if err := c.modelcore.UserManager.UpdateFields(context, user.ID, user); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user profile: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelCore.UserManager.ToModel(user))
+		return ctx.JSON(http.StatusOK, c.modelcore.UserManager.ToModel(user))
 	})
 
 	// Change user's password from profile
@@ -67,11 +67,11 @@ func (c *Controller) UserController() {
 		Route:        "/api/v1/profile/password",
 		Method:       "PUT",
 		Note:         "Changes the user's password from profile settings.",
-		ResponseType: modelCore.UserResponse{},
-		RequestType:  modelCore.UserSettingsChangePasswordRequest{},
+		ResponseType: modelcore.UserResponse{},
+		RequestType:  modelcore.UserSettingsChangePasswordRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req modelCore.UserSettingsChangePasswordRequest
+		var req modelcore.UserSettingsChangePasswordRequest
 		if err := ctx.Bind(&req); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -106,7 +106,7 @@ func (c *Controller) UserController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to hash password: " + err.Error()})
 		}
 		user.Password = hashedPwd
-		if err := c.modelCore.UserManager.UpdateFields(context, user.ID, user); err != nil {
+		if err := c.modelcore.UserManager.UpdateFields(context, user.ID, user); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Change password from profile failed: update user error: " + err.Error(),
@@ -114,7 +114,7 @@ func (c *Controller) UserController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user: " + err.Error()})
 		}
-		updatedUser, err := c.modelCore.UserManager.GetByID(context, user.ID)
+		updatedUser, err := c.modelcore.UserManager.GetByID(context, user.ID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -136,7 +136,7 @@ func (c *Controller) UserController() {
 			Description: "Password changed from profile for user: " + user.ID.String(),
 			Module:      "User",
 		})
-		return ctx.JSON(http.StatusOK, c.modelCore.UserManager.ToModel(updatedUser))
+		return ctx.JSON(http.StatusOK, c.modelcore.UserManager.ToModel(updatedUser))
 	})
 
 	// Change user's profile picture
@@ -144,11 +144,11 @@ func (c *Controller) UserController() {
 		Route:        "/api/v1/profile/profile-picture",
 		Method:       "PUT",
 		Note:         "Changes the user's profile picture.",
-		RequestType:  modelCore.UserSettingsChangeProfilePictureRequest{},
-		ResponseType: modelCore.UserResponse{},
+		RequestType:  modelcore.UserSettingsChangeProfilePictureRequest{},
+		ResponseType: modelcore.UserResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req modelCore.UserSettingsChangeProfilePictureRequest
+		var req modelcore.UserSettingsChangeProfilePictureRequest
 		if err := ctx.Bind(&req); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -173,7 +173,7 @@ func (c *Controller) UserController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Media ID is the same as the current one"})
 		}
 		user.MediaID = req.MediaID
-		if err := c.modelCore.UserManager.UpdateFields(context, user.ID, user); err != nil {
+		if err := c.modelcore.UserManager.UpdateFields(context, user.ID, user); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Change profile picture failed: update user error: " + err.Error(),
@@ -181,7 +181,7 @@ func (c *Controller) UserController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user: " + err.Error()})
 		}
-		updatedUser, err := c.modelCore.UserManager.GetByID(context, user.ID)
+		updatedUser, err := c.modelcore.UserManager.GetByID(context, user.ID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -196,7 +196,7 @@ func (c *Controller) UserController() {
 			Description: "Profile picture changed for user: " + user.ID.String(),
 			Module:      "User",
 		})
-		return ctx.JSON(http.StatusOK, c.modelCore.UserManager.ToModel(updatedUser))
+		return ctx.JSON(http.StatusOK, c.modelcore.UserManager.ToModel(updatedUser))
 	})
 
 	// Change user's general profile settings
@@ -204,11 +204,11 @@ func (c *Controller) UserController() {
 		Route:        "/api/v1/profile/general",
 		Method:       "PUT",
 		Note:         "Changes the user's general profile settings.",
-		RequestType:  modelCore.UserSettingsChangeGeneralRequest{},
-		ResponseType: modelCore.UserResponse{},
+		RequestType:  modelcore.UserSettingsChangeGeneralRequest{},
+		ResponseType: modelcore.UserResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req modelCore.UserSettingsChangeGeneralRequest
+		var req modelcore.UserSettingsChangeGeneralRequest
 		if err := ctx.Bind(&req); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -239,7 +239,7 @@ func (c *Controller) UserController() {
 			user.ContactNumber = req.ContactNumber
 			user.IsContactVerified = false
 		}
-		if err := c.modelCore.UserManager.UpdateFields(context, user.ID, user); err != nil {
+		if err := c.modelcore.UserManager.UpdateFields(context, user.ID, user); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Change general profile failed: update user error: " + err.Error(),
@@ -247,7 +247,7 @@ func (c *Controller) UserController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user: " + err.Error()})
 		}
-		updatedUser, err := c.modelCore.UserManager.GetByID(context, user.ID)
+		updatedUser, err := c.modelcore.UserManager.GetByID(context, user.ID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -262,7 +262,7 @@ func (c *Controller) UserController() {
 			Description: "General profile changed for user: " + user.ID.String(),
 			Module:      "User",
 		})
-		return ctx.JSON(http.StatusOK, c.modelCore.UserManager.ToModel(updatedUser))
+		return ctx.JSON(http.StatusOK, c.modelcore.UserManager.ToModel(updatedUser))
 	})
 
 }

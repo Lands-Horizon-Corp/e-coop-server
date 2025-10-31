@@ -7,7 +7,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	modelCore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelCore"
+	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -21,7 +21,7 @@ func (c *Controller) JournalVoucherController() {
 		Route:        "/api/v1/journal-voucher",
 		Method:       "GET",
 		Note:         "Returns all journal vouchers for the current user's organization and branch. Returns empty if not authenticated.",
-		ResponseType: modelCore.JournalVoucherResponse{},
+		ResponseType: modelcore.JournalVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -31,11 +31,11 @@ func (c *Controller) JournalVoucherController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		journalVouchers, err := c.modelCore.JournalVoucherCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		journalVouchers, err := c.modelcore.JournalVoucherCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No journal vouchers found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.modelCore.JournalVoucherManager.Filtered(context, ctx, journalVouchers))
+		return ctx.JSON(http.StatusOK, c.modelcore.JournalVoucherManager.Filtered(context, ctx, journalVouchers))
 	})
 
 	// GET /journal-voucher/search: Paginated search of journal vouchers for the current branch. (NO footstep)
@@ -43,7 +43,7 @@ func (c *Controller) JournalVoucherController() {
 		Route:        "/api/v1/journal-voucher/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of journal vouchers for the current user's organization and branch.",
-		ResponseType: modelCore.JournalVoucherResponse{},
+		ResponseType: modelcore.JournalVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -53,11 +53,11 @@ func (c *Controller) JournalVoucherController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		journalVouchers, err := c.modelCore.JournalVoucherCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		journalVouchers, err := c.modelcore.JournalVoucherCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch journal vouchers for pagination: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelCore.JournalVoucherManager.Pagination(context, ctx, journalVouchers))
+		return ctx.JSON(http.StatusOK, c.modelcore.JournalVoucherManager.Pagination(context, ctx, journalVouchers))
 	})
 
 	// GET /journal-voucher/:journal_voucher_id: Get specific journal voucher by ID. (NO footstep)
@@ -65,14 +65,14 @@ func (c *Controller) JournalVoucherController() {
 		Route:        "/api/v1/journal-voucher/:journal_voucher_id",
 		Method:       "GET",
 		Note:         "Returns a single journal voucher by its ID.",
-		ResponseType: modelCore.JournalVoucherResponse{},
+		ResponseType: modelcore.JournalVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		journalVoucherID, err := handlers.EngineUUIDParam(ctx, "journal_voucher_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid journal voucher ID"})
 		}
-		journalVoucher, err := c.modelCore.JournalVoucherManager.GetByIDRaw(context, *journalVoucherID)
+		journalVoucher, err := c.modelcore.JournalVoucherManager.GetByIDRaw(context, *journalVoucherID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Journal voucher not found"})
 		}
@@ -84,11 +84,11 @@ func (c *Controller) JournalVoucherController() {
 		Route:        "/api/v1/journal-voucher",
 		Method:       "POST",
 		Note:         "Creates a new journal voucher for the current user's organization and branch.",
-		RequestType:  modelCore.JournalVoucherRequest{},
-		ResponseType: modelCore.JournalVoucherResponse{},
+		RequestType:  modelcore.JournalVoucherRequest{},
+		ResponseType: modelcore.JournalVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		request, err := c.modelCore.JournalVoucherManager.Validate(ctx)
+		request, err := c.modelcore.JournalVoucherManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -143,7 +143,7 @@ func (c *Controller) JournalVoucherController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Debit and credit totals do not match."})
 		}
 
-		journalVoucher := &modelCore.JournalVoucher{
+		journalVoucher := &modelcore.JournalVoucher{
 			Date:              request.Date,
 			Description:       request.Description,
 			Reference:         request.Reference,
@@ -161,7 +161,7 @@ func (c *Controller) JournalVoucherController() {
 			CurrencyID:        request.CurrencyID,
 		}
 
-		if err := c.modelCore.JournalVoucherManager.CreateWithTx(context, tx, journalVoucher); err != nil {
+		if err := c.modelcore.JournalVoucherManager.CreateWithTx(context, tx, journalVoucher); err != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -174,7 +174,7 @@ func (c *Controller) JournalVoucherController() {
 		// Handle journal voucher entries
 		if request.JournalVoucherEntries != nil {
 			for _, entryReq := range request.JournalVoucherEntries {
-				entry := &modelCore.JournalVoucherEntry{
+				entry := &modelcore.JournalVoucherEntry{
 					AccountID:              entryReq.AccountID,
 					MemberProfileID:        entryReq.MemberProfileID,
 					EmployeeUserID:         entryReq.EmployeeUserID,
@@ -191,7 +191,7 @@ func (c *Controller) JournalVoucherController() {
 					CashCheckVoucherNumber: entryReq.CashCheckVoucherNumber,
 				}
 
-				if err := c.modelCore.JournalVoucherEntryManager.CreateWithTx(context, tx, entry); err != nil {
+				if err := c.modelcore.JournalVoucherEntryManager.CreateWithTx(context, tx, entry); err != nil {
 					tx.Rollback()
 					c.event.Footstep(context, ctx, event.FootstepEvent{
 						Activity:    "create-error",
@@ -217,7 +217,7 @@ func (c *Controller) JournalVoucherController() {
 			Description: "Created journal voucher (/journal-voucher): " + journalVoucher.CashVoucherNumber,
 			Module:      "JournalVoucher",
 		})
-		return ctx.JSON(http.StatusCreated, c.modelCore.JournalVoucherManager.ToModel(journalVoucher))
+		return ctx.JSON(http.StatusCreated, c.modelcore.JournalVoucherManager.ToModel(journalVoucher))
 	})
 
 	// PUT /journal-voucher/:journal_voucher_id: Update journal voucher by ID. (WITH footstep)
@@ -225,8 +225,8 @@ func (c *Controller) JournalVoucherController() {
 		Route:        "/api/v1/journal-voucher/:journal_voucher_id",
 		Method:       "PUT",
 		Note:         "Updates an existing journal voucher by its ID.",
-		RequestType:  modelCore.JournalVoucherRequest{},
-		ResponseType: modelCore.JournalVoucherResponse{},
+		RequestType:  modelcore.JournalVoucherRequest{},
+		ResponseType: modelcore.JournalVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		journalVoucherID, err := handlers.EngineUUIDParam(ctx, "journal_voucher_id")
@@ -239,7 +239,7 @@ func (c *Controller) JournalVoucherController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid journal voucher ID"})
 		}
 
-		request, err := c.modelCore.JournalVoucherManager.Validate(ctx)
+		request, err := c.modelcore.JournalVoucherManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -259,7 +259,7 @@ func (c *Controller) JournalVoucherController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 
-		journalVoucher, err := c.modelCore.JournalVoucherManager.GetByID(context, *journalVoucherID)
+		journalVoucher, err := c.modelcore.JournalVoucherManager.GetByID(context, *journalVoucherID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -308,7 +308,7 @@ func (c *Controller) JournalVoucherController() {
 		// Handle deleted entries
 		if request.JournalVoucherEntriesDeleted != nil {
 			for _, deletedID := range request.JournalVoucherEntriesDeleted {
-				entry, err := c.modelCore.JournalVoucherEntryManager.GetByID(context, deletedID)
+				entry, err := c.modelcore.JournalVoucherEntryManager.GetByID(context, deletedID)
 				if err != nil {
 					tx.Rollback()
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find journal voucher entry for deletion: " + err.Error()})
@@ -318,7 +318,7 @@ func (c *Controller) JournalVoucherController() {
 					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete entry that doesn't belong to this journal voucher"})
 				}
 				entry.DeletedByID = &user.UserID
-				if err := c.modelCore.JournalVoucherEntryManager.DeleteWithTx(context, tx, entry); err != nil {
+				if err := c.modelcore.JournalVoucherEntryManager.DeleteWithTx(context, tx, entry); err != nil {
 					tx.Rollback()
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete journal voucher entry: " + err.Error()})
 				}
@@ -328,7 +328,7 @@ func (c *Controller) JournalVoucherController() {
 		if request.JournalVoucherEntries != nil {
 			for _, entryReq := range request.JournalVoucherEntries {
 				if entryReq.ID != nil {
-					entry, err := c.modelCore.JournalVoucherEntryManager.GetByID(context, *entryReq.ID)
+					entry, err := c.modelcore.JournalVoucherEntryManager.GetByID(context, *entryReq.ID)
 					if err != nil {
 						tx.Rollback()
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find journal voucher entry for update: " + err.Error()})
@@ -346,12 +346,12 @@ func (c *Controller) JournalVoucherController() {
 					entry.UpdatedAt = time.Now().UTC()
 					entry.UpdatedByID = user.UserID
 					entry.CashCheckVoucherNumber = entryReq.CashCheckVoucherNumber
-					if err := c.modelCore.JournalVoucherEntryManager.UpdateFieldsWithTx(context, tx, entry.ID, entry); err != nil {
+					if err := c.modelcore.JournalVoucherEntryManager.UpdateFieldsWithTx(context, tx, entry.ID, entry); err != nil {
 						tx.Rollback()
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update journal voucher entry: " + err.Error()})
 					}
 				} else {
-					entry := &modelCore.JournalVoucherEntry{
+					entry := &modelcore.JournalVoucherEntry{
 						AccountID:              entryReq.AccountID,
 						MemberProfileID:        entryReq.MemberProfileID,
 						EmployeeUserID:         entryReq.EmployeeUserID,
@@ -367,7 +367,7 @@ func (c *Controller) JournalVoucherController() {
 						OrganizationID:         user.OrganizationID,
 						CashCheckVoucherNumber: entryReq.CashCheckVoucherNumber,
 					}
-					if err := c.modelCore.JournalVoucherEntryManager.CreateWithTx(context, tx, entry); err != nil {
+					if err := c.modelcore.JournalVoucherEntryManager.CreateWithTx(context, tx, entry); err != nil {
 						tx.Rollback()
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create journal voucher entry: " + err.Error()})
 					}
@@ -377,7 +377,7 @@ func (c *Controller) JournalVoucherController() {
 		}
 		journalVoucher.TotalCredit = totalCredit
 		journalVoucher.TotalDebit = totalDebit
-		if err := c.modelCore.JournalVoucherManager.UpdateFieldsWithTx(context, tx, journalVoucher.ID, journalVoucher); err != nil {
+		if err := c.modelcore.JournalVoucherManager.UpdateFieldsWithTx(context, tx, journalVoucher.ID, journalVoucher); err != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -401,7 +401,7 @@ func (c *Controller) JournalVoucherController() {
 			Description: "Updated journal voucher (/journal-voucher/:journal_voucher_id): " + journalVoucher.CashVoucherNumber,
 			Module:      "JournalVoucher",
 		})
-		return ctx.JSON(http.StatusOK, c.modelCore.JournalVoucherManager.ToModel(journalVoucher))
+		return ctx.JSON(http.StatusOK, c.modelcore.JournalVoucherManager.ToModel(journalVoucher))
 	})
 
 	// DELETE /journal-voucher/:journal_voucher_id: Delete a journal voucher by ID. (WITH footstep)
@@ -420,7 +420,7 @@ func (c *Controller) JournalVoucherController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid journal voucher ID"})
 		}
-		journalVoucher, err := c.modelCore.JournalVoucherManager.GetByID(context, *journalVoucherID)
+		journalVoucher, err := c.modelcore.JournalVoucherManager.GetByID(context, *journalVoucherID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -429,7 +429,7 @@ func (c *Controller) JournalVoucherController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Journal voucher not found"})
 		}
-		if err := c.modelCore.JournalVoucherManager.DeleteByID(context, *journalVoucherID); err != nil {
+		if err := c.modelcore.JournalVoucherManager.DeleteByID(context, *journalVoucherID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Journal voucher delete failed (/journal-voucher/:journal_voucher_id), db error: " + err.Error(),
@@ -450,10 +450,10 @@ func (c *Controller) JournalVoucherController() {
 		Route:       "/api/v1/journal-voucher/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple journal vouchers by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: modelCore.IDSRequest{},
+		RequestType: modelcore.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody modelCore.IDSRequest
+		var reqBody modelcore.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
@@ -492,7 +492,7 @@ func (c *Controller) JournalVoucherController() {
 				})
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
 			}
-			journalVoucher, err := c.modelCore.JournalVoucherManager.GetByID(context, journalVoucherID)
+			journalVoucher, err := c.modelcore.JournalVoucherManager.GetByID(context, journalVoucherID)
 			if err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -503,7 +503,7 @@ func (c *Controller) JournalVoucherController() {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Journal voucher not found with ID: %s", rawID)})
 			}
 			voucherNumbers += journalVoucher.CashVoucherNumber + ","
-			if err := c.modelCore.JournalVoucherManager.DeleteByIDWithTx(context, tx, journalVoucherID); err != nil {
+			if err := c.modelcore.JournalVoucherManager.DeleteByIDWithTx(context, tx, journalVoucherID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",
@@ -534,8 +534,8 @@ func (c *Controller) JournalVoucherController() {
 		Route:        "/api/v1/journal-voucher/:journal_voucher_id/print",
 		Method:       "PUT",
 		Note:         "Marks a journal voucher as printed by ID.",
-		RequestType:  modelCore.JournalVoucherPrintRequest{},
-		ResponseType: modelCore.JournalVoucherResponse{},
+		RequestType:  modelcore.JournalVoucherPrintRequest{},
+		ResponseType: modelcore.JournalVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		journalVoucherID, err := handlers.EngineUUIDParam(ctx, "journal_voucher_id")
@@ -548,7 +548,7 @@ func (c *Controller) JournalVoucherController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid journal voucher ID"})
 		}
 
-		var req modelCore.JournalVoucherPrintRequest
+		var req modelcore.JournalVoucherPrintRequest
 		if err := ctx.Bind(&req); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "print-error",
@@ -569,11 +569,11 @@ func (c *Controller) JournalVoucherController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelcore.UserOrganizationTypeOwner && userOrg.UserType != modelcore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied"})
 		}
 
-		journalVoucher, err := c.modelCore.JournalVoucherManager.GetByID(context, *journalVoucherID)
+		journalVoucher, err := c.modelcore.JournalVoucherManager.GetByID(context, *journalVoucherID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "print-error",
@@ -599,7 +599,7 @@ func (c *Controller) JournalVoucherController() {
 		journalVoucher.UpdatedAt = time.Now().UTC()
 		journalVoucher.UpdatedByID = userOrg.UserID
 
-		if err := c.modelCore.JournalVoucherManager.UpdateFields(context, journalVoucher.ID, journalVoucher); err != nil {
+		if err := c.modelcore.JournalVoucherManager.UpdateFields(context, journalVoucher.ID, journalVoucher); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "print-error",
 				Description: "Journal voucher print failed, db error: " + err.Error(),
@@ -614,7 +614,7 @@ func (c *Controller) JournalVoucherController() {
 			Module:      "JournalVoucher",
 		})
 
-		return ctx.JSON(http.StatusOK, c.modelCore.JournalVoucherManager.ToModel(journalVoucher))
+		return ctx.JSON(http.StatusOK, c.modelcore.JournalVoucherManager.ToModel(journalVoucher))
 	})
 
 	// PUT /api/v1/journal-voucher/:journal_voucher_id/print-undo
@@ -622,7 +622,7 @@ func (c *Controller) JournalVoucherController() {
 		Route:        "/api/v1/journal-voucher/:journal_voucher_id/print-undo",
 		Method:       "PUT",
 		Note:         "Reverts the print status of a journal voucher by ID.",
-		ResponseType: modelCore.JournalVoucherResponse{},
+		ResponseType: modelcore.JournalVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		journalVoucherID, err := handlers.EngineUUIDParam(ctx, "journal_voucher_id")
@@ -644,11 +644,11 @@ func (c *Controller) JournalVoucherController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelcore.UserOrganizationTypeOwner && userOrg.UserType != modelcore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied"})
 		}
 
-		journalVoucher, err := c.modelCore.JournalVoucherManager.GetByID(context, *journalVoucherID)
+		journalVoucher, err := c.modelcore.JournalVoucherManager.GetByID(context, *journalVoucherID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "print-undo-error",
@@ -673,7 +673,7 @@ func (c *Controller) JournalVoucherController() {
 		journalVoucher.UpdatedAt = time.Now().UTC()
 		journalVoucher.UpdatedByID = userOrg.UserID
 
-		if err := c.modelCore.JournalVoucherManager.UpdateFields(context, journalVoucher.ID, journalVoucher); err != nil {
+		if err := c.modelcore.JournalVoucherManager.UpdateFields(context, journalVoucher.ID, journalVoucher); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "print-undo-error",
 				Description: "Journal voucher print undo failed, db error: " + err.Error(),
@@ -688,7 +688,7 @@ func (c *Controller) JournalVoucherController() {
 			Module:      "JournalVoucher",
 		})
 
-		return ctx.JSON(http.StatusOK, c.modelCore.JournalVoucherManager.ToModel(journalVoucher))
+		return ctx.JSON(http.StatusOK, c.modelcore.JournalVoucherManager.ToModel(journalVoucher))
 	})
 
 	// PUT /api/v1/journal-voucher/:journal_voucher_id/approve
@@ -696,7 +696,7 @@ func (c *Controller) JournalVoucherController() {
 		Route:        "/api/v1/journal-voucher/:journal_voucher_id/approve",
 		Method:       "PUT",
 		Note:         "Approves a journal voucher by ID.",
-		ResponseType: modelCore.JournalVoucherResponse{},
+		ResponseType: modelcore.JournalVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		journalVoucherID, err := handlers.EngineUUIDParam(ctx, "journal_voucher_id")
@@ -718,11 +718,11 @@ func (c *Controller) JournalVoucherController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelcore.UserOrganizationTypeOwner && userOrg.UserType != modelcore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied"})
 		}
 
-		journalVoucher, err := c.modelCore.JournalVoucherManager.GetByID(context, *journalVoucherID)
+		journalVoucher, err := c.modelcore.JournalVoucherManager.GetByID(context, *journalVoucherID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "approve-error",
@@ -746,7 +746,7 @@ func (c *Controller) JournalVoucherController() {
 		journalVoucher.UpdatedAt = time.Now().UTC()
 		journalVoucher.UpdatedByID = userOrg.UserID
 
-		if err := c.modelCore.JournalVoucherManager.UpdateFields(context, journalVoucher.ID, journalVoucher); err != nil {
+		if err := c.modelcore.JournalVoucherManager.UpdateFields(context, journalVoucher.ID, journalVoucher); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "approve-error",
 				Description: "Journal voucher approve failed, db error: " + err.Error(),
@@ -761,7 +761,7 @@ func (c *Controller) JournalVoucherController() {
 			Module:      "JournalVoucher",
 		})
 
-		return ctx.JSON(http.StatusOK, c.modelCore.JournalVoucherManager.ToModel(journalVoucher))
+		return ctx.JSON(http.StatusOK, c.modelcore.JournalVoucherManager.ToModel(journalVoucher))
 	})
 
 	// POST /api/v1/journal-voucher/:journal_voucher_id/print-only
@@ -769,7 +769,7 @@ func (c *Controller) JournalVoucherController() {
 		Route:        "/api/v1/journal-voucher/:journal_voucher_id/print-only",
 		Method:       "POST",
 		Note:         "Marks a journal voucher as printed without additional details by ID.",
-		ResponseType: modelCore.JournalVoucherResponse{},
+		ResponseType: modelcore.JournalVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		journalVoucherID, err := handlers.EngineUUIDParam(ctx, "journal_voucher_id")
@@ -791,11 +791,11 @@ func (c *Controller) JournalVoucherController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelcore.UserOrganizationTypeOwner && userOrg.UserType != modelcore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied"})
 		}
 
-		journalVoucher, err := c.modelCore.JournalVoucherManager.GetByID(context, *journalVoucherID)
+		journalVoucher, err := c.modelcore.JournalVoucherManager.GetByID(context, *journalVoucherID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "print-only-error",
@@ -816,7 +816,7 @@ func (c *Controller) JournalVoucherController() {
 		journalVoucher.UpdatedAt = time.Now().UTC()
 		journalVoucher.UpdatedByID = userOrg.UserID
 
-		if err := c.modelCore.JournalVoucherManager.UpdateFields(context, journalVoucher.ID, journalVoucher); err != nil {
+		if err := c.modelcore.JournalVoucherManager.UpdateFields(context, journalVoucher.ID, journalVoucher); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "print-only-error",
 				Description: "Journal voucher print-only failed, db error: " + err.Error(),
@@ -831,7 +831,7 @@ func (c *Controller) JournalVoucherController() {
 			Module:      "JournalVoucher",
 		})
 
-		return ctx.JSON(http.StatusOK, c.modelCore.JournalVoucherManager.ToModel(journalVoucher))
+		return ctx.JSON(http.StatusOK, c.modelcore.JournalVoucherManager.ToModel(journalVoucher))
 	})
 
 	// POST /api/v1/journal-voucher/:journal_voucher_id/approve-undo
@@ -839,7 +839,7 @@ func (c *Controller) JournalVoucherController() {
 		Route:        "/api/v1/journal-voucher/:journal_voucher_id/approve-undo",
 		Method:       "POST",
 		Note:         "Reverts the approval status of a journal voucher by ID.",
-		ResponseType: modelCore.JournalVoucherResponse{},
+		ResponseType: modelcore.JournalVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		journalVoucherID, err := handlers.EngineUUIDParam(ctx, "journal_voucher_id")
@@ -861,11 +861,11 @@ func (c *Controller) JournalVoucherController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelcore.UserOrganizationTypeOwner && userOrg.UserType != modelcore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied"})
 		}
 
-		journalVoucher, err := c.modelCore.JournalVoucherManager.GetByID(context, *journalVoucherID)
+		journalVoucher, err := c.modelcore.JournalVoucherManager.GetByID(context, *journalVoucherID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "approve-undo-error",
@@ -893,7 +893,7 @@ func (c *Controller) JournalVoucherController() {
 		journalVoucher.UpdatedAt = time.Now().UTC()
 		journalVoucher.UpdatedByID = userOrg.UserID
 
-		if err := c.modelCore.JournalVoucherManager.UpdateFields(context, journalVoucher.ID, journalVoucher); err != nil {
+		if err := c.modelcore.JournalVoucherManager.UpdateFields(context, journalVoucher.ID, journalVoucher); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "approve-undo-error",
 				Description: "Journal voucher approve undo failed, db error: " + err.Error(),
@@ -908,7 +908,7 @@ func (c *Controller) JournalVoucherController() {
 			Module:      "JournalVoucher",
 		})
 
-		return ctx.JSON(http.StatusOK, c.modelCore.JournalVoucherManager.ToModel(journalVoucher))
+		return ctx.JSON(http.StatusOK, c.modelcore.JournalVoucherManager.ToModel(journalVoucher))
 	})
 
 	// POST /api/v1/journal-voucher/:journal_voucher_id/release
@@ -916,7 +916,7 @@ func (c *Controller) JournalVoucherController() {
 		Route:        "/api/v1/journal-voucher/:journal_voucher_id/release",
 		Method:       "POST",
 		Note:         "Releases a journal voucher by ID. RELEASED SHOULD NOT BE UNAPPROVED.",
-		ResponseType: modelCore.JournalVoucherResponse{},
+		ResponseType: modelcore.JournalVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		journalVoucherID, err := handlers.EngineUUIDParam(ctx, "journal_voucher_id")
@@ -938,11 +938,11 @@ func (c *Controller) JournalVoucherController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelcore.UserOrganizationTypeOwner && userOrg.UserType != modelcore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied"})
 		}
 
-		journalVoucher, err := c.modelCore.JournalVoucherManager.GetByID(context, *journalVoucherID)
+		journalVoucher, err := c.modelcore.JournalVoucherManager.GetByID(context, *journalVoucherID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "release-error",
@@ -970,7 +970,7 @@ func (c *Controller) JournalVoucherController() {
 		journalVoucher.UpdatedAt = time.Now().UTC()
 		journalVoucher.UpdatedByID = userOrg.UserID
 
-		if err := c.modelCore.JournalVoucherManager.UpdateFields(context, journalVoucher.ID, journalVoucher); err != nil {
+		if err := c.modelcore.JournalVoucherManager.UpdateFields(context, journalVoucher.ID, journalVoucher); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "release-error",
 				Description: "Journal voucher release failed, db error: " + err.Error(),
@@ -985,7 +985,7 @@ func (c *Controller) JournalVoucherController() {
 			Module:      "JournalVoucher",
 		})
 
-		return ctx.JSON(http.StatusOK, c.modelCore.JournalVoucherManager.ToModel(journalVoucher))
+		return ctx.JSON(http.StatusOK, c.modelcore.JournalVoucherManager.ToModel(journalVoucher))
 	})
 
 	// GET POST /api/v1/journal-voucher/draft
@@ -993,7 +993,7 @@ func (c *Controller) JournalVoucherController() {
 		Route:        "/api/v1/journal-voucher/draft",
 		Method:       "GET",
 		Note:         "Fetches draft journal vouchers for the current user's organization and branch.",
-		ResponseType: modelCore.JournalVoucherResponse{},
+		ResponseType: modelcore.JournalVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -1005,11 +1005,11 @@ func (c *Controller) JournalVoucherController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		journalVouchers, err := c.modelCore.JournalVoucherDraft(context, *userOrg.BranchID, userOrg.OrganizationID)
+		journalVouchers, err := c.modelcore.JournalVoucherDraft(context, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch draft journal vouchers: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelCore.JournalVoucherManager.ToModels(journalVouchers))
+		return ctx.JSON(http.StatusOK, c.modelcore.JournalVoucherManager.ToModels(journalVouchers))
 	})
 
 	// GET POST /api/v1/journal-voucher/printed
@@ -1017,7 +1017,7 @@ func (c *Controller) JournalVoucherController() {
 		Route:        "/api/v1/journal-voucher/printed",
 		Method:       "GET",
 		Note:         "Fetches printed journal vouchers for the current user's organization and branch.",
-		ResponseType: modelCore.JournalVoucherResponse{},
+		ResponseType: modelcore.JournalVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -1029,11 +1029,11 @@ func (c *Controller) JournalVoucherController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		journalVouchers, err := c.modelCore.JournalVoucherPrinted(context, *userOrg.BranchID, userOrg.OrganizationID)
+		journalVouchers, err := c.modelcore.JournalVoucherPrinted(context, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch printed journal vouchers: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelCore.JournalVoucherManager.ToModels(journalVouchers))
+		return ctx.JSON(http.StatusOK, c.modelcore.JournalVoucherManager.ToModels(journalVouchers))
 	})
 
 	// GET POST /api/v1/journal-voucher/approved
@@ -1041,7 +1041,7 @@ func (c *Controller) JournalVoucherController() {
 		Route:        "/api/v1/journal-voucher/approved",
 		Method:       "GET",
 		Note:         "Fetches approved journal vouchers for the current user's organization and branch.",
-		ResponseType: modelCore.JournalVoucherResponse{},
+		ResponseType: modelcore.JournalVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -1053,11 +1053,11 @@ func (c *Controller) JournalVoucherController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		journalVouchers, err := c.modelCore.JournalVoucherApproved(context, *userOrg.BranchID, userOrg.OrganizationID)
+		journalVouchers, err := c.modelcore.JournalVoucherApproved(context, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch approved journal vouchers: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelCore.JournalVoucherManager.ToModels(journalVouchers))
+		return ctx.JSON(http.StatusOK, c.modelcore.JournalVoucherManager.ToModels(journalVouchers))
 	})
 
 	// GET /api/v1/journal-voucher/released
@@ -1065,7 +1065,7 @@ func (c *Controller) JournalVoucherController() {
 		Route:        "/api/v1/journal-voucher/released",
 		Method:       "GET",
 		Note:         "Fetches released journal vouchers for the current user's organization and branch.",
-		ResponseType: modelCore.JournalVoucherResponse{},
+		ResponseType: modelcore.JournalVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -1077,11 +1077,11 @@ func (c *Controller) JournalVoucherController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		journalVouchers, err := c.modelCore.JournalVoucherReleased(context, *userOrg.BranchID, userOrg.OrganizationID)
+		journalVouchers, err := c.modelcore.JournalVoucherReleased(context, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch released journal vouchers: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelCore.JournalVoucherManager.ToModels(journalVouchers))
+		return ctx.JSON(http.StatusOK, c.modelcore.JournalVoucherManager.ToModels(journalVouchers))
 	})
 
 	// GET /api/v1/journal-voucher/released/today
@@ -1089,7 +1089,7 @@ func (c *Controller) JournalVoucherController() {
 		Route:        "/api/v1/journal-voucher/released/today",
 		Method:       "GET",
 		Note:         "Fetches journal vouchers released today for the current user's organization and branch.",
-		ResponseType: modelCore.JournalVoucherResponse{},
+		ResponseType: modelcore.JournalVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -1101,11 +1101,11 @@ func (c *Controller) JournalVoucherController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		journalVouchers, err := c.modelCore.JournalVoucherReleasedCurrentDay(context, *userOrg.BranchID, userOrg.OrganizationID)
+		journalVouchers, err := c.modelcore.JournalVoucherReleasedCurrentDay(context, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch journal vouchers released today: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelCore.JournalVoucherManager.ToModels(journalVouchers))
+		return ctx.JSON(http.StatusOK, c.modelcore.JournalVoucherManager.ToModels(journalVouchers))
 	})
 
 }

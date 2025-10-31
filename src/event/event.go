@@ -3,12 +3,11 @@ package event
 import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/src"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/cooperative_tokens"
-	modelCore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelCore"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/service"
 )
 
 type Event struct {
-	modelCore               *modelCore.ModelCore
+	modelcore               *modelcore.modelcore
 	user_organization_token *cooperative_tokens.UserOrganizationToken
 	user_token              *cooperative_tokens.UserToken
 	provider                *src.Provider
@@ -16,7 +15,7 @@ type Event struct {
 }
 
 func NewEvent(
-	modelCore *modelCore.ModelCore,
+	modelcore *modelcore.modelcore,
 	user_organization_token *cooperative_tokens.UserOrganizationToken,
 	user_token *cooperative_tokens.UserToken,
 	provider *src.Provider,
@@ -25,7 +24,7 @@ func NewEvent(
 	return &Event{
 		user_organization_token: user_organization_token,
 		user_token:              user_token,
-		modelCore:               modelCore,
+		modelcore:               modelcore,
 		provider:                provider,
 		service:                 service,
 	}, nil

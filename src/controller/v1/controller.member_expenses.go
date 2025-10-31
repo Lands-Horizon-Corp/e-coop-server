@@ -6,7 +6,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	modelCore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelCore"
+	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/labstack/echo/v4"
 )
 
@@ -17,8 +17,8 @@ func (c *Controller) MemberExpenseController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-expense/member-profile/:member_profile_id",
 		Method:       "POST",
-		ResponseType: modelCore.MemberExpenseResponse{},
-		RequestType:  modelCore.MemberExpenseRequest{},
+		ResponseType: modelcore.MemberExpenseResponse{},
+		RequestType:  modelcore.MemberExpenseRequest{},
 		Note:         "Creates a new expense record for the specified member profile.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -31,7 +31,7 @@ func (c *Controller) MemberExpenseController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
-		req, err := c.modelCore.MemberExpenseManager.Validate(ctx)
+		req, err := c.modelcore.MemberExpenseManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -50,7 +50,7 @@ func (c *Controller) MemberExpenseController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
-		value := &modelCore.MemberExpense{
+		value := &modelcore.MemberExpense{
 			MemberProfileID: *memberProfileID,
 			Name:            req.Name,
 			Amount:          req.Amount,
@@ -63,7 +63,7 @@ func (c *Controller) MemberExpenseController() {
 			OrganizationID:  user.OrganizationID,
 		}
 
-		if err := c.modelCore.MemberExpenseManager.Create(context, value); err != nil {
+		if err := c.modelcore.MemberExpenseManager.Create(context, value); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member expense failed (/member-expense/member-profile/:member_profile_id), db error: " + err.Error(),
@@ -78,15 +78,15 @@ func (c *Controller) MemberExpenseController() {
 			Module:      "MemberExpense",
 		})
 
-		return ctx.JSON(http.StatusOK, c.modelCore.MemberExpenseManager.ToModel(value))
+		return ctx.JSON(http.StatusOK, c.modelcore.MemberExpenseManager.ToModel(value))
 	})
 
 	// Update an existing expense record by its ID
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-expense/:member_expense_id",
 		Method:       "PUT",
-		RequestType:  modelCore.MemberExpenseRequest{},
-		ResponseType: modelCore.MemberExpenseResponse{},
+		RequestType:  modelcore.MemberExpenseRequest{},
+		ResponseType: modelcore.MemberExpenseResponse{},
 		Note:         "Updates an existing expense record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -99,7 +99,7 @@ func (c *Controller) MemberExpenseController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_expense_id: " + err.Error()})
 		}
-		req, err := c.modelCore.MemberExpenseManager.Validate(ctx)
+		req, err := c.modelcore.MemberExpenseManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -118,7 +118,7 @@ func (c *Controller) MemberExpenseController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
-		value, err := c.modelCore.MemberExpenseManager.GetByID(context, *memberExpenseID)
+		value, err := c.modelcore.MemberExpenseManager.GetByID(context, *memberExpenseID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -137,7 +137,7 @@ func (c *Controller) MemberExpenseController() {
 		value.Amount = req.Amount
 		value.Description = req.Description
 
-		if err := c.modelCore.MemberExpenseManager.UpdateFields(context, value.ID, value); err != nil {
+		if err := c.modelcore.MemberExpenseManager.UpdateFields(context, value.ID, value); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member expense failed (/member-expense/:member_expense_id), db error: " + err.Error(),
@@ -150,7 +150,7 @@ func (c *Controller) MemberExpenseController() {
 			Description: "Updated member expense (/member-expense/:member_expense_id): " + value.Name,
 			Module:      "MemberExpense",
 		})
-		return ctx.JSON(http.StatusOK, c.modelCore.MemberExpenseManager.ToModel(value))
+		return ctx.JSON(http.StatusOK, c.modelcore.MemberExpenseManager.ToModel(value))
 	})
 
 	// Delete a member's expense record by its ID
@@ -169,7 +169,7 @@ func (c *Controller) MemberExpenseController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_expense_id: " + err.Error()})
 		}
-		value, err := c.modelCore.MemberExpenseManager.GetByID(context, *memberExpenseID)
+		value, err := c.modelcore.MemberExpenseManager.GetByID(context, *memberExpenseID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -178,7 +178,7 @@ func (c *Controller) MemberExpenseController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member expense not found: " + err.Error()})
 		}
-		if err := c.modelCore.MemberExpenseManager.DeleteByID(context, *memberExpenseID); err != nil {
+		if err := c.modelcore.MemberExpenseManager.DeleteByID(context, *memberExpenseID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member expense failed (/member-expense/:member_expense_id), db error: " + err.Error(),

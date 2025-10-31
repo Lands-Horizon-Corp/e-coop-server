@@ -7,7 +7,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	modelCore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelCore"
+	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -21,23 +21,23 @@ func (c *Controller) BranchController() {
 		Route:        "/api/v1/branch",
 		Method:       "GET",
 		Note:         "Returns all branches if unauthenticated; otherwise, returns branches filtered by the user's organization from JWT.",
-		ResponseType: modelCore.BranchResponse{},
+		ResponseType: modelcore.BranchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil || userOrg == nil {
-			branches, err := c.modelCore.BranchManager.List(context)
+			branches, err := c.modelcore.BranchManager.List(context)
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not retrieve branches: " + err.Error()})
 			}
 			return ctx.JSON(http.StatusOK, branches)
 		}
-		branches, err := c.modelCore.GetBranchesByOrganization(context, userOrg.OrganizationID)
+		branches, err := c.modelcore.GetBranchesByOrganization(context, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not retrieve organization branches: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, c.modelCore.BranchManager.Filtered(context, ctx, branches))
+		return ctx.JSON(http.StatusOK, c.modelcore.BranchManager.Filtered(context, ctx, branches))
 	})
 
 	// GET /branch/organization/:organization_id: List branches by organization ID.
@@ -45,18 +45,18 @@ func (c *Controller) BranchController() {
 		Route:        "/api/v1/branch/organization/:organization_id",
 		Method:       "GET",
 		Note:         "Returns all branches belonging to the specified organization.",
-		ResponseType: modelCore.BranchResponse{},
+		ResponseType: modelcore.BranchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		orgId, err := handlers.EngineUUIDParam(ctx, "organization_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization ID: " + err.Error()})
 		}
-		branches, err := c.modelCore.GetBranchesByOrganization(context, *orgId)
+		branches, err := c.modelcore.GetBranchesByOrganization(context, *orgId)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not retrieve organization branches: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelCore.BranchManager.Filtered(context, ctx, branches))
+		return ctx.JSON(http.StatusOK, c.modelcore.BranchManager.Filtered(context, ctx, branches))
 	})
 
 	// POST /branch/organization/:organization_id: Create a branch for an organization.
@@ -65,12 +65,12 @@ func (c *Controller) BranchController() {
 		Method:       "POST",
 		Note:         "Creates a new branch for the given organization. If the user already has a branch, a new user organization is created; otherwise, the user's current user organization is updated with the new branch.",
 		Private:      true,
-		RequestType:  modelCore.BranchRequest{},
-		ResponseType: modelCore.BranchResponse{},
+		RequestType:  modelcore.BranchRequest{},
+		ResponseType: modelcore.BranchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		req, err := c.modelCore.BranchManager.Validate(ctx)
+		req, err := c.modelcore.BranchManager.Validate(ctx)
 		if err != nil {
 			// Footstep for create branch error
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -101,7 +101,7 @@ func (c *Controller) BranchController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication required " + err.Error()})
 		}
 
-		userOrganization, err := c.modelCore.UserOrganizationManager.FindOne(context, &modelCore.UserOrganization{
+		userOrganization, err := c.modelcore.UserOrganizationManager.FindOne(context, &modelcore.UserOrganization{
 			UserID:         user.ID,
 			OrganizationID: *organizationId,
 		})
@@ -113,7 +113,7 @@ func (c *Controller) BranchController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found " + err.Error()})
 		}
-		if userOrganization.UserType != modelCore.UserOrganizationTypeOwner {
+		if userOrganization.UserType != modelcore.UserOrganizationTypeOwner {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create error",
 				Description: "Only organization owners can create branches for POST /branch/organization/:organization_id",
@@ -122,7 +122,7 @@ func (c *Controller) BranchController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Only organization owners can create branches "})
 		}
 
-		organization, err := c.modelCore.OrganizationManager.GetByID(context, userOrganization.OrganizationID)
+		organization, err := c.modelcore.OrganizationManager.GetByID(context, userOrganization.OrganizationID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create error",
@@ -132,7 +132,7 @@ func (c *Controller) BranchController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Organization not found " + err.Error()})
 		}
 
-		branchCount, err := c.modelCore.GetBranchesByOrganizationCount(context, organization.ID)
+		branchCount, err := c.modelcore.GetBranchesByOrganizationCount(context, organization.ID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create error",
@@ -151,7 +151,7 @@ func (c *Controller) BranchController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Branch limit reached for the current subscription plan "})
 		}
 
-		branch := &modelCore.Branch{
+		branch := &modelcore.Branch{
 			CreatedAt:      time.Now().UTC(),
 			CreatedByID:    user.ID,
 			UpdatedAt:      time.Now().UTC(),
@@ -186,7 +186,7 @@ func (c *Controller) BranchController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
 
-		if err := c.modelCore.BranchManager.CreateWithTx(context, tx, branch); err != nil {
+		if err := c.modelcore.BranchManager.CreateWithTx(context, tx, branch); err != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create error",
@@ -195,7 +195,7 @@ func (c *Controller) BranchController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create branch: " + err.Error()})
 		}
-		currency, err := c.modelCore.CurrencyFindByAlpha2(context, branch.CountryCode)
+		currency, err := c.modelcore.CurrencyFindByAlpha2(context, branch.CountryCode)
 		if err != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -206,7 +206,7 @@ func (c *Controller) BranchController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find currency for branch country code: " + err.Error()})
 		}
 		// Create default branch settings for the new branch
-		branchSetting := &modelCore.BranchSetting{
+		branchSetting := &modelcore.BranchSetting{
 			CreatedAt: time.Now().UTC(),
 			UpdatedAt: time.Now().UTC(),
 			BranchID:  branch.ID,
@@ -257,7 +257,7 @@ func (c *Controller) BranchController() {
 			CurrencyID:                currency.ID,
 		}
 
-		if err := c.modelCore.BranchSettingManager.CreateWithTx(context, tx, branchSetting); err != nil {
+		if err := c.modelcore.BranchSettingManager.CreateWithTx(context, tx, branchSetting); err != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create error",
@@ -273,7 +273,7 @@ func (c *Controller) BranchController() {
 			userOrganization.UpdatedAt = time.Now().UTC()
 			userOrganization.UpdatedByID = user.ID
 
-			if err := c.modelCore.UserOrganizationManager.UpdateFieldsWithTx(context, tx, userOrganization.ID, userOrganization); err != nil {
+			if err := c.modelcore.UserOrganizationManager.UpdateFieldsWithTx(context, tx, userOrganization.ID, userOrganization); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "create error",
@@ -295,7 +295,7 @@ func (c *Controller) BranchController() {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate developer key: " + err.Error()})
 			}
 
-			newUserOrg := &modelCore.UserOrganization{
+			newUserOrg := &modelcore.UserOrganization{
 				CreatedAt:                time.Now().UTC(),
 				CreatedByID:              user.ID,
 				UpdatedAt:                time.Now().UTC(),
@@ -303,10 +303,10 @@ func (c *Controller) BranchController() {
 				OrganizationID:           userOrganization.OrganizationID,
 				BranchID:                 &branch.ID,
 				UserID:                   user.ID,
-				UserType:                 modelCore.UserOrganizationTypeOwner,
+				UserType:                 modelcore.UserOrganizationTypeOwner,
 				ApplicationStatus:        "accepted",
 				DeveloperSecretKey:       developerKey + uuid.NewString() + "-horizon",
-				PermissionName:           string(modelCore.UserOrganizationTypeOwner),
+				PermissionName:           string(modelcore.UserOrganizationTypeOwner),
 				Permissions:              []string{},
 				UserSettingStartOR:       0,
 				UserSettingEndOR:         1000,
@@ -317,7 +317,7 @@ func (c *Controller) BranchController() {
 				UserSettingNumberPadding: 7,
 			}
 
-			if err := c.modelCore.UserOrganizationManager.CreateWithTx(context, tx, newUserOrg); err != nil {
+			if err := c.modelcore.UserOrganizationManager.CreateWithTx(context, tx, newUserOrg); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "create error",
@@ -351,7 +351,7 @@ func (c *Controller) BranchController() {
 			Module:      "branch",
 		})
 
-		return ctx.JSON(http.StatusOK, c.modelCore.BranchManager.ToModel(branch))
+		return ctx.JSON(http.StatusOK, c.modelcore.BranchManager.ToModel(branch))
 	})
 
 	// PUT /branch/:branch_id: Update an existing branch (only by owner).
@@ -360,12 +360,12 @@ func (c *Controller) BranchController() {
 		Method:       "PUT",
 		Note:         "Updates branch information for the specified branch. Only allowed for the owner of the branch.",
 		Private:      true,
-		RequestType:  modelCore.BranchRequest{},
-		ResponseType: modelCore.BranchResponse{},
+		RequestType:  modelcore.BranchRequest{},
+		ResponseType: modelcore.BranchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		req, err := c.modelCore.BranchManager.Validate(ctx)
+		req, err := c.modelcore.BranchManager.Validate(ctx)
 		if err != nil {
 			// Footstep for update error
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -396,7 +396,7 @@ func (c *Controller) BranchController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid branch ID: " + err.Error()})
 		}
 
-		userOrg, err := c.modelCore.UserOrganizationManager.FindOne(context, &modelCore.UserOrganization{
+		userOrg, err := c.modelcore.UserOrganizationManager.FindOne(context, &modelcore.UserOrganization{
 			UserID:   user.ID,
 			BranchID: branchId,
 		})
@@ -408,7 +408,7 @@ func (c *Controller) BranchController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization for this branch not found: " + err.Error()})
 		}
-		if userOrg.UserType != modelCore.UserOrganizationTypeOwner {
+		if userOrg.UserType != modelcore.UserOrganizationTypeOwner {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update error",
 				Description: "Only the branch owner can update branch for PUT /branch/:branch_id",
@@ -417,7 +417,7 @@ func (c *Controller) BranchController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Only the branch owner can update branch information "})
 		}
 
-		branch, err := c.modelCore.BranchManager.GetByID(context, *branchId)
+		branch, err := c.modelcore.BranchManager.GetByID(context, *branchId)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update error",
@@ -447,7 +447,7 @@ func (c *Controller) BranchController() {
 		branch.Longitude = req.Longitude
 		branch.IsMainBranch = req.IsMainBranch
 
-		if err := c.modelCore.BranchManager.UpdateFields(context, branch.ID, branch); err != nil {
+		if err := c.modelcore.BranchManager.UpdateFields(context, branch.ID, branch); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("Failed to update branch for PUT /branch/:branch_id: %v", err),
@@ -468,7 +468,7 @@ func (c *Controller) BranchController() {
 			Module:      "branch",
 		})
 
-		return ctx.JSON(http.StatusOK, c.modelCore.BranchManager.ToModel(branch))
+		return ctx.JSON(http.StatusOK, c.modelcore.BranchManager.ToModel(branch))
 	})
 
 	// DELETE /branch/:branch_id: Delete a branch (owner only, if fewer than 3 members).
@@ -497,7 +497,7 @@ func (c *Controller) BranchController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication required "})
 		}
-		branch, err := c.modelCore.BranchManager.GetByID(context, *branchId)
+		branch, err := c.modelcore.BranchManager.GetByID(context, *branchId)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete error",
@@ -507,7 +507,7 @@ func (c *Controller) BranchController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Branch not found: " + err.Error()})
 		}
 
-		userOrganization, err := c.modelCore.UserOrganizationManager.FindOne(context, &modelCore.UserOrganization{
+		userOrganization, err := c.modelcore.UserOrganizationManager.FindOne(context, &modelcore.UserOrganization{
 			UserID:         user.ID,
 			BranchID:       branchId,
 			OrganizationID: branch.OrganizationID,
@@ -520,7 +520,7 @@ func (c *Controller) BranchController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}
-		if userOrganization.UserType != modelCore.UserOrganizationTypeOwner {
+		if userOrganization.UserType != modelcore.UserOrganizationTypeOwner {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete error",
 				Description: "Only the branch owner can delete this branch for DELETE /branch/:branch_id",
@@ -528,7 +528,7 @@ func (c *Controller) BranchController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Only the branch owner can delete this branch"})
 		}
-		count, err := c.modelCore.CountUserOrganizationPerBranch(context, userOrganization.UserID, *userOrganization.BranchID)
+		count, err := c.modelcore.CountUserOrganizationPerBranch(context, userOrganization.UserID, *userOrganization.BranchID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete error",
@@ -555,7 +555,7 @@ func (c *Controller) BranchController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
-		if err := c.modelCore.BranchManager.DeleteByIDWithTx(context, tx, branch.ID); err != nil {
+		if err := c.modelcore.BranchManager.DeleteByIDWithTx(context, tx, branch.ID); err != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete error",
@@ -564,7 +564,7 @@ func (c *Controller) BranchController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete branch: " + err.Error()})
 		}
-		if err := c.modelCore.UserOrganizationManager.DeleteByIDWithTx(context, tx, userOrganization.ID); err != nil {
+		if err := c.modelcore.UserOrganizationManager.DeleteByIDWithTx(context, tx, userOrganization.ID); err != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete error",
@@ -598,13 +598,13 @@ func (c *Controller) BranchController() {
 		Route:        "/api/v1/branch-settings",
 		Method:       "PUT",
 		Note:         "Updates branch settings for the current user's branch.",
-		RequestType:  modelCore.BranchSettingRequest{},
-		ResponseType: modelCore.BranchSettingResponse{},
+		RequestType:  modelcore.BranchSettingRequest{},
+		ResponseType: modelcore.BranchSettingResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
 		// Validate the branch settings request
-		var settingsReq modelCore.BranchSettingRequest
+		var settingsReq modelcore.BranchSettingRequest
 		if err := ctx.Bind(&settingsReq); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update error",
@@ -635,7 +635,7 @@ func (c *Controller) BranchController() {
 		}
 
 		// Check if user has permission to update branch settings
-		if userOrg.UserType != modelCore.UserOrganizationTypeOwner && userOrg.UserType != modelCore.UserOrganizationTypeEmployee {
+		if userOrg.UserType != modelcore.UserOrganizationTypeOwner && userOrg.UserType != modelcore.UserOrganizationTypeEmployee {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update error",
 				Description: "Insufficient permissions to update branch settings for PUT /branch-settings",
@@ -645,8 +645,8 @@ func (c *Controller) BranchController() {
 		}
 
 		// Get existing branch settings or create new one
-		var branchSetting *modelCore.BranchSetting
-		branchSetting, err = c.modelCore.BranchSettingManager.FindOne(context, &modelCore.BranchSetting{
+		var branchSetting *modelcore.BranchSetting
+		branchSetting, err = c.modelcore.BranchSettingManager.FindOne(context, &modelcore.BranchSetting{
 			BranchID: *userOrg.BranchID,
 		})
 
@@ -662,7 +662,7 @@ func (c *Controller) BranchController() {
 
 		if err != nil {
 			// Create new branch settings if they don't exist
-			branchSetting = &modelCore.BranchSetting{
+			branchSetting = &modelcore.BranchSetting{
 				CreatedAt: time.Now().UTC(),
 				UpdatedAt: time.Now().UTC(),
 				BranchID:  *userOrg.BranchID,
@@ -711,7 +711,7 @@ func (c *Controller) BranchController() {
 				DefaultMemberTypeID: settingsReq.DefaultMemberTypeID,
 			}
 
-			if err := c.modelCore.BranchSettingManager.CreateWithTx(context, tx, branchSetting); err != nil {
+			if err := c.modelcore.BranchSettingManager.CreateWithTx(context, tx, branchSetting); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "update error",
@@ -768,7 +768,7 @@ func (c *Controller) BranchController() {
 			branchSetting.DefaultMemberTypeID = settingsReq.DefaultMemberTypeID
 			branchSetting.LoanAppliedEqualToBalance = settingsReq.LoanAppliedEqualToBalance
 
-			if err := c.modelCore.BranchSettingManager.UpdateFieldsWithTx(context, tx, branchSetting.ID, branchSetting); err != nil {
+			if err := c.modelcore.BranchSettingManager.UpdateFieldsWithTx(context, tx, branchSetting.ID, branchSetting); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "update error",
@@ -801,20 +801,20 @@ func (c *Controller) BranchController() {
 			Description: "Branch settings have been successfully updated",
 		})
 
-		return ctx.JSON(http.StatusOK, c.modelCore.BranchSettingManager.ToModel(branchSetting))
+		return ctx.JSON(http.StatusOK, c.modelcore.BranchSettingManager.ToModel(branchSetting))
 	})
 
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/branch-settings/currency",
 		Method:       "PUT",
 		Note:         "Updates branch settings for the current user's branch.",
-		RequestType:  modelCore.BranchSettingsCurrencyRequest{},
-		ResponseType: modelCore.BranchSettingResponse{},
+		RequestType:  modelcore.BranchSettingsCurrencyRequest{},
+		ResponseType: modelcore.BranchSettingResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
 		// Validate the branch settings currency request
-		var settingsReq modelCore.BranchSettingsCurrencyRequest
+		var settingsReq modelcore.BranchSettingsCurrencyRequest
 		if err := ctx.Bind(&settingsReq); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update error",
@@ -841,7 +841,7 @@ func (c *Controller) BranchController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		branchSetting, err := c.modelCore.BranchSettingManager.FindOne(context, &modelCore.BranchSetting{
+		branchSetting, err := c.modelcore.BranchSettingManager.FindOne(context, &modelcore.BranchSetting{
 			BranchID: *userOrg.BranchID,
 		})
 		if err != nil {
@@ -869,7 +869,7 @@ func (c *Controller) BranchController() {
 		branchSetting.CashOnHandAccountID = &settingsReq.CashOnHandAccountID
 		branchSetting.UpdatedAt = time.Now().UTC()
 
-		if err := c.modelCore.BranchSettingManager.UpdateFieldsWithTx(context, tx, branchSetting.ID, branchSetting); err != nil {
+		if err := c.modelcore.BranchSettingManager.UpdateFieldsWithTx(context, tx, branchSetting.ID, branchSetting); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("Failed to update branch settings currency for PUT /branch-settings/currency: %v", err),
@@ -880,7 +880,7 @@ func (c *Controller) BranchController() {
 
 		// Handle deletions first
 		for _, id := range settingsReq.UnbalancedAccountDeleteIDs {
-			if err := c.modelCore.UnbalancedAccountManager.DeleteByIDWithTx(context, tx, id); err != nil {
+			if err := c.modelcore.UnbalancedAccountManager.DeleteByIDWithTx(context, tx, id); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "update-error",
@@ -895,7 +895,7 @@ func (c *Controller) BranchController() {
 		for _, accountReq := range settingsReq.UnbalancedAccount {
 			if accountReq.ID != nil {
 				// Update existing record
-				existingAccount, err := c.modelCore.UnbalancedAccountManager.GetByID(context, *accountReq.ID)
+				existingAccount, err := c.modelcore.UnbalancedAccountManager.GetByID(context, *accountReq.ID)
 				if err != nil {
 					tx.Rollback()
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get unbalanced account: " + err.Error()})
@@ -911,13 +911,13 @@ func (c *Controller) BranchController() {
 
 				existingAccount.UpdatedAt = time.Now().UTC()
 				existingAccount.UpdatedByID = userOrg.UserID
-				if err := c.modelCore.UnbalancedAccountManager.UpdateFieldsWithTx(context, tx, existingAccount.ID, existingAccount); err != nil {
+				if err := c.modelcore.UnbalancedAccountManager.UpdateFieldsWithTx(context, tx, existingAccount.ID, existingAccount); err != nil {
 					tx.Rollback()
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate scheme account: " + err.Error()})
 				}
 			} else {
 				// Create new record
-				newUnbalancedAccount := &modelCore.UnbalancedAccount{
+				newUnbalancedAccount := &modelcore.UnbalancedAccount{
 					CreatedAt:   time.Now().UTC(),
 					CreatedByID: userOrg.UserID,
 					UpdatedAt:   time.Now().UTC(),
@@ -931,7 +931,7 @@ func (c *Controller) BranchController() {
 					MemberProfileIDForShortage: accountReq.MemberProfileIDForShortage,
 					MemberProfileIDForOverage:  accountReq.MemberProfileIDForOverage,
 				}
-				if err := c.modelCore.UnbalancedAccountManager.CreateWithTx(context, tx, newUnbalancedAccount); err != nil {
+				if err := c.modelcore.UnbalancedAccountManager.CreateWithTx(context, tx, newUnbalancedAccount); err != nil {
 					tx.Rollback()
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create unbalanced account: " + err.Error()})
 				}
@@ -957,6 +957,6 @@ func (c *Controller) BranchController() {
 			Description: "Branch settings currency have been successfully updated",
 		})
 
-		return ctx.JSON(http.StatusOK, c.modelCore.BranchSettingManager.ToModel(branchSetting))
+		return ctx.JSON(http.StatusOK, c.modelcore.BranchSettingManager.ToModel(branchSetting))
 	})
 }

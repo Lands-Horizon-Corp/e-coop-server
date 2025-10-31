@@ -10,7 +10,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src"
-	modelCore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelCore"
+	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 )
@@ -21,7 +21,7 @@ type UserOrganizationClaim struct {
 	UserID             string                         `json:"user_id"`
 	BranchID           string                         `json:"branch_id"`
 	OrganizationID     string                         `json:"organization_id"`
-	UserType           modelCore.UserOrganizationType `json:"user_type"`
+	UserType           modelcore.UserOrganizationType `json:"user_type"`
 	jwt.RegisteredClaims
 }
 
@@ -36,7 +36,7 @@ type UserOrganizationCSRF struct {
 	UserID             string                         `json:"user_id"`
 	BranchID           string                         `json:"branch_id"`
 	OrganizationID     string                         `json:"organization_id"`
-	UserType           modelCore.UserOrganizationType `json:"user_type"`
+	UserType           modelcore.UserOrganizationType `json:"user_type"`
 	Language           string                         `json:"language"`
 	Location           string                         `json:"location"`
 	UserAgent          string                         `json:"user_agent"`
@@ -93,14 +93,14 @@ func (m UserOrganizationCSRF) GetID() string {
 
 // UserOrganizationToken handles user organization token and CSRF logic.
 type UserOrganizationToken struct {
-	modelCore *modelCore.ModelCore
+	modelcore *modelcore.modelcore
 	provider  *src.Provider
 
 	CSRF horizon.AuthService[UserOrganizationCSRF]
 }
 
 // NewUserOrganizationToken initializes a new UserOrganizationToken.
-func NewUserOrganizationToken(provider *src.Provider, modelCore *modelCore.ModelCore) (*UserOrganizationToken, error) {
+func NewUserOrganizationToken(provider *src.Provider, modelcore *modelcore.modelcore) (*UserOrganizationToken, error) {
 	appName := provider.Service.Environment.GetString("APP_NAME", "")
 
 	csrfService := horizon.NewHorizonAuthService[UserOrganizationCSRF](
@@ -112,7 +112,7 @@ func NewUserOrganizationToken(provider *src.Provider, modelCore *modelCore.Model
 
 	return &UserOrganizationToken{
 		CSRF:      csrfService,
-		modelCore: modelCore,
+		modelcore: modelcore,
 		provider:  provider,
 	}, nil
 }
@@ -122,12 +122,12 @@ func (h *UserOrganizationToken) ClearCurrentToken(ctx context.Context, echoCtx e
 }
 
 // CurrentUserOrganization retrieves the current user organization from the CSRF token, validating the information.
-func (h *UserOrganizationToken) CurrentUserOrganization(ctx context.Context, echoCtx echo.Context) (*modelCore.UserOrganization, error) {
+func (h *UserOrganizationToken) CurrentUserOrganization(ctx context.Context, echoCtx echo.Context) (*modelcore.UserOrganization, error) {
 	// Try Bearer token as fallback first
 	authHeader := echoCtx.Request().Header.Get("Authorization")
 	if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
 		bearerToken := authHeader[7:]
-		userOrganization, err := h.modelCore.UserOrganizationManager.FindOne(ctx, &modelCore.UserOrganization{
+		userOrganization, err := h.modelcore.UserOrganizationManager.FindOne(ctx, &modelcore.UserOrganization{
 			DeveloperSecretKey: bearerToken,
 		})
 
@@ -147,7 +147,7 @@ func (h *UserOrganizationToken) CurrentUserOrganization(ctx context.Context, ech
 		return nil, echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized: missing essential user organization information")
 	}
 
-	userOrganization, err := h.modelCore.UserOrganizationManager.GetByID(ctx, handlers.ParseUUID(&claim.UserOrganizationID))
+	userOrganization, err := h.modelcore.UserOrganizationManager.GetByID(ctx, handlers.ParseUUID(&claim.UserOrganizationID))
 	if err != nil || userOrganization == nil {
 		h.ClearCurrentToken(ctx, echoCtx)
 		return nil, echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized: user organization not found")
@@ -165,7 +165,7 @@ func (h *UserOrganizationToken) CurrentUserOrganization(ctx context.Context, ech
 }
 
 // SetUserOrganization sets the CSRF token for the provided user organization.
-func (h *UserOrganizationToken) SetUserOrganization(ctx context.Context, echoCtx echo.Context, userOrganization *modelCore.UserOrganization) error {
+func (h *UserOrganizationToken) SetUserOrganization(ctx context.Context, echoCtx echo.Context, userOrganization *modelcore.UserOrganization) error {
 	h.ClearCurrentToken(ctx, echoCtx)
 	if userOrganization == nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "UserOrganization cannot be nil")
