@@ -1,3 +1,7 @@
+// Package cmd contains CLI command wiring and helper actions for the e-coop-server.
+//
+// It defines CLI commands used for database migration, seeding, cache management,
+// and running the server in development or test environments.
 package cmd
 
 import (

@@ -46,6 +46,8 @@ func init() {
 	}
 }
 
+// Execute runs the root CLI command and exits on failure.
+// It is intended to be called from main.main to start the CLI.
 func Execute() {
 	if err := command.Execute(); err != nil {
 		fmt.Println(err)
@@ -71,15 +73,21 @@ func executeLifecycle(app *fx.App) {
 
 // executeLifecycleWithTimeout handles the fx application lifecycle with custom timeout
 func executeLifecycleWithTimeout(app *fx.App, timeout time.Duration) {
-	startCtx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
+	startCtx, startCancel := context.WithTimeout(context.Background(), timeout)
 	if err := app.Start(startCtx); err != nil {
+		// Ensure we cancel the start context before logging a fatal error so
+		// any cancel cleanup runs as expected.
+		startCancel()
 		log.Fatalf("Failed to start: %v", err)
 	}
+	// Clean up start context resources after successful start.
+	startCancel()
 
-	stopCtx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
-	defer cancel()
+	stopCtx, stopCancel := context.WithTimeout(context.Background(), 10*time.Minute)
 	if err := app.Stop(stopCtx); err != nil {
+		stopCancel()
 		log.Fatalf("Failed to stop: %v", err)
 	}
+	// Clean up stop context resources after successful stop.
+	stopCancel()
 }

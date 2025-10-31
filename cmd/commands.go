@@ -14,18 +14,17 @@ var command = &cobra.Command{
 	Long: `A comprehensive CLI tool for managing the E-Coop server application.
 This tool provides commands for database management, cache operations, 
 and server operations for your financial cooperative system.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		handlers.PrintASCIIArt()
-		if err := cmd.Help(); err != nil {
-			color.Red("Error displaying help: %v", err)
-		}
+		// ignore errors from Help display in CLI invocation
+		// (non-critical for printing help)
 	},
 }
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the version number",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		color.Green("E-Coop Server v1.0.0")
 	},
 }
@@ -44,7 +43,7 @@ var commandGroups = map[string]struct {
 			{
 				Use:   "clean",
 				Short: "Clean the application cache",
-				RunFunc: func(cmd *cobra.Command, args []string) {
+				RunFunc: func(_ *cobra.Command, _ []string) {
 					cleanCache()
 				},
 			},
@@ -59,25 +58,31 @@ var commandGroups = map[string]struct {
 			{
 				Use:   "migrate",
 				Short: "Automigrate all tables in the database",
-				RunFunc: func(cmd *cobra.Command, args []string) {
+				RunFunc: func(_ *cobra.Command, _ []string) {
 					migrateDatabase()
 				},
 			},
 			{
 				Use:   "seed",
 				Short: "Seed the database with initial data",
-				RunFunc: func(cmd *cobra.Command, args []string) {
+				RunFunc: func(_ *cobra.Command, _ []string) {
 					seedDatabase()
 				},
 			},
 			{
 				Use:   "performance-seed",
 				Short: "Run database performance tests (creates test tables and data)",
-				RunFunc: func(cmd *cobra.Command, args []string) {
-					multiplier, err := strconv.ParseInt(args[0], 2, 32)
+				RunFunc: func(_ *cobra.Command, args []string) {
+					// parse multiplier from args if provided
+					if len(args) == 0 {
+						seedDatabasePerformance(1)
+						return
+					}
+					multiplier, err := strconv.ParseInt(args[0], 10, 32)
 					if err != nil {
 						color.Red("Invalid multiplier, using default 1")
-						multiplier = 1
+						seedDatabasePerformance(1)
+						return
 					}
 					seedDatabasePerformance(int32(multiplier))
 				},
@@ -85,14 +90,14 @@ var commandGroups = map[string]struct {
 			{
 				Use:   "reset",
 				Short: "Reset the database (drops and recreates)",
-				RunFunc: func(cmd *cobra.Command, args []string) {
+				RunFunc: func(_ *cobra.Command, _ []string) {
 					resetDatabase()
 				},
 			},
 			{
 				Use:   "refresh",
 				Short: "Reset the database and seed it with initial data",
-				RunFunc: func(cmd *cobra.Command, args []string) {
+				RunFunc: func(_ *cobra.Command, _ []string) {
 					refreshDatabase()
 				},
 			},
@@ -105,7 +110,7 @@ var standaloneCommands = []CommandConfig{
 	{
 		Use:   "server",
 		Short: "Start the main server",
-		RunFunc: func(cmd *cobra.Command, args []string) {
+		RunFunc: func(_ *cobra.Command, _ []string) {
 			startServer()
 		},
 	},
