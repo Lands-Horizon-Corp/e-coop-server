@@ -65,7 +65,7 @@ func NewHorizonSMTP(host string, port int, username, password string, from strin
 }
 
 // Run implements SMTPService.
-func (h *HorizonSMTP) Run(ctx context.Context) error {
+func (h *HorizonSMTP) Run(_ context.Context) error {
 	h.limiterOnce.Do(func() {
 		h.limiter = rate.NewLimiter(rate.Limit(1000), 100) // 10 rps, burst 5
 	})
@@ -73,13 +73,13 @@ func (h *HorizonSMTP) Run(ctx context.Context) error {
 }
 
 // Stop implements SMTPService.
-func (h *HorizonSMTP) Stop(ctx context.Context) error {
+func (h *HorizonSMTP) Stop(_ context.Context) error {
 	h.limiter = nil
 	return nil
 }
 
 // Format implements SMTPService.
-func (h *HorizonSMTP) Format(ctx context.Context, req SMTPRequest) (*SMTPRequest, error) {
+func (h *HorizonSMTP) Format(_ context.Context, req SMTPRequest) (*SMTPRequest, error) {
 	var tmplBody string
 
 	if err := handlers.IsValidFilePath(req.Body); err == nil {

@@ -18,6 +18,7 @@ import (
 	"github.com/rotisserie/eris"
 )
 
+// StorageService defines the interface for storage operations
 type StorageService interface {
 	Run(ctx context.Context) error
 	Stop(ctx context.Context) error
@@ -32,6 +33,7 @@ type StorageService interface {
 	GenerateUniqueName(ctx context.Context, originalName string, contentType string) (string, error)
 }
 
+// Storage represents metadata about a stored file
 type Storage struct {
 	FileName   string
 	FileSize   int64
@@ -43,8 +45,10 @@ type Storage struct {
 	Progress   int64
 }
 
+// ProgressCallback is a function that gets called to report upload progress
 type ProgressCallback func(progress int64, total int64, storage *Storage)
 
+// HorizonStorage is the default implementation of StorageService using MinIO
 type HorizonStorage struct {
 	driver           string
 	storageAccessKey string
@@ -57,6 +61,8 @@ type HorizonStorage struct {
 	client           *minio.Client
 	ssl              bool
 }
+
+// progressReader wraps an io.Reader to report upload progress
 type progressReader struct {
 	reader    io.Reader
 	callback  ProgressCallback
@@ -65,6 +71,7 @@ type progressReader struct {
 	storage   *Storage
 }
 
+// BinaryFileInput represents a file to be uploaded from a binary source
 type BinaryFileInput struct {
 	Data        io.Reader
 	Size        int64
@@ -72,6 +79,7 @@ type BinaryFileInput struct {
 	ContentType string
 }
 
+// NewHorizonStorageService creates a new instance of HorizonStorage
 func NewHorizonStorageService(
 	accessKey,
 	secretKey,
@@ -143,7 +151,7 @@ func (h *HorizonStorage) Run(ctx context.Context) error {
 }
 
 // Stop cleans up the storage service resources
-func (h *HorizonStorage) Stop(ctx context.Context) error {
+func (h *HorizonStorage) Stop(_ context.Context) error {
 	h.client = nil
 	return nil
 }
