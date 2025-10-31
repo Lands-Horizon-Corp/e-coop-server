@@ -11,6 +11,7 @@ import (
 )
 
 // Enum for cash_check_voucher_status
+// CashCheckVoucherStatus 
 type CashCheckVoucherStatus string
 
 const (
@@ -451,6 +452,7 @@ func (m *ModelCore) cashCheckVoucher() {
 	})
 }
 
+// CashCheckVoucherCurrentBranch 
 // CashCheckVoucherCurrentBranch retrieves all cash check vouchers for the specified organization and branch.
 func (m *ModelCore) CashCheckVoucherCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*CashCheckVoucher, error) {
 	return m.CashCheckVoucherManager.Find(context, &CashCheckVoucher{
@@ -458,6 +460,7 @@ func (m *ModelCore) CashCheckVoucherCurrentBranch(context context.Context, orgID
 		BranchID:       branchID,
 	})
 }
+// CashCheckVoucherDraft 
 
 // CashCheckVoucherDraft retrieves all draft cash check vouchers for the specified organization and branch.
 func (m *ModelCore) CashCheckVoucherDraft(ctx context.Context, branchID, orgID uuid.UUID) ([]*CashCheckVoucher, error) {
@@ -474,6 +477,7 @@ func (m *ModelCore) CashCheckVoucherDraft(ctx context.Context, branchID, orgID u
 		return nil, err
 	}
 	return cashCheckVouchers, nil
+// CashCheckVoucherPrinted 
 }
 
 // CashCheckVoucherPrinted retrieves all printed cash check vouchers for the specified organization and branch.
@@ -490,6 +494,7 @@ func (m *ModelCore) CashCheckVoucherPrinted(ctx context.Context, branchID, orgID
 	if err != nil {
 		return nil, err
 	}
+// CashCheckVoucherApproved 
 	return cashCheckVouchers, nil
 }
 
@@ -506,6 +511,7 @@ func (m *ModelCore) CashCheckVoucherApproved(ctx context.Context, branchID, orgI
 	cashCheckVouchers, err := m.CashCheckVoucherManager.FindWithFilters(ctx, filters)
 	if err != nil {
 		return nil, err
+// CashCheckVoucherReleased 
 	}
 	return cashCheckVouchers, nil
 }
@@ -522,6 +528,7 @@ func (m *ModelCore) CashCheckVoucherReleased(ctx context.Context, branchID, orgI
 
 	cashCheckVouchers, err := m.CashCheckVoucherManager.FindWithFilters(ctx, filters)
 	if err != nil {
+// CashCheckVoucherReleasedCurrentDay 
 		return nil, err
 	}
 	return cashCheckVouchers, nil

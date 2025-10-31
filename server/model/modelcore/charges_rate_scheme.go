@@ -10,6 +10,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// ChargesRateSchemeType 
 type ChargesRateSchemeType string
 
 const (
@@ -380,6 +381,7 @@ func (m *ModelCore) chargesRateScheme() {
 	})
 }
 
+// ChargesRateSchemeCurrentBranch 
 // ChargesRateSchemeCurrentBranch retrieves all ChargesRateSchemes for the current branch and organization.
 func (m *ModelCore) ChargesRateSchemeCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*ChargesRateScheme, error) {
 	return m.ChargesRateSchemeManager.Find(context, &ChargesRateScheme{

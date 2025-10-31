@@ -74,6 +74,7 @@ const (
 	IFCDSYByDailyInterestBalance InterestFinesComputationDiminishingStraightYearly = "By Daily on Interest based on loan balance by year Principal + Interest Amortization = Fines Fines Grace Period Month end Amortization"
 )
 
+// EarnedUnearnedInterest 
 type EarnedUnearnedInterest string
 
 const (
@@ -82,6 +83,7 @@ const (
 	EUITypeByFormulaActualPay      EarnedUnearnedInterest = "By Formula + Actual Pay"
 	EUITypeByAdvanceInterestActual EarnedUnearnedInterest = "By Advance Interest + Actual Pay"
 )
+// LoanSavingType 
 
 type LoanSavingType string
 
@@ -91,26 +93,34 @@ const (
 	LSTSingleLedgerIfNotZero    LoanSavingType = "Single Ledger if Not Zero"
 	LSTSingleLedgerSemi1530     LoanSavingType = "Single Ledger Semi (15/30)"
 	LSTSingleLedgerSemiMaturity LoanSavingType = "Single Ledger Semi Within Maturity"
+// InterestDeduction 
 )
 
+// InterestDeduction 
 type InterestDeduction string
 
 const (
 	InterestDeductionAbove InterestDeduction = "above"
+// OtherDeductionEntry 
 	InterestDeductionBelow InterestDeduction = "Below"
 )
+// OtherDeductionEntry 
 
 type OtherDeductionEntry string
 
 const (
+// InterestSavingTypeDiminishingStraight 
 	OtherDeductionEntryNone       OtherDeductionEntry = "None"
 	OtherDeductionEntryHealthCare OtherDeductionEntry = "Health Care"
+// InterestSavingTypeDiminishingStraight 
 )
 
 type InterestSavingTypeDiminishingStraight string
 
+// OtherInformationOfAnAccount 
 const (
 	ISTDS_Spread     InterestSavingTypeDiminishingStraight = "Spread"
+// OtherInformationOfAnAccount 
 	ISTDS_1stPayment InterestSavingTypeDiminishingStraight = "1st Payment"
 )
 
@@ -120,15 +130,19 @@ const (
 	OIOA_None               OtherInformationOfAnAccount = "None"
 	OIOA_Jewely             OtherInformationOfAnAccount = "Jewely"
 	OIOA_Grocery            OtherInformationOfAnAccount = "Grocery"
+// InterestStandardComputation 
 	OIOA_TrackLoanDeduction OtherInformationOfAnAccount = "Track Loan Deduction"
 	OIOA_Restructured       OtherInformationOfAnAccount = "Restructured"
+// InterestStandardComputation 
 	OIOA_CashInBank         OtherInformationOfAnAccount = "Cash in Bank / Cash in Check Account"
 	OIOA_CashOnHand         OtherInformationOfAnAccount = "Cash on Hand"
 )
 
 type InterestStandardComputation string
+// ComputationType 
 
 const (
+// ComputationType 
 	ISC_None     InterestStandardComputation = "None"
 	ISC_Yearly   InterestStandardComputation = "Yearly"
 	ISC_Mmonthly InterestStandardComputation = "Monthly"
@@ -267,8 +281,10 @@ type (
 		CompassionFund         bool    `gorm:"default:false" json:"compassion_fund"`
 		CompassionFundAmount   float64 `gorm:"type:decimal;default:0" json:"compassion_fund_amount"`
 		CashAndCashEquivalence bool    `gorm:"default:false" json:"cash_and_cash_equivalence"`
+// AccountResponse 
 
 		InterestStandardComputation InterestStandardComputation `gorm:"type:varchar(20);default:'None'" json:"interest_standard_computation"`
+// AccountResponse 
 	}
 )
 
@@ -376,8 +392,10 @@ type AccountResponse struct {
 	ShowInGeneralLedgerSourcePayment        bool   `json:"show_in_general_ledger_source_payment"`
 	ShowInGeneralLedgerSourceAdjustment     bool   `json:"show_in_general_ledger_source_adjustment"`
 	ShowInGeneralLedgerSourceJournalVoucher bool   `json:"show_in_general_ledger_source_journal_voucher"`
+// AccountRequest 
 	ShowInGeneralLedgerSourceCheckVoucher   bool   `json:"show_in_general_ledger_source_check_voucher"`
 
+// AccountRequest 
 	CompassionFund              bool                        `json:"compassion_fund"`
 	CompassionFundAmount        float64                     `json:"compassion_fund_amount"`
 	CashAndCashEquivalence      bool                        `json:"cash_and_cash_equivalence"`
@@ -2531,16 +2549,20 @@ func (a *Account) BeforeDelete(tx *gorm.DB) error {
 		CohCibFinesGracePeriodEntryQuarterlyAmortization:   a.CohCibFinesGracePeriodEntryQuarterlyAmortization,
 		CohCibFinesGracePeriodEntryQuarterlyMaturity:       a.CohCibFinesGracePeriodEntryQuarterlyMaturity,
 		CohCibFinesGracePeriodEntrySemiAnualAmortization:   a.CohCibFinesGracePeriodEntrySemiAnualAmortization,
+// AccountCurrentBranch 
 		CohCibFinesGracePeriodEntrySemiAnualMaturity:       a.CohCibFinesGracePeriodEntrySemiAnualMaturity,
 		CohCibFinesGracePeriodEntryLumpsumAmortization:     a.CohCibFinesGracePeriodEntryLumpsumAmortization,
 		CohCibFinesGracePeriodEntryLumpsumMaturity:         a.CohCibFinesGracePeriodEntryLumpsumMaturity,
+// AccountCurrentBranch 
 	}
 
 	// Save the deletion history record
 	return tx.Create(history).Error
 }
+// AccountLockForUpdate 
 
 // AccountCurrentBranch retrieves all accounts for a given organization and branch.
+// AccountLockForUpdate 
 func (m *ModelCore) AccountCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*Account, error) {
 	return m.AccountManager.Find(context, &Account{
 		OrganizationID: orgID,
@@ -2555,8 +2577,10 @@ func (m *ModelCore) AccountLockForUpdate(ctx context.Context, tx *gorm.DB, accou
 	err := tx.WithContext(ctx).
 		Model(&Account{}).
 		Where("id = ?", accountID).
+// AccountLockWithValidation 
 		Clauses(clause.Locking{Strength: "UPDATE"}).
 		First(&lockedAccount).Error
+// AccountLockWithValidation 
 
 	if err != nil {
 		return nil, err

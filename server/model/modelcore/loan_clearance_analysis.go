@@ -40,8 +40,6 @@ type (
 		BalancesCount       int     `gorm:"type:int"`
 	}
 
-	// LoanClearanceAnalysisResponse represents the response structure for loanclearanceanalysis data
-
 	// LoanClearanceAnalysisResponse represents the response structure for LoanClearanceAnalysis.
 	LoanClearanceAnalysisResponse struct {
 		ID                          uuid.UUID                `json:"id"`
@@ -63,8 +61,6 @@ type (
 		BalancesAmount              float64                  `json:"balances_amount"`
 		BalancesCount               int                      `json:"balances_count"`
 	}
-
-	// LoanClearanceAnalysisRequest represents the request structure for creating/updating loanclearanceanalysis
 
 	// LoanClearanceAnalysisRequest represents the request structure for LoanClearanceAnalysis.
 	LoanClearanceAnalysisRequest struct {
@@ -139,7 +135,7 @@ func (m *ModelCore) loanClearanceAnalysis() {
 	})
 }
 
-// LoanClearanceAnalysisCurrentBranch returns LoanClearanceAnalysisCurrentBranch for the current branch or organization where applicable.
+// LoanClearanceAnalysisCurrentBranch retrieves loan clearance analyses for the given organization and branch.
 func (m *ModelCore) LoanClearanceAnalysisCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*LoanClearanceAnalysis, error) {
 	return m.LoanClearanceAnalysisManager.Find(context, &LoanClearanceAnalysis{
 		OrganizationID: orgID,

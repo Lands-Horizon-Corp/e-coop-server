@@ -10,6 +10,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// FootstepLevel 
 type FootstepLevel string
 
 const (
@@ -185,12 +186,14 @@ func (m *ModelCore) footstep() {
 	})
 }
 
+// GetFootstepByUser 
 // GetFootstepByUser returns GetFootstepByUser for the current branch or organization where applicable.
 func (m *ModelCore) GetFootstepByUser(context context.Context, userId uuid.UUID) ([]*Footstep, error) {
 	return m.FootstepManager.Find(context, &Footstep{
 		UserID: &userId,
 	})
 }
+// GetFootstepBybranch 
 
 // GetFootstepBybranch returns GetFootstepBybranch for the current branch or organization where applicable.
 func (m *ModelCore) GetFootstepBybranch(context context.Context, organizationId uuid.UUID, branchID uuid.UUID) ([]*Footstep, error) {
@@ -198,6 +201,7 @@ func (m *ModelCore) GetFootstepBybranch(context context.Context, organizationId 
 		OrganizationID: &organizationId,
 		BranchID:       &branchID,
 	})
+// GetFootstepByUserOrganization 
 }
 
 // GetFootstepByUserOrganization returns GetFootstepByUserOrganization for the current branch or organization where applicable.
