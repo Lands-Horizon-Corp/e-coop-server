@@ -3,6 +3,7 @@ package controller_v1
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
@@ -177,7 +178,7 @@ func (c *Controller) ContactController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
 
-		emails := ""
+		var emailsBuilder strings.Builder
 		for _, rawID := range reqBody.IDs {
 			contactID, err := uuid.Parse(rawID)
 			if err != nil {
@@ -199,7 +200,8 @@ func (c *Controller) ContactController() {
 				})
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Contact record not found with ID: %s", rawID)})
 			}
-			emails += contact.Email + ","
+			emailsBuilder.WriteString(contact.Email)
+			emailsBuilder.WriteString(",")
 			if err := c.model_core.ContactUsManager.DeleteByIDWithTx(context, tx, contactID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -222,7 +224,7 @@ func (c *Controller) ContactController() {
 
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted contacts (/contact/bulk-delete): " + emails,
+			Description: "Bulk deleted contacts (/contact/bulk-delete): " + emailsBuilder.String(),
 			Module:      "Contact",
 		})
 

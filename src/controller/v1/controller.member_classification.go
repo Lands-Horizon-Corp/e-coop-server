@@ -3,6 +3,7 @@ package controller_v1
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
@@ -300,7 +301,7 @@ func (c *Controller) MemberClassificationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
 		}
 
-		names := ""
+		var namesBuilder strings.Builder
 		for _, rawID := range reqBody.IDs {
 			memberClassificationID, err := uuid.Parse(rawID)
 			if err != nil {
@@ -322,7 +323,8 @@ func (c *Controller) MemberClassificationController() {
 				})
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Member classification with ID '%s' not found: %s", rawID, err.Error())})
 			}
-			names += value.Name + ","
+			namesBuilder.WriteString(value.Name)
+			namesBuilder.WriteString(",")
 			if err := c.model_core.MemberClassificationManager.DeleteByIDWithTx(context, tx, memberClassificationID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -344,7 +346,7 @@ func (c *Controller) MemberClassificationController() {
 		}
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted member classifications (/member-classification/bulk-delete): " + names,
+			Description: "Bulk deleted member classifications (/member-classification/bulk-delete): " + namesBuilder.String(),
 			Module:      "MemberClassification",
 		})
 		return ctx.NoContent(http.StatusNoContent)

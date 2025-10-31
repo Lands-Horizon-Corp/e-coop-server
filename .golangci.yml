@@ -1,3 +1,5 @@
+version: 2
+
 run:
   timeout: 30m # Increased for large monolith to avoid timeouts
   concurrency: 8 # Parallel processing for faster runs on big codebases
