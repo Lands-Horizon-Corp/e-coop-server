@@ -12,7 +12,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (c *Controller) SubscriptionPlanController() {
+func (c *Controller) subscriptionPlanController(
 	req := c.provider.Service.Request
 
 	// Get all subscription plans

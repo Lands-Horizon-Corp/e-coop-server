@@ -10,7 +10,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (c *Controller) MemberGovernmentBenefitController() {
+func (c *Controller) memberGovernmentBenefitController(
 	req := c.provider.Service.Request
 
 	// Create a new government benefit record for a member profile

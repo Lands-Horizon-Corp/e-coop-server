@@ -74,7 +74,7 @@ type (
 	}
 )
 
-func (m *ModelCore) FinancialStatementGrouping() {
+func (m *ModelCore) financialStatementGrouping() {
 	m.Migration = append(m.Migration, &FinancialStatementGrouping{})
 	m.FinancialStatementGroupingManager = horizon_services.NewRepository(horizon_services.RepositoryParams[FinancialStatementGrouping, FinancialStatementGroupingResponse, FinancialStatementGroupingRequest]{
 		Preloads: []string{
@@ -214,7 +214,7 @@ func (m *ModelCore) FinancialStatementGroupingSeed(context context.Context, tx *
 	}
 	return nil
 }
-func (m *ModelCore) FinancialStatementGroupingCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*FinancialStatementGrouping, error) {
+func (m *ModelCore) FinancialStatementGroupingCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*FinancialStatementGrouping, error) {
 	return m.FinancialStatementGroupingManager.Find(context, &FinancialStatementGrouping{
 		OrganizationID: orgId,
 		BranchID:       branchId,

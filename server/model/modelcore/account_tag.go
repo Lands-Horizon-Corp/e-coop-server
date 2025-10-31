@@ -128,7 +128,7 @@ func (m *ModelCore) AccountTag() {
 	})
 }
 
-func (m *ModelCore) AccountTagCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*AccountTag, error) {
+func (m *ModelCore) AccountTagCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*AccountTag, error) {
 	return m.AccountTagManager.Find(context, &AccountTag{
 		OrganizationID: orgId,
 		BranchID:       branchId,

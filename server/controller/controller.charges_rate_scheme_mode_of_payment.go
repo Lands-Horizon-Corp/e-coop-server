@@ -13,7 +13,7 @@ import (
 )
 
 // ChargesRateSchemeModeOfPaymentController registers routes for managing charges rate scheme model of payment.
-func (c *Controller) ChargesRateSchemeModeOfPaymentController() {
+func (c *Controller) chargesRateSchemeModeOfPaymentController(
 	req := c.provider.Service.Request
 
 	// POST /charges-rate-scheme-mode-of-payment: Create a new charges rate scheme model of payment. (WITH footstep)

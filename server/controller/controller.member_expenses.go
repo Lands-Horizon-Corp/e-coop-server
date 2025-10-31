@@ -10,7 +10,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (c *Controller) MemberExpenseController() {
+func (c *Controller) memberExpenseController(
 	req := c.provider.Service.Request
 
 	// Create a new expense record for a member profile

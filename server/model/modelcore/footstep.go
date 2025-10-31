@@ -99,7 +99,7 @@ type (
 	}
 )
 
-func (m *ModelCore) Footstep() {
+func (m *ModelCore) footstep() {
 	m.Migration = append(m.Migration, &Footstep{})
 	m.FootstepManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Footstep, FootstepResponse, FootstepRequest]{
 		Preloads: []string{
@@ -184,7 +184,7 @@ func (m *ModelCore) GetFootstepByUser(context context.Context, userId uuid.UUID)
 	})
 }
 
-func (m *ModelCore) GetFootstepByBranch(context context.Context, organizationId uuid.UUID, branchId uuid.UUID) ([]*Footstep, error) {
+func (m *ModelCore) GetFootstepBybranch(context context.Context, organizationId uuid.UUID, branchId uuid.UUID) ([]*Footstep, error) {
 	return m.FootstepManager.Find(context, &Footstep{
 		OrganizationID: &organizationId,
 		BranchID:       &branchId,

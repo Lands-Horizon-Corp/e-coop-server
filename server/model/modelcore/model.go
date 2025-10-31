@@ -3,8 +3,8 @@ package modelcore
 import (
 	"context"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
-	"github.com/gohugoio/hugo/config/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
@@ -50,178 +50,178 @@ type (
 	}
 	// modelcore represents the core model management structure containing all entity managers
 	ModelCore struct {
-		provider *srm.Provider
+		provider *server.Provider
 
 		// Managers
 		Migration []any
 
-		BankManager                   horizon_services.Repository[Bank, BankResponse, BankRequest]
-		BranchManager                 horizon_services.Repository[Branch, BranchResponse, BranchRequest]
-		BranchSettingManager          horizon_services.Repository[BranchSetting, BranchSettingResponse, BranchSettingRequest]
-		CategoryManager               horizon_services.Repository[Category, CategoryResponse, CategoryRequest]
-		ContactUsManager              horizon_services.Repository[ContactUs, ContactUsResponse, ContactUsRequest]
-		CurrencyManager               horizon_services.Repository[Currency, CurrencyResponse, CurrencyRequest]
-		FeedbackManager               horizon_services.Repository[Feedback, FeedbackResponse, FeedbackRequest]
-		FootstepManager               horizon_services.Repository[Footstep, FootstepResponse, FootstepRequest]
-		GeneratedReportManager        horizon_services.Repository[GeneratedReport, GeneratedReportResponse, GeneratedReportRequest]
-		InvitationCodeManager         horizon_services.Repository[InvitationCode, InvitationCodeResponse, InvitationCodeRequest]
-		MediaManager                  horizon_services.Repository[Media, MediaResponse, MediaRequest]
-		NotificationManager           horizon_services.Repository[Notification, NotificationResponse, any]
-		OrganizationCategoryManager   horizon_services.Repository[OrganizationCategory, OrganizationCategoryResponse, OrganizationCategoryRequest]
-		OrganizationDailyUsageManager horizon_services.Repository[OrganizationDailyUsage, OrganizationDailyUsageResponse, OrganizationDailyUsageRequest]
-		OrganizationManager           horizon_services.Repository[Organization, OrganizationResponse, OrganizationRequest]
-		OrganizationMediaManager      horizon_services.Repository[OrganizationMedia, OrganizationMediaResponse, OrganizationMediaRequest]
-		PermissionTemplateManager     horizon_services.Repository[PermissionTemplate, PermissionTemplateResponse, PermissionTemplateRequest]
-		SubscriptionPlanManager       horizon_services.Repository[SubscriptionPlan, SubscriptionPlanResponse, SubscriptionPlanRequest]
-		UserOrganizationManager       horizon_services.Repository[UserOrganization, UserOrganizationResponse, UserOrganizationRequest]
-		UserManager                   horizon_services.Repository[User, UserResponse, UserRegisterRequest]
-		UserRatingManager             horizon_services.Repository[UserRating, UserRatingResponse, UserRatingRequest]
-		MemberProfileMediaManager     horizon_services.Repository[MemberProfileMedia, MemberProfileMediaResponse, MemberProfileMediaRequest]
+		BankManager                   services.Repository[Bank, BankResponse, BankRequest]
+		BranchManager                 services.Repository[Branch, BranchResponse, BranchRequest]
+		BranchSettingManager          services.Repository[BranchSetting, BranchSettingResponse, BranchSettingRequest]
+		CategoryManager               services.Repository[Category, CategoryResponse, CategoryRequest]
+		ContactUsManager              services.Repository[ContactUs, ContactUsResponse, ContactUsRequest]
+		CurrencyManager               services.Repository[Currency, CurrencyResponse, CurrencyRequest]
+		FeedbackManager               services.Repository[Feedback, FeedbackResponse, FeedbackRequest]
+		FootstepManager               services.Repository[Footstep, FootstepResponse, FootstepRequest]
+		GeneratedReportManager        services.Repository[GeneratedReport, GeneratedReportResponse, GeneratedReportRequest]
+		InvitationCodeManager         services.Repository[InvitationCode, InvitationCodeResponse, InvitationCodeRequest]
+		MediaManager                  services.Repository[Media, MediaResponse, MediaRequest]
+		NotificationManager           services.Repository[Notification, NotificationResponse, any]
+		OrganizationCategoryManager   services.Repository[OrganizationCategory, OrganizationCategoryResponse, OrganizationCategoryRequest]
+		OrganizationDailyUsageManager services.Repository[OrganizationDailyUsage, OrganizationDailyUsageResponse, OrganizationDailyUsageRequest]
+		OrganizationManager           services.Repository[Organization, OrganizationResponse, OrganizationRequest]
+		OrganizationMediaManager      services.Repository[OrganizationMedia, OrganizationMediaResponse, OrganizationMediaRequest]
+		PermissionTemplateManager     services.Repository[PermissionTemplate, PermissionTemplateResponse, PermissionTemplateRequest]
+		SubscriptionPlanManager       services.Repository[SubscriptionPlan, SubscriptionPlanResponse, SubscriptionPlanRequest]
+		UserOrganizationManager       services.Repository[UserOrganization, UserOrganizationResponse, UserOrganizationRequest]
+		UserManager                   services.Repository[User, UserResponse, UserRegisterRequest]
+		UserRatingManager             services.Repository[UserRating, UserRatingResponse, UserRatingRequest]
+		MemberProfileMediaManager     services.Repository[MemberProfileMedia, MemberProfileMediaResponse, MemberProfileMediaRequest]
 
 		// Members
-		MemberAddressManager                horizon_services.Repository[MemberAddress, MemberAddressReponse, MemberAddressRequest]
-		MemberAssetManager                  horizon_services.Repository[MemberAsset, MemberAssetResponse, MemberAssetRequest]
-		MemberBankCardManager               horizon_services.Repository[MemberBankCard, MemberBankCardResponse, MemberBankCardRequest]
-		MemberCenterHistoryManager          horizon_services.Repository[MemberCenterHistory, MemberCenterHistoryResponse, MemberCenterHistoryRequest]
-		MemberCenterManager                 horizon_services.Repository[MemberCenter, MemberCenterResponse, MemberCenterRequest]
-		MemberClassificationManager         horizon_services.Repository[MemberClassification, MemberClassificationResponse, MemberClassificationRequest]
-		MemberClassificationHistoryManager  horizon_services.Repository[MemberClassificationHistory, MemberClassificationHistoryResponse, MemberClassificationHistoryRequest]
-		MemberCloseRemarkManager            horizon_services.Repository[MemberCloseRemark, MemberCloseRemarkResponse, MemberCloseRemarkRequest]
-		MemberContactReferenceManager       horizon_services.Repository[MemberContactReference, MemberContactReferenceResponse, MemberContactReferenceRequest]
-		MemberDamayanExtensionEntryManager  horizon_services.Repository[MemberDamayanExtensionEntry, MemberDamayanExtensionEntryResponse, MemberDamayanExtensionEntryRequest]
-		MemberEducationalAttainmentManager  horizon_services.Repository[MemberEducationalAttainment, MemberEducationalAttainmentResponse, MemberEducationalAttainmentRequest]
-		MemberExpenseManager                horizon_services.Repository[MemberExpense, MemberExpenseResponse, MemberExpenseRequest]
-		MemberGenderHistoryManager          horizon_services.Repository[MemberGenderHistory, MemberGenderHistoryResponse, MemberGenderHistoryRequest]
-		MemberGenderManager                 horizon_services.Repository[MemberGender, MemberGenderResponse, MemberGenderRequest]
-		MemberGovernmentBenefitManager      horizon_services.Repository[MemberGovernmentBenefit, MemberGovernmentBenefitResponse, MemberGovernmentBenefitRequest]
-		MemberGroupHistoryManager           horizon_services.Repository[MemberGroupHistory, MemberGroupHistoryResponse, MemberGroupHistoryRequest]
-		MemberGroupManager                  horizon_services.Repository[MemberGroup, MemberGroupResponse, MemberGroupRequest]
-		MemberIncomeManager                 horizon_services.Repository[MemberIncome, MemberIncomeResponse, MemberIncomeRequest]
-		MemberJointAccountManager           horizon_services.Repository[MemberJointAccount, MemberJointAccountResponse, MemberJointAccountRequest]
-		MemberMutualFundHistoryManager      horizon_services.Repository[MemberMutualFundHistory, MemberMutualFundHistoryResponse, MemberMutualFundHistoryRequest]
-		MemberOccupationHistoryManager      horizon_services.Repository[MemberOccupationHistory, MemberOccupationHistoryResponse, MemberOccupationHistoryRequest]
-		MemberOccupationManager             horizon_services.Repository[MemberOccupation, MemberOccupationResponse, MemberOccupationRequest]
-		MemberOtherInformationEntryManager  horizon_services.Repository[MemberOtherInformationEntry, MemberOtherInformationEntryResponse, MemberOtherInformationEntryRequest]
-		MemberRelativeAccountManager        horizon_services.Repository[MemberRelativeAccount, MemberRelativeAccountResponse, MemberRelativeAccountRequest]
-		MemberTypeHistoryManager            horizon_services.Repository[MemberTypeHistory, MemberTypeHistoryResponse, MemberTypeHistoryRequest]
-		MemberTypeManager                   horizon_services.Repository[MemberType, MemberTypeResponse, MemberTypeRequest]
-		MemberVerificationManager           horizon_services.Repository[MemberVerification, MemberVerificationResponse, MemberVerificationRequest]
-		MemberProfileManager                horizon_services.Repository[MemberProfile, MemberProfileResponse, MemberProfileRequest]
-		CollectorsMemberAccountEntryManager horizon_services.Repository[CollectorsMemberAccountEntry, CollectorsMemberAccountEntryResponse, CollectorsMemberAccountEntryRequest]
-		MemberDepartmentManager             horizon_services.Repository[MemberDepartment, MemberDepartmentResponse, MemberDepartmentRequest]
-		MemberDepartmentHistoryManager      horizon_services.Repository[MemberDepartmentHistory, MemberDepartmentHistoryResponse, MemberDepartmentHistoryRequest]
+		MemberAddressManager                services.Repository[MemberAddress, MemberAddressReponse, MemberAddressRequest]
+		MemberAssetManager                  services.Repository[MemberAsset, MemberAssetResponse, MemberAssetRequest]
+		MemberBankCardManager               services.Repository[MemberBankCard, MemberBankCardResponse, MemberBankCardRequest]
+		MemberCenterHistoryManager          services.Repository[MemberCenterHistory, MemberCenterHistoryResponse, MemberCenterHistoryRequest]
+		MemberCenterManager                 services.Repository[MemberCenter, MemberCenterResponse, MemberCenterRequest]
+		MemberClassificationManager         services.Repository[MemberClassification, MemberClassificationResponse, MemberClassificationRequest]
+		MemberClassificationHistoryManager  services.Repository[MemberClassificationHistory, MemberClassificationHistoryResponse, MemberClassificationHistoryRequest]
+		MemberCloseRemarkManager            services.Repository[MemberCloseRemark, MemberCloseRemarkResponse, MemberCloseRemarkRequest]
+		MemberContactReferenceManager       services.Repository[MemberContactReference, MemberContactReferenceResponse, MemberContactReferenceRequest]
+		MemberDamayanExtensionEntryManager  services.Repository[MemberDamayanExtensionEntry, MemberDamayanExtensionEntryResponse, MemberDamayanExtensionEntryRequest]
+		MemberEducationalAttainmentManager  services.Repository[MemberEducationalAttainment, MemberEducationalAttainmentResponse, MemberEducationalAttainmentRequest]
+		MemberExpenseManager                services.Repository[MemberExpense, MemberExpenseResponse, MemberExpenseRequest]
+		MemberGenderHistoryManager          services.Repository[MemberGenderHistory, MemberGenderHistoryResponse, MemberGenderHistoryRequest]
+		MemberGenderManager                 services.Repository[MemberGender, MemberGenderResponse, MemberGenderRequest]
+		MemberGovernmentBenefitManager      services.Repository[MemberGovernmentBenefit, MemberGovernmentBenefitResponse, MemberGovernmentBenefitRequest]
+		MemberGroupHistoryManager           services.Repository[MemberGroupHistory, MemberGroupHistoryResponse, MemberGroupHistoryRequest]
+		MemberGroupManager                  services.Repository[MemberGroup, MemberGroupResponse, MemberGroupRequest]
+		MemberIncomeManager                 services.Repository[MemberIncome, MemberIncomeResponse, MemberIncomeRequest]
+		MemberJointAccountManager           services.Repository[MemberJointAccount, MemberJointAccountResponse, MemberJointAccountRequest]
+		MemberMutualFundHistoryManager      services.Repository[MemberMutualFundHistory, MemberMutualFundHistoryResponse, MemberMutualFundHistoryRequest]
+		MemberOccupationHistoryManager      services.Repository[MemberOccupationHistory, MemberOccupationHistoryResponse, MemberOccupationHistoryRequest]
+		MemberOccupationManager             services.Repository[MemberOccupation, MemberOccupationResponse, MemberOccupationRequest]
+		MemberOtherInformationEntryManager  services.Repository[MemberOtherInformationEntry, MemberOtherInformationEntryResponse, MemberOtherInformationEntryRequest]
+		MemberRelativeAccountManager        services.Repository[MemberRelativeAccount, MemberRelativeAccountResponse, MemberRelativeAccountRequest]
+		MemberTypeHistoryManager            services.Repository[MemberTypeHistory, MemberTypeHistoryResponse, MemberTypeHistoryRequest]
+		MemberTypeManager                   services.Repository[MemberType, MemberTypeResponse, MemberTypeRequest]
+		MemberVerificationManager           services.Repository[MemberVerification, MemberVerificationResponse, MemberVerificationRequest]
+		MemberProfileManager                services.Repository[MemberProfile, MemberProfileResponse, MemberProfileRequest]
+		CollectorsMemberAccountEntryManager services.Repository[CollectorsMemberAccountEntry, CollectorsMemberAccountEntryResponse, CollectorsMemberAccountEntryRequest]
+		MemberDepartmentManager             services.Repository[MemberDepartment, MemberDepartmentResponse, MemberDepartmentRequest]
+		MemberDepartmentHistoryManager      services.Repository[MemberDepartmentHistory, MemberDepartmentHistoryResponse, MemberDepartmentHistoryRequest]
 
 		// Employee Feature
-		TimesheetManager horizon_services.Repository[Timesheet, TimesheetResponse, TimesheetRequest]
-		CompanyManager   horizon_services.Repository[Company, CompanyResponse, CompanyRequest]
+		TimesheetManager services.Repository[Timesheet, TimesheetResponse, TimesheetRequest]
+		CompanyManager   services.Repository[Company, CompanyResponse, CompanyRequest]
 
 		// GL/FS
-		FinancialStatementDefinitionManager             horizon_services.Repository[FinancialStatementDefinition, FinancialStatementDefinitionResponse, FinancialStatementDefinitionRequest]
-		FinancialStatementGroupingManager               horizon_services.Repository[FinancialStatementGrouping, FinancialStatementGroupingResponse, FinancialStatementGroupingRequest]
-		GeneralLedgerAccountsGroupingManager            horizon_services.Repository[GeneralLedgerAccountsGrouping, GeneralLedgerAccountsGroupingResponse, GeneralLedgerAccountsGroupingRequest]
-		GeneralLedgerDefinitionManager                  horizon_services.Repository[GeneralLedgerDefinition, GeneralLedgerDefinitionResponse, GeneralLedgerDefinitionRequest]
-		GeneralAccountGroupingNetSurplusPositiveManager horizon_services.Repository[GeneralAccountGroupingNetSurplusPositive, GeneralAccountGroupingNetSurplusPositiveResponse, GeneralAccountGroupingNetSurplusPositiveRequest]
-		GeneralAccountGroupingNetSurplusNegativeManager horizon_services.Repository[GeneralAccountGroupingNetSurplusNegative, GeneralAccountGroupingNetSurplusNegativeResponse, GeneralAccountGroupingNetSurplusNegativeRequest]
+		FinancialStatementDefinitionManager             services.Repository[FinancialStatementDefinition, FinancialStatementDefinitionResponse, FinancialStatementDefinitionRequest]
+		FinancialStatementGroupingManager               services.Repository[FinancialStatementGrouping, FinancialStatementGroupingResponse, FinancialStatementGroupingRequest]
+		GeneralLedgerAccountsGroupingManager            services.Repository[GeneralLedgerAccountsGrouping, GeneralLedgerAccountsGroupingResponse, GeneralLedgerAccountsGroupingRequest]
+		GeneralLedgerDefinitionManager                  services.Repository[GeneralLedgerDefinition, GeneralLedgerDefinitionResponse, GeneralLedgerDefinitionRequest]
+		GeneralAccountGroupingNetSurplusPositiveManager services.Repository[GeneralAccountGroupingNetSurplusPositive, GeneralAccountGroupingNetSurplusPositiveResponse, GeneralAccountGroupingNetSurplusPositiveRequest]
+		GeneralAccountGroupingNetSurplusNegativeManager services.Repository[GeneralAccountGroupingNetSurplusNegative, GeneralAccountGroupingNetSurplusNegativeResponse, GeneralAccountGroupingNetSurplusNegativeRequest]
 
 		// MAINTENANCE TABLE FOR ACCOUNTING
-		AccountClassificationManager horizon_services.Repository[AccountClassification, AccountClassificationResponse, AccountClassificationRequest]
-		AccountCategoryManager       horizon_services.Repository[AccountCategory, AccountCategoryResponse, AccountCategoryRequest]
-		PaymentTypeManager           horizon_services.Repository[PaymentType, PaymentTypeResponse, PaymentTypeRequest]
-		BillAndCoinsManager          horizon_services.Repository[BillAndCoins, BillAndCoinsResponse, BillAndCoinsRequest]
+		AccountClassificationManager services.Repository[AccountClassification, AccountClassificationResponse, AccountClassificationRequest]
+		AccountCategoryManager       services.Repository[AccountCategory, AccountCategoryResponse, AccountCategoryRequest]
+		PaymentTypeManager           services.Repository[PaymentType, PaymentTypeResponse, PaymentTypeRequest]
+		BillAndCoinsManager          services.Repository[BillAndCoins, BillAndCoinsResponse, BillAndCoinsRequest]
 
 		// ACCOUNT
-		AccountManager           horizon_services.Repository[Account, AccountResponse, AccountRequest]
-		AccountTagManager        horizon_services.Repository[AccountTag, AccountTagResponse, AccountTagRequest]
-		AccountHistoryManager    horizon_services.Repository[AccountHistory, AccountHistoryResponse, AccountHistoryRequest]
-		UnbalancedAccountManager horizon_services.Repository[UnbalancedAccount, UnbalancedAccountResponse, UnbalancedAccountRequest]
+		AccountManager           services.Repository[Account, AccountResponse, AccountRequest]
+		AccountTagManager        services.Repository[AccountTag, AccountTagResponse, AccountTagRequest]
+		AccountHistoryManager    services.Repository[AccountHistory, AccountHistoryResponse, AccountHistoryRequest]
+		UnbalancedAccountManager services.Repository[UnbalancedAccount, UnbalancedAccountResponse, UnbalancedAccountRequest]
 
 		// LEDGERS
-		GeneralLedgerManager          horizon_services.Repository[GeneralLedger, GeneralLedgerResponse, GeneralLedgerRequest]
-		GeneralLedgerTagManager       horizon_services.Repository[GeneralLedgerTag, GeneralLedgerTagResponse, GeneralLedgerTagRequest]
-		MemberAccountingLedgerManager horizon_services.Repository[MemberAccountingLedger, MemberAccountingLedgerResponse, MemberAccountingLedgerRequest]
+		GeneralLedgerManager          services.Repository[GeneralLedger, GeneralLedgerResponse, GeneralLedgerRequest]
+		GeneralLedgerTagManager       services.Repository[GeneralLedgerTag, GeneralLedgerTagResponse, GeneralLedgerTagRequest]
+		MemberAccountingLedgerManager services.Repository[MemberAccountingLedger, MemberAccountingLedgerResponse, MemberAccountingLedgerRequest]
 
 		// TRANSACTION START
-		TransactionBatchManager horizon_services.Repository[TransactionBatch, TransactionBatchResponse, TransactionBatchRequest]
-		CheckRemittanceManager  horizon_services.Repository[CheckRemittance, CheckRemittanceResponse, CheckRemittanceRequest]
-		OnlineRemittanceManager horizon_services.Repository[OnlineRemittance, OnlineRemittanceResponse, OnlineRemittanceRequest]
-		CashCountManager        horizon_services.Repository[CashCount, CashCountResponse, CashCountRequest]
-		BatchFundingManager     horizon_services.Repository[BatchFunding, BatchFundingResponse, BatchFundingRequest]
-		TransactionManager      horizon_services.Repository[Transaction, TransactionResponse, TransactionRequest]
-		TransactionTagManager   horizon_services.Repository[TransactionTag, TransactionTagResponse, TransactionTagRequest]
+		TransactionBatchManager services.Repository[TransactionBatch, TransactionBatchResponse, TransactionBatchRequest]
+		CheckRemittanceManager  services.Repository[CheckRemittance, CheckRemittanceResponse, CheckRemittanceRequest]
+		OnlineRemittanceManager services.Repository[OnlineRemittance, OnlineRemittanceResponse, OnlineRemittanceRequest]
+		CashCountManager        services.Repository[CashCount, CashCountResponse, CashCountRequest]
+		BatchFundingManager     services.Repository[BatchFunding, BatchFundingResponse, BatchFundingRequest]
+		TransactionManager      services.Repository[Transaction, TransactionResponse, TransactionRequest]
+		TransactionTagManager   services.Repository[TransactionTag, TransactionTagResponse, TransactionTagRequest]
 
 		// Disbursements
-		DisbursementTransactionManager horizon_services.Repository[DisbursementTransaction, DisbursementTransactionResponse, DisbursementTransactionRequest]
-		DisbursementManager            horizon_services.Repository[Disbursement, DisbursementResponse, DisbursementRequest]
+		DisbursementTransactionManager services.Repository[DisbursementTransaction, DisbursementTransactionResponse, DisbursementTransactionRequest]
+		DisbursementManager            services.Repository[Disbursement, DisbursementResponse, DisbursementRequest]
 
 		// LOAN START
-		ComputationSheetManager                      horizon_services.Repository[ComputationSheet, ComputationSheetResponse, ComputationSheetRequest]
-		FinesMaturityManager                         horizon_services.Repository[FinesMaturity, FinesMaturityResponse, FinesMaturityRequest]
-		InterestMaturityManager                      horizon_services.Repository[InterestMaturity, InterestMaturityResponse, InterestMaturityRequest]
-		IncludeNegativeAccountManager                horizon_services.Repository[IncludeNegativeAccount, IncludeNegativeAccountResponse, IncludeNegativeAccountRequest]
-		AutomaticLoanDeductionManager                horizon_services.Repository[AutomaticLoanDeduction, AutomaticLoanDeductionResponse, AutomaticLoanDeductionRequest]
-		BrowseExcludeIncludeAccountsManager          horizon_services.Repository[BrowseExcludeIncludeAccounts, BrowseExcludeIncludeAccountsResponse, BrowseExcludeIncludeAccountsRequest]
-		MemberClassificationInterestRateManager      horizon_services.Repository[MemberClassificationInterestRate, MemberClassificationInterestRateResponse, MemberClassificationInterestRateRequest]
-		LoanGuaranteedFundPerMonthManager            horizon_services.Repository[LoanGuaranteedFundPerMonth, LoanGuaranteedFundPerMonthResponse, LoanGuaranteedFundPerMonthRequest]
-		LoanStatusManager                            horizon_services.Repository[LoanStatus, LoanStatusResponse, LoanStatusRequest]
-		LoanGuaranteedFundManager                    horizon_services.Repository[LoanGuaranteedFund, LoanGuaranteedFundResponse, LoanGuaranteedFundRequest]
-		LoanTransactionManager                       horizon_services.Repository[LoanTransaction, LoanTransactionResponse, LoanTransactionRequest]
-		LoanClearanceAnalysisManager                 horizon_services.Repository[LoanClearanceAnalysis, LoanClearanceAnalysisResponse, LoanClearanceAnalysisRequest]
-		LoanClearanceAnalysisInstitutionManager      horizon_services.Repository[LoanClearanceAnalysisInstitution, LoanClearanceAnalysisInstitutionResponse, LoanClearanceAnalysisInstitutionRequest]
-		LoanComakerMemberManager                     horizon_services.Repository[LoanComakerMember, LoanComakerMemberResponse, LoanComakerMemberRequest]
-		ComakerMemberProfileManager                  horizon_services.Repository[ComakerMemberProfile, ComakerMemberProfileResponse, ComakerMemberProfileRequest]
-		ComakerCollateralManager                     horizon_services.Repository[ComakerCollateral, ComakerCollateralResponse, ComakerCollateralRequest]
-		LoanTransactionEntryManager                  horizon_services.Repository[LoanTransactionEntry, LoanTransactionEntryResponse, LoanTransactionEntryRequest]
-		LoanTagManager                               horizon_services.Repository[LoanTag, LoanTagResponse, LoanTagRequest]
-		LoanTermsAndConditionSuggestedPaymentManager horizon_services.Repository[LoanTermsAndConditionSuggestedPayment, LoanTermsAndConditionSuggestedPaymentResponse, LoanTermsAndConditionSuggestedPaymentRequest]
-		LoanTermsAndConditionAmountReceiptManager    horizon_services.Repository[LoanTermsAndConditionAmountReceipt, LoanTermsAndConditionAmountReceiptResponse, LoanTermsAndConditionAmountReceiptRequest]
-		LoanPurposeManager                           horizon_services.Repository[LoanPurpose, LoanPurposeResponse, LoanPurposeRequest]
-		LoanLedgerManager                            horizon_services.Repository[LoanLedger, LoanLedgerResponse, LoanLedgerRequest]
+		ComputationSheetManager                      services.Repository[ComputationSheet, ComputationSheetResponse, ComputationSheetRequest]
+		FinesMaturityManager                         services.Repository[FinesMaturity, FinesMaturityResponse, FinesMaturityRequest]
+		InterestMaturityManager                      services.Repository[InterestMaturity, InterestMaturityResponse, InterestMaturityRequest]
+		IncludeNegativeAccountManager                services.Repository[IncludeNegativeAccount, IncludeNegativeAccountResponse, IncludeNegativeAccountRequest]
+		AutomaticLoanDeductionManager                services.Repository[AutomaticLoanDeduction, AutomaticLoanDeductionResponse, AutomaticLoanDeductionRequest]
+		BrowseExcludeIncludeAccountsManager          services.Repository[BrowseExcludeIncludeAccounts, BrowseExcludeIncludeAccountsResponse, BrowseExcludeIncludeAccountsRequest]
+		MemberClassificationInterestRateManager      services.Repository[MemberClassificationInterestRate, MemberClassificationInterestRateResponse, MemberClassificationInterestRateRequest]
+		LoanGuaranteedFundPerMonthManager            services.Repository[LoanGuaranteedFundPerMonth, LoanGuaranteedFundPerMonthResponse, LoanGuaranteedFundPerMonthRequest]
+		LoanStatusManager                            services.Repository[LoanStatus, LoanStatusResponse, LoanStatusRequest]
+		LoanGuaranteedFundManager                    services.Repository[LoanGuaranteedFund, LoanGuaranteedFundResponse, LoanGuaranteedFundRequest]
+		LoanTransactionManager                       services.Repository[LoanTransaction, LoanTransactionResponse, LoanTransactionRequest]
+		LoanClearanceAnalysisManager                 services.Repository[LoanClearanceAnalysis, LoanClearanceAnalysisResponse, LoanClearanceAnalysisRequest]
+		LoanClearanceAnalysisInstitutionManager      services.Repository[LoanClearanceAnalysisInstitution, LoanClearanceAnalysisInstitutionResponse, LoanClearanceAnalysisInstitutionRequest]
+		LoanComakerMemberManager                     services.Repository[LoanComakerMember, LoanComakerMemberResponse, LoanComakerMemberRequest]
+		ComakerMemberProfileManager                  services.Repository[ComakerMemberProfile, ComakerMemberProfileResponse, ComakerMemberProfileRequest]
+		ComakerCollateralManager                     services.Repository[ComakerCollateral, ComakerCollateralResponse, ComakerCollateralRequest]
+		LoanTransactionEntryManager                  services.Repository[LoanTransactionEntry, LoanTransactionEntryResponse, LoanTransactionEntryRequest]
+		LoanTagManager                               services.Repository[LoanTag, LoanTagResponse, LoanTagRequest]
+		LoanTermsAndConditionSuggestedPaymentManager services.Repository[LoanTermsAndConditionSuggestedPayment, LoanTermsAndConditionSuggestedPaymentResponse, LoanTermsAndConditionSuggestedPaymentRequest]
+		LoanTermsAndConditionAmountReceiptManager    services.Repository[LoanTermsAndConditionAmountReceipt, LoanTermsAndConditionAmountReceiptResponse, LoanTermsAndConditionAmountReceiptRequest]
+		LoanPurposeManager                           services.Repository[LoanPurpose, LoanPurposeResponse, LoanPurposeRequest]
+		LoanLedgerManager                            services.Repository[LoanLedger, LoanLedgerResponse, LoanLedgerRequest]
 
 		// Maintenance
-		CollateralManager                                                   horizon_services.Repository[Collateral, CollateralResponse, CollateralRequest]
-		TagTemplateManager                                                  horizon_services.Repository[TagTemplate, TagTemplateResponse, TagTemplateRequest]
-		HolidayManager                                                      horizon_services.Repository[Holiday, HolidayResponse, HolidayRequest]
-		GroceryComputationSheetManager                                      horizon_services.Repository[GroceryComputationSheet, GroceryComputationSheetResponse, GroceryComputationSheetRequest]
-		GroceryComputationSheetMonthlyManager                               horizon_services.Repository[GroceryComputationSheetMonthly, GroceryComputationSheetMonthlyResponse, GroceryComputationSheetMonthlyRequest]
-		InterestRateSchemeManager                                           horizon_services.Repository[InterestRateScheme, InterestRateSchemeResponse, InterestRateSchemeRequest]
-		InterestRateByTermsHeaderManager                                    horizon_services.Repository[InterestRateByTermsHeader, InterestRateByTermsHeaderResponse, InterestRateByTermsHeaderRequest]
-		InterestRateByTermManager                                           horizon_services.Repository[InterestRateByTerm, InterestRateByTermResponse, InterestRateByTermRequest]
-		InterestRatePercentageManager                                       horizon_services.Repository[InterestRatePercentage, InterestRatePercentageResponse, InterestRatePercentageRequest]
-		MemberTypeReferenceManager                                          horizon_services.Repository[MemberTypeReference, MemberTypeReferenceResponse, MemberTypeReferenceRequest]
-		MemberTypeReferenceByAmountManager                                  horizon_services.Repository[MemberTypeReferenceByAmount, MemberTypeReferenceByAmountResponse, MemberTypeReferenceByAmountRequest]
-		MemberTypeReferenceInterestRateByUltimaMembershipDateManager        horizon_services.Repository[MemberTypeReferenceInterestRateByUltimaMembershipDate, MemberTypeReferenceInterestRateByUltimaMembershipDateResponse, MemberTypeReferenceInterestRateByUltimaMembershipDateRequest]
-		MemberTypeReferenceInterestRateByUltimaMembershipDatePerYearManager horizon_services.Repository[MemberTypeReferenceInterestRateByUltimaMembershipDatePerYear, MemberTypeReferenceInterestRateByUltimaMembershipDatePerYearResponse, MemberTypeReferenceInterestRateByUltimaMembershipDatePerYearRequest]
-		MemberDeductionEntryManager                                         horizon_services.Repository[MemberDeductionEntry, MemberDeductionEntryResponse, MemberDeductionEntryRequest]
-		PostDatedCheckManager                                               horizon_services.Repository[PostDatedCheck, PostDatedCheckResponse, PostDatedCheckRequest]
+		CollateralManager                                                   services.Repository[Collateral, CollateralResponse, CollateralRequest]
+		TagTemplateManager                                                  services.Repository[TagTemplate, TagTemplateResponse, TagTemplateRequest]
+		HolidayManager                                                      services.Repository[Holiday, HolidayResponse, HolidayRequest]
+		GroceryComputationSheetManager                                      services.Repository[GroceryComputationSheet, GroceryComputationSheetResponse, GroceryComputationSheetRequest]
+		GroceryComputationSheetMonthlyManager                               services.Repository[GroceryComputationSheetMonthly, GroceryComputationSheetMonthlyResponse, GroceryComputationSheetMonthlyRequest]
+		InterestRateSchemeManager                                           services.Repository[InterestRateScheme, InterestRateSchemeResponse, InterestRateSchemeRequest]
+		InterestRateByTermsHeaderManager                                    services.Repository[InterestRateByTermsHeader, InterestRateByTermsHeaderResponse, InterestRateByTermsHeaderRequest]
+		InterestRateByTermManager                                           services.Repository[InterestRateByTerm, InterestRateByTermResponse, InterestRateByTermRequest]
+		InterestRatePercentageManager                                       services.Repository[InterestRatePercentage, InterestRatePercentageResponse, InterestRatePercentageRequest]
+		MemberTypeReferenceManager                                          services.Repository[MemberTypeReference, MemberTypeReferenceResponse, MemberTypeReferenceRequest]
+		MemberTypeReferenceByAmountManager                                  services.Repository[MemberTypeReferenceByAmount, MemberTypeReferenceByAmountResponse, MemberTypeReferenceByAmountRequest]
+		MemberTypeReferenceInterestRateByUltimaMembershipDateManager        services.Repository[MemberTypeReferenceInterestRateByUltimaMembershipDate, MemberTypeReferenceInterestRateByUltimaMembershipDateResponse, MemberTypeReferenceInterestRateByUltimaMembershipDateRequest]
+		MemberTypeReferenceInterestRateByUltimaMembershipDatePerYearManager services.Repository[MemberTypeReferenceInterestRateByUltimaMembershipDatePerYear, MemberTypeReferenceInterestRateByUltimaMembershipDatePerYearResponse, MemberTypeReferenceInterestRateByUltimaMembershipDatePerYearRequest]
+		MemberDeductionEntryManager                                         services.Repository[MemberDeductionEntry, MemberDeductionEntryResponse, MemberDeductionEntryRequest]
+		PostDatedCheckManager                                               services.Repository[PostDatedCheck, PostDatedCheckResponse, PostDatedCheckRequest]
 
 		// TIME DEPOSIT
-		TimeDepositTypeManager                   horizon_services.Repository[TimeDepositType, TimeDepositTypeResponse, TimeDepositTypeRequest]
-		TimeDepositComputationManager            horizon_services.Repository[TimeDepositComputation, TimeDepositComputationResponse, TimeDepositComputationRequest]
-		TimeDepositComputationPreMatureManager   horizon_services.Repository[TimeDepositComputationPreMature, TimeDepositComputationPreMatureResponse, TimeDepositComputationPreMatureRequest]
-		ChargesRateSchemeManager                 horizon_services.Repository[ChargesRateScheme, ChargesRateSchemeResponse, ChargesRateSchemeRequest]
-		ChargesRateSchemeAccountManager          horizon_services.Repository[ChargesRateSchemeAccount, ChargesRateSchemeAccountResponse, ChargesRateSchemeAccountRequest]
-		ChargesRateByRangeOrMinimumAmountManager horizon_services.Repository[ChargesRateByRangeOrMinimumAmount, ChargesRateByRangeOrMinimumAmountResponse, ChargesRateByRangeOrMinimumAmountRequest]
-		ChargesRateByTermManager                 horizon_services.Repository[ChargesRateByTerm, ChargesRateByTermResponse, ChargesRateByTermRequest]
+		TimeDepositTypeManager                   services.Repository[TimeDepositType, TimeDepositTypeResponse, TimeDepositTypeRequest]
+		TimeDepositComputationManager            services.Repository[TimeDepositComputation, TimeDepositComputationResponse, TimeDepositComputationRequest]
+		TimeDepositComputationPreMatureManager   services.Repository[TimeDepositComputationPreMature, TimeDepositComputationPreMatureResponse, TimeDepositComputationPreMatureRequest]
+		ChargesRateSchemeManager                 services.Repository[ChargesRateScheme, ChargesRateSchemeResponse, ChargesRateSchemeRequest]
+		ChargesRateSchemeAccountManager          services.Repository[ChargesRateSchemeAccount, ChargesRateSchemeAccountResponse, ChargesRateSchemeAccountRequest]
+		ChargesRateByRangeOrMinimumAmountManager services.Repository[ChargesRateByRangeOrMinimumAmount, ChargesRateByRangeOrMinimumAmountResponse, ChargesRateByRangeOrMinimumAmountRequest]
+		ChargesRateByTermManager                 services.Repository[ChargesRateByTerm, ChargesRateByTermResponse, ChargesRateByTermRequest]
 
 		// ACCOUNTING ENTRY
-		AdjustmentEntryManager           horizon_services.Repository[AdjustmentEntry, AdjustmentEntryResponse, AdjustmentEntryRequest]
-		AdjustmentTagManager             horizon_services.Repository[AdjustmentTag, AdjustmentTagResponse, AdjustmentTagRequest]
-		VoucherPayToManager              horizon_services.Repository[VoucherPayTo, VoucherPayToResponse, VoucherPayToRequest]
-		CashCheckVoucherManager          horizon_services.Repository[CashCheckVoucher, CashCheckVoucherResponse, CashCheckVoucherRequest]
-		CashCheckVoucherEntryManager     horizon_services.Repository[CashCheckVoucherEntry, CashCheckVoucherEntryResponse, CashCheckVoucherEntryRequest]
-		CashCheckVoucherTagManager       horizon_services.Repository[CashCheckVoucherTag, CashCheckVoucherTagResponse, CashCheckVoucherTagRequest]
-		CancelledCashCheckVoucherManager horizon_services.Repository[CancelledCashCheckVoucher, CancelledCashCheckVoucherResponse, CancelledCashCheckVoucherRequest]
-		JournalVoucherManager            horizon_services.Repository[JournalVoucher, JournalVoucherResponse, JournalVoucherRequest]
-		JournalVoucherEntryManager       horizon_services.Repository[JournalVoucherEntry, JournalVoucherEntryResponse, JournalVoucherEntryRequest]
-		JournalVoucherTagManager         horizon_services.Repository[JournalVoucherTag, JournalVoucherTagResponse, JournalVoucherTagRequest]
+		AdjustmentEntryManager           services.Repository[AdjustmentEntry, AdjustmentEntryResponse, AdjustmentEntryRequest]
+		AdjustmentTagManager             services.Repository[AdjustmentTag, AdjustmentTagResponse, AdjustmentTagRequest]
+		VoucherPayToManager              services.Repository[VoucherPayTo, VoucherPayToResponse, VoucherPayToRequest]
+		CashCheckVoucherManager          services.Repository[CashCheckVoucher, CashCheckVoucherResponse, CashCheckVoucherRequest]
+		CashCheckVoucherEntryManager     services.Repository[CashCheckVoucherEntry, CashCheckVoucherEntryResponse, CashCheckVoucherEntryRequest]
+		CashCheckVoucherTagManager       services.Repository[CashCheckVoucherTag, CashCheckVoucherTagResponse, CashCheckVoucherTagRequest]
+		CancelledCashCheckVoucherManager services.Repository[CancelledCashCheckVoucher, CancelledCashCheckVoucherResponse, CancelledCashCheckVoucherRequest]
+		JournalVoucherManager            services.Repository[JournalVoucher, JournalVoucherResponse, JournalVoucherRequest]
+		JournalVoucherEntryManager       services.Repository[JournalVoucherEntry, JournalVoucherEntryResponse, JournalVoucherEntryRequest]
+		JournalVoucherTagManager         services.Repository[JournalVoucherTag, JournalVoucherTagResponse, JournalVoucherTagRequest]
 
-		FundsManager                          horizon_services.Repository[Funds, FundsResponse, FundsRequest]
-		ChargesRateSchemeModeOfPaymentManager horizon_services.Repository[ChargesRateSchemeModeOfPayment, ChargesRateSchemeModeOfPaymentResponse, ChargesRateSchemeModeOfPaymentRequest]
+		FundsManager                          services.Repository[Funds, FundsResponse, FundsRequest]
+		ChargesRateSchemeModeOfPaymentManager services.Repository[ChargesRateSchemeModeOfPayment, ChargesRateSchemeModeOfPaymentResponse, ChargesRateSchemeModeOfPaymentRequest]
 	}
 )
 
 // Newmodelcore creates a new instance of modelcore with the provided service provider
-func Newmodelcore(provider *services.Provider) (*ModelCore, error) {
+func Newmodelcore(provider *server.Provider) (*ModelCore, error) {
 	return &ModelCore{
 		provider: provider,
 	}, nil
@@ -231,48 +231,48 @@ func Newmodelcore(provider *services.Provider) (*ModelCore, error) {
 func (m *ModelCore) Start(_ context.Context) error {
 
 	// Models
-	m.AccountCategory()
-	m.AccountClassification()
-	m.UnbalancedAccount()
-	m.AdjustmentEntry()
-	m.AdjustmentTag()
-	m.AutomaticLoanDeduction()
-	m.Bank()
-	m.BatchFunding()
-	m.BillAndCoins()
-	m.Branch()
-	m.BrowseExcludeIncludeAccounts()
-	m.CashCheckVoucher()
-	m.CashCheckVoucherEntry()
-	m.CashCheckVoucherTag()
-	m.CancelledCashCheckVoucher()
-	m.CashCount()
-	m.Category()
-	m.Currency()
-	m.ChargesRateByRangeOrMinimumAmount()
-	m.ChargesRateByTerm()
-	m.ChargesRateSchemeAccount()
-	m.ChargesRateScheme()
-	m.CheckRemittance()
-	m.Collateral()
-	m.CollectorsMemberAccountEntry()
-	m.ComputationSheet()
-	m.ContactUs()
-	m.Disbursement()
-	m.DisbursementTransaction()
-	m.Feedback()
-	m.FinancialStatementGrouping()
-	m.FinancialStatementDefinition()
-	m.FinesMaturity()
-	m.Footstep()
-	m.GeneralAccountGroupingNetSurplusNegative()
-	m.GeneralAccountGroupingNetSurplusPositive()
-	m.GeneralLedger()
-	m.GeneralLedgerTag()
-	m.GeneralLedgerAccountsGrouping()
-	m.GeneratedReport()
-	m.GeneralLedgerDefinition()
-	m.Account()
+	m.accountCategory()
+	m.accountClassification()
+	m.unbalancedAccount()
+	m.adjustmentEntry()
+	m.adjustmentTag()
+	m.automaticLoanDeduction()
+	m.bank()
+	m.batchFunding()
+	m.billAndCoins()
+	m.branch()
+	m.browseExcludeIncludeAccounts()
+	m.cashCheckVoucher()
+	m.cashCheckVoucherEntry()
+	m.cashCheckVoucherTag()
+	m.cancelledCashCheckVoucher()
+	m.cashCount()
+	m.category()
+	m.currency()
+	m.chargesRateByRangeOrMinimumAmount()
+	m.chargesRateByTerm()
+	m.chargesRateSchemeAccount()
+	m.chargesRateScheme()
+	m.checkRemittance()
+	m.collateral()
+	m.collectorsMemberAccountEntry()
+	m.computationSheet()
+	m.contactUs()
+	m.disbursement()
+	m.disbursementTransaction()
+	m.feedback()
+	m.financialStatementGrouping()
+	m.financialStatementDefinition()
+	m.finesMaturity()
+	m.footstep()
+	m.generalAccountGroupingNetSurplusNegative()
+	m.generalAccountGroupingNetSurplusPositive()
+	m.generalLedger()
+	m.generalLedgerTag()
+	m.generalLedgerAccountsGrouping()
+	m.generatedReport()
+	m.generalLedgerDefinition()
+	m.account()
 	m.AccountTag()
 	m.AccountHistory()
 	m.GroceryComputationSheet()

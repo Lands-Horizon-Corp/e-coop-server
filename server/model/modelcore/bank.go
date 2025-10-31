@@ -61,7 +61,7 @@ type (
 	}
 )
 
-func (m *ModelCore) Bank() {
+func (m *ModelCore) bank() {
 	m.Migration = append(m.Migration, &Bank{})
 	m.BankManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Bank, BankResponse, BankRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Media"},
@@ -217,7 +217,7 @@ func (m *ModelCore) BankSeed(context context.Context, tx *gorm.DB, userID uuid.U
 	return nil
 }
 
-func (m *ModelCore) BankCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Bank, error) {
+func (m *ModelCore) BankCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Bank, error) {
 	return m.BankManager.Find(context, &Bank{
 		OrganizationID: orgId,
 		BranchID:       branchId,

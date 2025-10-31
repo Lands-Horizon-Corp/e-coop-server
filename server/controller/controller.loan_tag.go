@@ -13,7 +13,7 @@ import (
 )
 
 // LoanTagController registers routes for managing loan tags.
-func (c *Controller) LoanTagController() {
+func (c *Controller) loanTagController(
 	req := c.provider.Service.Request
 
 	// GET /loan-tag: List all loan tags for the current user's branch. (NO footstep)
@@ -31,7 +31,7 @@ func (c *Controller) LoanTagController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		loanTags, err := c.modelcore.LoanTagCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		loanTags, err := c.modelcore.LoanTagCurrentbranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No loan tags found for the current branch"})
 		}
@@ -83,7 +83,7 @@ func (c *Controller) LoanTagController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		loanTags, err := c.modelcore.LoanTagCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		loanTags, err := c.modelcore.LoanTagCurrentbranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch loan tags for pagination: " + err.Error()})
 		}

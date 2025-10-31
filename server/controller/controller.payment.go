@@ -10,7 +10,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (c *Controller) PaymentController() {
+func (c *Controller) paymentController(
 	req := c.provider.Service.Request
 
 	req.RegisterRoute(handlers.Route{

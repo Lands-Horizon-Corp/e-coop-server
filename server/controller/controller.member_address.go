@@ -11,7 +11,7 @@ import (
 )
 
 // MemberAddressController manages endpoints for member address records.
-func (c *Controller) MemberAddressController() {
+func (c *Controller) memberAddressController(
 	req := c.provider.Service.Request
 
 	// POST /member-address/member-profile/:member_profile_id: Create a new address record for a member.

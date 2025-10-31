@@ -9,7 +9,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (c *Controller) MemberAccountingLedgerController() {
+func (c *Controller) memberAccountingLedgerController(
 	req := c.provider.Service.Request
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-accounting-ledger/member-profile/:member_profile_id/total",

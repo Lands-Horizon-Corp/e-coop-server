@@ -12,7 +12,7 @@ import (
 )
 
 // FinancialStatementController manages endpoints for financial statement groupings and definitions.
-func (c *Controller) FinancialStatementController() {
+func (c *Controller) financialStatementController(
 	req := c.provider.Service.Request
 
 	// GET /financial-statement-grouping: List all financial statement groupings for the current branch. (NO footstep)

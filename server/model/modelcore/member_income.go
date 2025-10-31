@@ -134,7 +134,7 @@ func (m *ModelCore) MemberIncome() {
 	})
 }
 
-func (m *ModelCore) MemberIncomeCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberIncome, error) {
+func (m *ModelCore) MemberIncomeCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberIncome, error) {
 	return m.MemberIncomeManager.Find(context, &MemberIncome{
 		OrganizationID: orgId,
 		BranchID:       branchId,

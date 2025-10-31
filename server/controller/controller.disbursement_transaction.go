@@ -10,7 +10,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (c *Controller) DisbursementTransactionController() {
+func (c *Controller) disbursementTransactionController(
 	req := c.provider.Service.Request
 
 	req.RegisterRoute(handlers.Route{

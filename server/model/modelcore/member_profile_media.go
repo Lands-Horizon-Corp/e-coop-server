@@ -141,7 +141,7 @@ func (m *ModelCore) MemberProfileMedia() {
 	})
 }
 
-func (m *ModelCore) MemberProfileMediaCurrentBranch(context context.Context, orgId *uuid.UUID, branchId *uuid.UUID) ([]*MemberProfileMedia, error) {
+func (m *ModelCore) MemberProfileMediaCurrentbranch(context context.Context, orgId *uuid.UUID, branchId *uuid.UUID) ([]*MemberProfileMedia, error) {
 	return m.MemberProfileMediaManager.Find(context, &MemberProfileMedia{
 		OrganizationID: orgId,
 		BranchID:       branchId,

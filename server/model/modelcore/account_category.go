@@ -55,7 +55,7 @@ type (
 	}
 )
 
-func (m *ModelCore) AccountCategory() {
+func (m *ModelCore) accountCategory() {
 	m.Migration = append(m.Migration, &AccountCategory{})
 	m.AccountCategoryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		AccountCategory, AccountCategoryResponse, AccountCategoryRequest,
@@ -223,7 +223,7 @@ func (m *ModelCore) AccountCategorySeed(context context.Context, tx *gorm.DB, us
 	return nil
 }
 
-func (m *ModelCore) AccountCategoryCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*AccountCategory, error) {
+func (m *ModelCore) AccountCategoryCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*AccountCategory, error) {
 	return m.AccountCategoryManager.Find(context, &AccountCategory{
 		OrganizationID: orgId,
 		BranchID:       branchId,

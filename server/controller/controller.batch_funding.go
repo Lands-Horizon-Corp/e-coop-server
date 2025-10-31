@@ -11,7 +11,7 @@ import (
 )
 
 // BatchFundingController handles creation and retrieval of batch funding records with proper error handling and authorization checks.
-func (c *Controller) BatchFundingController() {
+func (c *Controller) batchFundingController(
 	req := c.provider.Service.Request
 
 	// POST /batch-funding: Create a new batch funding for the current open transaction batch.

@@ -13,7 +13,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (c *Controller) CurrencyController() {
+func (c *Controller) currencyController(
 	req := c.provider.Service.Request
 
 	// Get all currencies

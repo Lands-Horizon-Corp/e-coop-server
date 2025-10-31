@@ -12,7 +12,7 @@ import (
 )
 
 // MemberProfileMediaController registers routes for managing member profile media.
-func (c *Controller) MemberProfileMediaController() {
+func (c *Controller) memberProfileMediaController(
 	req := c.provider.Service.Request
 
 	// GET /api/v1/member-profile-media/member-profile/:member_profile_id/search: Get all media for a specific member profile

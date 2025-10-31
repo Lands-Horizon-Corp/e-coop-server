@@ -13,7 +13,7 @@ import (
 )
 
 // CompanyController registers routes for managing companies.
-func (c *Controller) CompanyController() {
+func (c *Controller) companyController(
 	req := c.provider.Service.Request
 
 	// GET /company: List all companies for the current user's branch. (NO footstep)
@@ -31,7 +31,7 @@ func (c *Controller) CompanyController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		companies, err := c.modelcore.CompanyCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		companies, err := c.modelcore.CompanyCurrentbranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No companies found for the current branch"})
 		}
@@ -53,7 +53,7 @@ func (c *Controller) CompanyController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		companies, err := c.modelcore.CompanyCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		companies, err := c.modelcore.CompanyCurrentbranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch companies for pagination: " + err.Error()})
 		}

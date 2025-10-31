@@ -10,7 +10,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (c *Controller) MemberJointAccountController() {
+func (c *Controller) memberJointAccountController(
 	req := c.provider.Service.Request
 
 	// Create a new joint account record for a member profile

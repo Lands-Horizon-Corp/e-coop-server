@@ -67,7 +67,7 @@ type (
 	}
 )
 
-func (m *ModelCore) CollectorsMemberAccountEntry() {
+func (m *ModelCore) collectorsMemberAccountEntry() {
 	m.Migration = append(m.Migration, &CollectorsMemberAccountEntry{})
 	m.CollectorsMemberAccountEntryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		CollectorsMemberAccountEntry, CollectorsMemberAccountEntryResponse, CollectorsMemberAccountEntryRequest,
@@ -129,7 +129,7 @@ func (m *ModelCore) CollectorsMemberAccountEntry() {
 	})
 }
 
-func (m *ModelCore) CollectorsMemberAccountEntryCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*CollectorsMemberAccountEntry, error) {
+func (m *ModelCore) CollectorsMemberAccountEntryCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*CollectorsMemberAccountEntry, error) {
 	return m.CollectorsMemberAccountEntryManager.Find(context, &CollectorsMemberAccountEntry{
 		OrganizationID: orgId,
 		BranchID:       branchId,

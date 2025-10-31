@@ -155,7 +155,7 @@ func (m *ModelCore) InvitationCode() {
 	})
 }
 
-func (m *ModelCore) GetInvitationCodeByBranch(context context.Context, organizationId uuid.UUID, branchId uuid.UUID) ([]*InvitationCode, error) {
+func (m *ModelCore) GetInvitationCodeBybranch(context context.Context, organizationId uuid.UUID, branchId uuid.UUID) ([]*InvitationCode, error) {
 	return m.InvitationCodeManager.Find(context, &InvitationCode{
 		OrganizationID: organizationId,
 		BranchID:       branchId,

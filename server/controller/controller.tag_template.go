@@ -12,7 +12,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (c *Controller) TagTemplateController() {
+func (c *Controller) tagTemplateController(
 	req := c.provider.Service.Request
 
 	// Returns all tag templates for the current user's branch.

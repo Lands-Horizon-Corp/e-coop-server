@@ -83,7 +83,7 @@ type (
 	}
 )
 
-func (m *ModelCore) BrowseExcludeIncludeAccounts() {
+func (m *ModelCore) browseExcludeIncludeAccounts() {
 	m.Migration = append(m.Migration, &BrowseExcludeIncludeAccounts{})
 	m.BrowseExcludeIncludeAccountsManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		BrowseExcludeIncludeAccounts, BrowseExcludeIncludeAccountsResponse, BrowseExcludeIncludeAccountsRequest,
@@ -151,7 +151,7 @@ func (m *ModelCore) BrowseExcludeIncludeAccounts() {
 	})
 }
 
-func (m *ModelCore) BrowseExcludeIncludeAccountsCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*BrowseExcludeIncludeAccounts, error) {
+func (m *ModelCore) BrowseExcludeIncludeAccountsCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*BrowseExcludeIncludeAccounts, error) {
 	return m.BrowseExcludeIncludeAccountsManager.Find(context, &BrowseExcludeIncludeAccounts{
 		OrganizationID: orgId,
 		BranchID:       branchId,

@@ -12,7 +12,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (c *Controller) MemberOccupationController() {
+func (c *Controller) memberOccupationController(
 	req := c.provider.Service.Request
 
 	// Get all member occupation history for the current branch
@@ -27,7 +27,7 @@ func (c *Controller) MemberOccupationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberOccupationHistory, err := c.modelcore.MemberOccupationHistoryCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		memberOccupationHistory, err := c.modelcore.MemberOccupationHistoryCurrentbranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member occupation history: " + err.Error()})
 		}
@@ -69,7 +69,7 @@ func (c *Controller) MemberOccupationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberOccupation, err := c.modelcore.MemberOccupationCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		memberOccupation, err := c.modelcore.MemberOccupationCurrentbranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member occupations: " + err.Error()})
 		}
@@ -88,7 +88,7 @@ func (c *Controller) MemberOccupationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := c.modelcore.MemberOccupationCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		value, err := c.modelcore.MemberOccupationCurrentbranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member occupations for pagination: " + err.Error()})
 		}

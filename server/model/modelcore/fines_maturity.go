@@ -63,7 +63,7 @@ type (
 	}
 )
 
-func (m *ModelCore) FinesMaturity() {
+func (m *ModelCore) finesMaturity() {
 	m.Migration = append(m.Migration, &FinesMaturity{})
 	m.FinesMaturityManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		FinesMaturity, FinesMaturityResponse, FinesMaturityRequest,
@@ -123,7 +123,7 @@ func (m *ModelCore) FinesMaturity() {
 	})
 }
 
-func (m *ModelCore) FinesMaturityCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*FinesMaturity, error) {
+func (m *ModelCore) FinesMaturityCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*FinesMaturity, error) {
 	return m.FinesMaturityManager.Find(context, &FinesMaturity{
 		OrganizationID: orgId,
 		BranchID:       branchId,

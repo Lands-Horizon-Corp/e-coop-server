@@ -1,5 +1,5 @@
 // Package src provides core server components and provider initialization for the e-cooperative application
-package src
+package server
 
 import (
 	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"

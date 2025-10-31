@@ -66,7 +66,7 @@ type (
 	}
 )
 
-func (m *ModelCore) Currency() {
+func (m *ModelCore) currency() {
 	m.Migration = append(m.Migration, &Currency{})
 	m.CurrencyManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Currency, CurrencyResponse, CurrencyRequest]{
 		Service: m.provider.Service,

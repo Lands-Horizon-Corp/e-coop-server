@@ -1,5 +1,5 @@
 package v1
 
-func (c *Controller) FormGeneratorController() {
+func (c *Controller) formGeneratorController(
 
 }

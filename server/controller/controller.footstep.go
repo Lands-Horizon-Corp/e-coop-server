@@ -11,7 +11,7 @@ import (
 )
 
 // FootstepController manages endpoints related to footstep records.
-func (c *Controller) FootstepController() {
+func (c *Controller) footstepController(
 	req := c.provider.Service.Request
 
 	// POST /footstep: Create a new footstep. (WITH footstep)
@@ -151,7 +151,7 @@ func (c *Controller) FootstepController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization/branch not found"})
 		}
-		footstep, err := c.modelcore.GetFootstepByBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
+		footstep, err := c.modelcore.GetFootstepBybranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve footsteps for branch: " + err.Error()})
 		}

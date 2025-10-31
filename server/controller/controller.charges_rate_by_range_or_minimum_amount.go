@@ -13,7 +13,7 @@ import (
 )
 
 // ChargesRateByRangeOrMinimumAmountController registers routes for managing charges rate by range or minimum amount.
-func (c *Controller) ChargesRateByRangeOrMinimumAmountController() {
+func (c *Controller) chargesRateByRangeOrMinimumAmountController(
 	req := c.provider.Service.Request
 
 	// POST /charges-rate-by-range-or-minimum-amount: Create a new charges rate by range or minimum amount. (WITH footstep)

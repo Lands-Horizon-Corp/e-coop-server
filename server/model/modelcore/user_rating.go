@@ -146,7 +146,7 @@ func (m *ModelCore) GetUserRater(context context.Context, userID uuid.UUID) ([]*
 }
 
 // UserRatingCurrentBranch retrieves all user ratings for the specified organization and branch
-func (m *ModelCore) UserRatingCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*UserRating, error) {
+func (m *ModelCore) UserRatingCurrentbranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*UserRating, error) {
 	return m.UserRatingManager.Find(context, &UserRating{
 		OrganizationID: orgID,
 		BranchID:       branchID,

@@ -13,7 +13,7 @@ import (
 )
 
 // TimeDepositComputationPreMatureController registers routes for managing time deposit computation pre mature.
-func (c *Controller) TimeDepositComputationPreMatureController() {
+func (c *Controller) timeDepositComputationPreMatureController(
 	req := c.provider.Service.Request
 
 	// POST /time-deposit-computation-pre-mature: Create a new time deposit computation pre mature. (WITH footstep)

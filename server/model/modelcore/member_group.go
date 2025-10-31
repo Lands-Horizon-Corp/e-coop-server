@@ -175,7 +175,7 @@ func (m *ModelCore) MemberGroupSeed(context context.Context, tx *gorm.DB, userID
 	return nil
 }
 
-func (m *ModelCore) MemberGroupCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberGroup, error) {
+func (m *ModelCore) MemberGroupCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberGroup, error) {
 	return m.MemberGroupManager.Find(context, &MemberGroup{
 		OrganizationID: orgId,
 		BranchID:       branchId,

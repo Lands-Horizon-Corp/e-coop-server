@@ -11,7 +11,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (c *Controller) LoanTransactionEntryController() {
+func (c *Controller) loanTransactionEntryController(
 	req := c.provider.Service.Request
 
 	// POST /api/v1/loan-transaction/:loan_transaction_id/deduction

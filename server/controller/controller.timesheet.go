@@ -10,7 +10,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (c *Controller) TimesheetController() {
+func (c *Controller) timesheetController(
 	req := c.provider.Service.Request
 
 	// Returns the current timesheet entry for the user, if any (for time in/out determination)
@@ -154,7 +154,7 @@ func (c *Controller) TimesheetController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		timesheets, err := c.modelcore.TimesheetCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		timesheets, err := c.modelcore.TimesheetCurrentbranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve timesheets: " + err.Error()})
 		}
@@ -173,7 +173,7 @@ func (c *Controller) TimesheetController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := c.modelcore.TimesheetCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		value, err := c.modelcore.TimesheetCurrentbranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve timesheets for pagination: " + err.Error()})
 		}

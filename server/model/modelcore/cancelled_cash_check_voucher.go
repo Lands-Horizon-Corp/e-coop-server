@@ -57,7 +57,7 @@ type (
 	}
 )
 
-func (m *ModelCore) CancelledCashCheckVoucher() {
+func (m *ModelCore) cancelledCashCheckVoucher() {
 	m.Migration = append(m.Migration, &CancelledCashCheckVoucher{})
 	m.CancelledCashCheckVoucherManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		CancelledCashCheckVoucher, CancelledCashCheckVoucherResponse, CancelledCashCheckVoucherRequest,
@@ -112,7 +112,7 @@ func (m *ModelCore) CancelledCashCheckVoucher() {
 	})
 }
 
-func (m *ModelCore) CancelledCashCheckVoucherCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*CancelledCashCheckVoucher, error) {
+func (m *ModelCore) CancelledCashCheckVoucherCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*CancelledCashCheckVoucher, error) {
 	return m.CancelledCashCheckVoucherManager.Find(context, &CancelledCashCheckVoucher{
 		OrganizationID: orgId,
 		BranchID:       branchId,

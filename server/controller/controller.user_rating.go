@@ -10,7 +10,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (c *Controller) UserRatingController() {
+func (c *Controller) userRatingController(
 	req := c.provider.Service.Request
 
 	// Returns all user ratings given by the specified user (rater)
@@ -82,7 +82,7 @@ func (c *Controller) UserRatingController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		userRating, err := c.modelcore.UserRatingCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
+		userRating, err := c.modelcore.UserRatingCurrentbranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user ratings for branch: " + err.Error()})
 		}

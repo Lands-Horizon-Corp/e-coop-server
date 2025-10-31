@@ -13,7 +13,7 @@ import (
 )
 
 // BankController registers routes for managing banks.
-func (c *Controller) BankController() {
+func (c *Controller) bankController(
 	req := c.provider.Service.Request
 
 	// GET /bank: List all banks for the current user's branch. (NO footstep)
@@ -31,7 +31,7 @@ func (c *Controller) BankController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		banks, err := c.modelcore.BankCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		banks, err := c.modelcore.BankCurrentbranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No banks found for the current branch"})
 		}
@@ -53,7 +53,7 @@ func (c *Controller) BankController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		banks, err := c.modelcore.BankCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		banks, err := c.modelcore.BankCurrentbranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch banks for pagination: " + err.Error()})
 		}

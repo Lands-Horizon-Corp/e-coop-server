@@ -12,7 +12,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (c *Controller) MemberTypeReferenceController() {
+func (c *Controller) memberTypeReferenceController(
 	req := c.provider.Service.Request
 
 	// Get all member type references by member_type_id for the current branch

@@ -13,7 +13,7 @@ import (
 )
 
 // TimeDepositComputationController registers routes for managing time deposit computations.
-func (c *Controller) TimeDepositComputationController() {
+func (c *Controller) timeDepositComputationController(
 	req := c.provider.Service.Request
 
 	// POST /time-deposit-computation: Create a new time deposit computation. (WITH footstep)

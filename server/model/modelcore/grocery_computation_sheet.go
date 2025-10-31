@@ -110,7 +110,7 @@ func (m *ModelCore) GroceryComputationSheet() {
 	})
 }
 
-func (m *ModelCore) GroceryComputationSheetCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*GroceryComputationSheet, error) {
+func (m *ModelCore) GroceryComputationSheetCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*GroceryComputationSheet, error) {
 	return m.GroceryComputationSheetManager.Find(context, &GroceryComputationSheet{
 		OrganizationID: orgId,
 		BranchID:       branchId,

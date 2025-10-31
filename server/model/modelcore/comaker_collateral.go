@@ -137,7 +137,7 @@ func (m *ModelCore) ComakerCollateral() {
 	})
 }
 
-func (m *ModelCore) ComakerCollateralCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ComakerCollateral, error) {
+func (m *ModelCore) ComakerCollateralCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ComakerCollateral, error) {
 	return m.ComakerCollateralManager.Find(context, &ComakerCollateral{
 		OrganizationID: orgId,
 		BranchID:       branchId,

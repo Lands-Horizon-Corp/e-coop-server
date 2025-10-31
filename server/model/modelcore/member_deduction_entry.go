@@ -131,7 +131,7 @@ func (m *ModelCore) MemberDeductionEntry() {
 	})
 }
 
-func (m *ModelCore) MemberDeductionEntryCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberDeductionEntry, error) {
+func (m *ModelCore) MemberDeductionEntryCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberDeductionEntry, error) {
 	return m.MemberDeductionEntryManager.Find(context, &MemberDeductionEntry{
 		OrganizationID: orgId,
 		BranchID:       branchId,

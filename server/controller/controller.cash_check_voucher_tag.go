@@ -13,7 +13,7 @@ import (
 )
 
 // CashCheckVoucherTagController registers routes for managing cash check voucher tags.
-func (c *Controller) CashCheckVoucherTagController() {
+func (c *Controller) cashCheckVoucherTagController(
 	req := c.provider.Service.Request
 
 	// GET /cash-check-voucher-tag: List all cash check voucher tags for the current user's branch. (NO footstep)
@@ -31,7 +31,7 @@ func (c *Controller) CashCheckVoucherTagController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		tags, err := c.modelcore.CashCheckVoucherTagCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		tags, err := c.modelcore.CashCheckVoucherTagCurrentbranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No cash check voucher tags found for the current branch"})
 		}
@@ -53,7 +53,7 @@ func (c *Controller) CashCheckVoucherTagController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		tags, err := c.modelcore.CashCheckVoucherTagCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		tags, err := c.modelcore.CashCheckVoucherTagCurrentbranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch cash check voucher tags for pagination: " + err.Error()})
 		}

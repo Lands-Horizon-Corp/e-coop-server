@@ -80,7 +80,7 @@ type (
 	}
 )
 
-func (m *ModelCore) BatchFunding() {
+func (m *ModelCore) batchFunding() {
 	m.Migration = append(m.Migration, &BatchFunding{})
 	m.BatchFundingManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		BatchFunding, BatchFundingResponse, BatchFundingRequest,
@@ -147,7 +147,7 @@ func (m *ModelCore) BatchFunding() {
 	})
 }
 
-func (m *ModelCore) BatchFundingCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*BatchFunding, error) {
+func (m *ModelCore) BatchFundingCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*BatchFunding, error) {
 	return m.BatchFundingManager.Find(context, &BatchFunding{
 		OrganizationID: orgId,
 		BranchID:       branchId,

@@ -506,7 +506,7 @@ func (m *ModelCore) CompanySeed(context context.Context, tx *gorm.DB, userID uui
 	return nil
 }
 
-func (m *ModelCore) CompanyCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Company, error) {
+func (m *ModelCore) CompanyCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Company, error) {
 	return m.CompanyManager.Find(context, &Company{
 		OrganizationID: orgId,
 		BranchID:       branchId,

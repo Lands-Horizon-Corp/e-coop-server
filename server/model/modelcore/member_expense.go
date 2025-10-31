@@ -119,7 +119,7 @@ func (m *ModelCore) MemberExpense() {
 	})
 }
 
-func (m *ModelCore) MemberExpenseCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberExpense, error) {
+func (m *ModelCore) MemberExpenseCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberExpense, error) {
 	return m.MemberExpenseManager.Find(context, &MemberExpense{
 		OrganizationID: orgId,
 		BranchID:       branchId,

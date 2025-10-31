@@ -118,7 +118,7 @@ type (
 	}
 )
 
-func (m *ModelCore) AutomaticLoanDeduction() {
+func (m *ModelCore) automaticLoanDeduction() {
 	m.Migration = append(m.Migration, &AutomaticLoanDeduction{})
 	m.AutomaticLoanDeductionManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		AutomaticLoanDeduction, AutomaticLoanDeductionResponse, AutomaticLoanDeductionRequest,
@@ -193,7 +193,7 @@ func (m *ModelCore) AutomaticLoanDeduction() {
 	})
 }
 
-func (m *ModelCore) AutomaticLoanDeductionCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*AutomaticLoanDeduction, error) {
+func (m *ModelCore) AutomaticLoanDeductionCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*AutomaticLoanDeduction, error) {
 	return m.AutomaticLoanDeductionManager.Find(context, &AutomaticLoanDeduction{
 		OrganizationID: orgId,
 		BranchID:       branchId,

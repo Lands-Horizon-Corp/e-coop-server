@@ -71,7 +71,7 @@ type (
 	}
 )
 
-func (m *ModelCore) GeneralLedgerTag() {
+func (m *ModelCore) generalLedgerTag() {
 	m.Migration = append(m.Migration, &GeneralLedgerTag{})
 	m.GeneralLedgerTagManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		GeneralLedgerTag, GeneralLedgerTagResponse, GeneralLedgerTagRequest,
@@ -132,7 +132,7 @@ func (m *ModelCore) GeneralLedgerTag() {
 	})
 }
 
-func (m *ModelCore) GeneralLedgerTagCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*GeneralLedgerTag, error) {
+func (m *ModelCore) GeneralLedgerTagCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*GeneralLedgerTag, error) {
 	return m.GeneralLedgerTagManager.Find(context, &GeneralLedgerTag{
 		OrganizationID: orgId,
 		BranchID:       branchId,

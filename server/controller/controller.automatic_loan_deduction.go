@@ -13,7 +13,7 @@ import (
 )
 
 // AutomaticLoanDeductionController registers routes for managing automatic loan deductions.
-func (c *Controller) AutomaticLoanDeductionController() {
+func (c *Controller) automaticLoanDeductionController(
 	req := c.provider.Service.Request
 
 	// GET /automatic-loan-deduction/computation-sheet/:computation_sheet_id/search

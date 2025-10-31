@@ -545,7 +545,7 @@ func (m *ModelCore) TransactionBatchMinimal(context context.Context, id uuid.UUI
 	}, nil
 }
 
-func (m *ModelCore) TransactionBatchCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*TransactionBatch, error) {
+func (m *ModelCore) TransactionBatchCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*TransactionBatch, error) {
 	return m.TransactionBatchManager.Find(context, &TransactionBatch{
 		OrganizationID: orgId,
 		BranchID:       branchId,

@@ -11,7 +11,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (c *Controller) OrganizationController() {
+func (c *Controller) organizationController(
 	req := c.provider.Service.Request
 
 	// Get all public organizations

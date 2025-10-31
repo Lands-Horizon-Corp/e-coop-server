@@ -13,7 +13,7 @@ import (
 )
 
 // InvitationCode manages endpoints for invitation code resources.
-func (c *Controller) InvitationCode() {
+func (c *Controller) invitationCode(
 	req := c.provider.Service.Request
 
 	// GET /invitation-code: Retrieve all invitation codes for the current user's organization and branch. (NO footstep)
@@ -31,7 +31,7 @@ func (c *Controller) InvitationCode() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		invitationCode, err := c.modelcore.GetInvitationCodeByBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
+		invitationCode, err := c.modelcore.GetInvitationCodeBybranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve invitation codes: " + err.Error()})
 		}
@@ -53,7 +53,7 @@ func (c *Controller) InvitationCode() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		invitationCode, err := c.modelcore.GetInvitationCodeByBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
+		invitationCode, err := c.modelcore.GetInvitationCodeBybranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve invitation codes: " + err.Error()})
 		}

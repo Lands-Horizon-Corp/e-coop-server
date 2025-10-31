@@ -463,7 +463,7 @@ type AccountRequest struct {
 
 // --- REGISTRATION ---
 
-func (m *ModelCore) Account() {
+func (m *ModelCore) account() {
 	m.Migration = append(m.Migration, &Account{})
 	m.AccountManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		Account, AccountResponse, AccountRequest,
@@ -2527,7 +2527,7 @@ func (a *Account) BeforeDelete(tx *gorm.DB) error {
 	return tx.Create(history).Error
 }
 
-func (m *ModelCore) AccountCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Account, error) {
+func (m *ModelCore) AccountCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Account, error) {
 	return m.AccountManager.Find(context, &Account{
 		OrganizationID: orgId,
 		BranchID:       branchId,

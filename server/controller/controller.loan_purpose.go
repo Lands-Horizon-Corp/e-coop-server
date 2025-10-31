@@ -13,7 +13,7 @@ import (
 )
 
 // LoanPurposeController manages endpoints for loan purpose records.
-func (c *Controller) LoanPurposeController() {
+func (c *Controller) loanPurposeController(
 	req := c.provider.Service.Request
 
 	// GET /loan-purpose: List all loan purposes for the current user's branch. (NO footstep)
@@ -31,7 +31,7 @@ func (c *Controller) LoanPurposeController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		purposes, err := c.modelcore.LoanPurposeCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		purposes, err := c.modelcore.LoanPurposeCurrentbranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No loan purpose records found for the current branch"})
 		}
@@ -53,7 +53,7 @@ func (c *Controller) LoanPurposeController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		value, err := c.modelcore.LoanPurposeCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		value, err := c.modelcore.LoanPurposeCurrentbranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch loan purpose records: " + err.Error()})
 		}

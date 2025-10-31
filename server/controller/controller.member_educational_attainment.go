@@ -12,7 +12,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (c *Controller) MemberEducationalAttainmentController() {
+func (c *Controller) memberEducationalAttainmentController(
 	req := c.provider.Service.Request
 
 	// Create a new educational attainment record for a member profile

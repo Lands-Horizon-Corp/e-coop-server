@@ -13,7 +13,7 @@ import (
 )
 
 // CategoryController manages endpoints for categories.
-func (c *Controller) CategoryController() {
+func (c *Controller) categoryController(
 	req := c.provider.Service.Request
 
 	// GET /category: List all categories. (NO footstep)

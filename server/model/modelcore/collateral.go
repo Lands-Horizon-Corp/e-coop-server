@@ -58,7 +58,7 @@ type (
 	}
 )
 
-func (m *ModelCore) Collateral() {
+func (m *ModelCore) collateral() {
 	m.Migration = append(m.Migration, &Collateral{})
 	m.CollateralManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		Collateral, CollateralResponse, CollateralRequest,
@@ -227,7 +227,7 @@ func (m *ModelCore) CollateralSeed(context context.Context, tx *gorm.DB, userID 
 	return nil
 }
 
-func (m *ModelCore) CollateralCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Collateral, error) {
+func (m *ModelCore) CollateralCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Collateral, error) {
 	return m.CollateralManager.Find(context, &Collateral{
 		OrganizationID: orgId,
 		BranchID:       branchId,

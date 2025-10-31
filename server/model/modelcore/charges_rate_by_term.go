@@ -131,7 +131,7 @@ type (
 	}
 )
 
-func (m *ModelCore) ChargesRateByTerm() {
+func (m *ModelCore) chargesRateByTerm() {
 	m.Migration = append(m.Migration, &ChargesRateByTerm{})
 	m.ChargesRateByTermManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		ChargesRateByTerm, ChargesRateByTermResponse, ChargesRateByTermRequest,
@@ -212,7 +212,7 @@ func (m *ModelCore) ChargesRateByTerm() {
 	})
 }
 
-func (m *ModelCore) ChargesRateByTermCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ChargesRateByTerm, error) {
+func (m *ModelCore) ChargesRateByTermCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ChargesRateByTerm, error) {
 	return m.ChargesRateByTermManager.Find(context, &ChargesRateByTerm{
 		OrganizationID: orgId,
 		BranchID:       branchId,

@@ -15,7 +15,7 @@ import (
 
 // LoanTransactionTotalResponse represents the total calculations for a loan transaction
 
-func (c *Controller) LoanTransactionController() {
+func (c *Controller) loanTransactionController(
 	req := c.provider.Service.Request
 
 	// GET /api/v1/loan-transaction/member-profile/:member_profile_id/account/:account_id

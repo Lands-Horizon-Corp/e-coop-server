@@ -209,7 +209,7 @@ func (m *ModelCore) ChargesRateSchemeModeOfPayment() {
 	})
 }
 
-func (m *ModelCore) ChargesRateSchemeModeOfPaymentCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ChargesRateSchemeModeOfPayment, error) {
+func (m *ModelCore) ChargesRateSchemeModeOfPaymentCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ChargesRateSchemeModeOfPayment, error) {
 	return m.ChargesRateSchemeModeOfPaymentManager.Find(context, &ChargesRateSchemeModeOfPayment{
 		OrganizationID: orgId,
 		BranchID:       branchId,

@@ -114,7 +114,7 @@ type (
 	}
 )
 
-func (m *ModelCore) Branch() {
+func (m *ModelCore) branch() {
 	m.Migration = append(m.Migration, &Branch{})
 	m.BranchManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Branch, BranchResponse, BranchRequest]{
 		Preloads: []string{

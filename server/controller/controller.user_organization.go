@@ -13,7 +13,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (c *Controller) UserOrganinzationController() {
+func (c *Controller) userOrganinzationController(
 
 	req := c.provider.Service.Request
 
@@ -449,7 +449,7 @@ func (c *Controller) UserOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Branch not found: " + err.Error()})
 		}
-		userOrganization, err := c.modelcore.GetUserOrganizationByBranch(context, branch.OrganizationID, branch.ID, &isPending)
+		userOrganization, err := c.modelcore.GetUserOrganizationBybranch(context, branch.OrganizationID, branch.ID, &isPending)
 		if err != nil {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Failed to retrieve user organizations: " + err.Error()})
 		}

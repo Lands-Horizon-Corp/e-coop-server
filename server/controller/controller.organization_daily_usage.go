@@ -8,7 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (c *Controller) OrganizationDailyUsage() {
+func (c *Controller) organizationDailyUsage(
 	req := c.provider.Service.Request
 
 	// Get daily usage records for the current user's organization

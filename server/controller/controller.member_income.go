@@ -10,7 +10,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (c *Controller) MemberIncomeController() {
+func (c *Controller) memberIncomeController(
 	req := c.provider.Service.Request
 
 	// Create a new income record for a member profile

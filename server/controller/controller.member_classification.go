@@ -13,7 +13,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (c *Controller) MemberClassificationController() {
+func (c *Controller) memberClassificationController(
 	req := c.provider.Service.Request
 
 	// Get all member classification history for the current branch
@@ -28,7 +28,7 @@ func (c *Controller) MemberClassificationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberClassificationHistory, err := c.modelcore.MemberClassificationHistoryCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		memberClassificationHistory, err := c.modelcore.MemberClassificationHistoryCurrentbranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member classification history: " + err.Error()})
 		}
@@ -70,7 +70,7 @@ func (c *Controller) MemberClassificationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberClassification, err := c.modelcore.MemberClassificationCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		memberClassification, err := c.modelcore.MemberClassificationCurrentbranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member classifications: " + err.Error()})
 		}
@@ -89,7 +89,7 @@ func (c *Controller) MemberClassificationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := c.modelcore.MemberClassificationCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		value, err := c.modelcore.MemberClassificationCurrentbranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member classifications for pagination: " + err.Error()})
 		}

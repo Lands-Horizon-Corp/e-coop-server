@@ -782,7 +782,7 @@ func (m *ModelCore) LoanTransaction() {
 	})
 }
 
-func (m *ModelCore) LoanTransactionCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanTransaction, error) {
+func (m *ModelCore) LoanTransactionCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanTransaction, error) {
 	return m.LoanTransactionManager.Find(context, &LoanTransaction{
 		OrganizationID: orgId,
 		BranchID:       branchId,

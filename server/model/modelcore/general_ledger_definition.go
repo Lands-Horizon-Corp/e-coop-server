@@ -101,7 +101,7 @@ type (
 	}
 )
 
-func (m *ModelCore) GeneralLedgerDefinition() {
+func (m *ModelCore) generalLedgerDefinition() {
 	m.Migration = append(m.Migration, &GeneralLedgerDefinition{})
 	m.GeneralLedgerDefinitionManager = horizon_services.NewRepository(horizon_services.RepositoryParams[GeneralLedgerDefinition, GeneralLedgerDefinitionResponse, GeneralLedgerDefinitionRequest]{
 		Preloads: []string{
@@ -208,7 +208,7 @@ func (m *ModelCore) GeneralLedgerDefinition() {
 	})
 }
 
-func (m *ModelCore) GeneralLedgerDefinitionCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*GeneralLedgerDefinition, error) {
+func (m *ModelCore) GeneralLedgerDefinitionCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*GeneralLedgerDefinition, error) {
 	return m.GeneralLedgerDefinitionManager.Find(context, &GeneralLedgerDefinition{
 		OrganizationID: orgId,
 		BranchID:       branchId,

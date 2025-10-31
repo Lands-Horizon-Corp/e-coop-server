@@ -424,7 +424,7 @@ func (m *ModelCore) GetUserOrganizationByOrganization(context context.Context, o
 }
 
 // GetUserOrganizationByBranch retrieves all user organizations for a specific organization branch
-func (m *ModelCore) GetUserOrganizationByBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID, pending *bool) ([]*UserOrganization, error) {
+func (m *ModelCore) GetUserOrganizationBybranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID, pending *bool) ([]*UserOrganization, error) {
 	filter := &UserOrganization{
 		OrganizationID: organizationID,
 		BranchID:       &branchID,
@@ -436,7 +436,7 @@ func (m *ModelCore) GetUserOrganizationByBranch(context context.Context, organiz
 }
 
 // CountUserOrganizationPerBranch counts the number of user organizations for a specific branch
-func (m *ModelCore) CountUserOrganizationPerBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) (int64, error) {
+func (m *ModelCore) CountUserOrganizationPerbranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) (int64, error) {
 	return m.UserOrganizationManager.Count(context, &UserOrganization{
 		OrganizationID: organizationID,
 		BranchID:       &branchID,
@@ -444,7 +444,7 @@ func (m *ModelCore) CountUserOrganizationPerBranch(context context.Context, orga
 }
 
 // CountUserOrganizationBranch counts user organizations for a specific user in a branch
-func (m *ModelCore) CountUserOrganizationBranch(context context.Context, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) (int64, error) {
+func (m *ModelCore) CountUserOrganizationbranch(context context.Context, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) (int64, error) {
 	return m.UserOrganizationManager.Count(context, &UserOrganization{
 		OrganizationID: organizationID,
 		BranchID:       &branchID,
@@ -454,13 +454,13 @@ func (m *ModelCore) CountUserOrganizationBranch(context context.Context, userID 
 
 // UserOrganizationEmployeeCanJoin checks if a user can join an organization as an employee
 func (m *ModelCore) UserOrganizationEmployeeCanJoin(context context.Context, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) bool {
-	existing, err := m.CountUserOrganizationBranch(context, userID, organizationID, branchID)
+	existing, err := m.CountUserOrganizationbranch(context, userID, organizationID, branchID)
 	return err == nil && existing == 0
 }
 
 // UserOrganizationMemberCanJoin checks if a user can join an organization as a member
 func (m *ModelCore) UserOrganizationMemberCanJoin(context context.Context, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) bool {
-	existing, err := m.CountUserOrganizationBranch(context, userID, organizationID, branchID)
+	existing, err := m.CountUserOrganizationbranch(context, userID, organizationID, branchID)
 	if err != nil || existing > 0 {
 		return false
 	}

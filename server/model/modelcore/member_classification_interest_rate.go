@@ -135,7 +135,7 @@ func (m *ModelCore) MemberClassificationInterestRate() {
 	})
 }
 
-func (m *ModelCore) MemberClassificationInterestRateCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberClassificationInterestRate, error) {
+func (m *ModelCore) MemberClassificationInterestRateCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberClassificationInterestRate, error) {
 	return m.MemberClassificationInterestRateManager.Find(context, &MemberClassificationInterestRate{
 		OrganizationID: orgId,
 		BranchID:       branchId,

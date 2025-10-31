@@ -85,7 +85,7 @@ type (
 	}
 )
 
-func (m *ModelCore) FinancialStatementDefinition() {
+func (m *ModelCore) financialStatementDefinition() {
 	m.Migration = append(m.Migration, &FinancialStatementDefinition{})
 	m.FinancialStatementDefinitionManager = horizon_services.NewRepository(horizon_services.RepositoryParams[FinancialStatementDefinition, FinancialStatementDefinitionResponse, FinancialStatementDefinitionRequest]{
 		Preloads: []string{
@@ -171,7 +171,7 @@ func (m *ModelCore) FinancialStatementDefinition() {
 	})
 }
 
-func (m *ModelCore) FinancialStatementDefinitionCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*FinancialStatementDefinition, error) {
+func (m *ModelCore) FinancialStatementDefinitionCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*FinancialStatementDefinition, error) {
 	return m.FinancialStatementDefinitionManager.Find(context, &FinancialStatementDefinition{
 		OrganizationID: orgId,
 		BranchID:       branchId,

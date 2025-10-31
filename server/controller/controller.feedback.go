@@ -13,7 +13,7 @@ import (
 )
 
 // FeedbackController manages endpoints for feedback records.
-func (c *Controller) FeedbackController() {
+func (c *Controller) feedbackController(
 	req := c.provider.Service.Request
 
 	// GET /feedback: List all feedback records. (NO footstep)

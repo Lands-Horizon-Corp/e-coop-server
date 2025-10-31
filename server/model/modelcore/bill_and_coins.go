@@ -67,7 +67,7 @@ type (
 	}
 )
 
-func (m *ModelCore) BillAndCoins() {
+func (m *ModelCore) billAndCoins() {
 	m.Migration = append(m.Migration, &BillAndCoins{})
 	m.BillAndCoinsManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		BillAndCoins, BillAndCoinsResponse, BillAndCoinsRequest,
@@ -1583,7 +1583,7 @@ func (m *ModelCore) BillAndCoinsSeed(context context.Context, tx *gorm.DB, userI
 
 	return nil
 }
-func (m *ModelCore) BillAndCoinsCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*BillAndCoins, error) {
+func (m *ModelCore) BillAndCoinsCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*BillAndCoins, error) {
 	return m.BillAndCoinsManager.Find(context, &BillAndCoins{
 		OrganizationID: orgId,
 		BranchID:       branchId,

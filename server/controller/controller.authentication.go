@@ -14,7 +14,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (c *Controller) AuthenticationController() {
+func (c *Controller) authenticationController(
 	req := c.provider.Service.Request
 	// Returns the current authenticated user and their user organization, if any.
 	req.RegisterRoute(handlers.Route{

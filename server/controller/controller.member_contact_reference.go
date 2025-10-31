@@ -10,7 +10,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (c *Controller) MemberContactReferenceController() {
+func (c *Controller) memberContactReferenceController(
 	req := c.provider.Service.Request
 
 	// Create a new contact reference for a member profile

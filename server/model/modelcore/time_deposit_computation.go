@@ -166,7 +166,7 @@ func (m *ModelCore) TimeDepositComputation() {
 }
 
 // TimeDepositComputationCurrentBranch retrieves all timedepositcomputation records for the specified organization and branch
-func (m *ModelCore) TimeDepositComputationCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*TimeDepositComputation, error) {
+func (m *ModelCore) TimeDepositComputationCurrentbranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*TimeDepositComputation, error) {
 	return m.TimeDepositComputationManager.Find(context, &TimeDepositComputation{
 		OrganizationID: orgID,
 		BranchID:       branchID,

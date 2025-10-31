@@ -10,7 +10,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (c *Controller) OnlineRemittanceController() {
+func (c *Controller) onlineRemittanceController(
 	req := c.provider.Service.Request
 
 	// Retrieve batch online remittance (JWT) for the current transaction batch before ending.

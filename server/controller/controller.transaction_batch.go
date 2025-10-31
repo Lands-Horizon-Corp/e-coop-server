@@ -10,7 +10,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (c *Controller) TransactionBatchController() {
+func (c *Controller) transactionBatchController(
 	req := c.provider.Service.Request
 
 	// List all transaction batches for the current branch
@@ -50,7 +50,7 @@ func (c *Controller) TransactionBatchController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		transactionBatch, err := c.modelcore.TransactionBatchCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
+		transactionBatch, err := c.modelcore.TransactionBatchCurrentbranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve paginated transaction batches: " + err.Error()})
 		}

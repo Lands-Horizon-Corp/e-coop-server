@@ -44,7 +44,7 @@ type (
 	}
 )
 
-func (m *ModelCore) Feedback() {
+func (m *ModelCore) feedback() {
 	m.Migration = append(m.Migration, &Feedback{})
 	m.FeedbackManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Feedback, FeedbackResponse, FeedbackRequest]{
 		Preloads: []string{"Media"},

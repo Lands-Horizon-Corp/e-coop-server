@@ -11,7 +11,7 @@ import (
 )
 
 // MemberAssetController manages endpoints for member asset records.
-func (c *Controller) MemberAssetController() {
+func (c *Controller) memberAssetController(
 	req := c.provider.Service.Request
 
 	// POST /member-asset/member-profile/:member_profile_id: Create a new asset record for a member.

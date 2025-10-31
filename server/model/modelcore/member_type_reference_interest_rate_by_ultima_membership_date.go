@@ -125,7 +125,7 @@ func (m *ModelCore) MemberTypeReferenceInterestRateByUltimaMembershipDate() {
 	})
 }
 
-func (m *ModelCore) MemberTypeReferenceInterestRateByUltimaMembershipDateCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberTypeReferenceInterestRateByUltimaMembershipDate, error) {
+func (m *ModelCore) MemberTypeReferenceInterestRateByUltimaMembershipDateCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberTypeReferenceInterestRateByUltimaMembershipDate, error) {
 	return m.MemberTypeReferenceInterestRateByUltimaMembershipDateManager.Find(context, &MemberTypeReferenceInterestRateByUltimaMembershipDate{
 		OrganizationID: orgId,
 		BranchID:       branchId,

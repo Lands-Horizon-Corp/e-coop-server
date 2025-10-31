@@ -72,7 +72,7 @@ type (
 	}
 )
 
-func (m *ModelCore) GeneralLedgerAccountsGrouping() {
+func (m *ModelCore) generalLedgerAccountsGrouping() {
 	m.Migration = append(m.Migration, &GeneralLedgerAccountsGrouping{})
 	m.GeneralLedgerAccountsGroupingManager = horizon_services.NewRepository(horizon_services.RepositoryParams[GeneralLedgerAccountsGrouping, GeneralLedgerAccountsGroupingResponse, GeneralLedgerAccountsGroupingRequest]{
 		Preloads: []string{
@@ -611,7 +611,7 @@ func (m *ModelCore) GeneralLedgerAccountsGroupingSeed(context context.Context, t
 	return nil
 }
 
-func (m *ModelCore) GeneralLedgerAccountsGroupingCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*GeneralLedgerAccountsGrouping, error) {
+func (m *ModelCore) GeneralLedgerAccountsGroupingCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*GeneralLedgerAccountsGrouping, error) {
 	return m.GeneralLedgerAccountsGroupingManager.Find(context, &GeneralLedgerAccountsGrouping{
 		OrganizationID: orgId,
 		BranchID:       branchId,

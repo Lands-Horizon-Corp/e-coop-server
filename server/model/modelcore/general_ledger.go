@@ -207,7 +207,7 @@ type (
 	}
 )
 
-func (m *ModelCore) GeneralLedger() {
+func (m *ModelCore) generalLedger() {
 	m.Migration = append(m.Migration, &GeneralLedger{})
 	m.GeneralLedgerManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		GeneralLedger, GeneralLedgerResponse, GeneralLedgerRequest,
@@ -307,7 +307,7 @@ func (m *ModelCore) GeneralLedger() {
 	})
 }
 
-func (m *ModelCore) GeneralLedgerCurrentBranch(context context.Context, orgId, branchId uuid.UUID) ([]*GeneralLedger, error) {
+func (m *ModelCore) GeneralLedgerCurrentbranch(context context.Context, orgId, branchId uuid.UUID) ([]*GeneralLedger, error) {
 	return m.GeneralLedgerManager.Find(context, &GeneralLedger{
 		OrganizationID: orgId,
 		BranchID:       branchId,

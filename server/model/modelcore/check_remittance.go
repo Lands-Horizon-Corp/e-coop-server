@@ -89,7 +89,7 @@ type (
 	}
 )
 
-func (m *ModelCore) CheckRemittance() {
+func (m *ModelCore) checkRemittance() {
 	m.Migration = append(m.Migration, &CheckRemittance{})
 	m.CheckRemittanceManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		CheckRemittance, CheckRemittanceResponse, CheckRemittanceRequest,
@@ -165,7 +165,7 @@ func (m *ModelCore) CheckRemittance() {
 	})
 }
 
-func (m *ModelCore) CheckRemittanceCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*CheckRemittance, error) {
+func (m *ModelCore) CheckRemittanceCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*CheckRemittance, error) {
 	return m.CheckRemittanceManager.Find(context, &CheckRemittance{
 		OrganizationID: orgId,
 		BranchID:       branchId,

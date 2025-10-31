@@ -10,7 +10,7 @@ import (
 )
 
 // GeneralLedgerController manages endpoints for general ledger accounts, definitions, and member ledgers.
-func (c *Controller) GeneralLedgerController() {
+func (c *Controller) generalLedgerController(
 	req := c.provider.Service.Request
 
 	req.RegisterRoute(handlers.Route{

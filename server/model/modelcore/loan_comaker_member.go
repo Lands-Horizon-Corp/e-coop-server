@@ -135,7 +135,7 @@ func (m *ModelCore) LoanComakerMember() {
 	})
 }
 
-func (m *ModelCore) LoanComakerMemberCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanComakerMember, error) {
+func (m *ModelCore) LoanComakerMemberCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanComakerMember, error) {
 	return m.LoanComakerMemberManager.Find(context, &LoanComakerMember{
 		OrganizationID: orgId,
 		BranchID:       branchId,

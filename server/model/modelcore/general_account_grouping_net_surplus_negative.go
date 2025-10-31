@@ -66,7 +66,7 @@ type (
 	}
 )
 
-func (m *ModelCore) GeneralAccountGroupingNetSurplusNegative() {
+func (m *ModelCore) generalAccountGroupingNetSurplusNegative() {
 	m.Migration = append(m.Migration, &GeneralAccountGroupingNetSurplusNegative{})
 	m.GeneralAccountGroupingNetSurplusNegativeManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		GeneralAccountGroupingNetSurplusNegative,
@@ -128,7 +128,7 @@ func (m *ModelCore) GeneralAccountGroupingNetSurplusNegative() {
 	})
 }
 
-func (m *ModelCore) GeneralAccountGroupingNetSurplusNegativeCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*GeneralAccountGroupingNetSurplusNegative, error) {
+func (m *ModelCore) GeneralAccountGroupingNetSurplusNegativeCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*GeneralAccountGroupingNetSurplusNegative, error) {
 	return m.GeneralAccountGroupingNetSurplusNegativeManager.Find(context, &GeneralAccountGroupingNetSurplusNegative{
 		OrganizationID: orgId,
 		BranchID:       branchId,

@@ -14,7 +14,7 @@ import (
 )
 
 // MediaController manages endpoints for media records.
-func (c *Controller) MediaController() {
+func (c *Controller) mediaController(
 
 	req := c.provider.Service.Request
 

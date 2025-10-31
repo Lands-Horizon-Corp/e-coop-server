@@ -59,7 +59,7 @@ type (
 	}
 )
 
-func (m *ModelCore) ChargesRateSchemeAccount() {
+func (m *ModelCore) chargesRateSchemeAccount() {
 	m.Migration = append(m.Migration, &ChargesRateSchemeAccount{})
 	m.ChargesRateSchemeAccountManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		ChargesRateSchemeAccount, ChargesRateSchemeAccountResponse, ChargesRateSchemeAccountRequest,
@@ -117,7 +117,7 @@ func (m *ModelCore) ChargesRateSchemeAccount() {
 	})
 }
 
-func (m *ModelCore) ChargesRateSchemeAccountCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ChargesRateSchemeAccount, error) {
+func (m *ModelCore) ChargesRateSchemeAccountCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ChargesRateSchemeAccount, error) {
 	return m.ChargesRateSchemeAccountManager.Find(context, &ChargesRateSchemeAccount{
 		OrganizationID: orgId,
 		BranchID:       branchId,

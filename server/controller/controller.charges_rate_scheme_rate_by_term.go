@@ -13,7 +13,7 @@ import (
 )
 
 // ChargesRateByTermController registers routes for managing charges rate by term.
-func (c *Controller) ChargesRateByTermController() {
+func (c *Controller) chargesRateByTermController(
 	req := c.provider.Service.Request
 
 	// POST /charges-rate-by-term: Create a new charges rate by term. (WITH footstep)

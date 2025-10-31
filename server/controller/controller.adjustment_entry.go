@@ -13,7 +13,7 @@ import (
 )
 
 // AdjustmentEntryController registers routes for managing adjustment entries.
-func (c *Controller) AdjustmentEntryController() {
+func (c *Controller) adjustmentEntryController(
 	req := c.provider.Service.Request
 
 	// GET /adjustment-entry: List all adjustment entries for the current user's branch. (NO footstep)
@@ -31,7 +31,7 @@ func (c *Controller) AdjustmentEntryController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		adjustmentEntries, err := c.modelcore.AdjustmentEntryCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		adjustmentEntries, err := c.modelcore.AdjustmentEntryCurrentbranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No adjustment entries found for the current branch"})
 		}
@@ -53,7 +53,7 @@ func (c *Controller) AdjustmentEntryController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		adjustmentEntries, err := c.modelcore.AdjustmentEntryCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		adjustmentEntries, err := c.modelcore.AdjustmentEntryCurrentbranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch adjustment entries for pagination: " + err.Error()})
 		}
@@ -366,7 +366,7 @@ func (c *Controller) AdjustmentEntryController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		adjustmentEntries, err := c.modelcore.AdjustmentEntryCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		adjustmentEntries, err := c.modelcore.AdjustmentEntryCurrentbranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No adjustment entries found for the current branch"})
 		}

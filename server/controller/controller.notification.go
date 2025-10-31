@@ -11,7 +11,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (c *Controller) NotificationController() {
+func (c *Controller) notificationController(
 	req := c.provider.Service.Request
 
 	// Get the current (logged in) user's notifications

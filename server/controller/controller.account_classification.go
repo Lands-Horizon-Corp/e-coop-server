@@ -11,7 +11,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (c *Controller) AccountClassificationController() {
+func (c *Controller) accountClassificationController(
 	req := c.provider.Service.Request
 
 	// GET endpoints (no footstep)

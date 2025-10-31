@@ -76,7 +76,7 @@ type (
 	}
 )
 
-func (m *ModelCore) DisbursementTransaction() {
+func (m *ModelCore) disbursementTransaction() {
 	m.Migration = append(m.Migration, &DisbursementTransaction{})
 	m.DisbursementTransactionManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		DisbursementTransaction, DisbursementTransactionResponse, DisbursementTransactionRequest,
@@ -140,7 +140,7 @@ func (m *ModelCore) DisbursementTransaction() {
 	})
 }
 
-func (m *ModelCore) DisbursementTransactionCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*DisbursementTransaction, error) {
+func (m *ModelCore) DisbursementTransactionCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*DisbursementTransaction, error) {
 	return m.DisbursementTransactionManager.Find(context, &DisbursementTransaction{
 		OrganizationID: orgId,
 		BranchID:       branchId,

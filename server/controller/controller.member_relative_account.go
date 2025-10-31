@@ -10,7 +10,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (c *Controller) MemberRelativeAccountController() {
+func (c *Controller) memberRelativeAccountController(
 	req := c.provider.Service.Request
 
 	// Create a new relative account record for a member profile

@@ -13,7 +13,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (c *Controller) MemberTypeController() {
+func (c *Controller) memberTypeController(
 	req := c.provider.Service.Request
 
 	// Get all member type history for the current branch
@@ -28,7 +28,7 @@ func (c *Controller) MemberTypeController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberTypeHistory, err := c.modelcore.MemberTypeHistoryCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		memberTypeHistory, err := c.modelcore.MemberTypeHistoryCurrentbranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member type history: " + err.Error()})
 		}
@@ -70,7 +70,7 @@ func (c *Controller) MemberTypeController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberType, err := c.modelcore.MemberTypeCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		memberType, err := c.modelcore.MemberTypeCurrentbranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member types: " + err.Error()})
 		}
@@ -89,7 +89,7 @@ func (c *Controller) MemberTypeController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := c.modelcore.MemberTypeCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		value, err := c.modelcore.MemberTypeCurrentbranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member types for pagination: " + err.Error()})
 		}

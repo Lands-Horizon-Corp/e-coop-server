@@ -13,7 +13,7 @@ import (
 )
 
 // ComputationSheetController registers routes for managing computation sheets.
-func (c *Controller) ComputationSheetController() {
+func (c *Controller) computationSheetController(
 	req := c.provider.Service.Request
 
 	// POST /computation-sheet/:computation_sheet_id/calculator: Returns sample calculation data.
@@ -173,7 +173,7 @@ func (c *Controller) ComputationSheetController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		sheets, err := c.modelcore.ComputationSheetCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		sheets, err := c.modelcore.ComputationSheetCurrentbranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No computation sheets found for the current branch"})
 		}

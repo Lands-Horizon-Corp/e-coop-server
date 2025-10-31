@@ -13,7 +13,7 @@ import (
 )
 
 // BranchController registers routes related to branch management.
-func (c *Controller) BranchController() {
+func (c *Controller) branchController(
 	req := c.provider.Service.Request
 
 	// GET /branch: List all branches or filter by user's organization from JWT if available.
@@ -528,7 +528,7 @@ func (c *Controller) BranchController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Only the branch owner can delete this branch"})
 		}
-		count, err := c.modelcore.CountUserOrganizationPerBranch(context, userOrganization.UserID, *userOrganization.BranchID)
+		count, err := c.modelcore.CountUserOrganizationPerbranch(context, userOrganization.UserID, *userOrganization.BranchID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete error",

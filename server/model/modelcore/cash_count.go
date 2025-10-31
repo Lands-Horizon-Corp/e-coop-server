@@ -78,7 +78,7 @@ type (
 	}
 )
 
-func (m *ModelCore) CashCount() {
+func (m *ModelCore) cashCount() {
 	m.Migration = append(m.Migration, &CashCount{})
 	m.CashCountManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		CashCount, CashCountResponse, CashCountRequest,
@@ -143,7 +143,7 @@ func (m *ModelCore) CashCount() {
 	})
 }
 
-func (m *ModelCore) CashCountCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*CashCount, error) {
+func (m *ModelCore) CashCountCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*CashCount, error) {
 	return m.CashCountManager.Find(context, &CashCount{
 		OrganizationID: orgId,
 		BranchID:       branchId,

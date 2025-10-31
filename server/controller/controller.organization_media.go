@@ -13,7 +13,7 @@ import (
 )
 
 // OrganizationMediaController registers routes for managing organization media.
-func (c *Controller) OrganizationMediaController() {
+func (c *Controller) organizationMediaController(
 	req := c.provider.Service.Request
 
 	// GET /organization-media: List all organization media for the current user's organization. (NO footstep)

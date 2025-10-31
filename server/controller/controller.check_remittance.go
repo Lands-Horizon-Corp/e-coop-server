@@ -11,7 +11,7 @@ import (
 )
 
 // CheckRemittanceController manages endpoints for check remittance operations within the current transaction batch.
-func (c *Controller) CheckRemittanceController() {
+func (c *Controller) checkRemittanceController(
 	req := c.provider.Service.Request
 
 	// GET /check-remittance: List all check remittances for the active transaction batch. (NO footstep)

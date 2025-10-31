@@ -10,7 +10,7 @@ import (
 )
 
 // GeneratedReports manages endpoints for generated report resources.
-func (c *Controller) GeneratedReports() {
+func (c *Controller) generatedReports(
 	req := c.provider.Service.Request
 
 	// GET /generated-report: Get all generated reports for the current user. (NO footstep)

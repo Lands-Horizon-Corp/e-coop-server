@@ -13,7 +13,7 @@ import (
 )
 
 // LoanStatusController manages endpoints for loan status records.
-func (c *Controller) LoanStatusController() {
+func (c *Controller) loanStatusController(
 	req := c.provider.Service.Request
 
 	// GET /loan-status: List all loan statuses for the current user's branch. (NO footstep)
@@ -31,7 +31,7 @@ func (c *Controller) LoanStatusController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		statuses, err := c.modelcore.LoanStatusCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		statuses, err := c.modelcore.LoanStatusCurrentbranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No loan status records found for the current branch"})
 		}
@@ -53,7 +53,7 @@ func (c *Controller) LoanStatusController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		value, err := c.modelcore.LoanStatusCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		value, err := c.modelcore.LoanStatusCurrentbranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch loan status records: " + err.Error()})
 		}

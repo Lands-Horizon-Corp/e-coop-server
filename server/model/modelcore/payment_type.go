@@ -301,7 +301,7 @@ func (m *ModelCore) PaymentTypeSeed(context context.Context, tx *gorm.DB, userID
 }
 
 // PaymentTypeCurrentBranch retrieves all payment types for the specified organization and branch
-func (m *ModelCore) PaymentTypeCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*PaymentType, error) {
+func (m *ModelCore) PaymentTypeCurrentbranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*PaymentType, error) {
 	return m.PaymentTypeManager.Find(context, &PaymentType{
 		OrganizationID: orgID,
 		BranchID:       branchID,

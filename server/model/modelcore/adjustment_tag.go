@@ -69,7 +69,7 @@ type (
 	}
 )
 
-func (m *ModelCore) AdjustmentTag() {
+func (m *ModelCore) adjustmentTag() {
 	m.Migration = append(m.Migration, &AdjustmentTag{})
 	m.AdjustmentTagManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		AdjustmentTag, AdjustmentTagResponse, AdjustmentTagRequest,
@@ -130,7 +130,7 @@ func (m *ModelCore) AdjustmentTag() {
 	})
 }
 
-func (m *ModelCore) AdjustmentTagCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*AdjustmentTag, error) {
+func (m *ModelCore) AdjustmentTagCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*AdjustmentTag, error) {
 	return m.AdjustmentTagManager.Find(context, &AdjustmentTag{
 		OrganizationID: orgId,
 		BranchID:       branchId,

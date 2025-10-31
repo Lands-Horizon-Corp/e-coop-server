@@ -13,7 +13,7 @@ import (
 )
 
 // ChargesRateSchemeController registers routes for managing charges rate schemes.
-func (c *Controller) ChargesRateSchemeController() {
+func (c *Controller) chargesRateSchemeController(
 	req := c.provider.Service.Request
 
 	// GET /charges-rate-scheme: Paginated list of charges rate schemes for the current branch. (NO footstep)
@@ -31,7 +31,7 @@ func (c *Controller) ChargesRateSchemeController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		chargesRateSchemes, err := c.modelcore.ChargesRateSchemeCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		chargesRateSchemes, err := c.modelcore.ChargesRateSchemeCurrentbranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch charges rate schemes for pagination: " + err.Error()})
 		}

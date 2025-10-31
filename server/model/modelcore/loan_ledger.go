@@ -101,7 +101,7 @@ func (m *ModelCore) LoanLedger() {
 	})
 }
 
-func (m *ModelCore) LoanLedgerCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanLedger, error) {
+func (m *ModelCore) LoanLedgerCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanLedger, error) {
 	return m.LoanLedgerManager.Find(context, &LoanLedger{
 		OrganizationID: orgId,
 		BranchID:       branchId,

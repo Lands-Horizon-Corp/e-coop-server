@@ -157,7 +157,7 @@ func (m *ModelCore) MemberJointAccount() {
 	})
 }
 
-func (m *ModelCore) MemberJointAccountCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberJointAccount, error) {
+func (m *ModelCore) MemberJointAccountCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberJointAccount, error) {
 	return m.MemberJointAccountManager.Find(context, &MemberJointAccount{
 		OrganizationID: orgId,
 		BranchID:       branchId,

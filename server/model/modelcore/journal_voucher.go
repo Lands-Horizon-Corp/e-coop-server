@@ -243,7 +243,7 @@ func (m *ModelCore) JournalVoucher() {
 	})
 }
 
-func (m *ModelCore) JournalVoucherCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*JournalVoucher, error) {
+func (m *ModelCore) JournalVoucherCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*JournalVoucher, error) {
 	return m.JournalVoucherManager.Find(context, &JournalVoucher{
 		OrganizationID: orgId,
 		BranchID:       branchId,

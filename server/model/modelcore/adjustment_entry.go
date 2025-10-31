@@ -111,7 +111,7 @@ type (
 	}
 )
 
-func (m *ModelCore) AdjustmentEntry() {
+func (m *ModelCore) adjustmentEntry() {
 	m.Migration = append(m.Migration, &AdjustmentEntry{})
 	m.AdjustmentEntryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		AdjustmentEntry, AdjustmentEntryResponse, AdjustmentEntryRequest,
@@ -189,7 +189,7 @@ func (m *ModelCore) AdjustmentEntry() {
 	})
 }
 
-func (m *ModelCore) AdjustmentEntryCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*AdjustmentEntry, error) {
+func (m *ModelCore) AdjustmentEntryCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*AdjustmentEntry, error) {
 	return m.AdjustmentEntryManager.Find(context, &AdjustmentEntry{
 		OrganizationID: orgId,
 		BranchID:       branchId,

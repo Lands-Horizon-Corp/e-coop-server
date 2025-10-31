@@ -85,7 +85,7 @@ type (
 	}
 )
 
-func (m *ModelCore) ComputationSheet() {
+func (m *ModelCore) computationSheet() {
 	m.Migration = append(m.Migration, &ComputationSheet{})
 	m.ComputationSheetManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		ComputationSheet, ComputationSheetResponse, ComputationSheetRequest,
@@ -148,7 +148,7 @@ func (m *ModelCore) ComputationSheet() {
 	})
 }
 
-func (m *ModelCore) ComputationSheetCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ComputationSheet, error) {
+func (m *ModelCore) ComputationSheetCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ComputationSheet, error) {
 	return m.ComputationSheetManager.Find(context, &ComputationSheet{
 		OrganizationID: orgId,
 		BranchID:       branchId,

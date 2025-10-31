@@ -8,7 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (c *Controller) AccountHistory() {
+func (c *Controller) accountHistory(
 	req := c.provider.Service.Request
 
 	// GET api/v1/account-history/account/:account_id

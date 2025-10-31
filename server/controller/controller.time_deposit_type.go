@@ -13,7 +13,7 @@ import (
 )
 
 // TimeDepositTypeController registers routes for managing time deposit types.
-func (c *Controller) TimeDepositTypeController() {
+func (c *Controller) timeDepositTypeController(
 	req := c.provider.Service.Request
 
 	// GET /time-deposit-type/search: Paginated search of time deposit types for the current branch. (NO footstep)
@@ -31,7 +31,7 @@ func (c *Controller) TimeDepositTypeController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		timeDepositTypes, err := c.modelcore.TimeDepositTypeCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		timeDepositTypes, err := c.modelcore.TimeDepositTypeCurrentbranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch time deposit types for pagination: " + err.Error()})
 		}

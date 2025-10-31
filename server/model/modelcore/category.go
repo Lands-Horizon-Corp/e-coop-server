@@ -267,7 +267,7 @@ func (m *ModelCore) CategorySeed(ctx context.Context) error {
 	return nil
 }
 
-func (m *ModelCore) Category() {
+func (m *ModelCore) category() {
 	m.Migration = append(m.Migration, &Category{})
 	m.CategoryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Category, CategoryResponse, CategoryRequest]{
 		Preloads: []string{"OrganizationCategories"},

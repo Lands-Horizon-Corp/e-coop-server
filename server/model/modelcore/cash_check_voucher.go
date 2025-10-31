@@ -283,7 +283,7 @@ type (
 	}
 )
 
-func (m *ModelCore) CashCheckVoucher() {
+func (m *ModelCore) cashCheckVoucher() {
 	m.Migration = append(m.Migration, &CashCheckVoucher{})
 	m.CashCheckVoucherManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		CashCheckVoucher, CashCheckVoucherResponse, CashCheckVoucherRequest,
@@ -441,7 +441,7 @@ func (m *ModelCore) CashCheckVoucher() {
 	})
 }
 
-func (m *ModelCore) CashCheckVoucherCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*CashCheckVoucher, error) {
+func (m *ModelCore) CashCheckVoucherCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*CashCheckVoucher, error) {
 	return m.CashCheckVoucherManager.Find(context, &CashCheckVoucher{
 		OrganizationID: orgId,
 		BranchID:       branchId,

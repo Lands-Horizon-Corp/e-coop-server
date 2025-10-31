@@ -10,7 +10,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (c *Controller) TransactionController() {
+func (c *Controller) transactionController(
 	req := c.provider.Service.Request
 
 	// Create transaction

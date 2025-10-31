@@ -66,7 +66,7 @@ type (
 	}
 )
 
-func (m *ModelCore) GeneratedReport() {
+func (m *ModelCore) generatedReport() {
 	m.Migration = append(m.Migration, &GeneratedReport{})
 	m.GeneratedReportManager = horizon_services.NewRepository(horizon_services.RepositoryParams[GeneratedReport, GeneratedReportResponse, GeneratedReportRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Organization", "Branch", "User", "Media"},
@@ -134,7 +134,7 @@ func (m *ModelCore) GetGenerationReportByUser(context context.Context, userId uu
 	})
 }
 
-func (m *ModelCore) GeneratedReportCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*GeneratedReport, error) {
+func (m *ModelCore) GeneratedReportCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*GeneratedReport, error) {
 	return m.GeneratedReportManager.Find(context, &GeneratedReport{
 		OrganizationID: orgId,
 		BranchID:       branchId,

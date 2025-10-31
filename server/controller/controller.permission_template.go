@@ -11,7 +11,7 @@ import (
 )
 
 // PermissionTemplateController registers all routes related to permission templates.
-func (c *Controller) PermissionTemplateController() {
+func (c *Controller) permissionTemplateController(
 	req := c.provider.Service.Request
 
 	// Fetch all permission templates associated with the current user's branch.
@@ -26,7 +26,7 @@ func (c *Controller) PermissionTemplateController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		permissionTemplates, err := c.modelcore.GetPermissionTemplateByBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
+		permissionTemplates, err := c.modelcore.GetPermissionTemplateBybranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve permission templates: " + err.Error()})
 		}
@@ -45,7 +45,7 @@ func (c *Controller) PermissionTemplateController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		permissionTemplates, err := c.modelcore.GetPermissionTemplateByBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
+		permissionTemplates, err := c.modelcore.GetPermissionTemplateBybranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve permission templates: " + err.Error()})
 		}

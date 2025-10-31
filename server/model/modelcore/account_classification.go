@@ -54,7 +54,7 @@ type (
 	}
 )
 
-func (m *ModelCore) AccountClassification() {
+func (m *ModelCore) accountClassification() {
 	m.Migration = append(m.Migration, &AccountClassification{})
 	m.AccountClassificationManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		AccountClassification, AccountClassificationResponse, AccountClassificationRequest,
@@ -108,7 +108,7 @@ func (m *ModelCore) AccountClassification() {
 	})
 }
 
-func (m *ModelCore) AccountClassificationCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*AccountClassification, error) {
+func (m *ModelCore) AccountClassificationCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*AccountClassification, error) {
 	return m.AccountClassificationManager.Find(context, &AccountClassification{
 		OrganizationID: orgId,
 		BranchID:       branchId,

@@ -13,7 +13,7 @@ import (
 )
 
 // DisbursementController registers routes for managing disbursements.
-func (c *Controller) DisbursementController() {
+func (c *Controller) disbursementController(
 	req := c.provider.Service.Request
 
 	// GET /disbursement: List all disbursements for the current user's branch.
@@ -64,7 +64,7 @@ func (c *Controller) DisbursementController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		disbursements, err := c.modelcore.DisbursementCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		disbursements, err := c.modelcore.DisbursementCurrentbranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch disbursements for pagination: " + err.Error()})
 		}

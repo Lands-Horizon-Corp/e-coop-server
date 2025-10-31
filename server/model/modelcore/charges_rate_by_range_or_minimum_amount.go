@@ -69,7 +69,7 @@ type (
 	}
 )
 
-func (m *ModelCore) ChargesRateByRangeOrMinimumAmount() {
+func (m *ModelCore) chargesRateByRangeOrMinimumAmount() {
 	m.Migration = append(m.Migration, &ChargesRateByRangeOrMinimumAmount{})
 	m.ChargesRateByRangeOrMinimumAmountManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		ChargesRateByRangeOrMinimumAmount, ChargesRateByRangeOrMinimumAmountResponse, ChargesRateByRangeOrMinimumAmountRequest,
@@ -130,7 +130,7 @@ func (m *ModelCore) ChargesRateByRangeOrMinimumAmount() {
 	})
 }
 
-func (m *ModelCore) ChargesRateByRangeOrMinimumAmountCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ChargesRateByRangeOrMinimumAmount, error) {
+func (m *ModelCore) ChargesRateByRangeOrMinimumAmountCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ChargesRateByRangeOrMinimumAmount, error) {
 	return m.ChargesRateByRangeOrMinimumAmountManager.Find(context, &ChargesRateByRangeOrMinimumAmount{
 		OrganizationID: orgId,
 		BranchID:       branchId,

@@ -12,7 +12,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (c *Controller) AccountController() {
+func (c *Controller) accountController(
 	req := c.provider.Service.Request
 
 	// GET: Search (NO footstep)

@@ -11,7 +11,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (c *Controller) AccountCategoryController() {
+func (c *Controller) accountCategoryController(
 	req := c.provider.Service.Request
 
 	// SEARCH (GET) - NO FOOTSTEP

@@ -9,7 +9,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (c *Controller) UserController() {
+func (c *Controller) userController(
 	req := c.provider.Service.Request
 
 	// Returns a specific user by their ID.

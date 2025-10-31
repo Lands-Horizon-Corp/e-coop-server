@@ -14,7 +14,7 @@ import (
 )
 
 // ContactController manages endpoints for contact records.
-func (c *Controller) ContactController() {
+func (c *Controller) contactController(
 	req := c.provider.Service.Request
 
 	// GET /contact: List all contact records. (NO footstep)

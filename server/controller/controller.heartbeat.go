@@ -11,7 +11,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (c *Controller) Heartbeat() {
+func (c *Controller) heartbeat(
 	req := c.provider.Service.Request
 
 	req.RegisterRoute(handlers.Route{
