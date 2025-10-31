@@ -3,6 +3,7 @@ package v1
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
@@ -283,7 +284,7 @@ func (c *Controller) mediaController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
-		names := ""
+		var namesSlice []string
 		for _, rawID := range reqBody.IDs {
 			mediaID, err := uuid.Parse(rawID)
 			if err != nil {
@@ -305,7 +306,7 @@ func (c *Controller) mediaController() {
 				})
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Media record not found with ID: %s", rawID)})
 			}
-			names += media.FileName + ","
+			namesSlice = append(namesSlice, media.FileName)
 			if err := c.provider.Service.Storage.DeleteFile(context, &horizon.Storage{
 				FileName:   media.FileName,
 				FileSize:   media.FileSize,
@@ -333,6 +334,7 @@ func (c *Controller) mediaController() {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete media record: " + err.Error()})
 			}
 		}
+		names := strings.Join(namesSlice, ",")
 		if err := tx.Commit().Error; err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",

@@ -3,6 +3,7 @@ package v1
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
@@ -235,7 +236,7 @@ func (c *Controller) memberEducationalAttainmentController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
 		}
-		names := ""
+		var namesSlice []string
 		for _, rawID := range reqBody.IDs {
 			attainmentID, err := uuid.Parse(rawID)
 			if err != nil {
@@ -257,7 +258,7 @@ func (c *Controller) memberEducationalAttainmentController() {
 				})
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Educational attainment record with ID '%s' not found: %s", rawID, err.Error())})
 			}
-			names += value.SchoolName + ","
+			namesSlice = append(namesSlice, value.SchoolName)
 			if err := c.modelcore.MemberEducationalAttainmentManager.DeleteByIDWithTx(context, tx, attainmentID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -268,6 +269,7 @@ func (c *Controller) memberEducationalAttainmentController() {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to delete educational attainment record with ID '%s': %s", rawID, err.Error())})
 			}
 		}
+		names := strings.Join(namesSlice, ",")
 		if err := tx.Commit().Error; err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",

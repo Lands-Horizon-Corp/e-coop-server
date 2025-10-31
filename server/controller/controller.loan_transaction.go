@@ -3,6 +3,7 @@ package v1
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
@@ -1611,7 +1612,7 @@ func (c *Controller) loanTransactionController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
 
-		names := ""
+		var namesSlice []string
 		for _, rawID := range reqBody.IDs {
 			loanTransactionID, err := uuid.Parse(rawID)
 			if err != nil {
@@ -1641,7 +1642,7 @@ func (c *Controller) loanTransactionController() {
 				return ctx.JSON(http.StatusForbidden, map[string]string{"error": fmt.Sprintf("Access denied to loan transaction: %s", rawID)})
 			}
 
-			names += fmt.Sprintf("LT-%s,", loanTransaction.ID.String()[:8])
+			namesSlice = append(namesSlice, fmt.Sprintf("LT-%s", loanTransaction.ID.String()[:8]))
 
 			// Delete all LoanClearanceAnalysis records
 			clearanceAnalysisList, err := c.modelcore.LoanClearanceAnalysisManager.Find(context, &modelcore.LoanClearanceAnalysis{
@@ -1862,6 +1863,7 @@ func (c *Controller) loanTransactionController() {
 		}
 
 		// Commit the transaction
+		names := strings.Join(namesSlice, ",")
 		if err := tx.Commit().Error; err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",

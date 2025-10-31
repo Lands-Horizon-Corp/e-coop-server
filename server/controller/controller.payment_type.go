@@ -3,6 +3,7 @@ package v1
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
@@ -276,7 +277,7 @@ func (c *Controller) paymentTypeController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
 		}
-		names := ""
+		var namesSlice []string
 		for _, rawID := range reqBody.IDs {
 			paymentTypeID, err := uuid.Parse(rawID)
 			if err != nil {
@@ -298,7 +299,7 @@ func (c *Controller) paymentTypeController() {
 				})
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("PaymentType with ID %s not found: %v", rawID, err)})
 			}
-			names += paymentType.Name + ","
+			namesSlice = append(namesSlice, paymentType.Name)
 			if err := c.modelcore.PaymentTypeManager.DeleteByIDWithTx(context, tx, paymentTypeID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -309,6 +310,7 @@ func (c *Controller) paymentTypeController() {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to delete payment type with ID %s: %v", rawID, err)})
 			}
 		}
+		names := strings.Join(namesSlice, ",")
 		if err := tx.Commit().Error; err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",

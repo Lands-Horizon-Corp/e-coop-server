@@ -3,6 +3,7 @@ package v1
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
@@ -299,7 +300,7 @@ func (c *Controller) memberOccupationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
 		}
 
-		names := ""
+		var namesSlice []string
 		for _, rawID := range reqBody.IDs {
 			memberOccupationID, err := uuid.Parse(rawID)
 			if err != nil {
@@ -323,7 +324,7 @@ func (c *Controller) memberOccupationController() {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Member occupation with ID '%s' not found: %s", rawID, err.Error())})
 			}
 
-			names += value.Name + ","
+			namesSlice = append(namesSlice, value.Name)
 			if err := c.modelcore.MemberOccupationManager.DeleteByIDWithTx(context, tx, memberOccupationID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -334,6 +335,7 @@ func (c *Controller) memberOccupationController() {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to delete member occupation with ID '%s': %s", rawID, err.Error())})
 			}
 		}
+		names := strings.Join(namesSlice, ",")
 
 		if err := tx.Commit().Error; err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
