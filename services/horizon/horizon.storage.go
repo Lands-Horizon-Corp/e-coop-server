@@ -462,7 +462,7 @@ func (h *HorizonStorage) RemoveAllFiles(ctx context.Context) error {
 	return nil
 }
 
-func (h *HorizonStorage) GenerateUniqueName(ctx context.Context, original string, contentType string) (string, error) {
+func (h *HorizonStorage) GenerateUniqueName(_ context.Context, original string, contentType string) (string, error) {
 	ext := filepath.Ext(original)
 	base := strings.TrimSuffix(original, ext)
 

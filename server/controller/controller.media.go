@@ -102,7 +102,7 @@ func (c *Controller) mediaController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create media record: " + err.Error()})
 		}
-		storage, err := c.provider.Service.Storage.UploadFromHeader(context, file, func(progress, _ int64, storage *horizon.Storage) {
+		storage, err := c.provider.Service.Storage.UploadFromHeader(context, file, func(progress, _ int64, _ *horizon.Storage) {
 			_ = c.modelcore.MediaManager.Update(context, &modelcore.Media{
 				ID:        initial.ID,
 				Progress:  progress,
