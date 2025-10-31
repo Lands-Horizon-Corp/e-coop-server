@@ -94,25 +94,11 @@ func (s *Seeder) Run(ctx context.Context, multiplier int32) error {
 		}),
 	)
 
-	s.progressBar.Describe("🏷️  Seeding categories...")
-	if err := s.modelcore.CategorySeed(ctx); err != nil {
+	s.progressBar.Describe("� Running global seeder...")
+	if err := s.modelcore.GlobalSeeder(ctx); err != nil {
 		return err
 	}
-	s.provider.Service.Logger.Info("✅ Completed CategorySeed - Progress: 1/Total")
-	s.progressBar.Add(1)
-
-	s.progressBar.Describe("💰 Seeding currencies...")
-	if err := s.modelcore.CurrencySeed(ctx); err != nil {
-		return err
-	}
-	s.provider.Service.Logger.Info("✅ Completed CurrencySeed - Progress: 2/Total")
-	s.progressBar.Add(1)
-
-	s.progressBar.Describe("📋 Seeding subscription plans...")
-	if err := s.modelcore.SubscriptionPlanSeed(ctx); err != nil {
-		return err
-	}
-	s.provider.Service.Logger.Info("✅ Completed SubscriptionPlanSeed - Progress: 3/Total")
+	s.provider.Service.Logger.Info("✅ Completed GlobalSeeder - Progress: 3/Total")
 	s.progressBar.Add(1)
 
 	s.progressBar.Describe(fmt.Sprintf("👤 Creating %d users...", int(multiplier)*1))

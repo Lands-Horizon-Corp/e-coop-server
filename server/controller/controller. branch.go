@@ -5,15 +5,15 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
 // BranchController registers routes related to branch management.
-func (c *Controller) branchController(
+func (c *Controller) branchController() {
 	req := c.provider.Service.Request
 
 	// GET /branch: List all branches or filter by user's organization from JWT if available.

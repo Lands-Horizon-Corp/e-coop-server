@@ -138,7 +138,7 @@ func (m *ModelCore) disbursementSeed(context context.Context, tx *gorm.DB, userI
 	if err != nil {
 		return eris.Wrap(err, "failed to find branch for account seeding")
 	}
-	currency, err := m.currencyFindByAlpha2(context, branch.CountryCode)
+	currency, err := m.CurrencyFindByAlpha2(context, branch.CountryCode)
 	if err != nil {
 		return eris.Wrap(err, "failed to find currency for account seeding")
 	}

@@ -234,11 +234,11 @@ func (m *ModelCore) currencySeed(context context.Context) error {
 	return nil
 }
 
-func (m *ModelCore) currencyFindAll(context context.Context) ([]*Currency, error) {
+func (m *ModelCore) CurrencyFindAll(context context.Context) ([]*Currency, error) {
 	return m.CurrencyManager.Find(context, &Currency{})
 }
 
-func (m *ModelCore) currencyFindByAlpha2(context context.Context, iso3166Alpha2 string) (*Currency, error) {
+func (m *ModelCore) CurrencyFindByAlpha2(context context.Context, iso3166Alpha2 string) (*Currency, error) {
 	currencies, err := m.CurrencyManager.FindOne(context, &Currency{ISO3166Alpha2: iso3166Alpha2})
 	if err != nil {
 		return nil, err
@@ -254,7 +254,7 @@ func (m *ModelCore) currencyFindByCode(context context.Context, currencyCode str
 	return currency, nil
 }
 
-func (m *ModelCore) currencyGetDefault(context context.Context) (*Currency, error) {
+func (m *ModelCore) CurrencyGetDefault(context context.Context) (*Currency, error) {
 	// Default to PHP (Philippine Peso) as the system default currency
 	return m.currencyFindByCode(context, "PHP")
 }
