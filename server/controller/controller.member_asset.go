@@ -4,14 +4,14 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/labstack/echo/v4"
 )
 
 // MemberAssetController manages endpoints for member asset records.
-func (c *Controller) memberAssetController(
+func (c *Controller) memberAssetController() {
 	req := c.provider.Service.Request
 
 	// POST /member-asset/member-profile/:member_profile_id: Create a new asset record for a member.

@@ -5,15 +5,15 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
 // JournalVoucherController registers routes for managing journal vouchers.
-func (c *Controller) journalVoucherController(
+func (c *Controller) journalVoucherController() {
 	req := c.provider.Service.Request
 
 	// GET /journal-voucher: List all journal vouchers for the current user's branch. (NO footstep)

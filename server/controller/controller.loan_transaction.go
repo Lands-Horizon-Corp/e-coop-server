@@ -5,17 +5,17 @@ import (
 	"net/http"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
 // LoanTransactionTotalResponse represents the total calculations for a loan transaction
 
-func (c *Controller) loanTransactionController(
+func (c *Controller) loanTransactionController() {
 	req := c.provider.Service.Request
 
 	// GET /api/v1/loan-transaction/member-profile/:member_profile_id/account/:account_id
@@ -2328,7 +2328,7 @@ func (c *Controller) loanTransactionController(
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		suggestedTerms, err := c.service.SuggestedNumberOfTerms(context, req.Amount, req.Principal, req.ModeOfPayment, req.FixedDays)
+		suggestedTerms, err := c.usecase.SuggestedNumberOfTerms(context, req.Amount, req.Principal, req.ModeOfPayment, req.FixedDays)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to calculate suggested terms: " + err.Error()})
 		}

@@ -4,14 +4,14 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/labstack/echo/v4"
 )
 
 // MemberAddressController manages endpoints for member address records.
-func (c *Controller) memberAddressController(
+func (c *Controller) memberAddressController() {
 	req := c.provider.Service.Request
 
 	// POST /member-address/member-profile/:member_profile_id: Create a new address record for a member.
