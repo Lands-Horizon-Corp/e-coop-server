@@ -11,7 +11,6 @@ import (
 	"sync"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/microcosm-cc/bluemonday"
 	"github.com/rotisserie/eris"
 	"golang.org/x/time/rate"
 )
@@ -119,8 +118,7 @@ func (h *HorizonSMTP) Send(ctx context.Context, req SMTPRequest) error {
 		return eris.Wrap(err, "rate limit wait failed")
 	}
 
-	// Sanitize and format body using bluemonday
-	req.Body = bluemonday.UGCPolicy().Sanitize(req.Body)
+	req.Body = handlers.Sanitize(req.Body)
 	finalBody, err := h.Format(ctx, req)
 	if err != nil {
 		return eris.Wrap(err, "failed to inject variables into body")
@@ -137,7 +135,7 @@ func (h *HorizonSMTP) Send(ctx context.Context, req SMTPRequest) error {
 	msg := fmt.Sprintf("From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n%s", safeFrom, safeTo, safeSubject, req.Body)
 
 	if err := smtp.SendMail(addr, auth, safeFrom, []string{safeTo}, []byte(
-		bluemonday.UGCPolicy().Sanitize(msg),
+		handlers.Sanitize(msg),
 	)); err != nil {
 		return eris.Wrap(err, "smtp send failed")
 	}
