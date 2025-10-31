@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// Notification represents a system notification sent to users
 	Notification struct {
 		ID        uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt time.Time      `gorm:"not null;default:now()"`
@@ -25,6 +26,7 @@ type (
 		NotificationType string    `gorm:"type:varchar(50);not null"`
 	}
 
+	// NotificationResponse represents the JSON response structure for notification data
 	NotificationResponse struct {
 		ID               uuid.UUID     `json:"id"`
 		UserID           uuid.UUID     `json:"user_id"`
@@ -38,6 +40,7 @@ type (
 	}
 )
 
+// Notification initializes the Notification model and its repository manager
 func (m *ModelCore) Notification() {
 	m.Migration = append(m.Migration, &Notification{})
 	m.NotificationManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Notification, NotificationResponse, any]{
@@ -83,8 +86,8 @@ func (m *ModelCore) Notification() {
 	})
 }
 
-func (m *ModelCore) GetNotificationByUser(context context.Context, userId uuid.UUID) ([]*Notification, error) {
+func (m *ModelCore) GetNotificationByUser(context context.Context, userID uuid.UUID) ([]*Notification, error) {
 	return m.NotificationManager.Find(context, &Notification{
-		UserID: userId,
+		UserID: userID,
 	})
 }

@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// OnlineRemittance represents an online money remittance transaction
 	OnlineRemittance struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -46,6 +47,7 @@ type (
 		Description     string     `gorm:"type:text"`
 	}
 
+	// OnlineRemittanceResponse represents the JSON response structure for online remittance data
 	OnlineRemittanceResponse struct {
 		ID                 uuid.UUID                 `json:"id"`
 		CreatedAt          string                    `json:"created_at"`
@@ -75,6 +77,7 @@ type (
 		Description        string                    `json:"description"`
 	}
 
+	// OnlineRemittanceRequest represents the request payload for creating or updating online remittance data
 	OnlineRemittanceRequest struct {
 		BankID             uuid.UUID  `json:"bank_id" validate:"required"`
 		MediaID            *uuid.UUID `json:"media_id,omitempty"`
@@ -89,6 +92,7 @@ type (
 	}
 )
 
+// OnlineRemittance initializes the OnlineRemittance model and its repository manager
 func (m *ModelCore) OnlineRemittance() {
 	m.Migration = append(m.Migration, &OnlineRemittance{})
 	m.OnlineRemittanceManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
