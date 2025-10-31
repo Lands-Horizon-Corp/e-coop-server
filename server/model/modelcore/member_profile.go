@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
@@ -61,7 +62,7 @@ type (
 		LastName                       string                `gorm:"type:varchar(255);not null" json:"last_name"`
 		FullName                       string                `gorm:"type:varchar(255);not null;index:idx_full_name" json:"full_name"`
 		Suffix                         string                `gorm:"type:varchar(50)" json:"suffix,omitempty"`
-		BirthDate                      time.Time             `gorm:"type:date;not null" json:"birthdate"`
+		BirthDate                      *time.Time            `gorm:"type:date;not null" json:"birthdate"`
 		Status                         string                `gorm:"type:varchar(50);not null;default:'pending'" json:"status"`
 		Description                    string                `gorm:"type:text" json:"description,omitempty"`
 		Notes                          string                `gorm:"type:text" json:"notes,omitempty"`
@@ -212,7 +213,7 @@ type (
 		FullName       string     `json:"full_name,omitempty" validate:"max=255"`
 		Suffix         string     `json:"suffix,omitempty" validate:"max=50"`
 		MemberGenderID *uuid.UUID `json:"member_gender_id,omitempty"`
-		BirthDate      time.Time  `json:"birthdate" validate:"required"`
+		BirthDate      *time.Time `json:"birthdate" validate:"required"`
 		ContactNumber  string     `json:"contact_number,omitempty" validate:"max=255"`
 
 		MediaID          *uuid.UUID `json:"media_id,omitempty"`
@@ -271,7 +272,7 @@ type (
 		FullName             string       `json:"full_name,omitempty" validate:"max=255"`
 		Suffix               string       `json:"suffix,omitempty" validate:"max=50"`
 		MemberGenderID       *uuid.UUID   `json:"member_gender_id,omitempty"`
-		BirthDate            time.Time    `json:"birthdate" validate:"required"`
+		BirthDate            *time.Time   `json:"birthdate" validate:"required"`
 		ContactNumber        string       `json:"contact_number,omitempty" validate:"max=255"`
 		CivilStatus          string       `json:"civil_status" validate:"required,oneof=single married widowed separated divorced"` // adjust allowed values as needed
 		MemberOccupationID   *uuid.UUID   `json:"member_occupation_id,omitempty"`
@@ -284,16 +285,16 @@ type (
 
 	// MemberProfileUserAccountRequest represents the request structure for member user account operations
 	MemberProfileUserAccountRequest struct {
-		Password      string    `json:"password,omitempty" validate:"omitempty,min=6,max=100"`
-		UserName      string    `json:"user_name" validate:"required,min=1,max=50"`
-		FirstName     string    `json:"first_name" validate:"required,min=1,max=50"`
-		LastName      string    `json:"last_name" validate:"required,min=1,max=50"`
-		MiddleName    string    `json:"middle_name,omitempty" validate:"max=50"`
-		FullName      string    `json:"full_name" validate:"required,min=1,max=150"`
-		Suffix        string    `json:"suffix,omitempty" validate:"max=20"`
-		Email         string    `json:"email" validate:"required,email,max=100"`
-		ContactNumber string    `json:"contact_number" validate:"required,max=20"`
-		BirthDate     time.Time `json:"birthdate" validate:"required"`
+		Password      string     `json:"password,omitempty" validate:"omitempty,min=6,max=100"`
+		UserName      string     `json:"user_name" validate:"required,min=1,max=50"`
+		FirstName     string     `json:"first_name" validate:"required,min=1,max=50"`
+		LastName      string     `json:"last_name" validate:"required,min=1,max=50"`
+		MiddleName    string     `json:"middle_name,omitempty" validate:"max=50"`
+		FullName      string     `json:"full_name" validate:"required,min=1,max=150"`
+		Suffix        string     `json:"suffix,omitempty" validate:"max=20"`
+		Email         string     `json:"email" validate:"required,email,max=100"`
+		ContactNumber string     `json:"contact_number" validate:"required,max=20"`
+		BirthDate     *time.Time `json:"birthdate" validate:"required"`
 	}
 )
 
@@ -697,7 +698,7 @@ func (m *ModelCore) memberProfileSeed(context context.Context, tx *gorm.DB, user
 		MiddleName:            middleName,
 		LastName:              lastName,
 		FullName:              fullName,
-		BirthDate:             time.Now().UTC(),
+		BirthDate:             handlers.Ptr(time.Now().UTC()),
 		Status:                "active",
 		Description:           fmt.Sprintf("Founding member of %s", organization.Name),
 		Notes:                 fmt.Sprintf("Organization founder and branch creator for %s", branch.Name),
