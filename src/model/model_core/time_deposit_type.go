@@ -42,7 +42,7 @@ type (
 		Header10 int `gorm:"default:330"`
 		Header11 int `gorm:"default:360"`
 
-		Name        string `gorm:"type:varchar(255);not null;unique"`
+		Name        string `gorm:"type:varchar(255);not null"`
 		Description string `gorm:"type:text"`
 
 		PreMature     int     `gorm:"default:0"`
@@ -91,24 +91,13 @@ type (
 	}
 
 	TimeDepositTypeRequest struct {
-		TimeDepositComputationHeaderID uuid.UUID `json:"time_deposit_computation_header_id,omitempty"`
-		Name                           string    `json:"name" validate:"required,min=1,max=255"`
-		Description                    string    `json:"description,omitempty"`
-		CurrencyID                     uuid.UUID `json:"currency_id" validate:"required"`
-		PreMature                      int       `json:"pre_mature,omitempty"`
-		PreMatureRate                  float64   `json:"pre_mature_rate,omitempty"`
-		Excess                         float64   `json:"excess,omitempty"`
+		Name          string    `json:"name" validate:"required,min=1,max=255"`
+		Description   string    `json:"description,omitempty"`
+		CurrencyID    uuid.UUID `json:"currency_id" validate:"required"`
+		PreMature     int       `json:"pre_mature,omitempty"`
+		PreMatureRate float64   `json:"pre_mature_rate,omitempty"`
+		Excess        float64   `json:"excess,omitempty"`
 
-		// Nested relationships for creation/update
-		TimeDepositComputations          []*TimeDepositComputationRequest          `json:"time_deposit_computations,omitempty"`
-		TimeDepositComputationPreMatures []*TimeDepositComputationPreMatureRequest `json:"time_deposit_computation_pre_matures,omitempty"`
-
-		// Deletion arrays
-		TimeDepositComputationsDeleted          []uuid.UUID `json:"time_deposit_computations_deleted,omitempty"`
-		TimeDepositComputationPreMaturesDeleted []uuid.UUID `json:"time_deposit_computation_pre_matures_deleted,omitempty"`
-	}
-
-	TimeDepositTypeHeadersRequest struct {
 		Header1  int `json:"header_1,omitempty"`
 		Header2  int `json:"header_2,omitempty"`
 		Header3  int `json:"header_3,omitempty"`
@@ -120,6 +109,14 @@ type (
 		Header9  int `json:"header_9,omitempty"`
 		Header10 int `json:"header_10,omitempty"`
 		Header11 int `json:"header_11,omitempty"`
+
+		// Nested relationships for creation/update
+		TimeDepositComputations          []*TimeDepositComputationRequest          `json:"time_deposit_computations,omitempty"`
+		TimeDepositComputationPreMatures []*TimeDepositComputationPreMatureRequest `json:"time_deposit_computation_pre_matures,omitempty"`
+
+		// Deletion arrays
+		TimeDepositComputationsDeleted          []uuid.UUID `json:"time_deposit_computations_deleted,omitempty"`
+		TimeDepositComputationPreMaturesDeleted []uuid.UUID `json:"time_deposit_computation_pre_matures_deleted,omitempty"`
 	}
 )
 

@@ -2,9 +2,9 @@ package event
 
 import (
 	"context"
-	"strings"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
 	"github.com/labstack/echo/v4"
 )
@@ -17,18 +17,19 @@ type NotificationEvent struct {
 
 // Only users with a valid CSRF token can trigger notifications
 func (e *Event) Notification(ctx context.Context, echoCtx echo.Context, data NotificationEvent) {
+
 	go func() {
 		user, err := e.user_token.CurrentUser(ctx, echoCtx)
 		if err != nil {
 			return
 		}
-		data.Title = strings.TrimSpace(data.Title)
-		data.Description = strings.TrimSpace(data.Description)
+		data.Title = handlers.Sanitize(data.Title)
+		data.Description = handlers.Sanitize(data.Description)
+
 		if data.Description == "" || data.NotificationType == "" {
 			return
 		}
-
-		if err := e.model_core.NotificationManager.Create(ctx, &model_core.Notification{
+		notification := &model_core.Notification{
 			CreatedAt:        time.Now().UTC(),
 			UpdatedAt:        time.Now().UTC(),
 			UserID:           user.ID,
@@ -36,7 +37,9 @@ func (e *Event) Notification(ctx context.Context, echoCtx echo.Context, data Not
 			Description:      data.Description,
 			IsViewed:         false,
 			NotificationType: data.NotificationType,
-		}); err != nil {
+		}
+
+		if err := e.model_core.NotificationManager.Create(ctx, notification); err != nil {
 			return
 		}
 	}()

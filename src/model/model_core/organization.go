@@ -145,18 +145,21 @@ type (
 		Organization     *OrganizationResponse     `json:"organization"`
 		UserOrganization *UserOrganizationResponse `json:"user_organization"`
 	}
+
+	OrganizationPerCategoryResponse struct {
+		Category      *CategoryResponse       `json:"category"`
+		Organizations []*OrganizationResponse `json:"organizations"`
+	}
 )
 
 func (m *ModelCore) Organization() {
 	m.Migration = append(m.Migration, &Organization{})
 	m.OrganizationManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Organization, OrganizationResponse, OrganizationRequest]{
-		Preloads: []string{"CreatedBy",
-			"UpdatedBy", "Media", "CoverMedia",
+		Preloads: []string{"Media", "CoverMedia",
 			"SubscriptionPlan", "Branches",
 			"OrganizationCategories", "OrganizationMedias", "OrganizationMedias.Media",
 			"OrganizationCategories.Category",
-			"Footsteps", "GeneratedReports", "InvitationCodes",
-			"PermissionTemplates"},
+			},
 		Service: m.provider.Service,
 		Resource: func(data *Organization) *OrganizationResponse {
 			if data == nil {
@@ -233,9 +236,93 @@ func (m *ModelCore) GetPublicOrganization(ctx context.Context) ([]*Organization,
 	filters := []horizon_services.Filter{
 		{Field: "is_private", Op: horizon_services.OpEq, Value: false},
 	}
+	organizations, err := m.OrganizationManager.FindWithFilters(ctx, filters, "OrganizationCategories", "OrganizationCategories.Category")
+	if err != nil {
+		return nil, err
+	}
+	return organizations, nil
+}
+
+func (m *ModelCore) GetFeaturedOrganization(ctx context.Context) ([]*Organization, error) {
+	// Featured organizations are:
+	// 1. Public (not private)
+	// 2. Have a cover media (more visually appealing)
+	// 3. Have multiple branches (indicates established organization)
+	// 4. Have a description (complete profile)
+	filters := []horizon_services.Filter{
+		{Field: "is_private", Op: horizon_services.OpEq, Value: false},
+		{Field: "cover_media_id", Op: horizon_services.OpNotNull, Value: nil},
+		{Field: "description", Op: horizon_services.OpNotNull, Value: nil},
+	}
+
+	// Use a custom query to include organizations with multiple branches
 	organizations, err := m.OrganizationManager.FindWithFilters(ctx, filters)
 	if err != nil {
 		return nil, err
+	}
+
+	// Filter organizations that have at least 2 branches for "featured" status
+	var featuredOrganizations []*Organization
+	for _, org := range organizations {
+		if len(org.Branches) >= 2 {
+			featuredOrganizations = append(featuredOrganizations, org)
+		}
+	}
+
+	// Limit to top 10 featured organizations
+	if len(featuredOrganizations) > 10 {
+		featuredOrganizations = featuredOrganizations[:10]
+	}
+
+	return featuredOrganizations, nil
+}
+
+func (m *ModelCore) GetOrganizationsByCategoryID(ctx context.Context, categoryID uuid.UUID) ([]*Organization, error) {
+	// Get organization categories that match the category ID
+	orgCategories, err := m.OrganizationCategoryManager.Find(ctx, &OrganizationCategory{
+		CategoryID: &categoryID,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var organizations []*Organization
+	// Get all organizations for each organization category
+	for _, orgCat := range orgCategories {
+		if orgCat.OrganizationID != nil {
+			org, err := m.OrganizationManager.GetByID(ctx, *orgCat.OrganizationID)
+			if err == nil && org != nil {
+				// Only include public organizations
+				if !org.IsPrivate {
+					organizations = append(organizations, org)
+				}
+			}
+		}
+	}
+
+	// Convert to response models
+	return organizations, nil
+}
+
+func (m *ModelCore) GetRecentlyAddedOrganization(ctx context.Context) ([]*Organization, error) {
+	thirtyDaysAgo := time.Now().AddDate(0, 0, -30)
+	filters := []horizon_services.Filter{
+		{Field: "is_private", Op: horizon_services.OpEq, Value: false},
+		{Field: "created_at", Op: horizon_services.OpGte, Value: thirtyDaysAgo},
+	}
+	organizations, err := m.OrganizationManager.FindWithFilters(ctx, filters)
+	if err != nil {
+		return nil, err
+	}
+	for i := 0; i < len(organizations)-1; i++ {
+		for j := i + 1; j < len(organizations); j++ {
+			if organizations[i].CreatedAt.Before(organizations[j].CreatedAt) {
+				organizations[i], organizations[j] = organizations[j], organizations[i]
+			}
+		}
+	}
+	if len(organizations) > 15 {
+		organizations = organizations[:15]
 	}
 	return organizations, nil
 }

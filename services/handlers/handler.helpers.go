@@ -24,6 +24,7 @@ import (
 	"github.com/go-playground/validator"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/rotisserie/eris"
 )
 
@@ -36,6 +37,10 @@ const (
 	Reset  = "\033[0m"
 	Cyan   = "\033[36m"
 )
+
+func Sanitize(input string) string {
+	return bluemonday.UGCPolicy().Sanitize(strings.TrimSpace(input))
+}
 
 // File operations ------------------------------------------------------------
 
@@ -370,7 +375,7 @@ func PrintASCIIArt() {
                   @@@@@@@@
 	`
 
-	for _, line := range strings.Split(art, "\n") {
+	for line := range strings.SplitSeq(art, "\n") {
 		var b strings.Builder
 		for _, r := range line {
 			switch r {
@@ -559,8 +564,8 @@ func GetExtensionFromContentType(contentType string) string {
 		"application/x-shockwave-flash": ".swf", // Added: Shockwave Flash
 
 		// Database and data
-		"application/sql":     ".sql",    // Added: SQL script
-		
+		"application/sql": ".sql", // Added: SQL script
+
 		// Web-related
 		"application/rss+xml":  ".rss",  // Added: RSS Feed
 		"application/atom+xml": ".atom", // Added: Atom Feed

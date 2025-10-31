@@ -31,8 +31,8 @@ type (
 		TimeDepositTypeID uuid.UUID        `gorm:"type:uuid;not null"`
 		TimeDepositType   *TimeDepositType `gorm:"foreignKey:TimeDepositTypeID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"time_deposit_type,omitempty"`
 
-		MininimumAmount float64 `gorm:"type:decimal;default:0"`
-		MaximumAmount   float64 `gorm:"type:decimal;default:0"`
+		MinimumAmount float64 `gorm:"type:decimal;default:0"`
+		MaximumAmount float64 `gorm:"type:decimal;default:0"`
 
 		Header1  float64 `gorm:"type:decimal;default:0"`
 		Header2  float64 `gorm:"type:decimal;default:0"`
@@ -61,7 +61,7 @@ type (
 		Branch            *BranchResponse          `json:"branch,omitempty"`
 		TimeDepositTypeID uuid.UUID                `json:"time_deposit_type_id"`
 		TimeDepositType   *TimeDepositTypeResponse `json:"time_deposit_type,omitempty"`
-		MininimumAmount   float64                  `json:"mininimum_amount"`
+		MinimumAmount     float64                  `json:"minimum_amount"`
 		MaximumAmount     float64                  `json:"maximum_amount"`
 		Header1           float64                  `json:"header_1"`
 		Header2           float64                  `json:"header_2"`
@@ -77,20 +77,20 @@ type (
 	}
 
 	TimeDepositComputationRequest struct {
-		ID              *uuid.UUID `json:"id,omitempty"`
-		MininimumAmount float64    `json:"mininimum_amount,omitempty"`
-		MaximumAmount   float64    `json:"maximum_amount,omitempty"`
-		Header1         float64    `json:"header_1,omitempty"`
-		Header2         float64    `json:"header_2,omitempty"`
-		Header3         float64    `json:"header_3,omitempty"`
-		Header4         float64    `json:"header_4,omitempty"`
-		Header5         float64    `json:"header_5,omitempty"`
-		Header6         float64    `json:"header_6,omitempty"`
-		Header7         float64    `json:"header_7,omitempty"`
-		Header8         float64    `json:"header_8,omitempty"`
-		Header9         float64    `json:"header_9,omitempty"`
-		Header10        float64    `json:"header_10,omitempty"`
-		Header11        float64    `json:"header_11,omitempty"`
+		ID            *uuid.UUID `json:"id,omitempty"`
+		MinimumAmount float64    `json:"minimum_amount,omitempty"`
+		MaximumAmount float64    `json:"maximum_amount,omitempty"`
+		Header1       float64    `json:"header_1,omitempty"`
+		Header2       float64    `json:"header_2,omitempty"`
+		Header3       float64    `json:"header_3,omitempty"`
+		Header4       float64    `json:"header_4,omitempty"`
+		Header5       float64    `json:"header_5,omitempty"`
+		Header6       float64    `json:"header_6,omitempty"`
+		Header7       float64    `json:"header_7,omitempty"`
+		Header8       float64    `json:"header_8,omitempty"`
+		Header9       float64    `json:"header_9,omitempty"`
+		Header10      float64    `json:"header_10,omitempty"`
+		Header11      float64    `json:"header_11,omitempty"`
 	}
 )
 
@@ -121,7 +121,7 @@ func (m *ModelCore) TimeDepositComputation() {
 				Branch:            m.BranchManager.ToModel(data.Branch),
 				TimeDepositTypeID: data.TimeDepositTypeID,
 				TimeDepositType:   m.TimeDepositTypeManager.ToModel(data.TimeDepositType),
-				MininimumAmount:   data.MininimumAmount,
+				MinimumAmount:     data.MinimumAmount,
 				MaximumAmount:     data.MaximumAmount,
 				Header1:           data.Header1,
 				Header2:           data.Header2,

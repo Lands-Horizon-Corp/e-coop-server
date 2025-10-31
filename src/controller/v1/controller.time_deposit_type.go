@@ -105,6 +105,7 @@ func (c *Controller) TimeDepositTypeController() {
 			UpdatedByID:    user.UserID,
 			BranchID:       *user.BranchID,
 			OrganizationID: user.OrganizationID,
+			CurrencyID:     req.CurrencyID,
 		}
 
 		if err := c.model_core.TimeDepositTypeManager.Create(context, timeDepositType); err != nil {
@@ -192,6 +193,18 @@ func (c *Controller) TimeDepositTypeController() {
 		timeDepositType.UpdatedAt = time.Now().UTC()
 		timeDepositType.UpdatedByID = user.UserID
 
+		timeDepositType.Header1 = req.Header1
+		timeDepositType.Header2 = req.Header2
+		timeDepositType.Header3 = req.Header3
+		timeDepositType.Header4 = req.Header4
+		timeDepositType.Header5 = req.Header5
+		timeDepositType.Header6 = req.Header6
+		timeDepositType.Header7 = req.Header7
+		timeDepositType.Header8 = req.Header8
+		timeDepositType.Header9 = req.Header9
+		timeDepositType.Header10 = req.Header10
+		timeDepositType.Header11 = req.Header11
+
 		if err := c.model_core.TimeDepositTypeManager.UpdateFieldsWithTx(context, tx, timeDepositType.ID, timeDepositType); err != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -241,7 +254,7 @@ func (c *Controller) TimeDepositTypeController() {
 						tx.Rollback()
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get time deposit computation: " + err.Error()})
 					}
-					existingComputation.MininimumAmount = computationReq.MininimumAmount
+					existingComputation.MinimumAmount = computationReq.MinimumAmount
 					existingComputation.MaximumAmount = computationReq.MaximumAmount
 					existingComputation.Header1 = computationReq.Header1
 					existingComputation.Header2 = computationReq.Header2
@@ -264,7 +277,7 @@ func (c *Controller) TimeDepositTypeController() {
 					// Create new record
 					newComputation := &model_core.TimeDepositComputation{
 						TimeDepositTypeID: timeDepositType.ID,
-						MininimumAmount:   computationReq.MininimumAmount,
+						MinimumAmount:     computationReq.MinimumAmount,
 						MaximumAmount:     computationReq.MaximumAmount,
 						Header1:           computationReq.Header1,
 						Header2:           computationReq.Header2,
@@ -350,7 +363,11 @@ func (c *Controller) TimeDepositTypeController() {
 			Description: "Updated time deposit type (/time-deposit-type/:time_deposit_type_id): " + timeDepositType.Name,
 			Module:      "TimeDepositType",
 		})
-		return ctx.JSON(http.StatusOK, c.model_core.TimeDepositTypeManager.ToModel(timeDepositType))
+		newTimeDepositType, err := c.model_core.TimeDepositTypeManager.GetByID(context, timeDepositType.ID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch updated time deposit type: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.model_core.TimeDepositTypeManager.ToModel(newTimeDepositType))
 	})
 
 	// DELETE /time-deposit-type/:time_deposit_type_id: Delete a time deposit type by ID. (WITH footstep)
@@ -476,72 +493,6 @@ func (c *Controller) TimeDepositTypeController() {
 			Module:      "TimeDepositType",
 		})
 		return ctx.NoContent(http.StatusNoContent)
-	})
-
-	// POST api/v1/time-deposit-type/:time_deposit_type_id/headers
-	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/time-deposit-type/:time_deposit_type_id/headers",
-		Method:       "POST",
-		Note:         "Updates the header values for a specific time deposit type.",
-		RequestType:  model_core.TimeDepositTypeHeadersRequest{},
-		ResponseType: model_core.TimeDepositTypeResponse{},
-	}, func(ctx echo.Context) error {
-		context := ctx.Request().Context()
-		timeDepositTypeID, err := handlers.EngineUUIDParam(ctx, "time_deposit_type_id")
-		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "Update time deposit type headers failed: invalid time deposit type ID.",
-				Module:      "TimeDepositType",
-			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid time deposit type ID"})
-		}
-		var req model_core.TimeDepositTypeHeadersRequest
-		if err := ctx.Bind(&req); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "Update time deposit type headers failed: invalid request body: " + err.Error(),
-				Module:      "TimeDepositType",
-			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
-		}
-
-		if err := c.provider.Service.Validator.Struct(req); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "Update time deposit type headers failed: validation error: " + err.Error(),
-				Module:      "TimeDepositType",
-			})
-		}
-		timeDepositType, err := c.model_core.TimeDepositTypeManager.GetByID(context, *timeDepositTypeID)
-		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "Update time deposit type headers failed: time deposit type not found.",
-				Module:      "TimeDepositType",
-			})
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Time deposit type not found"})
-		}
-		timeDepositType.Header1 = req.Header1
-		timeDepositType.Header2 = req.Header2
-		timeDepositType.Header3 = req.Header3
-		timeDepositType.Header4 = req.Header4
-		timeDepositType.Header5 = req.Header5
-		timeDepositType.Header6 = req.Header6
-		timeDepositType.Header7 = req.Header7
-		timeDepositType.Header8 = req.Header8
-		timeDepositType.Header9 = req.Header9
-		timeDepositType.Header10 = req.Header10
-		timeDepositType.Header11 = req.Header11
-		if err := c.model_core.TimeDepositTypeManager.UpdateFields(context, timeDepositType.ID, timeDepositType); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "Update time deposit type headers failed: db error: " + err.Error(),
-				Module:      "TimeDepositType",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Internal server error"})
-		}
-		return ctx.JSON(http.StatusNotImplemented, c.model_core.TimeDepositTypeManager.ToModel(timeDepositType))
 	})
 
 	// GET /api/v1/time-deposit-type/currency/:currency_id
