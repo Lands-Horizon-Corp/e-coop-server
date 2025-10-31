@@ -401,6 +401,7 @@ func (m *ModelCore) UserOrganization() {
 	})
 }
 
+// GetUserOrganizationByUser retrieves all user organizations for a specific user
 func (m *ModelCore) GetUserOrganizationByUser(context context.Context, userID uuid.UUID, pending *bool) ([]*UserOrganization, error) {
 	filter := &UserOrganization{
 		UserID: userID,
@@ -411,6 +412,7 @@ func (m *ModelCore) GetUserOrganizationByUser(context context.Context, userID uu
 	return m.UserOrganizationManager.Find(context, filter)
 }
 
+// GetUserOrganizationByOrganization retrieves all user organizations for a specific organization
 func (m *ModelCore) GetUserOrganizationByOrganization(context context.Context, organizationID uuid.UUID, pending *bool) ([]*UserOrganization, error) {
 	filter := &UserOrganization{
 		OrganizationID: organizationID,
@@ -421,6 +423,7 @@ func (m *ModelCore) GetUserOrganizationByOrganization(context context.Context, o
 	return m.UserOrganizationManager.Find(context, filter)
 }
 
+// GetUserOrganizationByBranch retrieves all user organizations for a specific organization branch
 func (m *ModelCore) GetUserOrganizationByBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID, pending *bool) ([]*UserOrganization, error) {
 	filter := &UserOrganization{
 		OrganizationID: organizationID,

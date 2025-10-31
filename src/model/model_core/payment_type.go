@@ -11,17 +11,22 @@ import (
 	"gorm.io/gorm"
 )
 
-// Enum for types_of_payment_type
+// TypeOfPaymentType represents the different types of payment methods available
 type TypeOfPaymentType string
 
 const (
-	PaymentTypeCash       TypeOfPaymentType = "cash"
-	PaymentTypeCheck      TypeOfPaymentType = "check"
-	PaymentTypeOnline     TypeOfPaymentType = "online"
+	// PaymentTypeCash represents cash payment type
+	PaymentTypeCash TypeOfPaymentType = "cash"
+	// PaymentTypeCheck represents check payment type
+	PaymentTypeCheck TypeOfPaymentType = "check"
+	// PaymentTypeOnline represents online payment type
+	PaymentTypeOnline TypeOfPaymentType = "online"
+	// PaymentTypeAdjustment represents adjustment payment type
 	PaymentTypeAdjustment TypeOfPaymentType = "adjustment"
 )
 
 type (
+	// PaymentType represents a payment method in the system
 	PaymentType struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -45,6 +50,7 @@ type (
 		Type         TypeOfPaymentType `gorm:"type:varchar(20)"`
 	}
 
+	// PaymentTypeResponse represents the JSON response structure for payment type data
 	PaymentTypeResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -63,6 +69,7 @@ type (
 		Type           TypeOfPaymentType     `json:"type"`
 	}
 
+	// PaymentTypeRequest represents the request payload for creating or updating payment type data
 	PaymentTypeRequest struct {
 		Name         string            `json:"name" validate:"required,min=1,max=255"`
 		Description  string            `json:"description,omitempty"`
@@ -71,6 +78,7 @@ type (
 	}
 )
 
+// PaymentType initializes the PaymentType model and its repository manager
 func (m *ModelCore) PaymentType() {
 	m.Migration = append(m.Migration, &PaymentType{})
 	m.PaymentTypeManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
@@ -126,6 +134,8 @@ func (m *ModelCore) PaymentType() {
 		},
 	})
 }
+
+// PaymentTypeSeed seeds default payment types for a new organization branch
 func (m *ModelCore) PaymentTypeSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
 	cashOnHandPayment := &PaymentType{
@@ -290,9 +300,10 @@ func (m *ModelCore) PaymentTypeSeed(context context.Context, tx *gorm.DB, userID
 	return nil
 }
 
-func (m *ModelCore) PaymentTypeCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*PaymentType, error) {
+// PaymentTypeCurrentBranch retrieves all payment types for the specified organization and branch
+func (m *ModelCore) PaymentTypeCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*PaymentType, error) {
 	return m.PaymentTypeManager.Find(context, &PaymentType{
-		OrganizationID: orgId,
-		BranchID:       branchId,
+		OrganizationID: orgID,
+		BranchID:       branchID,
 	})
 }
