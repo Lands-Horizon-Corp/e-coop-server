@@ -74,9 +74,11 @@ const (
 	IFCDSYByDailyInterestBalance InterestFinesComputationDiminishingStraightYearly = "By Daily on Interest based on loan balance by year Principal + Interest Amortization = Fines Fines Grace Period Month end Amortization"
 )
 
-// EarnedUnearnedInterest
+// EarnedUnearnedInterest indicates how interest is recorded for an account
+// (earned, unearned, formula-based, or advanced interest handling).
 type EarnedUnearnedInterest string
 
+// Values for EarnedUnearnedInterest
 const (
 	EUITypeNone                    EarnedUnearnedInterest = "None"
 	EUITypeByFormula               EarnedUnearnedInterest = "By Formula"
@@ -84,77 +86,74 @@ const (
 	EUITypeByAdvanceInterestActual EarnedUnearnedInterest = "By Advance Interest + Actual Pay"
 )
 
-// LoanSavingType
-
+// LoanSavingType indicates how loan-linked savings are stored and reported.
 type LoanSavingType string
 
+// Values for LoanSavingType
 const (
 	LSTSeparate                 LoanSavingType = "Separate"
 	LSTSingleLedger             LoanSavingType = "Single Ledger"
 	LSTSingleLedgerIfNotZero    LoanSavingType = "Single Ledger if Not Zero"
 	LSTSingleLedgerSemi1530     LoanSavingType = "Single Ledger Semi (15/30)"
 	LSTSingleLedgerSemiMaturity LoanSavingType = "Single Ledger Semi Within Maturity"
-
-// InterestDeduction
 )
 
-// InterestDeduction
+// InterestDeduction indicates whether interest applies above/below a threshold.
+
 type InterestDeduction string
 
+// Values for InterestDeduction
 const (
 	InterestDeductionAbove InterestDeduction = "above"
-	// OtherDeductionEntry
 	InterestDeductionBelow InterestDeduction = "Below"
 )
 
-// OtherDeductionEntry
-
+// OtherDeductionEntry represents additional deduction categories for accounts.
 type OtherDeductionEntry string
 
+// Values for OtherDeductionEntry
 const (
-	// InterestSavingTypeDiminishingStraight
 	OtherDeductionEntryNone       OtherDeductionEntry = "None"
 	OtherDeductionEntryHealthCare OtherDeductionEntry = "Health Care"
-
-// InterestSavingTypeDiminishingStraight
 )
 
+// InterestSavingTypeDiminishingStraight represents interest saving options for diminishing-straight loans.
 type InterestSavingTypeDiminishingStraight string
 
-// OtherInformationOfAnAccount
+// Values for InterestSavingTypeDiminishingStraight
 const (
-	ISTDS_Spread InterestSavingTypeDiminishingStraight = "Spread"
-	// OtherInformationOfAnAccount
+	ISTDS_Spread    InterestSavingTypeDiminishingStraight = "Spread"
 	ISTDS1stPayment InterestSavingTypeDiminishingStraight = "1st Payment"
 )
 
+// OtherInformationOfAnAccount represents miscellaneous account flags and metadata.
 type OtherInformationOfAnAccount string
 
+// Values for OtherInformationOfAnAccount
 const (
-	OIOANone    OtherInformationOfAnAccount = "None"
-	OIOAJewely  OtherInformationOfAnAccount = "Jewely"
-	OIOAGrocery OtherInformationOfAnAccount = "Grocery"
-	// InterestStandardComputation
+	OIOANone                OtherInformationOfAnAccount = "None"
+	OIOAJewely              OtherInformationOfAnAccount = "Jewely"
+	OIOAGrocery             OtherInformationOfAnAccount = "Grocery"
 	OIOA_TrackLoanDeduction OtherInformationOfAnAccount = "Track Loan Deduction"
 	OIOA_Restructured       OtherInformationOfAnAccount = "Restructured"
-	// InterestStandardComputation
-	OIOA_CashInBank OtherInformationOfAnAccount = "Cash in Bank / Cash in Check Account"
-	OIOA_CashOnHand OtherInformationOfAnAccount = "Cash on Hand"
+	OIOA_CashInBank         OtherInformationOfAnAccount = "Cash in Bank / Cash in Check Account"
+	OIOA_CashOnHand         OtherInformationOfAnAccount = "Cash on Hand"
 )
 
+// InterestStandardComputation indicates the standard way interest is computed for an account.
 type InterestStandardComputation string
 
-// ComputationType
-
+// Values for InterestStandardComputation
 const (
-	// ComputationType
 	ISC_None     InterestStandardComputation = "None"
 	ISC_Yearly   InterestStandardComputation = "Yearly"
 	ISC_Mmonthly InterestStandardComputation = "Monthly"
 )
 
+// ComputationType enumerates the supported computation algorithms for account interest/amortization.
 type ComputationType string
 
+// Values for ComputationType
 const (
 	Straight             ComputationType = "Straight"
 	Diminishing          ComputationType = "Diminishing"
@@ -2576,8 +2575,8 @@ func (m *ModelCore) AccountCurrentBranch(context context.Context, organizationID
 	})
 }
 
-// account = lockedAccount
-// AccountLockForUpdate returns AccountLockForUpdate for the current branch or organization where applicable.
+// AccountLockForUpdate locks the account row for update and returns the locked Account.
+// It uses a SELECT ... FOR UPDATE style locking to prevent concurrent modifications.
 func (m *ModelCore) AccountLockForUpdate(ctx context.Context, tx *gorm.DB, accountID uuid.UUID) (*Account, error) {
 	var lockedAccount Account
 	err := tx.WithContext(ctx).
@@ -2595,8 +2594,8 @@ func (m *ModelCore) AccountLockForUpdate(ctx context.Context, tx *gorm.DB, accou
 	return &lockedAccount, nil
 }
 
-// account = lockedAccount
-// AccountLockWithValidation returns AccountLockWithValidation for the current branch or organization where applicable.
+// AccountLockWithValidation acquires an account lock and validates that the account
+// has not been changed compared to originalAccount. It returns the locked Account.
 func (m *ModelCore) AccountLockWithValidation(ctx context.Context, tx *gorm.DB, accountID uuid.UUID, originalAccount *Account) (*Account, error) {
 	lockedAccount, err := m.AccountLockForUpdate(ctx, tx, accountID)
 	if err != nil {

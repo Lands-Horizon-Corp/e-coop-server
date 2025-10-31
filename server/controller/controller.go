@@ -8,6 +8,8 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
 )
 
+// Controller is the top-level HTTP controller registry that holds
+// dependencies and initializes all sub-controllers for the v1 API.
 type Controller struct {
 	// Services
 	provider  *server.Provider
@@ -19,6 +21,7 @@ type Controller struct {
 	usecase               *usecase.TransactionService
 }
 
+// NewController creates a new Controller with required dependencies.
 func NewController(
 	// Services
 	provider *server.Provider,
@@ -43,6 +46,8 @@ func NewController(
 	}, nil
 }
 
+// Start registers and initializes all sub-controllers and route groups.
+// Start should be called during application boot to wire up handlers.
 func (c *Controller) Start() error {
 	// Others
 	c.heartbeat()
