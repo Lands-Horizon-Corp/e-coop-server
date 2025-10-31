@@ -173,7 +173,7 @@ func (c *Controller) computationSheetController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		sheets, err := c.modelcore.ComputationSheetCurrentbranch(context, user.OrganizationID, *user.BranchID)
+		sheets, err := c.modelcore.ComputationSheetCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No computation sheets found for the current branch"})
 		}

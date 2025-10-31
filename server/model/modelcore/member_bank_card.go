@@ -134,7 +134,7 @@ func (m *ModelCore) memberBankCard() {
 	})
 }
 
-func (m *ModelCore) memberBankCardCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberBankCard, error) {
+func (m *ModelCore) memberBankCardCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberBankCard, error) {
 	return m.MemberBankCardManager.Find(context, &MemberBankCard{
 		OrganizationID: orgId,
 		BranchID:       branchId,

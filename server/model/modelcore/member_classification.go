@@ -171,7 +171,7 @@ func (m *ModelCore) memberClassificationSeed(context context.Context, tx *gorm.D
 	}
 	return nil
 }
-func (m *ModelCore) memberClassificationCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberClassification, error) {
+func (m *ModelCore) memberClassificationCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberClassification, error) {
 	return m.MemberClassificationManager.Find(context, &MemberClassification{
 		OrganizationID: orgId,
 		BranchID:       branchId,

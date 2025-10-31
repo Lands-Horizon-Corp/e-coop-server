@@ -123,7 +123,7 @@ func (m *ModelCore) finesMaturity() {
 	})
 }
 
-func (m *ModelCore) finesMaturityCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*FinesMaturity, error) {
+func (m *ModelCore) finesMaturityCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*FinesMaturity, error) {
 	return m.FinesMaturityManager.Find(context, &FinesMaturity{
 		OrganizationID: orgId,
 		BranchID:       branchId,

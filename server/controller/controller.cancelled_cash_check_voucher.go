@@ -31,7 +31,7 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		cancelledVouchers, err := c.modelcore.CancelledCashCheckVoucherCurrentbranch(context, user.OrganizationID, *user.BranchID)
+		cancelledVouchers, err := c.modelcore.CancelledCashCheckVoucherCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No cancelled cash check vouchers found for the current branch"})
 		}
@@ -53,7 +53,7 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		cancelledVouchers, err := c.modelcore.CancelledCashCheckVoucherCurrentbranch(context, user.OrganizationID, *user.BranchID)
+		cancelledVouchers, err := c.modelcore.CancelledCashCheckVoucherCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch cancelled cash check vouchers for pagination: " + err.Error()})
 		}

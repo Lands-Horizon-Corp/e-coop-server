@@ -546,8 +546,8 @@ func (m *ModelCore) TransactionBatchMinimal(context context.Context, id uuid.UUI
 	}, nil
 }
 
-// TransactionBatchCurrentbranch retrieves all transaction batches for the current branch.
-func (m *ModelCore) TransactionBatchCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*TransactionBatch, error) {
+// TransactionBatchCurrentBranch retrieves all transaction batches for the current branch.
+func (m *ModelCore) TransactionBatchCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*TransactionBatch, error) {
 	return m.TransactionBatchManager.Find(context, &TransactionBatch{
 		OrganizationID: orgId,
 		BranchID:       branchId,

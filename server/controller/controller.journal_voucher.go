@@ -31,7 +31,7 @@ func (c *Controller) journalVoucherController(
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		journalVouchers, err := c.modelcore.JournalVoucherCurrentbranch(context, user.OrganizationID, *user.BranchID)
+		journalVouchers, err := c.modelcore.JournalVoucherCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No journal vouchers found for the current branch"})
 		}
@@ -53,7 +53,7 @@ func (c *Controller) journalVoucherController(
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		journalVouchers, err := c.modelcore.JournalVoucherCurrentbranch(context, user.OrganizationID, *user.BranchID)
+		journalVouchers, err := c.modelcore.JournalVoucherCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch journal vouchers for pagination: " + err.Error()})
 		}

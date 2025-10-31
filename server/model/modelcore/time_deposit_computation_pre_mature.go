@@ -128,7 +128,7 @@ func (m *ModelCore) timeDepositComputationPreMature() {
 	})
 }
 
-func (m *ModelCore) timeDepositComputationPreMatureCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*TimeDepositComputationPreMature, error) {
+func (m *ModelCore) timeDepositComputationPreMatureCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*TimeDepositComputationPreMature, error) {
 	return m.TimeDepositComputationPreMatureManager.Find(context, &TimeDepositComputationPreMature{
 		OrganizationID: orgId,
 		BranchID:       branchId,

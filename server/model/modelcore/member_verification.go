@@ -124,7 +124,7 @@ func (m *ModelCore) memberVerification() {
 }
 
 // MemberVerificationCurrentBranch retrieves all member verifications for the specified organization and branch
-func (m *ModelCore) memberVerificationCurrentbranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberVerification, error) {
+func (m *ModelCore) memberVerificationCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberVerification, error) {
 	return m.MemberVerificationManager.Find(context, &MemberVerification{
 		OrganizationID: orgID,
 		BranchID:       &branchID,

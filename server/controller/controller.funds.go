@@ -27,7 +27,7 @@ func (c *Controller) fundsController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		funds, err := c.modelcore.FundsCurrentbranch(context, user.OrganizationID, *user.BranchID)
+		funds, err := c.modelcore.FundsCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get funds: " + err.Error()})
 		}
@@ -46,7 +46,7 @@ func (c *Controller) fundsController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		funds, err := c.modelcore.FundsCurrentbranch(context, user.OrganizationID, *user.BranchID)
+		funds, err := c.modelcore.FundsCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get funds for pagination: " + err.Error()})
 		}

@@ -31,7 +31,7 @@ func (c *Controller) collateralController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		collaterals, err := c.modelcore.CollateralCurrentbranch(context, user.OrganizationID, *user.BranchID)
+		collaterals, err := c.modelcore.CollateralCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No collateral records found for the current branch"})
 		}
@@ -53,7 +53,7 @@ func (c *Controller) collateralController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		collaterals, err := c.modelcore.CollateralCurrentbranch(context, user.OrganizationID, *user.BranchID)
+		collaterals, err := c.modelcore.CollateralCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch collateral records: " + err.Error()})
 		}

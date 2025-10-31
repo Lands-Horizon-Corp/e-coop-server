@@ -27,7 +27,7 @@ func (c *Controller) memberGenderController(
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberGenderHistory, err := c.modelcore.MemberGenderHistoryCurrentbranch(context, user.OrganizationID, *user.BranchID)
+		memberGenderHistory, err := c.modelcore.MemberGenderHistoryCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member gender history: " + err.Error()})
 		}
@@ -69,7 +69,7 @@ func (c *Controller) memberGenderController(
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberGender, err := c.modelcore.MemberGenderCurrentbranch(context, user.OrganizationID, *user.BranchID)
+		memberGender, err := c.modelcore.MemberGenderCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member genders: " + err.Error()})
 		}
@@ -88,7 +88,7 @@ func (c *Controller) memberGenderController(
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberGender, err := c.modelcore.MemberGenderCurrentbranch(context, user.OrganizationID, *user.BranchID)
+		memberGender, err := c.modelcore.MemberGenderCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member genders for pagination: " + err.Error()})
 		}

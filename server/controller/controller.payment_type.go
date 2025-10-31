@@ -27,7 +27,7 @@ func (c *Controller) paymentTypeController(
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		paymentTypes, err := c.modelcore.PaymentTypeCurrentbranch(context, user.OrganizationID, *user.BranchID)
+		paymentTypes, err := c.modelcore.PaymentTypeCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve payment types: " + err.Error()})
 		}
@@ -46,7 +46,7 @@ func (c *Controller) paymentTypeController(
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := c.modelcore.PaymentTypeCurrentbranch(context, user.OrganizationID, *user.BranchID)
+		value, err := c.modelcore.PaymentTypeCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve payment types for pagination: " + err.Error()})
 		}

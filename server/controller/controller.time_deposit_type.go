@@ -31,7 +31,7 @@ func (c *Controller) timeDepositTypeController(
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		timeDepositTypes, err := c.modelcore.TimeDepositTypeCurrentbranch(context, user.OrganizationID, *user.BranchID)
+		timeDepositTypes, err := c.modelcore.TimeDepositTypeCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch time deposit types for pagination: " + err.Error()})
 		}

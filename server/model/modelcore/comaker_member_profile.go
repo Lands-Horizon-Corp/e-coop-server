@@ -137,7 +137,7 @@ func (m *ModelCore) comakerMemberProfile() {
 	})
 }
 
-func (m *ModelCore) comakerMemberProfileCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ComakerMemberProfile, error) {
+func (m *ModelCore) comakerMemberProfileCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ComakerMemberProfile, error) {
 	return m.ComakerMemberProfileManager.Find(context, &ComakerMemberProfile{
 		OrganizationID: orgId,
 		BranchID:       branchId,

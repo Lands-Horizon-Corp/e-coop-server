@@ -27,7 +27,7 @@ func (c *Controller) memberDepartmentController(
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberDepartmentHistory, err := c.modelcore.MemberDepartmentHistoryCurrentbranch(context, user.OrganizationID, *user.BranchID)
+		memberDepartmentHistory, err := c.modelcore.MemberDepartmentHistoryCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member department history: " + err.Error()})
 		}
@@ -69,7 +69,7 @@ func (c *Controller) memberDepartmentController(
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberDepartment, err := c.modelcore.MemberDepartmentCurrentbranch(context, user.OrganizationID, *user.BranchID)
+		memberDepartment, err := c.modelcore.MemberDepartmentCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member departments: " + err.Error()})
 		}
@@ -88,7 +88,7 @@ func (c *Controller) memberDepartmentController(
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberDepartment, err := c.modelcore.MemberDepartmentCurrentbranch(context, user.OrganizationID, *user.BranchID)
+		memberDepartment, err := c.modelcore.MemberDepartmentCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member departments for pagination: " + err.Error()})
 		}

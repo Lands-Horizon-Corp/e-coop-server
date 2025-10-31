@@ -124,7 +124,7 @@ func (m *ModelCore) memberDamayanExtensionEntry() {
 	})
 }
 
-func (m *ModelCore) memberDamayanExtensionEntryCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberDamayanExtensionEntry, error) {
+func (m *ModelCore) memberDamayanExtensionEntryCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberDamayanExtensionEntry, error) {
 	return m.MemberDamayanExtensionEntryManager.Find(context, &MemberDamayanExtensionEntry{
 		OrganizationID: orgId,
 		BranchID:       branchId,

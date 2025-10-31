@@ -117,7 +117,7 @@ func (m *ModelCore) memberCenterHistory() {
 	})
 }
 
-func (m *ModelCore) memberCenterHistoryCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberCenterHistory, error) {
+func (m *ModelCore) memberCenterHistoryCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberCenterHistory, error) {
 	return m.MemberCenterHistoryManager.Find(context, &MemberCenterHistory{
 		OrganizationID: orgId,
 		BranchID:       branchId,

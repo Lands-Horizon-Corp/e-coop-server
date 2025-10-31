@@ -152,7 +152,7 @@ func (m *ModelCore) memberCenterSeed(context context.Context, tx *gorm.DB, userI
 	return nil
 }
 
-func (m *ModelCore) memberCenterCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberCenter, error) {
+func (m *ModelCore) memberCenterCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberCenter, error) {
 	return m.MemberCenterManager.Find(context, &MemberCenter{
 		OrganizationID: orgId,
 		BranchID:       branchId,

@@ -198,7 +198,7 @@ func (m *ModelCore) timeDepositType() {
 	})
 }
 
-func (m *ModelCore) timeDepositTypeCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*TimeDepositType, error) {
+func (m *ModelCore) timeDepositTypeCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*TimeDepositType, error) {
 	return m.TimeDepositTypeManager.Find(context, &TimeDepositType{
 		OrganizationID: orgId,
 		BranchID:       branchId,

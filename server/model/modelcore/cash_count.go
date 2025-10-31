@@ -143,8 +143,8 @@ func (m *ModelCore) cashCount() {
 	})
 }
 
-// CashCountCurrentbranch retrieves all cash counts for the specified organization and branch.
-func (m *ModelCore) CashCountCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*CashCount, error) {
+// CashCountCurrentBranch retrieves all cash counts for the specified organization and branch.
+func (m *ModelCore) CashCountCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*CashCount, error) {
 	return m.CashCountManager.Find(context, &CashCount{
 		OrganizationID: orgId,
 		BranchID:       branchId,

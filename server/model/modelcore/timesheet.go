@@ -142,8 +142,8 @@ func (m *ModelCore) timesheet() {
 	})
 }
 
-// TimesheetCurrentbranch gets timesheets for the current branch
-func (m *ModelCore) TimesheetCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Timesheet, error) {
+// TimesheetCurrentBranch gets timesheets for the current branch
+func (m *ModelCore) TimesheetCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Timesheet, error) {
 	return m.TimesheetManager.Find(context, &Timesheet{
 		OrganizationID: orgId,
 		BranchID:       branchId,

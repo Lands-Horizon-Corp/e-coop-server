@@ -158,7 +158,7 @@ func (m *ModelCore) memberTypeReference() {
 	})
 }
 
-func (m *ModelCore) memberTypeReferenceCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberTypeReference, error) {
+func (m *ModelCore) memberTypeReferenceCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberTypeReference, error) {
 	return m.MemberTypeReferenceManager.Find(context, &MemberTypeReference{
 		OrganizationID: orgId,
 		BranchID:       branchId,

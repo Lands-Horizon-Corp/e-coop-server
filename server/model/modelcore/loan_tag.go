@@ -131,7 +131,7 @@ func (m *ModelCore) loanTag() {
 	})
 }
 
-func (m *ModelCore) loanTagCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanTag, error) {
+func (m *ModelCore) loanTagCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanTag, error) {
 	return m.LoanTagManager.Find(context, &LoanTag{
 		OrganizationID: orgId,
 		BranchID:       branchId,

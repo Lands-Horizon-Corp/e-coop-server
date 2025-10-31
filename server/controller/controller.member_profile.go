@@ -353,7 +353,7 @@ func (c *Controller) memberProfileController(
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberProfile, err := c.modelcore.MemberProfileCurrentbranch(context, userOrg.OrganizationID, *userOrg.BranchID)
+		memberProfile, err := c.modelcore.MemberProfileCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member profiles: " + err.Error()})
 		}
@@ -372,7 +372,7 @@ func (c *Controller) memberProfileController(
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := c.modelcore.MemberProfileCurrentbranch(context, user.OrganizationID, *user.BranchID)
+		value, err := c.modelcore.MemberProfileCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member profiles for pagination: " + err.Error()})
 		}

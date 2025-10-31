@@ -82,7 +82,7 @@ func (c *Controller) userRatingController(
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		userRating, err := c.modelcore.UserRatingCurrentbranch(context, userOrg.OrganizationID, *userOrg.BranchID)
+		userRating, err := c.modelcore.UserRatingCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user ratings for branch: " + err.Error()})
 		}

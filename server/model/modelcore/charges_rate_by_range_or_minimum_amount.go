@@ -130,7 +130,7 @@ func (m *ModelCore) chargesRateByRangeOrMinimumAmount() {
 	})
 }
 
-func (m *ModelCore) chargesRateByRangeOrMinimumAmountCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ChargesRateByRangeOrMinimumAmount, error) {
+func (m *ModelCore) chargesRateByRangeOrMinimumAmountCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ChargesRateByRangeOrMinimumAmount, error) {
 	return m.ChargesRateByRangeOrMinimumAmountManager.Find(context, &ChargesRateByRangeOrMinimumAmount{
 		OrganizationID: orgId,
 		BranchID:       branchId,

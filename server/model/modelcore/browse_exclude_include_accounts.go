@@ -151,7 +151,7 @@ func (m *ModelCore) browseExcludeIncludeAccounts() {
 	})
 }
 
-func (m *ModelCore) browseExcludeIncludeAccountsCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*BrowseExcludeIncludeAccounts, error) {
+func (m *ModelCore) browseExcludeIncludeAccountsCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*BrowseExcludeIncludeAccounts, error) {
 	return m.BrowseExcludeIncludeAccountsManager.Find(context, &BrowseExcludeIncludeAccounts{
 		OrganizationID: orgId,
 		BranchID:       branchId,

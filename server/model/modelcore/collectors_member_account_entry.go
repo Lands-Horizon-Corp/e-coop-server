@@ -129,7 +129,7 @@ func (m *ModelCore) collectorsMemberAccountEntry() {
 	})
 }
 
-func (m *ModelCore) collectorsMemberAccountEntryCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*CollectorsMemberAccountEntry, error) {
+func (m *ModelCore) collectorsMemberAccountEntryCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*CollectorsMemberAccountEntry, error) {
 	return m.CollectorsMemberAccountEntryManager.Find(context, &CollectorsMemberAccountEntry{
 		OrganizationID: orgId,
 		BranchID:       branchId,

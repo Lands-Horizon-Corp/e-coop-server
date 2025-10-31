@@ -217,8 +217,8 @@ func (m *ModelCore) bankSeed(context context.Context, tx *gorm.DB, userID uuid.U
 	return nil
 }
 
-// BankCurrentbranch retrieves all banks associated with the specified organization and branch.
-func (m *ModelCore) BankCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Bank, error) {
+// BankCurrentBranch retrieves all banks associated with the specified organization and branch.
+func (m *ModelCore) BankCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Bank, error) {
 	return m.BankManager.Find(context, &Bank{
 		OrganizationID: orgId,
 		BranchID:       branchId,

@@ -149,7 +149,7 @@ func (m *ModelCore) memberAddress() {
 	})
 }
 
-func (m *ModelCore) memberAddressCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberAddress, error) {
+func (m *ModelCore) memberAddressCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberAddress, error) {
 	return m.MemberAddressManager.Find(context, &MemberAddress{
 		OrganizationID: orgId,
 		BranchID:       branchId,

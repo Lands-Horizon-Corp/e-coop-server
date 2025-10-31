@@ -292,7 +292,7 @@ func (m *ModelCore) memberTypeSeed(context context.Context, tx *gorm.DB, userID 
 	return nil
 }
 
-func (m *ModelCore) memberTypeCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberType, error) {
+func (m *ModelCore) memberTypeCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberType, error) {
 	return m.MemberTypeManager.Find(context, &MemberType{
 		OrganizationID: orgId,
 		BranchID:       branchId,

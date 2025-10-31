@@ -64,7 +64,7 @@ func (c *Controller) disbursementController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		disbursements, err := c.modelcore.DisbursementCurrentbranch(context, user.OrganizationID, *user.BranchID)
+		disbursements, err := c.modelcore.DisbursementCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch disbursements for pagination: " + err.Error()})
 		}

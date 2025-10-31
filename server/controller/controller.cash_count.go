@@ -29,7 +29,7 @@ func (c *Controller) cashCountController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		cashCount, err := c.modelcore.CashCountCurrentbranch(context, user.OrganizationID, *user.BranchID)
+		cashCount, err := c.modelcore.CashCountCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No cash counts found for the current branch"})
 		}

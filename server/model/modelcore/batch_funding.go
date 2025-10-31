@@ -147,7 +147,7 @@ func (m *ModelCore) batchFunding() {
 	})
 }
 
-func (m *ModelCore) batchFundingCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*BatchFunding, error) {
+func (m *ModelCore) batchFundingCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*BatchFunding, error) {
 	return m.BatchFundingManager.Find(context, &BatchFunding{
 		OrganizationID: orgId,
 		BranchID:       branchId,

@@ -33,7 +33,7 @@ func (c *Controller) holidayController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		holiday, err := c.modelcore.HolidayCurrentbranch(context, user.OrganizationID, *user.BranchID)
+		holiday, err := c.modelcore.HolidayCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No holiday records found for the current branch"})
 		}
@@ -55,7 +55,7 @@ func (c *Controller) holidayController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		holidays, err := c.modelcore.HolidayCurrentbranch(context, user.OrganizationID, *user.BranchID)
+		holidays, err := c.modelcore.HolidayCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch holiday records: " + err.Error()})
 		}

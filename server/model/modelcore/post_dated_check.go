@@ -172,7 +172,7 @@ func (m *ModelCore) postDatedCheck() {
 }
 
 // PostDatedCheckCurrentBranch retrieves all postdatedcheck records for the specified organization and branch
-func (m *ModelCore) postDatedCheckCurrentbranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*PostDatedCheck, error) {
+func (m *ModelCore) postDatedCheckCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*PostDatedCheck, error) {
 	return m.PostDatedCheckManager.Find(context, &PostDatedCheck{
 		OrganizationID: orgID,
 		BranchID:       branchID,

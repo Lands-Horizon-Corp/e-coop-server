@@ -68,7 +68,7 @@ func (c *Controller) billAndCoinsController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		billAndCoins, err := c.modelcore.BillAndCoinsCurrentbranch(context, user.OrganizationID, *user.BranchID)
+		billAndCoins, err := c.modelcore.BillAndCoinsCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch bills and coins: " + err.Error()})
 		}

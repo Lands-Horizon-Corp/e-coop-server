@@ -27,7 +27,7 @@ func (c *Controller) memberCenterController(
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberCenterHistory, err := c.modelcore.MemberCenterHistoryCurrentbranch(context, user.OrganizationID, *user.BranchID)
+		memberCenterHistory, err := c.modelcore.MemberCenterHistoryCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member center history: " + err.Error()})
 		}
@@ -69,7 +69,7 @@ func (c *Controller) memberCenterController(
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberCenter, err := c.modelcore.MemberCenterCurrentbranch(context, user.OrganizationID, *user.BranchID)
+		memberCenter, err := c.modelcore.MemberCenterCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member centers: " + err.Error()})
 		}
@@ -88,7 +88,7 @@ func (c *Controller) memberCenterController(
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := c.modelcore.MemberCenterCurrentbranch(context, user.OrganizationID, *user.BranchID)
+		value, err := c.modelcore.MemberCenterCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member centers for pagination: " + err.Error()})
 		}

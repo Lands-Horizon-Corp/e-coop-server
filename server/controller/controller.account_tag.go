@@ -31,7 +31,7 @@ func (c *Controller) accountTagController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		accountTags, err := c.modelcore.AccountTagCurrentbranch(context, user.OrganizationID, *user.BranchID)
+		accountTags, err := c.modelcore.AccountTagCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account tags not found for the current branch"})
 		}
@@ -53,7 +53,7 @@ func (c *Controller) accountTagController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		accountTags, err := c.modelcore.AccountTagCurrentbranch(context, user.OrganizationID, *user.BranchID)
+		accountTags, err := c.modelcore.AccountTagCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch account tags for pagination: " + err.Error()})
 		}

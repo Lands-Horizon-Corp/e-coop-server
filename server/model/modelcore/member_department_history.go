@@ -127,7 +127,7 @@ func (m *ModelCore) memberDepartmentHistory() {
 	})
 }
 
-func (m *ModelCore) memberDepartmentHistoryCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberDepartmentHistory, error) {
+func (m *ModelCore) memberDepartmentHistoryCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberDepartmentHistory, error) {
 	return m.MemberDepartmentHistoryManager.Find(context, &MemberDepartmentHistory{
 		OrganizationID: orgId,
 		BranchID:       branchId,

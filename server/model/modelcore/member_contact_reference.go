@@ -119,7 +119,7 @@ func (m *ModelCore) memberContactReference() {
 	})
 }
 
-func (m *ModelCore) memberContactReferenceCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberContactReference, error) {
+func (m *ModelCore) memberContactReferenceCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberContactReference, error) {
 	return m.MemberContactReferenceManager.Find(context, &MemberContactReference{
 		OrganizationID: orgId,
 		BranchID:       branchId,

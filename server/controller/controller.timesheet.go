@@ -154,7 +154,7 @@ func (c *Controller) timesheetController(
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		timesheets, err := c.modelcore.TimesheetCurrentbranch(context, user.OrganizationID, *user.BranchID)
+		timesheets, err := c.modelcore.TimesheetCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve timesheets: " + err.Error()})
 		}
@@ -173,7 +173,7 @@ func (c *Controller) timesheetController(
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := c.modelcore.TimesheetCurrentbranch(context, user.OrganizationID, *user.BranchID)
+		value, err := c.modelcore.TimesheetCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve timesheets for pagination: " + err.Error()})
 		}

@@ -308,7 +308,7 @@ func (m *ModelCore) generalLedger() {
 }
 
 // General Ledger Queries
-func (m *ModelCore) GeneralLedgerCurrentbranch(context context.Context, orgId, branchId uuid.UUID) ([]*GeneralLedger, error) {
+func (m *ModelCore) GeneralLedgerCurrentBranch(context context.Context, orgId, branchId uuid.UUID) ([]*GeneralLedger, error) {
 	return m.GeneralLedgerManager.Find(context, &GeneralLedger{
 		OrganizationID: orgId,
 		BranchID:       branchId,

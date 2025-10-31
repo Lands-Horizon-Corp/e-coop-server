@@ -430,7 +430,7 @@ func (m *ModelCore) memberProfile() {
 	})
 }
 
-func (m *ModelCore) memberProfileCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberProfile, error) {
+func (m *ModelCore) memberProfileCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberProfile, error) {
 	return m.MemberProfileManager.Find(context, &MemberProfile{
 		OrganizationID: orgId,
 		BranchID:       branchId,

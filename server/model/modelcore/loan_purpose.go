@@ -260,7 +260,7 @@ func (m *ModelCore) loanPurposeSeed(context context.Context, tx *gorm.DB, userID
 	return nil
 }
 
-func (m *ModelCore) loanPurposeCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanPurpose, error) {
+func (m *ModelCore) loanPurposeCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanPurpose, error) {
 	return m.LoanPurposeManager.Find(context, &LoanPurpose{
 		OrganizationID: orgId,
 		BranchID:       branchId,

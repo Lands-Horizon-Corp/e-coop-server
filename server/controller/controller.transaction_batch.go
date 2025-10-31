@@ -50,7 +50,7 @@ func (c *Controller) transactionBatchController(
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		transactionBatch, err := c.modelcore.TransactionBatchCurrentbranch(context, userOrg.OrganizationID, *userOrg.BranchID)
+		transactionBatch, err := c.modelcore.TransactionBatchCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve paginated transaction batches: " + err.Error()})
 		}

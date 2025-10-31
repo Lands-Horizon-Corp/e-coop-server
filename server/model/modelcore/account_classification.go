@@ -108,7 +108,7 @@ func (m *ModelCore) accountClassification() {
 	})
 }
 
-func (m *ModelCore) accountClassificationCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*AccountClassification, error) {
+func (m *ModelCore) accountClassificationCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*AccountClassification, error) {
 	return m.AccountClassificationManager.Find(context, &AccountClassification{
 		OrganizationID: orgId,
 		BranchID:       branchId,

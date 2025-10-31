@@ -114,7 +114,7 @@ func (m *ModelCore) memberCloseRemark() {
 	})
 }
 
-func (m *ModelCore) memberCloseRemarkCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberCloseRemark, error) {
+func (m *ModelCore) memberCloseRemarkCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberCloseRemark, error) {
 	return m.MemberCloseRemarkManager.Find(context, &MemberCloseRemark{
 		OrganizationID: orgId,
 		BranchID:       branchId,

@@ -31,7 +31,7 @@ func (c *Controller) adjustmentTagController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		tags, err := c.modelcore.AdjustmentTagCurrentbranch(context, user.OrganizationID, *user.BranchID)
+		tags, err := c.modelcore.AdjustmentTagCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No adjustment tags found for the current branch"})
 		}
@@ -53,7 +53,7 @@ func (c *Controller) adjustmentTagController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		tags, err := c.modelcore.AdjustmentTagCurrentbranch(context, user.OrganizationID, *user.BranchID)
+		tags, err := c.modelcore.AdjustmentTagCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch adjustment tags for pagination: " + err.Error()})
 		}
