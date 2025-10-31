@@ -31,8 +31,8 @@ type SMSService interface {
 	Send(ctx context.Context, req SMSRequest) error
 }
 
-// HorizonSMS is the default implementation of SMSService using Twilio
-type HorizonSMS struct {
+// SMS is the default implementation of SMSService using Twilio
+type SMS struct {
 	limiterOnce sync.Once
 	limiter     *rate.Limiter
 	twilio      *twilio.RestClient
@@ -43,9 +43,9 @@ type HorizonSMS struct {
 	maxCharacters int32  // Maximum allowed length for SMS body
 }
 
-// NewHorizonSMS constructs a new HorizonSMS
-func NewHorizonSMS(accountSID, authToken, sender string, maxCharacters int32) SMSService {
-	return &HorizonSMS{
+// NewSMS constructs a new SMS
+func NewSMS(accountSID, authToken, sender string, maxCharacters int32) SMSService {
+	return &SMS{
 		accountSID:    accountSID,
 		authToken:     authToken,
 		sender:        sender,
@@ -54,7 +54,7 @@ func NewHorizonSMS(accountSID, authToken, sender string, maxCharacters int32) SM
 }
 
 // Run initializes the rate limiter and Twilio client (once)
-func (h *HorizonSMS) Run(ctx context.Context) error {
+func (h *SMS) Run(_ context.Context) error {
 	h.limiterOnce.Do(func() {
 		h.limiter = rate.NewLimiter(rate.Limit(1000), 100) // 10 rps, burst 5
 	})
@@ -66,13 +66,14 @@ func (h *HorizonSMS) Run(ctx context.Context) error {
 }
 
 // Stop clears the client and limiter
-func (h *HorizonSMS) Stop(ctx context.Context) error {
+func (h *SMS) Stop(_ context.Context) error {
 	h.twilio = nil
 	h.limiter = nil
 	return nil
 }
 
-func (h *HorizonSMS) Format(ctx context.Context, req SMSRequest) (*SMSRequest, error) {
+// Format processes the SMS template with the provided variables
+func (h *SMS) Format(_ context.Context, req SMSRequest) (*SMSRequest, error) {
 	var tmplBody string
 	if err := handlers.IsValidFilePath(req.Body); err == nil {
 		content, err := os.ReadFile(req.Body)
@@ -97,7 +98,7 @@ func (h *HorizonSMS) Format(ctx context.Context, req SMSRequest) (*SMSRequest, e
 }
 
 // Send formats, sanitizes, rate-limits, and dispatches the SMS
-func (h *HorizonSMS) Send(ctx context.Context, req SMSRequest) error {
+func (h *SMS) Send(ctx context.Context, req SMSRequest) error {
 	// Validate phone numbers
 	if !handlers.IsValidPhoneNumber(req.To) {
 		return eris.Errorf("invalid recipient phone number format: %s", req.To)

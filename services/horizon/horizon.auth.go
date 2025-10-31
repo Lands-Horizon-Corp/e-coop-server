@@ -13,10 +13,12 @@ import (
 	"github.com/rotisserie/eris"
 )
 
+// ClaimWithID represents an authentication claim that provides an ID.
 type ClaimWithID interface {
 	GetID() string
 }
 
+// AuthService provides authentication functionality with CSRF token management.
 type AuthService[T ClaimWithID] interface {
 	GetCSRF(ctx context.Context, c echo.Context) (T, error)
 
@@ -37,22 +39,22 @@ type AuthService[T ClaimWithID] interface {
 	Name() string
 }
 
-// HorizonAuthService provides a Redis-backed implementation of AuthService.
-type HorizonAuthService[T ClaimWithID] struct {
+// AuthServiceImpl provides a Redis-backed implementation of AuthService.
+type AuthServiceImpl[T ClaimWithID] struct {
 	cache      CacheService
 	name       string
 	csrfHeader string
 	ssl        bool
 }
 
-// NewHorizonAuthService constructs a new HorizonAuthService.
-func NewHorizonAuthService[T ClaimWithID](
+// NewAuthServiceImpl constructs a new AuthServiceImpl.
+func NewAuthServiceImpl[T ClaimWithID](
 	cache CacheService,
 	name string,
 	csrfHeader string,
 	ssl bool,
 ) AuthService[T] {
-	return &HorizonAuthService[T]{
+	return &AuthServiceImpl[T]{
 		cache:      cache,
 		name:       name,
 		csrfHeader: csrfHeader,
@@ -61,17 +63,17 @@ func NewHorizonAuthService[T ClaimWithID](
 }
 
 // mainKey returns the Redis key for a user session's claim.
-func (h *HorizonAuthService[T]) mainKey(userID, token string) string {
+func (h *AuthServiceImpl[T]) mainKey(userID, token string) string {
 	return fmt.Sprintf("%s:csrf:%s:%s", h.name, userID, token)
 }
 
 // tokenToUserKey returns the Redis key for mapping a token to a user ID.
-func (h *HorizonAuthService[T]) tokenToUserKey(token string) string {
+func (h *AuthServiceImpl[T]) tokenToUserKey(token string) string {
 	return fmt.Sprintf("%s:csrf_token_to_user:%s", h.name, token)
 }
 
 // getTokenFromContext extracts the CSRF token from the request header or cookie.
-func (h *HorizonAuthService[T]) getTokenFromContext(c echo.Context) string {
+func (h *AuthServiceImpl[T]) getTokenFromContext(c echo.Context) string {
 	if token := c.Request().Header.Get(h.csrfHeader); token != "" {
 		return token
 	}
@@ -82,7 +84,7 @@ func (h *HorizonAuthService[T]) getTokenFromContext(c echo.Context) string {
 }
 
 // GetCSRF retrieves and validates the CSRF claim for the current session.
-func (h *HorizonAuthService[T]) GetCSRF(ctx context.Context, c echo.Context) (T, error) {
+func (h *AuthServiceImpl[T]) GetCSRF(ctx context.Context, c echo.Context) (T, error) {
 	var zeroT T
 	token := h.getTokenFromContext(c)
 	if token == "" {
@@ -108,7 +110,7 @@ func (h *HorizonAuthService[T]) GetCSRF(ctx context.Context, c echo.Context) (T,
 }
 
 // SetCSRF creates a new CSRF token, stores the claim, sets headers and cookies.
-func (h *HorizonAuthService[T]) SetCSRF(ctx context.Context, c echo.Context, claim T, expiry time.Duration) error {
+func (h *AuthServiceImpl[T]) SetCSRF(ctx context.Context, c echo.Context, claim T, expiry time.Duration) error {
 	token, err := handlers.GenerateToken()
 	if err != nil {
 		return eris.Wrap(err, "failed to generate CSRF token")
@@ -147,7 +149,7 @@ func (h *HorizonAuthService[T]) SetCSRF(ctx context.Context, c echo.Context, cla
 }
 
 // ClearCSRF removes the CSRF token and claim, and clears the cookie.
-func (h *HorizonAuthService[T]) ClearCSRF(ctx context.Context, c echo.Context) {
+func (h *AuthServiceImpl[T]) ClearCSRF(ctx context.Context, c echo.Context) {
 	token := h.getTokenFromContext(c)
 	if token == "" {
 		return
@@ -173,7 +175,7 @@ func (h *HorizonAuthService[T]) ClearCSRF(ctx context.Context, c echo.Context) {
 }
 
 // IsLoggedInOnOtherDevice checks if the current user has valid CSRF tokens on other devices.
-func (h *HorizonAuthService[T]) IsLoggedInOnOtherDevice(ctx context.Context, c echo.Context) (bool, error) {
+func (h *AuthServiceImpl[T]) IsLoggedInOnOtherDevice(ctx context.Context, c echo.Context) (bool, error) {
 	currentClaim, err := h.GetCSRF(ctx, c)
 	if err != nil {
 		return false, eris.Wrap(err, "could not retrieve CSRF claim")
@@ -204,8 +206,7 @@ func (h *HorizonAuthService[T]) IsLoggedInOnOtherDevice(ctx context.Context, c e
 }
 
 // GetLoggedInUsers returns all other users (excluding the current user) with at least one valid session.
-// GetLoggedInUsers returns all other users (excluding the current user) with at least one valid session.
-func (h *HorizonAuthService[T]) GetLoggedInUsers(ctx context.Context, c echo.Context) ([]T, error) {
+func (h *AuthServiceImpl[T]) GetLoggedInUsers(ctx context.Context, c echo.Context) ([]T, error) {
 	currentClaim, err := h.GetCSRF(ctx, c)
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to get current user claim")
@@ -245,7 +246,8 @@ func (h *HorizonAuthService[T]) GetLoggedInUsers(ctx context.Context, c echo.Con
 	return uniqueUsers, nil
 }
 
-func (h *HorizonAuthService[T]) LogoutAllUsers(ctx context.Context, c echo.Context) error {
+// LogoutAllUsers logs out all sessions for the current user.
+func (h *AuthServiceImpl[T]) LogoutAllUsers(ctx context.Context, c echo.Context) error {
 	currentClaim, err := h.GetCSRF(ctx, c)
 	if err != nil {
 		return eris.Wrap(err, "failed to get current user claim")
@@ -269,7 +271,7 @@ func (h *HorizonAuthService[T]) LogoutAllUsers(ctx context.Context, c echo.Conte
 }
 
 // VerifyCSRF validates a CSRF token and returns the associated claim if valid.
-func (h *HorizonAuthService[T]) VerifyCSRF(ctx context.Context, token string) (T, error) {
+func (h *AuthServiceImpl[T]) VerifyCSRF(ctx context.Context, token string) (T, error) {
 	var zeroT T
 	if token == "" {
 		return zeroT, eris.New("empty CSRF token")
@@ -294,7 +296,7 @@ func (h *HorizonAuthService[T]) VerifyCSRF(ctx context.Context, token string) (T
 }
 
 // LogoutOtherDevices logs out all other sessions for the user except the current one.
-func (h *HorizonAuthService[T]) LogoutOtherDevices(ctx context.Context, c echo.Context) error {
+func (h *AuthServiceImpl[T]) LogoutOtherDevices(ctx context.Context, c echo.Context) error {
 	currentClaim, err := h.GetCSRF(ctx, c)
 	if err != nil {
 		return eris.New("missing current session token")
@@ -334,11 +336,11 @@ func (h *HorizonAuthService[T]) LogoutOtherDevices(ctx context.Context, c echo.C
 }
 
 // Key returns the Redis key for token-to-user mapping.
-func (h *HorizonAuthService[T]) Key(token string) string {
+func (h *AuthServiceImpl[T]) Key(token string) string {
 	return h.tokenToUserKey(token)
 }
 
 // Name returns the service's configured name.
-func (h *HorizonAuthService[T]) Name() string {
+func (h *AuthServiceImpl[T]) Name() string {
 	return h.name
 }

@@ -46,8 +46,8 @@ const (
 
 // extractInterfaceNameFromTS parses TypeScript to extract interface name
 func extractInterfaceNameFromTS(tsDefinition string) string {
-	lines := strings.Split(tsDefinition, "\n")
-	for _, line := range lines {
+	lines := strings.SplitSeq(tsDefinition, "\n")
+	for line := range lines {
 		trimmed := strings.TrimSpace(line)
 
 		switch {
@@ -171,7 +171,7 @@ func (h *RouteHandler) AddRoute(route Route) error {
 	return nil
 }
 
-// ...existing code...
+// GroupedRoutes organizes routes by their URL path segments for API documentation
 func (h *RouteHandler) GroupedRoutes() API {
 	const skipSegments = 2  // e.g., skip "api" and "v1" or "v2"
 	const groupSegments = 1 // e.g., group by the next segment ("subject")
@@ -184,10 +184,7 @@ func (h *RouteHandler) GroupedRoutes() API {
 
 		groupKey := "/"
 		if len(segments) > skipSegments {
-			end := skipSegments + groupSegments
-			if end > len(segments) {
-				end = len(segments)
-			}
+			end := min(skipSegments+groupSegments, len(segments))
 			groupKey = strings.Join(segments[skipSegments:end], "/")
 		} else if len(segments) > 0 && segments[0] != "" {
 			groupKey = segments[0]

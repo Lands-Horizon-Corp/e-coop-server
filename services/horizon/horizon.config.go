@@ -2,6 +2,7 @@ package horizon
 
 import (
 	"log"
+	"math"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
@@ -9,6 +10,7 @@ import (
 	"github.com/spf13/viper"
 )
 
+// EnvironmentService defines the interface for environment variable operations.
 type EnvironmentService interface {
 	Get(key string, defaultValue any) any
 	GetString(key string, defaultValue string) string
@@ -33,8 +35,11 @@ type EnvironmentService interface {
 	GetStringMapStringSlice(key string, defaultValue map[string][]string) map[string][]string
 	GetSizeInBytes(key string, defaultValue uint) uint
 }
-type HorizonEnvironmentService struct{}
 
+// EnvironmentServiceImpl provides a Viper-based implementation of EnvironmentService.
+type EnvironmentServiceImpl struct{}
+
+// NewEnvironmentService creates a new environment service instance.
 func NewEnvironmentService(path string) EnvironmentService {
 	// Check if path is empty or file does not exist
 	if !handlers.FileExists(path) {
@@ -48,135 +53,142 @@ func NewEnvironmentService(path string) EnvironmentService {
 	}
 
 	viper.AutomaticEnv()
-	return HorizonEnvironmentService{}
-}
-func (h HorizonEnvironmentService) GetInt16(key string, defaultValue int16) int16 {
-	viper.SetDefault(key, defaultValue)
-	return int16(viper.GetInt(key))
+	return EnvironmentServiceImpl{}
 }
 
-func (h HorizonEnvironmentService) GetByteSlice(key string, defaultValue string) []byte {
+// GetInt16 retrieves an int16 value from environment variables.
+func (h EnvironmentServiceImpl) GetInt16(key string, defaultValue int16) int16 {
+	viper.SetDefault(key, defaultValue)
+	val := viper.GetInt(key)
+	if val < math.MinInt16 || val > math.MaxInt16 {
+		return defaultValue
+	}
+	return int16(val)
+}
+
+// GetByteSlice retrieves a byte slice from environment variables.
+func (h EnvironmentServiceImpl) GetByteSlice(key string, defaultValue string) []byte {
 	viper.SetDefault(key, defaultValue)
 	value := h.GetString(key, defaultValue)
 	return []byte(value)
 }
 
-// Get implements EnvironmentService.
-func (h HorizonEnvironmentService) Get(key string, defaultValue any) any {
+// Get retrieves a value from environment variables with a default fallback.
+func (h EnvironmentServiceImpl) Get(key string, defaultValue any) any {
 	viper.SetDefault(key, defaultValue)
 	return viper.Get(key)
 }
 
 // GetBool implements EnvironmentService.
-func (h HorizonEnvironmentService) GetBool(key string, defaultValue bool) bool {
+func (h EnvironmentServiceImpl) GetBool(key string, defaultValue bool) bool {
 	viper.SetDefault(key, defaultValue)
 	return viper.GetBool(key)
 }
 
 // GetDuration implements EnvironmentService.
-func (h HorizonEnvironmentService) GetDuration(key string, defaultValue time.Duration) time.Duration {
+func (h EnvironmentServiceImpl) GetDuration(key string, defaultValue time.Duration) time.Duration {
 	viper.SetDefault(key, defaultValue)
 	return viper.GetDuration(key)
 }
 
 // GetFloat64 implements EnvironmentService.
-func (h HorizonEnvironmentService) GetFloat64(key string, defaultValue float64) float64 {
+func (h EnvironmentServiceImpl) GetFloat64(key string, defaultValue float64) float64 {
 	viper.SetDefault(key, defaultValue)
 	return viper.GetFloat64(key)
 }
 
 // GetInt implements EnvironmentService.
-func (h HorizonEnvironmentService) GetInt(key string, defaultValue int) int {
+func (h EnvironmentServiceImpl) GetInt(key string, defaultValue int) int {
 	viper.SetDefault(key, defaultValue)
 	return viper.GetInt(key)
 }
 
 // GetInt32 implements EnvironmentService.
-func (h HorizonEnvironmentService) GetInt32(key string, defaultValue int32) int32 {
+func (h EnvironmentServiceImpl) GetInt32(key string, defaultValue int32) int32 {
 	viper.SetDefault(key, defaultValue)
 	return viper.GetInt32(key)
 }
 
 // GetInt64 implements EnvironmentService.
-func (h HorizonEnvironmentService) GetInt64(key string, defaultValue int64) int64 {
+func (h EnvironmentServiceImpl) GetInt64(key string, defaultValue int64) int64 {
 	viper.SetDefault(key, defaultValue)
 	return viper.GetInt64(key)
 }
 
 // GetIntSlice implements EnvironmentService.
-func (h HorizonEnvironmentService) GetIntSlice(key string, defaultValue []int) []int {
+func (h EnvironmentServiceImpl) GetIntSlice(key string, defaultValue []int) []int {
 	viper.SetDefault(key, defaultValue)
 	return viper.GetIntSlice(key)
 }
 
 // GetSizeInBytes implements EnvironmentService.
-func (h HorizonEnvironmentService) GetSizeInBytes(key string, defaultValue uint) uint {
+func (h EnvironmentServiceImpl) GetSizeInBytes(key string, defaultValue uint) uint {
 	viper.SetDefault(key, defaultValue)
 	return viper.GetUint(key)
 }
 
 // GetString implements EnvironmentService.
-func (h HorizonEnvironmentService) GetString(key string, defaultValue string) string {
+func (h EnvironmentServiceImpl) GetString(key string, defaultValue string) string {
 	viper.SetDefault(key, defaultValue)
 	return viper.GetString(key)
 }
 
 // GetStringMap implements EnvironmentService.
-func (h HorizonEnvironmentService) GetStringMap(key string, defaultValue map[string]any) map[string]any {
+func (h EnvironmentServiceImpl) GetStringMap(key string, defaultValue map[string]any) map[string]any {
 	viper.SetDefault(key, defaultValue)
 	return viper.GetStringMap(key)
 }
 
 // GetStringMapString implements EnvironmentService.
-func (h HorizonEnvironmentService) GetStringMapString(key string, defaultValue map[string]string) map[string]string {
+func (h EnvironmentServiceImpl) GetStringMapString(key string, defaultValue map[string]string) map[string]string {
 	viper.SetDefault(key, defaultValue)
 	return viper.GetStringMapString(key)
 }
 
 // GetStringMapStringSlice implements EnvironmentService.
-func (h HorizonEnvironmentService) GetStringMapStringSlice(key string, defaultValue map[string][]string) map[string][]string {
+func (h EnvironmentServiceImpl) GetStringMapStringSlice(key string, defaultValue map[string][]string) map[string][]string {
 	viper.SetDefault(key, defaultValue)
 	return viper.GetStringMapStringSlice(key)
 }
 
 // GetStringSlice implements EnvironmentService.
-func (h HorizonEnvironmentService) GetStringSlice(key string, defaultValue []string) []string {
+func (h EnvironmentServiceImpl) GetStringSlice(key string, defaultValue []string) []string {
 	viper.SetDefault(key, defaultValue)
 	return viper.GetStringSlice(key)
 }
 
 // GetTime implements EnvironmentService.
-func (h HorizonEnvironmentService) GetTime(key string, defaultValue time.Time) time.Time {
+func (h EnvironmentServiceImpl) GetTime(key string, defaultValue time.Time) time.Time {
 	viper.SetDefault(key, defaultValue)
 	return viper.GetTime(key)
 }
 
 // GetUint implements EnvironmentService.
-func (h HorizonEnvironmentService) GetUint(key string, defaultValue uint) uint {
+func (h EnvironmentServiceImpl) GetUint(key string, defaultValue uint) uint {
 	viper.SetDefault(key, defaultValue)
 	return viper.GetSizeInBytes(key)
 }
 
 // GetUint16 implements EnvironmentService.
-func (h HorizonEnvironmentService) GetUint16(key string, defaultValue uint16) uint16 {
+func (h EnvironmentServiceImpl) GetUint16(key string, defaultValue uint16) uint16 {
 	viper.SetDefault(key, defaultValue)
 	return viper.GetUint16(key)
 }
 
 // GetUint32 implements EnvironmentService.
-func (h HorizonEnvironmentService) GetUint32(key string, defaultValue uint32) uint32 {
+func (h EnvironmentServiceImpl) GetUint32(key string, defaultValue uint32) uint32 {
 	viper.SetDefault(key, defaultValue)
 	return viper.GetUint32(key)
 }
 
 // GetUint64 implements EnvironmentService.
-func (h HorizonEnvironmentService) GetUint64(key string, defaultValue uint64) uint64 {
+func (h EnvironmentServiceImpl) GetUint64(key string, defaultValue uint64) uint64 {
 	viper.SetDefault(key, defaultValue)
 	return viper.GetUint64(key)
 }
 
 // GetUint8 implements EnvironmentService.
-func (h HorizonEnvironmentService) GetUint8(key string, defaultValue uint8) uint8 {
+func (h EnvironmentServiceImpl) GetUint8(key string, defaultValue uint8) uint8 {
 	viper.SetDefault(key, defaultValue)
 	return viper.GetUint8(key)
 }

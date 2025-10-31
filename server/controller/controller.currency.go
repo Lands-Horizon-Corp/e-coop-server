@@ -1,0 +1,449 @@
+package v1
+
+import (
+	"fmt"
+	"net/http"
+	"strings"
+	"time"
+
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/google/uuid"
+	"github.com/labstack/echo/v4"
+)
+
+func (c *Controller) currencyController() {
+	req := c.provider.Service.Request
+
+	// Get all currencies
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/currency",
+		Method:       "GET",
+		ResponseType: modelcore.CurrencyResponse{},
+		Note:         "Returns all currencies.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		currencies, err := c.modelcore.CurrencyManager.List(context)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve currencies: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.modelcore.CurrencyManager.Filtered(context, ctx, currencies))
+	})
+
+	// Get all available currencies on unbalance accounts
+	// GET /api/v1/currency/blotter-available
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/currency/blotter-available",
+		Method:       "GET",
+		ResponseType: modelcore.CurrencyResponse{},
+		Note:         "Returns all available currencies on unbalance accounts.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		currency := []*modelcore.Currency{}
+		for _, unbal := range user.Branch.BranchSetting.UnbalancedAccounts {
+			if unbal.Currency != nil {
+				currency = append(currency, unbal.Currency)
+			}
+		}
+		return ctx.JSON(http.StatusOK, c.modelcore.CurrencyManager.ToModels(currency))
+	})
+
+	// GET /api/v1/currency/available
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/currency/available",
+		Method:       "GET",
+		ResponseType: modelcore.CurrencyResponse{},
+		Note:         "Returns all available currencies.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Bank update failed (/bank/:bank_id), user org error: " + err.Error(),
+				Module:      "Bank",
+			})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		accounts, err := c.modelcore.AccountManager.Find(context, &modelcore.Account{
+			OrganizationID: user.OrganizationID,
+			BranchID:       *user.BranchID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve accounts: " + err.Error()})
+		}
+		currencies := []*modelcore.Currency{}
+		currencyMap := make(map[uuid.UUID]*modelcore.Currency)
+		for _, account := range accounts {
+			if account.Currency != nil {
+				currencyMap[account.Currency.ID] = account.Currency
+			}
+		}
+		for _, currency := range currencyMap {
+			currencies = append(currencies, currency)
+		}
+		return ctx.JSON(http.StatusOK, c.modelcore.CurrencyManager.ToModels(currencies))
+	})
+
+	// Get a currency by its ID
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/currency/:currency_id",
+		Method:       "GET",
+		ResponseType: modelcore.CurrencyResponse{},
+		Note:         "Returns a specific currency by its ID.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		currencyID, err := handlers.EngineUUIDParam(ctx, "currency_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency_id: " + err.Error()})
+		}
+
+		currency, err := c.modelcore.CurrencyManager.GetByIDRaw(context, *currencyID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Currency not found: " + err.Error()})
+		}
+
+		return ctx.JSON(http.StatusOK, currency)
+	})
+
+	// Get a currency by its code
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/currency/code/:currency_code",
+		Method:       "GET",
+		ResponseType: modelcore.CurrencyResponse{},
+		Note:         "Returns a specific currency by its code (e.g., USD, EUR).",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		currencyCode := ctx.Param("currency_code")
+		if currencyCode == "" {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Currency code is required"})
+		}
+
+		currency, err := c.modelcore.CurrencyFindByCode(context, currencyCode)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Currency not found: " + err.Error()})
+		}
+
+		return ctx.JSON(http.StatusOK, c.modelcore.CurrencyManager.ToModel(currency))
+	})
+
+	// Create a new currency
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/currency",
+		Method:       "POST",
+		ResponseType: modelcore.CurrencyResponse{},
+		RequestType:  modelcore.CurrencyRequest{},
+		Note:         "Creates a new currency.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		req, err := c.modelcore.CurrencyManager.Validate(ctx)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create currency failed: validation error: " + err.Error(),
+				Module:      "Currency",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
+		}
+
+		currency := &modelcore.Currency{
+			Name:         req.Name,
+			Country:      req.Country,
+			CurrencyCode: req.CurrencyCode,
+			Symbol:       req.Symbol,
+			Emoji:        req.Emoji,
+			Timezone:     req.Timezone,
+			CreatedAt:    time.Now().UTC(),
+			UpdatedAt:    time.Now().UTC(),
+		}
+
+		if err := c.modelcore.CurrencyManager.Create(context, currency); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create currency failed: create error: " + err.Error(),
+				Module:      "Currency",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create currency: " + err.Error()})
+		}
+
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "create-success",
+			Description: "Created currency: " + currency.Name + " (" + currency.CurrencyCode + ")",
+			Module:      "Currency",
+		})
+
+		return ctx.JSON(http.StatusOK, c.modelcore.CurrencyManager.ToModel(currency))
+	})
+
+	// Update a currency by its ID
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/currency/:currency_id",
+		Method:       "PUT",
+		ResponseType: modelcore.CurrencyResponse{},
+		RequestType:  modelcore.CurrencyRequest{},
+		Note:         "Updates an existing currency by its ID.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		currencyID, err := handlers.EngineUUIDParam(ctx, "currency_id")
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update currency failed: invalid currency_id: " + err.Error(),
+				Module:      "Currency",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency_id: " + err.Error()})
+		}
+
+		req, err := c.modelcore.CurrencyManager.Validate(ctx)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update currency failed: validation error: " + err.Error(),
+				Module:      "Currency",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
+		}
+
+		currency, err := c.modelcore.CurrencyManager.GetByID(context, *currencyID)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update currency failed: not found: " + err.Error(),
+				Module:      "Currency",
+			})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Currency not found: " + err.Error()})
+		}
+
+		currency.Name = req.Name
+		currency.Country = req.Country
+		currency.CurrencyCode = req.CurrencyCode
+		currency.Symbol = req.Symbol
+		currency.Emoji = req.Emoji
+		currency.Timezone = req.Timezone
+		currency.UpdatedAt = time.Now().UTC()
+
+		if err := c.modelcore.CurrencyManager.UpdateFields(context, currency.ID, currency); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update currency failed: update error: " + err.Error(),
+				Module:      "Currency",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update currency: " + err.Error()})
+		}
+
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "update-success",
+			Description: "Updated currency: " + currency.Name + " (" + currency.CurrencyCode + ")",
+			Module:      "Currency",
+		})
+
+		return ctx.JSON(http.StatusOK, c.modelcore.CurrencyManager.ToModel(currency))
+	})
+
+	// Delete a currency by its ID
+	req.RegisterRoute(handlers.Route{
+		Route:  "/api/v1/currency/:currency_id",
+		Method: "DELETE",
+		Note:   "Deletes a currency by its ID.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		currencyID, err := handlers.EngineUUIDParam(ctx, "currency_id")
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete currency failed: invalid currency_id: " + err.Error(),
+				Module:      "Currency",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency_id: " + err.Error()})
+		}
+
+		currency, err := c.modelcore.CurrencyManager.GetByID(context, *currencyID)
+		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete currency failed: not found: " + err.Error(),
+				Module:      "Currency",
+			})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Currency not found: " + err.Error()})
+		}
+
+		if err := c.modelcore.CurrencyManager.DeleteByID(context, *currencyID); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete currency failed: delete error: " + err.Error(),
+				Module:      "Currency",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete currency: " + err.Error()})
+		}
+
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "delete-success",
+			Description: "Deleted currency: " + currency.Name + " (" + currency.CurrencyCode + ")",
+			Module:      "Currency",
+		})
+
+		return ctx.NoContent(http.StatusNoContent)
+	})
+
+	// Bulk delete currencies by IDs
+	req.RegisterRoute(handlers.Route{
+		Route:       "/api/v1/currency/bulk-delete",
+		Method:      "DELETE",
+		RequestType: modelcore.IDSRequest{},
+		Note:        "Deletes multiple currency records.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		var reqBody modelcore.IDSRequest
+
+		if err := ctx.Bind(&reqBody); err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "bulk-delete-error",
+				Description: "Bulk delete currencies failed: invalid request body.",
+				Module:      "Currency",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
+		}
+
+		if len(reqBody.IDs) == 0 {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "bulk-delete-error",
+				Description: "Bulk delete currencies failed: no IDs provided.",
+				Module:      "Currency",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for deletion."})
+		}
+
+		tx := c.provider.Service.Database.Client().Begin()
+		if tx.Error != nil {
+			tx.Rollback()
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "bulk-delete-error",
+				Description: "Bulk delete currencies failed: begin tx error: " + tx.Error.Error(),
+				Module:      "Currency",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
+		}
+
+		var sb strings.Builder
+		for _, rawID := range reqBody.IDs {
+			currencyID, err := uuid.Parse(rawID)
+			if err != nil {
+				tx.Rollback()
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "bulk-delete-error",
+					Description: "Bulk delete currencies failed: invalid UUID: " + rawID,
+					Module:      "Currency",
+				})
+				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s - %v", rawID, err)})
+			}
+
+			currency, err := c.modelcore.CurrencyManager.GetByID(context, currencyID)
+			if err != nil {
+				tx.Rollback()
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "bulk-delete-error",
+					Description: "Bulk delete currencies failed: not found: " + rawID,
+					Module:      "Currency",
+				})
+				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Currency with ID %s not found: %v", rawID, err)})
+			}
+
+			sb.WriteString(currency.Name)
+			sb.WriteString(" (")
+			sb.WriteString(currency.CurrencyCode)
+			sb.WriteString("),")
+			if err := c.modelcore.CurrencyManager.DeleteByIDWithTx(context, tx, currencyID); err != nil {
+				tx.Rollback()
+				c.event.Footstep(context, ctx, event.FootstepEvent{
+					Activity:    "bulk-delete-error",
+					Description: "Bulk delete currencies failed: delete error: " + err.Error(),
+					Module:      "Currency",
+				})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to delete currency with ID %s: %v", rawID, err)})
+			}
+		}
+
+		if err := tx.Commit().Error; err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "bulk-delete-error",
+				Description: "Bulk delete currencies failed: commit tx error: " + err.Error(),
+				Module:      "Currency",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
+		}
+
+		c.event.Footstep(context, ctx, event.FootstepEvent{
+			Activity:    "bulk-delete-success",
+			Description: "Bulk deleted currencies: " + sb.String(),
+			Module:      "Currency",
+		})
+
+		return ctx.NoContent(http.StatusNoContent)
+	})
+
+	// POST /api/v1/currency/exchange-rate/:currency_from_id/:currency_to_id/:amount
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/currency/exchange-rate/:currency_from_id/:currency_to_id/:amount",
+		Method:       "POST",
+		ResponseType: usecase.ExchangeResult{},
+		Note:         "Computes exchange rate between two currencies for a given amount.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		currencyFromID, err := handlers.EngineUUIDParam(ctx, "currency_from_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency_from_id: " + err.Error()})
+		}
+		currencyToID, err := handlers.EngineUUIDParam(ctx, "currency_to_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency_to_id: " + err.Error()})
+		}
+		amountParam := ctx.Param("amount")
+		var amount float64
+		_, err = fmt.Sscanf(amountParam, "%f", &amount)
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid amount: " + err.Error()})
+		}
+
+		fromCurrency, err := c.modelcore.CurrencyManager.GetByID(context, *currencyFromID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Currency from not found: " + err.Error()})
+		}
+		toCurrency, err := c.modelcore.CurrencyManager.GetByID(context, *currencyToID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Currency to not found: " + err.Error()})
+		}
+
+		result, err := c.usecase.ExchangeRateComputeAmount(*fromCurrency, *toCurrency, amount)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to compute exchange rate: " + err.Error()})
+		}
+
+		return ctx.JSON(http.StatusOK, result)
+	})
+
+	// GET /api/v1/currency/timezone/:timezone
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/currency/timezone/:timezone",
+		Method:       "GET",
+		ResponseType: modelcore.CurrencyResponse{},
+		Note:         "Returns the currency for a given timezone.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		timezone := ctx.Param("timezone")
+		if timezone == "" {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Timezone is required"})
+		}
+		currency, err := c.modelcore.CurrencyManager.FindOneRaw(context, &modelcore.Currency{Timezone: timezone})
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Currency not found for timezone: " + err.Error()})
+		}
+
+		return ctx.JSON(http.StatusOK, currency)
+	})
+}

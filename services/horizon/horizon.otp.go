@@ -10,29 +10,31 @@ import (
 	"github.com/rotisserie/eris"
 )
 
+// OTPService defines the interface for one-time password operations.
 type OTPService interface {
 	Generate(ctx context.Context, key string) (string, error)
 	Verify(ctx context.Context, key, code string) (bool, error)
 	Revoke(ctx context.Context, key string) error
 }
 
-type HorizonOTP struct {
+// OTP provides an implementation of OTPService.
+type OTP struct {
 	secret   []byte
 	cache    CacheService
 	security SecurityService
 }
 
-// go -v ./services/horizon/horizon.otp.go
-
+// NewHorizonOTP creates a new OTP service instance.
 func NewHorizonOTP(secret []byte, cache CacheService, security SecurityService) OTPService {
-	return &HorizonOTP{
+	return &OTP{
 		secret:   secret,
 		cache:    cache,
 		security: security,
 	}
 }
 
-func (h *HorizonOTP) Generate(ctx context.Context, key string) (string, error) {
+// Generate creates a new OTP for the given key.
+func (h *OTP) Generate(ctx context.Context, key string) (string, error) {
 	otpKey := h.key(ctx, key)
 	countKey := h.keyCount(ctx, key)
 
@@ -71,7 +73,8 @@ func (h *HorizonOTP) Generate(ctx context.Context, key string) (string, error) {
 	return code, nil
 }
 
-func (h *HorizonOTP) Verify(ctx context.Context, key, code string) (bool, error) {
+// Verify validates an OTP code for the given key.
+func (h *OTP) Verify(ctx context.Context, key, code string) (bool, error) {
 	otpKey := h.key(ctx, key)
 	countKey := h.keyCount(ctx, key)
 
@@ -127,7 +130,8 @@ func (h *HorizonOTP) Verify(ctx context.Context, key, code string) (bool, error)
 	return true, nil
 }
 
-func (h *HorizonOTP) Revoke(ctx context.Context, key string) error {
+// Revoke removes an OTP and its attempt count for the given key.
+func (h *OTP) Revoke(ctx context.Context, key string) error {
 	otpKey := h.key(ctx, key)
 	countKey := h.keyCount(ctx, key)
 	if err := h.cache.Delete(ctx, otpKey); err != nil {
@@ -139,7 +143,7 @@ func (h *HorizonOTP) Revoke(ctx context.Context, key string) error {
 	return nil
 }
 
-func (h *HorizonOTP) key(ctx context.Context, key string) string {
+func (h *OTP) key(ctx context.Context, key string) string {
 	hashedKey, err := h.security.GenerateUUIDv5(ctx, key)
 	if err != nil {
 		return fmt.Sprintf("otp-%s", key)
@@ -147,7 +151,7 @@ func (h *HorizonOTP) key(ctx context.Context, key string) string {
 	return fmt.Sprintf("otp-%s", hashedKey)
 }
 
-func (h *HorizonOTP) keyCount(ctx context.Context, key string) string {
+func (h *OTP) keyCount(ctx context.Context, key string) string {
 	hashedKey, err := h.security.GenerateUUIDv5(ctx, key)
 	if err != nil {
 		return fmt.Sprintf("otp-count-%s", key)

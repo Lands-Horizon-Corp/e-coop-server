@@ -1,4 +1,4 @@
-package horizon_services
+package services
 
 import (
 	"context"
@@ -13,6 +13,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// HorizonService manages all application services and their lifecycle.
 type HorizonService struct {
 	Environment horizon.EnvironmentService
 	Database    horizon.SQLDatabaseService
@@ -32,6 +33,7 @@ type HorizonService struct {
 	Logger    *zap.Logger
 }
 
+// HorizonServiceConfig contains configuration options for initializing HorizonService.
 type HorizonServiceConfig struct {
 	EnvironmentConfig *EnvironmentServiceConfig
 	SQLConfig         *SQLServiceConfig
@@ -47,6 +49,7 @@ type HorizonServiceConfig struct {
 	RequestServiceConfig *RequestServiceConfig
 }
 
+// NewHorizonService creates and initializes a new HorizonService instance.
 func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 	service := &HorizonService{}
 	service.Validator = validator.New()
@@ -88,6 +91,7 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 			cfg.RequestServiceConfig.MetricsPort,
 			cfg.RequestServiceConfig.ClientURL,
 			cfg.RequestServiceConfig.ClientName,
+			isStaging,
 		)
 	} else {
 		service.Request = horizon.NewHorizonAPIService(
@@ -95,6 +99,7 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 			service.Environment.GetInt("APP_METRICS_PORT", 8001),
 			service.Environment.GetString("APP_CLIENT_URL", "http://127.0.0.1:3000"),
 			service.Environment.GetString("APP_CLIENT_NAME", "horizon"),
+			isStaging,
 		)
 	}
 	if cfg.SecurityConfig != nil {
@@ -124,7 +129,7 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 	}
 
 	if cfg.StorageConfig != nil {
-		service.Storage = horizon.NewHorizonStorageService(
+		service.Storage = horizon.NewStorageImplService(
 			cfg.StorageConfig.AccessKey,
 			cfg.StorageConfig.SecretKey,
 			cfg.StorageConfig.Endpoint,
@@ -135,7 +140,7 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 			isStaging,
 		)
 	} else {
-		service.Storage = horizon.NewHorizonStorageService(
+		service.Storage = horizon.NewStorageImplService(
 			service.Environment.GetString("STORAGE_ACCESS_KEY", ""),
 			service.Environment.GetString("STORAGE_SECRET_KEY", ""),
 			service.Environment.GetString("STORAGE_URL", ""),
@@ -193,14 +198,14 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 		)
 	}
 	if cfg.SMSServiceConfig != nil {
-		service.SMS = horizon.NewHorizonSMS(
+		service.SMS = horizon.NewSMS(
 			cfg.SMSServiceConfig.AccountSID,
 			cfg.SMSServiceConfig.AuthToken,
 			cfg.SMSServiceConfig.Sender,
 			cfg.SMSServiceConfig.MaxChars,
 		)
 	} else {
-		service.SMS = horizon.NewHorizonSMS(
+		service.SMS = horizon.NewSMS(
 			service.Environment.GetString("TWILIO_ACCOUNT_SID", ""),
 			service.Environment.GetString("TWILIO_AUTH_TOKEN", ""),
 			service.Environment.GetString("TWILIO_SENDER", ""),
@@ -208,7 +213,7 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 		)
 	}
 	if cfg.SMTPServiceConfig != nil {
-		service.SMTP = horizon.NewHorizonSMTP(
+		service.SMTP = horizon.NewSMTP(
 			cfg.SMTPServiceConfig.Host,
 			cfg.SMTPServiceConfig.Port,
 			cfg.SMTPServiceConfig.Username,
@@ -216,7 +221,7 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 			cfg.SMTPServiceConfig.From,
 		)
 	} else {
-		service.SMTP = horizon.NewHorizonSMTP(
+		service.SMTP = horizon.NewSMTP(
 			service.Environment.GetString("SMTP_HOST", "127.0.0.1"),
 			service.Environment.GetInt("SMTP_PORT", 1025),
 			service.Environment.GetString("SMTP_USERNAME", ""),
@@ -225,7 +230,7 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 		)
 	}
 
-	service.Cron = horizon.NewHorizonSchedule()
+	service.Cron = horizon.NewSchedule()
 	service.QR = horizon.NewHorizonQRService(service.Security)
 	return service
 }
@@ -234,16 +239,17 @@ func (h *HorizonService) printStatus(service string, status string) {
 	switch status {
 	case "init":
 		h.Logger.Info("Initializing service", zap.String("service", service))
-		os.Stdout.Sync()
+		_ = os.Stdout.Sync()
 	case "ok":
 		h.Logger.Info("Service initialized successfully", zap.String("service", service))
-		os.Stdout.Sync()
+		_ = os.Stdout.Sync()
 	case "fail":
 		h.Logger.Error("Failed to initialize service", zap.String("service", service))
-		os.Stdout.Sync()
+		_ = os.Stdout.Sync()
 	}
 }
 
+// Run starts all configured services in the correct order.
 func (h *HorizonService) Run(ctx context.Context) error {
 	fmt.Println("≿━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━༺❀༻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━≾")
 	handlers.PrintASCIIArt()
@@ -362,6 +368,7 @@ func (h *HorizonService) Run(ctx context.Context) error {
 	return nil
 }
 
+// Stop gracefully shuts down all running services in reverse order.
 func (h *HorizonService) Stop(ctx context.Context) error {
 	if h.Request != nil {
 		if err := h.Request.Stop(ctx); err != nil {
@@ -404,10 +411,16 @@ func (h *HorizonService) Stop(ctx context.Context) error {
 			return err
 		}
 	}
+	if h.Broker != nil {
+		if err := h.Broker.Stop(ctx); err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
 
+// RunDatabase starts the database service.
 func (h *HorizonService) RunDatabase(ctx context.Context) error {
 	h.Logger.Info("Starting Database Service...")
 	delay := 3 * time.Second
@@ -426,6 +439,7 @@ func (h *HorizonService) RunDatabase(ctx context.Context) error {
 	return nil
 }
 
+// StopDatabase stops the database service.
 func (h *HorizonService) StopDatabase(ctx context.Context) error {
 	h.Logger.Info("Stopping Database Service...")
 
@@ -440,6 +454,7 @@ func (h *HorizonService) StopDatabase(ctx context.Context) error {
 	return nil
 }
 
+// RunCache starts the cache service.
 func (h *HorizonService) RunCache(ctx context.Context) error {
 	h.Logger.Info("Starting Cache Service...")
 	delay := 3 * time.Second
@@ -458,6 +473,7 @@ func (h *HorizonService) RunCache(ctx context.Context) error {
 	return nil
 }
 
+// StopCache stops the cache service.
 func (h *HorizonService) StopCache(ctx context.Context) error {
 	h.Logger.Info("Stopping Cache Service...")
 
@@ -472,8 +488,7 @@ func (h *HorizonService) StopCache(ctx context.Context) error {
 	return nil
 }
 
-// Add these methods to your HorizonService struct in horizon_services.go
-
+// RunStorage starts the storage service.
 func (h *HorizonService) RunStorage(ctx context.Context) error {
 	h.Logger.Info("Starting Storage Service...")
 	delay := 3 * time.Second
@@ -492,6 +507,7 @@ func (h *HorizonService) RunStorage(ctx context.Context) error {
 	return nil
 }
 
+// StopStorage stops the storage service.
 func (h *HorizonService) StopStorage(ctx context.Context) error {
 	h.Logger.Info("Stopping Storage Service...")
 
@@ -506,6 +522,7 @@ func (h *HorizonService) StopStorage(ctx context.Context) error {
 	return nil
 }
 
+// RunBroker starts the message broker service.
 func (h *HorizonService) RunBroker(ctx context.Context) error {
 	h.Logger.Info("Starting Broker Service...")
 	delay := 3 * time.Second
@@ -523,18 +540,3 @@ func (h *HorizonService) RunBroker(ctx context.Context) error {
 	h.Logger.Info("Broker Service Started Successfully")
 	return nil
 }
-
-func (h *HorizonService) StopBroker(ctx context.Context) error {
-	h.Logger.Info("Stopping Broker Service...")
-
-	if h.Broker != nil {
-		if err := h.Broker.Stop(ctx); err != nil {
-			h.Logger.Error("Failed to stop Broker Service", zap.Error(err))
-			return err
-		}
-	}
-
-	h.Logger.Info("Broker Service Stopped Successfully")
-	return nil
-}
- 

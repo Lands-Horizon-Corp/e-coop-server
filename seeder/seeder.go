@@ -5,23 +5,27 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/src"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
 	"github.com/google/uuid"
 	"github.com/jaswdr/faker"
 	"github.com/rotisserie/eris"
 	"github.com/schollz/progressbar/v3"
 )
 
+// Seeder seeds sample data into the application's database. It holds
+// references to application services and state used during seeding.
 type Seeder struct {
-	provider    *src.Provider
-	model_core  *model_core.ModelCore
+	provider    *server.Provider
+	modelcore   *modelcore.ModelCore
 	faker       faker.Faker
 	imagePaths  []string
 	progressBar *progressbar.ProgressBar
 }
 
-func NewSeeder(provider *src.Provider, model_core *model_core.ModelCore) (*Seeder, error) {
+// NewSeeder creates a new Seeder instance wired with the provided
+// application provider and model core.
+func NewSeeder(provider *server.Provider, modelcore *modelcore.ModelCore) (*Seeder, error) {
 	// We'll update the progress bar total when Run() is called with the multiplier
 	overallBar := progressbar.NewOptions(100, // Temporary, will be updated in Run()
 		progressbar.OptionSetDescription("🌱 Database Seeding Progress"),
@@ -40,7 +44,7 @@ func NewSeeder(provider *src.Provider, model_core *model_core.ModelCore) (*Seede
 	)
 	seeder := &Seeder{
 		provider:    provider,
-		model_core:  model_core,
+		modelcore:   modelcore,
 		faker:       faker.New(),
 		progressBar: overallBar,
 	}
@@ -50,6 +54,8 @@ func NewSeeder(provider *src.Provider, model_core *model_core.ModelCore) (*Seede
 	return seeder, nil
 }
 
+// Run executes the full seeding process. The multiplier scales the
+// amount of generated data.
 func (s *Seeder) Run(ctx context.Context, multiplier int32) error {
 	if multiplier <= 0 {
 		return nil
@@ -94,62 +100,50 @@ func (s *Seeder) Run(ctx context.Context, multiplier int32) error {
 		}),
 	)
 
-	s.progressBar.Describe("🏷️  Seeding categories...")
-	if err := s.model_core.CategorySeed(ctx); err != nil {
+	s.progressBar.Describe("� Running global seeder...")
+	if err := s.modelcore.GlobalSeeder(ctx); err != nil {
 		return err
 	}
-	s.provider.Service.Logger.Info("✅ Completed CategorySeed - Progress: 1/Total")
-	s.progressBar.Add(1)
-
-	s.progressBar.Describe("💰 Seeding currencies...")
-	if err := s.model_core.CurrencySeed(ctx); err != nil {
-		return err
-	}
-	s.provider.Service.Logger.Info("✅ Completed CurrencySeed - Progress: 2/Total")
-	s.progressBar.Add(1)
-
-	s.progressBar.Describe("📋 Seeding subscription plans...")
-	if err := s.model_core.SubscriptionPlanSeed(ctx); err != nil {
-		return err
-	}
-	s.provider.Service.Logger.Info("✅ Completed SubscriptionPlanSeed - Progress: 3/Total")
-	s.progressBar.Add(1)
+	s.provider.Service.Logger.Info("✅ Completed GlobalSeeder - Progress: 3/Total")
+	_ = s.progressBar.Add(1)
 
 	s.progressBar.Describe(fmt.Sprintf("👤 Creating %d users...", int(multiplier)*1))
 	if err := s.SeedUsers(ctx, multiplier); err != nil {
 		return err
 	}
 	s.provider.Service.Logger.Info("✅ Completed SeedUsers - Progress: SeedUsers+/Total")
-	s.progressBar.Add(1)
+	_ = s.progressBar.Add(1)
 
 	s.progressBar.Describe(fmt.Sprintf("🏢 Creating organizations & branches (multiplier: %d)...", multiplier))
 	if err := s.SeedOrganization(ctx, multiplier); err != nil {
 		return err
 	}
 	s.provider.Service.Logger.Info("✅ Completed SeedOrganization - Progress: SeedOrg+/Total")
-	s.progressBar.Add(1)
+	_ = s.progressBar.Add(1)
 
 	s.progressBar.Describe("👥 Assigning employees to organizations...")
 	if err := s.SeedEmployees(ctx, multiplier); err != nil {
 		return err
 	}
 	s.provider.Service.Logger.Info("✅ Completed SeedEmployees - Progress: SeedEmp+/Total")
-	s.progressBar.Add(1)
+	_ = s.progressBar.Add(1)
 
 	s.progressBar.Describe("📋 Creating member profiles...")
 	if err := s.SeedMemberProfiles(ctx, multiplier); err != nil {
 		return err
 	}
 	s.provider.Service.Logger.Info("✅ Completed SeedMemberProfiles - Progress: SeedMembers+/Total")
-	s.progressBar.Add(1)
+	_ = s.progressBar.Add(1)
 
 	// Finish overall progress bar
-	s.progressBar.Finish()
+	_ = s.progressBar.Finish()
 	return nil
 }
 
+// SeedOrganization seeds organizations, branches, and related data
+// for the configured multiplier.
 func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
-	orgs, err := s.model_core.OrganizationManager.List(ctx)
+	orgs, err := s.modelcore.OrganizationManager.List(ctx)
 	if err != nil {
 		return err
 	}
@@ -163,20 +157,20 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 			(numUsers * numOrgsPerUser * 3) + // per org operations
 			(numUsers * numOrgsPerUser * numBranchesPerOrg * 6) // per branch operations
 		s.provider.Service.Logger.Info(fmt.Sprintf("⏭️ Skipping %d organization operations (organizations already exist)", skipCount))
-		s.progressBar.Add(skipCount)
+		_ = s.progressBar.Add(skipCount)
 		return nil
 	}
 
 	numOrgsPerUser := int(multiplier) * 1
-	users, err := s.model_core.UserManager.List(ctx)
+	users, err := s.modelcore.UserManager.List(ctx)
 	if err != nil {
 		return err
 	}
-	subscriptions, err := s.model_core.SubscriptionPlanManager.List(ctx)
+	subscriptions, err := s.modelcore.SubscriptionPlanManager.List(ctx)
 	if err != nil {
 		return err
 	}
-	categories, err := s.model_core.CategoryManager.List(ctx)
+	categories, err := s.modelcore.CategoryManager.List(ctx)
 	if err != nil {
 		return err
 	}
@@ -184,11 +178,11 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 	for _, user := range users {
 		s.provider.Service.Logger.Info(fmt.Sprintf("🏢 Processing organizations for user: %s %s", *user.FirstName, *user.LastName))
 		s.progressBar.Describe(fmt.Sprintf("🏢 Processing organizations for user: %s %s", *user.FirstName, *user.LastName))
-		s.progressBar.Add(1)
-		for j := 0; j < numOrgsPerUser; j++ {
+		_ = s.progressBar.Add(1)
+		for j := range numOrgsPerUser {
 			s.provider.Service.Logger.Info(fmt.Sprintf("🏭 Setting up organization %d/%d for user %s", j+1, numOrgsPerUser, *user.FirstName))
 			s.progressBar.Describe("🏭 Setting up organization...")
-			s.progressBar.Add(1)
+			_ = s.progressBar.Add(1)
 			sub := subscriptions[j%len(subscriptions)]
 			subscriptionEndDate := time.Now().Add(30 * 24 * time.Hour)
 			orgMedia, err := s.createImageMedia(ctx, "Organization")
@@ -197,8 +191,8 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 			}
 			s.provider.Service.Logger.Info("📸 Created organization media")
 			s.progressBar.Describe("📸 Created organization media")
-			s.progressBar.Add(1)
-			organization := &model_core.Organization{
+			_ = s.progressBar.Add(1)
+			organization := &modelcore.Organization{
 				CreatedAt:                           time.Now().UTC(),
 				CreatedByID:                         user.ID,
 				UpdatedAt:                           time.Now().UTC(),
@@ -225,16 +219,16 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 				SubscriptionEndDate:                 subscriptionEndDate,
 			}
 
-			if err := s.model_core.OrganizationManager.Create(ctx, organization); err != nil {
+			if err := s.modelcore.OrganizationManager.Create(ctx, organization); err != nil {
 				return err
 			}
 			s.provider.Service.Logger.Info(fmt.Sprintf("🏢 Created organization: %s", organization.Name))
 			s.progressBar.Describe(fmt.Sprintf("🏢 Created organization: %s", organization.Name))
-			s.progressBar.Add(1)
+			_ = s.progressBar.Add(1)
 
 			// Add categories to organization
 			for _, category := range categories {
-				if err := s.model_core.OrganizationCategoryManager.Create(ctx, &model_core.OrganizationCategory{
+				if err := s.modelcore.OrganizationCategoryManager.Create(ctx, &modelcore.OrganizationCategory{
 					CreatedAt:      time.Now().UTC(),
 					UpdatedAt:      time.Now().UTC(),
 					OrganizationID: &organization.ID,
@@ -246,15 +240,15 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 
 			numBranches := int(multiplier) * 1
 
-			for k := 0; k < numBranches; k++ {
+			for k := range numBranches {
 				branchMedia, err := s.createImageMedia(ctx, "Organization")
 				if err != nil {
 					return eris.Wrap(err, "failed to create organization media")
 				}
 				s.provider.Service.Logger.Info(fmt.Sprintf("📸 Created branch media %d/%d", k+1, numBranches))
 				s.progressBar.Describe("📸 Created branch media")
-				s.progressBar.Add(1)
-				branch := &model_core.Branch{
+				_ = s.progressBar.Add(1)
+				branch := &modelcore.Branch{
 					CreatedAt:      time.Now().UTC(),
 					CreatedByID:    user.ID,
 					UpdatedAt:      time.Now().UTC(),
@@ -276,18 +270,18 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 					Latitude:  ptr(4.0 + float64(s.faker.IntBetween(0, 1700))/100.0),
 					Longitude: ptr(116.0 + float64(s.faker.IntBetween(0, 1100))/100.0),
 				}
-				if err := s.model_core.BranchManager.Create(ctx, branch); err != nil {
+				if err := s.modelcore.BranchManager.Create(ctx, branch); err != nil {
 					return err
 				}
 				s.provider.Service.Logger.Info(fmt.Sprintf("🏪 Created branch: %s for %s", branch.Name, organization.Name))
 				s.progressBar.Describe(fmt.Sprintf("🏪 Created branch: %s for %s", branch.Name, organization.Name))
-				s.progressBar.Add(1)
-				currency, err := s.model_core.CurrencyFindByAlpha2(ctx, branch.CountryCode)
+				_ = s.progressBar.Add(1)
+				currency, err := s.modelcore.CurrencyFindByAlpha2(ctx, branch.CountryCode)
 				if err != nil {
 					return eris.Wrap(err, "failed to find currency for account seeding")
 				}
 				// Create default branch settings for each branch
-				branchSetting := &model_core.BranchSetting{
+				branchSetting := &modelcore.BranchSetting{
 					CreatedAt: time.Now().UTC(),
 					UpdatedAt: time.Now().UTC(),
 					BranchID:  branch.ID,
@@ -338,12 +332,12 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 					CurrencyID:                currency.ID,
 				}
 
-				if err := s.model_core.BranchSettingManager.Create(ctx, branchSetting); err != nil {
+				if err := s.modelcore.BranchSettingManager.Create(ctx, branchSetting); err != nil {
 					return err
 				}
 				s.provider.Service.Logger.Info(fmt.Sprintf("⚙️ Created settings for branch: %s", branch.Name))
 				s.progressBar.Describe(fmt.Sprintf("⚙️ Created settings for branch: %s", branch.Name))
-				s.progressBar.Add(1)
+				_ = s.progressBar.Add(1)
 
 				// Create the owner relationship for the user who created the organization
 				developerKey, err := s.provider.Service.Security.GenerateUUIDv5(ctx, fmt.Sprintf("%s-%s-%s", user.ID, organization.ID, branch.ID))
@@ -351,7 +345,7 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 					return err
 				}
 
-				ownerOrganization := &model_core.UserOrganization{
+				ownerOrganization := &modelcore.UserOrganization{
 					CreatedAt:                time.Now().UTC(),
 					CreatedByID:              user.ID,
 					UpdatedAt:                time.Now().UTC(),
@@ -359,7 +353,7 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 					BranchID:                 &branch.ID,
 					OrganizationID:           organization.ID,
 					UserID:                   user.ID,
-					UserType:                 model_core.UserOrganizationTypeOwner,
+					UserType:                 modelcore.UserOrganizationTypeOwner,
 					Description:              s.faker.Lorem().Sentence(5),
 					ApplicationDescription:   s.faker.Lorem().Sentence(3),
 					ApplicationStatus:        "accepted",
@@ -374,16 +368,16 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 					UserSettingEndVoucher:    100,
 					UserSettingUsedVoucher:   0,
 					UserSettingNumberPadding: 7,
-					Status:                   model_core.UserOrganizationStatusOffline,
+					Status:                   modelcore.UserOrganizationStatusOffline,
 					LastOnlineAt:             time.Now().UTC(),
 				}
 
-				if err := s.model_core.UserOrganizationManager.Create(ctx, ownerOrganization); err != nil {
+				if err := s.modelcore.UserOrganizationManager.Create(ctx, ownerOrganization); err != nil {
 					return err
 				}
 				s.provider.Service.Logger.Info(fmt.Sprintf("👑 Created owner relationship for %s %s", *user.FirstName, *user.LastName))
 				s.progressBar.Describe(fmt.Sprintf("👑 Created owner relationship for %s %s", *user.FirstName, *user.LastName))
-				s.progressBar.Add(1)
+				_ = s.progressBar.Add(1)
 
 				// Run organization seeder for accounting setup
 				tx := s.provider.Service.Database.Client().Begin()
@@ -391,7 +385,7 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 					tx.Rollback()
 					return err
 				}
-				if err := s.model_core.OrganizationSeeder(ctx, tx, user.ID, organization.ID, branch.ID); err != nil {
+				if err := s.modelcore.OrganizationSeeder(ctx, tx, user.ID, organization.ID, branch.ID); err != nil {
 					tx.Rollback()
 					return err
 				}
@@ -400,15 +394,15 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 				}
 				s.provider.Service.Logger.Info("💼 Setup accounting system for organization")
 				s.progressBar.Describe("💼 Setup accounting system for organization")
-				s.progressBar.Add(1)
+				_ = s.progressBar.Add(1)
 
 				numInvites := int(multiplier) * 1
-				for m := 0; m < numInvites; m++ {
-					userType := model_core.UserOrganizationTypeMember
+				for m := range numInvites {
+					userType := modelcore.UserOrganizationTypeMember
 					if m%2 == 0 {
-						userType = model_core.UserOrganizationTypeEmployee
+						userType = modelcore.UserOrganizationTypeEmployee
 					}
-					invitationCode := &model_core.InvitationCode{
+					invitationCode := &modelcore.InvitationCode{
 						CreatedAt:      time.Now().UTC(),
 						CreatedByID:    user.ID,
 						UpdatedAt:      time.Now().UTC(),
@@ -422,13 +416,13 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 						CurrentUse:     m % 25,
 						Description:    s.faker.Lorem().Sentence(3),
 					}
-					if err := s.model_core.InvitationCodeManager.Create(ctx, invitationCode); err != nil {
+					if err := s.modelcore.InvitationCodeManager.Create(ctx, invitationCode); err != nil {
 						return err
 					}
 				}
 				s.provider.Service.Logger.Info(fmt.Sprintf("✉️ Created %d invitation codes for %s", numInvites, organization.Name))
 				s.progressBar.Describe(fmt.Sprintf("✉️ Created %d invitation codes for %s", numInvites, organization.Name))
-				s.progressBar.Add(1)
+				_ = s.progressBar.Add(1)
 
 			}
 		}
@@ -436,22 +430,24 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 	return nil
 }
 
+// SeedEmployees assigns users as employees to organizations and
+// creates the necessary user-organization relationships.
 func (s *Seeder) SeedEmployees(ctx context.Context, multiplier int32) error {
 
 	// Get all organizations and their branches
-	organizations, err := s.model_core.OrganizationManager.List(ctx)
+	organizations, err := s.modelcore.OrganizationManager.List(ctx)
 	if err != nil {
 		return err
 	}
 	s.provider.Service.Logger.Info(fmt.Sprintf("📋 Listed %d organizations for employee processing", len(organizations)))
-	s.progressBar.Add(1)
+	_ = s.progressBar.Add(1)
 	// Get all users to use as employees
-	users, err := s.model_core.UserManager.List(ctx)
+	users, err := s.modelcore.UserManager.List(ctx)
 	if err != nil {
 		return err
 	}
 	s.provider.Service.Logger.Info(fmt.Sprintf("👥 Listed %d users for employee assignment", len(users)))
-	s.progressBar.Add(1)
+	_ = s.progressBar.Add(1)
 	if len(users) == 0 || len(organizations) == 0 {
 		s.provider.Service.Logger.Warn("No users or organizations found for employee seeding")
 		return nil
@@ -460,26 +456,26 @@ func (s *Seeder) SeedEmployees(ctx context.Context, multiplier int32) error {
 	// Create cross-employment: users work as employees in other users' organizations
 	for _, org := range organizations {
 		s.provider.Service.Logger.Info(fmt.Sprintf("🏢 Processing employees for organization: %s", org.Name))
-		s.progressBar.Add(1)
+		_ = s.progressBar.Add(1)
 		// Get branches for this organization
-		branches, err := s.model_core.BranchManager.Find(ctx, &model_core.Branch{
+		branches, err := s.modelcore.BranchManager.Find(ctx, &modelcore.Branch{
 			OrganizationID: org.ID,
 		})
 		if err != nil {
 			continue
 		}
 		s.provider.Service.Logger.Info(fmt.Sprintf("🏪 Found %d branches for organization: %s", len(branches), org.Name))
-		s.progressBar.Add(1)
+		_ = s.progressBar.Add(1)
 
 		// Find potential employees (users who don't own this organization)
-		potentialEmployees := make([]*model_core.User, 0)
+		potentialEmployees := make([]*modelcore.User, 0)
 		for _, user := range users {
 			if user.ID != org.CreatedByID { // Don't make the owner an employee of their own organization
 				potentialEmployees = append(potentialEmployees, user)
 			}
 		}
 		s.provider.Service.Logger.Info(fmt.Sprintf("👤 Found %d potential employees for organization: %s", len(potentialEmployees), org.Name))
-		s.progressBar.Add(1)
+		_ = s.progressBar.Add(1)
 
 		if len(potentialEmployees) == 0 {
 			continue
@@ -488,7 +484,7 @@ func (s *Seeder) SeedEmployees(ctx context.Context, multiplier int32) error {
 		employeeIndex := 0
 		for _, branch := range branches {
 			// Check how many employees already exist for this branch (excluding owner)
-			existingEmployees, err := s.model_core.Employees(ctx, org.ID, branch.ID)
+			existingEmployees, err := s.modelcore.Employees(ctx, org.ID, branch.ID)
 			if err != nil {
 				continue
 			}
@@ -496,9 +492,7 @@ func (s *Seeder) SeedEmployees(ctx context.Context, multiplier int32) error {
 			numEmployeesToCreate := int(multiplier) * 1
 
 			// Don't create more employees than available users
-			if numEmployeesToCreate > len(potentialEmployees) {
-				numEmployeesToCreate = len(potentialEmployees)
-			}
+			numEmployeesToCreate = min(numEmployeesToCreate, len(potentialEmployees))
 
 			// Cap at a reasonable number per branch, e.g., 3 * multiplier, but adjust if needed
 			maxPerBranch := 3 * int(multiplier)
@@ -516,7 +510,7 @@ func (s *Seeder) SeedEmployees(ctx context.Context, multiplier int32) error {
 				employeeIndex++
 
 				// Check if this user is already associated with this specific branch
-				existingAssociation, err := s.model_core.UserOrganizationManager.Count(ctx, &model_core.UserOrganization{
+				existingAssociation, err := s.modelcore.UserOrganizationManager.Count(ctx, &modelcore.UserOrganization{
 					UserID:         selectedUser.ID,
 					OrganizationID: org.ID,
 					BranchID:       &branch.ID,
@@ -527,7 +521,7 @@ func (s *Seeder) SeedEmployees(ctx context.Context, multiplier int32) error {
 				}
 
 				// Check if user can join as employee (ensure they're not already a member of this organization)
-				if !s.model_core.UserOrganizationEmployeeCanJoin(ctx, selectedUser.ID, org.ID, branch.ID) {
+				if !s.modelcore.UserOrganizationEmployeeCanJoin(ctx, selectedUser.ID, org.ID, branch.ID) {
 					continue
 				}
 
@@ -538,7 +532,7 @@ func (s *Seeder) SeedEmployees(ctx context.Context, multiplier int32) error {
 				}
 
 				// Create employee user organization record
-				employeeOrg := &model_core.UserOrganization{
+				employeeOrg := &modelcore.UserOrganization{
 					CreatedAt:                time.Now().UTC(),
 					CreatedByID:              org.CreatedByID, // Created by the organization owner
 					UpdatedAt:                time.Now().UTC(),
@@ -546,7 +540,7 @@ func (s *Seeder) SeedEmployees(ctx context.Context, multiplier int32) error {
 					BranchID:                 &branch.ID,
 					OrganizationID:           org.ID,
 					UserID:                   selectedUser.ID,
-					UserType:                 model_core.UserOrganizationTypeEmployee,
+					UserType:                 modelcore.UserOrganizationTypeEmployee,
 					Description:              s.faker.Lorem().Sentence(5),
 					ApplicationDescription:   s.faker.Lorem().Sentence(3),
 					ApplicationStatus:        "accepted",
@@ -561,17 +555,17 @@ func (s *Seeder) SeedEmployees(ctx context.Context, multiplier int32) error {
 					UserSettingEndVoucher:    int64((i+1)*10 + 9),
 					UserSettingUsedVoucher:   0,
 					UserSettingNumberPadding: 7,
-					Status:                   model_core.UserOrganizationStatusOffline,
+					Status:                   modelcore.UserOrganizationStatusOffline,
 					LastOnlineAt:             time.Now().UTC(),
 				}
 
-				if err := s.model_core.UserOrganizationManager.Create(ctx, employeeOrg); err != nil {
+				if err := s.modelcore.UserOrganizationManager.Create(ctx, employeeOrg); err != nil {
 					s.provider.Service.Logger.Error(fmt.Sprintf("Failed to create employee %s %s for branch %s: %v",
 						*selectedUser.FirstName, *selectedUser.LastName, branch.Name, err))
 					continue
 				}
 				s.provider.Service.Logger.Info(fmt.Sprintf("✅ Created employee: %s %s for branch %s", *selectedUser.FirstName, *selectedUser.LastName, branch.Name))
-				s.progressBar.Add(1)
+				_ = s.progressBar.Add(1)
 
 			}
 		}
@@ -580,8 +574,9 @@ func (s *Seeder) SeedEmployees(ctx context.Context, multiplier int32) error {
 	return nil
 }
 
+// SeedUsers creates user accounts used by other seeders.
 func (s *Seeder) SeedUsers(ctx context.Context, multiplier int32) error {
-	users, err := s.model_core.UserManager.List(ctx)
+	users, err := s.modelcore.UserManager.List(ctx)
 	if err != nil {
 		return err
 	}
@@ -590,7 +585,7 @@ func (s *Seeder) SeedUsers(ctx context.Context, multiplier int32) error {
 		// Skip the user creation adds by advancing the expected count
 		numUsers := int(multiplier) * 1
 		s.provider.Service.Logger.Info(fmt.Sprintf("⏭️ Skipping %d user creations (users already exist)", numUsers))
-		s.progressBar.Add(numUsers)
+		_ = s.progressBar.Add(numUsers)
 		return nil
 	}
 
@@ -624,11 +619,11 @@ func (s *Seeder) SeedUsers(ctx context.Context, multiplier int32) error {
 			email = s.faker.Internet().Email()
 		}
 
-		user := &model_core.User{
+		user := &modelcore.User{
 			MediaID:           &userSharedMedia.ID,
 			Email:             email,
 			Password:          hashedPassword,
-			Birthdate:         birthdate,
+			Birthdate:         &birthdate,
 			UserName:          s.faker.Internet().User(),
 			FullName:          fullName,
 			FirstName:         ptr(firstName),
@@ -641,19 +636,21 @@ func (s *Seeder) SeedUsers(ctx context.Context, multiplier int32) error {
 			CreatedAt:         time.Now().UTC(),
 			UpdatedAt:         time.Now().UTC(),
 		}
-		if err := s.model_core.UserManager.Create(ctx, user); err != nil {
+		if err := s.modelcore.UserManager.Create(ctx, user); err != nil {
 			return err
 		}
 		s.provider.Service.Logger.Info(fmt.Sprintf("✅ Created user: %s %s (%s) - Progress: User %d", *user.FirstName, *user.LastName, user.Email, i+1))
 		s.progressBar.Describe(fmt.Sprintf("👤 Created user: %s (%s)", *user.FirstName+" "+*user.LastName, user.Email))
-		s.progressBar.Add(1)
+		_ = s.progressBar.Add(1)
 	}
 	return nil
 }
 
+// SeedMemberProfiles creates member profiles for organizations and
+// branches according to the multiplier.
 func (s *Seeder) SeedMemberProfiles(ctx context.Context, multiplier int32) error {
 	// Check if member profiles already exist
-	profiles, err := s.model_core.MemberProfileManager.List(ctx)
+	profiles, err := s.modelcore.MemberProfileManager.List(ctx)
 	if err != nil {
 		return err
 	}
@@ -667,17 +664,17 @@ func (s *Seeder) SeedMemberProfiles(ctx context.Context, multiplier int32) error
 		skipCount := (numUsers * numOrgsPerUser * 1) + // per org processing
 			(numUsers * numOrgsPerUser * numBranchesPerOrg * numMembersPerBranch * 2) // per member operations
 		s.provider.Service.Logger.Info(fmt.Sprintf("⏭️ Skipping %d member profile operations (profiles already exist)", skipCount))
-		s.progressBar.Add(skipCount)
+		_ = s.progressBar.Add(skipCount)
 		return nil
 	}
 	// Get existing organizations and branches to seed member profiles for
-	organizations, err := s.model_core.OrganizationManager.List(ctx)
+	organizations, err := s.modelcore.OrganizationManager.List(ctx)
 	if err != nil {
 		return err
 	}
 
 	// Get existing users to associate with member profiles
-	users, err := s.model_core.UserManager.List(ctx)
+	users, err := s.modelcore.UserManager.List(ctx)
 	if err != nil {
 		return err
 	}
@@ -691,8 +688,8 @@ func (s *Seeder) SeedMemberProfiles(ctx context.Context, multiplier int32) error
 		// Get branches for this organization
 		s.provider.Service.Logger.Info(fmt.Sprintf("👥 Processing member profiles for organization: %s", org.Name))
 		s.progressBar.Describe(fmt.Sprintf("👥 Processing member profiles for organization: %s", org.Name))
-		s.progressBar.Add(1)
-		branches, err := s.model_core.BranchManager.Find(ctx, &model_core.Branch{
+		_ = s.progressBar.Add(1)
+		branches, err := s.modelcore.BranchManager.Find(ctx, &modelcore.Branch{
 			OrganizationID: org.ID,
 		})
 		if err != nil {
@@ -701,9 +698,7 @@ func (s *Seeder) SeedMemberProfiles(ctx context.Context, multiplier int32) error
 
 		for _, branch := range branches {
 			numMembers := int(multiplier) * 1
-			if numMembers > len(users) {
-				numMembers = len(users)
-			}
+			numMembers = min(numMembers, len(users))
 
 			for i := 0; i < numMembers; i++ {
 				firstName := s.faker.Person().FirstName()
@@ -719,7 +714,7 @@ func (s *Seeder) SeedMemberProfiles(ctx context.Context, multiplier int32) error
 				passbook := fmt.Sprintf("PB-%s-%04d", branch.Name[:min(3, len(branch.Name))], i+1)
 
 				// Create member profile
-				memberProfile := &model_core.MemberProfile{
+				memberProfile := &modelcore.MemberProfile{
 					CreatedAt:             time.Now().UTC(),
 					CreatedByID:           org.CreatedByID,
 					UpdatedAt:             time.Now().UTC(),
@@ -731,7 +726,7 @@ func (s *Seeder) SeedMemberProfiles(ctx context.Context, multiplier int32) error
 					MiddleName:            middleName,
 					LastName:              lastName,
 					FullName:              fullName,
-					BirthDate:             birthDate,
+					BirthDate:             &birthDate,
 					Status:                []string{"active", "pending", "inactive"}[i%3],
 					Description:           s.faker.Lorem().Paragraph(2),
 					Notes:                 s.faker.Lorem().Paragraph(1),
@@ -747,16 +742,16 @@ func (s *Seeder) SeedMemberProfiles(ctx context.Context, multiplier int32) error
 					IsMicroFinanceMember:  i%3 == 0,
 				}
 
-				if err := s.model_core.MemberProfileManager.Create(ctx, memberProfile); err != nil {
+				if err := s.modelcore.MemberProfileManager.Create(ctx, memberProfile); err != nil {
 					s.provider.Service.Logger.Error(fmt.Sprintf("Failed to create member profile %s: %v", fullName, err))
 					continue
 				}
 				s.provider.Service.Logger.Info(fmt.Sprintf("👤 Created member: %s (%s) for branch: %s", fullName, passbook, branch.Name))
 				s.progressBar.Describe(fmt.Sprintf("👤 Created member: %s (%s)", fullName, passbook))
-				s.progressBar.Add(1)
+				_ = s.progressBar.Add(1)
 
 				// Create sample member address
-				memberAddress := &model_core.MemberAddress{
+				memberAddress := &modelcore.MemberAddress{
 					CreatedAt:       time.Now().UTC(),
 					UpdatedAt:       time.Now().UTC(),
 					CreatedByID:     org.CreatedByID,
@@ -774,12 +769,12 @@ func (s *Seeder) SeedMemberProfiles(ctx context.Context, multiplier int32) error
 					Landmark:        s.faker.Lorem().Sentence(2),
 				}
 
-				if err := s.model_core.MemberAddressManager.Create(ctx, memberAddress); err != nil {
+				if err := s.modelcore.MemberAddressManager.Create(ctx, memberAddress); err != nil {
 					s.provider.Service.Logger.Error(fmt.Sprintf("Failed to create member address for %s: %v", fullName, err))
 				}
 				s.provider.Service.Logger.Info(fmt.Sprintf("📍 Added address for member: %s in branch: %s", fullName, branch.Name))
 				s.progressBar.Describe(fmt.Sprintf("📍 Added address for member: %s", fullName))
-				s.progressBar.Add(1)
+				_ = s.progressBar.Add(1)
 
 			}
 		}

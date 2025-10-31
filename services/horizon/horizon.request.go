@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 
@@ -24,8 +25,8 @@ type APIService interface {
 	RegisterRoute(route handlers.Route, callback func(c echo.Context) error, m ...echo.MiddlewareFunc)
 }
 
-// HorizonAPIService implements APIService.
-type HorizonAPIService struct {
+// APIServiceImpl implements APIService.
+type APIServiceImpl struct {
 	service     *echo.Echo
 	serverPort  int
 	metricsPort int
@@ -38,13 +39,12 @@ type HorizonAPIService struct {
 func NewHorizonAPIService(
 	serverPort, metricsPort int,
 	clientURL, clientName string,
+	secured bool,
 ) APIService {
 	e := echo.New()
 	logger, _ := zap.NewProduction()
 	defer func() {
 		if err := logger.Sync(); err != nil {
-			// Ignore sync errors for stderr/stdout as they're not critical
-			// This is a known issue with zap logger in certain environments
 			if !strings.Contains(err.Error(), "sync /dev/stderr") &&
 				!strings.Contains(err.Error(), "sync /dev/stdout") &&
 				!strings.Contains(err.Error(), "invalid argument") {
@@ -54,6 +54,22 @@ func NewHorizonAPIService(
 	}()
 
 	e.Use(middleware.Recover())
+	e.Pre(middleware.HTTPSRedirect())
+
+	e.Pre(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			host := c.Request().Host
+			allowedHosts := []string{"ecoop-suite.com", "staging.ecoop-suite.com", "development.ecoop-suite.com"}
+			if !secured {
+				allowedHosts = append(allowedHosts, "localhost:8080", "localhost:3000", "localhost:3001", "localhost:3002", "localhost:3003")
+			}
+			if slices.Contains(allowedHosts, host) {
+				return next(c)
+			}
+			return c.String(http.StatusForbidden, "Host not allowed")
+		}
+	})
+
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
@@ -97,17 +113,18 @@ func NewHorizonAPIService(
 		},
 	}))
 
+	origins := []string{
+		"https://ecoop-suite.netlify.app",
+		"https://ecoop-suite.com",
+		"https://development.ecoop-suite.com",
+		"https://staging.ecoop-suite.com",
+	}
+	if !secured {
+		origins = append(origins, "http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:3003")
+	}
+
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{
-			"https://ecoop-suite.netlify.app",
-			"https://ecoop-suite.com",
-			"https://development.ecoop-suite.com",
-			"https://staging.ecoop-suite.com",
-			"http://localhost:3000",
-			"http://localhost:3001",
-			"http://localhost:3002",
-			"http://localhost:3003",
-		},
+		AllowOrigins: origins,
 		AllowMethods: []string{
 			http.MethodGet,
 			http.MethodPost,
@@ -136,7 +153,7 @@ func NewHorizonAPIService(
 		LogURI:      true,
 		LogError:    true,
 		HandleError: true,
-		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
+		LogValuesFunc: func(_ echo.Context, v middleware.RequestLoggerValues) error {
 			if v.Error == nil {
 				logger.Info("REQUEST",
 					zap.String("uri", v.URI),
@@ -184,7 +201,7 @@ func NewHorizonAPIService(
 		return c.String(http.StatusOK, "Welcome to Horizon API")
 	})
 
-	return &HorizonAPIService{
+	return &APIServiceImpl{
 		service:     e,
 		serverPort:  serverPort,
 		metricsPort: metricsPort,
@@ -195,10 +212,10 @@ func NewHorizonAPIService(
 }
 
 // Client returns the Echo instance.
-func (h *HorizonAPIService) Client() *echo.Echo { return h.service }
+func (h *APIServiceImpl) Client() *echo.Echo { return h.service }
 
 // RegisterRoute registers a new route and its handler.
-func (h *HorizonAPIService) RegisterRoute(route handlers.Route, callback func(c echo.Context) error, m ...echo.MiddlewareFunc) {
+func (h *APIServiceImpl) RegisterRoute(route handlers.Route, callback func(c echo.Context) error, m ...echo.MiddlewareFunc) {
 	method := strings.ToUpper(strings.TrimSpace(route.Method))
 	if err := h.handler.AddRoute(route); err != nil {
 		panic(err)
@@ -218,7 +235,7 @@ func (h *HorizonAPIService) RegisterRoute(route handlers.Route, callback func(c 
 }
 
 // Run starts the API and metrics servers.
-func (h *HorizonAPIService) Run(ctx context.Context) error {
+func (h *APIServiceImpl) Run(_ context.Context) error {
 
 	// New: GET /api/routes returns grouped routes as JSON
 	grouped := h.handler.GroupedRoutes()
@@ -237,7 +254,7 @@ func (h *HorizonAPIService) Run(ctx context.Context) error {
 }
 
 // Stop gracefully shuts down the API server.
-func (h *HorizonAPIService) Stop(ctx context.Context) error {
+func (h *APIServiceImpl) Stop(ctx context.Context) error {
 	if err := h.service.Shutdown(ctx); err != nil {
 		return eris.New("failed to gracefully shutdown server")
 	}

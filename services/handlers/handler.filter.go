@@ -1,3 +1,4 @@
+// Package handlers provides HTTP request handling utilities and filtering capabilities for the e-cooperative application
 package handlers
 
 import (
@@ -19,25 +20,37 @@ import (
 
 // --- Constants and Type Definitions ---
 
+// FilterLogic represents the logical operation type for combining filters
 type FilterLogic string
 
 const (
+	// FilterLogicAnd represents AND logic for combining filters
 	FilterLogicAnd FilterLogic = "AND"
-	FilterLogicOr  FilterLogic = "OR"
+	// FilterLogicOr represents OR logic for combining filters
+	FilterLogicOr FilterLogic = "OR"
 )
 
+// DataType represents the type of data for filtering operations
 type DataType string
 
 const (
-	DataTypeText    DataType = "text"
-	DataTypeDate    DataType = "date"
-	DataTypeNumber  DataType = "number"
+	// DataTypeText represents text/string data type
+	DataTypeText DataType = "text"
+	// DataTypeDate represents date/time data type
+	DataTypeDate DataType = "date"
+	// DataTypeNumber represents numeric data type
+	DataTypeNumber DataType = "number"
+	// DataTypeBoolean represents boolean data type
 	DataTypeBoolean DataType = "boolean"
-	DataTypeTime    DataType = "time"
+	// DataTypeTime represents time data type
+	DataTypeTime DataType = "time"
 )
 
+// Filter mode constants for comparison operations
 const (
-	FilterModeEqual       = "equal"
+	// FilterModeEqual represents equality comparison mode
+	FilterModeEqual = "equal"
+	// FilterModeNotEqual represents inequality comparison mode
 	FilterModeNotEqual    = "nequal"
 	FilterModeContains    = "contains"
 	FilterModeNotContains = "ncontains"
@@ -54,6 +67,7 @@ const (
 	FilterModeAfter       = "after"
 )
 
+// Filter represents a single filter condition with field, mode, and value
 type Filter struct {
 	DataType DataType `json:"dataType"`
 	Field    string   `json:"field"`
@@ -61,16 +75,19 @@ type Filter struct {
 	Value    any      `json:"value"`
 }
 
+// FilterRoot represents a collection of filters with logical operations
 type FilterRoot struct {
 	Filters []Filter    `json:"filters"`
 	Logic   FilterLogic `json:"logic"`
 }
 
+// SortField represents a field and its sort order for data sorting
 type SortField struct {
 	Field string `json:"field"`
 	Order string `json:"order"`
 }
 
+// PaginationResult represents paginated data with metadata about the result set
 type PaginationResult[T any] struct {
 	Data      []*T        `json:"data"`
 	PageIndex int         `json:"pageIndex"`
@@ -83,13 +100,20 @@ type PaginationResult[T any] struct {
 // --- Error Definitions ---
 
 var (
-	ErrInvalidFilterParam   = eris.New("invalid filter parameter")
-	ErrInvalidSortParam     = eris.New("invalid sort parameter")
-	ErrInvalidField         = eris.New("field not found in struct")
+	// ErrInvalidFilterParam indicates an invalid filter parameter was provided
+	ErrInvalidFilterParam = eris.New("invalid filter parameter")
+	// ErrInvalidSortParam indicates an invalid sort parameter was provided
+	ErrInvalidSortParam = eris.New("invalid sort parameter")
+	// ErrInvalidField indicates a field was not found in the struct
+	ErrInvalidField = eris.New("field not found in struct")
+	// ErrUnsupportedOperation indicates an operation is not supported for the given data type
 	ErrUnsupportedOperation = eris.New("unsupported operation for data type")
-	ErrTypeConversion       = eris.New("type conversion error")
-	ErrContextCancelled     = eris.New("operation cancelled by context")
-	ErrInvalidValue         = eris.New("invalid value for operation")
+	// ErrTypeConversion indicates a type conversion error occurred
+	ErrTypeConversion = eris.New("type conversion error")
+	// ErrContextCancelled indicates the operation was cancelled by context
+	ErrContextCancelled = eris.New("operation cancelled by context")
+	// ErrInvalidValue indicates an invalid value was provided for an operation
+	ErrInvalidValue = eris.New("invalid value for operation")
 )
 
 // --- Global Cache and Pools ---
@@ -177,7 +201,8 @@ func findFieldRecursive(t reflect.Type, fieldName string, basePath []int) (cache
 }
 
 func handleFoundField(f reflect.StructField, parts []string, basePath []int, fieldIndex int) (cachedFieldInfo, bool) {
-	path := append(basePath, fieldIndex)
+	// Make a copy of basePath before appending to avoid aliasing the original slice
+	path := append(append([]int{}, basePath...), fieldIndex)
 	fieldType := f.Type
 	isPtr := false
 
@@ -223,6 +248,7 @@ func getFieldValue(val reflect.Value, info cachedFieldInfo) reflect.Value {
 
 // --- Filtering Functions ---
 
+// FilterSlice applies filters to a slice of data with concurrent processing support
 func FilterSlice[T any](
 	ctx context.Context,
 	data []*T,
@@ -264,7 +290,7 @@ func FilterSlice[T any](
 		numWorkers := min(maxWorkers, (end-start+batchSize-1)/batchSize)
 		chunkSize := (end - start + numWorkers - 1) / numWorkers
 
-		for w := 0; w < numWorkers; w++ {
+		for w := range numWorkers {
 			wg.Add(1)
 			workerStart := start + w*chunkSize
 			workerEnd := min(workerStart+chunkSize, end)
@@ -508,13 +534,13 @@ func compareNumber(val reflect.Value, mode string, filterValue any) (bool, error
 			return false, eris.Wrap(ErrInvalidValue, "range requires two values")
 		}
 
-		min, err1 := toFloat64(nums[0])
-		max, err2 := toFloat64(nums[1])
+		minVal, err1 := toFloat64(nums[0])
+		maxVal, err2 := toFloat64(nums[1])
 		if err1 != nil || err2 != nil {
 			return false, eris.Wrap(ErrTypeConversion, "range values must be numbers")
 		}
 
-		return itemNum >= min && itemNum <= max, nil
+		return itemNum >= minVal && itemNum <= maxVal, nil
 	default:
 		return false, eris.Wrapf(ErrUnsupportedOperation, "mode '%s' for number", mode)
 	}
@@ -533,12 +559,13 @@ func compareGeneric(val reflect.Value, mode string, filterValue any) (bool, erro
 
 // --- Sorting Functions ---
 
+// SortSlice sorts a slice of data based on provided sort fields with concurrent processing support
 func SortSlice[T any](
 	ctx context.Context,
 	data []*T,
 	sortFields []SortField,
 	batchSize int,
-	maxWorkers int,
+	_ int,
 ) ([]*T, error) {
 	if len(sortFields) == 0 || len(data) < 2 {
 		return data, nil
@@ -906,13 +933,6 @@ func isEmpty(val reflect.Value) bool {
 	default:
 		return val.IsZero()
 	}
-}
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
 }
 
 // PaginateSlice returns a paginated subset of the data

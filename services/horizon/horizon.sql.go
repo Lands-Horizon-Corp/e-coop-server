@@ -25,7 +25,7 @@ if err := database.Start(ctx); err != nil {
 }
 */
 
-// SQLDatabase defines the interface for PostgreSQL operations
+// SQLDatabaseService defines the interface for PostgreSQL operations
 type SQLDatabaseService interface {
 	// Start initializes the connection pool with the database
 	Run(ctx context.Context) error
@@ -40,6 +40,7 @@ type SQLDatabaseService interface {
 	Ping(ctx context.Context) error
 }
 
+// GormDatabase provides a GORM-based implementation of SQLDatabaseService.
 type GormDatabase struct {
 	dsn         string
 	db          *gorm.DB
@@ -78,7 +79,7 @@ func (g *GormDatabase) Ping(ctx context.Context) error {
 	return nil
 }
 
-// Start initializes the GORM connection pool
+// Run initializes the GORM connection pool
 func (g *GormDatabase) Run(ctx context.Context) error {
 	config := &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Silent),
@@ -107,7 +108,7 @@ func (g *GormDatabase) Run(ctx context.Context) error {
 }
 
 // Stop implements SQLDatabase.
-func (g *GormDatabase) Stop(ctx context.Context) error {
+func (g *GormDatabase) Stop(_ context.Context) error {
 	if g.db == nil {
 		return nil
 	}
