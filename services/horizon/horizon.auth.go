@@ -13,6 +13,7 @@ import (
 	"github.com/rotisserie/eris"
 )
 
+// ClaimWithID represents an authentication claim that provides an ID.
 type ClaimWithID interface {
 	GetID() string
 }

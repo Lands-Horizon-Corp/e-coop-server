@@ -18,8 +18,8 @@ type MessageBrokerService interface {
 	Subscribe(ctx context.Context, topic string, handler func(any) error) error
 }
 
-// HorizonMessageBroker provides a NATS-based implementation of MessageBrokerService.
-type HorizonMessageBroker struct {
+// MessageBroker provides a NATS-based implementation of MessageBrokerService.
+type MessageBroker struct {
 	host     string
 	port     int
 	nc       *nats.Conn
@@ -31,7 +31,7 @@ type HorizonMessageBroker struct {
 // NewHorizonMessageBroker initializes the broker with optional TLS cert paths
 func NewHorizonMessageBroker(host string, port int, clientID, natsUser, natsPass string) MessageBrokerService {
 
-	return &HorizonMessageBroker{
+	return &MessageBroker{
 		host:     host,
 		port:     port,
 		clientID: clientID,
@@ -39,7 +39,9 @@ func NewHorizonMessageBroker(host string, port int, clientID, natsUser, natsPass
 		natsPass: natsPass,
 	}
 }
-func (h *HorizonMessageBroker) Run(_ context.Context) error {
+
+// Run starts the message broker connection to NATS.
+func (h *MessageBroker) Run(_ context.Context) error {
 	natsURL := fmt.Sprintf("nats://%s:%d", h.host, h.port)
 	options := []nats.Option{
 		nats.UserInfo(h.natsUser, h.natsPass),
@@ -55,7 +57,9 @@ func (h *HorizonMessageBroker) Run(_ context.Context) error {
 	h.nc = nc
 	return nil
 }
-func (h *HorizonMessageBroker) Stop(_ context.Context) error {
+
+// Stop closes the message broker connection to NATS.
+func (h *MessageBroker) Stop(_ context.Context) error {
 	if h.nc != nil {
 		h.nc.Close()
 		h.nc = nil
@@ -63,7 +67,8 @@ func (h *HorizonMessageBroker) Stop(_ context.Context) error {
 	return nil
 }
 
-func (h *HorizonMessageBroker) Dispatch(_ context.Context, topics []string, payload any) error {
+// Dispatch publishes a payload to multiple topics simultaneously.
+func (h *MessageBroker) Dispatch(_ context.Context, topics []string, payload any) error {
 	if h.nc == nil {
 		return eris.New("NATS connection not initialized")
 	}
@@ -81,7 +86,8 @@ func (h *HorizonMessageBroker) Dispatch(_ context.Context, topics []string, payl
 	return nil
 }
 
-func (h *HorizonMessageBroker) Publish(_ context.Context, topic string, payload any) error {
+// Publish sends a payload to a single topic.
+func (h *MessageBroker) Publish(_ context.Context, topic string, payload any) error {
 	if h.nc == nil {
 		return eris.New("NATS connection not initialized")
 	}
@@ -98,7 +104,8 @@ func (h *HorizonMessageBroker) Publish(_ context.Context, topic string, payload 
 	return nil
 }
 
-func (h *HorizonMessageBroker) Subscribe(_ context.Context, topic string, handler func(any) error) error {
+// Subscribe registers a handler function for messages on a specific topic.
+func (h *MessageBroker) Subscribe(_ context.Context, topic string, handler func(any) error) error {
 	if h.nc == nil {
 		return eris.New("NATS connection not initialized")
 	}

@@ -19,8 +19,8 @@ type QRService interface {
 	EncodeQR(ctx context.Context, data any, qrType string) (*QRResult, error)
 }
 
-// HorizonQRService provides an implementation of QRService.
-type HorizonQRService struct {
+// QRService provides an implementation of QRService.
+type QRServiceImpl struct {
 	security SecurityService
 }
 
@@ -28,13 +28,13 @@ type HorizonQRService struct {
 func NewHorizonQRService(
 	security SecurityService,
 ) QRService {
-	return &HorizonQRService{
+	return &QRServiceImpl{
 		security: security,
 	}
 }
 
 // DecodeQR decodes and decrypts QR code data.
-func (h *HorizonQRService) DecodeQR(ctx context.Context, data *QRResult) (*any, error) {
+func (h *QRServiceImpl) DecodeQR(ctx context.Context, data *QRResult) (*any, error) {
 	decrypted, err := h.security.Decrypt(ctx, data.Data)
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to decrypt data")
@@ -47,7 +47,7 @@ func (h *HorizonQRService) DecodeQR(ctx context.Context, data *QRResult) (*any, 
 }
 
 // EncodeQR encrypts and encodes data for QR code generation.
-func (h *HorizonQRService) EncodeQR(ctx context.Context, data any, qrTYpe string) (*QRResult, error) {
+func (h *QRServiceImpl) EncodeQR(ctx context.Context, data any, qrTYpe string) (*QRResult, error) {
 	jsonBytes, err := json.Marshal(data)
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to marshal data")

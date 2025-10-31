@@ -35,12 +35,14 @@ type job struct {
 	task     func()
 }
 
+// HorizonSchedule provides a cron-based implementation of SchedulerService.
 type HorizonSchedule struct {
 	cron  *cron.Cron
 	jobs  map[string]job
 	mutex sync.Mutex
 }
 
+// NewHorizonSchedule creates a new scheduler service instance.
 func NewHorizonSchedule() SchedulerService {
 	return &HorizonSchedule{
 		cron: cron.New(),
@@ -49,7 +51,7 @@ func NewHorizonSchedule() SchedulerService {
 }
 
 // CreateJob implements Scheduler.
-func (h *HorizonSchedule) CreateJob(ctx context.Context, jobID string, schedule string, task func()) error {
+func (h *HorizonSchedule) CreateJob(_ context.Context, jobID string, schedule string, task func()) error {
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
 	if _, exists := h.jobs[jobID]; exists {
@@ -64,7 +66,7 @@ func (h *HorizonSchedule) CreateJob(ctx context.Context, jobID string, schedule 
 }
 
 // ListJobs implements Scheduler.
-func (h *HorizonSchedule) ListJobs(ctx context.Context) ([]string, error) {
+func (h *HorizonSchedule) ListJobs(_ context.Context) ([]string, error) {
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
 
@@ -77,7 +79,7 @@ func (h *HorizonSchedule) ListJobs(ctx context.Context) ([]string, error) {
 }
 
 // RemoveJob implements Scheduler.
-func (h *HorizonSchedule) RemoveJob(ctx context.Context, jobID string) error {
+func (h *HorizonSchedule) RemoveJob(_ context.Context, jobID string) error {
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
 	job, exists := h.jobs[jobID]
@@ -90,7 +92,7 @@ func (h *HorizonSchedule) RemoveJob(ctx context.Context, jobID string) error {
 }
 
 // ExecuteJob implements Scheduler.
-func (h *HorizonSchedule) ExecuteJob(ctx context.Context, jobID string) error {
+func (h *HorizonSchedule) ExecuteJob(_ context.Context, jobID string) error {
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
 	job, exists := h.jobs[jobID]
