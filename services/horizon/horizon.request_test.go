@@ -51,7 +51,7 @@ func TestMain(m *testing.M) {
 func waitForServerReady(url string, timeout time.Duration) bool {
 	deadline := time.Now().UTC().Add(timeout)
 	for time.Now().UTC().Before(deadline) {
-		resp, err := http.Get(url)
+		resp, err := http.Get(url) // #nosec G107 -- test helper contacting test server
 		if err == nil && resp.StatusCode == http.StatusOK {
 			_ = resp.Body.Close()
 			return true

@@ -179,7 +179,7 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 		s.provider.Service.Logger.Info(fmt.Sprintf("🏢 Processing organizations for user: %s %s", *user.FirstName, *user.LastName))
 		s.progressBar.Describe(fmt.Sprintf("🏢 Processing organizations for user: %s %s", *user.FirstName, *user.LastName))
 		_ = s.progressBar.Add(1)
-		for j := range numOrgsPerUser {
+		for j := 0; j < numOrgsPerUser; j++ {
 			s.provider.Service.Logger.Info(fmt.Sprintf("🏭 Setting up organization %d/%d for user %s", j+1, numOrgsPerUser, *user.FirstName))
 			s.progressBar.Describe("🏭 Setting up organization...")
 			_ = s.progressBar.Add(1)
@@ -240,7 +240,7 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 
 			numBranches := int(multiplier) * 1
 
-			for k := range numBranches {
+			for k := 0; k < numBranches; k++ {
 				branchMedia, err := s.createImageMedia(ctx, "Organization")
 				if err != nil {
 					return eris.Wrap(err, "failed to create organization media")

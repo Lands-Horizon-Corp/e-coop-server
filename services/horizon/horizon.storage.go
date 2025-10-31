@@ -177,7 +177,10 @@ func (h *HorizonStorage) Upload(ctx context.Context, file any, onProgress Progre
 }
 
 func (h *HorizonStorage) UploadFromPath(ctx context.Context, path string, cb ProgressCallback) (*Storage, error) {
-	file, err := os.Open(path)
+	if handlers.IsSuspiciousPath(path) {
+		return nil, eris.New("suspicious file path")
+	}
+	file, err := os.Open(path) // #nosec G304 -- path validated above with handlers.IsSuspiciousPath
 	if err != nil {
 		return nil, eris.Wrapf(err, "failed to open %s", path)
 	}
