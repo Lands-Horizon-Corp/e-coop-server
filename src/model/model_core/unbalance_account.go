@@ -10,6 +10,7 @@ import (
 )
 
 type (
+	// UnbalancedAccount represents an account with unbalanced amounts in the system
 	UnbalancedAccount struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -44,6 +45,7 @@ type (
 		Description string `gorm:"type:text" json:"description"`
 	}
 
+	// UnbalancedAccountResponse represents the JSON response structure for unbalanced account data
 	UnbalancedAccountResponse struct {
 		ID               uuid.UUID              `json:"id"`
 		CreatedAt        string                 `json:"created_at"`
@@ -73,6 +75,7 @@ type (
 		Description string `json:"description"`
 	}
 
+	// UnbalancedAccountRequest represents the request payload for creating or updating unbalanced account data
 	UnbalancedAccountRequest struct {
 		ID *uuid.UUID `json:"id,omitempty"`
 
