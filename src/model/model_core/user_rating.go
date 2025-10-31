@@ -132,21 +132,21 @@ func (m *ModelCore) UserRating() {
 }
 
 // GetUserRatee retrieves all ratings where the specified user is the ratee (being rated)
-func (m *ModelCore) GetUserRatee(context context.Context, userId uuid.UUID) ([]*UserRating, error) {
+func (m *ModelCore) GetUserRatee(context context.Context, userID uuid.UUID) ([]*UserRating, error) {
 	return m.UserRatingManager.Find(context, &UserRating{
-		RateeUserID: userId,
+		RateeUserID: userID,
 	})
 }
 
 // GetUserRater retrieves all ratings where the specified user is the rater (giving ratings)
-func (m *ModelCore) GetUserRater(context context.Context, userId uuid.UUID) ([]*UserRating, error) {
+func (m *ModelCore) GetUserRater(context context.Context, userID uuid.UUID) ([]*UserRating, error) {
 	return m.UserRatingManager.Find(context, &UserRating{
-		RaterUserID: userId,
+		RaterUserID: userID,
 	})
 }
 
 // UserRatingCurrentBranch retrieves all user ratings for the specified organization and branch
-func (m *ModelCore) UserRatingCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*UserRating, error) {
+func (m *ModelCore) UserRatingCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*UserRating, error) {
 	return m.UserRatingManager.Find(context, &UserRating{
 		OrganizationID: orgId,
 		BranchID:       branchId,

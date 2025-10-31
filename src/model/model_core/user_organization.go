@@ -439,6 +439,8 @@ func (m *ModelCore) CountUserOrganizationPerBranch(context context.Context, orga
 		BranchID:       &branchID,
 	})
 }
+
+// CountUserOrganizationBranch counts user organizations for a specific user in a branch
 func (m *ModelCore) CountUserOrganizationBranch(context context.Context, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) (int64, error) {
 	return m.UserOrganizationManager.Count(context, &UserOrganization{
 		OrganizationID: organizationID,
@@ -446,11 +448,14 @@ func (m *ModelCore) CountUserOrganizationBranch(context context.Context, userID 
 		UserID:         userID,
 	})
 }
+
+// UserOrganizationEmployeeCanJoin checks if a user can join an organization as an employee
 func (m *ModelCore) UserOrganizationEmployeeCanJoin(context context.Context, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) bool {
 	existing, err := m.CountUserOrganizationBranch(context, userID, organizationID, branchID)
 	return err == nil && existing == 0
 }
 
+// UserOrganizationMemberCanJoin checks if a user can join an organization as a member
 func (m *ModelCore) UserOrganizationMemberCanJoin(context context.Context, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) bool {
 	existing, err := m.CountUserOrganizationBranch(context, userID, organizationID, branchID)
 	if err != nil || existing > 0 {
