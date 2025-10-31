@@ -10,16 +10,18 @@ import (
 	"gorm.io/gorm"
 )
 
-// Enum for transaction_batch_balance_status
+// TransactionBatchBalanceStatus represents the balance status of a transaction batch
 type TransactionBatchBalanceStatus string
 
 const (
+	// TransactionBatchBalanced indicates the transaction batch is balanced
 	TransactionBatchBalanced        TransactionBatchBalanceStatus = "balanced"
 	TransactionBatchBalanceOverage  TransactionBatchBalanceStatus = "balance overage"
 	TransactionBatchBalanceShortage TransactionBatchBalanceStatus = "balance shortage"
 )
 
 type (
+	// TransactionBatch represents a batch of transactions processed together
 	TransactionBatch struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -123,6 +125,7 @@ type (
 		EndedAt *time.Time `gorm:"type:timestamp"`
 	}
 
+	// TransactionBatchResponse represents the response structure for transaction batch data
 	TransactionBatchResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -219,6 +222,7 @@ type (
 		EndedAt *string `json:"ended_at,omitempty"`
 	}
 
+	// TransactionBatchRequest represents the request structure for creating/updating transaction batches
 	TransactionBatchRequest struct {
 		OrganizationID                uuid.UUID  `json:"organization_id" validate:"required"`
 		BranchID                      uuid.UUID  `json:"branch_id" validate:"required"`
@@ -282,6 +286,7 @@ type (
 		EndedAt                       *time.Time     `json:"ended_at,omitempty"`
 	}
 
+	// TransactionBatchSignatureRequest represents the request structure for transaction batch signatures
 	TransactionBatchSignatureRequest struct {
 		// Employee signature fields
 		EmployeeBySignatureMediaID *uuid.UUID `json:"employee_by_signature_media_id,omitempty"`
@@ -333,6 +338,7 @@ type (
 		PaidByName             string     `json:"paid_by_name,omitempty"`
 		PaidByPosition         string     `json:"paid_by_position,omitempty"`
 	}
+	// TransactionBatchEndRequest represents the request structure for ending transaction batches
 	TransactionBatchEndRequest struct {
 		EmployeeBySignatureMediaID *uuid.UUID `json:"employee_by_signature_media_id,omitempty"`
 		EmployeeByName             string     `json:"employee_by_name"`
@@ -486,6 +492,7 @@ func (m *ModelCore) transactionBatch() {
 	})
 }
 
+// TransactionBatchCurrent retrieves the current active transaction batch for a user
 func (m *ModelCore) TransactionBatchCurrent(context context.Context, userId uuid.UUID, orgID uuid.UUID, branchID uuid.UUID) (*TransactionBatch, error) {
 	return m.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
 		"organization_id":  orgID,
@@ -495,6 +502,7 @@ func (m *ModelCore) TransactionBatchCurrent(context context.Context, userId uuid
 	})
 }
 
+// TransactionBatchViewRequests retrieves transaction batches with pending view requests
 func (m *ModelCore) TransactionBatchViewRequests(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*TransactionBatch, error) {
 	return m.TransactionBatchManager.FindWithConditions(context, map[string]any{
 		"organization_id": orgID,

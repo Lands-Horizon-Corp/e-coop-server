@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// Timesheet represents an employee time tracking record in the database
 	Timesheet struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -40,6 +41,7 @@ type (
 		TimeOut *time.Time `gorm:""`
 	}
 
+	// TimesheetResponse represents the response structure for timesheet data
 	TimesheetResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -62,6 +64,7 @@ type (
 		TimeOut        *string               `json:"time_out,omitempty"`
 	}
 
+	// TimesheetRequest represents the request structure for timesheet operations
 	TimesheetRequest struct {
 		MediaID *uuid.UUID `json:"media_id,omitempty"`
 	}
@@ -150,10 +153,10 @@ func (m *ModelCore) TimesheetCurrentBranch(context context.Context, orgID uuid.U
 	})
 }
 
-// TimesheetUserActive gets active timesheet for a user
-func (m *ModelCore) GetUserTimesheet(context context.Context, userId, orgID, branchID uuid.UUID) ([]*Timesheet, error) {
+// GetUserTimesheet retrieves timesheets for a specific user in a branch
+func (m *ModelCore) GetUserTimesheet(context context.Context, userID, orgID, branchID uuid.UUID) ([]*Timesheet, error) {
 	return m.TimesheetManager.Find(context, &Timesheet{
-		UserID:         userId,
+		UserID:         userID,
 		BranchID:       branchID,
 		OrganizationID: orgID,
 	})

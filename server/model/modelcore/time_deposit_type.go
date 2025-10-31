@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// TimeDepositType represents a time deposit type configuration in the database
 	TimeDepositType struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -53,6 +54,7 @@ type (
 		TimeDepositComputationPreMatures []*TimeDepositComputationPreMature `gorm:"foreignKey:TimeDepositTypeID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"time_deposit_computation_pre_matures,omitempty"`
 	}
 
+	// TimeDepositTypeResponse represents the response structure for time deposit type data
 	TimeDepositTypeResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -90,6 +92,7 @@ type (
 		TimeDepositComputationPreMatures []*TimeDepositComputationPreMatureResponse `json:"time_deposit_computation_pre_matures,omitempty"`
 	}
 
+	// TimeDepositTypeRequest represents the request structure for creating/updating time deposit types
 	TimeDepositTypeRequest struct {
 		Name          string    `json:"name" validate:"required,min=1,max=255"`
 		Description   string    `json:"description,omitempty"`
@@ -198,6 +201,7 @@ func (m *ModelCore) timeDepositType() {
 	})
 }
 
+// TimeDepositTypeCurrentBranch retrieves time deposit types for a specific organization branch
 func (m *ModelCore) TimeDepositTypeCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*TimeDepositType, error) {
 	return m.TimeDepositTypeManager.Find(context, &TimeDepositType{
 		OrganizationID: orgID,
