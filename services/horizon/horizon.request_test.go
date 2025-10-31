@@ -53,7 +53,7 @@ func waitForServerReady(url string, timeout time.Duration) bool {
 	for time.Now().UTC().Before(deadline) {
 		resp, err := http.Get(url)
 		if err == nil && resp.StatusCode == http.StatusOK {
-			resp.Body.Close()
+			_ = resp.Body.Close()
 			return true
 		}
 		time.Sleep(100 * time.Millisecond)
@@ -66,7 +66,7 @@ func TestNewAPIServiceImpl_HealthCheck(t *testing.T) {
 	baseURL := "http://localhost:" + fmt.Sprint(apiPort)
 	resp, err := http.Get(baseURL + "/health")
 	assert.NoError(t, err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	body, _ := io.ReadAll(resp.Body)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
@@ -78,7 +78,7 @@ func TestNewAPIServiceImpl_SuspiciousPath(t *testing.T) {
 	baseURL := "http://localhost:" + fmt.Sprint(apiPort)
 	resp, err := http.Get(baseURL + "/config.yaml")
 	assert.NoError(t, err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	body, _ := io.ReadAll(resp.Body)
 	assert.Equal(t, http.StatusForbidden, resp.StatusCode)
@@ -90,7 +90,7 @@ func TestNewAPIServiceImpl_WellKnownPath(t *testing.T) {
 	baseURL := "http://localhost:" + fmt.Sprint(apiPort)
 	resp, err := http.Get(baseURL + "/.well-known/security.txt")
 	assert.NoError(t, err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	body, _ := io.ReadAll(resp.Body)
 	assert.Equal(t, http.StatusNotFound, resp.StatusCode)

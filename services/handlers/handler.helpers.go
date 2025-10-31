@@ -173,7 +173,7 @@ func GetFreePort() int {
 	if err != nil {
 		return 8123
 	}
-	defer l.Close()
+	defer func() { _ = l.Close() }()
 	return l.Addr().(*net.TCPAddr).Port
 }
 

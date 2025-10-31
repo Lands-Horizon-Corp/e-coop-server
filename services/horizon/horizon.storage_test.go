@@ -37,7 +37,7 @@ func TestHorizonStorage_UploadFromPath(t *testing.T) {
 	// Create temporary test file
 	tmpfile, err := os.CreateTemp("../../config", "sample-*.text")
 	require.NoError(t, err)
-	defer os.Remove(tmpfile.Name()) // Remove the file when done
+	defer func() { _ = os.Remove(tmpfile.Name()) }() // Remove the file when done
 
 	content := []byte("test content")
 	_, err = tmpfile.Write(content)

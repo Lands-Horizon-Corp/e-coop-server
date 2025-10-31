@@ -181,7 +181,7 @@ func (h *HorizonStorage) UploadFromPath(ctx context.Context, path string, cb Pro
 	if err != nil {
 		return nil, eris.Wrapf(err, "failed to open %s", path)
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	info, err := file.Stat()
 	if err != nil {
@@ -280,7 +280,7 @@ func (h *HorizonStorage) UploadFromURL(ctx context.Context, url string, cb Progr
 	if err != nil {
 		return nil, eris.Wrapf(err, "failed to download file from URL: %s", url)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, eris.Errorf("failed to download file from URL: %s, status: %s", url, resp.Status)
@@ -352,7 +352,7 @@ func (h *HorizonStorage) UploadFromHeader(ctx context.Context, header *multipart
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to open multipart file")
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	contentType := header.Header.Get("Content-Type")
 	if contentType == "" {
