@@ -3,6 +3,7 @@ package v1
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
@@ -268,7 +269,7 @@ func (c *Controller) subscriptionPlanController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
 		}
 
-		names := ""
+		var namesSlice []string
 		for _, rawID := range reqBody.IDs {
 			subscriptionPlanID, err := uuid.Parse(rawID)
 			if err != nil {
@@ -292,7 +293,7 @@ func (c *Controller) subscriptionPlanController() {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("SubscriptionPlan with ID %s not found: %v", rawID, err)})
 			}
 
-			names += subscriptionPlan.Name + ","
+			namesSlice = append(namesSlice, subscriptionPlan.Name)
 			if err := c.modelcore.SubscriptionPlanManager.DeleteByIDWithTx(context, tx, subscriptionPlanID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -303,6 +304,8 @@ func (c *Controller) subscriptionPlanController() {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to delete subscription plan with ID %s: %v", rawID, err)})
 			}
 		}
+
+		names := strings.Join(namesSlice, ",")
 
 		if err := tx.Commit().Error; err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
