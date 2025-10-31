@@ -241,8 +241,8 @@ func (m *ModelCore) VerifyInvitationCodeByCode(context context.Context, code str
 }
 
 // RedeemInvitationCode increments the CurrentUse of the invitation code by 1.
-func (m *ModelCore) RedeemInvitationCode(context context.Context, tx *gorm.DB, invitationCodeId uuid.UUID) error {
-	data, err := m.InvitationCodeManager.GetByID(context, invitationCodeId)
+func (m *ModelCore) RedeemInvitationCode(context context.Context, tx *gorm.DB, invitationCodeID uuid.UUID) error {
+	data, err := m.InvitationCodeManager.GetByID(context, invitationCodeID)
 	if err != nil {
 		return err
 	}

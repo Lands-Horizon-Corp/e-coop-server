@@ -84,11 +84,11 @@ func (c *Controller) invitationCode() {
 		ResponseType: modelcore.InvitationCodeResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		invitationCodeId, err := handlers.EngineUUIDParam(ctx, "invitation_code_id")
+		invitationCodeID, err := handlers.EngineUUIDParam(ctx, "invitation_code_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid invitation code ID"})
 		}
-		invitationCode, err := c.modelcore.InvitationCodeManager.GetByID(context, *invitationCodeId)
+		invitationCode, err := c.modelcore.InvitationCodeManager.GetByID(context, *invitationCodeID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Invitation code not found"})
 		}
@@ -185,7 +185,7 @@ func (c *Controller) invitationCode() {
 		Note:         "Updates an existing invitation code identified by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		invitationCodeId, err := handlers.EngineUUIDParam(ctx, "invitation_code_id")
+		invitationCodeID, err := handlers.EngineUUIDParam(ctx, "invitation_code_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -203,7 +203,7 @@ func (c *Controller) invitationCode() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid invitation code data: " + err.Error()})
 		}
-		invitationCode, err := c.modelcore.InvitationCodeManager.GetByID(context, *invitationCodeId)
+		invitationCode, err := c.modelcore.InvitationCodeManager.GetByID(context, *invitationCodeID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -265,7 +265,7 @@ func (c *Controller) invitationCode() {
 		Note:   "Deletes a specific invitation code identified by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		invitationCodeId, err := handlers.EngineUUIDParam(ctx, "invitation_code_id")
+		invitationCodeID, err := handlers.EngineUUIDParam(ctx, "invitation_code_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -274,7 +274,7 @@ func (c *Controller) invitationCode() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid invitation code ID"})
 		}
-		codeModel, err := c.modelcore.InvitationCodeManager.GetByID(context, *invitationCodeId)
+		codeModel, err := c.modelcore.InvitationCodeManager.GetByID(context, *invitationCodeID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -283,7 +283,7 @@ func (c *Controller) invitationCode() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Invitation code not found"})
 		}
-		if err := c.modelcore.InvitationCodeManager.DeleteByID(context, *invitationCodeId); err != nil {
+		if err := c.modelcore.InvitationCodeManager.DeleteByID(context, *invitationCodeID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Invitation code delete failed (/invitation-code/:invitation_code_id), db error: " + err.Error(),
@@ -336,7 +336,7 @@ func (c *Controller) invitationCode() {
 		}
 		codes := ""
 		for _, rawID := range reqBody.IDs {
-			invitationCodeId, err := uuid.Parse(rawID)
+			invitationCodeID, err := uuid.Parse(rawID)
 			if err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -346,7 +346,7 @@ func (c *Controller) invitationCode() {
 				})
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
 			}
-			codeModel, err := c.modelcore.InvitationCodeManager.GetByID(context, invitationCodeId)
+			codeModel, err := c.modelcore.InvitationCodeManager.GetByID(context, invitationCodeID)
 			if err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -357,7 +357,7 @@ func (c *Controller) invitationCode() {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Invitation code not found with ID: %s", rawID)})
 			}
 			codes += codeModel.Code + ","
-			if err := c.modelcore.InvitationCodeManager.DeleteByIDWithTx(context, tx, invitationCodeId); err != nil {
+			if err := c.modelcore.InvitationCodeManager.DeleteByIDWithTx(context, tx, invitationCodeID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

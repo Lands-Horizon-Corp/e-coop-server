@@ -431,11 +431,11 @@ func (m *ModelCore) GeneralLedgerPrintMaxNumber(
 // GeneralLedgerExcludeCashonHand returns GeneralLedgerExcludeCashonHand for the current branch or organization where applicable.
 func (m *ModelCore) GeneralLedgerExcludeCashonHand(
 	ctx context.Context,
-	transactionId, organizationID,
+	transactionID, organizationID,
 	branchID uuid.UUID,
 ) ([]*GeneralLedger, error) {
 	filters := []services.Filter{
-		{Field: "transaction_id", Op: services.OpEq, Value: transactionId},
+		{Field: "transaction_id", Op: services.OpEq, Value: transactionID},
 		{Field: "organization_id", Op: services.OpEq, Value: organizationID},
 		{Field: "branch_id", Op: services.OpEq, Value: branchID},
 	}
@@ -458,11 +458,11 @@ func (m *ModelCore) GeneralLedgerExcludeCashonHand(
 // GeneralLedgerExcludeCashonHandWithType returns GeneralLedgerExcludeCashonHandWithType for the current branch or organization where applicable.
 func (m *ModelCore) GeneralLedgerExcludeCashonHandWithType(
 	ctx context.Context,
-	transactionId, organizationID, branchID uuid.UUID,
+	transactionID, organizationID, branchID uuid.UUID,
 	paymentType *TypeOfPaymentType,
 ) ([]*GeneralLedger, error) {
 	filters := []services.Filter{
-		{Field: "transaction_id", Op: services.OpEq, Value: transactionId},
+		{Field: "transaction_id", Op: services.OpEq, Value: transactionID},
 		{Field: "organization_id", Op: services.OpEq, Value: organizationID},
 		{Field: "branch_id", Op: services.OpEq, Value: branchID},
 	}
@@ -495,11 +495,11 @@ func (m *ModelCore) GeneralLedgerExcludeCashonHandWithType(
 // GeneralLedgerExcludeCashonHandWithSource returns GeneralLedgerExcludeCashonHandWithSource for the current branch or organization where applicable.
 func (m *ModelCore) GeneralLedgerExcludeCashonHandWithSource(
 	ctx context.Context,
-	transactionId, organizationID, branchID uuid.UUID,
+	transactionID, organizationID, branchID uuid.UUID,
 	source *GeneralLedgerSource,
 ) ([]*GeneralLedger, error) {
 	filters := []services.Filter{
-		{Field: "transaction_id", Op: services.OpEq, Value: transactionId},
+		{Field: "transaction_id", Op: services.OpEq, Value: transactionID},
 		{Field: "organization_id", Op: services.OpEq, Value: organizationID},
 		{Field: "branch_id", Op: services.OpEq, Value: branchID},
 	}
@@ -532,12 +532,12 @@ func (m *ModelCore) GeneralLedgerExcludeCashonHandWithSource(
 // GeneralLedgerExcludeCashonHandWithFilters returns GeneralLedgerExcludeCashonHandWithFilters for the current branch or organization where applicable.
 func (m *ModelCore) GeneralLedgerExcludeCashonHandWithFilters(
 	ctx context.Context,
-	transactionId, organizationID, branchID uuid.UUID,
+	transactionID, organizationID, branchID uuid.UUID,
 	paymentType *TypeOfPaymentType,
 	source *GeneralLedgerSource,
 ) ([]*GeneralLedger, error) {
 	filters := []services.Filter{
-		{Field: "transaction_id", Op: services.OpEq, Value: transactionId},
+		{Field: "transaction_id", Op: services.OpEq, Value: transactionID},
 		{Field: "organization_id", Op: services.OpEq, Value: organizationID},
 		{Field: "branch_id", Op: services.OpEq, Value: branchID},
 	}

@@ -147,7 +147,7 @@ func (c *Controller) organizationMediaController() {
 		ResponseType: modelcore.OrganizationMediaResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		organizationMeiaId, err := handlers.EngineUUIDParam(ctx, "organization_media_id")
+		organizationMeiaID, err := handlers.EngineUUIDParam(ctx, "organization_media_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -167,7 +167,7 @@ func (c *Controller) organizationMediaController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization media data: " + err.Error()})
 		}
 
-		organizationMedia, err := c.modelcore.OrganizationMediaManager.GetByID(context, *organizationMeiaId)
+		organizationMedia, err := c.modelcore.OrganizationMediaManager.GetByID(context, *organizationMeiaID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",

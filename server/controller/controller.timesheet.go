@@ -271,7 +271,7 @@ func (c *Controller) timesheetController() {
 		Note:         "Returns paginated timesheets of the specified employeee for the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrgId, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
+		userOrgID, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_id: " + err.Error()})
 		}
@@ -279,7 +279,7 @@ func (c *Controller) timesheetController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		userOrganization, err := c.modelcore.UserOrganizationManager.GetByID(context, *userOrgId)
+		userOrganization, err := c.modelcore.UserOrganizationManager.GetByID(context, *userOrgID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}

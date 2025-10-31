@@ -19,7 +19,7 @@ type NotificationEvent struct {
 func (e *Event) Notification(ctx context.Context, echoCtx echo.Context, data NotificationEvent) {
 
 	go func() {
-		user, err := e.user_token.CurrentUser(ctx, echoCtx)
+		user, err := e.userToken.CurrentUser(ctx, echoCtx)
 		if err != nil {
 			return
 		}

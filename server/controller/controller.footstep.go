@@ -167,11 +167,11 @@ func (c *Controller) footstepController() {
 	}, func(ctx echo.Context) error {
 
 		context := ctx.Request().Context()
-		userOrgId, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
+		userOrgID, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_organization_id"})
 		}
-		targetUserOrg, err := c.modelcore.UserOrganizationManager.GetByID(context, *userOrgId)
+		targetUserOrg, err := c.modelcore.UserOrganizationManager.GetByID(context, *userOrgID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}

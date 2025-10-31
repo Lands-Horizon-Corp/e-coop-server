@@ -19,13 +19,13 @@ type FootstepEvent struct {
 func (e *Event) Footstep(context context.Context, ctx echo.Context, data FootstepEvent) {
 
 	go func() {
-		user, err := e.user_token.CurrentUser(context, ctx)
+		user, err := e.userToken.CurrentUser(context, ctx)
 		if err != nil || user == nil {
 			return
 		}
 
 		userID := user.ID
-		userOrganization, _ := e.user_organization_token.CurrentUserOrganization(context, ctx)
+		userOrganization, _ := e.userOrganizationToken.CurrentUserOrganization(context, ctx)
 
 		var userType modelcore.UserOrganizationType
 		var organizationID, branchID *uuid.UUID
@@ -35,7 +35,7 @@ func (e *Event) Footstep(context context.Context, ctx echo.Context, data Footste
 			branchID = userOrganization.BranchID
 		}
 
-		claim, _ := e.user_token.CSRF.GetCSRF(context, ctx)
+		claim, _ := e.userToken.CSRF.GetCSRF(context, ctx)
 		var latitude, longitude *float64
 		var ipAddress, userAgent, referer, location, acceptLanguage string
 

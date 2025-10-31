@@ -125,15 +125,15 @@ type InterestSavingTypeDiminishingStraight string
 const (
 	ISTDS_Spread InterestSavingTypeDiminishingStraight = "Spread"
 	// OtherInformationOfAnAccount
-	ISTDS_1stPayment InterestSavingTypeDiminishingStraight = "1st Payment"
+	ISTDS1stPayment InterestSavingTypeDiminishingStraight = "1st Payment"
 )
 
 type OtherInformationOfAnAccount string
 
 const (
-	OIOA_None    OtherInformationOfAnAccount = "None"
-	OIOA_Jewely  OtherInformationOfAnAccount = "Jewely"
-	OIOA_Grocery OtherInformationOfAnAccount = "Grocery"
+	OIOANone    OtherInformationOfAnAccount = "None"
+	OIOAJewely  OtherInformationOfAnAccount = "Jewely"
+	OIOAGrocery OtherInformationOfAnAccount = "Grocery"
 	// InterestStandardComputation
 	OIOA_TrackLoanDeduction OtherInformationOfAnAccount = "Track Loan Deduction"
 	OIOA_Restructured       OtherInformationOfAnAccount = "Restructured"
@@ -981,7 +981,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOA_None,
+			OtherInformationOfAnAccount:             OIOANone,
 		}
 
 		if err := m.AccountManager.CreateWithTx(context, tx, interestAccount); err != nil {
@@ -1014,7 +1014,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOA_None,
+			OtherInformationOfAnAccount:             OIOANone,
 		}
 
 		if err := m.AccountManager.CreateWithTx(context, tx, serviceFeeAccount); err != nil {
@@ -1047,7 +1047,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOA_None,
+			OtherInformationOfAnAccount:             OIOANone,
 		}
 
 		if err := m.AccountManager.CreateWithTx(context, tx, finesAccount); err != nil {
@@ -1174,7 +1174,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 		ShowInGeneralLedgerSourceJournalVoucher: true,
 		ShowInGeneralLedgerSourceCheckVoucher:   true,
 		CashAndCashEquivalence:                  true,
-		OtherInformationOfAnAccount:             OIOA_None,
+		OtherInformationOfAnAccount:             OIOANone,
 		CurrencyID:                              &currency.ID,
 	}
 
@@ -1208,7 +1208,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 		ShowInGeneralLedgerSourceJournalVoucher: true,
 		ShowInGeneralLedgerSourceCheckVoucher:   true,
 		CashAndCashEquivalence:                  true,
-		OtherInformationOfAnAccount:             OIOA_None,
+		OtherInformationOfAnAccount:             OIOANone,
 		CurrencyID:                              &currency.ID,
 	}
 
@@ -1242,7 +1242,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 		ShowInGeneralLedgerSourceJournalVoucher: true,
 		ShowInGeneralLedgerSourceCheckVoucher:   true,
 		CashAndCashEquivalence:                  true,
-		OtherInformationOfAnAccount:             OIOA_None,
+		OtherInformationOfAnAccount:             OIOANone,
 		CurrencyID:                              &currency.ID,
 	}
 
@@ -1277,7 +1277,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 		ShowInGeneralLedgerSourceCheckVoucher:   true,
 		CashAndCashEquivalence:                  true,
 		CurrencyID:                              &currency.ID,
-		OtherInformationOfAnAccount:             OIOA_None,
+		OtherInformationOfAnAccount:             OIOANone,
 	}
 
 	if err := m.AccountManager.CreateWithTx(context, tx, foreignCurrencyCash); err != nil {
@@ -1311,7 +1311,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 		ShowInGeneralLedgerSourceCheckVoucher:   true,
 		CashAndCashEquivalence:                  true,
 		CurrencyID:                              &currency.ID,
-		OtherInformationOfAnAccount:             OIOA_None,
+		OtherInformationOfAnAccount:             OIOANone,
 	}
 
 	if err := m.AccountManager.CreateWithTx(context, tx, moneyMarketFund); err != nil {
@@ -1345,7 +1345,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 		ShowInGeneralLedgerSourceCheckVoucher:   true,
 		CashAndCashEquivalence:                  true,
 		CurrencyID:                              &currency.ID,
-		OtherInformationOfAnAccount:             OIOA_None,
+		OtherInformationOfAnAccount:             OIOANone,
 	}
 
 	if err := m.AccountManager.CreateWithTx(context, tx, treasuryBills); err != nil {
@@ -1378,7 +1378,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOA_None,
+			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              &currency.ID,
 		},
 		// Transaction Fees
@@ -1405,7 +1405,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOA_None,
+			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              &currency.ID,
 		},
 		// Loan Processing Fee
@@ -1433,7 +1433,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
 			CurrencyID:                              &currency.ID,
-			OtherInformationOfAnAccount:             OIOA_None,
+			OtherInformationOfAnAccount:             OIOANone,
 		},
 		// Passbook Fee
 		{
@@ -1459,7 +1459,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOA_None,
+			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              &currency.ID,
 		},
 		// ATM Fee
@@ -1486,7 +1486,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOA_None,
+			OtherInformationOfAnAccount:             OIOANone,
 		},
 		// Check Processing Fee
 		{
@@ -1512,7 +1512,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOA_None,
+			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              &currency.ID,
 		},
 		// Documentation Fee
@@ -1539,7 +1539,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOA_None,
+			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              &currency.ID,
 		},
 		// Late Payment Fee
@@ -1566,7 +1566,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOA_None,
+			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              &currency.ID,
 		},
 		// Account Closure Fee
@@ -1593,7 +1593,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOA_None,
+			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              &currency.ID,
 		},
 		// Annual Membership Fee
@@ -1620,7 +1620,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOA_None,
+			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              &currency.ID,
 		},
 		// Insurance Premium Fee
@@ -1647,7 +1647,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOA_None,
+			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              &currency.ID,
 		},
 		// Notarial Fee
@@ -1674,7 +1674,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOA_None,
+			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              &currency.ID,
 		},
 	}
@@ -1705,7 +1705,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOA_None,
+			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              &currency.ID,
 		},
 		// General Maintenance
@@ -1732,7 +1732,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOA_None,
+			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              &currency.ID,
 		},
 		// Electricity Bills
@@ -1759,7 +1759,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOA_None,
+			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              &currency.ID,
 		},
 		// Water Bills
@@ -1786,7 +1786,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOA_None,
+			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              &currency.ID,
 		},
 		// Building Repairs and Maintenance
@@ -1813,7 +1813,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOA_None,
+			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              &currency.ID,
 		},
 		// Internet and Telecommunications
@@ -1840,7 +1840,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOA_None,
+			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              &currency.ID,
 		},
 		// Office Supplies
@@ -1867,7 +1867,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOA_None,
+			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              &currency.ID,
 		},
 		// Security Services
@@ -1894,7 +1894,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOA_None,
+			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              &currency.ID,
 		},
 		// Cleaning Services
@@ -1921,7 +1921,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOA_None,
+			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              &currency.ID,
 		},
 		// Professional Services
@@ -1948,7 +1948,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOA_None,
+			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              &currency.ID,
 		},
 		// Vehicle Maintenance
@@ -1975,7 +1975,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOA_None,
+			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              &currency.ID,
 		},
 		// Equipment Rental
@@ -2002,7 +2002,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOA_None,
+			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              &currency.ID,
 		},
 		// Training and Development
@@ -2029,7 +2029,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOA_None,
+			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              &currency.ID,
 		},
 		// Marketing and Advertising
@@ -2056,7 +2056,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOA_None,
+			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              &currency.ID,
 		},
 		// Travel and Accommodation
@@ -2083,7 +2083,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOA_None,
+			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              &currency.ID,
 		},
 		// Government Fees and Permits
@@ -2110,7 +2110,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOA_None,
+			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              &currency.ID,
 		},
 		// Medical and Health Services
@@ -2137,7 +2137,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOA_None,
+			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              &currency.ID,
 		},
 		// Waste Management
@@ -2164,7 +2164,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOA_None,
+			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              &currency.ID,
 		},
 		// Emergency Expenses
@@ -2191,7 +2191,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOA_None,
+			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              &currency.ID,
 		},
 	}

@@ -59,11 +59,11 @@ func (c *Controller) userRatingController() {
 		Note:         "Returns a specific user rating by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userRatingId, err := handlers.EngineUUIDParam(ctx, "user_rating_id")
+		userRatingID, err := handlers.EngineUUIDParam(ctx, "user_rating_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_rating_id: " + err.Error()})
 		}
-		userRating, err := c.modelcore.UserRatingManager.GetByID(context, *userRatingId)
+		userRating, err := c.modelcore.UserRatingManager.GetByID(context, *userRatingID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user rating: " + err.Error()})
 		}
@@ -155,7 +155,7 @@ func (c *Controller) userRatingController() {
 		Note:   "Deletes a user rating by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userRatingId, err := handlers.EngineUUIDParam(ctx, "user_rating_id")
+		userRatingID, err := handlers.EngineUUIDParam(ctx, "user_rating_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -164,7 +164,7 @@ func (c *Controller) userRatingController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_rating_id: " + err.Error()})
 		}
-		if err := c.modelcore.UserRatingManager.DeleteByID(context, *userRatingId); err != nil {
+		if err := c.modelcore.UserRatingManager.DeleteByID(context, *userRatingID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete user rating failed: delete error: " + err.Error(),
@@ -174,7 +174,7 @@ func (c *Controller) userRatingController() {
 		}
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "delete-success",
-			Description: "Deleted user rating with ID " + userRatingId.String(),
+			Description: "Deleted user rating with ID " + userRatingID.String(),
 			Module:      "UserRating",
 		})
 		return ctx.NoContent(http.StatusNoContent)

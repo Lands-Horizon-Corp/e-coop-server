@@ -139,8 +139,8 @@ func (c *Controller) organizationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create organization: " + err.Error()})
 		}
 
-		var longitude float64 = 0
-		var latitude float64 = 0
+		longitude := 0.0
+		latitude := 0.0
 
 		branch := &modelcore.Branch{
 			CreatedAt:      time.Now().UTC(),

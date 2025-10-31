@@ -20,7 +20,7 @@ func (c *Controller) paymentController() {
 		ResponseType: modelcore.GeneralLedgerResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		generalLedgerId, err := handlers.EngineUUIDParam(ctx, "general_ledger_id")
+		generalLedgerID, err := handlers.EngineUUIDParam(ctx, "general_ledger_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "payment-general-ledger-param-error",
@@ -32,11 +32,11 @@ func (c *Controller) paymentController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		generalLedger, err := c.modelcore.GeneralLedgerManager.GetByID(context, *generalLedgerId)
+		generalLedger, err := c.modelcore.GeneralLedgerManager.GetByID(context, *generalLedgerID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "payment-general-ledger-not-found",
-				Description: fmt.Sprintf("General ledger not found for ID %v: %v", generalLedgerId, err),
+				Description: fmt.Sprintf("General ledger not found for ID %v: %v", generalLedgerID, err),
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "General ledger not found: " + err.Error()})
 		}
@@ -44,7 +44,7 @@ func (c *Controller) paymentController() {
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "payment-general-ledger-max-number-error",
-				Description: fmt.Sprintf("Failed to get max print number for general ledger ID %v: %v", generalLedgerId, err),
+				Description: fmt.Sprintf("Failed to get max print number for general ledger ID %v: %v", generalLedgerID, err),
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get max print number: " + err.Error()})
 		}
@@ -98,7 +98,7 @@ func (c *Controller) paymentController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
 
-		transactionId, err := handlers.EngineUUIDParam(ctx, "transaction_id")
+		transactionID, err := handlers.EngineUUIDParam(ctx, "transaction_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "payment-param-error",
@@ -110,7 +110,7 @@ func (c *Controller) paymentController() {
 
 		generalLedger, err := c.event.TransactionPayment(context, ctx, tx, event.TransactionEvent{
 			// Will be filled by transaction
-			TransactionID:        transactionId,
+			TransactionID:        transactionID,
 			MemberProfileID:      nil,
 			MemberJointAccountID: nil,
 			ReferenceNumber:      "",
@@ -176,7 +176,7 @@ func (c *Controller) paymentController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
 
-		transactionId, err := handlers.EngineUUIDParam(ctx, "transaction_id")
+		transactionID, err := handlers.EngineUUIDParam(ctx, "transaction_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "withdraw-param-error",
@@ -188,7 +188,7 @@ func (c *Controller) paymentController() {
 
 		generalLedger, err := c.event.TransactionPayment(context, ctx, tx, event.TransactionEvent{
 			// Will be filled by transaction
-			TransactionID:        transactionId,
+			TransactionID:        transactionID,
 			MemberProfileID:      nil,
 			MemberJointAccountID: nil,
 			ReferenceNumber:      "",
@@ -254,7 +254,7 @@ func (c *Controller) paymentController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
 
-		transactionId, err := handlers.EngineUUIDParam(ctx, "transaction_id")
+		transactionID, err := handlers.EngineUUIDParam(ctx, "transaction_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "deposit-param-error",
@@ -266,7 +266,7 @@ func (c *Controller) paymentController() {
 
 		generalLedger, err := c.event.TransactionPayment(context, ctx, tx, event.TransactionEvent{
 			// Will be filled by transaction
-			TransactionID:        transactionId,
+			TransactionID:        transactionID,
 			MemberProfileID:      nil,
 			MemberJointAccountID: nil,
 			ReferenceNumber:      "",
@@ -508,11 +508,11 @@ func (c *Controller) paymentController() {
 		Note:   "Reverses a specific general ledger transaction.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		generalLedgerId, err := handlers.EngineUUIDParam(ctx, "general_ledger_id")
+		generalLedgerID, err := handlers.EngineUUIDParam(ctx, "general_ledger_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid general ledger ID: " + err.Error()})
 		}
-		generalLedger, err := c.modelcore.GeneralLedgerManager.GetByID(context, *generalLedgerId)
+		generalLedger, err := c.modelcore.GeneralLedgerManager.GetByID(context, *generalLedgerID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "General ledger not found: " + err.Error()})
 		}
@@ -571,7 +571,7 @@ func (c *Controller) paymentController() {
 		ResponseType: modelcore.TransactionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		transactionId, err := handlers.EngineUUIDParam(ctx, "transaction_id")
+		transactionID, err := handlers.EngineUUIDParam(ctx, "transaction_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "transaction-reverse-param-error",
@@ -583,12 +583,12 @@ func (c *Controller) paymentController() {
 
 		// Get all general ledger entries for this transaction
 		generalLedgers, err := c.modelcore.GeneralLedgerManager.Find(context, &modelcore.GeneralLedger{
-			TransactionID: transactionId,
+			TransactionID: transactionID,
 		})
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "transaction-reverse-ledger-error",
-				Description: fmt.Sprintf("Failed to get general ledger entries for transaction ID %v: %v", transactionId, err),
+				Description: fmt.Sprintf("Failed to get general ledger entries for transaction ID %v: %v", transactionID, err),
 				Module:      "Transaction",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get general ledger entries: " + err.Error()})
@@ -649,18 +649,18 @@ func (c *Controller) paymentController() {
 			}
 			reversedLedgers = append(reversedLedgers, newGeneralLedger)
 		}
-		transaction, err := c.modelcore.TransactionManager.GetByIDRaw(context, *transactionId)
+		transaction, err := c.modelcore.TransactionManager.GetByIDRaw(context, *transactionID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "transaction-reverse-fetch-error",
-				Description: fmt.Sprintf("Failed to fetch transaction %v after reversal: %v", transactionId, err),
+				Description: fmt.Sprintf("Failed to fetch transaction %v after reversal: %v", transactionID, err),
 				Module:      "Transaction",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch transaction after reversal: " + err.Error()})
 		}
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "transaction-reverse-success",
-			Description: fmt.Sprintf("Successfully reversed transaction %v with %d general ledger entries", transactionId, len(reversedLedgers)),
+			Description: fmt.Sprintf("Successfully reversed transaction %v with %d general ledger entries", transactionID, len(reversedLedgers)),
 			Module:      "Transaction",
 		})
 

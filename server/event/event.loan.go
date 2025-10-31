@@ -22,7 +22,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	// ================================================================================
 	// STEP 1: AUTHENTICATION & USER ORGANIZATION RETRIEVAL
 	// ================================================================================
-	userOrg, err := e.user_organization_token.CurrentUserOrganization(ctx, echoCtx)
+	userOrg, err := e.userOrganizationToken.CurrentUserOrganization(ctx, echoCtx)
 	if err != nil {
 		tx.Rollback()
 		e.Footstep(ctx, echoCtx, FootstepEvent{
@@ -189,12 +189,12 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	// STEP 7: PROCESS EXISTING DEDUCTIONS & CALCULATE TOTALS
 	// ================================================================================
 
-	total_non_add_ons, totalAddOns := 0.0, 0.0
+	totalNonAddOns, totalAddOns := 0.0, 0.0
 
 	// Add existing deduction entries and calculate running totals
 	for _, entry := range deduction {
 		if !entry.IsAddOn {
-			total_non_add_ons += entry.Credit
+			totalNonAddOns += entry.Credit
 		} else {
 			totalAddOns += entry.Credit
 		}
@@ -227,7 +227,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		}
 
 		if !entry.IsAddOn {
-			total_non_add_ons += entry.Credit
+			totalNonAddOns += entry.Credit
 
 		} else {
 			totalAddOns += entry.Credit
@@ -283,7 +283,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 			}
 
 			if !entry.IsAddOn {
-				total_non_add_ons += entry.Credit
+				totalNonAddOns += entry.Credit
 
 			} else {
 				totalAddOns += entry.Credit
@@ -310,7 +310,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 			Type:              modelcore.LoanTransactionPrevious,
 			LoanTransactionID: loanTransaction.ID,
 		})
-		total_non_add_ons += previous.Balance
+		totalNonAddOns += previous.Balance
 	}
 
 	// ================================================================================
@@ -319,9 +319,9 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 
 	// Adjust the first entry (cash equivalent) credit based on loan type and deductions
 	if loanTransaction.IsAddOn {
-		result[0].Credit = loanTransaction.Applied1 - total_non_add_ons
+		result[0].Credit = loanTransaction.Applied1 - totalNonAddOns
 	} else {
-		result[0].Credit = loanTransaction.Applied1 - (total_non_add_ons + totalAddOns)
+		result[0].Credit = loanTransaction.Applied1 - (totalNonAddOns + totalAddOns)
 	}
 
 	// Add the add-on interest entry if applicable
@@ -492,7 +492,7 @@ func (e *Event) LoanRelease(ctx context.Context, echoCtx echo.Context, tx *gorm.
 	// ================================================================================
 	// STEP 1: AUTHENTICATION & USER ORGANIZATION RETRIEVAL
 	// ================================================================================
-	userOrg, err := e.user_organization_token.CurrentUserOrganization(ctx, echoCtx)
+	userOrg, err := e.userOrganizationToken.CurrentUserOrganization(ctx, echoCtx)
 	if err != nil {
 		tx.Rollback()
 		e.Footstep(ctx, echoCtx, FootstepEvent{

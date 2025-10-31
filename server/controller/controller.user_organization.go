@@ -26,7 +26,7 @@ func (c *Controller) userOrganinzationController() {
 		ResponseType: modelcore.UserOrganizationResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrgId, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
+		userOrgID, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -56,7 +56,7 @@ func (c *Controller) userOrganinzationController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		userOrg, err := c.modelcore.UserOrganizationManager.GetByID(context, *userOrgId)
+		userOrg, err := c.modelcore.UserOrganizationManager.GetByID(context, *userOrgID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -464,7 +464,7 @@ func (c *Controller) userOrganinzationController() {
 		Note:         "Switches organization and branch in JWT for the current user. No database impact.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrgId, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
+		userOrgID, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_organization_id: " + err.Error()})
 		}
@@ -472,7 +472,7 @@ func (c *Controller) userOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
-		userOrganization, err := c.modelcore.UserOrganizationManager.GetByID(context, *userOrgId)
+		userOrganization, err := c.modelcore.UserOrganizationManager.GetByID(context, *userOrgID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}
@@ -918,11 +918,11 @@ func (c *Controller) userOrganinzationController() {
 		ResponseType: modelcore.UserOrganizationResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrgId, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
+		userOrgID, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_organization_id: " + err.Error()})
 		}
-		userOrg, err := c.modelcore.UserOrganizationManager.GetByIDRaw(context, *userOrgId)
+		userOrg, err := c.modelcore.UserOrganizationManager.GetByIDRaw(context, *userOrgID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}
@@ -936,7 +936,7 @@ func (c *Controller) userOrganinzationController() {
 		Note:   "Accepts an employee or member application by ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrgId, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
+		userOrgID, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "approve-error",
@@ -956,7 +956,7 @@ func (c *Controller) userOrganinzationController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
 
-		userOrg, err := c.modelcore.UserOrganizationManager.GetByID(context, *userOrgId)
+		userOrg, err := c.modelcore.UserOrganizationManager.GetByID(context, *userOrgID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "approve-error",
@@ -1010,7 +1010,7 @@ func (c *Controller) userOrganinzationController() {
 		Note:   "Rejects an employee or member application by ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrgId, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
+		userOrgID, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -1030,7 +1030,7 @@ func (c *Controller) userOrganinzationController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
 
-		userOrg, err := c.modelcore.UserOrganizationManager.GetByID(context, *userOrgId)
+		userOrg, err := c.modelcore.UserOrganizationManager.GetByID(context, *userOrgID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -1083,7 +1083,7 @@ func (c *Controller) userOrganinzationController() {
 		Note:   "Deletes a user organization by ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrgId, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
+		userOrgID, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -1092,7 +1092,7 @@ func (c *Controller) userOrganinzationController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_organization_id: " + err.Error()})
 		}
-		userOrg, err := c.modelcore.UserOrganizationManager.GetByID(context, *userOrgId)
+		userOrg, err := c.modelcore.UserOrganizationManager.GetByID(context, *userOrgID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -1157,7 +1157,7 @@ func (c *Controller) userOrganinzationController() {
 		}
 
 		for _, rawID := range reqBody.IDs {
-			userOrgId, err := uuid.Parse(rawID)
+			userOrgID, err := uuid.Parse(rawID)
 			if err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -1168,7 +1168,7 @@ func (c *Controller) userOrganinzationController() {
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s - %v", rawID, err)})
 			}
 
-			if _, err := c.modelcore.UserOrganizationManager.GetByID(context, userOrgId); err != nil {
+			if _, err := c.modelcore.UserOrganizationManager.GetByID(context, userOrgID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "delete-error",
@@ -1178,7 +1178,7 @@ func (c *Controller) userOrganinzationController() {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("User organization with ID %s not found: %v", rawID, err)})
 			}
 
-			if err := c.modelcore.UserOrganizationManager.DeleteByIDWithTx(context, tx, userOrgId); err != nil {
+			if err := c.modelcore.UserOrganizationManager.DeleteByIDWithTx(context, tx, userOrgID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "delete-error",
@@ -1253,7 +1253,7 @@ func (c *Controller) userOrganinzationController() {
 		Note:         "Updates the user organization settings.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrgId, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
+		userOrgID, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_organization_id: " + err.Error()})
 		}
@@ -1277,7 +1277,7 @@ func (c *Controller) userOrganinzationController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		userOrg, err := c.modelcore.UserOrganizationManager.GetByID(context, *userOrgId)
+		userOrg, err := c.modelcore.UserOrganizationManager.GetByID(context, *userOrgID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}

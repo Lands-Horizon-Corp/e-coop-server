@@ -83,7 +83,7 @@ func (c *Controller) transactionBatchController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		transactionBatchId, err := handlers.EngineUUIDParam(ctx, "transaction_batch_id")
+		transactionBatchID, err := handlers.EngineUUIDParam(ctx, "transaction_batch_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -109,7 +109,7 @@ func (c *Controller) transactionBatchController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
-		transactionBatch, err := c.modelcore.TransactionBatchManager.GetByID(context, *transactionBatchId)
+		transactionBatch, err := c.modelcore.TransactionBatchManager.GetByID(context, *transactionBatchID)
 		if err != nil || transactionBatch == nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -210,7 +210,7 @@ func (c *Controller) transactionBatchController() {
 		Note:         "Updates the deposit in bank amount for a specific transaction batch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		transactionBatchId, err := handlers.EngineUUIDParam(ctx, "transaction_batch_id")
+		transactionBatchID, err := handlers.EngineUUIDParam(ctx, "transaction_batch_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -259,7 +259,7 @@ func (c *Controller) transactionBatchController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		transactionBatch, err := c.modelcore.TransactionBatchManager.GetByID(context, *transactionBatchId)
+		transactionBatch, err := c.modelcore.TransactionBatchManager.GetByID(context, *transactionBatchID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -576,7 +576,7 @@ func (c *Controller) transactionBatchController() {
 		ResponseType: modelcore.TransactionBatchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		transactionBatchId, err := handlers.EngineUUIDParam(ctx, "transaction_batch_id")
+		transactionBatchID, err := handlers.EngineUUIDParam(ctx, "transaction_batch_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction_batch_id: " + err.Error()})
 		}
@@ -587,7 +587,7 @@ func (c *Controller) transactionBatchController() {
 		if userOrg.UserType != modelcore.UserOrganizationTypeOwner && userOrg.UserType != modelcore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
-		transactionBatch, err := c.modelcore.TransactionBatchManager.GetByID(context, *transactionBatchId)
+		transactionBatch, err := c.modelcore.TransactionBatchManager.GetByID(context, *transactionBatchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Transaction batch not found: " + err.Error()})
 		}
@@ -644,7 +644,7 @@ func (c *Controller) transactionBatchController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
-		transactionBatchId, err := handlers.EngineUUIDParam(ctx, "transaction_batch_id")
+		transactionBatchID, err := handlers.EngineUUIDParam(ctx, "transaction_batch_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -653,7 +653,7 @@ func (c *Controller) transactionBatchController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction_batch_id: " + err.Error()})
 		}
-		transactionBatch, err := c.modelcore.TransactionBatchManager.GetByID(context, *transactionBatchId)
+		transactionBatch, err := c.modelcore.TransactionBatchManager.GetByID(context, *transactionBatchID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -741,7 +741,7 @@ func (c *Controller) transactionBatchController() {
 		ResponseType: modelcore.TransactionBatchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		transactionBatchId, err := handlers.EngineUUIDParam(ctx, "transaction_batch_id")
+		transactionBatchID, err := handlers.EngineUUIDParam(ctx, "transaction_batch_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -768,7 +768,7 @@ func (c *Controller) transactionBatchController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
 
-		transactionBatch, err := c.modelcore.TransactionBatchManager.GetByID(context, *transactionBatchId)
+		transactionBatch, err := c.modelcore.TransactionBatchManager.GetByID(context, *transactionBatchID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",

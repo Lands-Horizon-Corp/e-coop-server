@@ -97,7 +97,7 @@ func (e *Event) TransactionPayment(
 	// ================================================================================
 	// STEP 3: GET CURRENT USER ORGANIZATION
 	// ================================================================================
-	userOrg, err := e.user_organization_token.CurrentUserOrganization(ctx, echoCtx)
+	userOrg, err := e.userOrganizationToken.CurrentUserOrganization(ctx, echoCtx)
 	if err != nil {
 		tx.Rollback()
 		e.Footstep(ctx, echoCtx, FootstepEvent{

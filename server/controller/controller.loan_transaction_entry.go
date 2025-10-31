@@ -111,7 +111,7 @@ func (c *Controller) loanTransactionEntryController() {
 		ResponseType: modelcore.LoanTransaction{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		loanTransactionEntryId, err := handlers.EngineUUIDParam(ctx, "loan_transaction_entry_id")
+		loanTransactionEntryID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_entry_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
 		}
@@ -145,7 +145,7 @@ func (c *Controller) loanTransactionEntryController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found: " + err.Error()})
 		}
-		loanTransactionEntry, err := c.modelcore.LoanTransactionEntryManager.GetByID(context, *loanTransactionEntryId)
+		loanTransactionEntry, err := c.modelcore.LoanTransactionEntryManager.GetByID(context, *loanTransactionEntryID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "not-found",
@@ -166,7 +166,7 @@ func (c *Controller) loanTransactionEntryController() {
 		loanTransactionEntry.Amount = req.Amount
 		loanTransactionEntry.UpdatedAt = time.Now().UTC()
 		loanTransactionEntry.UpdatedByID = userOrg.UserID
-		if err := c.modelcore.LoanTransactionEntryManager.UpdateFields(context, *loanTransactionEntryId, loanTransactionEntry); err != nil {
+		if err := c.modelcore.LoanTransactionEntryManager.UpdateFields(context, *loanTransactionEntryID, loanTransactionEntry); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Loan transaction deduction creation failed: " + err.Error(),

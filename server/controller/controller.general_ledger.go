@@ -2660,7 +2660,7 @@ func (c *Controller) generalLedgerController() {
 		Note:         "Returns all general ledger entries for the specified transaction with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		transactionId, err := handlers.EngineUUIDParam(ctx, "transaction_id")
+		transactionID, err := handlers.EngineUUIDParam(ctx, "transaction_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction ID"})
 		}
@@ -2671,7 +2671,7 @@ func (c *Controller) generalLedgerController() {
 		if userOrg.UserType != modelcore.UserOrganizationTypeOwner && userOrg.UserType != modelcore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
-		entries, err := c.modelcore.GeneralLedgerExcludeCashonHand(context, *transactionId, userOrg.OrganizationID, *userOrg.BranchID)
+		entries, err := c.modelcore.GeneralLedgerExcludeCashonHand(context, *transactionID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
 		}
@@ -2687,7 +2687,7 @@ func (c *Controller) generalLedgerController() {
 		Note:         "Returns all check entry general ledger entries for the specified transaction with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		transactionId, err := handlers.EngineUUIDParam(ctx, "transaction_id")
+		transactionID, err := handlers.EngineUUIDParam(ctx, "transaction_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction ID"})
 		}
@@ -2699,7 +2699,7 @@ func (c *Controller) generalLedgerController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		entries, err := c.modelcore.GeneralLedgerManager.Find(context, &modelcore.GeneralLedger{
-			TransactionID:     transactionId,
+			TransactionID:     transactionID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
 			TypeOfPaymentType: modelcore.PaymentTypeCheck,
@@ -2718,7 +2718,7 @@ func (c *Controller) generalLedgerController() {
 		Note:         "Returns all online entry general ledger entries for the specified transaction with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		transactionId, err := handlers.EngineUUIDParam(ctx, "transaction_id")
+		transactionID, err := handlers.EngineUUIDParam(ctx, "transaction_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction ID"})
 		}
@@ -2730,7 +2730,7 @@ func (c *Controller) generalLedgerController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		entries, err := c.modelcore.GeneralLedgerManager.Find(context, &modelcore.GeneralLedger{
-			TransactionID:     transactionId,
+			TransactionID:     transactionID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
 			TypeOfPaymentType: modelcore.PaymentTypeOnline,
@@ -2749,7 +2749,7 @@ func (c *Controller) generalLedgerController() {
 		Note:         "Returns all cash entry general ledger entries for the specified transaction with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		transactionId, err := handlers.EngineUUIDParam(ctx, "transaction_id")
+		transactionID, err := handlers.EngineUUIDParam(ctx, "transaction_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction ID"})
 		}
@@ -2761,7 +2761,7 @@ func (c *Controller) generalLedgerController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		entries, err := c.modelcore.GeneralLedgerManager.Find(context, &modelcore.GeneralLedger{
-			TransactionID:     transactionId,
+			TransactionID:     transactionID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
 			TypeOfPaymentType: modelcore.PaymentTypeCash,
@@ -2780,7 +2780,7 @@ func (c *Controller) generalLedgerController() {
 		Note:         "Returns all payment entry general ledger entries for the specified transaction with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		transactionId, err := handlers.EngineUUIDParam(ctx, "transaction_id")
+		transactionID, err := handlers.EngineUUIDParam(ctx, "transaction_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction ID"})
 		}
@@ -2792,7 +2792,7 @@ func (c *Controller) generalLedgerController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		entries, err := c.modelcore.GeneralLedgerManager.Find(context, &modelcore.GeneralLedger{
-			TransactionID:  transactionId,
+			TransactionID:  transactionID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Source:         modelcore.GeneralLedgerSourcePayment,
@@ -2811,7 +2811,7 @@ func (c *Controller) generalLedgerController() {
 		Note:         "Returns all withdraw entry general ledger entries for the specified transaction with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		transactionId, err := handlers.EngineUUIDParam(ctx, "transaction_id")
+		transactionID, err := handlers.EngineUUIDParam(ctx, "transaction_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction ID"})
 		}
@@ -2823,7 +2823,7 @@ func (c *Controller) generalLedgerController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		entries, err := c.modelcore.GeneralLedgerManager.Find(context, &modelcore.GeneralLedger{
-			TransactionID:  transactionId,
+			TransactionID:  transactionID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Source:         modelcore.GeneralLedgerSourceWithdraw,
@@ -2842,7 +2842,7 @@ func (c *Controller) generalLedgerController() {
 		Note:         "Returns all deposit entry general ledger entries for the specified transaction with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		transactionId, err := handlers.EngineUUIDParam(ctx, "transaction_id")
+		transactionID, err := handlers.EngineUUIDParam(ctx, "transaction_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction ID"})
 		}
@@ -2854,7 +2854,7 @@ func (c *Controller) generalLedgerController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		source := modelcore.GeneralLedgerSourceDeposit
-		entries, err := c.modelcore.GeneralLedgerExcludeCashonHandWithSource(context, *transactionId, userOrg.OrganizationID, *userOrg.BranchID, &source)
+		entries, err := c.modelcore.GeneralLedgerExcludeCashonHandWithSource(context, *transactionID, userOrg.OrganizationID, *userOrg.BranchID, &source)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
 		}
@@ -2869,7 +2869,7 @@ func (c *Controller) generalLedgerController() {
 		Note:         "Returns all journal entry general ledger entries for the specified transaction with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		transactionId, err := handlers.EngineUUIDParam(ctx, "transaction_id")
+		transactionID, err := handlers.EngineUUIDParam(ctx, "transaction_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction ID"})
 		}
@@ -2881,7 +2881,7 @@ func (c *Controller) generalLedgerController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		source := modelcore.GeneralLedgerSourceJournal
-		entries, err := c.modelcore.GeneralLedgerExcludeCashonHandWithSource(context, *transactionId, userOrg.OrganizationID, *userOrg.BranchID, &source)
+		entries, err := c.modelcore.GeneralLedgerExcludeCashonHandWithSource(context, *transactionID, userOrg.OrganizationID, *userOrg.BranchID, &source)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
 		}
@@ -2896,7 +2896,7 @@ func (c *Controller) generalLedgerController() {
 		Note:         "Returns all adjustment entry general ledger entries for the specified transaction with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		transactionId, err := handlers.EngineUUIDParam(ctx, "transaction_id")
+		transactionID, err := handlers.EngineUUIDParam(ctx, "transaction_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction ID"})
 		}
@@ -2908,7 +2908,7 @@ func (c *Controller) generalLedgerController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		source := modelcore.GeneralLedgerSourceAdjustment
-		entries, err := c.modelcore.GeneralLedgerExcludeCashonHandWithSource(context, *transactionId, userOrg.OrganizationID, *userOrg.BranchID, &source)
+		entries, err := c.modelcore.GeneralLedgerExcludeCashonHandWithSource(context, *transactionID, userOrg.OrganizationID, *userOrg.BranchID, &source)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
 		}
@@ -2923,7 +2923,7 @@ func (c *Controller) generalLedgerController() {
 		Note:         "Returns all journal voucher general ledger entries for the specified transaction with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		transactionId, err := handlers.EngineUUIDParam(ctx, "transaction_id")
+		transactionID, err := handlers.EngineUUIDParam(ctx, "transaction_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction ID"})
 		}
@@ -2935,7 +2935,7 @@ func (c *Controller) generalLedgerController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		source := modelcore.GeneralLedgerSourceJournalVoucher
-		entries, err := c.modelcore.GeneralLedgerExcludeCashonHandWithSource(context, *transactionId, userOrg.OrganizationID, *userOrg.BranchID, &source)
+		entries, err := c.modelcore.GeneralLedgerExcludeCashonHandWithSource(context, *transactionID, userOrg.OrganizationID, *userOrg.BranchID, &source)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
 		}
@@ -2950,7 +2950,7 @@ func (c *Controller) generalLedgerController() {
 		Note:         "Returns all check voucher general ledger entries for the specified transaction with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		transactionId, err := handlers.EngineUUIDParam(ctx, "transaction_id")
+		transactionID, err := handlers.EngineUUIDParam(ctx, "transaction_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction ID"})
 		}
@@ -2962,7 +2962,7 @@ func (c *Controller) generalLedgerController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		source := modelcore.GeneralLedgerSourceCheckVoucher
-		entries, err := c.modelcore.GeneralLedgerExcludeCashonHandWithSource(context, *transactionId, userOrg.OrganizationID, *userOrg.BranchID, &source)
+		entries, err := c.modelcore.GeneralLedgerExcludeCashonHandWithSource(context, *transactionID, userOrg.OrganizationID, *userOrg.BranchID, &source)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
 		}

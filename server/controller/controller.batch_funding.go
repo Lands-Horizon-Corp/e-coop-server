@@ -144,7 +144,7 @@ func (c *Controller) batchFundingController() {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		transactionBatchId, err := handlers.EngineUUIDParam(ctx, "transaction_batch_id")
+		transactionBatchID, err := handlers.EngineUUIDParam(ctx, "transaction_batch_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "The transaction batch ID provided is invalid."})
 		}
@@ -158,7 +158,7 @@ func (c *Controller) batchFundingController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "You do not have permission to view batch funding records."})
 		}
 
-		transactionBatch, err := c.modelcore.TransactionBatchManager.GetByID(context, *transactionBatchId)
+		transactionBatch, err := c.modelcore.TransactionBatchManager.GetByID(context, *transactionBatchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Transaction batch not found for this ID."})
 		}
@@ -170,7 +170,7 @@ func (c *Controller) batchFundingController() {
 		batchFunding, err := c.modelcore.BatchFundingManager.Find(context, &modelcore.BatchFunding{
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
-			TransactionBatchID: *transactionBatchId,
+			TransactionBatchID: *transactionBatchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Unable to retrieve batch funding records: " + err.Error()})
