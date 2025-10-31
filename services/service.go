@@ -13,6 +13,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// HorizonService manages all application services and their lifecycle.
 type HorizonService struct {
 	Environment horizon.EnvironmentService
 	Database    horizon.SQLDatabaseService
@@ -32,6 +33,7 @@ type HorizonService struct {
 	Logger    *zap.Logger
 }
 
+// HorizonServiceConfig contains configuration options for initializing HorizonService.
 type HorizonServiceConfig struct {
 	EnvironmentConfig *EnvironmentServiceConfig
 	SQLConfig         *SQLServiceConfig
@@ -47,6 +49,7 @@ type HorizonServiceConfig struct {
 	RequestServiceConfig *RequestServiceConfig
 }
 
+// NewHorizonService creates and initializes a new HorizonService instance.
 func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 	service := &HorizonService{}
 	service.Validator = validator.New()
@@ -246,7 +249,7 @@ func (h *HorizonService) printStatus(service string, status string) {
 	}
 }
 
-// Add these methods to your HorizonService struct in services.go
+// Run starts all configured services in the correct order.
 func (h *HorizonService) Run(ctx context.Context) error {
 	fmt.Println("≿━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━༺❀༻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━≾")
 	handlers.PrintASCIIArt()
@@ -365,7 +368,7 @@ func (h *HorizonService) Run(ctx context.Context) error {
 	return nil
 }
 
-// Add these methods to your HorizonService struct in services.go
+// Stop gracefully shuts down all running services in reverse order.
 func (h *HorizonService) Stop(ctx context.Context) error {
 	if h.Request != nil {
 		if err := h.Request.Stop(ctx); err != nil {
@@ -417,7 +420,7 @@ func (h *HorizonService) Stop(ctx context.Context) error {
 	return nil
 }
 
-// Add these methods to your HorizonService struct in services.go
+// RunDatabase starts the database service.
 func (h *HorizonService) RunDatabase(ctx context.Context) error {
 	h.Logger.Info("Starting Database Service...")
 	delay := 3 * time.Second

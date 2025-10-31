@@ -18,7 +18,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 )
 
-// Generic validation helper
+// Validate binds and validates request data from echo context to a generic type T.
 func Validate[T any](ctx echo.Context, v *validator.Validate) (*T, error) {
 	var req T
 	if err := ctx.Bind(&req); err != nil {
@@ -30,7 +30,7 @@ func Validate[T any](ctx echo.Context, v *validator.Validate) (*T, error) {
 	return &req, nil
 }
 
-// Model conversion helpers
+// ToModel converts a single data entity using the provided mapping function.
 func ToModel[T any, G any](data *T, mapFunc func(*T) *G) *G {
 	if data == nil {
 		return nil
@@ -38,6 +38,7 @@ func ToModel[T any, G any](data *T, mapFunc func(*T) *G) *G {
 	return mapFunc(data)
 }
 
+// ToModels converts a slice of data entities using the provided mapping function.
 func ToModels[T any, G any](data []*T, mapFunc func(*T) *G) []*G {
 	if data == nil {
 		return []*G{}
@@ -51,24 +52,37 @@ func ToModels[T any, G any](data []*T, mapFunc func(*T) *G) []*G {
 	return out
 }
 
-// Filter operations
+// FilterOp represents database filter operations for query conditions.
 type FilterOp string
 
 const (
-	OpEq      FilterOp = "="
-	OpGt      FilterOp = ">"
-	OpGte     FilterOp = ">="
-	OpLt      FilterOp = "<"
-	OpLte     FilterOp = "<="
-	OpNe      FilterOp = "<>"
-	OpIn      FilterOp = "IN"
-	OpNotIn   FilterOp = "NOT IN"
-	OpLike    FilterOp = "LIKE"
-	OpILike   FilterOp = "ILIKE"
-	OpIsNull  FilterOp = "IS NULL"
+	// OpEq represents the equals operation (=)
+	OpEq FilterOp = "="
+	// OpGt represents the greater than operation (>)
+	OpGt FilterOp = ">"
+	// OpGte represents the greater than or equal operation (>=)
+	OpGte FilterOp = ">="
+	// OpLt represents the less than operation (<)
+	OpLt FilterOp = "<"
+	// OpLte represents the less than or equal operation (<=)
+	OpLte FilterOp = "<="
+	// OpNe represents the not equals operation (<>)
+	OpNe FilterOp = "<>"
+	// OpIn represents the IN operation
+	OpIn FilterOp = "IN"
+	// OpNotIn represents the NOT IN operation
+	OpNotIn FilterOp = "NOT IN"
+	// OpLike represents the LIKE operation
+	OpLike FilterOp = "LIKE"
+	// OpILike represents the case-insensitive LIKE operation
+	OpILike FilterOp = "ILIKE"
+	// OpIsNull represents the IS NULL operation
+	OpIsNull FilterOp = "IS NULL"
+	// OpNotNull represents the IS NOT NULL operation
 	OpNotNull FilterOp = "IS NOT NULL"
 )
 
+// Filter represents a database query filter with field, operation, and value.
 type Filter struct {
 	Field string
 	Op    FilterOp
@@ -130,7 +144,7 @@ type Repository[TData any, TResponse any, TRequest any] interface {
 	DeleteManyWithTx(ctx context.Context, tx *gorm.DB, entities []*TData) error
 }
 
-// Repository configuration
+// RepositoryParams contains configuration parameters for creating a new repository instance.
 type RepositoryParams[TData any, TResponse any, TRequest any] struct {
 	Service  *HorizonService
 	Created  func(*TData) []string
@@ -164,7 +178,7 @@ func NewRepository[TData any, TResponse any, TRequest any](
 	}
 }
 
-// --- Core Methods ---
+// Client returns the underlying GORM database client instance.
 func (c *CollectionManager[TData, TResponse, TRequest]) Client() *gorm.DB {
 	if c.service == nil || c.service.Database == nil {
 		return nil
@@ -172,10 +186,12 @@ func (c *CollectionManager[TData, TResponse, TRequest]) Client() *gorm.DB {
 	return c.service.Database.Client().Model(new(TData))
 }
 
+// Model returns a new instance of the data model type.
 func (c *CollectionManager[TData, TResponse, TRequest]) Model() *TData {
 	return new(TData)
 }
 
+// ToModel converts a data entity to its response representation.
 func (c *CollectionManager[TData, TResponse, TRequest]) ToModel(data *TData) *TResponse {
 	if data == nil {
 		return nil
@@ -183,6 +199,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) ToModel(data *TData) *TR
 	return c.resource(data)
 }
 
+// ToModels converts a slice of data entities to their response representations.
 func (c *CollectionManager[TData, TResponse, TRequest]) ToModels(data []*TData) []*TResponse {
 	if data == nil {
 		return []*TResponse{}
@@ -196,6 +213,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) ToModels(data []*TData) 
 	return out
 }
 
+// Validate binds and validates request data from echo context.
 func (c *CollectionManager[TData, TResponse, TRequest]) Validate(ctx echo.Context) (*TRequest, error) {
 	var req TRequest
 	if err := ctx.Bind(&req); err != nil {
@@ -207,7 +225,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) Validate(ctx echo.Contex
 	return &req, nil
 }
 
-// --- Pagination and Filtering ---
+// Pagination applies pagination to a dataset and returns paginated results.
 func (c *CollectionManager[TData, TResponse, TRequest]) Pagination(
 	ctx context.Context,
 	param echo.Context,
@@ -246,6 +264,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) Pagination(
 	}
 }
 
+// Filtered applies filtering and sorting to a dataset.
 func (c *CollectionManager[TData, TResponse, TRequest]) Filtered(ctx context.Context, param echo.Context, data []*TData) []*TResponse {
 	batchSize := 10_0000
 	maxWorkers := runtime.NumCPU()
@@ -256,8 +275,9 @@ func (c *CollectionManager[TData, TResponse, TRequest]) Filtered(ctx context.Con
 	return c.ToModels(filtered)
 }
 
+// FindOneWithFilters finds a single entity matching the provided filters.
 func (c *CollectionManager[TData, TResponse, TRequest]) FindOneWithFilters(
-	ctx context.Context, filters []Filter, preloads ...string,
+	_ context.Context, filters []Filter, preloads ...string,
 ) (*TData, error) {
 	var entity *TData
 	db := c.service.Database.Client().Model(new(TData))
@@ -301,8 +321,9 @@ func (c *CollectionManager[TData, TResponse, TRequest]) FindOneWithFilters(
 	return entity, nil
 }
 
+// FindWithFilters finds entities matching the provided filters.
 func (c *CollectionManager[TData, TResponse, TRequest]) FindWithFilters(
-	ctx context.Context,
+	_ context.Context,
 	filters []Filter,
 	preloads ...string,
 ) ([]*TData, error) {
@@ -348,9 +369,9 @@ func (c *CollectionManager[TData, TResponse, TRequest]) FindWithFilters(
 	return entities, nil
 }
 
-// --- Data Retrieval Methods ---
+// List retrieves all entities with optional preloads.
 func (c *CollectionManager[TData, TResponse, TRequest]) List(
-	ctx context.Context,
+	_ context.Context,
 	preloads ...string,
 ) ([]*TData, error) {
 	var entities []*TData
@@ -367,6 +388,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) List(
 	return entities, nil
 }
 
+// ListRaw retrieves all entities and converts them to response models.
 func (c *CollectionManager[TData, TResponse, TRequest]) ListRaw(
 	ctx context.Context,
 	preloads ...string,
@@ -378,8 +400,9 @@ func (c *CollectionManager[TData, TResponse, TRequest]) ListRaw(
 	return c.ToModels(entities), nil
 }
 
+// GetByID retrieves an entity by its ID with optional preloads.
 func (c *CollectionManager[TData, TResponse, TRequest]) GetByID(
-	ctx context.Context,
+	_ context.Context,
 	id uuid.UUID,
 	preloads ...string,
 ) (*TData, error) {
@@ -400,6 +423,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) GetByID(
 	return &entity, nil
 }
 
+// GetByIDRaw retrieves an entity by ID and converts it to response model.
 func (c *CollectionManager[TData, TResponse, TRequest]) GetByIDRaw(
 	ctx context.Context,
 	id uuid.UUID,
@@ -412,8 +436,9 @@ func (c *CollectionManager[TData, TResponse, TRequest]) GetByIDRaw(
 	return c.ToModel(entity), nil
 }
 
+// Find retrieves entities matching the provided fields with optional preloads.
 func (c *CollectionManager[TData, TResponse, TRequest]) Find(
-	ctx context.Context,
+	_ context.Context,
 	fields *TData,
 	preloads ...string,
 ) ([]*TData, error) {
@@ -431,6 +456,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) Find(
 	return entities, nil
 }
 
+// FindRaw retrieves entities matching fields and converts them to response models.
 func (c *CollectionManager[TData, TResponse, TRequest]) FindRaw(
 	ctx context.Context,
 	fields *TData,
@@ -443,8 +469,9 @@ func (c *CollectionManager[TData, TResponse, TRequest]) FindRaw(
 	return c.ToModels(entities), nil
 }
 
+// FindOne retrieves a single entity matching the provided fields with optional preloads.
 func (c *CollectionManager[TData, TResponse, TRequest]) FindOne(
-	ctx context.Context,
+	_ context.Context,
 	fields *TData,
 	preloads ...string,
 ) (*TData, error) {
@@ -465,6 +492,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) FindOne(
 	return &entity, nil
 }
 
+// FindOneRaw retrieves a single entity matching fields and converts it to response model.
 func (c *CollectionManager[TData, TResponse, TRequest]) FindOneRaw(
 	ctx context.Context,
 	fields *TData,
@@ -477,8 +505,9 @@ func (c *CollectionManager[TData, TResponse, TRequest]) FindOneRaw(
 	return c.ToModel(entity), nil
 }
 
+// FindWithConditions retrieves entities matching the provided conditions with optional preloads.
 func (c *CollectionManager[TData, TResponse, TRequest]) FindWithConditions(
-	ctx context.Context,
+	_ context.Context,
 	conditions map[string]any,
 	preloads ...string,
 ) ([]*TData, error) {
@@ -500,8 +529,9 @@ func (c *CollectionManager[TData, TResponse, TRequest]) FindWithConditions(
 	return entities, nil
 }
 
+// FindOneWithConditions retrieves a single entity matching the provided conditions with optional preloads.
 func (c *CollectionManager[TData, TResponse, TRequest]) FindOneWithConditions(
-	ctx context.Context,
+	_ context.Context,
 	conditions map[string]any,
 	preloads ...string,
 ) (*TData, error) {
@@ -526,9 +556,9 @@ func (c *CollectionManager[TData, TResponse, TRequest]) FindOneWithConditions(
 	return &entity, nil
 }
 
-// --- Aggregation Methods ---
+// Count returns the number of entities matching the provided fields.
 func (c *CollectionManager[TData, TResponse, TRequest]) Count(
-	ctx context.Context,
+	_ context.Context,
 	fields *TData,
 ) (int64, error) {
 	var count int64
@@ -538,8 +568,9 @@ func (c *CollectionManager[TData, TResponse, TRequest]) Count(
 	return count, nil
 }
 
+// CountWithTx returns the number of entities matching fields within a transaction.
 func (c *CollectionManager[TData, TResponse, TRequest]) CountWithTx(
-	ctx context.Context,
+	_ context.Context,
 	tx *gorm.DB,
 	fields *TData,
 ) (int64, error) {
@@ -550,7 +581,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) CountWithTx(
 	return count, nil
 }
 
-// --- CRUD Operations ---
+// Create inserts a new entity into the database with optional preloads.
 func (c *CollectionManager[TData, TResponse, TRequest]) Create(
 	ctx context.Context,
 	entity *TData,
@@ -568,6 +599,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) Create(
 	return nil
 }
 
+// CreateWithTx inserts a new entity within a database transaction.
 func (c *CollectionManager[TData, TResponse, TRequest]) CreateWithTx(
 	ctx context.Context,
 	tx *gorm.DB,
@@ -586,8 +618,9 @@ func (c *CollectionManager[TData, TResponse, TRequest]) CreateWithTx(
 	return nil
 }
 
+// CreateMany inserts multiple entities into the database.
 func (c *CollectionManager[TData, TResponse, TRequest]) CreateMany(
-	ctx context.Context,
+	_ context.Context,
 	entities []*TData,
 	preloads ...string,
 ) error {
@@ -599,8 +632,9 @@ func (c *CollectionManager[TData, TResponse, TRequest]) CreateMany(
 	return c.reloadManyWithPreloads(entities, preloads)
 }
 
+// CreateManyWithTx inserts multiple entities within a database transaction.
 func (c *CollectionManager[TData, TResponse, TRequest]) CreateManyWithTx(
-	ctx context.Context,
+	_ context.Context,
 	tx *gorm.DB,
 	entities []*TData,
 	preloads ...string,
@@ -613,6 +647,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) CreateManyWithTx(
 	return c.reloadManyWithPreloadsTx(tx, entities, preloads)
 }
 
+// Update modifies an existing entity in the database with optional preloads.
 func (c *CollectionManager[TData, TResponse, TRequest]) Update(
 	ctx context.Context,
 	entity *TData,
@@ -630,6 +665,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) Update(
 	return nil
 }
 
+// UpdateWithTx modifies an existing entity within a database transaction.
 func (c *CollectionManager[TData, TResponse, TRequest]) UpdateWithTx(
 	ctx context.Context,
 	tx *gorm.DB,
@@ -648,6 +684,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) UpdateWithTx(
 	return nil
 }
 
+// UpdateByID modifies an entity by its ID with optional preloads.
 func (c *CollectionManager[TData, TResponse, TRequest]) UpdateByID(
 	ctx context.Context,
 	id uuid.UUID,
@@ -660,6 +697,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) UpdateByID(
 	return c.Update(ctx, entity, preloads...)
 }
 
+// UpdateByIDWithTx modifies an entity by ID within a database transaction.
 func (c *CollectionManager[TData, TResponse, TRequest]) UpdateByIDWithTx(
 	ctx context.Context,
 	tx *gorm.DB,
@@ -673,6 +711,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) UpdateByIDWithTx(
 	return c.UpdateWithTx(ctx, tx, entity, preloads...)
 }
 
+// UpdateFields modifies specific fields of an entity by its ID.
 func (c *CollectionManager[TData, TResponse, TRequest]) UpdateFields(
 	ctx context.Context,
 	id uuid.UUID,
@@ -710,6 +749,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) UpdateFields(
 	return nil
 }
 
+// UpdateFieldsWithTx modifies specific fields of an entity by ID within a transaction.
 func (c *CollectionManager[TData, TResponse, TRequest]) UpdateFieldsWithTx(
 	ctx context.Context,
 	tx *gorm.DB,
@@ -748,6 +788,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) UpdateFieldsWithTx(
 	return nil
 }
 
+// UpdateMany modifies multiple entities in the database.
 func (c *CollectionManager[TData, TResponse, TRequest]) UpdateMany(
 	ctx context.Context,
 	entities []*TData,
@@ -761,6 +802,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) UpdateMany(
 	return nil
 }
 
+// UpdateManyWithTx modifies multiple entities within a database transaction.
 func (c *CollectionManager[TData, TResponse, TRequest]) UpdateManyWithTx(
 	ctx context.Context,
 	tx *gorm.DB,
@@ -775,6 +817,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) UpdateManyWithTx(
 	return nil
 }
 
+// Delete removes an entity from the database.
 func (c *CollectionManager[TData, TResponse, TRequest]) Delete(
 	ctx context.Context,
 	entity *TData,
@@ -786,6 +829,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) Delete(
 	return nil
 }
 
+// DeleteWithTx removes an entity within a database transaction.
 func (c *CollectionManager[TData, TResponse, TRequest]) DeleteWithTx(
 	ctx context.Context,
 	tx *gorm.DB,
@@ -798,6 +842,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) DeleteWithTx(
 	return nil
 }
 
+// DeleteByID removes an entity by its ID from the database.
 func (c *CollectionManager[TData, TResponse, TRequest]) DeleteByID(
 	ctx context.Context,
 	id uuid.UUID,
@@ -809,6 +854,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) DeleteByID(
 	return c.Delete(ctx, entity)
 }
 
+// DeleteByIDWithTx removes an entity by ID within a database transaction.
 func (c *CollectionManager[TData, TResponse, TRequest]) DeleteByIDWithTx(
 	ctx context.Context,
 	tx *gorm.DB,
@@ -821,6 +867,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) DeleteByIDWithTx(
 	return c.DeleteWithTx(ctx, tx, entity)
 }
 
+// DeleteMany removes multiple entities from the database.
 func (c *CollectionManager[TData, TResponse, TRequest]) DeleteMany(
 	ctx context.Context,
 	entities []*TData,
@@ -833,6 +880,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) DeleteMany(
 	return nil
 }
 
+// DeleteManyWithTx removes multiple entities within a database transaction.
 func (c *CollectionManager[TData, TResponse, TRequest]) DeleteManyWithTx(
 	ctx context.Context,
 	tx *gorm.DB,
@@ -846,6 +894,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) DeleteManyWithTx(
 	return nil
 }
 
+// Upsert creates or updates an entity based on its existence.
 func (c *CollectionManager[TData, TResponse, TRequest]) Upsert(
 	ctx context.Context,
 	entity *TData,
@@ -872,6 +921,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) Upsert(
 	return c.Update(ctx, entity, preloads...)
 }
 
+// UpsertWithTx creates or updates an entity within a database transaction.
 func (c *CollectionManager[TData, TResponse, TRequest]) UpsertWithTx(
 	ctx context.Context,
 	tx *gorm.DB,
@@ -899,6 +949,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) UpsertWithTx(
 	return c.UpdateWithTx(ctx, tx, entity, preloads...)
 }
 
+// UpsertMany creates or updates multiple entities based on their existence.
 func (c *CollectionManager[TData, TResponse, TRequest]) UpsertMany(
 	ctx context.Context,
 	entities []*TData,
@@ -912,6 +963,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) UpsertMany(
 	return nil
 }
 
+// UpsertManyWithTx creates or updates multiple entities within a database transaction.
 func (c *CollectionManager[TData, TResponse, TRequest]) UpsertManyWithTx(
 	ctx context.Context,
 	tx *gorm.DB,
@@ -1075,6 +1127,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) reloadManyWithPreloadsTx
 	return nil
 }
 
+// CreatedBroadcast publishes a creation event for the entity.
 func (c *CollectionManager[TData, TResponse, TRequest]) CreatedBroadcast(
 	ctx context.Context,
 	entity *TData,
@@ -1090,6 +1143,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) CreatedBroadcast(
 	}()
 }
 
+// UpdatedBroadcast publishes an update event for the entity.
 func (c *CollectionManager[TData, TResponse, TRequest]) UpdatedBroadcast(
 	ctx context.Context,
 	entity *TData,
@@ -1105,6 +1159,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) UpdatedBroadcast(
 	}()
 }
 
+// DeletedBroadcast publishes a deletion event for the entity.
 func (c *CollectionManager[TData, TResponse, TRequest]) DeletedBroadcast(
 	ctx context.Context,
 	entity *TData,
