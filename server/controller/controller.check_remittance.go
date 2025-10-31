@@ -4,14 +4,14 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/labstack/echo/v4"
 )
 
 // CheckRemittanceController manages endpoints for check remittance operations within the current transaction batch.
-func (c *Controller) checkRemittanceController(
+func (c *Controller) checkRemittanceController() {
 	req := c.provider.Service.Request
 
 	// GET /check-remittance: List all check remittances for the active transaction batch. (NO footstep)

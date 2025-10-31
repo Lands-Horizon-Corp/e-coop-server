@@ -5,15 +5,15 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
 // ComputationSheetController registers routes for managing computation sheets.
-func (c *Controller) computationSheetController(
+func (c *Controller) computationSheetController() {
 	req := c.provider.Service.Request
 
 	// POST /computation-sheet/:computation_sheet_id/calculator: Returns sample calculation data.

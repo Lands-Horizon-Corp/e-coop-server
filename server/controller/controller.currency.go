@@ -5,15 +5,15 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/service"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
-func (c *Controller) currencyController(
+func (c *Controller) currencyController() {
 	req := c.provider.Service.Request
 
 	// Get all currencies
@@ -387,7 +387,7 @@ func (c *Controller) currencyController(
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/currency/exchange-rate/:currency_from_id/:currency_to_id/:amount",
 		Method:       "POST",
-		ResponseType: service.ExchangeResult{},
+		ResponseType: usecase.ExchangeResult{},
 		Note:         "Computes exchange rate between two currencies for a given amount.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

@@ -5,15 +5,15 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
 // CashCheckVoucherTagController registers routes for managing cash check voucher tags.
-func (c *Controller) cashCheckVoucherTagController(
+func (c *Controller) cashCheckVoucherTagController() {
 	req := c.provider.Service.Request
 
 	// GET /cash-check-voucher-tag: List all cash check voucher tags for the current user's branch. (NO footstep)

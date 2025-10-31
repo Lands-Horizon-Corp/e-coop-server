@@ -4,14 +4,14 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/labstack/echo/v4"
 )
 
 // FootstepController manages endpoints related to footstep records.
-func (c *Controller) footstepController(
+func (c *Controller) footstepController() {
 	req := c.provider.Service.Request
 
 	// POST /footstep: Create a new footstep. (WITH footstep)

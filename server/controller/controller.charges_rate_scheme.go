@@ -5,15 +5,15 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
 // ChargesRateSchemeController registers routes for managing charges rate schemes.
-func (c *Controller) chargesRateSchemeController(
+func (c *Controller) chargesRateSchemeController() {
 	req := c.provider.Service.Request
 
 	// GET /charges-rate-scheme: Paginated list of charges rate schemes for the current branch. (NO footstep)
