@@ -299,11 +299,11 @@ func (c *Controller) authenticationController() {
 		if err != nil || userID == nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Reset link is invalid or expired"})
 		}
-		userID, err := uuid.Parse(string(userID))
+		parsedUserID, err := uuid.Parse(string(userID))
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user ID: " + err.Error()})
 		}
-		_, err = c.modelcore.UserManager.GetByID(context, userID)
+		_, err = c.modelcore.UserManager.GetByID(context, parsedUserID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User not found for reset token: " + err.Error()})
 		}
@@ -342,11 +342,11 @@ func (c *Controller) authenticationController() {
 		if err != nil || userID == nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Reset link is invalid or expired"})
 		}
-		userID, err := uuid.Parse(string(userID))
+		parsedUserID, err := uuid.Parse(string(userID))
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user ID: " + err.Error()})
 		}
-		user, err := c.modelcore.UserManager.GetByID(context, userID)
+		user, err := c.modelcore.UserManager.GetByID(context, parsedUserID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User not found for reset token: " + err.Error()})
 		}
