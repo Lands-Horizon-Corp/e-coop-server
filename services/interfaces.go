@@ -1,3 +1,10 @@
+// Package services defines service-layer configuration interfaces and types used
+// across the application. These types describe configuration for external
+// services (storage, SMTP, cache, broker, etc.) and are intentionally
+// lightweight so they can be populated from environment variables or
+// configuration files. Keeping these contracts centralized makes it easier to
+// mock or replace concrete service implementations in tests and different
+// deployment environments.
 package services
 
 import (
