@@ -43,8 +43,8 @@ type SMTPService interface {
 	Send(ctx context.Context, req SMTPRequest) error
 }
 
-// HorizonSMTP provides an implementation of SMTPService.
-type HorizonSMTP struct {
+// SMTP provides an implementation of SMTPService.
+type SMTP struct {
 	host     string
 	port     int
 	username string
@@ -55,9 +55,9 @@ type HorizonSMTP struct {
 	limiter     *rate.Limiter
 }
 
-// NewHorizonSMTP constructs a new HorizonSMTP client
-func NewHorizonSMTP(host string, port int, username, password string, from string) SMTPService {
-	return &HorizonSMTP{
+// NewSMTP constructs a new SMTP client
+func NewSMTP(host string, port int, username, password string, from string) SMTPService {
+	return &SMTP{
 		host:     host,
 		port:     port,
 		username: username,
@@ -67,7 +67,7 @@ func NewHorizonSMTP(host string, port int, username, password string, from strin
 }
 
 // Run implements SMTPService.
-func (h *HorizonSMTP) Run(_ context.Context) error {
+func (h *SMTP) Run(_ context.Context) error {
 	h.limiterOnce.Do(func() {
 		h.limiter = rate.NewLimiter(rate.Limit(1000), 100) // 10 rps, burst 5
 	})
@@ -75,13 +75,13 @@ func (h *HorizonSMTP) Run(_ context.Context) error {
 }
 
 // Stop implements SMTPService.
-func (h *HorizonSMTP) Stop(_ context.Context) error {
+func (h *SMTP) Stop(_ context.Context) error {
 	h.limiter = nil
 	return nil
 }
 
 // Format implements SMTPService.
-func (h *HorizonSMTP) Format(_ context.Context, req SMTPRequest) (*SMTPRequest, error) {
+func (h *SMTP) Format(_ context.Context, req SMTPRequest) (*SMTPRequest, error) {
 	var tmplBody string
 
 	if err := handlers.IsValidFilePath(req.Body); err == nil {
@@ -107,7 +107,7 @@ func (h *HorizonSMTP) Format(_ context.Context, req SMTPRequest) (*SMTPRequest, 
 }
 
 // Send implements SMTPService.
-func (h *HorizonSMTP) Send(ctx context.Context, req SMTPRequest) error {
+func (h *SMTP) Send(ctx context.Context, req SMTPRequest) error {
 	if !handlers.IsValidEmail(req.To) {
 		return eris.New("Recipient email format is invalid")
 	}

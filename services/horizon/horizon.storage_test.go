@@ -12,7 +12,7 @@ import (
 )
 
 // go test -v ./services/horizon/storage_test.go
-func TestHorizonStorage_UploadFromBinary(t *testing.T) {
+func TestStorageImpl_UploadFromBinary(t *testing.T) {
 	ctx := context.Background()
 	hs := createTestService(t)
 
@@ -30,7 +30,7 @@ func TestHorizonStorage_UploadFromBinary(t *testing.T) {
 	// actualContent := hs.DownloadFile(storage.URL) // Replace with real download function
 	// require.Equal(t, string(content), string(actualContent))
 }
-func TestHorizonStorage_UploadFromPath(t *testing.T) {
+func TestStorageImpl_UploadFromPath(t *testing.T) {
 	ctx := context.Background()
 	hs := createTestService(t)
 
@@ -57,7 +57,7 @@ func TestHorizonStorage_UploadFromPath(t *testing.T) {
 
 }
 
-func TestHorizonStorage_GeneratePresignedURL(t *testing.T) {
+func TestStorageImpl_GeneratePresignedURL(t *testing.T) {
 	env := NewEnvironmentService("../../.env")
 
 	testBucket := env.GetString("STORAGE_BUCKET", "cooperatives-development")
@@ -77,7 +77,7 @@ func TestHorizonStorage_GeneratePresignedURL(t *testing.T) {
 	require.Contains(t, url, storage.StorageKey)
 }
 
-func TestHorizonStorage_DeleteFile(t *testing.T) {
+func TestStorageImpl_DeleteFile(t *testing.T) {
 	ctx := context.Background()
 	hs := createTestService(t)
 
@@ -96,7 +96,7 @@ func TestHorizonStorage_DeleteFile(t *testing.T) {
 	require.Contains(t, err.Error(), "failed to generate presigned URL")
 }
 
-func TestHorizonStorage_GenerateUniqueName(t *testing.T) {
+func TestStorageImpl_GenerateUniqueName(t *testing.T) {
 	ctx := context.Background()
 	hs := createTestService(t)
 
@@ -116,7 +116,7 @@ func TestHorizonStorage_GenerateUniqueName(t *testing.T) {
 	require.True(t, strings.HasSuffix(name2, ".txt"))
 }
 
-func TestHorizonStorage_GenerateUniqueNameWithoutExtension(t *testing.T) {
+func TestStorageImpl_GenerateUniqueNameWithoutExtension(t *testing.T) {
 	ctx := context.Background()
 	hs := createTestService(t)
 
@@ -131,7 +131,7 @@ func TestHorizonStorage_GenerateUniqueNameWithoutExtension(t *testing.T) {
 	require.True(t, strings.HasSuffix(name, ".jpg"))
 }
 
-func TestHorizonStorage_GenerateUniqueNameEmptyContentType(t *testing.T) {
+func TestStorageImpl_GenerateUniqueNameEmptyContentType(t *testing.T) {
 	ctx := context.Background()
 	hs := createTestService(t)
 
@@ -147,7 +147,7 @@ func TestHorizonStorage_GenerateUniqueNameEmptyContentType(t *testing.T) {
 	require.False(t, strings.Contains(name, "."))
 }
 
-func createTestService(t *testing.T) *HorizonStorage {
+func createTestService(t *testing.T) *StorageImpl {
 
 	env := NewEnvironmentService("../../.env")
 
@@ -163,7 +163,7 @@ func createTestService(t *testing.T) *HorizonStorage {
 		t.Fatal("Missing required environment variables for B2 testing")
 	}
 
-	hs := NewHorizonStorageService(
+	hs := NewStorageImplService(
 		accessKey,
 		secretKey,
 		endpoint,
@@ -172,7 +172,7 @@ func createTestService(t *testing.T) *HorizonStorage {
 		driver,
 		1024*1024*10,
 		isStaging,
-	).(*HorizonStorage)
+	).(*StorageImpl)
 
 	ctx := context.Background()
 	err := hs.Run(ctx)

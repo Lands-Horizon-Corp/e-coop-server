@@ -20,7 +20,7 @@ func TestHorizonSMTP_Run_Stop(t *testing.T) {
 	password := env.GetString("SMTP_PASSWORD", "")
 	from := env.GetString("SMTP_FROM", "")
 
-	smtp := NewHorizonSMTP(host, port, username, password, from)
+	smtp := NewSMTP(host, port, username, password, from)
 	ctx := context.Background()
 
 	require.NoError(t, smtp.Run(ctx))
@@ -37,7 +37,7 @@ func TestHorizonSMTP_Format_WithTemplateString(t *testing.T) {
 	from := env.GetString("SMTP_FROM", "")
 	reciever := env.GetString("SMTP_TEST_RECIEVER", "")
 
-	smtp := NewHorizonSMTP(host, port, username, password, from)
+	smtp := NewSMTP(host, port, username, password, from)
 	ctx := context.Background()
 
 	req := SMTPRequest{
@@ -67,7 +67,7 @@ func TestHorizonSMTP_Format_WithTemplateFile(t *testing.T) {
 	err := os.WriteFile(file, []byte(content), 0600)
 	require.NoError(t, err)
 	defer func() { _ = os.Remove(file) }()
-	smtp := NewHorizonSMTP(host, port, username, password, from)
+	smtp := NewSMTP(host, port, username, password, from)
 	ctx := context.Background()
 
 	req := SMTPRequest{
@@ -91,7 +91,7 @@ func TestHorizonSMTP_Send_InvalidEmail(t *testing.T) {
 	password := env.GetString("SMTP_PASSWORD", "")
 	from := env.GetString("SMTP_FROM", "")
 
-	smtp := NewHorizonSMTP(host, port, username, password, from)
+	smtp := NewSMTP(host, port, username, password, from)
 	ctx := context.Background()
 	_ = smtp.Run(ctx)
 

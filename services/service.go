@@ -129,7 +129,7 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 	}
 
 	if cfg.StorageConfig != nil {
-		service.Storage = horizon.NewHorizonStorageService(
+		service.Storage = horizon.NewStorageImplService(
 			cfg.StorageConfig.AccessKey,
 			cfg.StorageConfig.SecretKey,
 			cfg.StorageConfig.Endpoint,
@@ -140,7 +140,7 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 			isStaging,
 		)
 	} else {
-		service.Storage = horizon.NewHorizonStorageService(
+		service.Storage = horizon.NewStorageImplService(
 			service.Environment.GetString("STORAGE_ACCESS_KEY", ""),
 			service.Environment.GetString("STORAGE_SECRET_KEY", ""),
 			service.Environment.GetString("STORAGE_URL", ""),
@@ -213,7 +213,7 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 		)
 	}
 	if cfg.SMTPServiceConfig != nil {
-		service.SMTP = horizon.NewHorizonSMTP(
+		service.SMTP = horizon.NewSMTP(
 			cfg.SMTPServiceConfig.Host,
 			cfg.SMTPServiceConfig.Port,
 			cfg.SMTPServiceConfig.Username,
@@ -221,7 +221,7 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 			cfg.SMTPServiceConfig.From,
 		)
 	} else {
-		service.SMTP = horizon.NewHorizonSMTP(
+		service.SMTP = horizon.NewSMTP(
 			service.Environment.GetString("SMTP_HOST", "127.0.0.1"),
 			service.Environment.GetInt("SMTP_PORT", 1025),
 			service.Environment.GetString("SMTP_USERNAME", ""),
