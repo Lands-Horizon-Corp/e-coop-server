@@ -13,8 +13,9 @@ import (
 
 const maxBlockedAttempts = 25
 
-// Helper to check and update error count/block for an IP
-// HandleIPBlocker returns a blocker function and checks if already blocked
+// HandleIPBlocker checks the requestor IP for an existing block and
+// returns a block function, a boolean indicating whether the IP is
+// already blocked, and an error if the check failed.
 func (e *Event) HandleIPBlocker(context context.Context, ctx echo.Context) (blockFn func(reason string), isBlocked bool, err error) {
 	realIP := ctx.RealIP()
 	cache := e.provider.Service.Cache

@@ -12,11 +12,14 @@ import (
 	"gorm.io/gorm"
 )
 
+// LoanBalanceEvent contains identifiers required to balance a loan payment.
 type LoanBalanceEvent struct {
 	CashOnCashEquivalenceAccountID uuid.UUID
 	LoanTransactionID              uuid.UUID
 }
 
+// LoanBalancing computes and persists loan transaction entries to ensure
+// the loan is correctly balanced after a payment.
 func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gorm.DB, data LoanBalanceEvent) (*modelcore.LoanTransaction, error) {
 
 	// ================================================================================
@@ -467,6 +470,8 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	return newLoanTransaction, nil
 }
 
+// LoanRelease performs the necessary checks and commits to release a loan
+// and returns the updated LoanTransaction.
 func (e *Event) LoanRelease(ctx context.Context, echoCtx echo.Context, tx *gorm.DB, data LoanBalanceEvent) (*modelcore.LoanTransaction, error) {
 	// eneralLedger, err := c.event.TransactionPayment(context, ctx, tx, event.TransactionEvent{
 	// 		// Will be filled by transaction

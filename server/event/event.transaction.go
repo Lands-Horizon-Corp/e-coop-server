@@ -15,6 +15,8 @@ import (
 	"gorm.io/gorm"
 )
 
+// TransactionEvent represents a payment or withdrawal operation's payload
+// used by the event-based transaction processing routines.
 type TransactionEvent struct {
 	Amount               float64    `json:"amount" validate:"required"`
 	AccountID            *uuid.UUID `json:"account_id" validate:"required"`
@@ -37,6 +39,9 @@ type TransactionEvent struct {
 	Reverse             bool   `json:"reverse"`
 }
 
+// TransactionPayment processes a transaction event (deposit/withdrawal)
+// and creates the corresponding general ledger entries. It returns the
+// created GeneralLedger record or an error.
 func (e *Event) TransactionPayment(
 
 	ctx context.Context,

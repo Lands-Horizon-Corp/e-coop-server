@@ -10,12 +10,14 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// FootstepEvent represents a single user activity log entry.
 type FootstepEvent struct {
 	Description string
 	Activity    string
 	Module      string
 }
 
+// Footstep records a footstep (activity) for the current user asynchronously.
 func (e *Event) Footstep(context context.Context, ctx echo.Context, data FootstepEvent) {
 
 	go func() {

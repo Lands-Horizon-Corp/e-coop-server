@@ -7,6 +7,9 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
 )
 
+// Event holds references required by event handlers.
+//
+// It wires model managers, tokens and services used by event handlers.
 type Event struct {
 	modelcore             *modelcore.ModelCore
 	userOrganizationToken *tokens.UserOrganizationToken
@@ -15,6 +18,8 @@ type Event struct {
 	usecase               *usecase.TransactionService
 }
 
+// NewEvent constructs a new Event instance wiring domain services used
+// by the package's event handlers.
 func NewEvent(
 	modelcore *modelcore.ModelCore,
 	userOrganizationToken *tokens.UserOrganizationToken,

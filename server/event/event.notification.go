@@ -9,13 +9,15 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// NotificationEvent represents data required to create a notification.
 type NotificationEvent struct {
 	Title            string
 	Description      string
 	NotificationType string
 }
 
-// Only users with a valid CSRF token can trigger notifications
+// Notification creates a notification record asynchronously for the
+// current user based on the supplied data.
 func (e *Event) Notification(ctx context.Context, echoCtx echo.Context, data NotificationEvent) {
 
 	go func() {
