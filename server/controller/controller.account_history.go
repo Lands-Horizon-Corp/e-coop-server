@@ -3,12 +3,12 @@ package v1
 import (
 	"net/http"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/labstack/echo/v4"
 )
 
-func (c *Controller) accountHistory(
+func (c *Controller) accountHistory() {
 	req := c.provider.Service.Request
 
 	// GET api/v1/account-history/account/:account_id

@@ -4,14 +4,14 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/labstack/echo/v4"
 )
 
 // BatchFundingController handles creation and retrieval of batch funding records with proper error handling and authorization checks.
-func (c *Controller) batchFundingController(
+func (c *Controller) batchFundingController() {
 	req := c.provider.Service.Request
 
 	// POST /batch-funding: Create a new batch funding for the current open transaction batch.

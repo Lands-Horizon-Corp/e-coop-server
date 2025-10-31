@@ -5,16 +5,16 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/tokens"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/tokens"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
-func (c *Controller) authenticationController(
+func (c *Controller) authenticationController() {
 	req := c.provider.Service.Request
 	// Returns the current authenticated user and their user organization, if any.
 	req.RegisterRoute(handlers.Route{

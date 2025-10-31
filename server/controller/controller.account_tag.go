@@ -5,15 +5,15 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
 // AccountTagController handles routes for managing account tags.
-func (c *Controller) accountTagController(
+func (c *Controller) accountTagController() {
 	req := c.provider.Service.Request
 
 	// GET /account-tag - List current branch's account tags for the authenticated user.

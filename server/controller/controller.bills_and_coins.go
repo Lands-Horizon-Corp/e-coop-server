@@ -5,15 +5,15 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
 // BillAndCoinsController handles endpoints for managing bills and coins.
-func (c *Controller) billAndCoinsController(
+func (c *Controller) billAndCoinsController() {
 	req := c.provider.Service.Request
 
 	// GET /bills-and-coins: List all bills and coins for the current user's branch. (NO footstep)

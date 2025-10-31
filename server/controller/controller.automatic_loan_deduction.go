@@ -5,15 +5,15 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
 // AutomaticLoanDeductionController registers routes for managing automatic loan deductions.
-func (c *Controller) automaticLoanDeductionController(
+func (c *Controller) automaticLoanDeductionController() {
 	req := c.provider.Service.Request
 
 	// GET /automatic-loan-deduction/computation-sheet/:computation_sheet_id/search
