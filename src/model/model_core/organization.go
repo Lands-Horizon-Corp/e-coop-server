@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// Organization represents a cooperative organization in the system
 	Organization struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`

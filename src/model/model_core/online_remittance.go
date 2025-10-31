@@ -169,9 +169,10 @@ func (m *ModelCore) OnlineRemittance() {
 	})
 }
 
-func (m *ModelCore) OnlineRemittanceCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*OnlineRemittance, error) {
+// OnlineRemittanceCurrentBranch retrieves all online remittances for the specified organization and branch
+func (m *ModelCore) OnlineRemittanceCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*OnlineRemittance, error) {
 	return m.OnlineRemittanceManager.Find(context, &OnlineRemittance{
-		OrganizationID: orgId,
-		BranchID:       branchId,
+		OrganizationID: orgID,
+		BranchID:       branchID,
 	})
 }
