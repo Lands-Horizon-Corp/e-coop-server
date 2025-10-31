@@ -254,15 +254,16 @@ func (t *TransactionService) LoanComputation(_ context.Context, ald modelcore.Au
 	}
 	// --- Percentage application ---
 	if ald.ChargesPercentage1 > 0 || ald.ChargesPercentage2 > 0 {
-		if ald.ChargesPercentage1 > 0 && ald.ChargesPercentage2 > 0 {
+		switch {
+		case ald.ChargesPercentage1 > 0 && ald.ChargesPercentage2 > 0:
 			if ald.AddOn {
 				result *= ald.ChargesPercentage2 / 100
 			} else {
 				result *= ald.ChargesPercentage1 / 100
 			}
-		} else if ald.ChargesPercentage1 > 0 {
+		case ald.ChargesPercentage1 > 0:
 			result *= ald.ChargesPercentage1 / 100
-		} else {
+		default:
 			result *= ald.ChargesPercentage2 / 100
 		}
 	}

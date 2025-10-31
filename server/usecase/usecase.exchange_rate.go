@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -23,8 +24,20 @@ type ExchangeResult struct {
 	FetchedAt time.Time `json:"fetched_at"`
 }
 
-func fetchJSON(url string) (map[string]any, error) {
-	resp, err := http.Get(url)
+func fetchJSON(rawURL string) (map[string]any, error) {
+	// Validate URL before making request to reduce risk flagged by gosec (G107)
+	parsed, err := url.ParseRequestURI(rawURL)
+	if err != nil {
+		return nil, fmt.Errorf("invalid url: %w", err)
+	}
+	if parsed.Scheme != "http" && parsed.Scheme != "https" {
+		return nil, fmt.Errorf("unsupported url scheme: %s", parsed.Scheme)
+	}
+	if parsed.Host == "" {
+		return nil, fmt.Errorf("invalid url host")
+	}
+
+	resp, err := http.Get(parsed.String())
 	if err != nil {
 		return nil, err
 	}

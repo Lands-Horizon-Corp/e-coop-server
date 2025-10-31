@@ -188,7 +188,8 @@ func findFieldRecursive(t reflect.Type, fieldName string, basePath []int) (cache
 }
 
 func handleFoundField(f reflect.StructField, parts []string, basePath []int, fieldIndex int) (cachedFieldInfo, bool) {
-	path := append(basePath, fieldIndex)
+	// Make a copy of basePath before appending to avoid aliasing the original slice
+	path := append(append([]int{}, basePath...), fieldIndex)
 	fieldType := f.Type
 	isPtr := false
 

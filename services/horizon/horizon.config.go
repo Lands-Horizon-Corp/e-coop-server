@@ -2,6 +2,7 @@ package horizon
 
 import (
 	"log"
+	"math"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
@@ -58,7 +59,11 @@ func NewEnvironmentService(path string) EnvironmentService {
 // GetInt16 retrieves an int16 value from environment variables.
 func (h HorizonEnvironmentService) GetInt16(key string, defaultValue int16) int16 {
 	viper.SetDefault(key, defaultValue)
-	return int16(viper.GetInt(key))
+	val := viper.GetInt(key)
+	if val < math.MinInt16 || val > math.MaxInt16 {
+		return defaultValue
+	}
+	return int16(val)
 }
 
 // GetByteSlice retrieves a byte slice value from environment variables.

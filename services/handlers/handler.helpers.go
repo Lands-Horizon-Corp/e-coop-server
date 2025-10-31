@@ -167,9 +167,9 @@ func IsZero[T comparable](v T) bool {
 
 // Network utilities ----------------------------------------------------------
 
-// GetFreePort finds available TCP port
+// GetFreePort finds available TCP port bound to localhost (avoids binding all interfaces)
 func GetFreePort() int {
-	l, err := net.Listen("tcp", ":0")
+	l, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		return 8123
 	}

@@ -527,11 +527,12 @@ func (c *Controller) paymentController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
 		amount := 0.0
-		if generalLedger.Credit > 0 {
+		switch {
+		case generalLedger.Credit > 0:
 			amount = generalLedger.Credit
-		} else if generalLedger.Debit > 0 {
+		case generalLedger.Debit > 0:
 			amount = -generalLedger.Debit
-		} else {
+		default:
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "General ledger entry is neither debit nor credit"})
 		}
 		newGeneralLedger, err := c.event.TransactionPayment(context, ctx, tx, event.TransactionEvent{
@@ -614,11 +615,12 @@ func (c *Controller) paymentController() {
 		for _, generalLedger := range generalLedgers {
 			// Calculate the amount to reverse
 			amount := 0.0
-			if generalLedger.Credit > 0 {
+			switch {
+			case generalLedger.Credit > 0:
 				amount = generalLedger.Credit
-			} else if generalLedger.Debit > 0 {
+			case generalLedger.Debit > 0:
 				amount = generalLedger.Debit
-			} else {
+			default:
 				continue
 			}
 			newGeneralLedger, err := c.event.TransactionPayment(context, ctx, tx, event.TransactionEvent{
