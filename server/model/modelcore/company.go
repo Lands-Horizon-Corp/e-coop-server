@@ -1516,15 +1516,237 @@ func (m *ModelCore) companySeed(context context.Context, tx *gorm.DB, userID uui
 		)
 
 	case "CZK": // Czech Republic
+		companies = append(companies,
+			&Company{
+				Name:        "ČEZ Group",
+				Description: "Leading energy company generating and distributing electricity and heat in the Czech Republic.",
+			},
+			&Company{
+				Name:        "Pražská plynárenská",
+				Description: "Major gas supplier providing natural gas distribution and energy services.",
+			},
+			&Company{
+				Name:        "Pražská vodohospodářská společnost (PVS)",
+				Description: "Company managing Prague’s water supply and sewage systems.",
+			},
+			&Company{
+				Name:        "O2 Czech Republic",
+				Description: "Telecommunication company providing mobile, internet, and broadband services.",
+			},
+			&Company{
+				Name:        "Veolia Česká republika",
+				Description: "Facilities management and environmental services company handling water, waste, and energy.",
+			},
+		)
+
 	case "HUF": // Hungary
+		companies = append(companies,
+			&Company{
+				Name:        "MVM Group",
+				Description: "Hungary’s main state-owned energy company supplying electricity and gas.",
+			},
+			&Company{
+				Name:        "Budapesti Elektromos Művek (ELMŰ)",
+				Description: "Electric utility company serving Budapest and surrounding regions.",
+			},
+			&Company{
+				Name:        "Budapest Waterworks (Fővárosi Vízművek)",
+				Description: "Provides potable water and wastewater services in Budapest.",
+			},
+			&Company{
+				Name:        "Magyar Telekom",
+				Description: "Hungary’s leading telecommunications provider offering internet, mobile, and TV services.",
+			},
+			&Company{
+				Name:        "B+N Referencia Zrt.",
+				Description: "Facilities management and cleaning services company operating nationwide.",
+			},
+		)
+
 	case "RUB": // Russia
+		companies = append(companies,
+			&Company{
+				Name:        "Gazprom",
+				Description: "Global energy giant supplying natural gas, electricity, and heat.",
+			},
+			&Company{
+				Name:        "Rosseti",
+				Description: "Russian power grid operator managing electricity transmission and distribution.",
+			},
+			&Company{
+				Name:        "Mosvodokanal",
+				Description: "Major water supply and wastewater management company in Moscow.",
+			},
+			&Company{
+				Name:        "Rostelecom",
+				Description: "National telecommunications provider offering internet, mobile, and digital services.",
+			},
+			&Company{
+				Name:        "ISS Facility Services Russia",
+				Description: "Facilities management company providing cleaning, maintenance, and energy services.",
+			},
+		)
+
 	case "EUR-HR": // Croatia (Euro)
+		companies = append(companies,
+			&Company{
+				Name:        "HEP Group (Hrvatska elektroprivreda)",
+				Description: "National energy company providing electricity generation, distribution, and gas supply.",
+			},
+			&Company{
+				Name:        "Hrvatske vode",
+				Description: "Manages water resources, flood protection, and water supply infrastructure across Croatia.",
+			},
+			&Company{
+				Name:        "Hrvatski Telekom",
+				Description: "Leading telecommunications and internet service provider in Croatia.",
+			},
+			&Company{
+				Name:        "Zagrebački Holding d.o.o.",
+				Description: "Municipal services company managing waste, water, transport, and maintenance services in Zagreb.",
+			},
+		)
+
 	case "BRL": // Brazil
+		companies = append(companies,
+			&Company{
+				Name:        "Eletrobras",
+				Description: "Brazil’s largest power utility company responsible for electricity generation and transmission.",
+			},
+			&Company{
+				Name:        "Sabesp",
+				Description: "Provides water supply and sewage treatment in São Paulo and nearby areas.",
+			},
+			&Company{
+				Name:        "Petrobras",
+				Description: "Integrated energy company dealing in oil, gas, and fuel distribution.",
+			},
+			&Company{
+				Name:        "Vivo (Telefônica Brasil)",
+				Description: "Telecom company providing mobile, internet, and TV services nationwide.",
+			},
+			&Company{
+				Name:        "Grupo Enel Brasil",
+				Description: "Operates electricity distribution, generation, and maintenance services across multiple states.",
+			},
+		)
+
 	case "MXN": // Mexico
+		companies = append(companies,
+			&Company{
+				Name:        "Comisión Federal de Electricidad (CFE)",
+				Description: "Government-owned utility responsible for electricity generation and distribution.",
+			},
+			&Company{
+				Name:        "Pemex",
+				Description: "National oil and gas company supplying fuel and energy products.",
+			},
+			&Company{
+				Name:        "Agua de México",
+				Description: "Water supply and wastewater services provider across multiple municipalities.",
+			},
+			&Company{
+				Name:        "Telmex",
+				Description: "Mexico’s largest internet and telecommunications service provider.",
+			},
+			&Company{
+				Name:        "ISS Facility Services México",
+				Description: "Facilities management firm offering maintenance, cleaning, and building services.",
+			},
+		)
+
 	case "ARS": // Argentina
+		companies = append(companies,
+			&Company{
+				Name:        "Edesur",
+				Description: "Electricity distribution company serving Buenos Aires and surrounding areas.",
+			},
+			&Company{
+				Name:        "AySA (Agua y Saneamientos Argentinos)",
+				Description: "Public company providing water and sanitation services in Greater Buenos Aires.",
+			},
+			&Company{
+				Name:        "Metrogas",
+				Description: "Main natural gas distributor in Buenos Aires.",
+			},
+			&Company{
+				Name:        "Telecom Argentina",
+				Description: "Telecommunications provider offering mobile, internet, and cable services.",
+			},
+			&Company{
+				Name:        "Grupo Roggio",
+				Description: "Infrastructure and services firm providing maintenance, transport, and utilities management.",
+			},
+		)
+
 	case "CLP": // Chile
+		companies = append(companies,
+			&Company{
+				Name:        "Enel Distribución Chile",
+				Description: "Major electricity distribution company serving Santiago and nearby regions.",
+			},
+			&Company{
+				Name:        "Aguas Andinas",
+				Description: "Water supply and wastewater treatment company for the Santiago metropolitan area.",
+			},
+			&Company{
+				Name:        "Metrogas Chile",
+				Description: "Natural gas distribution company for residential and commercial clients.",
+			},
+			&Company{
+				Name:        "Movistar Chile",
+				Description: "Telecommunications company offering internet, mobile, and TV services.",
+			},
+			&Company{
+				Name:        "Sodexo Chile",
+				Description: "Facilities management and maintenance services provider.",
+			},
+		)
+
 	case "COP": // Colombia
+		companies = append(companies,
+			&Company{
+				Name:        "Grupo Energía Bogotá",
+				Description: "Energy company managing electricity and natural gas infrastructure in Colombia and Latin America.",
+			},
+			&Company{
+				Name:        "Empresas Públicas de Medellín (EPM)",
+				Description: "Provides water, electricity, gas, and waste management services across Colombia.",
+			},
+			&Company{
+				Name:        "Claro Colombia",
+				Description: "Telecommunications provider offering broadband, mobile, and TV services.",
+			},
+			&Company{
+				Name:        "Veolia Colombia",
+				Description: "Environmental and facilities management services company.",
+			},
+		)
+
 	case "PEN": // Peru
+		companies = append(companies,
+			&Company{
+				Name:        "Enel Distribución Perú",
+				Description: "Electricity distribution and energy services provider for Lima and surrounding regions.",
+			},
+			&Company{
+				Name:        "Sedapal",
+				Description: "Public water and sanitation company serving Lima and Callao.",
+			},
+			&Company{
+				Name:        "Petroperú",
+				Description: "State-owned oil and gas company managing fuel distribution and refining.",
+			},
+			&Company{
+				Name:        "Movistar Perú",
+				Description: "Leading telecommunications provider offering mobile, internet, and TV services.",
+			},
+			&Company{
+				Name:        "Graña y Montero (AENZA)",
+				Description: "Engineering and facilities management company providing maintenance and infrastructure services.",
+			},
+		)
+
 	case "UYU": // Uruguay
 	case "DOP": // Dominican Republic
 	case "PYG": // Paraguay
