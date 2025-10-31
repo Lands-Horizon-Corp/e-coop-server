@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// Media represents a media file record in the database
 	Media struct {
 		ID uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 
@@ -30,7 +31,6 @@ type (
 	}
 
 	// MediaResponse represents the response structure for media data
-
 	MediaResponse struct {
 		ID          uuid.UUID `json:"id"`
 		CreatedAt   string    `json:"created_at"`
@@ -47,8 +47,7 @@ type (
 		Progress    int64     `json:"progress"`
 	}
 
-	// MediaRequest represents the request structure for creating/updating media
-
+	// MediaRequest represents the request structure for media data
 	MediaRequest struct {
 		ID       *uuid.UUID `json:"id,omitempty"`
 		FileName string     `json:"file_name" validate:"required,max=255"`
@@ -112,11 +111,11 @@ func (m *ModelCore) media() {
 }
 
 // MediaDelete deletes media and its associated file from storage
-func (m *ModelCore) MediaDelete(context context.Context, mediaId uuid.UUID) error {
-	if mediaId == uuid.Nil {
+func (m *ModelCore) MediaDelete(context context.Context, mediaID uuid.UUID) error {
+	if mediaID == uuid.Nil {
 		return nil
 	}
-	media, err := m.MediaManager.GetByID(context, mediaId)
+	media, err := m.MediaManager.GetByID(context, mediaID)
 	if err != nil {
 		return err
 	}

@@ -79,7 +79,7 @@ type (
 		MemberProfileMediaManager     services.Repository[MemberProfileMedia, MemberProfileMediaResponse, MemberProfileMediaRequest]
 
 		// Members
-		MemberAddressManager                services.Repository[MemberAddress, MemberAddressReponse, MemberAddressRequest]
+		MemberAddressManager                services.Repository[MemberAddress, MemberAddressResponse, MemberAddressRequest]
 		MemberAssetManager                  services.Repository[MemberAsset, MemberAssetResponse, MemberAssetRequest]
 		MemberBankCardManager               services.Repository[MemberBankCard, MemberBankCardResponse, MemberBankCardRequest]
 		MemberCenterHistoryManager          services.Repository[MemberCenterHistory, MemberCenterHistoryResponse, MemberCenterHistoryRequest]

@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// MemberAddress represents a member's address information in the database
 	MemberAddress struct {
 		ID             uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt      time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -42,7 +43,8 @@ type (
 		Longitude     *float64 `gorm:"type:double precision" json:"longitude,omitempty"`
 	}
 
-	MemberAddressReponse struct {
+	// MemberAddressResponse represents the response structure for member address data
+	MemberAddressResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
 		CreatedByID    uuid.UUID             `json:"created_by_id"`
@@ -70,8 +72,7 @@ type (
 		Latitude      *float64 `json:"latitude,omitempty"`
 	}
 
-	// MemberAddressRequest represents the request structure for creating/updating memberaddress
-
+	// MemberAddressRequest represents the request structure for member address data
 	MemberAddressRequest struct {
 		MemberProfileID *uuid.UUID `json:"member_profile_id,omitempty"`
 
@@ -90,14 +91,14 @@ type (
 
 func (m *ModelCore) memberAddress() {
 	m.Migration = append(m.Migration, &MemberAddress{})
-	m.MemberAddressManager = services.NewRepository(services.RepositoryParams[MemberAddress, MemberAddressReponse, MemberAddressRequest]{
+	m.MemberAddressManager = services.NewRepository(services.RepositoryParams[MemberAddress, MemberAddressResponse, MemberAddressRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy"},
 		Service:  m.provider.Service,
-		Resource: func(data *MemberAddress) *MemberAddressReponse {
+		Resource: func(data *MemberAddress) *MemberAddressResponse {
 			if data == nil {
 				return nil
 			}
-			return &MemberAddressReponse{
+			return &MemberAddressResponse{
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
@@ -151,6 +152,7 @@ func (m *ModelCore) memberAddress() {
 	})
 }
 
+// MemberAddressCurrentBranch retrieves member addresses for the current branch
 func (m *ModelCore) MemberAddressCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberAddress, error) {
 	return m.MemberAddressManager.Find(context, &MemberAddress{
 		OrganizationID: orgID,

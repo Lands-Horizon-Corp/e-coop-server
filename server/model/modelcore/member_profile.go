@@ -149,7 +149,7 @@ type (
 
 		QRCode *horizon.QRResult `json:"qr_code,omitempty"`
 
-		MemberAddresses              []*MemberAddressReponse                `json:"member_addresses,omitempty"`
+		MemberAddresses              []*MemberAddressResponse               `json:"member_addresses,omitempty"`
 		MemberAssets                 []*MemberAssetResponse                 `json:"member_assets,omitempty"`
 		MemberIncomes                []*MemberIncomeResponse                `json:"member_incomes,omitempty"`
 		MemberExpenses               []*MemberExpenseResponse               `json:"member_expenses,omitempty"`

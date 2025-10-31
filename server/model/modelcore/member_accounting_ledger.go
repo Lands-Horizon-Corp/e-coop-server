@@ -14,6 +14,7 @@ import (
 )
 
 type (
+	// MemberAccountingLedger represents a member's accounting ledger entry in the database
 	MemberAccountingLedger struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -47,8 +48,7 @@ type (
 		LastPay             *time.Time `gorm:"type:timestamp"`
 	}
 
-	// MemberAccountingLedgerResponse represents the response structure for memberaccountingledger data
-
+	// MemberAccountingLedgerResponse represents the response structure for member accounting ledger data
 	MemberAccountingLedgerResponse struct {
 		ID                  uuid.UUID              `json:"id"`
 		CreatedAt           string                 `json:"created_at"`
@@ -76,8 +76,7 @@ type (
 		LastPay             *string                `json:"last_pay,omitempty"`
 	}
 
-	// MemberAccountingLedgerRequest represents the request structure for creating/updating memberaccountingledger
-
+	// MemberAccountingLedgerRequest represents the request structure for member accounting ledger data
 	MemberAccountingLedgerRequest struct {
 		OrganizationID      uuid.UUID  `json:"organization_id" validate:"required"`
 		BranchID            uuid.UUID  `json:"branch_id" validate:"required"`
@@ -94,12 +93,14 @@ type (
 		LastPay             *time.Time `json:"last_pay,omitempty"`
 	}
 
+	// MemberAccountingLedgerSummary represents a summary of member accounting ledger data
 	MemberAccountingLedgerSummary struct {
 		TotalDeposits                     float64 `json:"total_deposits"`
 		TotalShareCapitalPlusFixedSavings float64 `json:"total_share_capital_plus_fixed_savings"`
 		TotalLoans                        float64 `json:"total_loans"`
 	}
 
+	// MemberAccountingLedgerAccountSummary represents an account summary for member accounting ledger
 	MemberAccountingLedgerAccountSummary struct {
 		Balance     float64 `json:"balance"`
 		TotalDebit  float64 `json:"total_debit"`
@@ -184,6 +185,7 @@ func (m *ModelCore) memberAccountingLedger() {
 	})
 }
 
+// MemberAccountingLedgerCurrentBranch retrieves member accounting ledgers for the current branch
 func (m *ModelCore) MemberAccountingLedgerCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberAccountingLedger, error) {
 	return m.MemberAccountingLedgerManager.Find(context, &MemberAccountingLedger{
 		OrganizationID: orgID,
@@ -274,7 +276,7 @@ func (m *ModelCore) MemberAccountingLedgerUpdateOrCreate(
 		ledger.LastPay = &lastPayTime
 		ledger.UpdatedAt = time.Now().UTC()
 		ledger.UpdatedByID = userID
-		ledger.Count += 1 // Increment transaction count
+		ledger.Count++ // Increment transaction count
 
 		err = tx.WithContext(ctx).Save(ledger).Error
 		if err != nil {
