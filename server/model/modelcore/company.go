@@ -1748,15 +1748,245 @@ func (m *ModelCore) companySeed(context context.Context, tx *gorm.DB, userID uui
 		)
 
 	case "UYU": // Uruguay
+		companies = append(companies,
+			&Company{
+				Name:        "UTE (Administración Nacional de Usinas y Trasmisiones Eléctricas)",
+				Description: "State-owned utility responsible for electricity generation and distribution across Uruguay.",
+			},
+			&Company{
+				Name:        "OSE (Obras Sanitarias del Estado)",
+				Description: "National water and sanitation company providing potable water and wastewater treatment.",
+			},
+			&Company{
+				Name:        "ANTEL",
+				Description: "Government-owned telecommunications provider offering internet, phone, and mobile services.",
+			},
+			&Company{
+				Name:        "MontevideoGas",
+				Description: "Natural gas distributor for residential and industrial clients in Montevideo.",
+			},
+			&Company{
+				Name:        "ISS Uruguay",
+				Description: "Facilities management and maintenance services company operating nationwide.",
+			},
+		)
+
 	case "DOP": // Dominican Republic
+		companies = append(companies,
+			&Company{
+				Name:        "Edesur Dominicana",
+				Description: "Electricity distribution company serving the southern region of the Dominican Republic.",
+			},
+			&Company{
+				Name:        "CAASD (Corporación del Acueducto y Alcantarillado de Santo Domingo)",
+				Description: "Public company managing water supply and wastewater services in Santo Domingo.",
+			},
+			&Company{
+				Name:        "Claro Dominicana",
+				Description: "Leading telecommunications provider offering internet, mobile, and cable TV services.",
+			},
+			&Company{
+				Name:        "Propagas",
+				Description: "Major distributor of liquefied petroleum gas for homes and businesses.",
+			},
+			&Company{
+				Name:        "Grupo SID Facilities",
+				Description: "Integrated maintenance and facility management services provider.",
+			},
+		)
+
 	case "PYG": // Paraguay
+		companies = append(companies,
+			&Company{
+				Name:        "ANDE (Administración Nacional de Electricidad)",
+				Description: "State-owned company responsible for electricity generation and distribution in Paraguay.",
+			},
+			&Company{
+				Name:        "ESSAP S.A.",
+				Description: "National water and sanitation service provider.",
+			},
+			&Company{
+				Name:        "Tigo Paraguay",
+				Description: "Telecom company offering internet, mobile, and cable TV services.",
+			},
+			&Company{
+				Name:        "Copetrol",
+				Description: "Energy distributor providing fuel, gas, and energy-related services.",
+			},
+			&Company{
+				Name:        "Sodexo Paraguay",
+				Description: "Facilities and maintenance services company for business and industrial sectors.",
+			},
+		)
+
 	case "BOB": // Bolivia
+		companies = append(companies,
+			&Company{
+				Name:        "ENDE (Empresa Nacional de Electricidad)",
+				Description: "Bolivia’s national electricity company managing generation, transmission, and distribution.",
+			},
+			&Company{
+				Name:        "EPSAS",
+				Description: "Water and sanitation provider serving La Paz and El Alto.",
+			},
+			&Company{
+				Name:        "YPFB (Yacimientos Petrolíferos Fiscales Bolivianos)",
+				Description: "State-owned oil and gas company managing energy production and distribution.",
+			},
+			&Company{
+				Name:        "VIVA Bolivia",
+				Description: "Telecommunications company providing internet, mobile, and digital services.",
+			},
+			&Company{
+				Name:        "AESA Bolivia",
+				Description: "Facilities management company offering cleaning, maintenance, and infrastructure support.",
+			},
+		)
+
 	case "VES": // Venezuela
+		companies = append(companies,
+			&Company{
+				Name:        "CORPOELEC",
+				Description: "National electric power corporation overseeing generation and distribution across Venezuela.",
+			},
+			&Company{
+				Name:        "HIDROCAPITAL",
+				Description: "Water utility responsible for supplying water and wastewater treatment in Caracas and nearby areas.",
+			},
+			&Company{
+				Name:        "CANTV",
+				Description: "National telecommunications provider offering fixed line, internet, and mobile services.",
+			},
+			&Company{
+				Name:        "PDVSA Gas",
+				Description: "Subsidiary of PDVSA managing natural gas production and distribution.",
+			},
+			&Company{
+				Name:        "SENIAT Facilities",
+				Description: "Public services and maintenance provider for infrastructure and office spaces.",
+			},
+		)
+
 	case "PKR": // Pakistan
+		companies = append(companies,
+			&Company{
+				Name:        "K-Electric",
+				Description: "Private utility company responsible for electricity generation and distribution in Karachi.",
+			},
+			&Company{
+				Name:        "WAPDA (Water and Power Development Authority)",
+				Description: "Government agency managing water and electricity projects across Pakistan.",
+			},
+			&Company{
+				Name:        "SNGPL (Sui Northern Gas Pipelines Limited)",
+				Description: "Major natural gas supplier in northern Pakistan.",
+			},
+			&Company{
+				Name:        "PTCL (Pakistan Telecommunication Company Limited)",
+				Description: "National telecom company providing internet, broadband, and mobile services.",
+			},
+			&Company{
+				Name:        "Servest Pakistan",
+				Description: "Facilities management and maintenance services company operating in major cities.",
+			},
+		)
+
 	case "BDT": // Bangladesh
+		companies = append(companies,
+			&Company{
+				Name:        "Dhaka Electric Supply Company (DESCO)",
+				Description: "Electric distribution company serving Dhaka and nearby regions.",
+			},
+			&Company{
+				Name:        "WASA (Dhaka Water Supply and Sewerage Authority)",
+				Description: "Public utility managing water and sanitation in the capital region.",
+			},
+			&Company{
+				Name:        "Titas Gas Transmission and Distribution Company Limited",
+				Description: "Largest gas distribution company in Bangladesh.",
+			},
+			&Company{
+				Name:        "Grameenphone",
+				Description: "Leading telecom operator offering mobile and internet services.",
+			},
+			&Company{
+				Name:        "Sodexo Bangladesh",
+				Description: "Facilities management and maintenance services provider for business and institutions.",
+			},
+		)
+
 	case "LKR": // Sri Lanka
+		companies = append(companies,
+			&Company{
+				Name:        "Ceylon Electricity Board (CEB)",
+				Description: "Government-owned corporation responsible for electricity generation and distribution.",
+			},
+			&Company{
+				Name:        "National Water Supply and Drainage Board (NWSDB)",
+				Description: "Provides water supply and sanitation services throughout Sri Lanka.",
+			},
+			&Company{
+				Name:        "Lanka IOC",
+				Description: "Energy company involved in fuel distribution and oil services.",
+			},
+			&Company{
+				Name:        "Dialog Axiata",
+				Description: "Leading telecommunications provider offering internet, mobile, and digital TV.",
+			},
+			&Company{
+				Name:        "Jones Lang LaSalle Sri Lanka",
+				Description: "Facilities and property management services company.",
+			},
+		)
+
 	case "NPR": // Nepal
+		companies = append(companies,
+			&Company{
+				Name:        "Nepal Electricity Authority (NEA)",
+				Description: "State-owned utility managing electricity generation and distribution across Nepal.",
+			},
+			&Company{
+				Name:        "Kathmandu Upatyaka Khanepani Limited (KUKL)",
+				Description: "Water supply and sanitation provider for the Kathmandu Valley.",
+			},
+			&Company{
+				Name:        "Nepal Oil Corporation",
+				Description: "Government-owned company distributing fuel and petroleum products.",
+			},
+			&Company{
+				Name:        "Ncell Axiata",
+				Description: "Telecom company providing mobile and internet services nationwide.",
+			},
+			&Company{
+				Name:        "Nepal Facilities Management Services",
+				Description: "Company offering building maintenance and support services.",
+			},
+		)
+
 	case "MMK": // Myanmar
+		companies = append(companies,
+			&Company{
+				Name:        "Yangon Electricity Supply Corporation (YESC)",
+				Description: "Provides electricity distribution and billing services in Yangon.",
+			},
+			&Company{
+				Name:        "Yangon City Development Committee (YCDC)",
+				Description: "Municipal body managing water, sanitation, and waste services.",
+			},
+			&Company{
+				Name:        "Myanma Oil and Gas Enterprise (MOGE)",
+				Description: "Government enterprise managing oil and gas exploration and supply.",
+			},
+			&Company{
+				Name:        "MPT (Myanmar Posts and Telecommunications)",
+				Description: "Main telecom operator offering internet, mobile, and broadband services.",
+			},
+			&Company{
+				Name:        "CBM Facilities Services",
+				Description: "Private company providing maintenance, janitorial, and technical support services.",
+			},
+		)
+
 	case "KHR": // Cambodia
 	case "LAK": // Laos
 	case "NGN": // Nigeria
