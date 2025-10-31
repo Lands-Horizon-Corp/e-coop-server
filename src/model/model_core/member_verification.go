@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// MemberVerification represents the verification process for cooperative members
 	MemberVerification struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -37,6 +38,7 @@ type (
 		Status string `gorm:"type:varchar(50);not null;default:'pending'"`
 	}
 
+	// MemberVerificationResponse represents the JSON response structure for member verification data
 	MemberVerificationResponse struct {
 		ID               uuid.UUID              `json:"id"`
 		CreatedAt        string                 `json:"created_at"`
@@ -56,6 +58,7 @@ type (
 		Status           string                 `json:"status"`
 	}
 
+	// MemberVerificationRequest represents the request payload for member verification operations
 	MemberVerificationRequest struct {
 		MemberProfileID  uuid.UUID `json:"member_profile_id" validate:"required"`
 		VerifiedByUserID uuid.UUID `json:"verified_by_user_id,omitempty"`
@@ -63,6 +66,7 @@ type (
 	}
 )
 
+// MemberVerification initializes the MemberVerification model and its repository manager
 func (m *ModelCore) MemberVerification() {
 	m.Migration = append(m.Migration, &MemberVerification{})
 	m.MemberVerificationManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberVerification, MemberVerificationResponse, MemberVerificationRequest]{
@@ -119,9 +123,10 @@ func (m *ModelCore) MemberVerification() {
 	})
 }
 
-func (m *ModelCore) MemberVerificationCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberVerification, error) {
+// MemberVerificationCurrentBranch retrieves all member verifications for the specified organization and branch
+func (m *ModelCore) MemberVerificationCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberVerification, error) {
 	return m.MemberVerificationManager.Find(context, &MemberVerification{
-		OrganizationID: orgId,
-		BranchID:       &branchId,
+		OrganizationID: orgID,
+		BranchID:       &branchID,
 	})
 }

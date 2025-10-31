@@ -11,10 +11,12 @@ import (
 )
 
 type (
+	// IDSRequest represents a request containing multiple IDs
 	IDSRequest struct {
 		IDs []string `json:"ids"`
 	}
 
+	// QRMemberProfile represents QR code data for member profile information
 	QRMemberProfile struct {
 		FirstName       string `json:"first_name"`
 		LastName        string `json:"last_name"`
@@ -25,6 +27,7 @@ type (
 		OrganizationID  string `json:"organization_id"`
 		Email           string `json:"email"`
 	}
+	// QRInvitationCode represents QR code data for organization invitation codes
 	QRInvitationCode struct {
 		OrganizationID string `json:"organization_id"`
 		BranchID       string `json:"branch_id"`
@@ -34,6 +37,7 @@ type (
 		Description    string `json:"description"`
 	}
 
+	// QRUser represents QR code data for user information
 	QRUser struct {
 		UserID        string `json:"user_id"`
 		Email         string `json:"email"`
@@ -44,6 +48,7 @@ type (
 		Firstname     string `json:"first_name"`
 		Middlename    string `json:"middle_name"`
 	}
+	// ModelCore represents the core model management structure containing all entity managers
 	ModelCore struct {
 		provider *src.Provider
 
