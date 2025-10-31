@@ -155,19 +155,7 @@ func (m *ModelCore) invitationCode() {
 	})
 }
 
-func (m *ModelCore) getInvitationCodeBybranch(context context.Context, organizationId uuid.UUID, branchId uuid.UUID) ([]*InvitationCode, error) {
-	return m.InvitationCodeManager.Find(context, &InvitationCode{
-		OrganizationID: organizationId,
-		BranchID:       branchId,
-	})
-}
-
-func (m *ModelCore) getInvitationCodeByCode(context context.Context, code string) (*InvitationCode, error) {
-	return m.InvitationCodeManager.FindOne(context, &InvitationCode{
-		Code: code,
-	})
-}
-
+// InvitationCodeSeed seeds initial invitation codes for employees and members.
 func (m *ModelCore) invitationCodeSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
 	expiration := now.AddDate(0, 1, 0)
@@ -210,8 +198,24 @@ func (m *ModelCore) invitationCodeSeed(context context.Context, tx *gorm.DB, use
 	return nil
 }
 
-func (m *ModelCore) verifyInvitationCodeByCode(context context.Context, code string) (*InvitationCode, error) {
-	data, err := m.getInvitationCodeByCode(context, code)
+// GetInvitationCodeByBranch retrieves invitation codes for a specific organization and branch.
+func (m *ModelCore) GetInvitationCodeByBranch(context context.Context, organizationId uuid.UUID, branchId uuid.UUID) ([]*InvitationCode, error) {
+	return m.InvitationCodeManager.Find(context, &InvitationCode{
+		OrganizationID: organizationId,
+		BranchID:       branchId,
+	})
+}
+
+// getInvitationCodeByCode retrieves a single invitation code by its code string.
+func (m *ModelCore) GetInvitationCodeByCode(context context.Context, code string) (*InvitationCode, error) {
+	return m.InvitationCodeManager.FindOne(context, &InvitationCode{
+		Code: code,
+	})
+}
+
+// VerifyInvitationCodeByCode checks if the invitation code is valid, not expired, and has remaining uses.
+func (m *ModelCore) VerifyInvitationCodeByCode(context context.Context, code string) (*InvitationCode, error) {
+	data, err := m.GetInvitationCodeByCode(context, code)
 	if err != nil {
 		return nil, err
 	}
@@ -228,7 +232,8 @@ func (m *ModelCore) verifyInvitationCodeByCode(context context.Context, code str
 	return data, nil
 }
 
-func (m *ModelCore) redeemInvitationCode(context context.Context, tx *gorm.DB, invitationCodeId uuid.UUID) error {
+// RedeemInvitationCode increments the CurrentUse of the invitation code by 1.
+func (m *ModelCore) RedeemInvitationCode(context context.Context, tx *gorm.DB, invitationCodeId uuid.UUID) error {
 	data, err := m.InvitationCodeManager.GetByID(context, invitationCodeId)
 	if err != nil {
 		return err

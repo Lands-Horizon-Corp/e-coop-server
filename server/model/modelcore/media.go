@@ -107,7 +107,8 @@ func (m *ModelCore) media() {
 	})
 }
 
-func (m *ModelCore) mediaDelete(context context.Context, mediaId uuid.UUID) error {
+// MediaDelete deletes media and its associated file from storage
+func (m *ModelCore) MediaDelete(context context.Context, mediaId uuid.UUID) error {
 	if mediaId == uuid.Nil {
 		return nil
 	}

@@ -125,7 +125,7 @@ func (m *ModelCore) interestRatePercentage() {
 	})
 }
 
-func (m *ModelCore) interestRatePercentageCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*InterestRatePercentage, error) {
+func (m *ModelCore) InterestRatePercentageCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*InterestRatePercentage, error) {
 	return m.InterestRatePercentageManager.Find(context, &InterestRatePercentage{
 		OrganizationID: orgId,
 		BranchID:       branchId,

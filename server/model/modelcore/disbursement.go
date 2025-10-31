@@ -124,13 +124,6 @@ func (m *ModelCore) disbursement() {
 	})
 }
 
-func (m *ModelCore) disbursementCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Disbursement, error) {
-	return m.DisbursementManager.Find(context, &Disbursement{
-		OrganizationID: orgId,
-		BranchID:       branchId,
-	})
-}
-
 func (m *ModelCore) disbursementSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
 
@@ -287,4 +280,12 @@ func (m *ModelCore) disbursementSeed(context context.Context, tx *gorm.DB, userI
 	}
 
 	return nil
+}
+
+// disbursementCurrentbranch retrieves disbursements for a specific organization and branch.
+func (m *ModelCore) DisbursementCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Disbursement, error) {
+	return m.DisbursementManager.Find(context, &Disbursement{
+		OrganizationID: orgId,
+		BranchID:       branchId,
+	})
 }

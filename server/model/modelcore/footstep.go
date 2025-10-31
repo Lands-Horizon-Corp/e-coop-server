@@ -178,20 +178,20 @@ func (m *ModelCore) footstep() {
 	})
 }
 
-func (m *ModelCore) getFootstepByUser(context context.Context, userId uuid.UUID) ([]*Footstep, error) {
+func (m *ModelCore) GetFootstepByUser(context context.Context, userId uuid.UUID) ([]*Footstep, error) {
 	return m.FootstepManager.Find(context, &Footstep{
 		UserID: &userId,
 	})
 }
 
-func (m *ModelCore) getFootstepBybranch(context context.Context, organizationId uuid.UUID, branchId uuid.UUID) ([]*Footstep, error) {
+func (m *ModelCore) GetFootstepBybranch(context context.Context, organizationId uuid.UUID, branchId uuid.UUID) ([]*Footstep, error) {
 	return m.FootstepManager.Find(context, &Footstep{
 		OrganizationID: &organizationId,
 		BranchID:       &branchId,
 	})
 }
 
-func (m *ModelCore) getFootstepByUserOrganization(context context.Context, userId uuid.UUID, organizationId uuid.UUID, branchId uuid.UUID) ([]*Footstep, error) {
+func (m *ModelCore) GetFootstepByUserOrganization(context context.Context, userId uuid.UUID, organizationId uuid.UUID, branchId uuid.UUID) ([]*Footstep, error) {
 	return m.FootstepManager.Find(context, &Footstep{
 		UserID:         &userId,
 		OrganizationID: &organizationId,

@@ -122,7 +122,7 @@ func (m *ModelCore) includeNegativeAccount() {
 	})
 }
 
-func (m *ModelCore) includeNegativeAccountCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*IncludeNegativeAccount, error) {
+func (m *ModelCore) IncludeNegativeAccountCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*IncludeNegativeAccount, error) {
 	return m.IncludeNegativeAccountManager.Find(context, &IncludeNegativeAccount{
 		OrganizationID: orgId,
 		BranchID:       branchId,

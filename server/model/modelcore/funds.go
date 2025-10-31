@@ -122,7 +122,8 @@ func (m *ModelCore) funds() {
 	})
 }
 
-func (m *ModelCore) fundsCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Funds, error) {
+// FundsCurrentbranch gets funds for the current branch
+func (m *ModelCore) FundsCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Funds, error) {
 	return m.FundsManager.Find(context, &Funds{
 		OrganizationID: orgId,
 		BranchID:       branchId,
