@@ -66,9 +66,9 @@ type (
 	}
 )
 
-func (m *ModelCore) MemberRelativeAccount() {
-	m.Migration = append(m.Migration, &MemberRelativeAccount{})
-	m.MemberRelativeAccountManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberRelativeAccount, MemberRelativeAccountResponse, MemberRelativeAccountRequest]{
+func (m *ModelCore) memberRelativeAccount() {
+	m.migration = append(m.migration, &MemberRelativeAccount{})
+	m.memberRelativeAccountManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberRelativeAccount, MemberRelativeAccountResponse, MemberRelativeAccountRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile", "RelativeMemberProfile"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberRelativeAccount) *MemberRelativeAccountResponse {
@@ -79,18 +79,18 @@ func (m *ModelCore) MemberRelativeAccount() {
 				ID:                      data.ID,
 				CreatedAt:               data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:             data.CreatedByID,
-				CreatedBy:               m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:               m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:               data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:             data.UpdatedByID,
-				UpdatedBy:               m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:               m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID:          data.OrganizationID,
-				Organization:            m.OrganizationManager.ToModel(data.Organization),
+				Organization:            m.organizationManager.ToModel(data.Organization),
 				BranchID:                data.BranchID,
-				Branch:                  m.BranchManager.ToModel(data.Branch),
+				Branch:                  m.branchManager.ToModel(data.Branch),
 				MemberProfileID:         data.MemberProfileID,
-				MemberProfile:           m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:           m.memberProfileManager.ToModel(data.MemberProfile),
 				RelativeMemberProfileID: data.RelativeMemberProfileID,
-				RelativeMemberProfile:   m.MemberProfileManager.ToModel(data.RelativeMemberProfile),
+				RelativeMemberProfile:   m.memberProfileManager.ToModel(data.RelativeMemberProfile),
 				FamilyRelationship:      data.FamilyRelationship,
 				Description:             data.Description,
 			}
@@ -123,8 +123,8 @@ func (m *ModelCore) MemberRelativeAccount() {
 	})
 }
 
-func (m *ModelCore) MemberRelativeAccountCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberRelativeAccount, error) {
-	return m.MemberRelativeAccountManager.Find(context, &MemberRelativeAccount{
+func (m *ModelCore) memberRelativeAccountCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberRelativeAccount, error) {
+	return m.memberRelativeAccountManager.Find(context, &MemberRelativeAccount{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

@@ -63,9 +63,9 @@ type (
 	}
 )
 
-func (m *ModelCore) MemberDepartmentHistory() {
-	m.Migration = append(m.Migration, &MemberDepartmentHistory{})
-	m.MemberDepartmentHistoryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+func (m *ModelCore) memberDepartmentHistory() {
+	m.migration = append(m.migration, &MemberDepartmentHistory{})
+	m.memberDepartmentHistoryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		MemberDepartmentHistory,
 		MemberDepartmentHistoryResponse,
 		MemberDepartmentHistoryRequest,
@@ -83,18 +83,18 @@ func (m *ModelCore) MemberDepartmentHistory() {
 				ID:                 data.ID,
 				CreatedAt:          data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:        data.CreatedByID,
-				CreatedBy:          m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:          m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:          data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:        data.UpdatedByID,
-				UpdatedBy:          m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:          m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID:     data.OrganizationID,
-				Organization:       m.OrganizationManager.ToModel(data.Organization),
+				Organization:       m.organizationManager.ToModel(data.Organization),
 				BranchID:           data.BranchID,
-				Branch:             m.BranchManager.ToModel(data.Branch),
+				Branch:             m.branchManager.ToModel(data.Branch),
 				MemberDepartmentID: data.MemberDepartmentID,
-				MemberDepartment:   m.MemberDepartmentManager.ToModel(data.MemberDepartment),
+				MemberDepartment:   m.memberDepartmentManager.ToModel(data.MemberDepartment),
 				MemberProfileID:    data.MemberProfileID,
-				MemberProfile:      m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:      m.memberProfileManager.ToModel(data.MemberProfile),
 			}
 		},
 		Created: func(data *MemberDepartmentHistory) []string {
@@ -127,15 +127,15 @@ func (m *ModelCore) MemberDepartmentHistory() {
 	})
 }
 
-func (m *ModelCore) MemberDepartmentHistoryCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberDepartmentHistory, error) {
-	return m.MemberDepartmentHistoryManager.Find(context, &MemberDepartmentHistory{
+func (m *ModelCore) memberDepartmentHistoryCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberDepartmentHistory, error) {
+	return m.memberDepartmentHistoryManager.Find(context, &MemberDepartmentHistory{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})
 }
 
-func (m *ModelCore) MemberDepartmentHistoryMemberProfileID(context context.Context, memberProfileId, orgId, branchId uuid.UUID) ([]*MemberDepartmentHistory, error) {
-	return m.MemberDepartmentHistoryManager.Find(context, &MemberDepartmentHistory{
+func (m *ModelCore) memberDepartmentHistoryMemberProfileID(context context.Context, memberProfileId, orgId, branchId uuid.UUID) ([]*MemberDepartmentHistory, error) {
+	return m.memberDepartmentHistoryManager.Find(context, &MemberDepartmentHistory{
 		OrganizationID:  orgId,
 		BranchID:        branchId,
 		MemberProfileID: memberProfileId,

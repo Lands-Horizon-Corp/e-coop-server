@@ -51,9 +51,9 @@ type (
 	}
 )
 
-func (m *ModelCore) Media() {
-	m.Migration = append(m.Migration, &Media{})
-	m.MediaManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Media, MediaResponse, MediaRequest]{
+func (m *ModelCore) media() {
+	m.migration = append(m.migration, &Media{})
+	m.mediaManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Media, MediaResponse, MediaRequest]{
 		Preloads: nil,
 		Service:  m.provider.Service,
 		Resource: func(data *Media) *MediaResponse {
@@ -107,18 +107,18 @@ func (m *ModelCore) Media() {
 	})
 }
 
-func (m *ModelCore) MediaDelete(context context.Context, mediaId uuid.UUID) error {
+func (m *ModelCore) mediaDelete(context context.Context, mediaId uuid.UUID) error {
 	if mediaId == uuid.Nil {
 		return nil
 	}
-	media, err := m.MediaManager.GetByID(context, mediaId)
+	media, err := m.mediaManager.GetByID(context, mediaId)
 	if err != nil {
 		return err
 	}
 	if media == nil {
 		return nil
 	}
-	if err := m.MediaManager.DeleteByID(context, media.ID); err != nil {
+	if err := m.mediaManager.DeleteByID(context, media.ID); err != nil {
 		return err
 	}
 	if err := m.provider.Service.Storage.DeleteFile(context, &horizon.Storage{

@@ -90,8 +90,8 @@ type (
 )
 
 func (m *ModelCore) checkRemittance() {
-	m.Migration = append(m.Migration, &CheckRemittance{})
-	m.CheckRemittanceManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.migration = append(m.migration, &CheckRemittance{})
+	m.checkRemittanceManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		CheckRemittance, CheckRemittanceResponse, CheckRemittanceRequest,
 	]{
 		Preloads: []string{
@@ -113,24 +113,24 @@ func (m *ModelCore) checkRemittance() {
 				ID:                 data.ID,
 				CreatedAt:          data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:        data.CreatedByID,
-				CreatedBy:          m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:          m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:          data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:        data.UpdatedByID,
-				UpdatedBy:          m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:          m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID:     data.OrganizationID,
-				Organization:       m.OrganizationManager.ToModel(data.Organization),
+				Organization:       m.organizationManager.ToModel(data.Organization),
 				BranchID:           data.BranchID,
-				Branch:             m.BranchManager.ToModel(data.Branch),
+				Branch:             m.branchManager.ToModel(data.Branch),
 				BankID:             data.BankID,
-				Bank:               m.BankManager.ToModel(data.Bank),
+				Bank:               m.bankManager.ToModel(data.Bank),
 				MediaID:            data.MediaID,
-				Media:              m.MediaManager.ToModel(data.Media),
+				Media:              m.mediaManager.ToModel(data.Media),
 				EmployeeUserID:     data.EmployeeUserID,
-				EmployeeUser:       m.UserManager.ToModel(data.EmployeeUser),
+				EmployeeUser:       m.userManager.ToModel(data.EmployeeUser),
 				TransactionBatchID: data.TransactionBatchID,
-				TransactionBatch:   m.TransactionBatchManager.ToModel(data.TransactionBatch),
+				TransactionBatch:   m.transactionBatchManager.ToModel(data.TransactionBatch),
 				CurrencyID:         data.CurrencyID,
-				Currency:           m.CurrencyManager.ToModel(data.Currency),
+				Currency:           m.currencyManager.ToModel(data.Currency),
 				ReferenceNumber:    data.ReferenceNumber,
 				AccountName:        data.AccountName,
 				Amount:             data.Amount,
@@ -165,8 +165,8 @@ func (m *ModelCore) checkRemittance() {
 	})
 }
 
-func (m *ModelCore) CheckRemittanceCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*CheckRemittance, error) {
-	return m.CheckRemittanceManager.Find(context, &CheckRemittance{
+func (m *ModelCore) checkRemittanceCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*CheckRemittance, error) {
+	return m.checkRemittanceManager.Find(context, &CheckRemittance{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

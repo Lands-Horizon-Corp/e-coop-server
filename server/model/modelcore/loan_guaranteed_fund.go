@@ -54,9 +54,9 @@ type (
 	}
 )
 
-func (m *ModelCore) LoanGuaranteedFund() {
-	m.Migration = append(m.Migration, &LoanGuaranteedFund{})
-	m.LoanGuaranteedFundManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+func (m *ModelCore) loanGuaranteedFund() {
+	m.migration = append(m.migration, &LoanGuaranteedFund{})
+	m.loanGuaranteedFundManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		LoanGuaranteedFund, LoanGuaranteedFundResponse, LoanGuaranteedFundRequest,
 	]{
 		Preloads: []string{
@@ -71,14 +71,14 @@ func (m *ModelCore) LoanGuaranteedFund() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.organizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.branchManager.ToModel(data.Branch),
 				SchemeNumber:   data.SchemeNumber,
 				IncreasingRate: data.IncreasingRate,
 			}
@@ -111,8 +111,8 @@ func (m *ModelCore) LoanGuaranteedFund() {
 	})
 }
 
-func (m *ModelCore) LoanGuaranteedFundCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanGuaranteedFund, error) {
-	return m.LoanGuaranteedFundManager.Find(context, &LoanGuaranteedFund{
+func (m *ModelCore) loanGuaranteedFundCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanGuaranteedFund, error) {
+	return m.loanGuaranteedFundManager.Find(context, &LoanGuaranteedFund{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

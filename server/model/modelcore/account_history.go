@@ -261,9 +261,9 @@ type (
 
 // --- REGISTRATION ---
 
-func (m *ModelCore) AccountHistory() {
-	m.Migration = append(m.Migration, &AccountHistory{})
-	m.AccountHistoryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+func (m *ModelCore) accountHistory() {
+	m.migration = append(m.migration, &AccountHistory{})
+	m.accountHistoryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		AccountHistory, AccountHistoryResponse, AccountHistoryRequest,
 	]{
 		Preloads: []string{"CreatedBy", "CreatedBy.Media", "Account", "Organization", "Branch"},
@@ -278,13 +278,13 @@ func (m *ModelCore) AccountHistory() {
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.userManager.ToModel(data.CreatedBy),
 				AccountID:      data.AccountID,
-				Account:        m.AccountManager.ToModel(data.Account),
+				Account:        m.accountManager.ToModel(data.Account),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.organizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.branchManager.ToModel(data.Branch),
 				ChangeType:     data.ChangeType,
 				ValidFrom:      data.ValidFrom.Format(time.RFC3339),
 				ChangeReason:   data.ChangeReason,
@@ -406,22 +406,22 @@ func (m *ModelCore) AccountHistory() {
 }
 
 // Get history for a specific account
-func (m *ModelCore) GetAccountHistory(ctx context.Context, accountID uuid.UUID) ([]*AccountHistory, error) {
+func (m *ModelCore) getAccountHistory(ctx context.Context, accountID uuid.UUID) ([]*AccountHistory, error) {
 	filters := []horizon_services.Filter{
 		{Field: "account_id", Op: horizon_services.OpEq, Value: accountID},
 	}
 
-	return m.AccountHistoryManager.FindWithFilters(ctx, filters)
+	return m.accountHistoryManager.FindWithFilters(ctx, filters)
 }
 
-func (m *ModelCore) GetAccountAtTime(ctx context.Context, accountID uuid.UUID, asOfDate time.Time) (*AccountHistory, error) {
+func (m *ModelCore) getAccountAtTime(ctx context.Context, accountID uuid.UUID, asOfDate time.Time) (*AccountHistory, error) {
 	filters := []horizon_services.Filter{
 		{Field: "account_id", Op: horizon_services.OpEq, Value: accountID},
 		{Field: "valid_from", Op: horizon_services.OpLte, Value: asOfDate},
 		{Field: "valid_to", Op: horizon_services.OpGt, Value: asOfDate},
 	}
 
-	histories, err := m.AccountHistoryManager.FindWithFilters(ctx, filters)
+	histories, err := m.accountHistoryManager.FindWithFilters(ctx, filters)
 	if err != nil {
 		return nil, err
 	}
@@ -436,7 +436,7 @@ func (m *ModelCore) GetAccountAtTime(ctx context.Context, accountID uuid.UUID, a
 		{Field: "valid_from", Op: horizon_services.OpLte, Value: asOfDate},
 	}
 
-	histories, err = m.AccountHistoryManager.FindWithFilters(ctx, filters)
+	histories, err = m.accountHistoryManager.FindWithFilters(ctx, filters)
 	if err != nil {
 		return nil, err
 	}
@@ -449,7 +449,7 @@ func (m *ModelCore) GetAccountAtTime(ctx context.Context, accountID uuid.UUID, a
 }
 
 // Get all accounts that had changes within a date range
-func (m *ModelCore) GetAccountsChangedInRange(ctx context.Context, orgID, branchID uuid.UUID, startDate, endDate time.Time) ([]*AccountHistory, error) {
+func (m *ModelCore) getAccountsChangedInRange(ctx context.Context, orgID, branchID uuid.UUID, startDate, endDate time.Time) ([]*AccountHistory, error) {
 	filters := []horizon_services.Filter{
 		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgID},
 		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchID},
@@ -457,25 +457,25 @@ func (m *ModelCore) GetAccountsChangedInRange(ctx context.Context, orgID, branch
 		{Field: "valid_from", Op: horizon_services.OpLte, Value: endDate},
 	}
 
-	return m.AccountHistoryManager.FindWithFilters(ctx, filters)
+	return m.accountHistoryManager.FindWithFilters(ctx, filters)
 }
 
 // Close open history records when updating valid_to
-func (m *ModelCore) CloseAccountHistory(ctx context.Context, accountID uuid.UUID, closedAt time.Time) error {
+func (m *ModelCore) closeAccountHistory(ctx context.Context, accountID uuid.UUID, closedAt time.Time) error {
 	// Since there's no UpdateWhere method, we'll need to find and update individually
 	filters := []horizon_services.Filter{
 		{Field: "account_id", Op: horizon_services.OpEq, Value: accountID},
 		{Field: "valid_to", Op: horizon_services.OpIsNull, Value: nil},
 	}
 
-	histories, err := m.AccountHistoryManager.FindWithFilters(ctx, filters)
+	histories, err := m.accountHistoryManager.FindWithFilters(ctx, filters)
 	if err != nil {
 		return err
 	}
 
 	for _, history := range histories {
 		history.ValidTo = &closedAt
-		if err := m.AccountHistoryManager.Update(ctx, history); err != nil {
+		if err := m.accountHistoryManager.Update(ctx, history); err != nil {
 			return err
 		}
 	}

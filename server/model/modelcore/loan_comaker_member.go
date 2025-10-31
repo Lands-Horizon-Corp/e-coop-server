@@ -71,9 +71,9 @@ type (
 	}
 )
 
-func (m *ModelCore) LoanComakerMember() {
-	m.Migration = append(m.Migration, &LoanComakerMember{})
-	m.LoanComakerMemberManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+func (m *ModelCore) loanComakerMember() {
+	m.migration = append(m.migration, &LoanComakerMember{})
+	m.loanComakerMemberManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		LoanComakerMember, LoanComakerMemberResponse, LoanComakerMemberRequest,
 	]{
 		Preloads: []string{
@@ -89,18 +89,18 @@ func (m *ModelCore) LoanComakerMember() {
 				ID:                data.ID,
 				CreatedAt:         data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:       data.CreatedByID,
-				CreatedBy:         m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:         m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:         data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:       data.UpdatedByID,
-				UpdatedBy:         m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:         m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID:    data.OrganizationID,
-				Organization:      m.OrganizationManager.ToModel(data.Organization),
+				Organization:      m.organizationManager.ToModel(data.Organization),
 				BranchID:          data.BranchID,
-				Branch:            m.BranchManager.ToModel(data.Branch),
+				Branch:            m.branchManager.ToModel(data.Branch),
 				MemberProfileID:   data.MemberProfileID,
-				MemberProfile:     m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:     m.memberProfileManager.ToModel(data.MemberProfile),
 				LoanTransactionID: data.LoanTransactionID,
-				LoanTransaction:   m.LoanTransactionManager.ToModel(data.LoanTransaction),
+				LoanTransaction:   m.loanTransactionManager.ToModel(data.LoanTransaction),
 				Description:       data.Description,
 				Amount:            data.Amount,
 				MonthsCount:       data.MonthsCount,
@@ -135,8 +135,8 @@ func (m *ModelCore) LoanComakerMember() {
 	})
 }
 
-func (m *ModelCore) LoanComakerMemberCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanComakerMember, error) {
-	return m.LoanComakerMemberManager.Find(context, &LoanComakerMember{
+func (m *ModelCore) loanComakerMemberCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanComakerMember, error) {
+	return m.loanComakerMemberManager.Find(context, &LoanComakerMember{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

@@ -59,9 +59,9 @@ type (
 	}
 )
 
-func (m *ModelCore) MemberGenderHistory() {
-	m.Migration = append(m.Migration, &MemberGenderHistory{})
-	m.MemberGenderHistoryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberGenderHistory, MemberGenderHistoryResponse, MemberGenderHistoryRequest]{
+func (m *ModelCore) memberGenderHistory() {
+	m.migration = append(m.migration, &MemberGenderHistory{})
+	m.memberGenderHistoryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberGenderHistory, MemberGenderHistoryResponse, MemberGenderHistoryRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile", "MemberGender"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberGenderHistory) *MemberGenderHistoryResponse {
@@ -72,18 +72,18 @@ func (m *ModelCore) MemberGenderHistory() {
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
-				CreatedBy:       m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:       m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:     data.UpdatedByID,
-				UpdatedBy:       m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:       m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID:  data.OrganizationID,
-				Organization:    m.OrganizationManager.ToModel(data.Organization),
+				Organization:    m.organizationManager.ToModel(data.Organization),
 				BranchID:        data.BranchID,
-				Branch:          m.BranchManager.ToModel(data.Branch),
+				Branch:          m.branchManager.ToModel(data.Branch),
 				MemberProfileID: data.MemberProfileID,
-				MemberProfile:   m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:   m.memberProfileManager.ToModel(data.MemberProfile),
 				MemberGenderID:  data.MemberGenderID,
-				MemberGender:    m.MemberGenderManager.ToModel(data.MemberGender),
+				MemberGender:    m.memberGenderManager.ToModel(data.MemberGender),
 			}
 		},
 
@@ -117,15 +117,15 @@ func (m *ModelCore) MemberGenderHistory() {
 	})
 }
 
-func (m *ModelCore) MemberGenderHistoryCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberGenderHistory, error) {
-	return m.MemberGenderHistoryManager.Find(context, &MemberGenderHistory{
+func (m *ModelCore) memberGenderHistoryCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberGenderHistory, error) {
+	return m.memberGenderHistoryManager.Find(context, &MemberGenderHistory{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})
 }
 
-func (m *ModelCore) MemberGenderHistoryMemberProfileID(context context.Context, memberProfileId, orgId, branchId uuid.UUID) ([]*MemberGenderHistory, error) {
-	return m.MemberGenderHistoryManager.Find(context, &MemberGenderHistory{
+func (m *ModelCore) memberGenderHistoryMemberProfileID(context context.Context, memberProfileId, orgId, branchId uuid.UUID) ([]*MemberGenderHistory, error) {
+	return m.memberGenderHistoryManager.Find(context, &MemberGenderHistory{
 		OrganizationID:  orgId,
 		BranchID:        branchId,
 		MemberProfileID: memberProfileId,

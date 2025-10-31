@@ -84,8 +84,8 @@ type (
 )
 
 func (m *ModelCore) browseExcludeIncludeAccounts() {
-	m.Migration = append(m.Migration, &BrowseExcludeIncludeAccounts{})
-	m.BrowseExcludeIncludeAccountsManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.migration = append(m.migration, &BrowseExcludeIncludeAccounts{})
+	m.browseExcludeIncludeAccountsManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		BrowseExcludeIncludeAccounts, BrowseExcludeIncludeAccountsResponse, BrowseExcludeIncludeAccountsRequest,
 	]{
 		Preloads: []string{
@@ -102,26 +102,26 @@ func (m *ModelCore) browseExcludeIncludeAccounts() {
 				ID:                           data.ID,
 				CreatedAt:                    data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:                  data.CreatedByID,
-				CreatedBy:                    m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:                    m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:                    data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:                  data.UpdatedByID,
-				UpdatedBy:                    m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:                    m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID:               data.OrganizationID,
-				Organization:                 m.OrganizationManager.ToModel(data.Organization),
+				Organization:                 m.organizationManager.ToModel(data.Organization),
 				BranchID:                     data.BranchID,
-				Branch:                       m.BranchManager.ToModel(data.Branch),
+				Branch:                       m.branchManager.ToModel(data.Branch),
 				ComputationSheetID:           data.ComputationSheetID,
-				ComputationSheet:             m.ComputationSheetManager.ToModel(data.ComputationSheet),
+				ComputationSheet:             m.computationSheetManager.ToModel(data.ComputationSheet),
 				FinesAccountID:               data.FinesAccountID,
-				FinesAccount:                 m.AccountManager.ToModel(data.FinesAccount),
+				FinesAccount:                 m.accountManager.ToModel(data.FinesAccount),
 				ComakerAccountID:             data.ComakerAccountID,
-				ComakerAccount:               m.AccountManager.ToModel(data.ComakerAccount),
+				ComakerAccount:               m.accountManager.ToModel(data.ComakerAccount),
 				InterestAccountID:            data.InterestAccountID,
-				InterestAccount:              m.AccountManager.ToModel(data.InterestAccount),
+				InterestAccount:              m.accountManager.ToModel(data.InterestAccount),
 				DeliquentAccountID:           data.DeliquentAccountID,
-				DeliquentAccount:             m.AccountManager.ToModel(data.DeliquentAccount),
+				DeliquentAccount:             m.accountManager.ToModel(data.DeliquentAccount),
 				IncludeExistingLoanAccountID: data.IncludeExistingLoanAccountID,
-				IncludeExistingLoanAccount:   m.AccountManager.ToModel(data.IncludeExistingLoanAccount),
+				IncludeExistingLoanAccount:   m.accountManager.ToModel(data.IncludeExistingLoanAccount),
 			}
 		},
 		Created: func(data *BrowseExcludeIncludeAccounts) []string {
@@ -151,8 +151,8 @@ func (m *ModelCore) browseExcludeIncludeAccounts() {
 	})
 }
 
-func (m *ModelCore) BrowseExcludeIncludeAccountsCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*BrowseExcludeIncludeAccounts, error) {
-	return m.BrowseExcludeIncludeAccountsManager.Find(context, &BrowseExcludeIncludeAccounts{
+func (m *ModelCore) browseExcludeIncludeAccountsCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*BrowseExcludeIncludeAccounts, error) {
+	return m.browseExcludeIncludeAccountsManager.Find(context, &BrowseExcludeIncludeAccounts{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

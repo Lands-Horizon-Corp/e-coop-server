@@ -63,9 +63,9 @@ type (
 	}
 )
 
-func (m *ModelCore) MemberTypeReferenceByAmount() {
-	m.Migration = append(m.Migration, &MemberTypeReferenceByAmount{})
-	m.MemberTypeReferenceByAmountManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+func (m *ModelCore) memberTypeReferenceByAmount() {
+	m.migration = append(m.migration, &MemberTypeReferenceByAmount{})
+	m.memberTypeReferenceByAmountManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		MemberTypeReferenceByAmount, MemberTypeReferenceByAmountResponse, MemberTypeReferenceByAmountRequest,
 	]{
 		Preloads: []string{
@@ -80,16 +80,16 @@ func (m *ModelCore) MemberTypeReferenceByAmount() {
 				ID:                    data.ID,
 				CreatedAt:             data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:           data.CreatedByID,
-				CreatedBy:             m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:             m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:             data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:           data.UpdatedByID,
-				UpdatedBy:             m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:             m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID:        data.OrganizationID,
-				Organization:          m.OrganizationManager.ToModel(data.Organization),
+				Organization:          m.organizationManager.ToModel(data.Organization),
 				BranchID:              data.BranchID,
-				Branch:                m.BranchManager.ToModel(data.Branch),
+				Branch:                m.branchManager.ToModel(data.Branch),
 				MemberTypeReferenceID: data.MemberTypeReferenceID,
-				MemberTypeReference:   m.MemberTypeReferenceManager.ToModel(data.MemberTypeReference),
+				MemberTypeReference:   m.memberTypeReferenceManager.ToModel(data.MemberTypeReference),
 				From:                  data.From,
 				To:                    data.To,
 				Rate:                  data.Rate,
@@ -123,8 +123,8 @@ func (m *ModelCore) MemberTypeReferenceByAmount() {
 	})
 }
 
-func (m *ModelCore) MemberTypeReferenceByAmountCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberTypeReferenceByAmount, error) {
-	return m.MemberTypeReferenceByAmountManager.Find(context, &MemberTypeReferenceByAmount{
+func (m *ModelCore) memberTypeReferenceByAmountCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberTypeReferenceByAmount, error) {
+	return m.memberTypeReferenceByAmountManager.Find(context, &MemberTypeReferenceByAmount{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

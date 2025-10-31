@@ -73,9 +73,9 @@ type (
 )
 
 // UserRating initializes the user rating repository and sets up migration
-func (m *ModelCore) UserRating() {
-	m.Migration = append(m.Migration, &UserRating{})
-	m.UserRatingManager = horizon_services.NewRepository(horizon_services.RepositoryParams[UserRating, UserRatingResponse, UserRatingRequest]{
+func (m *ModelCore) userRating() {
+	m.migration = append(m.migration, &UserRating{})
+	m.userRatingManager = horizon_services.NewRepository(horizon_services.RepositoryParams[UserRating, UserRatingResponse, UserRatingRequest]{
 		Preloads: []string{"Organization", "Branch", "RateeUser", "RaterUser"},
 		Service:  m.provider.Service,
 		Resource: func(data *UserRating) *UserRatingResponse {
@@ -86,20 +86,20 @@ func (m *ModelCore) UserRating() {
 				ID:          data.ID,
 				CreatedAt:   data.CreatedAt.Format(time.RFC3339),
 				CreatedByID: data.CreatedByID,
-				CreatedBy:   m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:   m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:   data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID: data.UpdatedByID,
-				UpdatedBy:   m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:   m.userManager.ToModel(data.UpdatedBy),
 
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.organizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.branchManager.ToModel(data.Branch),
 
 				RateeUserID: data.RateeUserID,
-				RateeUser:   m.UserManager.ToModel(&data.RateeUser),
+				RateeUser:   m.userManager.ToModel(&data.RateeUser),
 				RaterUserID: data.RaterUserID,
-				RaterUser:   m.UserManager.ToModel(&data.RaterUser),
+				RaterUser:   m.userManager.ToModel(&data.RaterUser),
 				Rate:        data.Rate,
 				Remark:      data.Remark,
 			}
@@ -132,22 +132,22 @@ func (m *ModelCore) UserRating() {
 }
 
 // GetUserRatee retrieves all ratings where the specified user is the ratee (being rated)
-func (m *ModelCore) GetUserRatee(context context.Context, userID uuid.UUID) ([]*UserRating, error) {
-	return m.UserRatingManager.Find(context, &UserRating{
+func (m *ModelCore) getUserRatee(context context.Context, userID uuid.UUID) ([]*UserRating, error) {
+	return m.userRatingManager.Find(context, &UserRating{
 		RateeUserID: userID,
 	})
 }
 
 // GetUserRater retrieves all ratings where the specified user is the rater (giving ratings)
-func (m *ModelCore) GetUserRater(context context.Context, userID uuid.UUID) ([]*UserRating, error) {
-	return m.UserRatingManager.Find(context, &UserRating{
+func (m *ModelCore) getUserRater(context context.Context, userID uuid.UUID) ([]*UserRating, error) {
+	return m.userRatingManager.Find(context, &UserRating{
 		RaterUserID: userID,
 	})
 }
 
 // UserRatingCurrentBranch retrieves all user ratings for the specified organization and branch
-func (m *ModelCore) UserRatingCurrentbranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*UserRating, error) {
-	return m.UserRatingManager.Find(context, &UserRating{
+func (m *ModelCore) userRatingCurrentbranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*UserRating, error) {
+	return m.userRatingManager.Find(context, &UserRating{
 		OrganizationID: orgID,
 		BranchID:       branchID,
 	})

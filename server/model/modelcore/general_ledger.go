@@ -208,8 +208,8 @@ type (
 )
 
 func (m *ModelCore) generalLedger() {
-	m.Migration = append(m.Migration, &GeneralLedger{})
-	m.GeneralLedgerManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.migration = append(m.migration, &GeneralLedger{})
+	m.generalLedgerManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		GeneralLedger, GeneralLedgerResponse, GeneralLedgerRequest,
 	]{
 		Preloads: []string{
@@ -233,48 +233,48 @@ func (m *ModelCore) generalLedger() {
 				ID:                         data.ID,
 				CreatedAt:                  data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:                data.CreatedByID,
-				CreatedBy:                  m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:                  m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:                  data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:                data.UpdatedByID,
-				UpdatedBy:                  m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:                  m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID:             data.OrganizationID,
-				Organization:               m.OrganizationManager.ToModel(data.Organization),
+				Organization:               m.organizationManager.ToModel(data.Organization),
 				BranchID:                   data.BranchID,
-				Branch:                     m.BranchManager.ToModel(data.Branch),
+				Branch:                     m.branchManager.ToModel(data.Branch),
 				AccountID:                  data.AccountID,
-				Account:                    m.AccountManager.ToModel(data.Account),
+				Account:                    m.accountManager.ToModel(data.Account),
 				TransactionID:              data.TransactionID,
-				Transaction:                m.TransactionManager.ToModel(data.Transaction),
+				Transaction:                m.transactionManager.ToModel(data.Transaction),
 				TransactionBatchID:         data.TransactionBatchID,
-				TransactionBatch:           m.TransactionBatchManager.ToModel(data.TransactionBatch),
+				TransactionBatch:           m.transactionBatchManager.ToModel(data.TransactionBatch),
 				EmployeeUserID:             data.EmployeeUserID,
-				EmployeeUser:               m.UserManager.ToModel(data.EmployeeUser),
+				EmployeeUser:               m.userManager.ToModel(data.EmployeeUser),
 				MemberProfileID:            data.MemberProfileID,
-				MemberProfile:              m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:              m.memberProfileManager.ToModel(data.MemberProfile),
 				MemberJointAccountID:       data.MemberJointAccountID,
-				MemberJointAccount:         m.MemberJointAccountManager.ToModel(data.MemberJointAccount),
+				MemberJointAccount:         m.memberJointAccountManager.ToModel(data.MemberJointAccount),
 				TransactionReferenceNumber: data.TransactionReferenceNumber,
 				ReferenceNumber:            data.ReferenceNumber,
 				PaymentTypeID:              data.PaymentTypeID,
-				PaymentType:                m.PaymentTypeManager.ToModel(data.PaymentType),
+				PaymentType:                m.paymentTypeManager.ToModel(data.PaymentType),
 				Source:                     data.Source,
 				JournalVoucherID:           data.JournalVoucherID,
 				AdjustmentEntryID:          data.AdjustmentEntryID,
-				AdjustmentEntry:            m.AdjustmentEntryManager.ToModel(data.AdjustmentEntry),
+				AdjustmentEntry:            m.adjustmentEntryManager.ToModel(data.AdjustmentEntry),
 				TypeOfPaymentType:          data.TypeOfPaymentType,
 				Credit:                     data.Credit,
 				Debit:                      data.Debit,
 				Balance:                    data.Balance,
 
 				SignatureMediaID:      data.SignatureMediaID,
-				SignatureMedia:        m.MediaManager.ToModel(data.SignatureMedia),
+				SignatureMedia:        m.mediaManager.ToModel(data.SignatureMedia),
 				EntryDate:             data.EntryDate,
 				BankID:                data.BankID,
-				Bank:                  m.BankManager.ToModel(data.Bank),
+				Bank:                  m.bankManager.ToModel(data.Bank),
 				ProofOfPaymentMediaID: data.ProofOfPaymentMediaID,
-				ProofOfPaymentMedia:   m.MediaManager.ToModel(data.ProofOfPaymentMedia),
+				ProofOfPaymentMedia:   m.mediaManager.ToModel(data.ProofOfPaymentMedia),
 				CurrencyID:            data.CurrencyID,
-				Currency:              m.CurrencyManager.ToModel(data.Currency),
+				Currency:              m.currencyManager.ToModel(data.Currency),
 				BankReferenceNumber:   data.BankReferenceNumber,
 				Description:           data.Description,
 				PrintNumber:           data.PrintNumber,
@@ -307,15 +307,15 @@ func (m *ModelCore) generalLedger() {
 	})
 }
 
-func (m *ModelCore) GeneralLedgerCurrentbranch(context context.Context, orgId, branchId uuid.UUID) ([]*GeneralLedger, error) {
-	return m.GeneralLedgerManager.Find(context, &GeneralLedger{
+func (m *ModelCore) generalLedgerCurrentbranch(context context.Context, orgId, branchId uuid.UUID) ([]*GeneralLedger, error) {
+	return m.generalLedgerManager.Find(context, &GeneralLedger{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})
 }
 
-func (m *ModelCore) GeneralLedgerCurrentMemberAccount(context context.Context, memberProfileId, accountId, orgId, branchId uuid.UUID) (*GeneralLedger, error) {
-	return m.GeneralLedgerManager.FindOne(context, &GeneralLedger{
+func (m *ModelCore) generalLedgerCurrentMemberAccount(context context.Context, memberProfileId, accountId, orgId, branchId uuid.UUID) (*GeneralLedger, error) {
+	return m.generalLedgerManager.FindOne(context, &GeneralLedger{
 		OrganizationID:  orgId,
 		BranchID:        branchId,
 		AccountID:       &accountId,
@@ -323,7 +323,7 @@ func (m *ModelCore) GeneralLedgerCurrentMemberAccount(context context.Context, m
 	})
 }
 
-func (m *ModelCore) GeneralLedgerCurrentMemberAccountForUpdate(
+func (m *ModelCore) generalLedgerCurrentMemberAccountForUpdate(
 	ctx context.Context, tx *gorm.DB, memberProfileId, accountId, orgId, branchId uuid.UUID,
 ) (*GeneralLedger, error) {
 	var ledger GeneralLedger
@@ -341,7 +341,7 @@ func (m *ModelCore) GeneralLedgerCurrentMemberAccountForUpdate(
 	return &ledger, err
 }
 
-func (m *ModelCore) GeneralLedgerCurrentSubsidiaryAccountForUpdate(
+func (m *ModelCore) generalLedgerCurrentSubsidiaryAccountForUpdate(
 	ctx context.Context, tx *gorm.DB, accountId, orgId, branchId uuid.UUID,
 ) (*GeneralLedger, error) {
 	var ledger GeneralLedger
@@ -359,7 +359,7 @@ func (m *ModelCore) GeneralLedgerCurrentSubsidiaryAccountForUpdate(
 	return &ledger, err
 }
 
-func (m *ModelCore) GeneralLedgerCashOnHandOnUpdate(
+func (m *ModelCore) generalLedgerCashOnHandOnUpdate(
 	ctx context.Context, tx *gorm.DB, accountId, orgId, branchId uuid.UUID,
 ) (*GeneralLedger, error) {
 	var ledger GeneralLedger
@@ -377,12 +377,12 @@ func (m *ModelCore) GeneralLedgerCashOnHandOnUpdate(
 	return &ledger, err
 }
 
-func (m *ModelCore) GeneralLedgerPrintMaxNumber(
+func (m *ModelCore) generalLedgerPrintMaxNumber(
 	ctx context.Context,
 	memberProfileID, accountID, branchID, orgID uuid.UUID,
 ) (int, error) {
 	var maxPrintNumber int
-	err := m.GeneralLedgerManager.Client().
+	err := m.generalLedgerManager.Client().
 		Where("member_profile_id = ? AND account_id = ? AND branch_id = ? AND organization_id = ?", memberProfileID, accountID, branchID, orgID).
 		Select("COALESCE(MAX(print_number), 0)").
 		Scan(&maxPrintNumber).Error
@@ -392,7 +392,7 @@ func (m *ModelCore) GeneralLedgerPrintMaxNumber(
 	return maxPrintNumber, nil
 }
 
-func (m *ModelCore) GeneralLedgerExcludeCashonHand(
+func (m *ModelCore) generalLedgerExcludeCashonHand(
 	ctx context.Context,
 	transactionId, orgId,
 	branchId uuid.UUID,
@@ -402,7 +402,7 @@ func (m *ModelCore) GeneralLedgerExcludeCashonHand(
 		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
 		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
 	}
-	branchSetting, err := m.BranchSettingManager.FindOne(ctx, &BranchSetting{BranchID: branchId})
+	branchSetting, err := m.branchSettingManager.FindOne(ctx, &BranchSetting{BranchID: branchId})
 	if err != nil {
 		return nil, err
 	}
@@ -413,10 +413,10 @@ func (m *ModelCore) GeneralLedgerExcludeCashonHand(
 			Value: *branchSetting.CashOnHandAccountID,
 		})
 	}
-	return m.GeneralLedgerManager.FindWithFilters(ctx, filters)
+	return m.generalLedgerManager.FindWithFilters(ctx, filters)
 }
 
-func (m *ModelCore) GeneralLedgerExcludeCashonHandWithType(
+func (m *ModelCore) generalLedgerExcludeCashonHandWithType(
 	ctx context.Context,
 	transactionId, orgId, branchId uuid.UUID,
 	paymentType *TypeOfPaymentType,
@@ -436,7 +436,7 @@ func (m *ModelCore) GeneralLedgerExcludeCashonHandWithType(
 		})
 	}
 
-	branchSetting, err := m.BranchSettingManager.FindOne(ctx, &BranchSetting{BranchID: branchId})
+	branchSetting, err := m.branchSettingManager.FindOne(ctx, &BranchSetting{BranchID: branchId})
 	if err != nil {
 		return nil, err
 	}
@@ -447,10 +447,10 @@ func (m *ModelCore) GeneralLedgerExcludeCashonHandWithType(
 			Value: *branchSetting.CashOnHandAccountID,
 		})
 	}
-	return m.GeneralLedgerManager.FindWithFilters(ctx, filters)
+	return m.generalLedgerManager.FindWithFilters(ctx, filters)
 }
 
-func (m *ModelCore) GeneralLedgerExcludeCashonHandWithSource(
+func (m *ModelCore) generalLedgerExcludeCashonHandWithSource(
 	ctx context.Context,
 	transactionId, orgId, branchId uuid.UUID,
 	source *GeneralLedgerSource,
@@ -470,7 +470,7 @@ func (m *ModelCore) GeneralLedgerExcludeCashonHandWithSource(
 		})
 	}
 
-	branchSetting, err := m.BranchSettingManager.FindOne(ctx, &BranchSetting{BranchID: branchId})
+	branchSetting, err := m.branchSettingManager.FindOne(ctx, &BranchSetting{BranchID: branchId})
 	if err != nil {
 		return nil, err
 	}
@@ -481,10 +481,10 @@ func (m *ModelCore) GeneralLedgerExcludeCashonHandWithSource(
 			Value: *branchSetting.CashOnHandAccountID,
 		})
 	}
-	return m.GeneralLedgerManager.FindWithFilters(ctx, filters)
+	return m.generalLedgerManager.FindWithFilters(ctx, filters)
 }
 
-func (m *ModelCore) GeneralLedgerExcludeCashonHandWithFilters(
+func (m *ModelCore) generalLedgerExcludeCashonHandWithFilters(
 	ctx context.Context,
 	transactionId, orgId, branchId uuid.UUID,
 	paymentType *TypeOfPaymentType,
@@ -514,7 +514,7 @@ func (m *ModelCore) GeneralLedgerExcludeCashonHandWithFilters(
 		})
 	}
 
-	branchSetting, err := m.BranchSettingManager.FindOne(ctx, &BranchSetting{BranchID: branchId})
+	branchSetting, err := m.branchSettingManager.FindOne(ctx, &BranchSetting{BranchID: branchId})
 	if err != nil {
 		return nil, err
 	}
@@ -525,5 +525,5 @@ func (m *ModelCore) GeneralLedgerExcludeCashonHandWithFilters(
 			Value: *branchSetting.CashOnHandAccountID,
 		})
 	}
-	return m.GeneralLedgerManager.FindWithFilters(ctx, filters)
+	return m.generalLedgerManager.FindWithFilters(ctx, filters)
 }

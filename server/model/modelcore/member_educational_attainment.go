@@ -70,9 +70,9 @@ type (
 	}
 )
 
-func (m *ModelCore) MemberEducationalAttainment() {
-	m.Migration = append(m.Migration, &MemberEducationalAttainment{})
-	m.MemberEducationalAttainmentManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberEducationalAttainment, MemberEducationalAttainmentResponse, MemberEducationalAttainmentRequest]{
+func (m *ModelCore) memberEducationalAttainment() {
+	m.migration = append(m.migration, &MemberEducationalAttainment{})
+	m.memberEducationalAttainmentManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberEducationalAttainment, MemberEducationalAttainmentResponse, MemberEducationalAttainmentRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberEducationalAttainment) *MemberEducationalAttainmentResponse {
@@ -83,16 +83,16 @@ func (m *ModelCore) MemberEducationalAttainment() {
 				ID:                    data.ID,
 				CreatedAt:             data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:           data.CreatedByID,
-				CreatedBy:             m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:             m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:             data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:           data.UpdatedByID,
-				UpdatedBy:             m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:             m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID:        data.OrganizationID,
-				Organization:          m.OrganizationManager.ToModel(data.Organization),
+				Organization:          m.organizationManager.ToModel(data.Organization),
 				BranchID:              data.BranchID,
-				Branch:                m.BranchManager.ToModel(data.Branch),
+				Branch:                m.branchManager.ToModel(data.Branch),
 				MemberProfileID:       data.MemberProfileID,
-				MemberProfile:         m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:         m.memberProfileManager.ToModel(data.MemberProfile),
 				SchoolName:            data.SchoolName,
 				SchoolYear:            data.SchoolYear,
 				ProgramCourse:         data.ProgramCourse,
@@ -128,8 +128,8 @@ func (m *ModelCore) MemberEducationalAttainment() {
 	})
 }
 
-func (m *ModelCore) MemberEducationalAttainmentCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberEducationalAttainment, error) {
-	return m.MemberEducationalAttainmentManager.Find(context, &MemberEducationalAttainment{
+func (m *ModelCore) memberEducationalAttainmentCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberEducationalAttainment, error) {
+	return m.memberEducationalAttainmentManager.Find(context, &MemberEducationalAttainment{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

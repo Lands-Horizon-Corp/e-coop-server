@@ -101,9 +101,9 @@ type (
 )
 
 // PostDatedCheck initializes the PostDatedCheck model and its repository manager
-func (m *ModelCore) PostDatedCheck() {
-	m.Migration = append(m.Migration, &PostDatedCheck{})
-	m.PostDatedCheckManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+func (m *ModelCore) postDatedCheck() {
+	m.migration = append(m.migration, &PostDatedCheck{})
+	m.postDatedCheckManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		PostDatedCheck, PostDatedCheckResponse, PostDatedCheckRequest,
 	]{
 		Preloads: []string{
@@ -118,16 +118,16 @@ func (m *ModelCore) PostDatedCheck() {
 				ID:                  data.ID,
 				CreatedAt:           data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:         data.CreatedByID,
-				CreatedBy:           m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:           m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:           data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:         data.UpdatedByID,
-				UpdatedBy:           m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:           m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID:      data.OrganizationID,
-				Organization:        m.OrganizationManager.ToModel(data.Organization),
+				Organization:        m.organizationManager.ToModel(data.Organization),
 				BranchID:            data.BranchID,
-				Branch:              m.BranchManager.ToModel(data.Branch),
+				Branch:              m.branchManager.ToModel(data.Branch),
 				MemberProfileID:     data.MemberProfileID,
-				MemberProfile:       m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:       m.memberProfileManager.ToModel(data.MemberProfile),
 				FullName:            data.FullName,
 				PassbookNumber:      data.PassbookNumber,
 				CheckNumber:         data.CheckNumber,
@@ -135,7 +135,7 @@ func (m *ModelCore) PostDatedCheck() {
 				ClearDays:           data.ClearDays,
 				DateCleared:         data.DateCleared.Format(time.RFC3339),
 				BankID:              data.BankID,
-				Bank:                m.BankManager.ToModel(data.Bank),
+				Bank:                m.bankManager.ToModel(data.Bank),
 				Amount:              data.Amount,
 				ReferenceNumber:     data.ReferenceNumber,
 				OfficialReceiptDate: data.OfficialReceiptDate.Format(time.RFC3339),
@@ -172,8 +172,8 @@ func (m *ModelCore) PostDatedCheck() {
 }
 
 // PostDatedCheckCurrentBranch retrieves all postdatedcheck records for the specified organization and branch
-func (m *ModelCore) PostDatedCheckCurrentbranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*PostDatedCheck, error) {
-	return m.PostDatedCheckManager.Find(context, &PostDatedCheck{
+func (m *ModelCore) postDatedCheckCurrentbranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*PostDatedCheck, error) {
+	return m.postDatedCheckManager.Find(context, &PostDatedCheck{
 		OrganizationID: orgID,
 		BranchID:       branchID,
 	})

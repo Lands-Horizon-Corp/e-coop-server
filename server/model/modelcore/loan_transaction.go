@@ -590,9 +590,9 @@ type (
 	}
 )
 
-func (m *ModelCore) LoanTransaction() {
-	m.Migration = append(m.Migration, &LoanTransaction{})
-	m.LoanTransactionManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+func (m *ModelCore) loanTransaction() {
+	m.migration = append(m.migration, &LoanTransaction{})
+	m.loanTransactionManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		LoanTransaction, LoanTransactionResponse, LoanTransactionRequest,
 	]{
 		Preloads: []string{
@@ -632,26 +632,26 @@ func (m *ModelCore) LoanTransaction() {
 				ID:                                     data.ID,
 				CreatedAt:                              data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:                            data.CreatedByID,
-				CreatedBy:                              m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:                              m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:                              data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:                            data.UpdatedByID,
-				UpdatedBy:                              m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:                              m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID:                         data.OrganizationID,
-				Organization:                           m.OrganizationManager.ToModel(data.Organization),
+				Organization:                           m.organizationManager.ToModel(data.Organization),
 				BranchID:                               data.BranchID,
-				Branch:                                 m.BranchManager.ToModel(data.Branch),
+				Branch:                                 m.branchManager.ToModel(data.Branch),
 				EmployeeUserID:                         data.EmployeeUserID,
-				EmployeeUser:                           m.UserManager.ToModel(data.EmployeeUser),
+				EmployeeUser:                           m.userManager.ToModel(data.EmployeeUser),
 				TransactionBatchID:                     data.TransactionBatchID,
-				TransactionBatch:                       m.TransactionBatchManager.ToModel(data.TransactionBatch),
+				TransactionBatch:                       m.transactionBatchManager.ToModel(data.TransactionBatch),
 				OfficialReceiptNumber:                  data.OfficialReceiptNumber,
 				Voucher:                                data.Voucher,
 				CheckDate:                              data.CheckDate,
 				CheckNumber:                            data.CheckNumber,
 				LoanPurposeID:                          data.LoanPurposeID,
-				LoanPurpose:                            m.LoanPurposeManager.ToModel(data.LoanPurpose),
+				LoanPurpose:                            m.loanPurposeManager.ToModel(data.LoanPurpose),
 				LoanStatusID:                           data.LoanStatusID,
-				LoanStatus:                             m.LoanStatusManager.ToModel(data.LoanStatus),
+				LoanStatus:                             m.loanStatusManager.ToModel(data.LoanStatus),
 				ModeOfPayment:                          LoanModeOfPayment(data.ModeOfPayment),
 				ModeOfPaymentWeekly:                    Weekdays(data.ModeOfPaymentWeekly),
 				ModeOfPaymentSemiMonthlyPay1:           data.ModeOfPaymentSemiMonthlyPay1,
@@ -660,24 +660,24 @@ func (m *ModelCore) LoanTransaction() {
 				ModeOfPaymentMonthlyExactDay:           data.ModeOfPaymentMonthlyExactDay,
 				ComakerType:                            LoanComakerType(data.ComakerType),
 				ComakerDepositMemberAccountingLedgerID: data.ComakerDepositMemberAccountingLedgerID,
-				ComakerDepositMemberAccountingLedger:   m.MemberAccountingLedgerManager.ToModel(data.ComakerDepositMemberAccountingLedger),
+				ComakerDepositMemberAccountingLedger:   m.memberAccountingLedgerManager.ToModel(data.ComakerDepositMemberAccountingLedger),
 				CollectorPlace:                         LoanCollectorPlace(data.CollectorPlace),
 				LoanType:                               LoanType(data.LoanType),
 				PreviousLoanID:                         data.PreviousLoanID,
-				PreviousLoan:                           m.LoanTransactionManager.ToModel(data.PreviousLoan),
+				PreviousLoan:                           m.loanTransactionManager.ToModel(data.PreviousLoan),
 				Terms:                                  data.Terms,
 				Amortization:                           data.Amortization,
 				IsAddOn:                                data.IsAddOn,
 				Applied1:                               data.Applied1,
 				Applied2:                               data.Applied2,
 				AccountID:                              data.AccountID,
-				Account:                                m.AccountManager.ToModel(data.Account),
+				Account:                                m.accountManager.ToModel(data.Account),
 				MemberProfileID:                        data.MemberProfileID,
-				MemberProfile:                          m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:                          m.memberProfileManager.ToModel(data.MemberProfile),
 				MemberJointAccountID:                   data.MemberJointAccountID,
-				MemberJointAccount:                     m.AccountManager.ToModel(data.MemberJointAccount),
+				MemberJointAccount:                     m.accountManager.ToModel(data.MemberJointAccount),
 				SignatureMediaID:                       data.SignatureMediaID,
-				SignatureMedia:                         m.MediaManager.ToModel(data.SignatureMedia),
+				SignatureMedia:                         m.mediaManager.ToModel(data.SignatureMedia),
 				MountToBeClosed:                        data.MountToBeClosed,
 				DamayanFund:                            data.DamayanFund,
 				ShareCapital:                           data.ShareCapital,
@@ -696,55 +696,55 @@ func (m *ModelCore) LoanTransaction() {
 				ApprovedDate:                           data.ApprovedDate,
 				ReleasedDate:                           data.ReleasedDate,
 				ReleasedByID:                           data.ReleasedByID,
-				ReleasedBy:                             m.UserManager.ToModel(data.ReleasedBy),
+				ReleasedBy:                             m.userManager.ToModel(data.ReleasedBy),
 				PrintedByID:                            data.PrintedByID,
-				PrintedBy:                              m.UserManager.ToModel(data.PrintedBy),
+				PrintedBy:                              m.userManager.ToModel(data.PrintedBy),
 				ApprovedByID:                           data.ApprovedByID,
-				ApprovedBy:                             m.UserManager.ToModel(data.ApprovedBy),
+				ApprovedBy:                             m.userManager.ToModel(data.ApprovedBy),
 				ApprovedBySignatureMediaID:             data.ApprovedBySignatureMediaID,
-				ApprovedBySignatureMedia:               m.MediaManager.ToModel(data.ApprovedBySignatureMedia),
+				ApprovedBySignatureMedia:               m.mediaManager.ToModel(data.ApprovedBySignatureMedia),
 				ApprovedByName:                         data.ApprovedByName,
 				ApprovedByPosition:                     data.ApprovedByPosition,
 				PreparedBySignatureMediaID:             data.PreparedBySignatureMediaID,
-				PreparedBySignatureMedia:               m.MediaManager.ToModel(data.PreparedBySignatureMedia),
+				PreparedBySignatureMedia:               m.mediaManager.ToModel(data.PreparedBySignatureMedia),
 				PreparedByName:                         data.PreparedByName,
 				PreparedByPosition:                     data.PreparedByPosition,
 				CertifiedBySignatureMediaID:            data.CertifiedBySignatureMediaID,
-				CertifiedBySignatureMedia:              m.MediaManager.ToModel(data.CertifiedBySignatureMedia),
+				CertifiedBySignatureMedia:              m.mediaManager.ToModel(data.CertifiedBySignatureMedia),
 				CertifiedByName:                        data.CertifiedByName,
 				CertifiedByPosition:                    data.CertifiedByPosition,
 				VerifiedBySignatureMediaID:             data.VerifiedBySignatureMediaID,
-				VerifiedBySignatureMedia:               m.MediaManager.ToModel(data.VerifiedBySignatureMedia),
+				VerifiedBySignatureMedia:               m.mediaManager.ToModel(data.VerifiedBySignatureMedia),
 				VerifiedByName:                         data.VerifiedByName,
 				VerifiedByPosition:                     data.VerifiedByPosition,
 				CheckBySignatureMediaID:                data.CheckBySignatureMediaID,
-				CheckBySignatureMedia:                  m.MediaManager.ToModel(data.CheckBySignatureMedia),
+				CheckBySignatureMedia:                  m.mediaManager.ToModel(data.CheckBySignatureMedia),
 				CheckByName:                            data.CheckByName,
 				CheckByPosition:                        data.CheckByPosition,
 				AcknowledgeBySignatureMediaID:          data.AcknowledgeBySignatureMediaID,
-				AcknowledgeBySignatureMedia:            m.MediaManager.ToModel(data.AcknowledgeBySignatureMedia),
+				AcknowledgeBySignatureMedia:            m.mediaManager.ToModel(data.AcknowledgeBySignatureMedia),
 				AcknowledgeByName:                      data.AcknowledgeByName,
 				AcknowledgeByPosition:                  data.AcknowledgeByPosition,
 				NotedBySignatureMediaID:                data.NotedBySignatureMediaID,
-				NotedBySignatureMedia:                  m.MediaManager.ToModel(data.NotedBySignatureMedia),
+				NotedBySignatureMedia:                  m.mediaManager.ToModel(data.NotedBySignatureMedia),
 				NotedByName:                            data.NotedByName,
 				NotedByPosition:                        data.NotedByPosition,
 				PostedBySignatureMediaID:               data.PostedBySignatureMediaID,
-				PostedBySignatureMedia:                 m.MediaManager.ToModel(data.PostedBySignatureMedia),
+				PostedBySignatureMedia:                 m.mediaManager.ToModel(data.PostedBySignatureMedia),
 				PostedByName:                           data.PostedByName,
 				PostedByPosition:                       data.PostedByPosition,
 				PaidBySignatureMediaID:                 data.PaidBySignatureMediaID,
-				PaidBySignatureMedia:                   m.MediaManager.ToModel(data.PaidBySignatureMedia),
+				PaidBySignatureMedia:                   m.mediaManager.ToModel(data.PaidBySignatureMedia),
 				PaidByName:                             data.PaidByName,
 				PaidByPosition:                         data.PaidByPosition,
-				LoanTags:                               m.LoanTagManager.ToModels(data.LoanTags),
+				LoanTags:                               m.loanTagManager.ToModels(data.LoanTags),
 				LoanTransactionEntries:                 m.mapLoanTransactionEntries(data.LoanTransactionEntries),
-				LoanClearanceAnalysis:                  m.LoanClearanceAnalysisManager.ToModels(data.LoanClearanceAnalysis),
-				LoanClearanceAnalysisInstitution:       m.LoanClearanceAnalysisInstitutionManager.ToModels(data.LoanClearanceAnalysisInstitution),
-				LoanTermsAndConditionSuggestedPayment:  m.LoanTermsAndConditionSuggestedPaymentManager.ToModels(data.LoanTermsAndConditionSuggestedPayment),
-				LoanTermsAndConditionAmountReceipt:     m.LoanTermsAndConditionAmountReceiptManager.ToModels(data.LoanTermsAndConditionAmountReceipt),
-				ComakerMemberProfiles:                  m.ComakerMemberProfileManager.ToModels(data.ComakerMemberProfiles),
-				ComakerCollaterals:                     m.ComakerCollateralManager.ToModels(data.ComakerCollaterals),
+				LoanClearanceAnalysis:                  m.loanClearanceAnalysisManager.ToModels(data.LoanClearanceAnalysis),
+				LoanClearanceAnalysisInstitution:       m.loanClearanceAnalysisInstitutionManager.ToModels(data.LoanClearanceAnalysisInstitution),
+				LoanTermsAndConditionSuggestedPayment:  m.loanTermsAndConditionSuggestedPaymentManager.ToModels(data.LoanTermsAndConditionSuggestedPayment),
+				LoanTermsAndConditionAmountReceipt:     m.loanTermsAndConditionAmountReceiptManager.ToModels(data.LoanTermsAndConditionAmountReceipt),
+				ComakerMemberProfiles:                  m.comakerMemberProfileManager.ToModels(data.ComakerMemberProfiles),
+				ComakerCollaterals:                     m.comakerCollateralManager.ToModels(data.ComakerCollaterals),
 				Count:                                  data.Count,
 				Balance:                                data.Balance,
 				LastPay:                                data.LastPay,
@@ -782,8 +782,8 @@ func (m *ModelCore) LoanTransaction() {
 	})
 }
 
-func (m *ModelCore) LoanTransactionCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanTransaction, error) {
-	return m.LoanTransactionManager.Find(context, &LoanTransaction{
+func (m *ModelCore) loanTransactionCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanTransaction, error) {
+	return m.loanTransactionManager.Find(context, &LoanTransaction{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})
@@ -803,13 +803,13 @@ func (m *ModelCore) mapLoanTransactionEntries(entries []*LoanTransactionEntry) [
 	var result []*LoanTransactionEntryResponse
 	for _, entry := range entries {
 		if entry != nil {
-			result = append(result, m.LoanTransactionEntryManager.ToModel(entry))
+			result = append(result, m.loanTransactionEntryManager.ToModel(entry))
 		}
 	}
 	return result
 }
 
-func (m *ModelCore) LoanTransactionWithDatesNotNull(ctx context.Context, memberId, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
+func (m *ModelCore) loanTransactionWithDatesNotNull(ctx context.Context, memberId, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
 	filters := []horizon_services.Filter{
 		{Field: "member_profile_id", Op: horizon_services.OpEq, Value: memberId},
 		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
@@ -819,14 +819,14 @@ func (m *ModelCore) LoanTransactionWithDatesNotNull(ctx context.Context, memberI
 		{Field: "released_date", Op: horizon_services.OpNotNull, Value: nil},
 	}
 
-	loanTransactions, err := m.LoanTransactionManager.FindWithFilters(ctx, filters)
+	loanTransactions, err := m.loanTransactionManager.FindWithFilters(ctx, filters)
 	if err != nil {
 		return nil, err
 	}
 	return loanTransactions, nil
 }
 
-func (m *ModelCore) LoanTransactionsMemberAccount(ctx context.Context, memberId, accountId, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
+func (m *ModelCore) loanTransactionsMemberAccount(ctx context.Context, memberId, accountId, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
 	filters := []horizon_services.Filter{
 		{Field: "member_profile_id", Op: horizon_services.OpEq, Value: memberId},
 		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
@@ -837,17 +837,17 @@ func (m *ModelCore) LoanTransactionsMemberAccount(ctx context.Context, memberId,
 		{Field: "released_date", Op: horizon_services.OpNotNull, Value: nil},
 	}
 
-	loanTransactions, err := m.LoanTransactionManager.FindWithFilters(ctx, filters)
+	loanTransactions, err := m.loanTransactionManager.FindWithFilters(ctx, filters)
 	if err != nil {
 		return nil, err
 	}
 	return loanTransactions, nil
 }
 
-func (m *ModelCore) GenerateLoanAmortization(ctx context.Context, loanTransaction *LoanTransaction) error {
+func (m *ModelCore) generateLoanAmortization(ctx context.Context, loanTransaction *LoanTransaction) error {
 
 	// Fetch the holidays if needed for amortization calculation
-	// holidays, err := m.HolidayManager.Find(ctx, &Holiday{
+	// holidays, err := m.holidayManager.Find(ctx, &Holiday{
 	// 	OrganizationID: loanTransaction.OrganizationID,
 	// 	BranchID:       loanTransaction.BranchID,
 	// })
@@ -863,7 +863,7 @@ func (m *ModelCore) GenerateLoanAmortization(ctx context.Context, loanTransactio
 }
 
 // Helper function to generate amortization schedule
-func (m *ModelCore) GenerateLoanAmortizationSchedule(ctx context.Context, loanTransaction *LoanTransaction) (*AmortizationScheduleResponse, error) {
+func (m *ModelCore) generateLoanAmortizationSchedule(ctx context.Context, loanTransaction *LoanTransaction) (*AmortizationScheduleResponse, error) {
 	// Extract loan details
 	principal := loanTransaction.Applied1
 	terms := loanTransaction.Terms
@@ -875,7 +875,7 @@ func (m *ModelCore) GenerateLoanAmortizationSchedule(ctx context.Context, loanTr
 
 	// Get account information if AccountID is provided
 	if loanTransaction.AccountID != nil {
-		account, err := m.AccountManager.GetByID(ctx, *loanTransaction.AccountID)
+		account, err := m.accountManager.GetByID(ctx, *loanTransaction.AccountID)
 		if err == nil && account != nil {
 			interestRate = account.InterestStandard / 100 // Convert percentage to decimal
 			computationType = account.ComputationType
@@ -1040,7 +1040,7 @@ func (m *ModelCore) GenerateLoanAmortizationSchedule(ctx context.Context, loanTr
 	return response, nil
 }
 
-func (m *ModelCore) LoanTransactionDraft(ctx context.Context, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
+func (m *ModelCore) loanTransactionDraft(ctx context.Context, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
 	filters := []horizon_services.Filter{
 		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
 		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
@@ -1049,14 +1049,14 @@ func (m *ModelCore) LoanTransactionDraft(ctx context.Context, branchId, orgId uu
 		{Field: "released_date", Op: horizon_services.OpIsNull, Value: nil},
 	}
 
-	loanTransactions, err := m.LoanTransactionManager.FindWithFilters(ctx, filters)
+	loanTransactions, err := m.loanTransactionManager.FindWithFilters(ctx, filters)
 	if err != nil {
 		return nil, err
 	}
 	return loanTransactions, nil
 }
 
-func (m *ModelCore) LoanTransactionPrinted(ctx context.Context, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
+func (m *ModelCore) loanTransactionPrinted(ctx context.Context, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
 	filters := []horizon_services.Filter{
 		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
 		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
@@ -1065,14 +1065,14 @@ func (m *ModelCore) LoanTransactionPrinted(ctx context.Context, branchId, orgId 
 		{Field: "released_date", Op: horizon_services.OpIsNull, Value: nil},
 	}
 
-	loanTransactions, err := m.LoanTransactionManager.FindWithFilters(ctx, filters)
+	loanTransactions, err := m.loanTransactionManager.FindWithFilters(ctx, filters)
 	if err != nil {
 		return nil, err
 	}
 	return loanTransactions, nil
 }
 
-func (m *ModelCore) LoanTransactionApproved(ctx context.Context, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
+func (m *ModelCore) loanTransactionApproved(ctx context.Context, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
 	filters := []horizon_services.Filter{
 		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
 		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
@@ -1081,13 +1081,13 @@ func (m *ModelCore) LoanTransactionApproved(ctx context.Context, branchId, orgId
 		{Field: "released_date", Op: horizon_services.OpIsNull, Value: nil},
 	}
 
-	loanTransactions, err := m.LoanTransactionManager.FindWithFilters(ctx, filters)
+	loanTransactions, err := m.loanTransactionManager.FindWithFilters(ctx, filters)
 	if err != nil {
 		return nil, err
 	}
 	return loanTransactions, nil
 }
-func (m *ModelCore) LoanTransactionReleased(ctx context.Context, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
+func (m *ModelCore) loanTransactionReleased(ctx context.Context, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
 	filters := []horizon_services.Filter{
 		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
 		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
@@ -1095,14 +1095,14 @@ func (m *ModelCore) LoanTransactionReleased(ctx context.Context, branchId, orgId
 		{Field: "approved_date", Op: horizon_services.OpNotNull, Value: nil},
 		{Field: "released_date", Op: horizon_services.OpNotNull, Value: nil},
 	}
-	loanTransactions, err := m.LoanTransactionManager.FindWithFilters(ctx, filters)
+	loanTransactions, err := m.loanTransactionManager.FindWithFilters(ctx, filters)
 	if err != nil {
 		return nil, err
 	}
 	return loanTransactions, nil
 }
 
-func (m *ModelCore) LoanTransactionReleasedCurrentDay(ctx context.Context, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
+func (m *ModelCore) loanTransactionReleasedCurrentDay(ctx context.Context, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
 	now := time.Now().UTC()
 	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 	endOfDay := startOfDay.Add(24 * time.Hour)
@@ -1117,7 +1117,7 @@ func (m *ModelCore) LoanTransactionReleasedCurrentDay(ctx context.Context, branc
 		{Field: "created_at", Op: horizon_services.OpLt, Value: endOfDay},
 	}
 
-	loanTransactions, err := m.LoanTransactionManager.FindWithFilters(ctx, filters)
+	loanTransactions, err := m.loanTransactionManager.FindWithFilters(ctx, filters)
 	if err != nil {
 		return nil, err
 	}

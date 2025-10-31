@@ -59,8 +59,8 @@ type (
 )
 
 func (m *ModelCore) collateral() {
-	m.Migration = append(m.Migration, &Collateral{})
-	m.CollateralManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.migration = append(m.migration, &Collateral{})
+	m.collateralManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		Collateral, CollateralResponse, CollateralRequest,
 	]{
 		Preloads: []string{
@@ -75,14 +75,14 @@ func (m *ModelCore) collateral() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.organizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.branchManager.ToModel(data.Branch),
 				Icon:           data.Icon,
 				Name:           data.Name,
 				Description:    data.Description,
@@ -115,7 +115,7 @@ func (m *ModelCore) collateral() {
 	})
 }
 
-func (m *ModelCore) CollateralSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+func (m *ModelCore) collateralSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
 	collaterals := []*Collateral{
 		{
@@ -220,15 +220,15 @@ func (m *ModelCore) CollateralSeed(context context.Context, tx *gorm.DB, userID 
 		},
 	}
 	for _, data := range collaterals {
-		if err := m.CollateralManager.CreateWithTx(context, tx, data); err != nil {
+		if err := m.collateralManager.CreateWithTx(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to seed collateral %s", data.Name)
 		}
 	}
 	return nil
 }
 
-func (m *ModelCore) CollateralCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Collateral, error) {
-	return m.CollateralManager.Find(context, &Collateral{
+func (m *ModelCore) collateralCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Collateral, error) {
+	return m.collateralManager.Find(context, &Collateral{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

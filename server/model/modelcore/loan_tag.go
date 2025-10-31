@@ -69,9 +69,9 @@ type (
 	}
 )
 
-func (m *ModelCore) LoanTag() {
-	m.Migration = append(m.Migration, &LoanTag{})
-	m.LoanTagManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+func (m *ModelCore) loanTag() {
+	m.migration = append(m.migration, &LoanTag{})
+	m.loanTagManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		LoanTag, LoanTagResponse, LoanTagRequest,
 	]{
 		Preloads: []string{
@@ -86,16 +86,16 @@ func (m *ModelCore) LoanTag() {
 				ID:                data.ID,
 				CreatedAt:         data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:       data.CreatedByID,
-				CreatedBy:         m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:         m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:         data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:       data.UpdatedByID,
-				UpdatedBy:         m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:         m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID:    data.OrganizationID,
-				Organization:      m.OrganizationManager.ToModel(data.Organization),
+				Organization:      m.organizationManager.ToModel(data.Organization),
 				BranchID:          data.BranchID,
-				Branch:            m.BranchManager.ToModel(data.Branch),
+				Branch:            m.branchManager.ToModel(data.Branch),
 				LoanTransactionID: data.LoanTransactionID,
-				LoanTransaction:   m.LoanTransactionManager.ToModel(data.LoanTransaction),
+				LoanTransaction:   m.loanTransactionManager.ToModel(data.LoanTransaction),
 				Name:              data.Name,
 				Description:       data.Description,
 				Category:          data.Category,
@@ -131,8 +131,8 @@ func (m *ModelCore) LoanTag() {
 	})
 }
 
-func (m *ModelCore) LoanTagCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanTag, error) {
-	return m.LoanTagManager.Find(context, &LoanTag{
+func (m *ModelCore) loanTagCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanTag, error) {
+	return m.loanTagManager.Find(context, &LoanTag{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

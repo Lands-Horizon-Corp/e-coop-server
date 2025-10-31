@@ -200,9 +200,9 @@ type (
 )
 
 // User initializes the User model and its repository manager
-func (m *ModelCore) User() {
-	m.Migration = append(m.Migration, &User{})
-	m.UserManager = horizon_services.NewRepository(horizon_services.RepositoryParams[User, UserResponse, UserRegisterRequest]{
+func (m *ModelCore) user() {
+	m.migration = append(m.migration, &User{})
+	m.userManager = horizon_services.NewRepository(horizon_services.RepositoryParams[User, UserResponse, UserRegisterRequest]{
 		Preloads: []string{
 			"Media",
 			"SignatureMedia",
@@ -248,14 +248,14 @@ func (m *ModelCore) User() {
 				UpdatedAt:         data.UpdatedAt.Format(time.RFC3339),
 
 				MediaID:          data.MediaID,
-				Media:            m.MediaManager.ToModel(data.Media),
+				Media:            m.mediaManager.ToModel(data.Media),
 				SignatureMediaID: data.SignatureMediaID,
-				SignatureMedia:   m.MediaManager.ToModel(data.SignatureMedia),
-				Footsteps:        m.FootstepManager.ToModels(data.Footsteps),
-				GeneratedReports: m.GeneratedReportManager.ToModels(data.GeneratedReports),
-				Notifications:    m.NotificationManager.ToModels(data.Notification),
+				SignatureMedia:   m.mediaManager.ToModel(data.SignatureMedia),
+				Footsteps:        m.footstepManager.ToModels(data.Footsteps),
+				GeneratedReports: m.generatedReportManager.ToModels(data.GeneratedReports),
+				Notifications:    m.notificationManager.ToModels(data.Notification),
 
-				UserOrganizations: m.UserOrganizationManager.ToModels(data.UserOrganizations),
+				UserOrganizations: m.userOrganizationManager.ToModels(data.UserOrganizations),
 			}
 		},
 
@@ -281,34 +281,34 @@ func (m *ModelCore) User() {
 }
 
 // GetUserByContactNumber retrieves a user by their contact number (endpoint: user/contact-number/:contact_number_id)
-func (m *ModelCore) GetUserByContactNumber(context context.Context, contactNumber string) (*User, error) {
-	return m.UserManager.FindOne(context, &User{ContactNumber: contactNumber})
+func (m *ModelCore) getUserByContactNumber(context context.Context, contactNumber string) (*User, error) {
+	return m.userManager.FindOne(context, &User{ContactNumber: contactNumber})
 }
 
 // GetUserByEmail retrieves a user by their email address (endpoint: user/email/:email)
-func (m *ModelCore) GetUserByEmail(context context.Context, email string) (*User, error) {
-	return m.UserManager.FindOne(context, &User{Email: email})
+func (m *ModelCore) getUserByEmail(context context.Context, email string) (*User, error) {
+	return m.userManager.FindOne(context, &User{Email: email})
 }
 
 // GetUserByUserName retrieves a user by their username (endpoint: user/user-name/:user-name)
-func (m *ModelCore) GetUserByUserName(context context.Context, userName string) (*User, error) {
-	return m.UserManager.FindOne(context, &User{UserName: userName})
+func (m *ModelCore) getUserByUserName(context context.Context, userName string) (*User, error) {
+	return m.userManager.FindOne(context, &User{UserName: userName})
 }
 
 // GetUserByIdentifier retrieves a user by email, contact number, or username (endpoint: user/identifier/:identifier)
-func (m *ModelCore) GetUserByIdentifier(context context.Context, identifier string) (*User, error) {
+func (m *ModelCore) getUserByIdentifier(context context.Context, identifier string) (*User, error) {
 	if strings.Contains(identifier, "@") {
-		if u, err := m.GetUserByEmail(context, identifier); err == nil {
+		if u, err := m.getUserByEmail(context, identifier); err == nil {
 			return u, nil
 		}
 	}
 	numeric := strings.Trim(identifier, "+-0123456789")
 	if numeric == "" {
-		if u, err := m.GetUserByContactNumber(context, identifier); err == nil {
+		if u, err := m.getUserByContactNumber(context, identifier); err == nil {
 			return u, nil
 		}
 	}
-	if u, err := m.GetUserByUserName(context, identifier); err == nil {
+	if u, err := m.getUserByUserName(context, identifier); err == nil {
 		return u, nil
 	}
 	return nil, eris.New("user not found by email, contact number, or username")

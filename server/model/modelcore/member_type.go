@@ -58,9 +58,9 @@ type (
 	}
 )
 
-func (m *ModelCore) MemberType() {
-	m.Migration = append(m.Migration, &MemberType{})
-	m.MemberTypeManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberType, MemberTypeResponse, MemberTypeRequest]{
+func (m *ModelCore) memberType() {
+	m.migration = append(m.migration, &MemberType{})
+	m.memberTypeManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberType, MemberTypeResponse, MemberTypeRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberType) *MemberTypeResponse {
@@ -71,14 +71,14 @@ func (m *ModelCore) MemberType() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.organizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.branchManager.ToModel(data.Branch),
 				Prefix:         data.Prefix,
 				Name:           data.Name,
 				Description:    data.Description,
@@ -112,7 +112,7 @@ func (m *ModelCore) MemberType() {
 	})
 }
 
-func (m *ModelCore) MemberTypeSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+func (m *ModelCore) memberTypeSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
 	memberType := []*MemberType{
 		{
@@ -285,15 +285,15 @@ func (m *ModelCore) MemberTypeSeed(context context.Context, tx *gorm.DB, userID 
 		},
 	}
 	for _, data := range memberType {
-		if err := m.MemberTypeManager.CreateWithTx(context, tx, data); err != nil {
+		if err := m.memberTypeManager.CreateWithTx(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to seed member type %s", data.Name)
 		}
 	}
 	return nil
 }
 
-func (m *ModelCore) MemberTypeCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberType, error) {
-	return m.MemberTypeManager.Find(context, &MemberType{
+func (m *ModelCore) memberTypeCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberType, error) {
+	return m.memberTypeManager.Find(context, &MemberType{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

@@ -70,9 +70,9 @@ type (
 	}
 )
 
-func (m *ModelCore) LoanClearanceAnalysis() {
-	m.Migration = append(m.Migration, &LoanClearanceAnalysis{})
-	m.LoanClearanceAnalysisManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+func (m *ModelCore) loanClearanceAnalysis() {
+	m.migration = append(m.migration, &LoanClearanceAnalysis{})
+	m.loanClearanceAnalysisManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		LoanClearanceAnalysis, LoanClearanceAnalysisResponse, LoanClearanceAnalysisRequest,
 	]{
 		Preloads: []string{
@@ -87,16 +87,16 @@ func (m *ModelCore) LoanClearanceAnalysis() {
 				ID:                          data.ID,
 				CreatedAt:                   data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:                 data.CreatedByID,
-				CreatedBy:                   m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:                   m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:                   data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:                 data.UpdatedByID,
-				UpdatedBy:                   m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:                   m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID:              data.OrganizationID,
-				Organization:                m.OrganizationManager.ToModel(data.Organization),
+				Organization:                m.organizationManager.ToModel(data.Organization),
 				BranchID:                    data.BranchID,
-				Branch:                      m.BranchManager.ToModel(data.Branch),
+				Branch:                      m.branchManager.ToModel(data.Branch),
 				LoanTransactionID:           data.LoanTransactionID,
-				LoanTransaction:             m.LoanTransactionManager.ToModel(data.LoanTransaction),
+				LoanTransaction:             m.loanTransactionManager.ToModel(data.LoanTransaction),
 				RegularDeductionDescription: data.RegularDeductionDescription,
 				RegularDeductionAmount:      data.RegularDeductionAmount,
 				BalancesDescription:         data.BalancesDescription,
@@ -132,8 +132,8 @@ func (m *ModelCore) LoanClearanceAnalysis() {
 	})
 }
 
-func (m *ModelCore) LoanClearanceAnalysisCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanClearanceAnalysis, error) {
-	return m.LoanClearanceAnalysisManager.Find(context, &LoanClearanceAnalysis{
+func (m *ModelCore) loanClearanceAnalysisCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanClearanceAnalysis, error) {
+	return m.loanClearanceAnalysisManager.Find(context, &LoanClearanceAnalysis{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

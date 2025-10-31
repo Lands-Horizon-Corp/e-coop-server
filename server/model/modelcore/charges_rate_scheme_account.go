@@ -60,8 +60,8 @@ type (
 )
 
 func (m *ModelCore) chargesRateSchemeAccount() {
-	m.Migration = append(m.Migration, &ChargesRateSchemeAccount{})
-	m.ChargesRateSchemeAccountManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.migration = append(m.migration, &ChargesRateSchemeAccount{})
+	m.chargesRateSchemeAccountManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		ChargesRateSchemeAccount, ChargesRateSchemeAccountResponse, ChargesRateSchemeAccountRequest,
 	]{
 		Preloads: []string{
@@ -76,18 +76,18 @@ func (m *ModelCore) chargesRateSchemeAccount() {
 				ID:                  data.ID,
 				CreatedAt:           data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:         data.CreatedByID,
-				CreatedBy:           m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:           m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:           data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:         data.UpdatedByID,
-				UpdatedBy:           m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:           m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID:      data.OrganizationID,
-				Organization:        m.OrganizationManager.ToModel(data.Organization),
+				Organization:        m.organizationManager.ToModel(data.Organization),
 				BranchID:            data.BranchID,
-				Branch:              m.BranchManager.ToModel(data.Branch),
+				Branch:              m.branchManager.ToModel(data.Branch),
 				ChargesRateSchemeID: data.ChargesRateSchemeID,
-				ChargesRateScheme:   m.ChargesRateSchemeManager.ToModel(data.ChargesRateScheme),
+				ChargesRateScheme:   m.chargesRateSchemeManager.ToModel(data.ChargesRateScheme),
 				AccountID:           data.AccountID,
-				Account:             m.AccountManager.ToModel(data.Account),
+				Account:             m.accountManager.ToModel(data.Account),
 			}
 		},
 		Created: func(data *ChargesRateSchemeAccount) []string {
@@ -117,8 +117,8 @@ func (m *ModelCore) chargesRateSchemeAccount() {
 	})
 }
 
-func (m *ModelCore) ChargesRateSchemeAccountCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ChargesRateSchemeAccount, error) {
-	return m.ChargesRateSchemeAccountManager.Find(context, &ChargesRateSchemeAccount{
+func (m *ModelCore) chargesRateSchemeAccountCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ChargesRateSchemeAccount, error) {
+	return m.chargesRateSchemeAccountManager.Find(context, &ChargesRateSchemeAccount{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

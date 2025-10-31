@@ -86,9 +86,9 @@ type (
 	}
 )
 
-func (m *ModelCore) MemberAddress() {
-	m.Migration = append(m.Migration, &MemberAddress{})
-	m.MemberAddressManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberAddress, MemberAddressReponse, MemberAddressRequest]{
+func (m *ModelCore) memberAddress() {
+	m.migration = append(m.migration, &MemberAddress{})
+	m.memberAddressManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberAddress, MemberAddressReponse, MemberAddressRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberAddress) *MemberAddressReponse {
@@ -99,16 +99,16 @@ func (m *ModelCore) MemberAddress() {
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
-				CreatedBy:       m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:       m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:     data.UpdatedByID,
-				UpdatedBy:       m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:       m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID:  data.OrganizationID,
-				Organization:    m.OrganizationManager.ToModel(data.Organization),
+				Organization:    m.organizationManager.ToModel(data.Organization),
 				BranchID:        data.BranchID,
-				Branch:          m.BranchManager.ToModel(data.Branch),
+				Branch:          m.branchManager.ToModel(data.Branch),
 				MemberProfileID: data.MemberProfileID,
-				MemberProfile:   m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:   m.memberProfileManager.ToModel(data.MemberProfile),
 				Label:           data.Label,
 				City:            data.City,
 				CountryCode:     data.CountryCode,
@@ -149,8 +149,8 @@ func (m *ModelCore) MemberAddress() {
 	})
 }
 
-func (m *ModelCore) MemberAddressCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberAddress, error) {
-	return m.MemberAddressManager.Find(context, &MemberAddress{
+func (m *ModelCore) memberAddressCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberAddress, error) {
+	return m.memberAddressManager.Find(context, &MemberAddress{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

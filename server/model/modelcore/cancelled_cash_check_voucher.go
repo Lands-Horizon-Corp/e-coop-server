@@ -58,8 +58,8 @@ type (
 )
 
 func (m *ModelCore) cancelledCashCheckVoucher() {
-	m.Migration = append(m.Migration, &CancelledCashCheckVoucher{})
-	m.CancelledCashCheckVoucherManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.migration = append(m.migration, &CancelledCashCheckVoucher{})
+	m.cancelledCashCheckVoucherManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		CancelledCashCheckVoucher, CancelledCashCheckVoucherResponse, CancelledCashCheckVoucherRequest,
 	]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
@@ -72,14 +72,14 @@ func (m *ModelCore) cancelledCashCheckVoucher() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.organizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.branchManager.ToModel(data.Branch),
 				CheckNumber:    data.CheckNumber,
 				EntryDate:      data.EntryDate.Format(time.RFC3339),
 				Description:    data.Description,
@@ -112,8 +112,8 @@ func (m *ModelCore) cancelledCashCheckVoucher() {
 	})
 }
 
-func (m *ModelCore) CancelledCashCheckVoucherCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*CancelledCashCheckVoucher, error) {
-	return m.CancelledCashCheckVoucherManager.Find(context, &CancelledCashCheckVoucher{
+func (m *ModelCore) cancelledCashCheckVoucherCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*CancelledCashCheckVoucher, error) {
+	return m.cancelledCashCheckVoucherManager.Find(context, &CancelledCashCheckVoucher{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

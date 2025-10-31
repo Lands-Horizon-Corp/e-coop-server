@@ -64,9 +64,9 @@ type (
 )
 
 // PermissionTemplate initializes the permission template model and its repository manager
-func (m *ModelCore) PermissionTemplate() {
-	m.Migration = append(m.Migration, &PermissionTemplate{})
-	m.PermissionTemplateManager = horizon_services.NewRepository(horizon_services.RepositoryParams[PermissionTemplate, PermissionTemplateResponse, PermissionTemplateRequest]{
+func (m *ModelCore) permissionTemplate() {
+	m.migration = append(m.migration, &PermissionTemplate{})
+	m.permissionTemplateManager = horizon_services.NewRepository(horizon_services.RepositoryParams[PermissionTemplate, PermissionTemplateResponse, PermissionTemplateRequest]{
 		Preloads: []string{
 			"CreatedBy",
 			"UpdatedBy",
@@ -90,14 +90,14 @@ func (m *ModelCore) PermissionTemplate() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.organizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.branchManager.ToModel(data.Branch),
 
 				Name:        data.Name,
 				Description: data.Description,
@@ -133,8 +133,8 @@ func (m *ModelCore) PermissionTemplate() {
 }
 
 // GetPermissionTemplateByBranch retrieves permission templates for a specific branch within an organization
-func (m *ModelCore) GetPermissionTemplateBybranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*PermissionTemplate, error) {
-	return m.PermissionTemplateManager.Find(context, &PermissionTemplate{
+func (m *ModelCore) getPermissionTemplateBybranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*PermissionTemplate, error) {
+	return m.permissionTemplateManager.Find(context, &PermissionTemplate{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

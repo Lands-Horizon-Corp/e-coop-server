@@ -57,9 +57,9 @@ type (
 	}
 )
 
-func (m *ModelCore) MemberOtherInformationEntry() {
-	m.Migration = append(m.Migration, &MemberOtherInformationEntry{})
-	m.MemberOtherInformationEntryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberOtherInformationEntry, MemberOtherInformationEntryResponse, MemberOtherInformationEntryRequest]{
+func (m *ModelCore) memberOtherInformationEntry() {
+	m.migration = append(m.migration, &MemberOtherInformationEntry{})
+	m.memberOtherInformationEntryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberOtherInformationEntry, MemberOtherInformationEntryResponse, MemberOtherInformationEntryRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberOtherInformationEntry) *MemberOtherInformationEntryResponse {
@@ -70,14 +70,14 @@ func (m *ModelCore) MemberOtherInformationEntry() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.organizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.branchManager.ToModel(data.Branch),
 				Name:           data.Name,
 				Description:    data.Description,
 				EntryDate:      data.EntryDate.Format(time.RFC3339),
@@ -111,8 +111,8 @@ func (m *ModelCore) MemberOtherInformationEntry() {
 	})
 }
 
-func (m *ModelCore) MemberOtherInformationEntryCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberOtherInformationEntry, error) {
-	return m.MemberOtherInformationEntryManager.Find(context, &MemberOtherInformationEntry{
+func (m *ModelCore) memberOtherInformationEntryCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberOtherInformationEntry, error) {
+	return m.memberOtherInformationEntryManager.Find(context, &MemberOtherInformationEntry{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

@@ -250,8 +250,8 @@ type (
 )
 
 func (m *ModelCore) chargesRateScheme() {
-	m.Migration = append(m.Migration, &ChargesRateScheme{})
-	m.ChargesRateSchemeManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.migration = append(m.migration, &ChargesRateScheme{})
+	m.chargesRateSchemeManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		ChargesRateScheme, ChargesRateSchemeResponse, ChargesRateSchemeRequest,
 	]{
 		Preloads: []string{
@@ -273,31 +273,31 @@ func (m *ModelCore) chargesRateScheme() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.organizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.branchManager.ToModel(data.Branch),
 				CurrencyID:     data.CurrencyID,
-				Currency:       m.CurrencyManager.ToModel(data.Currency),
+				Currency:       m.currencyManager.ToModel(data.Currency),
 				Name:           data.Name,
 				Description:    data.Description,
 				Icon:           data.Icon,
 				Type:           data.Type,
 
-				ChargesRateSchemeAccounts: m.ChargesRateSchemeAccountManager.ToModels(data.ChargesRateSchemeAccounts),
+				ChargesRateSchemeAccounts: m.chargesRateSchemeAccountManager.ToModels(data.ChargesRateSchemeAccounts),
 
-				ChargesRateByRangeOrMinimumAmounts: m.ChargesRateByRangeOrMinimumAmountManager.ToModels(data.ChargesRateByRangeOrMinimumAmounts),
+				ChargesRateByRangeOrMinimumAmounts: m.chargesRateByRangeOrMinimumAmountManager.ToModels(data.ChargesRateByRangeOrMinimumAmounts),
 
-				ChargesRateSchemeModeOfPayments: m.ChargesRateSchemeModeOfPaymentManager.ToModels(data.ChargesRateSchemeModeOfPayments),
+				ChargesRateSchemeModeOfPayments: m.chargesRateSchemeModeOfPaymentManager.ToModels(data.ChargesRateSchemeModeOfPayments),
 
-				ChargesRateByTerms: m.ChargesRateByTermManager.ToModels(data.ChargesRateByTerms),
+				ChargesRateByTerms: m.chargesRateByTermManager.ToModels(data.ChargesRateByTerms),
 
 				MemberTypeID:  data.MemberTypeID,
-				MemberType:    m.MemberTypeManager.ToModel(data.MemberType),
+				MemberType:    m.memberTypeManager.ToModel(data.MemberType),
 				ModeOfPayment: data.ModeOfPayment,
 
 				ModeOfPaymentHeader1:  data.ModeOfPaymentHeader1,
@@ -373,8 +373,8 @@ func (m *ModelCore) chargesRateScheme() {
 	})
 }
 
-func (m *ModelCore) ChargesRateSchemeCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ChargesRateScheme, error) {
-	return m.ChargesRateSchemeManager.Find(context, &ChargesRateScheme{
+func (m *ModelCore) chargesRateSchemeCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ChargesRateScheme, error) {
+	return m.chargesRateSchemeManager.Find(context, &ChargesRateScheme{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

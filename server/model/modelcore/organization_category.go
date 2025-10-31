@@ -45,9 +45,9 @@ type (
 )
 
 // OrganizationCategory initializes the OrganizationCategory model and its repository manager
-func (m *ModelCore) OrganizationCategory() {
-	m.Migration = append(m.Migration, &OrganizationCategory{})
-	m.OrganizationCategoryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[OrganizationCategory, OrganizationCategoryResponse, OrganizationCategoryRequest]{
+func (m *ModelCore) organizationCategory() {
+	m.migration = append(m.migration, &OrganizationCategory{})
+	m.organizationCategoryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[OrganizationCategory, OrganizationCategoryResponse, OrganizationCategoryRequest]{
 		Preloads: []string{"Organization", "Category"},
 		Service:  m.provider.Service,
 		Resource: func(data *OrganizationCategory) *OrganizationCategoryResponse {
@@ -60,9 +60,9 @@ func (m *ModelCore) OrganizationCategory() {
 				UpdatedAt: data.UpdatedAt.Format(time.RFC3339),
 
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.organizationManager.ToModel(data.Organization),
 				CategoryID:     data.CategoryID,
-				Category:       m.CategoryManager.ToModel(data.Category),
+				Category:       m.categoryManager.ToModel(data.Category),
 			}
 		},
 
@@ -91,8 +91,8 @@ func (m *ModelCore) OrganizationCategory() {
 }
 
 // GetOrganizationCategoryByOrganization retrieves all categories assigned to a specific organization
-func (m *ModelCore) GetOrganizationCategoryByOrganization(context context.Context, organizationID uuid.UUID) ([]*OrganizationCategory, error) {
-	return m.OrganizationCategoryManager.Find(context, &OrganizationCategory{
+func (m *ModelCore) getOrganizationCategoryByOrganization(context context.Context, organizationID uuid.UUID) ([]*OrganizationCategory, error) {
+	return m.organizationCategoryManager.Find(context, &OrganizationCategory{
 		OrganizationID: &organizationID,
 	})
 }

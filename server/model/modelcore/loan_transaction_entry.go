@@ -111,9 +111,9 @@ type (
 	}
 )
 
-func (m *ModelCore) LoanTransactionEntry() {
-	m.Migration = append(m.Migration, &LoanTransactionEntry{})
-	m.LoanTransactionEntryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+func (m *ModelCore) loanTransactionEntry() {
+	m.migration = append(m.migration, &LoanTransactionEntry{})
+	m.loanTransactionEntryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		LoanTransactionEntry, LoanTransactionEntryResponse, LoanTransactionEntryRequest,
 	]{
 		Preloads: []string{
@@ -128,23 +128,23 @@ func (m *ModelCore) LoanTransactionEntry() {
 				ID:                              data.ID,
 				CreatedAt:                       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:                     data.CreatedByID,
-				CreatedBy:                       m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:                       m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:                       data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:                     data.UpdatedByID,
-				UpdatedBy:                       m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:                       m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID:                  data.OrganizationID,
-				Organization:                    m.OrganizationManager.ToModel(data.Organization),
+				Organization:                    m.organizationManager.ToModel(data.Organization),
 				BranchID:                        data.BranchID,
-				Branch:                          m.BranchManager.ToModel(data.Branch),
+				Branch:                          m.branchManager.ToModel(data.Branch),
 				LoanTransactionID:               data.LoanTransactionID,
-				LoanTransaction:                 m.LoanTransactionManager.ToModel(data.LoanTransaction),
+				LoanTransaction:                 m.loanTransactionManager.ToModel(data.LoanTransaction),
 				Index:                           data.Index,
 				Type:                            data.Type,
 				IsAddOn:                         data.IsAddOn,
 				AccountID:                       data.AccountID,
-				Account:                         m.AccountManager.ToModel(data.Account),
+				Account:                         m.accountManager.ToModel(data.Account),
 				AutomaticLoanDeductionID:        data.AutomaticLoanDeductionID,
-				AutomaticLoanDeduction:          m.AutomaticLoanDeductionManager.ToModel(data.AutomaticLoanDeduction),
+				AutomaticLoanDeduction:          m.automaticLoanDeductionManager.ToModel(data.AutomaticLoanDeduction),
 				IsAutomaticLoanDeductionDeleted: data.IsAutomaticLoanDeductionDeleted,
 
 				Name:        data.Name,
@@ -182,15 +182,15 @@ func (m *ModelCore) LoanTransactionEntry() {
 	})
 }
 
-func (m *ModelCore) LoanTransactionEntryCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanTransactionEntry, error) {
-	return m.LoanTransactionEntryManager.Find(context, &LoanTransactionEntry{
+func (m *ModelCore) loanTransactionEntryCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanTransactionEntry, error) {
+	return m.loanTransactionEntryManager.Find(context, &LoanTransactionEntry{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})
 }
 
-func (m *ModelCore) GetCashOnCashEquivalence(ctx context.Context, loanTransactionID, orgId, branchId uuid.UUID) (*LoanTransactionEntry, error) {
-	return m.LoanTransactionEntryManager.FindOneWithFilters(ctx, []horizon_services.Filter{
+func (m *ModelCore) getCashOnCashEquivalence(ctx context.Context, loanTransactionID, orgId, branchId uuid.UUID) (*LoanTransactionEntry, error) {
+	return m.loanTransactionEntryManager.FindOneWithFilters(ctx, []horizon_services.Filter{
 		{Field: "loan_transaction_entries.organization_id", Op: horizon_services.OpEq, Value: orgId},
 		{Field: "loan_transaction_entries.branch_id", Op: horizon_services.OpEq, Value: branchId},
 		{Field: "loan_transaction_entries.index", Op: horizon_services.OpEq, Value: 0},
@@ -200,8 +200,8 @@ func (m *ModelCore) GetCashOnCashEquivalence(ctx context.Context, loanTransactio
 
 }
 
-func (m *ModelCore) GetLoanEntryAccount(ctx context.Context, loanTransactionID, orgId, branchId uuid.UUID) (*LoanTransactionEntry, error) {
-	return m.LoanTransactionEntryManager.FindOneWithFilters(ctx, []horizon_services.Filter{
+func (m *ModelCore) getLoanEntryAccount(ctx context.Context, loanTransactionID, orgId, branchId uuid.UUID) (*LoanTransactionEntry, error) {
+	return m.loanTransactionEntryManager.FindOneWithFilters(ctx, []horizon_services.Filter{
 		{Field: "loan_transaction_entries.organization_id", Op: horizon_services.OpEq, Value: orgId},
 		{Field: "loan_transaction_entries.branch_id", Op: horizon_services.OpEq, Value: branchId},
 		{Field: "loan_transaction_entries.index", Op: horizon_services.OpEq, Value: 1},

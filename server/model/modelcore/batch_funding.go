@@ -81,8 +81,8 @@ type (
 )
 
 func (m *ModelCore) batchFunding() {
-	m.Migration = append(m.Migration, &BatchFunding{})
-	m.BatchFundingManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.migration = append(m.migration, &BatchFunding{})
+	m.batchFundingManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		BatchFunding, BatchFundingResponse, BatchFundingRequest,
 	]{
 		Preloads: []string{
@@ -99,22 +99,22 @@ func (m *ModelCore) batchFunding() {
 				ID:                 data.ID,
 				CreatedAt:          data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:        data.CreatedByID,
-				CreatedBy:          m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:          m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:          data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:        data.UpdatedByID,
-				UpdatedBy:          m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:          m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID:     data.OrganizationID,
-				Organization:       m.OrganizationManager.ToModel(data.Organization),
+				Organization:       m.organizationManager.ToModel(data.Organization),
 				BranchID:           data.BranchID,
-				Branch:             m.BranchManager.ToModel(data.Branch),
+				Branch:             m.branchManager.ToModel(data.Branch),
 				TransactionBatchID: data.TransactionBatchID,
-				TransactionBatch:   m.TransactionBatchManager.ToModel(data.TransactionBatch),
+				TransactionBatch:   m.transactionBatchManager.ToModel(data.TransactionBatch),
 				ProvidedByUserID:   data.ProvidedByUserID,
-				ProvidedByUser:     m.UserManager.ToModel(data.ProvidedByUser),
+				ProvidedByUser:     m.userManager.ToModel(data.ProvidedByUser),
 				SignatureMediaID:   data.SignatureMediaID,
-				SignatureMedia:     m.MediaManager.ToModel(data.SignatureMedia),
+				SignatureMedia:     m.mediaManager.ToModel(data.SignatureMedia),
 				CurrencyID:         data.CurrencyID,
-				Currency:           m.CurrencyManager.ToModel(data.Currency),
+				Currency:           m.currencyManager.ToModel(data.Currency),
 				Name:               data.Name,
 				Amount:             data.Amount,
 				Description:        data.Description,
@@ -147,8 +147,8 @@ func (m *ModelCore) batchFunding() {
 	})
 }
 
-func (m *ModelCore) BatchFundingCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*BatchFunding, error) {
-	return m.BatchFundingManager.Find(context, &BatchFunding{
+func (m *ModelCore) batchFundingCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*BatchFunding, error) {
+	return m.batchFundingManager.Find(context, &BatchFunding{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

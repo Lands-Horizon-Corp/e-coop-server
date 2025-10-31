@@ -53,9 +53,9 @@ type (
 	}
 )
 
-func (m *ModelCore) MemberMutualFundHistory() {
-	m.Migration = append(m.Migration, &MemberMutualFundHistory{})
-	m.MemberMutualFundHistoryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberMutualFundHistory, MemberMutualFundHistoryResponse, MemberMutualFundHistoryRequest]{
+func (m *ModelCore) memberMutualFundHistory() {
+	m.migration = append(m.migration, &MemberMutualFundHistory{})
+	m.memberMutualFundHistoryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberMutualFundHistory, MemberMutualFundHistoryResponse, MemberMutualFundHistoryRequest]{
 		Preloads: []string{"Organization", "Branch", "MemberProfile"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberMutualFundHistory) *MemberMutualFundHistoryResponse {
@@ -67,11 +67,11 @@ func (m *ModelCore) MemberMutualFundHistory() {
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
 				OrganizationID:  data.OrganizationID,
-				Organization:    m.OrganizationManager.ToModel(data.Organization),
+				Organization:    m.organizationManager.ToModel(data.Organization),
 				BranchID:        data.BranchID,
-				Branch:          m.BranchManager.ToModel(data.Branch),
+				Branch:          m.branchManager.ToModel(data.Branch),
 				MemberProfileID: data.MemberProfileID,
-				MemberProfile:   m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:   m.memberProfileManager.ToModel(data.MemberProfile),
 				Title:           data.Title,
 				Amount:          data.Amount,
 				Description:     data.Description,
@@ -105,8 +105,8 @@ func (m *ModelCore) MemberMutualFundHistory() {
 	})
 }
 
-func (m *ModelCore) MemberMutualFundHistoryCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberMutualFundHistory, error) {
-	return m.MemberMutualFundHistoryManager.Find(context, &MemberMutualFundHistory{
+func (m *ModelCore) memberMutualFundHistoryCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberMutualFundHistory, error) {
+	return m.memberMutualFundHistoryManager.Find(context, &MemberMutualFundHistory{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

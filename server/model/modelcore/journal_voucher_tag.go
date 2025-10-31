@@ -68,9 +68,9 @@ type (
 	}
 )
 
-func (m *ModelCore) JournalVoucherTag() {
-	m.Migration = append(m.Migration, &JournalVoucherTag{})
-	m.JournalVoucherTagManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+func (m *ModelCore) journalVoucherTag() {
+	m.migration = append(m.migration, &JournalVoucherTag{})
+	m.journalVoucherTagManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		JournalVoucherTag, JournalVoucherTagResponse, JournalVoucherTagRequest,
 	]{
 		Preloads: []string{
@@ -85,14 +85,14 @@ func (m *ModelCore) JournalVoucherTag() {
 				ID:               data.ID,
 				CreatedAt:        data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:      data.CreatedByID,
-				CreatedBy:        m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:        m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:        data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:      data.UpdatedByID,
-				UpdatedBy:        m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:        m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID:   data.OrganizationID,
-				Organization:     m.OrganizationManager.ToModel(data.Organization),
+				Organization:     m.organizationManager.ToModel(data.Organization),
 				BranchID:         data.BranchID,
-				Branch:           m.BranchManager.ToModel(data.Branch),
+				Branch:           m.branchManager.ToModel(data.Branch),
 				JournalVoucherID: data.JournalVoucherID,
 				Name:             data.Name,
 				Description:      data.Description,
@@ -129,8 +129,8 @@ func (m *ModelCore) JournalVoucherTag() {
 	})
 }
 
-func (m *ModelCore) JournalVoucherTagCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*JournalVoucherTag, error) {
-	return m.JournalVoucherTagManager.Find(context, &JournalVoucherTag{
+func (m *ModelCore) journalVoucherTagCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*JournalVoucherTag, error) {
+	return m.journalVoucherTagManager.Find(context, &JournalVoucherTag{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

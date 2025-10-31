@@ -70,8 +70,8 @@ type (
 )
 
 func (m *ModelCore) adjustmentTag() {
-	m.Migration = append(m.Migration, &AdjustmentTag{})
-	m.AdjustmentTagManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.migration = append(m.migration, &AdjustmentTag{})
+	m.adjustmentTagManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		AdjustmentTag, AdjustmentTagResponse, AdjustmentTagRequest,
 	]{
 		Preloads: []string{
@@ -86,16 +86,16 @@ func (m *ModelCore) adjustmentTag() {
 				ID:                data.ID,
 				CreatedAt:         data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:       data.CreatedByID,
-				CreatedBy:         m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:         m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:         data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:       data.UpdatedByID,
-				UpdatedBy:         m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:         m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID:    data.OrganizationID,
-				Organization:      m.OrganizationManager.ToModel(data.Organization),
+				Organization:      m.organizationManager.ToModel(data.Organization),
 				BranchID:          data.BranchID,
-				Branch:            m.BranchManager.ToModel(data.Branch),
+				Branch:            m.branchManager.ToModel(data.Branch),
 				AdjustmentEntryID: data.AdjustmentEntryID,
-				AdjustmentEntry:   m.AdjustmentEntryManager.ToModel(data.AdjustmentEntry),
+				AdjustmentEntry:   m.adjustmentEntryManager.ToModel(data.AdjustmentEntry),
 				Name:              data.Name,
 				Description:       data.Description,
 				Category:          data.Category,
@@ -130,8 +130,8 @@ func (m *ModelCore) adjustmentTag() {
 	})
 }
 
-func (m *ModelCore) AdjustmentTagCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*AdjustmentTag, error) {
-	return m.AdjustmentTagManager.Find(context, &AdjustmentTag{
+func (m *ModelCore) adjustmentTagCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*AdjustmentTag, error) {
+	return m.adjustmentTagManager.Find(context, &AdjustmentTag{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

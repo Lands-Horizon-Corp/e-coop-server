@@ -62,9 +62,9 @@ type (
 	}
 )
 
-func (m *ModelCore) IncludeNegativeAccount() {
-	m.Migration = append(m.Migration, &IncludeNegativeAccount{})
-	m.IncludeNegativeAccountManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+func (m *ModelCore) includeNegativeAccount() {
+	m.migration = append(m.migration, &IncludeNegativeAccount{})
+	m.includeNegativeAccountManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		IncludeNegativeAccount, IncludeNegativeAccountResponse, IncludeNegativeAccountRequest,
 	]{
 		Preloads: []string{
@@ -80,18 +80,18 @@ func (m *ModelCore) IncludeNegativeAccount() {
 				ID:                 data.ID,
 				CreatedAt:          data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:        data.CreatedByID,
-				CreatedBy:          m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:          m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:          data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:        data.UpdatedByID,
-				UpdatedBy:          m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:          m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID:     data.OrganizationID,
-				Organization:       m.OrganizationManager.ToModel(data.Organization),
+				Organization:       m.organizationManager.ToModel(data.Organization),
 				BranchID:           data.BranchID,
-				Branch:             m.BranchManager.ToModel(data.Branch),
+				Branch:             m.branchManager.ToModel(data.Branch),
 				ComputationSheetID: data.ComputationSheetID,
-				ComputationSheet:   m.ComputationSheetManager.ToModel(data.ComputationSheet),
+				ComputationSheet:   m.computationSheetManager.ToModel(data.ComputationSheet),
 				AccountID:          data.AccountID,
-				Account:            m.AccountManager.ToModel(data.Account),
+				Account:            m.accountManager.ToModel(data.Account),
 				Description:        data.Description,
 			}
 		},
@@ -122,8 +122,8 @@ func (m *ModelCore) IncludeNegativeAccount() {
 	})
 }
 
-func (m *ModelCore) IncludeNegativeAccountCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*IncludeNegativeAccount, error) {
-	return m.IncludeNegativeAccountManager.Find(context, &IncludeNegativeAccount{
+func (m *ModelCore) includeNegativeAccountCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*IncludeNegativeAccount, error) {
+	return m.includeNegativeAccountManager.Find(context, &IncludeNegativeAccount{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

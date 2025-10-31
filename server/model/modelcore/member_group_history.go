@@ -59,9 +59,9 @@ type (
 	}
 )
 
-func (m *ModelCore) MemberGroupHistory() {
-	m.Migration = append(m.Migration, &MemberGroupHistory{})
-	m.MemberGroupHistoryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberGroupHistory, MemberGroupHistoryResponse, MemberGroupHistoryRequest]{
+func (m *ModelCore) memberGroupHistory() {
+	m.migration = append(m.migration, &MemberGroupHistory{})
+	m.memberGroupHistoryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberGroupHistory, MemberGroupHistoryResponse, MemberGroupHistoryRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile", "MemberGroup"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberGroupHistory) *MemberGroupHistoryResponse {
@@ -72,18 +72,18 @@ func (m *ModelCore) MemberGroupHistory() {
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
-				CreatedBy:       m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:       m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:     data.UpdatedByID,
-				UpdatedBy:       m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:       m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID:  data.OrganizationID,
-				Organization:    m.OrganizationManager.ToModel(data.Organization),
+				Organization:    m.organizationManager.ToModel(data.Organization),
 				BranchID:        data.BranchID,
-				Branch:          m.BranchManager.ToModel(data.Branch),
+				Branch:          m.branchManager.ToModel(data.Branch),
 				MemberProfileID: data.MemberProfileID,
-				MemberProfile:   m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:   m.memberProfileManager.ToModel(data.MemberProfile),
 				MemberGroupID:   data.MemberGroupID,
-				MemberGroup:     m.MemberGroupManager.ToModel(data.MemberGroup),
+				MemberGroup:     m.memberGroupManager.ToModel(data.MemberGroup),
 			}
 		},
 
@@ -117,15 +117,15 @@ func (m *ModelCore) MemberGroupHistory() {
 	})
 }
 
-func (m *ModelCore) MemberGroupHistoryCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberGroupHistory, error) {
-	return m.MemberGroupHistoryManager.Find(context, &MemberGroupHistory{
+func (m *ModelCore) memberGroupHistoryCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberGroupHistory, error) {
+	return m.memberGroupHistoryManager.Find(context, &MemberGroupHistory{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})
 }
 
-func (m *ModelCore) MemberGroupHistoryMemberProfileID(context context.Context, memberProfileId, orgId, branchId uuid.UUID) ([]*MemberGroupHistory, error) {
-	return m.MemberGroupHistoryManager.Find(context, &MemberGroupHistory{
+func (m *ModelCore) memberGroupHistoryMemberProfileID(context context.Context, memberProfileId, orgId, branchId uuid.UUID) ([]*MemberGroupHistory, error) {
+	return m.memberGroupHistoryManager.Find(context, &MemberGroupHistory{
 		OrganizationID:  orgId,
 		BranchID:        branchId,
 		MemberProfileID: memberProfileId,

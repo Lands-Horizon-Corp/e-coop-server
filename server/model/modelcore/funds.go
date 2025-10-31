@@ -66,9 +66,9 @@ type (
 	}
 )
 
-func (m *ModelCore) Funds() {
-	m.Migration = append(m.Migration, &Funds{})
-	m.FundsManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Funds, FundsResponse, FundsRequest]{
+func (m *ModelCore) funds() {
+	m.migration = append(m.migration, &Funds{})
+	m.fundsManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Funds, FundsResponse, FundsRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Account"},
 		Service:  m.provider.Service,
 		Resource: func(data *Funds) *FundsResponse {
@@ -79,16 +79,16 @@ func (m *ModelCore) Funds() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.organizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.branchManager.ToModel(data.Branch),
 				AccountID:      data.AccountID,
-				Account:        m.AccountManager.ToModel(data.Account),
+				Account:        m.accountManager.ToModel(data.Account),
 				Type:           data.Type,
 				Description:    data.Description,
 				Icon:           data.Icon,
@@ -122,8 +122,8 @@ func (m *ModelCore) Funds() {
 	})
 }
 
-func (m *ModelCore) FundsCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Funds, error) {
-	return m.FundsManager.Find(context, &Funds{
+func (m *ModelCore) fundsCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Funds, error) {
+	return m.fundsManager.Find(context, &Funds{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

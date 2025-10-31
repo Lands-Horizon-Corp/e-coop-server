@@ -71,9 +71,9 @@ type (
 	}
 )
 
-func (m *ModelCore) TransactionTag() {
-	m.Migration = append(m.Migration, &TransactionTag{})
-	m.TransactionTagManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+func (m *ModelCore) transactionTag() {
+	m.migration = append(m.migration, &TransactionTag{})
+	m.transactionTagManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		TransactionTag, TransactionTagResponse, TransactionTagRequest,
 	]{
 		Preloads: []string{
@@ -88,16 +88,16 @@ func (m *ModelCore) TransactionTag() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.organizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.branchManager.ToModel(data.Branch),
 				TransactionID:  data.TransactionID,
-				Transaction:    m.TransactionManager.ToModel(data.Transaction),
+				Transaction:    m.transactionManager.ToModel(data.Transaction),
 				Name:           data.Name,
 				Description:    data.Description,
 				Category:       data.Category,
@@ -133,8 +133,8 @@ func (m *ModelCore) TransactionTag() {
 	})
 }
 
-func (m *ModelCore) TransactionTagCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*TransactionTag, error) {
-	return m.TransactionTagManager.Find(context, &TransactionTag{
+func (m *ModelCore) transactionTagCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*TransactionTag, error) {
+	return m.transactionTagManager.Find(context, &TransactionTag{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

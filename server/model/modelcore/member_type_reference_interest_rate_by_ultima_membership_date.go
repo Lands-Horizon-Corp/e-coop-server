@@ -63,9 +63,9 @@ type (
 	}
 )
 
-func (m *ModelCore) MemberTypeReferenceInterestRateByUltimaMembershipDate() {
-	m.Migration = append(m.Migration, &MemberTypeReferenceInterestRateByUltimaMembershipDate{})
-	m.MemberTypeReferenceInterestRateByUltimaMembershipDateManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+func (m *ModelCore) memberTypeReferenceInterestRateByUltimaMembershipDate() {
+	m.migration = append(m.migration, &MemberTypeReferenceInterestRateByUltimaMembershipDate{})
+	m.memberTypeReferenceInterestRateByUltimaMembershipDateManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		MemberTypeReferenceInterestRateByUltimaMembershipDate,
 		MemberTypeReferenceInterestRateByUltimaMembershipDateResponse,
 		MemberTypeReferenceInterestRateByUltimaMembershipDateRequest,
@@ -82,16 +82,16 @@ func (m *ModelCore) MemberTypeReferenceInterestRateByUltimaMembershipDate() {
 				ID:                    data.ID,
 				CreatedAt:             data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:           data.CreatedByID,
-				CreatedBy:             m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:             m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:             data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:           data.UpdatedByID,
-				UpdatedBy:             m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:             m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID:        data.OrganizationID,
-				Organization:          m.OrganizationManager.ToModel(data.Organization),
+				Organization:          m.organizationManager.ToModel(data.Organization),
 				BranchID:              data.BranchID,
-				Branch:                m.BranchManager.ToModel(data.Branch),
+				Branch:                m.branchManager.ToModel(data.Branch),
 				MemberTypeReferenceID: data.MemberTypeReferenceID,
-				MemberTypeReference:   m.MemberTypeReferenceManager.ToModel(data.MemberTypeReference),
+				MemberTypeReference:   m.memberTypeReferenceManager.ToModel(data.MemberTypeReference),
 				DateFrom:              data.DateFrom.Format(time.RFC3339),
 				DateTo:                data.DateTo.Format(time.RFC3339),
 				Rate:                  data.Rate,
@@ -125,8 +125,8 @@ func (m *ModelCore) MemberTypeReferenceInterestRateByUltimaMembershipDate() {
 	})
 }
 
-func (m *ModelCore) MemberTypeReferenceInterestRateByUltimaMembershipDateCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberTypeReferenceInterestRateByUltimaMembershipDate, error) {
-	return m.MemberTypeReferenceInterestRateByUltimaMembershipDateManager.Find(context, &MemberTypeReferenceInterestRateByUltimaMembershipDate{
+func (m *ModelCore) memberTypeReferenceInterestRateByUltimaMembershipDateCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberTypeReferenceInterestRateByUltimaMembershipDate, error) {
+	return m.memberTypeReferenceInterestRateByUltimaMembershipDateManager.Find(context, &MemberTypeReferenceInterestRateByUltimaMembershipDate{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

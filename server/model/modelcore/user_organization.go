@@ -278,9 +278,9 @@ type (
 )
 
 // UserOrganization initializes the UserOrganization model and its repository manager
-func (m *ModelCore) UserOrganization() {
-	m.Migration = append(m.Migration, &UserOrganization{})
-	m.UserOrganizationManager = horizon_services.NewRepository(horizon_services.RepositoryParams[UserOrganization, UserOrganizationResponse, UserOrganizationRequest]{
+func (m *ModelCore) userOrganization() {
+	m.migration = append(m.migration, &UserOrganization{})
+	m.userOrganizationManager = horizon_services.NewRepository(horizon_services.RepositoryParams[UserOrganization, UserOrganizationResponse, UserOrganizationRequest]{
 		Preloads: []string{
 			"CreatedBy",
 			"UpdatedBy",
@@ -326,17 +326,17 @@ func (m *ModelCore) UserOrganization() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.organizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.branchManager.ToModel(data.Branch),
 
 				UserID:                 data.UserID,
-				User:                   m.UserManager.ToModel(data.User),
+				User:                   m.userManager.ToModel(data.User),
 				UserType:               data.UserType,
 				Description:            data.Description,
 				ApplicationDescription: data.ApplicationDescription,
@@ -362,13 +362,13 @@ func (m *ModelCore) UserOrganization() {
 				LastOnlineAt:                         data.LastOnlineAt,
 
 				SettingsAccountingPaymentDefaultValueID:  data.SettingsAccountingPaymentDefaultValueID,
-				SettingsAccountingPaymentDefaultValue:    m.AccountManager.ToModel(data.SettingsAccountingPaymentDefaultValue),
+				SettingsAccountingPaymentDefaultValue:    m.accountManager.ToModel(data.SettingsAccountingPaymentDefaultValue),
 				SettingsAccountingDepositDefaultValueID:  data.SettingsAccountingDepositDefaultValueID,
-				SettingsAccountingDepositDefaultValue:    m.AccountManager.ToModel(data.SettingsAccountingDepositDefaultValue),
+				SettingsAccountingDepositDefaultValue:    m.accountManager.ToModel(data.SettingsAccountingDepositDefaultValue),
 				SettingsAccountingWithdrawDefaultValueID: data.SettingsAccountingWithdrawDefaultValueID,
-				SettingsAccountingWithdrawDefaultValue:   m.AccountManager.ToModel(data.SettingsAccountingWithdrawDefaultValue),
+				SettingsAccountingWithdrawDefaultValue:   m.accountManager.ToModel(data.SettingsAccountingWithdrawDefaultValue),
 				SettingsPaymentTypeDefaultValueID:        data.SettingsPaymentTypeDefaultValueID,
-				SettingsPaymentTypeDefaultValue:          m.PaymentTypeManager.ToModel(data.SettingsPaymentTypeDefaultValue),
+				SettingsPaymentTypeDefaultValue:          m.paymentTypeManager.ToModel(data.SettingsPaymentTypeDefaultValue),
 			}
 		},
 		Created: func(data *UserOrganization) []string {
@@ -402,29 +402,29 @@ func (m *ModelCore) UserOrganization() {
 }
 
 // GetUserOrganizationByUser retrieves all user organizations for a specific user
-func (m *ModelCore) GetUserOrganizationByUser(context context.Context, userID uuid.UUID, pending *bool) ([]*UserOrganization, error) {
+func (m *ModelCore) getUserOrganizationByUser(context context.Context, userID uuid.UUID, pending *bool) ([]*UserOrganization, error) {
 	filter := &UserOrganization{
 		UserID: userID,
 	}
 	if pending != nil && *pending {
 		filter.ApplicationStatus = "pending"
 	}
-	return m.UserOrganizationManager.Find(context, filter)
+	return m.userOrganizationManager.Find(context, filter)
 }
 
 // GetUserOrganizationByOrganization retrieves all user organizations for a specific organization
-func (m *ModelCore) GetUserOrganizationByOrganization(context context.Context, organizationID uuid.UUID, pending *bool) ([]*UserOrganization, error) {
+func (m *ModelCore) getUserOrganizationByOrganization(context context.Context, organizationID uuid.UUID, pending *bool) ([]*UserOrganization, error) {
 	filter := &UserOrganization{
 		OrganizationID: organizationID,
 	}
 	if pending != nil && *pending {
 		filter.ApplicationStatus = "pending"
 	}
-	return m.UserOrganizationManager.Find(context, filter)
+	return m.userOrganizationManager.Find(context, filter)
 }
 
 // GetUserOrganizationByBranch retrieves all user organizations for a specific organization branch
-func (m *ModelCore) GetUserOrganizationBybranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID, pending *bool) ([]*UserOrganization, error) {
+func (m *ModelCore) getUserOrganizationBybranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID, pending *bool) ([]*UserOrganization, error) {
 	filter := &UserOrganization{
 		OrganizationID: organizationID,
 		BranchID:       &branchID,
@@ -432,20 +432,20 @@ func (m *ModelCore) GetUserOrganizationBybranch(context context.Context, organiz
 	if pending != nil && *pending {
 		filter.ApplicationStatus = "pending"
 	}
-	return m.UserOrganizationManager.Find(context, filter)
+	return m.userOrganizationManager.Find(context, filter)
 }
 
 // CountUserOrganizationPerBranch counts the number of user organizations for a specific branch
-func (m *ModelCore) CountUserOrganizationPerbranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) (int64, error) {
-	return m.UserOrganizationManager.Count(context, &UserOrganization{
+func (m *ModelCore) countUserOrganizationPerbranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) (int64, error) {
+	return m.userOrganizationManager.Count(context, &UserOrganization{
 		OrganizationID: organizationID,
 		BranchID:       &branchID,
 	})
 }
 
 // CountUserOrganizationBranch counts user organizations for a specific user in a branch
-func (m *ModelCore) CountUserOrganizationbranch(context context.Context, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) (int64, error) {
-	return m.UserOrganizationManager.Count(context, &UserOrganization{
+func (m *ModelCore) countUserOrganizationbranch(context context.Context, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) (int64, error) {
+	return m.userOrganizationManager.Count(context, &UserOrganization{
 		OrganizationID: organizationID,
 		BranchID:       &branchID,
 		UserID:         userID,
@@ -453,18 +453,18 @@ func (m *ModelCore) CountUserOrganizationbranch(context context.Context, userID 
 }
 
 // UserOrganizationEmployeeCanJoin checks if a user can join an organization as an employee
-func (m *ModelCore) UserOrganizationEmployeeCanJoin(context context.Context, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) bool {
-	existing, err := m.CountUserOrganizationbranch(context, userID, organizationID, branchID)
+func (m *ModelCore) userOrganizationEmployeeCanJoin(context context.Context, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) bool {
+	existing, err := m.countUserOrganizationbranch(context, userID, organizationID, branchID)
 	return err == nil && existing == 0
 }
 
 // UserOrganizationMemberCanJoin checks if a user can join an organization as a member
-func (m *ModelCore) UserOrganizationMemberCanJoin(context context.Context, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) bool {
-	existing, err := m.CountUserOrganizationbranch(context, userID, organizationID, branchID)
+func (m *ModelCore) userOrganizationMemberCanJoin(context context.Context, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) bool {
+	existing, err := m.countUserOrganizationbranch(context, userID, organizationID, branchID)
 	if err != nil || existing > 0 {
 		return false
 	}
-	existingOrgCount, err := m.UserOrganizationManager.Count(context, &UserOrganization{
+	existingOrgCount, err := m.userOrganizationManager.Count(context, &UserOrganization{
 		UserID:         userID,
 		OrganizationID: organizationID,
 	})
@@ -472,8 +472,8 @@ func (m *ModelCore) UserOrganizationMemberCanJoin(context context.Context, userI
 }
 
 // Employees retrieves all employee user organizations for the specified organization and branch
-func (m *ModelCore) Employees(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*UserOrganization, error) {
-	return m.UserOrganizationManager.Find(context, &UserOrganization{
+func (m *ModelCore) employees(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*UserOrganization, error) {
+	return m.userOrganizationManager.Find(context, &UserOrganization{
 		OrganizationID: organizationID,
 		BranchID:       &branchID,
 		UserType:       UserOrganizationTypeEmployee,
@@ -481,8 +481,8 @@ func (m *ModelCore) Employees(context context.Context, organizationID uuid.UUID,
 }
 
 // Members retrieves all member user organizations for the specified organization and branch
-func (m *ModelCore) Members(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*UserOrganization, error) {
-	return m.UserOrganizationManager.Find(context, &UserOrganization{
+func (m *ModelCore) members(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*UserOrganization, error) {
+	return m.userOrganizationManager.Find(context, &UserOrganization{
 		OrganizationID: organizationID,
 		BranchID:       &branchID,
 		UserType:       UserOrganizationTypeMember,

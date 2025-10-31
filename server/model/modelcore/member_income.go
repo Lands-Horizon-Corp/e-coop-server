@@ -70,9 +70,9 @@ type (
 	}
 )
 
-func (m *ModelCore) MemberIncome() {
-	m.Migration = append(m.Migration, &MemberIncome{})
-	m.MemberIncomeManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberIncome, MemberIncomeResponse, MemberIncomeRequest]{
+func (m *ModelCore) memberIncome() {
+	m.migration = append(m.migration, &MemberIncome{})
+	m.memberIncomeManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberIncome, MemberIncomeResponse, MemberIncomeRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Media", "MemberProfile"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberIncome) *MemberIncomeResponse {
@@ -88,18 +88,18 @@ func (m *ModelCore) MemberIncome() {
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
-				CreatedBy:       m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:       m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:     data.UpdatedByID,
-				UpdatedBy:       m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:       m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID:  data.OrganizationID,
-				Organization:    m.OrganizationManager.ToModel(data.Organization),
+				Organization:    m.organizationManager.ToModel(data.Organization),
 				BranchID:        data.BranchID,
-				Branch:          m.BranchManager.ToModel(data.Branch),
+				Branch:          m.branchManager.ToModel(data.Branch),
 				MediaID:         data.MediaID,
-				Media:           m.MediaManager.ToModel(data.Media),
+				Media:           m.mediaManager.ToModel(data.Media),
 				MemberProfileID: data.MemberProfileID,
-				MemberProfile:   m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:   m.memberProfileManager.ToModel(data.MemberProfile),
 				Name:            data.Name,
 				Source:          data.Source,
 				Amount:          data.Amount,
@@ -134,8 +134,8 @@ func (m *ModelCore) MemberIncome() {
 	})
 }
 
-func (m *ModelCore) MemberIncomeCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberIncome, error) {
-	return m.MemberIncomeManager.Find(context, &MemberIncome{
+func (m *ModelCore) memberIncomeCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberIncome, error) {
+	return m.memberIncomeManager.Find(context, &MemberIncome{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

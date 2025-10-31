@@ -112,8 +112,8 @@ type (
 )
 
 func (m *ModelCore) adjustmentEntry() {
-	m.Migration = append(m.Migration, &AdjustmentEntry{})
-	m.AdjustmentEntryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.migration = append(m.migration, &AdjustmentEntry{})
+	m.adjustmentEntryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		AdjustmentEntry, AdjustmentEntryResponse, AdjustmentEntryRequest,
 	]{
 		Preloads: []string{
@@ -135,31 +135,31 @@ func (m *ModelCore) adjustmentEntry() {
 				ID:                data.ID,
 				CreatedAt:         data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:       data.CreatedByID,
-				CreatedBy:         m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:         m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:         data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:       data.UpdatedByID,
-				UpdatedBy:         m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:         m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID:    data.OrganizationID,
-				Organization:      m.OrganizationManager.ToModel(data.Organization),
+				Organization:      m.organizationManager.ToModel(data.Organization),
 				BranchID:          data.BranchID,
-				Branch:            m.BranchManager.ToModel(data.Branch),
+				Branch:            m.branchManager.ToModel(data.Branch),
 				SignatureMediaID:  data.SignatureMediaID,
-				SignatureMedia:    m.MediaManager.ToModel(data.SignatureMedia),
+				SignatureMedia:    m.mediaManager.ToModel(data.SignatureMedia),
 				AccountID:         data.AccountID,
-				Account:           m.AccountManager.ToModel(data.Account),
+				Account:           m.accountManager.ToModel(data.Account),
 				MemberProfileID:   data.MemberProfileID,
-				MemberProfile:     m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:     m.memberProfileManager.ToModel(data.MemberProfile),
 				EmployeeUserID:    data.EmployeeUserID,
-				EmployeeUser:      m.UserManager.ToModel(data.EmployeeUser),
+				EmployeeUser:      m.userManager.ToModel(data.EmployeeUser),
 				PaymentTypeID:     data.PaymentTypeID,
-				PaymentType:       m.PaymentTypeManager.ToModel(data.PaymentType),
+				PaymentType:       m.paymentTypeManager.ToModel(data.PaymentType),
 				TypeOfPaymentType: data.TypeOfPaymentType,
 				Description:       data.Description,
 				ReferenceNumber:   data.ReferenceNumber,
 				EntryDate:         entryDateStr,
 				Debit:             data.Debit,
 				Credit:            data.Credit,
-				AdjustmentTags:    m.AdjustmentTagManager.ToModels(data.AdjustmentTags),
+				AdjustmentTags:    m.adjustmentTagManager.ToModels(data.AdjustmentTags),
 			}
 		},
 		Created: func(data *AdjustmentEntry) []string {
@@ -189,8 +189,8 @@ func (m *ModelCore) adjustmentEntry() {
 	})
 }
 
-func (m *ModelCore) AdjustmentEntryCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*AdjustmentEntry, error) {
-	return m.AdjustmentEntryManager.Find(context, &AdjustmentEntry{
+func (m *ModelCore) adjustmentEntryCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*AdjustmentEntry, error) {
+	return m.adjustmentEntryManager.Find(context, &AdjustmentEntry{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

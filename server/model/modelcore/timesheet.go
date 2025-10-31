@@ -67,9 +67,9 @@ type (
 	}
 )
 
-func (m *ModelCore) Timesheet() {
-	m.Migration = append(m.Migration, &Timesheet{})
-	m.TimesheetManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Timesheet, TimesheetResponse, TimesheetRequest]{
+func (m *ModelCore) timesheet() {
+	m.migration = append(m.migration, &Timesheet{})
+	m.timesheetManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Timesheet, TimesheetResponse, TimesheetRequest]{
 		Preloads: []string{
 			"CreatedBy",
 			"UpdatedBy",
@@ -93,20 +93,20 @@ func (m *ModelCore) Timesheet() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.organizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.branchManager.ToModel(data.Branch),
 				UserID:         data.UserID,
-				User:           m.UserManager.ToModel(data.User),
+				User:           m.userManager.ToModel(data.User),
 				MediaInID:      data.MediaInID,
-				MediaIn:        m.MediaManager.ToModel(data.MediaIn),
+				MediaIn:        m.mediaManager.ToModel(data.MediaIn),
 				MediaOutID:     data.MediaOutID,
-				MediaOut:       m.MediaManager.ToModel(data.MediaOut),
+				MediaOut:       m.mediaManager.ToModel(data.MediaOut),
 				TimeIn:         data.TimeIn.Format(time.RFC3339),
 				TimeOut:        timeOutStr,
 			}
@@ -142,23 +142,23 @@ func (m *ModelCore) Timesheet() {
 	})
 }
 
-func (m *ModelCore) TimesheetCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Timesheet, error) {
-	return m.TimesheetManager.Find(context, &Timesheet{
+func (m *ModelCore) timesheetCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Timesheet, error) {
+	return m.timesheetManager.Find(context, &Timesheet{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})
 }
 
-func (m *ModelCore) GetUserTimesheet(context context.Context, userId, orgId, branchId uuid.UUID) ([]*Timesheet, error) {
-	return m.TimesheetManager.Find(context, &Timesheet{
+func (m *ModelCore) getUserTimesheet(context context.Context, userId, orgId, branchId uuid.UUID) ([]*Timesheet, error) {
+	return m.timesheetManager.Find(context, &Timesheet{
 		UserID:         userId,
 		BranchID:       branchId,
 		OrganizationID: orgId,
 	})
 }
 
-func (m *ModelCore) TimeSheetActiveUsers(context context.Context, orgId, branchId uuid.UUID) ([]*Timesheet, error) {
-	return m.TimesheetManager.FindWithConditions(context, map[string]any{
+func (m *ModelCore) timeSheetActiveUsers(context context.Context, orgId, branchId uuid.UUID) ([]*Timesheet, error) {
+	return m.timesheetManager.FindWithConditions(context, map[string]any{
 		"organization_id": orgId,
 		"branch_id":       branchId,
 		"time_out":        nil,

@@ -103,9 +103,9 @@ type (
 	}
 )
 
-func (m *ModelCore) MemberAccountingLedger() {
-	m.Migration = append(m.Migration, &MemberAccountingLedger{})
-	m.MemberAccountingLedgerManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+func (m *ModelCore) memberAccountingLedger() {
+	m.migration = append(m.migration, &MemberAccountingLedger{})
+	m.memberAccountingLedgerManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		MemberAccountingLedger, MemberAccountingLedgerResponse, MemberAccountingLedgerRequest,
 	]{
 		Preloads: []string{
@@ -126,18 +126,18 @@ func (m *ModelCore) MemberAccountingLedger() {
 				ID:                  data.ID,
 				CreatedAt:           data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:         data.CreatedByID,
-				CreatedBy:           m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:           m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:           data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:         data.UpdatedByID,
-				UpdatedBy:           m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:           m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID:      data.OrganizationID,
-				Organization:        m.OrganizationManager.ToModel(data.Organization),
+				Organization:        m.organizationManager.ToModel(data.Organization),
 				BranchID:            data.BranchID,
-				Branch:              m.BranchManager.ToModel(data.Branch),
+				Branch:              m.branchManager.ToModel(data.Branch),
 				MemberProfileID:     data.MemberProfileID,
-				MemberProfile:       m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:       m.memberProfileManager.ToModel(data.MemberProfile),
 				AccountID:           data.AccountID,
-				Account:             m.AccountManager.ToModel(data.Account),
+				Account:             m.accountManager.ToModel(data.Account),
 				Count:               data.Count,
 				Balance:             data.Balance,
 				Interest:            data.Interest,
@@ -180,8 +180,8 @@ func (m *ModelCore) MemberAccountingLedger() {
 	})
 }
 
-func (m *ModelCore) MemberAccountingLedgerCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberAccountingLedger, error) {
-	return m.MemberAccountingLedgerManager.Find(context, &MemberAccountingLedger{
+func (m *ModelCore) memberAccountingLedgerCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberAccountingLedger, error) {
+	return m.memberAccountingLedgerManager.Find(context, &MemberAccountingLedger{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})
@@ -189,7 +189,7 @@ func (m *ModelCore) MemberAccountingLedgerCurrentbranch(context context.Context,
 
 // MemberAccountingLedgerFindForUpdate finds and locks a member accounting ledger for concurrent protection
 // Returns nil if not found (without error), allowing for create-or-update patterns
-func (m *ModelCore) MemberAccountingLedgerFindForUpdate(ctx context.Context, tx *gorm.DB, memberProfileID, accountID, orgID, branchID uuid.UUID) (*MemberAccountingLedger, error) {
+func (m *ModelCore) memberAccountingLedgerFindForUpdate(ctx context.Context, tx *gorm.DB, memberProfileID, accountID, orgID, branchID uuid.UUID) (*MemberAccountingLedger, error) {
 	var ledger MemberAccountingLedger
 	err := tx.WithContext(ctx).
 		Model(&MemberAccountingLedger{}).
@@ -219,12 +219,12 @@ func (m *ModelCore) MemberAccountingLedgerFindForUpdate(ctx context.Context, tx 
 //
 // Example usage:
 //
-//	ledger, err := m.MemberAccountingLedgerUpdateOrCreate(
+//	ledger, err := m.memberAccountingLedgerUpdateOrCreate(
 //	    ctx, tx, memberID, accountID, orgID, branchID, userID,
 //	    newBalance, time.Now())
 //	if err != nil {
 //	}
-func (m *ModelCore) MemberAccountingLedgerUpdateOrCreate(
+func (m *ModelCore) memberAccountingLedgerUpdateOrCreate(
 	ctx context.Context,
 	tx *gorm.DB,
 	memberProfileID, accountID, orgID, branchID, userID uuid.UUID,
@@ -232,7 +232,7 @@ func (m *ModelCore) MemberAccountingLedgerUpdateOrCreate(
 	lastPayTime time.Time,
 ) (*MemberAccountingLedger, error) {
 	// First, try to find and lock existing ledger
-	ledger, err := m.MemberAccountingLedgerFindForUpdate(ctx, tx, memberProfileID, accountID, orgID, branchID)
+	ledger, err := m.memberAccountingLedgerFindForUpdate(ctx, tx, memberProfileID, accountID, orgID, branchID)
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to find member accounting ledger for update")
 	}

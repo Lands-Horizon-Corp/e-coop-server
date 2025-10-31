@@ -93,9 +93,9 @@ type (
 )
 
 // OnlineRemittance initializes the OnlineRemittance model and its repository manager
-func (m *ModelCore) OnlineRemittance() {
-	m.Migration = append(m.Migration, &OnlineRemittance{})
-	m.OnlineRemittanceManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+func (m *ModelCore) onlineRemittance() {
+	m.migration = append(m.migration, &OnlineRemittance{})
+	m.onlineRemittanceManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		OnlineRemittance, OnlineRemittanceResponse, OnlineRemittanceRequest,
 	]{
 		Preloads: []string{
@@ -117,24 +117,24 @@ func (m *ModelCore) OnlineRemittance() {
 				ID:                 data.ID,
 				CreatedAt:          data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:        data.CreatedByID,
-				CreatedBy:          m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:          m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:          data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:        data.UpdatedByID,
-				UpdatedBy:          m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:          m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID:     data.OrganizationID,
-				Organization:       m.OrganizationManager.ToModel(data.Organization),
+				Organization:       m.organizationManager.ToModel(data.Organization),
 				BranchID:           data.BranchID,
-				Branch:             m.BranchManager.ToModel(data.Branch),
+				Branch:             m.branchManager.ToModel(data.Branch),
 				BankID:             data.BankID,
-				Bank:               m.BankManager.ToModel(data.Bank),
+				Bank:               m.bankManager.ToModel(data.Bank),
 				MediaID:            data.MediaID,
-				Media:              m.MediaManager.ToModel(data.Media),
+				Media:              m.mediaManager.ToModel(data.Media),
 				EmployeeUserID:     data.EmployeeUserID,
-				EmployeeUser:       m.UserManager.ToModel(data.EmployeeUser),
+				EmployeeUser:       m.userManager.ToModel(data.EmployeeUser),
 				TransactionBatchID: data.TransactionBatchID,
-				TransactionBatch:   m.TransactionBatchManager.ToModel(data.TransactionBatch),
+				TransactionBatch:   m.transactionBatchManager.ToModel(data.TransactionBatch),
 				CurrencyID:         data.CurrencyID,
-				Currency:           m.CurrencyManager.ToModel(data.Currency),
+				Currency:           m.currencyManager.ToModel(data.Currency),
 				ReferenceNumber:    data.ReferenceNumber,
 				Amount:             data.Amount,
 				AccountName:        data.AccountName,
@@ -170,8 +170,8 @@ func (m *ModelCore) OnlineRemittance() {
 }
 
 // OnlineRemittanceCurrentBranch retrieves all online remittances for the specified organization and branch
-func (m *ModelCore) OnlineRemittanceCurrentbranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*OnlineRemittance, error) {
-	return m.OnlineRemittanceManager.Find(context, &OnlineRemittance{
+func (m *ModelCore) onlineRemittanceCurrentbranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*OnlineRemittance, error) {
+	return m.onlineRemittanceManager.Find(context, &OnlineRemittance{
 		OrganizationID: orgID,
 		BranchID:       branchID,
 	})

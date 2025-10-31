@@ -82,9 +82,9 @@ type (
 	}
 )
 
-func (m *ModelCore) JournalVoucherEntry() {
-	m.Migration = append(m.Migration, &JournalVoucherEntry{})
-	m.JournalVoucherEntryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+func (m *ModelCore) journalVoucherEntry() {
+	m.migration = append(m.migration, &JournalVoucherEntry{})
+	m.journalVoucherEntryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		JournalVoucherEntry, JournalVoucherEntryResponse, JournalVoucherEntryRequest,
 	]{
 		Preloads: []string{
@@ -101,22 +101,22 @@ func (m *ModelCore) JournalVoucherEntry() {
 				ID:                     data.ID,
 				CreatedAt:              data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:            data.CreatedByID,
-				CreatedBy:              m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:              m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:              data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:            data.UpdatedByID,
-				UpdatedBy:              m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:              m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID:         data.OrganizationID,
-				Organization:           m.OrganizationManager.ToModel(data.Organization),
+				Organization:           m.organizationManager.ToModel(data.Organization),
 				BranchID:               data.BranchID,
-				Branch:                 m.BranchManager.ToModel(data.Branch),
+				Branch:                 m.branchManager.ToModel(data.Branch),
 				AccountID:              data.AccountID,
-				Account:                m.AccountManager.ToModel(data.Account),
+				Account:                m.accountManager.ToModel(data.Account),
 				MemberProfileID:        data.MemberProfileID,
-				MemberProfile:          m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:          m.memberProfileManager.ToModel(data.MemberProfile),
 				EmployeeUserID:         data.EmployeeUserID,
-				EmployeeUser:           m.UserManager.ToModel(data.EmployeeUser),
+				EmployeeUser:           m.userManager.ToModel(data.EmployeeUser),
 				JournalVoucherID:       data.JournalVoucherID,
-				JournalVoucher:         m.JournalVoucherManager.ToModel(data.JournalVoucher),
+				JournalVoucher:         m.journalVoucherManager.ToModel(data.JournalVoucher),
 				CashCheckVoucherNumber: data.CashCheckVoucherNumber,
 				Description:            data.Description,
 				Debit:                  data.Debit,
@@ -150,8 +150,8 @@ func (m *ModelCore) JournalVoucherEntry() {
 	})
 }
 
-func (m *ModelCore) JournalVoucherEntryCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*JournalVoucherEntry, error) {
-	return m.JournalVoucherEntryManager.Find(context, &JournalVoucherEntry{
+func (m *ModelCore) journalVoucherEntryCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*JournalVoucherEntry, error) {
+	return m.journalVoucherEntryManager.Find(context, &JournalVoucherEntry{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

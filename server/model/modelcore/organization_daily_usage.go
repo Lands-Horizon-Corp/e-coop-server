@@ -88,9 +88,9 @@ type (
 )
 
 // OrganizationDailyUsage initializes the organization daily usage model and its repository manager
-func (m *ModelCore) OrganizationDailyUsage() {
-	m.Migration = append(m.Migration, &OrganizationDailyUsage{})
-	m.OrganizationDailyUsageManager = horizon_services.NewRepository(horizon_services.RepositoryParams[OrganizationDailyUsage, OrganizationDailyUsageResponse, OrganizationDailyUsageRequest]{
+func (m *ModelCore) organizationDailyUsage() {
+	m.migration = append(m.migration, &OrganizationDailyUsage{})
+	m.organizationDailyUsageManager = horizon_services.NewRepository(horizon_services.RepositoryParams[OrganizationDailyUsage, OrganizationDailyUsageResponse, OrganizationDailyUsageRequest]{
 		Preloads: []string{"Organization"},
 		Service:  m.provider.Service,
 		Resource: func(data *OrganizationDailyUsage) *OrganizationDailyUsageResponse {
@@ -100,7 +100,7 @@ func (m *ModelCore) OrganizationDailyUsage() {
 			return &OrganizationDailyUsageResponse{
 				ID:             data.ID,
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.organizationManager.ToModel(data.Organization),
 				TotalMembers:   data.TotalMembers,
 				TotalBranches:  data.TotalBranches,
 				TotalEmployees: data.TotalEmployees,
@@ -148,8 +148,8 @@ func (m *ModelCore) OrganizationDailyUsage() {
 }
 
 // GetOrganizationDailyUsageByOrganization retrieves daily usage data for a specific organization
-func (m *ModelCore) GetOrganizationDailyUsageByOrganization(context context.Context, organizationID uuid.UUID) ([]*OrganizationDailyUsage, error) {
-	return m.OrganizationDailyUsageManager.Find(context, &OrganizationDailyUsage{
+func (m *ModelCore) getOrganizationDailyUsageByOrganization(context context.Context, organizationID uuid.UUID) ([]*OrganizationDailyUsage, error) {
+	return m.organizationDailyUsageManager.Find(context, &OrganizationDailyUsage{
 		OrganizationID: organizationID,
 	})
 }

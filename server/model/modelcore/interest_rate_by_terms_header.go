@@ -121,9 +121,9 @@ type (
 	}
 )
 
-func (m *ModelCore) InterestRateByTermsHeader() {
-	m.Migration = append(m.Migration, &InterestRateByTermsHeader{})
-	m.InterestRateByTermsHeaderManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+func (m *ModelCore) interestRateByTermsHeader() {
+	m.migration = append(m.migration, &InterestRateByTermsHeader{})
+	m.interestRateByTermsHeaderManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		InterestRateByTermsHeader, InterestRateByTermsHeaderResponse, InterestRateByTermsHeaderRequest,
 	]{
 		Preloads: []string{
@@ -139,16 +139,16 @@ func (m *ModelCore) InterestRateByTermsHeader() {
 				ID:                                 data.ID,
 				CreatedAt:                          data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:                        data.CreatedByID,
-				CreatedBy:                          m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:                          m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:                          data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:                        data.UpdatedByID,
-				UpdatedBy:                          m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:                          m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID:                     data.OrganizationID,
-				Organization:                       m.OrganizationManager.ToModel(data.Organization),
+				Organization:                       m.organizationManager.ToModel(data.Organization),
 				BranchID:                           data.BranchID,
-				Branch:                             m.BranchManager.ToModel(data.Branch),
+				Branch:                             m.branchManager.ToModel(data.Branch),
 				MemberClassificationInterestRateID: data.MemberClassificationInterestRateID,
-				// MemberClassificationInterestRate:   m.MemberClassificationInterestRateManager.ToModel(data.MemberClassificationInterestRate),
+				// MemberClassificationInterestRate:   m.memberClassificationInterestRateManager.ToModel(data.MemberClassificationInterestRate),
 				Header1:  data.Header1,
 				Header2:  data.Header2,
 				Header3:  data.Header3,
@@ -200,8 +200,8 @@ func (m *ModelCore) InterestRateByTermsHeader() {
 	})
 }
 
-func (m *ModelCore) InterestRateByTermsHeaderCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*InterestRateByTermsHeader, error) {
-	return m.InterestRateByTermsHeaderManager.Find(context, &InterestRateByTermsHeader{
+func (m *ModelCore) interestRateByTermsHeaderCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*InterestRateByTermsHeader, error) {
+	return m.interestRateByTermsHeaderManager.Find(context, &InterestRateByTermsHeader{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

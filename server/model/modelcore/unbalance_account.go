@@ -93,8 +93,8 @@ type (
 
 // UnbalancedAccount initializes the UnbalancedAccount model and its repository manager
 func (m *ModelCore) unbalancedAccount() {
-	m.Migration = append(m.Migration, &UnbalancedAccount{})
-	m.UnbalancedAccountManager = horizon_services.NewRepository(horizon_services.RepositoryParams[UnbalancedAccount, UnbalancedAccountResponse, UnbalancedAccountRequest]{
+	m.migration = append(m.migration, &UnbalancedAccount{})
+	m.unbalancedAccountManager = horizon_services.NewRepository(horizon_services.RepositoryParams[UnbalancedAccount, UnbalancedAccountResponse, UnbalancedAccountRequest]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "BranchSettings", "Currency",
 			"AccountForShortage", "AccountForOverage",
@@ -109,26 +109,26 @@ func (m *ModelCore) unbalancedAccount() {
 				ID:               data.ID,
 				CreatedAt:        data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:      data.CreatedByID,
-				CreatedBy:        m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:        m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:        data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:      data.UpdatedByID,
-				UpdatedBy:        m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:        m.userManager.ToModel(data.UpdatedBy),
 				BranchSettingsID: data.BranchSettingsID,
-				BranchSettings:   m.BranchSettingManager.ToModel(data.BranchSettings),
+				BranchSettings:   m.branchSettingManager.ToModel(data.BranchSettings),
 				CurrencyID:       data.CurrencyID,
-				Currency:         m.CurrencyManager.ToModel(data.Currency),
+				Currency:         m.currencyManager.ToModel(data.Currency),
 
 				AccountForShortageID: data.AccountForShortageID,
-				AccountForShortage:   m.AccountManager.ToModel(data.AccountForShortage),
+				AccountForShortage:   m.accountManager.ToModel(data.AccountForShortage),
 
 				AccountForOverageID: data.AccountForOverageID,
-				AccountForOverage:   m.AccountManager.ToModel(data.AccountForOverage),
+				AccountForOverage:   m.accountManager.ToModel(data.AccountForOverage),
 
 				MemberProfileIDForShortage: data.MemberProfileIDForShortage,
-				MemberProfileForShortage:   m.MemberProfileManager.ToModel(data.MemberProfileForShortage),
+				MemberProfileForShortage:   m.memberProfileManager.ToModel(data.MemberProfileForShortage),
 
 				MemberProfileIDForOverage: data.MemberProfileIDForOverage,
-				MemberProfileForOverage:   m.MemberProfileManager.ToModel(data.MemberProfileForOverage),
+				MemberProfileForOverage:   m.memberProfileManager.ToModel(data.MemberProfileForOverage),
 
 				Name:        data.Name,
 				Description: data.Description,

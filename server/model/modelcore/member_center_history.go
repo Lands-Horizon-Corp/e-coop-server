@@ -59,9 +59,9 @@ type (
 	}
 )
 
-func (m *ModelCore) MemberCenterHistory() {
-	m.Migration = append(m.Migration, &MemberCenterHistory{})
-	m.MemberCenterHistoryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberCenterHistory, MemberCenterHistoryResponse, MemberCenterHistoryRequest]{
+func (m *ModelCore) memberCenterHistory() {
+	m.migration = append(m.migration, &MemberCenterHistory{})
+	m.memberCenterHistoryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberCenterHistory, MemberCenterHistoryResponse, MemberCenterHistoryRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberCenter", "MemberProfile"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberCenterHistory) *MemberCenterHistoryResponse {
@@ -72,18 +72,18 @@ func (m *ModelCore) MemberCenterHistory() {
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
-				CreatedBy:       m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:       m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:     data.UpdatedByID,
-				UpdatedBy:       m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:       m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID:  data.OrganizationID,
-				Organization:    m.OrganizationManager.ToModel(data.Organization),
+				Organization:    m.organizationManager.ToModel(data.Organization),
 				BranchID:        data.BranchID,
-				Branch:          m.BranchManager.ToModel(data.Branch),
+				Branch:          m.branchManager.ToModel(data.Branch),
 				MemberCenterID:  data.MemberCenterID,
-				MemberCenter:    m.MemberCenterManager.ToModel(data.MemberCenter),
+				MemberCenter:    m.memberCenterManager.ToModel(data.MemberCenter),
 				MemberProfileID: data.MemberProfileID,
-				MemberProfile:   m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:   m.memberProfileManager.ToModel(data.MemberProfile),
 			}
 		},
 
@@ -117,15 +117,15 @@ func (m *ModelCore) MemberCenterHistory() {
 	})
 }
 
-func (m *ModelCore) MemberCenterHistoryCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberCenterHistory, error) {
-	return m.MemberCenterHistoryManager.Find(context, &MemberCenterHistory{
+func (m *ModelCore) memberCenterHistoryCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberCenterHistory, error) {
+	return m.memberCenterHistoryManager.Find(context, &MemberCenterHistory{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})
 }
 
-func (m *ModelCore) MemberCenterHistoryMemberProfileID(context context.Context, memberProfileId, orgId, branchId uuid.UUID) ([]*MemberCenterHistory, error) {
-	return m.MemberCenterHistoryManager.Find(context, &MemberCenterHistory{
+func (m *ModelCore) memberCenterHistoryMemberProfileID(context context.Context, memberProfileId, orgId, branchId uuid.UUID) ([]*MemberCenterHistory, error) {
+	return m.memberCenterHistoryManager.Find(context, &MemberCenterHistory{
 		OrganizationID:  orgId,
 		BranchID:        branchId,
 		MemberProfileID: memberProfileId,

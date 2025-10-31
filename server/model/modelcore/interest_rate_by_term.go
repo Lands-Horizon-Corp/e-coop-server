@@ -60,9 +60,9 @@ type (
 	}
 )
 
-func (m *ModelCore) InterestRateByTerm() {
-	m.Migration = append(m.Migration, &InterestRateByTerm{})
-	m.InterestRateByTermManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+func (m *ModelCore) interestRateByTerm() {
+	m.migration = append(m.migration, &InterestRateByTerm{})
+	m.interestRateByTermManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		InterestRateByTerm, InterestRateByTermResponse, InterestRateByTermRequest,
 	]{
 		Preloads: []string{
@@ -77,18 +77,18 @@ func (m *ModelCore) InterestRateByTerm() {
 				ID:                                 data.ID,
 				CreatedAt:                          data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:                        data.CreatedByID,
-				CreatedBy:                          m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:                          m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:                          data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:                        data.UpdatedByID,
-				UpdatedBy:                          m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:                          m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID:                     data.OrganizationID,
-				Organization:                       m.OrganizationManager.ToModel(data.Organization),
+				Organization:                       m.organizationManager.ToModel(data.Organization),
 				BranchID:                           data.BranchID,
-				Branch:                             m.BranchManager.ToModel(data.Branch),
+				Branch:                             m.branchManager.ToModel(data.Branch),
 				Name:                               data.Name,
 				Descrition:                         data.Descrition,
 				MemberClassificationInterestRateID: data.MemberClassificationInterestRateID,
-				MemberClassificationInterestRate:   m.MemberClassificationInterestRateManager.ToModel(data.MemberClassificationInterestRate),
+				MemberClassificationInterestRate:   m.memberClassificationInterestRateManager.ToModel(data.MemberClassificationInterestRate),
 			}
 		},
 		Created: func(data *InterestRateByTerm) []string {
@@ -118,8 +118,8 @@ func (m *ModelCore) InterestRateByTerm() {
 	})
 }
 
-func (m *ModelCore) InterestRateByTermCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*InterestRateByTerm, error) {
-	return m.InterestRateByTermManager.Find(context, &InterestRateByTerm{
+func (m *ModelCore) interestRateByTermCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*InterestRateByTerm, error) {
+	return m.interestRateByTermManager.Find(context, &InterestRateByTerm{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

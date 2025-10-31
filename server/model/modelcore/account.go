@@ -464,8 +464,8 @@ type AccountRequest struct {
 // --- REGISTRATION ---
 
 func (m *ModelCore) account() {
-	m.Migration = append(m.Migration, &Account{})
-	m.AccountManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.migration = append(m.migration, &Account{})
+	m.accountManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		Account, AccountResponse, AccountRequest,
 	]{
 		Preloads: []string{
@@ -482,27 +482,27 @@ func (m *ModelCore) account() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.organizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.branchManager.ToModel(data.Branch),
 
 				GeneralLedgerDefinitionID:      data.GeneralLedgerDefinitionID,
-				GeneralLedgerDefinition:        m.GeneralLedgerDefinitionManager.ToModel(data.GeneralLedgerDefinition),
+				GeneralLedgerDefinition:        m.generalLedgerDefinitionManager.ToModel(data.GeneralLedgerDefinition),
 				FinancialStatementDefinitionID: data.FinancialStatementDefinitionID,
-				FinancialStatementDefinition:   m.FinancialStatementDefinitionManager.ToModel(data.FinancialStatementDefinition),
+				FinancialStatementDefinition:   m.financialStatementDefinitionManager.ToModel(data.FinancialStatementDefinition),
 				AccountClassificationID:        data.AccountClassificationID,
-				AccountClassification:          m.AccountClassificationManager.ToModel(data.AccountClassification),
+				AccountClassification:          m.accountClassificationManager.ToModel(data.AccountClassification),
 				AccountCategoryID:              data.AccountCategoryID,
-				AccountCategory:                m.AccountCategoryManager.ToModel(data.AccountCategory),
+				AccountCategory:                m.accountCategoryManager.ToModel(data.AccountCategory),
 				MemberTypeID:                   data.MemberTypeID,
-				MemberType:                     m.MemberTypeManager.ToModel(data.MemberType),
+				MemberType:                     m.memberTypeManager.ToModel(data.MemberType),
 				CurrencyID:                     data.CurrencyID,
-				Currency:                       m.CurrencyManager.ToModel(data.Currency),
+				Currency:                       m.currencyManager.ToModel(data.Currency),
 
 				Name:                                  data.Name,
 				Description:                           data.Description,
@@ -538,7 +538,7 @@ func (m *ModelCore) account() {
 				FinancialStatementType:                             FinancialStatementType(data.FinancialStatementType),
 				GeneralLedgerType:                                  data.GeneralLedgerType,
 				AlternativeAccountID:                               data.AlternativeAccountID,
-				AlternativeAccount:                                 m.AccountManager.ToModel(data.AlternativeAccount),
+				AlternativeAccount:                                 m.accountManager.ToModel(data.AlternativeAccount),
 				FinesGracePeriodAmortization:                       data.FinesGracePeriodAmortization,
 				AdditionalGracePeriod:                              data.AdditionalGracePeriod,
 				NumberGracePeriodDaily:                             data.NumberGracePeriodDaily,
@@ -558,8 +558,8 @@ func (m *ModelCore) account() {
 				CenterRow:                                          data.CenterRow,
 				TotalRow:                                           data.TotalRow,
 				GeneralLedgerGroupingExcludeAccount:                data.GeneralLedgerGroupingExcludeAccount,
-				AccountTags:                                        m.AccountTagManager.ToModels(data.AccountTags),
-				ComputationSheet:                                   m.ComputationSheetManager.ToModel(data.ComputationSheet),
+				AccountTags:                                        m.accountTagManager.ToModels(data.AccountTags),
+				ComputationSheet:                                   m.computationSheetManager.ToModel(data.ComputationSheet),
 
 				Icon:                                    data.Icon,
 				ShowInGeneralLedgerSourceWithdraw:       data.ShowInGeneralLedgerSourceWithdraw,
@@ -603,14 +603,14 @@ func (m *ModelCore) account() {
 	})
 }
 
-func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
 
-	branch, err := m.BranchManager.GetByID(context, branchID)
+	branch, err := m.branchManager.GetByID(context, branchID)
 	if err != nil {
 		return eris.Wrap(err, "failed to find branch for account seeding")
 	}
-	currency, err := m.CurrencyFindByAlpha2(context, branch.CountryCode)
+	currency, err := m.currencyFindByAlpha2(context, branch.CountryCode)
 	if err != nil {
 		return eris.Wrap(err, "failed to find currency for account seeding")
 	}
@@ -791,7 +791,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 		data.ShowInGeneralLedgerSourceAdjustment = true
 		data.ShowInGeneralLedgerSourceJournalVoucher = true
 		data.ShowInGeneralLedgerSourceCheckVoucher = true
-		if err := m.AccountManager.CreateWithTx(context, tx, data); err != nil {
+		if err := m.accountManager.CreateWithTx(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to seed account %s", data.Name)
 		}
 	}
@@ -915,7 +915,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 	for _, loanAccount := range loanAccounts {
 		loanAccount.CurrencyID = &currency.ID
 		// Create the main loan account
-		if err := m.AccountManager.CreateWithTx(context, tx, loanAccount); err != nil {
+		if err := m.accountManager.CreateWithTx(context, tx, loanAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed loan account %s", loanAccount.Name)
 		}
 
@@ -948,7 +948,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			OtherInformationOfAnAccount:             OIOA_None,
 		}
 
-		if err := m.AccountManager.CreateWithTx(context, tx, interestAccount); err != nil {
+		if err := m.accountManager.CreateWithTx(context, tx, interestAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed interest account for %s", loanAccount.Name)
 		}
 
@@ -981,7 +981,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			OtherInformationOfAnAccount:             OIOA_None,
 		}
 
-		if err := m.AccountManager.CreateWithTx(context, tx, serviceFeeAccount); err != nil {
+		if err := m.accountManager.CreateWithTx(context, tx, serviceFeeAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed service fee account for %s", loanAccount.Name)
 		}
 
@@ -1014,7 +1014,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 			OtherInformationOfAnAccount:             OIOA_None,
 		}
 
-		if err := m.AccountManager.CreateWithTx(context, tx, finesAccount); err != nil {
+		if err := m.accountManager.CreateWithTx(context, tx, finesAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed fines account for %s", loanAccount.Name)
 		}
 	}
@@ -1041,7 +1041,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 		ShowInGeneralLedgerSourceJournal:  true,
 		ShowInGeneralLedgerSourcePayment:  true,
 	}
-	if err := m.AccountManager.CreateWithTx(context, tx, paidUpShareCapital); err != nil {
+	if err := m.accountManager.CreateWithTx(context, tx, paidUpShareCapital); err != nil {
 		return eris.Wrapf(err, "failed to seed account %s", paidUpShareCapital.Name)
 	}
 	cashOnHand := &Account{
@@ -1074,7 +1074,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 		OtherInformationOfAnAccount: OIOA_CashOnHand,
 	}
 
-	if err := m.AccountManager.CreateWithTx(context, tx, cashOnHand); err != nil {
+	if err := m.accountManager.CreateWithTx(context, tx, cashOnHand); err != nil {
 		return eris.Wrapf(err, "failed to seed account %s", cashOnHand.Name)
 	}
 
@@ -1108,7 +1108,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 		OtherInformationOfAnAccount:             OIOA_CashInBank,
 	}
 
-	if err := m.AccountManager.CreateWithTx(context, tx, cashInBank); err != nil {
+	if err := m.accountManager.CreateWithTx(context, tx, cashInBank); err != nil {
 		return eris.Wrapf(err, "failed to seed account %s", cashInBank.Name)
 	}
 
@@ -1142,7 +1142,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 		CurrencyID:                              &currency.ID,
 	}
 
-	if err := m.AccountManager.CreateWithTx(context, tx, cashOnline); err != nil {
+	if err := m.accountManager.CreateWithTx(context, tx, cashOnline); err != nil {
 		return eris.Wrapf(err, "failed to seed account %s", cashOnline.Name)
 	}
 
@@ -1176,7 +1176,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 		CurrencyID:                              &currency.ID,
 	}
 
-	if err := m.AccountManager.CreateWithTx(context, tx, pettyCash); err != nil {
+	if err := m.accountManager.CreateWithTx(context, tx, pettyCash); err != nil {
 		return eris.Wrapf(err, "failed to seed account %s", pettyCash.Name)
 	}
 
@@ -1210,7 +1210,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 		CurrencyID:                              &currency.ID,
 	}
 
-	if err := m.AccountManager.CreateWithTx(context, tx, cashInTransit); err != nil {
+	if err := m.accountManager.CreateWithTx(context, tx, cashInTransit); err != nil {
 		return eris.Wrapf(err, "failed to seed account %s", cashInTransit.Name)
 	}
 
@@ -1244,7 +1244,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 		OtherInformationOfAnAccount:             OIOA_None,
 	}
 
-	if err := m.AccountManager.CreateWithTx(context, tx, foreignCurrencyCash); err != nil {
+	if err := m.accountManager.CreateWithTx(context, tx, foreignCurrencyCash); err != nil {
 		return eris.Wrapf(err, "failed to seed account %s", foreignCurrencyCash.Name)
 	}
 
@@ -1278,7 +1278,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 		OtherInformationOfAnAccount:             OIOA_None,
 	}
 
-	if err := m.AccountManager.CreateWithTx(context, tx, moneyMarketFund); err != nil {
+	if err := m.accountManager.CreateWithTx(context, tx, moneyMarketFund); err != nil {
 		return eris.Wrapf(err, "failed to seed account %s", moneyMarketFund.Name)
 	}
 
@@ -1312,7 +1312,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 		OtherInformationOfAnAccount:             OIOA_None,
 	}
 
-	if err := m.AccountManager.CreateWithTx(context, tx, treasuryBills); err != nil {
+	if err := m.accountManager.CreateWithTx(context, tx, treasuryBills); err != nil {
 		return eris.Wrapf(err, "failed to seed account %s", treasuryBills.Name)
 	}
 
@@ -2163,7 +2163,7 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 	// Create all fee accounts
 	for _, feeAccount := range feeAccounts {
 		feeAccount.CurrencyID = &currency.ID
-		if err := m.AccountManager.CreateWithTx(context, tx, feeAccount); err != nil {
+		if err := m.accountManager.CreateWithTx(context, tx, feeAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed fee account %s", feeAccount.Name)
 		}
 	}
@@ -2171,14 +2171,14 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 	// Create all operational expense accounts
 	for _, operationalAccount := range operationalAccounts {
 		operationalAccount.CurrencyID = &currency.ID
-		if err := m.AccountManager.CreateWithTx(context, tx, operationalAccount); err != nil {
+		if err := m.accountManager.CreateWithTx(context, tx, operationalAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed operational account %s", operationalAccount.Name)
 		}
 	}
 
 	branch.BranchSetting.PaidUpSharedCapitalAccountID = &paidUpShareCapital.ID
 	branch.BranchSetting.CashOnHandAccountID = &cashOnHand.ID
-	if err := m.BranchSettingManager.UpdateFieldsWithTx(context, tx, branch.BranchSetting.ID, branch.BranchSetting); err != nil {
+	if err := m.branchSettingManager.UpdateFieldsWithTx(context, tx, branch.BranchSetting.ID, branch.BranchSetting); err != nil {
 		return eris.Wrap(err, "failed to update branch settings with paid up share capital and cash on hand accounts")
 	}
 
@@ -2192,11 +2192,11 @@ func (m *ModelCore) AccountSeed(context context.Context, tx *gorm.DB, userID uui
 		AccountForShortageID: cashOnHand.ID,
 		AccountForOverageID:  cashOnHand.ID,
 	}
-	if err := m.UnbalancedAccountManager.CreateWithTx(context, tx, unbalanced); err != nil {
+	if err := m.unbalancedAccountManager.CreateWithTx(context, tx, unbalanced); err != nil {
 		return eris.Wrap(err, "failed to create unbalanced account for branch")
 	}
 	// Set default accounting accounts for user organization
-	userOrganization, err := m.UserOrganizationManager.FindOne(context, &UserOrganization{
+	userOrganization, err := m.userOrganizationManager.FindOne(context, &UserOrganization{
 		UserID:         userID,
 		OrganizationID: organizationID,
 		BranchID:       &branchID,
@@ -2527,14 +2527,14 @@ func (a *Account) BeforeDelete(tx *gorm.DB) error {
 	return tx.Create(history).Error
 }
 
-func (m *ModelCore) AccountCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Account, error) {
-	return m.AccountManager.Find(context, &Account{
+func (m *ModelCore) accountCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Account, error) {
+	return m.accountManager.Find(context, &Account{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})
 }
 
-func (m *ModelCore) AccountLockForUpdate(ctx context.Context, tx *gorm.DB, accountID uuid.UUID) (*Account, error) {
+func (m *ModelCore) accountLockForUpdate(ctx context.Context, tx *gorm.DB, accountID uuid.UUID) (*Account, error) {
 	var lockedAccount Account
 	err := tx.WithContext(ctx).
 		Model(&Account{}).
@@ -2550,8 +2550,8 @@ func (m *ModelCore) AccountLockForUpdate(ctx context.Context, tx *gorm.DB, accou
 }
 
 // account = lockedAccount
-func (m *ModelCore) AccountLockWithValidation(ctx context.Context, tx *gorm.DB, accountID uuid.UUID, originalAccount *Account) (*Account, error) {
-	lockedAccount, err := m.AccountLockForUpdate(ctx, tx, accountID)
+func (m *ModelCore) accountLockWithValidation(ctx context.Context, tx *gorm.DB, accountID uuid.UUID, originalAccount *Account) (*Account, error) {
+	lockedAccount, err := m.accountLockForUpdate(ctx, tx, accountID)
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to acquire account lock")
 	}

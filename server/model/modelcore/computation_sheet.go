@@ -86,8 +86,8 @@ type (
 )
 
 func (m *ModelCore) computationSheet() {
-	m.Migration = append(m.Migration, &ComputationSheet{})
-	m.ComputationSheetManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.migration = append(m.migration, &ComputationSheet{})
+	m.computationSheetManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		ComputationSheet, ComputationSheetResponse, ComputationSheetRequest,
 	]{
 		Preloads: []string{
@@ -102,14 +102,14 @@ func (m *ModelCore) computationSheet() {
 				ID:                data.ID,
 				CreatedAt:         data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:       data.CreatedByID,
-				CreatedBy:         m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:         m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:         data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:       data.UpdatedByID,
-				UpdatedBy:         m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:         m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID:    data.OrganizationID,
-				Organization:      m.OrganizationManager.ToModel(data.Organization),
+				Organization:      m.organizationManager.ToModel(data.Organization),
 				BranchID:          data.BranchID,
-				Branch:            m.BranchManager.ToModel(data.Branch),
+				Branch:            m.branchManager.ToModel(data.Branch),
 				Name:              data.Name,
 				Description:       data.Description,
 				DeliquentAccount:  data.DeliquentAccount,
@@ -118,7 +118,7 @@ func (m *ModelCore) computationSheet() {
 				ComakerAccount:    data.ComakerAccount,
 				ExistAccount:      data.ExistAccount,
 				CurrencyID:        data.CurrencyID,
-				Currency:          m.CurrencyManager.ToModel(data.Currency),
+				Currency:          m.currencyManager.ToModel(data.Currency),
 			}
 		},
 		Created: func(data *ComputationSheet) []string {
@@ -148,8 +148,8 @@ func (m *ModelCore) computationSheet() {
 	})
 }
 
-func (m *ModelCore) ComputationSheetCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ComputationSheet, error) {
-	return m.ComputationSheetManager.Find(context, &ComputationSheet{
+func (m *ModelCore) computationSheetCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ComputationSheet, error) {
+	return m.computationSheetManager.Find(context, &ComputationSheet{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

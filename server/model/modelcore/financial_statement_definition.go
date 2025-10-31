@@ -86,8 +86,8 @@ type (
 )
 
 func (m *ModelCore) financialStatementDefinition() {
-	m.Migration = append(m.Migration, &FinancialStatementDefinition{})
-	m.FinancialStatementDefinitionManager = horizon_services.NewRepository(horizon_services.RepositoryParams[FinancialStatementDefinition, FinancialStatementDefinitionResponse, FinancialStatementDefinitionRequest]{
+	m.migration = append(m.migration, &FinancialStatementDefinition{})
+	m.financialStatementDefinitionManager = horizon_services.NewRepository(horizon_services.RepositoryParams[FinancialStatementDefinition, FinancialStatementDefinitionResponse, FinancialStatementDefinitionRequest]{
 		Preloads: []string{
 			"CreatedBy",
 			"UpdatedBy",
@@ -120,21 +120,21 @@ func (m *ModelCore) financialStatementDefinition() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.organizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.branchManager.ToModel(data.Branch),
 
 				FinancialStatementDefinitionEntriesID: data.FinancialStatementDefinitionEntriesID,
-				FinancialStatementDefinitionEntries:   m.FinancialStatementDefinitionManager.ToModels(data.FinancialStatementDefinitionEntries),
+				FinancialStatementDefinitionEntries:   m.financialStatementDefinitionManager.ToModels(data.FinancialStatementDefinitionEntries),
 
 				FinancialStatementGroupingID: data.FinancialStatementGroupingID,
-				FinancialStatementGrouping:   m.FinancialStatementGroupingManager.ToModel(data.FinancialStatementGrouping),
-				Accounts:                     m.AccountManager.ToModels(data.Accounts),
+				FinancialStatementGrouping:   m.financialStatementGroupingManager.ToModel(data.FinancialStatementGrouping),
+				Accounts:                     m.accountManager.ToModels(data.Accounts),
 
 				Name:                   data.Name,
 				Description:            data.Description,
@@ -171,8 +171,8 @@ func (m *ModelCore) financialStatementDefinition() {
 	})
 }
 
-func (m *ModelCore) FinancialStatementDefinitionCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*FinancialStatementDefinition, error) {
-	return m.FinancialStatementDefinitionManager.Find(context, &FinancialStatementDefinition{
+func (m *ModelCore) financialStatementDefinitionCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*FinancialStatementDefinition, error) {
+	return m.financialStatementDefinitionManager.Find(context, &FinancialStatementDefinition{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

@@ -46,9 +46,9 @@ type (
 	LoanLedgerRequest struct{}
 )
 
-func (m *ModelCore) LoanLedger() {
-	m.Migration = append(m.Migration, &LoanLedger{})
-	m.LoanLedgerManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+func (m *ModelCore) loanLedger() {
+	m.migration = append(m.migration, &LoanLedger{})
+	m.loanLedgerManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		LoanLedger, LoanLedgerResponse, LoanLedgerRequest,
 	]{
 		Preloads: []string{
@@ -63,14 +63,14 @@ func (m *ModelCore) LoanLedger() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.organizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.branchManager.ToModel(data.Branch),
 			}
 		},
 
@@ -101,8 +101,8 @@ func (m *ModelCore) LoanLedger() {
 	})
 }
 
-func (m *ModelCore) LoanLedgerCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanLedger, error) {
-	return m.LoanLedgerManager.Find(context, &LoanLedger{
+func (m *ModelCore) loanLedgerCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanLedger, error) {
+	return m.loanLedgerManager.Find(context, &LoanLedger{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

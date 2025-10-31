@@ -115,8 +115,8 @@ type (
 )
 
 func (m *ModelCore) branch() {
-	m.Migration = append(m.Migration, &Branch{})
-	m.BranchManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Branch, BranchResponse, BranchRequest]{
+	m.migration = append(m.migration, &Branch{})
+	m.branchManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Branch, BranchResponse, BranchRequest]{
 		Preloads: []string{
 			"Media",
 			"CreatedBy",
@@ -141,14 +141,14 @@ func (m *ModelCore) branch() {
 				ID:           data.ID,
 				CreatedAt:    data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:  data.CreatedByID,
-				CreatedBy:    m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:    m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:    data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:  data.UpdatedByID,
-				UpdatedBy:    m.UserManager.ToModel(data.UpdatedBy),
-				Organization: m.OrganizationManager.ToModel(data.Organization),
+				UpdatedBy:    m.userManager.ToModel(data.UpdatedBy),
+				Organization: m.organizationManager.ToModel(data.Organization),
 
 				MediaID:       data.MediaID,
-				Media:         m.MediaManager.ToModel(data.Media),
+				Media:         m.mediaManager.ToModel(data.Media),
 				Type:          data.Type,
 				Name:          data.Name,
 				Email:         data.Email,
@@ -166,13 +166,13 @@ func (m *ModelCore) branch() {
 
 				IsMainBranch: data.IsMainBranch,
 
-				BranchSetting: m.BranchSettingManager.ToModel(data.BranchSetting),
+				BranchSetting: m.branchSettingManager.ToModel(data.BranchSetting),
 
-				Footsteps:           m.FootstepManager.ToModels(data.Footsteps),
-				GeneratedReports:    m.GeneratedReportManager.ToModels(data.GeneratedReports),
-				InvitationCodes:     m.InvitationCodeManager.ToModels(data.InvitationCodes),
-				PermissionTemplates: m.PermissionTemplateManager.ToModels(data.PermissionTemplates),
-				UserOrganizations:   m.UserOrganizationManager.ToModels(data.UserOrganizations),
+				Footsteps:           m.footstepManager.ToModels(data.Footsteps),
+				GeneratedReports:    m.generatedReportManager.ToModels(data.GeneratedReports),
+				InvitationCodes:     m.invitationCodeManager.ToModels(data.InvitationCodes),
+				PermissionTemplates: m.permissionTemplateManager.ToModels(data.PermissionTemplates),
+				UserOrganizations:   m.userOrganizationManager.ToModels(data.UserOrganizations),
 			}
 		},
 		Created: func(data *Branch) []string {
@@ -199,10 +199,10 @@ func (m *ModelCore) branch() {
 	})
 }
 
-func (m *ModelCore) GetBranchesByOrganization(context context.Context, organizationId uuid.UUID) ([]*Branch, error) {
-	return m.BranchManager.Find(context, &Branch{OrganizationID: organizationId})
+func (m *ModelCore) getBranchesByOrganization(context context.Context, organizationId uuid.UUID) ([]*Branch, error) {
+	return m.branchManager.Find(context, &Branch{OrganizationID: organizationId})
 }
 
-func (m *ModelCore) GetBranchesByOrganizationCount(context context.Context, organizationId uuid.UUID) (int64, error) {
-	return m.BranchManager.Count(context, &Branch{OrganizationID: organizationId})
+func (m *ModelCore) getBranchesByOrganizationCount(context context.Context, organizationId uuid.UUID) (int64, error) {
+	return m.branchManager.Count(context, &Branch{OrganizationID: organizationId})
 }

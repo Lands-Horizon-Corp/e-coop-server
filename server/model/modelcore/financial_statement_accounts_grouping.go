@@ -75,8 +75,8 @@ type (
 )
 
 func (m *ModelCore) financialStatementGrouping() {
-	m.Migration = append(m.Migration, &FinancialStatementGrouping{})
-	m.FinancialStatementGroupingManager = horizon_services.NewRepository(horizon_services.RepositoryParams[FinancialStatementGrouping, FinancialStatementGroupingResponse, FinancialStatementGroupingRequest]{
+	m.migration = append(m.migration, &FinancialStatementGrouping{})
+	m.financialStatementGroupingManager = horizon_services.NewRepository(horizon_services.RepositoryParams[FinancialStatementGrouping, FinancialStatementGroupingResponse, FinancialStatementGroupingRequest]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "IconMedia",
 		},
@@ -93,17 +93,17 @@ func (m *ModelCore) financialStatementGrouping() {
 			return &FinancialStatementGroupingResponse{
 				ID:                                  data.ID,
 				OrganizationID:                      data.OrganizationID,
-				Organization:                        m.OrganizationManager.ToModel(data.Organization),
+				Organization:                        m.organizationManager.ToModel(data.Organization),
 				BranchID:                            data.BranchID,
-				Branch:                              m.BranchManager.ToModel(data.Branch),
+				Branch:                              m.branchManager.ToModel(data.Branch),
 				CreatedByID:                         data.CreatedByID,
-				CreatedBy:                           m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:                           m.userManager.ToModel(data.CreatedBy),
 				UpdatedByID:                         data.UpdatedByID,
-				UpdatedBy:                           m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:                           m.userManager.ToModel(data.UpdatedBy),
 				DeletedByID:                         data.DeletedByID,
-				DeletedBy:                           m.UserManager.ToModel(data.DeletedBy),
+				DeletedBy:                           m.userManager.ToModel(data.DeletedBy),
 				IconMediaID:                         data.IconMediaID,
-				IconMedia:                           m.MediaManager.ToModel(data.IconMedia),
+				IconMedia:                           m.mediaManager.ToModel(data.IconMedia),
 				Name:                                data.Name,
 				Description:                         data.Description,
 				Debit:                               data.Debit,
@@ -111,7 +111,7 @@ func (m *ModelCore) financialStatementGrouping() {
 				CreatedAt:                           data.CreatedAt.Format(time.RFC3339),
 				UpdatedAt:                           data.UpdatedAt.Format(time.RFC3339),
 				DeletedAt:                           deletedAt,
-				FinancialStatementDefinitionEntries: m.FinancialStatementDefinitionManager.ToModels(data.FinancialStatementDefinitionEntries),
+				FinancialStatementDefinitionEntries: m.financialStatementDefinitionManager.ToModels(data.FinancialStatementDefinitionEntries),
 			}
 		},
 		Created: func(data *FinancialStatementGrouping) []string {
@@ -141,7 +141,7 @@ func (m *ModelCore) financialStatementGrouping() {
 	})
 }
 
-func (m *ModelCore) FinancialStatementGroupingSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+func (m *ModelCore) financialStatementGroupingSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
 
 	// Financial Statement Accounts Grouping seeder
@@ -208,14 +208,14 @@ func (m *ModelCore) FinancialStatementGroupingSeed(context context.Context, tx *
 		},
 	}
 	for _, data := range financialStatementGrouping {
-		if err := m.FinancialStatementGroupingManager.CreateWithTx(context, tx, data); err != nil {
+		if err := m.financialStatementGroupingManager.CreateWithTx(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to seed financial statement accounts grouping %s", data.Name)
 		}
 	}
 	return nil
 }
-func (m *ModelCore) FinancialStatementGroupingCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*FinancialStatementGrouping, error) {
-	return m.FinancialStatementGroupingManager.Find(context, &FinancialStatementGrouping{
+func (m *ModelCore) financialStatementGroupingCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*FinancialStatementGrouping, error) {
+	return m.financialStatementGroupingManager.Find(context, &FinancialStatementGrouping{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

@@ -68,8 +68,8 @@ type (
 )
 
 func (m *ModelCore) collectorsMemberAccountEntry() {
-	m.Migration = append(m.Migration, &CollectorsMemberAccountEntry{})
-	m.CollectorsMemberAccountEntryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.migration = append(m.migration, &CollectorsMemberAccountEntry{})
+	m.collectorsMemberAccountEntryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		CollectorsMemberAccountEntry, CollectorsMemberAccountEntryResponse, CollectorsMemberAccountEntryRequest,
 	]{
 		Preloads: []string{
@@ -85,20 +85,20 @@ func (m *ModelCore) collectorsMemberAccountEntry() {
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
-				CreatedBy:       m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:       m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:     data.UpdatedByID,
-				UpdatedBy:       m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:       m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID:  data.OrganizationID,
-				Organization:    m.OrganizationManager.ToModel(data.Organization),
+				Organization:    m.organizationManager.ToModel(data.Organization),
 				BranchID:        data.BranchID,
-				Branch:          m.BranchManager.ToModel(data.Branch),
+				Branch:          m.branchManager.ToModel(data.Branch),
 				CollectorUserID: data.CollectorUserID,
-				CollectorUser:   m.UserManager.ToModel(data.CollectorUser),
+				CollectorUser:   m.userManager.ToModel(data.CollectorUser),
 				MemberProfileID: data.MemberProfileID,
-				MemberProfile:   m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:   m.memberProfileManager.ToModel(data.MemberProfile),
 				AccountID:       data.AccountID,
-				Account:         m.AccountManager.ToModel(data.Account),
+				Account:         m.accountManager.ToModel(data.Account),
 				Description:     data.Description,
 			}
 		},
@@ -129,8 +129,8 @@ func (m *ModelCore) collectorsMemberAccountEntry() {
 	})
 }
 
-func (m *ModelCore) CollectorsMemberAccountEntryCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*CollectorsMemberAccountEntry, error) {
-	return m.CollectorsMemberAccountEntryManager.Find(context, &CollectorsMemberAccountEntry{
+func (m *ModelCore) collectorsMemberAccountEntryCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*CollectorsMemberAccountEntry, error) {
+	return m.collectorsMemberAccountEntryManager.Find(context, &CollectorsMemberAccountEntry{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

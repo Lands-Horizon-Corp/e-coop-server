@@ -132,8 +132,8 @@ type (
 )
 
 func (m *ModelCore) chargesRateByTerm() {
-	m.Migration = append(m.Migration, &ChargesRateByTerm{})
-	m.ChargesRateByTermManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.migration = append(m.migration, &ChargesRateByTerm{})
+	m.chargesRateByTermManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		ChargesRateByTerm, ChargesRateByTermResponse, ChargesRateByTermRequest,
 	]{
 		Preloads: []string{
@@ -148,16 +148,16 @@ func (m *ModelCore) chargesRateByTerm() {
 				ID:                  data.ID,
 				CreatedAt:           data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:         data.CreatedByID,
-				CreatedBy:           m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:           m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:           data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:         data.UpdatedByID,
-				UpdatedBy:           m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:           m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID:      data.OrganizationID,
-				Organization:        m.OrganizationManager.ToModel(data.Organization),
+				Organization:        m.organizationManager.ToModel(data.Organization),
 				BranchID:            data.BranchID,
-				Branch:              m.BranchManager.ToModel(data.Branch),
+				Branch:              m.branchManager.ToModel(data.Branch),
 				ChargesRateSchemeID: data.ChargesRateSchemeID,
-				ChargesRateScheme:   m.ChargesRateSchemeManager.ToModel(data.ChargesRateScheme),
+				ChargesRateScheme:   m.chargesRateSchemeManager.ToModel(data.ChargesRateScheme),
 				Name:                data.Name,
 				Description:         data.Description,
 				ModeOfPayment:       data.ModeOfPayment,
@@ -212,8 +212,8 @@ func (m *ModelCore) chargesRateByTerm() {
 	})
 }
 
-func (m *ModelCore) ChargesRateByTermCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ChargesRateByTerm, error) {
-	return m.ChargesRateByTermManager.Find(context, &ChargesRateByTerm{
+func (m *ModelCore) chargesRateByTermCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ChargesRateByTerm, error) {
+	return m.chargesRateByTermManager.Find(context, &ChargesRateByTerm{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

@@ -67,8 +67,8 @@ type (
 )
 
 func (m *ModelCore) generalAccountGroupingNetSurplusNegative() {
-	m.Migration = append(m.Migration, &GeneralAccountGroupingNetSurplusNegative{})
-	m.GeneralAccountGroupingNetSurplusNegativeManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.migration = append(m.migration, &GeneralAccountGroupingNetSurplusNegative{})
+	m.generalAccountGroupingNetSurplusNegativeManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		GeneralAccountGroupingNetSurplusNegative,
 		GeneralAccountGroupingNetSurplusNegativeResponse,
 		GeneralAccountGroupingNetSurplusNegativeRequest,
@@ -85,16 +85,16 @@ func (m *ModelCore) generalAccountGroupingNetSurplusNegative() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.organizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.branchManager.ToModel(data.Branch),
 				AccountID:      data.AccountID,
-				Account:        m.AccountManager.ToModel(data.Account),
+				Account:        m.accountManager.ToModel(data.Account),
 				Name:           data.Name,
 				Description:    data.Description,
 				Percentage1:    data.Percentage1,
@@ -128,8 +128,8 @@ func (m *ModelCore) generalAccountGroupingNetSurplusNegative() {
 	})
 }
 
-func (m *ModelCore) GeneralAccountGroupingNetSurplusNegativeCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*GeneralAccountGroupingNetSurplusNegative, error) {
-	return m.GeneralAccountGroupingNetSurplusNegativeManager.Find(context, &GeneralAccountGroupingNetSurplusNegative{
+func (m *ModelCore) generalAccountGroupingNetSurplusNegativeCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*GeneralAccountGroupingNetSurplusNegative, error) {
+	return m.generalAccountGroupingNetSurplusNegativeManager.Find(context, &GeneralAccountGroupingNetSurplusNegative{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

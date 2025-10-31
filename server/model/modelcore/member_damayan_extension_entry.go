@@ -63,9 +63,9 @@ type (
 	}
 )
 
-func (m *ModelCore) MemberDamayanExtensionEntry() {
-	m.Migration = append(m.Migration, &MemberDamayanExtensionEntry{})
-	m.MemberDamayanExtensionEntryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberDamayanExtensionEntry, MemberDamayanExtensionEntryResponse, MemberDamayanExtensionEntryRequest]{
+func (m *ModelCore) memberDamayanExtensionEntry() {
+	m.migration = append(m.migration, &MemberDamayanExtensionEntry{})
+	m.memberDamayanExtensionEntryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberDamayanExtensionEntry, MemberDamayanExtensionEntryResponse, MemberDamayanExtensionEntryRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberDamayanExtensionEntry) *MemberDamayanExtensionEntryResponse {
@@ -81,16 +81,16 @@ func (m *ModelCore) MemberDamayanExtensionEntry() {
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
-				CreatedBy:       m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:       m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:     data.UpdatedByID,
-				UpdatedBy:       m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:       m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID:  data.OrganizationID,
-				Organization:    m.OrganizationManager.ToModel(data.Organization),
+				Organization:    m.organizationManager.ToModel(data.Organization),
 				BranchID:        data.BranchID,
-				Branch:          m.BranchManager.ToModel(data.Branch),
+				Branch:          m.branchManager.ToModel(data.Branch),
 				MemberProfileID: data.MemberProfileID,
-				MemberProfile:   m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:   m.memberProfileManager.ToModel(data.MemberProfile),
 				Name:            data.Name,
 				Description:     data.Description,
 				Birthdate:       birthdateStr,
@@ -124,8 +124,8 @@ func (m *ModelCore) MemberDamayanExtensionEntry() {
 	})
 }
 
-func (m *ModelCore) MemberDamayanExtensionEntryCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberDamayanExtensionEntry, error) {
-	return m.MemberDamayanExtensionEntryManager.Find(context, &MemberDamayanExtensionEntry{
+func (m *ModelCore) memberDamayanExtensionEntryCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberDamayanExtensionEntry, error) {
+	return m.memberDamayanExtensionEntryManager.Find(context, &MemberDamayanExtensionEntry{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

@@ -63,9 +63,9 @@ type (
 	}
 )
 
-func (m *ModelCore) MemberExpense() {
-	m.Migration = append(m.Migration, &MemberExpense{})
-	m.MemberExpenseManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberExpense, MemberExpenseResponse, MemberExpenseRequest]{
+func (m *ModelCore) memberExpense() {
+	m.migration = append(m.migration, &MemberExpense{})
+	m.memberExpenseManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberExpense, MemberExpenseResponse, MemberExpenseRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberExpense) *MemberExpenseResponse {
@@ -76,16 +76,16 @@ func (m *ModelCore) MemberExpense() {
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
-				CreatedBy:       m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:       m.userManager.ToModel(data.CreatedBy),
 				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:     data.UpdatedByID,
-				UpdatedBy:       m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:       m.userManager.ToModel(data.UpdatedBy),
 				OrganizationID:  data.OrganizationID,
-				Organization:    m.OrganizationManager.ToModel(data.Organization),
+				Organization:    m.organizationManager.ToModel(data.Organization),
 				BranchID:        data.BranchID,
-				Branch:          m.BranchManager.ToModel(data.Branch),
+				Branch:          m.branchManager.ToModel(data.Branch),
 				MemberProfileID: data.MemberProfileID,
-				MemberProfile:   m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:   m.memberProfileManager.ToModel(data.MemberProfile),
 				Name:            data.Name,
 				Amount:          data.Amount,
 				Description:     data.Description,
@@ -119,8 +119,8 @@ func (m *ModelCore) MemberExpense() {
 	})
 }
 
-func (m *ModelCore) MemberExpenseCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberExpense, error) {
-	return m.MemberExpenseManager.Find(context, &MemberExpense{
+func (m *ModelCore) memberExpenseCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberExpense, error) {
+	return m.memberExpenseManager.Find(context, &MemberExpense{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})
