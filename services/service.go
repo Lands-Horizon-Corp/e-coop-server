@@ -1,4 +1,4 @@
-package horizon_services
+package services
 
 import (
 	"context"
@@ -474,7 +474,7 @@ func (h *HorizonService) StopCache(ctx context.Context) error {
 	return nil
 }
 
-// Add these methods to your HorizonService struct in horizon_services.go
+// Add these methods to your HorizonService struct in services.go
 
 func (h *HorizonService) RunStorage(ctx context.Context) error {
 	h.Logger.Info("Starting Storage Service...")

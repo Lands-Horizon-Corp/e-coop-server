@@ -1,4 +1,4 @@
-package horizon_services
+package services
 
 import (
 	"context"
