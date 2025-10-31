@@ -35,7 +35,7 @@ func createCacheSetupService(t *testing.T) CacheService {
 	// Add connection retry logic
 	var err error
 	maxRetries := 5
-	for i := 0; i < maxRetries; i++ {
+	for i := range maxRetries {
 		err = cache.Run(ctx)
 		if err == nil {
 			break

@@ -40,7 +40,7 @@ func (c *Controller) paymentController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "General ledger not found: " + err.Error()})
 		}
-		max, err := c.modelcore.GeneralLedgerPrintMaxNumber(context, *generalLedger.MemberProfileID, *generalLedger.AccountID, *userOrg.BranchID, userOrg.OrganizationID)
+		maxNumber, err := c.modelcore.GeneralLedgerPrintMaxNumber(context, *generalLedger.MemberProfileID, *generalLedger.AccountID, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "payment-general-ledger-max-number-error",
@@ -49,7 +49,7 @@ func (c *Controller) paymentController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get max print number: " + err.Error()})
 		}
 
-		generalLedger.PrintNumber = max + 1
+		generalLedger.PrintNumber = maxNumber + 1
 		if err := c.modelcore.GeneralLedgerManager.UpdateFields(context, generalLedger.ID, generalLedger); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",

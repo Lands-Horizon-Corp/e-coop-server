@@ -46,8 +46,8 @@ const (
 
 // extractInterfaceNameFromTS parses TypeScript to extract interface name
 func extractInterfaceNameFromTS(tsDefinition string) string {
-	lines := strings.Split(tsDefinition, "\n")
-	for _, line := range lines {
+	lines := strings.SplitSeq(tsDefinition, "\n")
+	for line := range lines {
 		trimmed := strings.TrimSpace(line)
 
 		switch {

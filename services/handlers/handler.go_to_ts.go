@@ -28,6 +28,14 @@ type TypeScriptGenerator struct {
 	handled   map[reflect.Type]bool // Tracks processed types
 }
 
+//nolint:modernize // reflect.TypeOf used intentionally for caching type values
+var (
+	uuidType         = reflect.TypeOf((*uuid.UUID)(nil)).Elem()
+	timeType         = reflect.TypeOf((*time.Time)(nil)).Elem()
+	driverValuerType = reflect.TypeOf((*driver.Valuer)(nil)).Elem()
+	errorInterface   = reflect.TypeOf((*error)(nil)).Elem()
+)
+
 // NewTypeScriptGenerator initializes a new generator with empty maps.
 func NewTypeScriptGenerator() *TypeScriptGenerator {
 	return &TypeScriptGenerator{
@@ -88,16 +96,16 @@ func (g *TypeScriptGenerator) GoTypeToTSType(field reflect.StructField) string {
 	t := field.Type
 
 	// Handle special types first
-	if t == reflect.TypeOf(uuid.UUID{}) {
+	if t == uuidType {
 		return "uuid"
 	}
-	if t.Kind() == reflect.Ptr && t.Elem() == reflect.TypeOf(uuid.UUID{}) {
+	if t.Kind() == reflect.Ptr && t.Elem() == uuidType {
 		return "uuid | null"
 	}
-	if t == reflect.TypeOf(time.Time{}) {
+	if t == timeType {
 		return "string" // ISO date string format
 	}
-	if t.Kind() == reflect.Ptr && t.Elem() == reflect.TypeOf(time.Time{}) {
+	if t.Kind() == reflect.Ptr && t.Elem() == timeType {
 		return "string | null"
 	}
 
@@ -126,7 +134,7 @@ func (g *TypeScriptGenerator) GoTypeToTSType(field reflect.StructField) string {
 	}
 
 	// Handle driver.Valuer interface (database types)
-	if t.Implements(reflect.TypeOf((*driver.Valuer)(nil)).Elem()) {
+	if t.Implements(driverValuerType) {
 		return "any"
 	}
 
@@ -175,17 +183,17 @@ func (g *TypeScriptGenerator) GoTypeToTSType(field reflect.StructField) string {
 
 	case reflect.Interface:
 		// Check if it's error interface
-		if t.Implements(reflect.TypeOf((*error)(nil)).Elem()) {
+		if t.Implements(errorInterface) {
 			return "string" // Errors are typically serialized as strings
 		}
 		return "any"
 
 	case reflect.Ptr:
 		// Handle specific pointer types
-		if t.Elem() == reflect.TypeOf(uuid.UUID{}) {
+		if t.Elem() == uuidType {
 			return "uuid | null"
 		}
-		if t.Elem() == reflect.TypeOf(time.Time{}) {
+		if t.Elem() == timeType {
 			return "string | null"
 		}
 		return g.GoTypeToTSType(reflect.StructField{Type: t.Elem(), Tag: field.Tag}) + " | null"
@@ -212,10 +220,10 @@ func (g *TypeScriptGenerator) GoTypeToTSType(field reflect.StructField) string {
 		}
 
 	case reflect.Struct:
-		if t == reflect.TypeOf(uuid.UUID{}) {
+		if t == uuidType {
 			return "uuid"
 		}
-		if t == reflect.TypeOf(time.Time{}) {
+		if t == timeType {
 			return "string"
 		}
 

@@ -11,7 +11,7 @@ import (
 	"github.com/rotisserie/eris"
 )
 
-const MAX_BLOCKED_ATTEMPTS = 25
+const maxBlockedAttempts = 25
 
 // Helper to check and update error count/block for an IP
 // HandleIPBlocker returns a blocker function and checks if already blocked
@@ -69,7 +69,7 @@ func (e *Event) HandleIPBlocker(context context.Context, ctx echo.Context) (bloc
 		}
 
 		// Block if threshold reached
-		if count >= MAX_BLOCKED_ATTEMPTS {
+		if count >= maxBlockedAttempts {
 			if err := cache.Set(context, blockKey, []byte(reason), 5*time.Minute); err != nil {
 				return
 			}
