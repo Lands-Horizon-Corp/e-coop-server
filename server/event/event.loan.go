@@ -249,7 +249,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	for _, ald := range automaticLoanDeductions {
 		exist := false
 		for _, computed := range postComputed {
-			if handlers.UuidPtrEqual(&ald.ID, computed.AutomaticLoanDeductionID) {
+			if handlers.UUIDPtrEqual(&ald.ID, computed.AutomaticLoanDeductionID) {
 				exist = true
 
 				break

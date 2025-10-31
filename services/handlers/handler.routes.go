@@ -171,7 +171,7 @@ func (h *RouteHandler) AddRoute(route Route) error {
 	return nil
 }
 
-// ...existing code...
+// GroupedRoutes organizes routes by their URL path segments for API documentation
 func (h *RouteHandler) GroupedRoutes() API {
 	const skipSegments = 2  // e.g., skip "api" and "v1" or "v2"
 	const groupSegments = 1 // e.g., group by the next segment ("subject")

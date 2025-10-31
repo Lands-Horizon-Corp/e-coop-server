@@ -37,7 +37,8 @@ const (
 	// DataTypeText represents text/string data type
 	DataTypeText DataType = "text"
 	// DataTypeDate represents date/time data type
-	DataTypeDate    DataType = "date"
+	DataTypeDate DataType = "date"
+	// DataTypeNumber represents numeric data type
 	DataTypeNumber  DataType = "number"
 	DataTypeBoolean DataType = "boolean"
 	DataTypeTime    DataType = "time"
@@ -100,7 +101,8 @@ var (
 	// ErrInvalidFilterParam indicates an invalid filter parameter was provided
 	ErrInvalidFilterParam = eris.New("invalid filter parameter")
 	// ErrInvalidSortParam indicates an invalid sort parameter was provided
-	ErrInvalidSortParam     = eris.New("invalid sort parameter")
+	ErrInvalidSortParam = eris.New("invalid sort parameter")
+	// ErrInvalidField indicates a field was not found in the struct
 	ErrInvalidField         = eris.New("field not found in struct")
 	ErrUnsupportedOperation = eris.New("unsupported operation for data type")
 	ErrTypeConversion       = eris.New("type conversion error")

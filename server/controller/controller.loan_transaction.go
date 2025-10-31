@@ -799,7 +799,7 @@ func (c *Controller) loanTransactionController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve cash on cash equivalence account: " + err.Error()})
 		}
 		cashOnCashEquivalenceAccountID := cashOnHandAccount.ID
-		if !handlers.UuidPtrEqual(account.CurrencyID, &cashOnCashEquivalenceAccountID) {
+		if !handlers.UUIDPtrEqual(account.CurrencyID, &cashOnCashEquivalenceAccountID) {
 			accounts, err := c.modelcore.AccountManager.Find(context, &modelcore.Account{
 				OrganizationID:         userOrg.OrganizationID,
 				BranchID:               *userOrg.BranchID,
@@ -1307,7 +1307,7 @@ func (c *Controller) loanTransactionController() {
 				}
 			}
 		}
-		if !handlers.UuidPtrEqual(account.CurrencyID, loanTransaction.Account.CurrencyID) {
+		if !handlers.UUIDPtrEqual(account.CurrencyID, loanTransaction.Account.CurrencyID) {
 			loanTransactionEntries, err := c.modelcore.LoanTransactionEntryManager.Find(context, &modelcore.LoanTransactionEntry{
 				LoanTransactionID: loanTransaction.ID,
 				OrganizationID:    userOrg.OrganizationID,

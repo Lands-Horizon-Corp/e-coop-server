@@ -678,7 +678,7 @@ func (c *Controller) organizationController() {
 			for _, org := range organizations {
 				hasCategory := false
 				for _, orgCategory := range org.OrganizationCategories {
-					if handlers.UuidPtrEqual(orgCategory.CategoryID, &category.ID) {
+					if handlers.UUIDPtrEqual(orgCategory.CategoryID, &category.ID) {
 						hasCategory = true
 						break
 					}

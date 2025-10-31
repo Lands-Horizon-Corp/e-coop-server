@@ -83,7 +83,8 @@ type TemplateRenderer struct {
 	templates *template.Template
 }
 
-func (t *TemplateRenderer) Render(w io.Writer, name string, data any, c echo.Context) error {
+// Render executes the named template with the provided data
+func (t *TemplateRenderer) Render(w io.Writer, name string, data any, _ echo.Context) error {
 	return t.templates.ExecuteTemplate(w, name, data)
 }
 
@@ -325,15 +326,15 @@ func GenerateRandomDigits(size int) (int, error) {
 		return 0, errors.New("digit size must be positive")
 	}
 
-	min := big.NewInt(0).Exp(big.NewInt(10), big.NewInt(int64(size-1)), nil)
-	max := big.NewInt(0).Exp(big.NewInt(10), big.NewInt(int64(size)), nil)
-	max.Sub(max, big.NewInt(1))
+	minVal := big.NewInt(0).Exp(big.NewInt(10), big.NewInt(int64(size-1)), nil)
+	maxVal := big.NewInt(0).Exp(big.NewInt(10), big.NewInt(int64(size)), nil)
+	maxVal.Sub(maxVal, big.NewInt(1))
 
-	n, err := rand.Int(rand.Reader, max.Sub(max, min))
+	n, err := rand.Int(rand.Reader, maxVal.Sub(maxVal, minVal))
 	if err != nil {
 		return 0, err
 	}
-	return int(n.Add(n, min).Int64()), nil
+	return int(n.Add(n, minVal).Int64()), nil
 }
 
 // Concurrency helpers --------------------------------------------------------
@@ -393,11 +394,13 @@ func PrintASCIIArt() {
 	}
 }
 
+// Ptr returns a pointer to the given value
 func Ptr[T any](v T) *T {
 	return &v
 }
 
-func UuidPtrEqual(a, b *uuid.UUID) bool {
+// UUIDPtrEqual compares two UUID pointers for equality
+func UUIDPtrEqual(a, b *uuid.UUID) bool {
 	if a == nil && b == nil {
 		return true
 	}
@@ -406,20 +409,19 @@ func UuidPtrEqual(a, b *uuid.UUID) bool {
 	}
 	return *a == *b
 }
+
+// Zip combines two slices into a slice of pairs
 func Zip[T, U any](slice1 []T, slice2 []U) []struct {
 	First  T
 	Second U
 } {
-	minLen := len(slice1)
-	if len(slice2) < minLen {
-		minLen = len(slice2)
-	}
+	minLen := min(len(slice2), len(slice1))
 
 	result := make([]struct {
 		First  T
 		Second U
 	}, minLen)
-	for i := 0; i < minLen; i++ {
+	for i := range minLen {
 		result[i] = struct {
 			First  T
 			Second U
@@ -428,12 +430,12 @@ func Zip[T, U any](slice1 []T, slice2 []U) []struct {
 	return result
 }
 
-// Helper function to check if filename has an extension
+// HasFileExtension checks if the given filename has a file extension
 func HasFileExtension(filename string) bool {
 	return strings.Contains(filename, ".") && !strings.HasSuffix(filename, ".")
 }
 
-// Helper function to get file extension from content type
+// GetExtensionFromContentType returns the file extension based on the content type
 func GetExtensionFromContentType(contentType string) string {
 	// Comprehensive content type to extension mappings based on MDN Web Docs
 	contentTypeMap := map[string]string{

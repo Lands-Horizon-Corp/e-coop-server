@@ -886,24 +886,6 @@ func (m *ModelCore) LoanTransactionsMemberAccount(ctx context.Context, memberID,
 	return loanTransactions, nil
 }
 
-// GenerateLoanAmortization prepares amortization schedules and auxiliary processing for a loan transaction.
-func (m *ModelCore) GenerateLoanAmortization(_ context.Context, _ *LoanTransaction) error {
-
-	// Fetch the holidays if needed for amortization calculation
-	// holidays, err := m.HolidayManager.Find(ctx, &Holiday{
-	// 	OrganizationID: loanTransaction.OrganizationID,
-	// 	BranchID:       loanTransaction.BranchID,
-	// })
-	// if err != nil {
-	// 	return eris.Wrap(err, "failed to fetch holidays")
-	// }
-	// schedules := []*AmortizationSchedule{}
-	// for {
-
-	// }
-	// fines, service fee, interest
-	return nil
-}
 
 // GenerateLoanAmortizationSchedule generates an amortization schedule for the provided loan transaction
 func (m *ModelCore) GenerateLoanAmortizationSchedule(ctx context.Context, loanTransaction *LoanTransaction) (*AmortizationScheduleResponse, error) {
