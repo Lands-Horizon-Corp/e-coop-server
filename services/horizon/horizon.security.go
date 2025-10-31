@@ -68,7 +68,7 @@ func NewSecurityService(
 }
 
 // Decrypt implements SecurityUtils.
-func (h *HorizonSecurity) Decrypt(ctx context.Context, ciphertext string) (string, error) {
+func (h *HorizonSecurity) Decrypt(_ context.Context, ciphertext string) (string, error) {
 	data, err := base64.StdEncoding.DecodeString(ciphertext)
 	if err != nil {
 		return "", err
@@ -95,7 +95,7 @@ func (h *HorizonSecurity) Decrypt(ctx context.Context, ciphertext string) (strin
 }
 
 // Encrypt implements SecurityUtils.
-func (h *HorizonSecurity) Encrypt(ctx context.Context, plaintext string) (string, error) {
+func (h *HorizonSecurity) Encrypt(_ context.Context, plaintext string) (string, error) {
 	block, err := aes.NewCipher([]byte(handlers.Create32ByteKey(h.secret)))
 	if err != nil {
 		return "", err
@@ -114,7 +114,7 @@ func (h *HorizonSecurity) Encrypt(ctx context.Context, plaintext string) (string
 }
 
 // GenerateUUID implements SecurityUtils.
-func (h *HorizonSecurity) GenerateUUID(ctx context.Context) (string, error) {
+func (h *HorizonSecurity) GenerateUUID(_ context.Context) (string, error) {
 	u, err := uuid.NewRandom()
 	if err != nil {
 		return "", err
@@ -123,7 +123,7 @@ func (h *HorizonSecurity) GenerateUUID(ctx context.Context) (string, error) {
 }
 
 // VerifyPassword implements SecurityUtils.
-func (h *HorizonSecurity) HashPassword(ctx context.Context, password string) (string, error) {
+func (h *HorizonSecurity) HashPassword(_ context.Context, password string) (string, error) {
 	salt, err := handlers.GenerateRandomBytes(h.saltLength)
 	if err != nil {
 		return "", err
@@ -136,7 +136,7 @@ func (h *HorizonSecurity) HashPassword(ctx context.Context, password string) (st
 }
 
 // VerifyPassword implements SecurityUtils.
-func (h *HorizonSecurity) VerifyPassword(ctx context.Context, hash string, password string) (bool, error) {
+func (h *HorizonSecurity) VerifyPassword(_ context.Context, hash string, password string) (bool, error) {
 	vals := strings.Split(hash, "$")
 	if len(vals) != 6 {
 		return false, eris.New("the encoded hash is not in the correct format")
@@ -181,7 +181,7 @@ func (h *HorizonSecurity) VerifyPassword(ctx context.Context, hash string, passw
 	return false, nil
 }
 
-func (h *HorizonSecurity) GenerateUUIDv5(ctx context.Context, name string) (string, error) {
+func (h *HorizonSecurity) GenerateUUIDv5(_ context.Context, name string) (string, error) {
 	namespace := uuid.NameSpaceX500
 	if name == "" {
 		return "", errors.New("name cannot be empty")

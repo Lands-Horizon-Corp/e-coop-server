@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
+	"github.com/rotisserie/eris"
 )
 
 // ExchangeResult represents the result of a currency exchange operation
@@ -28,13 +29,13 @@ func fetchJSON(rawURL string) (map[string]any, error) {
 	// Validate URL before making request to reduce risk flagged by gosec (G107)
 	parsed, err := url.ParseRequestURI(rawURL)
 	if err != nil {
-		return nil, fmt.Errorf("invalid url: %w", err)
+		return nil, eris.Wrap(err, "invalid url")
 	}
 	if parsed.Scheme != "http" && parsed.Scheme != "https" {
-		return nil, fmt.Errorf("unsupported url scheme: %s", parsed.Scheme)
+		return nil, eris.Errorf("unsupported url scheme: %s", parsed.Scheme)
 	}
 	if parsed.Host == "" {
-		return nil, fmt.Errorf("invalid url host")
+		return nil, eris.New("invalid url host")
 	}
 
 	resp, err := http.Get(parsed.String())
@@ -45,7 +46,7 @@ func fetchJSON(rawURL string) (map[string]any, error) {
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("unexpected response: %s\nBody: %s", resp.Status, string(body))
+		return nil, eris.Errorf("unexpected response: %s\nBody: %s", resp.Status, string(body))
 	}
 
 	var data map[string]any
@@ -70,7 +71,7 @@ func GetExchangeRate(currencyFrom, currencyTo string, amount float64) (*Exchange
 		log.Printf("Primary source failed, trying fallback... (%v)", err)
 		data, err = fetchJSON(fallbackURL)
 		if err != nil {
-			return nil, fmt.Errorf("both sources failed: %w", err)
+			return nil, eris.Wrap(err, "both sources failed")
 		}
 	}
 
@@ -78,13 +79,13 @@ func GetExchangeRate(currencyFrom, currencyTo string, amount float64) (*Exchange
 	dateStr, _ := data["date"].(string)
 	currencies, ok := data[base].(map[string]any)
 	if !ok {
-		return nil, fmt.Errorf("invalid base currency data for %s", base)
+		return nil, eris.Errorf("invalid base currency data for %s", base)
 	}
 
 	// Get rate
 	rateVal, ok := currencies[target].(float64)
 	if !ok {
-		return nil, fmt.Errorf("invalid or missing rate for %s", target)
+		return nil, eris.Errorf("invalid or missing rate for %s", target)
 	}
 
 	result := &ExchangeResult{
@@ -110,7 +111,7 @@ func (s *TransactionService) ExchangeRateComputeAmount(
 
 	result, err := GetExchangeRate(fromCurrencyStr, toCurrencyStr, amount)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get exchange rate: %w", err)
+		return nil, eris.Wrap(err, "failed to get exchange rate")
 	}
 
 	return result, nil

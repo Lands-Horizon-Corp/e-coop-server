@@ -72,6 +72,7 @@ func (h *HorizonSMS) Stop(ctx context.Context) error {
 	return nil
 }
 
+// Format processes the SMS template with the provided variables
 func (h *HorizonSMS) Format(ctx context.Context, req SMSRequest) (*SMSRequest, error) {
 	var tmplBody string
 	if err := handlers.IsValidFilePath(req.Body); err == nil {
