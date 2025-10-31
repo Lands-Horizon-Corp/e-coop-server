@@ -13,9 +13,11 @@ import (
 // TransactionBatchBalanceStatus represents the balance status of a transaction batch
 type TransactionBatchBalanceStatus string
 
+// Transaction batch balance status constants
 const (
 	// TransactionBatchBalanced indicates the transaction batch is balanced
-	TransactionBatchBalanced        TransactionBatchBalanceStatus = "balanced"
+	TransactionBatchBalanced TransactionBatchBalanceStatus = "balanced"
+	// TransactionBatchBalanceOverage indicates the transaction batch has excess funds
 	TransactionBatchBalanceOverage  TransactionBatchBalanceStatus = "balance overage"
 	TransactionBatchBalanceShortage TransactionBatchBalanceStatus = "balance shortage"
 )

@@ -109,8 +109,6 @@ type (
 	}
 )
 
-const PRICING_COUNTRY_CODE = "PH"
-
 // SubscriptionPlanSeed initializes the database with default subscription plans for different currencies
 func (m *ModelCore) subscriptionPlanSeed(ctx context.Context) error {
 

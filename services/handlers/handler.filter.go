@@ -26,7 +26,8 @@ type FilterLogic string
 const (
 	// FilterLogicAnd represents AND logic for combining filters
 	FilterLogicAnd FilterLogic = "AND"
-	FilterLogicOr  FilterLogic = "OR"
+	// FilterLogicOr represents OR logic for combining filters
+	FilterLogicOr FilterLogic = "OR"
 )
 
 // DataType represents the type of data for filtering operations
@@ -34,16 +35,19 @@ type DataType string
 
 const (
 	// DataTypeText represents text/string data type
-	DataTypeText    DataType = "text"
+	DataTypeText DataType = "text"
+	// DataTypeDate represents date/time data type
 	DataTypeDate    DataType = "date"
 	DataTypeNumber  DataType = "number"
 	DataTypeBoolean DataType = "boolean"
 	DataTypeTime    DataType = "time"
 )
 
+// Filter mode constants for comparison operations
 const (
 	// FilterModeEqual represents equality comparison mode
-	FilterModeEqual       = "equal"
+	FilterModeEqual = "equal"
+	// FilterModeNotEqual represents inequality comparison mode
 	FilterModeNotEqual    = "nequal"
 	FilterModeContains    = "contains"
 	FilterModeNotContains = "ncontains"
@@ -94,7 +98,8 @@ type PaginationResult[T any] struct {
 
 var (
 	// ErrInvalidFilterParam indicates an invalid filter parameter was provided
-	ErrInvalidFilterParam   = eris.New("invalid filter parameter")
+	ErrInvalidFilterParam = eris.New("invalid filter parameter")
+	// ErrInvalidSortParam indicates an invalid sort parameter was provided
 	ErrInvalidSortParam     = eris.New("invalid sort parameter")
 	ErrInvalidField         = eris.New("field not found in struct")
 	ErrUnsupportedOperation = eris.New("unsupported operation for data type")
@@ -552,7 +557,7 @@ func SortSlice[T any](
 	data []*T,
 	sortFields []SortField,
 	batchSize int,
-	maxWorkers int,
+	_ int,
 ) ([]*T, error) {
 	if len(sortFields) == 0 || len(data) < 2 {
 		return data, nil
@@ -920,13 +925,6 @@ func isEmpty(val reflect.Value) bool {
 	default:
 		return val.IsZero()
 	}
-}
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
 }
 
 // PaginateSlice returns a paginated subset of the data

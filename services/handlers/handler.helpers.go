@@ -38,12 +38,14 @@ const (
 	Cyan   = "\033[36m"
 )
 
+// Sanitize cleans and sanitizes user input to prevent XSS attacks
 func Sanitize(input string) string {
 	return bluemonday.UGCPolicy().Sanitize(strings.TrimSpace(input))
 }
 
 // File operations ------------------------------------------------------------
 
+// IsValidFilePath validates whether the given file path exists and is accessible
 func IsValidFilePath(p string) error {
 	info, err := os.Stat(p)
 	if os.IsNotExist(err) {

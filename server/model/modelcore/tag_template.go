@@ -14,6 +14,7 @@ import (
 // TagCategory represents different categorization types for tags in the cooperative system
 type TagCategory string
 
+// Tag category constants for template organization and classification
 const (
 	TagCategoryStatus          TagCategory = "status"
 	TagCategoryAlert           TagCategory = "alert"

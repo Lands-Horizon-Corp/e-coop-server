@@ -132,8 +132,7 @@ func (m *ModelCore) permissionTemplate() {
 	})
 }
 
-// GetPermissionTemplateByBranch retrieves permission templates for a specific branch within an organization
-// GetPermissionTemplateBybranch returns GetPermissionTemplateBybranch for the current branch or organization where applicable.
+// GetPermissionTemplateBybranch retrieves permission templates for a specific branch within an organization
 func (m *ModelCore) GetPermissionTemplateBybranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*PermissionTemplate, error) {
 	return m.PermissionTemplateManager.Find(context, &PermissionTemplate{
 		OrganizationID: organizationID,

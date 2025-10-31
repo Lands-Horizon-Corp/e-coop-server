@@ -887,7 +887,7 @@ func (m *ModelCore) LoanTransactionsMemberAccount(ctx context.Context, memberID,
 }
 
 // GenerateLoanAmortization prepares amortization schedules and auxiliary processing for a loan transaction.
-func (m *ModelCore) GenerateLoanAmortization(ctx context.Context, loanTransaction *LoanTransaction) error {
+func (m *ModelCore) GenerateLoanAmortization(_ context.Context, _ *LoanTransaction) error {
 
 	// Fetch the holidays if needed for amortization calculation
 	// holidays, err := m.HolidayManager.Find(ctx, &Holiday{
