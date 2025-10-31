@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// MemberJointAccount represents a joint account for multiple members in the database
 	MemberJointAccount struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -47,8 +48,7 @@ type (
 		FamilyRelationship string    `gorm:"type:varchar(255);not null"` // Enum handled on frontend/validation
 	}
 
-	// MemberJointAccountResponse represents the response structure for memberjointaccount data
-
+	// MemberJointAccountResponse represents the response structure for member joint account data
 	MemberJointAccountResponse struct {
 		ID                 uuid.UUID              `json:"id"`
 		CreatedAt          string                 `json:"created_at"`

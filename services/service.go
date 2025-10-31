@@ -522,7 +522,6 @@ func (h *HorizonService) StopStorage(ctx context.Context) error {
 	return nil
 }
 
-// Add these methods to your HorizonService struct in services.go
 // RunBroker starts the message broker service.
 func (h *HorizonService) RunBroker(ctx context.Context) error {
 	h.Logger.Info("Starting Broker Service...")
