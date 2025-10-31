@@ -1,3 +1,5 @@
+// Package seeder provides utilities to populate the database with
+// sample data for development and testing environments.
 package seeder
 
 import (
@@ -59,7 +61,7 @@ func (s *Seeder) createImageMedia(ctx context.Context, imageType string) (*model
 	imagePath := s.imagePaths[randomIndex]
 
 	// Upload the image from local path
-	storage, err := s.provider.Service.Storage.UploadFromPath(ctx, imagePath, func(progress, total int64, storage *horizon.Storage) {})
+	storage, err := s.provider.Service.Storage.UploadFromPath(ctx, imagePath, func(_ int64, _ int64, _ *horizon.Storage) {})
 	if err != nil {
 		return nil, eris.Wrapf(err, "failed to upload image from path %s for %s", imagePath, imageType)
 	} // Create media record
@@ -83,7 +85,9 @@ func (s *Seeder) createImageMedia(ctx context.Context, imageType string) (*model
 	return media, nil
 }
 
-func min(a, b int) int {
+// minInt returns the smaller of a and b.
+// Renamed from min to avoid shadowing the Go builtin in newer Go versions.
+func minInt(a, b int) int {
 	if a < b {
 		return a
 	}
