@@ -184,10 +184,7 @@ func (h *RouteHandler) GroupedRoutes() API {
 
 		groupKey := "/"
 		if len(segments) > skipSegments {
-			end := skipSegments + groupSegments
-			if end > len(segments) {
-				end = len(segments)
-			}
+			end := min(skipSegments+groupSegments, len(segments))
 			groupKey = strings.Join(segments[skipSegments:end], "/")
 		} else if len(segments) > 0 && segments[0] != "" {
 			groupKey = segments[0]

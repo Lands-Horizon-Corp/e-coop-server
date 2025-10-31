@@ -39,9 +39,11 @@ const (
 	// DataTypeDate represents date/time data type
 	DataTypeDate DataType = "date"
 	// DataTypeNumber represents numeric data type
-	DataTypeNumber  DataType = "number"
+	DataTypeNumber DataType = "number"
+	// DataTypeBoolean represents boolean data type
 	DataTypeBoolean DataType = "boolean"
-	DataTypeTime    DataType = "time"
+	// DataTypeTime represents time data type
+	DataTypeTime DataType = "time"
 )
 
 // Filter mode constants for comparison operations
@@ -103,11 +105,15 @@ var (
 	// ErrInvalidSortParam indicates an invalid sort parameter was provided
 	ErrInvalidSortParam = eris.New("invalid sort parameter")
 	// ErrInvalidField indicates a field was not found in the struct
-	ErrInvalidField         = eris.New("field not found in struct")
+	ErrInvalidField = eris.New("field not found in struct")
+	// ErrUnsupportedOperation indicates an operation is not supported for the given data type
 	ErrUnsupportedOperation = eris.New("unsupported operation for data type")
-	ErrTypeConversion       = eris.New("type conversion error")
-	ErrContextCancelled     = eris.New("operation cancelled by context")
-	ErrInvalidValue         = eris.New("invalid value for operation")
+	// ErrTypeConversion indicates a type conversion error occurred
+	ErrTypeConversion = eris.New("type conversion error")
+	// ErrContextCancelled indicates the operation was cancelled by context
+	ErrContextCancelled = eris.New("operation cancelled by context")
+	// ErrInvalidValue indicates an invalid value was provided for an operation
+	ErrInvalidValue = eris.New("invalid value for operation")
 )
 
 // --- Global Cache and Pools ---

@@ -57,6 +57,20 @@ type HorizonStorage struct {
 	client           *minio.Client
 	ssl              bool
 }
+type progressReader struct {
+	reader    io.Reader
+	callback  ProgressCallback
+	total     int64
+	readSoFar int64
+	storage   *Storage
+}
+
+type BinaryFileInput struct {
+	Data        io.Reader
+	Size        int64
+	Name        string
+	ContentType string
+}
 
 func NewHorizonStorageService(
 	accessKey,
@@ -80,6 +94,7 @@ func NewHorizonStorageService(
 	}
 }
 
+// Run initializes the storage service and ensures the bucket exists
 func (h *HorizonStorage) Run(ctx context.Context) error {
 	// Check for missing keys
 	if h.endpoint == "" {
@@ -127,26 +142,13 @@ func (h *HorizonStorage) Run(ctx context.Context) error {
 	return nil
 }
 
+// Stop cleans up the storage service resources
 func (h *HorizonStorage) Stop(ctx context.Context) error {
 	h.client = nil
 	return nil
 }
 
-type progressReader struct {
-	reader    io.Reader
-	callback  ProgressCallback
-	total     int64
-	readSoFar int64
-	storage   *Storage
-}
-
-type BinaryFileInput struct {
-	Data        io.Reader
-	Size        int64
-	Name        string
-	ContentType string
-}
-
+// Read reads data from the underlying reader and reports progress
 func (pr *progressReader) Read(p []byte) (int, error) {
 	n, err := pr.reader.Read(p)
 	if n > 0 {
@@ -160,6 +162,8 @@ func (pr *progressReader) Read(p []byte) (int, error) {
 	}
 	return n, err
 }
+
+// Upload uploads a file to the storage service based on the input type
 func (h *HorizonStorage) Upload(ctx context.Context, file any, onProgress ProgressCallback) (*Storage, error) {
 	switch v := file.(type) {
 	case string:
@@ -176,6 +180,7 @@ func (h *HorizonStorage) Upload(ctx context.Context, file any, onProgress Progre
 	}
 }
 
+// UploadFromPath uploads a file from a local path to the storage service
 func (h *HorizonStorage) UploadFromPath(ctx context.Context, path string, cb ProgressCallback) (*Storage, error) {
 	if handlers.IsSuspiciousPath(path) {
 		return nil, eris.New("suspicious file path")
@@ -236,6 +241,7 @@ func (h *HorizonStorage) UploadFromPath(ctx context.Context, path string, cb Pro
 	return storage, nil
 }
 
+// UploadFromBinary uploads a file from binary data to the storage service
 func (h *HorizonStorage) UploadFromBinary(ctx context.Context, data []byte, cb ProgressCallback) (*Storage, error) {
 	contentType := http.DetectContentType(data)
 	fileName, err := h.GenerateUniqueName(ctx, "file", contentType)
@@ -273,6 +279,8 @@ func (h *HorizonStorage) UploadFromBinary(ctx context.Context, data []byte, cb P
 	storage.Status = "completed"
 	return storage, nil
 }
+
+// UploadFromURL uploads a file from a URL to the storage service
 func (h *HorizonStorage) UploadFromURL(ctx context.Context, url string, cb ProgressCallback) (*Storage, error) {
 	// Download the file from the URL
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
@@ -350,6 +358,7 @@ func (h *HorizonStorage) UploadFromURL(ctx context.Context, url string, cb Progr
 	return storage, nil
 }
 
+// UploadFromHeader uploads a file from a multipart header to the storage service
 func (h *HorizonStorage) UploadFromHeader(ctx context.Context, header *multipart.FileHeader, cb ProgressCallback) (*Storage, error) {
 	file, err := header.Open()
 	if err != nil {
@@ -397,6 +406,7 @@ func (h *HorizonStorage) UploadFromHeader(ctx context.Context, header *multipart
 	return storage, nil
 }
 
+// GeneratePresignedURL generates a presigned URL for accessing the stored file
 func (h *HorizonStorage) GeneratePresignedURL(ctx context.Context, storage *Storage, expiry time.Duration) (string, error) {
 	_, err := h.client.StatObject(ctx, storage.BucketName, storage.StorageKey, minio.StatObjectOptions{})
 	if err != nil {
@@ -409,6 +419,7 @@ func (h *HorizonStorage) GeneratePresignedURL(ctx context.Context, storage *Stor
 	return presignedURL.String(), nil
 }
 
+// DeleteFile deletes a file from the storage service
 func (h *HorizonStorage) DeleteFile(ctx context.Context, storage *Storage) error {
 	if h.client == nil {
 		return eris.New("not initialized")
@@ -423,6 +434,7 @@ func (h *HorizonStorage) DeleteFile(ctx context.Context, storage *Storage) error
 	return nil
 }
 
+// RemoveAllFiles removes all files from the storage bucket
 func (h *HorizonStorage) RemoveAllFiles(ctx context.Context) error {
 	if h.client == nil {
 		return eris.New("not initialized")
@@ -462,6 +474,7 @@ func (h *HorizonStorage) RemoveAllFiles(ctx context.Context) error {
 	return nil
 }
 
+// GenerateUniqueName generates a unique file name based on the original name and content type
 func (h *HorizonStorage) GenerateUniqueName(_ context.Context, original string, contentType string) (string, error) {
 	ext := filepath.Ext(original)
 	base := strings.TrimSuffix(original, ext)
