@@ -13,7 +13,6 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-
 func (c *Controller) userOrganinzationController() {
 
 	req := c.provider.Service.Request

@@ -11,7 +11,6 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-
 func (c *Controller) notificationController() {
 	req := c.provider.Service.Request
 
