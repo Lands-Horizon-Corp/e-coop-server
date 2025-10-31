@@ -3,6 +3,7 @@ package v1
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
@@ -323,7 +324,7 @@ func (c *Controller) adjustmentTagController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
-		names := ""
+		var sb strings.Builder
 		for _, rawID := range reqBody.IDs {
 			tagID, err := uuid.Parse(rawID)
 			if err != nil {
@@ -345,7 +346,8 @@ func (c *Controller) adjustmentTagController() {
 				})
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("adjustment tag not found with ID: %s", rawID)})
 			}
-			names += tag.Name + ","
+			sb.WriteString(tag.Name)
+			sb.WriteByte(',')
 			if err := c.modelcore.AdjustmentTagManager.DeleteByIDWithTx(context, tx, tagID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -366,7 +368,7 @@ func (c *Controller) adjustmentTagController() {
 		}
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted adjustment tags (/adjustment-tag/bulk-delete): " + names,
+			Description: "Bulk deleted adjustment tags (/adjustment-tag/bulk-delete): " + sb.String(),
 			Module:      "AdjustmentTag",
 		})
 		return ctx.NoContent(http.StatusNoContent)

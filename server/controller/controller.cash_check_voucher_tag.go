@@ -3,6 +3,7 @@ package v1
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
@@ -292,7 +293,7 @@ func (c *Controller) cashCheckVoucherTagController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
-		names := ""
+		var sb strings.Builder
 		for _, rawID := range reqBody.IDs {
 			tagID, err := uuid.Parse(rawID)
 			if err != nil {
@@ -314,7 +315,8 @@ func (c *Controller) cashCheckVoucherTagController() {
 				})
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Cash check voucher tag not found with ID: %s", rawID)})
 			}
-			names += tag.Name + ","
+			sb.WriteString(tag.Name)
+			sb.WriteByte(',')
 			if err := c.modelcore.CashCheckVoucherTagManager.DeleteByIDWithTx(context, tx, tagID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -335,7 +337,7 @@ func (c *Controller) cashCheckVoucherTagController() {
 		}
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted cash check voucher tags (/cash-check-voucher-tag/bulk-delete): " + names,
+			Description: "Bulk deleted cash check voucher tags (/cash-check-voucher-tag/bulk-delete): " + sb.String(),
 			Module:      "CashCheckVoucherTag",
 		})
 		return ctx.NoContent(http.StatusNoContent)

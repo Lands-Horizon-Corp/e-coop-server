@@ -3,6 +3,7 @@ package v1
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
@@ -693,8 +694,8 @@ func (c *Controller) cashCheckVoucherController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start transaction: " + tx.Error.Error()})
 		}
 
-		voucherNumbers := ""
-		for i, rawID := range reqBody.IDs {
+		var sb strings.Builder
+		for _, rawID := range reqBody.IDs {
 			voucherID, err := uuid.Parse(rawID)
 			if err != nil {
 				tx.Rollback()
@@ -722,10 +723,10 @@ func (c *Controller) cashCheckVoucherController() {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete cash check voucher: " + err.Error()})
 			}
 
-			if i > 0 {
-				voucherNumbers += ", "
+			if sb.Len() > 0 {
+				sb.WriteString(", ")
 			}
-			voucherNumbers += cashCheckVoucher.CashVoucherNumber
+			sb.WriteString(cashCheckVoucher.CashVoucherNumber)
 		}
 
 		if err := tx.Commit().Error; err != nil {
@@ -740,7 +741,7 @@ func (c *Controller) cashCheckVoucherController() {
 
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted cash check vouchers (/cash-check-voucher/bulk-delete): " + voucherNumbers,
+			Description: "Bulk deleted cash check vouchers (/cash-check-voucher/bulk-delete): " + sb.String(),
 			Module:      "CashCheckVoucher",
 		})
 		return ctx.NoContent(http.StatusNoContent)

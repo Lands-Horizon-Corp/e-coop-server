@@ -3,6 +3,7 @@ package v1
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
@@ -305,7 +306,7 @@ func (c *Controller) billAndCoinsController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
-		names := ""
+		var sb strings.Builder
 		for _, rawID := range reqBody.IDs {
 			billAndCoinsID, err := uuid.Parse(rawID)
 			if err != nil {
@@ -327,7 +328,8 @@ func (c *Controller) billAndCoinsController() {
 				})
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Bills and coins record not found with ID: %s", rawID)})
 			}
-			names += billAndCoins.Name + ","
+			sb.WriteString(billAndCoins.Name)
+			sb.WriteByte(',')
 			if err := c.modelcore.BillAndCoinsManager.DeleteByIDWithTx(context, tx, billAndCoinsID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -348,7 +350,7 @@ func (c *Controller) billAndCoinsController() {
 		}
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted bills and coins (/bills-and-coins/bulk-delete): " + names,
+			Description: "Bulk deleted bills and coins (/bills-and-coins/bulk-delete): " + sb.String(),
 			Module:      "BillAndCoins",
 		})
 		return ctx.NoContent(http.StatusNoContent)
