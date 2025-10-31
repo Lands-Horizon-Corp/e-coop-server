@@ -228,7 +228,7 @@ func Newmodelcore(provider *server.Provider) (*ModelCore, error) {
 }
 
 // Start initializes all model managers and performs auto-migration setup
-func (m *ModelCore) start(_ context.Context) error {
+func (m *ModelCore) Start(_ context.Context) error {
 
 	// Models
 	m.accountCategory()
