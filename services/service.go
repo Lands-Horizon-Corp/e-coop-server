@@ -86,7 +86,7 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 		)
 	}
 	if cfg.RequestServiceConfig != nil {
-		service.Request = horizon.NewAPIServiceImpl(
+		service.Request = horizon.NewHorizonAPIService(
 			cfg.RequestServiceConfig.AppPort,
 			cfg.RequestServiceConfig.MetricsPort,
 			cfg.RequestServiceConfig.ClientURL,
@@ -94,7 +94,7 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 			isStaging,
 		)
 	} else {
-		service.Request = horizon.NewAPIServiceImpl(
+		service.Request = horizon.NewHorizonAPIService(
 			service.Environment.GetInt("APP_PORT", 8000),
 			service.Environment.GetInt("APP_METRICS_PORT", 8001),
 			service.Environment.GetString("APP_CLIENT_URL", "http://127.0.0.1:3000"),
