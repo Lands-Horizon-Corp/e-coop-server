@@ -11,13 +11,19 @@ import (
 	"gorm.io/gorm"
 )
 
+// UserOrganizationStatus represents the online status of a user within an organization
 type UserOrganizationStatus string
 
 const (
+	// UserOrganizationStatusOnline indicates the user is currently online
 	UserOrganizationStatusOnline    UserOrganizationStatus = "online"
+	// UserOrganizationStatusOffline indicates the user is currently offline
 	UserOrganizationStatusOffline   UserOrganizationStatus = "offline"
+	// UserOrganizationStatusBusy indicates the user is currently busy
 	UserOrganizationStatusBusy      UserOrganizationStatus = "busy"
+	// UserOrganizationStatusVacation indicates the user is on vacation
 	UserOrganizationStatusVacation  UserOrganizationStatus = "vacation"
+	// UserOrganizationStatusCommuting indicates the user is commuting
 	UserOrganizationStatusCommuting UserOrganizationStatus = "commuting"
 )
 
