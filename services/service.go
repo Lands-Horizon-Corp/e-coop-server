@@ -246,6 +246,7 @@ func (h *HorizonService) printStatus(service string, status string) {
 	}
 }
 
+// Add these methods to your HorizonService struct in services.go
 func (h *HorizonService) Run(ctx context.Context) error {
 	fmt.Println("≿━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━༺❀༻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━≾")
 	handlers.PrintASCIIArt()
@@ -364,6 +365,7 @@ func (h *HorizonService) Run(ctx context.Context) error {
 	return nil
 }
 
+// Add these methods to your HorizonService struct in services.go
 func (h *HorizonService) Stop(ctx context.Context) error {
 	if h.Request != nil {
 		if err := h.Request.Stop(ctx); err != nil {
@@ -406,10 +408,16 @@ func (h *HorizonService) Stop(ctx context.Context) error {
 			return err
 		}
 	}
+	if h.Broker != nil {
+		if err := h.Broker.Stop(ctx); err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
 
+// Add these methods to your HorizonService struct in services.go
 func (h *HorizonService) RunDatabase(ctx context.Context) error {
 	h.Logger.Info("Starting Database Service...")
 	delay := 3 * time.Second
@@ -428,6 +436,7 @@ func (h *HorizonService) RunDatabase(ctx context.Context) error {
 	return nil
 }
 
+// Add these methods to your HorizonService struct in services.go
 func (h *HorizonService) StopDatabase(ctx context.Context) error {
 	h.Logger.Info("Stopping Database Service...")
 
@@ -442,6 +451,7 @@ func (h *HorizonService) StopDatabase(ctx context.Context) error {
 	return nil
 }
 
+// Add these methods to your HorizonService struct in services.go
 func (h *HorizonService) RunCache(ctx context.Context) error {
 	h.Logger.Info("Starting Cache Service...")
 	delay := 3 * time.Second
@@ -460,6 +470,7 @@ func (h *HorizonService) RunCache(ctx context.Context) error {
 	return nil
 }
 
+// Add these methods to your HorizonService struct in services.go
 func (h *HorizonService) StopCache(ctx context.Context) error {
 	h.Logger.Info("Stopping Cache Service...")
 
@@ -475,7 +486,6 @@ func (h *HorizonService) StopCache(ctx context.Context) error {
 }
 
 // Add these methods to your HorizonService struct in services.go
-
 func (h *HorizonService) RunStorage(ctx context.Context) error {
 	h.Logger.Info("Starting Storage Service...")
 	delay := 3 * time.Second
@@ -494,6 +504,7 @@ func (h *HorizonService) RunStorage(ctx context.Context) error {
 	return nil
 }
 
+// Add these methods to your HorizonService struct in services.go
 func (h *HorizonService) StopStorage(ctx context.Context) error {
 	h.Logger.Info("Stopping Storage Service...")
 
@@ -508,6 +519,7 @@ func (h *HorizonService) StopStorage(ctx context.Context) error {
 	return nil
 }
 
+// Add these methods to your HorizonService struct in services.go
 func (h *HorizonService) RunBroker(ctx context.Context) error {
 	h.Logger.Info("Starting Broker Service...")
 	delay := 3 * time.Second
@@ -523,19 +535,5 @@ func (h *HorizonService) RunBroker(ctx context.Context) error {
 	}
 
 	h.Logger.Info("Broker Service Started Successfully")
-	return nil
-}
-
-func (h *HorizonService) StopBroker(ctx context.Context) error {
-	h.Logger.Info("Stopping Broker Service...")
-
-	if h.Broker != nil {
-		if err := h.Broker.Stop(ctx); err != nil {
-			h.Logger.Error("Failed to stop Broker Service", zap.Error(err))
-			return err
-		}
-	}
-
-	h.Logger.Info("Broker Service Stopped Successfully")
 	return nil
 }
