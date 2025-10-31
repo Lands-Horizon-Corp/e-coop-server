@@ -98,7 +98,7 @@ type (
 	UserRegisterRequest struct {
 		Email         string     `json:"email" validate:"required,email"`
 		Password      string     `json:"password" validate:"required,min=8"`
-		Birthdate     time.Time  `json:"birthdate,omitempty"`
+		Birthdate     *time.Time `json:"birthdate,omitempty"`
 		UserName      string     `json:"user_name" validate:"required,min=3,max=100"`
 		FullName      string     `json:"full_name,omitempty"`
 		FirstName     *string    `json:"first_name,omitempty"`
@@ -181,7 +181,7 @@ type (
 
 	// UserSettingsChangeProfileRequest represents the request payload for changing profile information in user settings
 	UserSettingsChangeProfileRequest struct {
-		Birthdate time.Time `json:"birthdate"`
+		Birthdate *time.Time `json:"birthdate"`
 
 		FirstName  *string `json:"first_name,omitempty"`
 		MiddleName *string `json:"middle_name,omitempty"`

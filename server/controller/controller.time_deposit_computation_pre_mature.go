@@ -3,6 +3,7 @@ package v1
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
@@ -236,7 +237,7 @@ func (c *Controller) timeDepositComputationPreMatureController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
-		ids := ""
+		var idsSlice []string
 		for _, rawID := range reqBody.IDs {
 			timeDepositComputationPreMatureID, err := uuid.Parse(rawID)
 			if err != nil {
@@ -258,7 +259,7 @@ func (c *Controller) timeDepositComputationPreMatureController() {
 				})
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Time deposit computation pre mature not found with ID: %s", rawID)})
 			}
-			ids += timeDepositComputationPreMature.ID.String() + ","
+			idsSlice = append(idsSlice, timeDepositComputationPreMature.ID.String())
 			if err := c.modelcore.TimeDepositComputationPreMatureManager.DeleteByIDWithTx(context, tx, timeDepositComputationPreMatureID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -269,6 +270,8 @@ func (c *Controller) timeDepositComputationPreMatureController() {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete time deposit computation pre mature: " + err.Error()})
 			}
 		}
+		ids := strings.Join(idsSlice, ",")
+
 		if err := tx.Commit().Error; err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
