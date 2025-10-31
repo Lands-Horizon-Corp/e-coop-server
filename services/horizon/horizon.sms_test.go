@@ -8,7 +8,7 @@ import (
 )
 
 // go test ./services/horizon/sms_test.go
-func injectMockTwilio(h *HorizonSMS) {
+func injectMockTwilio(h *SMS) {
 	err := h.Run(context.Background())
 	if err != nil {
 		panic(err)
@@ -26,7 +26,7 @@ func TestSendSMS(t *testing.T) {
 		return
 	}
 
-	h := NewHorizonSMS(accountSID, authToken, sender, 160).(*HorizonSMS)
+	h := NewSMS(accountSID, authToken, sender, 160).(*SMS)
 	injectMockTwilio(h)
 
 	tests := []struct {

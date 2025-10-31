@@ -18,7 +18,7 @@ import (
 	"golang.org/x/crypto/argon2"
 )
 
-// SecurityUtils provides cryptographic and security-related functions
+// SecurityService provides cryptographic and security-related functions
 type SecurityService interface {
 	// GenerateUUID creates a new UUIDv4
 	GenerateUUID(ctx context.Context) (string, error)
@@ -38,8 +38,8 @@ type SecurityService interface {
 	GenerateUUIDv5(ctx context.Context, name string) (string, error)
 }
 
-// HorizonSecurity is a concrete implementation of SecurityUtils
-type HorizonSecurity struct {
+// Security is a concrete implementation of SecurityService
+type Security struct {
 	memory      uint32
 	iterations  uint32
 	parallelism uint8
@@ -57,7 +57,7 @@ func NewSecurityService(
 	keyLength uint32,
 	secret []byte,
 ) SecurityService {
-	return &HorizonSecurity{
+	return &Security{
 		memory:      memory,
 		iterations:  iterations,
 		parallelism: parallelism,
@@ -68,7 +68,7 @@ func NewSecurityService(
 }
 
 // Decrypt implements SecurityUtils.
-func (h *HorizonSecurity) Decrypt(_ context.Context, ciphertext string) (string, error) {
+func (h *Security) Decrypt(_ context.Context, ciphertext string) (string, error) {
 	data, err := base64.StdEncoding.DecodeString(ciphertext)
 	if err != nil {
 		return "", err
@@ -95,7 +95,7 @@ func (h *HorizonSecurity) Decrypt(_ context.Context, ciphertext string) (string,
 }
 
 // Encrypt implements SecurityUtils.
-func (h *HorizonSecurity) Encrypt(_ context.Context, plaintext string) (string, error) {
+func (h *Security) Encrypt(_ context.Context, plaintext string) (string, error) {
 	block, err := aes.NewCipher([]byte(handlers.Create32ByteKey(h.secret)))
 	if err != nil {
 		return "", err
@@ -114,7 +114,7 @@ func (h *HorizonSecurity) Encrypt(_ context.Context, plaintext string) (string, 
 }
 
 // GenerateUUID implements SecurityUtils.
-func (h *HorizonSecurity) GenerateUUID(_ context.Context) (string, error) {
+func (h *Security) GenerateUUID(_ context.Context) (string, error) {
 	u, err := uuid.NewRandom()
 	if err != nil {
 		return "", err
@@ -122,8 +122,8 @@ func (h *HorizonSecurity) GenerateUUID(_ context.Context) (string, error) {
 	return u.String(), nil
 }
 
-// VerifyPassword implements SecurityUtils.
-func (h *HorizonSecurity) HashPassword(_ context.Context, password string) (string, error) {
+// HashPassword creates an Argon2 hashed password.
+func (h *Security) HashPassword(_ context.Context, password string) (string, error) {
 	salt, err := handlers.GenerateRandomBytes(h.saltLength)
 	if err != nil {
 		return "", err
@@ -136,7 +136,7 @@ func (h *HorizonSecurity) HashPassword(_ context.Context, password string) (stri
 }
 
 // VerifyPassword implements SecurityUtils.
-func (h *HorizonSecurity) VerifyPassword(_ context.Context, hash string, password string) (bool, error) {
+func (h *Security) VerifyPassword(_ context.Context, hash string, password string) (bool, error) {
 	vals := strings.Split(hash, "$")
 	if len(vals) != 6 {
 		return false, eris.New("the encoded hash is not in the correct format")
@@ -181,7 +181,8 @@ func (h *HorizonSecurity) VerifyPassword(_ context.Context, hash string, passwor
 	return false, nil
 }
 
-func (h *HorizonSecurity) GenerateUUIDv5(_ context.Context, name string) (string, error) {
+// GenerateUUIDv5 creates a new UUIDv5 based on the given name.
+func (h *Security) GenerateUUIDv5(_ context.Context, name string) (string, error) {
 	namespace := uuid.NameSpaceX500
 	if name == "" {
 		return "", errors.New("name cannot be empty")

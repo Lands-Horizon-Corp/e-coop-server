@@ -35,23 +35,23 @@ type job struct {
 	task     func()
 }
 
-// HorizonSchedule provides a cron-based implementation of SchedulerService.
-type HorizonSchedule struct {
+// Schedule provides a cron-based implementation of SchedulerService.
+type Schedule struct {
 	cron  *cron.Cron
 	jobs  map[string]job
 	mutex sync.Mutex
 }
 
-// NewHorizonSchedule creates a new scheduler service instance.
-func NewHorizonSchedule() SchedulerService {
-	return &HorizonSchedule{
+// NewSchedule creates a new scheduler service instance.
+func NewSchedule() SchedulerService {
+	return &Schedule{
 		cron: cron.New(),
 		jobs: make(map[string]job),
 	}
 }
 
 // CreateJob implements Scheduler.
-func (h *HorizonSchedule) CreateJob(_ context.Context, jobID string, schedule string, task func()) error {
+func (h *Schedule) CreateJob(_ context.Context, jobID string, schedule string, task func()) error {
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
 	if _, exists := h.jobs[jobID]; exists {
@@ -66,7 +66,7 @@ func (h *HorizonSchedule) CreateJob(_ context.Context, jobID string, schedule st
 }
 
 // ListJobs implements Scheduler.
-func (h *HorizonSchedule) ListJobs(_ context.Context) ([]string, error) {
+func (h *Schedule) ListJobs(_ context.Context) ([]string, error) {
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
 
@@ -79,7 +79,7 @@ func (h *HorizonSchedule) ListJobs(_ context.Context) ([]string, error) {
 }
 
 // RemoveJob implements Scheduler.
-func (h *HorizonSchedule) RemoveJob(_ context.Context, jobID string) error {
+func (h *Schedule) RemoveJob(_ context.Context, jobID string) error {
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
 	job, exists := h.jobs[jobID]
@@ -92,7 +92,7 @@ func (h *HorizonSchedule) RemoveJob(_ context.Context, jobID string) error {
 }
 
 // ExecuteJob implements Scheduler.
-func (h *HorizonSchedule) ExecuteJob(_ context.Context, jobID string) error {
+func (h *Schedule) ExecuteJob(_ context.Context, jobID string) error {
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
 	job, exists := h.jobs[jobID]
@@ -103,14 +103,14 @@ func (h *HorizonSchedule) ExecuteJob(_ context.Context, jobID string) error {
 	return nil
 }
 
-// Start implements Scheduler.
-func (h *HorizonSchedule) Run(ctx context.Context) error {
+// Run starts the scheduler.
+func (h *Schedule) Run(_ context.Context) error {
 	h.cron.Start()
 	return nil
 }
 
 // Stop implements Scheduler.
-func (h *HorizonSchedule) Stop(ctx context.Context) error {
+func (h *Schedule) Stop(_ context.Context) error {
 	h.cron.Stop()
 	return nil
 }

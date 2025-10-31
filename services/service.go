@@ -198,14 +198,14 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 		)
 	}
 	if cfg.SMSServiceConfig != nil {
-		service.SMS = horizon.NewHorizonSMS(
+		service.SMS = horizon.NewSMS(
 			cfg.SMSServiceConfig.AccountSID,
 			cfg.SMSServiceConfig.AuthToken,
 			cfg.SMSServiceConfig.Sender,
 			cfg.SMSServiceConfig.MaxChars,
 		)
 	} else {
-		service.SMS = horizon.NewHorizonSMS(
+		service.SMS = horizon.NewSMS(
 			service.Environment.GetString("TWILIO_ACCOUNT_SID", ""),
 			service.Environment.GetString("TWILIO_AUTH_TOKEN", ""),
 			service.Environment.GetString("TWILIO_SENDER", ""),
@@ -230,7 +230,7 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 		)
 	}
 
-	service.Cron = horizon.NewHorizonSchedule()
+	service.Cron = horizon.NewSchedule()
 	service.QR = horizon.NewHorizonQRService(service.Security)
 	return service
 }

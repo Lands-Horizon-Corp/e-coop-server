@@ -19,7 +19,7 @@ type QRService interface {
 	EncodeQR(ctx context.Context, data any, qrType string) (*QRResult, error)
 }
 
-// QRService provides an implementation of QRService.
+// QRServiceImpl provides an implementation of QRService.
 type QRServiceImpl struct {
 	security SecurityService
 }

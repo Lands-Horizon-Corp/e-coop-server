@@ -28,6 +28,7 @@ type SMTPRequest struct {
 	Vars    map[string]string // Dynamic variables for template interpolation
 }
 
+// SMTPService defines the interface for SMTP email operations.
 type SMTPService interface {
 	// Run initializes internal resources like rate limiter
 	Run(ctx context.Context) error
@@ -42,6 +43,7 @@ type SMTPService interface {
 	Send(ctx context.Context, req SMTPRequest) error
 }
 
+// HorizonSMTP provides an implementation of SMTPService.
 type HorizonSMTP struct {
 	host     string
 	port     int
