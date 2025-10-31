@@ -886,7 +886,6 @@ func (m *ModelCore) LoanTransactionsMemberAccount(ctx context.Context, memberID,
 	return loanTransactions, nil
 }
 
-
 // GenerateLoanAmortizationSchedule generates an amortization schedule for the provided loan transaction
 func (m *ModelCore) GenerateLoanAmortizationSchedule(ctx context.Context, loanTransaction *LoanTransaction) (*AmortizationScheduleResponse, error) {
 	// Extract loan details
