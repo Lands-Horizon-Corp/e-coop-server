@@ -2648,6 +2648,7 @@ func (m *ModelCore) FindAccountsBySpecificType(ctx context.Context, organization
 	return m.AccountManager.FindWithFilters(ctx, filters)
 }
 
+// FindAccountsBySpecificTypeByAccountID finds all accounts with specified branch, organization and a single account ID
 func (m *ModelCore) FindAccountsBySpecificTypeByAccountID(ctx context.Context,
 	organizationID uuid.UUID, branchID uuid.UUID, accountID uuid.UUID) ([]*Account, error) {
 	filters := []services.Filter{
