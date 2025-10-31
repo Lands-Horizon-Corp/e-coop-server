@@ -1,4 +1,4 @@
-// Package model_logs provides database models and operations for logging functionality
+// Package modellogs provides database models and operations for logging functionality
 package modellogs
 
 import (
@@ -8,21 +8,21 @@ import (
 )
 
 type (
-	// modellogs represents the main model structure for logging operations
-	modellogs struct {
+	// ModelLogs represents the main model structure for logging operations
+	ModelLogs struct {
 		provider  *server.Provider
 		Migration []any
 	}
 )
 
-// Newmodellogs creates a new modellogs instance with the provided service provider
-func Newmodellogs(provider *server.Provider) (*modellogs, error) {
-	return &modellogs{
+// NewModellogs creates a new ModelLogs instance with the provided service provider
+func NewModellogs(provider *server.Provider) (*ModelLogs, error) {
+	return &ModelLogs{
 		provider: provider,
 	}, nil
 }
 
 // Start initializes the logging model operations and migrations
-func (c *modellogs) Start(_ context.Context) error {
+func (c *ModelLogs) Start(_ context.Context) error {
 	return nil
 }

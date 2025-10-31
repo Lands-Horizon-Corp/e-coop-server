@@ -1,3 +1,4 @@
+// Package tokens provides authentication and authorization token management for the e-cooperative application
 package tokens
 
 import (
@@ -142,6 +143,7 @@ func NewUserToken(provider *server.Provider, modelcore *modelcore.ModelCore, use
 	}, nil
 }
 
+// ClearCurrentCSRF clears the current CSRF token and associated user organization token
 func (h *UserToken) ClearCurrentCSRF(ctx context.Context, echoCtx echo.Context) {
 	h.CSRF.ClearCSRF(ctx, echoCtx)
 	h.userOrganizationToken.ClearCurrentToken(ctx, echoCtx)

@@ -1,4 +1,4 @@
-// Package service provides business logic and transaction processing services for the e-cooperative application
+// Package usecase provides business logic and transaction processing services for the e-cooperative application
 package usecase
 
 import (

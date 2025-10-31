@@ -117,6 +117,7 @@ func NewUserOrganizationToken(provider *server.Provider, modelcore *modelcore.Mo
 	}, nil
 }
 
+// ClearCurrentToken clears the current CSRF token for user organization authentication
 func (h *UserOrganizationToken) ClearCurrentToken(ctx context.Context, echoCtx echo.Context) {
 	h.CSRF.ClearCSRF(ctx, echoCtx)
 }

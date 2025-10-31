@@ -1,3 +1,4 @@
+// Package handlers provides HTTP request handling utilities and filtering capabilities for the e-cooperative application
 package handlers
 
 import (
@@ -19,9 +20,11 @@ import (
 
 // --- Constants and Type Definitions ---
 
+// FilterLogic represents the logical operation type for combining filters
 type FilterLogic string
 
 const (
+	// FilterLogicAnd represents AND logic for combining filters
 	FilterLogicAnd FilterLogic = "AND"
 	FilterLogicOr  FilterLogic = "OR"
 )

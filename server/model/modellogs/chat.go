@@ -1,2 +1,2 @@
-// Package model_logs provides database models and operations for logging functionality
+// Package modellogs provides database models and operations for logging functionality
 package modellogs

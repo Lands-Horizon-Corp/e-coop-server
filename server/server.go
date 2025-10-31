@@ -1,4 +1,4 @@
-// Package src provides core server components and provider initialization for the e-cooperative application
+// Package server provides core server components and provider initialization for the e-cooperative application
 package server
 
 import (

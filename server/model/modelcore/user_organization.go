@@ -423,7 +423,7 @@ func (m *ModelCore) GetUserOrganizationByOrganization(context context.Context, o
 	return m.UserOrganizationManager.Find(context, filter)
 }
 
-// GetUserOrganizationByBranch retrieves all user organizations for a specific organization branch
+// GetUserOrganizationBybranch retrieves all user organizations for a specific organization branch
 func (m *ModelCore) GetUserOrganizationBybranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID, pending *bool) ([]*UserOrganization, error) {
 	filter := &UserOrganization{
 		OrganizationID: organizationID,
@@ -435,7 +435,7 @@ func (m *ModelCore) GetUserOrganizationBybranch(context context.Context, organiz
 	return m.UserOrganizationManager.Find(context, filter)
 }
 
-// CountUserOrganizationPerBranch counts the number of user organizations for a specific branch
+// CountUserOrganizationPerbranch counts the number of user organizations for a specific branch
 func (m *ModelCore) CountUserOrganizationPerbranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) (int64, error) {
 	return m.UserOrganizationManager.Count(context, &UserOrganization{
 		OrganizationID: organizationID,
@@ -443,7 +443,7 @@ func (m *ModelCore) CountUserOrganizationPerbranch(context context.Context, orga
 	})
 }
 
-// CountUserOrganizationBranch counts user organizations for a specific user in a branch
+// CountUserOrganizationbranch counts user organizations for a specific user in a branch
 func (m *ModelCore) CountUserOrganizationbranch(context context.Context, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) (int64, error) {
 	return m.UserOrganizationManager.Count(context, &UserOrganization{
 		OrganizationID: organizationID,
