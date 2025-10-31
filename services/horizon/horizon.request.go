@@ -153,7 +153,7 @@ func NewHorizonAPIService(
 		LogURI:      true,
 		LogError:    true,
 		HandleError: true,
-		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
+		LogValuesFunc: func(_ echo.Context, v middleware.RequestLoggerValues) error {
 			if v.Error == nil {
 				logger.Info("REQUEST",
 					zap.String("uri", v.URI),

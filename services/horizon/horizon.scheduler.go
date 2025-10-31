@@ -8,7 +8,7 @@ import (
 	"github.com/rotisserie/eris"
 )
 
-// Scheduler defines the interface for scheduling and managing cron jobs
+// SchedulerService defines the interface for scheduling and managing cron jobs
 type SchedulerService interface {
 	// Start initializes the scheduler and in-memory job store
 	Run(ctx context.Context) error

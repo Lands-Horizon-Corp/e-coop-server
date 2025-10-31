@@ -26,7 +26,7 @@ func TestHorizonSchedule_ExecuteJob(t *testing.T) {
 	s := NewHorizonSchedule()
 	ctx := context.Background()
 
-	var executed int32 = 0
+	executed := int32(0)
 	err := s.CreateJob(ctx, "job2", "@every 1s", func() {
 		atomic.StoreInt32(&executed, 1)
 	})
