@@ -2228,15 +2228,241 @@ func (m *ModelCore) companySeed(context context.Context, tx *gorm.DB, userID uui
 		)
 
 	case "RON": // Romania
+		companies = append(companies,
+			&Company{
+				Name:        "Electrica SA",
+				Description: "Major electricity distribution company serving multiple regions across Romania.",
+			},
+			&Company{
+				Name:        "Engie Romania",
+				Description: "Gas and energy supplier providing natural gas, electricity, and energy services nationwide.",
+			},
+			&Company{
+				Name:        "Apa Nova București",
+				Description: "Water and sewage utility company serving Bucharest and surrounding areas.",
+			},
+			&Company{
+				Name:        "Digi Romania (RCS & RDS)",
+				Description: "Leading internet, mobile, and cable TV service provider in Romania.",
+			},
+			&Company{
+				Name:        "Compania Națională de Administrare a Infrastructurii Rutiere (CNAIR)",
+				Description: "Responsible for road maintenance and infrastructure services.",
+			},
+		)
+
 	case "BGN": // Bulgaria
+		companies = append(companies,
+			&Company{
+				Name:        "CEZ Bulgaria",
+				Description: "Electricity distribution and supply company operating mainly in western Bulgaria.",
+			},
+			&Company{
+				Name:        "Overgas Inc.",
+				Description: "Leading private natural gas supplier and distributor in Bulgaria.",
+			},
+			&Company{
+				Name:        "Sofiyska Voda AD",
+				Description: "Water and wastewater utility for Sofia.",
+			},
+			&Company{
+				Name:        "Vivacom",
+				Description: "Telecommunications provider offering broadband internet, mobile, and TV services.",
+			},
+			&Company{
+				Name:        "TITAN Zlatna Panega",
+				Description: "Company offering waste management and industrial maintenance services.",
+			},
+		)
+
 	case "RSD": // Serbia
+		companies = append(companies,
+			&Company{
+				Name:        "EPS (Elektroprivreda Srbije)",
+				Description: "State-owned electricity generation and distribution company.",
+			},
+			&Company{
+				Name:        "Srbijagas",
+				Description: "Main natural gas distributor and supplier across Serbia.",
+			},
+			&Company{
+				Name:        "JKP Beogradski Vodovod i Kanalizacija",
+				Description: "Public utility managing water supply and sewage in Belgrade.",
+			},
+			&Company{
+				Name:        "Telekom Srbija (MTS)",
+				Description: "Leading telecommunications and internet provider in Serbia.",
+			},
+			&Company{
+				Name:        "City Service Belgrade",
+				Description: "Facilities and property maintenance management company.",
+			},
+		)
+
 	case "ISK": // Iceland
+		companies = append(companies,
+			&Company{
+				Name:        "Landsvirkjun",
+				Description: "National power company generating renewable electricity from hydro, geothermal, and wind.",
+			},
+			&Company{
+				Name:        "Veitur Utilities",
+				Description: "Provides electricity, hot water, and cold water services in Reykjavík and surrounding areas.",
+			},
+			&Company{
+				Name:        "Orkuveita Reykjavíkur (Reykjavik Energy)",
+				Description: "Utility company providing geothermal heating, electricity, and water services.",
+			},
+			&Company{
+				Name:        "Síminn",
+				Description: "Iceland’s main telecom and internet provider.",
+			},
+			&Company{
+				Name:        "Íslandsbanki Facility Services",
+				Description: "Building and facility maintenance services across Iceland.",
+			},
+		)
+
 	case "BYN": // Belarus
+		companies = append(companies,
+			&Company{
+				Name:        "Belenergo",
+				Description: "National electric power company managing generation and distribution across Belarus.",
+			},
+			&Company{
+				Name:        "Beltopgaz",
+				Description: "Main natural gas provider in Belarus.",
+			},
+			&Company{
+				Name:        "Minskvodokanal",
+				Description: "Municipal water supply and sewage company for Minsk.",
+			},
+			&Company{
+				Name:        "A1 Telekom Belarus",
+				Description: "Leading mobile and broadband internet provider in Belarus.",
+			},
+			&Company{
+				Name:        "Belkommunservice",
+				Description: "Municipal maintenance and waste management company.",
+			},
+		)
+
 	case "FJD": // Fiji
+		companies = append(companies,
+			&Company{
+				Name:        "Energy Fiji Limited (EFL)",
+				Description: "Government-owned electricity generation and distribution company.",
+			},
+			&Company{
+				Name:        "Water Authority of Fiji",
+				Description: "National provider of water and wastewater services.",
+			},
+			&Company{
+				Name:        "Fiji Gas",
+				Description: "Main liquefied petroleum gas (LPG) supplier for residential and commercial use.",
+			},
+			&Company{
+				Name:        "Vodafone Fiji",
+				Description: "Leading telecommunications and broadband service provider.",
+			},
+			&Company{
+				Name:        "Rentokil Initial Fiji",
+				Description: "Provides cleaning, hygiene, and maintenance services across Fiji.",
+			},
+		)
+
 	case "PGK": // Papua New Guinea
+		companies = append(companies,
+			&Company{
+				Name:        "PNG Power Limited",
+				Description: "State-owned utility responsible for electricity generation, transmission, and distribution.",
+			},
+			&Company{
+				Name:        "Water PNG Limited",
+				Description: "Public water supply and sanitation company.",
+			},
+			&Company{
+				Name:        "Digicel PNG",
+				Description: "Leading telecom provider offering internet and mobile services.",
+			},
+			&Company{
+				Name:        "Ela Motors Maintenance Services",
+				Description: "Facilities and maintenance services provider across Papua New Guinea.",
+			},
+		)
+
 	case "JMD": // Jamaica
+		companies = append(companies,
+			&Company{
+				Name:        "Jamaica Public Service Company (JPS)",
+				Description: "Main electricity generation and distribution company in Jamaica.",
+			},
+			&Company{
+				Name:        "National Water Commission (NWC)",
+				Description: "Public utility providing potable water and wastewater services.",
+			},
+			&Company{
+				Name:        "GasPro Jamaica",
+				Description: "Distributor of liquefied petroleum gas and energy solutions.",
+			},
+			&Company{
+				Name:        "FLOW Jamaica",
+				Description: "Major telecommunications and broadband provider.",
+			},
+			&Company{
+				Name:        "KLEANMIX Jamaica",
+				Description: "Building and facility maintenance service provider.",
+			},
+		)
+
 	case "CRC": // Costa Rica
+		companies = append(companies,
+			&Company{
+				Name:        "Instituto Costarricense de Electricidad (ICE)",
+				Description: "National provider of electricity and telecommunications.",
+			},
+			&Company{
+				Name:        "A y A (Acueductos y Alcantarillados)",
+				Description: "Public utility managing water supply and sewer systems.",
+			},
+			&Company{
+				Name:        "Gas Tomza Costa Rica",
+				Description: "Major distributor of LPG gas in Costa Rica.",
+			},
+			&Company{
+				Name:        "Liberty Costa Rica",
+				Description: "Telecom company offering internet, cable, and mobile services.",
+			},
+			&Company{
+				Name:        "EULEN Costa Rica",
+				Description: "Facilities management and cleaning services provider.",
+			},
+		)
+
 	case "GTQ": // Guatemala
+		companies = append(companies,
+			&Company{
+				Name:        "Energuate",
+				Description: "Electricity distribution company serving most of Guatemala.",
+			},
+			&Company{
+				Name:        "EEGSA (Empresa Eléctrica de Guatemala)",
+				Description: "Electric utility serving the capital and nearby regions.",
+			},
+			&Company{
+				Name:        "EMPAGUA",
+				Description: "Public water supply and sanitation company in Guatemala City.",
+			},
+			&Company{
+				Name:        "Claro Guatemala",
+				Description: "Leading telecommunications provider offering internet and mobile services.",
+			},
+			&Company{
+				Name:        "Multiservicios GT",
+				Description: "Maintenance and cleaning services provider for businesses and households.",
+			},
+		)
+
 	case "XDR": // Special Drawing Rights (IMF)
 	case "KWD": // Kuwait
 	case "QAR": // Qatar
