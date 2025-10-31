@@ -74,11 +74,11 @@ type (
 	}
 
 	UnbalancedAccountRequest struct {
-		ID          *uuid.UUID `json:"id,omitempty"`
-		
-		Name        string     `json:"name" validate:"omitempty,min=1,max=255"`
-		Description string     `json:"description,omitempty"`
-		CurrencyID  uuid.UUID  `json:"currency_id" validate:"required"`
+		ID *uuid.UUID `json:"id,omitempty"`
+
+		Name        string    `json:"name" validate:"omitempty,min=1,max=255"`
+		Description string    `json:"description,omitempty"`
+		CurrencyID  uuid.UUID `json:"currency_id" validate:"required"`
 
 		AccountForShortageID uuid.UUID `json:"account_for_shortage_id" validate:"required"`
 		AccountForOverageID  uuid.UUID `json:"account_for_overage_id" validate:"required"`

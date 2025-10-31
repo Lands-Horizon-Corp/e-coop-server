@@ -132,7 +132,7 @@ func (m *ModelCore) AdjustmentEntry() {
 				entryDateStr = &str
 			}
 			return &AdjustmentEntryResponse{
-				ID:                data.ID, 
+				ID:                data.ID,
 				CreatedAt:         data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:       data.CreatedByID,
 				CreatedBy:         m.UserManager.ToModel(data.CreatedBy),

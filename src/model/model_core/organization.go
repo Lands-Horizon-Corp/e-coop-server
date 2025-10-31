@@ -159,7 +159,7 @@ func (m *ModelCore) Organization() {
 			"SubscriptionPlan", "Branches",
 			"OrganizationCategories", "OrganizationMedias", "OrganizationMedias.Media",
 			"OrganizationCategories.Category",
-			},
+		},
 		Service: m.provider.Service,
 		Resource: func(data *Organization) *OrganizationResponse {
 			if data == nil {

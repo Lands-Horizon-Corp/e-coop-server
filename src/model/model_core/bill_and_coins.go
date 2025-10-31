@@ -1574,12 +1574,12 @@ func (m *ModelCore) BillAndCoinsSeed(context context.Context, tx *gorm.DB, userI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₸1 Coin", Value: 1.00, CurrencyID: currency.ID},
 			}
 		}
-			for _, data := range billAndCoins {
-				if err := m.BillAndCoinsManager.CreateWithTx(context, tx, data); err != nil {
-					return eris.Wrapf(err, "failed to seed bill or coin %s", data.Name)
-				}
+		for _, data := range billAndCoins {
+			if err := m.BillAndCoinsManager.CreateWithTx(context, tx, data); err != nil {
+				return eris.Wrapf(err, "failed to seed bill or coin %s", data.Name)
 			}
 		}
+	}
 
 	return nil
 }

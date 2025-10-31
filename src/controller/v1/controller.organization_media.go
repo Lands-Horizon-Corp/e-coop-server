@@ -166,7 +166,7 @@ func (c *Controller) OrganizationMediaController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization media data: " + err.Error()})
 		}
-	
+
 		organizationMedia, err := c.model_core.OrganizationMediaManager.GetByID(context, *organizationMeiaId)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -214,7 +214,7 @@ func (c *Controller) OrganizationMediaController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization media ID"})
 		}
-		
+
 		organizationMedia, err := c.model_core.OrganizationMediaManager.GetByID(context, *mediaID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -224,7 +224,6 @@ func (c *Controller) OrganizationMediaController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Organization media not found"})
 		}
-
 
 		if err := c.model_core.OrganizationMediaManager.DeleteByID(context, *mediaID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -267,7 +266,7 @@ func (c *Controller) OrganizationMediaController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No organization media IDs provided for bulk delete"})
 		}
-		
+
 		tx := c.provider.Service.Database.Client().Begin()
 		if tx.Error != nil {
 			tx.Rollback()
@@ -300,7 +299,6 @@ func (c *Controller) OrganizationMediaController() {
 				})
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Organization media not found with ID: %s", rawID)})
 			}
-
 
 			names += organizationMedia.Name + ","
 			if err := c.model_core.OrganizationMediaManager.DeleteByIDWithTx(context, tx, mediaID); err != nil {

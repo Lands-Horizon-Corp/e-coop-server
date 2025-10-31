@@ -419,10 +419,10 @@ func (c *Controller) TransactionBatchController() {
 			TotalDepositInBank:            0,
 			TotalActualRemittance:         0,
 			TotalActualSupposedComparison: 0,
-BatchName: batchFundingReq.Name,
-			IsClosed:    false,
-			CanView:     false,
-			RequestView: false,
+			BatchName:                     batchFundingReq.Name,
+			IsClosed:                      false,
+			CanView:                       false,
+			RequestView:                   false,
 		}
 		if err := c.model_core.TransactionBatchManager.CreateWithTx(context, tx, transBatch); err != nil {
 			tx.Rollback()

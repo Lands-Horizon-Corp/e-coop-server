@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 
@@ -44,8 +45,6 @@ func NewHorizonAPIService(
 	logger, _ := zap.NewProduction()
 	defer func() {
 		if err := logger.Sync(); err != nil {
-			// Ignore sync errors for stderr/stdout as they're not critical
-			// This is a known issue with zap logger in certain environments
 			if !strings.Contains(err.Error(), "sync /dev/stderr") &&
 				!strings.Contains(err.Error(), "sync /dev/stdout") &&
 				!strings.Contains(err.Error(), "invalid argument") {
@@ -55,6 +54,22 @@ func NewHorizonAPIService(
 	}()
 
 	e.Use(middleware.Recover())
+	e.Pre(middleware.HTTPSRedirect())
+
+	e.Pre(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			host := c.Request().Host
+			allowedHosts := []string{"ecoop-suite.com", "staging.ecoop-suite.com", "development.ecoop-suite.com"}
+			if !secured {
+				allowedHosts = append(allowedHosts, "localhost:8080", "localhost:3000", "localhost:3001", "localhost:3002", "localhost:3003")
+			}
+			if slices.Contains(allowedHosts, host) {
+				return next(c)
+			}
+			return c.String(http.StatusForbidden, "Host not allowed")
+		}
+	})
+
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
