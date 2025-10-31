@@ -5,15 +5,15 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
 // TimeDepositTypeController registers routes for managing time deposit types.
-func (c *Controller) timeDepositTypeController(
+func (c *Controller) timeDepositTypeController() {
 	req := c.provider.Service.Request
 
 	// GET /time-deposit-type/search: Paginated search of time deposit types for the current branch. (NO footstep)

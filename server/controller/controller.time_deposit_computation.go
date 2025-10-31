@@ -5,15 +5,15 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
 // TimeDepositComputationController registers routes for managing time deposit computations.
-func (c *Controller) timeDepositComputationController(
+func (c *Controller) timeDepositComputationController() {
 	req := c.provider.Service.Request
 
 	// POST /time-deposit-computation: Create a new time deposit computation. (WITH footstep)
