@@ -253,10 +253,12 @@ type (
 		DeveloperSecretKey string `json:"developer_secret_key"`
 	}
 
+	// UserOrganizationStatusRequest represents the request payload for updating user organization status
 	UserOrganizationStatusRequest struct {
 		UserOrganizationStatus UserOrganizationStatus `json:"user_organization_status" validate:"required,oneof=online offline busy vacation commuting"`
 	}
 
+	// UserOrganizationStatusResponse represents the response containing user organization status information
 	UserOrganizationStatusResponse struct {
 		OfflineUsers   []*UserOrganizationResponse `json:"user_organizations,omitempty"`
 		OnlineUsers    []*UserOrganizationResponse `json:"online_user_organizations,omitempty"`
@@ -275,6 +277,7 @@ type (
 	}
 )
 
+// UserOrganization initializes the UserOrganization model and its repository manager
 func (m *ModelCore) UserOrganization() {
 	m.Migration = append(m.Migration, &UserOrganization{})
 	m.UserOrganizationManager = horizon_services.NewRepository(horizon_services.RepositoryParams[UserOrganization, UserOrganizationResponse, UserOrganizationRequest]{
@@ -398,9 +401,9 @@ func (m *ModelCore) UserOrganization() {
 	})
 }
 
-func (m *ModelCore) GetUserOrganizationByUser(context context.Context, userId uuid.UUID, pending *bool) ([]*UserOrganization, error) {
+func (m *ModelCore) GetUserOrganizationByUser(context context.Context, userID uuid.UUID, pending *bool) ([]*UserOrganization, error) {
 	filter := &UserOrganization{
-		UserID: userId,
+		UserID: userID,
 	}
 	if pending != nil && *pending {
 		filter.ApplicationStatus = "pending"
@@ -408,9 +411,9 @@ func (m *ModelCore) GetUserOrganizationByUser(context context.Context, userId uu
 	return m.UserOrganizationManager.Find(context, filter)
 }
 
-func (m *ModelCore) GetUserOrganizationByOrganization(context context.Context, organizationId uuid.UUID, pending *bool) ([]*UserOrganization, error) {
+func (m *ModelCore) GetUserOrganizationByOrganization(context context.Context, organizationID uuid.UUID, pending *bool) ([]*UserOrganization, error) {
 	filter := &UserOrganization{
-		OrganizationID: organizationId,
+		OrganizationID: organizationID,
 	}
 	if pending != nil && *pending {
 		filter.ApplicationStatus = "pending"
@@ -418,16 +421,18 @@ func (m *ModelCore) GetUserOrganizationByOrganization(context context.Context, o
 	return m.UserOrganizationManager.Find(context, filter)
 }
 
-func (m *ModelCore) GetUserOrganizationByBranch(context context.Context, organizationId uuid.UUID, branchId uuid.UUID, pending *bool) ([]*UserOrganization, error) {
+func (m *ModelCore) GetUserOrganizationByBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID, pending *bool) ([]*UserOrganization, error) {
 	filter := &UserOrganization{
-		OrganizationID: organizationId,
-		BranchID:       &branchId,
+		OrganizationID: organizationID,
+		BranchID:       &branchID,
 	}
 	if pending != nil && *pending {
 		filter.ApplicationStatus = "pending"
 	}
 	return m.UserOrganizationManager.Find(context, filter)
 }
+
+// CountUserOrganizationPerBranch counts the number of user organizations for a specific branch
 func (m *ModelCore) CountUserOrganizationPerBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) (int64, error) {
 	return m.UserOrganizationManager.Count(context, &UserOrganization{
 		OrganizationID: organizationID,
