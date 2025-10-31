@@ -2612,3 +2612,53 @@ func (m *ModelCore) AccountLockWithValidation(ctx context.Context, tx *gorm.DB, 
 
 	return lockedAccount, nil
 }
+
+func (m *ModelCore) LoanAccounts(ctx context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*Account, error) {
+	filters := []services.Filter{
+		{Field: "organization_id", Op: services.OpEq, Value: organizationID},
+		{Field: "branch_id", Op: services.OpEq, Value: branchID},
+	}
+
+	return m.AccountManager.FindWithFilters(ctx, filters)
+}
+
+// FindAccountsByTypesAndBranch finds all accounts with specified branch, organization and account types (Fines, Interest, or SVFLedger)
+func (m *ModelCore) FindAccountsByTypesAndBranch(ctx context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*Account, error) {
+	filters := []services.Filter{
+		{Field: "organization_id", Op: services.OpEq, Value: organizationID},
+		{Field: "branch_id", Op: services.OpEq, Value: branchID},
+		{Field: "type", Op: services.OpIn, Value: []AccountType{
+			AccountTypeFines,
+			AccountTypeInterest,
+			AccountTypeSVFLedger,
+		}},
+	}
+
+	return m.AccountManager.FindWithFilters(ctx, filters)
+}
+
+// FindAccountsBySpecificType finds all accounts with specified branch, organization and a single account type
+func (m *ModelCore) FindAccountsBySpecificType(ctx context.Context, organizationID uuid.UUID, branchID uuid.UUID, accountType AccountType) ([]*Account, error) {
+	filters := []services.Filter{
+		{Field: "organization_id", Op: services.OpEq, Value: organizationID},
+		{Field: "branch_id", Op: services.OpEq, Value: branchID},
+		{Field: "type", Op: services.OpEq, Value: accountType},
+	}
+
+	return m.AccountManager.FindWithFilters(ctx, filters)
+}
+
+func (m *ModelCore) FindAccountsBySpecificTypeByAccountID(ctx context.Context,
+	organizationID uuid.UUID, branchID uuid.UUID, accountID uuid.UUID) ([]*Account, error) {
+	filters := []services.Filter{
+		{Field: "organization_id", Op: services.OpEq, Value: organizationID},
+		{Field: "branch_id", Op: services.OpEq, Value: branchID},
+		{Field: "id", Op: services.OpEq, Value: accountID},
+	}
+
+	accounts, err := m.AccountManager.FindWithFilters(ctx, filters)
+	if err != nil {
+		return nil, err
+	}
+	return accounts, nil
+}

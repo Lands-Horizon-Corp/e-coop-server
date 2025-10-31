@@ -1596,4 +1596,53 @@ func (c *Controller) accountController() {
 		}
 		return ctx.JSON(http.StatusOK, c.modelcore.AccountManager.ToModel(account))
 	})
+
+	// GET api/v1/account/loan-accounts
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/account/loan-accounts",
+		Method:       "GET",
+		Note:         "Retrieve all loan accounts for the current branch. Only Fines, Interest, SVF-Ledger",
+		ResponseType: modelcore.AccountResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
+		}
+		accounts, err := c.modelcore.FindAccountsByTypesAndBranch(
+			context,
+			userOrg.OrganizationID, *userOrg.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve loan accounts: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.modelcore.AccountManager.ToModels(accounts))
+	})
+
+	// GET api/v1/account/:account_id/loan-accounts
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/account/:account_id/loan-accounts",
+		Method:       "GET",
+		Note:         "Retrieve loan account connected to an account.",
+		ResponseType: modelcore.AccountResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID"})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
+		}
+		account, err := c.modelcore.AccountManager.GetByID(context, *accountID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found"})
+		}
+		loanAccounts, err := c.modelcore.FindAccountsBySpecificTypeByAccountID(context,
+			userOrg.OrganizationID, *userOrg.BranchID, account.ID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Connected loan account not found"})
+		}
+		return ctx.JSON(http.StatusOK, c.modelcore.AccountManager.ToModels(loanAccounts))
+	})
 }
