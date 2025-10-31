@@ -1556,4 +1556,44 @@ func (c *Controller) accountController() {
 		}
 		return ctx.JSON(http.StatusOK, c.modelcore.AccountManager.ToModel(account))
 	})
+
+	// POST api/v1/account/:account_id/connect-to-loan/:account_id
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/account/:account_id/connect-to-loan/:loan_id",
+		Method:       "POST",
+		Note:         "Connect an account to a loan.",
+		ResponseType: modelcore.AccountResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID"})
+		}
+		loanID, err := handlers.EngineUUIDParam(ctx, "loan_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan ID"})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
+		}
+		account, err := c.modelcore.AccountManager.GetByID(context, *accountID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found"})
+		}
+		loanAccount, err := c.modelcore.AccountManager.GetByID(context, *loanID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan not found"})
+		}
+		if loanAccount.Type != modelcore.AccountTypeFines && loanAccount.Type != modelcore.AccountTypeInterest && loanAccount.Type != modelcore.AccountTypeSVFLedger {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "The specified loan account is not of a valid loan account type"})
+		}
+		account.LoanAccountID = &loanAccount.ID
+		account.UpdatedAt = time.Now().UTC()
+		account.UpdatedByID = userOrg.UserID
+		if err := c.modelcore.AccountManager.UpdateFields(context, account.ID, account); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to connect account to loan: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.modelcore.AccountManager.ToModel(account))
+	})
 }
