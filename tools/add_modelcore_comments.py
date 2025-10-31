@@ -31,12 +31,12 @@ def process_file(path: Path) -> bool:
         if re.match(r'^\s*type\s*\($', line):
             inside_type_block = True
             out.append(line)
-            i += 1
+            i ++
             continue
         if inside_type_block and re.match(r'^\s*\)\s*$', line):
             inside_type_block = False
             out.append(line)
-            i += 1
+            i ++
             continue
 
         # match type line inside block (no leading 'type')
@@ -63,7 +63,7 @@ def process_file(path: Path) -> bool:
                     out.append(m.group('indent') + comment)
                     changed = True
                 out.append(line)
-                i += 1
+                i ++
                 continue
         else:
             # match standalone type declaration
@@ -86,7 +86,7 @@ def process_file(path: Path) -> bool:
                     out.append(m.group('indent') + comment)
                     changed = True
                 out.append(line)
-                i += 1
+                i ++
                 continue
 
         # match exported ModelCore method
@@ -104,11 +104,11 @@ def process_file(path: Path) -> bool:
                 out.append(mm.group('indent') + comment)
                 changed = True
             out.append(line)
-            i += 1
+            i ++
             continue
 
         out.append(line)
-        i += 1
+        i ++
 
     if changed:
         path.write_text('\n'.join(out) + '\n')

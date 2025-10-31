@@ -67,7 +67,7 @@ func (c *Controller) disbursementTransactionController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create disbursement transaction: " + err.Error()})
 		}
 		if req.IsReferenceNumberChecked {
-			userOrg.UserSettingUsedOR += 1
+			userOrg.UserSettingUsedOR++
 			if err := c.modelcore.UserOrganizationManager.UpdateFields(context, userOrg.ID, userOrg); err != nil {
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "create-error",
