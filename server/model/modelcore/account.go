@@ -2613,6 +2613,7 @@ func (m *ModelCore) AccountLockWithValidation(ctx context.Context, tx *gorm.DB, 
 	return lockedAccount, nil
 }
 
+// LoanAccounts retrieves all loan accounts for a given organization and branch.
 func (m *ModelCore) LoanAccounts(ctx context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*Account, error) {
 	filters := []services.Filter{
 		{Field: "organization_id", Op: services.OpEq, Value: organizationID},
