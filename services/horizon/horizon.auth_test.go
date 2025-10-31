@@ -35,7 +35,7 @@ func createCacheSetupService(t *testing.T) CacheService {
 	// Add connection retry logic
 	var err error
 	maxRetries := 5
-	for i := range maxRetries {
+	for i := 0; i < maxRetries; i++ {
 		err = cache.Run(ctx)
 		if err == nil {
 			break
@@ -44,7 +44,8 @@ func createCacheSetupService(t *testing.T) CacheService {
 	}
 	require.NoError(t, err, "Failed to connect to Redis after %d attempts", maxRetries)
 
-	cache.Flush(ctx)
+	// ignore flush error in setup
+	_ = cache.Flush(ctx)
 	return cache
 }
 
@@ -69,7 +70,7 @@ func setupTest(t *testing.T) (context.Context, *AuthServiceImpl[TestClaimUserCSR
 
 func TestSetAndGetCSRF(t *testing.T) {
 	ctx, service, cache := setupTest(t)
-	defer cache.Flush(ctx)
+	defer func() { _ = cache.Flush(ctx) }()
 
 	// Setup test claim
 	claim := TestClaimUserCSRF{
@@ -103,7 +104,7 @@ func TestSetAndGetCSRF(t *testing.T) {
 
 func TestVerifyCSRF(t *testing.T) {
 	ctx, service, cache := setupTest(t)
-	defer cache.Flush(ctx)
+	defer func() { _ = cache.Flush(ctx) }()
 
 	// Setup test data
 	claim := TestClaimUserCSRF{
@@ -128,7 +129,7 @@ func TestVerifyCSRF(t *testing.T) {
 
 func TestClearCSRF(t *testing.T) {
 	ctx, service, cache := setupTest(t)
-	defer cache.Flush(ctx)
+	defer func() { _ = cache.Flush(ctx) }()
 
 	// Setup test data
 	claim := TestClaimUserCSRF{
@@ -151,7 +152,7 @@ func TestClearCSRF(t *testing.T) {
 
 func TestSessionManagement(t *testing.T) {
 	ctx, service, cache := setupTest(t)
-	defer cache.Flush(ctx)
+	defer func() { _ = cache.Flush(ctx) }()
 
 	// Setup test user
 	userID := "multi_session_user"
@@ -210,7 +211,7 @@ func TestSessionManagement(t *testing.T) {
 
 func TestEdgeCasesSample(t *testing.T) {
 	ctx, service, cache := setupTest(t)
-	defer cache.Flush(ctx)
+	defer func() { _ = cache.Flush(ctx) }()
 
 	// Test empty token verification
 	_, err := service.VerifyCSRF(ctx, "")

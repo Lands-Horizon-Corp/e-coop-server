@@ -592,7 +592,7 @@ func (c *Controller) journalVoucherController() {
 		}
 
 		// Update print details
-		journalVoucher.PrintNumber = journalVoucher.PrintNumber + 1
+		journalVoucher.PrintNumber++
 		journalVoucher.PrintedDate = handlers.Ptr(time.Now().UTC())
 		journalVoucher.PrintedByID = &userOrg.UserID
 		journalVoucher.CashVoucherNumber = req.CashVoucherNumber
@@ -810,7 +810,7 @@ func (c *Controller) journalVoucherController() {
 		}
 
 		// Update print details without voucher number change
-		journalVoucher.PrintNumber = journalVoucher.PrintNumber + 1
+		journalVoucher.PrintNumber++
 		journalVoucher.PrintedDate = handlers.Ptr(time.Now().UTC())
 		journalVoucher.PrintedByID = &userOrg.UserID
 		journalVoucher.UpdatedAt = time.Now().UTC()

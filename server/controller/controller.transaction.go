@@ -95,7 +95,7 @@ func (c *Controller) transactionController() {
 			Description:     req.Description,
 		}
 		if req.IsReferenceNumberChecked {
-			userOrg.UserSettingUsedOR = userOrg.UserSettingUsedOR + 1
+			userOrg.UserSettingUsedOR++
 			if err := c.modelcore.UserOrganizationManager.Update(context, userOrg); err != nil {
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "update-error",

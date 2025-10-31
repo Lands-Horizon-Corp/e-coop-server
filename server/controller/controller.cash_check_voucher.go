@@ -790,7 +790,7 @@ func (c *Controller) cashCheckVoucherController() {
 
 		// Update print details
 		cashCheckVoucher.CashVoucherNumber = req.CashVoucherNumber
-		cashCheckVoucher.PrintCount = cashCheckVoucher.PrintCount + 1
+		cashCheckVoucher.PrintCount++
 		cashCheckVoucher.PrintedDate = handlers.Ptr(time.Now().UTC())
 		cashCheckVoucher.Status = modelcore.CashCheckVoucherStatusPrinted
 		cashCheckVoucher.UpdatedAt = time.Now().UTC()
@@ -1008,7 +1008,7 @@ func (c *Controller) cashCheckVoucherController() {
 		}
 
 		// Update print details without changing voucher number
-		cashCheckVoucher.PrintCount = cashCheckVoucher.PrintCount + 1
+		cashCheckVoucher.PrintCount++
 		cashCheckVoucher.PrintedDate = handlers.Ptr(time.Now().UTC())
 		cashCheckVoucher.Status = modelcore.CashCheckVoucherStatusPrinted
 		cashCheckVoucher.UpdatedAt = time.Now().UTC()

@@ -1917,7 +1917,7 @@ func (c *Controller) loanTransactionController() {
 		if loanTransaction.PrintedDate != nil {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Loan transaction has already been marked printed, you can undo it by clicking undo print"})
 		}
-		loanTransaction.PrintNumber = loanTransaction.PrintNumber + 1
+		loanTransaction.PrintNumber++
 		loanTransaction.PrintedDate = handlers.Ptr(time.Now().UTC())
 		loanTransaction.PrintedByID = &userOrg.UserID
 		loanTransaction.Voucher = req.Voucher
@@ -2008,7 +2008,7 @@ func (c *Controller) loanTransactionController() {
 		if loanTransaction.OrganizationID != userOrg.OrganizationID || loanTransaction.BranchID != *userOrg.BranchID {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this loan transaction"})
 		}
-		loanTransaction.PrintNumber = loanTransaction.PrintNumber + 1
+		loanTransaction.PrintNumber++
 		loanTransaction.PrintedDate = handlers.Ptr(time.Now().UTC())
 		loanTransaction.PrintedByID = &userOrg.UserID
 		loanTransaction.UpdatedAt = time.Now().UTC()

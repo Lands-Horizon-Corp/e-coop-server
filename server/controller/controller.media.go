@@ -77,7 +77,7 @@ func (c *Controller) mediaController() {
 		// If filename doesn't have extension, add it based on content type
 		if fileName != "" && !handlers.HasFileExtension(fileName) {
 			if ext := handlers.GetExtensionFromContentType(contentType); ext != "" {
-				fileName = fileName + ext
+				fileName += ext
 			}
 		}
 
