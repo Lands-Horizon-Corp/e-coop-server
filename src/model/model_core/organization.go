@@ -138,23 +138,27 @@ type (
 		CurrencyID *uuid.UUID `json:"currency_id,omitempty"`
 	}
 
+	// OrganizationSubscriptionRequest represents the request payload for organization subscription operations
 	OrganizationSubscriptionRequest struct {
 		OrganizationID           uuid.UUID `json:"organization_id" validate:"required,uuid4"`
 		SubscriptionPlanID       uuid.UUID `json:"subscription_plan_id" validate:"required,uuid4"`
 		SubscriptionPlanIsYearly *bool     `json:"subscription_plan_is_yearly,omitempty"`
 	}
 
+	// CreateOrganizationResponse represents the response structure for organization creation
 	CreateOrganizationResponse struct {
 		Organization     *OrganizationResponse     `json:"organization"`
 		UserOrganization *UserOrganizationResponse `json:"user_organization"`
 	}
 
+	// OrganizationPerCategoryResponse represents organization data grouped by category
 	OrganizationPerCategoryResponse struct {
 		Category      *CategoryResponse       `json:"category"`
 		Organizations []*OrganizationResponse `json:"organizations"`
 	}
 )
 
+// Organization initializes the Organization model and its repository manager
 func (m *ModelCore) Organization() {
 	m.Migration = append(m.Migration, &Organization{})
 	m.OrganizationManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Organization, OrganizationResponse, OrganizationRequest]{
@@ -235,6 +239,7 @@ func (m *ModelCore) Organization() {
 	})
 }
 
+// GetPublicOrganization retrieves all organizations marked as public
 func (m *ModelCore) GetPublicOrganization(ctx context.Context) ([]*Organization, error) {
 	filters := []horizon_services.Filter{
 		{Field: "is_private", Op: horizon_services.OpEq, Value: false},
@@ -246,6 +251,7 @@ func (m *ModelCore) GetPublicOrganization(ctx context.Context) ([]*Organization,
 	return organizations, nil
 }
 
+// GetFeaturedOrganization retrieves organizations marked as featured for promotional display
 func (m *ModelCore) GetFeaturedOrganization(ctx context.Context) ([]*Organization, error) {
 	// Featured organizations are:
 	// 1. Public (not private)
@@ -280,6 +286,7 @@ func (m *ModelCore) GetFeaturedOrganization(ctx context.Context) ([]*Organizatio
 	return featuredOrganizations, nil
 }
 
+// GetOrganizationsByCategoryID retrieves all organizations belonging to a specific category
 func (m *ModelCore) GetOrganizationsByCategoryID(ctx context.Context, categoryID uuid.UUID) ([]*Organization, error) {
 	// Get organization categories that match the category ID
 	orgCategories, err := m.OrganizationCategoryManager.Find(ctx, &OrganizationCategory{
