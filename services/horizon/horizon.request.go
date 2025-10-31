@@ -38,6 +38,7 @@ type HorizonAPIService struct {
 func NewHorizonAPIService(
 	serverPort, metricsPort int,
 	clientURL, clientName string,
+	secured bool,
 ) APIService {
 	e := echo.New()
 	logger, _ := zap.NewProduction()
@@ -97,17 +98,18 @@ func NewHorizonAPIService(
 		},
 	}))
 
+	origins := []string{
+		"https://ecoop-suite.netlify.app",
+		"https://ecoop-suite.com",
+		"https://development.ecoop-suite.com",
+		"https://staging.ecoop-suite.com",
+	}
+	if !secured {
+		origins = append(origins, "http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:3003")
+	}
+
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{
-			"https://ecoop-suite.netlify.app",
-			"https://ecoop-suite.com",
-			"https://development.ecoop-suite.com",
-			"https://staging.ecoop-suite.com",
-			"http://localhost:3000",
-			"http://localhost:3001",
-			"http://localhost:3002",
-			"http://localhost:3003",
-		},
+		AllowOrigins: origins,
 		AllowMethods: []string{
 			http.MethodGet,
 			http.MethodPost,

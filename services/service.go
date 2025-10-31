@@ -88,6 +88,7 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 			cfg.RequestServiceConfig.MetricsPort,
 			cfg.RequestServiceConfig.ClientURL,
 			cfg.RequestServiceConfig.ClientName,
+			isStaging,
 		)
 	} else {
 		service.Request = horizon.NewHorizonAPIService(
@@ -95,6 +96,7 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 			service.Environment.GetInt("APP_METRICS_PORT", 8001),
 			service.Environment.GetString("APP_CLIENT_URL", "http://127.0.0.1:3000"),
 			service.Environment.GetString("APP_CLIENT_NAME", "horizon"),
+			isStaging,
 		)
 	}
 	if cfg.SecurityConfig != nil {
@@ -537,4 +539,3 @@ func (h *HorizonService) StopBroker(ctx context.Context) error {
 	h.Logger.Info("Broker Service Stopped Successfully")
 	return nil
 }
- 

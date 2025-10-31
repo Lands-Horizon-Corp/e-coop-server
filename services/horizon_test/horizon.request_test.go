@@ -29,7 +29,7 @@ func TestMain(m *testing.M) {
 	// Assign package-level variables, do NOT use := to avoid shadowing
 	testCtx := context.Background()
 
-	service := horizon.NewHorizonAPIService(apiPort, metricsPort, clientUrl, clientName)
+	service := horizon.NewHorizonAPIService(apiPort, metricsPort, clientUrl, clientName, false)
 	go func() {
 		if err := service.Run(testCtx); err != nil {
 			println("Server exited with error:", err.Error())
