@@ -26,7 +26,7 @@ type (
 		SignatureMediaID  *uuid.UUID     `gorm:"type:uuid"`
 		SignatureMedia    *Media         `gorm:"foreignKey:SignatureMediaID;constraint:OnDelete:SET NULL;" json:"signature,omitempty"`
 		Password          string         `gorm:"type:varchar(255);not null" json:"-"`
-		Birthdate         time.Time      `gorm:"type:date" json:"birthdate"`
+		Birthdate         *time.Time     `gorm:"type:date" json:"birthdate"`
 		UserName          string         `gorm:"type:varchar(100);not null;unique" json:"user_name"`
 		FirstName         *string        `gorm:"type:varchar(100)" json:"first_name,omitempty"`
 		MiddleName        *string        `gorm:"type:varchar(100)" json:"middle_name,omitempty"`
