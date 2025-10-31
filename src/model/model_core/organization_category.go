@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// OrganizationCategory represents the categorization of organizations
 	OrganizationCategory struct {
 		ID        uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt time.Time      `gorm:"not null;default:now()"`
@@ -24,6 +25,7 @@ type (
 		Category   *Category  `gorm:"foreignKey:CategoryID;constraint:OnDelete:CASCADE"`
 	}
 
+	// OrganizationCategoryResponse represents the JSON response structure for organization category data
 	OrganizationCategoryResponse struct {
 		ID        uuid.UUID `json:"id"`
 		CreatedAt string    `json:"created_at"`
@@ -35,12 +37,14 @@ type (
 		Category       *CategoryResponse     `json:"category"`
 	}
 
+	// OrganizationCategoryRequest represents the request payload for organization category operations
 	OrganizationCategoryRequest struct {
 		ID         *uuid.UUID `json:"id,omitempty"`
 		CategoryID uuid.UUID  `json:"category_id" validate:"required"`
 	}
 )
 
+// OrganizationCategory initializes the OrganizationCategory model and its repository manager
 func (m *ModelCore) OrganizationCategory() {
 	m.Migration = append(m.Migration, &OrganizationCategory{})
 	m.OrganizationCategoryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[OrganizationCategory, OrganizationCategoryResponse, OrganizationCategoryRequest]{
@@ -86,8 +90,9 @@ func (m *ModelCore) OrganizationCategory() {
 	})
 }
 
-func (m *ModelCore) GetOrganizationCategoryByOrganization(context context.Context, organizationId uuid.UUID) ([]*OrganizationCategory, error) {
+// GetOrganizationCategoryByOrganization retrieves all categories assigned to a specific organization
+func (m *ModelCore) GetOrganizationCategoryByOrganization(context context.Context, organizationID uuid.UUID) ([]*OrganizationCategory, error) {
 	return m.OrganizationCategoryManager.Find(context, &OrganizationCategory{
-		OrganizationID: &organizationId,
+		OrganizationID: &organizationID,
 	})
 }

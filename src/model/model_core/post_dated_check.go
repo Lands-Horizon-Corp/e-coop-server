@@ -97,6 +97,7 @@ type (
 	}
 )
 
+// PostDatedCheck initializes the PostDatedCheck model and its repository manager
 func (m *ModelCore) PostDatedCheck() {
 	m.Migration = append(m.Migration, &PostDatedCheck{})
 	m.PostDatedCheckManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
@@ -167,9 +168,10 @@ func (m *ModelCore) PostDatedCheck() {
 	})
 }
 
-func (m *ModelCore) PostDatedCheckCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*PostDatedCheck, error) {
+// PostDatedCheckCurrentBranch retrieves all postdatedcheck records for the specified organization and branch
+func (m *ModelCore) PostDatedCheckCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*PostDatedCheck, error) {
 	return m.PostDatedCheckManager.Find(context, &PostDatedCheck{
-		OrganizationID: orgId,
-		BranchID:       branchId,
+		OrganizationID: orgID,
+		BranchID:       branchID,
 	})
 }

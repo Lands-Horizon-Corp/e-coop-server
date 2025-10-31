@@ -314,6 +314,7 @@ func (m *ModelCore) GetOrganizationsByCategoryID(ctx context.Context, categoryID
 	return organizations, nil
 }
 
+// GetRecentlyAddedOrganization retrieves organizations that were created within the last 30 days
 func (m *ModelCore) GetRecentlyAddedOrganization(ctx context.Context) ([]*Organization, error) {
 	thirtyDaysAgo := time.Now().AddDate(0, 0, -30)
 	filters := []horizon_services.Filter{

@@ -94,6 +94,7 @@ type (
 	}
 )
 
+// TimeDepositComputation initializes the TimeDepositComputation model and its repository manager
 func (m *ModelCore) TimeDepositComputation() {
 	m.Migration = append(m.Migration, &TimeDepositComputation{})
 	m.TimeDepositComputationManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
@@ -164,9 +165,10 @@ func (m *ModelCore) TimeDepositComputation() {
 	})
 }
 
-func (m *ModelCore) TimeDepositComputationCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*TimeDepositComputation, error) {
+// TimeDepositComputationCurrentBranch retrieves all timedepositcomputation records for the specified organization and branch
+func (m *ModelCore) TimeDepositComputationCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*TimeDepositComputation, error) {
 	return m.TimeDepositComputationManager.Find(context, &TimeDepositComputation{
-		OrganizationID: orgId,
-		BranchID:       branchId,
+		OrganizationID: orgID,
+		BranchID:       branchID,
 	})
 }
