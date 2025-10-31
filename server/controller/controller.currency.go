@@ -3,6 +3,7 @@ package v1
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
@@ -329,7 +330,7 @@ func (c *Controller) currencyController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
 		}
 
-		names := ""
+		var sb strings.Builder
 		for _, rawID := range reqBody.IDs {
 			currencyID, err := uuid.Parse(rawID)
 			if err != nil {
@@ -353,7 +354,10 @@ func (c *Controller) currencyController() {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Currency with ID %s not found: %v", rawID, err)})
 			}
 
-			names += currency.Name + " (" + currency.CurrencyCode + "),"
+			sb.WriteString(currency.Name)
+			sb.WriteString(" (")
+			sb.WriteString(currency.CurrencyCode)
+			sb.WriteString("),")
 			if err := c.modelcore.CurrencyManager.DeleteByIDWithTx(context, tx, currencyID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -376,7 +380,7 @@ func (c *Controller) currencyController() {
 
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted currencies: " + names,
+			Description: "Bulk deleted currencies: " + sb.String(),
 			Module:      "Currency",
 		})
 
