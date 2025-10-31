@@ -13,7 +13,7 @@ import (
 )
 
 // Enum for general_ledger_source
-// GeneralLedgerSource 
+// GeneralLedgerSource
 type GeneralLedgerSource string
 
 const (
@@ -323,7 +323,7 @@ func (m *ModelCore) generalLedger() {
 }
 
 // General Ledger Queries
-// GeneralLedgerCurrentBranch 
+// GeneralLedgerCurrentBranch
 // GeneralLedgerCurrentBranch returns GeneralLedgerCurrentBranch for the current branch or organization where applicable.
 func (m *ModelCore) GeneralLedgerCurrentBranch(context context.Context, orgID, branchID uuid.UUID) ([]*GeneralLedger, error) {
 	return m.GeneralLedgerManager.Find(context, &GeneralLedger{
@@ -332,29 +332,30 @@ func (m *ModelCore) GeneralLedgerCurrentBranch(context context.Context, orgID, b
 	})
 }
 
-// GeneralLedgerCurrentMemberAccount 
+// GeneralLedgerCurrentMemberAccount
 // General Ledger Queries with locking for update
 // GeneralLedgerCurrentMemberAccount returns GeneralLedgerCurrentMemberAccount for the current branch or organization where applicable.
-func (m *ModelCore) GeneralLedgerCurrentMemberAccount(context context.Context, memberProfileId, accountId, orgID, branchID uuid.UUID) (*GeneralLedger, error) {
+func (m *ModelCore) GeneralLedgerCurrentMemberAccount(context context.Context, memberProfileID, accountId, orgID, branchID uuid.UUID) (*GeneralLedger, error) {
 	return m.GeneralLedgerManager.FindOne(context, &GeneralLedger{
 		OrganizationID:  orgID,
 		BranchID:        branchID,
 		AccountID:       &accountId,
-		MemberProfileID: &memberProfileId,
+		MemberProfileID: &memberProfileID,
 	})
 }
-// GeneralLedgerCurrentMemberAccountForUpdate 
+
+// GeneralLedgerCurrentMemberAccountForUpdate
 
 // General Ledger Queries with locking for update
 // GeneralLedgerCurrentMemberAccountForUpdate returns GeneralLedgerCurrentMemberAccountForUpdate for the current branch or organization where applicable.
 func (m *ModelCore) GeneralLedgerCurrentMemberAccountForUpdate(
-	ctx context.Context, tx *gorm.DB, memberProfileId, accountId, orgID, branchID uuid.UUID,
+	ctx context.Context, tx *gorm.DB, memberProfileID, accountId, orgID, branchID uuid.UUID,
 ) (*GeneralLedger, error) {
 	var ledger GeneralLedger
 	err := tx.
 		WithContext(ctx).
 		Model(&GeneralLedger{}).
-		Where("organization_id = ? AND branch_id = ? AND account_id = ? AND member_profile_id = ?", orgID, branchID, accountId, memberProfileId).
+		Where("organization_id = ? AND branch_id = ? AND account_id = ? AND member_profile_id = ?", orgID, branchID, accountId, memberProfileID).
 		Order("entry_date DESC NULLS LAST, created_at DESC").
 		Limit(1).
 		Clauses(clause.Locking{Strength: "UPDATE"}).
@@ -363,7 +364,7 @@ func (m *ModelCore) GeneralLedgerCurrentMemberAccountForUpdate(
 		return nil, nil
 	}
 	return &ledger, err
-// GeneralLedgerCurrentSubsidiaryAccountForUpdate 
+	// GeneralLedgerCurrentSubsidiaryAccountForUpdate
 }
 
 // General Ledger Queries with locking for update
@@ -383,7 +384,7 @@ func (m *ModelCore) GeneralLedgerCurrentSubsidiaryAccountForUpdate(
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}
-// GeneralLedgerCashOnHandOnUpdate 
+	// GeneralLedgerCashOnHandOnUpdate
 	return &ledger, err
 }
 
@@ -403,7 +404,7 @@ func (m *ModelCore) GeneralLedgerCashOnHandOnUpdate(
 		Take(&ledger).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, nil
-// GeneralLedgerPrintMaxNumber 
+		// GeneralLedgerPrintMaxNumber
 	}
 	return &ledger, err
 }
@@ -420,7 +421,7 @@ func (m *ModelCore) GeneralLedgerPrintMaxNumber(
 		Select("COALESCE(MAX(print_number), 0)").
 		Scan(&maxPrintNumber).Error
 	if err != nil {
-// GeneralLedgerExcludeCashonHand 
+		// GeneralLedgerExcludeCashonHand
 		return 0, err
 	}
 	return maxPrintNumber, nil
@@ -446,7 +447,7 @@ func (m *ModelCore) GeneralLedgerExcludeCashonHand(
 		filters = append(filters, services.Filter{
 			Field: "account_id",
 			Op:    services.OpNe,
-// GeneralLedgerExcludeCashonHandWithType 
+			// GeneralLedgerExcludeCashonHandWithType
 			Value: *branchSetting.CashOnHandAccountID,
 		})
 	}
@@ -482,7 +483,7 @@ func (m *ModelCore) GeneralLedgerExcludeCashonHandWithType(
 	if branchSetting.CashOnHandAccountID != nil {
 		filters = append(filters, services.Filter{
 			Field: "account_id",
-// GeneralLedgerExcludeCashonHandWithSource 
+			// GeneralLedgerExcludeCashonHandWithSource
 			Op:    services.OpNe,
 			Value: *branchSetting.CashOnHandAccountID,
 		})
@@ -518,7 +519,7 @@ func (m *ModelCore) GeneralLedgerExcludeCashonHandWithSource(
 	}
 	if branchSetting.CashOnHandAccountID != nil {
 		filters = append(filters, services.Filter{
-// GeneralLedgerExcludeCashonHandWithFilters 
+			// GeneralLedgerExcludeCashonHandWithFilters
 			Field: "account_id",
 			Op:    services.OpNe,
 			Value: *branchSetting.CashOnHandAccountID,

@@ -143,10 +143,10 @@ func (m *ModelCore) MemberClassificationHistoryCurrentBranch(context context.Con
 }
 
 // MemberClassificationHistoryMemberProfileID returns MemberClassificationHistoryMemberProfileID for the current branch or organization where applicable.
-func (m *ModelCore) MemberClassificationHistoryMemberProfileID(context context.Context, memberProfileId, orgID, branchID uuid.UUID) ([]*MemberClassificationHistory, error) {
+func (m *ModelCore) MemberClassificationHistoryMemberProfileID(context context.Context, memberProfileID, orgID, branchID uuid.UUID) ([]*MemberClassificationHistory, error) {
 	return m.MemberClassificationHistoryManager.Find(context, &MemberClassificationHistory{
 		OrganizationID:  orgID,
 		BranchID:        branchID,
-		MemberProfileID: memberProfileId,
+		MemberProfileID: memberProfileID,
 	})
 }

@@ -195,9 +195,9 @@ func (e *Event) TransactionPayment(
 			return nil, eris.Wrap(err, "failed to retrieve transaction")
 		}
 	}
-	var memberProfileId *uuid.UUID
+	var memberProfileID *uuid.UUID
 	if transaction != nil {
-		memberProfileId = transaction.MemberProfileID
+		memberProfileID = transaction.MemberProfileID
 	}
 
 	// GET member profile (if provided)
@@ -243,7 +243,7 @@ func (e *Event) TransactionPayment(
 			block("Member does not belong to the current organization")
 			return nil, eris.New("member does not belong to the current organization")
 		}
-		memberProfileId = &memberProfile.ID
+		memberProfileID = &memberProfile.ID
 	}
 
 	// GET transaction batch
@@ -337,10 +337,10 @@ func (e *Event) TransactionPayment(
 
 	// GET general ledger (with lock)
 	var generalLedger *modelcore.GeneralLedger
-	if memberProfileId != nil {
+	if memberProfileID != nil {
 		// Member-specific transaction
 		generalLedger, err = e.modelcore.GeneralLedgerCurrentMemberAccountForUpdate(
-			ctx, tx, *memberProfileId, *data.AccountID, userOrg.OrganizationID, *userOrg.BranchID)
+			ctx, tx, *memberProfileID, *data.AccountID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			tx.Rollback()
 			e.Footstep(ctx, echoCtx, FootstepEvent{
@@ -423,7 +423,7 @@ func (e *Event) TransactionPayment(
 			SignatureMediaID:     data.SignatureMediaID,
 			TransactionBatchID:   &transactionBatch.ID,
 			EmployeeUserID:       &userOrg.UserID,
-			MemberProfileID:      memberProfileId,
+			MemberProfileID:      memberProfileID,
 			MemberJointAccountID: data.MemberJointAccountID,
 			ReferenceNumber:      data.ReferenceNumber,
 			Description:          data.Description,
@@ -539,7 +539,7 @@ func (e *Event) TransactionPayment(
 		ProofOfPaymentMediaID:      data.ProofOfPaymentMediaID,
 		BankID:                     data.BankID,
 		AccountID:                  data.AccountID,
-		MemberProfileID:            memberProfileId,
+		MemberProfileID:            memberProfileID,
 		MemberJointAccountID:       memberJointAccountID,
 		PaymentTypeID:              &paymentType.ID,
 		TransactionReferenceNumber: data.ReferenceNumber,
@@ -614,14 +614,14 @@ func (e *Event) TransactionPayment(
 	// ================================================================================
 	// STEP 8: UPDATE/CREATE MEMBER ACCOUNTING PROFILE UPDATE
 	// ================================================================================
-	if memberProfileId != nil {
+	if memberProfileID != nil {
 		lastPayTime := now
 		if data.EntryDate != nil {
 			lastPayTime = *data.EntryDate
 		}
 		_, err := e.modelcore.MemberAccountingLedgerUpdateOrCreate(
 			ctx, tx,
-			*memberProfileId,
+			*memberProfileID,
 			*data.AccountID,
 			userOrg.OrganizationID,
 			*userOrg.BranchID,
@@ -711,7 +711,7 @@ func (e *Event) TransactionPayment(
 		ProofOfPaymentMediaID:      data.ProofOfPaymentMediaID,
 		BankID:                     data.BankID,
 		AccountID:                  cashOnHandAccountID,
-		MemberProfileID:            memberProfileId,
+		MemberProfileID:            memberProfileID,
 		MemberJointAccountID:       memberJointAccountID,
 		PaymentTypeID:              &paymentType.ID,
 		TransactionReferenceNumber: data.ReferenceNumber,

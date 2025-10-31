@@ -133,10 +133,10 @@ func (m *ModelCore) MemberGenderHistoryCurrentBranch(context context.Context, or
 }
 
 // MemberGenderHistoryMemberProfileID returns MemberGenderHistoryMemberProfileID for the current branch or organization where applicable.
-func (m *ModelCore) MemberGenderHistoryMemberProfileID(context context.Context, memberProfileId, orgID, branchID uuid.UUID) ([]*MemberGenderHistory, error) {
+func (m *ModelCore) MemberGenderHistoryMemberProfileID(context context.Context, memberProfileID, orgID, branchID uuid.UUID) ([]*MemberGenderHistory, error) {
 	return m.MemberGenderHistoryManager.Find(context, &MemberGenderHistory{
 		OrganizationID:  orgID,
 		BranchID:        branchID,
-		MemberProfileID: memberProfileId,
+		MemberProfileID: memberProfileID,
 	})
 }

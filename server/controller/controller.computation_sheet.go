@@ -90,7 +90,7 @@ func (c *Controller) computationSheetController() {
 			Type:    modelcore.LoanTransactionAddOn,
 			IsAddOn: true,
 		}
-		totalNonAddOns, total_add_ons := 0.0, 0.0
+		totalNonAddOns, totalAddOns := 0.0, 0.0
 		for _, ald := range automaticLoanDeductionEntries {
 			if ald.AccountID == nil {
 				continue
@@ -131,7 +131,7 @@ func (c *Controller) computationSheetController() {
 			if !entry.IsAddOn {
 				totalNonAddOns += entry.Credit
 			} else {
-				total_add_ons += entry.Credit
+				totalAddOns += entry.Credit
 			}
 			if entry.Credit > 0 {
 				loanTransactionEntries = append(loanTransactionEntries, entry)
@@ -140,10 +140,10 @@ func (c *Controller) computationSheetController() {
 		if request.IsAddOn {
 			loanTransactionEntries[0].Credit = request.Applied1 - totalNonAddOns
 		} else {
-			loanTransactionEntries[0].Credit = request.Applied1 - (totalNonAddOns + total_add_ons)
+			loanTransactionEntries[0].Credit = request.Applied1 - (totalNonAddOns + totalAddOns)
 		}
 		if request.IsAddOn {
-			addOnEntry.Debit = total_add_ons
+			addOnEntry.Debit = totalAddOns
 			loanTransactionEntries = append(loanTransactionEntries, addOnEntry)
 		}
 		totalDebit, totalCredit := 0.0, 0.0

@@ -189,14 +189,14 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	// STEP 7: PROCESS EXISTING DEDUCTIONS & CALCULATE TOTALS
 	// ================================================================================
 
-	total_non_add_ons, total_add_ons := 0.0, 0.0
+	total_non_add_ons, totalAddOns := 0.0, 0.0
 
 	// Add existing deduction entries and calculate running totals
 	for _, entry := range deduction {
 		if !entry.IsAddOn {
 			total_non_add_ons += entry.Credit
 		} else {
-			total_add_ons += entry.Credit
+			totalAddOns += entry.Credit
 		}
 		result = append(result, entry)
 	}
@@ -230,7 +230,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 			total_non_add_ons += entry.Credit
 
 		} else {
-			total_add_ons += entry.Credit
+			totalAddOns += entry.Credit
 		}
 
 		if entry.Credit > 0 {
@@ -286,7 +286,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 				total_non_add_ons += entry.Credit
 
 			} else {
-				total_add_ons += entry.Credit
+				totalAddOns += entry.Credit
 
 			}
 
@@ -321,12 +321,12 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	if loanTransaction.IsAddOn {
 		result[0].Credit = loanTransaction.Applied1 - total_non_add_ons
 	} else {
-		result[0].Credit = loanTransaction.Applied1 - (total_non_add_ons + total_add_ons)
+		result[0].Credit = loanTransaction.Applied1 - (total_non_add_ons + totalAddOns)
 	}
 
 	// Add the add-on interest entry if applicable
-	if loanTransaction.IsAddOn && total_add_ons > 0 {
-		addOnEntry.Debit = total_add_ons
+	if loanTransaction.IsAddOn && totalAddOns > 0 {
+		addOnEntry.Debit = totalAddOns
 		result = append(result, addOnEntry)
 	}
 
