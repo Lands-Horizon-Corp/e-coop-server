@@ -16,26 +16,31 @@ type UserOrganizationStatus string
 
 const (
 	// UserOrganizationStatusOnline indicates the user is currently online
-	UserOrganizationStatusOnline    UserOrganizationStatus = "online"
+	UserOrganizationStatusOnline UserOrganizationStatus = "online"
 	// UserOrganizationStatusOffline indicates the user is currently offline
-	UserOrganizationStatusOffline   UserOrganizationStatus = "offline"
+	UserOrganizationStatusOffline UserOrganizationStatus = "offline"
 	// UserOrganizationStatusBusy indicates the user is currently busy
-	UserOrganizationStatusBusy      UserOrganizationStatus = "busy"
+	UserOrganizationStatusBusy UserOrganizationStatus = "busy"
 	// UserOrganizationStatusVacation indicates the user is on vacation
-	UserOrganizationStatusVacation  UserOrganizationStatus = "vacation"
+	UserOrganizationStatusVacation UserOrganizationStatus = "vacation"
 	// UserOrganizationStatusCommuting indicates the user is commuting
 	UserOrganizationStatusCommuting UserOrganizationStatus = "commuting"
 )
 
+// UserOrganizationType represents the role type of a user within an organization
 type UserOrganizationType string
 
 const (
-	UserOrganizationTypeOwner    UserOrganizationType = "owner"
+	// UserOrganizationTypeOwner indicates the user is an owner of the organization
+	UserOrganizationTypeOwner UserOrganizationType = "owner"
+	// UserOrganizationTypeEmployee indicates the user is an employee of the organization
 	UserOrganizationTypeEmployee UserOrganizationType = "employee"
-	UserOrganizationTypeMember   UserOrganizationType = "member"
+	// UserOrganizationTypeMember indicates the user is a member of the organization
+	UserOrganizationTypeMember UserOrganizationType = "member"
 )
 
 type (
+	// UserOrganization represents the relationship between a user and an organization/branch
 	UserOrganization struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -102,6 +107,7 @@ type (
 		BranchSettingDefaultMemberType   *MemberType `gorm:"foreignKey:BranchSettingDefaultMemberTypeID;constraint:OnDelete:SET NULL;"`
 	}
 
+	// UserOrganizationRequest represents the request payload for creating or updating user organization data
 	UserOrganizationRequest struct {
 		ID       *uuid.UUID           `json:"id,omitempty"`
 		UserType UserOrganizationType `json:"user_type,omitempty" validate:"omitempty,oneof=employee member owner"`
@@ -125,6 +131,7 @@ type (
 		UserSettingUsedVoucher  int64 `json:"user_setting_used_voucher,omitempty" validate:"min=0"`
 	}
 
+	// UserOrganizationSettingsRequest represents the request payload for updating user organization settings
 	UserOrganizationSettingsRequest struct {
 		UserType    UserOrganizationType `json:"user_type,omitempty" validate:"omitempty,oneof=employee member"`
 		Description string               `json:"description,omitempty"`
@@ -153,6 +160,7 @@ type (
 		SettingsPaymentTypeDefaultValueID        *uuid.UUID `json:"settings_payment_type_default_value_id,omitempty"`
 	}
 
+	// UserOrganizationSelfSettingsRequest represents the request payload for users updating their own organization settings
 	UserOrganizationSelfSettingsRequest struct {
 		Description            string `json:"description,omitempty"`
 		UserSettingDescription string `json:"user_setting_description,omitempty"`
@@ -176,6 +184,7 @@ type (
 		SettingsPaymentTypeDefaultValueID        *uuid.UUID `json:"settings_payment_type_default_value_id,omitempty"`
 	}
 
+	// UserOrganizationResponse represents the JSON response structure for user organization data
 	UserOrganizationResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -232,12 +241,14 @@ type (
 		SettingsPaymentTypeDefaultValue   *PaymentTypeResponse `json:"settings_payment_type_default_value,omitempty"`
 	}
 
+	// UserOrganizationPermissionPayload represents the payload for managing user organization permissions
 	UserOrganizationPermissionPayload struct {
 		PermissionName        string   `json:"permission_name" validate:"required"`
 		PermissionDescription string   `json:"permission_description" validate:"required"`
 		Permissions           []string `json:"permissions" validate:"required,min=1,dive,required"`
 	}
 
+	// DeveloperSecretKeyResponse represents the response containing a developer secret key
 	DeveloperSecretKeyResponse struct {
 		DeveloperSecretKey string `json:"developer_secret_key"`
 	}
