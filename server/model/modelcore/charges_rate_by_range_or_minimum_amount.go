@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// ChargesRateByRangeOrMinimumAmount represents the ChargesRateByRangeOrMinimumAmount model.
 	ChargesRateByRangeOrMinimumAmount struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -40,6 +41,7 @@ type (
 
 	// ChargesRateByRangeOrMinimumAmountResponse represents the response structure for chargesratebyrangeorminimumamount data
 
+	// ChargesRateByRangeOrMinimumAmountResponse represents the response structure for ChargesRateByRangeOrMinimumAmount.
 	ChargesRateByRangeOrMinimumAmountResponse struct {
 		ID                  uuid.UUID                  `json:"id"`
 		CreatedAt           string                     `json:"created_at"`
@@ -63,6 +65,7 @@ type (
 
 	// ChargesRateByRangeOrMinimumAmountRequest represents the request structure for creating/updating chargesratebyrangeorminimumamount
 
+	// ChargesRateByRangeOrMinimumAmountRequest represents the request structure for ChargesRateByRangeOrMinimumAmount.
 	ChargesRateByRangeOrMinimumAmountRequest struct {
 		ID            *uuid.UUID `json:"id,omitempty"`
 		From          float64    `json:"from,omitempty"`

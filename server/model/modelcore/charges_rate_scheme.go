@@ -19,6 +19,7 @@ const (
 )
 
 type (
+	// ChargesRateScheme represents the ChargesRateScheme model.
 	ChargesRateScheme struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -103,6 +104,7 @@ type (
 
 	// ChargesRateSchemeResponse represents the response structure for chargesratescheme data
 
+	// ChargesRateSchemeResponse represents the response structure for ChargesRateScheme.
 	ChargesRateSchemeResponse struct {
 		ID                        uuid.UUID             `json:"id"`
 		CreatedAt                 string                `json:"created_at"`
@@ -181,6 +183,7 @@ type (
 
 	// ChargesRateSchemeRequest represents the request structure for creating/updating chargesratescheme
 
+	// ChargesRateSchemeRequest represents the request structure for ChargesRateScheme.
 	ChargesRateSchemeRequest struct {
 		ChargesRateByTermHeaderID uuid.UUID             `json:"charges_rate_by_term_header_id,omitempty"`
 		Name                      string                `json:"name" validate:"required,min=1,max=255"`

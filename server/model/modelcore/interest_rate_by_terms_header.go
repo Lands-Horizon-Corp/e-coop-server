@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// InterestRateByTermsHeader represents the InterestRateByTermsHeader model.
 	InterestRateByTermsHeader struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -58,6 +59,7 @@ type (
 
 	// InterestRateByTermsHeaderResponse represents the response structure for interestratebytermsheader data
 
+	// InterestRateByTermsHeaderResponse represents the response structure for InterestRateByTermsHeader.
 	InterestRateByTermsHeaderResponse struct {
 		ID                                 uuid.UUID             `json:"id"`
 		CreatedAt                          string                `json:"created_at"`
@@ -98,6 +100,7 @@ type (
 
 	// InterestRateByTermsHeaderRequest represents the request structure for creating/updating interestratebytermsheader
 
+	// InterestRateByTermsHeaderRequest represents the request structure for InterestRateByTermsHeader.
 	InterestRateByTermsHeaderRequest struct {
 		MemberClassificationInterestRateID uuid.UUID `json:"member_classification_interest_rate_id"`
 		Header1                            int       `json:"header_1,omitempty"`
@@ -204,6 +207,7 @@ func (m *ModelCore) interestRateByTermsHeader() {
 	})
 }
 
+// InterestRateByTermsHeaderCurrentBranch returns InterestRateByTermsHeaderCurrentBranch for the current branch or organization where applicable.
 func (m *ModelCore) InterestRateByTermsHeaderCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*InterestRateByTermsHeader, error) {
 	return m.InterestRateByTermsHeaderManager.Find(context, &InterestRateByTermsHeader{
 		OrganizationID: orgID,

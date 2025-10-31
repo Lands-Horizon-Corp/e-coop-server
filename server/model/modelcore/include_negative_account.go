@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// IncludeNegativeAccount represents the IncludeNegativeAccount model.
 	IncludeNegativeAccount struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -38,6 +39,7 @@ type (
 
 	// IncludeNegativeAccountResponse represents the response structure for includenegativeaccount data
 
+	// IncludeNegativeAccountResponse represents the response structure for IncludeNegativeAccount.
 	IncludeNegativeAccountResponse struct {
 		ID                 uuid.UUID                 `json:"id"`
 		CreatedAt          string                    `json:"created_at"`
@@ -59,6 +61,7 @@ type (
 
 	// IncludeNegativeAccountRequest represents the request structure for creating/updating includenegativeaccount
 
+	// IncludeNegativeAccountRequest represents the request structure for IncludeNegativeAccount.
 	IncludeNegativeAccountRequest struct {
 		ComputationSheetID *uuid.UUID `json:"computation_sheet_id,omitempty"`
 		AccountID          *uuid.UUID `json:"account_id,omitempty"`

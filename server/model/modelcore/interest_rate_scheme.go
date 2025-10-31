@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// InterestRateScheme represents the InterestRateScheme model.
 	InterestRateScheme struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -34,6 +35,7 @@ type (
 
 	// InterestRateSchemeResponse represents the response structure for interestratescheme data
 
+	// InterestRateSchemeResponse represents the response structure for InterestRateScheme.
 	InterestRateSchemeResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -52,6 +54,7 @@ type (
 
 	// InterestRateSchemeRequest represents the request structure for creating/updating interestratescheme
 
+	// InterestRateSchemeRequest represents the request structure for InterestRateScheme.
 	InterestRateSchemeRequest struct {
 		Name        string `json:"name" validate:"required,min=1,max=255"`
 		Description string `json:"description,omitempty"`
@@ -114,6 +117,7 @@ func (m *ModelCore) interestRateScheme() {
 	})
 }
 
+// InterestRateSchemeCurrentBranch returns InterestRateSchemeCurrentBranch for the current branch or organization where applicable.
 func (m *ModelCore) InterestRateSchemeCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*InterestRateScheme, error) {
 	return m.InterestRateSchemeManager.Find(context, &InterestRateScheme{
 		OrganizationID: orgID,

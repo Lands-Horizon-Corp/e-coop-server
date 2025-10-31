@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// BatchFunding represents the BatchFunding model.
 	BatchFunding struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -47,6 +48,7 @@ type (
 
 	// BatchFundingResponse represents the response structure for batchfunding data
 
+	// BatchFundingResponse represents the response structure for BatchFunding.
 	BatchFundingResponse struct {
 		ID                 uuid.UUID                 `json:"id"`
 		CreatedAt          string                    `json:"created_at"`
@@ -74,6 +76,7 @@ type (
 
 	// BatchFundingRequest represents the request structure for creating/updating batchfunding
 
+	// BatchFundingRequest represents the request structure for BatchFunding.
 	BatchFundingRequest struct {
 		ProvidedByUserID uuid.UUID  `json:"provided_by_user_id" validate:"required"`
 		SignatureMediaID *uuid.UUID `json:"signature_media_id,omitempty"`

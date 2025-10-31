@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// MemberDamayanExtensionEntry represents the MemberDamayanExtensionEntry model.
 	MemberDamayanExtensionEntry struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -38,6 +39,7 @@ type (
 
 	// MemberDamayanExtensionEntryResponse represents the response structure for memberdamayanextensionentry data
 
+	// MemberDamayanExtensionEntryResponse represents the response structure for MemberDamayanExtensionEntry.
 	MemberDamayanExtensionEntryResponse struct {
 		ID              uuid.UUID              `json:"id"`
 		CreatedAt       string                 `json:"created_at"`
@@ -59,6 +61,7 @@ type (
 
 	// MemberDamayanExtensionEntryRequest represents the request structure for creating/updating memberdamayanextensionentry
 
+	// MemberDamayanExtensionEntryRequest represents the request structure for MemberDamayanExtensionEntry.
 	MemberDamayanExtensionEntryRequest struct {
 		MemberProfileID uuid.UUID  `json:"member_profile_id" validate:"required"`
 		Name            string     `json:"name" validate:"required,min=1,max=255"`
@@ -128,6 +131,7 @@ func (m *ModelCore) memberDamayanExtensionEntry() {
 	})
 }
 
+// MemberDamayanExtensionEntryCurrentBranch returns MemberDamayanExtensionEntryCurrentBranch for the current branch or organization where applicable.
 func (m *ModelCore) MemberDamayanExtensionEntryCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberDamayanExtensionEntry, error) {
 	return m.MemberDamayanExtensionEntryManager.Find(context, &MemberDamayanExtensionEntry{
 		OrganizationID: orgID,

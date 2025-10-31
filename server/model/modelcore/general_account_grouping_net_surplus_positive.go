@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// GeneralAccountGroupingNetSurplusPositive represents the GeneralAccountGroupingNetSurplusPositive model.
 	GeneralAccountGroupingNetSurplusPositive struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -39,6 +40,7 @@ type (
 
 	// GeneralAccountGroupingNetSurplusPositiveResponse represents the response structure for generalaccountgroupingnetsurpluspositive data
 
+	// GeneralAccountGroupingNetSurplusPositiveResponse represents the response structure for GeneralAccountGroupingNetSurplusPositive.
 	GeneralAccountGroupingNetSurplusPositiveResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -61,6 +63,7 @@ type (
 
 	// GeneralAccountGroupingNetSurplusPositiveRequest represents the request structure for creating/updating generalaccountgroupingnetsurpluspositive
 
+	// GeneralAccountGroupingNetSurplusPositiveRequest represents the request structure for GeneralAccountGroupingNetSurplusPositive.
 	GeneralAccountGroupingNetSurplusPositiveRequest struct {
 		Name        string    `json:"name" validate:"required,min=1,max=255"`
 		Description string    `json:"description,omitempty"`
@@ -128,6 +131,7 @@ func (m *ModelCore) generalAccountGroupingNetSurplusPositive() {
 	})
 }
 
+// GeneralAccountGroupingNetSurplusPositiveCurrentBranch returns GeneralAccountGroupingNetSurplusPositiveCurrentBranch for the current branch or organization where applicable.
 func (m *ModelCore) GeneralAccountGroupingNetSurplusPositiveCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*GeneralAccountGroupingNetSurplusPositive, error) {
 	return m.GeneralAccountGroupingNetSurplusPositiveManager.Find(context, &GeneralAccountGroupingNetSurplusPositive{
 		OrganizationID: orgID,

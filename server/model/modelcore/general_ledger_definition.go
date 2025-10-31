@@ -15,6 +15,7 @@ import (
 type GeneralLedgerType string // adjust as needed
 
 type (
+	// GeneralLedgerDefinition represents the GeneralLedgerDefinition model.
 	GeneralLedgerDefinition struct {
 		ID             uuid.UUID     `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_general_ledger_definition"`
@@ -54,6 +55,7 @@ type (
 
 	// GeneralLedgerDefinitionResponse represents the response structure for generalledgerdefinition data
 
+	// GeneralLedgerDefinitionResponse represents the response structure for GeneralLedgerDefinition.
 	GeneralLedgerDefinitionResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		OrganizationID uuid.UUID             `json:"organization_id"`
@@ -91,6 +93,7 @@ type (
 
 	// GeneralLedgerDefinitionRequest represents the request structure for creating/updating generalledgerdefinition
 
+	// GeneralLedgerDefinitionRequest represents the request structure for GeneralLedgerDefinition.
 	GeneralLedgerDefinitionRequest struct {
 		Name                            string            `json:"name" validate:"required,min=1,max=255"`
 		Description                     string            `json:"description,omitempty"`
@@ -212,6 +215,7 @@ func (m *ModelCore) generalLedgerDefinition() {
 	})
 }
 
+// GeneralLedgerDefinitionCurrentBranch returns GeneralLedgerDefinitionCurrentBranch for the current branch or organization where applicable.
 func (m *ModelCore) GeneralLedgerDefinitionCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*GeneralLedgerDefinition, error) {
 	return m.GeneralLedgerDefinitionManager.Find(context, &GeneralLedgerDefinition{
 		OrganizationID: orgID,

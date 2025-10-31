@@ -12,6 +12,7 @@ import (
 )
 
 type (
+	// BillAndCoins represents the BillAndCoins model.
 	BillAndCoins struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -41,6 +42,7 @@ type (
 
 	// BillAndCoinsResponse represents the response structure for billandcoins data
 
+	// BillAndCoinsResponse represents the response structure for BillAndCoins.
 	BillAndCoinsResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -63,6 +65,7 @@ type (
 
 	// BillAndCoinsRequest represents the request structure for creating/updating billandcoins
 
+	// BillAndCoinsRequest represents the request structure for BillAndCoins.
 	BillAndCoinsRequest struct {
 		Name       string     `json:"name" validate:"required,min=1,max=255"`
 		Value      float64    `json:"value" validate:"required"`

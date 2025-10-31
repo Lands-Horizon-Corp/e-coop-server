@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// ChargesRateSchemeModeOfPayment represents the ChargesRateSchemeModeOfPayment model.
 	ChargesRateSchemeModeOfPayment struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -60,6 +61,7 @@ type (
 
 	// ChargesRateSchemeModeOfPaymentResponse represents the response structure for chargesrateschememodeofpayment data
 
+	// ChargesRateSchemeModeOfPaymentResponse represents the response structure for ChargesRateSchemeModeOfPayment.
 	ChargesRateSchemeModeOfPaymentResponse struct {
 		ID                  uuid.UUID                  `json:"id"`
 		CreatedAt           string                     `json:"created_at"`
@@ -103,6 +105,7 @@ type (
 
 	// ChargesRateSchemeModeOfPaymentRequest represents the request structure for creating/updating chargesrateschememodeofpayment
 
+	// ChargesRateSchemeModeOfPaymentRequest represents the request structure for ChargesRateSchemeModeOfPayment.
 	ChargesRateSchemeModeOfPaymentRequest struct {
 		ID   *uuid.UUID `json:"id,omitempty"`
 		From float64    `json:"from,omitempty"`

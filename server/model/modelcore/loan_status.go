@@ -12,6 +12,7 @@ import (
 )
 
 type (
+	// LoanStatus represents a status value used to track the lifecycle of a loan application or account.
 	LoanStatus struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -37,6 +38,7 @@ type (
 
 	// LoanStatusResponse represents the response structure for loanstatus data
 
+	// LoanStatusResponse represents the response structure for LoanStatus.
 	LoanStatusResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -57,6 +59,7 @@ type (
 
 	// LoanStatusRequest represents the request structure for creating/updating loanstatus
 
+	// LoanStatusRequest represents the request structure for LoanStatus.
 	LoanStatusRequest struct {
 		Name        string `json:"name" validate:"required,min=1,max=255"`
 		Icon        string `json:"icon,omitempty"`
@@ -746,6 +749,7 @@ func (m *ModelCore) loanStatusSeed(context context.Context, tx *gorm.DB, userID 
 	return nil
 }
 
+// LoanStatusCurrentBranch retrieves loan statuses for the given organization and branch.
 func (m *ModelCore) LoanStatusCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*LoanStatus, error) {
 	return m.LoanStatusManager.Find(context, &LoanStatus{
 		OrganizationID: orgID,

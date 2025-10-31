@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// AutomaticLoanDeduction represents the AutomaticLoanDeduction model.
 	AutomaticLoanDeduction struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -58,6 +59,7 @@ type (
 
 	// AutomaticLoanDeductionResponse represents the response structure for automaticloandeduction data
 
+	// AutomaticLoanDeductionResponse represents the response structure for AutomaticLoanDeduction.
 	AutomaticLoanDeductionResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -101,6 +103,7 @@ type (
 
 	// AutomaticLoanDeductionRequest represents the request structure for creating/updating automaticloandeduction
 
+	// AutomaticLoanDeductionRequest represents the request structure for AutomaticLoanDeduction.
 	AutomaticLoanDeductionRequest struct {
 		AccountID           *uuid.UUID `json:"account_id" validate:"required"`
 		ComputationSheetID  *uuid.UUID `json:"computation_sheet_id,omitempty"`

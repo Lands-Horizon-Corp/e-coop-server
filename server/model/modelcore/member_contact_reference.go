@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// MemberContactReference represents the MemberContactReference model.
 	MemberContactReference struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -38,6 +39,7 @@ type (
 
 	// MemberContactReferenceResponse represents the response structure for membercontactreference data
 
+	// MemberContactReferenceResponse represents the response structure for MemberContactReference.
 	MemberContactReferenceResponse struct {
 		ID              uuid.UUID              `json:"id"`
 		CreatedAt       string                 `json:"created_at"`
@@ -59,6 +61,7 @@ type (
 
 	// MemberContactReferenceRequest represents the request structure for creating/updating membercontactreference
 
+	// MemberContactReferenceRequest represents the request structure for MemberContactReference.
 	MemberContactReferenceRequest struct {
 		MemberProfileID uuid.UUID `json:"member_profile_id" validate:"required"`
 		Name            string    `json:"name" validate:"required,min=1,max=255"`
@@ -123,6 +126,7 @@ func (m *ModelCore) memberContactReference() {
 	})
 }
 
+// MemberContactReferenceCurrentBranch returns MemberContactReferenceCurrentBranch for the current branch or organization where applicable.
 func (m *ModelCore) MemberContactReferenceCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberContactReference, error) {
 	return m.MemberContactReferenceManager.Find(context, &MemberContactReference{
 		OrganizationID: orgID,

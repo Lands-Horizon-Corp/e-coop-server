@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// TimeDepositComputation represents the TimeDepositComputation model.
 	TimeDepositComputation struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -49,6 +50,7 @@ type (
 
 	// TimeDepositComputationResponse represents the response structure for timedepositcomputation data
 
+	// TimeDepositComputationResponse represents the response structure for TimeDepositComputation.
 	TimeDepositComputationResponse struct {
 		ID                uuid.UUID                `json:"id"`
 		CreatedAt         string                   `json:"created_at"`
@@ -80,6 +82,7 @@ type (
 
 	// TimeDepositComputationRequest represents the request structure for creating/updating timedepositcomputation
 
+	// TimeDepositComputationRequest represents the request structure for TimeDepositComputation.
 	TimeDepositComputationRequest struct {
 		ID            *uuid.UUID `json:"id,omitempty"`
 		MinimumAmount float64    `json:"minimum_amount,omitempty"`

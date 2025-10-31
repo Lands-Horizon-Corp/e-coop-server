@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// CashCheckVoucherEntry represents the CashCheckVoucherEntry model.
 	CashCheckVoucherEntry struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -47,6 +48,7 @@ type (
 
 	// CashCheckVoucherEntryResponse represents the response structure for cashcheckvoucherentry data
 
+	// CashCheckVoucherEntryResponse represents the response structure for CashCheckVoucherEntry.
 	CashCheckVoucherEntryResponse struct {
 		ID                     uuid.UUID                 `json:"id"`
 		CreatedAt              string                    `json:"created_at"`
@@ -77,6 +79,7 @@ type (
 
 	// CashCheckVoucherEntryRequest represents the request structure for creating/updating cashcheckvoucherentry
 
+	// CashCheckVoucherEntryRequest represents the request structure for CashCheckVoucherEntry.
 	CashCheckVoucherEntryRequest struct {
 		ID                     *uuid.UUID `json:"id,omitempty"`
 		AccountID              uuid.UUID  `json:"account_id" validate:"required"`

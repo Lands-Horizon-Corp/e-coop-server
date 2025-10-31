@@ -10,6 +10,7 @@ import (
 )
 
 type (
+	// ContactUs represents the ContactUs model.
 	ContactUs struct {
 		ID            uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		FirstName     string         `gorm:"type:varchar(255);not null"`
@@ -24,6 +25,7 @@ type (
 
 	// ContactUsResponse represents the response structure for contactus data
 
+	// ContactUsResponse represents the response structure for ContactUs.
 	ContactUsResponse struct {
 		ID            uuid.UUID `json:"id"`
 		FirstName     string    `json:"first_name"`
@@ -37,6 +39,7 @@ type (
 
 	// ContactUsRequest represents the request structure for creating/updating contactus
 
+	// ContactUsRequest represents the request structure for ContactUs.
 	ContactUsRequest struct {
 		ID            *uuid.UUID `json:"id,omitempty"`
 		FirstName     string     `json:"first_name" validate:"required,min=1,max=255"`

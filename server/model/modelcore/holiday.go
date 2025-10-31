@@ -12,6 +12,7 @@ import (
 )
 
 type (
+	// Holiday represents the Holiday model.
 	Holiday struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -38,6 +39,7 @@ type (
 
 	// HolidayResponse represents the response structure for holiday data
 
+	// HolidayResponse represents the response structure for Holiday.
 	HolidayResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -59,12 +61,14 @@ type (
 
 	// HolidayRequest represents the request structure for creating/updating holiday
 
+	// HolidayRequest represents the request structure for Holiday.
 	HolidayRequest struct {
 		EntryDate   time.Time `json:"entry_date" validate:"required"`
 		Name        string    `json:"name" validate:"required,min=1,max=255"`
 		Description string    `json:"description,omitempty"`
 		CurrencyID  uuid.UUID `json:"currency_id" validate:"required"`
 	}
+	// HoldayYearAvaiable represents the HoldayYearAvaiable model.
 	HoldayYearAvaiable struct {
 		Year  int `json:"year"`
 		Count int `json:"count"`
@@ -1470,6 +1474,7 @@ func (m *ModelCore) holidaySeed(context context.Context, tx *gorm.DB, userID uui
 	return nil
 }
 
+// HolidayCurrentBranch returns HolidayCurrentBranch for the current branch or organization where applicable.
 func (m *ModelCore) HolidayCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*Holiday, error) {
 	return m.HolidayManager.Find(context, &Holiday{
 		OrganizationID: orgID,

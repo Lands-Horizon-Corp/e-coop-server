@@ -252,6 +252,7 @@ type (
 		SignatureMediaID *uuid.UUID `json:"signature_media_id,omitempty"`
 	}
 
+	// AccountInfo represents the AccountInfo model.
 	AccountInfo struct {
 		UserName string `json:"user_name" validate:"required,min=1,max=255"`
 		Email    string `json:"email" validate:"required,email,max=255"`
@@ -448,6 +449,7 @@ func (m *ModelCore) MemberProfileCurrentBranch(context context.Context, orgID uu
 	})
 }
 
+// MemberProfileDelete returns MemberProfileDelete for the current branch or organization where applicable.
 func (m *ModelCore) MemberProfileDelete(context context.Context, tx *gorm.DB, memberProfileID uuid.UUID) error {
 	// Delete MemberEducationalAttainment records
 	memberEducationalAttainments, err := m.MemberEducationalAttainmentManager.Find(context, &MemberEducationalAttainment{
@@ -650,6 +652,7 @@ func (m *ModelCore) MemberProfileDelete(context context.Context, tx *gorm.DB, me
 
 	return m.MemberProfileManager.DeleteByIDWithTx(context, tx, memberProfileID)
 }
+// MemberProfileFindUserByID returns MemberProfileFindUserByID for the current branch or organization where applicable.
 func (m *ModelCore) MemberProfileFindUserByID(ctx context.Context, userID uuid.UUID, orgID uuid.UUID, branchID uuid.UUID) (*MemberProfile, error) {
 	return m.MemberProfileManager.FindOne(ctx, &MemberProfile{
 		UserID:         &userID,
@@ -717,6 +720,7 @@ func (m *ModelCore) memberProfileSeed(context context.Context, tx *gorm.DB, user
 	return nil
 }
 
+// MemberProfileDestroy returns MemberProfileDestroy for the current branch or organization where applicable.
 func (m *ModelCore) MemberProfileDestroy(ctx context.Context, tx *gorm.DB, id uuid.UUID) error {
 	memberProfile, err := m.MemberProfileManager.GetByID(ctx, id)
 	if err != nil {

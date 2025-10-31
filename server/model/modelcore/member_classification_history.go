@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// MemberClassificationHistory represents the MemberClassificationHistory model.
 	MemberClassificationHistory struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -37,6 +38,7 @@ type (
 
 	// MemberClassificationHistoryResponse represents the response structure for memberclassificationhistory data
 
+	// MemberClassificationHistoryResponse represents the response structure for MemberClassificationHistory.
 	MemberClassificationHistoryResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -59,6 +61,7 @@ type (
 
 	// MemberClassificationHistoryRequest represents the request structure for creating/updating memberclassificationhistory
 
+	// MemberClassificationHistoryRequest represents the request structure for MemberClassificationHistory.
 	MemberClassificationHistoryRequest struct {
 		MemberClassificationID uuid.UUID `json:"member_classification_id" validate:"required"`
 		MemberProfileID        uuid.UUID `json:"member_profile_id" validate:"required"`
@@ -131,6 +134,7 @@ func (m *ModelCore) memberClassificationHistory() {
 	})
 }
 
+// MemberClassificationHistoryCurrentBranch returns MemberClassificationHistoryCurrentBranch for the current branch or organization where applicable.
 func (m *ModelCore) MemberClassificationHistoryCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberClassificationHistory, error) {
 	return m.MemberClassificationHistoryManager.Find(context, &MemberClassificationHistory{
 		OrganizationID: orgID,
@@ -138,6 +142,7 @@ func (m *ModelCore) MemberClassificationHistoryCurrentBranch(context context.Con
 	})
 }
 
+// MemberClassificationHistoryMemberProfileID returns MemberClassificationHistoryMemberProfileID for the current branch or organization where applicable.
 func (m *ModelCore) MemberClassificationHistoryMemberProfileID(context context.Context, memberProfileId, orgID, branchID uuid.UUID) ([]*MemberClassificationHistory, error) {
 	return m.MemberClassificationHistoryManager.Find(context, &MemberClassificationHistory{
 		OrganizationID:  orgID,

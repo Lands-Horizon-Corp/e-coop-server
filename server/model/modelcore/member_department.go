@@ -12,6 +12,7 @@ import (
 )
 
 type (
+	// MemberDepartment represents the MemberDepartment model.
 	MemberDepartment struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -36,6 +37,7 @@ type (
 
 	// MemberDepartmentResponse represents the response structure for memberdepartment data
 
+	// MemberDepartmentResponse represents the response structure for MemberDepartment.
 	MemberDepartmentResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -55,6 +57,7 @@ type (
 
 	// MemberDepartmentRequest represents the request structure for creating/updating memberdepartment
 
+	// MemberDepartmentRequest represents the request structure for MemberDepartment.
 	MemberDepartmentRequest struct {
 		Name        string  `json:"name" validate:"required,min=1,max=255"`
 		Description string  `json:"description,omitempty"`
@@ -278,6 +281,7 @@ func (m *ModelCore) memberDepartmentSeed(context context.Context, tx *gorm.DB, u
 	return nil
 }
 
+// MemberDepartmentCurrentBranch returns MemberDepartmentCurrentBranch for the current branch or organization where applicable.
 func (m *ModelCore) MemberDepartmentCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberDepartment, error) {
 	return m.MemberDepartmentManager.Find(context, &MemberDepartment{
 		OrganizationID: orgID,

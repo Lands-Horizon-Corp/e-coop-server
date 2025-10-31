@@ -12,6 +12,7 @@ import (
 )
 
 type (
+	// FinancialStatementGrouping represents the FinancialStatementGrouping model.
 	FinancialStatementGrouping struct {
 		ID             uuid.UUID     `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_financial_statement_grouping"`
@@ -43,6 +44,7 @@ type (
 
 	// FinancialStatementGroupingResponse represents the response structure for financialstatementgrouping data
 
+	// FinancialStatementGroupingResponse represents the response structure for FinancialStatementGrouping.
 	FinancialStatementGroupingResponse struct {
 		ID                                  uuid.UUID                               `json:"id"`
 		OrganizationID                      uuid.UUID                               `json:"organization_id"`
@@ -69,6 +71,7 @@ type (
 
 	// FinancialStatementGroupingRequest represents the request structure for creating/updating financialstatementgrouping
 
+	// FinancialStatementGroupingRequest represents the request structure for FinancialStatementGrouping.
 	FinancialStatementGroupingRequest struct {
 		Name        string     `json:"name" validate:"required,min=1,max=50"`
 		Description string     `json:"description" validate:"required"`
@@ -218,6 +221,7 @@ func (m *ModelCore) financialStatementGroupingSeed(context context.Context, tx *
 	}
 	return nil
 }
+// FinancialStatementGroupingCurrentBranch returns FinancialStatementGroupingCurrentBranch for the current branch or organization where applicable.
 func (m *ModelCore) FinancialStatementGroupingCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*FinancialStatementGrouping, error) {
 	return m.FinancialStatementGroupingManager.Find(context, &FinancialStatementGrouping{
 		OrganizationID: orgID,

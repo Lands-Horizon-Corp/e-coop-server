@@ -147,6 +147,7 @@ type (
 
 	// AccountHistoryResponse represents the response structure for accounthistory data
 
+	// AccountHistoryResponse represents the response structure for AccountHistory.
 	AccountHistoryResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -256,6 +257,7 @@ type (
 
 	// AccountHistoryRequest represents the request structure for creating/updating accounthistory
 
+	// AccountHistoryRequest represents the request structure for AccountHistory.
 	AccountHistoryRequest struct {
 		AccountID     uuid.UUID         `json:"account_id" validate:"required"`
 		ChangeType    HistoryChangeType `json:"change_type" validate:"required"`
@@ -413,6 +415,7 @@ func (m *ModelCore) accountHistory() {
 }
 
 // Get history for a specific account
+// GetAccountHistory returns GetAccountHistory for the current branch or organization where applicable.
 func (m *ModelCore) GetAccountHistory(ctx context.Context, accountID uuid.UUID) ([]*AccountHistory, error) {
 	filters := []services.Filter{
 		{Field: "account_id", Op: services.OpEq, Value: accountID},
@@ -421,6 +424,7 @@ func (m *ModelCore) GetAccountHistory(ctx context.Context, accountID uuid.UUID) 
 	return m.AccountHistoryManager.FindWithFilters(ctx, filters)
 }
 
+// GetAccountAtTime returns GetAccountAtTime for the current branch or organization where applicable.
 func (m *ModelCore) GetAccountAtTime(ctx context.Context, accountID uuid.UUID, asOfDate time.Time) (*AccountHistory, error) {
 	filters := []services.Filter{
 		{Field: "account_id", Op: services.OpEq, Value: accountID},
@@ -456,6 +460,7 @@ func (m *ModelCore) GetAccountAtTime(ctx context.Context, accountID uuid.UUID, a
 }
 
 // Get all accounts that had changes within a date range
+// GetAccountsChangedInRange returns GetAccountsChangedInRange for the current branch or organization where applicable.
 func (m *ModelCore) GetAccountsChangedInRange(ctx context.Context, orgID, branchID uuid.UUID, startDate, endDate time.Time) ([]*AccountHistory, error) {
 	filters := []services.Filter{
 		{Field: "organization_id", Op: services.OpEq, Value: orgID},
@@ -468,6 +473,7 @@ func (m *ModelCore) GetAccountsChangedInRange(ctx context.Context, orgID, branch
 }
 
 // Close open history records when updating valid_to
+// CloseAccountHistory returns CloseAccountHistory for the current branch or organization where applicable.
 func (m *ModelCore) CloseAccountHistory(ctx context.Context, accountID uuid.UUID, closedAt time.Time) error {
 	// Since there's no UpdateWhere method, we'll need to find and update individually
 	filters := []services.Filter{

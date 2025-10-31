@@ -11,14 +11,26 @@ import (
 	"gorm.io/gorm"
 )
 
-// ENUMS
+// LoanModeOfPayment enumerates available loan payment modes (daily, weekly, monthly, etc.).
 type LoanModeOfPayment string
+
+// Weekdays represents the weekday used when a weekly mode of payment is selected.
 type Weekdays string
+
+// LoanCollectorPlace represents where a loan collector will collect payments (office/field).
 type LoanCollectorPlace string
+
+// LoanComakerType enumerates types of comakers for a loan (member, deposit, others).
 type LoanComakerType string
+
+// LoanType enumerates the classification of a loan (standard, restructured, renewal, etc.).
 type LoanType string
+
+// LoanAmortizationType enumerates amortization strategies (suggested, none).
 type LoanAmortizationType string
 
+// LoanModeOfPayment and related constants define valid values for loan payment modes and
+// related enums used in loan processing.
 const (
 	LoanModeOfPaymentDaily       LoanModeOfPayment = "daily"
 	LoanModeOfPaymentWeekly      LoanModeOfPayment = "weekly"
@@ -54,14 +66,17 @@ const (
 	LoanAmortizationTypeNone      LoanAmortizationType = "none"
 )
 
+// LoanTransactionTotalResponse contains aggregated totals for a set of loan transactions.
 type LoanTransactionTotalResponse struct {
 	TotalInterest float64 `json:"total_interest"`
 	TotalDebit    float64 `json:"total_debit"`
 	TotalCredit   float64 `json:"total_credit"`
 }
 
-// MODEL
+// LoanTransaction represents a loan transaction record including relationships and
+// computed totals used by services and APIs.
 type (
+	// LoanTransaction struct contains the persisted loan transaction fields.
 	LoanTransaction struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -223,8 +238,9 @@ type (
 		TotalPrincipal float64    `gorm:"total_principal;type:decimal;default:0" json:"total_principal"`
 	}
 
-	// LoanTransactionResponse represents the response structure for loantransaction data
+	// LoanTransactionResponse represents the response structure for loan transaction data.
 
+	// LoanTransactionResponse represents the response structure for LoanTransaction.
 	LoanTransactionResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -381,8 +397,9 @@ type (
 		TotalCredit float64    `json:"total_credit"`
 	}
 
-	// LoanTransactionRequest represents the request structure for creating/updating loantransaction
+	// LoanTransactionRequest represents the request structure for creating or updating a loan transaction.
 
+	// LoanTransactionRequest represents the request structure for LoanTransaction.
 	LoanTransactionRequest struct {
 		OfficialReceiptNumber string     `json:"official_receipt_number,omitempty"`
 		Voucher               string     `json:"voucher,omitempty"`
@@ -496,6 +513,7 @@ type (
 
 	// LoanComputationSheetCalculatorRequest represents the request structure for creating/updating loancomputationsheetcalculator
 
+	// LoanComputationSheetCalculatorRequest represents the request structure for LoanComputationSheetCalculator.
 	LoanComputationSheetCalculatorRequest struct {
 		AccountID    *uuid.UUID `json:"account_id,omitempty"`
 		Applied1     float64    `json:"applied_1"`
@@ -504,7 +522,7 @@ type (
 		IsAddOn      bool       `json:"is_add_on,omitempty"`
 	}
 
-	// Amortization Schedule Types
+	// AmortizationPayment represents a single amortization schedule payment.
 	AmortizationPayment struct {
 		Date       string  `json:"date"`
 		Principal  float64 `json:"principal"`
@@ -514,6 +532,7 @@ type (
 		Total      float64 `json:"total"`
 	}
 
+	// AmortizationSummary contains summary totals for an amortization schedule.
 	AmortizationSummary struct {
 		TotalTerms      int               `json:"total_terms"`
 		TotalPrincipal  float64           `json:"total_principal"`
@@ -527,6 +546,7 @@ type (
 		ModeOfPayment   LoanModeOfPayment `json:"mode_of_payment"`
 	}
 
+	// LoanDetails represents the LoanDetails model.
 	LoanDetails struct {
 		Amount         float64 `json:"amount"`
 		DueDate        string  `json:"due_date"`
@@ -534,8 +554,9 @@ type (
 		Voucher        string  `json:"voucher"`
 	}
 
-	// AmortizationScheduleResponse represents the response structure for amortizationschedule data
+	// AmortizationScheduleResponse represents the response structure for an amortization schedule.
 
+	// AmortizationScheduleResponse represents the response structure for AmortizationSchedule.
 	AmortizationScheduleResponse struct {
 		LoanDetails          LoanDetails           `json:"loan_details"`
 		AmortizationSchedule []AmortizationPayment `json:"amortization_schedule"`
@@ -545,6 +566,7 @@ type (
 
 	// LoanTransactionPrintRequest represents the request structure for creating/updating loantransactionprint
 
+	// LoanTransactionPrintRequest represents the request structure for LoanTransactionPrint.
 	LoanTransactionPrintRequest struct {
 		Voucher     string     `json:"voucher"`
 		CheckNumber string     `json:"check_number"`
@@ -553,6 +575,7 @@ type (
 
 	// LoanTransactionSignatureRequest represents the request structure for creating/updating loantransactionsignature
 
+	// LoanTransactionSignatureRequest represents the request structure for LoanTransactionSignature.
 	LoanTransactionSignatureRequest struct {
 		ApprovedBySignatureMediaID *uuid.UUID `json:"approved_by_signature_media_id,omitempty" validate:"omitempty,uuid"`
 		ApprovedByName             string     `json:"approved_by_name,omitempty" validate:"omitempty,max=255"`
@@ -593,6 +616,7 @@ type (
 
 	// LoanTransactionSuggestedRequest represents the request structure for creating/updating loantransactionsuggested
 
+	// LoanTransactionSuggestedRequest represents the request structure for LoanTransactionSuggested.
 	LoanTransactionSuggestedRequest struct {
 		Amount        float64           `json:"amount" validate:"required,gt=0"`
 		Principal     float64           `json:"principal" validate:"required,gt=0"`
@@ -797,6 +821,7 @@ func (m *ModelCore) loanTransaction() {
 	})
 }
 
+// LoanTransactionCurrentBranch retrieves loan transactions for the given organization and branch.
 func (m *ModelCore) LoanTransactionCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*LoanTransaction, error) {
 	return m.LoanTransactionManager.Find(context, &LoanTransaction{
 		OrganizationID: orgID,
@@ -824,9 +849,10 @@ func (m *ModelCore) mapLoanTransactionEntries(entries []*LoanTransactionEntry) [
 	return result
 }
 
-func (m *ModelCore) LoanTransactionWithDatesNotNull(ctx context.Context, memberId, branchID, orgID uuid.UUID) ([]*LoanTransaction, error) {
+// LoanTransactionWithDatesNotNull returns loan transactions for a member where printed/approved/released dates are set.
+func (m *ModelCore) LoanTransactionWithDatesNotNull(ctx context.Context, memberID, branchID, orgID uuid.UUID) ([]*LoanTransaction, error) {
 	filters := []services.Filter{
-		{Field: "member_profile_id", Op: services.OpEq, Value: memberId},
+		{Field: "member_profile_id", Op: services.OpEq, Value: memberID},
 		{Field: "organization_id", Op: services.OpEq, Value: orgID},
 		{Field: "branch_id", Op: services.OpEq, Value: branchID},
 		{Field: "approved_date", Op: services.OpNotNull, Value: nil},
@@ -841,12 +867,13 @@ func (m *ModelCore) LoanTransactionWithDatesNotNull(ctx context.Context, memberI
 	return loanTransactions, nil
 }
 
-func (m *ModelCore) LoanTransactionsMemberAccount(ctx context.Context, memberId, accountId, branchID, orgID uuid.UUID) ([]*LoanTransaction, error) {
+// LoanTransactionsMemberAccount returns loan transactions for a member filtered by account and branch/org.
+func (m *ModelCore) LoanTransactionsMemberAccount(ctx context.Context, memberID, accountID, branchID, orgID uuid.UUID) ([]*LoanTransaction, error) {
 	filters := []services.Filter{
-		{Field: "member_profile_id", Op: services.OpEq, Value: memberId},
+		{Field: "member_profile_id", Op: services.OpEq, Value: memberID},
 		{Field: "organization_id", Op: services.OpEq, Value: orgID},
 		{Field: "branch_id", Op: services.OpEq, Value: branchID},
-		{Field: "account_id", Op: services.OpEq, Value: accountId},
+		{Field: "account_id", Op: services.OpEq, Value: accountID},
 		{Field: "approved_date", Op: services.OpNotNull, Value: nil},
 		{Field: "printed_date", Op: services.OpNotNull, Value: nil},
 		{Field: "released_date", Op: services.OpNotNull, Value: nil},
@@ -859,6 +886,7 @@ func (m *ModelCore) LoanTransactionsMemberAccount(ctx context.Context, memberId,
 	return loanTransactions, nil
 }
 
+// GenerateLoanAmortization prepares amortization schedules and auxiliary processing for a loan transaction.
 func (m *ModelCore) GenerateLoanAmortization(ctx context.Context, loanTransaction *LoanTransaction) error {
 
 	// Fetch the holidays if needed for amortization calculation

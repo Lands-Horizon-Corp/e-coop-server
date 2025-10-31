@@ -20,6 +20,7 @@ const (
 )
 
 type (
+	// Footstep represents the Footstep model.
 	Footstep struct {
 		ID             uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt      time.Time      `gorm:"not null;default:now()"`
@@ -59,6 +60,7 @@ type (
 
 	// FootstepResponse represents the response structure for footstep data
 
+	// FootstepResponse represents the response structure for Footstep.
 	FootstepResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -95,6 +97,7 @@ type (
 
 	// FootstepRequest represents the request structure for creating/updating footstep
 
+	// FootstepRequest represents the request structure for Footstep.
 	FootstepRequest struct {
 		Level       FootstepLevel `json:"level" validate:"required,oneof=info warning error debug"`
 		Description string        `json:"description"`
@@ -182,12 +185,14 @@ func (m *ModelCore) footstep() {
 	})
 }
 
+// GetFootstepByUser returns GetFootstepByUser for the current branch or organization where applicable.
 func (m *ModelCore) GetFootstepByUser(context context.Context, userId uuid.UUID) ([]*Footstep, error) {
 	return m.FootstepManager.Find(context, &Footstep{
 		UserID: &userId,
 	})
 }
 
+// GetFootstepBybranch returns GetFootstepBybranch for the current branch or organization where applicable.
 func (m *ModelCore) GetFootstepBybranch(context context.Context, organizationId uuid.UUID, branchID uuid.UUID) ([]*Footstep, error) {
 	return m.FootstepManager.Find(context, &Footstep{
 		OrganizationID: &organizationId,
@@ -195,6 +200,7 @@ func (m *ModelCore) GetFootstepBybranch(context context.Context, organizationId 
 	})
 }
 
+// GetFootstepByUserOrganization returns GetFootstepByUserOrganization for the current branch or organization where applicable.
 func (m *ModelCore) GetFootstepByUserOrganization(context context.Context, userId uuid.UUID, organizationId uuid.UUID, branchID uuid.UUID) ([]*Footstep, error) {
 	return m.FootstepManager.Find(context, &Footstep{
 		UserID:         &userId,

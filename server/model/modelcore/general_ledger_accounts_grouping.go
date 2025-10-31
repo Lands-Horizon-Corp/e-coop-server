@@ -13,6 +13,7 @@ import (
 )
 
 type (
+	// GeneralLedgerAccountsGrouping represents the GeneralLedgerAccountsGrouping model.
 	GeneralLedgerAccountsGrouping struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -42,6 +43,7 @@ type (
 
 	// GeneralLedgerAccountsGroupingResponse represents the response structure for generalledgeraccountsgrouping data
 
+	// GeneralLedgerAccountsGroupingResponse represents the response structure for GeneralLedgerAccountsGrouping.
 	GeneralLedgerAccountsGroupingResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -66,6 +68,7 @@ type (
 
 	// GeneralLedgerAccountsGroupingRequest represents the request structure for creating/updating generalledgeraccountsgrouping
 
+	// GeneralLedgerAccountsGroupingRequest represents the request structure for GeneralLedgerAccountsGrouping.
 	GeneralLedgerAccountsGroupingRequest struct {
 		Debit       float64 `json:"debit" validate:"omitempty,gt=0"`
 		Credit      float64 `json:"credit" validate:"omitempty,gt=0"`
@@ -615,6 +618,7 @@ func (m *ModelCore) generalLedgerAccountsGroupingSeed(context context.Context, t
 	return nil
 }
 
+// GeneralLedgerAccountsGroupingCurrentBranch returns GeneralLedgerAccountsGroupingCurrentBranch for the current branch or organization where applicable.
 func (m *ModelCore) GeneralLedgerAccountsGroupingCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*GeneralLedgerAccountsGrouping, error) {
 	return m.GeneralLedgerAccountsGroupingManager.Find(context, &GeneralLedgerAccountsGrouping{
 		OrganizationID: orgID,

@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// CheckRemittance represents the CheckRemittance model.
 	CheckRemittance struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -48,6 +49,7 @@ type (
 
 	// CheckRemittanceResponse represents the response structure for checkremittance data
 
+	// CheckRemittanceResponse represents the response structure for CheckRemittance.
 	CheckRemittanceResponse struct {
 		ID                 uuid.UUID                 `json:"id"`
 		CreatedAt          string                    `json:"created_at"`
@@ -79,6 +81,7 @@ type (
 
 	// CheckRemittanceRequest represents the request structure for creating/updating checkremittance
 
+	// CheckRemittanceRequest represents the request structure for CheckRemittance.
 	CheckRemittanceRequest struct {
 		BankID             uuid.UUID  `json:"bank_id" validate:"required"`
 		MediaID            *uuid.UUID `json:"media_id,omitempty"`

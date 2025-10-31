@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// LoanClearanceAnalysisInstitution represents the LoanClearanceAnalysisInstitution model.
 	LoanClearanceAnalysisInstitution struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -37,6 +38,7 @@ type (
 
 	// LoanClearanceAnalysisInstitutionResponse represents the response structure for loanclearanceanalysisinstitution data
 
+	// LoanClearanceAnalysisInstitutionResponse represents the response structure for LoanClearanceAnalysisInstitution.
 	LoanClearanceAnalysisInstitutionResponse struct {
 		ID                uuid.UUID                `json:"id"`
 		CreatedAt         string                   `json:"created_at"`
@@ -57,6 +59,7 @@ type (
 
 	// LoanClearanceAnalysisInstitutionRequest represents the request structure for creating/updating loanclearanceanalysisinstitution
 
+	// LoanClearanceAnalysisInstitutionRequest represents the request structure for LoanClearanceAnalysisInstitution.
 	LoanClearanceAnalysisInstitutionRequest struct {
 		ID                *uuid.UUID `json:"id"`
 		LoanTransactionID uuid.UUID  `json:"loan_transaction_id"`
@@ -124,6 +127,7 @@ func (m *ModelCore) loanClearanceAnalysisInstitution() {
 	})
 }
 
+// LoanClearanceAnalysisInstitutionCurrentBranch returns LoanClearanceAnalysisInstitutionCurrentBranch for the current branch or organization where applicable.
 func (m *ModelCore) LoanClearanceAnalysisInstitutionCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*LoanClearanceAnalysisInstitution, error) {
 	return m.LoanClearanceAnalysisInstitutionManager.Find(context, &LoanClearanceAnalysisInstitution{
 		OrganizationID: orgID,

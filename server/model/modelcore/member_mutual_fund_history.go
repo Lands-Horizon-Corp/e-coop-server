@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// MemberMutualFundHistory represents the MemberMutualFundHistory model.
 	MemberMutualFundHistory struct {
 		ID        uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt time.Time      `gorm:"not null;default:now()"`
@@ -32,6 +33,7 @@ type (
 
 	// MemberMutualFundHistoryResponse represents the response structure for membermutualfundhistory data
 
+	// MemberMutualFundHistoryResponse represents the response structure for MemberMutualFundHistory.
 	MemberMutualFundHistoryResponse struct {
 		ID              uuid.UUID              `json:"id"`
 		CreatedAt       string                 `json:"created_at"`
@@ -49,6 +51,7 @@ type (
 
 	// MemberMutualFundHistoryRequest represents the request structure for creating/updating membermutualfundhistory
 
+	// MemberMutualFundHistoryRequest represents the request structure for MemberMutualFundHistory.
 	MemberMutualFundHistoryRequest struct {
 		MemberProfileID uuid.UUID `json:"member_profile_id" validate:"required"`
 		Title           string    `json:"title" validate:"required,min=1,max=255"`
@@ -109,6 +112,7 @@ func (m *ModelCore) memberMutualFundHistory() {
 	})
 }
 
+// MemberMutualFundHistoryCurrentBranch returns MemberMutualFundHistoryCurrentBranch for the current branch or organization where applicable.
 func (m *ModelCore) MemberMutualFundHistoryCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberMutualFundHistory, error) {
 	return m.MemberMutualFundHistoryManager.Find(context, &MemberMutualFundHistory{
 		OrganizationID: orgID,

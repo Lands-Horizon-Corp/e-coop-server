@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// FinesMaturity represents the FinesMaturity model.
 	FinesMaturity struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -38,6 +39,7 @@ type (
 
 	// FinesMaturityResponse represents the response structure for finesmaturity data
 
+	// FinesMaturityResponse represents the response structure for FinesMaturity.
 	FinesMaturityResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -59,6 +61,7 @@ type (
 
 	// FinesMaturityRequest represents the request structure for creating/updating finesmaturity
 
+	// FinesMaturityRequest represents the request structure for FinesMaturity.
 	FinesMaturityRequest struct {
 		AccountID *uuid.UUID `json:"account_id,omitempty"`
 		From      int        `json:"from" validate:"required"`
@@ -127,6 +130,7 @@ func (m *ModelCore) finesMaturity() {
 	})
 }
 
+// FinesMaturityCurrentBranch returns FinesMaturityCurrentBranch for the current branch or organization where applicable.
 func (m *ModelCore) FinesMaturityCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*FinesMaturity, error) {
 	return m.FinesMaturityManager.Find(context, &FinesMaturity{
 		OrganizationID: orgID,

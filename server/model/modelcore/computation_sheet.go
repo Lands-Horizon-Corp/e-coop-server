@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// ComputationSheet represents the ComputationSheet model.
 	ComputationSheet struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -42,6 +43,7 @@ type (
 
 	// ComputationSheetResponse represents the response structure for computationsheet data
 
+	// ComputationSheetResponse represents the response structure for ComputationSheet.
 	ComputationSheetResponse struct {
 		ID                uuid.UUID             `json:"id"`
 		CreatedAt         string                `json:"created_at"`
@@ -67,6 +69,7 @@ type (
 
 	// ComputationSheetRequest represents the request structure for creating/updating computationsheet
 
+	// ComputationSheetRequest represents the request structure for ComputationSheet.
 	ComputationSheetRequest struct {
 		Name              string    `json:"name" validate:"required,min=1,max=254"`
 		Description       string    `json:"description,omitempty"`
@@ -80,10 +83,12 @@ type (
 
 	// ComputationSheetAmortizationResponse represents the response structure for computationsheetamortization data
 
+	// ComputationSheetAmortizationResponse represents the response structure for ComputationSheetAmortization.
 	ComputationSheetAmortizationResponse struct {
 		Entries      []*LoanTransactionEntryResponse `json:"entries"`
 		TotalDebit   float64                         `json:"total_debit"`
 		TotalCredit  float64                         `json:"total_credit"`
+		// Amortization represents the Amortization model.
 		Amortization struct {
 			Amortizations       []AmortizationPayment `json:"amortizations"`
 			AmortizationSummary AmortizationSummary   `json:"amortization_summary"`

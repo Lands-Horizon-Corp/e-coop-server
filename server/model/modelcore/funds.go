@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// Funds represents the Funds model.
 	Funds struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -39,6 +40,7 @@ type (
 
 	// FundsResponse represents the response structure for funds data
 
+	// FundsResponse represents the response structure for Funds.
 	FundsResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -61,6 +63,7 @@ type (
 
 	// FundsRequest represents the request structure for creating/updating funds
 
+	// FundsRequest represents the request structure for Funds.
 	FundsRequest struct {
 		AccountID   *uuid.UUID `json:"account_id,omitempty"`
 		Type        string     `json:"type" validate:"required,min=1,max=255"`

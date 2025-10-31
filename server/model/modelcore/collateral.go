@@ -12,6 +12,7 @@ import (
 )
 
 type (
+	// Collateral represents the Collateral model.
 	Collateral struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -36,6 +37,7 @@ type (
 
 	// CollateralResponse represents the response structure for collateral data
 
+	// CollateralResponse represents the response structure for Collateral.
 	CollateralResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -55,6 +57,7 @@ type (
 
 	// CollateralRequest represents the request structure for creating/updating collateral
 
+	// CollateralRequest represents the request structure for Collateral.
 	CollateralRequest struct {
 		Icon        string `json:"icon,omitempty"`
 		Name        string `json:"name" validate:"required,min=1,max=255"`

@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// MemberCloseRemark represents the MemberCloseRemark model.
 	MemberCloseRemark struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -37,6 +38,7 @@ type (
 
 	// MemberCloseRemarkResponse represents the response structure for membercloseremark data
 
+	// MemberCloseRemarkResponse represents the response structure for MemberCloseRemark.
 	MemberCloseRemarkResponse struct {
 		ID              uuid.UUID              `json:"id"`
 		CreatedAt       string                 `json:"created_at"`
@@ -57,6 +59,7 @@ type (
 
 	// MemberCloseRemarkRequest represents the request structure for creating/updating membercloseremark
 
+	// MemberCloseRemarkRequest represents the request structure for MemberCloseRemark.
 	MemberCloseRemarkRequest struct {
 		Reason      string `json:"reason,omitempty"`
 		Description string `json:"description,omitempty"`
@@ -118,6 +121,7 @@ func (m *ModelCore) memberCloseRemark() {
 	})
 }
 
+// MemberCloseRemarkCurrentBranch returns MemberCloseRemarkCurrentBranch for the current branch or organization where applicable.
 func (m *ModelCore) MemberCloseRemarkCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberCloseRemark, error) {
 	return m.MemberCloseRemarkManager.Find(context, &MemberCloseRemark{
 		OrganizationID: orgID,

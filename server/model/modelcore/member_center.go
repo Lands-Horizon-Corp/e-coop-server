@@ -12,6 +12,7 @@ import (
 )
 
 type (
+	// MemberCenter represents the MemberCenter model.
 	MemberCenter struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -35,6 +36,7 @@ type (
 
 	// MemberCenterResponse represents the response structure for membercenter data
 
+	// MemberCenterResponse represents the response structure for MemberCenter.
 	MemberCenterResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -53,6 +55,7 @@ type (
 
 	// MemberCenterRequest represents the request structure for creating/updating membercenter
 
+	// MemberCenterRequest represents the request structure for MemberCenter.
 	MemberCenterRequest struct {
 		Name        string `json:"name" validate:"required,min=1,max=255"`
 		Description string `json:"description,omitempty"`
@@ -156,6 +159,7 @@ func (m *ModelCore) memberCenterSeed(context context.Context, tx *gorm.DB, userI
 	return nil
 }
 
+// MemberCenterCurrentBranch returns MemberCenterCurrentBranch for the current branch or organization where applicable.
 func (m *ModelCore) MemberCenterCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberCenter, error) {
 	return m.MemberCenterManager.Find(context, &MemberCenter{
 		OrganizationID: orgID,

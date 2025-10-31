@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// MemberDeductionEntry represents the MemberDeductionEntry model.
 	MemberDeductionEntry struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -133,6 +134,7 @@ func (m *ModelCore) memberDeductionEntry() {
 	})
 }
 
+// MemberDeductionEntryCurrentBranch returns MemberDeductionEntryCurrentBranch for the current branch or organization where applicable.
 func (m *ModelCore) MemberDeductionEntryCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberDeductionEntry, error) {
 	return m.MemberDeductionEntryManager.Find(context, &MemberDeductionEntry{
 		OrganizationID: orgID,

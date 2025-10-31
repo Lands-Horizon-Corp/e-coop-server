@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// MemberOccupationHistory represents the MemberOccupationHistory model.
 	MemberOccupationHistory struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -37,6 +38,7 @@ type (
 
 	// MemberOccupationHistoryResponse represents the response structure for memberoccupationhistory data
 
+	// MemberOccupationHistoryResponse represents the response structure for MemberOccupationHistory.
 	MemberOccupationHistoryResponse struct {
 		ID                 uuid.UUID                 `json:"id"`
 		CreatedAt          string                    `json:"created_at"`
@@ -57,6 +59,7 @@ type (
 
 	// MemberOccupationHistoryRequest represents the request structure for creating/updating memberoccupationhistory
 
+	// MemberOccupationHistoryRequest represents the request structure for MemberOccupationHistory.
 	MemberOccupationHistoryRequest struct {
 		MemberProfileID    uuid.UUID `json:"member_profile_id" validate:"required"`
 		MemberOccupationID uuid.UUID `json:"member_occupation_id" validate:"required"`
@@ -122,12 +125,14 @@ func (m *ModelCore) memberOccupationHistory() {
 	})
 }
 
+// MemberOccupationHistoryCurrentBranch returns MemberOccupationHistoryCurrentBranch for the current branch or organization where applicable.
 func (m *ModelCore) MemberOccupationHistoryCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberOccupationHistory, error) {
 	return m.MemberOccupationHistoryManager.Find(context, &MemberOccupationHistory{
 		OrganizationID: orgID,
 		BranchID:       branchID,
 	})
 }
+// MemberOccupationHistoryMemberProfileID returns MemberOccupationHistoryMemberProfileID for the current branch or organization where applicable.
 func (m *ModelCore) MemberOccupationHistoryMemberProfileID(context context.Context, memberProfileId, orgID, branchID uuid.UUID) ([]*MemberOccupationHistory, error) {
 	return m.MemberOccupationHistoryManager.Find(context, &MemberOccupationHistory{
 		OrganizationID:  orgID,

@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// MemberRelativeAccount represents the MemberRelativeAccount model.
 	MemberRelativeAccount struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -40,6 +41,7 @@ type (
 
 	// MemberRelativeAccountResponse represents the response structure for memberrelativeaccount data
 
+	// MemberRelativeAccountResponse represents the response structure for MemberRelativeAccount.
 	MemberRelativeAccountResponse struct {
 		ID                      uuid.UUID              `json:"id"`
 		CreatedAt               string                 `json:"created_at"`
@@ -62,6 +64,7 @@ type (
 
 	// MemberRelativeAccountRequest represents the request structure for creating/updating memberrelativeaccount
 
+	// MemberRelativeAccountRequest represents the request structure for MemberRelativeAccount.
 	MemberRelativeAccountRequest struct {
 		MemberProfileID         uuid.UUID `json:"member_profile_id" validate:"required"`
 		RelativeMemberProfileID uuid.UUID `json:"relative_member_profile_id" validate:"required"`
@@ -127,6 +130,7 @@ func (m *ModelCore) memberRelativeAccount() {
 	})
 }
 
+// MemberRelativeAccountCurrentBranch returns MemberRelativeAccountCurrentBranch for the current branch or organization where applicable.
 func (m *ModelCore) MemberRelativeAccountCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberRelativeAccount, error) {
 	return m.MemberRelativeAccountManager.Find(context, &MemberRelativeAccount{
 		OrganizationID: orgID,

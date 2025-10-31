@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// InterestMaturity represents the InterestMaturity model.
 	InterestMaturity struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -38,6 +39,7 @@ type (
 
 	// InterestMaturityResponse represents the response structure for interestmaturity data
 
+	// InterestMaturityResponse represents the response structure for InterestMaturity.
 	InterestMaturityResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -59,6 +61,7 @@ type (
 
 	// InterestMaturityRequest represents the request structure for creating/updating interestmaturity
 
+	// InterestMaturityRequest represents the request structure for InterestMaturity.
 	InterestMaturityRequest struct {
 		AccountID *uuid.UUID `json:"account_id,omitempty"`
 		From      int        `json:"from" validate:"required"`
@@ -126,6 +129,7 @@ func (m *ModelCore) interestMaturity() {
 	})
 }
 
+// InterestMaturityCurrentBranch returns InterestMaturityCurrentBranch for the current branch or organization where applicable.
 func (m *ModelCore) InterestMaturityCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*InterestMaturity, error) {
 	return m.InterestMaturityManager.Find(context, &InterestMaturity{
 		OrganizationID: orgID,

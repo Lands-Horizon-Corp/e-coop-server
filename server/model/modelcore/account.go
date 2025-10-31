@@ -148,6 +148,7 @@ const (
 // --- MODEL ---
 
 type (
+	// Account represents the Account model.
 	Account struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -2548,6 +2549,7 @@ func (m *ModelCore) AccountCurrentBranch(context context.Context, orgID uuid.UUI
 }
 
 // account = lockedAccount
+// AccountLockForUpdate returns AccountLockForUpdate for the current branch or organization where applicable.
 func (m *ModelCore) AccountLockForUpdate(ctx context.Context, tx *gorm.DB, accountID uuid.UUID) (*Account, error) {
 	var lockedAccount Account
 	err := tx.WithContext(ctx).
@@ -2564,6 +2566,7 @@ func (m *ModelCore) AccountLockForUpdate(ctx context.Context, tx *gorm.DB, accou
 }
 
 // account = lockedAccount
+// AccountLockWithValidation returns AccountLockWithValidation for the current branch or organization where applicable.
 func (m *ModelCore) AccountLockWithValidation(ctx context.Context, tx *gorm.DB, accountID uuid.UUID, originalAccount *Account) (*Account, error) {
 	lockedAccount, err := m.AccountLockForUpdate(ctx, tx, accountID)
 	if err != nil {

@@ -12,6 +12,7 @@ import (
 )
 
 type (
+	// MemberGender represents the MemberGender model.
 	MemberGender struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -35,6 +36,7 @@ type (
 
 	// MemberGenderResponse represents the response structure for membergender data
 
+	// MemberGenderResponse represents the response structure for MemberGender.
 	MemberGenderResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -53,6 +55,7 @@ type (
 
 	// MemberGenderRequest represents the request structure for creating/updating membergender
 
+	// MemberGenderRequest represents the request structure for MemberGender.
 	MemberGenderRequest struct {
 		Name        string `json:"name" validate:"required,min=1,max=255"`
 		Description string `json:"description,omitempty"`
@@ -158,6 +161,7 @@ func (m *ModelCore) memberGenderSeed(context context.Context, tx *gorm.DB, userI
 	return nil
 }
 
+// MemberGenderCurrentBranch returns MemberGenderCurrentBranch for the current branch or organization where applicable.
 func (m *ModelCore) MemberGenderCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberGender, error) {
 	return m.MemberGenderManager.Find(context, &MemberGender{
 		OrganizationID: orgID,

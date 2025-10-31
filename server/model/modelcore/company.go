@@ -12,6 +12,7 @@ import (
 )
 
 type (
+	// Company represents the Company model.
 	Company struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -38,6 +39,7 @@ type (
 
 	// CompanyResponse represents the response structure for company data
 
+	// CompanyResponse represents the response structure for Company.
 	CompanyResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -58,6 +60,7 @@ type (
 
 	// CompanyRequest represents the request structure for creating/updating company
 
+	// CompanyRequest represents the request structure for Company.
 	CompanyRequest struct {
 		Name        string     `json:"name" validate:"required,min=1,max=255"`
 		Description string     `json:"description,omitempty"`

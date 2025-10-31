@@ -12,6 +12,7 @@ import (
 )
 
 type (
+	// Disbursement represents the Disbursement model.
 	Disbursement struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -39,6 +40,7 @@ type (
 
 	// DisbursementResponse represents the response structure for disbursement data
 
+	// DisbursementResponse represents the response structure for Disbursement.
 	DisbursementResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -60,6 +62,7 @@ type (
 
 	// DisbursementRequest represents the request structure for creating/updating disbursement
 
+	// DisbursementRequest represents the request structure for Disbursement.
 	DisbursementRequest struct {
 		Name        string    `json:"name" validate:"required,min=1,max=50"`
 		Icon        string    `json:"icon,omitempty"`
@@ -287,6 +290,7 @@ func (m *ModelCore) disbursementSeed(context context.Context, tx *gorm.DB, userI
 }
 
 // disbursementCurrentBranch retrieves disbursements for a specific organization and branch.
+// DisbursementCurrentBranch returns DisbursementCurrentBranch for the current branch or organization where applicable.
 func (m *ModelCore) DisbursementCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*Disbursement, error) {
 	return m.DisbursementManager.Find(context, &Disbursement{
 		OrganizationID: orgID,

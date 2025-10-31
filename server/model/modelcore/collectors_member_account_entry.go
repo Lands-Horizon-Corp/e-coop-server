@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// CollectorsMemberAccountEntry represents the CollectorsMemberAccountEntry model.
 	CollectorsMemberAccountEntry struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -40,6 +41,7 @@ type (
 
 	// CollectorsMemberAccountEntryResponse represents the response structure for collectorsmemberaccountentry data
 
+	// CollectorsMemberAccountEntryResponse represents the response structure for CollectorsMemberAccountEntry.
 	CollectorsMemberAccountEntryResponse struct {
 		ID              uuid.UUID              `json:"id"`
 		CreatedAt       string                 `json:"created_at"`
@@ -63,6 +65,7 @@ type (
 
 	// CollectorsMemberAccountEntryRequest represents the request structure for creating/updating collectorsmemberaccountentry
 
+	// CollectorsMemberAccountEntryRequest represents the request structure for CollectorsMemberAccountEntry.
 	CollectorsMemberAccountEntryRequest struct {
 		CollectorUserID *uuid.UUID `json:"collector_user_id,omitempty"`
 		MemberProfileID *uuid.UUID `json:"member_profile_id,omitempty"`

@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// ChargesRateByTerm represents the ChargesRateByTerm model.
 	ChargesRateByTerm struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -61,6 +62,7 @@ type (
 
 	// ChargesRateByTermResponse represents the response structure for chargesratebyterm data
 
+	// ChargesRateByTermResponse represents the response structure for ChargesRateByTerm.
 	ChargesRateByTermResponse struct {
 		ID                  uuid.UUID                  `json:"id"`
 		CreatedAt           string                     `json:"created_at"`
@@ -104,6 +106,7 @@ type (
 
 	// ChargesRateByTermRequest represents the request structure for creating/updating chargesratebyterm
 
+	// ChargesRateByTermRequest represents the request structure for ChargesRateByTerm.
 	ChargesRateByTermRequest struct {
 		ID *uuid.UUID `json:"id,omitempty"`
 

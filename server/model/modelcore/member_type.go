@@ -12,6 +12,7 @@ import (
 )
 
 type (
+	// MemberType represents the MemberType model.
 	MemberType struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -294,6 +295,7 @@ func (m *ModelCore) memberTypeSeed(context context.Context, tx *gorm.DB, userID 
 	return nil
 }
 
+// MemberTypeCurrentBranch returns MemberTypeCurrentBranch for the current branch or organization where applicable.
 func (m *ModelCore) MemberTypeCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberType, error) {
 	return m.MemberTypeManager.Find(context, &MemberType{
 		OrganizationID: orgID,

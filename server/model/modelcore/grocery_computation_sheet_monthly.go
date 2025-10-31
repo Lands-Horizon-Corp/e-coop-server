@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// GroceryComputationSheetMonthly represents the GroceryComputationSheetMonthly model.
 	GroceryComputationSheetMonthly struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -38,6 +39,7 @@ type (
 
 	// GroceryComputationSheetMonthlyResponse represents the response structure for grocerycomputationsheetmonthly data
 
+	// GroceryComputationSheetMonthlyResponse represents the response structure for GroceryComputationSheetMonthly.
 	GroceryComputationSheetMonthlyResponse struct {
 		ID                        uuid.UUID                        `json:"id"`
 		CreatedAt                 string                           `json:"created_at"`
@@ -59,6 +61,7 @@ type (
 
 	// GroceryComputationSheetMonthlyRequest represents the request structure for creating/updating grocerycomputationsheetmonthly
 
+	// GroceryComputationSheetMonthlyRequest represents the request structure for GroceryComputationSheetMonthly.
 	GroceryComputationSheetMonthlyRequest struct {
 		GroceryComputationSheetID uuid.UUID `json:"grocery_computation_sheet_id" validate:"required"`
 		Months                    int       `json:"months,omitempty"`
@@ -126,6 +129,7 @@ func (m *ModelCore) groceryComputationSheetMonthly() {
 	})
 }
 
+// GroceryComputationSheetMonthlyCurrentBranch returns GroceryComputationSheetMonthlyCurrentBranch for the current branch or organization where applicable.
 func (m *ModelCore) GroceryComputationSheetMonthlyCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*GroceryComputationSheetMonthly, error) {
 	return m.GroceryComputationSheetMonthlyManager.Find(context, &GroceryComputationSheetMonthly{
 		OrganizationID: orgID,

@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// ComakerCollateral represents the ComakerCollateral model.
 	ComakerCollateral struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -42,6 +43,7 @@ type (
 
 	// ComakerCollateralResponse represents the response structure for comakercollateral data
 
+	// ComakerCollateralResponse represents the response structure for ComakerCollateral.
 	ComakerCollateralResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -69,6 +71,7 @@ type (
 
 	// ComakerCollateralRequest represents the request structure for creating/updating comakercollateral
 
+	// ComakerCollateralRequest represents the request structure for ComakerCollateral.
 	ComakerCollateralRequest struct {
 		ID                *uuid.UUID `json:"id,omitempty"`
 		LoanTransactionID uuid.UUID  `json:"loan_transaction_id" validate:"required"`

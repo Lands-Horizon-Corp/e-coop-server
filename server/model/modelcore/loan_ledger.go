@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// LoanLedger represents a ledger entry for loan-related bookkeeping scoped to an organization and branch.
 	LoanLedger struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -29,8 +30,9 @@ type (
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 	}
 
-	// LoanLedgerResponse represents the response structure for loanledger data
+	// LoanLedgerResponse represents the response structure for loan ledger data
 
+	// LoanLedgerResponse represents the response structure for LoanLedger.
 	LoanLedgerResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -45,8 +47,9 @@ type (
 		Branch         *BranchResponse       `json:"branch,omitempty"`
 	}
 
-	// LoanLedgerRequest represents the request structure for creating/updating loanledger
+	// LoanLedgerRequest represents the request structure for creating or updating a loan ledger.
 
+	// LoanLedgerRequest represents the request structure for LoanLedger.
 	LoanLedgerRequest struct{}
 )
 
@@ -105,6 +108,7 @@ func (m *ModelCore) loanLedger() {
 	})
 }
 
+// LoanLedgerCurrentBranch retrieves loan ledger entries for a specific organization and branch.
 func (m *ModelCore) LoanLedgerCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*LoanLedger, error) {
 	return m.LoanLedgerManager.Find(context, &LoanLedger{
 		OrganizationID: orgID,

@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// MemberTypeReferenceInterestRateByUltimaMembershipDatePerYear represents the MemberTypeReferenceInterestRateByUltimaMembershipDatePerYear model.
 	MemberTypeReferenceInterestRateByUltimaMembershipDatePerYear struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -38,6 +39,7 @@ type (
 
 	// MemberTypeReferenceInterestRateByUltimaMembershipDatePerYearResponse represents the response structure for membertypereferenceinterestratebyultimamembershipdateperyear data
 
+	// MemberTypeReferenceInterestRateByUltimaMembershipDatePerYearResponse represents the response structure for MemberTypeReferenceInterestRateByUltimaMembershipDatePerYear.
 	MemberTypeReferenceInterestRateByUltimaMembershipDatePerYearResponse struct {
 		ID                    uuid.UUID                    `json:"id"`
 		CreatedAt             string                       `json:"created_at"`
@@ -59,6 +61,7 @@ type (
 
 	// MemberTypeReferenceInterestRateByUltimaMembershipDatePerYearRequest represents the request structure for creating/updating membertypereferenceinterestratebyultimamembershipdateperyear
 
+	// MemberTypeReferenceInterestRateByUltimaMembershipDatePerYearRequest represents the request structure for MemberTypeReferenceInterestRateByUltimaMembershipDatePerYear.
 	MemberTypeReferenceInterestRateByUltimaMembershipDatePerYearRequest struct {
 		MemberTypeReferenceID uuid.UUID `json:"member_type_reference_id" validate:"required"`
 		YearFrom              int       `json:"year_from,omitempty"`
@@ -129,6 +132,7 @@ func (m *ModelCore) memberTypeReferenceInterestRateByUltimaMembershipDatePerYear
 	})
 }
 
+// MemberTypeReferenceInterestRateByUltimaMembershipDatePerYearCurrentBranch returns MemberTypeReferenceInterestRateByUltimaMembershipDatePerYearCurrentBranch for the current branch or organization where applicable.
 func (m *ModelCore) MemberTypeReferenceInterestRateByUltimaMembershipDatePerYearCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberTypeReferenceInterestRateByUltimaMembershipDatePerYear, error) {
 	return m.MemberTypeReferenceInterestRateByUltimaMembershipDatePerYearManager.Find(context, &MemberTypeReferenceInterestRateByUltimaMembershipDatePerYear{
 		OrganizationID: orgID,

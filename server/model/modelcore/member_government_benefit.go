@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// MemberGovernmentBenefit represents the MemberGovernmentBenefit model.
 	MemberGovernmentBenefit struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -46,6 +47,7 @@ type (
 
 	// MemberGovernmentBenefitResponse represents the response structure for membergovernmentbenefit data
 
+	// MemberGovernmentBenefitResponse represents the response structure for MemberGovernmentBenefit.
 	MemberGovernmentBenefitResponse struct {
 		ID              uuid.UUID              `json:"id"`
 		CreatedAt       string                 `json:"created_at"`
@@ -73,6 +75,7 @@ type (
 
 	// MemberGovernmentBenefitRequest represents the request structure for creating/updating membergovernmentbenefit
 
+	// MemberGovernmentBenefitRequest represents the request structure for MemberGovernmentBenefit.
 	MemberGovernmentBenefitRequest struct {
 		MemberProfileID uuid.UUID  `json:"member_profile_id" validate:"required"`
 		FrontMediaID    *uuid.UUID `json:"front_media_id,omitempty"`
@@ -152,6 +155,7 @@ func (m *ModelCore) memberGovernmentBenefit() {
 	})
 }
 
+// MemberGovernmentBenefitCurrentBranch returns MemberGovernmentBenefitCurrentBranch for the current branch or organization where applicable.
 func (m *ModelCore) MemberGovernmentBenefitCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberGovernmentBenefit, error) {
 	return m.MemberGovernmentBenefitManager.Find(context, &MemberGovernmentBenefit{
 		OrganizationID: orgID,

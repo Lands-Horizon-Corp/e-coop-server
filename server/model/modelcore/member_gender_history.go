@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// MemberGenderHistory represents the MemberGenderHistory model.
 	MemberGenderHistory struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -37,6 +38,7 @@ type (
 
 	// MemberGenderHistoryResponse represents the response structure for membergenderhistory data
 
+	// MemberGenderHistoryResponse represents the response structure for MemberGenderHistory.
 	MemberGenderHistoryResponse struct {
 		ID              uuid.UUID              `json:"id"`
 		CreatedAt       string                 `json:"created_at"`
@@ -57,6 +59,7 @@ type (
 
 	// MemberGenderHistoryRequest represents the request structure for creating/updating membergenderhistory
 
+	// MemberGenderHistoryRequest represents the request structure for MemberGenderHistory.
 	MemberGenderHistoryRequest struct {
 		MemberProfileID uuid.UUID `json:"member_profile_id" validate:"required"`
 		MemberGenderID  uuid.UUID `json:"member_gender_id" validate:"required"`
@@ -121,6 +124,7 @@ func (m *ModelCore) memberGenderHistory() {
 	})
 }
 
+// MemberGenderHistoryCurrentBranch returns MemberGenderHistoryCurrentBranch for the current branch or organization where applicable.
 func (m *ModelCore) MemberGenderHistoryCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberGenderHistory, error) {
 	return m.MemberGenderHistoryManager.Find(context, &MemberGenderHistory{
 		OrganizationID: orgID,
@@ -128,6 +132,7 @@ func (m *ModelCore) MemberGenderHistoryCurrentBranch(context context.Context, or
 	})
 }
 
+// MemberGenderHistoryMemberProfileID returns MemberGenderHistoryMemberProfileID for the current branch or organization where applicable.
 func (m *ModelCore) MemberGenderHistoryMemberProfileID(context context.Context, memberProfileId, orgID, branchID uuid.UUID) ([]*MemberGenderHistory, error) {
 	return m.MemberGenderHistoryManager.Find(context, &MemberGenderHistory{
 		OrganizationID:  orgID,

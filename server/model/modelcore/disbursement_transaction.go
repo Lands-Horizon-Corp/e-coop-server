@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// DisbursementTransaction represents the DisbursementTransaction model.
 	DisbursementTransaction struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -43,6 +44,7 @@ type (
 
 	// DisbursementTransactionResponse represents the response structure for disbursementtransaction data
 
+	// DisbursementTransactionResponse represents the response structure for DisbursementTransaction.
 	DisbursementTransactionResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -69,6 +71,7 @@ type (
 
 	// DisbursementTransactionRequest represents the request structure for creating/updating disbursementtransaction
 
+	// DisbursementTransactionRequest represents the request structure for DisbursementTransaction.
 	DisbursementTransactionRequest struct {
 		DisbursementID *uuid.UUID `json:"disbursement_id" validate:"required"`
 
@@ -144,6 +147,7 @@ func (m *ModelCore) disbursementTransaction() {
 	})
 }
 
+// DisbursementTransactionCurrentBranch returns DisbursementTransactionCurrentBranch for the current branch or organization where applicable.
 func (m *ModelCore) DisbursementTransactionCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*DisbursementTransaction, error) {
 	return m.DisbursementTransactionManager.Find(context, &DisbursementTransaction{
 		OrganizationID: orgID,

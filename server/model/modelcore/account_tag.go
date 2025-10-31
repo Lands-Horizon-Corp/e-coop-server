@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// AccountTag represents the AccountTag model.
 	AccountTag struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -40,6 +41,7 @@ type (
 
 	// AccountTagResponse represents the response structure for accounttag data
 
+	// AccountTagResponse represents the response structure for AccountTag.
 	AccountTagResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -63,6 +65,7 @@ type (
 
 	// AccountTagRequest represents the request structure for creating/updating accounttag
 
+	// AccountTagRequest represents the request structure for AccountTag.
 	AccountTagRequest struct {
 		AccountID   uuid.UUID   `json:"account_id" validate:"required"`
 		Name        string      `json:"name" validate:"required,min=1,max=50"`

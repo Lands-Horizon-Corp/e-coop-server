@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// CancelledCashCheckVoucher represents the CancelledCashCheckVoucher model.
 	CancelledCashCheckVoucher struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -35,6 +36,7 @@ type (
 
 	// CancelledCashCheckVoucherResponse represents the response structure for cancelledcashcheckvoucher data
 
+	// CancelledCashCheckVoucherResponse represents the response structure for CancelledCashCheckVoucher.
 	CancelledCashCheckVoucherResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -54,6 +56,7 @@ type (
 
 	// CancelledCashCheckVoucherRequest represents the request structure for creating/updating cancelledcashcheckvoucher
 
+	// CancelledCashCheckVoucherRequest represents the request structure for CancelledCashCheckVoucher.
 	CancelledCashCheckVoucherRequest struct {
 		CheckNumber string    `json:"check_number" validate:"required,min=1,max=255"`
 		EntryDate   time.Time `json:"entry_date" validate:"required"`
@@ -117,6 +120,7 @@ func (m *ModelCore) cancelledCashCheckVoucher() {
 }
 
 // cancelledCashCheckVoucherCurrentBranch retrieves all cancelled cash check vouchers for the specified organization and branch.
+// CancelledCashCheckVoucherCurrentBranch returns CancelledCashCheckVoucherCurrentBranch for the current branch or organization where applicable.
 func (m *ModelCore) CancelledCashCheckVoucherCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*CancelledCashCheckVoucher, error) {
 	return m.CancelledCashCheckVoucherManager.Find(context, &CancelledCashCheckVoucher{
 		OrganizationID: orgID,

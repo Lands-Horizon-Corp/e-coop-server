@@ -12,6 +12,7 @@ import (
 )
 
 type (
+	// Bank represents the Bank model.
 	Bank struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -38,6 +39,7 @@ type (
 
 	// BankResponse represents the response structure for bank data
 
+	// BankResponse represents the response structure for Bank.
 	BankResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -58,6 +60,7 @@ type (
 
 	// BankRequest represents the request structure for creating/updating bank
 
+	// BankRequest represents the request structure for Bank.
 	BankRequest struct {
 		Name        string     `json:"name" validate:"required,min=1,max=255"`
 		Description string     `json:"description,omitempty"`

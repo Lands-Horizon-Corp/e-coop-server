@@ -12,6 +12,7 @@ import (
 )
 
 type (
+	// LoanPurpose represents a categorical purpose for which a loan may be requested.
 	LoanPurpose struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -35,6 +36,7 @@ type (
 
 	// LoanPurposeResponse represents the response structure for loanpurpose data
 
+	// LoanPurposeResponse represents the response structure for LoanPurpose.
 	LoanPurposeResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -53,6 +55,7 @@ type (
 
 	// LoanPurposeRequest represents the request structure for creating/updating loanpurpose
 
+	// LoanPurposeRequest represents the request structure for LoanPurpose.
 	LoanPurposeRequest struct {
 		Description string `json:"description,omitempty"`
 		Icon        string `json:"icon,omitempty"`
@@ -264,6 +267,7 @@ func (m *ModelCore) loanPurposeSeed(context context.Context, tx *gorm.DB, userID
 	return nil
 }
 
+// LoanPurposeCurrentBranch retrieves loan purposes for the specified organization and branch.
 func (m *ModelCore) LoanPurposeCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*LoanPurpose, error) {
 	return m.LoanPurposeManager.Find(context, &LoanPurpose{
 		OrganizationID: orgID,

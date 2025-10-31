@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// AdjustmentEntry represents the AdjustmentEntry model.
 	AdjustmentEntry struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -57,6 +58,7 @@ type (
 
 	// AdjustmentEntryResponse represents the response structure for adjustmententry data
 
+	// AdjustmentEntryResponse represents the response structure for AdjustmentEntry.
 	AdjustmentEntryResponse struct {
 		ID                uuid.UUID                `json:"id"`
 		CreatedAt         string                   `json:"created_at"`
@@ -90,6 +92,7 @@ type (
 
 	// AdjustmentEntryRequest represents the request structure for creating/updating adjustmententry
 
+	// AdjustmentEntryRequest represents the request structure for AdjustmentEntry.
 	AdjustmentEntryRequest struct {
 		SignatureMediaID  *uuid.UUID `json:"signature_media_id,omitempty"`
 		AccountID         uuid.UUID  `json:"account_id" validate:"required"`
@@ -106,6 +109,7 @@ type (
 
 	// AdjustmentEntryTotalResponse represents the response structure for adjustmententrytotal data
 
+	// AdjustmentEntryTotalResponse represents the response structure for AdjustmentEntryTotal.
 	AdjustmentEntryTotalResponse struct {
 		TotalDebit  float64 `json:"total_debit"`
 		TotalCredit float64 `json:"total_credit"`
@@ -113,6 +117,7 @@ type (
 
 	// AdjustmentEntrySummaryRequest represents the request structure for creating/updating adjustmententrysummary
 
+	// AdjustmentEntrySummaryRequest represents the request structure for AdjustmentEntrySummary.
 	AdjustmentEntrySummaryRequest struct {
 		CurrencyID         uuid.UUID  `json:"currency_id" validate:"required"`
 		UserOrganizationID *uuid.UUID `json:"user_organization_id,omitempty"`

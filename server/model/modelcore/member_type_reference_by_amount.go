@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// MemberTypeReferenceByAmount represents the MemberTypeReferenceByAmount model.
 	MemberTypeReferenceByAmount struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -38,6 +39,7 @@ type (
 
 	// MemberTypeReferenceByAmountResponse represents the response structure for membertypereferencebyamount data
 
+	// MemberTypeReferenceByAmountResponse represents the response structure for MemberTypeReferenceByAmount.
 	MemberTypeReferenceByAmountResponse struct {
 		ID                    uuid.UUID                    `json:"id"`
 		CreatedAt             string                       `json:"created_at"`
@@ -59,6 +61,7 @@ type (
 
 	// MemberTypeReferenceByAmountRequest represents the request structure for creating/updating membertypereferencebyamount
 
+	// MemberTypeReferenceByAmountRequest represents the request structure for MemberTypeReferenceByAmount.
 	MemberTypeReferenceByAmountRequest struct {
 		MemberTypeReferenceID uuid.UUID `json:"member_type_reference_id" validate:"required"`
 		From                  float64   `json:"from,omitempty"`
@@ -127,6 +130,7 @@ func (m *ModelCore) memberTypeReferenceByAmount() {
 	})
 }
 
+// MemberTypeReferenceByAmountCurrentBranch returns MemberTypeReferenceByAmountCurrentBranch for the current branch or organization where applicable.
 func (m *ModelCore) MemberTypeReferenceByAmountCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberTypeReferenceByAmount, error) {
 	return m.MemberTypeReferenceByAmountManager.Find(context, &MemberTypeReferenceByAmount{
 		OrganizationID: orgID,

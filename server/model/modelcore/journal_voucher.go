@@ -12,6 +12,7 @@ import (
 )
 
 type (
+	// JournalVoucher represents the JournalVoucher model.
 	JournalVoucher struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -65,6 +66,7 @@ type (
 
 	// JournalVoucherResponse represents the response structure for journalvoucher data
 
+	// JournalVoucherResponse represents the response structure for JournalVoucher.
 	JournalVoucherResponse struct {
 		ID                uuid.UUID             `json:"id"`
 		CreatedAt         string                `json:"created_at"`
@@ -114,6 +116,7 @@ type (
 
 	// JournalVoucherRequest represents the request structure for creating/updating journalvoucher
 
+	// JournalVoucherRequest represents the request structure for JournalVoucher.
 	JournalVoucherRequest struct {
 		Name              string    `json:"name" validate:"required"`
 		CashVoucherNumber string    `json:"cash_voucher_number,omitempty"`
@@ -130,6 +133,7 @@ type (
 
 	// JournalVoucherPrintRequest represents the request structure for creating/updating journalvoucherprint
 
+	// JournalVoucherPrintRequest represents the request structure for JournalVoucherPrint.
 	JournalVoucherPrintRequest struct {
 		CashVoucherNumber string `json:"cash_voucher_number,omitempty"`
 	}
@@ -273,6 +277,7 @@ func (m *ModelCore) mapJournalVoucherEntries(entries []*JournalVoucherEntry) []*
 }
 
 // Helper function to validate journal voucher balance
+// ValidateJournalVoucherBalance returns ValidateJournalVoucherBalance for the current branch or organization where applicable.
 func (m *ModelCore) ValidateJournalVoucherBalance(entries []*JournalVoucherEntry) error {
 	totalDebit := 0.0
 	totalCredit := 0.0
@@ -307,6 +312,7 @@ func (m *ModelCore) JournalVoucherDraft(ctx context.Context, branchID, orgID uui
 }
 
 // JournalVoucherApproved retrieves all journal vouchers that have been approved but not yet released for the specified organization and branch
+// JournalVoucherPrinted returns JournalVoucherPrinted for the current branch or organization where applicable.
 func (m *ModelCore) JournalVoucherPrinted(ctx context.Context, branchID, orgID uuid.UUID) ([]*JournalVoucher, error) {
 	filters := []services.Filter{
 		{Field: "organization_id", Op: services.OpEq, Value: orgID},

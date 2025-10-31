@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// BrowseExcludeIncludeAccounts represents the BrowseExcludeIncludeAccounts model.
 	BrowseExcludeIncludeAccounts struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -49,6 +50,7 @@ type (
 
 	// BrowseExcludeIncludeAccountsResponse represents the response structure for browseexcludeincludeaccounts data
 
+	// BrowseExcludeIncludeAccountsResponse represents the response structure for BrowseExcludeIncludeAccounts.
 	BrowseExcludeIncludeAccountsResponse struct {
 		ID                           uuid.UUID                 `json:"id"`
 		CreatedAt                    string                    `json:"created_at"`
@@ -77,6 +79,7 @@ type (
 
 	// BrowseExcludeIncludeAccountsRequest represents the request structure for creating/updating browseexcludeincludeaccounts
 
+	// BrowseExcludeIncludeAccountsRequest represents the request structure for BrowseExcludeIncludeAccounts.
 	BrowseExcludeIncludeAccountsRequest struct {
 		ComputationSheetID           *uuid.UUID `json:"computation_sheet_id,omitempty"`
 		FinesAccountID               *uuid.UUID `json:"fines_account_id,omitempty"`

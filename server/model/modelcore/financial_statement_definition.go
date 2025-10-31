@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// FinancialStatementDefinition represents the FinancialStatementDefinition model.
 	FinancialStatementDefinition struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -48,6 +49,7 @@ type (
 
 	// FinancialStatementDefinitionResponse represents the response structure for financialstatementdefinition data
 
+	// FinancialStatementDefinitionResponse represents the response structure for FinancialStatementDefinition.
 	FinancialStatementDefinitionResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -77,6 +79,7 @@ type (
 
 	// FinancialStatementDefinitionRequest represents the request structure for creating/updating financialstatementdefinition
 
+	// FinancialStatementDefinitionRequest represents the request structure for FinancialStatementDefinition.
 	FinancialStatementDefinitionRequest struct {
 		Name                                  string     `json:"name" validate:"required,min=1,max=255"`
 		Description                           string     `json:"description,omitempty"`
@@ -175,6 +178,7 @@ func (m *ModelCore) financialStatementDefinition() {
 	})
 }
 
+// FinancialStatementDefinitionCurrentBranch returns FinancialStatementDefinitionCurrentBranch for the current branch or organization where applicable.
 func (m *ModelCore) FinancialStatementDefinitionCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*FinancialStatementDefinition, error) {
 	return m.FinancialStatementDefinitionManager.Find(context, &FinancialStatementDefinition{
 		OrganizationID: orgID,

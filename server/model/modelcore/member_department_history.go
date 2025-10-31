@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// MemberDepartmentHistory represents the MemberDepartmentHistory model.
 	MemberDepartmentHistory struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -37,6 +38,7 @@ type (
 
 	// MemberDepartmentHistoryResponse represents the response structure for memberdepartmenthistory data
 
+	// MemberDepartmentHistoryResponse represents the response structure for MemberDepartmentHistory.
 	MemberDepartmentHistoryResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -59,6 +61,7 @@ type (
 
 	// MemberDepartmentHistoryRequest represents the request structure for creating/updating memberdepartmenthistory
 
+	// MemberDepartmentHistoryRequest represents the request structure for MemberDepartmentHistory.
 	MemberDepartmentHistoryRequest struct {
 		MemberDepartmentID uuid.UUID `json:"member_department_id" validate:"required"`
 		MemberProfileID    uuid.UUID `json:"member_profile_id" validate:"required"`
@@ -131,6 +134,7 @@ func (m *ModelCore) memberDepartmentHistory() {
 	})
 }
 
+// MemberDepartmentHistoryCurrentBranch returns MemberDepartmentHistoryCurrentBranch for the current branch or organization where applicable.
 func (m *ModelCore) MemberDepartmentHistoryCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberDepartmentHistory, error) {
 	return m.MemberDepartmentHistoryManager.Find(context, &MemberDepartmentHistory{
 		OrganizationID: orgID,
@@ -138,6 +142,7 @@ func (m *ModelCore) MemberDepartmentHistoryCurrentBranch(context context.Context
 	})
 }
 
+// MemberDepartmentHistoryMemberProfileID returns MemberDepartmentHistoryMemberProfileID for the current branch or organization where applicable.
 func (m *ModelCore) MemberDepartmentHistoryMemberProfileID(context context.Context, memberProfileId, orgID, branchID uuid.UUID) ([]*MemberDepartmentHistory, error) {
 	return m.MemberDepartmentHistoryManager.Find(context, &MemberDepartmentHistory{
 		OrganizationID:  orgID,

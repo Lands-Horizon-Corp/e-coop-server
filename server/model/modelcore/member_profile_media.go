@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// MemberProfileMedia represents the MemberProfileMedia model.
 	MemberProfileMedia struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -40,6 +41,7 @@ type (
 
 	// MemberProfileMediaResponse represents the response structure for memberprofilemedia data
 
+	// MemberProfileMediaResponse represents the response structure for MemberProfileMedia.
 	MemberProfileMediaResponse struct {
 		ID              uuid.UUID              `json:"id"`
 		CreatedAt       string                 `json:"created_at"`
@@ -145,6 +147,7 @@ func (m *ModelCore) memberProfileMedia() {
 	})
 }
 
+// MemberProfileMediaCurrentBranch returns MemberProfileMediaCurrentBranch for the current branch or organization where applicable.
 func (m *ModelCore) MemberProfileMediaCurrentBranch(context context.Context, orgID *uuid.UUID, branchID *uuid.UUID) ([]*MemberProfileMedia, error) {
 	return m.MemberProfileMediaManager.Find(context, &MemberProfileMedia{
 		OrganizationID: orgID,

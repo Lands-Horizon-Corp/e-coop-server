@@ -49,6 +49,7 @@ type (
 		Middlename    string `json:"middle_name"`
 	}
 	// modelcore represents the core model management structure containing all entity managers
+	// ModelCore represents the ModelCore model.
 	ModelCore struct {
 		provider *server.Provider
 

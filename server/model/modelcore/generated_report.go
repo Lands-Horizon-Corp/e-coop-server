@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// GeneratedReport represents the GeneratedReport model.
 	GeneratedReport struct {
 		ID             uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt      time.Time      `gorm:"not null;default:now()"`
@@ -62,6 +63,7 @@ type (
 
 	// GeneratedReportRequest represents the request structure for creating/updating generatedreport
 
+	// GeneratedReportRequest represents the request structure for GeneratedReport.
 	GeneratedReportRequest struct {
 		ID          *uuid.UUID `json:"id,omitempty"`
 		Name        string     `json:"firstName" validate:"required,min=1,max=255"`

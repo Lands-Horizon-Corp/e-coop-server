@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// MemberTypeHistory represents the MemberTypeHistory model.
 	MemberTypeHistory struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -37,6 +38,7 @@ type (
 
 	// MemberTypeHistoryResponse represents the response structure for membertypehistory data
 
+	// MemberTypeHistoryResponse represents the response structure for MemberTypeHistory.
 	MemberTypeHistoryResponse struct {
 		ID              uuid.UUID              `json:"id"`
 		CreatedAt       string                 `json:"created_at"`
@@ -57,6 +59,7 @@ type (
 
 	// MemberTypeHistoryRequest represents the request structure for creating/updating membertypehistory
 
+	// MemberTypeHistoryRequest represents the request structure for MemberTypeHistory.
 	MemberTypeHistoryRequest struct {
 		MemberTypeID    uuid.UUID `json:"member_type_id" validate:"required"`
 		MemberProfileID uuid.UUID `json:"member_profile_id" validate:"required"`
@@ -121,6 +124,7 @@ func (m *ModelCore) memberTypeHistory() {
 	})
 }
 
+// MemberTypeHistoryCurrentBranch returns MemberTypeHistoryCurrentBranch for the current branch or organization where applicable.
 func (m *ModelCore) MemberTypeHistoryCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberTypeHistory, error) {
 	return m.MemberTypeHistoryManager.Find(context, &MemberTypeHistory{
 		OrganizationID: orgID,
@@ -128,6 +132,7 @@ func (m *ModelCore) MemberTypeHistoryCurrentBranch(context context.Context, orgI
 	})
 }
 
+// MemberTypeHistoryMemberProfileID returns MemberTypeHistoryMemberProfileID for the current branch or organization where applicable.
 func (m *ModelCore) MemberTypeHistoryMemberProfileID(context context.Context, memberProfileId, orgID, branchID uuid.UUID) ([]*MemberTypeHistory, error) {
 	return m.MemberTypeHistoryManager.Find(context, &MemberTypeHistory{
 		OrganizationID:  orgID,

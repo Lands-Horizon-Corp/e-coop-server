@@ -14,6 +14,7 @@ import (
 )
 
 type (
+	// InvitationCode represents the InvitationCode model.
 	InvitationCode struct {
 		ID             uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt      time.Time      `gorm:"not null;default:now()"`
@@ -44,6 +45,7 @@ type (
 
 	// InvitationCodeResponse represents the response structure for invitationcode data
 
+	// InvitationCodeResponse represents the response structure for InvitationCode.
 	InvitationCodeResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -72,6 +74,7 @@ type (
 
 	// InvitationCodeRequest represents the request structure for creating/updating invitationcode
 
+	// InvitationCodeRequest represents the request structure for InvitationCode.
 	InvitationCodeRequest struct {
 		ID *uuid.UUID `json:"id,omitempty"`
 
@@ -211,6 +214,7 @@ func (m *ModelCore) GetInvitationCodeByBranch(context context.Context, organizat
 }
 
 // getInvitationCodeByCode retrieves a single invitation code by its code string.
+// GetInvitationCodeByCode returns GetInvitationCodeByCode for the current branch or organization where applicable.
 func (m *ModelCore) GetInvitationCodeByCode(context context.Context, code string) (*InvitationCode, error) {
 	return m.InvitationCodeManager.FindOne(context, &InvitationCode{
 		Code: code,

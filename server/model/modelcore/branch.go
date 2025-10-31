@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// Branch represents the Branch model.
 	Branch struct {
 		ID             uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt      time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -55,6 +56,7 @@ type (
 
 	// BranchRequest represents the request structure for creating/updating branch
 
+	// BranchRequest represents the request structure for Branch.
 	BranchRequest struct {
 		ID *uuid.UUID `json:"id,omitempty"`
 
@@ -79,6 +81,7 @@ type (
 
 	// BranchResponse represents the response structure for branch data
 
+	// BranchResponse represents the response structure for Branch.
 	BranchResponse struct {
 		ID           uuid.UUID             `json:"id"`
 		CreatedAt    string                `json:"created_at"`

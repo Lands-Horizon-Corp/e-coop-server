@@ -21,6 +21,7 @@ const (
 )
 
 type (
+	// CashCheckVoucher represents the CashCheckVoucher model.
 	CashCheckVoucher struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -124,6 +125,7 @@ type (
 
 	// CashCheckVoucherResponse represents the response structure for cashcheckvoucher data
 
+	// CashCheckVoucherResponse represents the response structure for CashCheckVoucher.
 	CashCheckVoucherResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -221,6 +223,7 @@ type (
 
 	// CashCheckVoucherRequest represents the request structure for creating/updating cashcheckvoucher
 
+	// CashCheckVoucherRequest represents the request structure for CashCheckVoucher.
 	CashCheckVoucherRequest struct {
 		EmployeeUserID     *uuid.UUID `json:"employee_user_id,omitempty"`
 		TransactionBatchID *uuid.UUID `json:"transaction_batch_id,omitempty"`
@@ -284,6 +287,7 @@ type (
 
 	// CashCheckVoucherPrintRequest represents the request structure for creating/updating cashcheckvoucherprint
 
+	// CashCheckVoucherPrintRequest represents the request structure for CashCheckVoucherPrint.
 	CashCheckVoucherPrintRequest struct {
 		CashVoucherNumber string `json:"cash_voucher_number" validate:"required"`
 	}

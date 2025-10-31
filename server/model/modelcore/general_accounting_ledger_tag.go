@@ -13,6 +13,7 @@ import (
 // Enum for tag_category (customize as needed)
 
 type (
+	// GeneralLedgerTag represents the GeneralLedgerTag model.
 	GeneralLedgerTag struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -42,6 +43,7 @@ type (
 
 	// GeneralLedgerTagResponse represents the response structure for generalledgertag data
 
+	// GeneralLedgerTagResponse represents the response structure for GeneralLedgerTag.
 	GeneralLedgerTagResponse struct {
 		ID              uuid.UUID              `json:"id"`
 		CreatedAt       string                 `json:"created_at"`
@@ -65,6 +67,7 @@ type (
 
 	// GeneralLedgerTagRequest represents the request structure for creating/updating generalledgertag
 
+	// GeneralLedgerTagRequest represents the request structure for GeneralLedgerTag.
 	GeneralLedgerTagRequest struct {
 		GeneralLedgerID uuid.UUID   `json:"general_ledger_id" validate:"required"`
 		Name            string      `json:"name" validate:"required,min=1,max=50"`
@@ -136,6 +139,7 @@ func (m *ModelCore) generalLedgerTag() {
 	})
 }
 
+// GeneralLedgerTagCurrentBranch returns GeneralLedgerTagCurrentBranch for the current branch or organization where applicable.
 func (m *ModelCore) GeneralLedgerTagCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*GeneralLedgerTag, error) {
 	return m.GeneralLedgerTagManager.Find(context, &GeneralLedgerTag{
 		OrganizationID: orgID,

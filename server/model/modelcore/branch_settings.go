@@ -10,6 +10,7 @@ import (
 )
 
 type (
+	// BranchSetting represents the BranchSetting model.
 	BranchSetting struct {
 		ID        uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -79,6 +80,7 @@ type (
 
 	// BranchSettingRequest represents the request structure for creating/updating branchsetting
 
+	// BranchSettingRequest represents the request structure for BranchSetting.
 	BranchSettingRequest struct {
 
 		// Withdraw Settings
@@ -128,6 +130,7 @@ type (
 
 	// BranchSettingsCurrencyRequest represents the request structure for creating/updating branchsettingscurrency
 
+	// BranchSettingsCurrencyRequest represents the request structure for BranchSettingsCurrency.
 	BranchSettingsCurrencyRequest struct {
 		CurrencyID                   uuid.UUID `json:"currency_id" validate:"required"`
 		PaidUpSharedCapitalAccountID uuid.UUID `json:"paid_up_shared_capital_account_id" validate:"required"`
@@ -139,6 +142,7 @@ type (
 
 	// BranchSettingResponse represents the response structure for branchsetting data
 
+	// BranchSettingResponse represents the response structure for BranchSetting.
 	BranchSettingResponse struct {
 		ID         uuid.UUID         `json:"id"`
 		CreatedAt  string            `json:"created_at"`

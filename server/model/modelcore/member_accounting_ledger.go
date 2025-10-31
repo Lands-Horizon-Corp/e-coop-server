@@ -195,6 +195,7 @@ func (m *ModelCore) MemberAccountingLedgerCurrentBranch(context context.Context,
 
 // MemberAccountingLedgerFindForUpdate finds and locks a member accounting ledger for concurrent protection
 // Returns nil if not found (without error), allowing for create-or-update patterns
+// MemberAccountingLedgerFindForUpdate returns MemberAccountingLedgerFindForUpdate for the current branch or organization where applicable.
 func (m *ModelCore) MemberAccountingLedgerFindForUpdate(ctx context.Context, tx *gorm.DB, memberProfileID, accountID, orgID, branchID uuid.UUID) (*MemberAccountingLedger, error) {
 	var ledger MemberAccountingLedger
 	err := tx.WithContext(ctx).
@@ -230,6 +231,7 @@ func (m *ModelCore) MemberAccountingLedgerFindForUpdate(ctx context.Context, tx 
 //	    newBalance, time.Now())
 //	if err != nil {
 //	}
+// MemberAccountingLedgerUpdateOrCreate returns MemberAccountingLedgerUpdateOrCreate for the current branch or organization where applicable.
 func (m *ModelCore) MemberAccountingLedgerUpdateOrCreate(
 	ctx context.Context,
 	tx *gorm.DB,

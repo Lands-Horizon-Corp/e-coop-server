@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// MemberTypeReference represents the MemberTypeReference model.
 	MemberTypeReference struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -47,6 +48,7 @@ type (
 
 	// MemberTypeReferenceResponse represents the response structure for membertypereference data
 
+	// MemberTypeReferenceResponse represents the response structure for MemberTypeReference.
 	MemberTypeReferenceResponse struct {
 		ID                                             uuid.UUID             `json:"id"`
 		CreatedAt                                      string                `json:"created_at"`
@@ -76,6 +78,7 @@ type (
 
 	// MemberTypeReferenceRequest represents the request structure for creating/updating membertypereference
 
+	// MemberTypeReferenceRequest represents the request structure for MemberTypeReference.
 	MemberTypeReferenceRequest struct {
 		AccountID                                      uuid.UUID `json:"account_id"`
 		MemberTypeID                                   uuid.UUID `json:"member_type_id"`
@@ -162,6 +165,7 @@ func (m *ModelCore) memberTypeReference() {
 	})
 }
 
+// MemberTypeReferenceCurrentBranch returns MemberTypeReferenceCurrentBranch for the current branch or organization where applicable.
 func (m *ModelCore) MemberTypeReferenceCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberTypeReference, error) {
 	return m.MemberTypeReferenceManager.Find(context, &MemberTypeReference{
 		OrganizationID: orgID,
