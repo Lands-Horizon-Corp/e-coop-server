@@ -243,8 +243,8 @@ type (
 		FinancialStatementType FinancialStatementType `gorm:"type:varchar(50)" json:"financial_statement_type"`
 		GeneralLedgerType      GeneralLedgerType      `gorm:"type:varchar(50)" json:"general_ledger_type"`
 
-		AlternativeAccountID *uuid.UUID `gorm:"type:uuid" json:"alternative_account_id"`
-		AlternativeAccount   *Account   `gorm:"foreignKey:AlternativeAccountID;constraint:OnDelete:SET NULL;" json:"alternative_account,omitempty"`
+		LoanAccountID *uuid.UUID `gorm:"type:uuid" json:"loan_account_id"`
+		LoanAccount   *Account   `gorm:"foreignKey:LoanAccountID;constraint:OnDelete:SET NULL;" json:"loan_account,omitempty"`
 
 		FinesGracePeriodAmortization int  `gorm:"type:int" json:"fines_grace_period_amortization"`
 		AdditionalGracePeriod        int  `gorm:"type:int" json:"additional_grace_period"`
@@ -361,8 +361,8 @@ type AccountResponse struct {
 	FinancialStatementType FinancialStatementType `json:"financial_statement_type"`
 	GeneralLedgerType      GeneralLedgerType      `json:"general_ledger_type"`
 
-	AlternativeAccountID *uuid.UUID       `gorm:"type:uuid" json:"alternative_account_id,omitempty"`
-	AlternativeAccount   *AccountResponse `json:"alternative_account,omitempty"`
+	LoanAccountID *uuid.UUID       `json:"loan_account_id,omitempty"`
+	LoanAccount   *AccountResponse `json:"loan_account,omitempty"`
 
 	FinesGracePeriodAmortization int  `json:"fines_grace_period_amortization"`
 	AdditionalGracePeriod        int  `json:"additional_grace_period"`
@@ -454,7 +454,7 @@ type AccountRequest struct {
 	FinancialStatementType FinancialStatementType `json:"financial_statement_type,omitempty"`
 	GeneralLedgerType      GeneralLedgerType      `json:"general_ledger_type,omitempty"`
 
-	AlternativeAccountID *uuid.UUID `json:"alternative_account_id,omitempty"`
+	LoanAccountID *uuid.UUID `json:"loan_account_id,omitempty"`
 
 	FinesGracePeriodAmortization int  `json:"fines_grace_period_amortization,omitempty"`
 	AdditionalGracePeriod        int  `json:"additional_grace_period,omitempty"`
@@ -571,8 +571,8 @@ func (m *ModelCore) account() {
 				CohCibFinesGracePeriodEntryLumpsumMaturity:         data.CohCibFinesGracePeriodEntryLumpsumMaturity,
 				FinancialStatementType:                             FinancialStatementType(data.FinancialStatementType),
 				GeneralLedgerType:                                  data.GeneralLedgerType,
-				AlternativeAccountID:                               data.AlternativeAccountID,
-				AlternativeAccount:                                 m.AccountManager.ToModel(data.AlternativeAccount),
+				LoanAccountID:                                      data.LoanAccountID,
+				LoanAccount:                                        m.AccountManager.ToModel(data.LoanAccount),
 				FinesGracePeriodAmortization:                       data.FinesGracePeriodAmortization,
 				AdditionalGracePeriod:                              data.AdditionalGracePeriod,
 				NumberGracePeriodDaily:                             data.NumberGracePeriodDaily,
@@ -971,7 +971,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 			FinancialStatementType:                  FSTypeRevenue,
 			ComputationType:                         "Fixed Amount",
 			Index:                                   loanAccount.Index + 100, // Offset to avoid conflicts
-			AlternativeAccountID:                    &loanAccount.ID,
+			LoanAccountID:                           &loanAccount.ID,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
 			ShowInGeneralLedgerSourceJournal:        true,
@@ -1004,7 +1004,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 			FinancialStatementType:                  FSTypeRevenue,
 			ComputationType:                         "Fixed Amount",
 			Index:                                   loanAccount.Index + 200, // Offset to avoid conflicts
-			AlternativeAccountID:                    &loanAccount.ID,
+			LoanAccountID:                           &loanAccount.ID,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
 			ShowInGeneralLedgerSourceJournal:        true,
@@ -1037,7 +1037,7 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 			FinancialStatementType:                  FSTypeRevenue,
 			ComputationType:                         "Fixed Amount",
 			Index:                                   loanAccount.Index + 300, // Offset to avoid conflicts
-			AlternativeAccountID:                    &loanAccount.ID,
+			LoanAccountID:                           &loanAccount.ID,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
 			ShowInGeneralLedgerSourceJournal:        true,
@@ -2336,7 +2336,7 @@ func (a *Account) BeforeUpdate(tx *gorm.DB) error {
 		MemberTypeID:                   original.MemberTypeID,
 		CurrencyID:                     original.CurrencyID,
 		ComputationSheetID:             original.ComputationSheetID,
-		AlternativeAccountID:           original.AlternativeAccountID,
+		LoanAccountID:                  original.LoanAccountID,
 
 		// Grace period entries
 		CohCibFinesGracePeriodEntryCashHand:                original.CohCibFinesGracePeriodEntryCashHand,
@@ -2433,7 +2433,7 @@ func (a *Account) AfterCreate(tx *gorm.DB) error {
 		MemberTypeID:                   a.MemberTypeID,
 		CurrencyID:                     a.CurrencyID,
 		ComputationSheetID:             a.ComputationSheetID,
-		AlternativeAccountID:           a.AlternativeAccountID,
+		LoanAccountID:                  a.LoanAccountID,
 
 		// Grace period entries
 		CohCibFinesGracePeriodEntryCashHand:                a.CohCibFinesGracePeriodEntryCashHand,
@@ -2536,7 +2536,7 @@ func (a *Account) BeforeDelete(tx *gorm.DB) error {
 		MemberTypeID:                   a.MemberTypeID,
 		CurrencyID:                     a.CurrencyID,
 		ComputationSheetID:             a.ComputationSheetID,
-		AlternativeAccountID:           a.AlternativeAccountID,
+		LoanAccountID:                  a.LoanAccountID,
 
 		// Grace period entries
 		CohCibFinesGracePeriodEntryCashHand:                a.CohCibFinesGracePeriodEntryCashHand,

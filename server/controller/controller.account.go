@@ -559,7 +559,7 @@ func (c *Controller) accountController() {
 			CohCibFinesGracePeriodEntryLumpsumMaturity:         req.CohCibFinesGracePeriodEntryLumpsumMaturity,
 			FinancialStatementType:                             req.FinancialStatementType,
 			GeneralLedgerType:                                  req.GeneralLedgerType,
-			AlternativeAccountID:                               req.AlternativeAccountID,
+			LoanAccountID:                                      req.LoanAccountID,
 			FinesGracePeriodAmortization:                       req.FinesGracePeriodAmortization,
 			AdditionalGracePeriod:                              req.AdditionalGracePeriod,
 			NumberGracePeriodDaily:                             req.NumberGracePeriodDaily,
@@ -755,7 +755,7 @@ func (c *Controller) accountController() {
 		account.CohCibFinesGracePeriodEntryLumpsumMaturity = req.CohCibFinesGracePeriodEntryLumpsumMaturity
 		account.FinancialStatementType = req.FinancialStatementType
 		account.GeneralLedgerType = req.GeneralLedgerType
-		account.AlternativeAccountID = req.AlternativeAccountID
+		account.LoanAccountID = req.LoanAccountID
 		account.FinesGracePeriodAmortization = req.FinesGracePeriodAmortization
 		account.AdditionalGracePeriod = req.AdditionalGracePeriod
 		account.NumberGracePeriodDaily = req.NumberGracePeriodDaily

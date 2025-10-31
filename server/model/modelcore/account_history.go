@@ -124,7 +124,7 @@ type (
 		MemberTypeID                   *uuid.UUID `gorm:"type:uuid" json:"member_type_id,omitempty"`
 		CurrencyID                     *uuid.UUID `gorm:"type:uuid" json:"currency_id,omitempty"`
 		ComputationSheetID             *uuid.UUID `gorm:"type:uuid" json:"computation_sheet_id,omitempty"`
-		AlternativeAccountID           *uuid.UUID `gorm:"type:uuid" json:"alternative_account_id,omitempty"`
+		LoanAccountID                  *uuid.UUID `gorm:"type:uuid" json:"loan_account_id,omitempty"`
 
 		// Grace period entries snapshot
 		CohCibFinesGracePeriodEntryCashHand                float64 `gorm:"type:decimal" json:"coh_cib_fines_grace_period_entry_cash_hand"`
@@ -234,7 +234,7 @@ type (
 		MemberTypeID                   *uuid.UUID `json:"member_type_id,omitempty"`
 		CurrencyID                     *uuid.UUID `json:"currency_id,omitempty"`
 		ComputationSheetID             *uuid.UUID `json:"computation_sheet_id,omitempty"`
-		AlternativeAccountID           *uuid.UUID `json:"alternative_account_id,omitempty"`
+		LoanAccountID                  *uuid.UUID `json:"loan_account_id,omitempty"`
 
 		// Grace period entries
 		CohCibFinesGracePeriodEntryCashHand                float64 `json:"coh_cib_fines_grace_period_entry_cash_hand"`
@@ -360,7 +360,7 @@ func (m *ModelCore) accountHistory() {
 				MemberTypeID:                   data.MemberTypeID,
 				CurrencyID:                     data.CurrencyID,
 				ComputationSheetID:             data.ComputationSheetID,
-				AlternativeAccountID:           data.AlternativeAccountID,
+				LoanAccountID:                  data.LoanAccountID,
 
 				// Grace period entries
 				CohCibFinesGracePeriodEntryCashHand:                data.CohCibFinesGracePeriodEntryCashHand,
