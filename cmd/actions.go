@@ -9,7 +9,7 @@ import (
 	controller_v1 "github.com/Lands-Horizon-Corp/e-coop-server/src/controller/v1"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/cooperative_tokens"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelCore"
+	modelCore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/service"
 	"github.com/fatih/color"
 	"go.uber.org/fx"

@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelCore"
+	modelCore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
 )
 
 // ExchangeResult represents the result of a currency exchange operation

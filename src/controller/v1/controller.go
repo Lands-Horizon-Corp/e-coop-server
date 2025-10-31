@@ -4,7 +4,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/src"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/cooperative_tokens"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelCore"
+	modelCore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/service"
 )
 

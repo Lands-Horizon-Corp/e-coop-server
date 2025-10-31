@@ -4,7 +4,7 @@ import (
 	"context"
 	"math"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelCore"
+	modelCore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
 
 	"github.com/rotisserie/eris"
 )
