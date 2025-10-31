@@ -179,7 +179,7 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 		s.provider.Service.Logger.Info(fmt.Sprintf("🏢 Processing organizations for user: %s %s", *user.FirstName, *user.LastName))
 		s.progressBar.Describe(fmt.Sprintf("🏢 Processing organizations for user: %s %s", *user.FirstName, *user.LastName))
 		_ = s.progressBar.Add(1)
-		for j := 0; j < numOrgsPerUser; j++ {
+		for j := range numOrgsPerUser {
 			s.provider.Service.Logger.Info(fmt.Sprintf("🏭 Setting up organization %d/%d for user %s", j+1, numOrgsPerUser, *user.FirstName))
 			s.progressBar.Describe("🏭 Setting up organization...")
 			_ = s.progressBar.Add(1)
@@ -240,7 +240,7 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 
 			numBranches := int(multiplier) * 1
 
-			for k := 0; k < numBranches; k++ {
+			for k := range numBranches {
 				branchMedia, err := s.createImageMedia(ctx, "Organization")
 				if err != nil {
 					return eris.Wrap(err, "failed to create organization media")
@@ -492,9 +492,7 @@ func (s *Seeder) SeedEmployees(ctx context.Context, multiplier int32) error {
 			numEmployeesToCreate := int(multiplier) * 1
 
 			// Don't create more employees than available users
-			if numEmployeesToCreate > len(potentialEmployees) {
-				numEmployeesToCreate = len(potentialEmployees)
-			}
+			numEmployeesToCreate = min(numEmployeesToCreate, len(potentialEmployees))
 
 			// Cap at a reasonable number per branch, e.g., 3 * multiplier, but adjust if needed
 			maxPerBranch := 3 * int(multiplier)
@@ -567,7 +565,7 @@ func (s *Seeder) SeedEmployees(ctx context.Context, multiplier int32) error {
 					continue
 				}
 				s.provider.Service.Logger.Info(fmt.Sprintf("✅ Created employee: %s %s for branch %s", *selectedUser.FirstName, *selectedUser.LastName, branch.Name))
-				s.progressBar.Add(1)
+				_ = s.progressBar.Add(1)
 
 			}
 		}
@@ -587,7 +585,7 @@ func (s *Seeder) SeedUsers(ctx context.Context, multiplier int32) error {
 		// Skip the user creation adds by advancing the expected count
 		numUsers := int(multiplier) * 1
 		s.provider.Service.Logger.Info(fmt.Sprintf("⏭️ Skipping %d user creations (users already exist)", numUsers))
-		s.progressBar.Add(numUsers)
+		_ = s.progressBar.Add(numUsers)
 		return nil
 	}
 
@@ -602,7 +600,7 @@ func (s *Seeder) SeedUsers(ctx context.Context, multiplier int32) error {
 	baseNumUsers := 1
 	numUsers := int(multiplier) * baseNumUsers
 
-	for i := range numUsers {
+	for i := 0; i < numUsers; i++ {
 		firstName := s.faker.Person().FirstName()
 		middleName := s.faker.Person().LastName()[:1] // Simulate middle initial
 		lastName := s.faker.Person().LastName()
@@ -643,7 +641,7 @@ func (s *Seeder) SeedUsers(ctx context.Context, multiplier int32) error {
 		}
 		s.provider.Service.Logger.Info(fmt.Sprintf("✅ Created user: %s %s (%s) - Progress: User %d", *user.FirstName, *user.LastName, user.Email, i+1))
 		s.progressBar.Describe(fmt.Sprintf("👤 Created user: %s (%s)", *user.FirstName+" "+*user.LastName, user.Email))
-		s.progressBar.Add(1)
+		_ = s.progressBar.Add(1)
 	}
 	return nil
 }
@@ -666,7 +664,7 @@ func (s *Seeder) SeedMemberProfiles(ctx context.Context, multiplier int32) error
 		skipCount := (numUsers * numOrgsPerUser * 1) + // per org processing
 			(numUsers * numOrgsPerUser * numBranchesPerOrg * numMembersPerBranch * 2) // per member operations
 		s.provider.Service.Logger.Info(fmt.Sprintf("⏭️ Skipping %d member profile operations (profiles already exist)", skipCount))
-		s.progressBar.Add(skipCount)
+		_ = s.progressBar.Add(skipCount)
 		return nil
 	}
 	// Get existing organizations and branches to seed member profiles for
@@ -690,7 +688,7 @@ func (s *Seeder) SeedMemberProfiles(ctx context.Context, multiplier int32) error
 		// Get branches for this organization
 		s.provider.Service.Logger.Info(fmt.Sprintf("👥 Processing member profiles for organization: %s", org.Name))
 		s.progressBar.Describe(fmt.Sprintf("👥 Processing member profiles for organization: %s", org.Name))
-		s.progressBar.Add(1)
+		_ = s.progressBar.Add(1)
 		branches, err := s.modelcore.BranchManager.Find(ctx, &modelcore.Branch{
 			OrganizationID: org.ID,
 		})
@@ -700,9 +698,7 @@ func (s *Seeder) SeedMemberProfiles(ctx context.Context, multiplier int32) error
 
 		for _, branch := range branches {
 			numMembers := int(multiplier) * 1
-			if numMembers > len(users) {
-				numMembers = len(users)
-			}
+			numMembers = min(numMembers, len(users))
 
 			for i := 0; i < numMembers; i++ {
 				firstName := s.faker.Person().FirstName()
@@ -715,7 +711,7 @@ func (s *Seeder) SeedMemberProfiles(ctx context.Context, multiplier int32) error
 				birthDate := time.Now().AddDate(-age, 0, 0)
 
 				// Generate passbook number
-				passbook := fmt.Sprintf("PB-%s-%04d", branch.Name[:minInt(3, len(branch.Name))], i+1)
+				passbook := fmt.Sprintf("PB-%s-%04d", branch.Name[:min(3, len(branch.Name))], i+1)
 
 				// Create member profile
 				memberProfile := &modelcore.MemberProfile{
@@ -752,7 +748,7 @@ func (s *Seeder) SeedMemberProfiles(ctx context.Context, multiplier int32) error
 				}
 				s.provider.Service.Logger.Info(fmt.Sprintf("👤 Created member: %s (%s) for branch: %s", fullName, passbook, branch.Name))
 				s.progressBar.Describe(fmt.Sprintf("👤 Created member: %s (%s)", fullName, passbook))
-				s.progressBar.Add(1)
+				_ = s.progressBar.Add(1)
 
 				// Create sample member address
 				memberAddress := &modelcore.MemberAddress{
@@ -778,7 +774,7 @@ func (s *Seeder) SeedMemberProfiles(ctx context.Context, multiplier int32) error
 				}
 				s.provider.Service.Logger.Info(fmt.Sprintf("📍 Added address for member: %s in branch: %s", fullName, branch.Name))
 				s.progressBar.Describe(fmt.Sprintf("📍 Added address for member: %s", fullName))
-				s.progressBar.Add(1)
+				_ = s.progressBar.Add(1)
 
 			}
 		}

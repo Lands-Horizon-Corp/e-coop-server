@@ -4,8 +4,9 @@ package seeder
 
 import (
 	"context"
+	crand "crypto/rand"
 	"io/fs"
-	"math/rand"
+	"math/big"
 	"path/filepath"
 	"strings"
 	"time"
@@ -56,8 +57,13 @@ func (s *Seeder) createImageMedia(ctx context.Context, imageType string) (*model
 		return nil, eris.New("no image files available for seeding")
 	}
 
-	// Randomly choose one image from the loaded paths
-	randomIndex := rand.Intn(len(s.imagePaths))
+	// Randomly choose one image from the loaded paths using crypto/rand
+	maxInt := big.NewInt(int64(len(s.imagePaths)))
+	nBig, err := crand.Int(crand.Reader, maxInt)
+	if err != nil {
+		return nil, eris.Wrap(err, "failed to generate secure random index for image selection")
+	}
+	randomIndex := int(nBig.Int64())
 	imagePath := s.imagePaths[randomIndex]
 
 	// Upload the image from local path
@@ -83,15 +89,6 @@ func (s *Seeder) createImageMedia(ctx context.Context, imageType string) (*model
 	}
 
 	return media, nil
-}
-
-// minInt returns the smaller of a and b.
-// Renamed from min to avoid shadowing the Go builtin in newer Go versions.
-func minInt(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
 }
 
 func ptr[T any](v T) *T {

@@ -268,18 +268,18 @@ func FilterSlice[T any](
 
 	for batch := range batchCount {
 		start := batch * batchSize
-		end := minInt(start+batchSize, len(data))
+		end := min(start+batchSize, len(data))
 		if start >= end {
 			continue
 		}
 
-		numWorkers := minInt(maxWorkers, (end-start+batchSize-1)/batchSize)
+		numWorkers := min(maxWorkers, (end-start+batchSize-1)/batchSize)
 		chunkSize := (end - start + numWorkers - 1) / numWorkers
 
 		for w := 0; w < numWorkers; w++ {
 			wg.Add(1)
 			workerStart := start + w*chunkSize
-			workerEnd := minInt(workerStart+chunkSize, end)
+			workerEnd := min(workerStart+chunkSize, end)
 
 			go func(batchIdx, startIdx, endIdx int) {
 				defer wg.Done()
@@ -577,7 +577,7 @@ func SortSlice[T any](
 	var wg sync.WaitGroup
 	for batch := range batchCount {
 		start := batch * batchSize
-		end := minInt(start+batchSize, len(data))
+		end := min(start+batchSize, len(data))
 		if start >= end {
 			continue
 		}
@@ -921,7 +921,7 @@ func isEmpty(val reflect.Value) bool {
 	}
 }
 
-func minInt(a, b int) int {
+func min(a, b int) int {
 	if a < b {
 		return a
 	}
@@ -939,7 +939,7 @@ func PaginateSlice[T any](data []*T, pageIndex, pageSize int) []*T {
 		return []*T{}
 	}
 
-	end := minInt(start+pageSize, len(data))
+	end := min(start+pageSize, len(data))
 	return data[start:end]
 }
 
