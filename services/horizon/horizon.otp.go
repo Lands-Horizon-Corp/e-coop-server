@@ -10,20 +10,21 @@ import (
 	"github.com/rotisserie/eris"
 )
 
+// OTPService defines the interface for one-time password operations.
 type OTPService interface {
 	Generate(ctx context.Context, key string) (string, error)
 	Verify(ctx context.Context, key, code string) (bool, error)
 	Revoke(ctx context.Context, key string) error
 }
 
+// HorizonOTP provides an implementation of OTPService.
 type HorizonOTP struct {
 	secret   []byte
 	cache    CacheService
 	security SecurityService
 }
 
-// go -v ./services/horizon/horizon.otp.go
-
+// NewHorizonOTP creates a new OTP service instance.
 func NewHorizonOTP(secret []byte, cache CacheService, security SecurityService) OTPService {
 	return &HorizonOTP{
 		secret:   secret,
@@ -32,6 +33,7 @@ func NewHorizonOTP(secret []byte, cache CacheService, security SecurityService) 
 	}
 }
 
+// Generate creates a new OTP for the given key.
 func (h *HorizonOTP) Generate(ctx context.Context, key string) (string, error) {
 	otpKey := h.key(ctx, key)
 	countKey := h.keyCount(ctx, key)
@@ -71,6 +73,7 @@ func (h *HorizonOTP) Generate(ctx context.Context, key string) (string, error) {
 	return code, nil
 }
 
+// Verify validates an OTP code for the given key.
 func (h *HorizonOTP) Verify(ctx context.Context, key, code string) (bool, error) {
 	otpKey := h.key(ctx, key)
 	countKey := h.keyCount(ctx, key)
@@ -127,6 +130,7 @@ func (h *HorizonOTP) Verify(ctx context.Context, key, code string) (bool, error)
 	return true, nil
 }
 
+// Revoke removes an OTP and its attempt count for the given key.
 func (h *HorizonOTP) Revoke(ctx context.Context, key string) error {
 	otpKey := h.key(ctx, key)
 	countKey := h.keyCount(ctx, key)

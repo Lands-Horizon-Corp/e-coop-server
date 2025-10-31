@@ -48,7 +48,7 @@ func createCacheSetupService(t *testing.T) CacheService {
 	return cache
 }
 
-func setupTest(t *testing.T) (context.Context, *HorizonAuthService[TestClaimUserCSRF], CacheService) {
+func setupTest(t *testing.T) (context.Context, *AuthServiceImpl[TestClaimUserCSRF], CacheService) {
 	ctx := context.Background()
 	cache := createCacheSetupService(t)
 
@@ -57,12 +57,12 @@ func setupTest(t *testing.T) (context.Context, *HorizonAuthService[TestClaimUser
 	require.NoError(t, err)
 	require.Empty(t, keys, "Cache should be empty before test starts")
 
-	service := NewHorizonAuthService[TestClaimUserCSRF](
+	service := NewAuthServiceImpl[TestClaimUserCSRF](
 		cache,
 		"test",
 		"X-CSRF-Token",
 		false,
-	).(*HorizonAuthService[TestClaimUserCSRF])
+	).(*AuthServiceImpl[TestClaimUserCSRF])
 
 	return ctx, service, cache
 }

@@ -25,8 +25,8 @@ type APIService interface {
 	RegisterRoute(route handlers.Route, callback func(c echo.Context) error, m ...echo.MiddlewareFunc)
 }
 
-// HorizonAPIService implements APIService.
-type HorizonAPIService struct {
+// APIServiceImpl implements APIService.
+type APIServiceImpl struct {
 	service     *echo.Echo
 	serverPort  int
 	metricsPort int
@@ -201,7 +201,7 @@ func NewHorizonAPIService(
 		return c.String(http.StatusOK, "Welcome to Horizon API")
 	})
 
-	return &HorizonAPIService{
+	return &APIServiceImpl{
 		service:     e,
 		serverPort:  serverPort,
 		metricsPort: metricsPort,
@@ -212,10 +212,10 @@ func NewHorizonAPIService(
 }
 
 // Client returns the Echo instance.
-func (h *HorizonAPIService) Client() *echo.Echo { return h.service }
+func (h *APIServiceImpl) Client() *echo.Echo { return h.service }
 
 // RegisterRoute registers a new route and its handler.
-func (h *HorizonAPIService) RegisterRoute(route handlers.Route, callback func(c echo.Context) error, m ...echo.MiddlewareFunc) {
+func (h *APIServiceImpl) RegisterRoute(route handlers.Route, callback func(c echo.Context) error, m ...echo.MiddlewareFunc) {
 	method := strings.ToUpper(strings.TrimSpace(route.Method))
 	if err := h.handler.AddRoute(route); err != nil {
 		panic(err)
@@ -235,7 +235,7 @@ func (h *HorizonAPIService) RegisterRoute(route handlers.Route, callback func(c 
 }
 
 // Run starts the API and metrics servers.
-func (h *HorizonAPIService) Run(ctx context.Context) error {
+func (h *APIServiceImpl) Run(_ context.Context) error {
 
 	// New: GET /api/routes returns grouped routes as JSON
 	grouped := h.handler.GroupedRoutes()
@@ -254,7 +254,7 @@ func (h *HorizonAPIService) Run(ctx context.Context) error {
 }
 
 // Stop gracefully shuts down the API server.
-func (h *HorizonAPIService) Stop(ctx context.Context) error {
+func (h *APIServiceImpl) Stop(ctx context.Context) error {
 	if err := h.service.Shutdown(ctx); err != nil {
 		return eris.New("failed to gracefully shutdown server")
 	}

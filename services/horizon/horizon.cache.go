@@ -11,8 +11,7 @@ import (
 	"github.com/rotisserie/eris"
 )
 
-// go test -v
-// Cache defines the interface for Redis operations
+// CacheService defines the interface for Redis operations.
 type CacheService interface {
 	Run(ctx context.Context) error
 	Stop(ctx context.Context) error
@@ -25,6 +24,7 @@ type CacheService interface {
 	Flush(ctx context.Context) error
 }
 
+// HorizonCache provides a Redis-based implementation of CacheService.
 type HorizonCache struct {
 	host     string
 	password string
@@ -34,6 +34,7 @@ type HorizonCache struct {
 	prefix   string
 }
 
+// NewHorizonCache creates a new Redis cache service instance.
 func NewHorizonCache(host, password, username string, port int) CacheService {
 	return &HorizonCache{
 		host:     host,
@@ -49,6 +50,7 @@ func (h *HorizonCache) applyPrefix(key string) string {
 	return h.prefix + key
 }
 
+// Flush removes all keys from the Redis database.
 func (h *HorizonCache) Flush(ctx context.Context) error {
 	if h.client == nil {
 		return eris.New("redis client is not initialized")
@@ -56,6 +58,7 @@ func (h *HorizonCache) Flush(ctx context.Context) error {
 	return eris.Wrap(h.client.FlushAll(ctx).Err(), "failed to flush Redis")
 }
 
+// Run initializes the Redis client connection.
 func (h *HorizonCache) Run(ctx context.Context) error {
 	h.client = redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%d", h.host, h.port),
@@ -70,6 +73,7 @@ func (h *HorizonCache) Run(ctx context.Context) error {
 	return nil
 }
 
+// Stop closes the Redis connection and cleans up keys.
 func (h *HorizonCache) Stop(ctx context.Context) error {
 	if h.client == nil {
 		return eris.New("redis client is not initialized")
@@ -88,6 +92,7 @@ func (h *HorizonCache) Stop(ctx context.Context) error {
 	return h.client.Close()
 }
 
+// Ping checks if the Redis server is reachable.
 func (h *HorizonCache) Ping(ctx context.Context) error {
 	if h.client == nil {
 		return eris.New("redis client is not initialized")
@@ -98,6 +103,7 @@ func (h *HorizonCache) Ping(ctx context.Context) error {
 	return nil
 }
 
+// Get retrieves a value from Redis by key.
 func (h *HorizonCache) Get(ctx context.Context, key string) ([]byte, error) {
 	if h.client == nil {
 		return nil, eris.New("redis client is not initialized")
@@ -114,6 +120,7 @@ func (h *HorizonCache) Get(ctx context.Context, key string) ([]byte, error) {
 	return val, eris.Wrap(err, "failed to get key")
 }
 
+// Set stores a value in Redis with an optional TTL.
 func (h *HorizonCache) Set(ctx context.Context, key string, value any, ttl time.Duration) error {
 	if h.client == nil {
 		return eris.New("redis client is not initialized")
@@ -168,6 +175,7 @@ func (h *HorizonCache) Set(ctx context.Context, key string, value any, ttl time.
 	)
 }
 
+// Exists checks if a key exists in Redis.
 func (h *HorizonCache) Exists(ctx context.Context, key string) (bool, error) {
 	if h.client == nil {
 		return false, eris.New("redis client is not initialized")
@@ -183,6 +191,7 @@ func (h *HorizonCache) Exists(ctx context.Context, key string) (bool, error) {
 	return val > 0, nil
 }
 
+// Delete removes a key from Redis.
 func (h *HorizonCache) Delete(ctx context.Context, key string) error {
 	if h.client == nil {
 		return eris.New("redis client is not initialized")
@@ -194,6 +203,7 @@ func (h *HorizonCache) Delete(ctx context.Context, key string) error {
 	return h.client.Del(ctx, prefixedKey).Err()
 }
 
+// Keys returns all keys matching the given pattern.
 func (h *HorizonCache) Keys(ctx context.Context, pattern string) ([]string, error) {
 	if h.client == nil {
 		return nil, eris.New("redis client is not initialized")

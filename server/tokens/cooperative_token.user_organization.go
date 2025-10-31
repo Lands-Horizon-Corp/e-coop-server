@@ -103,7 +103,7 @@ type UserOrganizationToken struct {
 func NewUserOrganizationToken(provider *server.Provider, modelcore *modelcore.ModelCore) (*UserOrganizationToken, error) {
 	appName := provider.Service.Environment.GetString("APP_NAME", "")
 
-	csrfService := horizon.NewHorizonAuthService[UserOrganizationCSRF](
+	csrfService := horizon.NewAuthServiceImpl[UserOrganizationCSRF](
 		provider.Service.Cache,
 		"user-organization-csrf",
 		fmt.Sprintf("%s-%s", "X-SECURE-CSRF-USER-ORGANIZATION", appName),

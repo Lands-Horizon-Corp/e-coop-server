@@ -21,14 +21,14 @@ func TestMain(m *testing.M) {
 	env := NewEnvironmentService("../../.env")
 
 	metricsPort := handlers.GetFreePort()
-	clientUrl := env.GetString("APP_CLIENT_URL", "http://localhost:3000")
+	clientURL := env.GetString("APP_CLIENT_URL", "http://localhost:3000")
 	clientName := env.GetString("APP_CLIENT_NAME", "test-client")
 	baseURL := "http://localhost:" + fmt.Sprint(apiPort)
 
 	// Assign package-level variables, do NOT use := to avoid shadowing
 	testCtx := context.Background()
 
-	service := NewHorizonAPIService(apiPort, metricsPort, clientUrl, clientName, false)
+	service := NewHorizonAPIService(apiPort, metricsPort, clientURL, clientName, false)
 	go func() {
 		if err := service.Run(testCtx); err != nil {
 			println("Server exited with error:", err.Error())
@@ -61,7 +61,7 @@ func waitForServerReady(url string, timeout time.Duration) bool {
 	return false
 }
 
-func TestNewHorizonAPIService_HealthCheck(t *testing.T) {
+func TestNewAPIServiceImpl_HealthCheck(t *testing.T) {
 
 	baseURL := "http://localhost:" + fmt.Sprint(apiPort)
 	resp, err := http.Get(baseURL + "/health")
@@ -73,7 +73,7 @@ func TestNewHorizonAPIService_HealthCheck(t *testing.T) {
 	assert.Equal(t, "OK", string(body))
 }
 
-func TestNewHorizonAPIService_SuspiciousPath(t *testing.T) {
+func TestNewAPIServiceImpl_SuspiciousPath(t *testing.T) {
 
 	baseURL := "http://localhost:" + fmt.Sprint(apiPort)
 	resp, err := http.Get(baseURL + "/config.yaml")
@@ -85,7 +85,7 @@ func TestNewHorizonAPIService_SuspiciousPath(t *testing.T) {
 	assert.Equal(t, "Access forbidden", string(body))
 }
 
-func TestNewHorizonAPIService_WellKnownPath(t *testing.T) {
+func TestNewAPIServiceImpl_WellKnownPath(t *testing.T) {
 
 	baseURL := "http://localhost:" + fmt.Sprint(apiPort)
 	resp, err := http.Get(baseURL + "/.well-known/security.txt")

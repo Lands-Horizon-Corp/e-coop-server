@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/viper"
 )
 
+// EnvironmentService defines the interface for environment variable operations.
 type EnvironmentService interface {
 	Get(key string, defaultValue any) any
 	GetString(key string, defaultValue string) string
@@ -33,8 +34,11 @@ type EnvironmentService interface {
 	GetStringMapStringSlice(key string, defaultValue map[string][]string) map[string][]string
 	GetSizeInBytes(key string, defaultValue uint) uint
 }
+
+// HorizonEnvironmentService provides a Viper-based implementation of EnvironmentService.
 type HorizonEnvironmentService struct{}
 
+// NewEnvironmentService creates a new environment service instance.
 func NewEnvironmentService(path string) EnvironmentService {
 	// Check if path is empty or file does not exist
 	if !handlers.FileExists(path) {
@@ -50,11 +54,14 @@ func NewEnvironmentService(path string) EnvironmentService {
 	viper.AutomaticEnv()
 	return HorizonEnvironmentService{}
 }
+
+// GetInt16 retrieves an int16 value from environment variables.
 func (h HorizonEnvironmentService) GetInt16(key string, defaultValue int16) int16 {
 	viper.SetDefault(key, defaultValue)
 	return int16(viper.GetInt(key))
 }
 
+// GetByteSlice retrieves a byte slice value from environment variables.
 func (h HorizonEnvironmentService) GetByteSlice(key string, defaultValue string) []byte {
 	viper.SetDefault(key, defaultValue)
 	value := h.GetString(key, defaultValue)

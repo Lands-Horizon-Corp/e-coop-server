@@ -9,7 +9,7 @@ import (
 	"github.com/rotisserie/eris"
 )
 
-// MessageBroker defines the interface for pub/sub messaging systems
+// MessageBrokerService defines the interface for pub/sub messaging systems.
 type MessageBrokerService interface {
 	Run(ctx context.Context) error
 	Stop(ctx context.Context) error
@@ -18,27 +18,28 @@ type MessageBrokerService interface {
 	Subscribe(ctx context.Context, topic string, handler func(any) error) error
 }
 
+// HorizonMessageBroker provides a NATS-based implementation of MessageBrokerService.
 type HorizonMessageBroker struct {
 	host     string
 	port     int
 	nc       *nats.Conn
-	clientId string
+	clientID string
 	natsUser string
 	natsPass string
 }
 
 // NewHorizonMessageBroker initializes the broker with optional TLS cert paths
-func NewHorizonMessageBroker(host string, port int, clientId, natsUser, natsPass string) MessageBrokerService {
+func NewHorizonMessageBroker(host string, port int, clientID, natsUser, natsPass string) MessageBrokerService {
 
 	return &HorizonMessageBroker{
 		host:     host,
 		port:     port,
-		clientId: clientId,
+		clientID: clientID,
 		natsUser: natsUser,
 		natsPass: natsPass,
 	}
 }
-func (h *HorizonMessageBroker) Run(ctx context.Context) error {
+func (h *HorizonMessageBroker) Run(_ context.Context) error {
 	natsURL := fmt.Sprintf("nats://%s:%d", h.host, h.port)
 	options := []nats.Option{
 		nats.UserInfo(h.natsUser, h.natsPass),
@@ -54,7 +55,7 @@ func (h *HorizonMessageBroker) Run(ctx context.Context) error {
 	h.nc = nc
 	return nil
 }
-func (h *HorizonMessageBroker) Stop(ctx context.Context) error {
+func (h *HorizonMessageBroker) Stop(_ context.Context) error {
 	if h.nc != nil {
 		h.nc.Close()
 		h.nc = nil
@@ -62,7 +63,7 @@ func (h *HorizonMessageBroker) Stop(ctx context.Context) error {
 	return nil
 }
 
-func (h *HorizonMessageBroker) Dispatch(ctx context.Context, topics []string, payload any) error {
+func (h *HorizonMessageBroker) Dispatch(_ context.Context, topics []string, payload any) error {
 	if h.nc == nil {
 		return eris.New("NATS connection not initialized")
 	}
@@ -80,7 +81,7 @@ func (h *HorizonMessageBroker) Dispatch(ctx context.Context, topics []string, pa
 	return nil
 }
 
-func (h *HorizonMessageBroker) Publish(ctx context.Context, topic string, payload any) error {
+func (h *HorizonMessageBroker) Publish(_ context.Context, topic string, payload any) error {
 	if h.nc == nil {
 		return eris.New("NATS connection not initialized")
 	}
@@ -90,19 +91,19 @@ func (h *HorizonMessageBroker) Publish(ctx context.Context, topic string, payloa
 		return eris.Wrap(err, "failed to marshal payload")
 	}
 
-	if err := h.nc.Publish(h.clientId+topic, data); err != nil {
+	if err := h.nc.Publish(h.clientID+topic, data); err != nil {
 		return eris.Wrap(err, fmt.Sprintf("failed to publish to topic %s", topic))
 	}
 
 	return nil
 }
 
-func (h *HorizonMessageBroker) Subscribe(ctx context.Context, topic string, handler func(any) error) error {
+func (h *HorizonMessageBroker) Subscribe(_ context.Context, topic string, handler func(any) error) error {
 	if h.nc == nil {
 		return eris.New("NATS connection not initialized")
 	}
 
-	_, err := h.nc.Subscribe(h.clientId+topic, func(msg *nats.Msg) {
+	_, err := h.nc.Subscribe(h.clientID+topic, func(msg *nats.Msg) {
 		var payload map[string]any
 		if err := json.Unmarshal(msg.Data, &payload); err != nil {
 			fmt.Printf("Failed to unmarshal message from topic %s: %v\n", topic, err)
