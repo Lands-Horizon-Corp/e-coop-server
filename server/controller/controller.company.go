@@ -3,6 +3,7 @@ package v1
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
@@ -286,7 +287,7 @@ func (c *Controller) companyController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
-		names := ""
+		var sb strings.Builder
 		for _, rawID := range reqBody.IDs {
 			companyID, err := uuid.Parse(rawID)
 			if err != nil {
@@ -308,7 +309,8 @@ func (c *Controller) companyController() {
 				})
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Company not found with ID: %s", rawID)})
 			}
-			names += company.Name + ","
+			sb.WriteString(company.Name)
+			sb.WriteByte(',')
 			if err := c.modelcore.CompanyManager.DeleteByIDWithTx(context, tx, companyID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -329,7 +331,7 @@ func (c *Controller) companyController() {
 		}
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted companies (/company/bulk-delete): " + names,
+			Description: "Bulk deleted companies (/company/bulk-delete): " + sb.String(),
 			Module:      "Company",
 		})
 		return ctx.NoContent(http.StatusNoContent)

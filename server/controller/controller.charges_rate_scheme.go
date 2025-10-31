@@ -3,6 +3,7 @@ package v1
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
@@ -757,7 +758,7 @@ func (c *Controller) chargesRateSchemeController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
-		names := ""
+		var sb strings.Builder
 		for _, rawID := range reqBody.IDs {
 			chargesRateSchemeID, err := uuid.Parse(rawID)
 			if err != nil {
@@ -779,7 +780,8 @@ func (c *Controller) chargesRateSchemeController() {
 				})
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Charges rate scheme not found with ID: %s", rawID)})
 			}
-			names += chargesRateScheme.Name + ","
+			sb.WriteString(chargesRateScheme.Name)
+			sb.WriteByte(',')
 			if err := c.modelcore.ChargesRateSchemeManager.DeleteByIDWithTx(context, tx, chargesRateSchemeID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -800,7 +802,7 @@ func (c *Controller) chargesRateSchemeController() {
 		}
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted charges rate schemes (/charges-rate-scheme/bulk-delete): " + names,
+			Description: "Bulk deleted charges rate schemes (/charges-rate-scheme/bulk-delete): " + sb.String(),
 			Module:      "ChargesRateScheme",
 		})
 		return ctx.NoContent(http.StatusNoContent)

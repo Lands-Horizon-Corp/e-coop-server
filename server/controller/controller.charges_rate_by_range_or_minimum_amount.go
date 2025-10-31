@@ -3,6 +3,7 @@ package v1
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
@@ -237,7 +238,7 @@ func (c *Controller) chargesRateByRangeOrMinimumAmountController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
-		ids := ""
+		var sb strings.Builder
 		for _, rawID := range reqBody.IDs {
 			chargesRateByRangeOrMinimumAmountID, err := uuid.Parse(rawID)
 			if err != nil {
@@ -259,7 +260,8 @@ func (c *Controller) chargesRateByRangeOrMinimumAmountController() {
 				})
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Charges rate by range or minimum amount not found with ID: %s", rawID)})
 			}
-			ids += chargesRateByRangeOrMinimumAmount.ID.String() + ","
+			sb.WriteString(chargesRateByRangeOrMinimumAmount.ID.String())
+			sb.WriteByte(',')
 			if err := c.modelcore.ChargesRateByRangeOrMinimumAmountManager.DeleteByIDWithTx(context, tx, chargesRateByRangeOrMinimumAmountID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -280,7 +282,7 @@ func (c *Controller) chargesRateByRangeOrMinimumAmountController() {
 		}
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted charges rate by range or minimum amount (/charges-rate-by-range-or-minimum-amount/bulk-delete): " + ids,
+			Description: "Bulk deleted charges rate by range or minimum amount (/charges-rate-by-range-or-minimum-amount/bulk-delete): " + sb.String(),
 			Module:      "ChargesRateByRangeOrMinimumAmount",
 		})
 		return ctx.NoContent(http.StatusNoContent)

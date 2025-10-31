@@ -3,6 +3,7 @@ package v1
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
@@ -275,7 +276,7 @@ func (c *Controller) chargesRateSchemeModeOfPaymentController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
-		ids := ""
+		var sb strings.Builder
 		for _, rawID := range reqBody.IDs {
 			chargesRateSchemeModeOfPaymentID, err := uuid.Parse(rawID)
 			if err != nil {
@@ -297,7 +298,8 @@ func (c *Controller) chargesRateSchemeModeOfPaymentController() {
 				})
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Charges rate scheme model of payment not found with ID: %s", rawID)})
 			}
-			ids += chargesRateSchemeModeOfPayment.ID.String() + ","
+			sb.WriteString(chargesRateSchemeModeOfPayment.ID.String())
+			sb.WriteByte(',')
 			if err := c.modelcore.ChargesRateSchemeModeOfPaymentManager.DeleteByIDWithTx(context, tx, chargesRateSchemeModeOfPaymentID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -318,7 +320,7 @@ func (c *Controller) chargesRateSchemeModeOfPaymentController() {
 		}
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted charges rate scheme model of payment (/charges-rate-scheme-mode-of-payment/bulk-delete): " + ids,
+			Description: "Bulk deleted charges rate scheme model of payment (/charges-rate-scheme-mode-of-payment/bulk-delete): " + sb.String(),
 			Module:      "ChargesRateSchemeModeOfPayment",
 		})
 		return ctx.NoContent(http.StatusNoContent)
