@@ -150,5 +150,9 @@ func (c *Controller) Start() error {
 	c.journalVoucherController()
 	c.adjustmentEntryController()
 	c.companyController()
+
+	c.organizationMediaController()
+	c.fundsController()
+	c.chargesRateByTermController()
 	return nil
 }
