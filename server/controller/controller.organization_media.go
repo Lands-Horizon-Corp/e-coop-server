@@ -5,15 +5,15 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
 // OrganizationMediaController registers routes for managing organization media.
-func (c *Controller) organizationMediaController(
+func (c *Controller) organizationMediaController() {
 	req := c.provider.Service.Request
 
 	// GET /organization-media: List all organization media for the current user's organization. (NO footstep)

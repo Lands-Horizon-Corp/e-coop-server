@@ -6,14 +6,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
-func (c *Controller) memberProfileController(
+func (c *Controller) memberProfileController() {
 	req := c.provider.Service.Request
 
 	// Get all pending member profiles in the current branch

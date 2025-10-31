@@ -5,14 +5,14 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/labstack/echo/v4"
 )
 
 // MemberProfileMediaController registers routes for managing member profile media.
-func (c *Controller) memberProfileMediaController(
+func (c *Controller) memberProfileMediaController() {
 	req := c.provider.Service.Request
 
 	// GET /api/v1/member-profile-media/member-profile/:member_profile_id/search: Get all media for a specific member profile

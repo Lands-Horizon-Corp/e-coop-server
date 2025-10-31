@@ -4,13 +4,13 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/labstack/echo/v4"
 )
 
-func (c *Controller) memberJointAccountController(
+func (c *Controller) memberJointAccountController() {
 	req := c.provider.Service.Request
 
 	// Create a new joint account record for a member profile

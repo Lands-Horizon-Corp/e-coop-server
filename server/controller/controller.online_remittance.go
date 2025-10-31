@@ -4,13 +4,13 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/labstack/echo/v4"
 )
 
-func (c *Controller) onlineRemittanceController(
+func (c *Controller) onlineRemittanceController() {
 	req := c.provider.Service.Request
 
 	// Retrieve batch online remittance (JWT) for the current transaction batch before ending.
