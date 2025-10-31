@@ -114,50 +114,61 @@ type (
 		Key string `json:"key" validate:"required"`
 	}
 
+	// UserChangePasswordRequest represents the request payload for changing user password
 	UserChangePasswordRequest struct {
 		NewPassword     string `json:"new_password" validate:"required,min=8"`
 		ConfirmPassword string `json:"confirm_password" validate:"required,eqfield=NewPassword"`
 	}
 
+	// UserVerifyContactNumberRequest represents the request payload for contact number verification
 	UserVerifyContactNumberRequest struct {
 		OTP string `json:"otp" validate:"required,min=6"`
 	}
 
+	// UserVerifyEmailRequest represents the request payload for email verification
 	UserVerifyEmailRequest struct {
 		OTP string `json:"otp" validate:"required,min=6"`
 	}
 
+	// UserVerifyWithEmailConfirmationRequest represents the request payload for email confirmation verification
 	UserVerifyWithEmailConfirmationRequest struct {
 		OTP string `json:"otp" validate:"required,min=6"`
 	}
 
+	// UserVerifyWithContactNumberRequest represents the request payload for contact number verification
 	UserVerifyWithContactNumberRequest struct {
 		ContactNumber string `json:"contact_number" validate:"required,min=7,max=20"`
 	}
 
+	// UserVerifyWithContactNumberConfirmationRequest represents the request payload for contact number confirmation
 	UserVerifyWithContactNumberConfirmationRequest struct {
 		OTP string `json:"otp" validate:"required,min=6"`
 	}
+	// UserVerifyWithPasswordRequest represents the request payload for password verification
 	UserVerifyWithPasswordRequest struct {
 		Password string `json:"password" validate:"required,min=6"`
 	}
 
+	// UserSettingsChangePasswordRequest represents the request payload for changing password in user settings
 	UserSettingsChangePasswordRequest struct {
 		OldPassword     string `json:"old_password" validate:"required,min=8"`
 		NewPassword     string `json:"new_password" validate:"required,min=8"`
 		ConfirmPassword string `json:"confirm_password" validate:"required,eqfield=NewPassword"`
 	}
 
+	// UserSettingsChangeEmailRequest represents the request payload for changing email in user settings
 	UserSettingsChangeEmailRequest struct {
 		Email    string `json:"email" validate:"required,email"`
 		Password string `json:"password" validate:"required,min=8"`
 	}
 
+	// UserSettingsChangeUsernameRequest represents the request payload for changing username in user settings
 	UserSettingsChangeUsernameRequest struct {
 		UserName string `json:"user_name" validate:"required,min=3,max=100"`
 		Password string `json:"password" validate:"required,min=8"`
 	}
 
+	// UserSettingsChangeContactNumberRequest represents the request payload for changing contact number in user settings
 	UserSettingsChangeContactNumberRequest struct {
 		ContactNumber string `json:"contact_number" validate:"required,min=7,max=20"`
 		Password      string `json:"password" validate:"required,min=8"`
