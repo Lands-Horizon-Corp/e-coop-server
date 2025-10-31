@@ -23,6 +23,6 @@ func NewModelLogs(provider *src.Provider) (*ModelLogs, error) {
 }
 
 // Start initializes the logging model operations and migrations
-func (c *ModelLogs) Start(context context.Context) error {
+func (c *ModelLogs) Start(_ context.Context) error {
 	return nil
 }

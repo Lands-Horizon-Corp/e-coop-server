@@ -122,9 +122,9 @@ func (m *ModelCore) VoucherPayTo() {
 }
 
 // VoucherPayToCurrentBranch retrieves all voucher payees for the specified organization and branch
-func (m *ModelCore) VoucherPayToCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*VoucherPayTo, error) {
+func (m *ModelCore) VoucherPayToCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*VoucherPayTo, error) {
 	return m.VoucherPayToManager.Find(context, &VoucherPayTo{
-		OrganizationID: orgId,
-		BranchID:       branchId,
+		OrganizationID: orgID,
+		BranchID:       branchID,
 	})
 }

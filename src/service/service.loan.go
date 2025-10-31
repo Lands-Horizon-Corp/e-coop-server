@@ -10,7 +10,7 @@ import (
 )
 
 // LoanChargesRateComputation calculates the loan charges based on the rate scheme and loan transaction
-func (t *TransactionService) LoanChargesRateComputation(ctx context.Context, crs model_core.ChargesRateScheme, ald model_core.LoanTransaction) float64 {
+func (t *TransactionService) LoanChargesRateComputation(_ context.Context, crs model_core.ChargesRateScheme, ald model_core.LoanTransaction) float64 {
 
 	result := 0.0
 
@@ -216,7 +216,7 @@ func (t *TransactionService) LoanChargesRateComputation(ctx context.Context, crs
 }
 
 // LoanNumberOfPayments calculates the total number of payments for a loan based on terms and payment mode
-func (t *TransactionService) LoanNumberOfPayments(ctx context.Context, lt *model_core.LoanTransaction) (int, error) {
+func (t *TransactionService) LoanNumberOfPayments(_ context.Context, lt *model_core.LoanTransaction) (int, error) {
 	switch lt.ModeOfPayment {
 	case model_core.LoanModeOfPaymentDaily:
 		return lt.Terms * 30, nil
@@ -242,7 +242,7 @@ func (t *TransactionService) LoanNumberOfPayments(ctx context.Context, lt *model
 }
 
 // LoanComputation calculates the loan amount after applying automatic loan deduction rules
-func (t *TransactionService) LoanComputation(ctx context.Context, ald model_core.AutomaticLoanDeduction, lt model_core.LoanTransaction) float64 {
+func (t *TransactionService) LoanComputation(_ context.Context, ald model_core.AutomaticLoanDeduction, lt model_core.LoanTransaction) float64 {
 	result := lt.Applied1
 	// --- Min/Max check ---
 	if ald.MinAmount > 0 && result < ald.MinAmount {
@@ -294,7 +294,7 @@ func (t *TransactionService) LoanComputation(ctx context.Context, ald model_core
 }
 
 // LoanModeOfPayment calculates the payment amount per period based on loan terms and mode of payment
-func (t *TransactionService) LoanModeOfPayment(ctx context.Context, lt *model_core.LoanTransaction) (float64, error) {
+func (t *TransactionService) LoanModeOfPayment(_ context.Context, lt *model_core.LoanTransaction) (float64, error) {
 	switch lt.ModeOfPayment {
 	case model_core.LoanModeOfPaymentDaily:
 		return lt.Applied1 / float64(lt.Terms) / 30, nil
