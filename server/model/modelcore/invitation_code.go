@@ -199,10 +199,10 @@ func (m *ModelCore) invitationCodeSeed(context context.Context, tx *gorm.DB, use
 }
 
 // GetInvitationCodeByBranch retrieves invitation codes for a specific organization and branch.
-func (m *ModelCore) GetInvitationCodeByBranch(context context.Context, organizationId uuid.UUID, branchId uuid.UUID) ([]*InvitationCode, error) {
+func (m *ModelCore) GetInvitationCodeByBranch(context context.Context, organizationId uuid.UUID, branchID uuid.UUID) ([]*InvitationCode, error) {
 	return m.InvitationCodeManager.Find(context, &InvitationCode{
 		OrganizationID: organizationId,
-		BranchID:       branchId,
+		BranchID:       branchID,
 	})
 }
 

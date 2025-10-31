@@ -111,9 +111,9 @@ func (m *ModelCore) memberOtherInformationEntry() {
 	})
 }
 
-func (m *ModelCore) MemberOtherInformationEntryCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberOtherInformationEntry, error) {
+func (m *ModelCore) MemberOtherInformationEntryCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberOtherInformationEntry, error) {
 	return m.MemberOtherInformationEntryManager.Find(context, &MemberOtherInformationEntry{
-		OrganizationID: orgId,
-		BranchID:       branchId,
+		OrganizationID: orgID,
+		BranchID:       branchID,
 	})
 }

@@ -374,9 +374,9 @@ func (m *ModelCore) chargesRateScheme() {
 }
 
 // ChargesRateSchemeCurrentBranch retrieves all ChargesRateSchemes for the current branch and organization.
-func (m *ModelCore) ChargesRateSchemeCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ChargesRateScheme, error) {
+func (m *ModelCore) ChargesRateSchemeCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*ChargesRateScheme, error) {
 	return m.ChargesRateSchemeManager.Find(context, &ChargesRateScheme{
-		OrganizationID: orgId,
-		BranchID:       branchId,
+		OrganizationID: orgID,
+		BranchID:       branchID,
 	})
 }

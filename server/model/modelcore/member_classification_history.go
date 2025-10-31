@@ -127,17 +127,17 @@ func (m *ModelCore) memberClassificationHistory() {
 	})
 }
 
-func (m *ModelCore) MemberClassificationHistoryCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberClassificationHistory, error) {
+func (m *ModelCore) MemberClassificationHistoryCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberClassificationHistory, error) {
 	return m.MemberClassificationHistoryManager.Find(context, &MemberClassificationHistory{
-		OrganizationID: orgId,
-		BranchID:       branchId,
+		OrganizationID: orgID,
+		BranchID:       branchID,
 	})
 }
 
-func (m *ModelCore) MemberClassificationHistoryMemberProfileID(context context.Context, memberProfileId, orgId, branchId uuid.UUID) ([]*MemberClassificationHistory, error) {
+func (m *ModelCore) MemberClassificationHistoryMemberProfileID(context context.Context, memberProfileId, orgID, branchID uuid.UUID) ([]*MemberClassificationHistory, error) {
 	return m.MemberClassificationHistoryManager.Find(context, &MemberClassificationHistory{
-		OrganizationID:  orgId,
-		BranchID:        branchId,
+		OrganizationID:  orgID,
+		BranchID:        branchID,
 		MemberProfileID: memberProfileId,
 	})
 }

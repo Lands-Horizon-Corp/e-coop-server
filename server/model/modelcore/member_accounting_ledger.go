@@ -180,10 +180,10 @@ func (m *ModelCore) memberAccountingLedger() {
 	})
 }
 
-func (m *ModelCore) MemberAccountingLedgerCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberAccountingLedger, error) {
+func (m *ModelCore) MemberAccountingLedgerCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberAccountingLedger, error) {
 	return m.MemberAccountingLedgerManager.Find(context, &MemberAccountingLedger{
-		OrganizationID: orgId,
-		BranchID:       branchId,
+		OrganizationID: orgID,
+		BranchID:       branchID,
 	})
 }
 

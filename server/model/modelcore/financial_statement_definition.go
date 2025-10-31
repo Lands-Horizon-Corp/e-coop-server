@@ -171,9 +171,9 @@ func (m *ModelCore) financialStatementDefinition() {
 	})
 }
 
-func (m *ModelCore) FinancialStatementDefinitionCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*FinancialStatementDefinition, error) {
+func (m *ModelCore) FinancialStatementDefinitionCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*FinancialStatementDefinition, error) {
 	return m.FinancialStatementDefinitionManager.Find(context, &FinancialStatementDefinition{
-		OrganizationID: orgId,
-		BranchID:       branchId,
+		OrganizationID: orgID,
+		BranchID:       branchID,
 	})
 }

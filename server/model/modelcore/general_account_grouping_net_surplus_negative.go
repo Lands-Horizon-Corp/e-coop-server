@@ -128,9 +128,9 @@ func (m *ModelCore) generalAccountGroupingNetSurplusNegative() {
 	})
 }
 
-func (m *ModelCore) GeneralAccountGroupingNetSurplusNegativeCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*GeneralAccountGroupingNetSurplusNegative, error) {
+func (m *ModelCore) GeneralAccountGroupingNetSurplusNegativeCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*GeneralAccountGroupingNetSurplusNegative, error) {
 	return m.Generalaccountgroupingnetsurplusnegativemanager.Find(context, &GeneralAccountGroupingNetSurplusNegative{
-		OrganizationID: orgId,
-		BranchID:       branchId,
+		OrganizationID: orgID,
+		BranchID:       branchID,
 	})
 }

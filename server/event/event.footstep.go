@@ -28,11 +28,11 @@ func (e *Event) Footstep(context context.Context, ctx echo.Context, data Footste
 		userOrganization, _ := e.user_organization_token.CurrentUserOrganization(context, ctx)
 
 		var userType modelcore.UserOrganizationType
-		var orgId, branchId *uuid.UUID
+		var orgID, branchID *uuid.UUID
 		if userOrganization != nil {
 			userType = userOrganization.UserType
-			orgId = &userOrganization.OrganizationID
-			branchId = userOrganization.BranchID
+			orgID = &userOrganization.OrganizationID
+			branchID = userOrganization.BranchID
 		}
 
 		claim, _ := e.user_token.CSRF.GetCSRF(context, ctx)
@@ -54,8 +54,8 @@ func (e *Event) Footstep(context context.Context, ctx echo.Context, data Footste
 			CreatedByID:    userId,
 			UpdatedAt:      time.Now().UTC(),
 			UpdatedByID:    userId,
-			OrganizationID: orgId,
-			BranchID:       branchId,
+			OrganizationID: orgID,
+			BranchID:       branchID,
 			UserID:         &userId,
 			Description:    data.Description,
 			Activity:       data.Activity,

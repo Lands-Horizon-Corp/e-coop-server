@@ -274,9 +274,9 @@ func (m *ModelCore) memberDepartmentSeed(context context.Context, tx *gorm.DB, u
 	return nil
 }
 
-func (m *ModelCore) MemberDepartmentCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberDepartment, error) {
+func (m *ModelCore) MemberDepartmentCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberDepartment, error) {
 	return m.MemberDepartmentManager.Find(context, &MemberDepartment{
-		OrganizationID: orgId,
-		BranchID:       branchId,
+		OrganizationID: orgID,
+		BranchID:       branchID,
 	})
 }

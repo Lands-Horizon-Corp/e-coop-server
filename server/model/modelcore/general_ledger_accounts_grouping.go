@@ -611,9 +611,9 @@ func (m *ModelCore) generalLedgerAccountsGroupingSeed(context context.Context, t
 	return nil
 }
 
-func (m *ModelCore) GeneralLedgerAccountsGroupingCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*GeneralLedgerAccountsGrouping, error) {
+func (m *ModelCore) GeneralLedgerAccountsGroupingCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*GeneralLedgerAccountsGrouping, error) {
 	return m.GeneralLedgerAccountsGroupingManager.Find(context, &GeneralLedgerAccountsGrouping{
-		OrganizationID: orgId,
-		BranchID:       branchId,
+		OrganizationID: orgID,
+		BranchID:       branchID,
 	})
 }

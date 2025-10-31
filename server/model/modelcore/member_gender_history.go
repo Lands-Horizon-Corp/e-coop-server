@@ -117,17 +117,17 @@ func (m *ModelCore) memberGenderHistory() {
 	})
 }
 
-func (m *ModelCore) MemberGenderHistoryCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberGenderHistory, error) {
+func (m *ModelCore) MemberGenderHistoryCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberGenderHistory, error) {
 	return m.MemberGenderHistoryManager.Find(context, &MemberGenderHistory{
-		OrganizationID: orgId,
-		BranchID:       branchId,
+		OrganizationID: orgID,
+		BranchID:       branchID,
 	})
 }
 
-func (m *ModelCore) MemberGenderHistoryMemberProfileID(context context.Context, memberProfileId, orgId, branchId uuid.UUID) ([]*MemberGenderHistory, error) {
+func (m *ModelCore) MemberGenderHistoryMemberProfileID(context context.Context, memberProfileId, orgID, branchID uuid.UUID) ([]*MemberGenderHistory, error) {
 	return m.MemberGenderHistoryManager.Find(context, &MemberGenderHistory{
-		OrganizationID:  orgId,
-		BranchID:        branchId,
+		OrganizationID:  orgID,
+		BranchID:        branchID,
 		MemberProfileID: memberProfileId,
 	})
 }

@@ -148,9 +148,9 @@ func (m *ModelCore) batchFunding() {
 }
 
 // BatchFundingCurrentBranch retrieves all batch fundings for the specified organization and branch
-func (m *ModelCore) BatchFundingCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*BatchFunding, error) {
+func (m *ModelCore) BatchFundingCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*BatchFunding, error) {
 	return m.BatchFundingManager.Find(context, &BatchFunding{
-		OrganizationID: orgId,
-		BranchID:       branchId,
+		OrganizationID: orgID,
+		BranchID:       branchID,
 	})
 }

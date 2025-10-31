@@ -122,9 +122,9 @@ func (m *ModelCore) interestMaturity() {
 	})
 }
 
-func (m *ModelCore) InterestMaturityCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*InterestMaturity, error) {
+func (m *ModelCore) InterestMaturityCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*InterestMaturity, error) {
 	return m.InterestMaturityManager.Find(context, &InterestMaturity{
-		OrganizationID: orgId,
-		BranchID:       branchId,
+		OrganizationID: orgID,
+		BranchID:       branchID,
 	})
 }

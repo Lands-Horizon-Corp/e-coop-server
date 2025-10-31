@@ -782,10 +782,10 @@ func (m *ModelCore) loanTransaction() {
 	})
 }
 
-func (m *ModelCore) LoanTransactionCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanTransaction, error) {
+func (m *ModelCore) LoanTransactionCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*LoanTransaction, error) {
 	return m.LoanTransactionManager.Find(context, &LoanTransaction{
-		OrganizationID: orgId,
-		BranchID:       branchId,
+		OrganizationID: orgID,
+		BranchID:       branchID,
 	})
 }
 
@@ -809,11 +809,11 @@ func (m *ModelCore) mapLoanTransactionEntries(entries []*LoanTransactionEntry) [
 	return result
 }
 
-func (m *ModelCore) LoanTransactionWithDatesNotNull(ctx context.Context, memberId, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
+func (m *ModelCore) LoanTransactionWithDatesNotNull(ctx context.Context, memberId, branchID, orgID uuid.UUID) ([]*LoanTransaction, error) {
 	filters := []services.Filter{
 		{Field: "member_profile_id", Op: services.OpEq, Value: memberId},
-		{Field: "organization_id", Op: services.OpEq, Value: orgId},
-		{Field: "branch_id", Op: services.OpEq, Value: branchId},
+		{Field: "organization_id", Op: services.OpEq, Value: orgID},
+		{Field: "branch_id", Op: services.OpEq, Value: branchID},
 		{Field: "approved_date", Op: services.OpNotNull, Value: nil},
 		{Field: "printed_date", Op: services.OpNotNull, Value: nil},
 		{Field: "released_date", Op: services.OpNotNull, Value: nil},
@@ -826,11 +826,11 @@ func (m *ModelCore) LoanTransactionWithDatesNotNull(ctx context.Context, memberI
 	return loanTransactions, nil
 }
 
-func (m *ModelCore) LoanTransactionsMemberAccount(ctx context.Context, memberId, accountId, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
+func (m *ModelCore) LoanTransactionsMemberAccount(ctx context.Context, memberId, accountId, branchID, orgID uuid.UUID) ([]*LoanTransaction, error) {
 	filters := []services.Filter{
 		{Field: "member_profile_id", Op: services.OpEq, Value: memberId},
-		{Field: "organization_id", Op: services.OpEq, Value: orgId},
-		{Field: "branch_id", Op: services.OpEq, Value: branchId},
+		{Field: "organization_id", Op: services.OpEq, Value: orgID},
+		{Field: "branch_id", Op: services.OpEq, Value: branchID},
 		{Field: "account_id", Op: services.OpEq, Value: accountId},
 		{Field: "approved_date", Op: services.OpNotNull, Value: nil},
 		{Field: "printed_date", Op: services.OpNotNull, Value: nil},
@@ -1040,10 +1040,10 @@ func (m *ModelCore) GenerateLoanAmortizationSchedule(ctx context.Context, loanTr
 	return response, nil
 }
 
-func (m *ModelCore) LoanTransactionDraft(ctx context.Context, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
+func (m *ModelCore) LoanTransactionDraft(ctx context.Context, branchID, orgID uuid.UUID) ([]*LoanTransaction, error) {
 	filters := []services.Filter{
-		{Field: "organization_id", Op: services.OpEq, Value: orgId},
-		{Field: "branch_id", Op: services.OpEq, Value: branchId},
+		{Field: "organization_id", Op: services.OpEq, Value: orgID},
+		{Field: "branch_id", Op: services.OpEq, Value: branchID},
 		{Field: "approved_date", Op: services.OpIsNull, Value: nil},
 		{Field: "printed_date", Op: services.OpIsNull, Value: nil},
 		{Field: "released_date", Op: services.OpIsNull, Value: nil},
@@ -1056,10 +1056,10 @@ func (m *ModelCore) LoanTransactionDraft(ctx context.Context, branchId, orgId uu
 	return loanTransactions, nil
 }
 
-func (m *ModelCore) LoanTransactionPrinted(ctx context.Context, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
+func (m *ModelCore) LoanTransactionPrinted(ctx context.Context, branchID, orgID uuid.UUID) ([]*LoanTransaction, error) {
 	filters := []services.Filter{
-		{Field: "organization_id", Op: services.OpEq, Value: orgId},
-		{Field: "branch_id", Op: services.OpEq, Value: branchId},
+		{Field: "organization_id", Op: services.OpEq, Value: orgID},
+		{Field: "branch_id", Op: services.OpEq, Value: branchID},
 		{Field: "printed_date", Op: services.OpNotNull, Value: nil},
 		{Field: "approved_date", Op: services.OpIsNull, Value: nil},
 		{Field: "released_date", Op: services.OpIsNull, Value: nil},
@@ -1072,10 +1072,10 @@ func (m *ModelCore) LoanTransactionPrinted(ctx context.Context, branchId, orgId 
 	return loanTransactions, nil
 }
 
-func (m *ModelCore) LoanTransactionApproved(ctx context.Context, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
+func (m *ModelCore) LoanTransactionApproved(ctx context.Context, branchID, orgID uuid.UUID) ([]*LoanTransaction, error) {
 	filters := []services.Filter{
-		{Field: "organization_id", Op: services.OpEq, Value: orgId},
-		{Field: "branch_id", Op: services.OpEq, Value: branchId},
+		{Field: "organization_id", Op: services.OpEq, Value: orgID},
+		{Field: "branch_id", Op: services.OpEq, Value: branchID},
 		{Field: "printed_date", Op: services.OpNotNull, Value: nil},
 		{Field: "approved_date", Op: services.OpNotNull, Value: nil},
 		{Field: "released_date", Op: services.OpIsNull, Value: nil},
@@ -1087,10 +1087,10 @@ func (m *ModelCore) LoanTransactionApproved(ctx context.Context, branchId, orgId
 	}
 	return loanTransactions, nil
 }
-func (m *ModelCore) LoanTransactionReleased(ctx context.Context, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
+func (m *ModelCore) LoanTransactionReleased(ctx context.Context, branchID, orgID uuid.UUID) ([]*LoanTransaction, error) {
 	filters := []services.Filter{
-		{Field: "organization_id", Op: services.OpEq, Value: orgId},
-		{Field: "branch_id", Op: services.OpEq, Value: branchId},
+		{Field: "organization_id", Op: services.OpEq, Value: orgID},
+		{Field: "branch_id", Op: services.OpEq, Value: branchID},
 		{Field: "printed_date", Op: services.OpNotNull, Value: nil},
 		{Field: "approved_date", Op: services.OpNotNull, Value: nil},
 		{Field: "released_date", Op: services.OpNotNull, Value: nil},
@@ -1102,14 +1102,14 @@ func (m *ModelCore) LoanTransactionReleased(ctx context.Context, branchId, orgId
 	return loanTransactions, nil
 }
 
-func (m *ModelCore) LoanTransactionReleasedCurrentDay(ctx context.Context, branchId, orgId uuid.UUID) ([]*LoanTransaction, error) {
+func (m *ModelCore) LoanTransactionReleasedCurrentDay(ctx context.Context, branchID, orgID uuid.UUID) ([]*LoanTransaction, error) {
 	now := time.Now().UTC()
 	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 	endOfDay := startOfDay.Add(24 * time.Hour)
 
 	filters := []services.Filter{
-		{Field: "organization_id", Op: services.OpEq, Value: orgId},
-		{Field: "branch_id", Op: services.OpEq, Value: branchId},
+		{Field: "organization_id", Op: services.OpEq, Value: orgID},
+		{Field: "branch_id", Op: services.OpEq, Value: branchID},
 		{Field: "printed_date", Op: services.OpNotNull, Value: nil},
 		{Field: "approved_date", Op: services.OpNotNull, Value: nil},
 		{Field: "released_date", Op: services.OpNotNull, Value: nil},

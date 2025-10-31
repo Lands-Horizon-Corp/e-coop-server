@@ -2528,10 +2528,10 @@ func (a *Account) BeforeDelete(tx *gorm.DB) error {
 }
 
 // AccountCurrentBranch retrieves all accounts for a given organization and branch.
-func (m *ModelCore) AccountCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Account, error) {
+func (m *ModelCore) AccountCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*Account, error) {
 	return m.AccountManager.Find(context, &Account{
-		OrganizationID: orgId,
-		BranchID:       branchId,
+		OrganizationID: orgID,
+		BranchID:       branchID,
 	})
 }
 

@@ -149,9 +149,9 @@ func (m *ModelCore) computationSheet() {
 }
 
 // ComputationSheetCurrentBranch returns all computation sheets for the given organization and branch.
-func (m *ModelCore) ComputationSheetCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ComputationSheet, error) {
+func (m *ModelCore) ComputationSheetCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*ComputationSheet, error) {
 	return m.ComputationSheetManager.Find(context, &ComputationSheet{
-		OrganizationID: orgId,
-		BranchID:       branchId,
+		OrganizationID: orgID,
+		BranchID:       branchID,
 	})
 }

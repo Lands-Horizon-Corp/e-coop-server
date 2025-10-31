@@ -148,9 +148,9 @@ func (m *ModelCore) memberGovernmentBenefit() {
 	})
 }
 
-func (m *ModelCore) MemberGovernmentBenefitCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberGovernmentBenefit, error) {
+func (m *ModelCore) MemberGovernmentBenefitCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberGovernmentBenefit, error) {
 	return m.MemberGovernmentBenefitManager.Find(context, &MemberGovernmentBenefit{
-		OrganizationID: orgId,
-		BranchID:       branchId,
+		OrganizationID: orgID,
+		BranchID:       branchID,
 	})
 }

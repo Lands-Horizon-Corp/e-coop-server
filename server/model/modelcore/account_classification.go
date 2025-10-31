@@ -109,9 +109,9 @@ func (m *ModelCore) accountClassification() {
 }
 
 // AccountCategoryCurrentBranch retrieves all account categories for the specified organization and branch
-func (m *ModelCore) AccountClassificationCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*AccountClassification, error) {
+func (m *ModelCore) AccountClassificationCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*AccountClassification, error) {
 	return m.AccountClassificationManager.Find(context, &AccountClassification{
-		OrganizationID: orgId,
-		BranchID:       branchId,
+		OrganizationID: orgID,
+		BranchID:       branchID,
 	})
 }

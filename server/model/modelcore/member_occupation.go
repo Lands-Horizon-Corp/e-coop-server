@@ -165,9 +165,9 @@ func (m *ModelCore) memberOccupationSeed(context context.Context, tx *gorm.DB, u
 	return nil
 }
 
-func (m *ModelCore) MemberOccupationCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberOccupation, error) {
+func (m *ModelCore) MemberOccupationCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberOccupation, error) {
 	return m.MemberOccupationManager.Find(context, &MemberOccupation{
-		OrganizationID: orgId,
-		BranchID:       branchId,
+		OrganizationID: orgID,
+		BranchID:       branchID,
 	})
 }

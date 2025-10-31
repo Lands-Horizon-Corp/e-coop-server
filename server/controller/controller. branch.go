@@ -48,11 +48,11 @@ func (c *Controller) branchController() {
 		ResponseType: modelcore.BranchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		orgId, err := handlers.EngineUUIDParam(ctx, "organization_id")
+		orgID, err := handlers.EngineUUIDParam(ctx, "organization_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization ID: " + err.Error()})
 		}
-		branches, err := c.modelcore.GetBranchesByOrganization(context, *orgId)
+		branches, err := c.modelcore.GetBranchesByOrganization(context, *orgID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not retrieve organization branches: " + err.Error()})
 		}
@@ -386,7 +386,7 @@ func (c *Controller) branchController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication required " + err.Error()})
 		}
 
-		branchId, err := handlers.EngineUUIDParam(ctx, "branch_id")
+		branchID, err := handlers.EngineUUIDParam(ctx, "branch_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update error",
@@ -398,7 +398,7 @@ func (c *Controller) branchController() {
 
 		userOrg, err := c.modelcore.UserOrganizationManager.FindOne(context, &modelcore.UserOrganization{
 			UserID:   user.ID,
-			BranchID: branchId,
+			BranchID: branchID,
 		})
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -417,7 +417,7 @@ func (c *Controller) branchController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Only the branch owner can update branch information "})
 		}
 
-		branch, err := c.modelcore.BranchManager.GetByID(context, *branchId)
+		branch, err := c.modelcore.BranchManager.GetByID(context, *branchID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update error",
@@ -479,7 +479,7 @@ func (c *Controller) branchController() {
 		Private: true,
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		branchId, err := handlers.EngineUUIDParam(ctx, "branch_id")
+		branchID, err := handlers.EngineUUIDParam(ctx, "branch_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete error",
@@ -497,7 +497,7 @@ func (c *Controller) branchController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication required "})
 		}
-		branch, err := c.modelcore.BranchManager.GetByID(context, *branchId)
+		branch, err := c.modelcore.BranchManager.GetByID(context, *branchID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete error",
@@ -509,7 +509,7 @@ func (c *Controller) branchController() {
 
 		userOrganization, err := c.modelcore.UserOrganizationManager.FindOne(context, &modelcore.UserOrganization{
 			UserID:         user.ID,
-			BranchID:       branchId,
+			BranchID:       branchID,
 			OrganizationID: branch.OrganizationID,
 		})
 		if err != nil {

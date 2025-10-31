@@ -120,9 +120,9 @@ func (m *ModelCore) loanTermsAndConditionSuggestedPayment() {
 	})
 }
 
-func (m *ModelCore) LoanTermsAndConditionSuggestedPaymentCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanTermsAndConditionSuggestedPayment, error) {
+func (m *ModelCore) LoanTermsAndConditionSuggestedPaymentCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*LoanTermsAndConditionSuggestedPayment, error) {
 	return m.LoanTermsAndConditionSuggestedPaymentManager.Find(context, &LoanTermsAndConditionSuggestedPayment{
-		OrganizationID: orgId,
-		BranchID:       branchId,
+		OrganizationID: orgID,
+		BranchID:       branchID,
 	})
 }

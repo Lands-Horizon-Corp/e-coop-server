@@ -442,18 +442,18 @@ func (m *ModelCore) cashCheckVoucher() {
 }
 
 // CashCheckVoucherCurrentBranch retrieves all cash check vouchers for the specified organization and branch.
-func (m *ModelCore) CashCheckVoucherCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*CashCheckVoucher, error) {
+func (m *ModelCore) CashCheckVoucherCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*CashCheckVoucher, error) {
 	return m.CashCheckVoucherManager.Find(context, &CashCheckVoucher{
-		OrganizationID: orgId,
-		BranchID:       branchId,
+		OrganizationID: orgID,
+		BranchID:       branchID,
 	})
 }
 
 // CashCheckVoucherDraft retrieves all draft cash check vouchers for the specified organization and branch.
-func (m *ModelCore) CashCheckVoucherDraft(ctx context.Context, branchId, orgId uuid.UUID) ([]*CashCheckVoucher, error) {
+func (m *ModelCore) CashCheckVoucherDraft(ctx context.Context, branchID, orgID uuid.UUID) ([]*CashCheckVoucher, error) {
 	filters := []services.Filter{
-		{Field: "organization_id", Op: services.OpEq, Value: orgId},
-		{Field: "branch_id", Op: services.OpEq, Value: branchId},
+		{Field: "organization_id", Op: services.OpEq, Value: orgID},
+		{Field: "branch_id", Op: services.OpEq, Value: branchID},
 		{Field: "approved_date", Op: services.OpIsNull, Value: nil},
 		{Field: "printed_date", Op: services.OpIsNull, Value: nil},
 		{Field: "released_date", Op: services.OpIsNull, Value: nil},
@@ -467,10 +467,10 @@ func (m *ModelCore) CashCheckVoucherDraft(ctx context.Context, branchId, orgId u
 }
 
 // CashCheckVoucherPrinted retrieves all printed cash check vouchers for the specified organization and branch.
-func (m *ModelCore) CashCheckVoucherPrinted(ctx context.Context, branchId, orgId uuid.UUID) ([]*CashCheckVoucher, error) {
+func (m *ModelCore) CashCheckVoucherPrinted(ctx context.Context, branchID, orgID uuid.UUID) ([]*CashCheckVoucher, error) {
 	filters := []services.Filter{
-		{Field: "organization_id", Op: services.OpEq, Value: orgId},
-		{Field: "branch_id", Op: services.OpEq, Value: branchId},
+		{Field: "organization_id", Op: services.OpEq, Value: orgID},
+		{Field: "branch_id", Op: services.OpEq, Value: branchID},
 		{Field: "printed_date", Op: services.OpNotNull, Value: nil},
 		{Field: "approved_date", Op: services.OpIsNull, Value: nil},
 		{Field: "released_date", Op: services.OpIsNull, Value: nil},
@@ -484,10 +484,10 @@ func (m *ModelCore) CashCheckVoucherPrinted(ctx context.Context, branchId, orgId
 }
 
 // CashCheckVoucherApproved retrieves all approved cash check vouchers for the specified organization and branch.
-func (m *ModelCore) CashCheckVoucherApproved(ctx context.Context, branchId, orgId uuid.UUID) ([]*CashCheckVoucher, error) {
+func (m *ModelCore) CashCheckVoucherApproved(ctx context.Context, branchID, orgID uuid.UUID) ([]*CashCheckVoucher, error) {
 	filters := []services.Filter{
-		{Field: "organization_id", Op: services.OpEq, Value: orgId},
-		{Field: "branch_id", Op: services.OpEq, Value: branchId},
+		{Field: "organization_id", Op: services.OpEq, Value: orgID},
+		{Field: "branch_id", Op: services.OpEq, Value: branchID},
 		{Field: "printed_date", Op: services.OpNotNull, Value: nil},
 		{Field: "approved_date", Op: services.OpNotNull, Value: nil},
 		{Field: "released_date", Op: services.OpIsNull, Value: nil},
@@ -501,10 +501,10 @@ func (m *ModelCore) CashCheckVoucherApproved(ctx context.Context, branchId, orgI
 }
 
 // CashCheckVoucherReleased retrieves all released cash check vouchers for the specified organization and branch.
-func (m *ModelCore) CashCheckVoucherReleased(ctx context.Context, branchId, orgId uuid.UUID) ([]*CashCheckVoucher, error) {
+func (m *ModelCore) CashCheckVoucherReleased(ctx context.Context, branchID, orgID uuid.UUID) ([]*CashCheckVoucher, error) {
 	filters := []services.Filter{
-		{Field: "organization_id", Op: services.OpEq, Value: orgId},
-		{Field: "branch_id", Op: services.OpEq, Value: branchId},
+		{Field: "organization_id", Op: services.OpEq, Value: orgID},
+		{Field: "branch_id", Op: services.OpEq, Value: branchID},
 		{Field: "printed_date", Op: services.OpNotNull, Value: nil},
 		{Field: "approved_date", Op: services.OpNotNull, Value: nil},
 		{Field: "released_date", Op: services.OpNotNull, Value: nil},
@@ -518,14 +518,14 @@ func (m *ModelCore) CashCheckVoucherReleased(ctx context.Context, branchId, orgI
 }
 
 // CashCheckVoucherReleasedCurrentDay retrieves all cash check vouchers released on the current day for the specified organization and branch.
-func (m *ModelCore) CashCheckVoucherReleasedCurrentDay(ctx context.Context, branchId uuid.UUID, orgId uuid.UUID) ([]*CashCheckVoucher, error) {
+func (m *ModelCore) CashCheckVoucherReleasedCurrentDay(ctx context.Context, branchID uuid.UUID, orgID uuid.UUID) ([]*CashCheckVoucher, error) {
 	now := time.Now().UTC()
 	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 	endOfDay := startOfDay.Add(24 * time.Hour)
 
 	filters := []services.Filter{
-		{Field: "organization_id", Op: services.OpEq, Value: orgId},
-		{Field: "branch_id", Op: services.OpEq, Value: branchId},
+		{Field: "organization_id", Op: services.OpEq, Value: orgID},
+		{Field: "branch_id", Op: services.OpEq, Value: branchID},
 		{Field: "printed_date", Op: services.OpNotNull, Value: nil},
 		{Field: "approved_date", Op: services.OpNotNull, Value: nil},
 		{Field: "released_date", Op: services.OpNotNull, Value: nil},

@@ -113,9 +113,9 @@ func (m *ModelCore) cancelledCashCheckVoucher() {
 }
 
 // cancelledCashCheckVoucherCurrentBranch retrieves all cancelled cash check vouchers for the specified organization and branch.
-func (m *ModelCore) CancelledCashCheckVoucherCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*CancelledCashCheckVoucher, error) {
+func (m *ModelCore) CancelledCashCheckVoucherCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*CancelledCashCheckVoucher, error) {
 	return m.CancelledCashCheckVoucherManager.Find(context, &CancelledCashCheckVoucher{
-		OrganizationID: orgId,
-		BranchID:       branchId,
+		OrganizationID: orgID,
+		BranchID:       branchID,
 	})
 }

@@ -140,9 +140,9 @@ func (m *ModelCore) disbursementTransaction() {
 	})
 }
 
-func (m *ModelCore) DisbursementTransactionCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*DisbursementTransaction, error) {
+func (m *ModelCore) DisbursementTransactionCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*DisbursementTransaction, error) {
 	return m.DisbursementTransactionManager.Find(context, &DisbursementTransaction{
-		OrganizationID: orgId,
-		BranchID:       branchId,
+		OrganizationID: orgID,
+		BranchID:       branchID,
 	})
 }

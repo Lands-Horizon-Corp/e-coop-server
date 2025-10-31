@@ -138,10 +138,10 @@ func (m *ModelCore) comakerCollateral() {
 }
 
 // ComakerCollateralCurrentBranch retrieves all comaker collaterals for the specified organization and branch
-func (m *ModelCore) ComakerCollateralCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ComakerCollateral, error) {
+func (m *ModelCore) ComakerCollateralCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*ComakerCollateral, error) {
 	return m.ComakerCollateralManager.Find(context, &ComakerCollateral{
-		OrganizationID: orgId,
-		BranchID:       branchId,
+		OrganizationID: orgID,
+		BranchID:       branchID,
 	})
 }
 

@@ -182,17 +182,17 @@ func (m *ModelCore) loanTransactionEntry() {
 	})
 }
 
-func (m *ModelCore) LoanTransactionEntryCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanTransactionEntry, error) {
+func (m *ModelCore) LoanTransactionEntryCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*LoanTransactionEntry, error) {
 	return m.LoanTransactionEntryManager.Find(context, &LoanTransactionEntry{
-		OrganizationID: orgId,
-		BranchID:       branchId,
+		OrganizationID: orgID,
+		BranchID:       branchID,
 	})
 }
 
-func (m *ModelCore) GetCashOnCashEquivalence(ctx context.Context, loanTransactionID, orgId, branchId uuid.UUID) (*LoanTransactionEntry, error) {
+func (m *ModelCore) GetCashOnCashEquivalence(ctx context.Context, loanTransactionID, orgID, branchID uuid.UUID) (*LoanTransactionEntry, error) {
 	return m.LoanTransactionEntryManager.FindOneWithFilters(ctx, []services.Filter{
-		{Field: "loan_transaction_entries.organization_id", Op: services.OpEq, Value: orgId},
-		{Field: "loan_transaction_entries.branch_id", Op: services.OpEq, Value: branchId},
+		{Field: "loan_transaction_entries.organization_id", Op: services.OpEq, Value: orgID},
+		{Field: "loan_transaction_entries.branch_id", Op: services.OpEq, Value: branchID},
 		{Field: "loan_transaction_entries.index", Op: services.OpEq, Value: 0},
 		{Field: "loan_transaction_entries.debit", Op: services.OpEq, Value: 0},
 		{Field: "loan_transaction_entries.loan_transaction_id", Op: services.OpEq, Value: loanTransactionID},
@@ -200,10 +200,10 @@ func (m *ModelCore) GetCashOnCashEquivalence(ctx context.Context, loanTransactio
 
 }
 
-func (m *ModelCore) GetLoanEntryAccount(ctx context.Context, loanTransactionID, orgId, branchId uuid.UUID) (*LoanTransactionEntry, error) {
+func (m *ModelCore) GetLoanEntryAccount(ctx context.Context, loanTransactionID, orgID, branchID uuid.UUID) (*LoanTransactionEntry, error) {
 	return m.LoanTransactionEntryManager.FindOneWithFilters(ctx, []services.Filter{
-		{Field: "loan_transaction_entries.organization_id", Op: services.OpEq, Value: orgId},
-		{Field: "loan_transaction_entries.branch_id", Op: services.OpEq, Value: branchId},
+		{Field: "loan_transaction_entries.organization_id", Op: services.OpEq, Value: orgID},
+		{Field: "loan_transaction_entries.branch_id", Op: services.OpEq, Value: branchID},
 		{Field: "loan_transaction_entries.index", Op: services.OpEq, Value: 1},
 		{Field: "loan_transaction_entries.credit", Op: services.OpEq, Value: 0},
 		{Field: "loan_transaction_entries.loan_transaction_id", Op: services.OpEq, Value: loanTransactionID},

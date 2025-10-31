@@ -152,9 +152,9 @@ func (m *ModelCore) browseExcludeIncludeAccounts() {
 }
 
 // BrowseExcludeIncludeAccountsCurrentBranch retrieves all browse exclude include accounts for the specified organization and branch
-func (m *ModelCore) BrowseExcludeIncludeAccountsCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*BrowseExcludeIncludeAccounts, error) {
+func (m *ModelCore) BrowseExcludeIncludeAccountsCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*BrowseExcludeIncludeAccounts, error) {
 	return m.BrowseExcludeIncludeAccountsManager.Find(context, &BrowseExcludeIncludeAccounts{
-		OrganizationID: orgId,
-		BranchID:       branchId,
+		OrganizationID: orgID,
+		BranchID:       branchID,
 	})
 }

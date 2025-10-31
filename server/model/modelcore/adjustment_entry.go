@@ -190,9 +190,9 @@ func (m *ModelCore) adjustmentEntry() {
 }
 
 // AdjustmentEntryCurrentBranch retrieves adjustment entries for a specific organization and branch.
-func (m *ModelCore) AdjustmentEntryCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*AdjustmentEntry, error) {
+func (m *ModelCore) AdjustmentEntryCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*AdjustmentEntry, error) {
 	return m.AdjustmentEntryManager.Find(context, &AdjustmentEntry{
-		OrganizationID: orgId,
-		BranchID:       branchId,
+		OrganizationID: orgID,
+		BranchID:       branchID,
 	})
 }

@@ -154,9 +154,9 @@ func (m *ModelCore) memberGenderSeed(context context.Context, tx *gorm.DB, userI
 	return nil
 }
 
-func (m *ModelCore) MemberGenderCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberGender, error) {
+func (m *ModelCore) MemberGenderCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberGender, error) {
 	return m.MemberGenderManager.Find(context, &MemberGender{
-		OrganizationID: orgId,
-		BranchID:       branchId,
+		OrganizationID: orgID,
+		BranchID:       branchID,
 	})
 }

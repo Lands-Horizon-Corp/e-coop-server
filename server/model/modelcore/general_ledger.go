@@ -308,18 +308,18 @@ func (m *ModelCore) generalLedger() {
 }
 
 // General Ledger Queries
-func (m *ModelCore) GeneralLedgerCurrentBranch(context context.Context, orgId, branchId uuid.UUID) ([]*GeneralLedger, error) {
+func (m *ModelCore) GeneralLedgerCurrentBranch(context context.Context, orgID, branchID uuid.UUID) ([]*GeneralLedger, error) {
 	return m.GeneralLedgerManager.Find(context, &GeneralLedger{
-		OrganizationID: orgId,
-		BranchID:       branchId,
+		OrganizationID: orgID,
+		BranchID:       branchID,
 	})
 }
 
 // General Ledger Queries with locking for update
-func (m *ModelCore) GeneralLedgerCurrentMemberAccount(context context.Context, memberProfileId, accountId, orgId, branchId uuid.UUID) (*GeneralLedger, error) {
+func (m *ModelCore) GeneralLedgerCurrentMemberAccount(context context.Context, memberProfileId, accountId, orgID, branchID uuid.UUID) (*GeneralLedger, error) {
 	return m.GeneralLedgerManager.FindOne(context, &GeneralLedger{
-		OrganizationID:  orgId,
-		BranchID:        branchId,
+		OrganizationID:  orgID,
+		BranchID:        branchID,
 		AccountID:       &accountId,
 		MemberProfileID: &memberProfileId,
 	})
@@ -327,13 +327,13 @@ func (m *ModelCore) GeneralLedgerCurrentMemberAccount(context context.Context, m
 
 // General Ledger Queries with locking for update
 func (m *ModelCore) GeneralLedgerCurrentMemberAccountForUpdate(
-	ctx context.Context, tx *gorm.DB, memberProfileId, accountId, orgId, branchId uuid.UUID,
+	ctx context.Context, tx *gorm.DB, memberProfileId, accountId, orgID, branchID uuid.UUID,
 ) (*GeneralLedger, error) {
 	var ledger GeneralLedger
 	err := tx.
 		WithContext(ctx).
 		Model(&GeneralLedger{}).
-		Where("organization_id = ? AND branch_id = ? AND account_id = ? AND member_profile_id = ?", orgId, branchId, accountId, memberProfileId).
+		Where("organization_id = ? AND branch_id = ? AND account_id = ? AND member_profile_id = ?", orgID, branchID, accountId, memberProfileId).
 		Order("entry_date DESC NULLS LAST, created_at DESC").
 		Limit(1).
 		Clauses(clause.Locking{Strength: "UPDATE"}).
@@ -346,13 +346,13 @@ func (m *ModelCore) GeneralLedgerCurrentMemberAccountForUpdate(
 
 // General Ledger Queries with locking for update
 func (m *ModelCore) GeneralLedgerCurrentSubsidiaryAccountForUpdate(
-	ctx context.Context, tx *gorm.DB, accountId, orgId, branchId uuid.UUID,
+	ctx context.Context, tx *gorm.DB, accountId, orgID, branchID uuid.UUID,
 ) (*GeneralLedger, error) {
 	var ledger GeneralLedger
 	err := tx.
 		WithContext(ctx).
 		Model(&GeneralLedger{}).
-		Where("organization_id = ? AND branch_id = ? AND account_id = ? AND member_profile_id IS NULL", orgId, branchId, accountId).
+		Where("organization_id = ? AND branch_id = ? AND account_id = ? AND member_profile_id IS NULL", orgID, branchID, accountId).
 		Order("entry_date DESC NULLS LAST, created_at DESC").
 		Limit(1).
 		Clauses(clause.Locking{Strength: "UPDATE"}).
@@ -365,13 +365,13 @@ func (m *ModelCore) GeneralLedgerCurrentSubsidiaryAccountForUpdate(
 
 // General Ledger Queries with locking for update
 func (m *ModelCore) GeneralLedgerCashOnHandOnUpdate(
-	ctx context.Context, tx *gorm.DB, accountId, orgId, branchId uuid.UUID,
+	ctx context.Context, tx *gorm.DB, accountId, orgID, branchID uuid.UUID,
 ) (*GeneralLedger, error) {
 	var ledger GeneralLedger
 	err := tx.
 		WithContext(ctx).
 		Model(&GeneralLedger{}).
-		Where("organization_id = ? AND branch_id = ? AND account_id = ?", orgId, branchId, accountId).
+		Where("organization_id = ? AND branch_id = ? AND account_id = ?", orgID, branchID, accountId).
 		Order("entry_date DESC NULLS LAST, created_at DESC").
 		Limit(1).
 		Clauses(clause.Locking{Strength: "UPDATE"}).
@@ -401,15 +401,15 @@ func (m *ModelCore) GeneralLedgerPrintMaxNumber(
 // General Ledger Queries excluding Cash on Hand account
 func (m *ModelCore) GeneralLedgerExcludeCashonHand(
 	ctx context.Context,
-	transactionId, orgId,
-	branchId uuid.UUID,
+	transactionId, orgID,
+	branchID uuid.UUID,
 ) ([]*GeneralLedger, error) {
 	filters := []services.Filter{
 		{Field: "transaction_id", Op: services.OpEq, Value: transactionId},
-		{Field: "organization_id", Op: services.OpEq, Value: orgId},
-		{Field: "branch_id", Op: services.OpEq, Value: branchId},
+		{Field: "organization_id", Op: services.OpEq, Value: orgID},
+		{Field: "branch_id", Op: services.OpEq, Value: branchID},
 	}
-	branchSetting, err := m.BranchSettingManager.FindOne(ctx, &BranchSetting{BranchID: branchId})
+	branchSetting, err := m.BranchSettingManager.FindOne(ctx, &BranchSetting{BranchID: branchID})
 	if err != nil {
 		return nil, err
 	}
@@ -426,13 +426,13 @@ func (m *ModelCore) GeneralLedgerExcludeCashonHand(
 // General Ledger Queries excluding Cash on Hand account with TypeOfPaymentType filter
 func (m *ModelCore) GeneralLedgerExcludeCashonHandWithType(
 	ctx context.Context,
-	transactionId, orgId, branchId uuid.UUID,
+	transactionId, orgID, branchID uuid.UUID,
 	paymentType *TypeOfPaymentType,
 ) ([]*GeneralLedger, error) {
 	filters := []services.Filter{
 		{Field: "transaction_id", Op: services.OpEq, Value: transactionId},
-		{Field: "organization_id", Op: services.OpEq, Value: orgId},
-		{Field: "branch_id", Op: services.OpEq, Value: branchId},
+		{Field: "organization_id", Op: services.OpEq, Value: orgID},
+		{Field: "branch_id", Op: services.OpEq, Value: branchID},
 	}
 
 	// Add payment type filter if provided
@@ -444,7 +444,7 @@ func (m *ModelCore) GeneralLedgerExcludeCashonHandWithType(
 		})
 	}
 
-	branchSetting, err := m.BranchSettingManager.FindOne(ctx, &BranchSetting{BranchID: branchId})
+	branchSetting, err := m.BranchSettingManager.FindOne(ctx, &BranchSetting{BranchID: branchID})
 	if err != nil {
 		return nil, err
 	}
@@ -461,13 +461,13 @@ func (m *ModelCore) GeneralLedgerExcludeCashonHandWithType(
 // General Ledger Queries excluding Cash on Hand account with Source filter
 func (m *ModelCore) GeneralLedgerExcludeCashonHandWithSource(
 	ctx context.Context,
-	transactionId, orgId, branchId uuid.UUID,
+	transactionId, orgID, branchID uuid.UUID,
 	source *GeneralLedgerSource,
 ) ([]*GeneralLedger, error) {
 	filters := []services.Filter{
 		{Field: "transaction_id", Op: services.OpEq, Value: transactionId},
-		{Field: "organization_id", Op: services.OpEq, Value: orgId},
-		{Field: "branch_id", Op: services.OpEq, Value: branchId},
+		{Field: "organization_id", Op: services.OpEq, Value: orgID},
+		{Field: "branch_id", Op: services.OpEq, Value: branchID},
 	}
 
 	// Add source filter if provided
@@ -479,7 +479,7 @@ func (m *ModelCore) GeneralLedgerExcludeCashonHandWithSource(
 		})
 	}
 
-	branchSetting, err := m.BranchSettingManager.FindOne(ctx, &BranchSetting{BranchID: branchId})
+	branchSetting, err := m.BranchSettingManager.FindOne(ctx, &BranchSetting{BranchID: branchID})
 	if err != nil {
 		return nil, err
 	}
@@ -496,14 +496,14 @@ func (m *ModelCore) GeneralLedgerExcludeCashonHandWithSource(
 // General Ledger Queries excluding Cash on Hand account with TypeOfPaymentType and Source filters
 func (m *ModelCore) GeneralLedgerExcludeCashonHandWithFilters(
 	ctx context.Context,
-	transactionId, orgId, branchId uuid.UUID,
+	transactionId, orgID, branchID uuid.UUID,
 	paymentType *TypeOfPaymentType,
 	source *GeneralLedgerSource,
 ) ([]*GeneralLedger, error) {
 	filters := []services.Filter{
 		{Field: "transaction_id", Op: services.OpEq, Value: transactionId},
-		{Field: "organization_id", Op: services.OpEq, Value: orgId},
-		{Field: "branch_id", Op: services.OpEq, Value: branchId},
+		{Field: "organization_id", Op: services.OpEq, Value: orgID},
+		{Field: "branch_id", Op: services.OpEq, Value: branchID},
 	}
 
 	// Add payment type filter if provided
@@ -524,7 +524,7 @@ func (m *ModelCore) GeneralLedgerExcludeCashonHandWithFilters(
 		})
 	}
 
-	branchSetting, err := m.BranchSettingManager.FindOne(ctx, &BranchSetting{BranchID: branchId})
+	branchSetting, err := m.BranchSettingManager.FindOne(ctx, &BranchSetting{BranchID: branchID})
 	if err != nil {
 		return nil, err
 	}

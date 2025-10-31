@@ -123,9 +123,9 @@ func (m *ModelCore) memberRelativeAccount() {
 	})
 }
 
-func (m *ModelCore) MemberRelativeAccountCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberRelativeAccount, error) {
+func (m *ModelCore) MemberRelativeAccountCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberRelativeAccount, error) {
 	return m.MemberRelativeAccountManager.Find(context, &MemberRelativeAccount{
-		OrganizationID: orgId,
-		BranchID:       branchId,
+		OrganizationID: orgID,
+		BranchID:       branchID,
 	})
 }

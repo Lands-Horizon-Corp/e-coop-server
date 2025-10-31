@@ -110,9 +110,9 @@ func (m *ModelCore) interestRateScheme() {
 	})
 }
 
-func (m *ModelCore) InterestRateSchemeCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*InterestRateScheme, error) {
+func (m *ModelCore) InterestRateSchemeCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*InterestRateScheme, error) {
 	return m.InterestRateSchemeManager.Find(context, &InterestRateScheme{
-		OrganizationID: orgId,
-		BranchID:       branchId,
+		OrganizationID: orgID,
+		BranchID:       branchID,
 	})
 }

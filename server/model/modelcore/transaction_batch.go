@@ -486,19 +486,19 @@ func (m *ModelCore) transactionBatch() {
 	})
 }
 
-func (m *ModelCore) TransactionBatchCurrent(context context.Context, userId uuid.UUID, orgId uuid.UUID, branchId uuid.UUID) (*TransactionBatch, error) {
+func (m *ModelCore) TransactionBatchCurrent(context context.Context, userId uuid.UUID, orgID uuid.UUID, branchID uuid.UUID) (*TransactionBatch, error) {
 	return m.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
-		"organization_id":  orgId,
-		"branch_id":        branchId,
+		"organization_id":  orgID,
+		"branch_id":        branchID,
 		"employee_user_id": userId,
 		"is_closed":        false,
 	})
 }
 
-func (m *ModelCore) TransactionBatchViewRequests(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*TransactionBatch, error) {
+func (m *ModelCore) TransactionBatchViewRequests(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*TransactionBatch, error) {
 	return m.TransactionBatchManager.FindWithConditions(context, map[string]any{
-		"organization_id": orgId,
-		"branch_id":       branchId,
+		"organization_id": orgID,
+		"branch_id":       branchID,
 		"request_view":    true,
 		"can_view":        false,
 		"is_closed":       false,
@@ -547,22 +547,22 @@ func (m *ModelCore) TransactionBatchMinimal(context context.Context, id uuid.UUI
 }
 
 // TransactionBatchCurrentBranch retrieves all transaction batches for the current branch.
-func (m *ModelCore) TransactionBatchCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*TransactionBatch, error) {
+func (m *ModelCore) TransactionBatchCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*TransactionBatch, error) {
 	return m.TransactionBatchManager.Find(context, &TransactionBatch{
-		OrganizationID: orgId,
-		BranchID:       branchId,
+		OrganizationID: orgID,
+		BranchID:       branchID,
 	})
 }
 
 // TransactionBatchCurrentDay retrieves all closed transaction batches for the current day.
-func (m *ModelCore) TransactionBatchCurrentDay(ctx context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*TransactionBatch, error) {
+func (m *ModelCore) TransactionBatchCurrentDay(ctx context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*TransactionBatch, error) {
 	now := time.Now().UTC()
 	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 	endOfDay := startOfDay.Add(24 * time.Hour)
 
 	filters := []services.Filter{
-		{Field: "organization_id", Op: services.OpEq, Value: orgId},
-		{Field: "branch_id", Op: services.OpEq, Value: branchId},
+		{Field: "organization_id", Op: services.OpEq, Value: orgID},
+		{Field: "branch_id", Op: services.OpEq, Value: branchID},
 		{Field: "is_closed", Op: services.OpEq, Value: true},
 		{Field: "created_at", Op: services.OpGte, Value: startOfDay},
 		{Field: "created_at", Op: services.OpLt, Value: endOfDay},

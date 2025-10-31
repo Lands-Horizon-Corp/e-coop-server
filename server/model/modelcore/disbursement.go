@@ -283,9 +283,9 @@ func (m *ModelCore) disbursementSeed(context context.Context, tx *gorm.DB, userI
 }
 
 // disbursementCurrentBranch retrieves disbursements for a specific organization and branch.
-func (m *ModelCore) DisbursementCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Disbursement, error) {
+func (m *ModelCore) DisbursementCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*Disbursement, error) {
 	return m.DisbursementManager.Find(context, &Disbursement{
-		OrganizationID: orgId,
-		BranchID:       branchId,
+		OrganizationID: orgID,
+		BranchID:       branchID,
 	})
 }

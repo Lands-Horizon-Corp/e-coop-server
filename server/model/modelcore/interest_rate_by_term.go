@@ -118,9 +118,9 @@ func (m *ModelCore) interestRateByTerm() {
 	})
 }
 
-func (m *ModelCore) InterestRateByTermCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*InterestRateByTerm, error) {
+func (m *ModelCore) InterestRateByTermCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*InterestRateByTerm, error) {
 	return m.InterestRateByTermManager.Find(context, &InterestRateByTerm{
-		OrganizationID: orgId,
-		BranchID:       branchId,
+		OrganizationID: orgID,
+		BranchID:       branchID,
 	})
 }

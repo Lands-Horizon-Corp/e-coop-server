@@ -133,9 +133,9 @@ func (m *ModelCore) transactionTag() {
 	})
 }
 
-func (m *ModelCore) TransactionTagCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*TransactionTag, error) {
+func (m *ModelCore) TransactionTagCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*TransactionTag, error) {
 	return m.TransactionTagManager.Find(context, &TransactionTag{
-		OrganizationID: orgId,
-		BranchID:       branchId,
+		OrganizationID: orgID,
+		BranchID:       branchID,
 	})
 }

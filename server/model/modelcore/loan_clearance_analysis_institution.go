@@ -120,9 +120,9 @@ func (m *ModelCore) loanClearanceAnalysisInstitution() {
 	})
 }
 
-func (m *ModelCore) LoanClearanceAnalysisInstitutionCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanClearanceAnalysisInstitution, error) {
+func (m *ModelCore) LoanClearanceAnalysisInstitutionCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*LoanClearanceAnalysisInstitution, error) {
 	return m.LoanClearanceAnalysisInstitutionManager.Find(context, &LoanClearanceAnalysisInstitution{
-		OrganizationID: orgId,
-		BranchID:       branchId,
+		OrganizationID: orgID,
+		BranchID:       branchID,
 	})
 }

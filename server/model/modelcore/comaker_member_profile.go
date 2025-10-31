@@ -138,10 +138,10 @@ func (m *ModelCore) comakerMemberProfile() {
 }
 
 // ComakerMemberProfileCurrentBranch retrieves all comaker member profiles for the specified organization and branch
-func (m *ModelCore) ComakerMemberProfileCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*ComakerMemberProfile, error) {
+func (m *ModelCore) ComakerMemberProfileCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*ComakerMemberProfile, error) {
 	return m.ComakerMemberProfileManager.Find(context, &ComakerMemberProfile{
-		OrganizationID: orgId,
-		BranchID:       branchId,
+		OrganizationID: orgID,
+		BranchID:       branchID,
 	})
 }
 

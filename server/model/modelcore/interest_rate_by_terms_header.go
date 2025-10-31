@@ -200,9 +200,9 @@ func (m *ModelCore) interestRateByTermsHeader() {
 	})
 }
 
-func (m *ModelCore) InterestRateByTermsHeaderCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*InterestRateByTermsHeader, error) {
+func (m *ModelCore) InterestRateByTermsHeaderCurrentBranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*InterestRateByTermsHeader, error) {
 	return m.InterestRateByTermsHeaderManager.Find(context, &InterestRateByTermsHeader{
-		OrganizationID: orgId,
-		BranchID:       branchId,
+		OrganizationID: orgID,
+		BranchID:       branchID,
 	})
 }
