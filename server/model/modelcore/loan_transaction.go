@@ -877,7 +877,7 @@ func (m *ModelCore) GenerateLoanAmortization(ctx context.Context, loanTransactio
 	return nil
 }
 
-// Helper function to generate amortization schedule
+// GenerateLoanAmortizationSchedule generates an amortization schedule for the provided loan transaction
 func (m *ModelCore) GenerateLoanAmortizationSchedule(ctx context.Context, loanTransaction *LoanTransaction) (*AmortizationScheduleResponse, error) {
 	// Extract loan details
 	principal := loanTransaction.Applied1
@@ -1055,6 +1055,7 @@ func (m *ModelCore) GenerateLoanAmortizationSchedule(ctx context.Context, loanTr
 	return response, nil
 }
 
+// LoanTransactionDraft returns loan transactions that are in draft state (not printed/approved/released)
 func (m *ModelCore) LoanTransactionDraft(ctx context.Context, branchID, orgID uuid.UUID) ([]*LoanTransaction, error) {
 	filters := []services.Filter{
 		{Field: "organization_id", Op: services.OpEq, Value: orgID},
@@ -1071,6 +1072,7 @@ func (m *ModelCore) LoanTransactionDraft(ctx context.Context, branchID, orgID uu
 	return loanTransactions, nil
 }
 
+// LoanTransactionPrinted returns loan transactions that have been printed but not approved or released
 func (m *ModelCore) LoanTransactionPrinted(ctx context.Context, branchID, orgID uuid.UUID) ([]*LoanTransaction, error) {
 	filters := []services.Filter{
 		{Field: "organization_id", Op: services.OpEq, Value: orgID},
@@ -1087,6 +1089,7 @@ func (m *ModelCore) LoanTransactionPrinted(ctx context.Context, branchID, orgID 
 	return loanTransactions, nil
 }
 
+// LoanTransactionApproved returns loan transactions that have been approved but not yet released
 func (m *ModelCore) LoanTransactionApproved(ctx context.Context, branchID, orgID uuid.UUID) ([]*LoanTransaction, error) {
 	filters := []services.Filter{
 		{Field: "organization_id", Op: services.OpEq, Value: orgID},
@@ -1102,6 +1105,8 @@ func (m *ModelCore) LoanTransactionApproved(ctx context.Context, branchID, orgID
 	}
 	return loanTransactions, nil
 }
+
+// LoanTransactionReleased returns loan transactions that have been released
 func (m *ModelCore) LoanTransactionReleased(ctx context.Context, branchID, orgID uuid.UUID) ([]*LoanTransaction, error) {
 	filters := []services.Filter{
 		{Field: "organization_id", Op: services.OpEq, Value: orgID},
@@ -1117,6 +1122,7 @@ func (m *ModelCore) LoanTransactionReleased(ctx context.Context, branchID, orgID
 	return loanTransactions, nil
 }
 
+// LoanTransactionReleasedCurrentDay returns loan transactions released during the current UTC day
 func (m *ModelCore) LoanTransactionReleasedCurrentDay(ctx context.Context, branchID, orgID uuid.UUID) ([]*LoanTransaction, error) {
 	now := time.Now().UTC()
 	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
