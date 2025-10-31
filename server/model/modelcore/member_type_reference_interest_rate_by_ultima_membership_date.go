@@ -36,6 +36,8 @@ type (
 		Rate     float64   `gorm:"type:decimal;default:0"`
 	}
 
+	// MemberTypeReferenceInterestRateByUltimaMembershipDateResponse represents the response structure for membertypereferenceinterestratebyultimamembershipdate data
+
 	MemberTypeReferenceInterestRateByUltimaMembershipDateResponse struct {
 		ID                    uuid.UUID                    `json:"id"`
 		CreatedAt             string                       `json:"created_at"`
@@ -54,6 +56,8 @@ type (
 		DateTo                string                       `json:"date_to"`
 		Rate                  float64                      `json:"rate"`
 	}
+
+	// MemberTypeReferenceInterestRateByUltimaMembershipDateRequest represents the request structure for creating/updating membertypereferenceinterestratebyultimamembershipdate
 
 	MemberTypeReferenceInterestRateByUltimaMembershipDateRequest struct {
 		MemberTypeReferenceID uuid.UUID `json:"member_type_reference_id" validate:"required"`

@@ -41,6 +41,8 @@ type (
 		InterestRateByTermsHeader   *InterestRateByTermsHeader `gorm:"foreignKey:InterestRateByTermsHeaderID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"interest_rate_by_terms_header,omitempty"`
 	}
 
+	// MemberClassificationInterestRateResponse represents the response structure for memberclassificationinterestrate data
+
 	MemberClassificationInterestRateResponse struct {
 		ID                          uuid.UUID                          `json:"id"`
 		CreatedAt                   string                             `json:"created_at"`
@@ -62,6 +64,8 @@ type (
 		InterestRateByTermsHeaderID *uuid.UUID                         `json:"interest_rate_by_terms_header_id,omitempty"`
 		InterestRateByTermsHeader   *InterestRateByTermsHeaderResponse `json:"interest_rate_by_terms_header,omitempty"`
 	}
+
+	// MemberClassificationInterestRateRequest represents the request structure for creating/updating memberclassificationinterestrate
 
 	MemberClassificationInterestRateRequest struct {
 		Name                        string     `json:"name" validate:"required,min=1,max=255"`

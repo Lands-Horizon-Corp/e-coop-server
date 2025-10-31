@@ -70,6 +70,8 @@ type (
 		Latitude      *float64 `json:"latitude,omitempty"`
 	}
 
+	// MemberAddressRequest represents the request structure for creating/updating memberaddress
+
 	MemberAddressRequest struct {
 		MemberProfileID *uuid.UUID `json:"member_profile_id,omitempty"`
 

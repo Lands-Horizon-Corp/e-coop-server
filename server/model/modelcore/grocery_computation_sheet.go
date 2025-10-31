@@ -32,6 +32,8 @@ type (
 		Description  string `gorm:"type:text"`
 	}
 
+	// GroceryComputationSheetResponse represents the response structure for grocerycomputationsheet data
+
 	GroceryComputationSheetResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -47,6 +49,8 @@ type (
 		SchemeNumber   int                   `json:"scheme_number"`
 		Description    string                `json:"description"`
 	}
+
+	// GroceryComputationSheetRequest represents the request structure for creating/updating grocerycomputationsheet
 
 	GroceryComputationSheetRequest struct {
 		SchemeNumber int    `json:"scheme_number" validate:"required"`

@@ -41,6 +41,8 @@ type (
 		FinancialStatementDefinitionEntries []*FinancialStatementDefinition `gorm:"foreignKey:FinancialStatementGroupingID" json:"financial_statement_definition_entries,omitempty"`
 	}
 
+	// FinancialStatementGroupingResponse represents the response structure for financialstatementgrouping data
+
 	FinancialStatementGroupingResponse struct {
 		ID                                  uuid.UUID                               `json:"id"`
 		OrganizationID                      uuid.UUID                               `json:"organization_id"`
@@ -64,6 +66,8 @@ type (
 		DeletedAt                           *string                                 `json:"deleted_at,omitempty"`
 		FinancialStatementDefinitionEntries []*FinancialStatementDefinitionResponse `json:"financial_statement_definition_entries,omitempty"`
 	}
+
+	// FinancialStatementGroupingRequest represents the request structure for creating/updating financialstatementgrouping
 
 	FinancialStatementGroupingRequest struct {
 		Name        string     `json:"name" validate:"required,min=1,max=50"`

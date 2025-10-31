@@ -36,6 +36,8 @@ type (
 		Description string `gorm:"type:text"`
 	}
 
+	// IncludeNegativeAccountResponse represents the response structure for includenegativeaccount data
+
 	IncludeNegativeAccountResponse struct {
 		ID                 uuid.UUID                 `json:"id"`
 		CreatedAt          string                    `json:"created_at"`
@@ -54,6 +56,8 @@ type (
 		Account            *AccountResponse          `json:"account,omitempty"`
 		Description        string                    `json:"description"`
 	}
+
+	// IncludeNegativeAccountRequest represents the request structure for creating/updating includenegativeaccount
 
 	IncludeNegativeAccountRequest struct {
 		ComputationSheetID *uuid.UUID `json:"computation_sheet_id,omitempty"`

@@ -45,6 +45,8 @@ type (
 		OtherInterestOnSavingComputationInterestRate   float64 `gorm:"type:decimal;default:0" json:"other_interest_on_saving_computation_interest_rate"`
 	}
 
+	// MemberTypeReferenceResponse represents the response structure for membertypereference data
+
 	MemberTypeReferenceResponse struct {
 		ID                                             uuid.UUID             `json:"id"`
 		CreatedAt                                      string                `json:"created_at"`
@@ -71,6 +73,8 @@ type (
 		OtherInterestOnSavingComputationMinimumBalance float64               `json:"other_interest_on_saving_computation_minimum_balance"`
 		OtherInterestOnSavingComputationInterestRate   float64               `json:"other_interest_on_saving_computation_interest_rate"`
 	}
+
+	// MemberTypeReferenceRequest represents the request structure for creating/updating membertypereference
 
 	MemberTypeReferenceRequest struct {
 		AccountID                                      uuid.UUID `json:"account_id"`

@@ -35,6 +35,8 @@ type (
 		MemberProfile   *MemberProfile `gorm:"foreignKey:MemberProfileID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_profile,omitempty"`
 	}
 
+	// MemberCenterHistoryResponse represents the response structure for membercenterhistory data
+
 	MemberCenterHistoryResponse struct {
 		ID              uuid.UUID              `json:"id"`
 		CreatedAt       string                 `json:"created_at"`
@@ -52,6 +54,8 @@ type (
 		MemberProfileID uuid.UUID              `json:"member_profile_id"`
 		MemberProfile   *MemberProfileResponse `json:"member_profile,omitempty"`
 	}
+
+	// MemberCenterHistoryRequest represents the request structure for creating/updating membercenterhistory
 
 	MemberCenterHistoryRequest struct {
 		MemberCenterID  uuid.UUID `json:"member_center_id" validate:"required"`

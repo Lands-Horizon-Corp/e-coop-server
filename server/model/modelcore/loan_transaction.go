@@ -223,6 +223,8 @@ type (
 		TotalPrincipal float64    `gorm:"total_principal;type:decimal;default:0" json:"total_principal"`
 	}
 
+	// LoanTransactionResponse represents the response structure for loantransaction data
+
 	LoanTransactionResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -379,6 +381,8 @@ type (
 		TotalCredit float64    `json:"total_credit"`
 	}
 
+	// LoanTransactionRequest represents the request structure for creating/updating loantransaction
+
 	LoanTransactionRequest struct {
 		OfficialReceiptNumber string     `json:"official_receipt_number,omitempty"`
 		Voucher               string     `json:"voucher,omitempty"`
@@ -490,6 +494,8 @@ type (
 		ComakerCollateralsDeleted                    []uuid.UUID `json:"comaker_collaterals_deleted,omitempty"`
 	}
 
+	// LoanComputationSheetCalculatorRequest represents the request structure for creating/updating loancomputationsheetcalculator
+
 	LoanComputationSheetCalculatorRequest struct {
 		AccountID    *uuid.UUID `json:"account_id,omitempty"`
 		Applied1     float64    `json:"applied_1"`
@@ -528,6 +534,8 @@ type (
 		Voucher        string  `json:"voucher"`
 	}
 
+	// AmortizationScheduleResponse represents the response structure for amortizationschedule data
+
 	AmortizationScheduleResponse struct {
 		LoanDetails          LoanDetails           `json:"loan_details"`
 		AmortizationSchedule []AmortizationPayment `json:"amortization_schedule"`
@@ -535,11 +543,15 @@ type (
 		GeneratedAt          string                `json:"generated_at"`
 	}
 
+	// LoanTransactionPrintRequest represents the request structure for creating/updating loantransactionprint
+
 	LoanTransactionPrintRequest struct {
 		Voucher     string     `json:"voucher"`
 		CheckNumber string     `json:"check_number"`
 		CheckDate   *time.Time `json:"check_date"`
 	}
+
+	// LoanTransactionSignatureRequest represents the request structure for creating/updating loantransactionsignature
 
 	LoanTransactionSignatureRequest struct {
 		ApprovedBySignatureMediaID *uuid.UUID `json:"approved_by_signature_media_id,omitempty" validate:"omitempty,uuid"`
@@ -579,12 +591,15 @@ type (
 		PaidByPosition         string     `json:"paid_by_position,omitempty" validate:"omitempty,max=255"`
 	}
 
+	// LoanTransactionSuggestedRequest represents the request structure for creating/updating loantransactionsuggested
+
 	LoanTransactionSuggestedRequest struct {
 		Amount        float64           `json:"amount" validate:"required,gt=0"`
 		Principal     float64           `json:"principal" validate:"required,gt=0"`
 		ModeOfPayment LoanModeOfPayment `json:"mode_of_payment"`
 		FixedDays     int               `json:"fixed_days,omitempty" validate:"omitempty"`
 	}
+	// LoanTransactionSuggestedResponse represents the response structure for loantransactionsuggested data
 	LoanTransactionSuggestedResponse struct {
 		Terms int `json:"terms"`
 	}

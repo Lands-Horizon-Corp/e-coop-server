@@ -47,6 +47,8 @@ type (
 		IncludeExistingLoanAccount   *Account   `gorm:"foreignKey:IncludeExistingLoanAccountID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"include_existing_loan_account,omitempty"`
 	}
 
+	// BrowseExcludeIncludeAccountsResponse represents the response structure for browseexcludeincludeaccounts data
+
 	BrowseExcludeIncludeAccountsResponse struct {
 		ID                           uuid.UUID                 `json:"id"`
 		CreatedAt                    string                    `json:"created_at"`
@@ -72,6 +74,8 @@ type (
 		IncludeExistingLoanAccountID *uuid.UUID                `json:"include_existing_loan_account_id,omitempty"`
 		IncludeExistingLoanAccount   *AccountResponse          `json:"include_existing_loan_account,omitempty"`
 	}
+
+	// BrowseExcludeIncludeAccountsRequest represents the request structure for creating/updating browseexcludeincludeaccounts
 
 	BrowseExcludeIncludeAccountsRequest struct {
 		ComputationSheetID           *uuid.UUID `json:"computation_sheet_id,omitempty"`

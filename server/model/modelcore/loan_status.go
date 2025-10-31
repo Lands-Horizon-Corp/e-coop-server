@@ -35,6 +35,8 @@ type (
 		Description string `gorm:"type:text"`
 	}
 
+	// LoanStatusResponse represents the response structure for loanstatus data
+
 	LoanStatusResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -52,6 +54,8 @@ type (
 		Color          string                `json:"color"`
 		Description    string                `json:"description"`
 	}
+
+	// LoanStatusRequest represents the request structure for creating/updating loanstatus
 
 	LoanStatusRequest struct {
 		Name        string `json:"name" validate:"required,min=1,max=255"`

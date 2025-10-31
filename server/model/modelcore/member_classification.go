@@ -34,6 +34,8 @@ type (
 		Description string `gorm:"type:text"`
 	}
 
+	// MemberClassificationResponse represents the response structure for memberclassification data
+
 	MemberClassificationResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -50,6 +52,8 @@ type (
 		Icon           string                `json:"icon"`
 		Description    string                `json:"description"`
 	}
+
+	// MemberClassificationRequest represents the request structure for creating/updating memberclassification
 
 	MemberClassificationRequest struct {
 		Name        string `json:"name" validate:"required,min=1,max=255"`

@@ -44,6 +44,8 @@ type (
 		ExpiryDate  *time.Time `gorm:"type:date"`
 	}
 
+	// MemberGovernmentBenefitResponse represents the response structure for membergovernmentbenefit data
+
 	MemberGovernmentBenefitResponse struct {
 		ID              uuid.UUID              `json:"id"`
 		CreatedAt       string                 `json:"created_at"`
@@ -68,6 +70,8 @@ type (
 		Value           string                 `json:"value"`
 		ExpiryDate      *string                `json:"expiry_date,omitempty"`
 	}
+
+	// MemberGovernmentBenefitRequest represents the request structure for creating/updating membergovernmentbenefit
 
 	MemberGovernmentBenefitRequest struct {
 		MemberProfileID uuid.UUID  `json:"member_profile_id" validate:"required"`

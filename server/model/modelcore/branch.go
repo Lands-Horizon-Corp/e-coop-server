@@ -53,6 +53,8 @@ type (
 		UserOrganizations   []*UserOrganization   `gorm:"foreignKey:BranchID" json:"user_organizations,omitempty"`
 	}
 
+	// BranchRequest represents the request structure for creating/updating branch
+
 	BranchRequest struct {
 		ID *uuid.UUID `json:"id,omitempty"`
 
@@ -74,6 +76,8 @@ type (
 
 		IsMainBranch bool `json:"is_main_branch,omitempty"`
 	}
+
+	// BranchResponse represents the response structure for branch data
 
 	BranchResponse struct {
 		ID           uuid.UUID             `json:"id"`

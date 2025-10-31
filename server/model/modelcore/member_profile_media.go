@@ -38,6 +38,8 @@ type (
 		Description string `gorm:"type:text" json:"description"`
 	}
 
+	// MemberProfileMediaResponse represents the response structure for memberprofilemedia data
+
 	MemberProfileMediaResponse struct {
 		ID              uuid.UUID              `json:"id"`
 		CreatedAt       string                 `json:"created_at"`
@@ -57,9 +59,11 @@ type (
 		Name            string                 `json:"name"`
 		Description     string                 `json:"description"`
 	}
+	// MemberProfileBulkMediaRequest represents the request structure for creating/updating memberprofilebulkmedia
 	MemberProfileBulkMediaRequest struct {
 		MediaIDs []*uuid.UUID `json:"media_ids,omitempty"`
 	}
+	// MemberProfileMediaRequest represents the request structure for creating/updating memberprofilemedia
 	MemberProfileMediaRequest struct {
 		Name            string     `json:"name" validate:"required,min=1,max=255"`
 		Description     string     `json:"description,omitempty"`

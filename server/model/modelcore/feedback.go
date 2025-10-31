@@ -24,6 +24,8 @@ type (
 		Media        *Media     `gorm:"foreignKey:MediaID;constraint:OnDelete:SET NULL;" json:"media,omitempty"`
 	}
 
+	// FeedbackResponse represents the response structure for feedback data
+
 	FeedbackResponse struct {
 		ID           uuid.UUID      `json:"id"`
 		Email        string         `json:"email"`
@@ -34,6 +36,8 @@ type (
 		CreatedAt    string         `json:"createdAt"`
 		UpdatedAt    string         `json:"updatedAt"`
 	}
+
+	// FeedbackRequest represents the request structure for creating/updating feedback
 
 	FeedbackRequest struct {
 		ID           *uuid.UUID `json:"id,omitempty"`

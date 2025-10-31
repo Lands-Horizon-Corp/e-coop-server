@@ -35,6 +35,8 @@ type (
 		Description string `gorm:"type:text"`
 	}
 
+	// LoanClearanceAnalysisInstitutionResponse represents the response structure for loanclearanceanalysisinstitution data
+
 	LoanClearanceAnalysisInstitutionResponse struct {
 		ID                uuid.UUID                `json:"id"`
 		CreatedAt         string                   `json:"created_at"`
@@ -52,6 +54,8 @@ type (
 		Name              string                   `json:"name"`
 		Description       string                   `json:"description"`
 	}
+
+	// LoanClearanceAnalysisInstitutionRequest represents the request structure for creating/updating loanclearanceanalysisinstitution
 
 	LoanClearanceAnalysisInstitutionRequest struct {
 		ID                *uuid.UUID `json:"id"`

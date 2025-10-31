@@ -29,6 +29,8 @@ type (
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 	}
 
+	// LoanLedgerResponse represents the response structure for loanledger data
+
 	LoanLedgerResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -42,6 +44,8 @@ type (
 		BranchID       uuid.UUID             `json:"branch_id"`
 		Branch         *BranchResponse       `json:"branch,omitempty"`
 	}
+
+	// LoanLedgerRequest represents the request structure for creating/updating loanledger
 
 	LoanLedgerRequest struct{}
 )

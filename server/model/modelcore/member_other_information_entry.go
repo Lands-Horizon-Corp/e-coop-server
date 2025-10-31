@@ -33,6 +33,8 @@ type (
 		EntryDate   time.Time `gorm:"type:timestamp"`
 	}
 
+	// MemberOtherInformationEntryResponse represents the response structure for memberotherinformationentry data
+
 	MemberOtherInformationEntryResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -49,6 +51,8 @@ type (
 		Description    string                `json:"description"`
 		EntryDate      string                `json:"entry_date"`
 	}
+
+	// MemberOtherInformationEntryRequest represents the request structure for creating/updating memberotherinformationentry
 
 	MemberOtherInformationEntryRequest struct {
 		Name        string    `json:"name" validate:"required,min=1,max=255"`

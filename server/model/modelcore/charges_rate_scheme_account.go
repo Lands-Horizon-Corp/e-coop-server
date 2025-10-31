@@ -35,6 +35,8 @@ type (
 		Account   *Account  `gorm:"foreignKey:AccountID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"account,omitempty"`
 	}
 
+	// ChargesRateSchemeAccountResponse represents the response structure for chargesrateschemeaccount data
+
 	ChargesRateSchemeAccountResponse struct {
 		ID                  uuid.UUID                  `json:"id"`
 		CreatedAt           string                     `json:"created_at"`
@@ -52,6 +54,8 @@ type (
 		AccountID           uuid.UUID                  `json:"account_id"`
 		Account             *AccountResponse           `json:"account,omitempty"`
 	}
+
+	// ChargesRateSchemeAccountRequest represents the request structure for creating/updating chargesrateschemeaccount
 
 	ChargesRateSchemeAccountRequest struct {
 		ID        *uuid.UUID `json:"id,omitempty"`

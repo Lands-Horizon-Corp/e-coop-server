@@ -61,6 +61,8 @@ type (
 		Amount float64 `gorm:"type:decimal;default:0" json:"amount,omitempty"`
 	}
 
+	// LoanTransactionEntryResponse represents the response structure for loantransactionentry data
+
 	LoanTransactionEntryResponse struct {
 		ID                              uuid.UUID                       `json:"id"`
 		CreatedAt                       string                          `json:"created_at"`
@@ -90,6 +92,8 @@ type (
 		Amount                          float64                         `json:"amount"`
 	}
 
+	// LoanTransactionEntryRequest represents the request structure for creating/updating loantransactionentry
+
 	LoanTransactionEntryRequest struct {
 		ID                *uuid.UUID               `json:"id"`
 		LoanTransactionID uuid.UUID                `json:"loan_transaction_id" validate:"required"`
@@ -102,6 +106,8 @@ type (
 		Credit            float64                  `json:"credit,omitempty"`
 		Debit             float64                  `json:"debit,omitempty"`
 	}
+
+	// LoanTransactionDeductionRequest represents the request structure for creating/updating loantransactiondeduction
 
 	LoanTransactionDeductionRequest struct {
 		AccountID   uuid.UUID `json:"account_id" validate:"required"`

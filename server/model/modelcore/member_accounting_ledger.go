@@ -47,6 +47,8 @@ type (
 		LastPay             *time.Time `gorm:"type:timestamp"`
 	}
 
+	// MemberAccountingLedgerResponse represents the response structure for memberaccountingledger data
+
 	MemberAccountingLedgerResponse struct {
 		ID                  uuid.UUID              `json:"id"`
 		CreatedAt           string                 `json:"created_at"`
@@ -73,6 +75,8 @@ type (
 		PrincipalDue        float64                `json:"principal_due"`
 		LastPay             *string                `json:"last_pay,omitempty"`
 	}
+
+	// MemberAccountingLedgerRequest represents the request structure for creating/updating memberaccountingledger
 
 	MemberAccountingLedgerRequest struct {
 		OrganizationID      uuid.UUID  `json:"organization_id" validate:"required"`

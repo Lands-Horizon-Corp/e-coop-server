@@ -34,6 +34,7 @@ type (
 		Description string `gorm:"type:text"`
 	}
 
+	// MemberTypeResponse represents the response structure for member type data
 	MemberTypeResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -51,6 +52,7 @@ type (
 		Description    string                `json:"description"`
 	}
 
+	// MemberTypeRequest represents the request structure for creating/updating member types
 	MemberTypeRequest struct {
 		Prefix      string `json:"prefix,omitempty"`
 		Name        string `json:"name,omitempty"`

@@ -40,6 +40,8 @@ type (
 		ExistAccount      bool    `gorm:"type:boolean;default:false"`
 	}
 
+	// ComputationSheetResponse represents the response structure for computationsheet data
+
 	ComputationSheetResponse struct {
 		ID                uuid.UUID             `json:"id"`
 		CreatedAt         string                `json:"created_at"`
@@ -63,6 +65,8 @@ type (
 		ExistAccount      bool                  `json:"exist_account"`
 	}
 
+	// ComputationSheetRequest represents the request structure for creating/updating computationsheet
+
 	ComputationSheetRequest struct {
 		Name              string    `json:"name" validate:"required,min=1,max=254"`
 		Description       string    `json:"description,omitempty"`
@@ -73,6 +77,8 @@ type (
 		ComakerAccount    float64   `json:"comaker_account,omitempty"`
 		ExistAccount      bool      `json:"exist_account,omitempty"`
 	}
+
+	// ComputationSheetAmortizationResponse represents the response structure for computationsheetamortization data
 
 	ComputationSheetAmortizationResponse struct {
 		Entries      []*LoanTransactionEntryResponse `json:"entries"`

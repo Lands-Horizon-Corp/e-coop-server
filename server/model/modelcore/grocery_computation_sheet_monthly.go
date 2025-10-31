@@ -36,6 +36,8 @@ type (
 		LoanGuaranteedFundRate float64 `gorm:"type:decimal;default:0"`
 	}
 
+	// GroceryComputationSheetMonthlyResponse represents the response structure for grocerycomputationsheetmonthly data
+
 	GroceryComputationSheetMonthlyResponse struct {
 		ID                        uuid.UUID                        `json:"id"`
 		CreatedAt                 string                           `json:"created_at"`
@@ -54,6 +56,8 @@ type (
 		InterestRate              float64                          `json:"interest_rate"`
 		LoanGuaranteedFundRate    float64                          `json:"loan_guaranteed_fund_rate"`
 	}
+
+	// GroceryComputationSheetMonthlyRequest represents the request structure for creating/updating grocerycomputationsheetmonthly
 
 	GroceryComputationSheetMonthlyRequest struct {
 		GroceryComputationSheetID uuid.UUID `json:"grocery_computation_sheet_id" validate:"required"`

@@ -87,6 +87,7 @@ type (
 		Latitude  *float64 `gorm:"type:double precision" json:"latitude,omitempty"`
 		Longitude *float64 `gorm:"type:double precision" json:"longitude,omitempty"`
 	}
+	// MemberProfileResponse represents the response structure for member profile data
 	MemberProfileResponse struct {
 		ID                             uuid.UUID                     `json:"id"`
 		CreatedAt                      string                        `json:"created_at"`
@@ -160,6 +161,7 @@ type (
 		RecruitedMembers             []*MemberProfileResponse               `json:"recruited_members,omitempty"`
 	}
 
+	// MemberProfileRequest represents the request structure for creating/updating member profiles
 	MemberProfileRequest struct {
 		OrganizationID                 uuid.UUID  `json:"organization_id" validate:"required"`
 		BranchID                       uuid.UUID  `json:"branch_id" validate:"required"`
@@ -195,11 +197,13 @@ type (
 		CivilStatus                    string     `json:"civil_status,omitempty"`
 	}
 
+	// MemberProfileCoordinatesRequest represents the request structure for updating member profile coordinates
 	MemberProfileCoordinatesRequest struct {
 		Latitude  float64 `json:"latitude" validate:"required"`
 		Longitude float64 `json:"longitude" validate:"required"`
 	}
 
+	// MemberProfilePersonalInfoRequest represents the request structure for updating member personal information
 	MemberProfilePersonalInfoRequest struct {
 		FirstName      string     `json:"first_name" validate:"required,min=1,max=255"`
 		MiddleName     string     `json:"middle_name,omitempty" validate:"max=255"`
@@ -221,6 +225,7 @@ type (
 		Description           string     `json:"description,omitempty"`
 	}
 
+	// MemberProfileMembershipInfoRequest represents the request structure for updating member membership information
 	MemberProfileMembershipInfoRequest struct {
 		Passbook                   string     `json:"passbook,omitempty" validate:"max=255"`
 		OldReferenceID             string     `json:"old_reference_id,omitempty" validate:"max=50"`
@@ -235,10 +240,12 @@ type (
 		IsMicroFinanceMember       bool       `json:"is_micro_finance_member"`
 	}
 
+	// MemberProfileAccountRequest represents the request structure for member account operations
 	MemberProfileAccountRequest struct {
 		UserID *uuid.UUID `json:"user_id,omitempty"`
 	}
 
+	// MemberProfileMediasRequest represents the request structure for updating member profile media files
 	MemberProfileMediasRequest struct {
 		MediaID          *uuid.UUID `json:"media_id,omitempty"`
 		SignatureMediaID *uuid.UUID `json:"signature_media_id,omitempty"`
@@ -250,6 +257,7 @@ type (
 		Password string `json:"password" validate:"required,min=6,max=128"`
 	}
 
+	// MemberProfileQuickCreateRequest represents the request structure for quickly creating member profiles
 	MemberProfileQuickCreateRequest struct {
 		OldReferenceID       string       `json:"old_reference_id,omitempty" validate:"max=50"`
 		Passbook             string       `json:"passbook,omitempty" validate:"max=255"`
@@ -272,6 +280,7 @@ type (
 		AccountInfo          *AccountInfo `json:"new_user_info,omitempty" validate:"omitempty"`
 	}
 
+	// MemberProfileUserAccountRequest represents the request structure for member user account operations
 	MemberProfileUserAccountRequest struct {
 		Password      string    `json:"password,omitempty" validate:"omitempty,min=6,max=100"`
 		UserName      string    `json:"user_name" validate:"required,min=1,max=50"`

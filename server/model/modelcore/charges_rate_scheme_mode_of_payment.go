@@ -58,6 +58,8 @@ type (
 		Column22 float64 `gorm:"type:decimal;default:0"`
 	}
 
+	// ChargesRateSchemeModeOfPaymentResponse represents the response structure for chargesrateschememodeofpayment data
+
 	ChargesRateSchemeModeOfPaymentResponse struct {
 		ID                  uuid.UUID                  `json:"id"`
 		CreatedAt           string                     `json:"created_at"`
@@ -98,6 +100,8 @@ type (
 		Column21 float64 `json:"column21"`
 		Column22 float64 `json:"column22"`
 	}
+
+	// ChargesRateSchemeModeOfPaymentRequest represents the request structure for creating/updating chargesrateschememodeofpayment
 
 	ChargesRateSchemeModeOfPaymentRequest struct {
 		ID   *uuid.UUID `json:"id,omitempty"`

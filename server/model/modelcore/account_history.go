@@ -10,19 +10,22 @@ import (
 	"gorm.io/gorm"
 )
 
-// --- ENUMS FOR HISTORY ---
-
+// HistoryChangeType defines the type of change recorded in account history
 type HistoryChangeType string
 
 const (
+	// HistoryChangeTypeCreated represents a created account
 	HistoryChangeTypeCreated HistoryChangeType = "created"
+
+	// HistoryChangeTypeUpdated represents an updated account
 	HistoryChangeTypeUpdated HistoryChangeType = "updated"
+
+	// HistoryChangeTypeDeleted represents a deleted account
 	HistoryChangeTypeDeleted HistoryChangeType = "deleted"
 )
 
-// --- ACCOUNT HISTORY MODEL ---
-
 type (
+	// AccountHistory represents the history of changes made to an account
 	AccountHistory struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -142,6 +145,8 @@ type (
 		CohCibFinesGracePeriodEntryLumpsumMaturity         float64 `gorm:"type:decimal" json:"coh_cib_fines_grace_period_entry_lumpsum_maturity"`
 	}
 
+	// AccountHistoryResponse represents the response structure for accounthistory data
+
 	AccountHistoryResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -248,6 +253,8 @@ type (
 		CohCibFinesGracePeriodEntryLumpsumAmortization     float64 `json:"coh_cib_fines_grace_period_entry_lumpsum_amortization"`
 		CohCibFinesGracePeriodEntryLumpsumMaturity         float64 `json:"coh_cib_fines_grace_period_entry_lumpsum_maturity"`
 	}
+
+	// AccountHistoryRequest represents the request structure for creating/updating accounthistory
 
 	AccountHistoryRequest struct {
 		AccountID     uuid.UUID         `json:"account_id" validate:"required"`

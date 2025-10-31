@@ -55,6 +55,8 @@ type (
 		AdjustmentTags []*AdjustmentTag `gorm:"foreignKey:AdjustmentEntryID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"adjustment_tags,omitempty"`
 	}
 
+	// AdjustmentEntryResponse represents the response structure for adjustmententry data
+
 	AdjustmentEntryResponse struct {
 		ID                uuid.UUID                `json:"id"`
 		CreatedAt         string                   `json:"created_at"`
@@ -86,6 +88,8 @@ type (
 		AdjustmentTags    []*AdjustmentTagResponse `json:"adjustment_tags,omitempty"`
 	}
 
+	// AdjustmentEntryRequest represents the request structure for creating/updating adjustmententry
+
 	AdjustmentEntryRequest struct {
 		SignatureMediaID  *uuid.UUID `json:"signature_media_id,omitempty"`
 		AccountID         uuid.UUID  `json:"account_id" validate:"required"`
@@ -100,10 +104,14 @@ type (
 		Credit            float64    `json:"credit,omitempty"`
 	}
 
+	// AdjustmentEntryTotalResponse represents the response structure for adjustmententrytotal data
+
 	AdjustmentEntryTotalResponse struct {
 		TotalDebit  float64 `json:"total_debit"`
 		TotalCredit float64 `json:"total_credit"`
 	}
+
+	// AdjustmentEntrySummaryRequest represents the request structure for creating/updating adjustmententrysummary
 
 	AdjustmentEntrySummaryRequest struct {
 		CurrencyID         uuid.UUID  `json:"currency_id" validate:"required"`

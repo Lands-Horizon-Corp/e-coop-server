@@ -33,6 +33,8 @@ type (
 		Description string `gorm:"type:text"`
 	}
 
+	// MemberOccupationResponse represents the response structure for memberoccupation data
+
 	MemberOccupationResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -48,6 +50,8 @@ type (
 		Name           string                `json:"name"`
 		Description    string                `json:"description"`
 	}
+
+	// MemberOccupationRequest represents the request structure for creating/updating memberoccupation
 
 	MemberOccupationRequest struct {
 		Name        string `json:"name" validate:"required,min=1,max=255"`

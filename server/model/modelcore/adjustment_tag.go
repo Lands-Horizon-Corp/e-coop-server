@@ -38,6 +38,8 @@ type (
 		Icon        string `gorm:"type:varchar(20)" json:"icon"`
 	}
 
+	// AdjustmentTagResponse represents the response structure for adjustmenttag data
+
 	AdjustmentTagResponse struct {
 		ID                uuid.UUID                `json:"id"`
 		CreatedAt         string                   `json:"created_at"`
@@ -58,6 +60,8 @@ type (
 		Color             string                   `json:"color"`
 		Icon              string                   `json:"icon"`
 	}
+
+	// AdjustmentTagRequest represents the request structure for creating/updating adjustmenttag
 
 	AdjustmentTagRequest struct {
 		AdjustmentEntryID *uuid.UUID `json:"adjustment_entry_id,omitempty"`

@@ -40,6 +40,8 @@ type (
 		Icon        string      `gorm:"type:varchar(20)"`
 	}
 
+	// GeneralLedgerTagResponse represents the response structure for generalledgertag data
+
 	GeneralLedgerTagResponse struct {
 		ID              uuid.UUID              `json:"id"`
 		CreatedAt       string                 `json:"created_at"`
@@ -60,6 +62,8 @@ type (
 		Color           string                 `json:"color"`
 		Icon            string                 `json:"icon"`
 	}
+
+	// GeneralLedgerTagRequest represents the request structure for creating/updating generalledgertag
 
 	GeneralLedgerTagRequest struct {
 		GeneralLedgerID uuid.UUID   `json:"general_ledger_id" validate:"required"`

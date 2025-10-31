@@ -32,6 +32,8 @@ type (
 		Description string `gorm:"type:text"`
 	}
 
+	// InterestRateSchemeResponse represents the response structure for interestratescheme data
+
 	InterestRateSchemeResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -47,6 +49,8 @@ type (
 		Name           string                `json:"name"`
 		Description    string                `json:"description"`
 	}
+
+	// InterestRateSchemeRequest represents the request structure for creating/updating interestratescheme
 
 	InterestRateSchemeRequest struct {
 		Name        string `json:"name" validate:"required,min=1,max=255"`

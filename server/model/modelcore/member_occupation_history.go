@@ -35,6 +35,8 @@ type (
 		MemberOccupation   *MemberOccupation `gorm:"foreignKey:MemberOccupationID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_occupation,omitempty"`
 	}
 
+	// MemberOccupationHistoryResponse represents the response structure for memberoccupationhistory data
+
 	MemberOccupationHistoryResponse struct {
 		ID                 uuid.UUID                 `json:"id"`
 		CreatedAt          string                    `json:"created_at"`
@@ -52,6 +54,8 @@ type (
 		MemberOccupationID uuid.UUID                 `json:"member_occupation_id"`
 		MemberOccupation   *MemberOccupationResponse `json:"member_occupation,omitempty"`
 	}
+
+	// MemberOccupationHistoryRequest represents the request structure for creating/updating memberoccupationhistory
 
 	MemberOccupationHistoryRequest struct {
 		MemberProfileID    uuid.UUID `json:"member_profile_id" validate:"required"`

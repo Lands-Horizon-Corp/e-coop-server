@@ -36,6 +36,8 @@ type (
 		Rate float64 `gorm:"type:decimal;not null;default:0"`
 	}
 
+	// InterestMaturityResponse represents the response structure for interestmaturity data
+
 	InterestMaturityResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -54,6 +56,8 @@ type (
 		To             int                   `json:"to"`
 		Rate           float64               `json:"rate"`
 	}
+
+	// InterestMaturityRequest represents the request structure for creating/updating interestmaturity
 
 	InterestMaturityRequest struct {
 		AccountID *uuid.UUID `json:"account_id,omitempty"`

@@ -39,6 +39,8 @@ type (
 		BalancesCount       int     `gorm:"type:int"`
 	}
 
+	// LoanClearanceAnalysisResponse represents the response structure for loanclearanceanalysis data
+
 	LoanClearanceAnalysisResponse struct {
 		ID                          uuid.UUID                `json:"id"`
 		CreatedAt                   string                   `json:"created_at"`
@@ -59,6 +61,8 @@ type (
 		BalancesAmount              float64                  `json:"balances_amount"`
 		BalancesCount               int                      `json:"balances_count"`
 	}
+
+	// LoanClearanceAnalysisRequest represents the request structure for creating/updating loanclearanceanalysis
 
 	LoanClearanceAnalysisRequest struct {
 		ID                          *uuid.UUID `json:"id"`

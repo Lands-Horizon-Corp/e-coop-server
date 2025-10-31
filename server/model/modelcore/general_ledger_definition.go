@@ -52,6 +52,8 @@ type (
 		DeletedAt gorm.DeletedAt `gorm:"index"`
 	}
 
+	// GeneralLedgerDefinitionResponse represents the response structure for generalledgerdefinition data
+
 	GeneralLedgerDefinitionResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		OrganizationID uuid.UUID             `json:"organization_id"`
@@ -86,6 +88,8 @@ type (
 		DeletedAt                       *string           `json:"deleted_at,omitempty"`
 		Depth                           int               `json:"depth"`
 	}
+
+	// GeneralLedgerDefinitionRequest represents the request structure for creating/updating generalledgerdefinition
 
 	GeneralLedgerDefinitionRequest struct {
 		Name                            string            `json:"name" validate:"required,min=1,max=255"`

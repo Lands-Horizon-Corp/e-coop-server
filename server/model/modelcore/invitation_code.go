@@ -42,6 +42,8 @@ type (
 		Permissions           pq.StringArray `gorm:"type:varchar(255)[]" json:"permissions"`
 	}
 
+	// InvitationCodeResponse represents the response structure for invitationcode data
+
 	InvitationCodeResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -67,6 +69,8 @@ type (
 		PermissionDescription string   `json:"permission_description"`
 		Permissions           []string `json:"permissions"`
 	}
+
+	// InvitationCodeRequest represents the request structure for creating/updating invitationcode
 
 	InvitationCodeRequest struct {
 		ID *uuid.UUID `json:"id,omitempty"`

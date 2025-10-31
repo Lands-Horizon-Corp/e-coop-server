@@ -34,6 +34,8 @@ type (
 		Icon        *string `gorm:"type:varchar(255)" json:"icon,omitempty"`
 	}
 
+	// MemberDepartmentResponse represents the response structure for memberdepartment data
+
 	MemberDepartmentResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -50,6 +52,8 @@ type (
 		Description    string                `json:"description"`
 		Icon           *string               `json:"icon,omitempty"`
 	}
+
+	// MemberDepartmentRequest represents the request structure for creating/updating memberdepartment
 
 	MemberDepartmentRequest struct {
 		Name        string  `json:"name" validate:"required,min=1,max=255"`

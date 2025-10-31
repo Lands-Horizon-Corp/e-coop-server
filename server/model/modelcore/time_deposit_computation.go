@@ -47,6 +47,8 @@ type (
 		Header11 float64 `gorm:"type:decimal;default:0"`
 	}
 
+	// TimeDepositComputationResponse represents the response structure for timedepositcomputation data
+
 	TimeDepositComputationResponse struct {
 		ID                uuid.UUID                `json:"id"`
 		CreatedAt         string                   `json:"created_at"`
@@ -75,6 +77,8 @@ type (
 		Header10          float64                  `json:"header_10"`
 		Header11          float64                  `json:"header_11"`
 	}
+
+	// TimeDepositComputationRequest represents the request structure for creating/updating timedepositcomputation
 
 	TimeDepositComputationRequest struct {
 		ID            *uuid.UUID `json:"id,omitempty"`

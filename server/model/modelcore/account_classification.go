@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// AccountClassification represents the classification of an account in the database
 	AccountClassification struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -32,6 +33,7 @@ type (
 		Description string `gorm:"type:text" json:"description"`
 	}
 
+	// AccountClassificationResponse represents the response structure for account classification data
 	AccountClassificationResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -48,6 +50,7 @@ type (
 		Description    string                `json:"description"`
 	}
 
+	// AccountClassificationRequest represents the request structure for creating or updating account classification data
 	AccountClassificationRequest struct {
 		Name        string `json:"name" validate:"required,min=1,max=255"`
 		Description string `json:"description,omitempty"`

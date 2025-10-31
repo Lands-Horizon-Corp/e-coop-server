@@ -63,6 +63,8 @@ type (
 		TotalCredit float64 `gorm:"-" json:"total_credit"`
 	}
 
+	// JournalVoucherResponse represents the response structure for journalvoucher data
+
 	JournalVoucherResponse struct {
 		ID                uuid.UUID             `json:"id"`
 		CreatedAt         string                `json:"created_at"`
@@ -110,6 +112,8 @@ type (
 		TotalCredit float64 `json:"total_credit"`
 	}
 
+	// JournalVoucherRequest represents the request structure for creating/updating journalvoucher
+
 	JournalVoucherRequest struct {
 		Name              string    `json:"name" validate:"required"`
 		CashVoucherNumber string    `json:"cash_voucher_number,omitempty"`
@@ -123,6 +127,8 @@ type (
 		JournalVoucherEntries        []*JournalVoucherEntryRequest `json:"journal_voucher_entries,omitempty"`
 		JournalVoucherEntriesDeleted []uuid.UUID                   `json:"journal_voucher_entries_deleted,omitempty"`
 	}
+
+	// JournalVoucherPrintRequest represents the request structure for creating/updating journalvoucherprint
 
 	JournalVoucherPrintRequest struct {
 		CashVoucherNumber string `json:"cash_voucher_number,omitempty"`

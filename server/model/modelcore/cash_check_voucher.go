@@ -122,6 +122,8 @@ type (
 		CheckEntryAccount     *Account   `gorm:"foreignKey:CheckEntryAccountID;constraint:OnDelete:SET NULL,OnUpdate:CASCADE;" json:"check_entry_account,omitempty"`
 	}
 
+	// CashCheckVoucherResponse represents the response structure for cashcheckvoucher data
+
 	CashCheckVoucherResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -217,6 +219,8 @@ type (
 		CheckEntryAccount     *AccountResponse `json:"check_entry_account,omitempty"`
 	}
 
+	// CashCheckVoucherRequest represents the request structure for creating/updating cashcheckvoucher
+
 	CashCheckVoucherRequest struct {
 		EmployeeUserID     *uuid.UUID `json:"employee_user_id,omitempty"`
 		TransactionBatchID *uuid.UUID `json:"transaction_batch_id,omitempty"`
@@ -277,6 +281,8 @@ type (
 		CashCheckVoucherEntries        []*CashCheckVoucherEntryRequest `json:"cash_check_voucher_entries,omitempty"`
 		CashCheckVoucherEntriesDeleted []uuid.UUID                     `json:"cash_check_voucher_entries_deleted,omitempty"`
 	}
+
+	// CashCheckVoucherPrintRequest represents the request structure for creating/updating cashcheckvoucherprint
 
 	CashCheckVoucherPrintRequest struct {
 		CashVoucherNumber string `json:"cash_voucher_number" validate:"required"`

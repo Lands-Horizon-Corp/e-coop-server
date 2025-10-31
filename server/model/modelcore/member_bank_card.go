@@ -40,6 +40,8 @@ type (
 		IsDefault      bool      `gorm:"not null;default:false"`
 	}
 
+	// MemberBankCardResponse represents the response structure for memberbankcard data
+
 	MemberBankCardResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -64,6 +66,8 @@ type (
 		ExpirationDate string `json:"expiration_date"`
 		IsDefault      bool   `json:"is_default"`
 	}
+
+	// MemberBankCardRequest represents the request structure for creating/updating memberbankcard
 
 	MemberBankCardRequest struct {
 		AccountNumber   string     `json:"account_number" validate:"required,min=1,max=50"`

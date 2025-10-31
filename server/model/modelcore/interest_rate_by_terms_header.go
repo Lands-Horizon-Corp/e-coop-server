@@ -56,6 +56,8 @@ type (
 		Header22 int `gorm:"default:640"`
 	}
 
+	// InterestRateByTermsHeaderResponse represents the response structure for interestratebytermsheader data
+
 	InterestRateByTermsHeaderResponse struct {
 		ID                                 uuid.UUID             `json:"id"`
 		CreatedAt                          string                `json:"created_at"`
@@ -93,6 +95,8 @@ type (
 		Header21 int `json:"header_21"`
 		Header22 int `json:"header_22"`
 	}
+
+	// InterestRateByTermsHeaderRequest represents the request structure for creating/updating interestratebytermsheader
 
 	InterestRateByTermsHeaderRequest struct {
 		MemberClassificationInterestRateID uuid.UUID `json:"member_classification_interest_rate_id"`

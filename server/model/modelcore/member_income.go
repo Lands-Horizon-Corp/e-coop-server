@@ -39,6 +39,8 @@ type (
 		ReleaseDate *time.Time `gorm:"type:timestamp"`
 	}
 
+	// MemberIncomeResponse represents the response structure for memberincome data
+
 	MemberIncomeResponse struct {
 		ID              uuid.UUID              `json:"id"`
 		CreatedAt       string                 `json:"created_at"`
@@ -60,6 +62,8 @@ type (
 		Amount          float64                `json:"amount"`
 		ReleaseDate     *string                `json:"release_date,omitempty"`
 	}
+
+	// MemberIncomeRequest represents the request structure for creating/updating memberincome
 
 	MemberIncomeRequest struct {
 		MediaID     *uuid.UUID `json:"media_id"`

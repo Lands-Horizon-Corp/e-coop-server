@@ -40,6 +40,8 @@ type (
 		YearCount   int     `gorm:"type:int;default:0" json:"year_count"`
 	}
 
+	// ComakerCollateralResponse represents the response structure for comakercollateral data
+
 	ComakerCollateralResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -64,6 +66,8 @@ type (
 		MonthsCount int     `json:"months_count"`
 		YearCount   int     `json:"year_count"`
 	}
+
+	// ComakerCollateralRequest represents the request structure for creating/updating comakercollateral
 
 	ComakerCollateralRequest struct {
 		ID                *uuid.UUID `json:"id,omitempty"`

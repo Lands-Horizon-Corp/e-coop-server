@@ -46,6 +46,8 @@ type (
 		FinancialStatementType string `gorm:"type:varchar(255)"`
 	}
 
+	// FinancialStatementDefinitionResponse represents the response structure for financialstatementdefinition data
+
 	FinancialStatementDefinitionResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -72,6 +74,8 @@ type (
 		IsPosting                    bool                                `json:"is_posting"`
 		FinancialStatementType       string                              `json:"financial_statement_type"`
 	}
+
+	// FinancialStatementDefinitionRequest represents the request structure for creating/updating financialstatementdefinition
 
 	FinancialStatementDefinitionRequest struct {
 		Name                                  string     `json:"name" validate:"required,min=1,max=255"`

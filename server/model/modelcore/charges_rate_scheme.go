@@ -101,6 +101,8 @@ type (
 		ChargesRateByTerms                 []*ChargesRateByTerm                 `gorm:"foreignKey:ChargesRateSchemeID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"charges_rate_by_terms,omitempty"`
 	}
 
+	// ChargesRateSchemeResponse represents the response structure for chargesratescheme data
+
 	ChargesRateSchemeResponse struct {
 		ID                        uuid.UUID             `json:"id"`
 		CreatedAt                 string                `json:"created_at"`
@@ -176,6 +178,8 @@ type (
 		ChargesRateSchemeModeOfPayments    []*ChargesRateSchemeModeOfPaymentResponse    `json:"charges_rate_scheme_model_of_payments,omitempty"`
 		ChargesRateByTerms                 []*ChargesRateByTermResponse                 `json:"charges_rate_by_terms,omitempty"`
 	}
+
+	// ChargesRateSchemeRequest represents the request structure for creating/updating chargesratescheme
 
 	ChargesRateSchemeRequest struct {
 		ChargesRateByTermHeaderID uuid.UUID             `json:"charges_rate_by_term_header_id,omitempty"`

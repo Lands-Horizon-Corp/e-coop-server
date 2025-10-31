@@ -33,6 +33,8 @@ type (
 		Description string `gorm:"type:text"`
 	}
 
+	// MemberGenderResponse represents the response structure for membergender data
+
 	MemberGenderResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -48,6 +50,8 @@ type (
 		Name           string                `json:"name"`
 		Description    string                `json:"description"`
 	}
+
+	// MemberGenderRequest represents the request structure for creating/updating membergender
 
 	MemberGenderRequest struct {
 		Name        string `json:"name" validate:"required,min=1,max=255"`

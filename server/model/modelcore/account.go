@@ -263,6 +263,7 @@ type (
 
 // --- RESPONSE & REQUEST STRUCTS ---
 
+// AccountResponse represents the response structure for account data
 type AccountResponse struct {
 	ID             uuid.UUID             `json:"id"`
 	CreatedAt      string                `json:"created_at"`
@@ -372,6 +373,7 @@ type AccountResponse struct {
 	InterestStandardComputation InterestStandardComputation `json:"interest_standard_computation"`
 }
 
+// AccountRequest represents the request structure for creating/updating accounts
 type AccountRequest struct {
 	GeneralLedgerDefinitionID      *uuid.UUID `json:"general_ledger_definition_id,omitempty"`
 	FinancialStatementDefinitionID *uuid.UUID `json:"financial_statement_definition_id,omitempty"`

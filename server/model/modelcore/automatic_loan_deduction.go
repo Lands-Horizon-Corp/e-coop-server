@@ -56,6 +56,8 @@ type (
 		Description string `gorm:"type:text" json:"description"`
 	}
 
+	// AutomaticLoanDeductionResponse represents the response structure for automaticloandeduction data
+
 	AutomaticLoanDeductionResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -96,6 +98,8 @@ type (
 		Name        string `json:"name"`
 		Description string `json:"description"`
 	}
+
+	// AutomaticLoanDeductionRequest represents the request structure for creating/updating automaticloandeduction
 
 	AutomaticLoanDeductionRequest struct {
 		AccountID           *uuid.UUID `json:"account_id" validate:"required"`

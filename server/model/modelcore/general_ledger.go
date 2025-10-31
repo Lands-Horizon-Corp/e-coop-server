@@ -81,6 +81,8 @@ type (
 		PrintNumber                int                 `gorm:"default:0"`
 	}
 
+	// GeneralLedgerResponse represents the response structure for generalledger data
+
 	GeneralLedgerResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -143,6 +145,8 @@ type (
 		PrintNumber int    `json:"print_number"`
 	}
 
+	// GeneralLedgerRequest represents the request structure for creating/updating generalledger
+
 	GeneralLedgerRequest struct {
 		OrganizationID             uuid.UUID           `json:"organization_id" validate:"required"`
 		BranchID                   uuid.UUID           `json:"branch_id" validate:"required"`
@@ -171,6 +175,8 @@ type (
 		Description                string              `json:"description,omitempty"`
 	}
 
+	// PaymentRequest represents the request structure for creating/updating payment
+
 	PaymentRequest struct {
 		Amount                float64    `json:"amount" validate:"required,ne=0"`
 		SignatureMediaID      *uuid.UUID `json:"signature_media_id,omitempty"`
@@ -182,6 +188,8 @@ type (
 		PaymentTypeID         *uuid.UUID `json:"payment_type_id,omitempty"`
 		Description           string     `json:"description,omitempty" validate:"max=255"`
 	}
+
+	// PaymentQuickRequest represents the request structure for creating/updating paymentquick
 
 	PaymentQuickRequest struct {
 		Amount                float64    `json:"amount" validate:"required,ne=0"`

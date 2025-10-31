@@ -36,6 +36,8 @@ type (
 		Description string `gorm:"type:text" json:"description"`
 	}
 
+	// BankResponse represents the response structure for bank data
+
 	BankResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -53,6 +55,8 @@ type (
 		Name           string                `json:"name"`
 		Description    string                `json:"description"`
 	}
+
+	// BankRequest represents the request structure for creating/updating bank
 
 	BankRequest struct {
 		Name        string     `json:"name" validate:"required,min=1,max=255"`

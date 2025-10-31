@@ -35,6 +35,8 @@ type (
 		MemberGender   *MemberGender `gorm:"foreignKey:MemberGenderID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_gender,omitempty"`
 	}
 
+	// MemberGenderHistoryResponse represents the response structure for membergenderhistory data
+
 	MemberGenderHistoryResponse struct {
 		ID              uuid.UUID              `json:"id"`
 		CreatedAt       string                 `json:"created_at"`
@@ -52,6 +54,8 @@ type (
 		MemberGenderID  uuid.UUID              `json:"member_gender_id"`
 		MemberGender    *MemberGenderResponse  `json:"member_gender,omitempty"`
 	}
+
+	// MemberGenderHistoryRequest represents the request structure for creating/updating membergenderhistory
 
 	MemberGenderHistoryRequest struct {
 		MemberProfileID uuid.UUID `json:"member_profile_id" validate:"required"`

@@ -33,6 +33,8 @@ type (
 		Icon        string `gorm:"type:varchar(255)"`
 	}
 
+	// LoanPurposeResponse represents the response structure for loanpurpose data
+
 	LoanPurposeResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -48,6 +50,8 @@ type (
 		Description    string                `json:"description"`
 		Icon           string                `json:"icon"`
 	}
+
+	// LoanPurposeRequest represents the request structure for creating/updating loanpurpose
 
 	LoanPurposeRequest struct {
 		Description string `json:"description,omitempty"`

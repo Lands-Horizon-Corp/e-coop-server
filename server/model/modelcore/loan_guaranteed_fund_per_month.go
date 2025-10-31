@@ -32,6 +32,8 @@ type (
 		LoanGuaranteedFund int `gorm:"type:int;default:0"`
 	}
 
+	// LoanGuaranteedFundPerMonthResponse represents the response structure for loanguaranteedfundpermonth data
+
 	LoanGuaranteedFundPerMonthResponse struct {
 		ID                 uuid.UUID             `json:"id"`
 		CreatedAt          string                `json:"created_at"`
@@ -47,6 +49,8 @@ type (
 		Month              int                   `json:"month"`
 		LoanGuaranteedFund int                   `json:"loan_guaranteed_fund"`
 	}
+
+	// LoanGuaranteedFundPerMonthRequest represents the request structure for creating/updating loanguaranteedfundpermonth
 
 	LoanGuaranteedFundPerMonthRequest struct {
 		Month              int `json:"month,omitempty"`

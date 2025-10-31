@@ -35,6 +35,8 @@ type (
 		MemberClassification   *MemberClassification `gorm:"foreignKey:MemberClassificationID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_classification,omitempty"`
 	}
 
+	// MemberClassificationHistoryResponse represents the response structure for memberclassificationhistory data
+
 	MemberClassificationHistoryResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -54,6 +56,8 @@ type (
 		MemberProfileID uuid.UUID              `json:"member_profile_id"`
 		MemberProfile   *MemberProfileResponse `json:"member_profile,omitempty"`
 	}
+
+	// MemberClassificationHistoryRequest represents the request structure for creating/updating memberclassificationhistory
 
 	MemberClassificationHistoryRequest struct {
 		MemberClassificationID uuid.UUID `json:"member_classification_id" validate:"required"`

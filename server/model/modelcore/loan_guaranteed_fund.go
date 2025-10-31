@@ -32,6 +32,8 @@ type (
 		IncreasingRate float64 `gorm:"type:decimal;not null"`
 	}
 
+	// LoanGuaranteedFundResponse represents the response structure for loanguaranteedfund data
+
 	LoanGuaranteedFundResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -47,6 +49,8 @@ type (
 		SchemeNumber   int                   `json:"scheme_number"`
 		IncreasingRate float64               `json:"increasing_rate"`
 	}
+
+	// LoanGuaranteedFundRequest represents the request structure for creating/updating loanguaranteedfund
 
 	LoanGuaranteedFundRequest struct {
 		SchemeNumber   int     `json:"scheme_number" validate:"required"`

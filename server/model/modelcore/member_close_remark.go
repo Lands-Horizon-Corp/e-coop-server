@@ -35,6 +35,8 @@ type (
 		Description string `gorm:"type:text"`
 	}
 
+	// MemberCloseRemarkResponse represents the response structure for membercloseremark data
+
 	MemberCloseRemarkResponse struct {
 		ID              uuid.UUID              `json:"id"`
 		CreatedAt       string                 `json:"created_at"`
@@ -52,6 +54,8 @@ type (
 		Reason          string                 `json:"reason"`
 		Description     string                 `json:"description"`
 	}
+
+	// MemberCloseRemarkRequest represents the request structure for creating/updating membercloseremark
 
 	MemberCloseRemarkRequest struct {
 		Reason      string `json:"reason,omitempty"`

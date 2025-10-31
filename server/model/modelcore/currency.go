@@ -32,6 +32,8 @@ type (
 		Timezone       string `gorm:"type:varchar(50)" json:"timezone"`        // Country timezone
 	}
 
+	// CurrencyResponse represents the response structure for currency data
+
 	CurrencyResponse struct {
 		ID             uuid.UUID `json:"id"`
 		CreatedAt      string    `json:"created_at"`
@@ -49,6 +51,8 @@ type (
 		Locale         string    `json:"locale"`
 		Timezone       string    `json:"timezone"`
 	}
+
+	// CurrencyRequest represents the request structure for creating/updating currency
 
 	CurrencyRequest struct {
 		Name           string `json:"name" validate:"required,min=1,max=255"`

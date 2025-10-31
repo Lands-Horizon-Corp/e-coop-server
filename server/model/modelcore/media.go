@@ -29,6 +29,8 @@ type (
 		Progress   int64  `gorm:"unsigned" json:"progress"`
 	}
 
+	// MediaResponse represents the response structure for media data
+
 	MediaResponse struct {
 		ID          uuid.UUID `json:"id"`
 		CreatedAt   string    `json:"created_at"`
@@ -44,6 +46,8 @@ type (
 		Status      string    `json:"status"`
 		Progress    int64     `json:"progress"`
 	}
+
+	// MediaRequest represents the request structure for creating/updating media
 
 	MediaRequest struct {
 		ID       *uuid.UUID `json:"id,omitempty"`

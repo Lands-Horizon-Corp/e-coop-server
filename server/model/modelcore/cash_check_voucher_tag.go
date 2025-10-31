@@ -38,6 +38,8 @@ type (
 		Icon        string `gorm:"type:varchar(20)"`
 	}
 
+	// CashCheckVoucherTagResponse represents the response structure for cashcheckvouchertag data
+
 	CashCheckVoucherTagResponse struct {
 		ID                 uuid.UUID             `json:"id"`
 		CreatedAt          string                `json:"created_at"`
@@ -57,6 +59,8 @@ type (
 		Color              string                `json:"color"`
 		Icon               string                `json:"icon"`
 	}
+
+	// CashCheckVoucherTagRequest represents the request structure for creating/updating cashcheckvouchertag
 
 	CashCheckVoucherTagRequest struct {
 		CashCheckVoucherID *uuid.UUID `json:"cash_check_voucher_id,omitempty"`

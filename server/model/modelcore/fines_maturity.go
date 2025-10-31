@@ -36,6 +36,8 @@ type (
 		Rate float64 `gorm:"type:decimal;not null;default:0"`
 	}
 
+	// FinesMaturityResponse represents the response structure for finesmaturity data
+
 	FinesMaturityResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -54,6 +56,8 @@ type (
 		To             int                   `json:"to"`
 		Rate           float64               `json:"rate"`
 	}
+
+	// FinesMaturityRequest represents the request structure for creating/updating finesmaturity
 
 	FinesMaturityRequest struct {
 		AccountID *uuid.UUID `json:"account_id,omitempty"`

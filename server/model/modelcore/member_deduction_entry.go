@@ -39,6 +39,7 @@ type (
 		MembershipDate time.Time `gorm:"type:timestamp"`
 	}
 
+	// MemberDeductionEntryResponse represents the response structure for member deduction entry data
 	MemberDeductionEntryResponse struct {
 		ID              uuid.UUID              `json:"id"`
 		CreatedAt       string                 `json:"created_at"`
@@ -60,6 +61,7 @@ type (
 		MembershipDate  string                 `json:"membership_date"`
 	}
 
+	// MemberDeductionEntryRequest represents the request structure for creating/updating member deduction entries
 	MemberDeductionEntryRequest struct {
 		MemberProfileID uuid.UUID `json:"member_profile_id" validate:"required"`
 		AccountID       uuid.UUID `json:"account_id" validate:"required"`

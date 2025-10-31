@@ -36,6 +36,8 @@ type (
 		Rate float64 `gorm:"type:decimal;default:0"`
 	}
 
+	// MemberTypeReferenceByAmountResponse represents the response structure for membertypereferencebyamount data
+
 	MemberTypeReferenceByAmountResponse struct {
 		ID                    uuid.UUID                    `json:"id"`
 		CreatedAt             string                       `json:"created_at"`
@@ -54,6 +56,8 @@ type (
 		To                    float64                      `json:"to"`
 		Rate                  float64                      `json:"rate"`
 	}
+
+	// MemberTypeReferenceByAmountRequest represents the request structure for creating/updating membertypereferencebyamount
 
 	MemberTypeReferenceByAmountRequest struct {
 		MemberTypeReferenceID uuid.UUID `json:"member_type_reference_id" validate:"required"`

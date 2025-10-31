@@ -36,6 +36,8 @@ type (
 		Description string  `gorm:"type:text"`
 	}
 
+	// MemberExpenseResponse represents the response structure for memberexpense data
+
 	MemberExpenseResponse struct {
 		ID              uuid.UUID              `json:"id"`
 		CreatedAt       string                 `json:"created_at"`
@@ -54,6 +56,8 @@ type (
 		Amount          float64                `json:"amount"`
 		Description     string                 `json:"description"`
 	}
+
+	// MemberExpenseRequest represents the request structure for creating/updating memberexpense
 
 	MemberExpenseRequest struct {
 		MemberProfileID uuid.UUID `json:"member_profile_id" validate:"required"`

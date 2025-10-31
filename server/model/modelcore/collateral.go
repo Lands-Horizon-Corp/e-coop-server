@@ -34,6 +34,8 @@ type (
 		Description string `gorm:"type:text"`
 	}
 
+	// CollateralResponse represents the response structure for collateral data
+
 	CollateralResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -50,6 +52,8 @@ type (
 		Name           string                `json:"name"`
 		Description    string                `json:"description"`
 	}
+
+	// CollateralRequest represents the request structure for creating/updating collateral
 
 	CollateralRequest struct {
 		Icon        string `json:"icon,omitempty"`

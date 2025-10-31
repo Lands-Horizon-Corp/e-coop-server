@@ -30,6 +30,8 @@ type (
 		Description string  `gorm:"type:text"`
 	}
 
+	// MemberMutualFundHistoryResponse represents the response structure for membermutualfundhistory data
+
 	MemberMutualFundHistoryResponse struct {
 		ID              uuid.UUID              `json:"id"`
 		CreatedAt       string                 `json:"created_at"`
@@ -44,6 +46,8 @@ type (
 		Amount          float64                `json:"amount"`
 		Description     string                 `json:"description"`
 	}
+
+	// MemberMutualFundHistoryRequest represents the request structure for creating/updating membermutualfundhistory
 
 	MemberMutualFundHistoryRequest struct {
 		MemberProfileID uuid.UUID `json:"member_profile_id" validate:"required"`

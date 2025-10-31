@@ -36,6 +36,8 @@ type (
 		ContactNumber string `gorm:"type:varchar(30)"`
 	}
 
+	// MemberContactReferenceResponse represents the response structure for membercontactreference data
+
 	MemberContactReferenceResponse struct {
 		ID              uuid.UUID              `json:"id"`
 		CreatedAt       string                 `json:"created_at"`
@@ -54,6 +56,8 @@ type (
 		Description     string                 `json:"description"`
 		ContactNumber   string                 `json:"contact_number"`
 	}
+
+	// MemberContactReferenceRequest represents the request structure for creating/updating membercontactreference
 
 	MemberContactReferenceRequest struct {
 		MemberProfileID uuid.UUID `json:"member_profile_id" validate:"required"`

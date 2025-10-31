@@ -37,6 +37,8 @@ type (
 		Amount float64 `gorm:"type:decimal"`
 	}
 
+	// LoanTermsAndConditionAmountReceiptResponse represents the response structure for loantermsandconditionamountreceipt data
+
 	LoanTermsAndConditionAmountReceiptResponse struct {
 		ID                uuid.UUID                `json:"id"`
 		CreatedAt         string                   `json:"created_at"`
@@ -55,6 +57,8 @@ type (
 		Account           *AccountResponse         `json:"account,omitempty"`
 		Amount            float64                  `json:"amount"`
 	}
+
+	// LoanTermsAndConditionAmountReceiptRequest represents the request structure for creating/updating loantermsandconditionamountreceipt
 
 	LoanTermsAndConditionAmountReceiptRequest struct {
 		ID                *uuid.UUID `json:"id"`

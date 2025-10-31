@@ -77,6 +77,8 @@ type (
 		UnbalancedAccounts []*UnbalancedAccount `gorm:"foreignKey:BranchSettingsID;constraint:OnDelete:CASCADE;" json:"unbalanced_accounts,omitempty"`
 	}
 
+	// BranchSettingRequest represents the request structure for creating/updating branchsetting
+
 	BranchSettingRequest struct {
 
 		// Withdraw Settings
@@ -124,6 +126,8 @@ type (
 		DefaultMemberTypeID *uuid.UUID `json:"default_member_type_id,omitempty"`
 	}
 
+	// BranchSettingsCurrencyRequest represents the request structure for creating/updating branchsettingscurrency
+
 	BranchSettingsCurrencyRequest struct {
 		CurrencyID                   uuid.UUID `json:"currency_id" validate:"required"`
 		PaidUpSharedCapitalAccountID uuid.UUID `json:"paid_up_shared_capital_account_id" validate:"required"`
@@ -132,6 +136,8 @@ type (
 		UnbalancedAccount          []UnbalancedAccountRequest `json:"unbalanced_accounts"`
 		UnbalancedAccountDeleteIDs []uuid.UUID                `json:"unbalanced_account_delete_ids,omitempty"`
 	}
+
+	// BranchSettingResponse represents the response structure for branchsetting data
 
 	BranchSettingResponse struct {
 		ID         uuid.UUID         `json:"id"`

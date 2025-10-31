@@ -36,6 +36,8 @@ type (
 		Description string `gorm:"type:text" json:"description"`
 	}
 
+	// CompanyResponse represents the response structure for company data
+
 	CompanyResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -53,6 +55,8 @@ type (
 		Name           string                `json:"name"`
 		Description    string                `json:"description"`
 	}
+
+	// CompanyRequest represents the request structure for creating/updating company
 
 	CompanyRequest struct {
 		Name        string     `json:"name" validate:"required,min=1,max=255"`

@@ -33,6 +33,8 @@ type (
 		Description string    `gorm:"type:text" json:"description"`
 	}
 
+	// CancelledCashCheckVoucherResponse represents the response structure for cancelledcashcheckvoucher data
+
 	CancelledCashCheckVoucherResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -49,6 +51,8 @@ type (
 		EntryDate      string                `json:"entry_date"`
 		Description    string                `json:"description"`
 	}
+
+	// CancelledCashCheckVoucherRequest represents the request structure for creating/updating cancelledcashcheckvoucher
 
 	CancelledCashCheckVoucherRequest struct {
 		CheckNumber string    `json:"check_number" validate:"required,min=1,max=255"`

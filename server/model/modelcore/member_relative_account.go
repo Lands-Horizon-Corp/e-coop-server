@@ -38,6 +38,8 @@ type (
 		Description        string `gorm:"type:text"`
 	}
 
+	// MemberRelativeAccountResponse represents the response structure for memberrelativeaccount data
+
 	MemberRelativeAccountResponse struct {
 		ID                      uuid.UUID              `json:"id"`
 		CreatedAt               string                 `json:"created_at"`
@@ -57,6 +59,8 @@ type (
 		FamilyRelationship      string                 `json:"family_relationship"`
 		Description             string                 `json:"description"`
 	}
+
+	// MemberRelativeAccountRequest represents the request structure for creating/updating memberrelativeaccount
 
 	MemberRelativeAccountRequest struct {
 		MemberProfileID         uuid.UUID `json:"member_profile_id" validate:"required"`

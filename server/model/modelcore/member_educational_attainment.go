@@ -38,6 +38,8 @@ type (
 		Description           string `gorm:"type:text"`
 	}
 
+	// MemberEducationalAttainmentResponse represents the response structure for membereducationalattainment data
+
 	MemberEducationalAttainmentResponse struct {
 		ID                    uuid.UUID              `json:"id"`
 		CreatedAt             string                 `json:"created_at"`
@@ -59,6 +61,8 @@ type (
 		EducationalAttainment string                 `json:"educational_attainment"`
 		Description           string                 `json:"description"`
 	}
+
+	// MemberEducationalAttainmentRequest represents the request structure for creating/updating membereducationalattainment
 
 	MemberEducationalAttainmentRequest struct {
 		MemberProfileID       uuid.UUID `json:"member_profile_id" validate:"required"`

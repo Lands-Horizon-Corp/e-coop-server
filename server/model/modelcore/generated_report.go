@@ -36,6 +36,7 @@ type (
 		Status      string     `gorm:"type:varchar(50);not null"`
 		Progress    float64    `gorm:"not null"`
 	}
+	// GeneratedReportResponse represents the response structure for generatedreport data
 	GeneratedReportResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -58,6 +59,8 @@ type (
 		Status      string         `json:"status"`
 		Progress    float64        `json:"progress"`
 	}
+
+	// GeneratedReportRequest represents the request structure for creating/updating generatedreport
 
 	GeneratedReportRequest struct {
 		ID          *uuid.UUID `json:"id,omitempty"`

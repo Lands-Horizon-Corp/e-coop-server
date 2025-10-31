@@ -57,6 +57,8 @@ type (
 		Level          FootstepLevel        `gorm:"type:varchar(255)" json:"level"`
 	}
 
+	// FootstepResponse represents the response structure for footstep data
+
 	FootstepResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -90,6 +92,8 @@ type (
 		AcceptLanguage string               `json:"accept_language"`
 		Level          FootstepLevel        `json:"level"`
 	}
+
+	// FootstepRequest represents the request structure for creating/updating footstep
 
 	FootstepRequest struct {
 		Level       FootstepLevel `json:"level" validate:"required,oneof=info warning error debug"`

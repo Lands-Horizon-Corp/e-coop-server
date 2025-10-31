@@ -47,6 +47,8 @@ type (
 		FamilyRelationship string    `gorm:"type:varchar(255);not null"` // Enum handled on frontend/validation
 	}
 
+	// MemberJointAccountResponse represents the response structure for memberjointaccount data
+
 	MemberJointAccountResponse struct {
 		ID                 uuid.UUID              `json:"id"`
 		CreatedAt          string                 `json:"created_at"`
@@ -74,6 +76,8 @@ type (
 		Birthday           string                 `json:"birthday"`
 		FamilyRelationship string                 `json:"family_relationship"`
 	}
+
+	// MemberJointAccountRequest represents the request structure for creating/updating memberjointaccount
 
 	MemberJointAccountRequest struct {
 		PictureMediaID     uuid.UUID `json:"picture_media_id" validate:"required"`

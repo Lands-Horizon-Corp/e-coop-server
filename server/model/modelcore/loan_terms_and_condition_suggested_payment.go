@@ -35,6 +35,8 @@ type (
 		Description string `gorm:"type:varchar(255)"`
 	}
 
+	// LoanTermsAndConditionSuggestedPaymentResponse represents the response structure for loantermsandconditionsuggestedpayment data
+
 	LoanTermsAndConditionSuggestedPaymentResponse struct {
 		ID                uuid.UUID                `json:"id"`
 		CreatedAt         string                   `json:"created_at"`
@@ -52,6 +54,8 @@ type (
 		Name              string                   `json:"name"`
 		Description       string                   `json:"description"`
 	}
+
+	// LoanTermsAndConditionSuggestedPaymentRequest represents the request structure for creating/updating loantermsandconditionsuggestedpayment
 
 	LoanTermsAndConditionSuggestedPaymentRequest struct {
 		ID                *uuid.UUID `json:"id"`

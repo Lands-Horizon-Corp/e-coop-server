@@ -39,6 +39,8 @@ type (
 		YearCount   float64 `gorm:"type:decimal"`
 	}
 
+	// LoanComakerMemberResponse represents the response structure for loancomakermember data
+
 	LoanComakerMemberResponse struct {
 		ID                uuid.UUID                `json:"id"`
 		CreatedAt         string                   `json:"created_at"`
@@ -60,6 +62,8 @@ type (
 		MonthsCount       int                      `json:"months_count"`
 		YearCount         float64                  `json:"year_count"`
 	}
+
+	// LoanComakerMemberRequest represents the request structure for creating/updating loancomakermember
 
 	LoanComakerMemberRequest struct {
 		MemberProfileID   uuid.UUID `json:"member_profile_id" validate:"required"`

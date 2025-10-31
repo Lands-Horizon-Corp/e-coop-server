@@ -39,6 +39,8 @@ type (
 		Value float64 `gorm:"type:decimal;not null" json:"value"`
 	}
 
+	// BillAndCoinsResponse represents the response structure for billandcoins data
+
 	BillAndCoinsResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -58,6 +60,8 @@ type (
 		Name           string                `json:"name"`
 		Value          float64               `json:"value"`
 	}
+
+	// BillAndCoinsRequest represents the request structure for creating/updating billandcoins
 
 	BillAndCoinsRequest struct {
 		Name       string     `json:"name" validate:"required,min=1,max=255"`

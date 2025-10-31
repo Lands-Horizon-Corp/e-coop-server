@@ -38,6 +38,8 @@ type (
 		Description string `gorm:"type:text"`
 	}
 
+	// CollectorsMemberAccountEntryResponse represents the response structure for collectorsmemberaccountentry data
+
 	CollectorsMemberAccountEntryResponse struct {
 		ID              uuid.UUID              `json:"id"`
 		CreatedAt       string                 `json:"created_at"`
@@ -58,6 +60,8 @@ type (
 		Account         *AccountResponse       `json:"account,omitempty"`
 		Description     string                 `json:"description"`
 	}
+
+	// CollectorsMemberAccountEntryRequest represents the request structure for creating/updating collectorsmemberaccountentry
 
 	CollectorsMemberAccountEntryRequest struct {
 		CollectorUserID *uuid.UUID `json:"collector_user_id,omitempty"`

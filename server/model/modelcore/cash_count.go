@@ -42,6 +42,8 @@ type (
 		Amount     float64 `gorm:"type:decimal"`
 	}
 
+	// CashCountResponse represents the response structure for cashcount data
+
 	CashCountResponse struct {
 		ID                 uuid.UUID                 `json:"id"`
 		CreatedAt          string                    `json:"created_at"`
@@ -65,6 +67,8 @@ type (
 		Amount             float64                   `json:"amount"`
 		Name               string                    `json:"name"`
 	}
+
+	// CashCountRequest represents the request structure for creating/updating cashcount
 
 	CashCountRequest struct {
 		ID                 *uuid.UUID `json:"id,omitempty"`

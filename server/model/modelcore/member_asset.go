@@ -39,6 +39,8 @@ type (
 		Cost        float64   `gorm:"type:decimal(20,6);default:0"`
 	}
 
+	// MemberAssetResponse represents the response structure for memberasset data
+
 	MemberAssetResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -63,6 +65,8 @@ type (
 		Description string  `json:"description"`
 		Cost        float64 `json:"cost"`
 	}
+
+	// MemberAssetRequest represents the request structure for creating/updating memberasset
 
 	MemberAssetRequest struct {
 		Name        string     `json:"name" validate:"required,min=1,max=255"`

@@ -38,6 +38,8 @@ type (
 		Icon        string      `gorm:"type:varchar(20)"`
 	}
 
+	// LoanTagResponse represents the response structure for loantag data
+
 	LoanTagResponse struct {
 		ID                uuid.UUID                `json:"id"`
 		CreatedAt         string                   `json:"created_at"`
@@ -58,6 +60,8 @@ type (
 		Color             string                   `json:"color"`
 		Icon              string                   `json:"icon"`
 	}
+
+	// LoanTagRequest represents the request structure for creating/updating loantag
 
 	LoanTagRequest struct {
 		LoanTransactionID *uuid.UUID  `json:"loan_transaction_id" validate:"required"`

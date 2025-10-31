@@ -37,6 +37,8 @@ type (
 		Percentage2 float64 `gorm:"type:decimal;default:0"`
 	}
 
+	// GeneralAccountGroupingNetSurplusPositiveResponse represents the response structure for generalaccountgroupingnetsurpluspositive data
+
 	GeneralAccountGroupingNetSurplusPositiveResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -56,6 +58,8 @@ type (
 		Percentage1    float64               `json:"percentage_1"`
 		Percentage2    float64               `json:"percentage_2"`
 	}
+
+	// GeneralAccountGroupingNetSurplusPositiveRequest represents the request structure for creating/updating generalaccountgroupingnetsurpluspositive
 
 	GeneralAccountGroupingNetSurplusPositiveRequest struct {
 		Name        string    `json:"name" validate:"required,min=1,max=255"`

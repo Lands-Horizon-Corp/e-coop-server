@@ -44,6 +44,8 @@ type (
 		Credit      float64 `gorm:"type:decimal"`
 	}
 
+	// JournalVoucherEntryResponse represents the response structure for journalvoucherentry data
+
 	JournalVoucherEntryResponse struct {
 		ID                     uuid.UUID               `json:"id"`
 		CreatedAt              string                  `json:"created_at"`
@@ -69,6 +71,8 @@ type (
 		Debit                  float64                 `json:"debit"`
 		Credit                 float64                 `json:"credit"`
 	}
+
+	// JournalVoucherEntryRequest represents the request structure for creating/updating journalvoucherentry
 
 	JournalVoucherEntryRequest struct {
 		ID                     *uuid.UUID `json:"id,omitempty"`
