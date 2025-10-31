@@ -29,9 +29,11 @@ const (
 	FilterLogicOr  FilterLogic = "OR"
 )
 
+// DataType represents the type of data for filtering operations
 type DataType string
 
 const (
+	// DataTypeText represents text/string data type
 	DataTypeText    DataType = "text"
 	DataTypeDate    DataType = "date"
 	DataTypeNumber  DataType = "number"
@@ -40,6 +42,7 @@ const (
 )
 
 const (
+	// FilterModeEqual represents equality comparison mode
 	FilterModeEqual       = "equal"
 	FilterModeNotEqual    = "nequal"
 	FilterModeContains    = "contains"
@@ -57,6 +60,7 @@ const (
 	FilterModeAfter       = "after"
 )
 
+// Filter represents a single filter condition with field, mode, and value
 type Filter struct {
 	DataType DataType `json:"dataType"`
 	Field    string   `json:"field"`
@@ -64,16 +68,19 @@ type Filter struct {
 	Value    any      `json:"value"`
 }
 
+// FilterRoot represents a collection of filters with logical operations
 type FilterRoot struct {
 	Filters []Filter    `json:"filters"`
 	Logic   FilterLogic `json:"logic"`
 }
 
+// SortField represents a field and its sort order for data sorting
 type SortField struct {
 	Field string `json:"field"`
 	Order string `json:"order"`
 }
 
+// PaginationResult represents paginated data with metadata about the result set
 type PaginationResult[T any] struct {
 	Data      []*T        `json:"data"`
 	PageIndex int         `json:"pageIndex"`
@@ -86,6 +93,7 @@ type PaginationResult[T any] struct {
 // --- Error Definitions ---
 
 var (
+	// ErrInvalidFilterParam indicates an invalid filter parameter was provided
 	ErrInvalidFilterParam   = eris.New("invalid filter parameter")
 	ErrInvalidSortParam     = eris.New("invalid sort parameter")
 	ErrInvalidField         = eris.New("field not found in struct")
@@ -226,6 +234,7 @@ func getFieldValue(val reflect.Value, info cachedFieldInfo) reflect.Value {
 
 // --- Filtering Functions ---
 
+// FilterSlice applies filters to a slice of data with concurrent processing support
 func FilterSlice[T any](
 	ctx context.Context,
 	data []*T,
@@ -259,18 +268,18 @@ func FilterSlice[T any](
 
 	for batch := range batchCount {
 		start := batch * batchSize
-		end := min(start+batchSize, len(data))
+		end := minInt(start+batchSize, len(data))
 		if start >= end {
 			continue
 		}
 
-		numWorkers := min(maxWorkers, (end-start+batchSize-1)/batchSize)
+		numWorkers := minInt(maxWorkers, (end-start+batchSize-1)/batchSize)
 		chunkSize := (end - start + numWorkers - 1) / numWorkers
 
 		for w := 0; w < numWorkers; w++ {
 			wg.Add(1)
 			workerStart := start + w*chunkSize
-			workerEnd := min(workerStart+chunkSize, end)
+			workerEnd := minInt(workerStart+chunkSize, end)
 
 			go func(batchIdx, startIdx, endIdx int) {
 				defer wg.Done()
@@ -511,13 +520,13 @@ func compareNumber(val reflect.Value, mode string, filterValue any) (bool, error
 			return false, eris.Wrap(ErrInvalidValue, "range requires two values")
 		}
 
-		min, err1 := toFloat64(nums[0])
-		max, err2 := toFloat64(nums[1])
+		minVal, err1 := toFloat64(nums[0])
+		maxVal, err2 := toFloat64(nums[1])
 		if err1 != nil || err2 != nil {
 			return false, eris.Wrap(ErrTypeConversion, "range values must be numbers")
 		}
 
-		return itemNum >= min && itemNum <= max, nil
+		return itemNum >= minVal && itemNum <= maxVal, nil
 	default:
 		return false, eris.Wrapf(ErrUnsupportedOperation, "mode '%s' for number", mode)
 	}
@@ -536,6 +545,7 @@ func compareGeneric(val reflect.Value, mode string, filterValue any) (bool, erro
 
 // --- Sorting Functions ---
 
+// SortSlice sorts a slice of data based on provided sort fields with concurrent processing support
 func SortSlice[T any](
 	ctx context.Context,
 	data []*T,
@@ -567,7 +577,7 @@ func SortSlice[T any](
 	var wg sync.WaitGroup
 	for batch := range batchCount {
 		start := batch * batchSize
-		end := min(start+batchSize, len(data))
+		end := minInt(start+batchSize, len(data))
 		if start >= end {
 			continue
 		}
@@ -911,7 +921,7 @@ func isEmpty(val reflect.Value) bool {
 	}
 }
 
-func min(a, b int) int {
+func minInt(a, b int) int {
 	if a < b {
 		return a
 	}
@@ -929,7 +939,7 @@ func PaginateSlice[T any](data []*T, pageIndex, pageSize int) []*T {
 		return []*T{}
 	}
 
-	end := min(start+pageSize, len(data))
+	end := minInt(start+pageSize, len(data))
 	return data[start:end]
 }
 
