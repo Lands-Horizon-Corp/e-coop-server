@@ -15,6 +15,7 @@ import (
 )
 
 type (
+	// User represents a user account in the system with personal information and authentication details
 	User struct {
 		ID                uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt         time.Time      `gorm:"not null;default:now()"`
@@ -44,6 +45,7 @@ type (
 		UserOrganizations []*UserOrganization `gorm:"foreignKey:UserID" json:"user_organizations,omitempty"` // user organization
 	}
 
+	// UserResponse represents the JSON response structure for user data
 	UserResponse struct {
 		ID                uuid.UUID         `json:"id"`
 		MediaID           *uuid.UUID        `json:"media_id,omitempty"`
@@ -72,6 +74,7 @@ type (
 		UserOrganizations []*UserOrganizationResponse `json:"user_organizations,omitempty"`
 	}
 
+	// CurrentUserResponse represents the response structure for the currently authenticated user
 	CurrentUserResponse struct {
 		UserID                  uuid.UUID                 `json:"user_id"`
 		User                    *UserResponse             `json:"user"`
@@ -80,15 +83,18 @@ type (
 		Users                   any                       `json:"users,omitempty"` // This can be used to return multiple users if needed
 	}
 
+	// UserLoginRequest represents the request payload for user authentication
 	UserLoginRequest struct {
 		Key      string `json:"key" validate:"required"`
 		Password string `json:"password" validate:"required,min=8"`
 	}
+	// UserAdminPasswordVerificationRequest represents the request payload for admin password verification
 	UserAdminPasswordVerificationRequest struct {
 		UserOrganizationID uuid.UUID `json:"user_organization_id" validate:"required"`
 		Password           string    `json:"password" validate:"required,min=8"`
 	}
 
+	// UserRegisterRequest represents the request payload for user registration
 	UserRegisterRequest struct {
 		Email         string     `json:"email" validate:"required,email"`
 		Password      string     `json:"password" validate:"required,min=8"`
@@ -103,6 +109,7 @@ type (
 		MediaID       *uuid.UUID `json:"media_id,omitempty"`
 	}
 
+	// UserForgotPasswordRequest represents the request payload for password reset
 	UserForgotPasswordRequest struct {
 		Key string `json:"key" validate:"required"`
 	}

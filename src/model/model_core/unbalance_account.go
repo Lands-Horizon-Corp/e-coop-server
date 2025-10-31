@@ -88,6 +88,7 @@ type (
 	}
 )
 
+// UnbalancedAccount initializes the UnbalancedAccount model and its repository manager
 func (m *ModelCore) UnbalancedAccount() {
 	m.Migration = append(m.Migration, &UnbalancedAccount{})
 	m.UnbalancedAccountManager = horizon_services.NewRepository(horizon_services.RepositoryParams[UnbalancedAccount, UnbalancedAccountResponse, UnbalancedAccountRequest]{
