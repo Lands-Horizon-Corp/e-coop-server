@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -103,7 +103,7 @@ type (
 // PostDatedCheck initializes the PostDatedCheck model and its repository manager
 func (m *ModelCore) postDatedCheck() {
 	m.Migration = append(m.Migration, &PostDatedCheck{})
-	m.PostDatedCheckManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.PostDatedCheckManager = services.NewRepository(services.RepositoryParams[
 		PostDatedCheck, PostDatedCheckResponse, PostDatedCheckRequest,
 	]{
 		Preloads: []string{

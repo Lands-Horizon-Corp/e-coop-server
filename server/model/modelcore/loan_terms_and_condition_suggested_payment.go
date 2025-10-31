@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -63,7 +63,7 @@ type (
 
 func (m *ModelCore) loanTermsAndConditionSuggestedPayment() {
 	m.Migration = append(m.Migration, &LoanTermsAndConditionSuggestedPayment{})
-	m.LoanTermsAndConditionSuggestedPaymentManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.LoanTermsAndConditionSuggestedPaymentManager = services.NewRepository(services.RepositoryParams[
 		LoanTermsAndConditionSuggestedPayment, LoanTermsAndConditionSuggestedPaymentResponse, LoanTermsAndConditionSuggestedPaymentRequest,
 	]{
 		Preloads: []string{

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -61,7 +61,7 @@ type (
 
 func (m *ModelCore) memberGenderHistory() {
 	m.Migration = append(m.Migration, &MemberGenderHistory{})
-	m.MemberGenderHistoryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberGenderHistory, MemberGenderHistoryResponse, MemberGenderHistoryRequest]{
+	m.MemberGenderHistoryManager = services.NewRepository(services.RepositoryParams[MemberGenderHistory, MemberGenderHistoryResponse, MemberGenderHistoryRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile", "MemberGender"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberGenderHistory) *MemberGenderHistoryResponse {

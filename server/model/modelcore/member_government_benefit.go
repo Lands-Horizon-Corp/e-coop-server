@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -83,7 +83,7 @@ type (
 
 func (m *ModelCore) memberGovernmentBenefit() {
 	m.Migration = append(m.Migration, &MemberGovernmentBenefit{})
-	m.MemberGovernmentBenefitManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberGovernmentBenefit, MemberGovernmentBenefitResponse, MemberGovernmentBenefitRequest]{
+	m.MemberGovernmentBenefitManager = services.NewRepository(services.RepositoryParams[MemberGovernmentBenefit, MemberGovernmentBenefitResponse, MemberGovernmentBenefitRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile", "FrontMedia", "BackMedia"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberGovernmentBenefit) *MemberGovernmentBenefitResponse {

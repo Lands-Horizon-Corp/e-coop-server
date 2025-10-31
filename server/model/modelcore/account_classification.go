@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -56,7 +56,7 @@ type (
 
 func (m *ModelCore) accountClassification() {
 	m.Migration = append(m.Migration, &AccountClassification{})
-	m.AccountClassificationManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.AccountClassificationManager = services.NewRepository(services.RepositoryParams[
 		AccountClassification, AccountClassificationResponse, AccountClassificationRequest,
 	]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},

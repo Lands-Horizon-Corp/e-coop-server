@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -71,7 +71,7 @@ type (
 
 func (m *ModelCore) adjustmentTag() {
 	m.Migration = append(m.Migration, &AdjustmentTag{})
-	m.AdjustmentTagManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.AdjustmentTagManager = services.NewRepository(services.RepositoryParams[
 		AdjustmentTag, AdjustmentTagResponse, AdjustmentTagRequest,
 	]{
 		Preloads: []string{

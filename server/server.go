@@ -2,19 +2,19 @@
 package server
 
 import (
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/go-playground/validator"
 )
 
 // Provider contains the main service provider for the application
 type Provider struct {
-	Service *horizon_services.HorizonService
+	Service *services.HorizonService
 }
 
 // NewProvider creates a new Provider instance with initialized horizon service
 func NewProvider() *Provider {
-	horizonService := horizon_services.NewHorizonService(horizon_services.HorizonServiceConfig{
-		EnvironmentConfig: &horizon_services.EnvironmentServiceConfig{
+	horizonService := services.NewHorizonService(services.HorizonServiceConfig{
+		EnvironmentConfig: &services.EnvironmentServiceConfig{
 			Path: ".env",
 		},
 	})

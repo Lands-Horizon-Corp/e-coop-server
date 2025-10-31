@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -113,7 +113,7 @@ type (
 
 func (m *ModelCore) transaction() {
 	m.Migration = append(m.Migration, &Transaction{})
-	m.TransactionManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.TransactionManager = services.NewRepository(services.RepositoryParams[
 		Transaction, TransactionResponse, TransactionRequest,
 	]{
 		Preloads: []string{

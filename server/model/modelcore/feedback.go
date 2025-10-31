@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -46,7 +46,7 @@ type (
 
 func (m *ModelCore) feedback() {
 	m.Migration = append(m.Migration, &Feedback{})
-	m.FeedbackManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Feedback, FeedbackResponse, FeedbackRequest]{
+	m.FeedbackManager = services.NewRepository(services.RepositoryParams[Feedback, FeedbackResponse, FeedbackRequest]{
 		Preloads: []string{"Media"},
 		Service:  m.provider.Service,
 		Resource: func(data *Feedback) *FeedbackResponse {

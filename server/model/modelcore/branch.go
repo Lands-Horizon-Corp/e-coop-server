@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -116,7 +116,7 @@ type (
 
 func (m *ModelCore) branch() {
 	m.Migration = append(m.Migration, &Branch{})
-	m.BranchManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Branch, BranchResponse, BranchRequest]{
+	m.BranchManager = services.NewRepository(services.RepositoryParams[Branch, BranchResponse, BranchRequest]{
 		Preloads: []string{
 			"Media",
 			"CreatedBy",

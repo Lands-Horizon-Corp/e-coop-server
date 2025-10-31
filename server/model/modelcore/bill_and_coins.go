@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
@@ -69,7 +69,7 @@ type (
 
 func (m *ModelCore) billAndCoins() {
 	m.Migration = append(m.Migration, &BillAndCoins{})
-	m.BillAndCoinsManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.BillAndCoinsManager = services.NewRepository(services.RepositoryParams[
 		BillAndCoins, BillAndCoinsResponse, BillAndCoinsRequest,
 	]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Media", "Currency"},

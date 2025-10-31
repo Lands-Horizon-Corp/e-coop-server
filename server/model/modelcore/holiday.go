@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
@@ -69,7 +69,7 @@ type (
 
 func (m *ModelCore) holiday() {
 	m.Migration = append(m.Migration, &Holiday{})
-	m.HolidayManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.HolidayManager = services.NewRepository(services.RepositoryParams[
 		Holiday, HolidayResponse, HolidayRequest,
 	]{
 		Preloads: []string{

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
@@ -92,7 +92,7 @@ type (
 // TagTemplate initializes the tag template model and its repository manager
 func (m *ModelCore) tagTemplate() {
 	m.Migration = append(m.Migration, &TagTemplate{})
-	m.TagTemplateManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.TagTemplateManager = services.NewRepository(services.RepositoryParams[
 		TagTemplate, TagTemplateResponse, TagTemplateRequest,
 	]{
 		Preloads: []string{

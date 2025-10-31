@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
@@ -465,7 +465,7 @@ type AccountRequest struct {
 
 func (m *ModelCore) account() {
 	m.Migration = append(m.Migration, &Account{})
-	m.AccountManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.AccountManager = services.NewRepository(services.RepositoryParams[
 		Account, AccountResponse, AccountRequest,
 	]{
 		Preloads: []string{

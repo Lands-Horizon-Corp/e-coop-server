@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -95,7 +95,7 @@ type (
 // OnlineRemittance initializes the OnlineRemittance model and its repository manager
 func (m *ModelCore) onlineRemittance() {
 	m.Migration = append(m.Migration, &OnlineRemittance{})
-	m.OnlineRemittanceManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.OnlineRemittanceManager = services.NewRepository(services.RepositoryParams[
 		OnlineRemittance, OnlineRemittanceResponse, OnlineRemittanceRequest,
 	]{
 		Preloads: []string{

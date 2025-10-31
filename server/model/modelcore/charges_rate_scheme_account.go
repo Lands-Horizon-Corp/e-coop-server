@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -61,7 +61,7 @@ type (
 
 func (m *ModelCore) chargesRateSchemeAccount() {
 	m.Migration = append(m.Migration, &ChargesRateSchemeAccount{})
-	m.ChargesRateSchemeAccountManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.ChargesRateSchemeAccountManager = services.NewRepository(services.RepositoryParams[
 		ChargesRateSchemeAccount, ChargesRateSchemeAccountResponse, ChargesRateSchemeAccountRequest,
 	]{
 		Preloads: []string{

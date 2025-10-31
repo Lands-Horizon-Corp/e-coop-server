@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -94,7 +94,7 @@ type (
 // UnbalancedAccount initializes the UnbalancedAccount model and its repository manager
 func (m *ModelCore) unbalancedAccount() {
 	m.Migration = append(m.Migration, &UnbalancedAccount{})
-	m.UnbalancedAccountManager = horizon_services.NewRepository(horizon_services.RepositoryParams[UnbalancedAccount, UnbalancedAccountResponse, UnbalancedAccountRequest]{
+	m.UnbalancedAccountManager = services.NewRepository(services.RepositoryParams[UnbalancedAccount, UnbalancedAccountResponse, UnbalancedAccountRequest]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "BranchSettings", "Currency",
 			"AccountForShortage", "AccountForOverage",

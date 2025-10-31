@@ -2272,12 +2272,12 @@ func (c *Controller) loanTransactionController(
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		loanTransactionEntry, err := c.modelcore.LoanTransactionEntryManager.FindOneWithFilters(context, []horizon_services.Filter{
-			{Field: "loan_transaction_entries.organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
-			{Field: "loan_transaction_entries.branch_id", Op: horizon_services.OpEq, Value: userOrg.BranchID},
-			{Field: "loan_transaction_entries.index", Op: horizon_services.OpEq, Value: 0},
-			{Field: "loan_transaction_entries.debit", Op: horizon_services.OpEq, Value: 0},
-			{Field: "loan_transaction_entries.loan_transaction_id", Op: horizon_services.OpEq, Value: loanTransactionID},
+		loanTransactionEntry, err := c.modelcore.LoanTransactionEntryManager.FindOneWithFilters(context, []services.Filter{
+			{Field: "loan_transaction_entries.organization_id", Op: services.OpEq, Value: userOrg.OrganizationID},
+			{Field: "loan_transaction_entries.branch_id", Op: services.OpEq, Value: userOrg.BranchID},
+			{Field: "loan_transaction_entries.index", Op: services.OpEq, Value: 0},
+			{Field: "loan_transaction_entries.debit", Op: services.OpEq, Value: 0},
+			{Field: "loan_transaction_entries.loan_transaction_id", Op: services.OpEq, Value: loanTransactionID},
 		})
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{

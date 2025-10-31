@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -68,7 +68,7 @@ type (
 
 func (m *ModelCore) generalAccountGroupingNetSurplusNegative() {
 	m.Migration = append(m.Migration, &GeneralAccountGroupingNetSurplusNegative{})
-	m.Generalaccountgroupingnetsurplusnegativemanager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.Generalaccountgroupingnetsurplusnegativemanager = services.NewRepository(services.RepositoryParams[
 		GeneralAccountGroupingNetSurplusNegative,
 		GeneralAccountGroupingNetSurplusNegativeResponse,
 		GeneralAccountGroupingNetSurplusNegativeRequest,

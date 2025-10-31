@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -120,7 +120,7 @@ type (
 
 func (m *ModelCore) automaticLoanDeduction() {
 	m.Migration = append(m.Migration, &AutomaticLoanDeduction{})
-	m.AutomaticLoanDeductionManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.AutomaticLoanDeductionManager = services.NewRepository(services.RepositoryParams[
 		AutomaticLoanDeduction, AutomaticLoanDeductionResponse, AutomaticLoanDeductionRequest,
 	]{
 		Preloads: []string{

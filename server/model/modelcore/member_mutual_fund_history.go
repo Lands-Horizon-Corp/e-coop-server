@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -55,7 +55,7 @@ type (
 
 func (m *ModelCore) memberMutualFundHistory() {
 	m.Migration = append(m.Migration, &MemberMutualFundHistory{})
-	m.MemberMutualFundHistoryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberMutualFundHistory, MemberMutualFundHistoryResponse, MemberMutualFundHistoryRequest]{
+	m.MemberMutualFundHistoryManager = services.NewRepository(services.RepositoryParams[MemberMutualFundHistory, MemberMutualFundHistoryResponse, MemberMutualFundHistoryRequest]{
 		Preloads: []string{"Organization", "Branch", "MemberProfile"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberMutualFundHistory) *MemberMutualFundHistoryResponse {

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -73,7 +73,7 @@ type (
 
 func (m *ModelCore) generalLedgerTag() {
 	m.Migration = append(m.Migration, &GeneralLedgerTag{})
-	m.GeneralLedgerTagManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.GeneralLedgerTagManager = services.NewRepository(services.RepositoryParams[
 		GeneralLedgerTag, GeneralLedgerTagResponse, GeneralLedgerTagRequest,
 	]{
 		Preloads: []string{

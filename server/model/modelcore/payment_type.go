@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
@@ -81,7 +81,7 @@ type (
 // PaymentType initializes the PaymentType model and its repository manager
 func (m *ModelCore) paymentType() {
 	m.Migration = append(m.Migration, &PaymentType{})
-	m.PaymentTypeManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.PaymentTypeManager = services.NewRepository(services.RepositoryParams[
 		PaymentType, PaymentTypeResponse, PaymentTypeRequest,
 	]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -91,7 +91,7 @@ type (
 
 func (m *ModelCore) memberJointAccount() {
 	m.Migration = append(m.Migration, &MemberJointAccount{})
-	m.MemberJointAccountManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberJointAccount, MemberJointAccountResponse, MemberJointAccountRequest]{
+	m.MemberJointAccountManager = services.NewRepository(services.RepositoryParams[MemberJointAccount, MemberJointAccountResponse, MemberJointAccountRequest]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
 			"MemberProfile", "PictureMedia", "SignatureMedia",

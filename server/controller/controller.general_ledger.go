@@ -3,14 +3,14 @@ package v1
 import (
 	"net/http"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/labstack/echo/v4"
 )
 
 // GeneralLedgerController manages endpoints for general ledger accounts, definitions, and member ledgers.
-func (c *Controller) generalLedgerController(
+func (c *Controller) generalLedgerController() {
 	req := c.provider.Service.Request
 
 	req.RegisterRoute(handlers.Route{
@@ -42,13 +42,13 @@ func (c *Controller) generalLedgerController(
 		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
 		}
-		entries, err := c.modelcore.GeneralLedgerManager.FindWithFilters(context, []horizon_services.Filter{
-			{Field: "member_profile_id", Op: horizon_services.OpEq, Value: memberProfileID},
-			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
-			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
-			{Field: "account_id", Op: horizon_services.OpEq, Value: accountID},
-			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
-			// {Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
+		entries, err := c.modelcore.GeneralLedgerManager.FindWithFilters(context, []services.Filter{
+			{Field: "member_profile_id", Op: services.OpEq, Value: memberProfileID},
+			{Field: "organization_id", Op: services.OpEq, Value: userOrg.OrganizationID},
+			{Field: "branch_id", Op: services.OpEq, Value: *userOrg.BranchID},
+			{Field: "account_id", Op: services.OpEq, Value: accountID},
+			{Field: "account_id", Op: services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
+			// {Field: "account_id", Op: services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
@@ -1462,12 +1462,12 @@ func (c *Controller) generalLedgerController(
 		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
 		}
-		entries, err := c.modelcore.GeneralLedgerManager.FindWithFilters(context, []horizon_services.Filter{
-			{Field: "member_profile_id", Op: horizon_services.OpEq, Value: memberProfileID},
-			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
-			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
-			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
-			// {Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
+		entries, err := c.modelcore.GeneralLedgerManager.FindWithFilters(context, []services.Filter{
+			{Field: "member_profile_id", Op: services.OpEq, Value: memberProfileID},
+			{Field: "organization_id", Op: services.OpEq, Value: userOrg.OrganizationID},
+			{Field: "branch_id", Op: services.OpEq, Value: *userOrg.BranchID},
+			{Field: "account_id", Op: services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
+			// {Field: "account_id", Op: services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1501,13 +1501,13 @@ func (c *Controller) generalLedgerController(
 		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
 		}
-		entries, err := c.modelcore.GeneralLedgerManager.FindWithFilters(context, []horizon_services.Filter{
-			{Field: "member_profile_id", Op: horizon_services.OpEq, Value: memberProfileID},
-			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
-			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
-			{Field: "type_of_payment_type", Op: horizon_services.OpEq, Value: modelcore.PaymentTypeCheck},
-			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
-			// {Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
+		entries, err := c.modelcore.GeneralLedgerManager.FindWithFilters(context, []services.Filter{
+			{Field: "member_profile_id", Op: services.OpEq, Value: memberProfileID},
+			{Field: "organization_id", Op: services.OpEq, Value: userOrg.OrganizationID},
+			{Field: "branch_id", Op: services.OpEq, Value: *userOrg.BranchID},
+			{Field: "type_of_payment_type", Op: services.OpEq, Value: modelcore.PaymentTypeCheck},
+			{Field: "account_id", Op: services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
+			// {Field: "account_id", Op: services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1541,13 +1541,13 @@ func (c *Controller) generalLedgerController(
 		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
 		}
-		entries, err := c.modelcore.GeneralLedgerManager.FindWithFilters(context, []horizon_services.Filter{
-			{Field: "member_profile_id", Op: horizon_services.OpEq, Value: memberProfileID},
-			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
-			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
-			{Field: "type_of_payment_type", Op: horizon_services.OpEq, Value: modelcore.PaymentTypeOnline},
-			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
-			// {Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
+		entries, err := c.modelcore.GeneralLedgerManager.FindWithFilters(context, []services.Filter{
+			{Field: "member_profile_id", Op: services.OpEq, Value: memberProfileID},
+			{Field: "organization_id", Op: services.OpEq, Value: userOrg.OrganizationID},
+			{Field: "branch_id", Op: services.OpEq, Value: *userOrg.BranchID},
+			{Field: "type_of_payment_type", Op: services.OpEq, Value: modelcore.PaymentTypeOnline},
+			{Field: "account_id", Op: services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
+			// {Field: "account_id", Op: services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1581,13 +1581,13 @@ func (c *Controller) generalLedgerController(
 		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
 		}
-		entries, err := c.modelcore.GeneralLedgerManager.FindWithFilters(context, []horizon_services.Filter{
-			{Field: "member_profile_id", Op: horizon_services.OpEq, Value: memberProfileID},
-			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
-			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
-			{Field: "type_of_payment_type", Op: horizon_services.OpEq, Value: modelcore.PaymentTypeCash},
-			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
-			// {Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
+		entries, err := c.modelcore.GeneralLedgerManager.FindWithFilters(context, []services.Filter{
+			{Field: "member_profile_id", Op: services.OpEq, Value: memberProfileID},
+			{Field: "organization_id", Op: services.OpEq, Value: userOrg.OrganizationID},
+			{Field: "branch_id", Op: services.OpEq, Value: *userOrg.BranchID},
+			{Field: "type_of_payment_type", Op: services.OpEq, Value: modelcore.PaymentTypeCash},
+			{Field: "account_id", Op: services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
+			// {Field: "account_id", Op: services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1621,13 +1621,13 @@ func (c *Controller) generalLedgerController(
 		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
 		}
-		entries, err := c.modelcore.GeneralLedgerManager.FindWithFilters(context, []horizon_services.Filter{
-			{Field: "member_profile_id", Op: horizon_services.OpEq, Value: memberProfileID},
-			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
-			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
-			{Field: "source", Op: horizon_services.OpEq, Value: modelcore.GeneralLedgerSourcePayment},
-			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
-			// {Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
+		entries, err := c.modelcore.GeneralLedgerManager.FindWithFilters(context, []services.Filter{
+			{Field: "member_profile_id", Op: services.OpEq, Value: memberProfileID},
+			{Field: "organization_id", Op: services.OpEq, Value: userOrg.OrganizationID},
+			{Field: "branch_id", Op: services.OpEq, Value: *userOrg.BranchID},
+			{Field: "source", Op: services.OpEq, Value: modelcore.GeneralLedgerSourcePayment},
+			{Field: "account_id", Op: services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
+			// {Field: "account_id", Op: services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1661,13 +1661,13 @@ func (c *Controller) generalLedgerController(
 		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
 		}
-		entries, err := c.modelcore.GeneralLedgerManager.FindWithFilters(context, []horizon_services.Filter{
-			{Field: "member_profile_id", Op: horizon_services.OpEq, Value: memberProfileID},
-			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
-			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
-			{Field: "source", Op: horizon_services.OpEq, Value: modelcore.GeneralLedgerSourceWithdraw},
-			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
-			// {Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
+		entries, err := c.modelcore.GeneralLedgerManager.FindWithFilters(context, []services.Filter{
+			{Field: "member_profile_id", Op: services.OpEq, Value: memberProfileID},
+			{Field: "organization_id", Op: services.OpEq, Value: userOrg.OrganizationID},
+			{Field: "branch_id", Op: services.OpEq, Value: *userOrg.BranchID},
+			{Field: "source", Op: services.OpEq, Value: modelcore.GeneralLedgerSourceWithdraw},
+			{Field: "account_id", Op: services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
+			// {Field: "account_id", Op: services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1701,13 +1701,13 @@ func (c *Controller) generalLedgerController(
 		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
 		}
-		entries, err := c.modelcore.GeneralLedgerManager.FindWithFilters(context, []horizon_services.Filter{
-			{Field: "member_profile_id", Op: horizon_services.OpEq, Value: memberProfileID},
-			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
-			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
-			{Field: "source", Op: horizon_services.OpEq, Value: modelcore.GeneralLedgerSourceDeposit},
-			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
-			// {Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
+		entries, err := c.modelcore.GeneralLedgerManager.FindWithFilters(context, []services.Filter{
+			{Field: "member_profile_id", Op: services.OpEq, Value: memberProfileID},
+			{Field: "organization_id", Op: services.OpEq, Value: userOrg.OrganizationID},
+			{Field: "branch_id", Op: services.OpEq, Value: *userOrg.BranchID},
+			{Field: "source", Op: services.OpEq, Value: modelcore.GeneralLedgerSourceDeposit},
+			{Field: "account_id", Op: services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
+			// {Field: "account_id", Op: services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1741,13 +1741,13 @@ func (c *Controller) generalLedgerController(
 		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
 		}
-		entries, err := c.modelcore.GeneralLedgerManager.FindWithFilters(context, []horizon_services.Filter{
-			{Field: "member_profile_id", Op: horizon_services.OpEq, Value: memberProfileID},
-			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
-			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
-			{Field: "source", Op: horizon_services.OpEq, Value: modelcore.GeneralLedgerSourceJournal},
-			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
-			// {Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
+		entries, err := c.modelcore.GeneralLedgerManager.FindWithFilters(context, []services.Filter{
+			{Field: "member_profile_id", Op: services.OpEq, Value: memberProfileID},
+			{Field: "organization_id", Op: services.OpEq, Value: userOrg.OrganizationID},
+			{Field: "branch_id", Op: services.OpEq, Value: *userOrg.BranchID},
+			{Field: "source", Op: services.OpEq, Value: modelcore.GeneralLedgerSourceJournal},
+			{Field: "account_id", Op: services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
+			// {Field: "account_id", Op: services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1781,13 +1781,13 @@ func (c *Controller) generalLedgerController(
 		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
 		}
-		entries, err := c.modelcore.GeneralLedgerManager.FindWithFilters(context, []horizon_services.Filter{
-			{Field: "member_profile_id", Op: horizon_services.OpEq, Value: memberProfileID},
-			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
-			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
-			{Field: "source", Op: horizon_services.OpEq, Value: modelcore.GeneralLedgerSourceAdjustment},
-			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
-			// {Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
+		entries, err := c.modelcore.GeneralLedgerManager.FindWithFilters(context, []services.Filter{
+			{Field: "member_profile_id", Op: services.OpEq, Value: memberProfileID},
+			{Field: "organization_id", Op: services.OpEq, Value: userOrg.OrganizationID},
+			{Field: "branch_id", Op: services.OpEq, Value: *userOrg.BranchID},
+			{Field: "source", Op: services.OpEq, Value: modelcore.GeneralLedgerSourceAdjustment},
+			{Field: "account_id", Op: services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
+			// {Field: "account_id", Op: services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1821,13 +1821,13 @@ func (c *Controller) generalLedgerController(
 		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
 		}
-		entries, err := c.modelcore.GeneralLedgerManager.FindWithFilters(context, []horizon_services.Filter{
-			{Field: "member_profile_id", Op: horizon_services.OpEq, Value: memberProfileID},
-			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
-			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
-			{Field: "source", Op: horizon_services.OpEq, Value: modelcore.GeneralLedgerSourceJournalVoucher},
-			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
-			// {Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
+		entries, err := c.modelcore.GeneralLedgerManager.FindWithFilters(context, []services.Filter{
+			{Field: "member_profile_id", Op: services.OpEq, Value: memberProfileID},
+			{Field: "organization_id", Op: services.OpEq, Value: userOrg.OrganizationID},
+			{Field: "branch_id", Op: services.OpEq, Value: *userOrg.BranchID},
+			{Field: "source", Op: services.OpEq, Value: modelcore.GeneralLedgerSourceJournalVoucher},
+			{Field: "account_id", Op: services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
+			// {Field: "account_id", Op: services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1861,13 +1861,13 @@ func (c *Controller) generalLedgerController(
 		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
 		}
-		entries, err := c.modelcore.GeneralLedgerManager.FindWithFilters(context, []horizon_services.Filter{
-			{Field: "member_profile_id", Op: horizon_services.OpEq, Value: memberProfileID},
-			{Field: "organization_id", Op: horizon_services.OpEq, Value: userOrg.OrganizationID},
-			{Field: "branch_id", Op: horizon_services.OpEq, Value: *userOrg.BranchID},
-			{Field: "source", Op: horizon_services.OpEq, Value: modelcore.GeneralLedgerSourceCheckVoucher},
-			{Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
-			// {Field: "account_id", Op: horizon_services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
+		entries, err := c.modelcore.GeneralLedgerManager.FindWithFilters(context, []services.Filter{
+			{Field: "member_profile_id", Op: services.OpEq, Value: memberProfileID},
+			{Field: "organization_id", Op: services.OpEq, Value: userOrg.OrganizationID},
+			{Field: "branch_id", Op: services.OpEq, Value: *userOrg.BranchID},
+			{Field: "source", Op: services.OpEq, Value: modelcore.GeneralLedgerSourceCheckVoucher},
+			{Field: "account_id", Op: services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
+			// {Field: "account_id", Op: services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})

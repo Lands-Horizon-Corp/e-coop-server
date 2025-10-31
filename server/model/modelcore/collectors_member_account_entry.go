@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -69,7 +69,7 @@ type (
 
 func (m *ModelCore) collectorsMemberAccountEntry() {
 	m.Migration = append(m.Migration, &CollectorsMemberAccountEntry{})
-	m.CollectorsMemberAccountEntryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.CollectorsMemberAccountEntryManager = services.NewRepository(services.RepositoryParams[
 		CollectorsMemberAccountEntry, CollectorsMemberAccountEntryResponse, CollectorsMemberAccountEntryRequest,
 	]{
 		Preloads: []string{

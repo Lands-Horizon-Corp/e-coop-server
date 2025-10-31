@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -72,7 +72,7 @@ type (
 
 func (m *ModelCore) memberIncome() {
 	m.Migration = append(m.Migration, &MemberIncome{})
-	m.MemberIncomeManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberIncome, MemberIncomeResponse, MemberIncomeRequest]{
+	m.MemberIncomeManager = services.NewRepository(services.RepositoryParams[MemberIncome, MemberIncomeResponse, MemberIncomeRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Media", "MemberProfile"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberIncome) *MemberIncomeResponse {

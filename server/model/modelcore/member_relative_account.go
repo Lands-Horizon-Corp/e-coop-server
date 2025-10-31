@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -68,7 +68,7 @@ type (
 
 func (m *ModelCore) memberRelativeAccount() {
 	m.Migration = append(m.Migration, &MemberRelativeAccount{})
-	m.MemberRelativeAccountManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberRelativeAccount, MemberRelativeAccountResponse, MemberRelativeAccountRequest]{
+	m.MemberRelativeAccountManager = services.NewRepository(services.RepositoryParams[MemberRelativeAccount, MemberRelativeAccountResponse, MemberRelativeAccountRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile", "RelativeMemberProfile"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberRelativeAccount) *MemberRelativeAccountResponse {

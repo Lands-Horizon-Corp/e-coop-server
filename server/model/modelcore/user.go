@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
 	"github.com/google/uuid"
@@ -202,7 +202,7 @@ type (
 // User initializes the User model and its repository manager
 func (m *ModelCore) user() {
 	m.Migration = append(m.Migration, &User{})
-	m.UserManager = horizon_services.NewRepository(horizon_services.RepositoryParams[User, UserResponse, UserRegisterRequest]{
+	m.UserManager = services.NewRepository(services.RepositoryParams[User, UserResponse, UserRegisterRequest]{
 		Preloads: []string{
 			"Media",
 			"SignatureMedia",

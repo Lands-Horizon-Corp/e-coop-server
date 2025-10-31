@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
@@ -105,7 +105,7 @@ type (
 
 func (m *ModelCore) memberAccountingLedger() {
 	m.Migration = append(m.Migration, &MemberAccountingLedger{})
-	m.MemberAccountingLedgerManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.MemberAccountingLedgerManager = services.NewRepository(services.RepositoryParams[
 		MemberAccountingLedger, MemberAccountingLedgerResponse, MemberAccountingLedgerRequest,
 	]{
 		Preloads: []string{

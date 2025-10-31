@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -57,7 +57,7 @@ type (
 // OrganizationMedia initializes the organization media model and its repository manager
 func (m *ModelCore) organizationMedia() {
 	m.Migration = append(m.Migration, &OrganizationMedia{})
-	m.OrganizationMediaManager = horizon_services.NewRepository(horizon_services.RepositoryParams[OrganizationMedia, OrganizationMediaResponse, OrganizationMediaRequest]{
+	m.OrganizationMediaManager = services.NewRepository(services.RepositoryParams[OrganizationMedia, OrganizationMediaResponse, OrganizationMediaRequest]{
 		Preloads: []string{"Media"},
 		Service:  m.provider.Service,
 		Resource: func(data *OrganizationMedia) *OrganizationMediaResponse {

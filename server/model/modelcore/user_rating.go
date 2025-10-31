@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -75,7 +75,7 @@ type (
 // UserRating initializes the user rating repository and sets up migration
 func (m *ModelCore) userRating() {
 	m.Migration = append(m.Migration, &UserRating{})
-	m.UserRatingManager = horizon_services.NewRepository(horizon_services.RepositoryParams[UserRating, UserRatingResponse, UserRatingRequest]{
+	m.UserRatingManager = services.NewRepository(services.RepositoryParams[UserRating, UserRatingResponse, UserRatingRequest]{
 		Preloads: []string{"Organization", "Branch", "RateeUser", "RaterUser"},
 		Service:  m.provider.Service,
 		Resource: func(data *UserRating) *UserRatingResponse {

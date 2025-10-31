@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -90,7 +90,7 @@ type (
 // OrganizationDailyUsage initializes the organization daily usage model and its repository manager
 func (m *ModelCore) organizationDailyUsage() {
 	m.Migration = append(m.Migration, &OrganizationDailyUsage{})
-	m.OrganizationDailyUsageManager = horizon_services.NewRepository(horizon_services.RepositoryParams[OrganizationDailyUsage, OrganizationDailyUsageResponse, OrganizationDailyUsageRequest]{
+	m.OrganizationDailyUsageManager = services.NewRepository(services.RepositoryParams[OrganizationDailyUsage, OrganizationDailyUsageResponse, OrganizationDailyUsageRequest]{
 		Preloads: []string{"Organization"},
 		Service:  m.provider.Service,
 		Resource: func(data *OrganizationDailyUsage) *OrganizationDailyUsageResponse {

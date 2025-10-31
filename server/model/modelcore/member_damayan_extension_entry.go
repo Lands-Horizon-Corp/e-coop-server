@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -65,7 +65,7 @@ type (
 
 func (m *ModelCore) memberDamayanExtensionEntry() {
 	m.Migration = append(m.Migration, &MemberDamayanExtensionEntry{})
-	m.MemberDamayanExtensionEntryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberDamayanExtensionEntry, MemberDamayanExtensionEntryResponse, MemberDamayanExtensionEntryRequest]{
+	m.MemberDamayanExtensionEntryManager = services.NewRepository(services.RepositoryParams[MemberDamayanExtensionEntry, MemberDamayanExtensionEntryResponse, MemberDamayanExtensionEntryRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberDamayanExtensionEntry) *MemberDamayanExtensionEntryResponse {

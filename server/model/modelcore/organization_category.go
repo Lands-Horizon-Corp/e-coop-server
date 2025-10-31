@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -47,7 +47,7 @@ type (
 // OrganizationCategory initializes the OrganizationCategory model and its repository manager
 func (m *ModelCore) organizationCategory() {
 	m.Migration = append(m.Migration, &OrganizationCategory{})
-	m.OrganizationCategoryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[OrganizationCategory, OrganizationCategoryResponse, OrganizationCategoryRequest]{
+	m.OrganizationCategoryManager = services.NewRepository(services.RepositoryParams[OrganizationCategory, OrganizationCategoryResponse, OrganizationCategoryRequest]{
 		Preloads: []string{"Organization", "Category"},
 		Service:  m.provider.Service,
 		Resource: func(data *OrganizationCategory) *OrganizationCategoryResponse {

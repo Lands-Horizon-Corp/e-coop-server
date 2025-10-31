@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -73,7 +73,7 @@ type (
 
 func (m *ModelCore) transactionTag() {
 	m.Migration = append(m.Migration, &TransactionTag{})
-	m.TransactionTagManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.TransactionTagManager = services.NewRepository(services.RepositoryParams[
 		TransactionTag, TransactionTagResponse, TransactionTagRequest,
 	]{
 		Preloads: []string{

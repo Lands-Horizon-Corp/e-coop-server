@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -61,7 +61,7 @@ type (
 
 func (m *ModelCore) memberCloseRemark() {
 	m.Migration = append(m.Migration, &MemberCloseRemark{})
-	m.MemberCloseRemarkManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberCloseRemark, MemberCloseRemarkResponse, MemberCloseRemarkRequest]{
+	m.MemberCloseRemarkManager = services.NewRepository(services.RepositoryParams[MemberCloseRemark, MemberCloseRemarkResponse, MemberCloseRemarkRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberCloseRemark) *MemberCloseRemarkResponse {

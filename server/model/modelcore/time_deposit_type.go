@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -122,7 +122,7 @@ type (
 
 func (m *ModelCore) timeDepositType() {
 	m.Migration = append(m.Migration, &TimeDepositType{})
-	m.TimeDepositTypeManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.TimeDepositTypeManager = services.NewRepository(services.RepositoryParams[
 		TimeDepositType, TimeDepositTypeResponse, TimeDepositTypeRequest,
 	]{
 		Preloads: []string{

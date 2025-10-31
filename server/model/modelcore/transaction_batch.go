@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -342,7 +342,7 @@ type (
 
 func (m *ModelCore) transactionBatch() {
 	m.Migration = append(m.Migration, &TransactionBatch{})
-	m.TransactionBatchManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.TransactionBatchManager = services.NewRepository(services.RepositoryParams[
 		TransactionBatch, TransactionBatchResponse, TransactionBatchRequest,
 	]{
 		Preloads: []string{
@@ -560,12 +560,12 @@ func (m *ModelCore) TransactionBatchCurrentDay(ctx context.Context, orgId uuid.U
 	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 	endOfDay := startOfDay.Add(24 * time.Hour)
 
-	filters := []horizon_services.Filter{
-		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
-		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
-		{Field: "is_closed", Op: horizon_services.OpEq, Value: true},
-		{Field: "created_at", Op: horizon_services.OpGte, Value: startOfDay},
-		{Field: "created_at", Op: horizon_services.OpLt, Value: endOfDay},
+	filters := []services.Filter{
+		{Field: "organization_id", Op: services.OpEq, Value: orgId},
+		{Field: "branch_id", Op: services.OpEq, Value: branchId},
+		{Field: "is_closed", Op: services.OpEq, Value: true},
+		{Field: "created_at", Op: services.OpGte, Value: startOfDay},
+		{Field: "created_at", Op: services.OpLt, Value: endOfDay},
 	}
 	batches, err := m.TransactionBatchManager.FindWithFilters(ctx, filters)
 	if err != nil {

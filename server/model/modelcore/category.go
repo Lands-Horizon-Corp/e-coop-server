@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -269,7 +269,7 @@ func (m *ModelCore) categorySeed(ctx context.Context) error {
 
 func (m *ModelCore) category() {
 	m.Migration = append(m.Migration, &Category{})
-	m.CategoryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Category, CategoryResponse, CategoryRequest]{
+	m.CategoryManager = services.NewRepository(services.RepositoryParams[Category, CategoryResponse, CategoryRequest]{
 		Preloads: []string{"OrganizationCategories"},
 		Service:  m.provider.Service,
 		Resource: func(data *Category) *CategoryResponse {

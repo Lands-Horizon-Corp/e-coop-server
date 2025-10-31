@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -71,7 +71,7 @@ type (
 
 func (m *ModelCore) memberDeductionEntry() {
 	m.Migration = append(m.Migration, &MemberDeductionEntry{})
-	m.MemberDeductionEntryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.MemberDeductionEntryManager = services.NewRepository(services.RepositoryParams[
 		MemberDeductionEntry, MemberDeductionEntryResponse, MemberDeductionEntryRequest,
 	]{
 		Preloads: []string{

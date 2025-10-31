@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -72,7 +72,7 @@ type (
 
 func (m *ModelCore) loanClearanceAnalysis() {
 	m.Migration = append(m.Migration, &LoanClearanceAnalysis{})
-	m.LoanClearanceAnalysisManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.LoanClearanceAnalysisManager = services.NewRepository(services.RepositoryParams[
 		LoanClearanceAnalysis, LoanClearanceAnalysisResponse, LoanClearanceAnalysisRequest,
 	]{
 		Preloads: []string{

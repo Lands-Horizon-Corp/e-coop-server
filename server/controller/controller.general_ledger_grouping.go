@@ -5,14 +5,14 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/labstack/echo/v4"
 )
 
 // GeneralLedgerController manages endpoints for general ledger accounts, definitions, and member ledgers.
-func (c *Controller) generalLedgerGroupingController(
+func (c *Controller) generalLedgerGroupingController() {
 	req := c.provider.Service.Request
 
 	// GET /general-ledger-accounts-grouping

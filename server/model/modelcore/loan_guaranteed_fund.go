@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -56,7 +56,7 @@ type (
 
 func (m *ModelCore) loanGuaranteedFund() {
 	m.Migration = append(m.Migration, &LoanGuaranteedFund{})
-	m.LoanGuaranteedFundManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.LoanGuaranteedFundManager = services.NewRepository(services.RepositoryParams[
 		LoanGuaranteedFund, LoanGuaranteedFundResponse, LoanGuaranteedFundRequest,
 	]{
 		Preloads: []string{

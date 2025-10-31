@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
@@ -57,7 +57,7 @@ type (
 
 func (m *ModelCore) loanPurpose() {
 	m.Migration = append(m.Migration, &LoanPurpose{})
-	m.LoanPurposeManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.LoanPurposeManager = services.NewRepository(services.RepositoryParams[
 		LoanPurpose, LoanPurposeResponse, LoanPurposeRequest,
 	]{
 		Preloads: []string{

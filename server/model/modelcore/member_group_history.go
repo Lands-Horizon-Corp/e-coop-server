@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -61,7 +61,7 @@ type (
 
 func (m *ModelCore) memberGroupHistory() {
 	m.Migration = append(m.Migration, &MemberGroupHistory{})
-	m.MemberGroupHistoryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberGroupHistory, MemberGroupHistoryResponse, MemberGroupHistoryRequest]{
+	m.MemberGroupHistoryManager = services.NewRepository(services.RepositoryParams[MemberGroupHistory, MemberGroupHistoryResponse, MemberGroupHistoryRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile", "MemberGroup"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberGroupHistory) *MemberGroupHistoryResponse {

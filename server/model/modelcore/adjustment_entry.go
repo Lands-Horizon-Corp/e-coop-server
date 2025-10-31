@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -113,7 +113,7 @@ type (
 
 func (m *ModelCore) adjustmentEntry() {
 	m.Migration = append(m.Migration, &AdjustmentEntry{})
-	m.AdjustmentEntryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.AdjustmentEntryManager = services.NewRepository(services.RepositoryParams[
 		AdjustmentEntry, AdjustmentEntryResponse, AdjustmentEntryRequest,
 	]{
 		Preloads: []string{

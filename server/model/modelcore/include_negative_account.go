@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -64,7 +64,7 @@ type (
 
 func (m *ModelCore) includeNegativeAccount() {
 	m.Migration = append(m.Migration, &IncludeNegativeAccount{})
-	m.IncludeNegativeAccountManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.IncludeNegativeAccountManager = services.NewRepository(services.RepositoryParams[
 		IncludeNegativeAccount, IncludeNegativeAccountResponse, IncludeNegativeAccountRequest,
 	]{
 		Preloads: []string{

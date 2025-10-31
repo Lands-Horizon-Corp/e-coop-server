@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -71,7 +71,7 @@ type (
 
 func (m *ModelCore) loanTag() {
 	m.Migration = append(m.Migration, &LoanTag{})
-	m.LoanTagManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.LoanTagManager = services.NewRepository(services.RepositoryParams[
 		LoanTag, LoanTagResponse, LoanTagRequest,
 	]{
 		Preloads: []string{

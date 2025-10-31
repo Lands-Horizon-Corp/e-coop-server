@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -113,7 +113,7 @@ type (
 
 func (m *ModelCore) loanTransactionEntry() {
 	m.Migration = append(m.Migration, &LoanTransactionEntry{})
-	m.LoanTransactionEntryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.LoanTransactionEntryManager = services.NewRepository(services.RepositoryParams[
 		LoanTransactionEntry, LoanTransactionEntryResponse, LoanTransactionEntryRequest,
 	]{
 		Preloads: []string{
@@ -190,22 +190,22 @@ func (m *ModelCore) loanTransactionEntryCurrentbranch(context context.Context, o
 }
 
 func (m *ModelCore) getCashOnCashEquivalence(ctx context.Context, loanTransactionID, orgId, branchId uuid.UUID) (*LoanTransactionEntry, error) {
-	return m.LoanTransactionEntryManager.FindOneWithFilters(ctx, []horizon_services.Filter{
-		{Field: "loan_transaction_entries.organization_id", Op: horizon_services.OpEq, Value: orgId},
-		{Field: "loan_transaction_entries.branch_id", Op: horizon_services.OpEq, Value: branchId},
-		{Field: "loan_transaction_entries.index", Op: horizon_services.OpEq, Value: 0},
-		{Field: "loan_transaction_entries.debit", Op: horizon_services.OpEq, Value: 0},
-		{Field: "loan_transaction_entries.loan_transaction_id", Op: horizon_services.OpEq, Value: loanTransactionID},
+	return m.LoanTransactionEntryManager.FindOneWithFilters(ctx, []services.Filter{
+		{Field: "loan_transaction_entries.organization_id", Op: services.OpEq, Value: orgId},
+		{Field: "loan_transaction_entries.branch_id", Op: services.OpEq, Value: branchId},
+		{Field: "loan_transaction_entries.index", Op: services.OpEq, Value: 0},
+		{Field: "loan_transaction_entries.debit", Op: services.OpEq, Value: 0},
+		{Field: "loan_transaction_entries.loan_transaction_id", Op: services.OpEq, Value: loanTransactionID},
 	})
 
 }
 
 func (m *ModelCore) getLoanEntryAccount(ctx context.Context, loanTransactionID, orgId, branchId uuid.UUID) (*LoanTransactionEntry, error) {
-	return m.LoanTransactionEntryManager.FindOneWithFilters(ctx, []horizon_services.Filter{
-		{Field: "loan_transaction_entries.organization_id", Op: horizon_services.OpEq, Value: orgId},
-		{Field: "loan_transaction_entries.branch_id", Op: horizon_services.OpEq, Value: branchId},
-		{Field: "loan_transaction_entries.index", Op: horizon_services.OpEq, Value: 1},
-		{Field: "loan_transaction_entries.credit", Op: horizon_services.OpEq, Value: 0},
-		{Field: "loan_transaction_entries.loan_transaction_id", Op: horizon_services.OpEq, Value: loanTransactionID},
+	return m.LoanTransactionEntryManager.FindOneWithFilters(ctx, []services.Filter{
+		{Field: "loan_transaction_entries.organization_id", Op: services.OpEq, Value: orgId},
+		{Field: "loan_transaction_entries.branch_id", Op: services.OpEq, Value: branchId},
+		{Field: "loan_transaction_entries.index", Op: services.OpEq, Value: 1},
+		{Field: "loan_transaction_entries.credit", Op: services.OpEq, Value: 0},
+		{Field: "loan_transaction_entries.loan_transaction_id", Op: services.OpEq, Value: loanTransactionID},
 	})
 }

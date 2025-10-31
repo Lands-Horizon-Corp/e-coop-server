@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -56,7 +56,7 @@ type (
 
 func (m *ModelCore) groceryComputationSheet() {
 	m.Migration = append(m.Migration, &GroceryComputationSheet{})
-	m.GroceryComputationSheetManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.GroceryComputationSheetManager = services.NewRepository(services.RepositoryParams[
 		GroceryComputationSheet, GroceryComputationSheetResponse, GroceryComputationSheetRequest,
 	]{
 		Preloads: []string{

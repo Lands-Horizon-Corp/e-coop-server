@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -263,7 +263,7 @@ type (
 
 func (m *ModelCore) accountHistory() {
 	m.Migration = append(m.Migration, &AccountHistory{})
-	m.AccountHistoryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.AccountHistoryManager = services.NewRepository(services.RepositoryParams[
 		AccountHistory, AccountHistoryResponse, AccountHistoryRequest,
 	]{
 		Preloads: []string{"CreatedBy", "CreatedBy.Media", "Account", "Organization", "Branch"},
@@ -407,18 +407,18 @@ func (m *ModelCore) accountHistory() {
 
 // Get history for a specific account
 func (m *ModelCore) getAccountHistory(ctx context.Context, accountID uuid.UUID) ([]*AccountHistory, error) {
-	filters := []horizon_services.Filter{
-		{Field: "account_id", Op: horizon_services.OpEq, Value: accountID},
+	filters := []services.Filter{
+		{Field: "account_id", Op: services.OpEq, Value: accountID},
 	}
 
 	return m.AccountHistoryManager.FindWithFilters(ctx, filters)
 }
 
 func (m *ModelCore) getAccountAtTime(ctx context.Context, accountID uuid.UUID, asOfDate time.Time) (*AccountHistory, error) {
-	filters := []horizon_services.Filter{
-		{Field: "account_id", Op: horizon_services.OpEq, Value: accountID},
-		{Field: "valid_from", Op: horizon_services.OpLte, Value: asOfDate},
-		{Field: "valid_to", Op: horizon_services.OpGt, Value: asOfDate},
+	filters := []services.Filter{
+		{Field: "account_id", Op: services.OpEq, Value: accountID},
+		{Field: "valid_from", Op: services.OpLte, Value: asOfDate},
+		{Field: "valid_to", Op: services.OpGt, Value: asOfDate},
 	}
 
 	histories, err := m.AccountHistoryManager.FindWithFilters(ctx, filters)
@@ -431,9 +431,9 @@ func (m *ModelCore) getAccountAtTime(ctx context.Context, accountID uuid.UUID, a
 	}
 
 	// If no history with valid_to > asOfDate, get the latest one before asOfDate
-	filters = []horizon_services.Filter{
-		{Field: "account_id", Op: horizon_services.OpEq, Value: accountID},
-		{Field: "valid_from", Op: horizon_services.OpLte, Value: asOfDate},
+	filters = []services.Filter{
+		{Field: "account_id", Op: services.OpEq, Value: accountID},
+		{Field: "valid_from", Op: services.OpLte, Value: asOfDate},
 	}
 
 	histories, err = m.AccountHistoryManager.FindWithFilters(ctx, filters)
@@ -450,11 +450,11 @@ func (m *ModelCore) getAccountAtTime(ctx context.Context, accountID uuid.UUID, a
 
 // Get all accounts that had changes within a date range
 func (m *ModelCore) getAccountsChangedInRange(ctx context.Context, orgID, branchID uuid.UUID, startDate, endDate time.Time) ([]*AccountHistory, error) {
-	filters := []horizon_services.Filter{
-		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgID},
-		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchID},
-		{Field: "valid_from", Op: horizon_services.OpGte, Value: startDate},
-		{Field: "valid_from", Op: horizon_services.OpLte, Value: endDate},
+	filters := []services.Filter{
+		{Field: "organization_id", Op: services.OpEq, Value: orgID},
+		{Field: "branch_id", Op: services.OpEq, Value: branchID},
+		{Field: "valid_from", Op: services.OpGte, Value: startDate},
+		{Field: "valid_from", Op: services.OpLte, Value: endDate},
 	}
 
 	return m.AccountHistoryManager.FindWithFilters(ctx, filters)
@@ -463,9 +463,9 @@ func (m *ModelCore) getAccountsChangedInRange(ctx context.Context, orgID, branch
 // Close open history records when updating valid_to
 func (m *ModelCore) closeAccountHistory(ctx context.Context, accountID uuid.UUID, closedAt time.Time) error {
 	// Since there's no UpdateWhere method, we'll need to find and update individually
-	filters := []horizon_services.Filter{
-		{Field: "account_id", Op: horizon_services.OpEq, Value: accountID},
-		{Field: "valid_to", Op: horizon_services.OpIsNull, Value: nil},
+	filters := []services.Filter{
+		{Field: "account_id", Op: services.OpEq, Value: accountID},
+		{Field: "valid_to", Op: services.OpIsNull, Value: nil},
 	}
 
 	histories, err := m.AccountHistoryManager.FindWithFilters(ctx, filters)

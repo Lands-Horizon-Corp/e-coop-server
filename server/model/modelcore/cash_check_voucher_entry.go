@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -87,7 +87,7 @@ type (
 
 func (m *ModelCore) cashCheckVoucherEntry() {
 	m.Migration = append(m.Migration, &CashCheckVoucherEntry{})
-	m.CashCheckVoucherEntryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.CashCheckVoucherEntryManager = services.NewRepository(services.RepositoryParams[
 		CashCheckVoucherEntry, CashCheckVoucherEntryResponse, CashCheckVoucherEntryRequest,
 	]{
 		Preloads: []string{

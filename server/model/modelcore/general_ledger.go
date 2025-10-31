@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -209,7 +209,7 @@ type (
 
 func (m *ModelCore) generalLedger() {
 	m.Migration = append(m.Migration, &GeneralLedger{})
-	m.GeneralLedgerManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.GeneralLedgerManager = services.NewRepository(services.RepositoryParams[
 		GeneralLedger, GeneralLedgerResponse, GeneralLedgerRequest,
 	]{
 		Preloads: []string{
@@ -404,19 +404,19 @@ func (m *ModelCore) GeneralLedgerExcludeCashonHand(
 	transactionId, orgId,
 	branchId uuid.UUID,
 ) ([]*GeneralLedger, error) {
-	filters := []horizon_services.Filter{
-		{Field: "transaction_id", Op: horizon_services.OpEq, Value: transactionId},
-		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
-		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
+	filters := []services.Filter{
+		{Field: "transaction_id", Op: services.OpEq, Value: transactionId},
+		{Field: "organization_id", Op: services.OpEq, Value: orgId},
+		{Field: "branch_id", Op: services.OpEq, Value: branchId},
 	}
 	branchSetting, err := m.BranchSettingManager.FindOne(ctx, &BranchSetting{BranchID: branchId})
 	if err != nil {
 		return nil, err
 	}
 	if branchSetting.CashOnHandAccountID != nil {
-		filters = append(filters, horizon_services.Filter{
+		filters = append(filters, services.Filter{
 			Field: "account_id",
-			Op:    horizon_services.OpNe,
+			Op:    services.OpNe,
 			Value: *branchSetting.CashOnHandAccountID,
 		})
 	}
@@ -429,17 +429,17 @@ func (m *ModelCore) GeneralLedgerExcludeCashonHandWithType(
 	transactionId, orgId, branchId uuid.UUID,
 	paymentType *TypeOfPaymentType,
 ) ([]*GeneralLedger, error) {
-	filters := []horizon_services.Filter{
-		{Field: "transaction_id", Op: horizon_services.OpEq, Value: transactionId},
-		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
-		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
+	filters := []services.Filter{
+		{Field: "transaction_id", Op: services.OpEq, Value: transactionId},
+		{Field: "organization_id", Op: services.OpEq, Value: orgId},
+		{Field: "branch_id", Op: services.OpEq, Value: branchId},
 	}
 
 	// Add payment type filter if provided
 	if paymentType != nil {
-		filters = append(filters, horizon_services.Filter{
+		filters = append(filters, services.Filter{
 			Field: "type_of_payment_type",
-			Op:    horizon_services.OpEq,
+			Op:    services.OpEq,
 			Value: *paymentType,
 		})
 	}
@@ -449,9 +449,9 @@ func (m *ModelCore) GeneralLedgerExcludeCashonHandWithType(
 		return nil, err
 	}
 	if branchSetting.CashOnHandAccountID != nil {
-		filters = append(filters, horizon_services.Filter{
+		filters = append(filters, services.Filter{
 			Field: "account_id",
-			Op:    horizon_services.OpNe,
+			Op:    services.OpNe,
 			Value: *branchSetting.CashOnHandAccountID,
 		})
 	}
@@ -464,17 +464,17 @@ func (m *ModelCore) GeneralLedgerExcludeCashonHandWithSource(
 	transactionId, orgId, branchId uuid.UUID,
 	source *GeneralLedgerSource,
 ) ([]*GeneralLedger, error) {
-	filters := []horizon_services.Filter{
-		{Field: "transaction_id", Op: horizon_services.OpEq, Value: transactionId},
-		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
-		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
+	filters := []services.Filter{
+		{Field: "transaction_id", Op: services.OpEq, Value: transactionId},
+		{Field: "organization_id", Op: services.OpEq, Value: orgId},
+		{Field: "branch_id", Op: services.OpEq, Value: branchId},
 	}
 
 	// Add source filter if provided
 	if source != nil {
-		filters = append(filters, horizon_services.Filter{
+		filters = append(filters, services.Filter{
 			Field: "source",
-			Op:    horizon_services.OpEq,
+			Op:    services.OpEq,
 			Value: *source,
 		})
 	}
@@ -484,9 +484,9 @@ func (m *ModelCore) GeneralLedgerExcludeCashonHandWithSource(
 		return nil, err
 	}
 	if branchSetting.CashOnHandAccountID != nil {
-		filters = append(filters, horizon_services.Filter{
+		filters = append(filters, services.Filter{
 			Field: "account_id",
-			Op:    horizon_services.OpNe,
+			Op:    services.OpNe,
 			Value: *branchSetting.CashOnHandAccountID,
 		})
 	}
@@ -500,26 +500,26 @@ func (m *ModelCore) GeneralLedgerExcludeCashonHandWithFilters(
 	paymentType *TypeOfPaymentType,
 	source *GeneralLedgerSource,
 ) ([]*GeneralLedger, error) {
-	filters := []horizon_services.Filter{
-		{Field: "transaction_id", Op: horizon_services.OpEq, Value: transactionId},
-		{Field: "organization_id", Op: horizon_services.OpEq, Value: orgId},
-		{Field: "branch_id", Op: horizon_services.OpEq, Value: branchId},
+	filters := []services.Filter{
+		{Field: "transaction_id", Op: services.OpEq, Value: transactionId},
+		{Field: "organization_id", Op: services.OpEq, Value: orgId},
+		{Field: "branch_id", Op: services.OpEq, Value: branchId},
 	}
 
 	// Add payment type filter if provided
 	if paymentType != nil {
-		filters = append(filters, horizon_services.Filter{
+		filters = append(filters, services.Filter{
 			Field: "type_of_payment_type",
-			Op:    horizon_services.OpEq,
+			Op:    services.OpEq,
 			Value: *paymentType,
 		})
 	}
 
 	// Add source filter if provided
 	if source != nil {
-		filters = append(filters, horizon_services.Filter{
+		filters = append(filters, services.Filter{
 			Field: "source",
-			Op:    horizon_services.OpEq,
+			Op:    services.OpEq,
 			Value: *source,
 		})
 	}
@@ -529,9 +529,9 @@ func (m *ModelCore) GeneralLedgerExcludeCashonHandWithFilters(
 		return nil, err
 	}
 	if branchSetting.CashOnHandAccountID != nil {
-		filters = append(filters, horizon_services.Filter{
+		filters = append(filters, services.Filter{
 			Field: "account_id",
-			Op:    horizon_services.OpNe,
+			Op:    services.OpNe,
 			Value: *branchSetting.CashOnHandAccountID,
 		})
 	}

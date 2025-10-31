@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
@@ -60,7 +60,7 @@ type (
 
 func (m *ModelCore) memberDepartment() {
 	m.Migration = append(m.Migration, &MemberDepartment{})
-	m.MemberDepartmentManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberDepartment, MemberDepartmentResponse, MemberDepartmentRequest]{
+	m.MemberDepartmentManager = services.NewRepository(services.RepositoryParams[MemberDepartment, MemberDepartmentResponse, MemberDepartmentRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberDepartment) *MemberDepartmentResponse {

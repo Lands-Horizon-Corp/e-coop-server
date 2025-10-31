@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -77,7 +77,7 @@ type (
 
 func (m *ModelCore) memberBankCard() {
 	m.Migration = append(m.Migration, &MemberBankCard{})
-	m.MemberBankCardManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberBankCard, MemberBankCardResponse, MemberBankCardRequest]{
+	m.MemberBankCardManager = services.NewRepository(services.RepositoryParams[MemberBankCard, MemberBankCardResponse, MemberBankCardRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Bank", "MemberProfile"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberBankCard) *MemberBankCardResponse {

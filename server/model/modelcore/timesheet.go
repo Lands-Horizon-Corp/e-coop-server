@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -69,7 +69,7 @@ type (
 
 func (m *ModelCore) timesheet() {
 	m.Migration = append(m.Migration, &Timesheet{})
-	m.TimesheetManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Timesheet, TimesheetResponse, TimesheetRequest]{
+	m.TimesheetManager = services.NewRepository(services.RepositoryParams[Timesheet, TimesheetResponse, TimesheetRequest]{
 		Preloads: []string{
 			"CreatedBy",
 			"UpdatedBy",

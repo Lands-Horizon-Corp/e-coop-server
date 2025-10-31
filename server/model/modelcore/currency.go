@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
@@ -68,7 +68,7 @@ type (
 
 func (m *ModelCore) currency() {
 	m.Migration = append(m.Migration, &Currency{})
-	m.CurrencyManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Currency, CurrencyResponse, CurrencyRequest]{
+	m.CurrencyManager = services.NewRepository(services.RepositoryParams[Currency, CurrencyResponse, CurrencyRequest]{
 		Service: m.provider.Service,
 		Resource: func(data *Currency) *CurrencyResponse {
 			if data == nil {

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -84,7 +84,7 @@ type (
 
 func (m *ModelCore) journalVoucherEntry() {
 	m.Migration = append(m.Migration, &JournalVoucherEntry{})
-	m.JournalVoucherEntryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.JournalVoucherEntryManager = services.NewRepository(services.RepositoryParams[
 		JournalVoucherEntry, JournalVoucherEntryResponse, JournalVoucherEntryRequest,
 	]{
 		Preloads: []string{

@@ -6,7 +6,7 @@ import (
 	"sort"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -103,7 +103,7 @@ type (
 
 func (m *ModelCore) generalLedgerDefinition() {
 	m.Migration = append(m.Migration, &GeneralLedgerDefinition{})
-	m.GeneralLedgerDefinitionManager = horizon_services.NewRepository(horizon_services.RepositoryParams[GeneralLedgerDefinition, GeneralLedgerDefinitionResponse, GeneralLedgerDefinitionRequest]{
+	m.GeneralLedgerDefinitionManager = services.NewRepository(services.RepositoryParams[GeneralLedgerDefinition, GeneralLedgerDefinitionResponse, GeneralLedgerDefinitionRequest]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
 			"Accounts",

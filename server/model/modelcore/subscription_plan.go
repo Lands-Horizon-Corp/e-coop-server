@@ -6,7 +6,7 @@ import (
 	"math"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
@@ -6614,7 +6614,7 @@ func (m *ModelCore) subscriptionPlanSeed(ctx context.Context) error {
 // SubscriptionPlan initializes the subscription plan model and its repository manager
 func (m *ModelCore) subscriptionPlan() {
 	m.Migration = append(m.Migration, &SubscriptionPlan{})
-	m.SubscriptionPlanManager = horizon_services.NewRepository(horizon_services.RepositoryParams[SubscriptionPlan, SubscriptionPlanResponse, SubscriptionPlanRequest]{
+	m.SubscriptionPlanManager = services.NewRepository(services.RepositoryParams[SubscriptionPlan, SubscriptionPlanResponse, SubscriptionPlanRequest]{
 		Preloads: []string{"Currency"},
 		Service:  m.provider.Service,
 		Resource: func(sp *SubscriptionPlan) *SubscriptionPlanResponse {

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -68,7 +68,7 @@ type (
 
 func (m *ModelCore) generatedReport() {
 	m.Migration = append(m.Migration, &GeneratedReport{})
-	m.GeneratedReportManager = horizon_services.NewRepository(horizon_services.RepositoryParams[GeneratedReport, GeneratedReportResponse, GeneratedReportRequest]{
+	m.GeneratedReportManager = services.NewRepository(services.RepositoryParams[GeneratedReport, GeneratedReportResponse, GeneratedReportRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Organization", "Branch", "User", "Media"},
 		Service:  m.provider.Service,
 		Resource: func(data *GeneratedReport) *GeneratedReportResponse {

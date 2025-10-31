@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -68,7 +68,7 @@ type (
 
 func (m *ModelCore) funds() {
 	m.Migration = append(m.Migration, &Funds{})
-	m.FundsManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Funds, FundsResponse, FundsRequest]{
+	m.FundsManager = services.NewRepository(services.RepositoryParams[Funds, FundsResponse, FundsRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Account"},
 		Service:  m.provider.Service,
 		Resource: func(data *Funds) *FundsResponse {

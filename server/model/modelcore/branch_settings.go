@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -198,7 +198,7 @@ type (
 
 func (m *ModelCore) branchSetting() {
 	m.Migration = append(m.Migration, &BranchSetting{})
-	m.BranchSettingManager = horizon_services.NewRepository(horizon_services.RepositoryParams[BranchSetting, BranchSettingResponse, BranchSettingRequest]{
+	m.BranchSettingManager = services.NewRepository(services.RepositoryParams[BranchSetting, BranchSettingResponse, BranchSettingRequest]{
 		Preloads: []string{
 			"Branch",
 			"Currency",

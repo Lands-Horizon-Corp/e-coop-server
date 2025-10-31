@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -65,7 +65,7 @@ type (
 
 func (m *ModelCore) finesMaturity() {
 	m.Migration = append(m.Migration, &FinesMaturity{})
-	m.FinesMaturityManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.FinesMaturityManager = services.NewRepository(services.RepositoryParams[
 		FinesMaturity, FinesMaturityResponse, FinesMaturityRequest,
 	]{
 		Preloads: []string{

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -43,7 +43,7 @@ type (
 // Notification initializes the Notification model and its repository manager
 func (m *ModelCore) notification() {
 	m.Migration = append(m.Migration, &Notification{})
-	m.NotificationManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Notification, NotificationResponse, any]{
+	m.NotificationManager = services.NewRepository(services.RepositoryParams[Notification, NotificationResponse, any]{
 		Preloads: nil,
 		Service:  m.provider.Service,
 		Resource: func(data *Notification) *NotificationResponse {

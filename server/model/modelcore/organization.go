@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -161,7 +161,7 @@ type (
 // Organization initializes the Organization model and its repository manager
 func (m *ModelCore) organization() {
 	m.Migration = append(m.Migration, &Organization{})
-	m.OrganizationManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Organization, OrganizationResponse, OrganizationRequest]{
+	m.OrganizationManager = services.NewRepository(services.RepositoryParams[Organization, OrganizationResponse, OrganizationRequest]{
 		Preloads: []string{"Media", "CoverMedia",
 			"SubscriptionPlan", "Branches",
 			"OrganizationCategories", "OrganizationMedias", "OrganizationMedias.Media",
@@ -241,8 +241,8 @@ func (m *ModelCore) organization() {
 
 // GetPublicOrganization retrieves all organizations marked as public
 func (m *ModelCore) getPublicOrganization(ctx context.Context) ([]*Organization, error) {
-	filters := []horizon_services.Filter{
-		{Field: "is_private", Op: horizon_services.OpEq, Value: false},
+	filters := []services.Filter{
+		{Field: "is_private", Op: services.OpEq, Value: false},
 	}
 	organizations, err := m.OrganizationManager.FindWithFilters(ctx, filters, "OrganizationCategories", "OrganizationCategories.Category")
 	if err != nil {
@@ -258,10 +258,10 @@ func (m *ModelCore) getFeaturedOrganization(ctx context.Context) ([]*Organizatio
 	// 2. Have a cover media (more visually appealing)
 	// 3. Have multiple branches (indicates established organization)
 	// 4. Have a description (complete profile)
-	filters := []horizon_services.Filter{
-		{Field: "is_private", Op: horizon_services.OpEq, Value: false},
-		{Field: "cover_media_id", Op: horizon_services.OpNotNull, Value: nil},
-		{Field: "description", Op: horizon_services.OpNotNull, Value: nil},
+	filters := []services.Filter{
+		{Field: "is_private", Op: services.OpEq, Value: false},
+		{Field: "cover_media_id", Op: services.OpNotNull, Value: nil},
+		{Field: "description", Op: services.OpNotNull, Value: nil},
 	}
 
 	// Use a custom query to include organizations with multiple branches
@@ -317,9 +317,9 @@ func (m *ModelCore) getOrganizationsByCategoryID(ctx context.Context, categoryID
 // GetRecentlyAddedOrganization retrieves organizations that were created within the last 30 days
 func (m *ModelCore) getRecentlyAddedOrganization(ctx context.Context) ([]*Organization, error) {
 	thirtyDaysAgo := time.Now().AddDate(0, 0, -30)
-	filters := []horizon_services.Filter{
-		{Field: "is_private", Op: horizon_services.OpEq, Value: false},
-		{Field: "created_at", Op: horizon_services.OpGte, Value: thirtyDaysAgo},
+	filters := []services.Filter{
+		{Field: "is_private", Op: services.OpEq, Value: false},
+		{Field: "created_at", Op: services.OpGte, Value: thirtyDaysAgo},
 	}
 	organizations, err := m.OrganizationManager.FindWithFilters(ctx, filters)
 	if err != nil {

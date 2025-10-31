@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -82,7 +82,7 @@ type (
 
 func (m *ModelCore) batchFunding() {
 	m.Migration = append(m.Migration, &BatchFunding{})
-	m.BatchFundingManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.BatchFundingManager = services.NewRepository(services.RepositoryParams[
 		BatchFunding, BatchFundingResponse, BatchFundingRequest,
 	]{
 		Preloads: []string{

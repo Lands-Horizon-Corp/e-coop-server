@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -69,7 +69,7 @@ type (
 // MemberVerification initializes the MemberVerification model and its repository manager
 func (m *ModelCore) memberVerification() {
 	m.Migration = append(m.Migration, &MemberVerification{})
-	m.MemberVerificationManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberVerification, MemberVerificationResponse, MemberVerificationRequest]{
+	m.MemberVerificationManager = services.NewRepository(services.RepositoryParams[MemberVerification, MemberVerificationResponse, MemberVerificationRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile", "VerifiedByUser"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberVerification) *MemberVerificationResponse {

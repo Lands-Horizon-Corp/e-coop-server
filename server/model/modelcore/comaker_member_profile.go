@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -78,7 +78,7 @@ type (
 
 func (m *ModelCore) comakerMemberProfile() {
 	m.Migration = append(m.Migration, &ComakerMemberProfile{})
-	m.ComakerMemberProfileManager = horizon_services.NewRepository(horizon_services.RepositoryParams[ComakerMemberProfile, ComakerMemberProfileResponse, ComakerMemberProfileRequest]{
+	m.ComakerMemberProfileManager = services.NewRepository(services.RepositoryParams[ComakerMemberProfile, ComakerMemberProfileResponse, ComakerMemberProfileRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "LoanTransaction", "MemberProfile"},
 		Service:  m.provider.Service,
 		Resource: func(data *ComakerMemberProfile) *ComakerMemberProfileResponse {

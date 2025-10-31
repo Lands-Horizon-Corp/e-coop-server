@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -65,7 +65,7 @@ type (
 
 func (m *ModelCore) memberTypeReferenceInterestRateByUltimaMembershipDatePerYear() {
 	m.Migration = append(m.Migration, &MemberTypeReferenceInterestRateByUltimaMembershipDatePerYear{})
-	m.MemberTypeReferenceInterestRateByUltimaMembershipDatePerYearManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.MemberTypeReferenceInterestRateByUltimaMembershipDatePerYearManager = services.NewRepository(services.RepositoryParams[
 		MemberTypeReferenceInterestRateByUltimaMembershipDatePerYear,
 		MemberTypeReferenceInterestRateByUltimaMembershipDatePerYearResponse,
 		MemberTypeReferenceInterestRateByUltimaMembershipDatePerYearRequest,

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -85,7 +85,7 @@ type (
 
 func (m *ModelCore) browseExcludeIncludeAccounts() {
 	m.Migration = append(m.Migration, &BrowseExcludeIncludeAccounts{})
-	m.BrowseExcludeIncludeAccountsManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.BrowseExcludeIncludeAccountsManager = services.NewRepository(services.RepositoryParams[
 		BrowseExcludeIncludeAccounts, BrowseExcludeIncludeAccountsResponse, BrowseExcludeIncludeAccountsRequest,
 	]{
 		Preloads: []string{

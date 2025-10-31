@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -65,7 +65,7 @@ type (
 // VoucherPayTo initializes the voucher pay to repository and sets up migration
 func (m *ModelCore) voucherPayTo() {
 	m.Migration = append(m.Migration, &VoucherPayTo{})
-	m.VoucherPayToManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.VoucherPayToManager = services.NewRepository(services.RepositoryParams[
 		VoucherPayTo, VoucherPayToResponse, VoucherPayToRequest,
 	]{
 		Preloads: []string{

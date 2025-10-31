@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -72,7 +72,7 @@ type (
 
 func (m *ModelCore) memberProfileMedia() {
 	m.Migration = append(m.Migration, &MemberProfileMedia{})
-	m.MemberProfileMediaManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberProfileMedia, MemberProfileMediaResponse, MemberProfileMediaRequest]{
+	m.MemberProfileMediaManager = services.NewRepository(services.RepositoryParams[MemberProfileMedia, MemberProfileMediaResponse, MemberProfileMediaRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Media", "MemberProfile"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberProfileMedia) *MemberProfileMediaResponse {

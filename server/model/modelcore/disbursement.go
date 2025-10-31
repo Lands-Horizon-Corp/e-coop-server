@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
@@ -66,7 +66,7 @@ type (
 
 func (m *ModelCore) disbursement() {
 	m.Migration = append(m.Migration, &Disbursement{})
-	m.DisbursementManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.DisbursementManager = services.NewRepository(services.RepositoryParams[
 		Disbursement, DisbursementResponse, DisbursementRequest,
 	]{
 		Preloads: []string{

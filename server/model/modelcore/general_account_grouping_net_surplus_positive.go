@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -68,7 +68,7 @@ type (
 
 func (m *ModelCore) generalAccountGroupingNetSurplusPositive() {
 	m.Migration = append(m.Migration, &GeneralAccountGroupingNetSurplusPositive{})
-	m.GeneralAccountGroupingNetSurplusPositiveManager = horizon_services.NewRepository(horizon_services.RepositoryParams[GeneralAccountGroupingNetSurplusPositive, GeneralAccountGroupingNetSurplusPositiveResponse, GeneralAccountGroupingNetSurplusPositiveRequest]{
+	m.GeneralAccountGroupingNetSurplusPositiveManager = services.NewRepository(services.RepositoryParams[GeneralAccountGroupingNetSurplusPositive, GeneralAccountGroupingNetSurplusPositiveResponse, GeneralAccountGroupingNetSurplusPositiveRequest]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Account",
 		},
