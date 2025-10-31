@@ -25,7 +25,7 @@ if err := database.Start(ctx); err != nil {
 }
 */
 
-// SQLDatabase defines the interface for PostgreSQL operations
+// SQLDatabaseService defines the interface for PostgreSQL operations
 type SQLDatabaseService interface {
 	// Start initializes the connection pool with the database
 	Run(ctx context.Context) error
