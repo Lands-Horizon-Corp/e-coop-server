@@ -33,7 +33,7 @@ func NewTransactionService(model *model_core.ModelCore) (*TransactionService, er
 
 // ComputeTotalBalance calculates the total credit, debit, and balance
 // from a slice of general ledger entries.
-func (t *TransactionService) ComputeTotalBalance(context context.Context, generalLedgers []*model_core.GeneralLedger) (credit, debit, balance float64, err error) {
+func (t *TransactionService) ComputeTotalBalance(_ context.Context, generalLedgers []*model_core.GeneralLedger) (credit, debit, balance float64, err error) {
 	for _, gl := range generalLedgers {
 		if gl == nil {
 			return 0, 0, 0, eris.New("nil general ledger")

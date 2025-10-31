@@ -12,6 +12,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/model_core"
 )
 
+// ExchangeResult represents the result of a currency exchange operation
 type ExchangeResult struct {
 	From      string    `json:"from"`
 	To        string    `json:"to"`
@@ -41,6 +42,7 @@ func fetchJSON(url string) (map[string]any, error) {
 	return data, nil
 }
 
+// GetExchangeRate fetches the current exchange rate and converts the given amount between currencies
 func GetExchangeRate(currencyFrom, currencyTo string, amount float64) (*ExchangeResult, error) {
 	base := strings.ToLower(currencyFrom)
 	target := strings.ToLower(currencyTo)
@@ -84,6 +86,7 @@ func GetExchangeRate(currencyFrom, currencyTo string, amount float64) (*Exchange
 	return result, nil
 }
 
+// ExchangeRateComputeAmount computes the exchange rate and converts amount between two currencies
 func (s *TransactionService) ExchangeRateComputeAmount(
 	fromCurrency model_core.Currency,
 	toCurrency model_core.Currency,

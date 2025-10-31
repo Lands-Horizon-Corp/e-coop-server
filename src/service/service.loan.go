@@ -9,6 +9,7 @@ import (
 	"github.com/rotisserie/eris"
 )
 
+// LoanChargesRateComputation calculates the loan charges based on the rate scheme and loan transaction
 func (t *TransactionService) LoanChargesRateComputation(ctx context.Context, crs model_core.ChargesRateScheme, ald model_core.LoanTransaction) float64 {
 
 	result := 0.0
@@ -214,6 +215,7 @@ func (t *TransactionService) LoanChargesRateComputation(ctx context.Context, crs
 	return result
 }
 
+// LoanNumberOfPayments calculates the total number of payments for a loan based on terms and payment mode
 func (t *TransactionService) LoanNumberOfPayments(ctx context.Context, lt *model_core.LoanTransaction) (int, error) {
 	switch lt.ModeOfPayment {
 	case model_core.LoanModeOfPaymentDaily:
@@ -239,6 +241,7 @@ func (t *TransactionService) LoanNumberOfPayments(ctx context.Context, lt *model
 	return 0, eris.New("not implemented yet")
 }
 
+// LoanComputation calculates the loan amount after applying automatic loan deduction rules
 func (t *TransactionService) LoanComputation(ctx context.Context, ald model_core.AutomaticLoanDeduction, lt model_core.LoanTransaction) float64 {
 	result := lt.Applied1
 	// --- Min/Max check ---
@@ -290,6 +293,7 @@ func (t *TransactionService) LoanComputation(ctx context.Context, ald model_core
 	return result
 }
 
+// LoanModeOfPayment calculates the payment amount per period based on loan terms and mode of payment
 func (t *TransactionService) LoanModeOfPayment(ctx context.Context, lt *model_core.LoanTransaction) (float64, error) {
 	switch lt.ModeOfPayment {
 	case model_core.LoanModeOfPaymentDaily:
@@ -318,8 +322,9 @@ func (t *TransactionService) LoanModeOfPayment(ctx context.Context, lt *model_co
 	return 0, eris.New("not implemented yet")
 }
 
+// SuggestedNumberOfTerms calculates the suggested number of terms for a loan based on payment amount and other factors
 func (t *TransactionService) SuggestedNumberOfTerms(
-	ctx context.Context,
+	_ context.Context,
 	suggestedAmount float64,
 	principal float64,
 	modeOfPayment model_core.LoanModeOfPayment,
