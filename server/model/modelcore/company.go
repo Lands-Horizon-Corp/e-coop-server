@@ -132,6 +132,10 @@ func (m *ModelCore) companySeed(context context.Context, tx *gorm.DB, userID uui
 	if err != nil {
 		return eris.Wrapf(err, "failed to get organization by ID: %s", organizationID)
 	}
+	currency, err := m.CurrencyFindByAlpha2(context, branch.CountryCode)
+	if err != nil {
+		return eris.Wrap(err, "failed to find currency for account seeding")
+	}
 	companies := []*Company{
 		{
 			CreatedAt:      now,
@@ -143,7 +147,8 @@ func (m *ModelCore) companySeed(context context.Context, tx *gorm.DB, userID uui
 			Name:           fmt.Sprintf("%s - %s", organization.Name, branch.Name),
 			Description:    fmt.Sprintf("The main company of %s located at %s, %s", organization.Name, branch.Address, branch.City),
 		},
-		// Major Corporations
+
+		// Technology Companies
 		{
 			CreatedAt:      now,
 			UpdatedAt:      now,
@@ -151,8 +156,8 @@ func (m *ModelCore) companySeed(context context.Context, tx *gorm.DB, userID uui
 			UpdatedByID:    userID,
 			OrganizationID: organizationID,
 			BranchID:       branchID,
-			Name:           "San Miguel Corporation",
-			Description:    "One of the Philippines' largest and most diversified conglomerates.",
+			Name:           "Apple Inc.",
+			Description:    "American multinational technology company known for iPhone, Mac, and other consumer electronics.",
 		},
 		{
 			CreatedAt:      now,
@@ -161,8 +166,8 @@ func (m *ModelCore) companySeed(context context.Context, tx *gorm.DB, userID uui
 			UpdatedByID:    userID,
 			OrganizationID: organizationID,
 			BranchID:       branchID,
-			Name:           "Ayala Corporation",
-			Description:    "The oldest and largest conglomerate in the Philippines.",
+			Name:           "Microsoft Corporation",
+			Description:    "Global leader in software, cloud computing, and technology services.",
 		},
 		{
 			CreatedAt:      now,
@@ -171,8 +176,8 @@ func (m *ModelCore) companySeed(context context.Context, tx *gorm.DB, userID uui
 			UpdatedByID:    userID,
 			OrganizationID: organizationID,
 			BranchID:       branchID,
-			Name:           "SM Investments Corporation",
-			Description:    "One of the Philippines' leading investment holding companies.",
+			Name:           "Google LLC (Alphabet Inc.)",
+			Description:    "Multinational conglomerate specializing in internet-related products and services.",
 		},
 		{
 			CreatedAt:      now,
@@ -181,8 +186,8 @@ func (m *ModelCore) companySeed(context context.Context, tx *gorm.DB, userID uui
 			UpdatedByID:    userID,
 			OrganizationID: organizationID,
 			BranchID:       branchID,
-			Name:           "JG Summit Holdings",
-			Description:    "A diversified conglomerate with interests in petrochemicals, food, retail, and more.",
+			Name:           "Amazon.com, Inc.",
+			Description:    "Global e-commerce, cloud computing, and AI company headquartered in Seattle.",
 		},
 		{
 			CreatedAt:      now,
@@ -191,8 +196,20 @@ func (m *ModelCore) companySeed(context context.Context, tx *gorm.DB, userID uui
 			UpdatedByID:    userID,
 			OrganizationID: organizationID,
 			BranchID:       branchID,
-			Name:           "Aboitiz Equity Ventures",
-			Description:    "A diversified holding company with interests in power, banking, food, and infrastructure.",
+			Name:           "Meta Platforms, Inc.",
+			Description:    "Parent company of Facebook, Instagram, and WhatsApp.",
+		},
+
+		// Automotive Companies
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Toyota Motor Corporation",
+			Description:    "Japanese multinational automotive manufacturer and world leader in hybrid vehicles.",
 		},
 		{
 			CreatedAt:      now,
@@ -201,9 +218,62 @@ func (m *ModelCore) companySeed(context context.Context, tx *gorm.DB, userID uui
 			UpdatedByID:    userID,
 			OrganizationID: organizationID,
 			BranchID:       branchID,
-			Name:           "Petron Corporation",
-			Description:    "The largest oil refining and marketing company in the Philippines.",
+			Name:           "Tesla, Inc.",
+			Description:    "American company specializing in electric vehicles and clean energy products.",
 		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Volkswagen Group",
+			Description:    "German multinational automotive manufacturer owning Audi, Porsche, and Lamborghini.",
+		},
+
+		// Finance & Banking
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "JPMorgan Chase & Co.",
+			Description:    "Largest bank in the United States by assets, offering global financial services.",
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "HSBC Holdings plc",
+			Description:    "British multinational bank serving customers in over 60 countries.",
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Mastercard Incorporated",
+			Description:    "Global payment technology company connecting consumers, financial institutions, and merchants.",
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Visa Inc.",
+			Description:    "Global leader in digital payments and financial technology.",
+		},
+
 		// Telecommunications
 		{
 			CreatedAt:      now,
@@ -212,8 +282,8 @@ func (m *ModelCore) companySeed(context context.Context, tx *gorm.DB, userID uui
 			UpdatedByID:    userID,
 			OrganizationID: organizationID,
 			BranchID:       branchID,
-			Name:           "Philippine Long Distance Telephone Company (PLDT)",
-			Description:    "The leading telecommunications company in the Philippines.",
+			Name:           "AT&T Inc.",
+			Description:    "American multinational telecommunications and media company.",
 		},
 		{
 			CreatedAt:      now,
@@ -222,8 +292,20 @@ func (m *ModelCore) companySeed(context context.Context, tx *gorm.DB, userID uui
 			UpdatedByID:    userID,
 			OrganizationID: organizationID,
 			BranchID:       branchID,
-			Name:           "Globe Telecom",
-			Description:    "A major telecommunications company providing mobile, fixed line, and broadband services.",
+			Name:           "Verizon Communications Inc.",
+			Description:    "One of the largest telecommunications companies in the world.",
+		},
+
+		// Energy Companies
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "ExxonMobil Corporation",
+			Description:    "American multinational oil and gas corporation.",
 		},
 		{
 			CreatedAt:      now,
@@ -232,8 +314,8 @@ func (m *ModelCore) companySeed(context context.Context, tx *gorm.DB, userID uui
 			UpdatedByID:    userID,
 			OrganizationID: organizationID,
 			BranchID:       branchID,
-			Name:           "Smart Communications (PLDT)",
-			Description:    "Leading mobile telecommunications provider in the Philippines.",
+			Name:           "Shell plc",
+			Description:    "Global energy and petrochemical company headquartered in London.",
 		},
 		{
 			CreatedAt:      now,
@@ -242,10 +324,11 @@ func (m *ModelCore) companySeed(context context.Context, tx *gorm.DB, userID uui
 			UpdatedByID:    userID,
 			OrganizationID: organizationID,
 			BranchID:       branchID,
-			Name:           "Converge ICT Solutions",
-			Description:    "Major fiber internet service provider in the Philippines.",
+			Name:           "BP (British Petroleum)",
+			Description:    "Multinational oil and gas company based in the United Kingdom.",
 		},
-		// Food & Restaurant
+
+		// Food & Consumer Goods
 		{
 			CreatedAt:      now,
 			UpdatedAt:      now,
@@ -253,19 +336,8 @@ func (m *ModelCore) companySeed(context context.Context, tx *gorm.DB, userID uui
 			UpdatedByID:    userID,
 			OrganizationID: organizationID,
 			BranchID:       branchID,
-			Name:           "Jollibee Foods Corporation",
-			Description:    "The largest fast food chain in the Philippines with international presence.",
-		},
-		// Electricity/Power Companies
-		{
-			CreatedAt:      now,
-			UpdatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-			Name:           "Manila Electric Company (MERALCO)",
-			Description:    "The largest electric distribution company in the Philippines serving Metro Manila and surrounding provinces.",
+			Name:           "Nestlé S.A.",
+			Description:    "Swiss multinational food and beverage company, the largest in the world by revenue.",
 		},
 		{
 			CreatedAt:      now,
@@ -274,8 +346,8 @@ func (m *ModelCore) companySeed(context context.Context, tx *gorm.DB, userID uui
 			UpdatedByID:    userID,
 			OrganizationID: organizationID,
 			BranchID:       branchID,
-			Name:           "Cebu Electric Cooperative (CEBECO)",
-			Description:    "Electric distribution utility serving Cebu province and surrounding areas.",
+			Name:           "The Coca-Cola Company",
+			Description:    "American beverage corporation known for its flagship soft drink brand Coca-Cola.",
 		},
 		{
 			CreatedAt:      now,
@@ -284,8 +356,8 @@ func (m *ModelCore) companySeed(context context.Context, tx *gorm.DB, userID uui
 			UpdatedByID:    userID,
 			OrganizationID: organizationID,
 			BranchID:       branchID,
-			Name:           "Davao Light & Power Company",
-			Description:    "Electric utility company serving Davao City and nearby municipalities.",
+			Name:           "PepsiCo, Inc.",
+			Description:    "Multinational food, snack, and beverage corporation.",
 		},
 		{
 			CreatedAt:      now,
@@ -294,10 +366,11 @@ func (m *ModelCore) companySeed(context context.Context, tx *gorm.DB, userID uui
 			UpdatedByID:    userID,
 			OrganizationID: organizationID,
 			BranchID:       branchID,
-			Name:           "Aboitiz Power Corporation",
-			Description:    "One of the largest power generation companies in the Philippines.",
+			Name:           "Unilever PLC",
+			Description:    "British-Dutch multinational consumer goods company known for Dove, Lifebuoy, and Knorr.",
 		},
-		// Water Companies
+
+		// Education & Research
 		{
 			CreatedAt:      now,
 			UpdatedAt:      now,
@@ -305,18 +378,8 @@ func (m *ModelCore) companySeed(context context.Context, tx *gorm.DB, userID uui
 			UpdatedByID:    userID,
 			OrganizationID: organizationID,
 			BranchID:       branchID,
-			Name:           "Manila Water Company",
-			Description:    "Water and wastewater services provider serving the East Zone of Metro Manila.",
-		},
-		{
-			CreatedAt:      now,
-			UpdatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-			Name:           "Maynilad Water Services",
-			Description:    "Water and wastewater services provider serving the West Zone of Metro Manila.",
+			Name:           "Harvard University",
+			Description:    "Private Ivy League research university in Cambridge, Massachusetts.",
 		},
 		{
 			CreatedAt:      now,
@@ -325,8 +388,8 @@ func (m *ModelCore) companySeed(context context.Context, tx *gorm.DB, userID uui
 			UpdatedByID:    userID,
 			OrganizationID: organizationID,
 			BranchID:       branchID,
-			Name:           "Metropolitan Cebu Water District (MCWD)",
-			Description:    "Water utility serving Metro Cebu and surrounding areas.",
+			Name:           "Massachusetts Institute of Technology (MIT)",
+			Description:    "World-renowned research university focused on science and technology.",
 		},
 		{
 			CreatedAt:      now,
@@ -335,10 +398,11 @@ func (m *ModelCore) companySeed(context context.Context, tx *gorm.DB, userID uui
 			UpdatedByID:    userID,
 			OrganizationID: organizationID,
 			BranchID:       branchID,
-			Name:           "Davao City Water District (DCWD)",
-			Description:    "Water utility company serving Davao City and nearby areas.",
+			Name:           "Stanford University",
+			Description:    "Private research university in Stanford, California, known for innovation and entrepreneurship.",
 		},
-		// Cable/Internet/TV
+
+		// Starlink and cables
 		{
 			CreatedAt:      now,
 			UpdatedAt:      now,
@@ -346,29 +410,8 @@ func (m *ModelCore) companySeed(context context.Context, tx *gorm.DB, userID uui
 			UpdatedByID:    userID,
 			OrganizationID: organizationID,
 			BranchID:       branchID,
-			Name:           "Sky Cable Corporation",
-			Description:    "Leading cable television and internet service provider in the Philippines.",
-		},
-		{
-			CreatedAt:      now,
-			UpdatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-			Name:           "Cignal TV",
-			Description:    "Digital satellite television service provider in the Philippines.",
-		},
-		// Insurance Companies
-		{
-			CreatedAt:      now,
-			UpdatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-			Name:           "Philippine Health Insurance Corporation (PhilHealth)",
-			Description:    "Government-owned and controlled corporation providing health insurance coverage.",
+			Name:           "SpaceX",
+			Description:    "Aerospace manufacturer and space transport services company founded by Elon Musk.",
 		},
 		{
 			CreatedAt:      now,
@@ -377,134 +420,416 @@ func (m *ModelCore) companySeed(context context.Context, tx *gorm.DB, userID uui
 			UpdatedByID:    userID,
 			OrganizationID: organizationID,
 			BranchID:       branchID,
-			Name:           "Sun Life of Canada (Philippines)",
-			Description:    "Leading life insurance and financial services company.",
-		},
-		{
-			CreatedAt:      now,
-			UpdatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-			Name:           "Pru Life UK",
-			Description:    "Life insurance company offering various insurance and investment products.",
-		},
-		// Government/Public Services
-		{
-			CreatedAt:      now,
-			UpdatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-			Name:           "Social Security System (SSS)",
-			Description:    "Government agency providing social security protection to private sector workers.",
-		},
-		{
-			CreatedAt:      now,
-			UpdatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-			Name:           "Pag-IBIG Fund (HDMF)",
-			Description:    "Government agency providing housing loans and savings programs.",
-		},
-		{
-			CreatedAt:      now,
-			UpdatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-			Name:           "Bureau of Internal Revenue (BIR)",
-			Description:    "Government agency responsible for tax collection and administration.",
-		},
-		// Credit Card/Financial Services
-		{
-			CreatedAt:      now,
-			UpdatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-			Name:           "Citibank Philippines",
-			Description:    "International bank providing credit cards and financial services.",
-		},
-		{
-			CreatedAt:      now,
-			UpdatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-			Name:           "HSBC Philippines",
-			Description:    "International bank offering credit cards, loans, and banking services.",
-		},
-		// Property Management/Maintenance
-		{
-			CreatedAt:      now,
-			UpdatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-			Name:           "Ayala Land Premier",
-			Description:    "Property management company handling condominium and residential maintenance.",
-		},
-		{
-			CreatedAt:      now,
-			UpdatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-			Name:           "DMCI Homes Property Management",
-			Description:    "Property management services for residential and commercial buildings.",
-		},
-		{
-			CreatedAt:      now,
-			UpdatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-			Name:           "Rockwell Land Corporation",
-			Description:    "Premium property developer and property management services.",
-		},
-		// Schools/Educational Institutions
-		{
-			CreatedAt:      now,
-			UpdatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-			Name:           "Ateneo de Manila University",
-			Description:    "Private Catholic research university offering various academic programs.",
-		},
-		{
-			CreatedAt:      now,
-			UpdatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-			Name:           "De La Salle University",
-			Description:    "Private Catholic university known for business and engineering programs.",
-		},
-		{
-			CreatedAt:      now,
-			UpdatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-			Name:           "University of the Philippines",
-			Description:    "Premier state university system in the Philippines.",
+			Name:           "Starlink",
+			Description:    "Satellite internet constellation being constructed by SpaceX.",
 		},
 	}
+
+	switch currency.CurrencyCode {
+	case "USD": // United States
+		companies = append(companies,
+			// Electricity / Energy Companies
+			&Company{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "Pacific Gas and Electric Company (PG&E)",
+				Description:    "One of the largest combined natural gas and electric utilities in the United States, serving Northern and Central California.",
+			},
+			&Company{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "Duke Energy Corporation",
+				Description:    "Major electric power holding company serving customers in the Southeast and Midwest United States.",
+			},
+			&Company{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "Consolidated Edison, Inc. (Con Edison)",
+				Description:    "Provides electric, gas, and steam service in New York City and Westchester County.",
+			},
+			&Company{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "Florida Power & Light Company (FPL)",
+				Description:    "The largest electric utility in Florida, providing power to over 5 million customer accounts.",
+			},
+
+			// Water Utilities
+			&Company{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "American Water Works Company, Inc.",
+				Description:    "Largest publicly traded U.S. water and wastewater utility company, serving 14 million people across 24 states.",
+			},
+			&Company{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "Aqua America (Essential Utilities)",
+				Description:    "Provides water and wastewater services to communities in eight U.S. states.",
+			},
+			&Company{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "California Water Service (Cal Water)",
+				Description:    "Provides regulated and reliable water services to California communities.",
+			},
+
+			// Internet / Cable / Telecom
+			&Company{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "Comcast Xfinity",
+				Description:    "One of the largest cable television and internet service providers in the U.S.",
+			},
+			&Company{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "AT&T Internet",
+				Description:    "Major internet and telecommunications service provider in the United States.",
+			},
+			&Company{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "Verizon Fios",
+				Description:    "Fiber-optic internet, TV, and phone service operated by Verizon Communications.",
+			},
+			&Company{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "Spectrum (Charter Communications)",
+				Description:    "Cable television, internet, and phone provider serving millions across the U.S.",
+			},
+
+			// Gas Companies
+			&Company{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "Southern California Gas Company (SoCalGas)",
+				Description:    "The largest natural gas distribution utility in the United States.",
+			},
+			&Company{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "National Grid USA",
+				Description:    "Provides natural gas and electricity distribution services in the Northeastern United States.",
+			},
+
+			// Waste Management
+			&Company{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "Waste Management, Inc.",
+				Description:    "Leading provider of waste collection, disposal, and recycling services across the U.S.",
+			},
+			&Company{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "Republic Services, Inc.",
+				Description:    "Environmental services company providing waste collection and recycling solutions nationwide.",
+			},
+		)
+
+	case "EUR": // European Union (Germany as representative)
+		companies = append(companies,
+			&Company{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "E.ON SE",
+				Description:    "One of Europe's largest electric utility service providers headquartered in Essen, Germany.",
+			},
+			&Company{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "Deutsche Telekom AG",
+				Description:    "Major telecommunications company providing internet, mobile, and landline services across Europe.",
+			},
+			&Company{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "Berliner Wasserbetriebe",
+				Description:    "The largest water supply and wastewater disposal company in Germany, serving Berlin and surrounding areas.",
+			},
+			&Company{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "Vodafone GmbH",
+				Description:    "Leading broadband, cable TV, and mobile communications provider based in Düsseldorf, Germany.",
+			},
+			&Company{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "RWE AG",
+				Description:    "Energy company focused on electricity generation, renewable energy, and trading headquartered in Essen.",
+			},
+		)
+
+	case "JPY": // Japan
+		companies = append(companies,
+			&Company{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "Tokyo Electric Power Company (TEPCO)",
+				Description:    "Japan's largest electric utility company providing electricity to the Greater Tokyo Area.",
+			},
+			&Company{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "Tokyo Gas Co., Ltd.",
+				Description:    "Japan's largest natural gas utility company supplying energy and related services to households and industries in Tokyo.",
+			},
+			&Company{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "NTT Communications Corporation",
+				Description:    "Major telecommunications and internet service provider under Nippon Telegraph and Telephone Corporation.",
+			},
+			&Company{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "SoftBank Corp.",
+				Description:    "Leading Japanese telecom and internet company providing mobile, broadband, and enterprise network services.",
+			},
+			&Company{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "Tokyo Metropolitan Waterworks Bureau",
+				Description:    "Official public utility providing clean water supply and wastewater management services in Tokyo.",
+			},
+		)
+
+	case "GBP": // United Kingdom
+		companies = append(companies,
+			&Company{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "British Gas",
+				Description:    "The UK's leading energy and home services provider, supplying gas and electricity to millions of households.",
+			},
+			&Company{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "Thames Water",
+				Description:    "The largest water and wastewater services company in the UK, serving London and surrounding areas.",
+			},
+			&Company{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "BT Group plc",
+				Description:    "Formerly British Telecom, BT is one of the UK's main broadband, landline, and TV service providers.",
+			},
+			&Company{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "Virgin Media O2",
+				Description:    "A major telecom and internet provider offering broadband, mobile, and digital TV services across the UK.",
+			},
+			&Company{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "Scottish Power",
+				Description:    "A leading UK energy supplier focusing on renewable electricity generation and green energy solutions.",
+			},
+		)
+
+	case "AUD": // Australia
+	case "CAD": // Canada
+	case "CHF": // Switzerland
+	case "CNY": // China
+	case "SEK": // Sweden
+	case "NZD": // New Zealand
+	case "PHP": // Philippines
+	case "INR": // India
+	case "KRW": // South Korea
+	case "THB": // Thailand
+	case "SGD": // Singapore
+	case "HKD": // Hong Kong
+	case "MYR": // Malaysia
+	case "IDR": // Indonesia
+	case "VND": // Vietnam
+	case "TWD": // Taiwan
+	case "BND": // Brunei
+	case "SAR": // Saudi Arabia
+	case "AED": // United Arab Emirates
+	case "ILS": // Israel
+	case "ZAR": // South Africa
+	case "EGP": // Egypt
+	case "TRY": // Turkey
+	case "XOF": // West African CFA Franc
+	case "XAF": // Central African CFA Franc
+	case "MUR": // Mauritius
+	case "MVR": // Maldives
+	case "NOK": // Norway
+	case "DKK": // Denmark
+	case "PLN": // Poland
+	case "CZK": // Czech Republic
+	case "HUF": // Hungary
+	case "RUB": // Russia
+	case "EUR-HR": // Croatia (Euro)
+	case "BRL": // Brazil
+	case "MXN": // Mexico
+	case "ARS": // Argentina
+	case "CLP": // Chile
+	case "COP": // Colombia
+	case "PEN": // Peru
+	case "UYU": // Uruguay
+	case "DOP": // Dominican Republic
+	case "PYG": // Paraguay
+	case "BOB": // Bolivia
+	case "VES": // Venezuela
+	case "PKR": // Pakistan
+	case "BDT": // Bangladesh
+	case "LKR": // Sri Lanka
+	case "NPR": // Nepal
+	case "MMK": // Myanmar
+	case "KHR": // Cambodia
+	case "LAK": // Laos
+	case "NGN": // Nigeria
+	case "KES": // Kenya
+	case "GHS": // Ghana
+	case "MAD": // Morocco
+	case "TND": // Tunisia
+	case "ETB": // Ethiopia
+	case "DZD": // Algeria
+	case "UAH": // Ukraine
+	case "RON": // Romania
+	case "BGN": // Bulgaria
+	case "RSD": // Serbia
+	case "ISK": // Iceland
+	case "BYN": // Belarus
+	case "FJD": // Fiji
+	case "PGK": // Papua New Guinea
+	case "JMD": // Jamaica
+	case "CRC": // Costa Rica
+	case "GTQ": // Guatemala
+	case "XDR": // Special Drawing Rights (IMF)
+	case "KWD": // Kuwait
+	case "QAR": // Qatar
+	case "OMR": // Oman
+	case "BHD": // Bahrain
+	case "JOD": // Jordan
+	case "KZT": // Kazakhstan
+	}
+
 	for _, data := range companies {
 		if err := m.CompanyManager.CreateWithTx(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to seed company %s", data.Name)
