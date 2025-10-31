@@ -88,13 +88,13 @@ type (
 		FullName            string    `json:"full_name,omitempty"`
 		PassbookNumber      string    `json:"passbook_number,omitempty"`
 		CheckNumber         string    `json:"check_number,omitempty"`
-		CheckDate           time.Time `json:"check_date,omitempty"`
+		CheckDate           time.Time `json:"check_date"`
 		ClearDays           int       `json:"clear_days,omitempty"`
-		DateCleared         time.Time `json:"date_cleared,omitempty"`
+		DateCleared         time.Time `json:"date_cleared"`
 		BankID              uuid.UUID `json:"bank_id,omitempty"`
 		Amount              float64   `json:"amount,omitempty"`
 		ReferenceNumber     string    `json:"reference_number,omitempty"`
-		OfficialReceiptDate time.Time `json:"official_receipt_date,omitempty"`
+		OfficialReceiptDate time.Time `json:"official_receipt_date"`
 		CollateralUserID    uuid.UUID `json:"collateral_user_id,omitempty"`
 		Description         string    `json:"description,omitempty"`
 	}

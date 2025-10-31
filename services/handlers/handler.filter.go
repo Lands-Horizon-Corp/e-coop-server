@@ -277,7 +277,7 @@ func FilterSlice[T any](
 		numWorkers := min(maxWorkers, (end-start+batchSize-1)/batchSize)
 		chunkSize := (end - start + numWorkers - 1) / numWorkers
 
-		for w := 0; w < numWorkers; w++ {
+		for w := range numWorkers {
 			wg.Add(1)
 			workerStart := start + w*chunkSize
 			workerEnd := min(workerStart+chunkSize, end)

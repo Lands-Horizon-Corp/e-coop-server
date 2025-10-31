@@ -197,7 +197,7 @@ func (c *Controller) checkRemittanceController() {
 		RequestType:  modelcore.CheckRemittanceRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		checkRemittanceId, err := handlers.EngineUUIDParam(ctx, "check_remittance_id")
+		checkRemittanceID, err := handlers.EngineUUIDParam(ctx, "check_remittance_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -235,7 +235,7 @@ func (c *Controller) checkRemittanceController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to update check remittances"})
 		}
 
-		existingCheckRemittance, err := c.modelcore.CheckRemittanceManager.GetByID(context, *checkRemittanceId)
+		existingCheckRemittance, err := c.modelcore.CheckRemittanceManager.GetByID(context, *checkRemittanceID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -298,7 +298,7 @@ func (c *Controller) checkRemittanceController() {
 			updatedCheckRemittance.DateEntry = &now
 		}
 
-		if err := c.modelcore.CheckRemittanceManager.UpdateFields(context, *checkRemittanceId, updatedCheckRemittance); err != nil {
+		if err := c.modelcore.CheckRemittanceManager.UpdateFields(context, *checkRemittanceID, updatedCheckRemittance); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Check remittance update failed (/check-remittance/:check_remittance_id), db error: " + err.Error(),
@@ -345,7 +345,7 @@ func (c *Controller) checkRemittanceController() {
 			Module:      "CheckRemittance",
 		})
 
-		updatedRemittance, err := c.modelcore.CheckRemittanceManager.GetByID(context, *checkRemittanceId)
+		updatedRemittance, err := c.modelcore.CheckRemittanceManager.GetByID(context, *checkRemittanceID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated check remittance: " + err.Error()})
 		}
@@ -360,7 +360,7 @@ func (c *Controller) checkRemittanceController() {
 		Note:   "Deletes a check remittance by ID for the current transaction batch. Only 'owner' or 'employee' roles are allowed.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		checkRemittanceId, err := handlers.EngineUUIDParam(ctx, "check_remittance_id")
+		checkRemittanceID, err := handlers.EngineUUIDParam(ctx, "check_remittance_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -388,7 +388,7 @@ func (c *Controller) checkRemittanceController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to delete check remittance"})
 		}
 
-		existingCheckRemittance, err := c.modelcore.CheckRemittanceManager.GetByID(context, *checkRemittanceId)
+		existingCheckRemittance, err := c.modelcore.CheckRemittanceManager.GetByID(context, *checkRemittanceID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -438,7 +438,7 @@ func (c *Controller) checkRemittanceController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Check remittance does not belong to current transaction batch"})
 		}
 
-		if err := c.modelcore.CheckRemittanceManager.DeleteByID(context, *checkRemittanceId); err != nil {
+		if err := c.modelcore.CheckRemittanceManager.DeleteByID(context, *checkRemittanceID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Check remittance delete failed (/check-remittance/:check_remittance_id), db error: " + err.Error(),

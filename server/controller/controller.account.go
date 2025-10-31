@@ -51,7 +51,7 @@ func (c *Controller) accountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
 		}
-		currencyId, err := handlers.EngineUUIDParam(ctx, "currency_id")
+		currencyID, err := handlers.EngineUUIDParam(ctx, "currency_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID: " + err.Error()})
 		}
@@ -61,7 +61,7 @@ func (c *Controller) accountController() {
 		accounts, err := c.modelcore.AccountManager.Find(context, &modelcore.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
-			CurrencyID:     currencyId,
+			CurrencyID:     currencyID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
@@ -110,7 +110,7 @@ func (c *Controller) accountController() {
 		if userOrg.UserType != modelcore.UserOrganizationTypeOwner && userOrg.UserType != modelcore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		currencyId, err := handlers.EngineUUIDParam(ctx, "currency_id")
+		currencyID, err := handlers.EngineUUIDParam(ctx, "currency_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID: " + err.Error()})
 		}
@@ -118,7 +118,7 @@ func (c *Controller) accountController() {
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
 			PaidUpShareCapital: true,
-			CurrencyID:         currencyId,
+			CurrencyID:         currencyID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve cash and cash equivalence accounts: " + err.Error()})
@@ -180,7 +180,7 @@ func (c *Controller) accountController() {
 		if userOrg.UserType != modelcore.UserOrganizationTypeOwner && userOrg.UserType != modelcore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		currencyId, err := handlers.EngineUUIDParam(ctx, "currency_id")
+		currencyID, err := handlers.EngineUUIDParam(ctx, "currency_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID: " + err.Error()})
 		}
@@ -190,7 +190,7 @@ func (c *Controller) accountController() {
 		accounts, err := c.modelcore.AccountManager.Find(context, &modelcore.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
-			CurrencyID:     currencyId,
+			CurrencyID:     currencyID,
 			Type:           modelcore.AccountTypeLoan,
 		})
 		result := []*modelcore.Account{}
@@ -1321,7 +1321,7 @@ func (c *Controller) accountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
 		}
-		currencyId, err := handlers.EngineUUIDParam(ctx, "currency_id")
+		currencyID, err := handlers.EngineUUIDParam(ctx, "currency_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID: " + err.Error()})
 		}
@@ -1331,7 +1331,7 @@ func (c *Controller) accountController() {
 		accounts, err := c.modelcore.AccountManager.Find(context, &modelcore.Account{
 			OrganizationID:                   userOrg.OrganizationID,
 			BranchID:                         *userOrg.BranchID,
-			CurrencyID:                       currencyId,
+			CurrencyID:                       currencyID,
 			ShowInGeneralLedgerSourcePayment: true,
 		})
 		if err != nil {
@@ -1454,7 +1454,7 @@ func (c *Controller) accountController() {
 		if userOrg.UserType != modelcore.UserOrganizationTypeOwner && userOrg.UserType != modelcore.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		currencyId, err := handlers.EngineUUIDParam(ctx, "currency_id")
+		currencyID, err := handlers.EngineUUIDParam(ctx, "currency_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID: " + err.Error()})
 		}
@@ -1462,7 +1462,7 @@ func (c *Controller) accountController() {
 			OrganizationID:         userOrg.OrganizationID,
 			BranchID:               *userOrg.BranchID,
 			CashAndCashEquivalence: true,
-			CurrencyID:             currencyId,
+			CurrencyID:             currencyID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve cash and cash equivalence accounts: " + err.Error()})

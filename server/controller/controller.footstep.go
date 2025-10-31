@@ -191,11 +191,11 @@ func (c *Controller) footstepController() {
 		ResponseType: modelcore.FootstepResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		footstepId, err := handlers.EngineUUIDParam(ctx, "footstep_id")
+		footstepID, err := handlers.EngineUUIDParam(ctx, "footstep_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid footstep ID"})
 		}
-		footstep, err := c.modelcore.FootstepManager.GetByIDRaw(context, *footstepId)
+		footstep, err := c.modelcore.FootstepManager.GetByIDRaw(context, *footstepID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Footstep record not found"})
 		}

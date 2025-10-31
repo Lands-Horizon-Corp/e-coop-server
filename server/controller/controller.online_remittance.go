@@ -197,7 +197,7 @@ func (c *Controller) onlineRemittanceController() {
 		Note:         "Updates an existing online remittance by its ID for the current active transaction batch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		onlineRemittanceId, err := handlers.EngineUUIDParam(ctx, "online_remittance_id")
+		onlineRemittanceID, err := handlers.EngineUUIDParam(ctx, "online_remittance_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -235,7 +235,7 @@ func (c *Controller) onlineRemittanceController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
 
-		existingOnlineRemittance, err := c.modelcore.OnlineRemittanceManager.GetByID(context, *onlineRemittanceId)
+		existingOnlineRemittance, err := c.modelcore.OnlineRemittanceManager.GetByID(context, *onlineRemittanceID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -297,7 +297,7 @@ func (c *Controller) onlineRemittanceController() {
 			existingOnlineRemittance.DateEntry = &now
 		}
 
-		if err := c.modelcore.OnlineRemittanceManager.UpdateFields(context, *onlineRemittanceId, existingOnlineRemittance); err != nil {
+		if err := c.modelcore.OnlineRemittanceManager.UpdateFields(context, *onlineRemittanceID, existingOnlineRemittance); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update online remittance failed: update error: " + err.Error(),
@@ -339,7 +339,7 @@ func (c *Controller) onlineRemittanceController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update transaction batch: " + err.Error()})
 		}
 
-		updatedRemittance, err := c.modelcore.OnlineRemittanceManager.GetByID(context, *onlineRemittanceId)
+		updatedRemittance, err := c.modelcore.OnlineRemittanceManager.GetByID(context, *onlineRemittanceID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -365,7 +365,7 @@ func (c *Controller) onlineRemittanceController() {
 		Note:   "Deletes an online remittance by its ID for the current active transaction batch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		onlineRemittanceId, err := handlers.EngineUUIDParam(ctx, "online_remittance_id")
+		onlineRemittanceID, err := handlers.EngineUUIDParam(ctx, "online_remittance_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -393,7 +393,7 @@ func (c *Controller) onlineRemittanceController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
 
-		existingOnlineRemittance, err := c.modelcore.OnlineRemittanceManager.GetByID(context, *onlineRemittanceId)
+		existingOnlineRemittance, err := c.modelcore.OnlineRemittanceManager.GetByID(context, *onlineRemittanceID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -445,7 +445,7 @@ func (c *Controller) onlineRemittanceController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Online remittance does not belong to current transaction batch"})
 		}
 
-		if err := c.modelcore.OnlineRemittanceManager.DeleteByID(context, *onlineRemittanceId); err != nil {
+		if err := c.modelcore.OnlineRemittanceManager.DeleteByID(context, *onlineRemittanceID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete online remittance failed: delete error: " + err.Error(),

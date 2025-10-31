@@ -66,7 +66,7 @@ func (t *TransactionService) LoanChargesRateComputation(_ context.Context, crs m
 	findLastApplicableRate := func(rates []float64, headers []int, terms int) float64 {
 		lastRate := 0.0
 		minLen := min(len(rates), len(headers))
-		for i := 0; i < minLen; i++ {
+		for i := range minLen {
 			rate := rates[i]
 			term := headers[i]
 			if term > terms || rate <= 0 {

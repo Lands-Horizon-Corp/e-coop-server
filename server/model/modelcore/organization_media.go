@@ -25,7 +25,7 @@ type (
 		Organization   Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE;" json:"organization"`
 
 		MediaID uuid.UUID `gorm:"type:uuid;not null" json:"media_id"`
-		Media   Media     `gorm:"foreignKey:MediaID;constraint:OnDelete:CASCADE;" json:"media,omitempty"`
+		Media   Media     `gorm:"foreignKey:MediaID;constraint:OnDelete:CASCADE;" json:"media"`
 	}
 
 	// OrganizationMediaResponse represents the response structure for organization media data

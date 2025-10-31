@@ -412,7 +412,7 @@ func (c *Controller) holidayController() {
 		Note:         "Returns years with available holiday records for a specific currency for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		currencyId, err := handlers.EngineUUIDParam(ctx, "currency_id")
+		currencyID, err := handlers.EngineUUIDParam(ctx, "currency_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID parameter"})
 		}
@@ -426,7 +426,7 @@ func (c *Controller) holidayController() {
 		holidays, err := c.modelcore.HolidayManager.Find(context, &modelcore.Holiday{
 			OrganizationID: user.OrganizationID,
 			BranchID:       *user.BranchID,
-			CurrencyID:     *currencyId,
+			CurrencyID:     *currencyID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch years with holiday records: " + err.Error()})
@@ -510,8 +510,8 @@ func (c *Controller) holidayController() {
 		Note:         "Returns holiday records for a specific currency for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		currencyId, err := handlers.EngineUUIDParam(ctx, "currency_id")
-		if currencyId == nil {
+		currencyID, err := handlers.EngineUUIDParam(ctx, "currency_id")
+		if currencyID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID parameter"})
 		}
 		if err != nil {
@@ -527,7 +527,7 @@ func (c *Controller) holidayController() {
 		holiday, err := c.modelcore.HolidayManager.Find(context, &modelcore.Holiday{
 			OrganizationID: user.OrganizationID,
 			BranchID:       *user.BranchID,
-			CurrencyID:     *currencyId,
+			CurrencyID:     *currencyID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch holiday records for the currency: " + err.Error()})
@@ -548,8 +548,8 @@ func (c *Controller) holidayController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid year parameter"})
 		}
-		currencyId, err := handlers.EngineUUIDParam(ctx, "currency_id")
-		if currencyId == nil {
+		currencyID, err := handlers.EngineUUIDParam(ctx, "currency_id")
+		if currencyID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID parameter"})
 		}
 		if err != nil {
@@ -565,7 +565,7 @@ func (c *Controller) holidayController() {
 		holiday, err := c.modelcore.HolidayManager.Find(context, &modelcore.Holiday{
 			OrganizationID: user.OrganizationID,
 			BranchID:       *user.BranchID,
-			CurrencyID:     *currencyId,
+			CurrencyID:     *currencyID,
 		})
 		result := []*modelcore.Holiday{}
 		for _, h := range holiday {
@@ -597,8 +597,8 @@ func (c *Controller) holidayController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid source year parameter"})
 		}
-		currencyId, err := handlers.EngineUUIDParam(ctx, "currency_id")
-		if currencyId == nil {
+		currencyID, err := handlers.EngineUUIDParam(ctx, "currency_id")
+		if currencyID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID parameter"})
 		}
 		if err != nil {
@@ -614,7 +614,7 @@ func (c *Controller) holidayController() {
 		holidays, err := c.modelcore.HolidayManager.Find(context, &modelcore.Holiday{
 			OrganizationID: user.OrganizationID,
 			BranchID:       *user.BranchID,
-			CurrencyID:     *currencyId,
+			CurrencyID:     *currencyID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch holiday records for the currency: " + err.Error()})

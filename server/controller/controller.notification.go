@@ -268,7 +268,7 @@ func (c *Controller) notificationController() {
 		Note:   "Deletes a specific notification record by its notificationit_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		notificationId, err := handlers.EngineUUIDParam(ctx, "notification_id")
+		notificationID, err := handlers.EngineUUIDParam(ctx, "notification_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -277,7 +277,7 @@ func (c *Controller) notificationController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid notification_id: " + err.Error()})
 		}
-		notification, err := c.modelcore.NotificationManager.GetByID(context, *notificationId)
+		notification, err := c.modelcore.NotificationManager.GetByID(context, *notificationID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -296,7 +296,7 @@ func (c *Controller) notificationController() {
 		}
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "delete-success",
-			Description: fmt.Sprintf("Deleted notification ID: %s", notificationId),
+			Description: fmt.Sprintf("Deleted notification ID: %s", notificationID),
 			Module:      "Notification",
 		})
 		return ctx.NoContent(http.StatusNoContent)

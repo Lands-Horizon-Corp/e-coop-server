@@ -38,11 +38,11 @@ func (c *Controller) organizationDailyUsage() {
 		ResponseType: modelcore.OrganizationDailyUsageResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		dailyUsageId, err := handlers.EngineUUIDParam(ctx, "organization_daily_usage_id")
+		dailyUsageID, err := handlers.EngineUUIDParam(ctx, "organization_daily_usage_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization_daily_usage_id: " + err.Error()})
 		}
-		dailyUsage, err := c.modelcore.OrganizationDailyUsageManager.GetByIDRaw(context, *dailyUsageId)
+		dailyUsage, err := c.modelcore.OrganizationDailyUsageManager.GetByIDRaw(context, *dailyUsageID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve organization daily usage by ID: " + err.Error()})
 		}
