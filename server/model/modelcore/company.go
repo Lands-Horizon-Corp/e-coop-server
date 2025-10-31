@@ -1244,15 +1244,277 @@ func (m *ModelCore) companySeed(context context.Context, tx *gorm.DB, userID uui
 		)
 
 	case "ZAR": // South Africa
+		companies = append(companies,
+			&Company{
+				Name:        "Eskom Holdings SOC Ltd",
+				Description: "South Africa’s state-owned electricity utility responsible for generation and distribution.",
+			},
+			&Company{
+				Name:        "Johannesburg Water (SOC) Ltd",
+				Description: "Municipal-owned company providing water and sanitation services in Johannesburg.",
+			},
+			&Company{
+				Name:        "Sasol Gas (Pty) Ltd",
+				Description: "Natural gas and energy solutions provider for industrial and domestic customers.",
+			},
+			&Company{
+				Name:        "Telkom SA SOC Ltd",
+				Description: "Telecommunications company offering broadband, fixed-line, and mobile services.",
+			},
+			&Company{
+				Name:        "Vodacom Group Ltd",
+				Description: "Leading mobile and internet service provider in South Africa.",
+			},
+			&Company{
+				Name:        "Servest Group (Pty) Ltd",
+				Description: "Facilities management company offering cleaning, maintenance, and landscaping services.",
+			},
+		)
+
 	case "EGP": // Egypt
+		companies = append(companies,
+			&Company{
+				Name:        "Egyptian Electricity Holding Company (EEHC)",
+				Description: "National company managing electricity generation, transmission, and distribution.",
+			},
+			&Company{
+				Name:        "Holding Company for Water and Wastewater (HCWW)",
+				Description: "State-owned company responsible for water supply and sanitation services.",
+			},
+			&Company{
+				Name:        "Town Gas Company",
+				Description: "Provides natural gas distribution for residential and commercial use in Egypt.",
+			},
+			&Company{
+				Name:        "Telecom Egypt (WE)",
+				Description: "Main telecommunications and internet service provider in Egypt.",
+			},
+			&Company{
+				Name:        "Orange Egypt",
+				Description: "Mobile and broadband company offering telecom and digital services.",
+			},
+			&Company{
+				Name:        "Arab Contractors (Osman Ahmed Osman & Co.)",
+				Description: "Construction and facilities maintenance company providing building and infrastructure services.",
+			},
+		)
+
 	case "TRY": // Turkey
-	case "XOF": // West African CFA Franc
-	case "XAF": // Central African CFA Franc
+		companies = append(companies,
+			&Company{
+				Name:        "Turkish Electricity Distribution Corporation (TEDAŞ)",
+				Description: "Government-owned electricity distribution company serving Turkey.",
+			},
+			&Company{
+				Name:        "İSKİ (Istanbul Water and Sewerage Administration)",
+				Description: "Provides water supply and wastewater management for Istanbul.",
+			},
+			&Company{
+				Name:        "BOTAŞ Petroleum Pipeline Corporation",
+				Description: "State-owned natural gas transmission and distribution company.",
+			},
+			&Company{
+				Name:        "Türk Telekom",
+				Description: "National telecommunications and internet services provider.",
+			},
+			&Company{
+				Name:        "Vodafone Turkey",
+				Description: "Mobile and internet provider serving millions across Turkey.",
+			},
+			&Company{
+				Name:        "ISS Turkey",
+				Description: "Facilities management company offering maintenance, cleaning, and property services.",
+			},
+		)
+
+	case "XOF": // West African CFA Franc (e.g., Senegal, Côte d'Ivoire)
+		companies = append(companies,
+			&Company{
+				Name:        "Compagnie Ivoirienne d'Électricité (CIE)",
+				Description: "Electricity company responsible for power generation and distribution in Côte d'Ivoire.",
+			},
+			&Company{
+				Name:        "Société Nationale des Eaux du Sénégal (SONES)",
+				Description: "Manages water production and distribution infrastructure in Senegal.",
+			},
+			&Company{
+				Name:        "Senelec",
+				Description: "State-owned electricity provider for Senegal.",
+			},
+			&Company{
+				Name:        "Orange Côte d’Ivoire",
+				Description: "Telecommunications provider offering mobile, internet, and payment services.",
+			},
+			&Company{
+				Name:        "MTN Côte d’Ivoire",
+				Description: "Mobile and broadband network operator in West Africa.",
+			},
+			&Company{
+				Name:        "ENGIE Services Afrique de l’Ouest",
+				Description: "Provides maintenance, energy efficiency, and facility management solutions.",
+			},
+		)
+
+	case "XAF": // Central African CFA Franc (e.g., Cameroon, Gabon)
+		companies = append(companies,
+			&Company{
+				Name:        "Eneo Cameroon S.A.",
+				Description: "Cameroon’s primary electricity supplier responsible for power generation and distribution.",
+			},
+			&Company{
+				Name:        "Camwater (Cameroon Water Utilities Corporation)",
+				Description: "Manages water supply and infrastructure across Cameroon.",
+			},
+			&Company{
+				Name:        "Société d’Énergie et d’Eau du Gabon (SEEG)",
+				Description: "Provides water and electricity services throughout Gabon.",
+			},
+			&Company{
+				Name:        "MTN Cameroon",
+				Description: "Mobile and internet service provider across Central Africa.",
+			},
+			&Company{
+				Name:        "Orange Cameroun",
+				Description: "Telecom company offering mobile and data services.",
+			},
+			&Company{
+				Name:        "Veolia Africa",
+				Description: "International company providing water, waste, and energy management services in Africa.",
+			},
+		)
+
 	case "MUR": // Mauritius
+		companies = append(companies,
+			&Company{
+				Name:        "Central Electricity Board (CEB)",
+				Description: "National electricity provider managing generation and distribution in Mauritius.",
+			},
+			&Company{
+				Name:        "Central Water Authority (CWA)",
+				Description: "Responsible for water supply and distribution across Mauritius.",
+			},
+			&Company{
+				Name:        "Mauritius Telecom Ltd",
+				Description: "Leading telecommunications company offering mobile and broadband services.",
+			},
+			&Company{
+				Name:        "Emtel Ltd",
+				Description: "Mobile network operator providing internet and 4G/5G services.",
+			},
+			&Company{
+				Name:        "Gamma Civic Ltd",
+				Description: "Facilities, construction, and maintenance services provider in Mauritius.",
+			},
+		)
+
 	case "MVR": // Maldives
+		companies = append(companies,
+			&Company{
+				Name:        "State Electric Company Limited (STELCO)",
+				Description: "Provides electricity generation and distribution services across the Maldives.",
+			},
+			&Company{
+				Name:        "Male' Water and Sewerage Company (MWSC)",
+				Description: "Responsible for water supply and wastewater treatment in the Maldives.",
+			},
+			&Company{
+				Name:        "Ooredoo Maldives",
+				Description: "Telecommunications company offering mobile, internet, and data services.",
+			},
+			&Company{
+				Name:        "Dhiraagu Plc",
+				Description: "Maldives’ leading telecom and broadband service provider.",
+			},
+			&Company{
+				Name:        "Urban Development and Construction Pvt Ltd",
+				Description: "Company providing facilities management and maintenance services.",
+			},
+		)
+
 	case "NOK": // Norway
+		companies = append(companies,
+			&Company{
+				Name:        "Statkraft AS",
+				Description: "State-owned hydropower company and leading electricity provider in Norway.",
+			},
+			&Company{
+				Name:        "Hafslund Eco AS",
+				Description: "Renewable energy company providing electricity and district heating in Oslo region.",
+			},
+			&Company{
+				Name:        "Oslo Vann og Avløpsetaten",
+				Description: "Municipal agency responsible for water supply and wastewater treatment in Oslo.",
+			},
+			&Company{
+				Name:        "Telenor ASA",
+				Description: "Norway’s largest telecommunications and broadband provider.",
+			},
+			&Company{
+				Name:        "Altibox AS",
+				Description: "Internet and TV service provider offering fiber broadband solutions.",
+			},
+			&Company{
+				Name:        "ISS Facility Services Norway",
+				Description: "Facilities management company providing cleaning and maintenance services nationwide.",
+			},
+		)
+
 	case "DKK": // Denmark
+		companies = append(companies,
+			&Company{
+				Name:        "Ørsted A/S",
+				Description: "Global energy company based in Denmark, focusing on renewable electricity and heating.",
+			},
+			&Company{
+				Name:        "HOFOR A/S",
+				Description: "Greater Copenhagen’s utility company providing water, district heating, and waste management.",
+			},
+			&Company{
+				Name:        "Evida A/S",
+				Description: "National natural gas distribution operator in Denmark.",
+			},
+			&Company{
+				Name:        "TDC Net A/S",
+				Description: "Denmark’s primary telecom infrastructure and internet provider.",
+			},
+			&Company{
+				Name:        "YouSee",
+				Description: "Telecommunications and broadband provider serving households across Denmark.",
+			},
+			&Company{
+				Name:        "ISS Danmark A/S",
+				Description: "Facility management and cleaning services provider.",
+			},
+		)
+
 	case "PLN": // Poland
+		companies = append(companies,
+			&Company{
+				Name:        "PGE Polska Grupa Energetyczna",
+				Description: "Poland’s largest energy company providing electricity generation and distribution.",
+			},
+			&Company{
+				Name:        "MPWiK Warszawa",
+				Description: "Municipal Water and Sewerage Company serving Warsaw and nearby regions.",
+			},
+			&Company{
+				Name:        "PGNiG (Polskie Górnictwo Naftowe i Gazownictwo)",
+				Description: "National natural gas company handling supply and distribution.",
+			},
+			&Company{
+				Name:        "Orange Polska",
+				Description: "Leading telecommunications and internet provider.",
+			},
+			&Company{
+				Name:        "Play (P4 Sp. z o.o.)",
+				Description: "Telecom operator offering mobile and broadband services.",
+			},
+			&Company{
+				Name:        "Veolia Energia Polska",
+				Description: "Provides district heating, energy efficiency, and facility management services.",
+			},
+		)
+
 	case "CZK": // Czech Republic
 	case "HUF": // Hungary
 	case "RUB": // Russia
