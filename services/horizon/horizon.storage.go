@@ -152,9 +152,7 @@ func (pr *progressReader) Read(p []byte) (int, error) {
 	if n > 0 {
 		pr.readSoFar += int64(n)
 		percent := pr.readSoFar * 100 / pr.total
-		if percent > 100 {
-			percent = 100
-		}
+		percent = min(percent, 100)
 		pr.storage.Progress = percent
 		if pr.callback != nil {
 			pr.callback(percent, 100, pr.storage)
