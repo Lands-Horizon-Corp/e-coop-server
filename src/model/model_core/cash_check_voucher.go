@@ -29,7 +29,7 @@ type (
 		UpdatedAt   time.Time      `gorm:"not null;default:now()" json:"updated_at"`
 		UpdatedByID uuid.UUID      `gorm:"type:uuid" json:"updated_by_id"`
 		UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt   gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
+		DeletedAt   gorm.DeletedAt `gorm:"index" json:"deleted_at"`
 		DeletedByID *uuid.UUID     `gorm:"type:uuid" json:"deleted_by_id,omitempty"`
 		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
 

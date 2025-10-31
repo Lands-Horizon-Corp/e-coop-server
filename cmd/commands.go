@@ -16,7 +16,9 @@ This tool provides commands for database management, cache operations,
 and server operations for your financial cooperative system.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		handlers.PrintASCIIArt()
-		cmd.Help()
+		if err := cmd.Help(); err != nil {
+			color.Red("Error displaying help: %v", err)
+		}
 	},
 }
 

@@ -64,10 +64,7 @@ func (t *TransactionService) LoanChargesRateComputation(ctx context.Context, crs
 
 	findLastApplicableRate := func(rates []float64, headers []int, terms int) float64 {
 		lastRate := 0.0
-		minLen := len(rates)
-		if minLen > len(headers) {
-			minLen = len(headers)
-		}
+		minLen := min(len(rates), len(headers))
 		for i := 0; i < minLen; i++ {
 			rate := rates[i]
 			term := headers[i]
@@ -367,9 +364,6 @@ func (t *TransactionService) SuggestedNumberOfTerms(
 		return 0, errors.New("unsupported mode of payment")
 	}
 
-	numberOfTerms := int(math.Ceil(terms))
-	if numberOfTerms < 1 {
-		numberOfTerms = 1
-	}
+	numberOfTerms := max(1, int(math.Ceil(terms)))
 	return numberOfTerms, nil
 }

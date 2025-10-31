@@ -65,7 +65,7 @@ type (
 		AccountID       uuid.UUID `json:"account_id" validate:"required"`
 		Name            string    `json:"name,omitempty"`
 		Description     string    `json:"description,omitempty"`
-		MembershipDate  time.Time `json:"membership_date,omitempty"`
+		MembershipDate  time.Time `json:"membership_date"`
 	}
 )
 

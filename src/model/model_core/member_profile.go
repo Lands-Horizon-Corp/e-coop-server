@@ -646,12 +646,6 @@ func (m *ModelCore) MemberProfileFindUserByID(ctx context.Context, userId uuid.U
 		BranchID:       branchId,
 	})
 }
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
 
 func (m *ModelCore) MemberProfileSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()

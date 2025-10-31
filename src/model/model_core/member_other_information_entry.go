@@ -53,7 +53,7 @@ type (
 	MemberOtherInformationEntryRequest struct {
 		Name        string    `json:"name" validate:"required,min=1,max=255"`
 		Description string    `json:"description,omitempty"`
-		EntryDate   time.Time `json:"entry_date,omitempty"`
+		EntryDate   time.Time `json:"entry_date"`
 	}
 )
 

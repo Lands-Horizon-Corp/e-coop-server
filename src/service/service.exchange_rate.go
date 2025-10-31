@@ -22,7 +22,7 @@ type ExchangeResult struct {
 	FetchedAt time.Time `json:"fetched_at"`
 }
 
-func fetchJSON(url string) (map[string]interface{}, error) {
+func fetchJSON(url string) (map[string]any, error) {
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
@@ -34,7 +34,7 @@ func fetchJSON(url string) (map[string]interface{}, error) {
 		return nil, fmt.Errorf("unexpected response: %s\nBody: %s", resp.Status, string(body))
 	}
 
-	var data map[string]interface{}
+	var data map[string]any
 	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
 		return nil, err
 	}
@@ -61,7 +61,7 @@ func GetExchangeRate(currencyFrom, currencyTo string, amount float64) (*Exchange
 
 	// Get date and nested currency map
 	dateStr, _ := data["date"].(string)
-	currencies, ok := data[base].(map[string]interface{})
+	currencies, ok := data[base].(map[string]any)
 	if !ok {
 		return nil, fmt.Errorf("invalid base currency data for %s", base)
 	}
