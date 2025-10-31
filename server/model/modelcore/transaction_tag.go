@@ -72,8 +72,8 @@ type (
 )
 
 func (m *ModelCore) transactionTag() {
-	m.migration = append(m.migration, &TransactionTag{})
-	m.transactionTagManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.Migration = append(m.Migration, &TransactionTag{})
+	m.TransactionTagManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		TransactionTag, TransactionTagResponse, TransactionTagRequest,
 	]{
 		Preloads: []string{
@@ -88,16 +88,16 @@ func (m *ModelCore) transactionTag() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.organizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.branchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager.ToModel(data.Branch),
 				TransactionID:  data.TransactionID,
-				Transaction:    m.transactionManager.ToModel(data.Transaction),
+				Transaction:    m.TransactionManager.ToModel(data.Transaction),
 				Name:           data.Name,
 				Description:    data.Description,
 				Category:       data.Category,
@@ -134,7 +134,7 @@ func (m *ModelCore) transactionTag() {
 }
 
 func (m *ModelCore) transactionTagCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*TransactionTag, error) {
-	return m.transactionTagManager.Find(context, &TransactionTag{
+	return m.TransactionTagManager.Find(context, &TransactionTag{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

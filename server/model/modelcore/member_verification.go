@@ -68,8 +68,8 @@ type (
 
 // MemberVerification initializes the MemberVerification model and its repository manager
 func (m *ModelCore) memberVerification() {
-	m.migration = append(m.migration, &MemberVerification{})
-	m.memberVerificationManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberVerification, MemberVerificationResponse, MemberVerificationRequest]{
+	m.Migration = append(m.Migration, &MemberVerification{})
+	m.MemberVerificationManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberVerification, MemberVerificationResponse, MemberVerificationRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile", "VerifiedByUser"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberVerification) *MemberVerificationResponse {
@@ -80,18 +80,18 @@ func (m *ModelCore) memberVerification() {
 				ID:               data.ID,
 				CreatedAt:        data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:      data.CreatedByID,
-				CreatedBy:        m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:        m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:        data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:      data.UpdatedByID,
-				UpdatedBy:        m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:        m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID:   data.OrganizationID,
-				Organization:     m.organizationManager.ToModel(data.Organization),
+				Organization:     m.OrganizationManager.ToModel(data.Organization),
 				BranchID:         *data.BranchID,
-				Branch:           m.branchManager.ToModel(data.Branch),
+				Branch:           m.BranchManager.ToModel(data.Branch),
 				MemberProfileID:  *data.MemberProfileID,
-				MemberProfile:    m.memberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:    m.MemberProfileManager.ToModel(data.MemberProfile),
 				VerifiedByUserID: *data.VerifiedByUserID,
-				VerifiedByUser:   m.userManager.ToModel(data.VerifiedByUser),
+				VerifiedByUser:   m.UserManager.ToModel(data.VerifiedByUser),
 				Status:           data.Status,
 			}
 		},
@@ -125,7 +125,7 @@ func (m *ModelCore) memberVerification() {
 
 // MemberVerificationCurrentBranch retrieves all member verifications for the specified organization and branch
 func (m *ModelCore) memberVerificationCurrentbranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*MemberVerification, error) {
-	return m.memberVerificationManager.Find(context, &MemberVerification{
+	return m.MemberVerificationManager.Find(context, &MemberVerification{
 		OrganizationID: orgID,
 		BranchID:       &branchID,
 	})

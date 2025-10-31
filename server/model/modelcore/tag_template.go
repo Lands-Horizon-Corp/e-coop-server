@@ -91,8 +91,8 @@ type (
 
 // TagTemplate initializes the tag template model and its repository manager
 func (m *ModelCore) tagTemplate() {
-	m.migration = append(m.migration, &TagTemplate{})
-	m.tagTemplateManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.Migration = append(m.Migration, &TagTemplate{})
+	m.TagTemplateManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		TagTemplate, TagTemplateResponse, TagTemplateRequest,
 	]{
 		Preloads: []string{
@@ -107,14 +107,14 @@ func (m *ModelCore) tagTemplate() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.organizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.branchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager.ToModel(data.Branch),
 				Name:           data.Name,
 				Description:    data.Description,
 				Category:       data.Category,
@@ -947,7 +947,7 @@ func (m *ModelCore) tagTemplateSeed(context context.Context, tx *gorm.DB, userID
 	}
 
 	for _, data := range tagTemplates {
-		if err := m.tagTemplateManager.CreateWithTx(context, tx, data); err != nil {
+		if err := m.TagTemplateManager.CreateWithTx(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to seed tag template %s", data.Name)
 		}
 	}
@@ -956,7 +956,7 @@ func (m *ModelCore) tagTemplateSeed(context context.Context, tx *gorm.DB, userID
 
 // TagTemplateCurrentBranch retrieves all tag templates for a specific branch within an organization
 func (m *ModelCore) tagTemplateCurrentbranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*TagTemplate, error) {
-	return m.tagTemplateManager.Find(context, &TagTemplate{
+	return m.TagTemplateManager.Find(context, &TagTemplate{
 		OrganizationID: orgID,
 		BranchID:       branchID,
 	})

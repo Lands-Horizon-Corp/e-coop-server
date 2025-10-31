@@ -114,14 +114,14 @@ const PRICING_COUNTRY_CODE = "PH"
 // SubscriptionPlanSeed initializes the database with default subscription plans for different currencies
 func (m *ModelCore) subscriptionPlanSeed(ctx context.Context) error {
 
-	subscriptionPlans, err := m.subscriptionPlanManager.List(ctx)
+	subscriptionPlans, err := m.SubscriptionPlanManager.List(ctx)
 	if err != nil {
 		return err
 	}
 	if len(subscriptionPlans) >= 1 {
 		return nil
 	}
-	currency, err := m.currencyManager.List(ctx)
+	currency, err := m.CurrencyManager.List(ctx)
 	if err != nil {
 		return err
 	}
@@ -6602,7 +6602,7 @@ func (m *ModelCore) subscriptionPlanSeed(ctx context.Context) error {
 		}
 		for _, sub := range subscription {
 			sub.CurrencyID = &currency.ID
-			if err := m.subscriptionPlanManager.Create(ctx, sub); err != nil {
+			if err := m.SubscriptionPlanManager.Create(ctx, sub); err != nil {
 				return eris.Wrapf(err, "failed to seed subscription %s for currency %s", sub.Name, currency.CurrencyCode)
 			}
 		}
@@ -6613,8 +6613,8 @@ func (m *ModelCore) subscriptionPlanSeed(ctx context.Context) error {
 
 // SubscriptionPlan initializes the subscription plan model and its repository manager
 func (m *ModelCore) subscriptionPlan() {
-	m.migration = append(m.migration, &SubscriptionPlan{})
-	m.subscriptionPlanManager = horizon_services.NewRepository(horizon_services.RepositoryParams[SubscriptionPlan, SubscriptionPlanResponse, SubscriptionPlanRequest]{
+	m.Migration = append(m.Migration, &SubscriptionPlan{})
+	m.SubscriptionPlanManager = horizon_services.NewRepository(horizon_services.RepositoryParams[SubscriptionPlan, SubscriptionPlanResponse, SubscriptionPlanRequest]{
 		Preloads: []string{"Currency"},
 		Service:  m.provider.Service,
 		Resource: func(sp *SubscriptionPlan) *SubscriptionPlanResponse {
@@ -6656,7 +6656,7 @@ func (m *ModelCore) subscriptionPlan() {
 				CreatedAt:              sp.CreatedAt.Format(time.RFC3339),
 				UpdatedAt:              sp.UpdatedAt.Format(time.RFC3339),
 				CurrencyID:             sp.CurrencyID,
-				Currency:               m.currencyManager.ToModel(sp.Currency),
+				Currency:               m.CurrencyManager.ToModel(sp.Currency),
 			}
 		},
 

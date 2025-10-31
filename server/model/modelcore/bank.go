@@ -62,8 +62,8 @@ type (
 )
 
 func (m *ModelCore) bank() {
-	m.migration = append(m.migration, &Bank{})
-	m.bankManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Bank, BankResponse, BankRequest]{
+	m.Migration = append(m.Migration, &Bank{})
+	m.BankManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Bank, BankResponse, BankRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Media"},
 		Service:  m.provider.Service,
 		Resource: func(data *Bank) *BankResponse {
@@ -74,16 +74,16 @@ func (m *ModelCore) bank() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.organizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.branchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager.ToModel(data.Branch),
 				MediaID:        data.MediaID,
-				Media:          m.mediaManager.ToModel(data.Media),
+				Media:          m.MediaManager.ToModel(data.Media),
 				Name:           data.Name,
 				Description:    data.Description,
 			}
@@ -210,7 +210,7 @@ func (m *ModelCore) bankSeed(context context.Context, tx *gorm.DB, userID uuid.U
 		},
 	}
 	for _, data := range banks {
-		if err := m.bankManager.CreateWithTx(context, tx, data); err != nil {
+		if err := m.BankManager.CreateWithTx(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to seed bank %s", data.Name)
 		}
 	}
@@ -218,7 +218,7 @@ func (m *ModelCore) bankSeed(context context.Context, tx *gorm.DB, userID uuid.U
 }
 
 func (m *ModelCore) bankCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Bank, error) {
-	return m.bankManager.Find(context, &Bank{
+	return m.BankManager.Find(context, &Bank{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

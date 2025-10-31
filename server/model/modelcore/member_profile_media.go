@@ -71,8 +71,8 @@ type (
 )
 
 func (m *ModelCore) memberProfileMedia() {
-	m.migration = append(m.migration, &MemberProfileMedia{})
-	m.memberProfileMediaManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberProfileMedia, MemberProfileMediaResponse, MemberProfileMediaRequest]{
+	m.Migration = append(m.Migration, &MemberProfileMedia{})
+	m.MemberProfileMediaManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberProfileMedia, MemberProfileMediaResponse, MemberProfileMediaRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Media", "MemberProfile"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberProfileMedia) *MemberProfileMediaResponse {
@@ -83,18 +83,18 @@ func (m *ModelCore) memberProfileMedia() {
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
-				CreatedBy:       m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:       m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:     data.UpdatedByID,
-				UpdatedBy:       m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:       m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID:  data.OrganizationID,
-				Organization:    m.organizationManager.ToModel(data.Organization),
+				Organization:    m.OrganizationManager.ToModel(data.Organization),
 				BranchID:        data.BranchID,
-				Branch:          m.branchManager.ToModel(data.Branch),
+				Branch:          m.BranchManager.ToModel(data.Branch),
 				MemberProfileID: data.MemberProfileID,
-				MemberProfile:   m.memberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:   m.MemberProfileManager.ToModel(data.MemberProfile),
 				MediaID:         data.MediaID,
-				Media:           m.mediaManager.ToModel(data.Media),
+				Media:           m.MediaManager.ToModel(data.Media),
 				Name:            data.Name,
 				Description:     data.Description,
 			}
@@ -142,7 +142,7 @@ func (m *ModelCore) memberProfileMedia() {
 }
 
 func (m *ModelCore) memberProfileMediaCurrentbranch(context context.Context, orgId *uuid.UUID, branchId *uuid.UUID) ([]*MemberProfileMedia, error) {
-	return m.memberProfileMediaManager.Find(context, &MemberProfileMedia{
+	return m.MemberProfileMediaManager.Find(context, &MemberProfileMedia{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

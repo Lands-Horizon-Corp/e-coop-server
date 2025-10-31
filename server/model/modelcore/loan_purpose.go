@@ -56,8 +56,8 @@ type (
 )
 
 func (m *ModelCore) loanPurpose() {
-	m.migration = append(m.migration, &LoanPurpose{})
-	m.loanPurposeManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.Migration = append(m.Migration, &LoanPurpose{})
+	m.LoanPurposeManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		LoanPurpose, LoanPurposeResponse, LoanPurposeRequest,
 	]{
 		Preloads: []string{
@@ -72,14 +72,14 @@ func (m *ModelCore) loanPurpose() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.organizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.branchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager.ToModel(data.Branch),
 				Description:    data.Description,
 				Icon:           data.Icon,
 			}
@@ -252,7 +252,7 @@ func (m *ModelCore) loanPurposeSeed(context context.Context, tx *gorm.DB, userID
 	}
 
 	for _, data := range loanPurposes {
-		if err := m.loanPurposeManager.CreateWithTx(context, tx, data); err != nil {
+		if err := m.LoanPurposeManager.CreateWithTx(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to seed loan purpose %s", data.Description)
 		}
 	}
@@ -261,7 +261,7 @@ func (m *ModelCore) loanPurposeSeed(context context.Context, tx *gorm.DB, userID
 }
 
 func (m *ModelCore) loanPurposeCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanPurpose, error) {
-	return m.loanPurposeManager.Find(context, &LoanPurpose{
+	return m.LoanPurposeManager.Find(context, &LoanPurpose{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

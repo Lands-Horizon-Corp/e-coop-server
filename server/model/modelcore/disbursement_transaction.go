@@ -77,8 +77,8 @@ type (
 )
 
 func (m *ModelCore) disbursementTransaction() {
-	m.migration = append(m.migration, &DisbursementTransaction{})
-	m.disbursementTransactionManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.Migration = append(m.Migration, &DisbursementTransaction{})
+	m.DisbursementTransactionManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		DisbursementTransaction, DisbursementTransactionResponse, DisbursementTransactionRequest,
 	]{
 		Preloads: []string{
@@ -95,20 +95,20 @@ func (m *ModelCore) disbursementTransaction() {
 				ID:                 data.ID,
 				CreatedAt:          data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:        data.CreatedByID,
-				CreatedBy:          m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:          m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:          data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:        data.UpdatedByID,
-				UpdatedBy:          m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:          m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID:     data.OrganizationID,
-				Organization:       m.organizationManager.ToModel(data.Organization),
+				Organization:       m.OrganizationManager.ToModel(data.Organization),
 				BranchID:           data.BranchID,
-				Branch:             m.branchManager.ToModel(data.Branch),
+				Branch:             m.BranchManager.ToModel(data.Branch),
 				DisbursementID:     data.DisbursementID,
-				Disbursement:       m.disbursementManager.ToModel(data.Disbursement),
+				Disbursement:       m.DisbursementManager.ToModel(data.Disbursement),
 				TransactionBatchID: data.TransactionBatchID,
-				TransactionBatch:   m.transactionBatchManager.ToModel(data.TransactionBatch),
+				TransactionBatch:   m.TransactionBatchManager.ToModel(data.TransactionBatch),
 				EmployeeUserID:     data.EmployeeUserID,
-				EmployeeUser:       m.userManager.ToModel(data.EmployeeUser),
+				EmployeeUser:       m.UserManager.ToModel(data.EmployeeUser),
 				ReferenceNumber:    data.ReferenceNumber,
 				Amount:             data.Amount,
 			}
@@ -141,7 +141,7 @@ func (m *ModelCore) disbursementTransaction() {
 }
 
 func (m *ModelCore) disbursementTransactionCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*DisbursementTransaction, error) {
-	return m.disbursementTransactionManager.Find(context, &DisbursementTransaction{
+	return m.DisbursementTransactionManager.Find(context, &DisbursementTransaction{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

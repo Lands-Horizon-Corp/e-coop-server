@@ -284,8 +284,8 @@ type (
 )
 
 func (m *ModelCore) cashCheckVoucher() {
-	m.migration = append(m.migration, &CashCheckVoucher{})
-	m.cashCheckVoucherManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.Migration = append(m.Migration, &CashCheckVoucher{})
+	m.CashCheckVoucherManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		CashCheckVoucher, CashCheckVoucherResponse, CashCheckVoucherRequest,
 	]{
 		Preloads: []string{
@@ -322,27 +322,27 @@ func (m *ModelCore) cashCheckVoucher() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.organizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.branchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager.ToModel(data.Branch),
 				CurrencyID:     data.CurrencyID,
-				Currency:       m.currencyManager.ToModel(data.Currency),
+				Currency:       m.CurrencyManager.ToModel(data.Currency),
 
 				EmployeeUserID:     data.EmployeeUserID,
-				EmployeeUser:       m.userManager.ToModel(data.EmployeeUser),
+				EmployeeUser:       m.UserManager.ToModel(data.EmployeeUser),
 				TransactionBatchID: data.TransactionBatchID,
-				TransactionBatch:   m.transactionBatchManager.ToModel(data.TransactionBatch),
+				TransactionBatch:   m.TransactionBatchManager.ToModel(data.TransactionBatch),
 				PrintedByID:        data.PrintedByID,
-				PrintedBy:          m.userManager.ToModel(data.PrintedBy),
+				PrintedBy:          m.UserManager.ToModel(data.PrintedBy),
 				ApprovedByID:       data.ApprovedByID,
-				ApprovedBy:         m.userManager.ToModel(data.ApprovedBy),
+				ApprovedBy:         m.UserManager.ToModel(data.ApprovedBy),
 				ReleasedByID:       data.ReleasedByID,
-				ReleasedBy:         m.userManager.ToModel(data.ReleasedBy),
+				ReleasedBy:         m.UserManager.ToModel(data.ReleasedBy),
 
 				PayTo: data.PayTo,
 
@@ -357,59 +357,59 @@ func (m *ModelCore) cashCheckVoucher() {
 				ReleasedDate:      releasedDate,
 
 				ApprovedBySignatureMediaID: data.ApprovedBySignatureMediaID,
-				ApprovedBySignatureMedia:   m.mediaManager.ToModel(data.ApprovedBySignatureMedia),
+				ApprovedBySignatureMedia:   m.MediaManager.ToModel(data.ApprovedBySignatureMedia),
 				ApprovedByName:             data.ApprovedByName,
 				ApprovedByPosition:         data.ApprovedByPosition,
 
 				PreparedBySignatureMediaID: data.PreparedBySignatureMediaID,
-				PreparedBySignatureMedia:   m.mediaManager.ToModel(data.PreparedBySignatureMedia),
+				PreparedBySignatureMedia:   m.MediaManager.ToModel(data.PreparedBySignatureMedia),
 				PreparedByName:             data.PreparedByName,
 				PreparedByPosition:         data.PreparedByPosition,
 
 				CertifiedBySignatureMediaID: data.CertifiedBySignatureMediaID,
-				CertifiedBySignatureMedia:   m.mediaManager.ToModel(data.CertifiedBySignatureMedia),
+				CertifiedBySignatureMedia:   m.MediaManager.ToModel(data.CertifiedBySignatureMedia),
 				CertifiedByName:             data.CertifiedByName,
 				CertifiedByPosition:         data.CertifiedByPosition,
 
 				VerifiedBySignatureMediaID: data.VerifiedBySignatureMediaID,
-				VerifiedBySignatureMedia:   m.mediaManager.ToModel(data.VerifiedBySignatureMedia),
+				VerifiedBySignatureMedia:   m.MediaManager.ToModel(data.VerifiedBySignatureMedia),
 				VerifiedByName:             data.VerifiedByName,
 				VerifiedByPosition:         data.VerifiedByPosition,
 
 				CheckBySignatureMediaID: data.CheckBySignatureMediaID,
-				CheckBySignatureMedia:   m.mediaManager.ToModel(data.CheckBySignatureMedia),
+				CheckBySignatureMedia:   m.MediaManager.ToModel(data.CheckBySignatureMedia),
 				CheckByName:             data.CheckByName,
 				CheckByPosition:         data.CheckByPosition,
 
 				AcknowledgeBySignatureMediaID: data.AcknowledgeBySignatureMediaID,
-				AcknowledgeBySignatureMedia:   m.mediaManager.ToModel(data.AcknowledgeBySignatureMedia),
+				AcknowledgeBySignatureMedia:   m.MediaManager.ToModel(data.AcknowledgeBySignatureMedia),
 				AcknowledgeByName:             data.AcknowledgeByName,
 				AcknowledgeByPosition:         data.AcknowledgeByPosition,
 
 				NotedBySignatureMediaID: data.NotedBySignatureMediaID,
-				NotedBySignatureMedia:   m.mediaManager.ToModel(data.NotedBySignatureMedia),
+				NotedBySignatureMedia:   m.MediaManager.ToModel(data.NotedBySignatureMedia),
 				NotedByName:             data.NotedByName,
 				NotedByPosition:         data.NotedByPosition,
 
 				PostedBySignatureMediaID: data.PostedBySignatureMediaID,
-				PostedBySignatureMedia:   m.mediaManager.ToModel(data.PostedBySignatureMedia),
+				PostedBySignatureMedia:   m.MediaManager.ToModel(data.PostedBySignatureMedia),
 				PostedByName:             data.PostedByName,
 				PostedByPosition:         data.PostedByPosition,
 
 				PaidBySignatureMediaID: data.PaidBySignatureMediaID,
-				PaidBySignatureMedia:   m.mediaManager.ToModel(data.PaidBySignatureMedia),
+				PaidBySignatureMedia:   m.MediaManager.ToModel(data.PaidBySignatureMedia),
 				PaidByName:             data.PaidByName,
 				PaidByPosition:         data.PaidByPosition,
 
-				CashCheckVoucherTags:    m.cashCheckVoucherTagManager.ToModels(data.CashCheckVoucherTags),
-				CashCheckVoucherEntries: m.cashCheckVoucherEntryManager.ToModels(data.CashCheckVoucherEntries),
+				CashCheckVoucherTags:    m.CashCheckVoucherTagManager.ToModels(data.CashCheckVoucherTags),
+				CashCheckVoucherEntries: m.CashCheckVoucherEntryManager.ToModels(data.CashCheckVoucherEntries),
 
 				// Check Entry Fields
 				CheckEntryAmount:      data.CheckEntryAmount,
 				CheckEntryCheckNumber: data.CheckEntryCheckNumber,
 				CheckEntryCheckDate:   data.CheckEntryCheckDate,
 				CheckEntryAccountID:   data.CheckEntryAccountID,
-				CheckEntryAccount:     m.accountManager.ToModel(data.CheckEntryAccount),
+				CheckEntryAccount:     m.AccountManager.ToModel(data.CheckEntryAccount),
 
 				Name: data.Name,
 			}
@@ -442,7 +442,7 @@ func (m *ModelCore) cashCheckVoucher() {
 }
 
 func (m *ModelCore) cashCheckVoucherCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*CashCheckVoucher, error) {
-	return m.cashCheckVoucherManager.Find(context, &CashCheckVoucher{
+	return m.CashCheckVoucherManager.Find(context, &CashCheckVoucher{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})
@@ -457,7 +457,7 @@ func (m *ModelCore) cashCheckVoucherDraft(ctx context.Context, branchId, orgId u
 		{Field: "released_date", Op: horizon_services.OpIsNull, Value: nil},
 	}
 
-	cashCheckVouchers, err := m.cashCheckVoucherManager.FindWithFilters(ctx, filters)
+	cashCheckVouchers, err := m.CashCheckVoucherManager.FindWithFilters(ctx, filters)
 	if err != nil {
 		return nil, err
 	}
@@ -473,7 +473,7 @@ func (m *ModelCore) cashCheckVoucherPrinted(ctx context.Context, branchId, orgId
 		{Field: "released_date", Op: horizon_services.OpIsNull, Value: nil},
 	}
 
-	cashCheckVouchers, err := m.cashCheckVoucherManager.FindWithFilters(ctx, filters)
+	cashCheckVouchers, err := m.CashCheckVoucherManager.FindWithFilters(ctx, filters)
 	if err != nil {
 		return nil, err
 	}
@@ -489,7 +489,7 @@ func (m *ModelCore) cashCheckVoucherApproved(ctx context.Context, branchId, orgI
 		{Field: "released_date", Op: horizon_services.OpIsNull, Value: nil},
 	}
 
-	cashCheckVouchers, err := m.cashCheckVoucherManager.FindWithFilters(ctx, filters)
+	cashCheckVouchers, err := m.CashCheckVoucherManager.FindWithFilters(ctx, filters)
 	if err != nil {
 		return nil, err
 	}
@@ -505,7 +505,7 @@ func (m *ModelCore) cashCheckVoucherReleased(ctx context.Context, branchId, orgI
 		{Field: "released_date", Op: horizon_services.OpNotNull, Value: nil},
 	}
 
-	cashCheckVouchers, err := m.cashCheckVoucherManager.FindWithFilters(ctx, filters)
+	cashCheckVouchers, err := m.CashCheckVoucherManager.FindWithFilters(ctx, filters)
 	if err != nil {
 		return nil, err
 	}
@@ -527,7 +527,7 @@ func (m *ModelCore) cashCheckVoucherReleasedCurrentDay(ctx context.Context, bran
 		{Field: "released_date", Op: horizon_services.OpLt, Value: endOfDay},
 	}
 
-	cashCheckVouchers, err := m.cashCheckVoucherManager.FindWithFilters(ctx, filters)
+	cashCheckVouchers, err := m.CashCheckVoucherManager.FindWithFilters(ctx, filters)
 	if err != nil {
 		return nil, err
 	}

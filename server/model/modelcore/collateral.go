@@ -59,8 +59,8 @@ type (
 )
 
 func (m *ModelCore) collateral() {
-	m.migration = append(m.migration, &Collateral{})
-	m.collateralManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.Migration = append(m.Migration, &Collateral{})
+	m.CollateralManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		Collateral, CollateralResponse, CollateralRequest,
 	]{
 		Preloads: []string{
@@ -75,14 +75,14 @@ func (m *ModelCore) collateral() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.organizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.branchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager.ToModel(data.Branch),
 				Icon:           data.Icon,
 				Name:           data.Name,
 				Description:    data.Description,
@@ -220,7 +220,7 @@ func (m *ModelCore) collateralSeed(context context.Context, tx *gorm.DB, userID 
 		},
 	}
 	for _, data := range collaterals {
-		if err := m.collateralManager.CreateWithTx(context, tx, data); err != nil {
+		if err := m.CollateralManager.CreateWithTx(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to seed collateral %s", data.Name)
 		}
 	}
@@ -228,7 +228,7 @@ func (m *ModelCore) collateralSeed(context context.Context, tx *gorm.DB, userID 
 }
 
 func (m *ModelCore) collateralCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Collateral, error) {
-	return m.collateralManager.Find(context, &Collateral{
+	return m.CollateralManager.Find(context, &Collateral{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

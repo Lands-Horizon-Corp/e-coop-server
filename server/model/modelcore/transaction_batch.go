@@ -341,8 +341,8 @@ type (
 )
 
 func (m *ModelCore) transactionBatch() {
-	m.migration = append(m.migration, &TransactionBatch{})
-	m.transactionBatchManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.Migration = append(m.Migration, &TransactionBatch{})
+	m.TransactionBatchManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		TransactionBatch, TransactionBatchResponse, TransactionBatchRequest,
 	]{
 		Preloads: []string{
@@ -376,16 +376,16 @@ func (m *ModelCore) transactionBatch() {
 				ID:                            data.ID,
 				CreatedAt:                     data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:                   data.CreatedByID,
-				CreatedBy:                     m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:                     m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:                     data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:                   data.UpdatedByID,
-				UpdatedBy:                     m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:                     m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID:                data.OrganizationID,
-				Organization:                  m.organizationManager.ToModel(data.Organization),
+				Organization:                  m.OrganizationManager.ToModel(data.Organization),
 				BranchID:                      data.BranchID,
-				Branch:                        m.branchManager.ToModel(data.Branch),
+				Branch:                        m.BranchManager.ToModel(data.Branch),
 				EmployeeUserID:                data.EmployeeUserID,
-				EmployeeUser:                  m.userManager.ToModel(data.EmployeeUser),
+				EmployeeUser:                  m.UserManager.ToModel(data.EmployeeUser),
 				BatchName:                     data.BatchName,
 				TotalCashCollection:           data.TotalCashCollection,
 				TotalDepositEntry:             data.TotalDepositEntry,
@@ -411,47 +411,47 @@ func (m *ModelCore) transactionBatch() {
 				RequestView:                   data.RequestView,
 
 				EmployeeBySignatureMediaID:    data.EmployeeBySignatureMediaID,
-				EmployeeBySignatureMedia:      m.mediaManager.ToModel(data.EmployeeBySignatureMedia),
+				EmployeeBySignatureMedia:      m.MediaManager.ToModel(data.EmployeeBySignatureMedia),
 				EmployeeByName:                data.EmployeeByName,
 				EmployeeByPosition:            data.EmployeeByPosition,
 				ApprovedBySignatureMediaID:    data.ApprovedBySignatureMediaID,
-				ApprovedBySignatureMedia:      m.mediaManager.ToModel(data.ApprovedBySignatureMedia),
+				ApprovedBySignatureMedia:      m.MediaManager.ToModel(data.ApprovedBySignatureMedia),
 				ApprovedByName:                data.ApprovedByName,
 				ApprovedByPosition:            data.ApprovedByPosition,
 				PreparedBySignatureMediaID:    data.PreparedBySignatureMediaID,
-				PreparedBySignatureMedia:      m.mediaManager.ToModel(data.PreparedBySignatureMedia),
+				PreparedBySignatureMedia:      m.MediaManager.ToModel(data.PreparedBySignatureMedia),
 				PreparedByName:                data.PreparedByName,
 				PreparedByPosition:            data.PreparedByPosition,
 				CertifiedBySignatureMediaID:   data.CertifiedBySignatureMediaID,
-				CertifiedBySignatureMedia:     m.mediaManager.ToModel(data.CertifiedBySignatureMedia),
+				CertifiedBySignatureMedia:     m.MediaManager.ToModel(data.CertifiedBySignatureMedia),
 				CertifiedByName:               data.CertifiedByName,
 				CertifiedByPosition:           data.CertifiedByPosition,
 				VerifiedBySignatureMediaID:    data.VerifiedBySignatureMediaID,
-				VerifiedBySignatureMedia:      m.mediaManager.ToModel(data.VerifiedBySignatureMedia),
+				VerifiedBySignatureMedia:      m.MediaManager.ToModel(data.VerifiedBySignatureMedia),
 				VerifiedByName:                data.VerifiedByName,
 				VerifiedByPosition:            data.VerifiedByPosition,
 				CheckBySignatureMediaID:       data.CheckBySignatureMediaID,
-				CheckBySignatureMedia:         m.mediaManager.ToModel(data.CheckBySignatureMedia),
+				CheckBySignatureMedia:         m.MediaManager.ToModel(data.CheckBySignatureMedia),
 				CheckByName:                   data.CheckByName,
 				CheckByPosition:               data.CheckByPosition,
 				AcknowledgeBySignatureMediaID: data.AcknowledgeBySignatureMediaID,
-				AcknowledgeBySignatureMedia:   m.mediaManager.ToModel(data.AcknowledgeBySignatureMedia),
+				AcknowledgeBySignatureMedia:   m.MediaManager.ToModel(data.AcknowledgeBySignatureMedia),
 				AcknowledgeByName:             data.AcknowledgeByName,
 				AcknowledgeByPosition:         data.AcknowledgeByPosition,
 				NotedBySignatureMediaID:       data.NotedBySignatureMediaID,
-				NotedBySignatureMedia:         m.mediaManager.ToModel(data.NotedBySignatureMedia),
+				NotedBySignatureMedia:         m.MediaManager.ToModel(data.NotedBySignatureMedia),
 				NotedByName:                   data.NotedByName,
 				NotedByPosition:               data.NotedByPosition,
 				PostedBySignatureMediaID:      data.PostedBySignatureMediaID,
-				PostedBySignatureMedia:        m.mediaManager.ToModel(data.PostedBySignatureMedia),
+				PostedBySignatureMedia:        m.MediaManager.ToModel(data.PostedBySignatureMedia),
 				PostedByName:                  data.PostedByName,
 				PostedByPosition:              data.PostedByPosition,
 				PaidBySignatureMediaID:        data.PaidBySignatureMediaID,
-				PaidBySignatureMedia:          m.mediaManager.ToModel(data.PaidBySignatureMedia),
+				PaidBySignatureMedia:          m.MediaManager.ToModel(data.PaidBySignatureMedia),
 				PaidByName:                    data.PaidByName,
 				PaidByPosition:                data.PaidByPosition,
 				CurrencyID:                    data.CurrencyID,
-				Currency:                      m.currencyManager.ToModel(data.Currency),
+				Currency:                      m.CurrencyManager.ToModel(data.Currency),
 				EndedAt:                       endedAt,
 			}
 		},
@@ -487,7 +487,7 @@ func (m *ModelCore) transactionBatch() {
 }
 
 func (m *ModelCore) transactionBatchCurrent(context context.Context, userId uuid.UUID, orgId uuid.UUID, branchId uuid.UUID) (*TransactionBatch, error) {
-	return m.transactionBatchManager.FindOneWithConditions(context, map[string]any{
+	return m.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
 		"organization_id":  orgId,
 		"branch_id":        branchId,
 		"employee_user_id": userId,
@@ -496,7 +496,7 @@ func (m *ModelCore) transactionBatchCurrent(context context.Context, userId uuid
 }
 
 func (m *ModelCore) transactionBatchViewRequests(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*TransactionBatch, error) {
-	return m.transactionBatchManager.FindWithConditions(context, map[string]any{
+	return m.TransactionBatchManager.FindWithConditions(context, map[string]any{
 		"organization_id": orgId,
 		"branch_id":       branchId,
 		"request_view":    true,
@@ -506,7 +506,7 @@ func (m *ModelCore) transactionBatchViewRequests(context context.Context, orgId 
 }
 
 func (m *ModelCore) transactionBatchMinimal(context context.Context, id uuid.UUID) (*TransactionBatchResponse, error) {
-	data, err := m.transactionBatchManager.GetByID(context, id)
+	data, err := m.TransactionBatchManager.GetByID(context, id)
 	if err != nil {
 		return nil, err
 	}
@@ -520,16 +520,16 @@ func (m *ModelCore) transactionBatchMinimal(context context.Context, id uuid.UUI
 		ID:               data.ID,
 		CreatedAt:        data.CreatedAt.Format(time.RFC3339),
 		CreatedByID:      data.CreatedByID,
-		CreatedBy:        m.userManager.ToModel(data.CreatedBy),
+		CreatedBy:        m.UserManager.ToModel(data.CreatedBy),
 		UpdatedAt:        data.UpdatedAt.Format(time.RFC3339),
 		UpdatedByID:      data.UpdatedByID,
-		UpdatedBy:        m.userManager.ToModel(data.UpdatedBy),
+		UpdatedBy:        m.UserManager.ToModel(data.UpdatedBy),
 		OrganizationID:   data.OrganizationID,
-		Organization:     m.organizationManager.ToModel(data.Organization),
+		Organization:     m.OrganizationManager.ToModel(data.Organization),
 		BranchID:         data.BranchID,
-		Branch:           m.branchManager.ToModel(data.Branch),
+		Branch:           m.BranchManager.ToModel(data.Branch),
 		EmployeeUserID:   data.EmployeeUserID,
-		EmployeeUser:     m.userManager.ToModel(data.EmployeeUser),
+		EmployeeUser:     m.UserManager.ToModel(data.EmployeeUser),
 		BatchName:        data.BatchName,
 		BeginningBalance: data.BeginningBalance,
 		DepositInBank:    data.DepositInBank,
@@ -540,13 +540,13 @@ func (m *ModelCore) transactionBatchMinimal(context context.Context, id uuid.UUI
 		IsClosed:         data.IsClosed,
 		RequestView:      data.RequestView,
 		CurrencyID:       data.CurrencyID,
-		Currency:         m.currencyManager.ToModel(data.Currency),
+		Currency:         m.CurrencyManager.ToModel(data.Currency),
 		EndedAt:          endedAt,
 	}, nil
 }
 
 func (m *ModelCore) transactionBatchCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*TransactionBatch, error) {
-	return m.transactionBatchManager.Find(context, &TransactionBatch{
+	return m.TransactionBatchManager.Find(context, &TransactionBatch{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})
@@ -564,7 +564,7 @@ func (m *ModelCore) transactionBatchCurrentDay(ctx context.Context, orgId uuid.U
 		{Field: "created_at", Op: horizon_services.OpGte, Value: startOfDay},
 		{Field: "created_at", Op: horizon_services.OpLt, Value: endOfDay},
 	}
-	batches, err := m.transactionBatchManager.FindWithFilters(ctx, filters)
+	batches, err := m.TransactionBatchManager.FindWithFilters(ctx, filters)
 	if err != nil {
 		return nil, err
 	}

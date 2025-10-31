@@ -42,8 +42,8 @@ type (
 
 // Notification initializes the Notification model and its repository manager
 func (m *ModelCore) notification() {
-	m.migration = append(m.migration, &Notification{})
-	m.notificationManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Notification, NotificationResponse, any]{
+	m.Migration = append(m.Migration, &Notification{})
+	m.NotificationManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Notification, NotificationResponse, any]{
 		Preloads: nil,
 		Service:  m.provider.Service,
 		Resource: func(data *Notification) *NotificationResponse {
@@ -53,7 +53,7 @@ func (m *ModelCore) notification() {
 			return &NotificationResponse{
 				ID:               data.ID,
 				UserID:           data.UserID,
-				User:             m.userManager.ToModel(data.User),
+				User:             m.UserManager.ToModel(data.User),
 				Title:            data.Title,
 				Description:      data.Description,
 				IsViewed:         data.IsViewed,
@@ -88,7 +88,7 @@ func (m *ModelCore) notification() {
 
 // GetNotificationByUser retrieves all notifications for a specific user
 func (m *ModelCore) getNotificationByUser(context context.Context, userID uuid.UUID) ([]*Notification, error) {
-	return m.notificationManager.Find(context, &Notification{
+	return m.NotificationManager.Find(context, &Notification{
 		UserID: userID,
 	})
 }

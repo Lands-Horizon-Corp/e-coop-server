@@ -64,8 +64,8 @@ type (
 
 // VoucherPayTo initializes the voucher pay to repository and sets up migration
 func (m *ModelCore) voucherPayTo() {
-	m.migration = append(m.migration, &VoucherPayTo{})
-	m.voucherPayToManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.Migration = append(m.Migration, &VoucherPayTo{})
+	m.VoucherPayToManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		VoucherPayTo, VoucherPayToResponse, VoucherPayToRequest,
 	]{
 		Preloads: []string{
@@ -80,17 +80,17 @@ func (m *ModelCore) voucherPayTo() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.organizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.branchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager.ToModel(data.Branch),
 				Name:           data.Name,
 				MediaID:        data.MediaID,
-				Media:          m.mediaManager.ToModel(data.Media),
+				Media:          m.MediaManager.ToModel(data.Media),
 				Description:    data.Description,
 			}
 		},
@@ -123,7 +123,7 @@ func (m *ModelCore) voucherPayTo() {
 
 // VoucherPayToCurrentBranch retrieves all voucher payees for the specified organization and branch
 func (m *ModelCore) voucherPayToCurrentbranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*VoucherPayTo, error) {
-	return m.voucherPayToManager.Find(context, &VoucherPayTo{
+	return m.VoucherPayToManager.Find(context, &VoucherPayTo{
 		OrganizationID: orgID,
 		BranchID:       branchID,
 	})

@@ -104,8 +104,8 @@ type (
 )
 
 func (m *ModelCore) memberAccountingLedger() {
-	m.migration = append(m.migration, &MemberAccountingLedger{})
-	m.memberAccountingLedgerManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.Migration = append(m.Migration, &MemberAccountingLedger{})
+	m.MemberAccountingLedgerManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		MemberAccountingLedger, MemberAccountingLedgerResponse, MemberAccountingLedgerRequest,
 	]{
 		Preloads: []string{
@@ -126,18 +126,18 @@ func (m *ModelCore) memberAccountingLedger() {
 				ID:                  data.ID,
 				CreatedAt:           data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:         data.CreatedByID,
-				CreatedBy:           m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:           m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:           data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:         data.UpdatedByID,
-				UpdatedBy:           m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:           m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID:      data.OrganizationID,
-				Organization:        m.organizationManager.ToModel(data.Organization),
+				Organization:        m.OrganizationManager.ToModel(data.Organization),
 				BranchID:            data.BranchID,
-				Branch:              m.branchManager.ToModel(data.Branch),
+				Branch:              m.BranchManager.ToModel(data.Branch),
 				MemberProfileID:     data.MemberProfileID,
-				MemberProfile:       m.memberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:       m.MemberProfileManager.ToModel(data.MemberProfile),
 				AccountID:           data.AccountID,
-				Account:             m.accountManager.ToModel(data.Account),
+				Account:             m.AccountManager.ToModel(data.Account),
 				Count:               data.Count,
 				Balance:             data.Balance,
 				Interest:            data.Interest,
@@ -181,7 +181,7 @@ func (m *ModelCore) memberAccountingLedger() {
 }
 
 func (m *ModelCore) memberAccountingLedgerCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberAccountingLedger, error) {
-	return m.memberAccountingLedgerManager.Find(context, &MemberAccountingLedger{
+	return m.MemberAccountingLedgerManager.Find(context, &MemberAccountingLedger{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

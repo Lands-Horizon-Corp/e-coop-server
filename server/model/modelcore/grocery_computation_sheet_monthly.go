@@ -64,8 +64,8 @@ type (
 )
 
 func (m *ModelCore) groceryComputationSheetMonthly() {
-	m.migration = append(m.migration, &GroceryComputationSheetMonthly{})
-	m.groceryComputationSheetMonthlyManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.Migration = append(m.Migration, &GroceryComputationSheetMonthly{})
+	m.GroceryComputationSheetMonthlyManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		GroceryComputationSheetMonthly, GroceryComputationSheetMonthlyResponse, GroceryComputationSheetMonthlyRequest,
 	]{
 		Preloads: []string{
@@ -80,16 +80,16 @@ func (m *ModelCore) groceryComputationSheetMonthly() {
 				ID:                        data.ID,
 				CreatedAt:                 data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:               data.CreatedByID,
-				CreatedBy:                 m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:                 m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:                 data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:               data.UpdatedByID,
-				UpdatedBy:                 m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:                 m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID:            data.OrganizationID,
-				Organization:              m.organizationManager.ToModel(data.Organization),
+				Organization:              m.OrganizationManager.ToModel(data.Organization),
 				BranchID:                  data.BranchID,
-				Branch:                    m.branchManager.ToModel(data.Branch),
+				Branch:                    m.BranchManager.ToModel(data.Branch),
 				GroceryComputationSheetID: data.GroceryComputationSheetID,
-				GroceryComputationSheet:   m.groceryComputationSheetManager.ToModel(data.GroceryComputationSheet),
+				GroceryComputationSheet:   m.GroceryComputationSheetManager.ToModel(data.GroceryComputationSheet),
 				Months:                    data.Months,
 				InterestRate:              data.InterestRate,
 				LoanGuaranteedFundRate:    data.LoanGuaranteedFundRate,
@@ -123,7 +123,7 @@ func (m *ModelCore) groceryComputationSheetMonthly() {
 }
 
 func (m *ModelCore) groceryComputationSheetMonthlyCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*GroceryComputationSheetMonthly, error) {
-	return m.groceryComputationSheetMonthlyManager.Find(context, &GroceryComputationSheetMonthly{
+	return m.GroceryComputationSheetMonthlyManager.Find(context, &GroceryComputationSheetMonthly{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

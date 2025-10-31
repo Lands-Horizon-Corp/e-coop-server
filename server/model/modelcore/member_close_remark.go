@@ -60,8 +60,8 @@ type (
 )
 
 func (m *ModelCore) memberCloseRemark() {
-	m.migration = append(m.migration, &MemberCloseRemark{})
-	m.memberCloseRemarkManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberCloseRemark, MemberCloseRemarkResponse, MemberCloseRemarkRequest]{
+	m.Migration = append(m.Migration, &MemberCloseRemark{})
+	m.MemberCloseRemarkManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberCloseRemark, MemberCloseRemarkResponse, MemberCloseRemarkRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberCloseRemark) *MemberCloseRemarkResponse {
@@ -72,16 +72,16 @@ func (m *ModelCore) memberCloseRemark() {
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
-				CreatedBy:       m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:       m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:     data.UpdatedByID,
-				UpdatedBy:       m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:       m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID:  data.OrganizationID,
-				Organization:    m.organizationManager.ToModel(data.Organization),
+				Organization:    m.OrganizationManager.ToModel(data.Organization),
 				BranchID:        data.BranchID,
-				Branch:          m.branchManager.ToModel(data.Branch),
+				Branch:          m.BranchManager.ToModel(data.Branch),
 				MemberProfileID: *data.MemberProfileID,
-				MemberProfile:   m.memberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:   m.MemberProfileManager.ToModel(data.MemberProfile),
 				Reason:          data.Reason,
 				Description:     data.Description,
 			}
@@ -115,7 +115,7 @@ func (m *ModelCore) memberCloseRemark() {
 }
 
 func (m *ModelCore) memberCloseRemarkCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberCloseRemark, error) {
-	return m.memberCloseRemarkManager.Find(context, &MemberCloseRemark{
+	return m.MemberCloseRemarkManager.Find(context, &MemberCloseRemark{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

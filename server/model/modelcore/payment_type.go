@@ -80,8 +80,8 @@ type (
 
 // PaymentType initializes the PaymentType model and its repository manager
 func (m *ModelCore) paymentType() {
-	m.migration = append(m.migration, &PaymentType{})
-	m.paymentTypeManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.Migration = append(m.Migration, &PaymentType{})
+	m.PaymentTypeManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		PaymentType, PaymentTypeResponse, PaymentTypeRequest,
 	]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
@@ -94,14 +94,14 @@ func (m *ModelCore) paymentType() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.organizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.branchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager.ToModel(data.Branch),
 				Name:           data.Name,
 				Description:    data.Description,
 				NumberOfDays:   data.NumberOfDays,
@@ -150,10 +150,10 @@ func (m *ModelCore) paymentTypeSeed(context context.Context, tx *gorm.DB, userID
 		NumberOfDays:   0,
 		Type:           PaymentTypeCash,
 	}
-	if err := m.paymentTypeManager.CreateWithTx(context, tx, cashOnHandPayment); err != nil {
+	if err := m.PaymentTypeManager.CreateWithTx(context, tx, cashOnHandPayment); err != nil {
 		return eris.Wrap(err, "failed to seed cash on hand payment type")
 	}
-	userOrganization, err := m.userOrganizationManager.FindOne(context, &UserOrganization{
+	userOrganization, err := m.UserOrganizationManager.FindOne(context, &UserOrganization{
 		UserID:         userID,
 		OrganizationID: organizationID,
 		BranchID:       &branchID,
@@ -162,7 +162,7 @@ func (m *ModelCore) paymentTypeSeed(context context.Context, tx *gorm.DB, userID
 		return eris.Wrap(err, "failed to find user organization for seeding payment types")
 	}
 	userOrganization.SettingsPaymentTypeDefaultValueID = &cashOnHandPayment.ID
-	if err := m.userOrganizationManager.UpdateFieldsWithTx(context, tx, userOrganization.ID, userOrganization); err != nil {
+	if err := m.UserOrganizationManager.UpdateFieldsWithTx(context, tx, userOrganization.ID, userOrganization); err != nil {
 		return eris.Wrap(err, "failed to update user organization with default payment type")
 	}
 	paymentTypes := []*PaymentType{
@@ -293,7 +293,7 @@ func (m *ModelCore) paymentTypeSeed(context context.Context, tx *gorm.DB, userID
 	}
 
 	for _, data := range paymentTypes {
-		if err := m.paymentTypeManager.CreateWithTx(context, tx, data); err != nil {
+		if err := m.PaymentTypeManager.CreateWithTx(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to seed payment type %s", data.Name)
 		}
 	}
@@ -302,7 +302,7 @@ func (m *ModelCore) paymentTypeSeed(context context.Context, tx *gorm.DB, userID
 
 // PaymentTypeCurrentBranch retrieves all payment types for the specified organization and branch
 func (m *ModelCore) paymentTypeCurrentbranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*PaymentType, error) {
-	return m.paymentTypeManager.Find(context, &PaymentType{
+	return m.PaymentTypeManager.Find(context, &PaymentType{
 		OrganizationID: orgID,
 		BranchID:       branchID,
 	})

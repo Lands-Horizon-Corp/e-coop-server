@@ -59,8 +59,8 @@ type (
 )
 
 func (m *ModelCore) memberClassification() {
-	m.migration = append(m.migration, &MemberClassification{})
-	m.memberClassificationManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberClassification, MemberClassificationResponse, MemberClassificationRequest]{
+	m.Migration = append(m.Migration, &MemberClassification{})
+	m.MemberClassificationManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberClassification, MemberClassificationResponse, MemberClassificationRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberClassification) *MemberClassificationResponse {
@@ -71,14 +71,14 @@ func (m *ModelCore) memberClassification() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.organizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.branchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager.ToModel(data.Branch),
 				Name:           data.Name,
 				Icon:           data.Icon,
 				Description:    data.Description,
@@ -165,14 +165,14 @@ func (m *ModelCore) memberClassificationSeed(context context.Context, tx *gorm.D
 		},
 	}
 	for _, data := range memberClassifications {
-		if err := m.memberClassificationManager.CreateWithTx(context, tx, data); err != nil {
+		if err := m.MemberClassificationManager.CreateWithTx(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to seed member classification %s", data.Name)
 		}
 	}
 	return nil
 }
 func (m *ModelCore) memberClassificationCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberClassification, error) {
-	return m.memberClassificationManager.Find(context, &MemberClassification{
+	return m.MemberClassificationManager.Find(context, &MemberClassification{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

@@ -68,8 +68,8 @@ type (
 )
 
 func (m *ModelCore) holiday() {
-	m.migration = append(m.migration, &Holiday{})
-	m.holidayManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.Migration = append(m.Migration, &Holiday{})
+	m.HolidayManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		Holiday, HolidayResponse, HolidayRequest,
 	]{
 		Preloads: []string{
@@ -84,16 +84,16 @@ func (m *ModelCore) holiday() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.organizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.branchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager.ToModel(data.Branch),
 				CurrencyID:     data.CurrencyID,
-				Currency:       m.currencyManager.ToModel(data.Currency),
+				Currency:       m.CurrencyManager.ToModel(data.Currency),
 				EntryDate:      data.EntryDate.Format(time.RFC3339),
 				Name:           data.Name,
 				Description:    data.Description,
@@ -130,7 +130,7 @@ func (m *ModelCore) holidaySeed(context context.Context, tx *gorm.DB, userID uui
 	now := time.Now().UTC()
 	year := now.Year()
 
-	currencies, err := m.currencyManager.List(context)
+	currencies, err := m.CurrencyManager.List(context)
 	if err != nil {
 		return eris.Wrap(err, "failed to list currencies for holiday seeding")
 	}
@@ -1457,7 +1457,7 @@ func (m *ModelCore) holidaySeed(context context.Context, tx *gorm.DB, userID uui
 
 		for _, holiday := range holidays {
 			holiday.CurrencyID = currency.ID
-			if err := m.holidayManager.CreateWithTx(context, tx, holiday); err != nil {
+			if err := m.HolidayManager.CreateWithTx(context, tx, holiday); err != nil {
 				return eris.Wrapf(err, "failed to seed holiday %s for currency %s", holiday.Name, currency.CurrencyCode)
 			}
 		}
@@ -1467,7 +1467,7 @@ func (m *ModelCore) holidaySeed(context context.Context, tx *gorm.DB, userID uui
 }
 
 func (m *ModelCore) holidayCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Holiday, error) {
-	return m.holidayManager.Find(context, &Holiday{
+	return m.HolidayManager.Find(context, &Holiday{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

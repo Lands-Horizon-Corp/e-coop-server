@@ -71,8 +71,8 @@ type (
 )
 
 func (m *ModelCore) memberEducationalAttainment() {
-	m.migration = append(m.migration, &MemberEducationalAttainment{})
-	m.memberEducationalAttainmentManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberEducationalAttainment, MemberEducationalAttainmentResponse, MemberEducationalAttainmentRequest]{
+	m.Migration = append(m.Migration, &MemberEducationalAttainment{})
+	m.MemberEducationalAttainmentManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberEducationalAttainment, MemberEducationalAttainmentResponse, MemberEducationalAttainmentRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberEducationalAttainment) *MemberEducationalAttainmentResponse {
@@ -83,16 +83,16 @@ func (m *ModelCore) memberEducationalAttainment() {
 				ID:                    data.ID,
 				CreatedAt:             data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:           data.CreatedByID,
-				CreatedBy:             m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:             m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:             data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:           data.UpdatedByID,
-				UpdatedBy:             m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:             m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID:        data.OrganizationID,
-				Organization:          m.organizationManager.ToModel(data.Organization),
+				Organization:          m.OrganizationManager.ToModel(data.Organization),
 				BranchID:              data.BranchID,
-				Branch:                m.branchManager.ToModel(data.Branch),
+				Branch:                m.BranchManager.ToModel(data.Branch),
 				MemberProfileID:       data.MemberProfileID,
-				MemberProfile:         m.memberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:         m.MemberProfileManager.ToModel(data.MemberProfile),
 				SchoolName:            data.SchoolName,
 				SchoolYear:            data.SchoolYear,
 				ProgramCourse:         data.ProgramCourse,
@@ -129,7 +129,7 @@ func (m *ModelCore) memberEducationalAttainment() {
 }
 
 func (m *ModelCore) memberEducationalAttainmentCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberEducationalAttainment, error) {
-	return m.memberEducationalAttainmentManager.Find(context, &MemberEducationalAttainment{
+	return m.MemberEducationalAttainmentManager.Find(context, &MemberEducationalAttainment{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

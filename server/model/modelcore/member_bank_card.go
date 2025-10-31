@@ -76,8 +76,8 @@ type (
 )
 
 func (m *ModelCore) memberBankCard() {
-	m.migration = append(m.migration, &MemberBankCard{})
-	m.memberBankCardManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberBankCard, MemberBankCardResponse, MemberBankCardRequest]{
+	m.Migration = append(m.Migration, &MemberBankCard{})
+	m.MemberBankCardManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberBankCard, MemberBankCardResponse, MemberBankCardRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Bank", "MemberProfile"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberBankCard) *MemberBankCardResponse {
@@ -88,18 +88,18 @@ func (m *ModelCore) memberBankCard() {
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
-				CreatedBy:       m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:       m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:     data.UpdatedByID,
-				UpdatedBy:       m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:       m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID:  data.OrganizationID,
-				Organization:    m.organizationManager.ToModel(data.Organization),
+				Organization:    m.OrganizationManager.ToModel(data.Organization),
 				BranchID:        data.BranchID,
-				Branch:          m.branchManager.ToModel(data.Branch),
+				Branch:          m.BranchManager.ToModel(data.Branch),
 				BankID:          data.BankID,
-				Bank:            m.bankManager.ToModel(data.Bank),
+				Bank:            m.BankManager.ToModel(data.Bank),
 				MemberProfileID: data.MemberProfileID,
-				MemberProfile:   m.memberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:   m.MemberProfileManager.ToModel(data.MemberProfile),
 				AccountNumber:   data.AccountNumber,
 				CardName:        data.CardName,
 				ExpirationDate:  data.ExpirationDate.Format(time.RFC3339),
@@ -135,7 +135,7 @@ func (m *ModelCore) memberBankCard() {
 }
 
 func (m *ModelCore) memberBankCardCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberBankCard, error) {
-	return m.memberBankCardManager.Find(context, &MemberBankCard{
+	return m.MemberBankCardManager.Find(context, &MemberBankCard{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

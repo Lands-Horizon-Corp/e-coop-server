@@ -121,8 +121,8 @@ type (
 )
 
 func (m *ModelCore) timeDepositType() {
-	m.migration = append(m.migration, &TimeDepositType{})
-	m.timeDepositTypeManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.Migration = append(m.Migration, &TimeDepositType{})
+	m.TimeDepositTypeManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		TimeDepositType, TimeDepositTypeResponse, TimeDepositTypeRequest,
 	]{
 		Preloads: []string{
@@ -137,16 +137,16 @@ func (m *ModelCore) timeDepositType() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.organizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.branchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager.ToModel(data.Branch),
 				CurrencyID:     data.CurrencyID,
-				Currency:       m.currencyManager.ToModel(data.Currency),
+				Currency:       m.CurrencyManager.ToModel(data.Currency),
 
 				Header1:  data.Header1,
 				Header2:  data.Header2,
@@ -166,8 +166,8 @@ func (m *ModelCore) timeDepositType() {
 				PreMatureRate: data.PreMatureRate,
 				Excess:        data.Excess,
 
-				TimeDepositComputations:          m.timeDepositComputationManager.ToModels(data.TimeDepositComputations),
-				TimeDepositComputationPreMatures: m.timeDepositComputationPreMatureManager.ToModels(data.TimeDepositComputationPreMatures),
+				TimeDepositComputations:          m.TimeDepositComputationManager.ToModels(data.TimeDepositComputations),
+				TimeDepositComputationPreMatures: m.TimeDepositComputationPreMatureManager.ToModels(data.TimeDepositComputationPreMatures),
 			}
 		},
 
@@ -199,7 +199,7 @@ func (m *ModelCore) timeDepositType() {
 }
 
 func (m *ModelCore) timeDepositTypeCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*TimeDepositType, error) {
-	return m.timeDepositTypeManager.Find(context, &TimeDepositType{
+	return m.TimeDepositTypeManager.Find(context, &TimeDepositType{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

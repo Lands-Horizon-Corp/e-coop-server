@@ -130,8 +130,8 @@ type (
 )
 
 func (m *ModelCore) journalVoucher() {
-	m.migration = append(m.migration, &JournalVoucher{})
-	m.journalVoucherManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.Migration = append(m.Migration, &JournalVoucher{})
+	m.JournalVoucherManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		JournalVoucher, JournalVoucherResponse, JournalVoucherRequest,
 	]{
 		Preloads: []string{
@@ -181,16 +181,16 @@ func (m *ModelCore) journalVoucher() {
 				ID:                    data.ID,
 				CreatedAt:             data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:           data.CreatedByID,
-				CreatedBy:             m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:             m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:             data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:           data.UpdatedByID,
-				UpdatedBy:             m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:             m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID:        data.OrganizationID,
-				Organization:          m.organizationManager.ToModel(data.Organization),
+				Organization:          m.OrganizationManager.ToModel(data.Organization),
 				BranchID:              data.BranchID,
-				Branch:                m.branchManager.ToModel(data.Branch),
+				Branch:                m.BranchManager.ToModel(data.Branch),
 				CurrencyID:            data.CurrencyID,
-				Currency:              m.currencyManager.ToModel(data.Currency),
+				Currency:              m.CurrencyManager.ToModel(data.Currency),
 				Name:                  data.Name,
 				CashVoucherNumber:     data.CashVoucherNumber,
 				Date:                  data.Date.Format("2006-01-02"),
@@ -199,18 +199,18 @@ func (m *ModelCore) journalVoucher() {
 				Status:                data.Status,
 				PostedAt:              postedAt,
 				PostedByID:            data.PostedByID,
-				PostedBy:              m.userManager.ToModel(data.PostedBy),
+				PostedBy:              m.UserManager.ToModel(data.PostedBy),
 				PrintedDate:           printedDate,
 				PrintedByID:           data.PrintedByID,
-				PrintedBy:             m.userManager.ToModel(data.PrintedBy),
+				PrintedBy:             m.UserManager.ToModel(data.PrintedBy),
 				PrintNumber:           data.PrintNumber,
 				ApprovedDate:          approvedDate,
 				ApprovedByID:          data.ApprovedByID,
-				ApprovedBy:            m.userManager.ToModel(data.ApprovedBy),
+				ApprovedBy:            m.UserManager.ToModel(data.ApprovedBy),
 				ReleasedDate:          releasedDate,
 				ReleasedByID:          data.ReleasedByID,
-				ReleasedBy:            m.userManager.ToModel(data.ReleasedBy),
-				JournalVoucherTags:    m.journalVoucherTagManager.ToModels(data.JournalVoucherTags),
+				ReleasedBy:            m.UserManager.ToModel(data.ReleasedBy),
+				JournalVoucherTags:    m.JournalVoucherTagManager.ToModels(data.JournalVoucherTags),
 				JournalVoucherEntries: m.mapJournalVoucherEntries(data.JournalVoucherEntries),
 				TotalDebit:            totalDebit,
 				TotalCredit:           totalCredit,
@@ -244,7 +244,7 @@ func (m *ModelCore) journalVoucher() {
 }
 
 func (m *ModelCore) journalVoucherCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*JournalVoucher, error) {
-	return m.journalVoucherManager.Find(context, &JournalVoucher{
+	return m.JournalVoucherManager.Find(context, &JournalVoucher{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})
@@ -259,7 +259,7 @@ func (m *ModelCore) mapJournalVoucherEntries(entries []*JournalVoucherEntry) []*
 	var result []*JournalVoucherEntryResponse
 	for _, entry := range entries {
 		if entry != nil {
-			result = append(result, m.journalVoucherEntryManager.ToModel(entry))
+			result = append(result, m.JournalVoucherEntryManager.ToModel(entry))
 		}
 	}
 	return result
@@ -291,7 +291,7 @@ func (m *ModelCore) journalVoucherDraft(ctx context.Context, branchId, orgId uui
 		{Field: "released_date", Op: horizon_services.OpIsNull, Value: nil},
 	}
 
-	journalVouchers, err := m.journalVoucherManager.FindWithFilters(ctx, filters)
+	journalVouchers, err := m.JournalVoucherManager.FindWithFilters(ctx, filters)
 	if err != nil {
 		return nil, err
 	}
@@ -307,7 +307,7 @@ func (m *ModelCore) journalVoucherPrinted(ctx context.Context, branchId, orgId u
 		{Field: "released_date", Op: horizon_services.OpIsNull, Value: nil},
 	}
 
-	journalVouchers, err := m.journalVoucherManager.FindWithFilters(ctx, filters)
+	journalVouchers, err := m.JournalVoucherManager.FindWithFilters(ctx, filters)
 	if err != nil {
 		return nil, err
 	}
@@ -323,7 +323,7 @@ func (m *ModelCore) journalVoucherApproved(ctx context.Context, branchId, orgId 
 		{Field: "released_date", Op: horizon_services.OpIsNull, Value: nil},
 	}
 
-	journalVouchers, err := m.journalVoucherManager.FindWithFilters(ctx, filters)
+	journalVouchers, err := m.JournalVoucherManager.FindWithFilters(ctx, filters)
 	if err != nil {
 		return nil, err
 	}
@@ -339,7 +339,7 @@ func (m *ModelCore) journalVoucherReleased(ctx context.Context, branchId, orgId 
 		{Field: "released_date", Op: horizon_services.OpNotNull, Value: nil},
 	}
 
-	journalVouchers, err := m.journalVoucherManager.FindWithFilters(ctx, filters)
+	journalVouchers, err := m.JournalVoucherManager.FindWithFilters(ctx, filters)
 	if err != nil {
 		return nil, err
 	}
@@ -361,7 +361,7 @@ func (m *ModelCore) journalVoucherReleasedCurrentDay(ctx context.Context, branch
 		{Field: "released_date", Op: horizon_services.OpLt, Value: endOfDay},
 	}
 
-	journalVouchers, err := m.journalVoucherManager.FindWithFilters(ctx, filters)
+	journalVouchers, err := m.JournalVoucherManager.FindWithFilters(ctx, filters)
 	if err != nil {
 		return nil, err
 	}

@@ -56,8 +56,8 @@ type (
 )
 
 func (m *ModelCore) accountCategory() {
-	m.migration = append(m.migration, &AccountCategory{})
-	m.accountCategoryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.Migration = append(m.Migration, &AccountCategory{})
+	m.AccountCategoryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		AccountCategory, AccountCategoryResponse, AccountCategoryRequest,
 	]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
@@ -70,14 +70,14 @@ func (m *ModelCore) accountCategory() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.organizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.branchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager.ToModel(data.Branch),
 				Name:           data.Name,
 				Description:    data.Description,
 			}
@@ -215,7 +215,7 @@ func (m *ModelCore) accountCategorySeed(context context.Context, tx *gorm.DB, us
 	}
 
 	for _, data := range accountCategories {
-		if err := m.accountCategoryManager.CreateWithTx(context, tx, data); err != nil {
+		if err := m.AccountCategoryManager.CreateWithTx(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to seed account category %s", data.Name)
 		}
 	}
@@ -224,7 +224,7 @@ func (m *ModelCore) accountCategorySeed(context context.Context, tx *gorm.DB, us
 }
 
 func (m *ModelCore) accountCategoryCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*AccountCategory, error) {
-	return m.accountCategoryManager.Find(context, &AccountCategory{
+	return m.AccountCategoryManager.Find(context, &AccountCategory{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

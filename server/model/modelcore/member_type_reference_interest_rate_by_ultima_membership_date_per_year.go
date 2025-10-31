@@ -64,8 +64,8 @@ type (
 )
 
 func (m *ModelCore) memberTypeReferenceInterestRateByUltimaMembershipDatePerYear() {
-	m.migration = append(m.migration, &MemberTypeReferenceInterestRateByUltimaMembershipDatePerYear{})
-	m.memberTypeReferenceInterestRateByUltimaMembershipDatePerYearManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.Migration = append(m.Migration, &MemberTypeReferenceInterestRateByUltimaMembershipDatePerYear{})
+	m.MemberTypeReferenceInterestRateByUltimaMembershipDatePerYearManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		MemberTypeReferenceInterestRateByUltimaMembershipDatePerYear,
 		MemberTypeReferenceInterestRateByUltimaMembershipDatePerYearResponse,
 		MemberTypeReferenceInterestRateByUltimaMembershipDatePerYearRequest,
@@ -82,16 +82,16 @@ func (m *ModelCore) memberTypeReferenceInterestRateByUltimaMembershipDatePerYear
 				ID:                    data.ID,
 				CreatedAt:             data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:           data.CreatedByID,
-				CreatedBy:             m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:             m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:             data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:           data.UpdatedByID,
-				UpdatedBy:             m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:             m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID:        data.OrganizationID,
-				Organization:          m.organizationManager.ToModel(data.Organization),
+				Organization:          m.OrganizationManager.ToModel(data.Organization),
 				BranchID:              data.BranchID,
-				Branch:                m.branchManager.ToModel(data.Branch),
+				Branch:                m.BranchManager.ToModel(data.Branch),
 				MemberTypeReferenceID: data.MemberTypeReferenceID,
-				MemberTypeReference:   m.memberTypeReferenceManager.ToModel(data.MemberTypeReference),
+				MemberTypeReference:   m.MemberTypeReferenceManager.ToModel(data.MemberTypeReference),
 				YearFrom:              data.YearFrom,
 				YearTo:                data.YearTo,
 				Rate:                  data.Rate,
@@ -126,7 +126,7 @@ func (m *ModelCore) memberTypeReferenceInterestRateByUltimaMembershipDatePerYear
 }
 
 func (m *ModelCore) memberTypeReferenceInterestRateByUltimaMembershipDatePerYearCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberTypeReferenceInterestRateByUltimaMembershipDatePerYear, error) {
-	return m.memberTypeReferenceInterestRateByUltimaMembershipDatePerYearManager.Find(context, &MemberTypeReferenceInterestRateByUltimaMembershipDatePerYear{
+	return m.MemberTypeReferenceInterestRateByUltimaMembershipDatePerYearManager.Find(context, &MemberTypeReferenceInterestRateByUltimaMembershipDatePerYear{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

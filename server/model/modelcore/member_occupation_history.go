@@ -60,8 +60,8 @@ type (
 )
 
 func (m *ModelCore) memberOccupationHistory() {
-	m.migration = append(m.migration, &MemberOccupationHistory{})
-	m.memberOccupationHistoryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberOccupationHistory, MemberOccupationHistoryResponse, MemberOccupationHistoryRequest]{
+	m.Migration = append(m.Migration, &MemberOccupationHistory{})
+	m.MemberOccupationHistoryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberOccupationHistory, MemberOccupationHistoryResponse, MemberOccupationHistoryRequest]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "MemberProfile", "MemberOccupation",
 		},
@@ -74,18 +74,18 @@ func (m *ModelCore) memberOccupationHistory() {
 				ID:                 data.ID,
 				CreatedAt:          data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:        data.CreatedByID,
-				CreatedBy:          m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:          m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:          data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:        data.UpdatedByID,
-				UpdatedBy:          m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:          m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID:     data.OrganizationID,
-				Organization:       m.organizationManager.ToModel(data.Organization),
+				Organization:       m.OrganizationManager.ToModel(data.Organization),
 				BranchID:           data.BranchID,
-				Branch:             m.branchManager.ToModel(data.Branch),
+				Branch:             m.BranchManager.ToModel(data.Branch),
 				MemberProfileID:    data.MemberProfileID,
-				MemberProfile:      m.memberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:      m.MemberProfileManager.ToModel(data.MemberProfile),
 				MemberOccupationID: data.MemberOccupationID,
-				MemberOccupation:   m.memberOccupationManager.ToModel(data.MemberOccupation),
+				MemberOccupation:   m.MemberOccupationManager.ToModel(data.MemberOccupation),
 			}
 		},
 		Created: func(data *MemberOccupationHistory) []string {
@@ -119,13 +119,13 @@ func (m *ModelCore) memberOccupationHistory() {
 }
 
 func (m *ModelCore) memberOccupationHistoryCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberOccupationHistory, error) {
-	return m.memberOccupationHistoryManager.Find(context, &MemberOccupationHistory{
+	return m.MemberOccupationHistoryManager.Find(context, &MemberOccupationHistory{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})
 }
 func (m *ModelCore) memberOccupationHistoryMemberProfileID(context context.Context, memberProfileId, orgId, branchId uuid.UUID) ([]*MemberOccupationHistory, error) {
-	return m.memberOccupationHistoryManager.Find(context, &MemberOccupationHistory{
+	return m.MemberOccupationHistoryManager.Find(context, &MemberOccupationHistory{
 		OrganizationID:  orgId,
 		BranchID:        branchId,
 		MemberProfileID: memberProfileId,

@@ -62,8 +62,8 @@ type (
 )
 
 func (m *ModelCore) company() {
-	m.migration = append(m.migration, &Company{})
-	m.companyManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Company, CompanyResponse, CompanyRequest]{
+	m.Migration = append(m.Migration, &Company{})
+	m.CompanyManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Company, CompanyResponse, CompanyRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Media"},
 		Service:  m.provider.Service,
 		Resource: func(data *Company) *CompanyResponse {
@@ -74,16 +74,16 @@ func (m *ModelCore) company() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.organizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.branchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager.ToModel(data.Branch),
 				MediaID:        data.MediaID,
-				Media:          m.mediaManager.ToModel(data.Media),
+				Media:          m.MediaManager.ToModel(data.Media),
 				Name:           data.Name,
 				Description:    data.Description,
 			}
@@ -117,11 +117,11 @@ func (m *ModelCore) company() {
 
 func (m *ModelCore) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
-	branch, err := m.branchManager.GetByID(context, branchID)
+	branch, err := m.BranchManager.GetByID(context, branchID)
 	if err != nil {
 		return eris.Wrapf(err, "failed to get branch by ID: %s", branchID)
 	}
-	organization, err := m.organizationManager.GetByID(context, organizationID)
+	organization, err := m.OrganizationManager.GetByID(context, organizationID)
 	if err != nil {
 		return eris.Wrapf(err, "failed to get organization by ID: %s", organizationID)
 	}
@@ -499,7 +499,7 @@ func (m *ModelCore) companySeed(context context.Context, tx *gorm.DB, userID uui
 		},
 	}
 	for _, data := range companies {
-		if err := m.companyManager.CreateWithTx(context, tx, data); err != nil {
+		if err := m.CompanyManager.CreateWithTx(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to seed company %s", data.Name)
 		}
 	}
@@ -507,7 +507,7 @@ func (m *ModelCore) companySeed(context context.Context, tx *gorm.DB, userID uui
 }
 
 func (m *ModelCore) companyCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Company, error) {
-	return m.companyManager.Find(context, &Company{
+	return m.CompanyManager.Find(context, &Company{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

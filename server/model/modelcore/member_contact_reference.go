@@ -64,8 +64,8 @@ type (
 )
 
 func (m *ModelCore) memberContactReference() {
-	m.migration = append(m.migration, &MemberContactReference{})
-	m.memberContactReferenceManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberContactReference, MemberContactReferenceResponse, MemberContactReferenceRequest]{
+	m.Migration = append(m.Migration, &MemberContactReference{})
+	m.MemberContactReferenceManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberContactReference, MemberContactReferenceResponse, MemberContactReferenceRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberContactReference) *MemberContactReferenceResponse {
@@ -76,16 +76,16 @@ func (m *ModelCore) memberContactReference() {
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
-				CreatedBy:       m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:       m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:     data.UpdatedByID,
-				UpdatedBy:       m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:       m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID:  data.OrganizationID,
-				Organization:    m.organizationManager.ToModel(data.Organization),
+				Organization:    m.OrganizationManager.ToModel(data.Organization),
 				BranchID:        data.BranchID,
-				Branch:          m.branchManager.ToModel(data.Branch),
+				Branch:          m.BranchManager.ToModel(data.Branch),
 				MemberProfileID: data.MemberProfileID,
-				MemberProfile:   m.memberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:   m.MemberProfileManager.ToModel(data.MemberProfile),
 				Name:            data.Name,
 				Description:     data.Description,
 				ContactNumber:   data.ContactNumber,
@@ -120,7 +120,7 @@ func (m *ModelCore) memberContactReference() {
 }
 
 func (m *ModelCore) memberContactReferenceCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberContactReference, error) {
-	return m.memberContactReferenceManager.Find(context, &MemberContactReference{
+	return m.MemberContactReferenceManager.Find(context, &MemberContactReference{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

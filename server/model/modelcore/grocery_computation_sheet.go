@@ -55,8 +55,8 @@ type (
 )
 
 func (m *ModelCore) groceryComputationSheet() {
-	m.migration = append(m.migration, &GroceryComputationSheet{})
-	m.groceryComputationSheetManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.Migration = append(m.Migration, &GroceryComputationSheet{})
+	m.GroceryComputationSheetManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		GroceryComputationSheet, GroceryComputationSheetResponse, GroceryComputationSheetRequest,
 	]{
 		Preloads: []string{
@@ -71,14 +71,14 @@ func (m *ModelCore) groceryComputationSheet() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.organizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.branchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager.ToModel(data.Branch),
 				SchemeNumber:   data.SchemeNumber,
 				Description:    data.Description,
 			}
@@ -111,7 +111,7 @@ func (m *ModelCore) groceryComputationSheet() {
 }
 
 func (m *ModelCore) groceryComputationSheetCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*GroceryComputationSheet, error) {
-	return m.groceryComputationSheetManager.Find(context, &GroceryComputationSheet{
+	return m.GroceryComputationSheetManager.Find(context, &GroceryComputationSheet{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

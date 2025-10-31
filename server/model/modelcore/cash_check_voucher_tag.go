@@ -69,8 +69,8 @@ type (
 )
 
 func (m *ModelCore) cashCheckVoucherTag() {
-	m.migration = append(m.migration, &CashCheckVoucherTag{})
-	m.cashCheckVoucherTagManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.Migration = append(m.Migration, &CashCheckVoucherTag{})
+	m.CashCheckVoucherTagManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		CashCheckVoucherTag, CashCheckVoucherTagResponse, CashCheckVoucherTagRequest,
 	]{
 		Preloads: []string{
@@ -85,14 +85,14 @@ func (m *ModelCore) cashCheckVoucherTag() {
 				ID:                 data.ID,
 				CreatedAt:          data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:        data.CreatedByID,
-				CreatedBy:          m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:          m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:          data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:        data.UpdatedByID,
-				UpdatedBy:          m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:          m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID:     data.OrganizationID,
-				Organization:       m.organizationManager.ToModel(data.Organization),
+				Organization:       m.OrganizationManager.ToModel(data.Organization),
 				BranchID:           data.BranchID,
-				Branch:             m.branchManager.ToModel(data.Branch),
+				Branch:             m.BranchManager.ToModel(data.Branch),
 				CashCheckVoucherID: data.CashCheckVoucherID,
 				Name:               data.Name,
 				Description:        data.Description,
@@ -129,7 +129,7 @@ func (m *ModelCore) cashCheckVoucherTag() {
 }
 
 func (m *ModelCore) cashCheckVoucherTagCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*CashCheckVoucherTag, error) {
-	return m.cashCheckVoucherTagManager.Find(context, &CashCheckVoucherTag{
+	return m.CashCheckVoucherTagManager.Find(context, &CashCheckVoucherTag{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

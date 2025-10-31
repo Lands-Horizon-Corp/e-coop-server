@@ -54,8 +54,8 @@ type (
 )
 
 func (m *ModelCore) memberMutualFundHistory() {
-	m.migration = append(m.migration, &MemberMutualFundHistory{})
-	m.memberMutualFundHistoryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberMutualFundHistory, MemberMutualFundHistoryResponse, MemberMutualFundHistoryRequest]{
+	m.Migration = append(m.Migration, &MemberMutualFundHistory{})
+	m.MemberMutualFundHistoryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberMutualFundHistory, MemberMutualFundHistoryResponse, MemberMutualFundHistoryRequest]{
 		Preloads: []string{"Organization", "Branch", "MemberProfile"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberMutualFundHistory) *MemberMutualFundHistoryResponse {
@@ -67,11 +67,11 @@ func (m *ModelCore) memberMutualFundHistory() {
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
 				OrganizationID:  data.OrganizationID,
-				Organization:    m.organizationManager.ToModel(data.Organization),
+				Organization:    m.OrganizationManager.ToModel(data.Organization),
 				BranchID:        data.BranchID,
-				Branch:          m.branchManager.ToModel(data.Branch),
+				Branch:          m.BranchManager.ToModel(data.Branch),
 				MemberProfileID: data.MemberProfileID,
-				MemberProfile:   m.memberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:   m.MemberProfileManager.ToModel(data.MemberProfile),
 				Title:           data.Title,
 				Amount:          data.Amount,
 				Description:     data.Description,
@@ -106,7 +106,7 @@ func (m *ModelCore) memberMutualFundHistory() {
 }
 
 func (m *ModelCore) memberMutualFundHistoryCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberMutualFundHistory, error) {
-	return m.memberMutualFundHistoryManager.Find(context, &MemberMutualFundHistory{
+	return m.MemberMutualFundHistoryManager.Find(context, &MemberMutualFundHistory{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

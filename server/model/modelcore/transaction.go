@@ -112,8 +112,8 @@ type (
 )
 
 func (m *ModelCore) transaction() {
-	m.migration = append(m.migration, &Transaction{})
-	m.transactionManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.Migration = append(m.Migration, &Transaction{})
+	m.TransactionManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		Transaction, TransactionResponse, TransactionRequest,
 	]{
 		Preloads: []string{
@@ -134,24 +134,24 @@ func (m *ModelCore) transaction() {
 				ID:                   data.ID,
 				CreatedAt:            data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:          data.CreatedByID,
-				CreatedBy:            m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:            m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:            data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:          data.UpdatedByID,
-				UpdatedBy:            m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:            m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID:       data.OrganizationID,
-				Organization:         m.organizationManager.ToModel(data.Organization),
+				Organization:         m.OrganizationManager.ToModel(data.Organization),
 				BranchID:             data.BranchID,
-				Branch:               m.branchManager.ToModel(data.Branch),
+				Branch:               m.BranchManager.ToModel(data.Branch),
 				SignatureMediaID:     data.SignatureMediaID,
-				SignatureMedia:       m.mediaManager.ToModel(data.SignatureMedia),
+				SignatureMedia:       m.MediaManager.ToModel(data.SignatureMedia),
 				TransactionBatchID:   data.TransactionBatchID,
-				TransactionBatch:     m.transactionBatchManager.ToModel(data.TransactionBatch),
+				TransactionBatch:     m.TransactionBatchManager.ToModel(data.TransactionBatch),
 				EmployeeUserID:       data.EmployeeUserID,
-				EmployeeUser:         m.userManager.ToModel(data.EmployeeUser),
+				EmployeeUser:         m.UserManager.ToModel(data.EmployeeUser),
 				MemberProfileID:      data.MemberProfileID,
-				MemberProfile:        m.memberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:        m.MemberProfileManager.ToModel(data.MemberProfile),
 				MemberJointAccountID: data.MemberJointAccountID,
-				MemberJointAccount:   m.memberJointAccountManager.ToModel(data.MemberJointAccount),
+				MemberJointAccount:   m.MemberJointAccountManager.ToModel(data.MemberJointAccount),
 				LoanBalance:          data.LoanBalance,
 				LoanDue:              data.LoanDue,
 				TotalDue:             data.TotalDue,
@@ -162,7 +162,7 @@ func (m *ModelCore) transaction() {
 				Amount:               data.Amount,
 				Description:          data.Description,
 				CurrencyID:           data.CurrencyID,
-				Currency:             m.currencyManager.ToModel(data.Currency),
+				Currency:             m.CurrencyManager.ToModel(data.Currency),
 			}
 		},
 
@@ -221,7 +221,7 @@ func (m *ModelCore) transaction() {
 }
 
 func (m *ModelCore) transactionCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Transaction, error) {
-	return m.transactionManager.Find(context, &Transaction{
+	return m.TransactionManager.Find(context, &Transaction{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

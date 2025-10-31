@@ -55,8 +55,8 @@ type (
 )
 
 func (m *ModelCore) interestRateScheme() {
-	m.migration = append(m.migration, &InterestRateScheme{})
-	m.interestRateSchemeManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.Migration = append(m.Migration, &InterestRateScheme{})
+	m.InterestRateSchemeManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		InterestRateScheme, InterestRateSchemeResponse, InterestRateSchemeRequest,
 	]{
 		Preloads: []string{
@@ -71,14 +71,14 @@ func (m *ModelCore) interestRateScheme() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.organizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.branchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager.ToModel(data.Branch),
 				Name:           data.Name,
 				Description:    data.Description,
 			}
@@ -111,7 +111,7 @@ func (m *ModelCore) interestRateScheme() {
 }
 
 func (m *ModelCore) interestRateSchemeCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*InterestRateScheme, error) {
-	return m.interestRateSchemeManager.Find(context, &InterestRateScheme{
+	return m.InterestRateSchemeManager.Find(context, &InterestRateScheme{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

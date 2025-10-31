@@ -56,8 +56,8 @@ type (
 )
 
 func (m *ModelCore) memberGender() {
-	m.migration = append(m.migration, &MemberGender{})
-	m.memberGenderManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberGender, MemberGenderResponse, MemberGenderRequest]{
+	m.Migration = append(m.Migration, &MemberGender{})
+	m.MemberGenderManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberGender, MemberGenderResponse, MemberGenderRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberGender) *MemberGenderResponse {
@@ -68,14 +68,14 @@ func (m *ModelCore) memberGender() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.organizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.branchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager.ToModel(data.Branch),
 				Name:           data.Name,
 				Description:    data.Description,
 			}
@@ -146,7 +146,7 @@ func (m *ModelCore) memberGenderSeed(context context.Context, tx *gorm.DB, userI
 		},
 	}
 	for _, data := range memberGenders {
-		if err := m.memberGenderManager.CreateWithTx(context, tx, data); err != nil {
+		if err := m.MemberGenderManager.CreateWithTx(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to seed member gender %s", data.Name)
 		}
 	}
@@ -155,7 +155,7 @@ func (m *ModelCore) memberGenderSeed(context context.Context, tx *gorm.DB, userI
 }
 
 func (m *ModelCore) memberGenderCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberGender, error) {
-	return m.memberGenderManager.Find(context, &MemberGender{
+	return m.MemberGenderManager.Find(context, &MemberGender{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

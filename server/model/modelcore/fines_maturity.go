@@ -64,8 +64,8 @@ type (
 )
 
 func (m *ModelCore) finesMaturity() {
-	m.migration = append(m.migration, &FinesMaturity{})
-	m.finesMaturityManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.Migration = append(m.Migration, &FinesMaturity{})
+	m.FinesMaturityManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		FinesMaturity, FinesMaturityResponse, FinesMaturityRequest,
 	]{
 		Preloads: []string{
@@ -80,16 +80,16 @@ func (m *ModelCore) finesMaturity() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.organizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.branchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager.ToModel(data.Branch),
 				AccountID:      data.AccountID,
-				Account:        m.accountManager.ToModel(data.Account),
+				Account:        m.AccountManager.ToModel(data.Account),
 				From:           data.From,
 				To:             data.To,
 				Rate:           data.Rate,
@@ -124,7 +124,7 @@ func (m *ModelCore) finesMaturity() {
 }
 
 func (m *ModelCore) finesMaturityCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*FinesMaturity, error) {
-	return m.finesMaturityManager.Find(context, &FinesMaturity{
+	return m.FinesMaturityManager.Find(context, &FinesMaturity{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

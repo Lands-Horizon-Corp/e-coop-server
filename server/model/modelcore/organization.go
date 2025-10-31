@@ -160,8 +160,8 @@ type (
 
 // Organization initializes the Organization model and its repository manager
 func (m *ModelCore) organization() {
-	m.migration = append(m.migration, &Organization{})
-	m.organizationManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Organization, OrganizationResponse, OrganizationRequest]{
+	m.Migration = append(m.Migration, &Organization{})
+	m.OrganizationManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Organization, OrganizationResponse, OrganizationRequest]{
 		Preloads: []string{"Media", "CoverMedia",
 			"SubscriptionPlan", "Branches",
 			"OrganizationCategories", "OrganizationMedias", "OrganizationMedias.Media",
@@ -176,10 +176,10 @@ func (m *ModelCore) organization() {
 				ID:          data.ID,
 				CreatedAt:   data.CreatedAt.Format(time.RFC3339),
 				CreatedByID: data.CreatedByID,
-				CreatedBy:   m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:   m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:   data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID: data.UpdatedByID,
-				UpdatedBy:   m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:   m.UserManager.ToModel(data.UpdatedBy),
 
 				Name:               data.Name,
 				Address:            data.Address,
@@ -195,26 +195,26 @@ func (m *ModelCore) organization() {
 				IsPrivate:          data.IsPrivate,
 
 				MediaID:    data.MediaID,
-				Media:      m.mediaManager.ToModel(data.Media),
-				CoverMedia: m.mediaManager.ToModel(data.CoverMedia),
+				Media:      m.MediaManager.ToModel(data.Media),
+				CoverMedia: m.MediaManager.ToModel(data.CoverMedia),
 
 				SubscriptionPlanMaxBranches:         data.SubscriptionPlanMaxBranches,
 				SubscriptionPlanMaxEmployees:        data.SubscriptionPlanMaxEmployees,
 				SubscriptionPlanMaxMembersPerBranch: data.SubscriptionPlanMaxMembersPerBranch,
 				SubscriptionPlanID:                  data.SubscriptionPlanID,
 				SubscriptionPlanIsYearly:            false, // TODO
-				SubscriptionPlan:                    m.subscriptionPlanManager.ToModel(data.SubscriptionPlan),
+				SubscriptionPlan:                    m.SubscriptionPlanManager.ToModel(data.SubscriptionPlan),
 				SubscriptionStartDate:               data.SubscriptionStartDate.Format(time.RFC3339),
 				SubscriptionEndDate:                 data.SubscriptionEndDate.Format(time.RFC3339),
 
-				Branches:               m.branchManager.ToModels(data.Branches),
-				OrganizationCategories: m.organizationCategoryManager.ToModels(data.OrganizationCategories),
-				OrganizationMedias:     m.organizationMediaManager.ToModels(data.OrganizationMedias),
-				Footsteps:              m.footstepManager.ToModels(data.Footsteps),
-				GeneratedReports:       m.generatedReportManager.ToModels(data.GeneratedReports),
-				InvitationCodes:        m.invitationCodeManager.ToModels(data.InvitationCodes),
-				PermissionTemplates:    m.permissionTemplateManager.ToModels(data.PermissionTemplates),
-				UserOrganizations:      m.userOrganizationManager.ToModels(data.UserOrganizations),
+				Branches:               m.BranchManager.ToModels(data.Branches),
+				OrganizationCategories: m.OrganizationCategoryManager.ToModels(data.OrganizationCategories),
+				OrganizationMedias:     m.OrganizationMediaManager.ToModels(data.OrganizationMedias),
+				Footsteps:              m.FootstepManager.ToModels(data.Footsteps),
+				GeneratedReports:       m.GeneratedReportManager.ToModels(data.GeneratedReports),
+				InvitationCodes:        m.InvitationCodeManager.ToModels(data.InvitationCodes),
+				PermissionTemplates:    m.PermissionTemplateManager.ToModels(data.PermissionTemplates),
+				UserOrganizations:      m.UserOrganizationManager.ToModels(data.UserOrganizations),
 			}
 		},
 
@@ -244,7 +244,7 @@ func (m *ModelCore) getPublicOrganization(ctx context.Context) ([]*Organization,
 	filters := []horizon_services.Filter{
 		{Field: "is_private", Op: horizon_services.OpEq, Value: false},
 	}
-	organizations, err := m.organizationManager.FindWithFilters(ctx, filters, "OrganizationCategories", "OrganizationCategories.Category")
+	organizations, err := m.OrganizationManager.FindWithFilters(ctx, filters, "OrganizationCategories", "OrganizationCategories.Category")
 	if err != nil {
 		return nil, err
 	}
@@ -265,7 +265,7 @@ func (m *ModelCore) getFeaturedOrganization(ctx context.Context) ([]*Organizatio
 	}
 
 	// Use a custom query to include organizations with multiple branches
-	organizations, err := m.organizationManager.FindWithFilters(ctx, filters)
+	organizations, err := m.OrganizationManager.FindWithFilters(ctx, filters)
 	if err != nil {
 		return nil, err
 	}
@@ -289,7 +289,7 @@ func (m *ModelCore) getFeaturedOrganization(ctx context.Context) ([]*Organizatio
 // GetOrganizationsByCategoryID retrieves all organizations belonging to a specific category
 func (m *ModelCore) getOrganizationsByCategoryID(ctx context.Context, categoryID uuid.UUID) ([]*Organization, error) {
 	// Get organization categories that match the category ID
-	orgCategories, err := m.organizationCategoryManager.Find(ctx, &OrganizationCategory{
+	orgCategories, err := m.OrganizationCategoryManager.Find(ctx, &OrganizationCategory{
 		CategoryID: &categoryID,
 	})
 	if err != nil {
@@ -300,7 +300,7 @@ func (m *ModelCore) getOrganizationsByCategoryID(ctx context.Context, categoryID
 	// Get all organizations for each organization category
 	for _, orgCat := range orgCategories {
 		if orgCat.OrganizationID != nil {
-			org, err := m.organizationManager.GetByID(ctx, *orgCat.OrganizationID)
+			org, err := m.OrganizationManager.GetByID(ctx, *orgCat.OrganizationID)
 			if err == nil && org != nil {
 				// Only include public organizations
 				if !org.IsPrivate {
@@ -321,7 +321,7 @@ func (m *ModelCore) getRecentlyAddedOrganization(ctx context.Context) ([]*Organi
 		{Field: "is_private", Op: horizon_services.OpEq, Value: false},
 		{Field: "created_at", Op: horizon_services.OpGte, Value: thirtyDaysAgo},
 	}
-	organizations, err := m.organizationManager.FindWithFilters(ctx, filters)
+	organizations, err := m.OrganizationManager.FindWithFilters(ctx, filters)
 	if err != nil {
 		return nil, err
 	}

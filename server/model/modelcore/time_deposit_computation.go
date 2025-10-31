@@ -96,8 +96,8 @@ type (
 
 // TimeDepositComputation initializes the TimeDepositComputation model and its repository manager
 func (m *ModelCore) timeDepositComputation() {
-	m.migration = append(m.migration, &TimeDepositComputation{})
-	m.timeDepositComputationManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.Migration = append(m.Migration, &TimeDepositComputation{})
+	m.TimeDepositComputationManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		TimeDepositComputation, TimeDepositComputationResponse, TimeDepositComputationRequest,
 	]{
 		Preloads: []string{
@@ -112,16 +112,16 @@ func (m *ModelCore) timeDepositComputation() {
 				ID:                data.ID,
 				CreatedAt:         data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:       data.CreatedByID,
-				CreatedBy:         m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:         m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:         data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:       data.UpdatedByID,
-				UpdatedBy:         m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:         m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID:    data.OrganizationID,
-				Organization:      m.organizationManager.ToModel(data.Organization),
+				Organization:      m.OrganizationManager.ToModel(data.Organization),
 				BranchID:          data.BranchID,
-				Branch:            m.branchManager.ToModel(data.Branch),
+				Branch:            m.BranchManager.ToModel(data.Branch),
 				TimeDepositTypeID: data.TimeDepositTypeID,
-				TimeDepositType:   m.timeDepositTypeManager.ToModel(data.TimeDepositType),
+				TimeDepositType:   m.TimeDepositTypeManager.ToModel(data.TimeDepositType),
 				MinimumAmount:     data.MinimumAmount,
 				MaximumAmount:     data.MaximumAmount,
 				Header1:           data.Header1,
@@ -167,7 +167,7 @@ func (m *ModelCore) timeDepositComputation() {
 
 // TimeDepositComputationCurrentBranch retrieves all timedepositcomputation records for the specified organization and branch
 func (m *ModelCore) timeDepositComputationCurrentbranch(context context.Context, orgID uuid.UUID, branchID uuid.UUID) ([]*TimeDepositComputation, error) {
-	return m.timeDepositComputationManager.Find(context, &TimeDepositComputation{
+	return m.TimeDepositComputationManager.Find(context, &TimeDepositComputation{
 		OrganizationID: orgID,
 		BranchID:       branchID,
 	})

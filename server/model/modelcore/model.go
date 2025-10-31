@@ -121,7 +121,7 @@ type (
 		GeneralLedgerAccountsGroupingManager            services.Repository[GeneralLedgerAccountsGrouping, GeneralLedgerAccountsGroupingResponse, GeneralLedgerAccountsGroupingRequest]
 		GeneralLedgerDefinitionManager                  services.Repository[GeneralLedgerDefinition, GeneralLedgerDefinitionResponse, GeneralLedgerDefinitionRequest]
 		GeneralAccountGroupingNetSurplusPositiveManager services.Repository[GeneralAccountGroupingNetSurplusPositive, GeneralAccountGroupingNetSurplusPositiveResponse, GeneralAccountGroupingNetSurplusPositiveRequest]
-		GeneralAccountGroupingNetSurplusNegativeManager services.Repository[GeneralAccountGroupingNetSurplusNegative, GeneralAccountGroupingNetSurplusNegativeResponse, GeneralAccountGroupingNetSurplusNegativeRequest]
+		Generalaccountgroupingnetsurplusnegativemanager services.Repository[GeneralAccountGroupingNetSurplusNegative, GeneralAccountGroupingNetSurplusNegativeResponse, GeneralAccountGroupingNetSurplusNegativeRequest]
 
 		// MAINTENANCE TABLE FOR ACCOUNTING
 		AccountClassificationManager services.Repository[AccountClassification, AccountClassificationResponse, AccountClassificationRequest]
@@ -437,7 +437,7 @@ func (m *ModelCore) organizationSeeder(context context.Context, tx *gorm.DB, use
 	if err := m.loanStatusSeed(context, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
-	userOrg, err := m.userOrganizationManager.FindOne(context, &UserOrganization{
+	userOrg, err := m.UserOrganizationManager.FindOne(context, &UserOrganization{
 		OrganizationID: organizationID,
 		BranchID:       &branchID,
 		UserID:         userID,
@@ -449,7 +449,7 @@ func (m *ModelCore) organizationSeeder(context context.Context, tx *gorm.DB, use
 		return err
 	}
 	userOrg.IsSeeded = true
-	if err := m.userOrganizationManager.UpdateByIDWithTx(context, tx, userOrg.ID, userOrg); err != nil {
+	if err := m.UserOrganizationManager.UpdateByIDWithTx(context, tx, userOrg.ID, userOrg); err != nil {
 		return err
 	}
 	if err := m.companySeed(context, tx, userID, organizationID, branchID); err != nil {
@@ -460,21 +460,21 @@ func (m *ModelCore) organizationSeeder(context context.Context, tx *gorm.DB, use
 
 // OrganizationDestroyer cleans up and removes all data associated with an organization branch
 func (m *ModelCore) organizationDestroyer(ctx context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
-	invitationCodes, err := m.invitationCodeManager.Find(ctx, &InvitationCode{
+	invitationCodes, err := m.InvitationCodeManager.Find(ctx, &InvitationCode{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 	if err != nil {
 		return eris.Wrapf(err, "failed to get invitation codes")
 	}
-	banks, err := m.bankManager.Find(ctx, &Bank{
+	banks, err := m.BankManager.Find(ctx, &Bank{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 	if err != nil {
 		return eris.Wrapf(err, "failed to get banks")
 	}
-	billAndCoins, err := m.billAndCoinsManager.Find(ctx, &BillAndCoins{
+	billAndCoins, err := m.BillAndCoinsManager.Find(ctx, &BillAndCoins{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -482,7 +482,7 @@ func (m *ModelCore) organizationDestroyer(ctx context.Context, tx *gorm.DB, user
 		return eris.Wrapf(err, "failed to get bill and coins")
 	}
 	// 4. Delete Holidays
-	holidays, err := m.holidayManager.Find(ctx, &Holiday{
+	holidays, err := m.HolidayManager.Find(ctx, &Holiday{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -490,28 +490,28 @@ func (m *ModelCore) organizationDestroyer(ctx context.Context, tx *gorm.DB, user
 		return eris.Wrapf(err, "failed to get holidays")
 	}
 	for _, data := range holidays {
-		if err := m.holidayManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+		if err := m.HolidayManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy holiday %s", data.Name)
 		}
 	}
 	for _, data := range billAndCoins {
-		if err := m.billAndCoinsManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+		if err := m.BillAndCoinsManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy bill or coin %s", data.Name)
 		}
 	}
 	for _, data := range banks {
-		if err := m.bankManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+		if err := m.BankManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy bank %s", data.Name)
 		}
 	}
 	for _, data := range invitationCodes {
-		if err := m.invitationCodeManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+		if err := m.InvitationCodeManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy invitation code %s", data.Code)
 		}
 	}
 
 	// 1. Delete MemberType
-	memberTypes, err := m.memberTypeManager.Find(ctx, &MemberType{
+	memberTypes, err := m.MemberTypeManager.Find(ctx, &MemberType{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -519,13 +519,13 @@ func (m *ModelCore) organizationDestroyer(ctx context.Context, tx *gorm.DB, user
 		return eris.Wrapf(err, "failed to get member types")
 	}
 	for _, data := range memberTypes {
-		if err := m.memberTypeManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+		if err := m.MemberTypeManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy member type %s", data.Name)
 		}
 	}
 
 	// 2. Delete MemberOccupation
-	memberOccupations, err := m.memberOccupationManager.Find(ctx, &MemberOccupation{
+	memberOccupations, err := m.MemberOccupationManager.Find(ctx, &MemberOccupation{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -533,13 +533,13 @@ func (m *ModelCore) organizationDestroyer(ctx context.Context, tx *gorm.DB, user
 		return eris.Wrapf(err, "failed to get member occupations")
 	}
 	for _, data := range memberOccupations {
-		if err := m.memberOccupationManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+		if err := m.MemberOccupationManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy member occupation %s", data.Name)
 		}
 	}
 
 	// 3. Delete MemberGroup
-	memberGroups, err := m.memberGroupManager.Find(ctx, &MemberGroup{
+	memberGroups, err := m.MemberGroupManager.Find(ctx, &MemberGroup{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -547,13 +547,13 @@ func (m *ModelCore) organizationDestroyer(ctx context.Context, tx *gorm.DB, user
 		return eris.Wrapf(err, "failed to get member groups")
 	}
 	for _, data := range memberGroups {
-		if err := m.memberGroupManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+		if err := m.MemberGroupManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy member group %s", data.Name)
 		}
 	}
 
 	// 4. Delete MemberGender
-	memberGenders, err := m.memberGenderManager.Find(ctx, &MemberGender{
+	memberGenders, err := m.MemberGenderManager.Find(ctx, &MemberGender{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -561,13 +561,13 @@ func (m *ModelCore) organizationDestroyer(ctx context.Context, tx *gorm.DB, user
 		return eris.Wrapf(err, "failed to get member genders")
 	}
 	for _, data := range memberGenders {
-		if err := m.memberGenderManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+		if err := m.MemberGenderManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy member gender %s", data.Name)
 		}
 	}
 
 	// 5. Delete MemberCenter
-	memberCenters, err := m.memberCenterManager.Find(ctx, &MemberCenter{
+	memberCenters, err := m.MemberCenterManager.Find(ctx, &MemberCenter{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -575,13 +575,13 @@ func (m *ModelCore) organizationDestroyer(ctx context.Context, tx *gorm.DB, user
 		return eris.Wrapf(err, "failed to get member centers")
 	}
 	for _, data := range memberCenters {
-		if err := m.memberCenterManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+		if err := m.MemberCenterManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy member center %s", data.Name)
 		}
 	}
 
 	// 6. Delete MemberClassification
-	memberClassifications, err := m.memberClassificationManager.Find(ctx, &MemberClassification{
+	memberClassifications, err := m.MemberClassificationManager.Find(ctx, &MemberClassification{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -589,12 +589,12 @@ func (m *ModelCore) organizationDestroyer(ctx context.Context, tx *gorm.DB, user
 		return eris.Wrapf(err, "failed to get member classifications")
 	}
 	for _, data := range memberClassifications {
-		if err := m.memberClassificationManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+		if err := m.MemberClassificationManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy member classification %s", data.Name)
 		}
 	}
 
-	generalLedgerDefinitions, err := m.generalLedgerDefinitionManager.Find(ctx, &GeneralLedgerDefinition{
+	generalLedgerDefinitions, err := m.GeneralLedgerDefinitionManager.Find(ctx, &GeneralLedgerDefinition{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -602,12 +602,12 @@ func (m *ModelCore) organizationDestroyer(ctx context.Context, tx *gorm.DB, user
 		return eris.Wrapf(err, "failed to get general ledger definitions")
 	}
 	for _, data := range generalLedgerDefinitions {
-		if err := m.generalLedgerDefinitionManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+		if err := m.GeneralLedgerDefinitionManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy general ledger definition %s", data.Name)
 		}
 	}
 
-	generalLedgerAccountsGroupings, err := m.generalLedgerAccountsGroupingManager.Find(ctx, &GeneralLedgerAccountsGrouping{
+	generalLedgerAccountsGroupings, err := m.GeneralLedgerAccountsGroupingManager.Find(ctx, &GeneralLedgerAccountsGrouping{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -615,13 +615,13 @@ func (m *ModelCore) organizationDestroyer(ctx context.Context, tx *gorm.DB, user
 		return eris.Wrapf(err, "failed to get general ledger accounts groupings")
 	}
 	for _, data := range generalLedgerAccountsGroupings {
-		if err := m.generalLedgerAccountsGroupingManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+		if err := m.GeneralLedgerAccountsGroupingManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy general ledger accounts grouping %s", data.Name)
 		}
 	}
 
 	// Financial Statement Accounts Grouping destroyer
-	FinancialStatementGroupings, err := m.financialStatementGroupingManager.Find(ctx, &FinancialStatementGrouping{
+	FinancialStatementGroupings, err := m.FinancialStatementGroupingManager.Find(ctx, &FinancialStatementGrouping{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -629,11 +629,11 @@ func (m *ModelCore) organizationDestroyer(ctx context.Context, tx *gorm.DB, user
 		return eris.Wrapf(err, "failed to get financial statement accounts groupings")
 	}
 	for _, data := range FinancialStatementGroupings {
-		if err := m.financialStatementGroupingManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+		if err := m.FinancialStatementGroupingManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy financial statement accounts grouping %s", data.Name)
 		}
 	}
-	paymentTypes, err := m.paymentTypeManager.Find(ctx, &PaymentType{
+	paymentTypes, err := m.PaymentTypeManager.Find(ctx, &PaymentType{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -641,11 +641,11 @@ func (m *ModelCore) organizationDestroyer(ctx context.Context, tx *gorm.DB, user
 		return eris.Wrapf(err, "failed to get payment types")
 	}
 	for _, data := range paymentTypes {
-		if err := m.paymentTypeManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+		if err := m.PaymentTypeManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy payment type %s", data.Name)
 		}
 	}
-	disbursements, err := m.disbursementManager.Find(ctx, &Disbursement{
+	disbursements, err := m.DisbursementManager.Find(ctx, &Disbursement{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -653,11 +653,11 @@ func (m *ModelCore) organizationDestroyer(ctx context.Context, tx *gorm.DB, user
 		return eris.Wrapf(err, "failed to get disbursements")
 	}
 	for _, data := range disbursements {
-		if err := m.disbursementManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+		if err := m.DisbursementManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy disbursement %s", data.Name)
 		}
 	}
-	collaterals, err := m.collateralManager.Find(ctx, &Collateral{
+	collaterals, err := m.CollateralManager.Find(ctx, &Collateral{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -665,13 +665,13 @@ func (m *ModelCore) organizationDestroyer(ctx context.Context, tx *gorm.DB, user
 		return eris.Wrapf(err, "failed to get collaterals")
 	}
 	for _, data := range collaterals {
-		if err := m.collateralManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+		if err := m.CollateralManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy collateral %s", data.Name)
 		}
 	}
 
 	// Delete Accounts
-	accounts, err := m.accountManager.Find(ctx, &Account{
+	accounts, err := m.AccountManager.Find(ctx, &Account{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -679,13 +679,13 @@ func (m *ModelCore) organizationDestroyer(ctx context.Context, tx *gorm.DB, user
 		return eris.Wrapf(err, "failed to get accounts")
 	}
 	for _, data := range accounts {
-		if err := m.accountManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+		if err := m.AccountManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy account %s", data.Name)
 		}
 	}
 
 	// Delete LoanPurpose
-	loanPurposes, err := m.loanPurposeManager.Find(ctx, &LoanPurpose{
+	loanPurposes, err := m.LoanPurposeManager.Find(ctx, &LoanPurpose{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -693,13 +693,13 @@ func (m *ModelCore) organizationDestroyer(ctx context.Context, tx *gorm.DB, user
 		return eris.Wrapf(err, "failed to get loan purposes")
 	}
 	for _, data := range loanPurposes {
-		if err := m.loanPurposeManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+		if err := m.LoanPurposeManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy loan purpose %s", data.Description)
 		}
 	}
 
 	// Delete AccountCategory
-	accountCategories, err := m.accountCategoryManager.Find(ctx, &AccountCategory{
+	accountCategories, err := m.AccountCategoryManager.Find(ctx, &AccountCategory{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -707,13 +707,13 @@ func (m *ModelCore) organizationDestroyer(ctx context.Context, tx *gorm.DB, user
 		return eris.Wrapf(err, "failed to get account categories")
 	}
 	for _, data := range accountCategories {
-		if err := m.accountCategoryManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+		if err := m.AccountCategoryManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy account category %s", data.Name)
 		}
 	}
 
 	// Delete TagTemplate
-	tagTemplates, err := m.tagTemplateManager.Find(ctx, &TagTemplate{
+	tagTemplates, err := m.TagTemplateManager.Find(ctx, &TagTemplate{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -721,13 +721,13 @@ func (m *ModelCore) organizationDestroyer(ctx context.Context, tx *gorm.DB, user
 		return eris.Wrapf(err, "failed to get tag templates")
 	}
 	for _, data := range tagTemplates {
-		if err := m.tagTemplateManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+		if err := m.TagTemplateManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy tag template %s", data.Name)
 		}
 	}
 
 	// Delete LoanStatus
-	loanStatuses, err := m.loanStatusManager.Find(ctx, &LoanStatus{
+	loanStatuses, err := m.LoanStatusManager.Find(ctx, &LoanStatus{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -735,13 +735,13 @@ func (m *ModelCore) organizationDestroyer(ctx context.Context, tx *gorm.DB, user
 		return eris.Wrapf(err, "failed to get loan statuses")
 	}
 	for _, data := range loanStatuses {
-		if err := m.loanStatusManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+		if err := m.LoanStatusManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy loan status %s", data.Name)
 		}
 	}
 
 	// Delete MemberProfile
-	memberProfiles, err := m.memberProfileManager.Find(ctx, &MemberProfile{
+	memberProfiles, err := m.MemberProfileManager.Find(ctx, &MemberProfile{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -749,13 +749,13 @@ func (m *ModelCore) organizationDestroyer(ctx context.Context, tx *gorm.DB, user
 		return eris.Wrapf(err, "failed to get member profiles")
 	}
 	for _, data := range memberProfiles {
-		if err := m.memberProfileManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+		if err := m.MemberProfileManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy member profile %s %s", data.FirstName, data.LastName)
 		}
 	}
 
 	// Delete Company
-	companies, err := m.companyManager.Find(ctx, &Company{
+	companies, err := m.CompanyManager.Find(ctx, &Company{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -763,13 +763,13 @@ func (m *ModelCore) organizationDestroyer(ctx context.Context, tx *gorm.DB, user
 		return eris.Wrapf(err, "failed to get companies")
 	}
 	for _, data := range companies {
-		if err := m.companyManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+		if err := m.CompanyManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy company %s", data.Name)
 		}
 	}
 
 	// Delete MemberDepartment
-	memberDepartments, err := m.memberDepartmentManager.Find(ctx, &MemberDepartment{
+	memberDepartments, err := m.MemberDepartmentManager.Find(ctx, &MemberDepartment{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -777,7 +777,7 @@ func (m *ModelCore) organizationDestroyer(ctx context.Context, tx *gorm.DB, user
 		return eris.Wrapf(err, "failed to get member departments")
 	}
 	for _, data := range memberDepartments {
-		if err := m.memberDepartmentManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
+		if err := m.MemberDepartmentManager.DeleteByIDWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy member department %s", data.Name)
 		}
 	}

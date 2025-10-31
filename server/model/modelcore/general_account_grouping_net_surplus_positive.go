@@ -67,8 +67,8 @@ type (
 )
 
 func (m *ModelCore) generalAccountGroupingNetSurplusPositive() {
-	m.migration = append(m.migration, &GeneralAccountGroupingNetSurplusPositive{})
-	m.generalAccountGroupingNetSurplusPositiveManager = horizon_services.NewRepository(horizon_services.RepositoryParams[GeneralAccountGroupingNetSurplusPositive, GeneralAccountGroupingNetSurplusPositiveResponse, GeneralAccountGroupingNetSurplusPositiveRequest]{
+	m.Migration = append(m.Migration, &GeneralAccountGroupingNetSurplusPositive{})
+	m.GeneralAccountGroupingNetSurplusPositiveManager = horizon_services.NewRepository(horizon_services.RepositoryParams[GeneralAccountGroupingNetSurplusPositive, GeneralAccountGroupingNetSurplusPositiveResponse, GeneralAccountGroupingNetSurplusPositiveRequest]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Account",
 		},
@@ -81,16 +81,16 @@ func (m *ModelCore) generalAccountGroupingNetSurplusPositive() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.organizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.branchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager.ToModel(data.Branch),
 				AccountID:      data.AccountID,
-				Account:        m.accountManager.ToModel(data.Account),
+				Account:        m.AccountManager.ToModel(data.Account),
 				Name:           data.Name,
 				Description:    data.Description,
 				Percentage1:    data.Percentage1,
@@ -125,7 +125,7 @@ func (m *ModelCore) generalAccountGroupingNetSurplusPositive() {
 }
 
 func (m *ModelCore) generalAccountGroupingNetSurplusPositiveCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*GeneralAccountGroupingNetSurplusPositive, error) {
-	return m.generalAccountGroupingNetSurplusPositiveManager.Find(context, &GeneralAccountGroupingNetSurplusPositive{
+	return m.GeneralAccountGroupingNetSurplusPositiveManager.Find(context, &GeneralAccountGroupingNetSurplusPositive{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

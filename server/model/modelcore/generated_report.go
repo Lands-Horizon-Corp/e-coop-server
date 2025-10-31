@@ -67,8 +67,8 @@ type (
 )
 
 func (m *ModelCore) generatedReport() {
-	m.migration = append(m.migration, &GeneratedReport{})
-	m.generatedReportManager = horizon_services.NewRepository(horizon_services.RepositoryParams[GeneratedReport, GeneratedReportResponse, GeneratedReportRequest]{
+	m.Migration = append(m.Migration, &GeneratedReport{})
+	m.GeneratedReportManager = horizon_services.NewRepository(horizon_services.RepositoryParams[GeneratedReport, GeneratedReportResponse, GeneratedReportRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Organization", "Branch", "User", "Media"},
 		Service:  m.provider.Service,
 		Resource: func(data *GeneratedReport) *GeneratedReportResponse {
@@ -79,19 +79,19 @@ func (m *ModelCore) generatedReport() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.organizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.branchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager.ToModel(data.Branch),
 
 				UserID:      data.UserID,
-				User:        m.userManager.ToModel(data.User),
+				User:        m.UserManager.ToModel(data.User),
 				MediaID:     data.MediaID,
-				Media:       m.mediaManager.ToModel(data.Media),
+				Media:       m.MediaManager.ToModel(data.Media),
 				Name:        data.Name,
 				Description: data.Description,
 				Status:      data.Status,
@@ -129,13 +129,13 @@ func (m *ModelCore) generatedReport() {
 }
 
 func (m *ModelCore) getGenerationReportByUser(context context.Context, userId uuid.UUID) ([]*GeneratedReport, error) {
-	return m.generatedReportManager.Find(context, &GeneratedReport{
+	return m.GeneratedReportManager.Find(context, &GeneratedReport{
 		UserID: &userId,
 	})
 }
 
 func (m *ModelCore) generatedReportCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*GeneratedReport, error) {
-	return m.generatedReportManager.Find(context, &GeneratedReport{
+	return m.GeneratedReportManager.Find(context, &GeneratedReport{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

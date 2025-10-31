@@ -100,8 +100,8 @@ type (
 )
 
 func (m *ModelCore) footstep() {
-	m.migration = append(m.migration, &Footstep{})
-	m.footstepManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Footstep, FootstepResponse, FootstepRequest]{
+	m.Migration = append(m.Migration, &Footstep{})
+	m.FootstepManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Footstep, FootstepResponse, FootstepRequest]{
 		Preloads: []string{
 			"User",
 			"User.Media",
@@ -121,19 +121,19 @@ func (m *ModelCore) footstep() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.organizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.branchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager.ToModel(data.Branch),
 
 				UserID:  data.UserID,
-				User:    m.userManager.ToModel(data.User),
+				User:    m.UserManager.ToModel(data.User),
 				MediaID: data.MediaID,
-				Media:   m.mediaManager.ToModel(data.Media),
+				Media:   m.MediaManager.ToModel(data.Media),
 
 				Description:    data.Description,
 				Activity:       data.Activity,
@@ -179,20 +179,20 @@ func (m *ModelCore) footstep() {
 }
 
 func (m *ModelCore) getFootstepByUser(context context.Context, userId uuid.UUID) ([]*Footstep, error) {
-	return m.footstepManager.Find(context, &Footstep{
+	return m.FootstepManager.Find(context, &Footstep{
 		UserID: &userId,
 	})
 }
 
 func (m *ModelCore) getFootstepBybranch(context context.Context, organizationId uuid.UUID, branchId uuid.UUID) ([]*Footstep, error) {
-	return m.footstepManager.Find(context, &Footstep{
+	return m.FootstepManager.Find(context, &Footstep{
 		OrganizationID: &organizationId,
 		BranchID:       &branchId,
 	})
 }
 
 func (m *ModelCore) getFootstepByUserOrganization(context context.Context, userId uuid.UUID, organizationId uuid.UUID, branchId uuid.UUID) ([]*Footstep, error) {
-	return m.footstepManager.Find(context, &Footstep{
+	return m.FootstepManager.Find(context, &Footstep{
 		UserID:         &userId,
 		OrganizationID: &organizationId,
 		BranchID:       &branchId,

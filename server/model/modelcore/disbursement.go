@@ -65,8 +65,8 @@ type (
 )
 
 func (m *ModelCore) disbursement() {
-	m.migration = append(m.migration, &Disbursement{})
-	m.disbursementManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.Migration = append(m.Migration, &Disbursement{})
+	m.DisbursementManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		Disbursement, DisbursementResponse, DisbursementRequest,
 	]{
 		Preloads: []string{
@@ -82,16 +82,16 @@ func (m *ModelCore) disbursement() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.organizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.branchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager.ToModel(data.Branch),
 				CurrencyID:     data.CurrencyID,
-				Currency:       m.currencyManager.ToModel(data.Currency),
+				Currency:       m.CurrencyManager.ToModel(data.Currency),
 				Name:           data.Name,
 				Icon:           data.Icon,
 				Description:    data.Description,
@@ -125,7 +125,7 @@ func (m *ModelCore) disbursement() {
 }
 
 func (m *ModelCore) disbursementCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*Disbursement, error) {
-	return m.disbursementManager.Find(context, &Disbursement{
+	return m.DisbursementManager.Find(context, &Disbursement{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})
@@ -134,7 +134,7 @@ func (m *ModelCore) disbursementCurrentbranch(context context.Context, orgId uui
 func (m *ModelCore) disbursementSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
 
-	branch, err := m.branchManager.GetByID(context, branchID)
+	branch, err := m.BranchManager.GetByID(context, branchID)
 	if err != nil {
 		return eris.Wrap(err, "failed to find branch for account seeding")
 	}
@@ -281,7 +281,7 @@ func (m *ModelCore) disbursementSeed(context context.Context, tx *gorm.DB, userI
 	}
 
 	for _, data := range disbursements {
-		if err := m.disbursementManager.CreateWithTx(context, tx, data); err != nil {
+		if err := m.DisbursementManager.CreateWithTx(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to seed disbursement %s", data.Name)
 		}
 	}

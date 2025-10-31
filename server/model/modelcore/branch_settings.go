@@ -197,8 +197,8 @@ type (
 )
 
 func (m *ModelCore) branchSetting() {
-	m.migration = append(m.migration, &BranchSetting{})
-	m.branchSettingManager = horizon_services.NewRepository(horizon_services.RepositoryParams[BranchSetting, BranchSettingResponse, BranchSettingRequest]{
+	m.Migration = append(m.Migration, &BranchSetting{})
+	m.BranchSettingManager = horizon_services.NewRepository(horizon_services.RepositoryParams[BranchSetting, BranchSettingResponse, BranchSettingRequest]{
 		Preloads: []string{
 			"Branch",
 			"Currency",
@@ -224,7 +224,7 @@ func (m *ModelCore) branchSetting() {
 				UpdatedAt:  data.UpdatedAt.Format(time.RFC3339),
 				BranchID:   data.BranchID,
 				CurrencyID: data.CurrencyID,
-				Currency:   m.currencyManager.ToModel(data.Currency),
+				Currency:   m.CurrencyManager.ToModel(data.Currency),
 
 				WithdrawAllowUserInput: data.WithdrawAllowUserInput,
 				WithdrawPrefix:         data.WithdrawPrefix,
@@ -264,14 +264,14 @@ func (m *ModelCore) branchSetting() {
 				CheckVoucherUseDateOR:      data.CheckVoucherUseDateOR,
 
 				DefaultMemberTypeID: data.DefaultMemberTypeID,
-				DefaultMemberType:   m.memberTypeManager.ToModel(data.DefaultMemberType),
+				DefaultMemberType:   m.MemberTypeManager.ToModel(data.DefaultMemberType),
 
 				CashOnHandAccountID:          data.CashOnHandAccountID,
-				CashOnHandAccount:            m.accountManager.ToModel(data.CashOnHandAccount),
+				CashOnHandAccount:            m.AccountManager.ToModel(data.CashOnHandAccount),
 				PaidUpSharedCapitalAccountID: data.PaidUpSharedCapitalAccountID,
-				PaidUpSharedCapitalAccount:   m.accountManager.ToModel(data.PaidUpSharedCapitalAccount),
+				PaidUpSharedCapitalAccount:   m.AccountManager.ToModel(data.PaidUpSharedCapitalAccount),
 
-				UnbalancedAccounts: m.unbalancedAccountManager.ToModels(data.UnbalancedAccounts),
+				UnbalancedAccounts: m.UnbalancedAccountManager.ToModels(data.UnbalancedAccounts),
 			}
 		},
 		Created: func(data *BranchSetting) []string {

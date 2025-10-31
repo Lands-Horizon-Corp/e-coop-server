@@ -88,8 +88,8 @@ type (
 )
 
 func (m *ModelCore) memberTypeReference() {
-	m.migration = append(m.migration, &MemberTypeReference{})
-	m.memberTypeReferenceManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.Migration = append(m.Migration, &MemberTypeReference{})
+	m.MemberTypeReferenceManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		MemberTypeReference, MemberTypeReferenceResponse, MemberTypeReferenceRequest,
 	]{
 		Preloads: []string{
@@ -104,18 +104,18 @@ func (m *ModelCore) memberTypeReference() {
 				ID:                         data.ID,
 				CreatedAt:                  data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:                data.CreatedByID,
-				CreatedBy:                  m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:                  m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:                  data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:                data.UpdatedByID,
-				UpdatedBy:                  m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:                  m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID:             data.OrganizationID,
-				Organization:               m.organizationManager.ToModel(data.Organization),
+				Organization:               m.OrganizationManager.ToModel(data.Organization),
 				BranchID:                   data.BranchID,
-				Branch:                     m.branchManager.ToModel(data.Branch),
+				Branch:                     m.BranchManager.ToModel(data.Branch),
 				AccountID:                  data.AccountID,
-				Account:                    m.accountManager.ToModel(data.Account),
+				Account:                    m.AccountManager.ToModel(data.Account),
 				MemberTypeID:               data.MemberTypeID,
-				MemberType:                 m.memberTypeManager.ToModel(data.MemberType),
+				MemberType:                 m.MemberTypeManager.ToModel(data.MemberType),
 				MaintainingBalance:         data.MaintainingBalance,
 				Description:                data.Description,
 				InterestRate:               data.InterestRate,
@@ -159,7 +159,7 @@ func (m *ModelCore) memberTypeReference() {
 }
 
 func (m *ModelCore) memberTypeReferenceCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberTypeReference, error) {
-	return m.memberTypeReferenceManager.Find(context, &MemberTypeReference{
+	return m.MemberTypeReferenceManager.Find(context, &MemberTypeReference{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

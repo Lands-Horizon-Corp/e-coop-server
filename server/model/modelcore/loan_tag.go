@@ -70,8 +70,8 @@ type (
 )
 
 func (m *ModelCore) loanTag() {
-	m.migration = append(m.migration, &LoanTag{})
-	m.loanTagManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.Migration = append(m.Migration, &LoanTag{})
+	m.LoanTagManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		LoanTag, LoanTagResponse, LoanTagRequest,
 	]{
 		Preloads: []string{
@@ -86,16 +86,16 @@ func (m *ModelCore) loanTag() {
 				ID:                data.ID,
 				CreatedAt:         data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:       data.CreatedByID,
-				CreatedBy:         m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:         m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:         data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:       data.UpdatedByID,
-				UpdatedBy:         m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:         m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID:    data.OrganizationID,
-				Organization:      m.organizationManager.ToModel(data.Organization),
+				Organization:      m.OrganizationManager.ToModel(data.Organization),
 				BranchID:          data.BranchID,
-				Branch:            m.branchManager.ToModel(data.Branch),
+				Branch:            m.BranchManager.ToModel(data.Branch),
 				LoanTransactionID: data.LoanTransactionID,
-				LoanTransaction:   m.loanTransactionManager.ToModel(data.LoanTransaction),
+				LoanTransaction:   m.LoanTransactionManager.ToModel(data.LoanTransaction),
 				Name:              data.Name,
 				Description:       data.Description,
 				Category:          data.Category,
@@ -132,7 +132,7 @@ func (m *ModelCore) loanTag() {
 }
 
 func (m *ModelCore) loanTagCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanTag, error) {
-	return m.loanTagManager.Find(context, &LoanTag{
+	return m.LoanTagManager.Find(context, &LoanTag{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

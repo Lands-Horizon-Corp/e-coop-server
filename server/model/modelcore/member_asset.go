@@ -74,8 +74,8 @@ type (
 )
 
 func (m *ModelCore) memberAsset() {
-	m.migration = append(m.migration, &MemberAsset{})
-	m.memberAssetManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberAsset, MemberAssetResponse, MemberAssetRequest]{
+	m.Migration = append(m.Migration, &MemberAsset{})
+	m.MemberAssetManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberAsset, MemberAssetResponse, MemberAssetRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Media", "MemberProfile"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberAsset) *MemberAssetResponse {
@@ -86,18 +86,18 @@ func (m *ModelCore) memberAsset() {
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
-				CreatedBy:       m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:       m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:     data.UpdatedByID,
-				UpdatedBy:       m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:       m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID:  data.OrganizationID,
-				Organization:    m.organizationManager.ToModel(data.Organization),
+				Organization:    m.OrganizationManager.ToModel(data.Organization),
 				BranchID:        data.BranchID,
-				Branch:          m.branchManager.ToModel(data.Branch),
+				Branch:          m.BranchManager.ToModel(data.Branch),
 				MediaID:         data.MediaID,
-				Media:           m.mediaManager.ToModel(data.Media),
+				Media:           m.MediaManager.ToModel(data.Media),
 				MemberProfileID: data.MemberProfileID,
-				MemberProfile:   m.memberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:   m.MemberProfileManager.ToModel(data.MemberProfile),
 				Name:            data.Name,
 				EntryDate:       data.EntryDate.Format(time.RFC3339),
 				Description:     data.Description,
@@ -133,7 +133,7 @@ func (m *ModelCore) memberAsset() {
 }
 
 func (m *ModelCore) memberAssetCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberAsset, error) {
-	return m.memberAssetManager.Find(context, &MemberAsset{
+	return m.MemberAssetManager.Find(context, &MemberAsset{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

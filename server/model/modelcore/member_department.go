@@ -59,8 +59,8 @@ type (
 )
 
 func (m *ModelCore) memberDepartment() {
-	m.migration = append(m.migration, &MemberDepartment{})
-	m.memberDepartmentManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberDepartment, MemberDepartmentResponse, MemberDepartmentRequest]{
+	m.Migration = append(m.Migration, &MemberDepartment{})
+	m.MemberDepartmentManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberDepartment, MemberDepartmentResponse, MemberDepartmentRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
 		Service:  m.provider.Service,
 		Resource: func(data *MemberDepartment) *MemberDepartmentResponse {
@@ -71,14 +71,14 @@ func (m *ModelCore) memberDepartment() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.organizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.branchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager.ToModel(data.Branch),
 				Name:           data.Name,
 				Description:    data.Description,
 				Icon:           data.Icon,
@@ -267,7 +267,7 @@ func (m *ModelCore) memberDepartmentSeed(context context.Context, tx *gorm.DB, u
 	}
 
 	for _, data := range memberDepartments {
-		if err := m.memberDepartmentManager.CreateWithTx(context, tx, data); err != nil {
+		if err := m.MemberDepartmentManager.CreateWithTx(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to seed member department %s", data.Name)
 		}
 	}
@@ -275,7 +275,7 @@ func (m *ModelCore) memberDepartmentSeed(context context.Context, tx *gorm.DB, u
 }
 
 func (m *ModelCore) memberDepartmentCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberDepartment, error) {
-	return m.memberDepartmentManager.Find(context, &MemberDepartment{
+	return m.MemberDepartmentManager.Find(context, &MemberDepartment{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

@@ -65,8 +65,8 @@ type (
 )
 
 func (m *ModelCore) loanTermsAndConditionAmountReceipt() {
-	m.migration = append(m.migration, &LoanTermsAndConditionAmountReceipt{})
-	m.loanTermsAndConditionAmountReceiptManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.Migration = append(m.Migration, &LoanTermsAndConditionAmountReceipt{})
+	m.LoanTermsAndConditionAmountReceiptManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		LoanTermsAndConditionAmountReceipt, LoanTermsAndConditionAmountReceiptResponse, LoanTermsAndConditionAmountReceiptRequest,
 	]{
 		Preloads: []string{
@@ -81,18 +81,18 @@ func (m *ModelCore) loanTermsAndConditionAmountReceipt() {
 				ID:                data.ID,
 				CreatedAt:         data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:       data.CreatedByID,
-				CreatedBy:         m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:         m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:         data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:       data.UpdatedByID,
-				UpdatedBy:         m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:         m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID:    data.OrganizationID,
-				Organization:      m.organizationManager.ToModel(data.Organization),
+				Organization:      m.OrganizationManager.ToModel(data.Organization),
 				BranchID:          data.BranchID,
-				Branch:            m.branchManager.ToModel(data.Branch),
+				Branch:            m.BranchManager.ToModel(data.Branch),
 				LoanTransactionID: data.LoanTransactionID,
-				LoanTransaction:   m.loanTransactionManager.ToModel(data.LoanTransaction),
+				LoanTransaction:   m.LoanTransactionManager.ToModel(data.LoanTransaction),
 				AccountID:         data.AccountID,
-				Account:           m.accountManager.ToModel(data.Account),
+				Account:           m.AccountManager.ToModel(data.Account),
 				Amount:            data.Amount,
 			}
 		},
@@ -125,7 +125,7 @@ func (m *ModelCore) loanTermsAndConditionAmountReceipt() {
 }
 
 func (m *ModelCore) loanTermsAndConditionAmountReceiptCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*LoanTermsAndConditionAmountReceipt, error) {
-	return m.loanTermsAndConditionAmountReceiptManager.Find(context, &LoanTermsAndConditionAmountReceipt{
+	return m.LoanTermsAndConditionAmountReceiptManager.Find(context, &LoanTermsAndConditionAmountReceipt{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

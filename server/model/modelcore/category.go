@@ -47,7 +47,7 @@ type (
 )
 
 func (m *ModelCore) categorySeed(ctx context.Context) error {
-	category, err := m.categoryManager.List(ctx)
+	category, err := m.CategoryManager.List(ctx)
 
 	if err != nil {
 		return err
@@ -260,7 +260,7 @@ func (m *ModelCore) categorySeed(ctx context.Context) error {
 	}
 
 	for _, category := range categories {
-		if err := m.categoryManager.Create(ctx, &category); err != nil {
+		if err := m.CategoryManager.Create(ctx, &category); err != nil {
 			return err
 		}
 	}
@@ -268,8 +268,8 @@ func (m *ModelCore) categorySeed(ctx context.Context) error {
 }
 
 func (m *ModelCore) category() {
-	m.migration = append(m.migration, &Category{})
-	m.categoryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Category, CategoryResponse, CategoryRequest]{
+	m.Migration = append(m.Migration, &Category{})
+	m.CategoryManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Category, CategoryResponse, CategoryRequest]{
 		Preloads: []string{"OrganizationCategories"},
 		Service:  m.provider.Service,
 		Resource: func(data *Category) *CategoryResponse {
@@ -286,7 +286,7 @@ func (m *ModelCore) category() {
 				Color:       data.Color,
 				Icon:        data.Icon,
 
-				OrganizationCategories: m.organizationCategoryManager.ToModels(data.OrganizationCategories),
+				OrganizationCategories: m.OrganizationCategoryManager.ToModels(data.OrganizationCategories),
 			}
 		},
 		Created: func(data *Category) []string {

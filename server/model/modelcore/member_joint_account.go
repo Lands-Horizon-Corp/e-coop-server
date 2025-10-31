@@ -90,8 +90,8 @@ type (
 )
 
 func (m *ModelCore) memberJointAccount() {
-	m.migration = append(m.migration, &MemberJointAccount{})
-	m.memberJointAccountManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberJointAccount, MemberJointAccountResponse, MemberJointAccountRequest]{
+	m.Migration = append(m.Migration, &MemberJointAccount{})
+	m.MemberJointAccountManager = horizon_services.NewRepository(horizon_services.RepositoryParams[MemberJointAccount, MemberJointAccountResponse, MemberJointAccountRequest]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
 			"MemberProfile", "PictureMedia", "SignatureMedia",
@@ -105,20 +105,20 @@ func (m *ModelCore) memberJointAccount() {
 				ID:                 data.ID,
 				CreatedAt:          data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:        data.CreatedByID,
-				CreatedBy:          m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:          m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:          data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:        data.UpdatedByID,
-				UpdatedBy:          m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:          m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID:     data.OrganizationID,
-				Organization:       m.organizationManager.ToModel(data.Organization),
+				Organization:       m.OrganizationManager.ToModel(data.Organization),
 				BranchID:           data.BranchID,
-				Branch:             m.branchManager.ToModel(data.Branch),
+				Branch:             m.BranchManager.ToModel(data.Branch),
 				MemberProfileID:    data.MemberProfileID,
-				MemberProfile:      m.memberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:      m.MemberProfileManager.ToModel(data.MemberProfile),
 				PictureMediaID:     data.PictureMediaID,
-				PictureMedia:       m.mediaManager.ToModel(data.PictureMedia),
+				PictureMedia:       m.MediaManager.ToModel(data.PictureMedia),
 				SignatureMediaID:   data.SignatureMediaID,
-				SignatureMedia:     m.mediaManager.ToModel(data.SignatureMedia),
+				SignatureMedia:     m.MediaManager.ToModel(data.SignatureMedia),
 				Description:        data.Description,
 				FirstName:          data.FirstName,
 				MiddleName:         data.MiddleName,
@@ -158,7 +158,7 @@ func (m *ModelCore) memberJointAccount() {
 }
 
 func (m *ModelCore) memberJointAccountCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*MemberJointAccount, error) {
-	return m.memberJointAccountManager.Find(context, &MemberJointAccount{
+	return m.MemberJointAccountManager.Find(context, &MemberJointAccount{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

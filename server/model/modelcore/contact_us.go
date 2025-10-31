@@ -44,8 +44,8 @@ type (
 )
 
 func (m *ModelCore) contactUs() {
-	m.migration = append(m.migration, &ContactUs{})
-	m.contactUsManager = horizon_services.NewRepository(horizon_services.RepositoryParams[ContactUs, ContactUsResponse, ContactUsRequest]{
+	m.Migration = append(m.Migration, &ContactUs{})
+	m.ContactUsManager = horizon_services.NewRepository(horizon_services.RepositoryParams[ContactUs, ContactUsResponse, ContactUsRequest]{
 		Preloads: nil,
 		Service:  m.provider.Service,
 		Resource: func(cu *ContactUs) *ContactUsResponse {

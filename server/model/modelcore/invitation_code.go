@@ -84,8 +84,8 @@ type (
 )
 
 func (m *ModelCore) invitationCode() {
-	m.migration = append(m.migration, &InvitationCode{})
-	m.invitationCodeManager = horizon_services.NewRepository(horizon_services.RepositoryParams[InvitationCode, InvitationCodeResponse, InvitationCodeRequest]{
+	m.Migration = append(m.Migration, &InvitationCode{})
+	m.InvitationCodeManager = horizon_services.NewRepository(horizon_services.RepositoryParams[InvitationCode, InvitationCodeResponse, InvitationCodeRequest]{
 		Preloads: []string{
 			"CreatedBy",
 			"UpdatedBy",
@@ -107,14 +107,14 @@ func (m *ModelCore) invitationCode() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.organizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.branchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager.ToModel(data.Branch),
 
 				UserType:       data.UserType,
 				Code:           data.Code,
@@ -156,14 +156,14 @@ func (m *ModelCore) invitationCode() {
 }
 
 func (m *ModelCore) getInvitationCodeBybranch(context context.Context, organizationId uuid.UUID, branchId uuid.UUID) ([]*InvitationCode, error) {
-	return m.invitationCodeManager.Find(context, &InvitationCode{
+	return m.InvitationCodeManager.Find(context, &InvitationCode{
 		OrganizationID: organizationId,
 		BranchID:       branchId,
 	})
 }
 
 func (m *ModelCore) getInvitationCodeByCode(context context.Context, code string) (*InvitationCode, error) {
-	return m.invitationCodeManager.FindOne(context, &InvitationCode{
+	return m.InvitationCodeManager.FindOne(context, &InvitationCode{
 		Code: code,
 	})
 }
@@ -203,7 +203,7 @@ func (m *ModelCore) invitationCodeSeed(context context.Context, tx *gorm.DB, use
 		},
 	}
 	for _, data := range invitationCodes {
-		if err := m.invitationCodeManager.CreateWithTx(context, tx, data); err != nil {
+		if err := m.InvitationCodeManager.CreateWithTx(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to seed invitation code for %s", data.UserType)
 		}
 	}
@@ -229,12 +229,12 @@ func (m *ModelCore) verifyInvitationCodeByCode(context context.Context, code str
 }
 
 func (m *ModelCore) redeemInvitationCode(context context.Context, tx *gorm.DB, invitationCodeId uuid.UUID) error {
-	data, err := m.invitationCodeManager.GetByID(context, invitationCodeId)
+	data, err := m.InvitationCodeManager.GetByID(context, invitationCodeId)
 	if err != nil {
 		return err
 	}
 	data.CurrentUse++
-	if err := m.invitationCodeManager.UpdateFieldsWithTx(context, tx, data.ID, data); err != nil {
+	if err := m.InvitationCodeManager.UpdateFieldsWithTx(context, tx, data.ID, data); err != nil {
 		return eris.Wrapf(
 			err,
 			"failed to redeem invitation code %q (increment CurrentUse)",

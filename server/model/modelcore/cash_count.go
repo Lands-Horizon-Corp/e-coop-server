@@ -79,8 +79,8 @@ type (
 )
 
 func (m *ModelCore) cashCount() {
-	m.migration = append(m.migration, &CashCount{})
-	m.cashCountManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.Migration = append(m.Migration, &CashCount{})
+	m.CashCountManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		CashCount, CashCountResponse, CashCountRequest,
 	]{
 		Preloads: []string{
@@ -96,20 +96,20 @@ func (m *ModelCore) cashCount() {
 				ID:                 data.ID,
 				CreatedAt:          data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:        data.CreatedByID,
-				CreatedBy:          m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:          m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:          data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:        data.UpdatedByID,
-				UpdatedBy:          m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:          m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID:     data.OrganizationID,
-				Organization:       m.organizationManager.ToModel(data.Organization),
+				Organization:       m.OrganizationManager.ToModel(data.Organization),
 				BranchID:           data.BranchID,
-				Branch:             m.branchManager.ToModel(data.Branch),
+				Branch:             m.BranchManager.ToModel(data.Branch),
 				EmployeeUserID:     data.EmployeeUserID,
-				EmployeeUser:       m.userManager.ToModel(data.EmployeeUser),
+				EmployeeUser:       m.UserManager.ToModel(data.EmployeeUser),
 				TransactionBatchID: data.TransactionBatchID,
-				TransactionBatch:   m.transactionBatchManager.ToModel(data.TransactionBatch),
+				TransactionBatch:   m.TransactionBatchManager.ToModel(data.TransactionBatch),
 				CurrencyID:         data.CurrencyID,
-				Currency:           m.currencyManager.ToModel(data.Currency),
+				Currency:           m.CurrencyManager.ToModel(data.Currency),
 				BillAmount:         data.BillAmount,
 				Quantity:           data.Quantity,
 				Amount:             data.Amount,
@@ -144,7 +144,7 @@ func (m *ModelCore) cashCount() {
 }
 
 func (m *ModelCore) cashCountCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*CashCount, error) {
-	return m.cashCountManager.Find(context, &CashCount{
+	return m.CashCountManager.Find(context, &CashCount{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

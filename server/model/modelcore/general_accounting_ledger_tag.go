@@ -72,8 +72,8 @@ type (
 )
 
 func (m *ModelCore) generalLedgerTag() {
-	m.migration = append(m.migration, &GeneralLedgerTag{})
-	m.generalLedgerTagManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
+	m.Migration = append(m.Migration, &GeneralLedgerTag{})
+	m.GeneralLedgerTagManager = horizon_services.NewRepository(horizon_services.RepositoryParams[
 		GeneralLedgerTag, GeneralLedgerTagResponse, GeneralLedgerTagRequest,
 	]{
 		Preloads: []string{
@@ -88,16 +88,16 @@ func (m *ModelCore) generalLedgerTag() {
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
-				CreatedBy:       m.userManager.ToModel(data.CreatedBy),
+				CreatedBy:       m.UserManager.ToModel(data.CreatedBy),
 				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:     data.UpdatedByID,
-				UpdatedBy:       m.userManager.ToModel(data.UpdatedBy),
+				UpdatedBy:       m.UserManager.ToModel(data.UpdatedBy),
 				OrganizationID:  data.OrganizationID,
-				Organization:    m.organizationManager.ToModel(data.Organization),
+				Organization:    m.OrganizationManager.ToModel(data.Organization),
 				BranchID:        data.BranchID,
-				Branch:          m.branchManager.ToModel(data.Branch),
+				Branch:          m.BranchManager.ToModel(data.Branch),
 				GeneralLedgerID: data.GeneralLedgerID,
-				GeneralLedger:   m.generalLedgerManager.ToModel(data.GeneralLedger),
+				GeneralLedger:   m.GeneralLedgerManager.ToModel(data.GeneralLedger),
 				Name:            data.Name,
 				Description:     data.Description,
 				Category:        data.Category,
@@ -133,7 +133,7 @@ func (m *ModelCore) generalLedgerTag() {
 }
 
 func (m *ModelCore) generalLedgerTagCurrentbranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*GeneralLedgerTag, error) {
-	return m.generalLedgerTagManager.Find(context, &GeneralLedgerTag{
+	return m.GeneralLedgerTagManager.Find(context, &GeneralLedgerTag{
 		OrganizationID: orgId,
 		BranchID:       branchId,
 	})

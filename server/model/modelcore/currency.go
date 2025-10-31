@@ -67,8 +67,8 @@ type (
 )
 
 func (m *ModelCore) currency() {
-	m.migration = append(m.migration, &Currency{})
-	m.currencyManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Currency, CurrencyResponse, CurrencyRequest]{
+	m.Migration = append(m.Migration, &Currency{})
+	m.CurrencyManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Currency, CurrencyResponse, CurrencyRequest]{
 		Service: m.provider.Service,
 		Resource: func(data *Currency) *CurrencyResponse {
 			if data == nil {
@@ -226,7 +226,7 @@ func (m *ModelCore) currencySeed(context context.Context) error {
 	}
 
 	for _, currency := range currencies {
-		if err := m.currencyManager.Create(context, currency); err != nil {
+		if err := m.CurrencyManager.Create(context, currency); err != nil {
 			return eris.Wrapf(err, "failed to seed currency %s", currency.Name)
 		}
 	}
@@ -235,11 +235,11 @@ func (m *ModelCore) currencySeed(context context.Context) error {
 }
 
 func (m *ModelCore) currencyFindAll(context context.Context) ([]*Currency, error) {
-	return m.currencyManager.Find(context, &Currency{})
+	return m.CurrencyManager.Find(context, &Currency{})
 }
 
 func (m *ModelCore) currencyFindByAlpha2(context context.Context, iso3166Alpha2 string) (*Currency, error) {
-	currencies, err := m.currencyManager.FindOne(context, &Currency{ISO3166Alpha2: iso3166Alpha2})
+	currencies, err := m.CurrencyManager.FindOne(context, &Currency{ISO3166Alpha2: iso3166Alpha2})
 	if err != nil {
 		return nil, err
 	}
@@ -247,7 +247,7 @@ func (m *ModelCore) currencyFindByAlpha2(context context.Context, iso3166Alpha2 
 }
 
 func (m *ModelCore) currencyFindByCode(context context.Context, currencyCode string) (*Currency, error) {
-	currency, err := m.currencyManager.FindOne(context, &Currency{CurrencyCode: currencyCode})
+	currency, err := m.CurrencyManager.FindOne(context, &Currency{CurrencyCode: currencyCode})
 	if err != nil {
 		return nil, err
 	}

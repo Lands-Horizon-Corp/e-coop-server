@@ -45,8 +45,8 @@ type (
 )
 
 func (m *ModelCore) feedback() {
-	m.migration = append(m.migration, &Feedback{})
-	m.feedbackManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Feedback, FeedbackResponse, FeedbackRequest]{
+	m.Migration = append(m.Migration, &Feedback{})
+	m.FeedbackManager = horizon_services.NewRepository(horizon_services.RepositoryParams[Feedback, FeedbackResponse, FeedbackRequest]{
 		Preloads: []string{"Media"},
 		Service:  m.provider.Service,
 		Resource: func(data *Feedback) *FeedbackResponse {
@@ -59,7 +59,7 @@ func (m *ModelCore) feedback() {
 				Description:  data.Description,
 				FeedbackType: data.FeedbackType,
 				MediaID:      data.MediaID,
-				Media:        m.mediaManager.ToModel(data.Media),
+				Media:        m.MediaManager.ToModel(data.Media),
 				CreatedAt:    data.CreatedAt.Format(time.RFC3339),
 				UpdatedAt:    data.UpdatedAt.Format(time.RFC3339),
 			}
