@@ -7,9 +7,9 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/cooperative_tokens"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
 	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/tokens"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -63,7 +63,7 @@ func (c *Controller) AuthenticationController() {
 		Route:        "/api/v1/authentication/current-logged-in-accounts",
 		Note:         "Returns all currently logged-in users for the session.",
 		Method:       "GET",
-		ResponseType: cooperative_tokens.UserCSRFResponse{},
+		ResponseType: tokens.UserCSRFResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		_, err := c.userToken.CurrentUser(context, ctx)
@@ -74,8 +74,8 @@ func (c *Controller) AuthenticationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get logged in users: " + err.Error()})
 		}
-		var resp cooperative_tokens.UserCSRFResponse
-		loggedInPtrs := make([]*cooperative_tokens.UserCSRF, len(loggedIn))
+		var resp tokens.UserCSRFResponse
+		loggedInPtrs := make([]*tokens.UserCSRF, len(loggedIn))
 		for i := range loggedIn {
 			loggedInPtrs[i] = &loggedIn[i]
 		}

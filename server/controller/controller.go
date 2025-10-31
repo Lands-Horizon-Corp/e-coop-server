@@ -2,10 +2,10 @@ package v1
 
 import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/src"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/cooperative_tokens"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
 	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/service"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/tokens"
 )
 
 type Controller struct {
@@ -14,8 +14,8 @@ type Controller struct {
 	modelcore *modelcore.ModelCore
 	event     *event.Event
 	// Tokens
-	userOrganizationToken *cooperative_tokens.UserOrganizationToken
-	userToken             *cooperative_tokens.UserToken
+	userOrganizationToken *tokens.UserOrganizationToken
+	userToken             *tokens.UserToken
 	service               *service.TransactionService
 }
 
@@ -26,8 +26,8 @@ func NewController(
 	event *event.Event,
 
 	// Tokens
-	userOrganizationToken *cooperative_tokens.UserOrganizationToken,
-	userToken *cooperative_tokens.UserToken,
+	userOrganizationToken *tokens.UserOrganizationToken,
+	userToken *tokens.UserToken,
 	service *service.TransactionService,
 
 ) (*Controller, error) {
