@@ -371,8 +371,22 @@ func (m *ModelCore) start(_ context.Context) error {
 	return nil
 }
 
+// GlobalSeeder seeds initial global data such as currencies and categories
+func (m *ModelCore) GlobalSeeder(ctx context.Context) error {
+	if err := m.currencySeed(ctx); err != nil {
+		return err
+	}
+	if err := m.categorySeed(ctx); err != nil {
+		return err
+	}
+	if err := m.subscriptionPlanSeed(ctx); err != nil {
+		return err
+	}
+	return nil
+}
+
 // OrganizationSeeder seeds initial data for a new organization including default accounts, payment types, and templates
-func (m *ModelCore) organizationSeeder(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+func (m *ModelCore) OrganizationSeeder(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	if err := m.invitationCodeSeed(context, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
@@ -459,7 +473,7 @@ func (m *ModelCore) organizationSeeder(context context.Context, tx *gorm.DB, use
 }
 
 // OrganizationDestroyer cleans up and removes all data associated with an organization branch
-func (m *ModelCore) organizationDestroyer(ctx context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+func (m *ModelCore) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	invitationCodes, err := m.InvitationCodeManager.Find(ctx, &InvitationCode{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
