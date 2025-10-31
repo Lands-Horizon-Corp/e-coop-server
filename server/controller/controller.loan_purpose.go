@@ -3,6 +3,7 @@ package v1
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
@@ -289,7 +290,7 @@ func (c *Controller) loanPurposeController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
-		descriptions := ""
+		var descriptionsSlice []string
 		for _, rawID := range reqBody.IDs {
 			id, err := uuid.Parse(rawID)
 			if err != nil {
@@ -311,7 +312,7 @@ func (c *Controller) loanPurposeController() {
 				})
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Loan purpose record not found with ID: %s", rawID)})
 			}
-			descriptions += purpose.Description + ","
+			descriptionsSlice = append(descriptionsSlice, purpose.Description)
 			if err := c.modelcore.LoanPurposeManager.DeleteByIDWithTx(context, tx, id); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -330,6 +331,7 @@ func (c *Controller) loanPurposeController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
+		descriptions := strings.Join(descriptionsSlice, ",")
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted loan purposes (/loan-purpose/bulk-delete): " + descriptions,

@@ -3,6 +3,7 @@ package v1
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
@@ -182,7 +183,7 @@ func (c *Controller) feedbackController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
 
-		emails := ""
+		var emailsSlice []string
 		for _, rawID := range reqBody.IDs {
 			feedbackID, err := uuid.Parse(rawID)
 			if err != nil {
@@ -206,7 +207,7 @@ func (c *Controller) feedbackController() {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Feedback record not found with ID: %s", rawID)})
 			}
 
-			emails += feedback.Email + ","
+			emailsSlice = append(emailsSlice, feedback.Email)
 
 			if err := c.modelcore.FeedbackManager.DeleteByIDWithTx(context, tx, feedbackID); err != nil {
 				tx.Rollback()
@@ -228,6 +229,7 @@ func (c *Controller) feedbackController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
 
+		emails := strings.Join(emailsSlice, ",")
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted feedbacks (/feedback/bulk-delete): " + emails,

@@ -3,6 +3,7 @@ package v1
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
@@ -334,7 +335,7 @@ func (c *Controller) invitationCode() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
-		codes := ""
+		var codesSlice []string
 		for _, rawID := range reqBody.IDs {
 			invitationCodeID, err := uuid.Parse(rawID)
 			if err != nil {
@@ -356,7 +357,7 @@ func (c *Controller) invitationCode() {
 				})
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Invitation code not found with ID: %s", rawID)})
 			}
-			codes += codeModel.Code + ","
+			codesSlice = append(codesSlice, codeModel.Code)
 			if err := c.modelcore.InvitationCodeManager.DeleteByIDWithTx(context, tx, invitationCodeID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -375,6 +376,7 @@ func (c *Controller) invitationCode() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
+		codes := strings.Join(codesSlice, ",")
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted invitation codes (/invitation-code/bulk-delete): " + codes,

@@ -3,6 +3,7 @@ package v1
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
@@ -480,7 +481,7 @@ func (c *Controller) journalVoucherController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
-		voucherNumbers := ""
+		var voucherNumbersSlice []string
 		for _, rawID := range reqBody.IDs {
 			journalVoucherID, err := uuid.Parse(rawID)
 			if err != nil {
@@ -502,7 +503,7 @@ func (c *Controller) journalVoucherController() {
 				})
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Journal voucher not found with ID: %s", rawID)})
 			}
-			voucherNumbers += journalVoucher.CashVoucherNumber + ","
+			voucherNumbersSlice = append(voucherNumbersSlice, journalVoucher.CashVoucherNumber)
 			if err := c.modelcore.JournalVoucherManager.DeleteByIDWithTx(context, tx, journalVoucherID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -521,6 +522,7 @@ func (c *Controller) journalVoucherController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit bulk delete: " + err.Error()})
 		}
+		voucherNumbers := strings.Join(voucherNumbersSlice, ",")
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted journal vouchers (/journal-voucher/bulk-delete): " + voucherNumbers,

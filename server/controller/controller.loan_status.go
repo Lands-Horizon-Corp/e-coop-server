@@ -3,6 +3,7 @@ package v1
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
@@ -293,7 +294,7 @@ func (c *Controller) loanStatusController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
-		names := ""
+		var namesSlice []string
 		for _, rawID := range reqBody.IDs {
 			id, err := uuid.Parse(rawID)
 			if err != nil {
@@ -315,7 +316,7 @@ func (c *Controller) loanStatusController() {
 				})
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Loan status record not found with ID: %s", rawID)})
 			}
-			names += status.Name + ","
+			namesSlice = append(namesSlice, status.Name)
 			if err := c.modelcore.LoanStatusManager.DeleteByIDWithTx(context, tx, id); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -334,6 +335,7 @@ func (c *Controller) loanStatusController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
+		names := strings.Join(namesSlice, ",")
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted loan statuses (/loan-status/bulk-delete): " + names,

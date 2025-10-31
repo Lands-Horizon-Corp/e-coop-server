@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
@@ -296,7 +297,7 @@ func (c *Controller) holidayController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
-		names := ""
+		var namesSlice []string
 		for _, rawID := range reqBody.IDs {
 			holidayID, err := uuid.Parse(rawID)
 			if err != nil {
@@ -318,7 +319,7 @@ func (c *Controller) holidayController() {
 				})
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Holiday record not found with ID: %s", rawID)})
 			}
-			names += holiday.Name + ","
+			namesSlice = append(namesSlice, holiday.Name)
 			if err := c.modelcore.HolidayManager.DeleteByIDWithTx(context, tx, holidayID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -337,6 +338,7 @@ func (c *Controller) holidayController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
+		names := strings.Join(namesSlice, ",")
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted holidays (/holiday/bulk-delete): " + names,
