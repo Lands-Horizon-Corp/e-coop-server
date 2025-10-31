@@ -430,473 +430,819 @@ func (m *ModelCore) companySeed(context context.Context, tx *gorm.DB, userID uui
 		companies = append(companies,
 			// Electricity / Energy Companies
 			&Company{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Pacific Gas and Electric Company (PG&E)",
-				Description:    "One of the largest combined natural gas and electric utilities in the United States, serving Northern and Central California.",
+
+				Name:        "Pacific Gas and Electric Company (PG&E)",
+				Description: "One of the largest combined natural gas and electric utilities in the United States, serving Northern and Central California.",
 			},
 			&Company{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Duke Energy Corporation",
-				Description:    "Major electric power holding company serving customers in the Southeast and Midwest United States.",
+
+				Name:        "Duke Energy Corporation",
+				Description: "Major electric power holding company serving customers in the Southeast and Midwest United States.",
 			},
 			&Company{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Consolidated Edison, Inc. (Con Edison)",
-				Description:    "Provides electric, gas, and steam service in New York City and Westchester County.",
+
+				Name:        "Consolidated Edison, Inc. (Con Edison)",
+				Description: "Provides electric, gas, and steam service in New York City and Westchester County.",
 			},
 			&Company{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Florida Power & Light Company (FPL)",
-				Description:    "The largest electric utility in Florida, providing power to over 5 million customer accounts.",
+
+				Name:        "Florida Power & Light Company (FPL)",
+				Description: "The largest electric utility in Florida, providing power to over 5 million customer accounts.",
 			},
 
 			// Water Utilities
 			&Company{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "American Water Works Company, Inc.",
-				Description:    "Largest publicly traded U.S. water and wastewater utility company, serving 14 million people across 24 states.",
+
+				Name:        "American Water Works Company, Inc.",
+				Description: "Largest publicly traded U.S. water and wastewater utility company, serving 14 million people across 24 states.",
 			},
 			&Company{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Aqua America (Essential Utilities)",
-				Description:    "Provides water and wastewater services to communities in eight U.S. states.",
+
+				Name:        "Aqua America (Essential Utilities)",
+				Description: "Provides water and wastewater services to communities in eight U.S. states.",
 			},
 			&Company{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "California Water Service (Cal Water)",
-				Description:    "Provides regulated and reliable water services to California communities.",
+
+				Name:        "California Water Service (Cal Water)",
+				Description: "Provides regulated and reliable water services to California communities.",
 			},
 
 			// Internet / Cable / Telecom
 			&Company{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Comcast Xfinity",
-				Description:    "One of the largest cable television and internet service providers in the U.S.",
+
+				Name:        "Comcast Xfinity",
+				Description: "One of the largest cable television and internet service providers in the U.S.",
 			},
 			&Company{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "AT&T Internet",
-				Description:    "Major internet and telecommunications service provider in the United States.",
+
+				Name:        "AT&T Internet",
+				Description: "Major internet and telecommunications service provider in the United States.",
 			},
 			&Company{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Verizon Fios",
-				Description:    "Fiber-optic internet, TV, and phone service operated by Verizon Communications.",
+
+				Name:        "Verizon Fios",
+				Description: "Fiber-optic internet, TV, and phone service operated by Verizon Communications.",
 			},
 			&Company{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Spectrum (Charter Communications)",
-				Description:    "Cable television, internet, and phone provider serving millions across the U.S.",
+
+				Name:        "Spectrum (Charter Communications)",
+				Description: "Cable television, internet, and phone provider serving millions across the U.S.",
 			},
 
 			// Gas Companies
 			&Company{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Southern California Gas Company (SoCalGas)",
-				Description:    "The largest natural gas distribution utility in the United States.",
+
+				Name:        "Southern California Gas Company (SoCalGas)",
+				Description: "The largest natural gas distribution utility in the United States.",
 			},
 			&Company{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "National Grid USA",
-				Description:    "Provides natural gas and electricity distribution services in the Northeastern United States.",
+
+				Name:        "National Grid USA",
+				Description: "Provides natural gas and electricity distribution services in the Northeastern United States.",
 			},
 
 			// Waste Management
 			&Company{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Waste Management, Inc.",
-				Description:    "Leading provider of waste collection, disposal, and recycling services across the U.S.",
+
+				Name:        "Waste Management, Inc.",
+				Description: "Leading provider of waste collection, disposal, and recycling services across the U.S.",
 			},
 			&Company{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Republic Services, Inc.",
-				Description:    "Environmental services company providing waste collection and recycling solutions nationwide.",
+
+				Name:        "Republic Services, Inc.",
+				Description: "Environmental services company providing waste collection and recycling solutions nationwide.",
 			},
 		)
 
 	case "EUR": // European Union (Germany as representative)
 		companies = append(companies,
 			&Company{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "E.ON SE",
-				Description:    "One of Europe's largest electric utility service providers headquartered in Essen, Germany.",
+
+				Name:        "E.ON SE",
+				Description: "One of Europe's largest electric utility service providers headquartered in Essen, Germany.",
 			},
 			&Company{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Deutsche Telekom AG",
-				Description:    "Major telecommunications company providing internet, mobile, and landline services across Europe.",
+
+				Name:        "Deutsche Telekom AG",
+				Description: "Major telecommunications company providing internet, mobile, and landline services across Europe.",
 			},
 			&Company{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Berliner Wasserbetriebe",
-				Description:    "The largest water supply and wastewater disposal company in Germany, serving Berlin and surrounding areas.",
+
+				Name:        "Berliner Wasserbetriebe",
+				Description: "The largest water supply and wastewater disposal company in Germany, serving Berlin and surrounding areas.",
 			},
 			&Company{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Vodafone GmbH",
-				Description:    "Leading broadband, cable TV, and mobile communications provider based in Düsseldorf, Germany.",
+
+				Name:        "Vodafone GmbH",
+				Description: "Leading broadband, cable TV, and mobile communications provider based in Düsseldorf, Germany.",
 			},
 			&Company{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "RWE AG",
-				Description:    "Energy company focused on electricity generation, renewable energy, and trading headquartered in Essen.",
+
+				Name:        "RWE AG",
+				Description: "Energy company focused on electricity generation, renewable energy, and trading headquartered in Essen.",
 			},
 		)
 
 	case "JPY": // Japan
 		companies = append(companies,
 			&Company{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Tokyo Electric Power Company (TEPCO)",
-				Description:    "Japan's largest electric utility company providing electricity to the Greater Tokyo Area.",
+
+				Name:        "Tokyo Electric Power Company (TEPCO)",
+				Description: "Japan's largest electric utility company providing electricity to the Greater Tokyo Area.",
 			},
 			&Company{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Tokyo Gas Co., Ltd.",
-				Description:    "Japan's largest natural gas utility company supplying energy and related services to households and industries in Tokyo.",
+
+				Name:        "Tokyo Gas Co., Ltd.",
+				Description: "Japan's largest natural gas utility company supplying energy and related services to households and industries in Tokyo.",
 			},
 			&Company{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "NTT Communications Corporation",
-				Description:    "Major telecommunications and internet service provider under Nippon Telegraph and Telephone Corporation.",
+
+				Name:        "NTT Communications Corporation",
+				Description: "Major telecommunications and internet service provider under Nippon Telegraph and Telephone Corporation.",
 			},
 			&Company{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "SoftBank Corp.",
-				Description:    "Leading Japanese telecom and internet company providing mobile, broadband, and enterprise network services.",
+
+				Name:        "SoftBank Corp.",
+				Description: "Leading Japanese telecom and internet company providing mobile, broadband, and enterprise network services.",
 			},
 			&Company{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Tokyo Metropolitan Waterworks Bureau",
-				Description:    "Official public utility providing clean water supply and wastewater management services in Tokyo.",
+
+				Name:        "Tokyo Metropolitan Waterworks Bureau",
+				Description: "Official public utility providing clean water supply and wastewater management services in Tokyo.",
 			},
 		)
 
 	case "GBP": // United Kingdom
 		companies = append(companies,
 			&Company{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "British Gas",
-				Description:    "The UK's leading energy and home services provider, supplying gas and electricity to millions of households.",
+
+				Name:        "British Gas",
+				Description: "The UK's leading energy and home services provider, supplying gas and electricity to millions of households.",
 			},
 			&Company{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Thames Water",
-				Description:    "The largest water and wastewater services company in the UK, serving London and surrounding areas.",
+
+				Name:        "Thames Water",
+				Description: "The largest water and wastewater services company in the UK, serving London and surrounding areas.",
 			},
 			&Company{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "BT Group plc",
-				Description:    "Formerly British Telecom, BT is one of the UK's main broadband, landline, and TV service providers.",
+
+				Name:        "BT Group plc",
+				Description: "Formerly British Telecom, BT is one of the UK's main broadband, landline, and TV service providers.",
 			},
 			&Company{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Virgin Media O2",
-				Description:    "A major telecom and internet provider offering broadband, mobile, and digital TV services across the UK.",
+
+				Name:        "Virgin Media O2",
+				Description: "A major telecom and internet provider offering broadband, mobile, and digital TV services across the UK.",
 			},
 			&Company{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Scottish Power",
-				Description:    "A leading UK energy supplier focusing on renewable electricity generation and green energy solutions.",
+
+				Name:        "Scottish Power",
+				Description: "A leading UK energy supplier focusing on renewable electricity generation and green energy solutions.",
 			},
 		)
 
 	case "AUD": // Australia
 		companies = append(companies,
 			&Company{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Origin Energy",
-				Description:    "One of Australia's leading energy companies providing electricity, natural gas, and solar solutions to homes and businesses.",
+
+				Name:        "Origin Energy",
+				Description: "One of Australia's leading energy companies providing electricity, natural gas, and solar solutions to homes and businesses.",
 			},
 			&Company{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Sydney Water",
-				Description:    "Australia’s largest water utility supplying high-quality drinking water, wastewater, and stormwater services across Sydney.",
+
+				Name:        "Sydney Water",
+				Description: "Australia’s largest water utility supplying high-quality drinking water, wastewater, and stormwater services across Sydney.",
 			},
 			&Company{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Telstra Corporation Limited",
-				Description:    "Australia’s biggest telecommunications and internet service provider offering broadband, mobile, and digital TV services.",
+
+				Name:        "Telstra Corporation Limited",
+				Description: "Australia’s biggest telecommunications and internet service provider offering broadband, mobile, and digital TV services.",
 			},
 			&Company{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "AGL Energy",
-				Description:    "Leading Australian electricity and gas retailer generating power through both traditional and renewable energy sources.",
+
+				Name:        "AGL Energy",
+				Description: "Leading Australian electricity and gas retailer generating power through both traditional and renewable energy sources.",
 			},
 			&Company{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Jemena",
-				Description:    "Australian energy infrastructure company managing electricity and gas distribution networks across multiple states.",
+
+				Name:        "Jemena",
+				Description: "Australian energy infrastructure company managing electricity and gas distribution networks across multiple states.",
 			},
 			&Company{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Spotless Group Holdings",
-				Description:    "Property management and maintenance service provider offering cleaning, repairs, and facility support for residential and commercial clients.",
+
+				Name:        "Spotless Group Holdings",
+				Description: "Property management and maintenance service provider offering cleaning, repairs, and facility support for residential and commercial clients.",
 			},
 		)
 
 	case "CAD": // Canada
 		companies = append(companies,
 			&Company{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Hydro One",
-				Description:    "Ontario-based electricity transmission and distribution utility providing power to millions of homes and businesses across Canada.",
+
+				Name:        "Hydro One",
+				Description: "Ontario-based electricity transmission and distribution utility providing power to millions of homes and businesses across Canada.",
 			},
 			&Company{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Enbridge Gas Inc.",
-				Description:    "One of Canada’s largest natural gas distributors delivering energy to residential, commercial, and industrial customers nationwide.",
+
+				Name:        "Enbridge Gas Inc.",
+				Description: "One of Canada’s largest natural gas distributors delivering energy to residential, commercial, and industrial customers nationwide.",
 			},
 			&Company{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Bell Canada",
-				Description:    "Leading telecommunications and internet provider offering mobile, broadband, and digital television services throughout Canada.",
+
+				Name:        "Bell Canada",
+				Description: "Leading telecommunications and internet provider offering mobile, broadband, and digital television services throughout Canada.",
 			},
 			&Company{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Rogers Communications",
-				Description:    "Major Canadian communications and media company providing internet, cable TV, and mobile services to consumers and businesses.",
+
+				Name:        "Rogers Communications",
+				Description: "Major Canadian communications and media company providing internet, cable TV, and mobile services to consumers and businesses.",
 			},
 			&Company{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Toronto Water",
-				Description:    "Municipal water service providing clean water supply and wastewater treatment to residents of Toronto and nearby areas.",
+
+				Name:        "Toronto Water",
+				Description: "Municipal water service providing clean water supply and wastewater treatment to residents of Toronto and nearby areas.",
 			},
 			&Company{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "FirstService Corporation",
-				Description:    "North American property services and maintenance company providing cleaning, building repair, and residential management solutions.",
+				Name:        "FirstService Corporation",
+				Description: "North American property services and maintenance company providing cleaning, building repair, and residential management solutions.",
 			},
 		)
 
 	case "CHF": // Switzerland
+		companies = append(companies,
+			&Company{
+
+				Name:        "Swissgrid AG",
+				Description: "The national electricity transmission system operator responsible for maintaining and managing Switzerland’s power grid.",
+			},
+			&Company{
+
+				Name:        "BKW Energie AG",
+				Description: "Major Swiss energy company providing electricity, renewable energy solutions, and infrastructure services.",
+			},
+			&Company{
+
+				Name:        "Gaznat SA",
+				Description: "Swiss natural gas supplier managing transportation, storage, and distribution for western Switzerland.",
+			},
+			&Company{
+
+				Name:        "SIG (Services Industriels de Genève)",
+				Description: "Public utility of Geneva providing water, gas, electricity, and renewable energy services to households and businesses.",
+			},
+			&Company{
+
+				Name:        "Swisscom AG",
+				Description: "Switzerland’s leading telecommunications and internet service provider offering broadband, mobile, and TV services.",
+			},
+			&Company{
+
+				Name:        "Sunrise GmbH",
+				Description: "Major telecom company providing mobile, internet, and digital TV services across Switzerland.",
+			},
+			&Company{
+
+				Name:        "ISS Facility Services AG",
+				Description: "Swiss-based provider of integrated facility management, cleaning, and building maintenance services.",
+			},
+			&Company{
+
+				Name:        "Bouygues Energies & Services Schweiz AG",
+				Description: "Leading Swiss company specializing in energy, building maintenance, and facility management solutions.",
+			},
+		)
+
 	case "CNY": // China
-	case "SEK": // Sweden
+		companies = append(companies,
+			&Company{
+
+				Name:        "State Grid Corporation of China",
+				Description: "The world’s largest electric utility company providing electricity transmission and distribution services across China.",
+			},
+			&Company{
+
+				Name:        "China Southern Power Grid",
+				Description: "Electric utility supplying and managing power networks in southern provinces such as Guangdong, Guangxi, and Yunnan.",
+			},
+			&Company{
+
+				Name:        "China Gas Holdings Limited",
+				Description: "Leading natural gas distributor providing piped gas, LPG, and related energy services across Chinese cities.",
+			},
+			&Company{
+
+				Name:        "Beijing Gas Group Co., Ltd.",
+				Description: "Major urban gas supplier providing clean energy and heating services for residential and industrial users in Beijing.",
+			},
+			&Company{
+
+				Name:        "Beijing Waterworks Group",
+				Description: "Public utility responsible for water supply, sewage treatment, and pipeline management in Beijing.",
+			},
+			&Company{
+
+				Name:        "Shanghai Municipal Waterworks",
+				Description: "Major water utility company providing clean water distribution and wastewater treatment in Shanghai.",
+			},
+			&Company{
+
+				Name:        "China Telecom",
+				Description: "One of the largest telecommunications companies in China offering broadband, mobile, and digital TV services.",
+			},
+			&Company{
+				Name:        "China Unicom",
+				Description: "Telecom operator providing mobile, fixed-line, and internet services to consumers and enterprises across China.",
+			},
+			&Company{
+				Name:        "China Mobile",
+				Description: "The largest mobile and broadband network provider in China offering nationwide communication services.",
+			},
+			&Company{
+				Name:        "Country Garden Services Holdings",
+				Description: "Top property management and maintenance company offering residential cleaning, repair, and facility services.",
+			},
+			&Company{
+				Name:        "China Overseas Property Holdings Limited",
+				Description: "Leading facility management company providing residential and commercial property services throughout China.",
+			},
+		)
+
+	case "SEK":
+		companies = append(companies,
+			&Company{
+				Name:        "Vattenfall AB",
+				Description: "State-owned energy company supplying electricity, heat, and energy solutions across Sweden and Europe.",
+			},
+			&Company{
+				Name:        "E.ON Sverige AB",
+				Description: "Major energy provider in Sweden offering electricity, heating, and renewable energy services.",
+			},
+			&Company{
+				Name:        "Göteborg Energi AB",
+				Description: "Energy company providing electricity, district heating, cooling, and natural gas distribution in western Sweden.",
+			},
+			&Company{
+				Name:        "Stockholm Vatten och Avfall",
+				Description: "Public utility managing water supply and waste services for the Stockholm region.",
+			},
+			&Company{
+				Name:        "Telia Company AB",
+				Description: "Sweden’s largest telecommunications and broadband provider offering internet, mobile, and TV services.",
+			},
+			&Company{
+				Name:        "Com Hem (Tele2 AB)",
+				Description: "Leading broadband and cable TV provider serving homes across Sweden.",
+			},
+			&Company{
+				Name:        "Coor Service Management AB",
+				Description: "Integrated facilities management company providing cleaning, maintenance, and workplace services.",
+			},
+		)
+
 	case "NZD": // New Zealand
+		companies = append(companies,
+			&Company{
+				Name:        "Genesis Energy Limited",
+				Description: "One of New Zealand's largest electricity and gas suppliers serving homes and businesses nationwide.",
+			},
+			&Company{
+				Name:        "Contact Energy Limited",
+				Description: "Major provider of electricity, natural gas, and broadband services across New Zealand.",
+			},
+			&Company{
+				Name:        "Watercare Services Limited",
+				Description: "Auckland-based public utility responsible for water supply and wastewater treatment.",
+			},
+			&Company{
+				Name:        "Chorus Limited",
+				Description: "New Zealand’s primary telecommunications infrastructure company providing broadband and fiber connections.",
+			},
+			&Company{
+				Name:        "Spark New Zealand",
+				Description: "Leading telecommunications company offering internet, mobile, and digital services.",
+			},
+			&Company{
+				Name:        "Downer New Zealand",
+				Description: "Infrastructure and facilities management company providing maintenance, utilities, and asset management services.",
+			},
+		)
 	case "PHP": // Philippines
+		companies = append(companies,
+			&Company{
+				Name:        "Manila Electric Company (Meralco)",
+				Description: "Largest electric distribution utility serving Metro Manila and surrounding provinces.",
+			},
+			&Company{
+				Name:        "Maynilad Water Services, Inc.",
+				Description: "Provides water and wastewater services to the West Zone of Metro Manila.",
+			},
+			&Company{
+				Name:        "Manila Water Company, Inc.",
+				Description: "Provides water distribution and sanitation services to the East Zone of Metro Manila.",
+			},
+			&Company{
+				Name:        "PLDT Inc.",
+				Description: "Major telecommunications and internet service provider in the Philippines.",
+			},
+			&Company{
+				Name:        "Globe Telecom, Inc.",
+				Description: "Leading mobile and broadband provider offering telecommunications and data services.",
+			},
+			&Company{
+				Name:        "Converge ICT Solutions, Inc.",
+				Description: "Fiber internet provider known for high-speed residential and business broadband services.",
+			},
+			&Company{
+				Name:        "DMCI Power Corporation",
+				Description: "Independent power producer and energy distribution company serving off-grid areas.",
+			},
+			&Company{
+				Name:        "Ayala Property Management Corporation (APMC)",
+				Description: "Provides property and facilities management services for residential and commercial buildings.",
+			},
+		)
+
 	case "INR": // India
+		companies = append(companies,
+			&Company{
+				Name:        "Tata Power Company Limited",
+				Description: "One of India's largest integrated power companies providing electricity generation and distribution.",
+			},
+			&Company{
+				Name:        "BSES Rajdhani Power Limited",
+				Description: "Delhi-based power distribution company serving residential and commercial customers.",
+			},
+			&Company{
+				Name:        "Indraprastha Gas Limited (IGL)",
+				Description: "Leading natural gas distribution company supplying CNG and PNG in Delhi NCR.",
+			},
+			&Company{
+				Name:        "Bharti Airtel Limited",
+				Description: "Telecommunications giant offering mobile, broadband, and digital TV services.",
+			},
+			&Company{
+				Name:        "Reliance Jio Infocomm Limited",
+				Description: "Major telecom provider offering 4G/5G mobile and fiber internet services.",
+			},
+			&Company{
+				Name:        "Hindustan Unilever Facility Services",
+				Description: "Facility and maintenance management company catering to industrial and commercial clients.",
+			},
+			&Company{
+				Name:        "Delhi Jal Board",
+				Description: "Government agency responsible for water supply and wastewater treatment in Delhi.",
+			},
+		)
 	case "KRW": // South Korea
+		companies = append(companies,
+			&Company{
+				Name:        "Korea Electric Power Corporation (KEPCO)",
+				Description: "South Korea’s main electric utility responsible for power generation and distribution nationwide.",
+			},
+			&Company{
+				Name:        "Seoul Waterworks Authority",
+				Description: "Public water utility providing clean water and wastewater management in Seoul.",
+			},
+			&Company{
+				Name:        "SK Broadband Co., Ltd.",
+				Description: "Major internet and IPTV provider under SK Group.",
+			},
+			&Company{
+				Name:        "KT Corporation",
+				Description: "Leading telecommunications company offering mobile, internet, and digital services.",
+			},
+			&Company{
+				Name:        "LG Uplus Corp.",
+				Description: "Telecommunications company providing mobile, broadband, and enterprise network services.",
+			},
+			&Company{
+				Name:        "GS Caltex Corporation",
+				Description: "Oil and gas company also involved in energy supply and petrochemical services.",
+			},
+			&Company{
+				Name:        "Hanmi Global Inc.",
+				Description: "Facility and project management firm offering maintenance and engineering services.",
+			},
+		)
 	case "THB": // Thailand
+		companies = append(companies,
+			&Company{
+				Name:        "Metropolitan Electricity Authority (MEA)",
+				Description: "Government agency providing electricity to Bangkok and nearby provinces.",
+			},
+			&Company{
+				Name:        "Provincial Electricity Authority (PEA)",
+				Description: "Electric utility distributing power across Thailand’s provinces.",
+			},
+			&Company{
+				Name:        "Metropolitan Waterworks Authority (MWA)",
+				Description: "Public utility responsible for clean water supply in Bangkok and surrounding areas.",
+			},
+			&Company{
+				Name:        "TOT Public Company Limited (National Telecom)",
+				Description: "State-owned telecommunications provider offering internet and mobile services.",
+			},
+			&Company{
+				Name:        "True Corporation",
+				Description: "Major telecom and broadband provider offering internet, TV, and mobile services.",
+			},
+			&Company{
+				Name:        "PTT Public Company Limited",
+				Description: "Thailand’s national oil and gas company supplying natural gas and energy solutions.",
+			},
+			&Company{
+				Name:        "Jones Lang LaSalle (Thailand)",
+				Description: "Facilities and property management company providing maintenance and cleaning services.",
+			},
+		)
 	case "SGD": // Singapore
+		companies = append(companies,
+			&Company{
+				Name:        "SP Group",
+				Description: "Singapore’s national utilities group providing electricity, gas, and sustainable energy solutions.",
+			},
+			&Company{
+				Name:        "PUB, Singapore’s National Water Agency",
+				Description: "Government agency managing water supply, drainage, and wastewater treatment.",
+			},
+			&Company{
+				Name:        "Singtel",
+				Description: "Singapore’s largest telecommunications company offering mobile, internet, and TV services.",
+			},
+			&Company{
+				Name:        "StarHub",
+				Description: "Telecom provider offering broadband, mobile, and entertainment services.",
+			},
+			&Company{
+				Name:        "M1 Limited",
+				Description: "Integrated communications provider delivering mobile and fiber broadband services.",
+			},
+			&Company{
+				Name:        "Keppel Infrastructure",
+				Description: "Company providing energy, utilities, and environmental infrastructure services.",
+			},
+			&Company{
+				Name:        "CBM Pte Ltd",
+				Description: "Facilities management company offering maintenance, cleaning, and building services.",
+			},
+		)
+
 	case "HKD": // Hong Kong
+		companies = append(companies,
+			&Company{
+				Name:        "CLP Power Hong Kong Limited",
+				Description: "Major electricity utility supplying power to Kowloon, New Territories, and Lantau.",
+			},
+			&Company{
+				Name:        "The Hongkong Electric Company Limited (HK Electric)",
+				Description: "Electricity provider serving Hong Kong Island and Lamma Island.",
+			},
+			&Company{
+				Name:        "Towngas (The Hong Kong and China Gas Company Limited)",
+				Description: "Provides town gas and energy solutions across Hong Kong.",
+			},
+			&Company{
+				Name:        "Hong Kong Water Supplies Department",
+				Description: "Government department responsible for water supply and management.",
+			},
+			&Company{
+				Name:        "PCCW-HKT",
+				Description: "Integrated telecommunications provider offering broadband, mobile, and media services.",
+			},
+			&Company{
+				Name:        "SmarTone",
+				Description: "Mobile network operator providing 4G/5G and internet services.",
+			},
+			&Company{
+				Name:        "ISS Facility Services Hong Kong",
+				Description: "Company offering property, cleaning, and maintenance services for commercial clients.",
+			},
+		)
+
 	case "MYR": // Malaysia
+		companies = append(companies,
+			&Company{
+				Name:        "Tenaga Nasional Berhad (TNB)",
+				Description: "Malaysia’s largest electricity utility company providing power generation and distribution.",
+			},
+			&Company{
+				Name:        "Syarikat Air Selangor Sdn Bhd",
+				Description: "State-owned water company responsible for water supply in Selangor and Kuala Lumpur.",
+			},
+			&Company{
+				Name:        "Petronas Gas Berhad",
+				Description: "Subsidiary of Petronas providing gas processing and utilities services.",
+			},
+			&Company{
+				Name:        "TM (Telekom Malaysia Berhad)",
+				Description: "Malaysia’s leading broadband and telecommunications provider.",
+			},
+			&Company{
+				Name:        "Maxis Berhad",
+				Description: "Telecommunications company offering mobile and internet services.",
+			},
+			&Company{
+				Name:        "UEM Edgenta Berhad",
+				Description: "Facilities management and infrastructure maintenance service provider.",
+			},
+		)
+
 	case "IDR": // Indonesia
+		companies = append(companies,
+			&Company{
+				Name:        "Perusahaan Listrik Negara (PLN)",
+				Description: "State-owned electricity company responsible for power generation and distribution.",
+			},
+			&Company{
+				Name:        "Perusahaan Daerah Air Minum (PDAM)",
+				Description: "Regional government-owned companies supplying water across Indonesia.",
+			},
+			&Company{
+				Name:        "Pertamina Gas (Pertagas)",
+				Description: "Subsidiary of Pertamina providing gas distribution and infrastructure services.",
+			},
+			&Company{
+				Name:        "Telkom Indonesia",
+				Description: "Indonesia’s largest telecommunications and broadband provider.",
+			},
+			&Company{
+				Name:        "Indosat Ooredoo Hutchison",
+				Description: "Telecommunications company providing mobile and internet services.",
+			},
+			&Company{
+				Name:        "ISS Indonesia",
+				Description: "Facilities and maintenance management services provider for industrial and commercial clients.",
+			},
+		)
+
 	case "VND": // Vietnam
+		companies = append(companies,
+			&Company{
+				Name:        "Vietnam Electricity (EVN)",
+				Description: "State-owned power company managing electricity generation and distribution.",
+			},
+			&Company{
+				Name:        "Saigon Water Corporation (SAWACO)",
+				Description: "Major water supply company serving Ho Chi Minh City.",
+			},
+			&Company{
+				Name:        "PetroVietnam Gas (PV Gas)",
+				Description: "Vietnam’s leading natural gas and energy provider.",
+			},
+			&Company{
+				Name:        "Viettel Group",
+				Description: "Telecommunications and internet service provider owned by the Ministry of Defense.",
+			},
+			&Company{
+				Name:        "VNPT (Vietnam Posts and Telecommunications Group)",
+				Description: "Government-owned telecom operator offering internet and communication services.",
+			},
+			&Company{
+				Name:        "CBRE Vietnam",
+				Description: "Facilities and property management company offering building maintenance services.",
+			},
+		)
+
 	case "TWD": // Taiwan
+		companies = append(companies,
+			&Company{
+				Name:        "Taiwan Power Company (Taipower)",
+				Description: "State-owned company providing electricity generation and distribution.",
+			},
+			&Company{
+				Name:        "Taiwan Water Corporation",
+				Description: "National water utility responsible for water supply across Taiwan.",
+			},
+			&Company{
+				Name:        "CPC Corporation",
+				Description: "State-owned petroleum and gas company providing fuel and natural gas services.",
+			},
+			&Company{
+				Name:        "Chunghwa Telecom Co., Ltd.",
+				Description: "Taiwan’s largest telecom company offering internet, mobile, and data services.",
+			},
+			&Company{
+				Name:        "Taiwan Mobile Co., Ltd.",
+				Description: "Leading telecom provider offering broadband and mobile services.",
+			},
+			&Company{
+				Name:        "Shin Kong Property Management Co., Ltd.",
+				Description: "Facilities management and maintenance service company.",
+			},
+		)
+
 	case "BND": // Brunei
+		companies = append(companies,
+			&Company{
+				Name:        "Department of Electrical Services (DES)",
+				Description: "Government agency providing electricity services across Brunei.",
+			},
+			&Company{
+				Name:        "Public Works Department (Jabatan Kerja Raya)",
+				Description: "Responsible for water supply and infrastructure maintenance in Brunei.",
+			},
+			&Company{
+				Name:        "Brunei Gas Carrier Sdn Bhd (BGC)",
+				Description: "Provides gas transport and related energy services.",
+			},
+			&Company{
+				Name:        "Imagine Sdn Bhd",
+				Description: "Telecommunications company offering internet and mobile services.",
+			},
+			&Company{
+				Name:        "Datastream Digital (DST)",
+				Description: "Brunei’s major telecom provider for mobile and broadband services.",
+			},
+			&Company{
+				Name:        "Armada Properties Sdn Bhd",
+				Description: "Property and facilities management company offering maintenance and building services.",
+			},
+		)
+
 	case "SAR": // Saudi Arabia
+		companies = append(companies,
+			&Company{
+				Name:        "Saudi Electricity Company (SEC)",
+				Description: "Kingdom’s main electric utility providing generation and distribution services.",
+			},
+			&Company{
+				Name:        "National Water Company (NWC)",
+				Description: "Government-owned company managing water supply and wastewater services.",
+			},
+			&Company{
+				Name:        "Saudi Aramco Gas Operations",
+				Description: "Division of Saudi Aramco responsible for natural gas distribution and processing.",
+			},
+			&Company{
+				Name:        "Saudi Telecom Company (stc)",
+				Description: "Leading telecom provider offering mobile, internet, and enterprise solutions.",
+			},
+			&Company{
+				Name:        "Mobily (Etihad Etisalat)",
+				Description: "Telecom and broadband service provider serving residential and business customers.",
+			},
+			&Company{
+				Name:        "Initial Saudi Group",
+				Description: "Facilities management and cleaning services provider across Saudi Arabia.",
+			},
+		)
+
 	case "AED": // United Arab Emirates
+		companies = append(companies,
+			&Company{
+				Name:        "Dubai Electricity and Water Authority (DEWA)",
+				Description: "Provides electricity, water, and sustainable energy solutions for Dubai.",
+			},
+			&Company{
+				Name:        "Abu Dhabi Distribution Company (ADDC)",
+				Description: "Distributes water and electricity in Abu Dhabi and nearby regions.",
+			},
+			&Company{
+				Name:        "ENOC Group",
+				Description: "Energy company involved in oil, gas, and fuel distribution.",
+			},
+			&Company{
+				Name:        "Etisalat by e&",
+				Description: "Major telecom company offering mobile, internet, and digital services.",
+			},
+			&Company{
+				Name:        "du (Emirates Integrated Telecommunications Company)",
+				Description: "Telecom operator providing mobile, broadband, and home services.",
+			},
+			&Company{
+				Name:        "Farnek Services LLC",
+				Description: "Facilities management and building maintenance provider in the UAE.",
+			},
+		)
+
 	case "ILS": // Israel
+		companies = append(companies,
+			&Company{
+				Name:        "Israel Electric Corporation (IEC)",
+				Description: "Government-owned electric utility responsible for generation and supply.",
+			},
+			&Company{
+				Name:        "Mekorot Water Company",
+				Description: "National water company managing water supply and desalination systems.",
+			},
+			&Company{
+				Name:        "Tamar Petroleum Ltd.",
+				Description: "Natural gas supplier serving power and industrial sectors.",
+			},
+			&Company{
+				Name:        "Bezeq Telecommunications Company Ltd.",
+				Description: "Israel’s leading telecom and internet provider.",
+			},
+			&Company{
+				Name:        "Cellcom Israel Ltd.",
+				Description: "Telecommunications provider offering mobile, internet, and TV services.",
+			},
+			&Company{
+				Name:        "CBRE Israel",
+				Description: "Facilities and property management company providing maintenance services.",
+			},
+		)
+
 	case "ZAR": // South Africa
 	case "EGP": // Egypt
 	case "TRY": // Turkey
@@ -957,6 +1303,12 @@ func (m *ModelCore) companySeed(context context.Context, tx *gorm.DB, userID uui
 	}
 
 	for _, data := range companies {
+		data.CreatedAt = now
+		data.UpdatedAt = now
+		data.CreatedByID = userID
+		data.UpdatedByID = userID
+		data.OrganizationID = organizationID
+		data.BranchID = branchID
 		if err := m.CompanyManager.CreateWithTx(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to seed company %s", data.Name)
 		}
