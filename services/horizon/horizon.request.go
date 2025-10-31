@@ -54,12 +54,23 @@ func NewHorizonAPIService(
 	}()
 
 	e.Use(middleware.Recover())
-	e.Pre(middleware.HTTPSRedirect())
+
+	// Only redirect to HTTPS in production/staging
+	if secured {
+		e.Pre(middleware.HTTPSRedirect())
+	}
 
 	e.Pre(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			host := c.Request().Host
-			allowedHosts := []string{"ecoop-suite.com", "staging.ecoop-suite.com", "development.ecoop-suite.com"}
+			allowedHosts := []string{
+				"ecoop-suite.com",
+				"www.ecoop-suite.com",
+				"staging.ecoop-suite.com",
+				"www.staging.ecoop-suite.com",
+				"development.ecoop-suite.com",
+				"www.development.ecoop-suite.com",
+			}
 			if !secured {
 				allowedHosts = append(allowedHosts, "localhost:8080", "localhost:3000", "localhost:3001", "localhost:3002", "localhost:3003")
 			}
@@ -116,8 +127,11 @@ func NewHorizonAPIService(
 	origins := []string{
 		"https://ecoop-suite.netlify.app",
 		"https://ecoop-suite.com",
+		"https://www.ecoop-suite.com",
 		"https://development.ecoop-suite.com",
+		"https://www.development.ecoop-suite.com",
 		"https://staging.ecoop-suite.com",
+		"https://www.staging.ecoop-suite.com",
 	}
 	if !secured {
 		origins = append(origins, "http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:3003")
