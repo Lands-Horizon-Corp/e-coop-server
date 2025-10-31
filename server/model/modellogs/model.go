@@ -4,19 +4,19 @@ package modellogs
 import (
 	"context"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/src"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server"
 )
 
 type (
 	// modellogs represents the main model structure for logging operations
 	modellogs struct {
-		provider  *src.Provider
+		provider  *server.Provider
 		Migration []any
 	}
 )
 
 // Newmodellogs creates a new modellogs instance with the provided service provider
-func Newmodellogs(provider *src.Provider) (*modellogs, error) {
+func Newmodellogs(provider *server.Provider) (*modellogs, error) {
 	return &modellogs{
 		provider: provider,
 	}, nil

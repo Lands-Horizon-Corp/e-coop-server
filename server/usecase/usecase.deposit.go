@@ -4,7 +4,7 @@ package usecase
 import (
 	"context"
 
-	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
 	"github.com/rotisserie/eris"
 )
 

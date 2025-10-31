@@ -6,11 +6,11 @@ import (
 	"net/http"
 	"time"
 
-	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src"
-	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 )
@@ -66,7 +66,7 @@ func (m *UserOrganizationCSRFResponse) UserOrganizationCSRFModel(data *UserOrgan
 	if data == nil {
 		return nil
 	}
-	return horizon_services.ToModel(data, func(data *UserOrganizationCSRF) *UserOrganizationCSRFResponse {
+	return services.ToModel(data, func(data *UserOrganizationCSRF) *UserOrganizationCSRFResponse {
 		return &UserOrganizationCSRFResponse{
 			Language:       data.Language,
 			Location:       data.Location,
@@ -83,7 +83,7 @@ func (m *UserOrganizationCSRFResponse) UserOrganizationCSRFModel(data *UserOrgan
 
 // UserOrganizationCSRFModels maps a slice of UserOrganizationCSRF to a slice of UserOrganizationCSRFResponse.
 func (m *UserOrganizationCSRFResponse) UserOrganizationCSRFModels(data []*UserOrganizationCSRF) []*UserOrganizationCSRFResponse {
-	return horizon_services.ToModels(data, m.UserOrganizationCSRFModel)
+	return services.ToModels(data, m.UserOrganizationCSRFModel)
 }
 
 // GetID returns the user organization ID from the UserOrganizationCSRF struct.
@@ -94,13 +94,13 @@ func (m UserOrganizationCSRF) GetID() string {
 // UserOrganizationToken handles user organization token and CSRF logic.
 type UserOrganizationToken struct {
 	modelcore *modelcore.ModelCore
-	provider  *src.Provider
+	provider  *server.Provider
 
 	CSRF horizon.AuthService[UserOrganizationCSRF]
 }
 
 // NewUserOrganizationToken initializes a new UserOrganizationToken.
-func NewUserOrganizationToken(provider *src.Provider, modelcore *modelcore.ModelCore) (*UserOrganizationToken, error) {
+func NewUserOrganizationToken(provider *server.Provider, modelcore *modelcore.ModelCore) (*UserOrganizationToken, error) {
 	appName := provider.Service.Environment.GetString("APP_NAME", "")
 
 	csrfService := horizon.NewHorizonAuthService[UserOrganizationCSRF](

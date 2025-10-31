@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/src"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server"
 	modelcore "github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/google/uuid"
 	"github.com/jaswdr/faker"
@@ -14,14 +14,14 @@ import (
 )
 
 type Seeder struct {
-	provider    *src.Provider
+	provider    *server.Provider
 	modelcore   *modelcore.ModelCore
 	faker       faker.Faker
 	imagePaths  []string
 	progressBar *progressbar.ProgressBar
 }
 
-func NewSeeder(provider *src.Provider, modelcore *modelcore.ModelCore) (*Seeder, error) {
+func NewSeeder(provider *server.Provider, modelcore *modelcore.ModelCore) (*Seeder, error) {
 	// We'll update the progress bar total when Run() is called with the multiplier
 	overallBar := progressbar.NewOptions(100, // Temporary, will be updated in Run()
 		progressbar.OptionSetDescription("🌱 Database Seeding Progress"),

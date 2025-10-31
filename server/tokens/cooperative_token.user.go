@@ -6,11 +6,11 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/server"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
 	horizon_services "github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/model/modelcore"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 )
@@ -125,7 +125,7 @@ type UserToken struct {
 }
 
 // NewUserToken initializes a new UserToken.
-func NewUserToken(provider *src.Provider, modelcore *modelcore.ModelCore, userOrganizationToken *UserOrganizationToken) (*UserToken, error) {
+func NewUserToken(provider *server.Provider, modelcore *modelcore.ModelCore, userOrganizationToken *UserOrganizationToken) (*UserToken, error) {
 	appName := provider.Service.Environment.GetString("APP_NAME", "")
 
 	csrfService := horizon.NewHorizonAuthService[UserCSRF](
