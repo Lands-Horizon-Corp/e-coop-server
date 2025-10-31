@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// UserRating represents a rating given by one user to another user within an organization
 	UserRating struct {
 		ID             uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt      time.Time      `gorm:"not null;default:now()"`
@@ -37,6 +38,7 @@ type (
 		Remark string `gorm:"type:text"`
 	}
 
+	// UserRatingRequest represents the request structure for creating or updating a user rating
 	UserRatingRequest struct {
 		ID *uuid.UUID `json:"id,omitempty"`
 
@@ -46,6 +48,7 @@ type (
 		Remark      string    `json:"remark" validate:"max=2000"`
 	}
 
+	// UserRatingResponse represents the response structure for user rating data
 	UserRatingResponse struct {
 		ID          uuid.UUID     `json:"id"`
 		CreatedAt   string        `json:"created_at"`
@@ -69,6 +72,7 @@ type (
 	}
 )
 
+// UserRating initializes the user rating repository and sets up migration
 func (m *ModelCore) UserRating() {
 	m.Migration = append(m.Migration, &UserRating{})
 	m.UserRatingManager = horizon_services.NewRepository(horizon_services.RepositoryParams[UserRating, UserRatingResponse, UserRatingRequest]{
@@ -127,18 +131,21 @@ func (m *ModelCore) UserRating() {
 	})
 }
 
+// GetUserRatee retrieves all ratings where the specified user is the ratee (being rated)
 func (m *ModelCore) GetUserRatee(context context.Context, userId uuid.UUID) ([]*UserRating, error) {
 	return m.UserRatingManager.Find(context, &UserRating{
 		RateeUserID: userId,
 	})
 }
 
+// GetUserRater retrieves all ratings where the specified user is the rater (giving ratings)
 func (m *ModelCore) GetUserRater(context context.Context, userId uuid.UUID) ([]*UserRating, error) {
 	return m.UserRatingManager.Find(context, &UserRating{
 		RaterUserID: userId,
 	})
 }
 
+// UserRatingCurrentBranch retrieves all user ratings for the specified organization and branch
 func (m *ModelCore) UserRatingCurrentBranch(context context.Context, orgId uuid.UUID, branchId uuid.UUID) ([]*UserRating, error) {
 	return m.UserRatingManager.Find(context, &UserRating{
 		OrganizationID: orgId,

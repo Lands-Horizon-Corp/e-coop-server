@@ -441,6 +441,7 @@ func (m *ModelCore) UserOrganizationMemberCanJoin(context context.Context, userI
 	return err == nil && existingOrgCount == 0
 }
 
+// Employees retrieves all employee user organizations for the specified organization and branch
 func (m *ModelCore) Employees(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*UserOrganization, error) {
 	return m.UserOrganizationManager.Find(context, &UserOrganization{
 		OrganizationID: organizationID,
@@ -449,6 +450,7 @@ func (m *ModelCore) Employees(context context.Context, organizationID uuid.UUID,
 	})
 }
 
+// Members retrieves all member user organizations for the specified organization and branch
 func (m *ModelCore) Members(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*UserOrganization, error) {
 	return m.UserOrganizationManager.Find(context, &UserOrganization{
 		OrganizationID: organizationID,

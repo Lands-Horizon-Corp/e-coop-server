@@ -1,3 +1,4 @@
+// Package src provides core server components and provider initialization for the e-cooperative application
 package src
 
 import (
@@ -5,10 +6,12 @@ import (
 	"github.com/go-playground/validator"
 )
 
+// Provider contains the main service provider for the application
 type Provider struct {
 	Service *horizon_services.HorizonService
 }
 
+// NewProvider creates a new Provider instance with initialized horizon service
 func NewProvider() *Provider {
 	horizonService := horizon_services.NewHorizonService(horizon_services.HorizonServiceConfig{
 		EnvironmentConfig: &horizon_services.EnvironmentServiceConfig{
@@ -20,6 +23,7 @@ func NewProvider() *Provider {
 	}
 }
 
+// NewValidator creates a new validator instance for request validation
 func NewValidator() *validator.Validate {
 	return validator.New()
 }
