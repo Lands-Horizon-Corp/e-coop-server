@@ -70,6 +70,9 @@ func NewHorizonAPIService(
 				"www.staging.ecoop-suite.com",
 				"development.ecoop-suite.com",
 				"www.development.ecoop-suite.com",
+				"cooperatives-development.fly.dev",
+				"cooperatives-staging.fly.dev",
+				"cooperatives-production.fly.dev",
 			}
 			if !secured {
 				allowedHosts = append(allowedHosts, "localhost:8080", "localhost:3000", "localhost:3001", "localhost:3002", "localhost:3003")
@@ -132,6 +135,9 @@ func NewHorizonAPIService(
 		"https://www.development.ecoop-suite.com",
 		"https://staging.ecoop-suite.com",
 		"https://www.staging.ecoop-suite.com",
+		"https://cooperatives-development.fly.dev",
+		"https://cooperatives-staging.fly.dev",
+		"https://cooperatives-production.fly.dev",
 	}
 	if !secured {
 		origins = append(origins, "http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:3003")
