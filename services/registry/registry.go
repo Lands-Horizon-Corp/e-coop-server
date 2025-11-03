@@ -51,17 +51,6 @@ func (r *Registry[TData, TResponse, TRequest]) Client(context context.Context) *
 	return r.service.Database.Client().WithContext(context).Model(new(TData))
 }
 
-// GetByID
-// GetByIDRaw
-
-// Create
-// CreateWithTx
-// Update
-// UpdateWithTx
-// Delete
-// DeleteWithTx
-// Count
-
 // ToModel converts a data entity to its response representation.
 func (c *Registry[TData, TResponse, TRequest]) ToModel(data *TData) *TResponse {
 	if data == nil {
