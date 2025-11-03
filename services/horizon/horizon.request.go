@@ -75,7 +75,7 @@ func NewHorizonAPIService(
 				"cooperatives-production.fly.dev",
 			}
 			if !secured {
-				allowedHosts = append(allowedHosts, "localhost:8080", "localhost:3000", "localhost:3001", "localhost:3002", "localhost:3003")
+				allowedHosts = append(allowedHosts, "localhost:8000", "localhost:8001", "localhost:8080", "localhost:3000", "localhost:3001", "localhost:3002", "localhost:3003")
 			}
 			if slices.Contains(allowedHosts, host) {
 				return next(c)
@@ -140,7 +140,14 @@ func NewHorizonAPIService(
 		"https://cooperatives-production.fly.dev",
 	}
 	if !secured {
-		origins = append(origins, "http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:3003")
+		origins = append(origins,
+			"http://localhost:8000",
+			"http://localhost:8001",
+			"http://localhost:3000",
+			"http://localhost:3001",
+			"http://localhost:3002",
+			"http://localhost:3003",
+		)
 	}
 
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
