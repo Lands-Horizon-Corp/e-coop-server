@@ -28,8 +28,10 @@ func (r *Registry[TData, TResponse, TRequest]) List(
 }
 
 // ListRaw
-func (r *Registry[TData, TResponse, TRequest]) ListRaw(context context.Context,
-	preloads ...string) ([]*TResponse, error) {
+func (r *Registry[TData, TResponse, TRequest]) ListRaw(
+	context context.Context,
+	preloads ...string,
+) ([]*TResponse, error) {
 	data, err := r.List(context, preloads...)
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to list raw entities")
@@ -42,7 +44,12 @@ func (r *Registry[TData, TResponse, TRequest]) ListFilter(
 	context context.Context,
 	root filter.Root,
 	pageIndex int, pageSize int,
+	preloads ...string,
 ) (*filter.PaginationResult[TData], error) {
+	if preloads == nil {
+		preloads = r.preloads
+	}
+	root.Preload = preloads
 	result, err := r.filtering.DataGorm(r.Client(context), root, pageIndex, pageSize)
 	if err != nil {
 		return &filter.PaginationResult[TData]{}, eris.Wrap(err, "failed to list filtered entities")
@@ -55,7 +62,12 @@ func (r *Registry[TData, TResponse, TRequest]) ListFilterRaw(
 	context context.Context,
 	root filter.Root,
 	pageIndex int, pageSize int,
+	preloads ...string,
 ) (*filter.PaginationResult[TResponse], error) {
+	if preloads == nil {
+		preloads = r.preloads
+	}
+	root.Preload = preloads
 	result, err := r.filtering.Hybrid(r.Client(context), r.threshold, root, pageIndex, pageSize)
 	if err != nil {
 		return &filter.PaginationResult[TResponse]{}, eris.Wrap(err, "failed to list filtered entities")
@@ -72,11 +84,17 @@ func (r *Registry[TData, TResponse, TRequest]) ListFilterRaw(
 // ListFilterQuery
 func (r *Registry[TData, TResponse, TRequest]) ListFilterQuery(
 	context context.Context,
-	ctx echo.Context) (*filter.PaginationResult[TData], error) {
+	ctx echo.Context,
+	preloads ...string,
+) (*filter.PaginationResult[TData], error) {
 	filterRoot, pageIndex, pageSize, err := parseQuery(ctx)
 	if err != nil {
 		return &filter.PaginationResult[TData]{}, eris.Wrap(err, "failed to parse query")
 	}
+	if preloads == nil {
+		preloads = r.preloads
+	}
+	filterRoot.Preload = preloads
 	data, err := r.filtering.DataGorm(r.Client(context), filterRoot, pageIndex, pageSize)
 	if err != nil {
 		return &filter.PaginationResult[TData]{}, eris.Wrap(err, "failed to list filtered entities")
@@ -87,12 +105,10 @@ func (r *Registry[TData, TResponse, TRequest]) ListFilterQuery(
 // ListFilterQueryRaw
 func (r *Registry[TData, TResponse, TRequest]) ListFilterQueryRaw(
 	context context.Context,
-	ctx echo.Context) (*filter.PaginationResult[TResponse], error) {
-	filterRoot, pageIndex, pageSize, err := parseQuery(ctx)
-	if err != nil {
-		return &filter.PaginationResult[TResponse]{}, eris.Wrap(err, "failed to parse query")
-	}
-	data, err := r.filtering.Hybrid(r.Client(context), r.threshold, filterRoot, pageIndex, pageSize)
+	ctx echo.Context,
+	preloads ...string,
+) (*filter.PaginationResult[TResponse], error) {
+	data, err := r.ListFilterQuery(context, ctx, preloads...)
 	if err != nil {
 		return &filter.PaginationResult[TResponse]{}, eris.Wrap(err, "failed to list filtered entities")
 	}

@@ -1,5 +1,5 @@
-github.com/Lands-Horizon-Corp/golang-filtering v1.0.0 h1:Ow4QAlT7PXf2iljcnmc9YEGNUDtk5El91MRDyuSGm6A=
-github.com/Lands-Horizon-Corp/golang-filtering v1.0.0/go.mod h1:aTBCcQW+3HP4ysWcxlx3h8NwWZPZkd3IgygoawdGBvk=
+github.com/Lands-Horizon-Corp/golang-filtering v1.0.1 h1:E/y8npFbuLqRLaNT+OhIegjy7tuL4KfpUB+egPJgGmM=
+github.com/Lands-Horizon-Corp/golang-filtering v1.0.1/go.mod h1:aTBCcQW+3HP4ysWcxlx3h8NwWZPZkd3IgygoawdGBvk=
 github.com/aymerick/douceur v0.2.0 h1:Mv+mAeH1Q+n9Fr+oyamOlAkUNPWPlA8PPGR0QAaYuPk=
 github.com/aymerick/douceur v0.2.0/go.mod h1:wlT5vV2O3h55X9m7iVYN0TBM0NH/MmbLnd30/FjWUq4=
 github.com/beevik/etree v1.1.0/go.mod h1:r8Aw8JqVegEf0w2fDnATrX9VpkMcyFeM0FhwO62wh+A=
@@ -251,5 +251,5 @@ gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
 gopkg.in/yaml.v3 v3.0.1/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
 gorm.io/driver/postgres v1.6.0 h1:2dxzU8xJ+ivvqTRph34QX+WrRaJlmfyPqXmoGVjMBa4=
 gorm.io/driver/postgres v1.6.0/go.mod h1:vUw0mrGgrTK+uPHEhAdV4sfFELrByKVGnaVRkXDhtWo=
-gorm.io/gorm v1.31.0 h1:0VlycGreVhK7RF/Bwt51Fk8v0xLiiiFdbGDPIZQ7mJY=
-gorm.io/gorm v1.31.0/go.mod h1:XyQVbO2k6YkOis7C2437jSit3SsDK72s7n7rsSHd+Gs=
+gorm.io/gorm v1.31.1 h1:7CA8FTFz/gRfgqgpeKIBcervUn3xSyPUmr6B2WXJ7kg=
+gorm.io/gorm v1.31.1/go.mod h1:XyQVbO2k6YkOis7C2437jSit3SsDK72s7n7rsSHd+Gs=

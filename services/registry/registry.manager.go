@@ -51,11 +51,6 @@ func (r *Registry[TData, TResponse, TRequest]) Client(context context.Context) *
 	return r.service.Database.Client().WithContext(context).Model(new(TData))
 }
 
-// Find
-// FindRaw
-// FindOne
-// FindOneRaw
-
 // GetByID
 // GetByIDRaw
 
