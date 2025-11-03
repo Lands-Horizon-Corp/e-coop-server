@@ -251,7 +251,8 @@ type (
 		NumberGracePeriodDaily       bool `gorm:"default:false" json:"number_grace_period_daily"`
 		FinesGracePeriodMaturity     int  `gorm:"type:int" json:"fines_grace_period_maturity"`
 		YearlySubscriptionFee        int  `gorm:"type:int" json:"yearly_subscription_fee"`
-		LoanCutOffDays               int  `gorm:"type:int" json:"loan_cut_off_days"`
+		CutOffDays                   int  `gorm:"type:int;default:0;check:cut_off_days >= 0 AND cut_off_days <= 30" json:"cut_off_days"`
+		CutOffMonths                 int  `gorm:"type:int;default:0;check:cut_off_months >= 0 AND cut_off_months <= 12" json:"cut_off_months"`
 
 		LumpsumComputationType                            LumpsumComputationType                            `gorm:"type:varchar(50);default:'None'" json:"lumpsum_computation_type"`
 		InterestFinesComputationDiminishing               InterestFinesComputationDiminishing               `gorm:"type:varchar(100);default:'None'" json:"interest_fines_computation_diminishing"`
@@ -369,7 +370,8 @@ type AccountResponse struct {
 	NumberGracePeriodDaily       bool `json:"number_grace_period_daily"`
 	FinesGracePeriodMaturity     int  `json:"fines_grace_period_maturity"`
 	YearlySubscriptionFee        int  `json:"yearly_subscription_fee"`
-	LoanCutOffDays               int  `json:"loan_cut_off_days"`
+	CutOffDays                   int  `json:"cut_off_days"`
+	CutOffMonths                 int  `json:"cut_off_months"`
 
 	LumpsumComputationType                            LumpsumComputationType                            `json:"lumpsum_computation_type"`
 	InterestFinesComputationDiminishing               InterestFinesComputationDiminishing               `json:"interest_fines_computation_diminishing"`
@@ -461,7 +463,8 @@ type AccountRequest struct {
 	NumberGracePeriodDaily       bool `json:"number_grace_period_daily,omitempty"`
 	FinesGracePeriodMaturity     int  `json:"fines_grace_period_maturity,omitempty"`
 	YearlySubscriptionFee        int  `json:"yearly_subscription_fee,omitempty"`
-	LoanCutOffDays               int  `json:"loan_cut_off_days,omitempty"`
+	CutOffDays                   int  `json:"cut_off_days,omitempty" validate:"gte=0,lte=30"`
+	CutOffMonths                 int  `json:"cut_off_months,omitempty" validate:"gte=0,lte=12"`
 
 	LumpsumComputationType                            LumpsumComputationType                            `json:"lumpsum_computation_type,omitempty"`
 	InterestFinesComputationDiminishing               InterestFinesComputationDiminishing               `json:"interest_fines_computation_diminishing,omitempty"`
@@ -578,7 +581,8 @@ func (m *ModelCore) account() {
 				NumberGracePeriodDaily:                             data.NumberGracePeriodDaily,
 				FinesGracePeriodMaturity:                           data.FinesGracePeriodMaturity,
 				YearlySubscriptionFee:                              data.YearlySubscriptionFee,
-				LoanCutOffDays:                                     data.LoanCutOffDays,
+				CutOffDays:                                         data.CutOffDays,
+				CutOffMonths:                                       data.CutOffMonths,
 				LumpsumComputationType:                             LumpsumComputationType(data.LumpsumComputationType),
 				InterestFinesComputationDiminishing:                InterestFinesComputationDiminishing(data.InterestFinesComputationDiminishing),
 				InterestFinesComputationDiminishingStraightYearly:  InterestFinesComputationDiminishingStraightYearly(data.InterestFinesComputationDiminishingStraightYearly),
@@ -851,7 +855,8 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 			FinancialStatementType:                  FSTypeAssets,
 			ComputationType:                         "Diminishing Balance",
 			Index:                                   10,
-			LoanCutOffDays:                          3,
+			CutOffDays:                              3,
+			CutOffMonths:                            0,
 			FinesGracePeriodAmortization:            5,
 			FinesGracePeriodMaturity:                7,
 			AdditionalGracePeriod:                   2,
@@ -888,7 +893,8 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 			FinancialStatementType:                  FSTypeAssets,
 			ComputationType:                         "Diminishing Balance",
 			Index:                                   11,
-			LoanCutOffDays:                          7,
+			CutOffDays:                              7,
+			CutOffMonths:                            0,
 			FinesGracePeriodAmortization:            10,
 			FinesGracePeriodMaturity:                15,
 			AdditionalGracePeriod:                   5,
@@ -925,7 +931,8 @@ func (m *ModelCore) accountSeed(context context.Context, tx *gorm.DB, userID uui
 			FinancialStatementType:                  FSTypeAssets,
 			ComputationType:                         Diminishing,
 			Index:                                   12,
-			LoanCutOffDays:                          14,
+			CutOffDays:                              14,
+			CutOffMonths:                            0,
 			FinesGracePeriodAmortization:            15,
 			FinesGracePeriodMaturity:                30,
 			AdditionalGracePeriod:                   10,
@@ -2299,7 +2306,8 @@ func (a *Account) BeforeUpdate(tx *gorm.DB) error {
 		NumberGracePeriodDaily:              original.NumberGracePeriodDaily,
 		FinesGracePeriodMaturity:            original.FinesGracePeriodMaturity,
 		YearlySubscriptionFee:               original.YearlySubscriptionFee,
-		LoanCutOffDays:                      original.LoanCutOffDays,
+		CutOffDays:                          original.CutOffDays,
+		CutOffMonths:                        original.CutOffMonths,
 		LumpsumComputationType:              original.LumpsumComputationType,
 		InterestFinesComputationDiminishing: original.InterestFinesComputationDiminishing,
 		InterestFinesComputationDiminishingStraightYearly: original.InterestFinesComputationDiminishingStraightYearly,
@@ -2396,7 +2404,8 @@ func (a *Account) AfterCreate(tx *gorm.DB) error {
 		NumberGracePeriodDaily:              a.NumberGracePeriodDaily,
 		FinesGracePeriodMaturity:            a.FinesGracePeriodMaturity,
 		YearlySubscriptionFee:               a.YearlySubscriptionFee,
-		LoanCutOffDays:                      a.LoanCutOffDays,
+		CutOffDays:                          a.CutOffDays,
+		CutOffMonths:                        a.CutOffMonths,
 		LumpsumComputationType:              a.LumpsumComputationType,
 		InterestFinesComputationDiminishing: a.InterestFinesComputationDiminishing,
 		InterestFinesComputationDiminishingStraightYearly: a.InterestFinesComputationDiminishingStraightYearly,
@@ -2499,7 +2508,8 @@ func (a *Account) BeforeDelete(tx *gorm.DB) error {
 		NumberGracePeriodDaily:              a.NumberGracePeriodDaily,
 		FinesGracePeriodMaturity:            a.FinesGracePeriodMaturity,
 		YearlySubscriptionFee:               a.YearlySubscriptionFee,
-		LoanCutOffDays:                      a.LoanCutOffDays,
+		CutOffDays:                          a.CutOffDays,
+		CutOffMonths:                        a.CutOffMonths,
 		LumpsumComputationType:              a.LumpsumComputationType,
 		InterestFinesComputationDiminishing: a.InterestFinesComputationDiminishing,
 		InterestFinesComputationDiminishingStraightYearly: a.InterestFinesComputationDiminishingStraightYearly,

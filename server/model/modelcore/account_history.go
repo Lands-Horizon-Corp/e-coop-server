@@ -77,7 +77,8 @@ type (
 		NumberGracePeriodDaily       bool `gorm:"default:false" json:"number_grace_period_daily"`
 		FinesGracePeriodMaturity     int  `gorm:"type:int" json:"fines_grace_period_maturity"`
 		YearlySubscriptionFee        int  `gorm:"type:int" json:"yearly_subscription_fee"`
-		LoanCutOffDays               int  `gorm:"type:int" json:"loan_cut_off_days"`
+		CutOffDays                   int  `gorm:"type:int;default:0" json:"cut_off_days"`
+		CutOffMonths                 int  `gorm:"type:int;default:0" json:"cut_off_months"`
 
 		// Configuration snapshot
 		LumpsumComputationType                            LumpsumComputationType                            `gorm:"type:varchar(50)" json:"lumpsum_computation_type"`
@@ -191,7 +192,8 @@ type (
 		NumberGracePeriodDaily       bool `json:"number_grace_period_daily"`
 		FinesGracePeriodMaturity     int  `json:"fines_grace_period_maturity"`
 		YearlySubscriptionFee        int  `json:"yearly_subscription_fee"`
-		LoanCutOffDays               int  `json:"loan_cut_off_days"`
+		CutOffDays                   int  `json:"cut_off_days"`
+		CutOffMonths                 int  `json:"cut_off_months"`
 
 		LumpsumComputationType                            LumpsumComputationType                            `json:"lumpsum_computation_type"`
 		InterestFinesComputationDiminishing               InterestFinesComputationDiminishing               `json:"interest_fines_computation_diminishing"`
@@ -319,7 +321,8 @@ func (m *ModelCore) accountHistory() {
 				NumberGracePeriodDaily:       data.NumberGracePeriodDaily,
 				FinesGracePeriodMaturity:     data.FinesGracePeriodMaturity,
 				YearlySubscriptionFee:        data.YearlySubscriptionFee,
-				LoanCutOffDays:               data.LoanCutOffDays,
+				CutOffDays:                   data.CutOffDays,
+				CutOffMonths:                 data.CutOffMonths,
 
 				LumpsumComputationType:                            LumpsumComputationType(data.LumpsumComputationType),
 				InterestFinesComputationDiminishing:               InterestFinesComputationDiminishing(data.InterestFinesComputationDiminishing),
