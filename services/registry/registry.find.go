@@ -124,3 +124,5 @@ func (r *Registry[TData, TResponse, TRequest]) FindFilterQueryRaw(
 		PageSize:  result.PageSize,
 	}, nil
 }
+
+
