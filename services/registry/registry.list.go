@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Lands-Horizon-Corp/golang-filtering/filter"
+	"github.com/labstack/echo/v4"
 	"github.com/rotisserie/eris"
 )
 
@@ -69,5 +70,37 @@ func (r *Registry[TData, TResponse, TRequest]) ListFilterRaw(
 }
 
 // ListFilterQuery
+func (r *Registry[TData, TResponse, TRequest]) ListFilterQuery(
+	context context.Context,
+	ctx echo.Context) (*filter.PaginationResult[TData], error) {
+	filterRoot, pageIndex, pageSize, err := parseQuery(ctx)
+	if err != nil {
+		return &filter.PaginationResult[TData]{}, eris.Wrap(err, "failed to parse query")
+	}
+	data, err := r.filtering.DataGorm(r.Client(context), filterRoot, pageIndex, pageSize)
+	if err != nil {
+		return &filter.PaginationResult[TData]{}, eris.Wrap(err, "failed to list filtered entities")
+	}
+	return data, nil
+}
 
-// ListFilterQuery
+// ListFilterQueryRaw
+func (r *Registry[TData, TResponse, TRequest]) ListFilterQueryRaw(
+	context context.Context,
+	ctx echo.Context) (*filter.PaginationResult[TResponse], error) {
+	filterRoot, pageIndex, pageSize, err := parseQuery(ctx)
+	if err != nil {
+		return &filter.PaginationResult[TResponse]{}, eris.Wrap(err, "failed to parse query")
+	}
+	data, err := r.filtering.Hybrid(r.Client(context), r.threshold, filterRoot, pageIndex, pageSize)
+	if err != nil {
+		return &filter.PaginationResult[TResponse]{}, eris.Wrap(err, "failed to list filtered entities")
+	}
+	return &filter.PaginationResult[TResponse]{
+		Data:      r.ToModels(data.Data),
+		TotalSize: data.TotalSize,
+		TotalPage: data.TotalPage,
+		PageIndex: data.PageIndex,
+		PageSize:  data.PageSize,
+	}, nil
+}
