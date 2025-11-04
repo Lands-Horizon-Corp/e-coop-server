@@ -1,15 +1,12 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -36,7 +33,7 @@ func (c *Controller) adjustmentTagController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No adjustment tags found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AdjustmentTagManager.Filtered(context, ctx, tags))
+		return ctx.JSON(http.StatusOK, c.core.AdjustmentTagManager.ToModels(tags))
 	})
 
 	// GET /adjustment-tag/search: Paginated search of adjustment tags for the current branch. (NO footstep)
@@ -54,11 +51,14 @@ func (c *Controller) adjustmentTagController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		tags, err := c.core.AdjustmentTagCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		tags, err := c.core.AdjustmentTagManager.PaginationWithFields(context, ctx, &core.AdjustmentTag{
+			OrganizationID: user.OrganizationID,
+			BranchID:       *user.BranchID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch adjustment tags for pagination: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AdjustmentTagManager.Pagination(context, ctx, tags))
+		return ctx.JSON(http.StatusOK, tags)
 	})
 
 	// GET /adjustment-tag/:tag_id: Get specific adjustment tag by ID. (NO footstep)
@@ -175,7 +175,7 @@ func (c *Controller) adjustmentTagController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No adjustment tags found for the given adjustment entry ID"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AdjustmentTagManager.Filtered(context, ctx, tags))
+		return ctx.JSON(http.StatusOK, c.core.AdjustmentTagManager.ToModels(tags))
 	})
 
 	// PUT /adjustment-tag/:tag_id: Update adjustment tag by ID. (WITH footstep)
@@ -289,7 +289,6 @@ func (c *Controller) adjustmentTagController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// DELETE /adjustment-tag/bulk-delete: Bulk delete adjustment tags by IDs. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/adjustment-tag/bulk-delete",
 		Method:      "DELETE",
@@ -301,74 +300,32 @@ func (c *Controller) adjustmentTagController() {
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/adjustment-tag/bulk-delete), invalid request body.",
+				Description: "Failed bulk delete adjustment tags (/adjustment-tag/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "AdjustmentTag",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/adjustment-tag/bulk-delete), no IDs provided.",
+				Description: "Failed bulk delete adjustment tags (/adjustment-tag/bulk-delete) | no IDs provided",
 				Module:      "AdjustmentTag",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No adjustment tag IDs provided for bulk delete"})
 		}
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
+
+		if err := c.core.AdjustmentTagManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/adjustment-tag/bulk-delete), begin tx error: " + tx.Error.Error(),
+				Description: "Failed bulk delete adjustment tags (/adjustment-tag/bulk-delete) | error: " + err.Error(),
 				Module:      "AdjustmentTag",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete adjustment tags: " + err.Error()})
 		}
-		var sb strings.Builder
-		for _, rawID := range reqBody.IDs {
-			tagID, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/adjustment-tag/bulk-delete), invalid UUID: " + rawID,
-					Module:      "AdjustmentTag",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
-			}
-			tag, err := c.core.AdjustmentTagManager.GetByID(context, tagID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/adjustment-tag/bulk-delete), not found: " + rawID,
-					Module:      "AdjustmentTag",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("adjustment tag not found with ID: %s", rawID)})
-			}
-			sb.WriteString(tag.Name)
-			sb.WriteByte(',')
-			if err := c.core.AdjustmentTagManager.DeleteWithTx(context, tx, tagID); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/adjustment-tag/bulk-delete), db error: " + err.Error(),
-					Module:      "AdjustmentTag",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete adjustment tag: " + err.Error()})
-			}
-		}
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/adjustment-tag/bulk-delete), commit error: " + err.Error(),
-				Module:      "AdjustmentTag",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit bulk delete: " + err.Error()})
-		}
+
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted adjustment tags (/adjustment-tag/bulk-delete): " + sb.String(),
+			Description: "Bulk deleted adjustment tags (/adjustment-tag/bulk-delete)",
 			Module:      "AdjustmentTag",
 		})
 		return ctx.NoContent(http.StatusNoContent)
