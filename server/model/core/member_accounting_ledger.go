@@ -192,6 +192,31 @@ func (m *Core) MemberAccountingLedgerCurrentBranch(context context.Context, orga
 	})
 }
 
+// MemberAccountingLedgerMemberProfileEntries retrieves member accounting ledger entries for a specific member profile
+// excluding the cash on hand account
+func (m *Core) MemberAccountingLedgerMemberProfileEntries(ctx context.Context, memberProfileID, organizationID, branchID, cashOnHandAccountID uuid.UUID) ([]*MemberAccountingLedger, error) {
+	filters := []registry.FilterSQL{
+		{Field: "member_profile_id", Op: registry.OpEq, Value: memberProfileID},
+		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
+		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "account_id", Op: registry.OpNe, Value: cashOnHandAccountID},
+	}
+
+	return m.MemberAccountingLedgerManager.FindWithSQL(ctx, filters, nil)
+}
+
+// MemberAccountingLedgerBranchEntries retrieves member accounting ledger entries for a specific branch
+// excluding the cash on hand account
+func (m *Core) MemberAccountingLedgerBranchEntries(ctx context.Context, organizationID, branchID, cashOnHandAccountID uuid.UUID) ([]*MemberAccountingLedger, error) {
+	filters := []registry.FilterSQL{
+		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
+		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "account_id", Op: registry.OpNe, Value: cashOnHandAccountID},
+	}
+
+	return m.MemberAccountingLedgerManager.FindWithSQL(ctx, filters, nil)
+}
+
 // MemberAccountingLedgerFindForUpdate finds and locks a member accounting ledger for concurrent protection
 // Returns nil if not found (without error), allowing for create-or-update patterns
 // MemberAccountingLedgerFindForUpdate returns MemberAccountingLedgerFindForUpdate for the current branch or organization where applicable.

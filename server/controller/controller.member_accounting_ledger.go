@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/labstack/echo/v4"
 )
@@ -36,13 +35,12 @@ func (c *Controller) memberAccountingLedgerController() {
 		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
 		}
-		entries, err := c.core.MemberAccountingLedgerManager.FindWithFilters(context, []services.Filter{
-			{Field: "member_accounting_ledgers.member_profile_id", Op: services.OpEq, Value: memberProfileID},
-			{Field: "member_accounting_ledgers.organization_id", Op: services.OpEq, Value: userOrg.OrganizationID},
-			{Field: "member_accounting_ledgers.branch_id", Op: services.OpEq, Value: *userOrg.BranchID},
-			{Field: "member_accounting_ledgers.account_id", Op: services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
-			// {Field: "member_accounting_ledgers.account_id", Op: services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
-		})
+		entries, err := c.core.MemberAccountingLedgerMemberProfileEntries(context,
+			*memberProfileID,
+			userOrg.OrganizationID,
+			*userOrg.BranchID,
+			*userOrg.Branch.BranchSetting.CashOnHandAccountID,
+		)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve member accounting ledger entries: " + err.Error()})
 		}
@@ -153,24 +151,26 @@ func (c *Controller) memberAccountingLedgerController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Branch ID is missing for user organization"})
 		}
-
 		if userOrg.Branch.BranchSetting.CashOnHandAccountID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cash on hand account not set for branch"})
 		}
 		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
 		}
-		entries, err := c.core.MemberAccountingLedgerManager.FindWithFilters(context, []services.Filter{
-			{Field: "member_accounting_ledgers.member_profile_id", Op: services.OpEq, Value: memberProfileID},
-			{Field: "member_accounting_ledgers.organization_id", Op: services.OpEq, Value: userOrg.OrganizationID},
-			{Field: "member_accounting_ledgers.branch_id", Op: services.OpEq, Value: *userOrg.BranchID},
-			{Field: "member_accounting_ledgers.account_id", Op: services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
-			// {Field: "member_accounting_ledgers.account_id", Op: services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
-		})
+		entries, err := c.core.MemberAccountingLedgerMemberProfileEntries(context,
+			*memberProfileID,
+			userOrg.OrganizationID,
+			*userOrg.BranchID,
+			*userOrg.Branch.BranchSetting.CashOnHandAccountID,
+		)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve member accounting ledger entries: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberAccountingLedgerManager.Pagination(context, ctx, entries))
+		paginatedResult, err := c.core.MemberAccountingLedgerManager.PaginationData(context, ctx, entries)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to paginate entries: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, paginatedResult)
 	})
 
 	req.RegisterRoute(handlers.Route{
@@ -201,13 +201,12 @@ func (c *Controller) memberAccountingLedgerController() {
 		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
 		}
-		entries, err := c.core.MemberAccountingLedgerManager.FindWithFilters(context, []services.Filter{
-			{Field: "member_accounting_ledgers.member_profile_id", Op: services.OpEq, Value: memberProfileID},
-			{Field: "member_accounting_ledgers.organization_id", Op: services.OpEq, Value: userOrg.OrganizationID},
-			{Field: "member_accounting_ledgers.branch_id", Op: services.OpEq, Value: *userOrg.BranchID},
-			{Field: "member_accounting_ledgers.account_id", Op: services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
-			// {Field: "member_accounting_ledgers.account_id", Op: services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
-		})
+		entries, err := c.core.MemberAccountingLedgerMemberProfileEntries(context,
+			*memberProfileID,
+			userOrg.OrganizationID,
+			*userOrg.BranchID,
+			*userOrg.Branch.BranchSetting.CashOnHandAccountID,
+		)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve member accounting ledger entries: " + err.Error()})
 		}
@@ -238,16 +237,19 @@ func (c *Controller) memberAccountingLedgerController() {
 		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
 		}
-		entries, err := c.core.MemberAccountingLedgerManager.FindWithFilters(context, []services.Filter{
-			{Field: "member_accounting_ledgers.organization_id", Op: services.OpEq, Value: userOrg.OrganizationID},
-			{Field: "member_accounting_ledgers.branch_id", Op: services.OpEq, Value: *userOrg.BranchID},
-			{Field: "member_accounting_ledgers.account_id", Op: services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
-			// {Field: "member_accounting_ledgers.account_id", Op: services.OpNe, Value: userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID},
-		})
+		entries, err := c.core.MemberAccountingLedgerBranchEntries(context,
+			userOrg.OrganizationID,
+			*userOrg.BranchID,
+			*userOrg.Branch.BranchSetting.CashOnHandAccountID,
+		)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve member accounting ledger entries: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberAccountingLedgerManager.Pagination(context, ctx, entries))
+		paginatedResult, err := c.core.MemberAccountingLedgerManager.PaginationData(context, ctx, entries)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to paginate entries: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, paginatedResult)
 	})
 
 }
