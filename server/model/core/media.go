@@ -1,8 +1,11 @@
 package core
 
 import (
+	"context"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -50,3 +53,59 @@ type (
 		FileName string     `json:"file_name" validate:"required,max=255"`
 	}
 )
+
+func (c *Core) media() {
+	c.Migration = append(c.Migration, &Media{})
+	c.MediaManager = *registry.NewRegistry(registry.RegistryParams[Media, MediaResponse, MediaRequest]{
+		Preloads: nil,
+		Service:  c.provider.Service,
+		Resource: func(data *Media) *MediaResponse {
+			context := context.Background()
+			if data == nil {
+				return nil
+			}
+			temporary, err := c.provider.Service.Storage.GeneratePresignedURL(
+				context, &horizon.Storage{
+					StorageKey: data.StorageKey,
+					BucketName: data.BucketName,
+					FileName:   data.FileName,
+				}, time.Hour)
+			if err != nil {
+				temporary = ""
+			}
+			return &MediaResponse{
+				ID:          data.ID,
+				CreatedAt:   data.CreatedAt.Format(time.RFC3339),
+				UpdatedAt:   data.UpdatedAt.Format(time.RFC3339),
+				FileName:    data.FileName,
+				FileSize:    data.FileSize,
+				FileType:    data.FileType,
+				StorageKey:  data.StorageKey,
+				URL:         data.URL,
+				Key:         data.Key,
+				BucketName:  data.BucketName,
+				Status:      data.Status,
+				Progress:    data.Progress,
+				DownloadURL: temporary,
+			}
+		},
+		Created: func(data *Media) []string {
+			return []string{
+				"media.create",
+				"media.create." + data.ID.String(),
+			}
+		},
+		Updated: func(data *Media) []string {
+			return []string{
+				"media.update",
+				"media.update." + data.ID.String(),
+			}
+		},
+		Deleted: func(data *Media) []string {
+			return []string{
+				"media.delete",
+				"media.delete." + data.ID.String(),
+			}
+		},
+	})
+}
