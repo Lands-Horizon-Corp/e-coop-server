@@ -51,11 +51,14 @@ func (c *Controller) companyController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		companies, err := c.core.CompanyCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		companies, err := c.core.CompanyManager.PaginationWithFields(context, ctx, &core.Company{
+			OrganizationID: user.OrganizationID,
+			BranchID:       *user.BranchID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch companies for pagination: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.CompanyManager.Pagination(context, ctx, companies))
+		return ctx.JSON(http.StatusOK, companies)
 	})
 
 	// GET /company/:company_id: Get specific company by ID. (NO footstep)

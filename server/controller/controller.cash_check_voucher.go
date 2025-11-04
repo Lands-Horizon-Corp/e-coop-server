@@ -52,11 +52,14 @@ func (c *Controller) cashCheckVoucherController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		cashCheckVouchers, err := c.core.CashCheckVoucherCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		cashCheckVouchers, err := c.core.CashCheckVoucherManager.PaginationWithFields(context, ctx, &core.CashCheckVoucher{
+			OrganizationID: user.OrganizationID,
+			BranchID:       *user.BranchID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch cash check vouchers for pagination: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.CashCheckVoucherManager.Pagination(context, ctx, cashCheckVouchers))
+		return ctx.JSON(http.StatusOK, cashCheckVouchers)
 	})
 
 	// GET /api/v1/cash-check-voucher/draft
@@ -516,7 +519,7 @@ func (c *Controller) cashCheckVoucherController() {
 					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete entry that doesn't belong to this cash check voucher"})
 				}
 				entry.DeletedByID = &user.UserID
-				if err := c.core.CashCheckVoucherEntryManager.DeleteWithTx(context, tx, entry); err != nil {
+				if err := c.core.CashCheckVoucherEntryManager.DeleteWithTx(context, tx, entry.ID); err != nil {
 					tx.Rollback()
 					c.event.Footstep(context, ctx, event.FootstepEvent{
 						Activity:    "update-error",

@@ -29,11 +29,14 @@ func (c *Controller) cashCountController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		cashCount, err := c.core.CashCountCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		cashCount, err := c.core.CashCountManager.PaginationWithFields(context, ctx, &core.CashCount{
+			OrganizationID: user.OrganizationID,
+			BranchID:       *user.BranchID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No cash counts found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.CashCountManager.Pagination(context, ctx, cashCount))
+		return ctx.JSON(http.StatusOK, cashCount)
 	})
 
 	req.RegisterRoute(handlers.Route{
@@ -54,7 +57,7 @@ func (c *Controller) cashCountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction batch ID"})
 		}
-		cashCount, err := c.core.CashCountManager.Find(context, &core.CashCount{
+		cashCount, err := c.core.CashCountManager.PaginationWithFields(context, ctx, &core.CashCount{
 			TransactionBatchID: *transactionBatchID,
 			OrganizationID:     user.OrganizationID,
 			BranchID:           *user.BranchID,
@@ -62,7 +65,7 @@ func (c *Controller) cashCountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No cash counts found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.CashCountManager.Pagination(context, ctx, cashCount))
+		return ctx.JSON(http.StatusOK, cashCount)
 	})
 
 	// GET /cash-count: Retrieve all cash count bills for the current active transaction batch for the user's branch. (NO footstep)
@@ -137,11 +140,12 @@ func (c *Controller) cashCountController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to add cash counts"})
 		}
 
-		transactionBatch, err := c.core.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
-			"organization_id": userOrg.OrganizationID,
-			"branch_id":       *userOrg.BranchID,
-			"is_closed":       false,
-		})
+		transactionBatch, err := c.core.CurrentOpenTransactionBatch(
+			context,
+			userOrg.UserID,
+			userOrg.OrganizationID,
+			*userOrg.BranchID,
+		)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -247,11 +251,12 @@ func (c *Controller) cashCountController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request data: " + err.Error()})
 		}
 
-		transactionBatch, err := c.core.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
-			"organization_id": userOrg.OrganizationID,
-			"branch_id":       *userOrg.BranchID,
-			"is_closed":       false,
-		})
+		transactionBatch, err := c.core.CurrentOpenTransactionBatch(
+			context,
+			userOrg.UserID,
+			userOrg.OrganizationID,
+			*userOrg.BranchID,
+		)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",

@@ -51,11 +51,14 @@ func (c *Controller) cashCheckVoucherTagController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		tags, err := c.core.CashCheckVoucherTagCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		tags, err := c.core.CashCheckVoucherTagManager.PaginationWithFields(context, ctx, &core.CashCheckVoucherTag{
+			OrganizationID: user.OrganizationID,
+			BranchID:       *user.BranchID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch cash check voucher tags for pagination: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.CashCheckVoucherTagManager.Pagination(context, ctx, tags))
+		return ctx.JSON(http.StatusOK, tags)
 	})
 
 	// GET /cash-check-voucher-tag/:tag_id: Get specific cash check voucher tag by ID. (NO footstep)

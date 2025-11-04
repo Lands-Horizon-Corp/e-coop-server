@@ -66,11 +66,14 @@ func (c *Controller) billAndCoinsController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		billAndCoins, err := c.core.BillAndCoinsCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		billAndCoins, err := c.core.BillAndCoinsManager.PaginationWithFields(context, ctx, &core.BillAndCoins{
+			OrganizationID: user.OrganizationID,
+			BranchID:       *user.BranchID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch bills and coins: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.BillAndCoinsManager.Pagination(context, ctx, billAndCoins))
+		return ctx.JSON(http.StatusOK, billAndCoins)
 	})
 
 	// GET /bills-and-coins/:bills_and_coins_id: Get a specific bills and coins record by ID. (NO footstep)

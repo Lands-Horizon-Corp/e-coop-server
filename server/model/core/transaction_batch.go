@@ -586,7 +586,7 @@ func (m *Core) TransactionBatchCurrentDay(ctx context.Context, organizationID uu
 	return m.TransactionBatchManager.FindWithSQL(ctx, filters, nil)
 }
 
-func (m *Core) CurrentClosedTransactionBatch(context context.Context, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) (*TransactionBatch, error) {
+func (m *Core) CurrentOpenTransactionBatch(context context.Context, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) (*TransactionBatch, error) {
 	return m.TransactionBatchManager.FindOneWithSQL(context,
 		[]registry.FilterSQL{
 			{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
@@ -598,5 +598,4 @@ func (m *Core) CurrentClosedTransactionBatch(context context.Context, userID uui
 			{Field: "updated_at", Order: filter.SortOrderDesc},
 		},
 	)
-
 }

@@ -51,11 +51,14 @@ func (c *Controller) collateralController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		collaterals, err := c.core.CollateralCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		collaterals, err := c.core.CollateralManager.PaginationWithFields(context, ctx, &core.Collateral{
+			OrganizationID: user.OrganizationID,
+			BranchID:       *user.BranchID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch collateral records: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.CollateralManager.Pagination(context, ctx, collaterals))
+		return ctx.JSON(http.StatusOK, collaterals)
 	})
 
 	// GET /collateral/:collateral_id: Get a specific collateral record by ID. (NO footstep)

@@ -51,11 +51,14 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		cancelledVouchers, err := c.core.CancelledCashCheckVoucherCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		cancelledVouchers, err := c.core.CancelledCashCheckVoucherManager.PaginationWithFields(context, ctx, &core.CancelledCashCheckVoucher{
+			OrganizationID: user.OrganizationID,
+			BranchID:       *user.BranchID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch cancelled cash check vouchers for pagination: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.CancelledCashCheckVoucherManager.Pagination(context, ctx, cancelledVouchers))
+		return ctx.JSON(http.StatusOK, cancelledVouchers)
 	})
 
 	// GET /cancelled-cash-check-voucher/:cancelled_cash_check_voucher_id: Get specific cancelled cash check voucher by ID. (NO footstep)
