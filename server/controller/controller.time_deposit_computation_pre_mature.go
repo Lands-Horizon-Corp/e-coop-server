@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -22,8 +22,8 @@ func (c *Controller) timeDepositComputationPreMatureController() {
 		Route:        "/api/v1/time-deposit-computation-pre-mature/time-deposit-type/:time_deposit_type_id",
 		Method:       "POST",
 		Note:         "Creates a new time deposit computation pre mature for the current user's organization and branch.",
-		RequestType:  modelcore.TimeDepositComputationPreMatureRequest{},
-		ResponseType: modelcore.TimeDepositComputationPreMatureResponse{},
+		RequestType:  core.TimeDepositComputationPreMatureRequest{},
+		ResponseType: core.TimeDepositComputationPreMatureResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		timeDepositTypeID, err := handlers.EngineUUIDParam(ctx, "time_deposit_type_id")
@@ -35,7 +35,7 @@ func (c *Controller) timeDepositComputationPreMatureController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid time deposit type ID"})
 		}
-		req, err := c.modelcore.TimeDepositComputationPreMatureManager.Validate(ctx)
+		req, err := c.core.TimeDepositComputationPreMatureManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -62,7 +62,7 @@ func (c *Controller) timeDepositComputationPreMatureController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		timeDepositComputationPreMature := &modelcore.TimeDepositComputationPreMature{
+		timeDepositComputationPreMature := &core.TimeDepositComputationPreMature{
 			TimeDepositTypeID: *timeDepositTypeID,
 			Terms:             req.Terms,
 			From:              req.From,
@@ -76,7 +76,7 @@ func (c *Controller) timeDepositComputationPreMatureController() {
 			OrganizationID:    user.OrganizationID,
 		}
 
-		if err := c.modelcore.TimeDepositComputationPreMatureManager.Create(context, timeDepositComputationPreMature); err != nil {
+		if err := c.core.TimeDepositComputationPreMatureManager.Create(context, timeDepositComputationPreMature); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Time deposit computation pre mature creation failed (/time-deposit-computation-pre-mature), db error: " + err.Error(),
@@ -89,7 +89,7 @@ func (c *Controller) timeDepositComputationPreMatureController() {
 			Description: "Created time deposit computation pre mature (/time-deposit-computation-pre-mature): " + timeDepositComputationPreMature.ID.String(),
 			Module:      "TimeDepositComputationPreMature",
 		})
-		return ctx.JSON(http.StatusCreated, c.modelcore.TimeDepositComputationPreMatureManager.ToModel(timeDepositComputationPreMature))
+		return ctx.JSON(http.StatusCreated, c.core.TimeDepositComputationPreMatureManager.ToModel(timeDepositComputationPreMature))
 	})
 
 	// PUT /time-deposit-computation-pre-mature/:time_deposit_computation_pre_mature_id: Update time deposit computation pre mature by ID. (WITH footstep)
@@ -97,8 +97,8 @@ func (c *Controller) timeDepositComputationPreMatureController() {
 		Route:        "/api/v1/time-deposit-computation-pre-mature/:time_deposit_computation_pre_mature_id",
 		Method:       "PUT",
 		Note:         "Updates an existing time deposit computation pre mature by its ID.",
-		RequestType:  modelcore.TimeDepositComputationPreMatureRequest{},
-		ResponseType: modelcore.TimeDepositComputationPreMatureResponse{},
+		RequestType:  core.TimeDepositComputationPreMatureRequest{},
+		ResponseType: core.TimeDepositComputationPreMatureResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		timeDepositComputationPreMatureID, err := handlers.EngineUUIDParam(ctx, "time_deposit_computation_pre_mature_id")
@@ -111,7 +111,7 @@ func (c *Controller) timeDepositComputationPreMatureController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid time deposit computation pre mature ID"})
 		}
 
-		req, err := c.modelcore.TimeDepositComputationPreMatureManager.Validate(ctx)
+		req, err := c.core.TimeDepositComputationPreMatureManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -129,7 +129,7 @@ func (c *Controller) timeDepositComputationPreMatureController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		timeDepositComputationPreMature, err := c.modelcore.TimeDepositComputationPreMatureManager.GetByID(context, *timeDepositComputationPreMatureID)
+		timeDepositComputationPreMature, err := c.core.TimeDepositComputationPreMatureManager.GetByID(context, *timeDepositComputationPreMatureID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -145,7 +145,7 @@ func (c *Controller) timeDepositComputationPreMatureController() {
 		timeDepositComputationPreMature.Rate = req.Rate
 		timeDepositComputationPreMature.UpdatedAt = time.Now().UTC()
 		timeDepositComputationPreMature.UpdatedByID = user.UserID
-		if err := c.modelcore.TimeDepositComputationPreMatureManager.UpdateFields(context, timeDepositComputationPreMature.ID, timeDepositComputationPreMature); err != nil {
+		if err := c.core.TimeDepositComputationPreMatureManager.UpdateFields(context, timeDepositComputationPreMature.ID, timeDepositComputationPreMature); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Time deposit computation pre mature update failed (/time-deposit-computation-pre-mature/:time_deposit_computation_pre_mature_id), db error: " + err.Error(),
@@ -158,7 +158,7 @@ func (c *Controller) timeDepositComputationPreMatureController() {
 			Description: "Updated time deposit computation pre mature (/time-deposit-computation-pre-mature/:time_deposit_computation_pre_mature_id): " + timeDepositComputationPreMature.ID.String(),
 			Module:      "TimeDepositComputationPreMature",
 		})
-		return ctx.JSON(http.StatusOK, c.modelcore.TimeDepositComputationPreMatureManager.ToModel(timeDepositComputationPreMature))
+		return ctx.JSON(http.StatusOK, c.core.TimeDepositComputationPreMatureManager.ToModel(timeDepositComputationPreMature))
 	})
 
 	// DELETE /time-deposit-computation-pre-mature/:time_deposit_computation_pre_mature_id: Delete a time deposit computation pre mature by ID. (WITH footstep)
@@ -177,7 +177,7 @@ func (c *Controller) timeDepositComputationPreMatureController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid time deposit computation pre mature ID"})
 		}
-		timeDepositComputationPreMature, err := c.modelcore.TimeDepositComputationPreMatureManager.GetByID(context, *timeDepositComputationPreMatureID)
+		timeDepositComputationPreMature, err := c.core.TimeDepositComputationPreMatureManager.GetByID(context, *timeDepositComputationPreMatureID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -186,7 +186,7 @@ func (c *Controller) timeDepositComputationPreMatureController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Time deposit computation pre mature not found"})
 		}
-		if err := c.modelcore.TimeDepositComputationPreMatureManager.DeleteByID(context, *timeDepositComputationPreMatureID); err != nil {
+		if err := c.core.TimeDepositComputationPreMatureManager.DeleteByID(context, *timeDepositComputationPreMatureID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Time deposit computation pre mature delete failed (/time-deposit-computation-pre-mature/:time_deposit_computation_pre_mature_id), db error: " + err.Error(),
@@ -207,10 +207,10 @@ func (c *Controller) timeDepositComputationPreMatureController() {
 		Route:       "/api/v1/time-deposit-computation-pre-mature/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple time deposit computation pre mature by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: modelcore.IDSRequest{},
+		RequestType: core.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody modelcore.IDSRequest
+		var reqBody core.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
@@ -249,7 +249,7 @@ func (c *Controller) timeDepositComputationPreMatureController() {
 				})
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
 			}
-			timeDepositComputationPreMature, err := c.modelcore.TimeDepositComputationPreMatureManager.GetByID(context, timeDepositComputationPreMatureID)
+			timeDepositComputationPreMature, err := c.core.TimeDepositComputationPreMatureManager.GetByID(context, timeDepositComputationPreMatureID)
 			if err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -260,7 +260,7 @@ func (c *Controller) timeDepositComputationPreMatureController() {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Time deposit computation pre mature not found with ID: %s", rawID)})
 			}
 			idsSlice = append(idsSlice, timeDepositComputationPreMature.ID.String())
-			if err := c.modelcore.TimeDepositComputationPreMatureManager.DeleteByIDWithTx(context, tx, timeDepositComputationPreMatureID); err != nil {
+			if err := c.core.TimeDepositComputationPreMatureManager.DeleteByIDWithTx(context, tx, timeDepositComputationPreMatureID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

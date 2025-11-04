@@ -2,7 +2,7 @@ package event
 
 import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/server"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/tokens"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
 )
@@ -11,7 +11,7 @@ import (
 //
 // It wires model managers, tokens and services used by event handlers.
 type Event struct {
-	modelcore             *modelcore.ModelCore
+	core                  *core.Core
 	userOrganizationToken *tokens.UserOrganizationToken
 	userToken             *tokens.UserToken
 	provider              *server.Provider
@@ -21,7 +21,7 @@ type Event struct {
 // NewEvent constructs a new Event instance wiring domain services used
 // by the package's event handlers.
 func NewEvent(
-	modelcore *modelcore.ModelCore,
+	core *core.Core,
 	userOrganizationToken *tokens.UserOrganizationToken,
 	userToken *tokens.UserToken,
 	provider *server.Provider,
@@ -30,7 +30,7 @@ func NewEvent(
 	return &Event{
 		userOrganizationToken: userOrganizationToken,
 		userToken:             userToken,
-		modelcore:             modelcore,
+		core:                  core,
 		provider:              provider,
 		usecase:               usecase,
 	}, nil

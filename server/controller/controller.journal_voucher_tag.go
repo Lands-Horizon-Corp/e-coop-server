@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -22,7 +22,7 @@ func (c *Controller) journalVoucherTagController() {
 		Route:        "/api/v1/journal-voucher-tag",
 		Method:       "GET",
 		Note:         "Returns all journal voucher tags for the current user's organization and branch. Returns empty if not authenticated.",
-		ResponseType: modelcore.JournalVoucherTagResponse{},
+		ResponseType: core.JournalVoucherTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -32,11 +32,11 @@ func (c *Controller) journalVoucherTagController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		tags, err := c.modelcore.JournalVoucherTagCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		tags, err := c.core.JournalVoucherTagCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No journal voucher tags found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.modelcore.JournalVoucherTagManager.Filtered(context, ctx, tags))
+		return ctx.JSON(http.StatusOK, c.core.JournalVoucherTagManager.Filtered(context, ctx, tags))
 	})
 
 	// GET /journal-voucher-tag/search: Paginated search of journal voucher tags for the current branch. (NO footstep)
@@ -44,7 +44,7 @@ func (c *Controller) journalVoucherTagController() {
 		Route:        "/api/v1/journal-voucher-tag/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of journal voucher tags for the current user's organization and branch.",
-		ResponseType: modelcore.JournalVoucherTagResponse{},
+		ResponseType: core.JournalVoucherTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -54,11 +54,11 @@ func (c *Controller) journalVoucherTagController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		tags, err := c.modelcore.JournalVoucherTagCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		tags, err := c.core.JournalVoucherTagCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch journal voucher tags for pagination: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelcore.JournalVoucherTagManager.Pagination(context, ctx, tags))
+		return ctx.JSON(http.StatusOK, c.core.JournalVoucherTagManager.Pagination(context, ctx, tags))
 	})
 
 	// GET /journal-voucher-tag/:tag_id: Get specific journal voucher tag by ID. (NO footstep)
@@ -66,14 +66,14 @@ func (c *Controller) journalVoucherTagController() {
 		Route:        "/api/v1/journal-voucher-tag/:tag_id",
 		Method:       "GET",
 		Note:         "Returns a single journal voucher tag by its ID.",
-		ResponseType: modelcore.JournalVoucherTagResponse{},
+		ResponseType: core.JournalVoucherTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		tagID, err := handlers.EngineUUIDParam(ctx, "tag_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid journal voucher tag ID"})
 		}
-		tag, err := c.modelcore.JournalVoucherTagManager.GetByIDRaw(context, *tagID)
+		tag, err := c.core.JournalVoucherTagManager.GetByIDRaw(context, *tagID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Journal voucher tag not found"})
 		}
@@ -85,11 +85,11 @@ func (c *Controller) journalVoucherTagController() {
 		Route:        "/api/v1/journal-voucher-tag",
 		Method:       "POST",
 		Note:         "Creates a new journal voucher tag for the current user's organization and branch.",
-		RequestType:  modelcore.JournalVoucherTagRequest{},
-		ResponseType: modelcore.JournalVoucherTagResponse{},
+		RequestType:  core.JournalVoucherTagRequest{},
+		ResponseType: core.JournalVoucherTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.modelcore.JournalVoucherTagManager.Validate(ctx)
+		req, err := c.core.JournalVoucherTagManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -116,7 +116,7 @@ func (c *Controller) journalVoucherTagController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		tag := &modelcore.JournalVoucherTag{
+		tag := &core.JournalVoucherTag{
 			JournalVoucherID: req.JournalVoucherID,
 			Name:             req.Name,
 			Description:      req.Description,
@@ -131,7 +131,7 @@ func (c *Controller) journalVoucherTagController() {
 			OrganizationID:   user.OrganizationID,
 		}
 
-		if err := c.modelcore.JournalVoucherTagManager.Create(context, tag); err != nil {
+		if err := c.core.JournalVoucherTagManager.Create(context, tag); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Journal voucher tag creation failed (/journal-voucher-tag), db error: " + err.Error(),
@@ -144,7 +144,7 @@ func (c *Controller) journalVoucherTagController() {
 			Description: "Created journal voucher tag (/journal-voucher-tag): " + tag.Name,
 			Module:      "JournalVoucherTag",
 		})
-		return ctx.JSON(http.StatusCreated, c.modelcore.JournalVoucherTagManager.ToModel(tag))
+		return ctx.JSON(http.StatusCreated, c.core.JournalVoucherTagManager.ToModel(tag))
 	})
 
 	// PUT /journal-voucher-tag/:tag_id: Update journal voucher tag by ID. (WITH footstep)
@@ -152,8 +152,8 @@ func (c *Controller) journalVoucherTagController() {
 		Route:        "/api/v1/journal-voucher-tag/:tag_id",
 		Method:       "PUT",
 		Note:         "Updates an existing journal voucher tag by its ID.",
-		RequestType:  modelcore.JournalVoucherTagRequest{},
-		ResponseType: modelcore.JournalVoucherTagResponse{},
+		RequestType:  core.JournalVoucherTagRequest{},
+		ResponseType: core.JournalVoucherTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		tagID, err := handlers.EngineUUIDParam(ctx, "tag_id")
@@ -166,7 +166,7 @@ func (c *Controller) journalVoucherTagController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid journal voucher tag ID"})
 		}
 
-		req, err := c.modelcore.JournalVoucherTagManager.Validate(ctx)
+		req, err := c.core.JournalVoucherTagManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -184,7 +184,7 @@ func (c *Controller) journalVoucherTagController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		tag, err := c.modelcore.JournalVoucherTagManager.GetByID(context, *tagID)
+		tag, err := c.core.JournalVoucherTagManager.GetByID(context, *tagID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -201,7 +201,7 @@ func (c *Controller) journalVoucherTagController() {
 		tag.Icon = req.Icon
 		tag.UpdatedAt = time.Now().UTC()
 		tag.UpdatedByID = user.UserID
-		if err := c.modelcore.JournalVoucherTagManager.UpdateFields(context, tag.ID, tag); err != nil {
+		if err := c.core.JournalVoucherTagManager.UpdateFields(context, tag.ID, tag); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Journal voucher tag update failed (/journal-voucher-tag/:tag_id), db error: " + err.Error(),
@@ -214,7 +214,7 @@ func (c *Controller) journalVoucherTagController() {
 			Description: "Updated journal voucher tag (/journal-voucher-tag/:tag_id): " + tag.Name,
 			Module:      "JournalVoucherTag",
 		})
-		return ctx.JSON(http.StatusOK, c.modelcore.JournalVoucherTagManager.ToModel(tag))
+		return ctx.JSON(http.StatusOK, c.core.JournalVoucherTagManager.ToModel(tag))
 	})
 
 	// GET  "/api/v1/journal-voucher-tag/journal-voucher/:journal_voucher_id" - List journal voucher tags by journal voucher ID. (NO footstep)
@@ -222,7 +222,7 @@ func (c *Controller) journalVoucherTagController() {
 		Route:        "/api/v1/journal-voucher-tag/journal-voucher/:journal_voucher_id",
 		Method:       "GET",
 		Note:         "Returns all journal voucher tags associated with the specified journal voucher ID.",
-		ResponseType: modelcore.JournalVoucherTagResponse{},
+		ResponseType: core.JournalVoucherTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		journalVoucherID, err := handlers.EngineUUIDParam(ctx, "journal_voucher_id")
@@ -237,7 +237,7 @@ func (c *Controller) journalVoucherTagController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		tags, err := c.modelcore.JournalVoucherTagManager.Find(context, &modelcore.JournalVoucherTag{
+		tags, err := c.core.JournalVoucherTagManager.Find(context, &core.JournalVoucherTag{
 			JournalVoucherID: journalVoucherID,
 			OrganizationID:   user.OrganizationID,
 			BranchID:         *user.BranchID,
@@ -245,7 +245,7 @@ func (c *Controller) journalVoucherTagController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No journal voucher tags found for the given journal voucher ID"})
 		}
-		return ctx.JSON(http.StatusOK, c.modelcore.JournalVoucherTagManager.Filtered(context, ctx, tags))
+		return ctx.JSON(http.StatusOK, c.core.JournalVoucherTagManager.Filtered(context, ctx, tags))
 	})
 
 	// DELETE /journal-voucher-tag/:tag_id: Delete a journal voucher tag by ID. (WITH footstep)
@@ -264,7 +264,7 @@ func (c *Controller) journalVoucherTagController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid journal voucher tag ID"})
 		}
-		tag, err := c.modelcore.JournalVoucherTagManager.GetByID(context, *tagID)
+		tag, err := c.core.JournalVoucherTagManager.GetByID(context, *tagID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -273,7 +273,7 @@ func (c *Controller) journalVoucherTagController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Journal voucher tag not found"})
 		}
-		if err := c.modelcore.JournalVoucherTagManager.DeleteByID(context, *tagID); err != nil {
+		if err := c.core.JournalVoucherTagManager.DeleteByID(context, *tagID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Journal voucher tag delete failed (/journal-voucher-tag/:tag_id), db error: " + err.Error(),
@@ -294,10 +294,10 @@ func (c *Controller) journalVoucherTagController() {
 		Route:       "/api/v1/journal-voucher-tag/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple journal voucher tags by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: modelcore.IDSRequest{},
+		RequestType: core.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody modelcore.IDSRequest
+		var reqBody core.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
@@ -336,7 +336,7 @@ func (c *Controller) journalVoucherTagController() {
 				})
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
 			}
-			tag, err := c.modelcore.JournalVoucherTagManager.GetByID(context, tagID)
+			tag, err := c.core.JournalVoucherTagManager.GetByID(context, tagID)
 			if err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -347,7 +347,7 @@ func (c *Controller) journalVoucherTagController() {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Journal voucher tag not found with ID: %s", rawID)})
 			}
 			namesSlice = append(namesSlice, tag.Name)
-			if err := c.modelcore.JournalVoucherTagManager.DeleteByIDWithTx(context, tx, tagID); err != nil {
+			if err := c.core.JournalVoucherTagManager.DeleteByIDWithTx(context, tx, tagID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

@@ -7,7 +7,7 @@ import (
 	"math"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -26,7 +26,7 @@ type TransactionEvent struct {
 	SignatureMediaID     *uuid.UUID `json:"signature_media_id"`
 	MemberJointAccountID *uuid.UUID `json:"member_joint_account_id"`
 
-	Source modelcore.GeneralLedgerSource `json:"source" validate:"required"`
+	Source core.GeneralLedgerSource `json:"source" validate:"required"`
 
 	EntryDate             *time.Time `json:"entry_date"`
 	BankID                *uuid.UUID `json:"bank_id"`
@@ -49,7 +49,7 @@ func (e *Event) TransactionPayment(
 	tx *gorm.DB,
 	data TransactionEvent,
 
-) (*modelcore.GeneralLedger, error) {
+) (*core.GeneralLedger, error) {
 	if data.EntryDate == nil {
 		now := time.Now().UTC()
 		data.EntryDate = &now
@@ -183,10 +183,10 @@ func (e *Event) TransactionPayment(
 	// STEP 5: ENTITY VALIDATION & RETRIEVAL
 	// ================================================================================
 	// GET or CREATE transaction
-	var transaction *modelcore.Transaction
+	var transaction *core.Transaction
 	now := time.Now().UTC()
 	if data.TransactionID != nil {
-		transaction, err = e.modelcore.TransactionManager.GetByID(ctx, *data.TransactionID)
+		transaction, err = e.core.TransactionManager.GetByID(ctx, *data.TransactionID)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			transaction = nil
 		} else if err != nil {
@@ -207,7 +207,7 @@ func (e *Event) TransactionPayment(
 
 	// GET member profile (if provided)
 	if data.MemberProfileID != nil {
-		memberProfile, err := e.modelcore.MemberProfileManager.GetByID(ctx, *data.MemberProfileID)
+		memberProfile, err := e.core.MemberProfileManager.GetByID(ctx, *data.MemberProfileID)
 		if err != nil {
 			tx.Rollback()
 			e.Footstep(ctx, echoCtx, FootstepEvent{
@@ -252,7 +252,7 @@ func (e *Event) TransactionPayment(
 	}
 
 	// GET transaction batch
-	transactionBatch, err := e.modelcore.TransactionBatchCurrent(ctx, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
+	transactionBatch, err := e.core.TransactionBatchCurrent(ctx, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 	if err != nil {
 		tx.Rollback()
 		e.Footstep(ctx, echoCtx, FootstepEvent{
@@ -275,7 +275,7 @@ func (e *Event) TransactionPayment(
 	}
 
 	// GET account (with lock)
-	account, err := e.modelcore.AccountLockForUpdate(ctx, tx, *data.AccountID)
+	account, err := e.core.AccountLockForUpdate(ctx, tx, *data.AccountID)
 	if err != nil {
 		e.Footstep(ctx, echoCtx, FootstepEvent{
 			Activity:    "account-lock-error",
@@ -318,7 +318,7 @@ func (e *Event) TransactionPayment(
 		return nil, eris.New("account does not belong to the current organization")
 	}
 
-	cashOnHandAccount, err := e.modelcore.AccountLockForUpdate(ctx, tx, *cashOnHandAccountID)
+	cashOnHandAccount, err := e.core.AccountLockForUpdate(ctx, tx, *cashOnHandAccountID)
 	if err != nil {
 		e.Footstep(ctx, echoCtx, FootstepEvent{
 			Activity:    "account-lock-error",
@@ -341,10 +341,10 @@ func (e *Event) TransactionPayment(
 	}
 
 	// GET general ledger (with lock)
-	var generalLedger *modelcore.GeneralLedger
+	var generalLedger *core.GeneralLedger
 	if memberProfileID != nil {
 		// Member-specific transaction
-		generalLedger, err = e.modelcore.GeneralLedgerCurrentMemberAccountForUpdate(
+		generalLedger, err = e.core.GeneralLedgerCurrentMemberAccountForUpdate(
 			ctx, tx, *memberProfileID, *data.AccountID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			tx.Rollback()
@@ -357,7 +357,7 @@ func (e *Event) TransactionPayment(
 			return nil, eris.Wrap(err, "failed to retrieve member general ledger")
 		}
 	} else {
-		generalLedger, err = e.modelcore.GeneralLedgerCurrentSubsidiaryAccountForUpdate(
+		generalLedger, err = e.core.GeneralLedgerCurrentSubsidiaryAccountForUpdate(
 			ctx, tx, *data.AccountID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			tx.Rollback()
@@ -371,7 +371,7 @@ func (e *Event) TransactionPayment(
 		}
 	}
 
-	cohGeneralLedger, err := e.modelcore.GeneralLedgerCashOnHandOnUpdate(
+	cohGeneralLedger, err := e.core.GeneralLedgerCashOnHandOnUpdate(
 		ctx, tx, *cashOnHandAccountID, userOrg.OrganizationID, *userOrg.BranchID)
 	if err != nil {
 		tx.Rollback()
@@ -385,7 +385,7 @@ func (e *Event) TransactionPayment(
 	}
 
 	// GET payment type
-	paymentType, err := e.modelcore.PaymentTypeManager.GetByID(ctx, *data.PaymentTypeID)
+	paymentType, err := e.core.PaymentTypeManager.GetByID(ctx, *data.PaymentTypeID)
 	if err != nil {
 		tx.Rollback()
 		e.Footstep(ctx, echoCtx, FootstepEvent{
@@ -418,7 +418,7 @@ func (e *Event) TransactionPayment(
 	}
 
 	if transaction == nil {
-		transaction = &modelcore.Transaction{
+		transaction = &core.Transaction{
 			CreatedAt:            now,
 			CreatedByID:          userOrg.UserID,
 			UpdatedAt:            now,
@@ -441,7 +441,7 @@ func (e *Event) TransactionPayment(
 			InterestDue:          0,
 			CurrencyID:           *account.CurrencyID,
 		}
-		if err := e.modelcore.TransactionManager.CreateWithTx(ctx, tx, transaction); err != nil {
+		if err := e.core.TransactionManager.CreateWithTx(ctx, tx, transaction); err != nil {
 			tx.Rollback()
 			e.Footstep(ctx, echoCtx, FootstepEvent{
 				Activity:    "transaction-create-error",
@@ -480,7 +480,7 @@ func (e *Event) TransactionPayment(
 	var credit, debit, balance float64
 	switch data.Source {
 
-	case modelcore.GeneralLedgerSourcePayment, modelcore.GeneralLedgerSourceDeposit:
+	case core.GeneralLedgerSourcePayment, core.GeneralLedgerSourceDeposit:
 		if data.Reverse {
 			credit, debit, balance, err = e.usecase.Withdraw(ctx, usecase.TransactionData{
 				GeneralLedger: generalLedger,
@@ -496,7 +496,7 @@ func (e *Event) TransactionPayment(
 		if err != nil {
 			err = eris.Wrap(err, "Account")
 		}
-	case modelcore.GeneralLedgerSourceWithdraw:
+	case core.GeneralLedgerSourceWithdraw:
 		if data.Reverse {
 			credit, debit, balance, err = e.usecase.Deposit(ctx, usecase.TransactionData{
 				GeneralLedger: generalLedger,
@@ -529,7 +529,7 @@ func (e *Event) TransactionPayment(
 		return nil, eris.Wrap(err, "failed to process transaction")
 	}
 
-	newGeneralLedger := &modelcore.GeneralLedger{
+	newGeneralLedger := &core.GeneralLedger{
 		CreatedAt:                  now,
 		CreatedByID:                userOrg.UserID,
 		UpdatedAt:                  now,
@@ -558,7 +558,7 @@ func (e *Event) TransactionPayment(
 		Balance:                    balance,
 		CurrencyID:                 account.CurrencyID,
 	}
-	if err := e.modelcore.GeneralLedgerManager.CreateWithTx(ctx, tx, newGeneralLedger); err != nil {
+	if err := e.core.GeneralLedgerManager.CreateWithTx(ctx, tx, newGeneralLedger); err != nil {
 		tx.Rollback()
 		e.Footstep(ctx, echoCtx, FootstepEvent{
 			Activity:    "ledger-create-error",
@@ -573,7 +573,7 @@ func (e *Event) TransactionPayment(
 	// STEP 7: UPDATE TRANSACTION
 	// ================================================================================
 	switch data.Source {
-	case modelcore.GeneralLedgerSourcePayment, modelcore.GeneralLedgerSourceDeposit:
+	case core.GeneralLedgerSourcePayment, core.GeneralLedgerSourceDeposit:
 		if data.Reverse {
 			if data.Amount < 0 {
 				transaction.Amount += math.Abs(data.Amount)
@@ -587,7 +587,7 @@ func (e *Event) TransactionPayment(
 				transaction.Amount += math.Abs(data.Amount)
 			}
 		}
-	case modelcore.GeneralLedgerSourceWithdraw:
+	case core.GeneralLedgerSourceWithdraw:
 		if data.Reverse {
 			if data.Amount < 0 {
 				transaction.Amount -= math.Abs(data.Amount)
@@ -605,7 +605,7 @@ func (e *Event) TransactionPayment(
 
 	transaction.UpdatedAt = now
 	transaction.UpdatedByID = userOrg.UserID
-	if err := e.modelcore.TransactionManager.UpdateFieldsWithTx(ctx, tx, transaction.ID, transaction); err != nil {
+	if err := e.core.TransactionManager.UpdateFieldsWithTx(ctx, tx, transaction.ID, transaction); err != nil {
 		tx.Rollback()
 		e.Footstep(ctx, echoCtx, FootstepEvent{
 			Activity:    "transaction-update-error",
@@ -624,7 +624,7 @@ func (e *Event) TransactionPayment(
 		if data.EntryDate != nil {
 			lastPayTime = *data.EntryDate
 		}
-		_, err := e.modelcore.MemberAccountingLedgerUpdateOrCreate(
+		_, err := e.core.MemberAccountingLedgerUpdateOrCreate(
 			ctx, tx,
 			*memberProfileID,
 			*data.AccountID,
@@ -651,7 +651,7 @@ func (e *Event) TransactionPayment(
 	// ================================================================================
 	var cohCredit, cohDebit, cohBalance float64
 	switch data.Source {
-	case modelcore.GeneralLedgerSourcePayment, modelcore.GeneralLedgerSourceDeposit:
+	case core.GeneralLedgerSourcePayment, core.GeneralLedgerSourceDeposit:
 		if data.Reverse {
 			cohCredit, cohDebit, cohBalance, err = e.usecase.Withdraw(ctx, usecase.TransactionData{
 				GeneralLedger: cohGeneralLedger,
@@ -670,7 +670,7 @@ func (e *Event) TransactionPayment(
 			}
 		}
 
-	case modelcore.GeneralLedgerSourceWithdraw:
+	case core.GeneralLedgerSourceWithdraw:
 		if data.Reverse {
 			cohCredit, cohDebit, cohBalance, err = e.usecase.Deposit(ctx, usecase.TransactionData{
 				GeneralLedger: cohGeneralLedger,
@@ -701,7 +701,7 @@ func (e *Event) TransactionPayment(
 		block("Failed to process transaction: " + err.Error())
 		return nil, eris.Wrap(err, "failed to process transaction")
 	}
-	cashOnHandGeneralLedger := &modelcore.GeneralLedger{
+	cashOnHandGeneralLedger := &core.GeneralLedger{
 		CreatedAt:                  now,
 		CreatedByID:                userOrg.UserID,
 		UpdatedAt:                  now,
@@ -730,7 +730,7 @@ func (e *Event) TransactionPayment(
 		CurrencyID:                 account.CurrencyID,
 		Balance:                    cohBalance,
 	}
-	if err := e.modelcore.GeneralLedgerManager.CreateWithTx(ctx, tx, cashOnHandGeneralLedger); err != nil {
+	if err := e.core.GeneralLedgerManager.CreateWithTx(ctx, tx, cashOnHandGeneralLedger); err != nil {
 		tx.Rollback()
 		e.Footstep(ctx, echoCtx, FootstepEvent{
 			Activity:    "ledger-create-error",

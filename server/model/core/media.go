@@ -54,17 +54,17 @@ type (
 	}
 )
 
-func (c *Core) media() {
-	c.Migration = append(c.Migration, &Media{})
-	c.MediaManager = *registry.NewRegistry(registry.RegistryParams[Media, MediaResponse, MediaRequest]{
+func (m *Core) media() {
+	m.Migration = append(m.Migration, &Media{})
+	m.MediaManager = *registry.NewRegistry(registry.RegistryParams[Media, MediaResponse, MediaRequest]{
 		Preloads: nil,
-		Service:  c.provider.Service,
+		Service:  m.provider.Service,
 		Resource: func(data *Media) *MediaResponse {
 			context := context.Background()
 			if data == nil {
 				return nil
 			}
-			temporary, err := c.provider.Service.Storage.GeneratePresignedURL(
+			temporary, err := m.provider.Service.Storage.GeneratePresignedURL(
 				context, &horizon.Storage{
 					StorageKey: data.StorageKey,
 					BucketName: data.BucketName,
@@ -108,4 +108,35 @@ func (c *Core) media() {
 			}
 		},
 	})
+}
+
+// MediaDelete deletes media and its associated file from storage
+func (m *Core) MediaDelete(context context.Context, mediaID uuid.UUID) error {
+	if mediaID == uuid.Nil {
+		return nil
+	}
+	media, err := m.MediaManager.GetByID(context, mediaID)
+	if err != nil {
+		return err
+	}
+	if media == nil {
+		return nil
+	}
+	if err := m.MediaManager.Delete(context, media.ID); err != nil {
+		return err
+	}
+	if err := m.provider.Service.Storage.DeleteFile(context, &horizon.Storage{
+		FileName:   media.FileName,
+		FileSize:   media.FileSize,
+		FileType:   media.FileType,
+		StorageKey: media.StorageKey,
+		URL:        media.URL,
+		BucketName: media.BucketName,
+		Status:     "delete",
+	}); err != nil {
+		return err
+	}
+
+	return nil
+
 }

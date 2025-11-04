@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -20,22 +20,22 @@ func (c *Controller) subscriptionPlanController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/subscription-plan",
 		Method:       "GET",
-		ResponseType: modelcore.SubscriptionPlanResponse{},
+		ResponseType: core.SubscriptionPlanResponse{},
 		Note:         "Returns all subscription plans.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		categories, err := c.modelcore.SubscriptionPlanManager.List(context)
+		categories, err := c.core.SubscriptionPlanManager.List(context)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve subscription plans: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelcore.SubscriptionPlanManager.Filtered(context, ctx, categories))
+		return ctx.JSON(http.StatusOK, c.core.SubscriptionPlanManager.Filtered(context, ctx, categories))
 	})
 
 	// Get a subscription plan by its ID
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/subscription-plan/:subscription_plan_id",
 		Method:       "GET",
-		ResponseType: modelcore.SubscriptionPlanResponse{},
+		ResponseType: core.SubscriptionPlanResponse{},
 		Note:         "Returns a specific subscription plan by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -44,7 +44,7 @@ func (c *Controller) subscriptionPlanController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid subscription_plan_id: " + err.Error()})
 		}
 
-		subscriptionPlan, err := c.modelcore.SubscriptionPlanManager.GetByIDRaw(context, *subscriptionPlanID)
+		subscriptionPlan, err := c.core.SubscriptionPlanManager.GetByIDRaw(context, *subscriptionPlanID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "SubscriptionPlan not found: " + err.Error()})
 		}
@@ -56,12 +56,12 @@ func (c *Controller) subscriptionPlanController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/subscription-plan",
 		Method:       "POST",
-		ResponseType: modelcore.SubscriptionPlanResponse{},
-		RequestType:  modelcore.SubscriptionPlanRequest{},
+		ResponseType: core.SubscriptionPlanResponse{},
+		RequestType:  core.SubscriptionPlanRequest{},
 		Note:         "Creates a new subscription plan.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.modelcore.SubscriptionPlanManager.Validate(ctx)
+		req, err := c.core.SubscriptionPlanManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -71,7 +71,7 @@ func (c *Controller) subscriptionPlanController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		subscriptionPlan := &modelcore.SubscriptionPlan{
+		subscriptionPlan := &core.SubscriptionPlan{
 			Name:                     req.Name,
 			Description:              req.Description,
 			Cost:                     req.Cost,
@@ -92,7 +92,7 @@ func (c *Controller) subscriptionPlanController() {
 			UpdatedAt:                time.Now().UTC(),
 		}
 
-		if err := c.modelcore.SubscriptionPlanManager.Create(context, subscriptionPlan); err != nil {
+		if err := c.core.SubscriptionPlanManager.Create(context, subscriptionPlan); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create subscription plan failed: create error: " + err.Error(),
@@ -107,15 +107,15 @@ func (c *Controller) subscriptionPlanController() {
 			Module:      "SubscriptionPlan",
 		})
 
-		return ctx.JSON(http.StatusOK, c.modelcore.SubscriptionPlanManager.ToModel(subscriptionPlan))
+		return ctx.JSON(http.StatusOK, c.core.SubscriptionPlanManager.ToModel(subscriptionPlan))
 	})
 
 	// Update a subscription plan by its ID
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/subscription-plan/:subscription_plan_id",
 		Method:       "PUT",
-		ResponseType: modelcore.SubscriptionPlanResponse{},
-		RequestType:  modelcore.SubscriptionPlanRequest{},
+		ResponseType: core.SubscriptionPlanResponse{},
+		RequestType:  core.SubscriptionPlanRequest{},
 		Note:         "Updates an existing subscription plan by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -129,7 +129,7 @@ func (c *Controller) subscriptionPlanController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid subscription_plan_id: " + err.Error()})
 		}
 
-		req, err := c.modelcore.SubscriptionPlanManager.Validate(ctx)
+		req, err := c.core.SubscriptionPlanManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -139,7 +139,7 @@ func (c *Controller) subscriptionPlanController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		subscriptionPlan, err := c.modelcore.SubscriptionPlanManager.GetByID(context, *subscriptionPlanID)
+		subscriptionPlan, err := c.core.SubscriptionPlanManager.GetByID(context, *subscriptionPlanID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -167,7 +167,7 @@ func (c *Controller) subscriptionPlanController() {
 		subscriptionPlan.CurrencyID = req.CurrencyID
 		subscriptionPlan.UpdatedAt = time.Now().UTC()
 
-		if err := c.modelcore.SubscriptionPlanManager.UpdateFields(context, subscriptionPlan.ID, subscriptionPlan); err != nil {
+		if err := c.core.SubscriptionPlanManager.UpdateFields(context, subscriptionPlan.ID, subscriptionPlan); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update subscription plan failed: update error: " + err.Error(),
@@ -182,7 +182,7 @@ func (c *Controller) subscriptionPlanController() {
 			Module:      "SubscriptionPlan",
 		})
 
-		return ctx.JSON(http.StatusOK, c.modelcore.SubscriptionPlanManager.ToModel(subscriptionPlan))
+		return ctx.JSON(http.StatusOK, c.core.SubscriptionPlanManager.ToModel(subscriptionPlan))
 	})
 
 	// Delete a subscription plan by its ID
@@ -202,7 +202,7 @@ func (c *Controller) subscriptionPlanController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid subscription_plan_id: " + err.Error()})
 		}
 
-		subscriptionPlan, err := c.modelcore.SubscriptionPlanManager.GetByID(context, *subscriptionPlanID)
+		subscriptionPlan, err := c.core.SubscriptionPlanManager.GetByID(context, *subscriptionPlanID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -212,7 +212,7 @@ func (c *Controller) subscriptionPlanController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "SubscriptionPlan not found: " + err.Error()})
 		}
 
-		if err := c.modelcore.SubscriptionPlanManager.DeleteByID(context, *subscriptionPlanID); err != nil {
+		if err := c.core.SubscriptionPlanManager.DeleteByID(context, *subscriptionPlanID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete subscription plan failed: delete error: " + err.Error(),
@@ -234,11 +234,11 @@ func (c *Controller) subscriptionPlanController() {
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/subscription-plan/bulk-delete",
 		Method:      "DELETE",
-		RequestType: modelcore.IDSRequest{},
+		RequestType: core.IDSRequest{},
 		Note:        "Deletes multiple subscription plan records.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody modelcore.IDSRequest
+		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -282,7 +282,7 @@ func (c *Controller) subscriptionPlanController() {
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s - %v", rawID, err)})
 			}
 
-			subscriptionPlan, err := c.modelcore.SubscriptionPlanManager.GetByID(context, subscriptionPlanID)
+			subscriptionPlan, err := c.core.SubscriptionPlanManager.GetByID(context, subscriptionPlanID)
 			if err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -294,7 +294,7 @@ func (c *Controller) subscriptionPlanController() {
 			}
 
 			namesSlice = append(namesSlice, subscriptionPlan.Name)
-			if err := c.modelcore.SubscriptionPlanManager.DeleteByIDWithTx(context, tx, subscriptionPlanID); err != nil {
+			if err := c.core.SubscriptionPlanManager.DeleteByIDWithTx(context, tx, subscriptionPlanID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",
@@ -329,7 +329,7 @@ func (c *Controller) subscriptionPlanController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/subscription-plan/currency/:currency_id",
 		Method:       "GET",
-		ResponseType: modelcore.SubscriptionPlanResponse{},
+		ResponseType: core.SubscriptionPlanResponse{},
 		Note:         "Returns all subscription plans for a specific currency.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -337,7 +337,7 @@ func (c *Controller) subscriptionPlanController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency_id: " + err.Error()})
 		}
-		subscriptionPlans, err := c.modelcore.SubscriptionPlanManager.FindRaw(context, &modelcore.SubscriptionPlan{
+		subscriptionPlans, err := c.core.SubscriptionPlanManager.FindRaw(context, &core.SubscriptionPlan{
 			CurrencyID: currencyID,
 		})
 		if err != nil {

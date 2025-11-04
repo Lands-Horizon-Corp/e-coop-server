@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/labstack/echo/v4"
 )
@@ -18,8 +18,8 @@ func (c *Controller) memberAssetController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-asset/member-profile/:member_profile_id",
 		Method:       "POST",
-		RequestType:  modelcore.MemberAsset{},
-		ResponseType: modelcore.MemberAsset{},
+		RequestType:  core.MemberAsset{},
+		ResponseType: core.MemberAsset{},
 		Note:         "Creates a new asset record for a member profile.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -32,7 +32,7 @@ func (c *Controller) memberAssetController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
 		}
-		req, err := c.modelcore.MemberAssetManager.Validate(ctx)
+		req, err := c.core.MemberAssetManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -58,7 +58,7 @@ func (c *Controller) memberAssetController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		value := &modelcore.MemberAsset{
+		value := &core.MemberAsset{
 			MemberProfileID: memberProfileID,
 			MediaID:         req.MediaID,
 			Name:            req.Name,
@@ -72,7 +72,7 @@ func (c *Controller) memberAssetController() {
 			BranchID:        *user.BranchID,
 			OrganizationID:  user.OrganizationID,
 		}
-		if err := c.modelcore.MemberAssetManager.Create(context, value); err != nil {
+		if err := c.core.MemberAssetManager.Create(context, value); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member asset failed (/member-asset/member-profile/:member_profile_id), db error: " + err.Error(),
@@ -85,15 +85,15 @@ func (c *Controller) memberAssetController() {
 			Description: "Created member asset (/member-asset/member-profile/:member_profile_id): " + value.Name,
 			Module:      "MemberAsset",
 		})
-		return ctx.JSON(http.StatusCreated, c.modelcore.MemberAssetManager.ToModel(value))
+		return ctx.JSON(http.StatusCreated, c.core.MemberAssetManager.ToModel(value))
 	})
 
 	// PUT /member-asset/:member_asset_id: Update an existing asset record for a member.
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-asset/:member_asset_id",
 		Method:       "PUT",
-		RequestType:  modelcore.MemberAsset{},
-		ResponseType: modelcore.MemberAsset{},
+		RequestType:  core.MemberAsset{},
+		ResponseType: core.MemberAsset{},
 		Note:         "Updates an existing asset record for a member profile.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -106,7 +106,7 @@ func (c *Controller) memberAssetController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member asset ID"})
 		}
-		req, err := c.modelcore.MemberAssetManager.Validate(ctx)
+		req, err := c.core.MemberAssetManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -132,7 +132,7 @@ func (c *Controller) memberAssetController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		value, err := c.modelcore.MemberAssetManager.GetByID(context, *memberAssetID)
+		value, err := c.core.MemberAssetManager.GetByID(context, *memberAssetID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -151,7 +151,7 @@ func (c *Controller) memberAssetController() {
 		value.Description = req.Description
 		value.Cost = req.Cost
 
-		if err := c.modelcore.MemberAssetManager.UpdateFields(context, value.ID, value); err != nil {
+		if err := c.core.MemberAssetManager.UpdateFields(context, value.ID, value); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member asset failed (/member-asset/:member_asset_id), db error: " + err.Error(),
@@ -164,7 +164,7 @@ func (c *Controller) memberAssetController() {
 			Description: "Updated member asset (/member-asset/:member_asset_id): " + value.Name,
 			Module:      "MemberAsset",
 		})
-		return ctx.JSON(http.StatusOK, c.modelcore.MemberAssetManager.ToModel(value))
+		return ctx.JSON(http.StatusOK, c.core.MemberAssetManager.ToModel(value))
 	})
 
 	// DELETE /member-asset/:member_asset_id: Delete a member's asset record by ID.
@@ -183,7 +183,7 @@ func (c *Controller) memberAssetController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member asset ID"})
 		}
-		value, err := c.modelcore.MemberAssetManager.GetByID(context, *memberAssetID)
+		value, err := c.core.MemberAssetManager.GetByID(context, *memberAssetID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -192,7 +192,7 @@ func (c *Controller) memberAssetController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member asset record not found"})
 		}
-		if err := c.modelcore.MemberAssetManager.DeleteByID(context, *memberAssetID); err != nil {
+		if err := c.core.MemberAssetManager.DeleteByID(context, *memberAssetID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member asset failed (/member-asset/:member_asset_id), db error: " + err.Error(),

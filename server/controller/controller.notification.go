@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -18,7 +18,7 @@ func (c *Controller) notificationController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/notification/me",
 		Method:       "GET",
-		ResponseType: modelcore.NotificationResponse{},
+		ResponseType: core.NotificationResponse{},
 		Note:         "Returns all notifications for the currently logged-in user.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -26,24 +26,24 @@ func (c *Controller) notificationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get current user: " + err.Error()})
 		}
-		notification, err := c.modelcore.GetNotificationByUser(context, user.ID)
+		notification, err := c.core.GetNotificationByUser(context, user.ID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get notifications: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelcore.NotificationManager.Filtered(context, ctx, notification))
+		return ctx.JSON(http.StatusOK, c.core.NotificationManager.Filtered(context, ctx, notification))
 	})
 
 	// Mark multiple notifications as viewed
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/notification/view",
 		Method:       "PUT",
-		RequestType:  modelcore.IDSRequest{},
-		ResponseType: modelcore.NotificationResponse{},
+		RequestType:  core.IDSRequest{},
+		ResponseType: core.NotificationResponse{},
 		Note:         "Marks multiple notifications as viewed for the current user.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		var reqBody modelcore.IDSRequest
+		var reqBody core.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -86,7 +86,7 @@ func (c *Controller) notificationController() {
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s - %v", rawID, err)})
 			}
 
-			notification, err := c.modelcore.NotificationManager.GetByID(context, notificationID)
+			notification, err := c.core.NotificationManager.GetByID(context, notificationID)
 			if err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -102,7 +102,7 @@ func (c *Controller) notificationController() {
 			}
 
 			notification.IsViewed = true
-			if err := c.modelcore.NotificationManager.UpdateFields(context, notification.ID, notification); err != nil {
+			if err := c.core.NotificationManager.UpdateFields(context, notification.ID, notification); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "update-error",
@@ -113,7 +113,7 @@ func (c *Controller) notificationController() {
 			}
 		}
 
-		notifications, err := c.modelcore.GetNotificationByUser(context, user.ID)
+		notifications, err := c.core.GetNotificationByUser(context, user.ID)
 		if err != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -140,14 +140,14 @@ func (c *Controller) notificationController() {
 			Module:      "Notification",
 		})
 
-		return ctx.JSON(http.StatusOK, c.modelcore.NotificationManager.Filtered(context, ctx, notifications))
+		return ctx.JSON(http.StatusOK, c.core.NotificationManager.Filtered(context, ctx, notifications))
 	})
 
 	// PUT /api/v1/notification/view-all
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/notification/view-all",
 		Method:       "PUT",
-		ResponseType: modelcore.NotificationResponse{},
+		ResponseType: core.NotificationResponse{},
 		Note:         "Marks all user notifications as viewed",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -165,7 +165,7 @@ func (c *Controller) notificationController() {
 			})
 		}
 
-		notifications, err := c.modelcore.NotificationManager.Find(context, &modelcore.Notification{
+		notifications, err := c.core.NotificationManager.Find(context, &core.Notification{
 			UserID: user.ID,
 		})
 		if err != nil {
@@ -195,7 +195,7 @@ func (c *Controller) notificationController() {
 
 		viewedCount := 0
 		for _, notif := range notifications {
-			notification, err := c.modelcore.NotificationManager.GetByID(context, notif.ID)
+			notification, err := c.core.NotificationManager.GetByID(context, notif.ID)
 			if err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -214,7 +214,7 @@ func (c *Controller) notificationController() {
 			}
 
 			notification.IsViewed = true
-			if err := c.modelcore.NotificationManager.UpdateFields(context, notification.ID, notification); err != nil {
+			if err := c.core.NotificationManager.UpdateFields(context, notification.ID, notification); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "update-error",
@@ -249,7 +249,7 @@ func (c *Controller) notificationController() {
 			Description: fmt.Sprintf("User %s marked %d notifications as viewed", user.ID, viewedCount),
 			Module:      "Notification",
 		})
-		newNotifications, err := c.modelcore.NotificationManager.Find(context, &modelcore.Notification{
+		newNotifications, err := c.core.NotificationManager.Find(context, &core.Notification{
 			UserID: user.ID,
 		})
 		if err != nil {
@@ -258,7 +258,7 @@ func (c *Controller) notificationController() {
 				"error":   err.Error(),
 			})
 		}
-		return ctx.JSON(http.StatusOK, c.modelcore.NotificationManager.ToModels(newNotifications))
+		return ctx.JSON(http.StatusOK, c.core.NotificationManager.ToModels(newNotifications))
 	})
 
 	// Delete a notification by its ID
@@ -277,7 +277,7 @@ func (c *Controller) notificationController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid notification_id: " + err.Error()})
 		}
-		notification, err := c.modelcore.NotificationManager.GetByID(context, *notificationID)
+		notification, err := c.core.NotificationManager.GetByID(context, *notificationID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -286,7 +286,7 @@ func (c *Controller) notificationController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Notification with ID %s not found: %v", notification.ID, err)})
 		}
-		if err := c.modelcore.NotificationManager.DeleteByID(context, notification.ID); err != nil {
+		if err := c.core.NotificationManager.DeleteByID(context, notification.ID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete notification failed: " + err.Error(),

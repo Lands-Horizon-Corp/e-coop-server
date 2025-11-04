@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -22,8 +22,8 @@ func (c *Controller) chargesRateSchemeModeOfPaymentController() {
 		Route:        "/api/v1/charges-rate-scheme-mode-of-payment/charges-rate-scheme/:charges_rate_scheme_id",
 		Method:       "POST",
 		Note:         "Creates a new charges rate scheme model of payment for the current user's organization and branch.",
-		RequestType:  modelcore.ChargesRateSchemeModeOfPaymentRequest{},
-		ResponseType: modelcore.ChargesRateSchemeModeOfPaymentResponse{},
+		RequestType:  core.ChargesRateSchemeModeOfPaymentRequest{},
+		ResponseType: core.ChargesRateSchemeModeOfPaymentResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		chargesRateSchemeID, err := handlers.EngineUUIDParam(ctx, "charges_rate_scheme_id")
@@ -35,7 +35,7 @@ func (c *Controller) chargesRateSchemeModeOfPaymentController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid charges rate scheme ID"})
 		}
-		req, err := c.modelcore.ChargesRateSchemeModeOfPaymentManager.Validate(ctx)
+		req, err := c.core.ChargesRateSchemeModeOfPaymentManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -62,7 +62,7 @@ func (c *Controller) chargesRateSchemeModeOfPaymentController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		chargesRateSchemeModeOfPayment := &modelcore.ChargesRateSchemeModeOfPayment{
+		chargesRateSchemeModeOfPayment := &core.ChargesRateSchemeModeOfPayment{
 			ChargesRateSchemeID: *chargesRateSchemeID,
 			From:                req.From,
 			To:                  req.To,
@@ -96,7 +96,7 @@ func (c *Controller) chargesRateSchemeModeOfPaymentController() {
 			OrganizationID:      user.OrganizationID,
 		}
 
-		if err := c.modelcore.ChargesRateSchemeModeOfPaymentManager.Create(context, chargesRateSchemeModeOfPayment); err != nil {
+		if err := c.core.ChargesRateSchemeModeOfPaymentManager.Create(context, chargesRateSchemeModeOfPayment); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Charges rate scheme model of payment creation failed (/charges-rate-scheme-mode-of-payment), db error: " + err.Error(),
@@ -109,7 +109,7 @@ func (c *Controller) chargesRateSchemeModeOfPaymentController() {
 			Description: "Created charges rate scheme model of payment (/charges-rate-scheme-mode-of-payment): " + chargesRateSchemeModeOfPayment.ID.String(),
 			Module:      "ChargesRateSchemeModeOfPayment",
 		})
-		return ctx.JSON(http.StatusCreated, c.modelcore.ChargesRateSchemeModeOfPaymentManager.ToModel(chargesRateSchemeModeOfPayment))
+		return ctx.JSON(http.StatusCreated, c.core.ChargesRateSchemeModeOfPaymentManager.ToModel(chargesRateSchemeModeOfPayment))
 	})
 
 	// PUT /charges-rate-scheme-mode-of-payment/:charges_rate_scheme_model_of_payment_id: Update charges rate scheme model of payment by ID. (WITH footstep)
@@ -117,8 +117,8 @@ func (c *Controller) chargesRateSchemeModeOfPaymentController() {
 		Route:        "/api/v1/charges-rate-scheme-mode-of-payment/:charges_rate_scheme_model_of_payment_id",
 		Method:       "PUT",
 		Note:         "Updates an existing charges rate scheme model of payment by its ID.",
-		RequestType:  modelcore.ChargesRateSchemeModeOfPaymentRequest{},
-		ResponseType: modelcore.ChargesRateSchemeModeOfPaymentResponse{},
+		RequestType:  core.ChargesRateSchemeModeOfPaymentRequest{},
+		ResponseType: core.ChargesRateSchemeModeOfPaymentResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		chargesRateSchemeModeOfPaymentID, err := handlers.EngineUUIDParam(ctx, "charges_rate_scheme_model_of_payment_id")
@@ -131,7 +131,7 @@ func (c *Controller) chargesRateSchemeModeOfPaymentController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid charges rate scheme model of payment ID"})
 		}
 
-		req, err := c.modelcore.ChargesRateSchemeModeOfPaymentManager.Validate(ctx)
+		req, err := c.core.ChargesRateSchemeModeOfPaymentManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -149,7 +149,7 @@ func (c *Controller) chargesRateSchemeModeOfPaymentController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		chargesRateSchemeModeOfPayment, err := c.modelcore.ChargesRateSchemeModeOfPaymentManager.GetByID(context, *chargesRateSchemeModeOfPaymentID)
+		chargesRateSchemeModeOfPayment, err := c.core.ChargesRateSchemeModeOfPaymentManager.GetByID(context, *chargesRateSchemeModeOfPaymentID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -184,7 +184,7 @@ func (c *Controller) chargesRateSchemeModeOfPaymentController() {
 		chargesRateSchemeModeOfPayment.Column22 = req.Column22
 		chargesRateSchemeModeOfPayment.UpdatedAt = time.Now().UTC()
 		chargesRateSchemeModeOfPayment.UpdatedByID = user.UserID
-		if err := c.modelcore.ChargesRateSchemeModeOfPaymentManager.UpdateFields(context, chargesRateSchemeModeOfPayment.ID, chargesRateSchemeModeOfPayment); err != nil {
+		if err := c.core.ChargesRateSchemeModeOfPaymentManager.UpdateFields(context, chargesRateSchemeModeOfPayment.ID, chargesRateSchemeModeOfPayment); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Charges rate scheme model of payment update failed (/charges-rate-scheme-mode-of-payment/:charges_rate_scheme_model_of_payment_id), db error: " + err.Error(),
@@ -197,7 +197,7 @@ func (c *Controller) chargesRateSchemeModeOfPaymentController() {
 			Description: "Updated charges rate scheme model of payment (/charges-rate-scheme-mode-of-payment/:charges_rate_scheme_model_of_payment_id): " + chargesRateSchemeModeOfPayment.ID.String(),
 			Module:      "ChargesRateSchemeModeOfPayment",
 		})
-		return ctx.JSON(http.StatusOK, c.modelcore.ChargesRateSchemeModeOfPaymentManager.ToModel(chargesRateSchemeModeOfPayment))
+		return ctx.JSON(http.StatusOK, c.core.ChargesRateSchemeModeOfPaymentManager.ToModel(chargesRateSchemeModeOfPayment))
 	})
 
 	// DELETE /charges-rate-scheme-mode-of-payment/:charges_rate_scheme_model_of_payment_id: Delete a charges rate scheme model of payment by ID. (WITH footstep)
@@ -216,7 +216,7 @@ func (c *Controller) chargesRateSchemeModeOfPaymentController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid charges rate scheme model of payment ID"})
 		}
-		chargesRateSchemeModeOfPayment, err := c.modelcore.ChargesRateSchemeModeOfPaymentManager.GetByID(context, *chargesRateSchemeModeOfPaymentID)
+		chargesRateSchemeModeOfPayment, err := c.core.ChargesRateSchemeModeOfPaymentManager.GetByID(context, *chargesRateSchemeModeOfPaymentID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -225,7 +225,7 @@ func (c *Controller) chargesRateSchemeModeOfPaymentController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Charges rate scheme model of payment not found"})
 		}
-		if err := c.modelcore.ChargesRateSchemeModeOfPaymentManager.DeleteByID(context, *chargesRateSchemeModeOfPaymentID); err != nil {
+		if err := c.core.ChargesRateSchemeModeOfPaymentManager.DeleteByID(context, *chargesRateSchemeModeOfPaymentID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Charges rate scheme model of payment delete failed (/charges-rate-scheme-mode-of-payment/:charges_rate_scheme_model_of_payment_id), db error: " + err.Error(),
@@ -246,10 +246,10 @@ func (c *Controller) chargesRateSchemeModeOfPaymentController() {
 		Route:       "/api/v1/charges-rate-scheme-mode-of-payment/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple charges rate scheme model of payment by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: modelcore.IDSRequest{},
+		RequestType: core.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody modelcore.IDSRequest
+		var reqBody core.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
@@ -288,7 +288,7 @@ func (c *Controller) chargesRateSchemeModeOfPaymentController() {
 				})
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
 			}
-			chargesRateSchemeModeOfPayment, err := c.modelcore.ChargesRateSchemeModeOfPaymentManager.GetByID(context, chargesRateSchemeModeOfPaymentID)
+			chargesRateSchemeModeOfPayment, err := c.core.ChargesRateSchemeModeOfPaymentManager.GetByID(context, chargesRateSchemeModeOfPaymentID)
 			if err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -300,7 +300,7 @@ func (c *Controller) chargesRateSchemeModeOfPaymentController() {
 			}
 			sb.WriteString(chargesRateSchemeModeOfPayment.ID.String())
 			sb.WriteByte(',')
-			if err := c.modelcore.ChargesRateSchemeModeOfPaymentManager.DeleteByIDWithTx(context, tx, chargesRateSchemeModeOfPaymentID); err != nil {
+			if err := c.core.ChargesRateSchemeModeOfPaymentManager.DeleteByIDWithTx(context, tx, chargesRateSchemeModeOfPaymentID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

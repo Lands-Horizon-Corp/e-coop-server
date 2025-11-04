@@ -153,32 +153,6 @@ func (r *Registry[TData, TResponse, TRequest]) FindFilterQuery(
 	return data, nil
 }
 
-// FindFilterQueryLock - finds filtered entities from query params with row-level lock (FOR UPDATE)
-func (r *Registry[TData, TResponse, TRequest]) FindFilterQueryLock(
-	context context.Context,
-	tx *gorm.DB,
-	ctx echo.Context,
-	preloads ...string,
-) (*filter.PaginationResult[TData], error) {
-	filterRoot, pageIndex, pageSize, err := parseQuery(ctx)
-	if err != nil {
-		return &filter.PaginationResult[TData]{}, eris.Wrap(err, "failed to parse query")
-	}
-	if preloads == nil {
-		preloads = r.preloads
-	}
-	filterRoot.Preload = preloads
-
-	// Apply lock to the transaction
-	lockedTx := tx.Clauses(clause.Locking{Strength: "UPDATE"})
-
-	data, err := r.filtering.DataGorm(lockedTx, filterRoot, pageIndex, pageSize)
-	if err != nil {
-		return &filter.PaginationResult[TData]{}, eris.Wrap(err, "failed to find filtered entities with lock")
-	}
-	return data, nil
-}
-
 // FindFilterQueryRaw
 func (r *Registry[TData, TResponse, TRequest]) FindFilterQueryRaw(
 	context context.Context,

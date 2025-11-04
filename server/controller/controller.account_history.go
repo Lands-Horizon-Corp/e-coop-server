@@ -3,7 +3,7 @@ package v1
 import (
 	"net/http"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/labstack/echo/v4"
 )
@@ -15,7 +15,7 @@ func (c *Controller) accountHistory() {
 	req.RegisterRoute(handlers.Route{
 		Method:       "GET",
 		Route:        "/api/v1/account-history/account/:account_id",
-		ResponseType: modelcore.AccountHistoryResponse{},
+		ResponseType: core.AccountHistoryResponse{},
 		Note:         "Get account history by account ID",
 	},
 		func(ctx echo.Context) error {
@@ -28,7 +28,7 @@ func (c *Controller) accountHistory() {
 			if err != nil {
 				return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
 			}
-			accountHistory, err := c.modelcore.AccountHistoryManager.FindRaw(context, &modelcore.AccountHistory{
+			accountHistory, err := c.core.AccountHistoryManager.FindRaw(context, &core.AccountHistory{
 				AccountID:      *accountID,
 				OrganizationID: userOrg.OrganizationID,
 				BranchID:       *userOrg.BranchID,

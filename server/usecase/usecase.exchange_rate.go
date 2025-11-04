@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/rotisserie/eris"
 )
 
@@ -102,8 +102,8 @@ func GetExchangeRate(currencyFrom, currencyTo string, amount float64) (*Exchange
 
 // ExchangeRateComputeAmount computes the exchange rate and converts amount between two currencies
 func (s *TransactionService) ExchangeRateComputeAmount(
-	fromCurrency modelcore.Currency,
-	toCurrency modelcore.Currency,
+	fromCurrency core.Currency,
+	toCurrency core.Currency,
 	amount float64) (*ExchangeResult, error) {
 
 	fromCurrencyStr := fromCurrency.CurrencyCode

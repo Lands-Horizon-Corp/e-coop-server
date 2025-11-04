@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -20,7 +20,7 @@ func (c *Controller) memberProfileController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-profile/pending",
 		Method:       "GET",
-		ResponseType: modelcore.MemberProfileResponse{},
+		ResponseType: core.MemberProfileResponse{},
 		Note:         "Returns all pending member profiles for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -28,10 +28,10 @@ func (c *Controller) memberProfileController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		if userOrg.UserType != modelcore.UserOrganizationTypeOwner && userOrg.UserType != modelcore.UserOrganizationTypeEmployee {
+		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
-		memberProfile, err := c.modelcore.MemberProfileManager.Find(context, &modelcore.MemberProfile{
+		memberProfile, err := c.core.MemberProfileManager.Find(context, &core.MemberProfile{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Status:         "pending",
@@ -39,15 +39,15 @@ func (c *Controller) memberProfileController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get pending member profiles: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelcore.MemberProfileManager.Filtered(context, ctx, memberProfile))
+		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.Filtered(context, ctx, memberProfile))
 	})
 
 	// Quickly create a new user account and link it to a member profile by ID
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/user-account",
 		Method:       "POST",
-		RequestType:  modelcore.MemberProfileUserAccountRequest{},
-		ResponseType: modelcore.MemberProfileResponse{},
+		RequestType:  core.MemberProfileUserAccountRequest{},
+		ResponseType: core.MemberProfileResponse{},
 		Note:         "Links a minimal user account to a member profile by member_profile_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -60,7 +60,7 @@ func (c *Controller) memberProfileController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
-		var req modelcore.MemberProfileUserAccountRequest
+		var req core.MemberProfileUserAccountRequest
 		if err := ctx.Bind(&req); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -98,7 +98,7 @@ func (c *Controller) memberProfileController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to hash password: " + err.Error()})
 		}
-		userProfile := &modelcore.User{
+		userProfile := &core.User{
 			Email:             req.Email,
 			UserName:          req.UserName,
 			ContactNumber:     req.ContactNumber,
@@ -114,7 +114,7 @@ func (c *Controller) memberProfileController() {
 			UpdatedAt:         time.Now().UTC(),
 			Birthdate:         req.BirthDate,
 		}
-		if err := c.modelcore.UserManager.CreateWithTx(context, tx, userProfile); err != nil {
+		if err := c.core.UserManager.CreateWithTx(context, tx, userProfile); err != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -132,7 +132,7 @@ func (c *Controller) memberProfileController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Database error: " + tx.Error.Error()})
 		}
-		memberProfile, err := c.modelcore.MemberProfileManager.GetByID(context, *memberProfileID)
+		memberProfile, err := c.core.MemberProfileManager.GetByID(context, *memberProfileID)
 		if err != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -146,7 +146,7 @@ func (c *Controller) memberProfileController() {
 		memberProfile.UpdatedAt = time.Now().UTC()
 		memberProfile.UpdatedByID = userOrg.UserID
 
-		if err := c.modelcore.MemberProfileManager.UpdateFieldsWithTx(context, tx, memberProfile.ID, memberProfile); err != nil {
+		if err := c.core.MemberProfileManager.UpdateFieldsWithTx(context, tx, memberProfile.ID, memberProfile); err != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -167,7 +167,7 @@ func (c *Controller) memberProfileController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate developer key: " + err.Error()})
 		}
 		developerKey = developerKey + uuid.NewString() + "-horizon"
-		newUserOrg := &modelcore.UserOrganization{
+		newUserOrg := &core.UserOrganization{
 			CreatedAt:                time.Now().UTC(),
 			CreatedByID:              userOrg.UserID,
 			UpdatedAt:                time.Now().UTC(),
@@ -175,12 +175,12 @@ func (c *Controller) memberProfileController() {
 			OrganizationID:           userOrg.OrganizationID,
 			BranchID:                 userOrg.BranchID,
 			UserID:                   userProfile.ID,
-			UserType:                 modelcore.UserOrganizationTypeMember,
+			UserType:                 core.UserOrganizationTypeMember,
 			Description:              "",
 			ApplicationDescription:   "anything",
 			ApplicationStatus:        "accepted",
 			DeveloperSecretKey:       developerKey,
-			PermissionName:           string(modelcore.UserOrganizationTypeMember),
+			PermissionName:           string(core.UserOrganizationTypeMember),
 			PermissionDescription:    "",
 			Permissions:              []string{},
 			UserSettingDescription:   "user settings",
@@ -192,7 +192,7 @@ func (c *Controller) memberProfileController() {
 			UserSettingUsedVoucher:   0,
 			UserSettingNumberPadding: 7,
 		}
-		if err := c.modelcore.UserOrganizationManager.CreateWithTx(context, tx, newUserOrg); err != nil {
+		if err := c.core.UserOrganizationManager.CreateWithTx(context, tx, newUserOrg); err != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -217,14 +217,14 @@ func (c *Controller) memberProfileController() {
 			Module:      "MemberProfile",
 		})
 
-		return ctx.JSON(http.StatusOK, c.modelcore.MemberProfileManager.ToModel(memberProfile))
+		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(memberProfile))
 	})
 
 	// Approve a member profile by ID
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/approve",
 		Method:       "PUT",
-		ResponseType: modelcore.MemberProfileResponse{},
+		ResponseType: core.MemberProfileResponse{},
 		Note:         "Approve a member profile by member_profile_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -246,7 +246,7 @@ func (c *Controller) memberProfileController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		if userOrg.UserType != modelcore.UserOrganizationTypeOwner && userOrg.UserType != modelcore.UserOrganizationTypeEmployee {
+		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "approve-error",
 				Description: "Approve member profile failed: user not authorized",
@@ -254,7 +254,7 @@ func (c *Controller) memberProfileController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
-		memberProfile, err := c.modelcore.MemberProfileManager.GetByID(context, *memberProfileID)
+		memberProfile, err := c.core.MemberProfileManager.GetByID(context, *memberProfileID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "approve-error",
@@ -265,7 +265,7 @@ func (c *Controller) memberProfileController() {
 		}
 		memberProfile.Status = "verified"
 		memberProfile.MemberVerifiedByEmployeeUserID = &userOrg.UserID
-		if err := c.modelcore.MemberProfileManager.UpdateFields(context, memberProfile.ID, memberProfile); err != nil {
+		if err := c.core.MemberProfileManager.UpdateFields(context, memberProfile.ID, memberProfile); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "approve-error",
 				Description: "Approve member profile failed: update error: " + err.Error(),
@@ -278,14 +278,14 @@ func (c *Controller) memberProfileController() {
 			Description: "Approved member profile: " + memberProfile.FullName,
 			Module:      "MemberProfile",
 		})
-		return ctx.JSON(http.StatusOK, c.modelcore.MemberProfileManager.ToModel(memberProfile))
+		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(memberProfile))
 	})
 
 	// Reject a member profile by ID
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/reject",
 		Method:       "PUT",
-		ResponseType: modelcore.MemberProfileResponse{},
+		ResponseType: core.MemberProfileResponse{},
 		Note:         "Reject a member profile by member_profile_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -307,7 +307,7 @@ func (c *Controller) memberProfileController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		if userOrg.UserType != modelcore.UserOrganizationTypeOwner && userOrg.UserType != modelcore.UserOrganizationTypeEmployee {
+		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "reject-error",
 				Description: "Reject member profile failed: user not authorized",
@@ -315,7 +315,7 @@ func (c *Controller) memberProfileController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
-		memberProfile, err := c.modelcore.MemberProfileManager.GetByID(context, *memberProfileID)
+		memberProfile, err := c.core.MemberProfileManager.GetByID(context, *memberProfileID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "reject-error",
@@ -325,7 +325,7 @@ func (c *Controller) memberProfileController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found: %v", memberProfileID, err)})
 		}
 		memberProfile.Status = "not allowed"
-		if err := c.modelcore.MemberProfileManager.UpdateFields(context, memberProfile.ID, memberProfile); err != nil {
+		if err := c.core.MemberProfileManager.UpdateFields(context, memberProfile.ID, memberProfile); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "reject-error",
 				Description: "Reject member profile failed: update error: " + err.Error(),
@@ -338,14 +338,14 @@ func (c *Controller) memberProfileController() {
 			Description: "Rejected member profile: " + memberProfile.FullName,
 			Module:      "MemberProfile",
 		})
-		return ctx.JSON(http.StatusOK, c.modelcore.MemberProfileManager.ToModel(memberProfile))
+		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(memberProfile))
 	})
 
 	// Retrieve a list of all member profiles in the current branch
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-profile",
 		Method:       "GET",
-		ResponseType: modelcore.MemberProfileResponse{},
+		ResponseType: core.MemberProfileResponse{},
 		Note:         "Returns all member profiles for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -353,18 +353,18 @@ func (c *Controller) memberProfileController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberProfile, err := c.modelcore.MemberProfileCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
+		memberProfile, err := c.core.MemberProfileCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member profiles: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelcore.MemberProfileManager.Filtered(context, ctx, memberProfile))
+		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.Filtered(context, ctx, memberProfile))
 	})
 
 	// Retrieve paginated member profiles for the current branch
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-profile/search",
 		Method:       "GET",
-		ResponseType: modelcore.MemberProfileResponse{},
+		ResponseType: core.MemberProfileResponse{},
 		Note:         "Returns paginated member profiles for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -372,18 +372,18 @@ func (c *Controller) memberProfileController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := c.modelcore.MemberProfileCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		value, err := c.core.MemberProfileCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member profiles for pagination: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelcore.MemberProfileManager.Pagination(context, ctx, value))
+		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.Pagination(context, ctx, value))
 	})
 
 	// Retrieve a specific member profile by member_profile_id
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id",
 		Method:       "GET",
-		ResponseType: modelcore.MemberProfileResponse{},
+		ResponseType: core.MemberProfileResponse{},
 		Note:         "Returns a specific member profile by its member_profile_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -391,7 +391,7 @@ func (c *Controller) memberProfileController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
-		memberProfile, err := c.modelcore.MemberProfileManager.GetByIDRaw(context, *memberProfileID)
+		memberProfile, err := c.core.MemberProfileManager.GetByIDRaw(context, *memberProfileID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found: %v", memberProfileID, err)})
 		}
@@ -425,7 +425,7 @@ func (c *Controller) memberProfileController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
 		}
 
-		memberProfile, err := c.modelcore.MemberProfileManager.GetByID(context, *memberProfileID)
+		memberProfile, err := c.core.MemberProfileManager.GetByID(context, *memberProfileID)
 		if err != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -435,7 +435,7 @@ func (c *Controller) memberProfileController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found: %v", memberProfileID.String(), err)})
 		}
-		if err := c.modelcore.MemberProfileDestroy(context, tx, memberProfile.ID); err != nil {
+		if err := c.core.MemberProfileDestroy(context, tx, memberProfile.ID); err != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -465,10 +465,10 @@ func (c *Controller) memberProfileController() {
 		Route:       "/api/v1/member-profile/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple member profiles and all their connections by their IDs.",
-		RequestType: modelcore.IDSRequest{},
+		RequestType: core.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody modelcore.IDSRequest
+		var reqBody core.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
@@ -511,7 +511,7 @@ func (c *Controller) memberProfileController() {
 				})
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s - %v", rawID, err)})
 			}
-			memberProfile, err := c.modelcore.MemberProfileManager.GetByID(context, id)
+			memberProfile, err := c.core.MemberProfileManager.GetByID(context, id)
 			if err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -523,7 +523,7 @@ func (c *Controller) memberProfileController() {
 			}
 			namesBuilder.WriteString(memberProfile.FullName)
 			namesBuilder.WriteString(",")
-			if err := c.modelcore.MemberProfileDestroy(context, tx, memberProfile.ID); err != nil {
+			if err := c.core.MemberProfileDestroy(context, tx, memberProfile.ID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",
@@ -554,12 +554,12 @@ func (c *Controller) memberProfileController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/connect-user",
 		Method:       "POST",
-		RequestType:  modelcore.MemberProfileAccountRequest{},
-		ResponseType: modelcore.MemberProfileResponse{},
+		RequestType:  core.MemberProfileAccountRequest{},
+		ResponseType: core.MemberProfileResponse{},
 		Note:         "Connects the specified member profile to a user account by member_profile_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req modelcore.MemberProfileAccountRequest
+		var req core.MemberProfileAccountRequest
 		if err := ctx.Bind(&req); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -585,7 +585,7 @@ func (c *Controller) memberProfileController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
-		memberProfile, err := c.modelcore.MemberProfileManager.GetByID(context, *memberProfileID)
+		memberProfile, err := c.core.MemberProfileManager.GetByID(context, *memberProfileID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -595,7 +595,7 @@ func (c *Controller) memberProfileController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found: %v", memberProfileID, err)})
 		}
 		memberProfile.UserID = req.UserID
-		if err := c.modelcore.MemberProfileManager.UpdateFields(context, memberProfile.ID, memberProfile); err != nil {
+		if err := c.core.MemberProfileManager.UpdateFields(context, memberProfile.ID, memberProfile); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Connect member profile to user account failed: update error: " + err.Error(),
@@ -608,18 +608,18 @@ func (c *Controller) memberProfileController() {
 			Description: fmt.Sprintf("Connected member profile (%s) to user account.", memberProfile.FullName),
 			Module:      "MemberProfile",
 		})
-		return ctx.JSON(http.StatusOK, c.modelcore.MemberProfileManager.ToModel(memberProfile))
+		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(memberProfile))
 	})
 	// Quickly create a new member profile with minimal required fields
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-profile/quick-create",
 		Method:       "POST",
-		RequestType:  modelcore.MemberProfileQuickCreateRequest{},
-		ResponseType: modelcore.MemberProfileResponse{},
+		RequestType:  core.MemberProfileQuickCreateRequest{},
+		ResponseType: core.MemberProfileResponse{},
 		Note:         "Quickly creates a new member profile with minimal required fields.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req modelcore.MemberProfileQuickCreateRequest
+		var req core.MemberProfileQuickCreateRequest
 		if err := ctx.Bind(&req); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -648,7 +648,7 @@ func (c *Controller) memberProfileController() {
 
 		tx := c.provider.Service.Database.Client().Begin()
 
-		var userProfile *modelcore.User
+		var userProfile *core.User
 		var userProfileID *uuid.UUID
 
 		if req.AccountInfo != nil {
@@ -662,7 +662,7 @@ func (c *Controller) memberProfileController() {
 				})
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to hash password: " + err.Error()})
 			}
-			userProfile = &modelcore.User{
+			userProfile = &core.User{
 				Email:             req.AccountInfo.Email,
 				UserName:          req.AccountInfo.UserName,
 				ContactNumber:     req.ContactNumber,
@@ -678,7 +678,7 @@ func (c *Controller) memberProfileController() {
 				UpdatedAt:         time.Now().UTC(),
 				Birthdate:         req.BirthDate,
 			}
-			if err := c.modelcore.UserManager.CreateWithTx(context, tx, userProfile); err != nil {
+			if err := c.core.UserManager.CreateWithTx(context, tx, userProfile); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "create-error",
@@ -699,7 +699,7 @@ func (c *Controller) memberProfileController() {
 			userProfileID = &userProfile.ID
 		}
 
-		profile := &modelcore.MemberProfile{
+		profile := &core.MemberProfile{
 			OrganizationID:       user.OrganizationID,
 			BranchID:             *user.BranchID,
 			CreatedAt:            time.Now().UTC(),
@@ -724,7 +724,7 @@ func (c *Controller) memberProfileController() {
 			IsMicroFinanceMember: req.IsMicroFinanceMember,
 			MemberTypeID:         req.MemberTypeID,
 		}
-		if err := c.modelcore.MemberProfileManager.CreateWithTx(context, tx, profile); err != nil {
+		if err := c.core.MemberProfileManager.CreateWithTx(context, tx, profile); err != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -746,7 +746,7 @@ func (c *Controller) memberProfileController() {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate developer key: " + err.Error()})
 			}
 			developerKey = developerKey + uuid.NewString() + "-horizon"
-			userOrg := &modelcore.UserOrganization{
+			userOrg := &core.UserOrganization{
 				CreatedAt:                time.Now().UTC(),
 				CreatedByID:              user.UserID,
 				UpdatedAt:                time.Now().UTC(),
@@ -754,12 +754,12 @@ func (c *Controller) memberProfileController() {
 				OrganizationID:           user.OrganizationID,
 				BranchID:                 user.BranchID,
 				UserID:                   *userProfileID,
-				UserType:                 modelcore.UserOrganizationTypeMember,
+				UserType:                 core.UserOrganizationTypeMember,
 				Description:              "",
 				ApplicationDescription:   "anything",
 				ApplicationStatus:        "accepted",
 				DeveloperSecretKey:       developerKey,
-				PermissionName:           string(modelcore.UserOrganizationTypeMember),
+				PermissionName:           string(core.UserOrganizationTypeMember),
 				PermissionDescription:    "",
 				Permissions:              []string{},
 				UserSettingDescription:   "user settings",
@@ -771,7 +771,7 @@ func (c *Controller) memberProfileController() {
 				UserSettingUsedVoucher:   0,
 				UserSettingNumberPadding: 7,
 			}
-			if err := c.modelcore.UserOrganizationManager.CreateWithTx(context, tx, userOrg); err != nil {
+			if err := c.core.UserOrganizationManager.CreateWithTx(context, tx, userOrg); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "create-error",
@@ -797,19 +797,19 @@ func (c *Controller) memberProfileController() {
 			Module:      "MemberProfile",
 		})
 
-		return ctx.JSON(http.StatusOK, c.modelcore.MemberProfileManager.ToModel(profile))
+		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(profile))
 	})
 
 	// Update the personal information of a member profile by ID
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/personal-info",
 		Method:       "PUT",
-		RequestType:  modelcore.MemberProfilePersonalInfoRequest{},
-		ResponseType: modelcore.MemberProfileResponse{},
+		RequestType:  core.MemberProfilePersonalInfoRequest{},
+		ResponseType: core.MemberProfileResponse{},
 		Note:         "Updates the personal information of a member profile by member_profile_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req modelcore.MemberProfilePersonalInfoRequest
+		var req core.MemberProfilePersonalInfoRequest
 		if err := ctx.Bind(&req); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -835,7 +835,7 @@ func (c *Controller) memberProfileController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
-		profile, err := c.modelcore.MemberProfileManager.GetByID(context, *memberProfileID)
+		profile, err := c.core.MemberProfileManager.GetByID(context, *memberProfileID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -865,7 +865,7 @@ func (c *Controller) memberProfileController() {
 		profile.CivilStatus = req.CivilStatus
 
 		if req.MemberGenderID != nil && !handlers.UUIDPtrEqual(profile.MemberGenderID, req.MemberGenderID) {
-			data := &modelcore.MemberGenderHistory{
+			data := &core.MemberGenderHistory{
 				OrganizationID:  userOrg.OrganizationID,
 				BranchID:        *userOrg.BranchID,
 				CreatedAt:       time.Now().UTC(),
@@ -875,7 +875,7 @@ func (c *Controller) memberProfileController() {
 				MemberProfileID: *memberProfileID,
 				MemberGenderID:  *req.MemberGenderID,
 			}
-			if err := c.modelcore.MemberGenderHistoryManager.Create(context, data); err != nil {
+			if err := c.core.MemberGenderHistoryManager.Create(context, data); err != nil {
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "Update member profile personal info failed: update gender history error: " + err.Error(),
@@ -886,7 +886,7 @@ func (c *Controller) memberProfileController() {
 			profile.MemberGenderID = req.MemberGenderID
 		}
 		if req.MemberOccupationID != nil && !handlers.UUIDPtrEqual(profile.MemberOccupationID, req.MemberOccupationID) {
-			data := &modelcore.MemberOccupationHistory{
+			data := &core.MemberOccupationHistory{
 				OrganizationID:     userOrg.OrganizationID,
 				BranchID:           *userOrg.BranchID,
 				CreatedAt:          time.Now().UTC(),
@@ -896,7 +896,7 @@ func (c *Controller) memberProfileController() {
 				MemberProfileID:    *memberProfileID,
 				MemberOccupationID: *req.MemberOccupationID,
 			}
-			if err := c.modelcore.MemberOccupationHistoryManager.Create(context, data); err != nil {
+			if err := c.core.MemberOccupationHistoryManager.Create(context, data); err != nil {
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "Update member profile personal info failed: update occupation history error: " + err.Error(),
@@ -913,7 +913,7 @@ func (c *Controller) memberProfileController() {
 		profile.Description = req.Description
 		profile.MediaID = req.MediaID
 		profile.SignatureMediaID = req.SignatureMediaID
-		if err := c.modelcore.MemberProfileManager.UpdateFields(context, profile.ID, profile); err != nil {
+		if err := c.core.MemberProfileManager.UpdateFields(context, profile.ID, profile); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member profile personal info failed: update error: " + err.Error(),
@@ -926,19 +926,19 @@ func (c *Controller) memberProfileController() {
 			Description: fmt.Sprintf("Updated member profile personal info: %s", profile.FullName),
 			Module:      "MemberProfile",
 		})
-		return ctx.JSON(http.StatusOK, c.modelcore.MemberProfileManager.ToModel(profile))
+		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(profile))
 	})
 
 	// Update the membership information of a member profile by ID
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/membership-info",
 		Method:       "PUT",
-		RequestType:  modelcore.MemberProfileMembershipInfoRequest{},
-		ResponseType: modelcore.MemberProfileResponse{},
+		RequestType:  core.MemberProfileMembershipInfoRequest{},
+		ResponseType: core.MemberProfileResponse{},
 		Note:         "Updates the membership information of a member profile by member_profile_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req modelcore.MemberProfileMembershipInfoRequest
+		var req core.MemberProfileMembershipInfoRequest
 		if err := ctx.Bind(&req); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -964,7 +964,7 @@ func (c *Controller) memberProfileController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
-		profile, err := c.modelcore.MemberProfileManager.GetByID(context, *memberProfileID)
+		profile, err := c.core.MemberProfileManager.GetByID(context, *memberProfileID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -991,7 +991,7 @@ func (c *Controller) memberProfileController() {
 		profile.MemberDepartmentID = req.MemberDepartmentID
 
 		if req.MemberDepartmentID != nil && !handlers.UUIDPtrEqual(profile.MemberDepartmentID, req.MemberDepartmentID) {
-			data := &modelcore.MemberDepartmentHistory{
+			data := &core.MemberDepartmentHistory{
 				OrganizationID:     userOrg.OrganizationID,
 				BranchID:           *userOrg.BranchID,
 				CreatedAt:          time.Now().UTC(),
@@ -1001,7 +1001,7 @@ func (c *Controller) memberProfileController() {
 				MemberProfileID:    *memberProfileID,
 				MemberDepartmentID: *req.MemberDepartmentID,
 			}
-			if err := c.modelcore.MemberDepartmentHistoryManager.Create(context, data); err != nil {
+			if err := c.core.MemberDepartmentHistoryManager.Create(context, data); err != nil {
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "Update member profile membership info failed: update member department history error: " + err.Error(),
@@ -1013,7 +1013,7 @@ func (c *Controller) memberProfileController() {
 		}
 
 		if req.MemberTypeID != nil && !handlers.UUIDPtrEqual(profile.MemberTypeID, req.MemberTypeID) {
-			data := &modelcore.MemberTypeHistory{
+			data := &core.MemberTypeHistory{
 				OrganizationID:  userOrg.OrganizationID,
 				BranchID:        *userOrg.BranchID,
 				CreatedAt:       time.Now().UTC(),
@@ -1023,7 +1023,7 @@ func (c *Controller) memberProfileController() {
 				MemberProfileID: *memberProfileID,
 				MemberTypeID:    *req.MemberTypeID,
 			}
-			if err := c.modelcore.MemberTypeHistoryManager.Create(context, data); err != nil {
+			if err := c.core.MemberTypeHistoryManager.Create(context, data); err != nil {
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "Update member profile membership info failed: update member type history error: " + err.Error(),
@@ -1034,7 +1034,7 @@ func (c *Controller) memberProfileController() {
 			profile.MemberTypeID = req.MemberTypeID
 		}
 		if req.MemberGroupID != nil && !handlers.UUIDPtrEqual(profile.MemberGroupID, req.MemberGroupID) {
-			data := &modelcore.MemberGroupHistory{
+			data := &core.MemberGroupHistory{
 				OrganizationID:  userOrg.OrganizationID,
 				BranchID:        *userOrg.BranchID,
 				CreatedAt:       time.Now().UTC(),
@@ -1044,7 +1044,7 @@ func (c *Controller) memberProfileController() {
 				MemberProfileID: *memberProfileID,
 				MemberGroupID:   *req.MemberGroupID,
 			}
-			if err := c.modelcore.MemberGroupHistoryManager.Create(context, data); err != nil {
+			if err := c.core.MemberGroupHistoryManager.Create(context, data); err != nil {
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "Update member profile membership info failed: update member group history error: " + err.Error(),
@@ -1055,7 +1055,7 @@ func (c *Controller) memberProfileController() {
 			profile.MemberGroupID = req.MemberGroupID
 		}
 		if req.MemberClassificationID != nil && !handlers.UUIDPtrEqual(profile.MemberClassificationID, req.MemberClassificationID) {
-			data := &modelcore.MemberClassificationHistory{
+			data := &core.MemberClassificationHistory{
 				OrganizationID:         userOrg.OrganizationID,
 				BranchID:               *userOrg.BranchID,
 				CreatedAt:              time.Now().UTC(),
@@ -1065,7 +1065,7 @@ func (c *Controller) memberProfileController() {
 				MemberProfileID:        *memberProfileID,
 				MemberClassificationID: *req.MemberClassificationID,
 			}
-			if err := c.modelcore.MemberClassificationHistoryManager.Create(context, data); err != nil {
+			if err := c.core.MemberClassificationHistoryManager.Create(context, data); err != nil {
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "Update member profile membership info failed: update member classification history error: " + err.Error(),
@@ -1076,7 +1076,7 @@ func (c *Controller) memberProfileController() {
 			profile.MemberClassificationID = req.MemberClassificationID
 		}
 		if req.MemberCenterID != nil && !handlers.UUIDPtrEqual(profile.MemberCenterID, req.MemberCenterID) {
-			data := &modelcore.MemberCenterHistory{
+			data := &core.MemberCenterHistory{
 				OrganizationID:  userOrg.OrganizationID,
 				BranchID:        *userOrg.BranchID,
 				CreatedAt:       time.Now().UTC(),
@@ -1086,7 +1086,7 @@ func (c *Controller) memberProfileController() {
 				MemberProfileID: *memberProfileID,
 				MemberCenterID:  *req.MemberCenterID,
 			}
-			if err := c.modelcore.MemberCenterHistoryManager.Create(context, data); err != nil {
+			if err := c.core.MemberCenterHistoryManager.Create(context, data); err != nil {
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "Update member profile membership info failed: update member center history error: " + err.Error(),
@@ -1100,7 +1100,7 @@ func (c *Controller) memberProfileController() {
 		profile.IsMutualFundMember = req.IsMutualFundMember
 		profile.IsMicroFinanceMember = req.IsMicroFinanceMember
 
-		if err := c.modelcore.MemberProfileManager.UpdateFields(context, profile.ID, profile); err != nil {
+		if err := c.core.MemberProfileManager.UpdateFields(context, profile.ID, profile); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member profile membership info failed: update error: " + err.Error(),
@@ -1113,13 +1113,13 @@ func (c *Controller) memberProfileController() {
 			Description: fmt.Sprintf("Updated member profile membership info: %s", profile.FullName),
 			Module:      "MemberProfile",
 		})
-		return ctx.JSON(http.StatusOK, c.modelcore.MemberProfileManager.ToModel(profile))
+		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(profile))
 	})
 
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/disconnect",
 		Method:       "PUT",
-		ResponseType: modelcore.MemberProfileResponse{},
+		ResponseType: core.MemberProfileResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
@@ -1131,11 +1131,11 @@ func (c *Controller) memberProfileController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
-		if userOrg.UserType != modelcore.UserOrganizationTypeOwner && userOrg.UserType != modelcore.UserOrganizationTypeEmployee {
+		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
 
-		memberProfile, err := c.modelcore.MemberProfileManager.GetByID(context, *memberProfileID)
+		memberProfile, err := c.core.MemberProfileManager.GetByID(context, *memberProfileID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
@@ -1143,16 +1143,16 @@ func (c *Controller) memberProfileController() {
 		memberProfile.User = nil
 		memberProfile.UpdatedAt = time.Now().UTC()
 		memberProfile.UpdatedByID = userOrg.UserID
-		if err := c.modelcore.MemberProfileManager.UpdateFields(context, memberProfile.ID, memberProfile); err != nil {
+		if err := c.core.MemberProfileManager.UpdateFields(context, memberProfile.ID, memberProfile); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelcore.MemberProfileManager.ToModel(memberProfile))
+		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(memberProfile))
 	})
 
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/connect-user/:user_id",
 		Method:       "PUT",
-		ResponseType: modelcore.MemberProfileResponse{},
+		ResponseType: core.MemberProfileResponse{},
 		Note:         "Connect the specified member profile to a user organization by their IDs.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1185,7 +1185,7 @@ func (c *Controller) memberProfileController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		if currentUserOrg.UserType != modelcore.UserOrganizationTypeOwner && currentUserOrg.UserType != modelcore.UserOrganizationTypeEmployee {
+		if currentUserOrg.UserType != core.UserOrganizationTypeOwner && currentUserOrg.UserType != core.UserOrganizationTypeEmployee {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "connect-error",
 				Description: "Connect member profile to user organization failed: user not authorized",
@@ -1195,7 +1195,7 @@ func (c *Controller) memberProfileController() {
 		}
 
 		// Get the member profile
-		memberProfile, err := c.modelcore.MemberProfileManager.GetByID(context, *memberProfileID)
+		memberProfile, err := c.core.MemberProfileManager.GetByID(context, *memberProfileID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "connect-error",
@@ -1210,7 +1210,7 @@ func (c *Controller) memberProfileController() {
 		memberProfile.UpdatedAt = time.Now().UTC()
 		memberProfile.UpdatedByID = currentUserOrg.UserID
 
-		if err := c.modelcore.MemberProfileManager.UpdateFields(context, memberProfile.ID, memberProfile); err != nil {
+		if err := c.core.MemberProfileManager.UpdateFields(context, memberProfile.ID, memberProfile); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "connect-error",
 				Description: "Connect member profile to user organization failed: update error: " + err.Error(),
@@ -1219,7 +1219,7 @@ func (c *Controller) memberProfileController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update member profile: " + err.Error()})
 		}
 
-		member, err := c.modelcore.MemberProfileManager.GetByID(context, memberProfile.ID)
+		member, err := c.core.MemberProfileManager.GetByID(context, memberProfile.ID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "connect-error",
@@ -1234,18 +1234,18 @@ func (c *Controller) memberProfileController() {
 			Module:      "MemberProfile",
 		})
 
-		return ctx.JSON(http.StatusOK, c.modelcore.MemberProfileManager.ToModel(member))
+		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(member))
 	})
 
 	req.RegisterRoute(handlers.Route{
 		Route:        "/member-profile/:member_profile_id/connect",
 		Method:       "POST",
-		RequestType:  modelcore.MemberProfileAccountRequest{},
-		ResponseType: modelcore.MemberProfileResponse{},
+		RequestType:  core.MemberProfileAccountRequest{},
+		ResponseType: core.MemberProfileResponse{},
 		Note:         "Connect the specified member profile to a user account using member_profile_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req modelcore.MemberProfileAccountRequest
+		var req core.MemberProfileAccountRequest
 		if err := ctx.Bind(&req); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
@@ -1256,27 +1256,27 @@ func (c *Controller) memberProfileController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
-		memberProfile, err := c.modelcore.MemberProfileManager.GetByID(context, *memberProfileID)
+		memberProfile, err := c.core.MemberProfileManager.GetByID(context, *memberProfileID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found", memberProfileID)})
 		}
 		memberProfile.UserID = req.UserID
-		if err := c.modelcore.MemberProfileManager.UpdateFields(context, memberProfile.ID, memberProfile); err != nil {
+		if err := c.core.MemberProfileManager.UpdateFields(context, memberProfile.ID, memberProfile); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update member profile by specifying user connection: "+err.Error())
 		}
-		return ctx.JSON(http.StatusOK, c.modelcore.MemberProfileManager.ToModel(memberProfile))
+		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(memberProfile))
 	})
 
 	// PUT /api/v1/member-profile/:member_profile_id/coordinates
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/coordinates",
 		Method:       "PUT",
-		RequestType:  modelcore.MemberProfileCoordinatesRequest{},
-		ResponseType: modelcore.MemberProfileResponse{},
+		RequestType:  core.MemberProfileCoordinatesRequest{},
+		ResponseType: core.MemberProfileResponse{},
 		Note:         "Updates the coordinates (latitude and longitude) of a member profile by member_profile_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req modelcore.MemberProfileCoordinatesRequest
+		var req core.MemberProfileCoordinatesRequest
 		if err := ctx.Bind(&req); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -1302,7 +1302,7 @@ func (c *Controller) memberProfileController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
-		profile, err := c.modelcore.MemberProfileManager.GetByID(context, *memberProfileID)
+		profile, err := c.core.MemberProfileManager.GetByID(context, *memberProfileID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -1325,7 +1325,7 @@ func (c *Controller) memberProfileController() {
 		profile.Latitude = &req.Latitude
 		profile.Longitude = &req.Longitude
 
-		if err := c.modelcore.MemberProfileManager.UpdateFields(context, profile.ID, profile); err != nil {
+		if err := c.core.MemberProfileManager.UpdateFields(context, profile.ID, profile); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member profile coordinates failed: update error: " + err.Error(),
@@ -1338,6 +1338,6 @@ func (c *Controller) memberProfileController() {
 			Description: fmt.Sprintf("Updated member profile coordinates: %s", profile.FullName),
 			Module:      "MemberProfile",
 		})
-		return ctx.JSON(http.StatusOK, c.modelcore.MemberProfileManager.ToModel(profile))
+		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(profile))
 	})
 }

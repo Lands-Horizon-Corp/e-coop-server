@@ -3,7 +3,7 @@ package v1
 import (
 	"net/http"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/labstack/echo/v4"
@@ -14,7 +14,7 @@ func (c *Controller) memberAccountingLedgerController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-accounting-ledger/member-profile/:member_profile_id/total",
 		Method:       "GET",
-		ResponseType: modelcore.MemberAccountingLedgerSummary{},
+		ResponseType: core.MemberAccountingLedgerSummary{},
 		Note:         "Returns the total amount for a specific member profile's general ledger entries.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -26,7 +26,7 @@ func (c *Controller) memberAccountingLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != modelcore.UserOrganizationTypeOwner && userOrg.UserType != modelcore.UserOrganizationTypeEmployee {
+		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger totals"})
 		}
 
@@ -36,7 +36,7 @@ func (c *Controller) memberAccountingLedgerController() {
 		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
 		}
-		entries, err := c.modelcore.MemberAccountingLedgerManager.FindWithFilters(context, []services.Filter{
+		entries, err := c.core.MemberAccountingLedgerManager.FindWithFilters(context, []services.Filter{
 			{Field: "member_accounting_ledgers.member_profile_id", Op: services.OpEq, Value: memberProfileID},
 			{Field: "member_accounting_ledgers.organization_id", Op: services.OpEq, Value: userOrg.OrganizationID},
 			{Field: "member_accounting_ledgers.branch_id", Op: services.OpEq, Value: *userOrg.BranchID},
@@ -46,7 +46,7 @@ func (c *Controller) memberAccountingLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve member accounting ledger entries: " + err.Error()})
 		}
-		paidUpShareCapital, err := c.modelcore.MemberAccountingLedgerManager.Find(context, &modelcore.MemberAccountingLedger{
+		paidUpShareCapital, err := c.core.MemberAccountingLedgerManager.Find(context, &core.MemberAccountingLedger{
 			MemberProfileID: *memberProfileID,
 			OrganizationID:  userOrg.OrganizationID,
 			BranchID:        *userOrg.BranchID,
@@ -65,7 +65,7 @@ func (c *Controller) memberAccountingLedgerController() {
 			totalDeposits += entry.Balance
 		}
 
-		summary := modelcore.MemberAccountingLedgerSummary{
+		summary := core.MemberAccountingLedgerSummary{
 			TotalDeposits:                     totalDeposits,
 			TotalShareCapitalPlusFixedSavings: TotalShareCapitalPlusFixedSavings,
 			TotalLoans:                        0,
@@ -76,7 +76,7 @@ func (c *Controller) memberAccountingLedgerController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-accounting-ledger/member-profile/:member_profile_id/account/:account_id/total",
 		Method:       "GET",
-		ResponseType: modelcore.MemberAccountingLedgerAccountSummary{},
+		ResponseType: core.MemberAccountingLedgerAccountSummary{},
 		Note:         "Returns the total amount for a specific member profile and account ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -92,14 +92,14 @@ func (c *Controller) memberAccountingLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != modelcore.UserOrganizationTypeOwner && userOrg.UserType != modelcore.UserOrganizationTypeEmployee {
+		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger totals"})
 		}
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Branch ID is missing for user organization"})
 		}
 
-		entries, err := c.modelcore.GeneralLedgerManager.Find(context, &modelcore.GeneralLedger{
+		entries, err := c.core.GeneralLedgerManager.Find(context, &core.GeneralLedger{
 			MemberProfileID: memberProfileID,
 			AccountID:       accountID,
 			OrganizationID:  userOrg.OrganizationID,
@@ -108,7 +108,7 @@ func (c *Controller) memberAccountingLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve member accounting ledger entries: " + err.Error()})
 		}
-		memberAccountingLedger, err := c.modelcore.MemberAccountingLedgerManager.FindOne(context, &modelcore.MemberAccountingLedger{
+		memberAccountingLedger, err := c.core.MemberAccountingLedgerManager.FindOne(context, &core.MemberAccountingLedger{
 			MemberProfileID: *memberProfileID,
 			OrganizationID:  userOrg.OrganizationID,
 			BranchID:        *userOrg.BranchID,
@@ -125,7 +125,7 @@ func (c *Controller) memberAccountingLedgerController() {
 			totalCredit += entry.Credit
 			totalDebit += entry.Debit
 		}
-		return ctx.JSON(http.StatusOK, modelcore.MemberAccountingLedgerAccountSummary{
+		return ctx.JSON(http.StatusOK, core.MemberAccountingLedgerAccountSummary{
 			Balance:     memberAccountingLedger.Balance,
 			TotalDebit:  totalDebit,
 			TotalCredit: totalCredit,
@@ -135,7 +135,7 @@ func (c *Controller) memberAccountingLedgerController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-accounting-ledger/member-profile/:member_profile_id/search",
 		Method:       "GET",
-		ResponseType: modelcore.MemberAccountingLedger{},
+		ResponseType: core.MemberAccountingLedger{},
 		Note:         "Returns paginated general ledger entries for a specific member profile.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -147,7 +147,7 @@ func (c *Controller) memberAccountingLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != modelcore.UserOrganizationTypeOwner && userOrg.UserType != modelcore.UserOrganizationTypeEmployee {
+		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		if userOrg.BranchID == nil {
@@ -160,7 +160,7 @@ func (c *Controller) memberAccountingLedgerController() {
 		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
 		}
-		entries, err := c.modelcore.MemberAccountingLedgerManager.FindWithFilters(context, []services.Filter{
+		entries, err := c.core.MemberAccountingLedgerManager.FindWithFilters(context, []services.Filter{
 			{Field: "member_accounting_ledgers.member_profile_id", Op: services.OpEq, Value: memberProfileID},
 			{Field: "member_accounting_ledgers.organization_id", Op: services.OpEq, Value: userOrg.OrganizationID},
 			{Field: "member_accounting_ledgers.branch_id", Op: services.OpEq, Value: *userOrg.BranchID},
@@ -170,13 +170,13 @@ func (c *Controller) memberAccountingLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve member accounting ledger entries: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelcore.MemberAccountingLedgerManager.Pagination(context, ctx, entries))
+		return ctx.JSON(http.StatusOK, c.core.MemberAccountingLedgerManager.Pagination(context, ctx, entries))
 	})
 
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-accounting-ledger/member-profile/:member_profile_id",
 		Method:       "GET",
-		ResponseType: modelcore.MemberAccountingLedger{},
+		ResponseType: core.MemberAccountingLedger{},
 		Note:         "Returns paginated general ledger entries for a specific member profile.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -188,7 +188,7 @@ func (c *Controller) memberAccountingLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != modelcore.UserOrganizationTypeOwner && userOrg.UserType != modelcore.UserOrganizationTypeEmployee {
+		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		if userOrg.BranchID == nil {
@@ -201,7 +201,7 @@ func (c *Controller) memberAccountingLedgerController() {
 		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
 		}
-		entries, err := c.modelcore.MemberAccountingLedgerManager.FindWithFilters(context, []services.Filter{
+		entries, err := c.core.MemberAccountingLedgerManager.FindWithFilters(context, []services.Filter{
 			{Field: "member_accounting_ledgers.member_profile_id", Op: services.OpEq, Value: memberProfileID},
 			{Field: "member_accounting_ledgers.organization_id", Op: services.OpEq, Value: userOrg.OrganizationID},
 			{Field: "member_accounting_ledgers.branch_id", Op: services.OpEq, Value: *userOrg.BranchID},
@@ -211,13 +211,13 @@ func (c *Controller) memberAccountingLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve member accounting ledger entries: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelcore.MemberAccountingLedgerManager.Filtered(context, ctx, entries))
+		return ctx.JSON(http.StatusOK, c.core.MemberAccountingLedgerManager.Filtered(context, ctx, entries))
 	})
 
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-accounting-ledger/branch/search",
 		Method:       "GET",
-		ResponseType: modelcore.MemberAccountingLedger{},
+		ResponseType: core.MemberAccountingLedger{},
 		Note:         "Returns paginated general ledger entries for a specific member profile.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -225,7 +225,7 @@ func (c *Controller) memberAccountingLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != modelcore.UserOrganizationTypeOwner && userOrg.UserType != modelcore.UserOrganizationTypeEmployee {
+		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		if userOrg.BranchID == nil {
@@ -238,7 +238,7 @@ func (c *Controller) memberAccountingLedgerController() {
 		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
 		}
-		entries, err := c.modelcore.MemberAccountingLedgerManager.FindWithFilters(context, []services.Filter{
+		entries, err := c.core.MemberAccountingLedgerManager.FindWithFilters(context, []services.Filter{
 			{Field: "member_accounting_ledgers.organization_id", Op: services.OpEq, Value: userOrg.OrganizationID},
 			{Field: "member_accounting_ledgers.branch_id", Op: services.OpEq, Value: *userOrg.BranchID},
 			{Field: "member_accounting_ledgers.account_id", Op: services.OpNe, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
@@ -247,7 +247,7 @@ func (c *Controller) memberAccountingLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve member accounting ledger entries: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelcore.MemberAccountingLedgerManager.Pagination(context, ctx, entries))
+		return ctx.JSON(http.StatusOK, c.core.MemberAccountingLedgerManager.Pagination(context, ctx, entries))
 	})
 
 }

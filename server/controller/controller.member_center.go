@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -20,7 +20,7 @@ func (c *Controller) memberCenterController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-center-history",
 		Method:       "GET",
-		ResponseType: modelcore.MemberCenterResponse{},
+		ResponseType: core.MemberCenterResponse{},
 		Note:         "Returns all member center history entries for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -28,18 +28,18 @@ func (c *Controller) memberCenterController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberCenterHistory, err := c.modelcore.MemberCenterHistoryCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		memberCenterHistory, err := c.core.MemberCenterHistoryCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member center history: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelcore.MemberCenterHistoryManager.Filtered(context, ctx, memberCenterHistory))
+		return ctx.JSON(http.StatusOK, c.core.MemberCenterHistoryManager.Filtered(context, ctx, memberCenterHistory))
 	})
 
 	// Get member center history by member profile ID
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-center-history/member-profile/:member_profile_id/search",
 		Method:       "GET",
-		ResponseType: modelcore.MemberCenterHistoryResponse{},
+		ResponseType: core.MemberCenterHistoryResponse{},
 		Note:         "Returns member center history for a specific member profile ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -51,18 +51,18 @@ func (c *Controller) memberCenterController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberCenterHistory, err := c.modelcore.MemberCenterHistoryMemberProfileID(context, *memberProfileID, user.OrganizationID, *user.BranchID)
+		memberCenterHistory, err := c.core.MemberCenterHistoryMemberProfileID(context, *memberProfileID, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member center history by profile: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelcore.MemberCenterHistoryManager.Pagination(context, ctx, memberCenterHistory))
+		return ctx.JSON(http.StatusOK, c.core.MemberCenterHistoryManager.Pagination(context, ctx, memberCenterHistory))
 	})
 
 	// Get all member centers for the current branch
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-center",
 		Method:       "GET",
-		ResponseType: modelcore.MemberCenterResponse{},
+		ResponseType: core.MemberCenterResponse{},
 		Note:         "Returns all member centers for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -70,18 +70,18 @@ func (c *Controller) memberCenterController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberCenter, err := c.modelcore.MemberCenterCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		memberCenter, err := c.core.MemberCenterCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member centers: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelcore.MemberCenterManager.Filtered(context, ctx, memberCenter))
+		return ctx.JSON(http.StatusOK, c.core.MemberCenterManager.Filtered(context, ctx, memberCenter))
 	})
 
 	// Get paginated member centers
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-center/search",
 		Method:       "GET",
-		ResponseType: modelcore.MemberCenterResponse{},
+		ResponseType: core.MemberCenterResponse{},
 		Note:         "Returns paginated member centers for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -89,23 +89,23 @@ func (c *Controller) memberCenterController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := c.modelcore.MemberCenterCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		value, err := c.core.MemberCenterCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member centers for pagination: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelcore.MemberCenterManager.Pagination(context, ctx, value))
+		return ctx.JSON(http.StatusOK, c.core.MemberCenterManager.Pagination(context, ctx, value))
 	})
 
 	// Create a new member center
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-center",
 		Method:       "POST",
-		ResponseType: modelcore.MemberCenterResponse{},
-		RequestType:  modelcore.MemberCenterRequest{},
+		ResponseType: core.MemberCenterResponse{},
+		RequestType:  core.MemberCenterRequest{},
 		Note:         "Creates a new member center record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.modelcore.MemberCenterManager.Validate(ctx)
+		req, err := c.core.MemberCenterManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -124,7 +124,7 @@ func (c *Controller) memberCenterController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
-		memberCenter := &modelcore.MemberCenter{
+		memberCenter := &core.MemberCenter{
 			Name:           req.Name,
 			Description:    req.Description,
 			CreatedAt:      time.Now().UTC(),
@@ -135,7 +135,7 @@ func (c *Controller) memberCenterController() {
 			OrganizationID: user.OrganizationID,
 		}
 
-		if err := c.modelcore.MemberCenterManager.Create(context, memberCenter); err != nil {
+		if err := c.core.MemberCenterManager.Create(context, memberCenter); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member center failed (/member-center), db error: " + err.Error(),
@@ -150,15 +150,15 @@ func (c *Controller) memberCenterController() {
 			Module:      "MemberCenter",
 		})
 
-		return ctx.JSON(http.StatusOK, c.modelcore.MemberCenterManager.ToModel(memberCenter))
+		return ctx.JSON(http.StatusOK, c.core.MemberCenterManager.ToModel(memberCenter))
 	})
 
 	// Update an existing member center by ID
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-center/:member_center_id",
 		Method:       "PUT",
-		ResponseType: modelcore.MemberCenterResponse{},
-		RequestType:  modelcore.MemberCenterRequest{},
+		ResponseType: core.MemberCenterResponse{},
+		RequestType:  core.MemberCenterRequest{},
 		Note:         "Updates an existing member center record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -180,7 +180,7 @@ func (c *Controller) memberCenterController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		req, err := c.modelcore.MemberCenterManager.Validate(ctx)
+		req, err := c.core.MemberCenterManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -189,7 +189,7 @@ func (c *Controller) memberCenterController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		memberCenter, err := c.modelcore.MemberCenterManager.GetByID(context, *memberCenterID)
+		memberCenter, err := c.core.MemberCenterManager.GetByID(context, *memberCenterID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -204,7 +204,7 @@ func (c *Controller) memberCenterController() {
 		memberCenter.BranchID = *user.BranchID
 		memberCenter.Name = req.Name
 		memberCenter.Description = req.Description
-		if err := c.modelcore.MemberCenterManager.UpdateFields(context, memberCenter.ID, memberCenter); err != nil {
+		if err := c.core.MemberCenterManager.UpdateFields(context, memberCenter.ID, memberCenter); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member center failed (/member-center/:member_center_id), db error: " + err.Error(),
@@ -217,7 +217,7 @@ func (c *Controller) memberCenterController() {
 			Description: "Updated member center (/member-center/:member_center_id): " + memberCenter.Name,
 			Module:      "MemberCenter",
 		})
-		return ctx.JSON(http.StatusOK, c.modelcore.MemberCenterManager.ToModel(memberCenter))
+		return ctx.JSON(http.StatusOK, c.core.MemberCenterManager.ToModel(memberCenter))
 	})
 
 	// Delete a member center by ID
@@ -236,7 +236,7 @@ func (c *Controller) memberCenterController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_center_id: " + err.Error()})
 		}
-		value, err := c.modelcore.MemberCenterManager.GetByID(context, *memberCenterID)
+		value, err := c.core.MemberCenterManager.GetByID(context, *memberCenterID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -245,7 +245,7 @@ func (c *Controller) memberCenterController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member center not found: " + err.Error()})
 		}
-		if err := c.modelcore.MemberCenterManager.DeleteByID(context, *memberCenterID); err != nil {
+		if err := c.core.MemberCenterManager.DeleteByID(context, *memberCenterID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member center failed (/member-center/:member_center_id), db error: " + err.Error(),
@@ -266,10 +266,10 @@ func (c *Controller) memberCenterController() {
 		Route:       "/api/v1/member-center/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple member center records by their IDs.",
-		RequestType: modelcore.IDSRequest{},
+		RequestType: core.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody modelcore.IDSRequest
+		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -311,7 +311,7 @@ func (c *Controller) memberCenterController() {
 				})
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID '%s': %s", rawID, err.Error())})
 			}
-			value, err := c.modelcore.MemberCenterManager.GetByID(context, memberCenterID)
+			value, err := c.core.MemberCenterManager.GetByID(context, memberCenterID)
 			if err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -322,7 +322,7 @@ func (c *Controller) memberCenterController() {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Member center with ID '%s' not found: %s", rawID, err.Error())})
 			}
 			namesSlice = append(namesSlice, value.Name)
-			if err := c.modelcore.MemberCenterManager.DeleteByIDWithTx(context, tx, memberCenterID); err != nil {
+			if err := c.core.MemberCenterManager.DeleteByIDWithTx(context, tx, memberCenterID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

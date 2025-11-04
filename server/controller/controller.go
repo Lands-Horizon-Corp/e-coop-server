@@ -3,7 +3,7 @@ package v1
 import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/server"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/tokens"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
 )
@@ -12,9 +12,9 @@ import (
 // dependencies and initializes all sub-controllers for the v1 API.
 type Controller struct {
 	// Services
-	provider  *server.Provider
-	modelcore *modelcore.ModelCore
-	event     *event.Event
+	provider *server.Provider
+	core     *core.Core
+	event    *event.Event
 	// Tokens
 	userOrganizationToken *tokens.UserOrganizationToken
 	userToken             *tokens.UserToken
@@ -25,7 +25,7 @@ type Controller struct {
 func NewController(
 	// Services
 	provider *server.Provider,
-	modelcore *modelcore.ModelCore,
+	core *core.Core,
 	event *event.Event,
 
 	// Tokens
@@ -36,9 +36,9 @@ func NewController(
 ) (*Controller, error) {
 	return &Controller{
 		// Services
-		provider:  provider,
-		modelcore: modelcore,
-		event:     event,
+		provider: provider,
+		core:     core,
+		event:    event,
 
 		userOrganizationToken: userOrganizationToken,
 		userToken:             userToken,
