@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/golang-filtering/filter"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
@@ -228,4 +229,42 @@ func (m *Core) FinancialStatementGroupingCurrentBranch(context context.Context, 
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
+}
+
+func (m *Core) FinancialStatementGroupingAlignments(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*FinancialStatementGrouping, error) {
+	fsGroupings, err := m.FinancialStatementGroupingManager.Find(context, &FinancialStatementGrouping{
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+	})
+	if err != nil {
+		return nil, eris.Wrap(err, "failed to get financial statement groupings")
+	}
+	for _, grouping := range fsGroupings {
+		if grouping != nil {
+			grouping.FinancialStatementDefinitionEntries = []*FinancialStatementDefinition{}
+			entries, err := m.FinancialStatementDefinitionManager.FindWithSQL(context,
+				[]registry.FilterSQL{
+					{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
+					{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+					{Field: "financial_statement_grouping_id", Op: registry.OpEq, Value: grouping.ID},
+				},
+				[]registry.FilterSortSQL{
+					{Field: "created_at", Order: filter.SortOrderAsc},
+				},
+			)
+			if err != nil {
+				return nil, eris.Wrap(err, "failed to get financial statement definition entries")
+			}
+
+			var filteredEntries []*FinancialStatementDefinition
+			for _, entry := range entries {
+				if entry.FinancialStatementDefinitionEntriesID == nil {
+					filteredEntries = append(filteredEntries, entry)
+				}
+			}
+
+			grouping.FinancialStatementDefinitionEntries = filteredEntries
+		}
+	}
+	return fsGroupings, nil
 }

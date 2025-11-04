@@ -101,11 +101,13 @@ func (c *Controller) footstepController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or user not found"})
 		}
-		footstep, err := c.core.GetFootstepByUser(context, user.ID)
+		footstep, err := c.core.FootstepManager.PaginationWithFields(context, ctx, &core.Footstep{
+			UserID: &user.ID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user's footsteps: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.FootstepManager.Pagination(context, ctx, footstep))
+		return ctx.JSON(http.StatusOK, footstep)
 	})
 
 	req.RegisterRoute(handlers.Route{
@@ -133,11 +135,15 @@ func (c *Controller) footstepController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User branch ID is missing"})
 		}
-		footstep, err := c.core.GetFootstepByUserOrganization(context, *memberProfile.UserID, userOrg.OrganizationID, *userOrg.BranchID)
+		footstep, err := c.core.FootstepManager.PaginationWithFields(context, ctx, &core.Footstep{
+			UserID:         &userOrg.UserID,
+			BranchID:       userOrg.BranchID,
+			OrganizationID: &userOrg.OrganizationID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve footsteps for employee: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.FootstepManager.Pagination(context, ctx, footstep))
+		return ctx.JSON(http.StatusOK, footstep)
 	})
 
 	// GET /footstep/branch: Get all footsteps for the current user's branch.
@@ -151,11 +157,14 @@ func (c *Controller) footstepController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization/branch not found"})
 		}
-		footstep, err := c.core.GetFootstepBybranch(context, userOrg.OrganizationID, *userOrg.BranchID)
+		footstep, err := c.core.FootstepManager.PaginationWithFields(context, ctx, &core.Footstep{
+			BranchID:       userOrg.BranchID,
+			OrganizationID: &userOrg.OrganizationID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve footsteps for branch: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.FootstepManager.Pagination(context, ctx, footstep))
+		return ctx.JSON(http.StatusOK, footstep)
 	})
 
 	// GET /footstep/user-organization/:user_organization_id/search: Get footsteps for a user organization on the current branch.
@@ -176,11 +185,15 @@ func (c *Controller) footstepController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
 
-		footstep, err := c.core.GetFootstepByUserOrganization(context, targetUserOrg.UserID, targetUserOrg.OrganizationID, *targetUserOrg.BranchID)
+		footstep, err := c.core.FootstepManager.PaginationWithFields(context, ctx, &core.Footstep{
+			BranchID:       targetUserOrg.BranchID,
+			OrganizationID: &targetUserOrg.OrganizationID,
+			UserID:         &targetUserOrg.UserID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve footsteps for user organization: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.FootstepManager.Pagination(context, ctx, footstep))
+		return ctx.JSON(http.StatusOK, footstep)
 	})
 
 	// GET /footstep/:footstep_id: Get a specific footstep by ID.
@@ -217,10 +230,14 @@ func (c *Controller) footstepController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User branch ID is missing"})
 		}
-		footstep, err := c.core.GetFootstepByUserOrganization(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
+		footstep, err := c.core.FootstepManager.PaginationWithFields(context, ctx, &core.Footstep{
+			BranchID:       userOrg.BranchID,
+			OrganizationID: &userOrg.OrganizationID,
+			UserID:         &userOrg.UserID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve footsteps for user on branch: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.FootstepManager.Pagination(context, ctx, footstep))
+		return ctx.JSON(http.StatusOK, footstep)
 	})
 }

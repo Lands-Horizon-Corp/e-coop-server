@@ -30,33 +30,11 @@ func (c *Controller) generalLedgerGroupingController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view general ledger account groupings"})
 		}
-		gl, err := c.core.GeneralLedgerAccountsGroupingManager.Find(context, &core.GeneralLedgerAccountsGrouping{
-			OrganizationID: userOrg.OrganizationID,
-			BranchID:       *userOrg.BranchID,
-		})
+		gl, err := c.core.GeneralLedgerAlignments(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger account groupings: " + err.Error()})
 		}
-		for _, grouping := range gl {
-			if grouping != nil {
-				grouping.GeneralLedgerDefinitionEntries = []*core.GeneralLedgerDefinition{}
-				entries, err := c.core.GeneralLedgerDefinitionManager.FindWithConditions(context, map[string]any{
-					"organization_id":                     userOrg.OrganizationID,
-					"branch_id":                           *userOrg.BranchID,
-					"general_ledger_accounts_grouping_id": &grouping.ID,
-				})
-				if err != nil {
-					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger definitions: " + err.Error()})
-				}
-				var filteredEntries []*core.GeneralLedgerDefinition
-				for _, entry := range entries {
-					if entry.GeneralLedgerDefinitionEntryID == nil {
-						filteredEntries = append(filteredEntries, entry)
-					}
-				}
-				grouping.GeneralLedgerDefinitionEntries = filteredEntries
-			}
-		}
+
 		return ctx.JSON(http.StatusOK, c.core.GeneralLedgerAccountsGroupingManager.ToModels(gl))
 	})
 

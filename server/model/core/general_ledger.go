@@ -7,7 +7,9 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/golang-filtering/filter"
 	"github.com/google/uuid"
+	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
@@ -574,4 +576,44 @@ func (m *Core) GeneralLedgerExcludeCashonHandWithFilters(
 	}
 
 	return m.GeneralLedgerManager.FindWithSQL(ctx, filters, nil)
+}
+
+// GeneralLedgerAlignments retrieves general ledger groupings with their definition entries for a given organization and branch
+func (m *Core) GeneralLedgerAlignments(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*GeneralLedgerAccountsGrouping, error) {
+	glGroupings, err := m.GeneralLedgerAccountsGroupingManager.Find(context, &GeneralLedgerAccountsGrouping{
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+	})
+	if err != nil {
+		return nil, eris.Wrap(err, "failed to get general ledger groupings")
+	}
+
+	for _, grouping := range glGroupings {
+		if grouping != nil {
+			grouping.GeneralLedgerDefinitionEntries = []*GeneralLedgerDefinition{}
+			entries, err := m.GeneralLedgerDefinitionManager.FindWithSQL(context,
+				[]registry.FilterSQL{
+					{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
+					{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+					{Field: "general_ledger_accounts_grouping_id", Op: registry.OpEq, Value: grouping.ID},
+				},
+				[]registry.FilterSortSQL{
+					{Field: "created_at", Order: filter.SortOrderAsc},
+				},
+			)
+			if err != nil {
+				return nil, eris.Wrap(err, "failed to get general ledger definition entries")
+			}
+
+			var filteredEntries []*GeneralLedgerDefinition
+			for _, entry := range entries {
+				if entry.GeneralLedgerDefinitionEntryID == nil {
+					filteredEntries = append(filteredEntries, entry)
+				}
+			}
+
+			grouping.GeneralLedgerDefinitionEntries = filteredEntries
+		}
+	}
+	return glGroupings, nil
 }

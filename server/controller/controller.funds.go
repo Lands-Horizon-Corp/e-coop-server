@@ -44,11 +44,14 @@ func (c *Controller) fundsController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		funds, err := c.core.FundsCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		funds, err := c.core.FundsManager.PaginationWithFields(context, ctx, &core.Funds{
+			BranchID:       *user.BranchID,
+			OrganizationID: user.OrganizationID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get funds for pagination: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.FundsManager.Pagination(context, ctx, funds))
+		return ctx.JSON(http.StatusOK, funds)
 	})
 
 	// Create a new funds record

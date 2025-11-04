@@ -537,7 +537,7 @@ func (m *Core) TransactionBatchMinimal(context context.Context, id uuid.UUID) (*
 }
 
 // TransactionBatchCurrent retrieves the current active transaction batch for a user
-func (m *Core) TransactionBatchCurrent(context context.Context, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) (*TransactionBatch, error) {
+func (m *Core) TransactionBatchCurrent(context context.Context, userID, organizationID, branchID uuid.UUID) (*TransactionBatch, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
 		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
@@ -549,7 +549,7 @@ func (m *Core) TransactionBatchCurrent(context context.Context, userID uuid.UUID
 }
 
 // TransactionBatchViewRequests retrieves transaction batches with pending view requests
-func (m *Core) TransactionBatchViewRequests(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*TransactionBatch, error) {
+func (m *Core) TransactionBatchViewRequests(context context.Context, organizationID, branchID uuid.UUID) ([]*TransactionBatch, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
 		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
@@ -562,7 +562,7 @@ func (m *Core) TransactionBatchViewRequests(context context.Context, organizatio
 }
 
 // TransactionBatchCurrentBranch retrieves all transaction batches for the current branch.
-func (m *Core) TransactionBatchCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*TransactionBatch, error) {
+func (m *Core) TransactionBatchCurrentBranch(context context.Context, organizationID, branchID uuid.UUID) ([]*TransactionBatch, error) {
 	return m.TransactionBatchManager.Find(context, &TransactionBatch{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
@@ -570,7 +570,7 @@ func (m *Core) TransactionBatchCurrentBranch(context context.Context, organizati
 }
 
 // TransactionBatchCurrentDay retrieves all closed transaction batches for the current day.
-func (m *Core) TransactionBatchCurrentDay(ctx context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*TransactionBatch, error) {
+func (m *Core) TransactionBatchCurrentDay(ctx context.Context, organizationID, branchID uuid.UUID) ([]*TransactionBatch, error) {
 	now := time.Now().UTC()
 	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 	endOfDay := startOfDay.Add(24 * time.Hour)
@@ -586,7 +586,7 @@ func (m *Core) TransactionBatchCurrentDay(ctx context.Context, organizationID uu
 	return m.TransactionBatchManager.FindWithSQL(ctx, filters, nil)
 }
 
-func (m *Core) CurrentOpenTransactionBatch(context context.Context, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) (*TransactionBatch, error) {
+func (m *Core) CurrentOpenTransactionBatch(context context.Context, userID, organizationID, branchID uuid.UUID) (*TransactionBatch, error) {
 	return m.TransactionBatchManager.FindOneWithSQL(context,
 		[]registry.FilterSQL{
 			{Field: "organization_id", Op: registry.OpEq, Value: organizationID},

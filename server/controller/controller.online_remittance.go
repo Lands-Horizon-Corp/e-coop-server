@@ -29,11 +29,12 @@ func (c *Controller) onlineRemittanceController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
 
-		transactionBatch, err := c.core.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
-			"organization_id": userOrg.OrganizationID,
-			"branch_id":       *userOrg.BranchID,
-			"is_closed":       false,
-		})
+		transactionBatch, err := c.core.CurrentOpenTransactionBatch(
+			context,
+			userOrg.UserID,
+			userOrg.OrganizationID,
+			*userOrg.BranchID,
+		)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find active transaction batch: " + err.Error()})
 		}
@@ -91,11 +92,12 @@ func (c *Controller) onlineRemittanceController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
 
-		transactionBatch, err := c.core.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
-			"organization_id": userOrg.OrganizationID,
-			"branch_id":       *userOrg.BranchID,
-			"is_closed":       false,
-		})
+		transactionBatch, err := c.core.CurrentOpenTransactionBatch(
+			context,
+			userOrg.UserID,
+			userOrg.OrganizationID,
+			*userOrg.BranchID,
+		)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -255,11 +257,12 @@ func (c *Controller) onlineRemittanceController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Online remittance not found in your organization/branch"})
 		}
 
-		transactionBatch, err := c.core.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
-			"organization_id": userOrg.OrganizationID,
-			"branch_id":       *userOrg.BranchID,
-			"is_closed":       false,
-		})
+		transactionBatch, err := c.core.CurrentOpenTransactionBatch(
+			context,
+			userOrg.UserID,
+			userOrg.OrganizationID,
+			*userOrg.BranchID,
+		)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -413,11 +416,12 @@ func (c *Controller) onlineRemittanceController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Online remittance not found in your organization/branch"})
 		}
 
-		transactionBatch, err := c.core.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
-			"organization_id": userOrg.OrganizationID,
-			"branch_id":       *userOrg.BranchID,
-			"is_closed":       false,
-		})
+		transactionBatch, err := c.core.CurrentOpenTransactionBatch(
+			context,
+			userOrg.UserID,
+			userOrg.OrganizationID,
+			*userOrg.BranchID,
+		)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",

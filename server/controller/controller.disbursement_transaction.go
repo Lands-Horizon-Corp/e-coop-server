@@ -104,7 +104,7 @@ func (c *Controller) disbursementTransactionController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		disbursementTransactions, err := c.core.DisbursementTransactionManager.Find(context, &core.DisbursementTransaction{
+		disbursementTransactions, err := c.core.DisbursementTransactionManager.PaginationWithFields(context, ctx, &core.DisbursementTransaction{
 			TransactionBatchID: *transactionBatchID,
 			BranchID:           *user.BranchID,
 			OrganizationID:     user.OrganizationID,
@@ -112,7 +112,7 @@ func (c *Controller) disbursementTransactionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve disbursement transactions: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.DisbursementTransactionManager.Pagination(context, ctx, disbursementTransactions))
+		return ctx.JSON(http.StatusOK, disbursementTransactions)
 	})
 
 	req.RegisterRoute(handlers.Route{
@@ -133,7 +133,7 @@ func (c *Controller) disbursementTransactionController() {
 		if useOrganization.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		disbursementTransactions, err := c.core.DisbursementTransactionManager.Find(context, &core.DisbursementTransaction{
+		disbursementTransactions, err := c.core.DisbursementTransactionManager.PaginationWithFields(context, ctx, &core.DisbursementTransaction{
 			CreatedByID:    useOrganization.UserID,
 			BranchID:       *useOrganization.BranchID,
 			OrganizationID: useOrganization.OrganizationID,
@@ -142,7 +142,7 @@ func (c *Controller) disbursementTransactionController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve disbursement transactions: " + err.Error()})
 		}
 		// Return paginated response
-		return ctx.JSON(http.StatusOK, c.core.DisbursementTransactionManager.Pagination(context, ctx, disbursementTransactions))
+		return ctx.JSON(http.StatusOK, disbursementTransactions)
 	})
 
 	req.RegisterRoute(handlers.Route{
@@ -159,7 +159,7 @@ func (c *Controller) disbursementTransactionController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		disbursementTransactions, err := c.core.DisbursementTransactionManager.Find(context, &core.DisbursementTransaction{
+		disbursementTransactions, err := c.core.DisbursementTransactionManager.PaginationWithFields(context, ctx, &core.DisbursementTransaction{
 			CreatedByID:    user.UserID,
 			BranchID:       *user.BranchID,
 			OrganizationID: user.OrganizationID,
@@ -168,7 +168,7 @@ func (c *Controller) disbursementTransactionController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve disbursement transactions: " + err.Error()})
 		}
 		// Return paginated response
-		return ctx.JSON(http.StatusOK, c.core.DisbursementTransactionManager.Pagination(context, ctx, disbursementTransactions))
+		return ctx.JSON(http.StatusOK, disbursementTransactions)
 	})
 
 	req.RegisterRoute(handlers.Route{
@@ -211,14 +211,14 @@ func (c *Controller) disbursementTransactionController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		disbursementTransactions, err := c.core.DisbursementTransactionManager.Find(context, &core.DisbursementTransaction{
+		disbursementTransactions, err := c.core.DisbursementTransactionManager.PaginationWithFields(context, ctx, &core.DisbursementTransaction{
 			BranchID:       *user.BranchID,
 			OrganizationID: user.OrganizationID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve disbursement transactions: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.DisbursementTransactionManager.Pagination(context, ctx, disbursementTransactions))
+		return ctx.JSON(http.StatusOK, disbursementTransactions)
 	})
 
 	req.RegisterRoute(handlers.Route{
@@ -239,7 +239,7 @@ func (c *Controller) disbursementTransactionController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		disbursementTransactions, err := c.core.DisbursementTransactionManager.Find(context, &core.DisbursementTransaction{
+		disbursementTransactions, err := c.core.DisbursementTransactionManager.PaginationWithFields(context, ctx, &core.DisbursementTransaction{
 			DisbursementID: *disbursementID,
 			BranchID:       *user.BranchID,
 			OrganizationID: user.OrganizationID,
@@ -247,6 +247,6 @@ func (c *Controller) disbursementTransactionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve disbursement transactions"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.DisbursementTransactionManager.Pagination(context, ctx, disbursementTransactions))
+		return ctx.JSON(http.StatusOK, disbursementTransactions)
 	})
 }

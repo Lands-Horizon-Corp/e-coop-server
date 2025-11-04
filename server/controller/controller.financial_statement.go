@@ -30,35 +30,13 @@ func (c *Controller) financialStatementController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view financial statement groupings"})
 		}
-		fsGroupings, err := c.core.FinancialStatementGroupingManager.Find(context, &core.FinancialStatementGrouping{
-			OrganizationID: userOrg.OrganizationID,
-			BranchID:       *userOrg.BranchID,
-		})
+		fsGroupings, err := c.core.FinancialStatementGroupingAlignments(
+			context, userOrg.OrganizationID, *userOrg.BranchID,
+		)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve financial statement groupings: " + err.Error()})
 		}
-		for _, grouping := range fsGroupings {
-			if grouping != nil {
-				grouping.FinancialStatementDefinitionEntries = []*core.FinancialStatementDefinition{}
-				entries, err := c.core.FinancialStatementDefinitionManager.FindWithConditions(context, map[string]any{
-					"organization_id":                 userOrg.OrganizationID,
-					"branch_id":                       *userOrg.BranchID,
-					"financial_statement_grouping_id": &grouping.ID,
-				})
-				if err != nil {
-					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve definitions: " + err.Error()})
-				}
 
-				var filteredEntries []*core.FinancialStatementDefinition
-				for _, entry := range entries {
-					if entry.FinancialStatementDefinitionEntriesID == nil {
-						filteredEntries = append(filteredEntries, entry)
-					}
-				}
-
-				grouping.FinancialStatementDefinitionEntries = filteredEntries
-			}
-		}
 		return ctx.JSON(http.StatusOK, c.core.FinancialStatementGroupingManager.ToModels(fsGroupings))
 	})
 
