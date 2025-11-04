@@ -617,3 +617,87 @@ func (m *Core) GeneralLedgerAlignments(context context.Context, organizationID u
 	}
 	return glGroupings, nil
 }
+
+// GeneralLedgerCurrentMemberAccountEntries retrieves all general ledger entries for a specific member account
+func (m *Core) GeneralLedgerCurrentMemberAccountEntries(
+	ctx context.Context,
+	memberProfileID, accountID, organizationID, branchID, cashOnHandAccountID uuid.UUID,
+) ([]*GeneralLedger, error) {
+	filters := []registry.FilterSQL{
+		{Field: "member_profile_id", Op: registry.OpEq, Value: memberProfileID},
+		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
+		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "account_id", Op: registry.OpEq, Value: accountID},
+		{Field: "account_id", Op: registry.OpNe, Value: cashOnHandAccountID},
+	}
+	sorts := []registry.FilterSortSQL{
+		{Field: "entry_date", Order: filter.SortOrderDesc},
+		{Field: "created_at", Order: filter.SortOrderDesc},
+	}
+	return m.GeneralLedgerManager.FindWithSQL(ctx, filters, sorts)
+}
+
+// GeneralLedgerMemberAccountTotal retrieves all general ledger entries for computing totals (excludes cash on hand)
+func (m *Core) GeneralLedgerMemberAccountTotal(
+	ctx context.Context,
+	memberProfileID, accountID, organizationID, branchID, cashOnHandAccountID uuid.UUID,
+) ([]*GeneralLedger, error) {
+	filters := []registry.FilterSQL{
+		{Field: "member_profile_id", Op: registry.OpEq, Value: memberProfileID},
+		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
+		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "account_id", Op: registry.OpEq, Value: accountID},
+		{Field: "account_id", Op: registry.OpNe, Value: cashOnHandAccountID},
+	}
+	sorts := []registry.FilterSortSQL{}
+	return m.GeneralLedgerManager.FindWithSQL(ctx, filters, sorts)
+}
+
+// GeneralLedgerMemberProfileEntries retrieves all general ledger entries for a member profile excluding cash on hand
+func (m *Core) GeneralLedgerMemberProfileEntries(
+	ctx context.Context,
+	memberProfileID, organizationID, branchID, cashOnHandAccountID uuid.UUID,
+) ([]*GeneralLedger, error) {
+	filters := []registry.FilterSQL{
+		{Field: "member_profile_id", Op: registry.OpEq, Value: memberProfileID},
+		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
+		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "account_id", Op: registry.OpNe, Value: cashOnHandAccountID},
+	}
+	sorts := []registry.FilterSortSQL{}
+	return m.GeneralLedgerManager.FindWithSQL(ctx, filters, sorts)
+}
+
+// GeneralLedgerMemberProfileEntriesByPaymentType retrieves all general ledger entries for a member profile by payment type, excluding cash on hand
+func (m *Core) GeneralLedgerMemberProfileEntriesByPaymentType(
+	ctx context.Context,
+	memberProfileID, organizationID, branchID, cashOnHandAccountID uuid.UUID,
+	paymentType TypeOfPaymentType,
+) ([]*GeneralLedger, error) {
+	filters := []registry.FilterSQL{
+		{Field: "member_profile_id", Op: registry.OpEq, Value: memberProfileID},
+		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
+		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "type_of_payment_type", Op: registry.OpEq, Value: paymentType},
+		{Field: "account_id", Op: registry.OpNe, Value: cashOnHandAccountID},
+	}
+	sorts := []registry.FilterSortSQL{}
+	return m.GeneralLedgerManager.FindWithSQL(ctx, filters, sorts)
+}
+
+// GeneralLedgerMemberProfileEntriesBySource retrieves all general ledger entries for a member profile by source, excluding cash on hand
+func (m *Core) GeneralLedgerMemberProfileEntriesBySource(
+	ctx context.Context,
+	memberProfileID, organizationID, branchID, cashOnHandAccountID uuid.UUID,
+	source GeneralLedgerSource,
+) ([]*GeneralLedger, error) {
+	filters := []registry.FilterSQL{
+		{Field: "member_profile_id", Op: registry.OpEq, Value: memberProfileID},
+		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
+		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "source", Op: registry.OpEq, Value: source},
+		{Field: "account_id", Op: registry.OpNe, Value: cashOnHandAccountID},
+	}
+	sorts := []registry.FilterSortSQL{}
+	return m.GeneralLedgerManager.FindWithSQL(ctx, filters, sorts)
+}

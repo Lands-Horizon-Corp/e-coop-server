@@ -51,7 +51,6 @@ type FilterSortSQL struct {
 	Order filter.SortOrder
 }
 
-// FindWithFilters
 func (r *Registry[TData, TResponse, TRequest]) FindWithSQL(
 	context context.Context,
 	filters []FilterSQL,
