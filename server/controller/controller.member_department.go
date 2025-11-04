@@ -48,11 +48,15 @@ func (c *Controller) memberDepartmentController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberDepartmentHistory, err := c.core.MemberDepartmentHistoryMemberProfileID(context, *memberProfileID, user.OrganizationID, *user.BranchID)
+		memberDepartmentHistory, err := c.core.MemberDepartmentHistoryManager.PaginationWithFields(context, ctx, &core.MemberDepartmentHistory{
+			OrganizationID:  user.OrganizationID,
+			BranchID:        *user.BranchID,
+			MemberProfileID: *memberProfileID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member department history by profile: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberDepartmentHistoryManager.Pagination(context, ctx, memberDepartmentHistory))
+		return ctx.JSON(http.StatusOK, memberDepartmentHistory)
 	})
 
 	// Get all member departments for the current branch
@@ -86,11 +90,14 @@ func (c *Controller) memberDepartmentController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberDepartment, err := c.core.MemberDepartmentCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		memberDepartment, err := c.core.MemberDepartmentManager.PaginationWithFields(context, ctx, &core.MemberDepartment{
+			OrganizationID: user.OrganizationID,
+			BranchID:       *user.BranchID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member departments for pagination: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberDepartmentManager.Pagination(context, ctx, memberDepartment))
+		return ctx.JSON(http.StatusOK, memberDepartment)
 	})
 
 	// Create a new member department

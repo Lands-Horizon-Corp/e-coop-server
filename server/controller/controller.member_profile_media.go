@@ -353,13 +353,13 @@ func (c *Controller) memberProfileMediaController() {
 		}
 
 		var createdMedia []*core.MemberProfileMedia
-		for _, mediaID := range reqData.MediaIDs {
-			media, err := c.core.MediaManager.GetByID(context, *mediaID)
+		for _, mediaID := range *reqData.MediaIDs {
+			media, err := c.core.MediaManager.GetByID(context, mediaID)
 			if err != nil {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Media not found: " + mediaID.String()})
 			}
 			memberProfileMedia := &core.MemberProfileMedia{
-				MediaID:         mediaID,
+				MediaID:         &mediaID,
 				CreatedAt:       time.Now().UTC(),
 				CreatedByID:     user.UserID,
 				UpdatedAt:       time.Now().UTC(),

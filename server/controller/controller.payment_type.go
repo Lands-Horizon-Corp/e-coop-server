@@ -44,11 +44,14 @@ func (c *Controller) paymentTypeController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := c.core.PaymentTypeCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		value, err := c.core.PaymentTypeManager.PaginationWithFields(context, ctx, &core.PaymentType{
+			BranchID:       *user.BranchID,
+			OrganizationID: user.OrganizationID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve payment types for pagination: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.PaymentTypeManager.Pagination(context, ctx, value))
+		return ctx.JSON(http.StatusOK, value)
 	})
 
 	// Get a payment type by its ID

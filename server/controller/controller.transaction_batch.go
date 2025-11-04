@@ -50,11 +50,14 @@ func (c *Controller) transactionBatchController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		transactionBatch, err := c.core.TransactionBatchCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
+		transactionBatch, err := c.core.TransactionBatchManager.PaginationWithFields(context, ctx, &core.TransactionBatch{
+			BranchID:       *userOrg.BranchID,
+			OrganizationID: userOrg.OrganizationID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve paginated transaction batches: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager.Pagination(context, ctx, transactionBatch))
+		return ctx.JSON(http.StatusOK, transactionBatch)
 	})
 
 	// Update batch signatures for a transaction batch
@@ -839,9 +842,11 @@ func (c *Controller) transactionBatchController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batches: " + err.Error()})
 		}
-		paginated := c.core.TransactionBatchManager.Pagination(context, ctx, batches)
+		paginated, err := c.core.TransactionBatchManager.PaginationData(context, ctx, batches)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to paginate transaction batches: " + err.Error()})
+		}
 
-		// ✅ Fix: Use index to properly update the slice
 		for i, batch := range paginated.Data {
 			if !batch.CanView {
 				minimalBatch, err := c.core.TransactionBatchMinimal(context, batch.ID)

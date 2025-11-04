@@ -7,7 +7,6 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/labstack/echo/v4"
 )
@@ -62,7 +61,7 @@ func (c *Controller) loanTransactionController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view loan transactions"})
 		}
 
-		loanTransactions, err := c.core.LoanTransactionManager.Find(context, &core.LoanTransaction{
+		loanTransactions, err := c.core.LoanTransactionManager.PaginationWithFields(context, ctx, &core.LoanTransaction{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -70,7 +69,7 @@ func (c *Controller) loanTransactionController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve loan transactions: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, c.core.LoanTransactionManager.Pagination(context, ctx, loanTransactions))
+		return ctx.JSON(http.StatusOK, loanTransactions)
 	})
 
 	// GET /api/v1/loan-transaction/member-profile/:member_profile_id/search
@@ -94,7 +93,7 @@ func (c *Controller) loanTransactionController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view loan transactions"})
 		}
 
-		loanTransactions, err := c.core.LoanTransactionManager.Find(context, &core.LoanTransaction{
+		loanTransactions, err := c.core.LoanTransactionManager.PaginationWithFields(context, ctx, &core.LoanTransaction{
 			MemberProfileID: memberProfileID,
 			OrganizationID:  userOrg.OrganizationID,
 			BranchID:        *userOrg.BranchID,
@@ -103,7 +102,7 @@ func (c *Controller) loanTransactionController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve loan transactions: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, c.core.LoanTransactionManager.Pagination(context, ctx, loanTransactions))
+		return ctx.JSON(http.StatusOK, loanTransactions)
 	})
 
 	req.RegisterRoute(handlers.Route{
@@ -163,7 +162,7 @@ func (c *Controller) loanTransactionController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve loan transactions: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, c.core.LoanTransactionManager.Pagination(context, ctx, loanTransactions))
+		return ctx.JSON(http.StatusOK, loanTransactions)
 	})
 
 	// GET /api/v1/loan-transaction/draft
@@ -902,7 +901,7 @@ func (c *Controller) loanTransactionController() {
 					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete loan clearance analysis that doesn't belong to this loan transaction"})
 				}
 				clearanceAnalysis.DeletedByID = &userOrg.UserID
-				if err := c.core.LoanClearanceAnalysisManager.DeleteWithTx(context, tx, clearanceAnalysis); err != nil {
+				if err := c.core.LoanClearanceAnalysisManager.DeleteWithTx(context, tx, clearanceAnalysis.ID); err != nil {
 					tx.Rollback()
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan clearance analysis: " + err.Error()})
 				}
@@ -921,7 +920,7 @@ func (c *Controller) loanTransactionController() {
 					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete loan clearance analysis institution that doesn't belong to this loan transaction"})
 				}
 				institution.DeletedByID = &userOrg.UserID
-				if err := c.core.LoanClearanceAnalysisInstitutionManager.DeleteWithTx(context, tx, institution); err != nil {
+				if err := c.core.LoanClearanceAnalysisInstitutionManager.DeleteWithTx(context, tx, institution.ID); err != nil {
 					tx.Rollback()
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan clearance analysis institution: " + err.Error()})
 				}
@@ -940,7 +939,7 @@ func (c *Controller) loanTransactionController() {
 					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete loan terms suggested payment that doesn't belong to this loan transaction"})
 				}
 				suggestedPayment.DeletedByID = &userOrg.UserID
-				if err := c.core.LoanTermsAndConditionSuggestedPaymentManager.DeleteWithTx(context, tx, suggestedPayment); err != nil {
+				if err := c.core.LoanTermsAndConditionSuggestedPaymentManager.DeleteWithTx(context, tx, suggestedPayment.ID); err != nil {
 					tx.Rollback()
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan terms suggested payment: " + err.Error()})
 				}
@@ -959,7 +958,7 @@ func (c *Controller) loanTransactionController() {
 					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete loan terms amount receipt that doesn't belong to this loan transaction"})
 				}
 				amountReceipt.DeletedByID = &userOrg.UserID
-				if err := c.core.LoanTermsAndConditionAmountReceiptManager.DeleteWithTx(context, tx, amountReceipt); err != nil {
+				if err := c.core.LoanTermsAndConditionAmountReceiptManager.DeleteWithTx(context, tx, amountReceipt.ID); err != nil {
 					tx.Rollback()
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan terms amount receipt: " + err.Error()})
 				}
@@ -979,7 +978,7 @@ func (c *Controller) loanTransactionController() {
 					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete comaker member profile that doesn't belong to this loan transaction"})
 				}
 				comakerMemberProfile.DeletedByID = &userOrg.UserID
-				if err := c.core.ComakerMemberProfileManager.DeleteWithTx(context, tx, comakerMemberProfile); err != nil {
+				if err := c.core.ComakerMemberProfileManager.DeleteWithTx(context, tx, comakerMemberProfile.ID); err != nil {
 					tx.Rollback()
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete comaker member profile: " + err.Error()})
 				}
@@ -999,7 +998,7 @@ func (c *Controller) loanTransactionController() {
 					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete comaker collateral that doesn't belong to this loan transaction"})
 				}
 				comakerCollateral.DeletedByID = &userOrg.UserID
-				if err := c.core.ComakerCollateralManager.DeleteWithTx(context, tx, comakerCollateral); err != nil {
+				if err := c.core.ComakerCollateralManager.DeleteWithTx(context, tx, comakerCollateral.ID); err != nil {
 					tx.Rollback()
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete comaker collateral: " + err.Error()})
 				}
@@ -1435,7 +1434,7 @@ func (c *Controller) loanTransactionController() {
 
 		for _, clearanceAnalysis := range clearanceAnalysisList {
 			clearanceAnalysis.DeletedByID = &userOrg.UserID
-			if err := c.core.LoanClearanceAnalysisManager.DeleteWithTx(context, tx, clearanceAnalysis); err != nil {
+			if err := c.core.LoanClearanceAnalysisManager.DeleteWithTx(context, tx, clearanceAnalysis.ID); err != nil {
 				tx.Rollback()
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan clearance analysis: " + err.Error()})
 			}
@@ -1454,7 +1453,7 @@ func (c *Controller) loanTransactionController() {
 
 		for _, institution := range institutionList {
 			institution.DeletedByID = &userOrg.UserID
-			if err := c.core.LoanClearanceAnalysisInstitutionManager.DeleteWithTx(context, tx, institution); err != nil {
+			if err := c.core.LoanClearanceAnalysisInstitutionManager.DeleteWithTx(context, tx, institution.ID); err != nil {
 				tx.Rollback()
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan clearance analysis institution: " + err.Error()})
 			}
@@ -1473,7 +1472,7 @@ func (c *Controller) loanTransactionController() {
 
 		for _, suggestedPayment := range suggestedPaymentList {
 			suggestedPayment.DeletedByID = &userOrg.UserID
-			if err := c.core.LoanTermsAndConditionSuggestedPaymentManager.DeleteWithTx(context, tx, suggestedPayment); err != nil {
+			if err := c.core.LoanTermsAndConditionSuggestedPaymentManager.DeleteWithTx(context, tx, suggestedPayment.ID); err != nil {
 				tx.Rollback()
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan terms suggested payment: " + err.Error()})
 			}
@@ -1492,7 +1491,7 @@ func (c *Controller) loanTransactionController() {
 
 		for _, amountReceipt := range amountReceiptList {
 			amountReceipt.DeletedByID = &userOrg.UserID
-			if err := c.core.LoanTermsAndConditionAmountReceiptManager.DeleteWithTx(context, tx, amountReceipt); err != nil {
+			if err := c.core.LoanTermsAndConditionAmountReceiptManager.DeleteWithTx(context, tx, amountReceipt.ID); err != nil {
 				tx.Rollback()
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan terms amount receipt: " + err.Error()})
 			}
@@ -1511,7 +1510,7 @@ func (c *Controller) loanTransactionController() {
 
 		for _, transactionEntry := range transactionEntryList {
 			transactionEntry.DeletedByID = &userOrg.UserID
-			if err := c.core.LoanTransactionEntryManager.DeleteWithTx(context, tx, transactionEntry); err != nil {
+			if err := c.core.LoanTransactionEntryManager.DeleteWithTx(context, tx, transactionEntry.ID); err != nil {
 				tx.Rollback()
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan transaction entry: " + err.Error()})
 			}
@@ -1530,7 +1529,7 @@ func (c *Controller) loanTransactionController() {
 
 		for _, comakerMemberProfile := range comakerMemberProfileList {
 			comakerMemberProfile.DeletedByID = &userOrg.UserID
-			if err := c.core.ComakerMemberProfileManager.DeleteWithTx(context, tx, comakerMemberProfile); err != nil {
+			if err := c.core.ComakerMemberProfileManager.DeleteWithTx(context, tx, comakerMemberProfile.ID); err != nil {
 				tx.Rollback()
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete comaker member profile: " + err.Error()})
 			}
@@ -1540,7 +1539,7 @@ func (c *Controller) loanTransactionController() {
 		loanTransaction.DeletedByID = &userOrg.UserID
 
 		// Delete the main loan transaction
-		if err := c.core.LoanTransactionManager.DeleteWithTx(context, tx, loanTransaction); err != nil {
+		if err := c.core.LoanTransactionManager.DeleteWithTx(context, tx, loanTransaction.ID); err != nil {
 			tx.Rollback()
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan transaction: " + err.Error()})
 		}
@@ -1615,7 +1614,7 @@ func (c *Controller) loanTransactionController() {
 
 		// Delegate complex deletion (transaction, related records, ownership checks) to the manager.
 		// Manager signature assumed: BulkDeleteWithOrg(ctx context.Context, ids []string, userOrg core.UserOrganization) error
-		if err := c.core.LoanTransactionManager.BulkDeleteWithOrg(context, reqBody.IDs, userOrg); err != nil {
+		if err := c.core.LoanTransactionManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/loan-transaction/bulk-delete) | error: " + err.Error(),
@@ -2027,13 +2026,7 @@ func (c *Controller) loanTransactionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		loanTransactionEntry, err := c.core.LoanTransactionEntryManager.FindOneWithFilters(context, []services.Filter{
-			{Field: "loan_transaction_entries.organization_id", Op: services.OpEq, Value: userOrg.OrganizationID},
-			{Field: "loan_transaction_entries.branch_id", Op: services.OpEq, Value: userOrg.BranchID},
-			{Field: "loan_transaction_entries.index", Op: services.OpEq, Value: 0},
-			{Field: "loan_transaction_entries.debit", Op: services.OpEq, Value: 0},
-			{Field: "loan_transaction_entries.loan_transaction_id", Op: services.OpEq, Value: loanTransactionID},
-		})
+		loanTransactionEntry, err := c.core.GetCashOnCashEquivalence(context, *loanTransactionID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "not-found",

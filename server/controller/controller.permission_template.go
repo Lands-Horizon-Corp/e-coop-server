@@ -45,11 +45,14 @@ func (c *Controller) permissionTemplateController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		permissionTemplates, err := c.core.GetPermissionTemplateBybranch(context, userOrg.OrganizationID, *userOrg.BranchID)
+		permissionTemplates, err := c.core.PermissionTemplateManager.PaginationWithFields(context, ctx, &core.PermissionTemplate{
+			BranchID:       *userOrg.BranchID,
+			OrganizationID: userOrg.OrganizationID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve permission templates: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.PermissionTemplateManager.Pagination(context, ctx, permissionTemplates))
+		return ctx.JSON(http.StatusOK, permissionTemplates)
 	})
 
 	// Fetch a single permission template by its ID.

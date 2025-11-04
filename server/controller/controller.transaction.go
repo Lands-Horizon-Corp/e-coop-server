@@ -424,7 +424,7 @@ func (c *Controller) transactionController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction batch ID: " + err.Error()})
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
-		if err != nil { c.core.TransactionManager.Pagination(context, ctx, transactions)
+		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		transactions, err := c.core.TransactionManager.PaginationWithFields(context, ctx, &core.Transaction{
