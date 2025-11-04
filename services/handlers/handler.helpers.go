@@ -14,6 +14,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
@@ -583,4 +584,33 @@ func GetExtensionFromContentType(contentType string) string {
 		return ext
 	}
 	return ""
+}
+
+// --- ID Helpers ---
+func GetID[T any](entity *T) (uuid.UUID, error) {
+	v := reflect.ValueOf(entity).Elem()
+	idField := v.FieldByName("ID")
+	if !idField.IsValid() {
+		return uuid.Nil, eris.New("entity missing ID field")
+	}
+
+	id, ok := idField.Interface().(uuid.UUID)
+	if !ok {
+		return uuid.Nil, eris.New("ID field is not UUID type")
+	}
+	return id, nil
+}
+
+func SetID[T any](entity *T, id uuid.UUID) error {
+	v := reflect.ValueOf(entity).Elem()
+	idField := v.FieldByName("ID")
+	if !idField.IsValid() {
+		return eris.New("entity missing ID field")
+	}
+	if !idField.CanSet() {
+		return eris.New("ID field cannot be set")
+	}
+
+	idField.Set(reflect.ValueOf(id))
+	return nil
 }

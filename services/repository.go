@@ -691,7 +691,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) UpdateByID(
 	entity *TData,
 	preloads ...string,
 ) error {
-	if err := setID(entity, id); err != nil {
+	if err := handlers.SetID(entity, id); err != nil {
 		return eris.Wrap(err, "invalid entity ID")
 	}
 	return c.Update(ctx, entity, preloads...)
@@ -705,7 +705,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) UpdateByIDWithTx(
 	entity *TData,
 	preloads ...string,
 ) error {
-	if err := setID(entity, id); err != nil {
+	if err := handlers.SetID(entity, id); err != nil {
 		return eris.Wrap(err, "invalid entity ID in transaction")
 	}
 	return c.UpdateWithTx(ctx, tx, entity, preloads...)
@@ -900,7 +900,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) Upsert(
 	entity *TData,
 	preloads ...string,
 ) error {
-	id, err := getID(entity)
+	id, err := handlers.GetID(entity)
 	if err != nil {
 		return eris.Wrap(err, "invalid entity ID for upsert")
 	}
@@ -928,7 +928,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) UpsertWithTx(
 	entity *TData,
 	preloads ...string,
 ) error {
-	id, err := getID(entity)
+	id, err := handlers.GetID(entity)
 	if err != nil {
 		return eris.Wrap(err, "invalid entity ID for upsert in transaction")
 	}
@@ -988,7 +988,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) reloadWithPreloads(
 		return nil
 	}
 
-	id, err := getID(entity)
+	id, err := handlers.GetID(entity)
 	if err != nil {
 		return eris.Wrap(err, "cannot reload without ID")
 	}
@@ -1014,7 +1014,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) reloadWithPreloadsTx(
 		return nil
 	}
 
-	id, err := getID(entity)
+	id, err := handlers.GetID(entity)
 	if err != nil {
 		return eris.Wrap(err, "cannot reload without ID in transaction")
 	}
@@ -1041,7 +1041,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) reloadManyWithPreloads(
 
 	ids := make([]uuid.UUID, len(entities))
 	for i, entity := range entities {
-		id, err := getID(entity)
+		id, err := handlers.GetID(entity)
 		if err != nil {
 			return eris.Wrapf(err, "cannot reload entity at index %d", i)
 		}
@@ -1061,13 +1061,13 @@ func (c *CollectionManager[TData, TResponse, TRequest]) reloadManyWithPreloads(
 	// Map reloaded entities by ID
 	reloadedMap := make(map[uuid.UUID]*TData, len(reloaded))
 	for _, e := range reloaded {
-		id, _ := getID(e)
+		id, _ := handlers.GetID(e)
 		reloadedMap[id] = e
 	}
 
 	// Replace original entities with reloaded ones
 	for i, entity := range entities {
-		id, _ := getID(entity)
+		id, _ := handlers.GetID(entity)
 		if reloaded, ok := reloadedMap[id]; ok {
 			entities[i] = reloaded
 		} else {
@@ -1090,7 +1090,7 @@ func (c *CollectionManager[TData, TResponse, TRequest]) reloadManyWithPreloadsTx
 
 	ids := make([]uuid.UUID, len(entities))
 	for i, entity := range entities {
-		id, err := getID(entity)
+		id, err := handlers.GetID(entity)
 		if err != nil {
 			return eris.Wrapf(err, "cannot reload entity at index %d in transaction", i)
 		}
@@ -1110,13 +1110,13 @@ func (c *CollectionManager[TData, TResponse, TRequest]) reloadManyWithPreloadsTx
 	// Map reloaded entities by ID
 	reloadedMap := make(map[uuid.UUID]*TData, len(reloaded))
 	for _, e := range reloaded {
-		id, _ := getID(e)
+		id, _ := handlers.GetID(e)
 		reloadedMap[id] = e
 	}
 
 	// Replace original entities with reloaded ones
 	for i, entity := range entities {
-		id, _ := getID(entity)
+		id, _ := handlers.GetID(entity)
 		if reloaded, ok := reloadedMap[id]; ok {
 			entities[i] = reloaded
 		} else {
@@ -1173,33 +1173,4 @@ func (c *CollectionManager[TData, TResponse, TRequest]) DeletedBroadcast(
 			}
 		}
 	}()
-}
-
-// --- ID Helpers ---
-func getID[T any](entity *T) (uuid.UUID, error) {
-	v := reflect.ValueOf(entity).Elem()
-	idField := v.FieldByName("ID")
-	if !idField.IsValid() {
-		return uuid.Nil, eris.New("entity missing ID field")
-	}
-
-	id, ok := idField.Interface().(uuid.UUID)
-	if !ok {
-		return uuid.Nil, eris.New("ID field is not UUID type")
-	}
-	return id, nil
-}
-
-func setID[T any](entity *T, id uuid.UUID) error {
-	v := reflect.ValueOf(entity).Elem()
-	idField := v.FieldByName("ID")
-	if !idField.IsValid() {
-		return eris.New("entity missing ID field")
-	}
-	if !idField.CanSet() {
-		return eris.New("ID field cannot be set")
-	}
-
-	idField.Set(reflect.ValueOf(id))
-	return nil
 }

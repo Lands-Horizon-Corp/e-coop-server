@@ -565,7 +565,8 @@ func (c *Controller) accountController() {
 			NumberGracePeriodDaily:                             req.NumberGracePeriodDaily,
 			FinesGracePeriodMaturity:                           req.FinesGracePeriodMaturity,
 			YearlySubscriptionFee:                              req.YearlySubscriptionFee,
-			LoanCutOffDays:                                     req.LoanCutOffDays,
+			CutOffDays:                                         req.CutOffDays,
+			CutOffMonths:                                       req.CutOffMonths,
 			LumpsumComputationType:                             req.LumpsumComputationType,
 			InterestFinesComputationDiminishing:                req.InterestFinesComputationDiminishing,
 			InterestFinesComputationDiminishingStraightYearly:  req.InterestFinesComputationDiminishingStraightYearly,
@@ -761,7 +762,8 @@ func (c *Controller) accountController() {
 		account.NumberGracePeriodDaily = req.NumberGracePeriodDaily
 		account.FinesGracePeriodMaturity = req.FinesGracePeriodMaturity
 		account.YearlySubscriptionFee = req.YearlySubscriptionFee
-		account.LoanCutOffDays = req.LoanCutOffDays
+		account.CutOffDays = req.CutOffDays
+		account.CutOffMonths = req.CutOffMonths
 		account.LumpsumComputationType = req.LumpsumComputationType
 		account.InterestFinesComputationDiminishing = req.InterestFinesComputationDiminishing
 		account.InterestFinesComputationDiminishingStraightYearly = req.InterestFinesComputationDiminishingStraightYearly
