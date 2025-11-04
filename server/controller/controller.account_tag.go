@@ -8,7 +8,6 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -35,7 +34,7 @@ func (c *Controller) accountTagController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account tags not found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountTagManager.Filtered(context, ctx, accountTags))
+		return ctx.JSON(http.StatusOK, c.core.AccountTagManager.ToModels(accountTags))
 	})
 
 	// GET /account-tag/search - Paginated search of account tags for current branch.
@@ -53,11 +52,14 @@ func (c *Controller) accountTagController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		accountTags, err := c.core.AccountTagCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		accountTags, err := c.core.AccountTagManager.PaginationWithFields(context, ctx, &core.AccountTag{
+			OrganizationID: user.OrganizationID,
+			BranchID:       *user.BranchID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch account tags for pagination: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountTagManager.Pagination(context, ctx, accountTags))
+		return ctx.JSON(http.StatusOK, accountTags)
 	})
 
 	// GET /account-tag/:account_tag_id - Get specific account tag by ID.
@@ -287,80 +289,40 @@ func (c *Controller) accountTagController() {
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/account-tag/bulk-delete",
 		Method:      "DELETE",
-		Note:        "Deletes multiple account tags by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
+		Note:        "Bulk delete multiple account tags by IDs.",
 		RequestType: core.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "delete error",
-				Description: "Invalid request body for DELETE /account-tag/bulk-delete",
-				Module:      "account-tag",
+				Activity:    "bulk-delete-error",
+				Description: "Failed bulk delete account tags (/account-tag/bulk-delete) | invalid request body: " + err.Error(),
+				Module:      "AccountTag",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "delete error",
-				Description: "No IDs provided for bulk delete on DELETE /account-tag/bulk-delete",
-				Module:      "account-tag",
+				Activity:    "bulk-delete-error",
+				Description: "Failed bulk delete account tags (/account-tag/bulk-delete) | no IDs provided",
+				Module:      "AccountTag",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided."})
 		}
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
+
+		if err := c.core.AccountTagManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "delete error",
-				Description: fmt.Sprintf("Failed to start DB transaction for DELETE /account-tag/bulk-delete: %v", tx.Error),
-				Module:      "account-tag",
+				Activity:    "bulk-delete-error",
+				Description: "Failed bulk delete account tags (/account-tag/bulk-delete) | error: " + err.Error(),
+				Module:      "AccountTag",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
-		}
-		for _, rawID := range reqBody.IDs {
-			accountTagID, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "delete error",
-					Description: fmt.Sprintf("Invalid UUID in bulk delete: %s", rawID),
-					Module:      "account-tag",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
-			}
-			if _, err := c.core.AccountTagManager.GetByID(context, accountTagID); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "delete error",
-					Description: fmt.Sprintf("Account tag not found in bulk delete: %s", rawID),
-					Module:      "account-tag",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Account tag not found with ID: %s", rawID)})
-			}
-			if err := c.core.AccountTagManager.DeleteWithTx(context, tx, accountTagID); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "delete error",
-					Description: fmt.Sprintf("Failed to delete account tag in bulk delete: %v", err),
-					Module:      "account-tag",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete account tag: " + err.Error()})
-			}
-		}
-		if err := tx.Commit().Error; err != nil {
-			tx.Rollback()
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "delete error",
-				Description: fmt.Sprintf("Failed to commit bulk delete transaction for DELETE /account-tag/bulk-delete: %v", err),
-				Module:      "account-tag",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit bulk delete transaction: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete account tags: " + err.Error()})
 		}
 		c.event.Footstep(context, ctx, event.FootstepEvent{
-			Activity:    "delete success",
-			Description: fmt.Sprintf("Bulk deleted account tags: %v", reqBody.IDs),
-			Module:      "account-tag",
+			Activity:    "bulk-delete-success",
+			Description: "Bulk deleted account tags (/account-tag/bulk-delete)",
+			Module:      "AccountTag",
 		})
 		return ctx.NoContent(http.StatusNoContent)
 	})

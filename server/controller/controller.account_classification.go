@@ -2,13 +2,11 @@ package v1
 
 import (
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -30,14 +28,14 @@ func (c *Controller) accountClassificationController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		classifications, err := c.core.AccountClassificationManager.Find(context, &core.AccountClassification{
+		classifications, err := c.core.AccountClassificationManager.PaginationWithFields(context, ctx, &core.AccountClassification{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve account classifications: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountClassificationManager.Pagination(context, ctx, classifications))
+		return ctx.JSON(http.StatusOK, classifications)
 	})
 
 	req.RegisterRoute(handlers.Route{
@@ -61,7 +59,7 @@ func (c *Controller) accountClassificationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve account classifications (raw): " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountClassificationManager.Filtered(context, ctx, classifications))
+		return ctx.JSON(http.StatusOK, c.core.AccountClassificationManager.ToModels(classifications))
 	})
 
 	req.RegisterRoute(handlers.Route{
@@ -290,7 +288,7 @@ func (c *Controller) accountClassificationController() {
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Failed bulk delete account classifications (/account-classification/bulk-delete): invalid request body: " + err.Error(),
+				Description: "Failed bulk delete account classifications (/account-classification/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "AccountClassification",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
@@ -298,70 +296,24 @@ func (c *Controller) accountClassificationController() {
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Failed bulk delete account classifications (/account-classification/bulk-delete): no IDs provided",
+				Description: "Failed bulk delete account classifications (/account-classification/bulk-delete) | no IDs provided",
 				Module:      "AccountClassification",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided."})
 		}
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
+
+		if err := c.core.AccountClassificationManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Failed bulk delete account classifications (/account-classification/bulk-delete): begin tx error: " + tx.Error.Error(),
+				Description: "Failed bulk delete account classifications (/account-classification/bulk-delete) | error: " + err.Error(),
 				Module:      "AccountClassification",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
-		}
-		for _, rawID := range reqBody.IDs {
-			id, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Failed bulk delete account classifications (/account-classification/bulk-delete): invalid UUID: " + rawID + " - " + err.Error(),
-					Module:      "AccountClassification",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid UUID: " + rawID + " - " + err.Error()})
-			}
-			if _, err := c.core.AccountClassificationManager.GetByID(context, id); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Failed bulk delete account classifications (/account-classification/bulk-delete): not found: " + rawID + " - " + err.Error(),
-					Module:      "AccountClassification",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account classification with ID " + rawID + " not found: " + err.Error()})
-			}
-			if err := c.core.AccountClassificationManager.DeleteWithTx(context, tx, id); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Failed bulk delete account classifications (/account-classification/bulk-delete): delete error: " + rawID + " - " + err.Error(),
-					Module:      "AccountClassification",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete account classification with ID " + rawID + ": " + err.Error()})
-			}
-		}
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Failed bulk delete account classifications (/account-classification/bulk-delete): commit error: " + err.Error(),
-				Module:      "AccountClassification",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete account classifications: " + err.Error()})
 		}
 		c.event.Footstep(context, ctx, event.FootstepEvent{
-			Activity: "bulk-delete-success",
-			Description: "Bulk deleted account classifications (/account-classification/bulk-delete): IDs=" + func() string {
-				var sb strings.Builder
-				for _, id := range reqBody.IDs {
-					sb.WriteString(id)
-					sb.WriteByte(',')
-				}
-				return sb.String()
-			}(),
-			Module: "AccountClassification",
+			Activity:    "bulk-delete-success",
+			Description: "Bulk deleted account classifications (/account-classification/bulk-delete)",
+			Module:      "AccountClassification",
 		})
 		return ctx.NoContent(http.StatusNoContent)
 	})

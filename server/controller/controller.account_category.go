@@ -283,7 +283,6 @@ func (c *Controller) accountCategoryController() {
 	})
 
 	// BULK DELETE (DELETE) - ADD FOOTSTEP
-
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/account-category/bulk-delete",
 		Method:      "DELETE",
@@ -300,15 +299,6 @@ func (c *Controller) accountCategoryController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
-		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Failed bulk delete account categories (/account-category/bulk-delete) | no IDs provided",
-				Module:      "AccountCategory",
-			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided."})
-		}
-
 		if err := c.core.AccountCategoryManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",

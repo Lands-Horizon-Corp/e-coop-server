@@ -14,11 +14,11 @@ func (r *Registry[TData, TResponse, TRequest]) PaginationWithFields(
 
 	fields *TData,
 	preloads ...string,
-) (*filter.PaginationResult[TData], error) {
+) (*filter.PaginationResult[TResponse], error) {
 	var entities []*TData
 	filterRoot, pageIndex, pageSize, err := parseQuery(ctx)
 	if err != nil {
-		return &filter.PaginationResult[TData]{}, eris.Wrap(err, "failed to parse query")
+		return &filter.PaginationResult[TResponse]{}, eris.Wrap(err, "failed to parse query")
 	}
 	if preloads == nil {
 		preloads = r.preloads
@@ -31,19 +31,25 @@ func (r *Registry[TData, TResponse, TRequest]) PaginationWithFields(
 		pageIndex, pageSize,
 	)
 	if err != nil {
-		return &filter.PaginationResult[TData]{}, eris.Wrap(err, "failed to find filtered entities")
+		return &filter.PaginationResult[TResponse]{}, eris.Wrap(err, "failed to find filtered entities")
 	}
-	return data, nil
+	return &filter.PaginationResult[TResponse]{
+		Data:      r.ToModels(data.Data),
+		TotalSize: data.TotalSize,
+		TotalPage: data.TotalPage,
+		PageIndex: data.PageIndex,
+		PageSize:  data.PageSize,
+	}, nil
 }
 
 func (r *Registry[TData, TResponse, TRequest]) Pagination(
 	context context.Context,
 	ctx echo.Context,
 	preloads ...string,
-) (*filter.PaginationResult[TData], error) {
+) (*filter.PaginationResult[TResponse], error) {
 	filterRoot, pageIndex, pageSize, err := parseQuery(ctx)
 	if err != nil {
-		return &filter.PaginationResult[TData]{}, eris.Wrap(err, "failed to parse query")
+		return &filter.PaginationResult[TResponse]{}, eris.Wrap(err, "failed to parse query")
 	}
 	if preloads == nil {
 		preloads = r.preloads
@@ -56,7 +62,13 @@ func (r *Registry[TData, TResponse, TRequest]) Pagination(
 		pageIndex, pageSize,
 	)
 	if err != nil {
-		return &filter.PaginationResult[TData]{}, eris.Wrap(err, "failed to find filtered entities")
+		return &filter.PaginationResult[TResponse]{}, eris.Wrap(err, "failed to find filtered entities")
 	}
-	return data, nil
+	return &filter.PaginationResult[TResponse]{
+		Data:      r.ToModels(data.Data),
+		TotalSize: data.TotalSize,
+		TotalPage: data.TotalPage,
+		PageIndex: data.PageIndex,
+		PageSize:  data.PageSize,
+	}, nil
 }
