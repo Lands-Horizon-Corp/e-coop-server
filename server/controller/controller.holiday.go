@@ -1,17 +1,14 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
 	"sort"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -56,11 +53,14 @@ func (c *Controller) holidayController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		holidays, err := c.core.HolidayCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		holidays, err := c.core.HolidayManager.PaginationWithFields(context, ctx, &core.Holiday{
+			BranchID:       *user.BranchID,
+			OrganizationID: user.OrganizationID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch holiday records: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.HolidayManager.Pagination(context, ctx, holidays))
+		return ctx.JSON(http.StatusOK, holidays)
 	})
 
 	// GET /holiday/:holiday_id: Get a specific holiday record by ID. (NO footstep)
@@ -262,7 +262,7 @@ func (c *Controller) holidayController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// DELETE /holiday/bulk-delete: Bulk delete holiday records by IDs. (WITH footstep)
+	// Simplified bulk-delete handler for holidays (mirrors the feedback bulk-delete pattern)
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/holiday/bulk-delete",
 		Method:      "DELETE",
@@ -271,79 +271,40 @@ func (c *Controller) holidayController() {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest
+
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Holiday bulk delete failed (/holiday/bulk-delete), invalid request body.",
+				Description: "Holiday bulk delete failed (/holiday/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "Holiday",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
+
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Holiday bulk delete failed (/holiday/bulk-delete), no IDs provided.",
+				Description: "Holiday bulk delete failed (/holiday/bulk-delete) | no IDs provided",
 				Module:      "Holiday",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
+
+		if err := c.core.HolidayManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Holiday bulk delete failed (/holiday/bulk-delete), begin tx error: " + tx.Error.Error(),
+				Description: "Holiday bulk delete failed (/holiday/bulk-delete) | error: " + err.Error(),
 				Module:      "Holiday",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete holiday records: " + err.Error()})
 		}
-		var namesSlice []string
-		for _, rawID := range reqBody.IDs {
-			holidayID, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Holiday bulk delete failed (/holiday/bulk-delete), invalid UUID: " + rawID,
-					Module:      "Holiday",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
-			}
-			holiday, err := c.core.HolidayManager.GetByID(context, holidayID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Holiday bulk delete failed (/holiday/bulk-delete), not found: " + rawID,
-					Module:      "Holiday",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Holiday record not found with ID: %s", rawID)})
-			}
-			namesSlice = append(namesSlice, holiday.Name)
-			if err := c.core.HolidayManager.DeleteWithTx(context, tx, holidayID); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Holiday bulk delete failed (/holiday/bulk-delete), db error: " + err.Error(),
-					Module:      "Holiday",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete holiday record: " + err.Error()})
-			}
-		}
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Holiday bulk delete failed (/holiday/bulk-delete), commit error: " + err.Error(),
-				Module:      "Holiday",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
-		}
-		names := strings.Join(namesSlice, ",")
+
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted holidays (/holiday/bulk-delete): " + names,
+			Description: "Bulk deleted holidays (/holiday/bulk-delete)",
 			Module:      "Holiday",
 		})
+
 		return ctx.NoContent(http.StatusNoContent)
 	})
 

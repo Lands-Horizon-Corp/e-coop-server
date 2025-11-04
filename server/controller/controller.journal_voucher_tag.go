@@ -1,15 +1,12 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -54,11 +51,14 @@ func (c *Controller) journalVoucherTagController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		tags, err := c.core.JournalVoucherTagCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		tags, err := c.core.JournalVoucherTagManager.PaginationWithFields(context, ctx, &core.JournalVoucherTag{
+			BranchID:       *user.BranchID,
+			OrganizationID: user.OrganizationID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch journal voucher tags for pagination: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.JournalVoucherTagManager.Pagination(context, ctx, tags))
+		return ctx.JSON(http.StatusOK, tags)
 	})
 
 	// GET /journal-voucher-tag/:tag_id: Get specific journal voucher tag by ID. (NO footstep)
@@ -289,7 +289,7 @@ func (c *Controller) journalVoucherTagController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// DELETE /journal-voucher-tag/bulk-delete: Bulk delete journal voucher tags by IDs. (WITH footstep)
+	// Simplified bulk-delete handler for journal voucher tags (matches feedback/holiday pattern)
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/journal-voucher-tag/bulk-delete",
 		Method:      "DELETE",
@@ -298,79 +298,40 @@ func (c *Controller) journalVoucherTagController() {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest
+
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/journal-voucher-tag/bulk-delete), invalid request body.",
+				Description: "Bulk delete failed (/journal-voucher-tag/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "JournalVoucherTag",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
+
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/journal-voucher-tag/bulk-delete), no IDs provided.",
+				Description: "Bulk delete failed (/journal-voucher-tag/bulk-delete) | no IDs provided",
 				Module:      "JournalVoucherTag",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No journal voucher tag IDs provided for bulk delete"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
+
+		if err := c.core.JournalVoucherTagManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/journal-voucher-tag/bulk-delete), begin tx error: " + tx.Error.Error(),
+				Description: "Bulk delete failed (/journal-voucher-tag/bulk-delete) | error: " + err.Error(),
 				Module:      "JournalVoucherTag",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete journal voucher tags: " + err.Error()})
 		}
-		var namesSlice []string
-		for _, rawID := range reqBody.IDs {
-			tagID, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/journal-voucher-tag/bulk-delete), invalid UUID: " + rawID,
-					Module:      "JournalVoucherTag",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
-			}
-			tag, err := c.core.JournalVoucherTagManager.GetByID(context, tagID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/journal-voucher-tag/bulk-delete), not found: " + rawID,
-					Module:      "JournalVoucherTag",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Journal voucher tag not found with ID: %s", rawID)})
-			}
-			namesSlice = append(namesSlice, tag.Name)
-			if err := c.core.JournalVoucherTagManager.DeleteWithTx(context, tx, tagID); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/journal-voucher-tag/bulk-delete), db error: " + err.Error(),
-					Module:      "JournalVoucherTag",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete journal voucher tag: " + err.Error()})
-			}
-		}
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/journal-voucher-tag/bulk-delete), commit error: " + err.Error(),
-				Module:      "JournalVoucherTag",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit bulk delete: " + err.Error()})
-		}
-		names := strings.Join(namesSlice, ",")
+
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted journal voucher tags (/journal-voucher-tag/bulk-delete): " + names,
+			Description: "Bulk deleted journal voucher tags (/journal-voucher-tag/bulk-delete)",
 			Module:      "JournalVoucherTag",
 		})
+
 		return ctx.NoContent(http.StatusNoContent)
 	})
 

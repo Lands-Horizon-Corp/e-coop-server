@@ -1,15 +1,12 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -139,7 +136,6 @@ func (c *Controller) contactController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// DELETE /contact/bulk-delete: Bulk delete contact records by IDs. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/contact/bulk-delete",
 		Method:      "DELETE",
@@ -152,79 +148,32 @@ func (c *Controller) contactController() {
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Contact bulk delete failed (/contact/bulk-delete), invalid request body.",
+				Description: "Contact bulk delete failed (/contact/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "Contact",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
-
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Contact bulk delete failed (/contact/bulk-delete), no IDs provided.",
+				Description: "Contact bulk delete failed (/contact/bulk-delete) | no IDs provided",
 				Module:      "Contact",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
 
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
+		if err := c.core.ContactUsManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Contact bulk delete failed (/contact/bulk-delete), begin tx error: " + tx.Error.Error(),
+				Description: "Contact bulk delete failed (/contact/bulk-delete) | error: " + err.Error(),
 				Module:      "Contact",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
-		}
-
-		var emailsBuilder strings.Builder
-		for _, rawID := range reqBody.IDs {
-			contactID, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Contact bulk delete failed (/contact/bulk-delete), invalid UUID: " + rawID,
-					Module:      "Contact",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
-			}
-			contact, err := c.core.ContactUsManager.GetByID(context, contactID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Contact bulk delete failed (/contact/bulk-delete), not found: " + rawID,
-					Module:      "Contact",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Contact record not found with ID: %s", rawID)})
-			}
-			emailsBuilder.WriteString(contact.Email)
-			emailsBuilder.WriteString(",")
-			if err := c.core.ContactUsManager.DeleteWithTx(context, tx, contactID); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Contact bulk delete failed (/contact/bulk-delete), db error: " + err.Error(),
-					Module:      "Contact",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete contact record: " + err.Error()})
-			}
-		}
-
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Contact bulk delete failed (/contact/bulk-delete), commit error: " + err.Error(),
-				Module:      "Contact",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete contact records: " + err.Error()})
 		}
 
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted contacts (/contact/bulk-delete): " + emailsBuilder.String(),
+			Description: "Bulk deleted contacts (/contact/bulk-delete)",
 			Module:      "Contact",
 		})
 

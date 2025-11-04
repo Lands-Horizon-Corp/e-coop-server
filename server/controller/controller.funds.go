@@ -1,15 +1,12 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -225,7 +222,6 @@ func (c *Controller) fundsController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// Bulk delete funds by IDs
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/funds/bulk-delete",
 		Method:      "DELETE",
@@ -238,7 +234,7 @@ func (c *Controller) fundsController() {
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete funds failed (/funds/bulk-delete), invalid request body.",
+				Description: "Bulk delete funds failed (/funds/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "Funds",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
@@ -247,72 +243,24 @@ func (c *Controller) fundsController() {
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete funds failed (/funds/bulk-delete), no IDs provided.",
+				Description: "Bulk delete funds failed (/funds/bulk-delete) | no IDs provided",
 				Module:      "Funds",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for deletion."})
 		}
 
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
+		if err := c.core.FundsManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete funds failed (/funds/bulk-delete), begin tx error: " + tx.Error.Error(),
+				Description: "Bulk delete funds failed (/funds/bulk-delete) | error: " + err.Error(),
 				Module:      "Funds",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete funds: " + err.Error()})
 		}
 
-		var typesSlice []string
-		for _, rawID := range reqBody.IDs {
-			fundsID, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete funds failed (/funds/bulk-delete), invalid UUID: " + rawID,
-					Module:      "Funds",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID '%s': %s", rawID, err.Error())})
-			}
-
-			value, err := c.core.FundsManager.GetByID(context, fundsID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete funds failed (/funds/bulk-delete), not found: " + rawID,
-					Module:      "Funds",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Funds with ID '%s' not found: %s", rawID, err.Error())})
-			}
-
-			typesSlice = append(typesSlice, value.Type)
-			if err := c.core.FundsManager.DeleteWithTx(context, tx, fundsID); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete funds failed (/funds/bulk-delete), db error: " + err.Error(),
-					Module:      "Funds",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to delete funds with ID '%s': %s", rawID, err.Error())})
-			}
-		}
-
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Bulk delete funds failed (/funds/bulk-delete), commit error: " + err.Error(),
-				Module:      "Funds",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
-		}
-
-		types := strings.Join(typesSlice, ",")
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted funds (/funds/bulk-delete): " + types,
+			Description: "Bulk deleted funds (/funds/bulk-delete)",
 			Module:      "Funds",
 		})
 

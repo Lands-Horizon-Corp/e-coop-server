@@ -3,13 +3,11 @@ package v1
 import (
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -382,7 +380,6 @@ func (c *Controller) computationSheetController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// DELETE /computation-sheet/bulk-delete: Bulk delete computation sheets by IDs.
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/computation-sheet/bulk-delete",
 		Method:      "DELETE",
@@ -391,77 +388,36 @@ func (c *Controller) computationSheetController() {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest
+
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/computation-sheet/bulk-delete), invalid request body.",
+				Description: "Bulk delete failed (/computation-sheet/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "ComputationSheet",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/computation-sheet/bulk-delete), no IDs provided.",
+				Description: "Bulk delete failed (/computation-sheet/bulk-delete) | no IDs provided",
 				Module:      "ComputationSheet",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No computation sheet IDs provided for bulk delete"})
 		}
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
+
+		if err := c.core.ComputationSheetManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/computation-sheet/bulk-delete), begin tx error: " + tx.Error.Error(),
+				Description: "Bulk delete failed (/computation-sheet/bulk-delete) | error: " + err.Error(),
 				Module:      "ComputationSheet",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete computation sheets: " + err.Error()})
 		}
-		var sb strings.Builder
-		for _, rawID := range reqBody.IDs {
-			id, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/computation-sheet/bulk-delete), invalid UUID: " + rawID,
-					Module:      "ComputationSheet",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
-			}
-			sheet, err := c.core.ComputationSheetManager.GetByID(context, id)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/computation-sheet/bulk-delete), not found: " + rawID,
-					Module:      "ComputationSheet",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Computation sheet not found with ID: %s", rawID)})
-			}
-			sb.WriteString(sheet.Name)
-			sb.WriteByte(',')
-			if err := c.core.ComputationSheetManager.DeleteWithTx(context, tx, id); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/computation-sheet/bulk-delete), db error: " + err.Error(),
-					Module:      "ComputationSheet",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete computation sheet: " + err.Error()})
-			}
-		}
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/computation-sheet/bulk-delete), commit error: " + err.Error(),
-				Module:      "ComputationSheet",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit bulk delete: " + err.Error()})
-		}
+
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted computation sheets (/computation-sheet/bulk-delete): " + sb.String(),
+			Description: "Bulk deleted computation sheets (/computation-sheet/bulk-delete)",
 			Module:      "ComputationSheet",
 		})
 		return ctx.NoContent(http.StatusNoContent)

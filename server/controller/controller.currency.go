@@ -3,7 +3,6 @@ package v1
 import (
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
@@ -291,7 +290,6 @@ func (c *Controller) currencyController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// Bulk delete currencies by IDs
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/currency/bulk-delete",
 		Method:      "DELETE",
@@ -304,7 +302,7 @@ func (c *Controller) currencyController() {
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete currencies failed: invalid request body.",
+				Description: "Bulk delete currencies failed: invalid request body. " + err.Error(),
 				Module:      "Currency",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
@@ -319,74 +317,23 @@ func (c *Controller) currencyController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for deletion."})
 		}
 
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
+		if err := c.core.CurrencyManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete currencies failed: begin tx error: " + tx.Error.Error(),
+				Description: "Bulk delete currencies failed: " + err.Error(),
 				Module:      "Currency",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
-		}
-
-		var sb strings.Builder
-		for _, rawID := range reqBody.IDs {
-			currencyID, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete currencies failed: invalid UUID: " + rawID,
-					Module:      "Currency",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s - %v", rawID, err)})
-			}
-
-			currency, err := c.core.CurrencyManager.GetByID(context, currencyID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete currencies failed: not found: " + rawID,
-					Module:      "Currency",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Currency with ID %s not found: %v", rawID, err)})
-			}
-
-			sb.WriteString(currency.Name)
-			sb.WriteString(" (")
-			sb.WriteString(currency.CurrencyCode)
-			sb.WriteString("),")
-			if err := c.core.CurrencyManager.DeleteWithTx(context, tx, currencyID); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete currencies failed: delete error: " + err.Error(),
-					Module:      "Currency",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to delete currency with ID %s: %v", rawID, err)})
-			}
-		}
-
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Bulk delete currencies failed: commit tx error: " + err.Error(),
-				Module:      "Currency",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete currencies: " + err.Error()})
 		}
 
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted currencies: " + sb.String(),
+			Description: "Bulk deleted currencies.",
 			Module:      "Currency",
 		})
 
 		return ctx.NoContent(http.StatusNoContent)
 	})
-
 	// POST /api/v1/currency/exchange-rate/:currency_from_id/:currency_to_id/:amount
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/currency/exchange-rate/:currency_from_id/:currency_to_id/:amount",

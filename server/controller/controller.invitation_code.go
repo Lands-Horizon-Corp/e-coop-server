@@ -1,15 +1,12 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -54,11 +51,14 @@ func (c *Controller) invitationCode() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		invitationCode, err := c.core.GetInvitationCodeByBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
+		invitationCode, err := c.core.InvitationCodeManager.PaginationWithFields(context, ctx, &core.InvitationCode{
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve invitation codes: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.InvitationCodeManager.Pagination(context, ctx, invitationCode))
+		return ctx.JSON(http.StatusOK, invitationCode)
 	})
 
 	// GET /invitation-code/code/:code: Retrieve an invitation code by its code string (for current organization). (NO footstep)
@@ -300,88 +300,49 @@ func (c *Controller) invitationCode() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// DELETE /invitation-code/bulk-delete: Bulk delete invitation codes by IDs. (WITH footstep)
+	// Simplified bulk-delete handler for invitation codes (mirrors the feedback/holiday pattern)
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/invitation-code/bulk-delete",
 		Method:      "DELETE",
-		RequestType: core.IDSRequest{},
 		Note:        "Deletes multiple invitation codes by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
+		RequestType: core.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest
+
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Invitation code bulk delete failed (/invitation-code/bulk-delete), invalid request body.",
+				Description: "Invitation code bulk delete failed (/invitation-code/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "InvitationCode",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
+
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Invitation code bulk delete failed (/invitation-code/bulk-delete), no IDs provided.",
+				Description: "Invitation code bulk delete failed (/invitation-code/bulk-delete) | no IDs provided",
 				Module:      "InvitationCode",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
+
+		if err := c.core.InvitationCodeManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Invitation code bulk delete failed (/invitation-code/bulk-delete), begin tx error: " + tx.Error.Error(),
+				Description: "Invitation code bulk delete failed (/invitation-code/bulk-delete) | error: " + err.Error(),
 				Module:      "InvitationCode",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete invitation codes: " + err.Error()})
 		}
-		var codesSlice []string
-		for _, rawID := range reqBody.IDs {
-			invitationCodeID, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Invitation code bulk delete failed (/invitation-code/bulk-delete), invalid UUID: " + rawID,
-					Module:      "InvitationCode",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
-			}
-			codeModel, err := c.core.InvitationCodeManager.GetByID(context, invitationCodeID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Invitation code bulk delete failed (/invitation-code/bulk-delete), not found: " + rawID,
-					Module:      "InvitationCode",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Invitation code not found with ID: %s", rawID)})
-			}
-			codesSlice = append(codesSlice, codeModel.Code)
-			if err := c.core.InvitationCodeManager.DeleteWithTx(context, tx, invitationCodeID); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Invitation code bulk delete failed (/invitation-code/bulk-delete), db error: " + err.Error(),
-					Module:      "InvitationCode",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete invitation code: " + err.Error()})
-			}
-		}
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Invitation code bulk delete failed (/invitation-code/bulk-delete), commit error: " + err.Error(),
-				Module:      "InvitationCode",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
-		}
-		codes := strings.Join(codesSlice, ",")
+
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted invitation codes (/invitation-code/bulk-delete): " + codes,
+			Description: "Bulk deleted invitation codes (/invitation-code/bulk-delete)",
 			Module:      "InvitationCode",
 		})
+
 		return ctx.NoContent(http.StatusNoContent)
 	})
 }

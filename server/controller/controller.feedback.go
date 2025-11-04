@@ -1,15 +1,12 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -144,7 +141,6 @@ func (c *Controller) feedbackController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// DELETE /feedback/bulk-delete: Bulk delete feedback records by IDs. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/feedback/bulk-delete",
 		Method:      "DELETE",
@@ -157,82 +153,33 @@ func (c *Controller) feedbackController() {
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Feedback bulk delete failed (/feedback/bulk-delete), invalid request body.",
+				Description: "Feedback bulk delete failed (/feedback/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "Feedback",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Feedback bulk delete failed (/feedback/bulk-delete), no IDs provided.",
+				Description: "Feedback bulk delete failed (/feedback/bulk-delete) | no IDs provided",
 				Module:      "Feedback",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
 
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
+		if err := c.core.FeedbackManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Feedback bulk delete failed (/feedback/bulk-delete), begin tx error: " + tx.Error.Error(),
+				Description: "Feedback bulk delete failed (/feedback/bulk-delete) | error: " + err.Error(),
 				Module:      "Feedback",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete feedback records: " + err.Error()})
 		}
 
-		var emailsSlice []string
-		for _, rawID := range reqBody.IDs {
-			feedbackID, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Feedback bulk delete failed (/feedback/bulk-delete), invalid UUID: " + rawID,
-					Module:      "Feedback",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
-			}
-
-			feedback, err := c.core.FeedbackManager.GetByID(context, feedbackID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Feedback bulk delete failed (/feedback/bulk-delete), not found: " + rawID,
-					Module:      "Feedback",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Feedback record not found with ID: %s", rawID)})
-			}
-
-			emailsSlice = append(emailsSlice, feedback.Email)
-
-			if err := c.core.FeedbackManager.DeleteWithTx(context, tx, feedbackID); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Feedback bulk delete failed (/feedback/bulk-delete), db error: " + err.Error(),
-					Module:      "Feedback",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete feedback record: " + err.Error()})
-			}
-		}
-
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Feedback bulk delete failed (/feedback/bulk-delete), commit error: " + err.Error(),
-				Module:      "Feedback",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
-		}
-
-		emails := strings.Join(emailsSlice, ",")
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted feedbacks (/feedback/bulk-delete): " + emails,
+			Description: "Bulk deleted feedbacks (/feedback/bulk-delete)",
 			Module:      "Feedback",
 		})
 
